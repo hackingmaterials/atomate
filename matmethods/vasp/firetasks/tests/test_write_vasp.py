@@ -84,12 +84,12 @@ class WriteVaspTests(unittest.TestCase):
         incar.write_file(os.path.join(module_dir, "INCAR"))
 
         # modify and test
-        ft = ModifyIncar({"key_update": {"ISMEAR": 0}, "key_multiply": {"ENCUT": 1.5}, "key_dictmod": {"_inc": {"ISPIN": -1}}})
+        ft = ModifyIncar({"key_update": {"ISMEAR": 1000}, "key_multiply": {"ENCUT": 1.5}, "key_dictmod": {"_inc": {"ISPIN": -1}}})
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
 
         incar_mod = Incar.from_file("INCAR")
-        self.assertEqual(incar_mod['ISMEAR'], 0)
+        self.assertEqual(incar_mod['ISMEAR'], 1000)
         self.assertEqual(incar_mod['ENCUT'], 780)
         self.assertEqual(incar_mod['ISPIN'], 1)
 
