@@ -1,4 +1,6 @@
 from fireworks import FireTaskBase, explicit_serialize
+from fireworks.utilities.dict_mods import apply_mod
+from pymatgen.io.vasp import Incar
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>, Shyue Ping Ong <ongsp@ucsd.edu>'
 
@@ -71,3 +73,38 @@ class WriteVaspFromPMGObjects(FireTaskBase):
             self["kpoints"].write_file("KPOINTS")
         if "potcar" in self:
             self["potcar"].write_file("POTCAR")
+
+
+@explicit_serialize
+class ModifyIncar(FireTaskBase):
+    """
+    Modify an INCAR file
+
+    Required params:
+        (none)
+
+    Optional params:
+        key_update (dict): overwrite Incar dict key
+        key_multiply ({<str>:<float>}) - multiply Incar key by a constant factor
+        key_dictmod ([{}]): use DictMod language to change Incar
+        incar_filename (str): Incar filename (if not "INCAR")
+    """
+
+    optional_params = ["key_update", "key_multiply", "key_dictmod", "incar_filename"]
+
+    def run_task(self, fw_spec):
+        incar_name = self.get("incar_filename", "INCAR")
+
+        incar = Incar.from_file(incar_name)
+
+        if 'key_update' in self:
+            incar.update(self['key_update'])
+
+        if 'key_multiply' in self:
+            for k in self['key_multiply']:
+                incar[k] = incar[k] * self['key_multiply'][k]
+
+        if "key_dictmod" in self:
+            apply_mod(self['key_dictmod'], incar)
+
+        incar.write_file(incar_name)

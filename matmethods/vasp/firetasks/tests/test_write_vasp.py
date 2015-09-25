@@ -1,14 +1,13 @@
 import os
 from fireworks.utilities.fw_serializers import load_object
-from matmethods.vasp.firetasks.write_vasp import WriteVaspFromIOSet, WriteVaspFromPMGObjects
+from matmethods.vasp.firetasks.write_vasp import WriteVaspFromIOSet, WriteVaspFromPMGObjects, ModifyIncar
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
 from pymatgen.io.vasp.sets import MPVaspInputSet
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
-
 import unittest
 
+__author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
@@ -35,10 +34,9 @@ class WriteVaspTests(unittest.TestCase):
         pass
 
     def tearDown(self):
-        os.remove(os.path.join(module_dir, "INCAR"))
-        os.remove(os.path.join(module_dir, "POSCAR"))
-        os.remove(os.path.join(module_dir, "POTCAR"))
-        os.remove(os.path.join(module_dir, "KPOINTS"))
+        for x in ["INCAR", "POSCAR", "POTCAR", "KPOINTS"]:
+            if os.path.exists(os.path.join(module_dir, x)):
+                os.remove(os.path.join(module_dir, x))
 
     def _verify_files(self):
         self.assertEqual(Incar.from_file(os.path.join(module_dir, "INCAR")), self.ref_incar)
@@ -78,6 +76,24 @@ class WriteVaspTests(unittest.TestCase):
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
         self._verify_files()
+
+    def test_modifyincar(self):
+
+        # create an INCAR
+        incar = self.ref_incar
+        incar.write_file(os.path.join(module_dir, "INCAR"))
+
+        # modify and test
+        ft = ModifyIncar({"key_update": {"ISMEAR": 0}, "key_multiply": {"ENCUT": 1.5}, "key_dictmod": {"_inc": {"ISPIN": -1}}})
+        ft = load_object(ft.to_dict())  # simulate database insertion
+        ft.run_task({})
+
+        incar_mod = Incar.from_file("INCAR")
+        self.assertEqual(incar_mod['ISMEAR'], 0)
+        self.assertEqual(incar_mod['ENCUT'], 780)
+        self.assertEqual(incar_mod['ISPIN'], 1)
+
+
 
 if __name__ == '__main__':
     unittest.main()
