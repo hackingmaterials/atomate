@@ -85,15 +85,16 @@ class ModifyIncar(FireTaskBase):
 
     Optional params:
         key_update (dict): overwrite Incar dict key
-        key_multiply ({<str>:<float>}) - multiply Incar key by a constant factor
+        key_multiply ([{<str>:<float>}]) - multiply Incar key by a constant factor
         key_dictmod ([{}]): use DictMod language to change Incar
-        incar_filename (str): Incar filename (if not "INCAR")
+        input_filename (str): Input filename (if not "INCAR")
+        output_filename (str): Output filename (if not "INCAR")
     """
 
-    optional_params = ["key_update", "key_multiply", "key_dictmod", "incar_filename"]
+    optional_params = ["key_update", "key_multiply", "key_dictmod", "input_filename", "output_filename"]
 
     def run_task(self, fw_spec):
-        incar_name = self.get("incar_filename", "INCAR")
+        incar_name = self.get("input_filename", "INCAR")
 
         incar = Incar.from_file(incar_name)
 
@@ -107,4 +108,28 @@ class ModifyIncar(FireTaskBase):
         if "key_dictmod" in self:
             apply_mod(self['key_dictmod'], incar)
 
-        incar.write_file(incar_name)
+        incar.write_file(self.get("output_filename", "INCAR"))
+
+
+@explicit_serialize
+class UpdateIncarFromEnv(FireTaskBase):
+    """
+    Modify an INCAR file using worker-specific settings from the fw_env
+
+    Required params:
+        env_key (str): name of key in fw_env containing INCAR parameter updates (typically dict)
+
+    Optional params:
+        input_filename (str): Input filename (if not "INCAR")
+        output_filename (str): Output filename (if not "INCAR")
+    """
+
+    optional_params = ["key_update", "key_multiply", "key_dictmod", "input_filename", "output_filename"]
+
+    def run_task(self, fw_spec):
+        incar_name = self.get("input_filename", "INCAR")
+
+        incar = Incar.from_file(incar_name)
+        incar.update(fw_spec["_fw_env"][self["env_key"]])
+
+        incar.write_file(self.get("output_filename", "INCAR"))

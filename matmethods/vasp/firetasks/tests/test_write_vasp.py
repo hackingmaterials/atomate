@@ -78,7 +78,6 @@ class WriteVaspTests(unittest.TestCase):
         self._verify_files()
 
     def test_modifyincar(self):
-
         # create an INCAR
         incar = self.ref_incar
         incar.write_file(os.path.join(module_dir, "INCAR"))
