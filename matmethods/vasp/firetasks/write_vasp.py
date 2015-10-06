@@ -1,5 +1,6 @@
 from fireworks import FireTaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
+from matmethods.utils.utils import env_chk
 from pymatgen.io.vasp import Incar
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>, Shyue Ping Ong <ongsp@ucsd.edu>'
@@ -78,15 +79,15 @@ class WriteVaspFromPMGObjects(FireTaskBase):
 @explicit_serialize
 class ModifyIncar(FireTaskBase):
     """
-    Modify an INCAR file
+    Modify an INCAR file.
 
     Required params:
         (none)
 
     Optional params:
-        key_update (dict): overwrite Incar dict key
-        key_multiply ([{<str>:<float>}]) - multiply Incar key by a constant factor
-        key_dictmod ([{}]): use DictMod language to change Incar
+        key_update (dict): overwrite Incar dict key. Supports env_chk.
+        key_multiply ([{<str>:<float>}]) - multiply Incar key by a constant factor. Supports env_chk.
+        key_dictmod ([{}]): use DictMod language to change Incar. Supports env_chk.
         input_filename (str): Input filename (if not "INCAR")
         output_filename (str): Output filename (if not "INCAR")
     """
@@ -94,42 +95,25 @@ class ModifyIncar(FireTaskBase):
     optional_params = ["key_update", "key_multiply", "key_dictmod", "input_filename", "output_filename"]
 
     def run_task(self, fw_spec):
-        incar_name = self.get("input_filename", "INCAR")
 
+        # load INCAR
+        incar_name = self.get("input_filename", "INCAR")
         incar = Incar.from_file(incar_name)
 
-        if 'key_update' in self:
-            incar.update(self['key_update'])
+        # process FireWork env values via env_chk
+        key_update = env_chk(self.get('key_update'), fw_spec)
+        key_multiply = env_chk(self.get('key_multiply'), fw_spec)
+        key_dictmod = env_chk(self.get('key_dictmod'), fw_spec)
 
-        if 'key_multiply' in self:
-            for k in self['key_multiply']:
-                incar[k] = incar[k] * self['key_multiply'][k]
+        if key_update:
+            incar.update(key_update)
 
-        if "key_dictmod" in self:
-            apply_mod(self['key_dictmod'], incar)
+        if key_multiply:
+            for k in key_multiply:
+                incar[k] = incar[k] * key_multiply[k]
 
-        incar.write_file(self.get("output_filename", "INCAR"))
+        if key_dictmod:
+            apply_mod(key_dictmod, incar)
 
-
-@explicit_serialize
-class UpdateIncarFromEnv(FireTaskBase):
-    """
-    Modify an INCAR file using worker-specific settings from the fw_env
-
-    Required params:
-        env_key (str): name of key in fw_env containing INCAR parameter updates (typically dict)
-
-    Optional params:
-        input_filename (str): Input filename (if not "INCAR")
-        output_filename (str): Output filename (if not "INCAR")
-    """
-
-    optional_params = ["key_update", "key_multiply", "key_dictmod", "input_filename", "output_filename"]
-
-    def run_task(self, fw_spec):
-        incar_name = self.get("input_filename", "INCAR")
-
-        incar = Incar.from_file(incar_name)
-        incar.update(fw_spec["_fw_env"][self["env_key"]])
-
+        # write INCAR
         incar.write_file(self.get("output_filename", "INCAR"))
