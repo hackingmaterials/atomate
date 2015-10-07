@@ -2,10 +2,25 @@ import shlex
 import subprocess
 from custodian import Custodian
 from custodian.vasp.jobs import VaspJob
-from fireworks import explicit_serialize, FireTaskBase
+from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, MeshSymmetryErrorHandler, \
+    UnconvergedErrorHandler, MaxForceErrorHandler, PotimErrorHandler, FrozenJobErrorHandler, NonConvergingErrorHandler, \
+    PositiveEnergyErrorHandler
+from custodian.vasp.validators import VasprunXMLValidator
+from fireworks import explicit_serialize, FireTaskBase, FWAction
 from matmethods.utils.utils import env_chk
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__credits__ = 'Shyue Ping Ong <ong.sp>'
+
+DEFAULT_HANDLERS = (VaspErrorHandler(), AliasingErrorHandler(), MeshSymmetryErrorHandler(),
+                    UnconvergedErrorHandler(), MaxForceErrorHandler(), PotimErrorHandler(),
+                    FrozenJobErrorHandler(), NonConvergingErrorHandler(), PositiveEnergyErrorHandler())
+
+
+["VaspErrorHandler", "MeshSymmetryErrorHandler",
+                 "UnconvergedErrorHandler", "NonConvergingErrorHandler",
+                 "PotimErrorHandler"],
+
 
 @explicit_serialize
 class RunVaspDirect(FireTaskBase):
@@ -48,19 +63,19 @@ class RunVaspCustodianFromObjects(FireTaskBase):
         output = c.run()
 
 @explicit_serialize
-class RunVaspCustodianOnRails(FireTaskBase):
+class RunVaspCustodian(FireTaskBase):
     """
-    Run VASP using custodian in a generic manner using built-in custodian objects
+    Run VASP using custodian "on rails", i.e. in a simple way that supports most common options.
 
     Required params:
         vasp_cmd (str): the name of the full executable for running VASP. Supports env_chk.
 
     Optional params:
-        job_type: (str) - choose from "normal" (default), "double_relaxation", and "iterative_relaxation"
+        job_type: (str) - choose from "normal" (default), "double_relaxation_run" (two consecutive jobs), and "full_opt_run"
         scratch_dir: (str) - if specified, uses this directory as the root scratch dir. Supports env_chk.
         gzip_output: (bool) - gzip output (default=T)
-        max_errors: (int) - max errors (default=2)
-        auto_npar: (bool) - use auto_npar (default=F). Supports env_chk.
+        max_errors: (int) - maximum # of errors to fix before giving up (default=2)
+        auto_npar: (bool) - use auto_npar (default=F). Recommended set to T for single-node jobs only. Supports env_chk.
         gamma_vasp_cmd: (str) - cmd for Gamma-optimized VASP compilation. Supports env_chk.
 
     """
@@ -74,7 +89,6 @@ class RunVaspCustodianOnRails(FireTaskBase):
             vasp_cmd = shlex.split(vasp_cmd)
 
         # initialize variables
-
         job_type = self.get("job_type", "normal")
         scratch_dir = env_chk(self.get("scratch_dir"))
         gzip_output = self.get("gzip_output", True)
@@ -85,14 +99,20 @@ class RunVaspCustodianOnRails(FireTaskBase):
         # construct jobs
         jobs = []
         if job_type == "normal":
-            jobs = [VaspJob(vasp_cmd, gzipped=gzip_output, default_vasp_input_set=None, auto_npar=auto_npar, gamma_vasp_cmd=gamma_vasp_cmd)]
-        elif job_type == "double_relaxation":
-            jobs = VaspJob.double_relaxation_run(vasp_cmd, gzipped=gzip_output)
-        elif job_type == "iterative_relaxation":
-            jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar, max_steps=5)
+            jobs = [VaspJob(vasp_cmd, default_vasp_input_set=None, auto_npar=auto_npar, gamma_vasp_cmd=gamma_vasp_cmd)]
+        elif job_type == "double_relaxation_run":
+            jobs = VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar)
+        elif job_type == "full_opt_run":
+            jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar, max_steps=4)
         else:
             raise ValueError("Unsupported job type: {}".format(job_type))
 
+        handlers = DEFAULT_HANDLERS
 
-        c = Custodian(self["handlers"], jobs, self.get("validators"), **self.get("custodian_params", {}))
+        validators = [VasprunXMLValidator()]
+
+        c = Custodian(handlers, jobs, validators=validators, max_errors=max_errors,
+                      scratch_dir=scratch_dir, gzipped_output=gzip_output)
+
         output = c.run()
+        return FWAction(stored_data=output)
