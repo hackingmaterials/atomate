@@ -19,7 +19,7 @@ if __name__ == "__main__":
         packages=find_packages(),
         package_data={},
         zip_safe=False,
-        install_requires=['FireWorks>=1.1.4', 'pymatgen>=3.2.1'],
+        install_requires=['FireWorks>=1.1.4', 'pymatgen>=3.2.1', 'custodian>=0.8.8'],
         extras_require={},
         classifiers=['Programming Language :: Python :: 2.7',
                      'Development Status :: 4 - Beta',
