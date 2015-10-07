@@ -12,15 +12,6 @@ from matmethods.utils.utils import env_chk
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 __credits__ = 'Shyue Ping Ong <ong.sp>'
 
-DEFAULT_HANDLERS = (VaspErrorHandler(), AliasingErrorHandler(), MeshSymmetryErrorHandler(),
-                    UnconvergedErrorHandler(), MaxForceErrorHandler(), PotimErrorHandler(),
-                    FrozenJobErrorHandler(), NonConvergingErrorHandler(), PositiveEnergyErrorHandler())
-
-
-["VaspErrorHandler", "MeshSymmetryErrorHandler",
-                 "UnconvergedErrorHandler", "NonConvergingErrorHandler",
-                 "PotimErrorHandler"],
-
 
 @explicit_serialize
 class RunVaspDirect(FireTaskBase):
@@ -72,6 +63,7 @@ class RunVaspCustodian(FireTaskBase):
 
     Optional params:
         job_type: (str) - choose from "normal" (default), "double_relaxation_run" (two consecutive jobs), and "full_opt_run"
+        handlers: (int) - level of handlers to use,0-4. 0 means no handlers, 2 is the default, 4 is highest level
         scratch_dir: (str) - if specified, uses this directory as the root scratch dir. Supports env_chk.
         gzip_output: (bool) - gzip output (default=T)
         max_errors: (int) - maximum # of errors to fix before giving up (default=2)
@@ -107,7 +99,17 @@ class RunVaspCustodian(FireTaskBase):
         else:
             raise ValueError("Unsupported job type: {}".format(job_type))
 
-        handlers = DEFAULT_HANDLERS
+        # construct handlers
+        handlers = []
+        if self['handlers'] > 0:
+            handlers.append(VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
+                            NonConvergingErrorHandler(), PotimErrorHandler(), PositiveEnergyErrorHandler())
+        if self['handlers'] > 1:
+            handlers.append(AliasingErrorHandler())
+        if self['handlers'] > 2:
+            handlers.append(FrozenJobErrorHandler())
+        if self['handlers'] > 3:
+            handlers.append(MaxForceErrorHandler())
 
         validators = [VasprunXMLValidator()]
 
