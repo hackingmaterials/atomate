@@ -53,6 +53,7 @@ class RunVaspCustodianFromObjects(FireTaskBase):
         c = Custodian(self["handlers"], self["jobs"], self.get("validators"), **self.get("custodian_params", {}))
         output = c.run()
 
+
 @explicit_serialize
 class RunVaspCustodian(FireTaskBase):
     """
@@ -102,8 +103,8 @@ class RunVaspCustodian(FireTaskBase):
         # construct handlers
         handlers = []
         if self['handlers'] > 0:
-            handlers.append(VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
-                            NonConvergingErrorHandler(), PotimErrorHandler(), PositiveEnergyErrorHandler())
+            handlers.extend([VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
+                            NonConvergingErrorHandler(), PotimErrorHandler(), PositiveEnergyErrorHandler()])
         if self['handlers'] > 1:
             handlers.append(AliasingErrorHandler())
         if self['handlers'] > 2:
