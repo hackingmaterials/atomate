@@ -59,4 +59,3 @@ class BasicWorkflowTests(unittest.TestCase):
         vis = MPVaspInputSet()
         structure = self.struct_si
         my_wf = get_basic_workflow(structure, vis, VASP_CMD)
-        
