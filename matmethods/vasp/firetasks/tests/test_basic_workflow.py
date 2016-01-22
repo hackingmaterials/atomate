@@ -2,6 +2,8 @@ import os
 
 from monty.os.path import which
 
+from fireworks import LaunchPad, FWorker
+from fireworks.core.rocket_launcher import launch_rocket
 from fireworks.utilities.fw_serializers import load_object
 from matmethods.vasp.examples.basic_vasp_workflows import get_basic_workflow
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspFromPMGObjects, ModifyIncar
@@ -23,6 +25,11 @@ class BasicWorkflowTests(unittest.TestCase):
         if not which(VASP_CMD):
             raise unittest.SkipTest('VASP executable ("{}") cannot be found. SKIPPING {}.'.format(VASP_CMD, cls.__name__))
 
+        cls.lp = LaunchPad.auto_load()
+        num_entries = cls.lp.get_fw_ids(count_only=True)
+        if  num_entries != 0:
+            raise ValueError("Launchpad is not empty (it contains {} entries)! To prevent unintended behavior, SKIPPING {}".format(num_entries, cls.__name__))
+
         coords = [[0, 0, 0], [0.75, 0.5, 0.75]]
         lattice = Lattice([[3.8401979337, 0.00, 0.00],
                                 [1.9200989668, 3.3257101909, 0.00],
@@ -33,6 +40,8 @@ class BasicWorkflowTests(unittest.TestCase):
         cls.ref_poscar = Poscar.from_file(os.path.join(module_dir, "reference_files", "POSCAR"))
         cls.ref_potcar = Potcar.from_file(os.path.join(module_dir, "reference_files", "POTCAR"))
         cls.ref_kpoints = Kpoints.from_file(os.path.join(module_dir, "reference_files", "KPOINTS"))
+
+
 
     """
     @classmethod
@@ -56,6 +65,17 @@ class BasicWorkflowTests(unittest.TestCase):
     """
 
     def test_relax_workflow(self):
+        # add the workflow
         vis = MPVaspInputSet()
         structure = self.struct_si
         my_wf = get_basic_workflow(structure, vis, VASP_CMD)
+        self.lp.add_wf(my_wf)
+
+        # run the workflow
+        launch_rocket(self.lp, fworker=FWorker.auto_load())
+
+        # confirm results
+        # TODO: add some confirmation stuff
+
+
+

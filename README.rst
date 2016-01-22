@@ -14,4 +14,9 @@ To cite MatMethods, you can cite the following two papers::
 Testing the VASP functionality
 ==============================
 
+Some of the things you need to do are:
+
+1. Set up VASP_PSP_DIR variable
+
 To test the VASP functionality, run the unit tests in ``matmethods.vasp.firetasks.tests``. Note that some of the tests will require the VASP executable be installed (just read all the messages, they are self-explanatory).
+
