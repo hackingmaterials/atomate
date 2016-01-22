@@ -1,6 +1,6 @@
 import os
 from fireworks.utilities.fw_serializers import load_object
-from matmethods.vasp.firetasks.write_vasp import WriteVaspFromIOSet, WriteVaspFromPMGObjects, ModifyIncar
+from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspFromPMGObjects, ModifyIncar
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
 from pymatgen.io.vasp.sets import MPVaspInputSet
