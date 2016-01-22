@@ -6,10 +6,10 @@ from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 
-def get_basic_workflow(structure, vasp_input_set="MPVaspInputSet"):
+def get_basic_workflow(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vasp"):
 
     write_task = WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
-    run_task = RunVaspDirect(vasp_cmd="vasp")
+    run_task = RunVaspDirect(vasp_cmd=vasp_cmd)
     parse_task = VaspToDBTask()
 
     my_fw = Firework([write_task, run_task, parse_task])

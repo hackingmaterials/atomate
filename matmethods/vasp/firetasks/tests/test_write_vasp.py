@@ -11,6 +11,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
+
 class WriteVaspTests(unittest.TestCase):
 
     @classmethod
@@ -19,7 +20,7 @@ class WriteVaspTests(unittest.TestCase):
         lattice = Lattice([[3.8401979337, 0.00, 0.00],
                                 [1.9200989668, 3.3257101909, 0.00],
                                 [0.00, -2.2171384943, 3.1355090603]])
-        cls.struct = IStructure(lattice, ["Si"] * 2, coords)
+        cls.struct_si = IStructure(lattice, ["Si"] * 2, coords)
 
         cls.ref_incar = Incar.from_file(os.path.join(module_dir, "reference_files", "INCAR"))
         cls.ref_poscar = Poscar.from_file(os.path.join(module_dir, "reference_files", "POSCAR"))
@@ -45,19 +46,19 @@ class WriteVaspTests(unittest.TestCase):
         self.assertEqual(str(Kpoints.from_file(os.path.join(module_dir, "KPOINTS"))), str(self.ref_kpoints))
 
     def test_ioset_explicit(self):
-        ft = WriteVaspFromIOSet(dict(structure=self.struct, vasp_input_set=MPVaspInputSet()))
+        ft = WriteVaspFromIOSet(dict(structure=self.struct_si, vasp_input_set=MPVaspInputSet()))
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
         self._verify_files()
 
     def test_ioset_implicit(self):
-        ft = WriteVaspFromIOSet(dict(structure=self.struct, vasp_input_set="MPVaspInputSet"))
+        ft = WriteVaspFromIOSet(dict(structure=self.struct_si, vasp_input_set="MPVaspInputSet"))
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
         self._verify_files()
 
     def test_ioset_params(self):
-        ft = WriteVaspFromIOSet(dict(structure=self.struct, vasp_input_set="MPVaspInputSet",
+        ft = WriteVaspFromIOSet(dict(structure=self.struct_si, vasp_input_set="MPVaspInputSet",
                                      vasp_input_params={"user_incar_settings": {"ISMEAR": 1000}}))
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
@@ -69,10 +70,10 @@ class WriteVaspTests(unittest.TestCase):
 
     def test_pmgobjects(self):
         mpvis = MPVaspInputSet()
-        ft = WriteVaspFromPMGObjects({"incar": mpvis.get_incar(self.struct),
-                                      "poscar": mpvis.get_poscar(self.struct),
-                                      "kpoints": mpvis.get_kpoints(self.struct),
-                                      "potcar": mpvis.get_potcar(self.struct)})
+        ft = WriteVaspFromPMGObjects({"incar": mpvis.get_incar(self.struct_si),
+                                      "poscar": mpvis.get_poscar(self.struct_si),
+                                      "kpoints": mpvis.get_kpoints(self.struct_si),
+                                      "potcar": mpvis.get_potcar(self.struct_si)})
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
         self._verify_files()

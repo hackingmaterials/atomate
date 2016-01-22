@@ -1,4 +1,10 @@
 import os
+
+from monty.os.path import which
+
+from fireworks.utilities.fw_serializers import load_object
+from matmethods.vasp.examples.basic_vasp_workflows import get_basic_workflow
+from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspFromPMGObjects, ModifyIncar
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
 from pymatgen.io.vasp.sets import MPVaspInputSet
@@ -8,11 +14,15 @@ import unittest
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+VASP_CMD = "vasp"
 
-class SetupTests(unittest.TestCase):
+class BasicWorkflowTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        if not which(VASP_CMD):
+            raise unittest.SkipTest('VASP executable ("{}") cannot be found. SKIPPING {}.'.format(VASP_CMD, cls.__name__))
+
         coords = [[0, 0, 0], [0.75, 0.5, 0.75]]
         lattice = Lattice([[3.8401979337, 0.00, 0.00],
                                 [1.9200989668, 3.3257101909, 0.00],
@@ -24,6 +34,13 @@ class SetupTests(unittest.TestCase):
         cls.ref_potcar = Potcar.from_file(os.path.join(module_dir, "reference_files", "POTCAR"))
         cls.ref_kpoints = Kpoints.from_file(os.path.join(module_dir, "reference_files", "KPOINTS"))
 
+    """
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def setUp(self):
+        pass
 
     def tearDown(self):
         for x in ["INCAR", "POSCAR", "POTCAR", "KPOINTS"]:
@@ -36,15 +53,10 @@ class SetupTests(unittest.TestCase):
         self.assertEqual(Potcar.from_file(os.path.join(module_dir, "POTCAR")), self.ref_potcar)
         self.assertEqual(str(Kpoints.from_file(os.path.join(module_dir, "KPOINTS"))), str(self.ref_kpoints))
 
-    def test_setup(self):
-        try:
-            mpvi = MPVaspInputSet()
-            mpvi.write_input(self.struct_si, ".")
-        except ValueError:
-            import traceback
-            traceback.print_exc()
+    """
 
-            help_str = "This system is not set up to run VASP jobs. See further error tracebacks for help. Common fixes are (i) setting your VASP_PSP_DIR environment variable and (ii) making sure your VASP_PSP_DIR has the proper subdirs as outlined in PotcarSingle class of pymatgen, e.g. POT_GGA_PAW_PBE subdir."
-            raise ValueError(help_str)
-
-        self._verify_files()
+    def test_relax_workflow(self):
+        vis = MPVaspInputSet()
+        structure = self.struct_si
+        my_wf = get_basic_workflow(structure, vis, VASP_CMD)
+        
