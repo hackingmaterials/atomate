@@ -1,0 +1,311 @@
+{
+    "name": "Unnamed FW", 
+    "launches": [
+        {
+            "fworker": {
+                "category": "", 
+                "query": "{}", 
+                "name": "Automatically generated Worker", 
+                "env": {}
+            }, 
+            "trackers": [], 
+            "ip": "127.0.0.1", 
+            "fw_id": 1, 
+            "state": "RUNNING", 
+            "host": "116.15.243.131.in-addr.dhcp.lbl.gov", 
+            "launch_dir": "/Users/ajain/Documents/code_matgen/MatMethods/matmethods/vasp/firetasks/tests", 
+            "action": null, 
+            "launch_id": 1, 
+            "state_history": [
+                {
+                    "updated_on": "2016-02-08T21:46:16.996100", 
+                    "state": "RUNNING", 
+                    "created_on": "2016-02-08T21:46:16.996058"
+                }
+            ]
+        }
+    ], 
+    "fw_id": 1, 
+    "state": "RUNNING", 
+    "created_on": "2016-02-08T21:46:16.553171", 
+    "updated_on": "2016-02-08T21:46:16.998044", 
+    "spec": {
+        "_tasks": [
+            {
+                "vasp_input_set": {
+                    "sort_structure": true, 
+                    "hubbard_off": false, 
+                    "constrain_total_magmom": false, 
+                    "name": "MP", 
+                    "config_dict": {
+                        "INCAR": {
+                            "NELM": 100, 
+                            "IBRION": 2, 
+                            "ENCUT": 520, 
+                            "LWAVE": false, 
+                            "SIGMA": 0.05, 
+                            "LDAUPRINT": 1, 
+                            "MAGMOM": {
+                                "Ni": 5, 
+                                "Mn4+": 3, 
+                                "Co": 5, 
+                                "Mo": 5, 
+                                "Mn": 5, 
+                                "Co3+": 0.6, 
+                                "Ce": 5, 
+                                "Fe": 5, 
+                                "W": 5, 
+                                "Mn3+": 4, 
+                                "Eu": 10, 
+                                "Cr": 5, 
+                                "V": 5, 
+                                "Co4+": 1
+                            }, 
+                            "LDAUL": {
+                                "O": {
+                                    "Ni": 2, 
+                                    "Co": 2, 
+                                    "Mo": 2, 
+                                    "Mn": 2, 
+                                    "Fe": 2, 
+                                    "W": 2, 
+                                    "V": 2, 
+                                    "Cr": 2
+                                }, 
+                                "F": {
+                                    "Ni": 2, 
+                                    "Co": 2, 
+                                    "Mo": 2, 
+                                    "Mn": 2, 
+                                    "Fe": 2, 
+                                    "W": 2, 
+                                    "V": 2, 
+                                    "Cr": 2
+                                }
+                            }, 
+                            "LDAUJ": {
+                                "O": {
+                                    "Ni": 0, 
+                                    "Co": 0, 
+                                    "Mo": 0, 
+                                    "Mn": 0, 
+                                    "Fe": 0, 
+                                    "W": 0, 
+                                    "V": 0, 
+                                    "Cr": 0
+                                }, 
+                                "F": {
+                                    "Ni": 0, 
+                                    "Co": 0, 
+                                    "Mo": 0, 
+                                    "Mn": 0, 
+                                    "Fe": 0, 
+                                    "W": 0, 
+                                    "V": 0, 
+                                    "Cr": 0
+                                }
+                            }, 
+                            "LDAUTYPE": 2, 
+                            "ISIF": 3, 
+                            "ICHARG": 1, 
+                            "LDAUU": {
+                                "O": {
+                                    "Ni": 6.2, 
+                                    "Co": 3.32, 
+                                    "Mo": 4.38, 
+                                    "Mn": 3.9, 
+                                    "Fe": 5.3, 
+                                    "W": 6.2, 
+                                    "V": 3.25, 
+                                    "Cr": 3.7
+                                }, 
+                                "F": {
+                                    "Ni": 6.2, 
+                                    "Co": 3.32, 
+                                    "Mo": 4.38, 
+                                    "Mn": 3.9, 
+                                    "Fe": 5.3, 
+                                    "W": 6.2, 
+                                    "V": 3.25, 
+                                    "Cr": 3.7
+                                }
+                            }, 
+                            "EDIFF": 5e-05, 
+                            "NSW": 99, 
+                            "LREAL": "AUTO", 
+                            "ISMEAR": -5, 
+                            "PREC": "Accurate", 
+                            "LDAU": true, 
+                            "ALGO": "FAST", 
+                            "ISPIN": 2, 
+                            "LORBIT": 11
+                        }, 
+                        "KPOINTS": {
+                            "grid_density": 1000
+                        }, 
+                        "POTCAR": {
+                            "Ru": "Ru_pv", 
+                            "Re": "Re_pv", 
+                            "Rb": "Rb_sv", 
+                            "Rh": "Rh_pv", 
+                            "Be": "Be_sv", 
+                            "Ba": "Ba_sv", 
+                            "Bi": "Bi", 
+                            "Br": "Br", 
+                            "H": "H", 
+                            "P": "P", 
+                            "Os": "Os_pv", 
+                            "Ge": "Ge_d", 
+                            "Gd": "Gd", 
+                            "Ga": "Ga_d", 
+                            "Pr": "Pr_3", 
+                            "Pt": "Pt", 
+                            "Pu": "Pu", 
+                            "C": "C", 
+                            "Pb": "Pb_d", 
+                            "Pa": "Pa", 
+                            "Pd": "Pd", 
+                            "Cd": "Cd", 
+                            "Pm": "Pm_3", 
+                            "Ho": "Ho_3", 
+                            "Hf": "Hf_pv", 
+                            "Hg": "Hg", 
+                            "He": "He", 
+                            "Mg": "Mg_pv", 
+                            "K": "K_sv", 
+                            "Mn": "Mn_pv", 
+                            "O": "O", 
+                            "S": "S", 
+                            "W": "W_pv", 
+                            "Zn": "Zn", 
+                            "Eu": "Eu", 
+                            "Zr": "Zr_sv", 
+                            "Er": "Er_3", 
+                            "Ni": "Ni_pv", 
+                            "Na": "Na_pv", 
+                            "Nb": "Nb_pv", 
+                            "Nd": "Nd_3", 
+                            "Ne": "Ne", 
+                            "Np": "Np", 
+                            "Fe": "Fe_pv", 
+                            "B": "B", 
+                            "F": "F", 
+                            "Sr": "Sr_sv", 
+                            "N": "N", 
+                            "Kr": "Kr", 
+                            "Si": "Si", 
+                            "Sn": "Sn_d", 
+                            "Sm": "Sm_3", 
+                            "V": "V_pv", 
+                            "Sc": "Sc_sv", 
+                            "Sb": "Sb", 
+                            "Se": "Se", 
+                            "Co": "Co", 
+                            "Cl": "Cl", 
+                            "Ca": "Ca_sv", 
+                            "Ce": "Ce", 
+                            "Xe": "Xe", 
+                            "Tm": "Tm_3", 
+                            "Cs": "Cs_sv", 
+                            "Cr": "Cr_pv", 
+                            "Cu": "Cu_pv", 
+                            "La": "La", 
+                            "Li": "Li_sv", 
+                            "Tl": "Tl_d", 
+                            "Lu": "Lu_3", 
+                            "Th": "Th", 
+                            "Ti": "Ti_pv", 
+                            "Te": "Te", 
+                            "Tb": "Tb_3", 
+                            "Tc": "Tc_pv", 
+                            "Ta": "Ta_pv", 
+                            "Yb": "Yb_2", 
+                            "Dy": "Dy_3", 
+                            "I": "I", 
+                            "U": "U", 
+                            "Y": "Y_sv", 
+                            "Ac": "Ac", 
+                            "Ag": "Ag", 
+                            "Ir": "Ir", 
+                            "Al": "Al", 
+                            "As": "As", 
+                            "Ar": "Ar", 
+                            "Au": "Au", 
+                            "In": "In_d", 
+                            "Mo": "Mo_pv"
+                        }
+                    }, 
+                    "@module": "pymatgen.io.vasp.sets", 
+                    "potcar_functional": null, 
+                    "@class": "DictVaspInputSet"
+                }, 
+                "_fw_name": "{{matmethods.vasp.firetasks.write_inputs.WriteVaspFromIOSet}}", 
+                "structure": {
+                    "lattice": {
+                        "a": 3.8401979337, 
+                        "c": 3.8401979337177736, 
+                        "b": 3.840198994344244, 
+                        "matrix": [
+                            [
+                                3.8401979337, 
+                                0.0, 
+                                0.0
+                            ], 
+                            [
+                                1.9200989668, 
+                                3.3257101909, 
+                                0.0
+                            ], 
+                            [
+                                0.0, 
+                                -2.2171384943, 
+                                3.1355090603
+                            ]
+                        ], 
+                        "volume": 40.04479464425159, 
+                        "beta": 90.0, 
+                        "alpha": 119.99999086398421, 
+                        "gamma": 60.0000091373222
+                    }, 
+                    "sites": [
+                        {
+                            "abc": [
+                                0.0, 
+                                0.0, 
+                                0.0
+                            ], 
+                            "species": [
+                                {
+                                    "occu": 1, 
+                                    "element": "Si"
+                                }
+                            ]
+                        }, 
+                        {
+                            "abc": [
+                                0.75, 
+                                0.5, 
+                                0.75
+                            ], 
+                            "species": [
+                                {
+                                    "occu": 1, 
+                                    "element": "Si"
+                                }
+                            ]
+                        }
+                    ], 
+                    "@class": "IStructure", 
+                    "@module": "pymatgen.core.structure"
+                }
+            }, 
+            {
+                "run_dir": "/Users/ajain/Documents/code_matgen/MatMethods/matmethods/vasp/firetasks/tests/reference_files/Si_structure_optimization", 
+                "_fw_name": "{{matmethods.vasp.firetasks.tests.vasp_fake.VaspFakeTask}}"
+            }, 
+            {
+                "_fw_name": "{{matmethods.vasp.firetasks.parse_outputs.VaspToDBTask}}"
+            }
+        ]
+    }
+}

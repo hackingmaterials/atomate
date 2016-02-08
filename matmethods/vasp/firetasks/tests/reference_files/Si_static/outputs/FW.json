@@ -1,0 +1,1033 @@
+{
+    "name": "Si1--GGA_static_v2", 
+    "launches": [
+        {
+            "fworker": {
+                "category": "", 
+                "query": "{}", 
+                "name": "Mendel FireWorker"
+            }, 
+            "ip": "10.32.47.195", 
+            "fw_id": 389927, 
+            "state": "RUNNING", 
+            "host": "mc0856", 
+            "launch_dir": "/global/scratch/sd/matcomp/mp_prod/block_2013-09-21-04-31-24-238403/launcher_2013-09-21-18-51-34-883217", 
+            "action": null, 
+            "launch_id": 241985, 
+            "state_history": [
+                {
+                    "updated_on": "2013-09-21T18:51:35.430289", 
+                    "state": "RESERVED", 
+                    "reservation_id": "6671258", 
+                    "created_on": "2013-09-21T18:51:35.430282"
+                }, 
+                {
+                    "updated_on": "2013-09-21T18:51:46.050970", 
+                    "state": "RUNNING", 
+                    "created_on": "2013-09-21T18:51:46.050963"
+                }
+            ]
+        }
+    ], 
+    "fw_id": 389927, 
+    "state": "RUNNING", 
+    "created_on": "2013-09-21T11:54:54.154065", 
+    "spec": {
+        "_queueadapter": {
+            "nnodes": 2
+        }, 
+        "_tasks": [
+            {
+                "_fw_name": "Vasp Copy Task", 
+                "use_CONTCAR": true, 
+                "skip_CHGCAR": true
+            }, 
+            {
+                "_fw_name": "Setup Static Task"
+            }, 
+            {
+                "jobs": [
+                    {
+                        "settings_override": null, 
+                        "suffix": "", 
+                        "auto_gamma": true, 
+                        "output_file": "vasp.out", 
+                        "auto_npar": false, 
+                        "@module": "custodian.vasp.jobs", 
+                        "default_vasp_input_set": {
+                            "sort_structure": true, 
+                            "hubbard_off": false, 
+                            "constrain_total_magmom": false, 
+                            "name": "MIT", 
+                            "config_dict": {
+                                "INCAR": {
+                                    "NELM": 100, 
+                                    "IBRION": 2, 
+                                    "ENCUT": 520, 
+                                    "LWAVE": false, 
+                                    "SIGMA": 0.05, 
+                                    "MAGMOM": {
+                                        "Ni": 2, 
+                                        "Mn4+": 3, 
+                                        "Co": 5, 
+                                        "Ni3+": 1, 
+                                        "Mo": 5, 
+                                        "Mn": 5, 
+                                        "Co3+": 0.6, 
+                                        "Fe3+": 5, 
+                                        "Co4+": 1, 
+                                        "Mn2+": 5, 
+                                        "Fe": 5, 
+                                        "W": 5, 
+                                        "Mn3+": 4, 
+                                        "Ni4+": 0.6, 
+                                        "Cr": 5, 
+                                        "V": 5, 
+                                        "Fe4+": 4, 
+                                        "Fe2+": 4, 
+                                        "Ta": 5
+                                    }, 
+                                    "NELMIN": 6, 
+                                    "LDAUL": {
+                                        "S": {
+                                            "Mn": 2.5, 
+                                            "Fe": 2
+                                        }, 
+                                        "O": {
+                                            "Ni": 2, 
+                                            "Co": 2, 
+                                            "Ag": 2, 
+                                            "Mo": 2, 
+                                            "Mn": 2, 
+                                            "Re": 2, 
+                                            "Fe": 2, 
+                                            "W": 2, 
+                                            "V": 2, 
+                                            "Cr": 2, 
+                                            "Nb": 2, 
+                                            "Cu": 2, 
+                                            "Ta": 2
+                                        }, 
+                                        "F": {
+                                            "Ni": 2, 
+                                            "Co": 2, 
+                                            "Ag": 2, 
+                                            "Mo": 2, 
+                                            "Mn": 2, 
+                                            "Re": 2, 
+                                            "Fe": 2, 
+                                            "W": 2, 
+                                            "V": 2, 
+                                            "Cr": 2, 
+                                            "Nb": 2, 
+                                            "Cu": 2, 
+                                            "Ta": 2
+                                        }
+                                    }, 
+                                    "LDAUJ": {
+                                        "S": {
+                                            "Mn": 0, 
+                                            "Fe": 0
+                                        }, 
+                                        "O": {
+                                            "Ni": 0, 
+                                            "Co": 0, 
+                                            "Ag": 0, 
+                                            "Mo": 0, 
+                                            "Mn": 0, 
+                                            "Re": 0, 
+                                            "Fe": 0, 
+                                            "W": 0, 
+                                            "V": 0, 
+                                            "Cr": 0, 
+                                            "Nb": 0, 
+                                            "Cu": 0, 
+                                            "Ta": 0
+                                        }, 
+                                        "F": {
+                                            "Ni": 0, 
+                                            "Co": 0, 
+                                            "Ag": 0, 
+                                            "Mo": 0, 
+                                            "Mn": 0, 
+                                            "Re": 0, 
+                                            "Fe": 0, 
+                                            "W": 0, 
+                                            "V": 0, 
+                                            "Cr": 0, 
+                                            "Nb": 0, 
+                                            "Cu": 0, 
+                                            "Ta": 0
+                                        }
+                                    }, 
+                                    "LDAUTYPE": 2, 
+                                    "ISIF": 3, 
+                                    "ICHARG": 1, 
+                                    "LDAUU": {
+                                        "S": {
+                                            "Mn": 2.5, 
+                                            "Fe": 1.9
+                                        }, 
+                                        "O": {
+                                            "Ni": 6, 
+                                            "Co": 3.4, 
+                                            "Ag": 1.5, 
+                                            "Mo": 4.38, 
+                                            "Mn": 3.9, 
+                                            "Re": 2, 
+                                            "Fe": 4.0, 
+                                            "W": 4.0, 
+                                            "V": 3.1, 
+                                            "Cr": 3.5, 
+                                            "Nb": 1.5, 
+                                            "Cu": 4, 
+                                            "Ta": 2
+                                        }, 
+                                        "F": {
+                                            "Ni": 6, 
+                                            "Co": 3.4, 
+                                            "Ag": 1.5, 
+                                            "Mo": 4.38, 
+                                            "Mn": 3.9, 
+                                            "Re": 2, 
+                                            "Fe": 4.0, 
+                                            "W": 4.0, 
+                                            "V": 3.1, 
+                                            "Cr": 3.5, 
+                                            "Nb": 1.5, 
+                                            "Cu": 4, 
+                                            "Ta": 2
+                                        }
+                                    }, 
+                                    "EDIFF": 5e-05, 
+                                    "NSW": 99, 
+                                    "LREAL": "AUTO", 
+                                    "ISMEAR": -5, 
+                                    "NPAR": 1, 
+                                    "PREC": "Accurate", 
+                                    "LDAU": true, 
+                                    "ALGO": "FAST", 
+                                    "ISPIN": 2, 
+                                    "LORBIT": "11"
+                                }, 
+                                "KPOINTS": {
+                                    "grid_density": 1000
+                                }, 
+                                "POTCAR": {
+                                    "Ru": "Ru_pv", 
+                                    "Re": "Re", 
+                                    "Rb": "Rb_pv", 
+                                    "Rh": "Rh", 
+                                    "Be": "Be", 
+                                    "Ba": "Ba_sv", 
+                                    "Bi": "Bi", 
+                                    "Br": "Br", 
+                                    "H": "H", 
+                                    "P": "P", 
+                                    "Os": "Os", 
+                                    "Ge": "Ge", 
+                                    "Gd": "Gd", 
+                                    "Ga": "Ga", 
+                                    "Pr": "Pr", 
+                                    "Pt": "Pt", 
+                                    "Pu": "Pu", 
+                                    "C": "C", 
+                                    "Pb": "Pb", 
+                                    "Pa": "Pa", 
+                                    "Pd": "Pd", 
+                                    "Cd": "Cd", 
+                                    "Pm": "Pm", 
+                                    "Ho": "Ho_3", 
+                                    "Hf": "Hf", 
+                                    "Hg": "Hg", 
+                                    "He": "He", 
+                                    "Mg": "Mg", 
+                                    "K": "K_sv", 
+                                    "Mn": "Mn", 
+                                    "O": "O", 
+                                    "S": "S", 
+                                    "W": "W_pv", 
+                                    "Zn": "Zn", 
+                                    "Eu": "Eu", 
+                                    "Zr": "Zr", 
+                                    "Er": "Er_3", 
+                                    "Ni": "Ni", 
+                                    "Na": "Na", 
+                                    "Nb": "Nb_pv", 
+                                    "Nd": "Nd", 
+                                    "Ne": "Ne", 
+                                    "Np": "Np", 
+                                    "Fe": "Fe", 
+                                    "B": "B", 
+                                    "F": "F", 
+                                    "Sr": "Sr_sv", 
+                                    "N": "N", 
+                                    "Kr": "Kr", 
+                                    "Si": "Si", 
+                                    "Sn": "Sn_d", 
+                                    "Sm": "Sm_3", 
+                                    "V": "V_pv", 
+                                    "Sc": "Sc_sv", 
+                                    "Sb": "Sb", 
+                                    "Se": "Se", 
+                                    "Co": "Co", 
+                                    "Cl": "Cl", 
+                                    "Ca": "Ca_sv", 
+                                    "Ce": "Ce", 
+                                    "Xe": "Xe", 
+                                    "Tm": "Tm_3", 
+                                    "Cs": "Cs_sv", 
+                                    "Cr": "Cr", 
+                                    "Cu": "Cu", 
+                                    "La": "La", 
+                                    "Li": "Li", 
+                                    "Tl": "Tl", 
+                                    "Lu": "Lu_3", 
+                                    "Th": "Th", 
+                                    "Ti": "Ti", 
+                                    "Te": "Te", 
+                                    "Tb": "Tb_3", 
+                                    "Tc": "Tc", 
+                                    "Ta": "Ta", 
+                                    "Yb": "Yb", 
+                                    "Dy": "Dy_3", 
+                                    "I": "I", 
+                                    "U": "U", 
+                                    "Y": "Y_sv", 
+                                    "Ac": "Ac", 
+                                    "Ag": "Ag", 
+                                    "Ir": "Ir", 
+                                    "Al": "Al", 
+                                    "As": "As", 
+                                    "Ar": "Ar", 
+                                    "Au": "Au", 
+                                    "In": "In", 
+                                    "Mo": "Mo_pv"
+                                }
+                            }, 
+                            "@module": "pymatgen.io.vaspio_set", 
+                            "@class": "DictVaspInputSet"
+                        }, 
+                        "gamma_vasp_cmd": null, 
+                        "vasp_cmd": "VASP_EXE", 
+                        "gzipped": false, 
+                        "backup": true, 
+                        "final": true, 
+                        "@class": "VaspJob"
+                    }
+                ], 
+                "max_errors": 10, 
+                "_fw_name": "Vasp Custodian Task", 
+                "handlers": [
+                    {
+                        "@class": "VaspErrorHandler", 
+                        "output_filename": "vasp.out", 
+                        "@module": "custodian.vasp.handlers"
+                    }, 
+                    {
+                        "@class": "FrozenJobErrorHandler", 
+                        "output_filename": "vasp.out", 
+                        "timeout": 3600, 
+                        "@module": "custodian.vasp.handlers"
+                    }, 
+                    {
+                        "output_vasprun": "vasprun.xml", 
+                        "@class": "MeshSymmetryErrorHandler", 
+                        "output_filename": "vasp.out", 
+                        "@module": "custodian.vasp.handlers"
+                    }, 
+                    {
+                        "change_algo": false, 
+                        "nionic_steps": 10, 
+                        "@class": "NonConvergingErrorHandler", 
+                        "output_filename": "OSZICAR", 
+                        "@module": "custodian.vasp.handlers"
+                    }
+                ]
+            }
+        ], 
+        "prev_task_type": "GGA optimize structure (2x)", 
+        "task_type": "GGA static v2", 
+        "prev_vasp_dir": "/project/projectdirs/matgen/garden/aflow_engines-mag_special/runs_2011-08-25-09-51-06/2011-5-27-17-51-13_11721_79021", 
+        "mpsnl": {
+            "about": {
+                "created_at": "2013-05-14T00:18:44.620000", 
+                "_icsd": {
+                    "icsd_id": 67788, 
+                    "comments": [
+                        "Diamond type"
+                    ]
+                }, 
+                "_materialsproject": {
+                    "deprecated": {
+                        "crystal_deprecated": {
+                            "lattice": {
+                                "a": 3.812719764157865, 
+                                "c": 3.812719764157865, 
+                                "b": 3.812719764157865, 
+                                "volume": 39.19129907206587, 
+                                "beta": 60.00000000000001, 
+                                "alpha": 60.00000000000001, 
+                                "gamma": 60.00000000000001
+                            }, 
+                            "space_group": {
+                                "centering": "P", 
+                                "number": 1, 
+                                "point_group": "1", 
+                                "laue": "-1", 
+                                "is_standard": true, 
+                                "schoenflies": "C1^1", 
+                                "hermann_mauguin": "P 1", 
+                                "crystal_system": "Triclinic", 
+                                "cctbx_name": "P 1", 
+                                "hall": " P 1"
+                            }, 
+                            "db": {}, 
+                            "sites": [
+                                {
+                                    "abc": [
+                                        0.0, 
+                                        0.0, 
+                                        0.0
+                                    ], 
+                                    "meta": {
+                                        "type": "atom"
+                                    }, 
+                                    "name": "Si", 
+                                    "occupancy": 1.0, 
+                                    "label": "Si-0"
+                                }, 
+                                {
+                                    "abc": [
+                                        0.25, 
+                                        0.25, 
+                                        0.25
+                                    ], 
+                                    "meta": {
+                                        "type": "atom"
+                                    }, 
+                                    "name": "Si", 
+                                    "occupancy": 1.0, 
+                                    "label": "Si-1"
+                                }
+                            ], 
+                            "transforms": [
+                                {
+                                    "initial_space_group": {
+                                        "centering": "F", 
+                                        "number": 216, 
+                                        "point_group": "-43m", 
+                                        "laue": "m-3m", 
+                                        "is_standard": true, 
+                                        "schoenflies": "Td^2", 
+                                        "hermann_mauguin": "F -4 3 m", 
+                                        "crystal_system": "Cubic", 
+                                        "cctbx_name": "F -4 3 m", 
+                                        "hall": " F -4 2 3"
+                                    }, 
+                                    "name": "to_niggli"
+                                }, 
+                                {
+                                    "initial_space_group": {
+                                        "centering": "F", 
+                                        "number": 216, 
+                                        "point_group": "-43m", 
+                                        "laue": "m-3m", 
+                                        "is_standard": true, 
+                                        "schoenflies": "Td^2", 
+                                        "hermann_mauguin": "F -4 3 m", 
+                                        "crystal_system": "Cubic", 
+                                        "cctbx_name": "F -4 3 m", 
+                                        "hall": " F -4 2 3"
+                                    }, 
+                                    "name": "to_p1"
+                                }
+                            ]
+                        }, 
+                        "original_structure_order": {
+                            "lattice": {
+                                "a": 3.812719764157865, 
+                                "c": 3.812719764157865, 
+                                "b": 3.812719764157865, 
+                                "matrix": [
+                                    [
+                                        3.3019121732717247, 
+                                        0.0, 
+                                        1.906359882078932
+                                    ], 
+                                    [
+                                        1.1006373910905742, 
+                                        3.113072651470463, 
+                                        1.906359882078932
+                                    ], 
+                                    [
+                                        0.0, 
+                                        0.0, 
+                                        3.812719764157865
+                                    ]
+                                ], 
+                                "@module": "pymatgen.core.lattice", 
+                                "volume": 39.19129907200003, 
+                                "beta": 60.00000000000001, 
+                                "@class": "Lattice", 
+                                "alpha": 60.00000000000001, 
+                                "gamma": 60.00000000000002
+                            }, 
+                            "sites": [
+                                {
+                                    "label": "Si", 
+                                    "xyz": [
+                                        0.0, 
+                                        0.0, 
+                                        0.0
+                                    ], 
+                                    "abc": [
+                                        0.0, 
+                                        0.0, 
+                                        0.0
+                                    ], 
+                                    "properties": {}, 
+                                    "species": [
+                                        {
+                                            "occu": 1.0, 
+                                            "@module": "pymatgen.core.periodic_table", 
+                                            "@class": "Element", 
+                                            "element": "Si"
+                                        }
+                                    ]
+                                }, 
+                                {
+                                    "label": "Si", 
+                                    "xyz": [
+                                        1.1006373910905747, 
+                                        0.7782681628676158, 
+                                        1.9063598820789323
+                                    ], 
+                                    "abc": [
+                                        0.25, 
+                                        0.25, 
+                                        0.25
+                                    ], 
+                                    "properties": {}, 
+                                    "species": [
+                                        {
+                                            "occu": 1.0, 
+                                            "@module": "pymatgen.core.periodic_table", 
+                                            "@class": "Element", 
+                                            "element": "Si"
+                                        }
+                                    ]
+                                }
+                            ], 
+                            "@class": "Structure", 
+                            "@module": "pymatgen.core.structure"
+                        }, 
+                        "mps_ids": [
+                            79021
+                        ], 
+                        "crystal_id_deprecated": 79021
+                    }, 
+                    "snl_id": 134420, 
+                    "spacegroup": {
+                        "lattice_type": "cubic", 
+                        "symbol": "Fd-3m", 
+                        "number": 227, 
+                        "point_group": "m-3m", 
+                        "crystal_system": "cubic", 
+                        "hall": "F 4d 2 3 -1d"
+                    }
+                }, 
+                "references": "@misc{MaterialsProject,\ntitle = {{Materials Project}},\nurl = {http://www.materialsproject.org}\n}\n\n@article{Yeh1992_174,\ntitle = {{Zinc-blende-Wurtzite polytypism in semiconductors}},\nauthor = {Yeh, C. and Lu, Z.W. and Froyen, S. and Zunger, A.},\nyear = {1992},\njournal = {Physical Review, Serie 3. B - Condensed Matter (18,1978-)},\nvolume = {46},\nissue = {16},\npages = {10086--10097},\n}\n\n@article{Bergerhoff1983,\nauthor = {Bergerhoff, G. and Hundt, R. and Sievers, R. and Brown, ID},\ndoi = {10.1021/ci00038a003},\njournal = {Journal of Chemical Information and Computer Sciences},\nkeywords = {icsd},\nmendeley-tags = {icsd},\nnumber = {2},\npages = {66--69},\npublisher = {ACS Publications},\ntitle = {{The inorganic crystal structure data base}},\nurl = {http://pubs.acs.org/doi/abs/10.1021/ci00038a003},\nvolume = {23},\nyear = {1983}\n}\n@misc{Karlsruhe,\nauthor = {Karlsruhe, FIZ},\ntitle = {{Inorganic Crystal Structure Database}},\nurl = {http://icsd.fiz-karlsruhe.de}\n}\n", 
+                "authors": [
+                    {
+                        "name": "Michael Kocher", 
+                        "email": "mpkocher@lbl.gov"
+                    }, 
+                    {
+                        "name": "Anubhav Jain", 
+                        "email": "ajain@lbl.gov"
+                    }, 
+                    {
+                        "name": "Shyue Ping Ong", 
+                        "email": "shyue@mit.edu"
+                    }, 
+                    {
+                        "name": "Geoffroy Hautier", 
+                        "email": "geoffroy.hautier@uclouvain.be"
+                    }
+                ], 
+                "remarks": [], 
+                "projects": [], 
+                "history": [
+                    {
+                        "url": "http://icsd.fiz-karlsruhe.de/", 
+                        "name": "Inorganic Crystal Structure Database (ICSD)", 
+                        "description": {
+                            "icsd_id": 67788
+                        }
+                    }, 
+                    {
+                        "url": "http://cctbx.sourceforge.net/", 
+                        "name": "Computational Crystallography Toolbox (CCTBX)", 
+                        "description": {
+                            "spacegroup": {
+                                "space_group_id": 180, 
+                                "centering": "F", 
+                                "icsd_name": "F -4 3 m", 
+                                "number": 216, 
+                                "cctbx_name": "F -4 3 m", 
+                                "crystal_system": "cubic", 
+                                "hall": "F -4 2 3"
+                            }, 
+                            "description": "Applied symmetry operations based on given spacegroup", 
+                            "sites": [
+                                {
+                                    "abc": [
+                                        0.0, 
+                                        0.0, 
+                                        0.0
+                                    ], 
+                                    "name": "Si", 
+                                    "wyckoff_multiplicity": 4, 
+                                    "symbol": "Si", 
+                                    "wyckoff": "a", 
+                                    "oxidation_state": 0.0, 
+                                    "occupation": 1.0
+                                }, 
+                                {
+                                    "abc": [
+                                        0.25, 
+                                        0.25, 
+                                        0.25
+                                    ], 
+                                    "name": "Si", 
+                                    "wyckoff_multiplicity": 4, 
+                                    "symbol": "Si", 
+                                    "wyckoff": "c", 
+                                    "oxidation_state": 0.0, 
+                                    "occupation": 1.0
+                                }
+                            ], 
+                            "lattice": {
+                                "a": 5.392, 
+                                "c": 5.392, 
+                                "b": 5.392, 
+                                "volume": 156.77, 
+                                "beta": 90.0, 
+                                "lattice_id": 79021, 
+                                "alpha": 90.0, 
+                                "gamma": 90.0
+                            }
+                        }
+                    }, 
+                    {
+                        "url": "http://www.materialsproject.org", 
+                        "name": "Materials Project", 
+                        "description": {
+                            "crystal_id": 79021
+                        }
+                    }, 
+                    {
+                        "url": "http://www.materialsproject.org", 
+                        "name": "Materials Project structure optimization", 
+                        "description": {
+                            "fw_id": null, 
+                            "task_type": "GGA optimize structure (2x)", 
+                            "task_id": "mp-11721"
+                        }
+                    }
+                ]
+            }, 
+            "elements": [
+                "Si"
+            ], 
+            "snlgroup_key": "Si1--227", 
+            "nelements": 1, 
+            "reduced_cell_formula": "Si", 
+            "anonymized_formula": "A", 
+            "nsites": 2, 
+            "sites": [
+                {
+                    "xyz": [
+                        0.0, 
+                        0.0, 
+                        0.0
+                    ], 
+                    "abc": [
+                        0.0, 
+                        0.0, 
+                        0.0
+                    ], 
+                    "properties": {}, 
+                    "species": [
+                        {
+                            "occu": 1, 
+                            "element": "Si", 
+                            "@class": "Element", 
+                            "@module": "pymatgen.core.periodic_table"
+                        }
+                    ], 
+                    "label": "Si"
+                }, 
+                {
+                    "xyz": [
+                        1.11646617, 
+                        0.7894608, 
+                        1.93377613
+                    ], 
+                    "abc": [
+                        0.25, 
+                        0.25, 
+                        0.25
+                    ], 
+                    "properties": {}, 
+                    "species": [
+                        {
+                            "occu": 1, 
+                            "element": "Si", 
+                            "@class": "Element", 
+                            "@module": "pymatgen.core.periodic_table"
+                        }
+                    ], 
+                    "label": "Si"
+                }
+            ], 
+            "@module": "mpworks.snl_utils.mpsnl", 
+            "lattice": {
+                "a": 3.867552262057747, 
+                "c": 3.86755226, 
+                "b": 3.8675522628011745, 
+                "matrix": [
+                    [
+                        3.34939851, 
+                        0.0, 
+                        1.93377613
+                    ], 
+                    [
+                        1.11646617, 
+                        3.1578432, 
+                        1.93377613
+                    ], 
+                    [
+                        0.0, 
+                        0.0, 
+                        3.86755226
+                    ]
+                ], 
+                "@module": "pymatgen.core.lattice", 
+                "volume": 40.906618004649765, 
+                "beta": 60.00000001760021, 
+                "gamma": 60.00000001809211, 
+                "alpha": 60.00000002395885, 
+                "@class": "Lattice"
+            }, 
+            "reduced_cell_formula_abc": "Si1", 
+            "chemsystem": "Si", 
+            "formula": "Si2", 
+            "snl_id": 134420, 
+            "is_ordered": true, 
+            "@class": "MPStructureNL", 
+            "is_valid": true
+        }, 
+        "analysis": {
+            "coordination_numbers": [
+                {
+                    "site": {
+                        "abc": [
+                            0.0, 
+                            0.0, 
+                            0.0
+                        ], 
+                        "xyz": [
+                            0.0, 
+                            0.0, 
+                            0.0
+                        ], 
+                        "@module": "pymatgen.core.sites", 
+                        "lattice": {
+                            "a": 3.867552262057747, 
+                            "c": 3.86755226, 
+                            "b": 3.8675522628011745, 
+                            "matrix": [
+                                [
+                                    3.34939851, 
+                                    0.0, 
+                                    1.93377613
+                                ], 
+                                [
+                                    1.11646617, 
+                                    3.1578432, 
+                                    1.93377613
+                                ], 
+                                [
+                                    0.0, 
+                                    0.0, 
+                                    3.86755226
+                                ]
+                            ], 
+                            "@module": "pymatgen.core.lattice", 
+                            "volume": 40.906618004649765, 
+                            "beta": 60.00000001760021, 
+                            "gamma": 60.00000001809211, 
+                            "alpha": 60.00000002395885, 
+                            "@class": "Lattice"
+                        }, 
+                        "species": [
+                            {
+                                "occu": 1, 
+                                "element": "Si", 
+                                "@class": "Element", 
+                                "@module": "pymatgen.core.periodic_table"
+                            }
+                        ], 
+                        "label": "Si", 
+                        "properties": {}, 
+                        "@class": "PeriodicSite"
+                    }, 
+                    "coordination": 5
+                }, 
+                {
+                    "site": {
+                        "abc": [
+                            0.25, 
+                            0.25, 
+                            0.25
+                        ], 
+                        "xyz": [
+                            1.11646617, 
+                            0.7894608, 
+                            1.93377613
+                        ], 
+                        "@module": "pymatgen.core.sites", 
+                        "lattice": {
+                            "a": 3.867552262057747, 
+                            "c": 3.86755226, 
+                            "b": 3.8675522628011745, 
+                            "matrix": [
+                                [
+                                    3.34939851, 
+                                    0.0, 
+                                    1.93377613
+                                ], 
+                                [
+                                    1.11646617, 
+                                    3.1578432, 
+                                    1.93377613
+                                ], 
+                                [
+                                    0.0, 
+                                    0.0, 
+                                    3.86755226
+                                ]
+                            ], 
+                            "@module": "pymatgen.core.lattice", 
+                            "volume": 40.906618004649765, 
+                            "beta": 60.00000001760021, 
+                            "gamma": 60.00000001809211, 
+                            "alpha": 60.00000002395885, 
+                            "@class": "Lattice"
+                        }, 
+                        "species": [
+                            {
+                                "occu": 1, 
+                                "element": "Si", 
+                                "@class": "Element", 
+                                "@module": "pymatgen.core.periodic_table"
+                            }
+                        ], 
+                        "label": "Si", 
+                        "properties": {}, 
+                        "@class": "PeriodicSite"
+                    }, 
+                    "coordination": 5
+                }
+            ], 
+            "errors": [], 
+            "percent_delta_volume": 0.04376785352185053, 
+            "is_gap_direct": false, 
+            "warnings": [], 
+            "delta_volume": 1.7153190327338663, 
+            "bandgap": 0.8540999999999999, 
+            "errors_MP": {
+                "signals": [], 
+                "last_relax_dir": "/project/projectdirs/matgen/garden/aflow_engines-mag_special/runs_2011-08-25-09-51-06/2011-5-27-17-51-13_11721_79021/relax2", 
+                "num_critical": 0, 
+                "num_signals": 0, 
+                "critical_signals": []
+            }, 
+            "cbm": 6.383, 
+            "max_force": 0.0, 
+            "vbm": 5.5289, 
+            "bv_structure": {
+                "lattice": {
+                    "a": 3.867552262057747, 
+                    "c": 3.86755226, 
+                    "b": 3.8675522628011745, 
+                    "matrix": [
+                        [
+                            3.34939851, 
+                            0.0, 
+                            1.93377613
+                        ], 
+                        [
+                            1.11646617, 
+                            3.1578432, 
+                            1.93377613
+                        ], 
+                        [
+                            0.0, 
+                            0.0, 
+                            3.86755226
+                        ]
+                    ], 
+                    "@module": "pymatgen.core.lattice", 
+                    "volume": 40.906618004649765, 
+                    "beta": 60.00000001760021, 
+                    "gamma": 60.00000001809211, 
+                    "alpha": 60.00000002395885, 
+                    "@class": "Lattice"
+                }, 
+                "sites": [
+                    {
+                        "xyz": [
+                            0.0, 
+                            0.0, 
+                            0.0
+                        ], 
+                        "abc": [
+                            0.0, 
+                            0.0, 
+                            0.0
+                        ], 
+                        "properties": {}, 
+                        "species": [
+                            {
+                                "occu": 1, 
+                                "element": "Si", 
+                                "@class": "Element", 
+                                "@module": "pymatgen.core.periodic_table"
+                            }
+                        ], 
+                        "label": "Si"
+                    }, 
+                    {
+                        "xyz": [
+                            1.11646617, 
+                            0.7894608, 
+                            1.93377613
+                        ], 
+                        "abc": [
+                            0.25, 
+                            0.25, 
+                            0.25
+                        ], 
+                        "properties": {}, 
+                        "species": [
+                            {
+                                "occu": 1, 
+                                "element": "Si", 
+                                "@class": "Element", 
+                                "@module": "pymatgen.core.periodic_table"
+                            }
+                        ], 
+                        "label": "Si"
+                    }
+                ], 
+                "@class": "Structure", 
+                "@module": "pymatgen.core.structure"
+            }
+        }, 
+        "_priority": 2, 
+        "snlgroup_id": 942, 
+        "_dupefinder": {
+            "_fw_name": "Dupe Finder Vasp"
+        }, 
+        "output": {
+            "crystal": {
+                "lattice": {
+                    "a": 3.867552262057747, 
+                    "c": 3.86755226, 
+                    "b": 3.8675522628011745, 
+                    "matrix": [
+                        [
+                            3.34939851, 
+                            0.0, 
+                            1.93377613
+                        ], 
+                        [
+                            1.11646617, 
+                            3.1578432, 
+                            1.93377613
+                        ], 
+                        [
+                            0.0, 
+                            0.0, 
+                            3.86755226
+                        ]
+                    ], 
+                    "@module": "pymatgen.core.lattice", 
+                    "volume": 40.906618004649765, 
+                    "beta": 60.00000001760021, 
+                    "@class": "Lattice", 
+                    "alpha": 60.00000002395885, 
+                    "gamma": 60.00000001809211
+                }, 
+                "sites": [
+                    {
+                        "label": "Si", 
+                        "xyz": [
+                            0.0, 
+                            0.0, 
+                            0.0
+                        ], 
+                        "abc": [
+                            0.0, 
+                            0.0, 
+                            0.0
+                        ], 
+                        "properties": {}, 
+                        "species": [
+                            {
+                                "occu": 1, 
+                                "@module": "pymatgen.core.periodic_table", 
+                                "@class": "Element", 
+                                "element": "Si"
+                            }
+                        ]
+                    }, 
+                    {
+                        "label": "Si", 
+                        "xyz": [
+                            1.11646617, 
+                            0.7894608, 
+                            1.93377613
+                        ], 
+                        "abc": [
+                            0.25, 
+                            0.25, 
+                            0.25
+                        ], 
+                        "properties": {}, 
+                        "species": [
+                            {
+                                "occu": 1, 
+                                "@module": "pymatgen.core.periodic_table", 
+                                "@class": "Element", 
+                                "element": "Si"
+                            }
+                        ]
+                    }
+                ], 
+                "@class": "Structure", 
+                "@module": "pymatgen.core.structure"
+            }, 
+            "final_energy": -10.85063433, 
+            "final_energy_per_atom": -5.425317165
+        }, 
+        "run_tags": [
+            "PBE", 
+            "Si", 
+            "Si=0"
+        ]
+    }
+}

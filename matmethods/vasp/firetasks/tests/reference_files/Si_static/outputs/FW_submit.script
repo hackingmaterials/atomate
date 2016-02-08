@@ -1,0 +1,19 @@
+#!/bin/bash
+
+#PBS -l nodes=2:ppn=16
+#PBS -l walltime=168:00:00
+#PBS -q matgen_prior
+#PBS -A matcomp
+#PBS -N Si1--GGA_static_v2
+#PBS -o FW_job.out
+#PBS -e FW_job.error
+
+#PBS -v DB_LOC,FW_CONFIG_FILE,VENV_LOC
+module load python/2.7.3
+module load vasp/5.2.matgen
+source $VENV_LOC
+
+cd /global/scratch/sd/matcomp/mp_prod/block_2013-09-21-04-31-24-238403/launcher_2013-09-21-18-51-34-883217
+rlaunch -c /global/u1/m/matcomp/mp_prod/config/config_Mendel singleshot --fw_id 389927
+
+# PBSAdapterNERSC completed writing Template
