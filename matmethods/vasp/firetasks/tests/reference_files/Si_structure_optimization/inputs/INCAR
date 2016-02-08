@@ -1,0 +1,19 @@
+#Default RubyVasp from initialize
+ISIF = 3
+IBRION = 2
+NSW = 200
+NELM = 100
+ISPIN = 2
+ALGO = FAST
+SYSTEM = RubyVaspy :: Si
+ENCUT = 520
+LREAL = AUTO
+EDIFF = 0.0000020
+PREC = Accurate
+NELMIN = 3
+ISMEAR = -5
+SIGMA = 0.05
+LWAVE = .TRUE.
+ICHARG = 1
+NPAR = 1
+MAGMOM = 2*0.6
