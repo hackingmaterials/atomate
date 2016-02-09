@@ -22,7 +22,7 @@ class RunVaspFake(FireTaskBase):
         ref_incar = Incar.from_file(os.path.join(self["run_dir"], "inputs", "INCAR"))
 
         # perform some BASIC tests
-        
+
         # check INCAR
         params_to_check = ["ISPIN", "ENCUT", "ISMEAR", "SIGMA", "IBRION"]
         defaults = {"ISPIN": 1, "ISMEAR": 1, "SIGMA": 2}

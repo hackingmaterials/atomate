@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from monty.os.path import which
 
@@ -18,12 +19,14 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 VASP_CMD = "vasp"
+DEBUG_MODE = False
 
 class FakeWorkflowTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
         cls.lp = LaunchPad(name="fireworks_matmethods_test")
+        cls.lp.reset("", require_password=False)
 
         coords = [[0, 0, 0], [0.75, 0.5, 0.75]]
         lattice = Lattice([[3.8401979337, 0.00, 0.00],
@@ -33,17 +36,21 @@ class FakeWorkflowTests(unittest.TestCase):
 
         cls.module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
         cls.scratch_dir = os.path.join(cls.module_dir, "scratch")
+        if not os.path.exists(cls.scratch_dir):
+            os.makedirs(cls.scratch_dir)
         cls.reference_dir = os.path.join(cls.module_dir, "reference_files")
 
     @classmethod
     def tearDownClass(cls):
-        cls.lp.reset("", require_password=False)
+        if not DEBUG_MODE:
+            cls.lp.reset("", require_password=False)
 
     def setUp(self):
         os.chdir(self.scratch_dir)
 
     def tearDown(self):
-        pass
+        if not DEBUG_MODE:
+            shutil.rmtree(self.scratch_dir)
 
     def test_relax_workflow(self):
         # add the workflow
