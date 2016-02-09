@@ -3,7 +3,7 @@ import shutil
 
 from fireworks import LaunchPad
 from fireworks.core.rocket_launcher import rapidfire
-from matmethods.vasp.examples.basic_vasp_workflows import get_basic_workflow_fake
+from matmethods.vasp.examples.basic_vasp_workflows import get_basic_workflow, get_fake_workflow
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp.sets import MPVaspInputSet
 
@@ -50,7 +50,8 @@ class FakeWorkflowTests(unittest.TestCase):
         # add the workflow
         vis = MPVaspInputSet()
         structure = self.struct_si
-        my_wf = get_basic_workflow_fake(structure, vis, fake_dir=os.path.join(self.reference_dir, "Si_structure_optimization"))
+        my_wf = get_basic_workflow(structure, vis)
+        my_wf = get_fake_workflow(my_wf, fake_dir=os.path.join(self.reference_dir, "Si_structure_optimization"))
         self.lp.add_wf(my_wf)
 
         # run the workflow
