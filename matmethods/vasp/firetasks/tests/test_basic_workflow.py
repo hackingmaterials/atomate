@@ -31,24 +31,25 @@ class BasicWorkflowTests(unittest.TestCase):
                                 [0.00, -2.2171384943, 3.1355090603]])
         cls.struct_si = IStructure(lattice, ["Si"] * 2, coords)
 
+        cls.module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+        cls.scratch_dir = os.path.join(cls.module_dir, "scratch")
+        cls.reference_dir = os.path.join(cls.module_dir, "reference_files")
+
     @classmethod
     def tearDownClass(cls):
         cls.lp.reset("", require_password=False)
 
     def setUp(self):
-        pass
+        os.chdir(self.scratch_dir)
 
     def tearDown(self):
-        for x in ["INCAR", "POSCAR", "POTCAR", "KPOINTS"]:
-            if os.path.exists(os.path.join(module_dir, x)):
-                os.remove(os.path.join(module_dir, x))
+        pass
 
     def test_relax_workflow(self):
         # add the workflow
         vis = MPVaspInputSet()
         structure = self.struct_si
-        module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-        my_wf = get_basic_workflow(structure, vis, VASP_CMD, fake_dir=os.path.join(module_dir, "reference_files", "Si_structure_optimization"))
+        my_wf = get_basic_workflow(structure, vis, VASP_CMD, fake_dir=os.path.join(self.reference_dir, "Si_structure_optimization"))
         self.lp.add_wf(my_wf)
 
         # run the workflow

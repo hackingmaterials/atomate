@@ -41,3 +41,6 @@ nosetests.xml
 
 # Pycharm
 .idea/*
+
+# scratch files
+matmethods/vasp/firetasks/tests/scratch/*
