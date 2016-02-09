@@ -2,6 +2,7 @@ import json
 import os
 
 from fireworks import FireTaskBase
+from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.utilities.fw_utilities import explicit_serialize
 from matgendb.creator import VaspToDbTaskDrone
 from matmethods.utils.utils import env_chk
@@ -45,11 +46,14 @@ class VaspToDBTask(FireTaskBase):
 
         # TODO: write to JSON if not path_to_db_file
 
-        """
         # get the database connection
         db_file = env_chk(self.get('path_to_db_file'), fw_spec)
 
-        with open(db_file) as f:
-            db_creds = json.load(f)
+        if not db_file:
+            with open("task.json", "w") as f:
+                f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
+
+        else:
+            with open(db_file) as f:
+                db_creds = json.load(f)
             # insert into database
-        """

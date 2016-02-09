@@ -3,10 +3,10 @@ import os
 from monty.os.path import which
 
 from fireworks import LaunchPad, FWorker
-from fireworks.core.rocket_launcher import launch_rocket
+from fireworks.core.rocket_launcher import launch_rocket, rapidfire
 from fireworks.utilities.fw_serializers import load_object
 from matmethods.vasp.examples.basic_vasp_workflows import get_basic_workflow
-from matmethods.vasp.firetasks.tests.vasp_fake import VaspFakeTask
+from matmethods.vasp.firetasks.tests.vasp_fake import RunVaspFake
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspFromPMGObjects, ModifyIncar
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
@@ -19,7 +19,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 VASP_CMD = "vasp"
 
-class BasicWorkflowTests(unittest.TestCase):
+class FakeWorkflowTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -53,7 +53,7 @@ class BasicWorkflowTests(unittest.TestCase):
         self.lp.add_wf(my_wf)
 
         # run the workflow
-        launch_rocket(self.lp, fworker=FWorker.auto_load())
+        rapidfire(self.lp)
 
         # confirm results
         # TODO: add some confirmation stuff
