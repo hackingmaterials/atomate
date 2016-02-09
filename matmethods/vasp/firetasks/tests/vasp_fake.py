@@ -10,7 +10,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 @explicit_serialize
 class RunVaspFake(FireTaskBase):
 
-    required_params = ["run_dir"]
+    required_params = ["fake_dir"]
 
     def run_task(self, fw_spec):
         self._verify_inputs()
@@ -19,7 +19,7 @@ class RunVaspFake(FireTaskBase):
 
     def _verify_inputs(self):
         user_incar = Incar.from_file(os.path.join(os.getcwd(), "INCAR"))
-        ref_incar = Incar.from_file(os.path.join(self["run_dir"], "inputs", "INCAR"))
+        ref_incar = Incar.from_file(os.path.join(self["fake_dir"], "inputs", "INCAR"))
 
         # perform some BASIC tests
 
@@ -32,19 +32,19 @@ class RunVaspFake(FireTaskBase):
 
         # check KPOINTS
         user_kpoints = Kpoints.from_file(os.path.join(os.getcwd(), "KPOINTS"))
-        ref_kpoints = Kpoints.from_file(os.path.join(self["run_dir"], "inputs", "KPOINTS"))
+        ref_kpoints = Kpoints.from_file(os.path.join(self["fake_dir"], "inputs", "KPOINTS"))
         if user_kpoints._style != ref_kpoints.style or user_kpoints.num_kpts != ref_kpoints.num_kpts:
             raise ValueError("KPOINT files are inconsistent!".format(p))
 
         # check POSCAR
         user_poscar = Poscar.from_file(os.path.join(os.getcwd(), "POSCAR"))
-        ref_poscar = Poscar.from_file(os.path.join(self["run_dir"], "inputs", "POSCAR"))
+        ref_poscar = Poscar.from_file(os.path.join(self["fake_dir"], "inputs", "POSCAR"))
         if user_poscar.natoms != ref_poscar.natoms or user_poscar.site_symbols != ref_poscar.site_symbols:
             raise ValueError("POSCAR files are inconsistent!".format(p))
 
         # check POTCAR
         user_potcar = Potcar.from_file(os.path.join(os.getcwd(), "POTCAR"))
-        ref_potcar = Potcar.from_file(os.path.join(self["run_dir"], "inputs", "POTCAR"))
+        ref_potcar = Potcar.from_file(os.path.join(self["fake_dir"], "inputs", "POTCAR"))
         if user_potcar.symbols != ref_potcar.symbols:
             raise ValueError("POTCAR files are inconsistent!".format(p))
 
@@ -52,7 +52,7 @@ class RunVaspFake(FireTaskBase):
 
 
     def _generate_outputs(self):
-        output_dir = os.path.join(self["run_dir"], "outputs")
+        output_dir = os.path.join(self["fake_dir"], "outputs")
         for file_name in os.listdir(output_dir):
             full_file_name = os.path.join(output_dir, file_name)
             if (os.path.isfile(full_file_name)):

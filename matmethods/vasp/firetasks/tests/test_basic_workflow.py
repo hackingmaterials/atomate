@@ -1,16 +1,10 @@
 import os
 import shutil
 
-from monty.os.path import which
-
-from fireworks import LaunchPad, FWorker
-from fireworks.core.rocket_launcher import launch_rocket, rapidfire
-from fireworks.utilities.fw_serializers import load_object
-from matmethods.vasp.examples.basic_vasp_workflows import get_basic_workflow
-from matmethods.vasp.firetasks.tests.vasp_fake import RunVaspFake
-from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspFromPMGObjects, ModifyIncar
+from fireworks import LaunchPad
+from fireworks.core.rocket_launcher import rapidfire
+from matmethods.vasp.examples.basic_vasp_workflows import get_basic_workflow_fake
 from pymatgen import IStructure, Lattice
-from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
 from pymatgen.io.vasp.sets import MPVaspInputSet
 
 import unittest
@@ -56,7 +50,7 @@ class FakeWorkflowTests(unittest.TestCase):
         # add the workflow
         vis = MPVaspInputSet()
         structure = self.struct_si
-        my_wf = get_basic_workflow(structure, vis, VASP_CMD, fake_dir=os.path.join(self.reference_dir, "Si_structure_optimization"))
+        my_wf = get_basic_workflow_fake(structure, vis, fake_dir=os.path.join(self.reference_dir, "Si_structure_optimization"))
         self.lp.add_wf(my_wf)
 
         # run the workflow
