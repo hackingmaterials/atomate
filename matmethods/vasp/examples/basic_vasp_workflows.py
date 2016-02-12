@@ -19,7 +19,7 @@ def get_basic_workflow(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vas
     return Workflow.from_Firework(my_fw)
 
 
-def get_fake_workflow(original_workflow, fake_dir=None):
+def make_fake_workflow(original_workflow, fake_dir=None):
 
     wf_dict = original_workflow.to_dict()
     # only fakes the first FW for now...
@@ -38,4 +38,4 @@ if __name__ == "__main__":
     structure = IStructure(lattice, ["Si"] * 2, coords)
 
     wf = get_basic_workflow(structure)
-    print get_fake_workflow(wf)
+    print make_fake_workflow(wf)
