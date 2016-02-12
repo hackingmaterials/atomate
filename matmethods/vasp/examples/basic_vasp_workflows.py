@@ -8,11 +8,11 @@ from pymatgen import Lattice, IStructure
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 
-def get_basic_workflow(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vasp"):
+def get_basic_workflow(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vasp", db_file=None):
 
     write_task = WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
     run_task = RunVaspDirect(vasp_cmd=vasp_cmd)
-    parse_task = VaspToDBTask()
+    parse_task = VaspToDBTask(db_file=db_file)
 
     my_fw = Firework([write_task, run_task, parse_task])
 
