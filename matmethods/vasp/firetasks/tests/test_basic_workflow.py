@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 
@@ -12,7 +13,7 @@ import unittest
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-DEBUG_MODE = False
+DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 
 class FakeWorkflowTests(unittest.TestCase):
 
@@ -56,5 +57,18 @@ class FakeWorkflowTests(unittest.TestCase):
         # run the workflow
         rapidfire(self.lp)
 
-        # confirm results
-        # TODO: add some confirmation stuff
+        fw = self.lp.get_fw_by_id(1)
+        d = {}
+        with open(os.path.join(fw.launches[-1].launch_dir, "task.json")) as f:
+            d = json.load(f)
+
+        self.assertEqual(d["pretty_formula"], "Si")
+        self.assertEqual(d["nelements"], 1)
+        self.assertEqual(d["state"], "successful")
+        self.assertAlmostEqual(d["output"]["final_energy"], -10.850, 2)
+        self.assertAlmostEqual(d["output"]["final_energy_per_atom"], -5.425, 2)
+        self.assertAlmostEqual(d["calculations"][0]["output"]["crystal"]["lattice"]["a"], 3.867, 2)
+        self.assertAlmostEqual(d["calculations"][0]["output"]["outcar"]["total_magnetization"], 0, 3)
+        self.assertAlmostEqual(d["analysis"]["bandgap"], 0.85, 1)
+        self.assertEqual(d["analysis"]["is_gap_direct"], True)
+        self.assertLess(d["run_stats"]["overall"]["Elapsed time (sec)"], 180)  # run should take under 3 minutes
