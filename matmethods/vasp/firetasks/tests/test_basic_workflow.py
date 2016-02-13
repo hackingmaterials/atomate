@@ -4,7 +4,8 @@ import shutil
 
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
-from matmethods.vasp.examples.basic_vasp_workflows import get_basic_workflow, make_fake_workflow
+from matmethods.vasp.examples.basic_vasp_workflows import get_basic_workflow
+from matmethods.vasp.firetasks.tests.vasp_fake import make_fake_workflow
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp.sets import MPVaspInputSet
 
@@ -20,7 +21,11 @@ class FakeWorkflowTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.lp = LaunchPad.from_file(os.path.join(db_dir, "my_launchpad.yaml"))
+
+        try:
+            cls.lp = LaunchPad.from_file(os.path.join(db_dir, "my_launchpad.yaml"))
+        except:
+            raise unittest.SkipTest('Cannot connect to MongoDB! Is the database server running? Are the credentials correct?')
         cls.lp.reset("", require_password=False)
 
         coords = [[0, 0, 0], [0.75, 0.5, 0.75]]

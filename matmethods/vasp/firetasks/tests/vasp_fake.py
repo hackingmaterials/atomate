@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from fireworks import FireTaskBase, explicit_serialize
+from fireworks import FireTaskBase, explicit_serialize, Workflow
 from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
@@ -59,3 +59,12 @@ class RunVaspFake(FireTaskBase):
                 shutil.copy(full_file_name, os.getcwd())
 
         print("RunVaspFake: ran fake VASP, generated outputs")
+
+
+def make_fake_workflow(original_workflow, fake_dir=None):
+
+    wf_dict = original_workflow.to_dict()
+    # only fakes the first FW for now...
+    wf_dict["fws"][0]["spec"]["_tasks"][1] = RunVaspFake(fake_dir=fake_dir).to_dict()
+
+    return Workflow.from_dict(wf_dict)
