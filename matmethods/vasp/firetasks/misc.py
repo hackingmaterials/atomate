@@ -35,12 +35,12 @@ class PassVaspLocs(FireTaskBase):
 @explicit_serialize
 class CopyVaspInputs(FireTaskBase):
     """
-    Copy inputs from a previous VASP run directory to the current directory. Additional files can be specified.
+    Copy inputs from a previous VASP run directory to the current directory. Additional files can also be specified.
 
-    Note that you must specify either "vasp_dir" or "vasp_loc".
+    Note that you must specify either "vasp_dir" or "vasp_loc" of the directory containing the previous VASP run.
 
     Optional params:
-        vasp_dir (str): path to dir (on current filesystem) that contains VASP output files. Default: use current working directory.
+        vasp_dir (str): path to dir (on current filesystem) that contains VASP output files.
         vasp_loc (str OR bool): if True will set most recent vasp_loc. If str search for the most recent vasp_loc with the matching name
         additional_files ([str]): additional files to copy, e.g. ["CHGCAR", "WAVECAR"]. Use $ALL if you just want to copy everything
         contcar_to_poscar(bool): If True, will move CONTCAR to POSCAR
