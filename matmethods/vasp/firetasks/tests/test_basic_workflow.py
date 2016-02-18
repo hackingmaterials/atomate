@@ -2,6 +2,8 @@ import json
 import os
 import shutil
 
+from pymongo import MongoClient
+
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 from matmethods.vasp.examples.basic_vasp_workflows import get_basic_workflow
@@ -51,6 +53,29 @@ class FakeWorkflowTests(unittest.TestCase):
     def tearDown(self):
         if not DEBUG_MODE:
             shutil.rmtree(self.scratch_dir)
+            self._get_task_collection().delete_many({})
+
+    def _get_task_collection(self):
+        with open(os.path.join(db_dir, "db.json")) as f:
+            creds = json.loads(f.read())
+            conn = MongoClient(creds["host"], creds["port"])
+            db = conn[creds["database"]]
+            if "readonly_user" in creds:
+                db.authenticate(creds["readonly_user"], creds["readonly_password"])
+            return db[creds["collection"]]
+
+    def _check_relaxation_run(self, d):
+        self.assertEqual(d["pretty_formula"], "Si")
+        self.assertEqual(d["nelements"], 1)
+        self.assertEqual(d["state"], "successful")
+        self.assertAlmostEqual(d["output"]["final_energy"], -10.850, 2)
+        self.assertAlmostEqual(d["output"]["final_energy_per_atom"], -5.425, 2)
+        self.assertAlmostEqual(d["calculations"][0]["output"]["crystal"]["lattice"]["a"], 3.867, 2)
+        self.assertAlmostEqual(d["calculations"][0]["output"]["outcar"]["total_magnetization"], 0, 3)
+        self.assertAlmostEqual(d["analysis"]["bandgap"], 0.85, 1)
+        self.assertEqual(d["analysis"]["is_gap_direct"], True)
+        self.assertLess(d["run_stats"]["overall"]["Elapsed time (sec)"], 180)  # run should take under 3 minutes
+
 
     def test_relax_workflow(self):
         # add the workflow
@@ -68,26 +93,19 @@ class FakeWorkflowTests(unittest.TestCase):
         with open(os.path.join(fw.launches[-1].launch_dir, "task.json")) as f:
             d = json.load(f)
 
-        self.assertEqual(d["pretty_formula"], "Si")
-        self.assertEqual(d["nelements"], 1)
-        self.assertEqual(d["state"], "successful")
-        self.assertAlmostEqual(d["output"]["final_energy"], -10.850, 2)
-        self.assertAlmostEqual(d["output"]["final_energy_per_atom"], -5.425, 2)
-        self.assertAlmostEqual(d["calculations"][0]["output"]["crystal"]["lattice"]["a"], 3.867, 2)
-        self.assertAlmostEqual(d["calculations"][0]["output"]["outcar"]["total_magnetization"], 0, 3)
-        self.assertAlmostEqual(d["analysis"]["bandgap"], 0.85, 1)
-        self.assertEqual(d["analysis"]["is_gap_direct"], True)
-        self.assertLess(d["run_stats"]["overall"]["Elapsed time (sec)"], 180)  # run should take under 3 minutes
+        self._check_relaxation_run(d)
+
 
     def test_relax_workflow_dbinsertion(self):
         # add the workflow
         vis = MPVaspInputSet()
         structure = self.struct_si
-        my_wf = get_basic_workflow(structure, vis, db_file=">>db_file<<")
+        my_wf = get_basic_workflow(structure, vis, db_file=">>db_file<<")  # instructs to use db_file set by FWorker, see env_chk
         my_wf = make_fake_workflow(my_wf, fake_dir=os.path.join(self.reference_dir, "Si_structure_optimization"))
         self.lp.add_wf(my_wf)
 
         # run the workflow
-        rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
+        rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))  # set the db_file variable
 
-        # TODO: add testing of output
+        d = self._get_task_collection().find_one()
+        self._check_relaxation_run(d)
