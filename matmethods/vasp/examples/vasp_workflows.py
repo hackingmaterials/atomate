@@ -8,7 +8,7 @@ from pymatgen import Lattice, IStructure
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 
-def get_wf_single_VASP(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vasp", db_file=None):
+def get_wf_single_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vasp", db_file=None):
 
     write_task = WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
     run_task = RunVaspDirect(vasp_cmd=vasp_cmd)
@@ -19,7 +19,7 @@ def get_wf_single_VASP(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vas
     return Workflow.from_Firework(my_fw)
 
 
-def get_wf_double_VASP(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vasp", db_file=None):
+def get_wf_double_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vasp", db_file=None):
     t11 = WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
     t12 = RunVaspDirect(vasp_cmd=vasp_cmd)
     t13 = PassVaspLocs(name="Structure Optimization")
@@ -28,6 +28,7 @@ def get_wf_double_VASP(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vas
     fw1 = Firework([t11, t12, t13, t14])
 
     # TODO: t21 should be a STATIC run that reads the previous vasp loc
+    # TODO: add a copy task and modify the faker so that it knows that runVasp is now the 3rd task
     t21 = WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
     t22 = RunVaspDirect(vasp_cmd=vasp_cmd)
     t23 = PassVaspLocs(name="Static")
@@ -45,4 +46,4 @@ if __name__ == "__main__":
                                 [0.00, -2.2171384943, 3.1355090603]])
     structure = IStructure(lattice, ["Si"] * 2, coords)
 
-    wf = get_wf_single_VASP(structure)
+    wf = get_wf_single_Vasp(structure)
