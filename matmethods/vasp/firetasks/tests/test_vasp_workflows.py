@@ -6,7 +6,7 @@ from pymongo import MongoClient
 
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
-from matmethods.vasp.examples.basic_vasp_workflows import get_wf_single_VASP
+from matmethods.vasp.examples.vasp_workflows import get_wf_single_VASP
 from matmethods.vasp.firetasks.tests.vasp_fake import make_fake_workflow
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp.sets import MPVaspInputSet
