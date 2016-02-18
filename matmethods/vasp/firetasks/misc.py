@@ -1,3 +1,5 @@
+import os
+
 from fireworks import explicit_serialize, FireTaskBase, FWAction
 from matmethods.utils.utils import env_chk
 
@@ -16,14 +18,15 @@ class PassVaspDirs(FireTaskBase):
 
     Optional params:
         filesystem: name of filesystem. Supports env_chk. defaults to None
+        path: The path to the directory containing the VASP run. defaults to current working directory.
     """
 
     required_params = ["name"]
-    optional_params = ["filesystem"]
+    optional_params = ["filesystem", "vaspdir"]
 
     def run_task(self, fw_spec):
         doc = {"name": self["name"],
                "filesystem": env_chk(self.get('filesystem', None)),
-               "path": "x"}
+               "path": self.get("path", os.getcwd())}
 
         return FWAction(mod_spec=[{'_push': {'vasp_locs': doc}}])
