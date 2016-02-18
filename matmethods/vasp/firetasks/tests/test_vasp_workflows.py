@@ -6,7 +6,7 @@ from pymongo import MongoClient
 
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
-from matmethods.vasp.examples.basic_vasp_workflows import get_basic_workflow
+from matmethods.vasp.examples.basic_vasp_workflows import get_wf_single_VASP
 from matmethods.vasp.firetasks.tests.vasp_fake import make_fake_workflow
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp.sets import MPVaspInputSet
@@ -81,7 +81,7 @@ class FakeWorkflowTests(unittest.TestCase):
         # add the workflow
         vis = MPVaspInputSet()
         structure = self.struct_si
-        my_wf = get_basic_workflow(structure, vis)
+        my_wf = get_wf_single_VASP(structure, vis)
         my_wf = make_fake_workflow(my_wf, fake_dir=os.path.join(self.reference_dir, "Si_structure_optimization"))
         self.lp.add_wf(my_wf)
 
@@ -100,7 +100,7 @@ class FakeWorkflowTests(unittest.TestCase):
         # add the workflow
         vis = MPVaspInputSet()
         structure = self.struct_si
-        my_wf = get_basic_workflow(structure, vis, db_file=">>db_file<<")  # instructs to use db_file set by FWorker, see env_chk
+        my_wf = get_wf_single_VASP(structure, vis, db_file=">>db_file<<")  # instructs to use db_file set by FWorker, see env_chk
         my_wf = make_fake_workflow(my_wf, fake_dir=os.path.join(self.reference_dir, "Si_structure_optimization"))
         self.lp.add_wf(my_wf)
 
