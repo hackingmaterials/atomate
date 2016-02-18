@@ -64,7 +64,7 @@ class RunVaspFake(FireTaskBase):
 def make_fake_workflow(original_workflow, fake_dir=None):
 
     wf_dict = original_workflow.to_dict()
-    # only fakes the first FW for now...
-    wf_dict["fws"][0]["spec"]["_tasks"][1] = RunVaspFake(fake_dir=fake_dir).to_dict()
+    for x in range(len(original_workflow.fws)):
+        wf_dict["fws"][x]["spec"]["_tasks"][1] = RunVaspFake(fake_dir=fake_dir).to_dict()
 
     return Workflow.from_dict(wf_dict)

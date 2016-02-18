@@ -26,7 +26,7 @@ class PassVaspDirs(FireTaskBase):
 
     def run_task(self, fw_spec):
         doc = {"name": self["name"],
-               "filesystem": env_chk(self.get('filesystem', None)),
+               "filesystem": env_chk(self.get('filesystem', None), fw_spec),
                "path": self.get("path", os.getcwd())}
 
         return FWAction(mod_spec=[{'_push': {'vasp_locs': doc}}])

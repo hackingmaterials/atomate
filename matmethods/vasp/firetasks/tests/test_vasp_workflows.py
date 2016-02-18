@@ -6,7 +6,7 @@ from pymongo import MongoClient
 
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
-from matmethods.vasp.examples.vasp_workflows import get_wf_single_VASP
+from matmethods.vasp.examples.vasp_workflows import get_wf_single_VASP, get_wf_double_VASP
 from matmethods.vasp.firetasks.tests.vasp_fake import make_fake_workflow
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp.sets import MPVaspInputSet
@@ -77,7 +77,7 @@ class FakeWorkflowTests(unittest.TestCase):
         self.assertLess(d["run_stats"]["overall"]["Elapsed time (sec)"], 180)  # run should take under 3 minutes
 
 
-    def test_relax_workflow(self):
+    def test_single_VASP(self):
         # add the workflow
         vis = MPVaspInputSet()
         structure = self.struct_si
@@ -96,7 +96,7 @@ class FakeWorkflowTests(unittest.TestCase):
         self._check_relaxation_run(d)
 
 
-    def test_relax_workflow_dbinsertion(self):
+    def test_single_VASP_dbinsertion(self):
         # add the workflow
         vis = MPVaspInputSet()
         structure = self.struct_si
@@ -109,3 +109,23 @@ class FakeWorkflowTests(unittest.TestCase):
 
         d = self._get_task_collection().find_one()
         self._check_relaxation_run(d)
+
+    def test_double_VASP(self):
+        # add the workflow
+        vis = MPVaspInputSet()
+        structure = self.struct_si
+        my_wf = get_wf_double_VASP(structure, vis)
+        my_wf = make_fake_workflow(my_wf, fake_dir=os.path.join(self.reference_dir, "Si_structure_optimization"))
+        self.lp.add_wf(my_wf)
+
+        # run the workflow
+        rapidfire(self.lp)
+
+        """
+        fw = self.lp.get_fw_by_id(1)
+        d = {}
+        with open(os.path.join(fw.launches[-1].launch_dir, "task.json")) as f:
+            d = json.load(f)
+
+        self._check_relaxation_run(d)
+        """
