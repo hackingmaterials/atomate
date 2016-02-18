@@ -6,9 +6,8 @@ from matmethods.utils.utils import env_chk
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 
-
 @explicit_serialize
-class PassVaspDirs(FireTaskBase):
+class PassVaspLocs(FireTaskBase):
     """
     Passes the vasp_locs key. Should be called in the same FireWork as a VASP run.
     Needed for certain downstream FireTasks
@@ -22,7 +21,7 @@ class PassVaspDirs(FireTaskBase):
     """
 
     required_params = ["name"]
-    optional_params = ["filesystem", "vaspdir"]
+    optional_params = ["filesystem", "path"]
 
     def run_task(self, fw_spec):
         doc = {"name": self["name"],
