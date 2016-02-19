@@ -1,7 +1,3 @@
-dependencies:
-  override:
-    - pip install -r requirements.txt
-    - python setup.py develop
 test:
   override:
     - nosetests
