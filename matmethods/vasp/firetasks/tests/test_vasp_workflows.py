@@ -40,11 +40,6 @@ class TestVaspWorkflows(unittest.TestCase):
         cls.scratch_dir = os.path.join(cls.module_dir, "scratch")
         cls.reference_dir = os.path.join(cls.module_dir, "reference_files")
 
-    @classmethod
-    def tearDownClass(cls):
-        if not DEBUG_MODE:
-            cls.lp.reset("", require_password=False)
-
     def setUp(self):
         if os.path.exists(self.scratch_dir):
             shutil.rmtree(self.scratch_dir)
@@ -55,6 +50,7 @@ class TestVaspWorkflows(unittest.TestCase):
         if not DEBUG_MODE:
             shutil.rmtree(self.scratch_dir)
             self._get_task_collection().delete_many({})
+            self.lp.reset("", require_password=False)
 
     def _get_task_collection(self):
         with open(os.path.join(db_dir, "db.json")) as f:
@@ -110,7 +106,6 @@ class TestVaspWorkflows(unittest.TestCase):
         d = self._get_task_collection().find_one()
         self._check_relaxation_run(d)
 
-"""
     def test_double_Vasp(self):
         # add the workflow
         vis = MPVaspInputSet()
@@ -119,6 +114,7 @@ class TestVaspWorkflows(unittest.TestCase):
         my_wf = make_fake_workflow(my_wf, fake_dir=os.path.join(self.reference_dir, "Si_structure_optimization"))
         self.lp.add_wf(my_wf)
 
+        """
         # run the workflow
         rapidfire(self.lp)
 
@@ -128,4 +124,4 @@ class TestVaspWorkflows(unittest.TestCase):
             d = json.load(f)
 
         self._check_relaxation_run(d)
-"""
+        """
