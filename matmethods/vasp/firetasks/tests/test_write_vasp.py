@@ -16,6 +16,9 @@ class TestWriteVasp(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        if not os.environ.get("VASP_PSP_DIR"):
+            raise unittest.SkipTest('This system is not set up to run VASP jobs. Please set your VASP_PSP_DIR environment variable.')
+
         coords = [[0, 0, 0], [0.75, 0.5, 0.75]]
         lattice = Lattice([[3.8401979337, 0.00, 0.00],
                                 [1.9200989668, 3.3257101909, 0.00],

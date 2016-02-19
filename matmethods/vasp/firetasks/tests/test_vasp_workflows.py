@@ -23,7 +23,8 @@ class TestVaspWorkflows(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-
+        if not os.environ.get("VASP_PSP_DIR"):
+            raise unittest.SkipTest('This system is not set up to run VASP jobs. Please set your VASP_PSP_DIR environment variable.')
         try:
             cls.lp = LaunchPad.from_file(os.path.join(db_dir, "my_launchpad.yaml"))
         except:
