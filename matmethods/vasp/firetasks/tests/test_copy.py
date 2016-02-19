@@ -31,9 +31,6 @@ class TestCopyVaspInputs(unittest.TestCase):
             shutil.rmtree(scratch_dir)
 
     def test_unittestsetup(self):
-        """
-        If this test fails, the unit test itself is not set up properly
-        """
         files = ["INCAR", "KPOINTS", "POTCAR", "POSCAR", "CONTCAR", "OUTCAR"]
         for f in files:
             self.assertTrue(os.path.exists(os.path.join(self.plain_outdir, f)))
