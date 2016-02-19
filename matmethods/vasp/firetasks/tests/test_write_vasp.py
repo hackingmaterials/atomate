@@ -27,6 +27,9 @@ class TestWriteVasp(unittest.TestCase):
         cls.ref_potcar = Potcar.from_file(os.path.join(module_dir, "reference_files", "setup_test", "POTCAR"))
         cls.ref_kpoints = Kpoints.from_file(os.path.join(module_dir, "reference_files", "setup_test", "KPOINTS"))
 
+    def setUp(self):
+        os.chdir(module_dir)
+
     def tearDown(self):
         for x in ["INCAR", "POSCAR", "POTCAR", "KPOINTS"]:
             if os.path.exists(os.path.join(module_dir, x)):

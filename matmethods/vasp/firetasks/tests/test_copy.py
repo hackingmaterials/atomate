@@ -2,7 +2,7 @@ import os
 import shutil
 import unittest
 
-from matmethods.vasp.firetasks.misc import CopyVaspInputs
+from matmethods.vasp.firetasks.glue_tasks import CopyVaspInputs
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 

@@ -1,5 +1,5 @@
 from fireworks import Firework, Workflow
-from matmethods.vasp.firetasks.misc import PassVaspLocs
+from matmethods.vasp.firetasks.glue_tasks import PassVaspLocs
 from matmethods.vasp.firetasks.parse_outputs import VaspToDBTask
 from matmethods.vasp.firetasks.run_calc import RunVaspDirect
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet
