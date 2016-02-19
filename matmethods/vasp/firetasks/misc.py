@@ -3,6 +3,7 @@ import shutil
 
 from fireworks import explicit_serialize, FireTaskBase, FWAction
 from matmethods.utils.utils import env_chk
+from matmethods.vasp.vasp_utils import get_vasp_dir
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -43,28 +44,13 @@ class CopyVaspInputs(FireTaskBase):
         vasp_dir (str): path to dir (on current filesystem) that contains VASP output files.
         vasp_loc (str OR bool): if True will set most recent vasp_loc. If str search for the most recent vasp_loc with the matching name
         additional_files ([str]): additional files to copy, e.g. ["CHGCAR", "WAVECAR"]. Use $ALL if you just want to copy everything
-        contcar_to_poscar(bool): If True, will move CONTCAR to POSCAR
+        contcar_to_poscar(bool): If True, will move CONTCAR to POSCAR (original POSCAR is not copied). Defaults to False
 
     """
 
     def run_task(self, fw_spec):
-        if 'vasp_dir' not in self and 'vasp_loc' not in self:
-            raise ValueError("CopyVaspInputs requires setting either 'vasp_dir' or 'vasp_loc'!")
 
-        vasp_dir = None
-        # TODO: separate this function into a utility
-        if "vasp_dir" in self:
-            vasp_dir = self["vasp_dir"]
-        elif self.get("vasp_loc"):
-            if isinstance(self["vasp_loc"], basestring):
-                for doc in reversed(fw_spec["vasp_locs"]):
-                    if doc["name"] == self["vasp_loc_name"]:
-                        vasp_dir = doc["path"]
-                        break
-            else:
-                vasp_dir = fw_spec["vasp_locs"][-1]["path"]
-
-        # TODO: add verbosity to logging
+        vasp_dir = get_vasp_dir(self, fw_spec)
 
         if "$ALL" in self.get("additional_files", []):
             files_to_copy = os.listdir(vasp_dir)
