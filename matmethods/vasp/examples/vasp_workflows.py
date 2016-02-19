@@ -1,5 +1,5 @@
 from fireworks import Firework, Workflow
-from matmethods.vasp.firetasks.glue_tasks import PassVaspLocs
+from matmethods.vasp.firetasks.glue_tasks import PassVaspLocs, CopyVaspInputs
 from matmethods.vasp.firetasks.parse_outputs import VaspToDBTask
 from matmethods.vasp.firetasks.run_calc import RunVaspDirect
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet
@@ -14,7 +14,7 @@ def get_wf_single_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vas
     run_task = RunVaspDirect(vasp_cmd=vasp_cmd)
     parse_task = VaspToDBTask(db_file=db_file)
 
-    my_fw = Firework([write_task, run_task, parse_task])
+    my_fw = Firework([write_task, run_task, parse_task], name="structure optimization")
 
     return Workflow.from_Firework(my_fw)
 
@@ -22,19 +22,19 @@ def get_wf_single_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vas
 def get_wf_double_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vasp", db_file=None):
     t11 = WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
     t12 = RunVaspDirect(vasp_cmd=vasp_cmd)
-    t13 = PassVaspLocs(name="Structure Optimization")
+    t13 = PassVaspLocs(name="structure optimization")
     t14 = VaspToDBTask(db_file=db_file)
 
-    fw1 = Firework([t11, t12, t13, t14])
+    fw1 = Firework([t11, t12, t13, t14], name="structure optimization")
 
     # TODO: t21 should be a STATIC run that reads the previous vasp loc
     # TODO: add a copy task and modify the faker so that it knows that runVasp is now the 3rd task
-    t21 = WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
-    t22 = RunVaspDirect(vasp_cmd=vasp_cmd)
-    t23 = PassVaspLocs(name="Static")
-    t24 = VaspToDBTask(db_file=db_file)
+    t21 = CopyVaspInputs(vasp_loc=True)
+    #t22 = RunVaspDirect(vasp_cmd=vasp_cmd)
+    #t23 = PassVaspLocs(name="static")
+    #t24 = VaspToDBTask(db_file=db_file)
 
-    fw2 = Firework([t21, t22, t23, t24], parents=fw1)
+    fw2 = Firework([t21], parents=fw1, name="static")
 
     return Workflow([fw1, fw2])
 

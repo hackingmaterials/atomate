@@ -87,11 +87,10 @@ class TestVaspWorkflows(unittest.TestCase):
         rapidfire(self.lp)
 
         fw = self.lp.get_fw_by_id(1)
-        d = {}
+
         with open(os.path.join(fw.launches[-1].launch_dir, "task.json")) as f:
             d = json.load(f)
-
-        self._check_relaxation_run(d)
+            self._check_relaxation_run(d)
 
     def test_single_Vasp_dbinsertion(self):
         # add the workflow
@@ -115,14 +114,13 @@ class TestVaspWorkflows(unittest.TestCase):
         my_wf = make_fake_workflow(my_wf, fake_dir=os.path.join(self.reference_dir, "Si_structure_optimization"))
         self.lp.add_wf(my_wf)
 
-        """
         # run the workflow
         rapidfire(self.lp)
 
-        fw = self.lp.get_fw_by_id(1)
-        d = {}
+        # make sure the structure relaxation ran OK
+        fw_id = self.lp.get_fw_ids({"name": "structure optimization"})[0]
+        fw = self.lp.get_fw_by_id(fw_id)
         with open(os.path.join(fw.launches[-1].launch_dir, "task.json")) as f:
             d = json.load(f)
+            self._check_relaxation_run(d)
 
-        self._check_relaxation_run(d)
-        """
