@@ -21,9 +21,10 @@ class TestCopyVaspInputs(unittest.TestCase):
         cls.gzip_outdir = os.path.join(module_dir, "reference_files", "Si_Uniform", "outputs")
 
     def setUp(self):
-        if not os.path.exists(scratch_dir):
-            os.makedirs(scratch_dir)
-        os.chdir(scratch_dir)
+        if os.path.exists(self.scratch_dir):
+            shutil.rmtree(self.scratch_dir)
+        os.makedirs(self.scratch_dir)
+        os.chdir(self.scratch_dir)
 
     def tearDown(self):
         if not DEBUG:

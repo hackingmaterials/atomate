@@ -46,8 +46,9 @@ class TestVaspWorkflows(unittest.TestCase):
             cls.lp.reset("", require_password=False)
 
     def setUp(self):
-        if not os.path.exists(self.scratch_dir):
-            os.makedirs(self.scratch_dir)
+        if os.path.exists(self.scratch_dir):
+            shutil.rmtree(self.scratch_dir)
+        os.makedirs(self.scratch_dir)
         os.chdir(self.scratch_dir)
 
     def tearDown(self):
@@ -95,7 +96,6 @@ class TestVaspWorkflows(unittest.TestCase):
 
         self._check_relaxation_run(d)
 
-
     def test_single_Vasp_dbinsertion(self):
         # add the workflow
         vis = MPVaspInputSet()
@@ -110,6 +110,7 @@ class TestVaspWorkflows(unittest.TestCase):
         d = self._get_task_collection().find_one()
         self._check_relaxation_run(d)
 
+"""
     def test_double_Vasp(self):
         # add the workflow
         vis = MPVaspInputSet()
@@ -121,11 +122,10 @@ class TestVaspWorkflows(unittest.TestCase):
         # run the workflow
         rapidfire(self.lp)
 
-        """
         fw = self.lp.get_fw_by_id(1)
         d = {}
         with open(os.path.join(fw.launches[-1].launch_dir, "task.json")) as f:
             d = json.load(f)
 
         self._check_relaxation_run(d)
-        """
+"""
