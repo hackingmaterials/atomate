@@ -13,7 +13,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 class PassVaspLocs(FireTaskBase):
     """
     Passes the vasp_locs key. Should be called in the same FireWork as a VASP run.
-    Needed for certain downstream FireTasks
+    This passes information about where the current run is located for the next FireWork.
 
     Required params:
         name: descriptive name for this VASP file/dir
@@ -54,6 +54,7 @@ class CopyVaspInputs(FireTaskBase):
         vasp_dir = get_vasp_dir(self, fw_spec)
         contcar_to_poscar = self.get("contcar_to_poscar", True)
 
+        # determine what files need to be copied
         if "$ALL" in self.get("additional_files", []):
             files_to_copy = os.listdir(vasp_dir)
         else:
@@ -65,6 +66,7 @@ class CopyVaspInputs(FireTaskBase):
             files_to_copy.append("CONTCAR")
             files_to_copy = [f for f in files_to_copy if f != 'POSCAR']  # remove POSCAR
 
+        # start file copy
         for f in files_to_copy:
             prev_path = os.path.join(vasp_dir, f)
             dest_fname = 'POSCAR' if f == 'CONTCAR' and contcar_to_poscar else f
