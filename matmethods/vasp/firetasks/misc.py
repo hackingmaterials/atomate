@@ -36,7 +36,7 @@ class PassVaspLocs(FireTaskBase):
 @explicit_serialize
 class CopyVaspInputs(FireTaskBase):
     """
-    Copy inputs from a previous VASP run directory to the current directory. Additional files can also be specified.
+    Copy inputs from a previous VASP run directory to the current directory. Additional files, e.g. CHGCAR, can also be specified.
 
     Note that you must specify either "vasp_dir" or "vasp_loc" of the directory containing the previous VASP run.
 
@@ -44,13 +44,14 @@ class CopyVaspInputs(FireTaskBase):
         vasp_dir (str): path to dir (on current filesystem) that contains VASP output files.
         vasp_loc (str OR bool): if True will set most recent vasp_loc. If str search for the most recent vasp_loc with the matching name
         additional_files ([str]): additional files to copy, e.g. ["CHGCAR", "WAVECAR"]. Use $ALL if you just want to copy everything
-        contcar_to_poscar(bool): If True, will move CONTCAR to POSCAR (original POSCAR is not copied). Defaults to False
+        contcar_to_poscar(bool): If True (default), will move CONTCAR to POSCAR (original POSCAR is not copied).
 
     """
 
     def run_task(self, fw_spec):
 
         vasp_dir = get_vasp_dir(self, fw_spec)
+        contcar_to_poscar = self.get("contcar_to_poscar", True)
 
         if "$ALL" in self.get("additional_files", []):
             files_to_copy = os.listdir(vasp_dir)
@@ -59,14 +60,14 @@ class CopyVaspInputs(FireTaskBase):
             if self.get("additional_files"):
                 files_to_copy.extend(self["additional_files"])
 
-        if self.get("contcar_to_poscar") and "CONTCAR" not in files_to_copy:
+        if contcar_to_poscar and "CONTCAR" not in files_to_copy:
             files_to_copy.append("CONTCAR")
             files_to_copy = [f for f in files_to_copy if f != 'POSCAR']  # remove POSCAR
 
         # TODO: handle gz
         for f in files_to_copy:
             # TODO: handle gz
-            dest_fname = 'POSCAR' if f == 'CONTCAR' and self.get("contcar_to_poscar") else f
+            dest_fname = 'POSCAR' if f == 'CONTCAR' and contcar_to_poscar else f
             prev_path = os.path.join(vasp_dir, f)
             dest_path = os.path.join(os.getcwd(), dest_fname)
             shutil.copy2(prev_path, dest_path)
