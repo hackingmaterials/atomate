@@ -19,7 +19,7 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "reference_files", "db_connections")
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 
-class FakeWorkflowTests(unittest.TestCase):
+class TestVaspWorkflows(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):

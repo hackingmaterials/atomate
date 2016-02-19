@@ -9,7 +9,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
-class SetupTests(unittest.TestCase):
+class TestSetup(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):

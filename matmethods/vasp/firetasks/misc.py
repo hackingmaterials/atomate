@@ -1,3 +1,4 @@
+import gzip
 import os
 import shutil
 
@@ -37,6 +38,7 @@ class PassVaspLocs(FireTaskBase):
 class CopyVaspInputs(FireTaskBase):
     """
     Copy inputs from a previous VASP run directory to the current directory. Additional files, e.g. CHGCAR, can also be specified.
+    Automatically handles files that have a ".gz" extension (copies and unzips).
 
     Note that you must specify either "vasp_dir" or "vasp_loc" of the directory containing the previous VASP run.
 
@@ -45,7 +47,6 @@ class CopyVaspInputs(FireTaskBase):
         vasp_loc (str OR bool): if True will set most recent vasp_loc. If str search for the most recent vasp_loc with the matching name
         additional_files ([str]): additional files to copy, e.g. ["CHGCAR", "WAVECAR"]. Use $ALL if you just want to copy everything
         contcar_to_poscar(bool): If True (default), will move CONTCAR to POSCAR (original POSCAR is not copied).
-
     """
 
     def run_task(self, fw_spec):
@@ -64,22 +65,29 @@ class CopyVaspInputs(FireTaskBase):
             files_to_copy.append("CONTCAR")
             files_to_copy = [f for f in files_to_copy if f != 'POSCAR']  # remove POSCAR
 
-        # TODO: handle gz
         for f in files_to_copy:
-            # TODO: handle gz
-            dest_fname = 'POSCAR' if f == 'CONTCAR' and contcar_to_poscar else f
             prev_path = os.path.join(vasp_dir, f)
+            dest_fname = 'POSCAR' if f == 'CONTCAR' and contcar_to_poscar else f
             dest_path = os.path.join(os.getcwd(), dest_fname)
-            shutil.copy2(prev_path, dest_path)
 
-            # TODO: handle gz
-            """
-            if '.gz' in dest_file:
+            # detect .gz extension if needed
+            ext = ""
+            if os.path.exists(prev_path):
+                pass
+            elif os.path.exists(prev_path+".gz"):
+                ext = ".gz"
+            else:
+                raise ValueError("Cannot find file: {}".format(prev_path))
+
+            # copy the file
+            shutil.copy2(prev_path+ext, dest_path+ext)
+
+            # unzip the .gz if needed
+            if ext == '.gz':
                 # unzip dest file
-                f = gzip.open(dest_file, 'rb')
+                f = gzip.open(dest_path+".gz", 'rb')
                 file_content = f.read()
-                with open(dest_file[0:-3], 'wb') as f_out:
+                with open(dest_path, 'wb') as f_out:
                     f_out.writelines(file_content)
                 f.close()
-                os.remove(dest_file)
-            """
+                os.remove(dest_path+".gz")

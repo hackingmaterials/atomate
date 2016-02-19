@@ -12,7 +12,8 @@ scratch_dir = os.path.join(module_dir, "scratch")
 
 DEBUG = False
 
-class CopyVaspInputsTests(unittest.TestCase):
+
+class TestCopyVaspInputs(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -69,3 +70,13 @@ class CopyVaspInputsTests(unittest.TestCase):
             with open(os.path.join(scratch_dir, "POSCAR")) as f2:
                 self.assertEqual(f1.read(), f2.read())
 
+    def test_gzip_copy(self):
+        ct = CopyVaspInputs(vasp_dir=self.gzip_outdir)
+        ct.run_task({})
+        files = ["INCAR", "KPOINTS", "POTCAR", "POSCAR"]
+        for f in files:
+            self.assertTrue(os.path.exists(os.path.join(scratch_dir, f)))
+
+        no_files = ["CONTCAR", "OUTCAR"]
+        for f in no_files:
+            self.assertFalse(os.path.exists(os.path.join(scratch_dir, f)))

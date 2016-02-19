@@ -12,7 +12,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 
-class WriteVaspTests(unittest.TestCase):
+class TestWriteVasp(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -22,17 +22,10 @@ class WriteVaspTests(unittest.TestCase):
                                 [0.00, -2.2171384943, 3.1355090603]])
         cls.struct_si = IStructure(lattice, ["Si"] * 2, coords)
 
-        cls.ref_incar = Incar.from_file(os.path.join(module_dir, "reference_files", "INCAR"))
-        cls.ref_poscar = Poscar.from_file(os.path.join(module_dir, "reference_files", "POSCAR"))
-        cls.ref_potcar = Potcar.from_file(os.path.join(module_dir, "reference_files", "POTCAR"))
-        cls.ref_kpoints = Kpoints.from_file(os.path.join(module_dir, "reference_files", "KPOINTS"))
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
-    def setUp(self):
-        pass
+        cls.ref_incar = Incar.from_file(os.path.join(module_dir, "reference_files", "setup_test", "INCAR"))
+        cls.ref_poscar = Poscar.from_file(os.path.join(module_dir, "reference_files", "setup_test", "POSCAR"))
+        cls.ref_potcar = Potcar.from_file(os.path.join(module_dir, "reference_files", "setup_test", "POTCAR"))
+        cls.ref_kpoints = Kpoints.from_file(os.path.join(module_dir, "reference_files", "setup_test", "KPOINTS"))
 
     def tearDown(self):
         for x in ["INCAR", "POSCAR", "POTCAR", "KPOINTS"]:
