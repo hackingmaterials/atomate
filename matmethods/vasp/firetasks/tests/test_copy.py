@@ -10,7 +10,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 scratch_dir = os.path.join(module_dir, "scratch")
 
-DEBUG = False
+DEBUG_MODE = False
 
 
 class TestCopyVaspInputs(unittest.TestCase):
@@ -27,7 +27,7 @@ class TestCopyVaspInputs(unittest.TestCase):
         os.chdir(scratch_dir)
 
     def tearDown(self):
-        if not DEBUG:
+        if not DEBUG_MODE:
             shutil.rmtree(scratch_dir)
 
     def test_unittestsetup(self):
