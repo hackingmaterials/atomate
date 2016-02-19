@@ -5,6 +5,12 @@ from pymatgen.io.vasp import Incar
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>, Shyue Ping Ong <ongsp@ucsd.edu>'
 
+
+def load_class(mod, name):
+    mod = __import__(mod, globals(), locals(), [name], 0)
+    return getattr(mod, name)
+
+
 @explicit_serialize
 class WriteVaspFromIOSet(FireTaskBase):
     """
@@ -27,10 +33,6 @@ class WriteVaspFromIOSet(FireTaskBase):
     required_params = ["structure", "vasp_input_set"]
     optional_params = ["vasp_input_params"]
 
-    def _load_class(mod, name):
-        mod = __import__(mod, globals(), locals(), [name], 0)
-        return getattr(mod, name)
-
     def run_task(self, fw_spec):
         structure = self['structure']
 
@@ -42,7 +44,7 @@ class WriteVaspFromIOSet(FireTaskBase):
         else:
             mod = __import__("pymatgen.io.vasp.sets", globals(), locals(),
                              [self["vasp_input_set"]], -1)
-            vis = self._load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])(
+            vis = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])(
                 **self.get("vasp_input_params", {}))
 
         vis.write_input(structure, ".")
