@@ -10,7 +10,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 scratch_dir = os.path.join(module_dir, "scratch")
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 
 class TestCopyVaspInputs(unittest.TestCase):
