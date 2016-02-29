@@ -58,7 +58,7 @@ class StaticVaspInputSet(DictVaspInputSet):
 
     # TODO: kpoints density is not really correct
     def __init__(self, kpoints_density=1000, **kwargs):
-        super(MPStaticVaspInputSet, self).__init__("MP Static",
+        super(StaticVaspInputSet, self).__init__("MP Static",
             loadfn(os.path.join(MODULE_DIR, "MPVaspInputSet.yaml")), **kwargs)
 
         self.incar_settings.update(self.STATIC_SETTINGS)

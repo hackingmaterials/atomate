@@ -27,9 +27,8 @@ def get_wf_double_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vas
 
     fw1 = Firework([t11, t12, t13, t14], name="structure optimization")
 
-    # TODO: t21 should be a STATIC run that reads the previous vasp loc
-    # TODO: add a copy task and modify the faker so that it knows that runVasp is now the 3rd task
     t21 = CopyVaspInputs(vasp_loc=True)
+    # TODO: t22 should be a STATIC run that reads the previous vasp loc
     #t22 = RunVaspDirect(vasp_cmd=vasp_cmd)
     #t23 = PassVaspLocs(name="static")
     #t24 = VaspToDBTask(db_file=db_file)
