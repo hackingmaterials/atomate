@@ -8,33 +8,48 @@ from pymatgen import Lattice, IStructure
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 
-def get_wf_single_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vasp", db_file=None):
+def get_wf_single_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vasp", db_file=None, name="single VASP"):
 
     write_task = WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
     run_task = RunVaspDirect(vasp_cmd=vasp_cmd)
     parse_task = VaspToDBTask(db_file=db_file)
 
-    my_fw = Firework([write_task, run_task, parse_task], name="structure optimization")
+    my_fw = Firework([write_task, run_task, parse_task], name=name)
 
     return Workflow.from_Firework(my_fw)
 
 
-def get_wf_double_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vasp", db_file=None):
-    t11 = WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
-    t12 = RunVaspDirect(vasp_cmd=vasp_cmd)
-    t13 = PassVaspLocs(name="structure optimization")
-    t14 = VaspToDBTask(db_file=db_file, additional_fields={"task_label": "structure optimization"})
+def get_wf_bandstructure_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vasp", db_file=None):
 
-    fw1 = Firework([t11, t12, t13, t14], name="structure optimization")
+    # structure optimization
+    t1 = []
+    t1.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
+    t1.append(RunVaspDirect(vasp_cmd=vasp_cmd))
+    t1.append(PassVaspLocs(name="structure optimization"))
+    t1.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": "structure optimization"}))
+    fw1 = Firework(t1, name="structure optimization")
 
-    t21 = CopyVaspOutputs(vasp_loc=True)
-    t22 = WriteVaspStaticFromPrev()
-    t23 = RunVaspDirect(vasp_cmd=vasp_cmd)
-    t24 = PassVaspLocs(name="static")
-    t25 = VaspToDBTask(db_file=db_file, additional_fields={"task_label": "static"})
+    # static
+    t2 = []
+    t2.append(CopyVaspOutputs(vasp_loc=True))
+    t2.append(WriteVaspStaticFromPrev())
+    t2.append(RunVaspDirect(vasp_cmd=vasp_cmd))
+    t2.append(PassVaspLocs(name="static"))
+    t2.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": "static"}))
+    fw2 = Firework(t2, parents=fw1, name="static")
 
-    fw2 = Firework([t21, t22, t23, t24, t25], parents=fw1, name="static")
+    # uniform
+    """
+    t3 = []
+    t3.append(CopyVaspOutputs(vasp_loc=True))
+    t3.append(WriteVaspStaticFromPrev())  # TODO: make uniform
+    t3.append(RunVaspDirect(vasp_cmd=vasp_cmd))
+    t3.append(PassVaspLocs(name="uniform"))
+    t3.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": "uniform"}))
+    fw3 = Firework(t3, parents=fw2, name="uniform")
 
+    return Workflow([fw1, fw2, fw3])
+    """
     return Workflow([fw1, fw2])
 
 

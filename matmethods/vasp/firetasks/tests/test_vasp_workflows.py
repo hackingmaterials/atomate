@@ -6,7 +6,7 @@ from pymongo import MongoClient
 
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
-from matmethods.vasp.examples.vasp_workflows import get_wf_single_Vasp, get_wf_double_Vasp
+from matmethods.vasp.examples.vasp_workflows import get_wf_single_Vasp, get_wf_bandstructure_Vasp
 from matmethods.vasp.firetasks.tests.vasp_fake import make_fake_workflow
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp.sets import MPVaspInputSet
@@ -17,7 +17,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "reference_files", "db_connections")
-DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
+DEBUG_MODE = True  # If true, retains the database and output dirs at the end of the test
 
 class TestVaspWorkflows(unittest.TestCase):
 
@@ -90,7 +90,7 @@ class TestVaspWorkflows(unittest.TestCase):
         # add the workflow
         vis = MPVaspInputSet()
         structure = self.struct_si
-        my_wf = get_wf_single_Vasp(structure, vis)
+        my_wf = get_wf_single_Vasp(structure, vis, name="structure optimization")
         my_wf = make_fake_workflow(my_wf)
         self.lp.add_wf(my_wf)
 
@@ -107,7 +107,7 @@ class TestVaspWorkflows(unittest.TestCase):
         # add the workflow
         vis = MPVaspInputSet()
         structure = self.struct_si
-        my_wf = get_wf_single_Vasp(structure, vis, db_file=">>db_file<<")  # instructs to use db_file set by FWorker, see env_chk
+        my_wf = get_wf_single_Vasp(structure, vis, db_file=">>db_file<<", name="structure optimization")  # instructs to use db_file set by FWorker, see env_chk
         my_wf = make_fake_workflow(my_wf)
         self.lp.add_wf(my_wf)
 
@@ -117,11 +117,11 @@ class TestVaspWorkflows(unittest.TestCase):
         d = self._get_task_collection().find_one()
         self._check_relaxation_run(d)
 
-    def test_double_Vasp(self):
+    def test_bandstructure_Vasp(self):
         # add the workflow
         vis = MPVaspInputSet()
         structure = self.struct_si
-        my_wf = get_wf_double_Vasp(structure, vis, db_file=">>db_file<<")  # instructs to use db_file set by FWorker, see env_chk
+        my_wf = get_wf_bandstructure_Vasp(structure, vis, db_file=">>db_file<<")  # instructs to use db_file set by FWorker, see env_chk
         my_wf = make_fake_workflow(my_wf)
         self.lp.add_wf(my_wf)
 
@@ -135,3 +135,7 @@ class TestVaspWorkflows(unittest.TestCase):
         # make sure the static run ran OK
         d = self._get_task_collection().find_one({"task_label": "static"})
         self._check_static_run(d)
+
+        # make sure the uniform run ran OK
+        d = self._get_task_collection().find_one({"task_label": "uniform"})
+        self._check_static_run(d)  # TODO: fixme
