@@ -20,6 +20,7 @@ class VaspToDBTask(FireTaskBase):
         db_file (str): path to file containing the database credentials. Supports env_chk. Default: write data to JSON file.
         vasp_dir (str): path to dir (on current filesystem) that contains VASP output files. Default: use current working directory.
         vasp_loc (str OR bool): if True will set most recent vasp_loc. If str search for the most recent vasp_loc with the matching name
+        additional_fields (dict): dict of additional fields to add
     """
 
     def run_task(self, fw_spec):
@@ -54,6 +55,6 @@ class VaspToDBTask(FireTaskBase):
 
         else:
             d = get_settings(db_file)
-            drone = VaspToDbTaskDrone(host=d["host"], port=d["port"],  database=d["database"], user=d.get("admin_user"), password=d.get("admin_password"), collection=d["collection"])
+            drone = VaspToDbTaskDrone(host=d["host"], port=d["port"],  database=d["database"], user=d.get("admin_user"), password=d.get("admin_password"), collection=d["collection"], additional_fields=self.get("additional_fields"))
             t_id = drone.assimilate(vasp_dir)
             print("Finished parsing with task_id: {}".format(t_id))

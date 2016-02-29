@@ -23,7 +23,7 @@ def get_wf_double_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vas
     t11 = WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
     t12 = RunVaspDirect(vasp_cmd=vasp_cmd)
     t13 = PassVaspLocs(name="structure optimization")
-    t14 = VaspToDBTask(db_file=db_file)
+    t14 = VaspToDBTask(db_file=db_file, additional_fields={"task_label": "structure optimization"})
 
     fw1 = Firework([t11, t12, t13, t14], name="structure optimization")
 
@@ -31,7 +31,7 @@ def get_wf_double_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vas
     t22 = WriteVaspStaticFromPrev()
     t23 = RunVaspDirect(vasp_cmd=vasp_cmd)
     t24 = PassVaspLocs(name="static")
-    t25 = VaspToDBTask(db_file=db_file)
+    t25 = VaspToDBTask(db_file=db_file, additional_fields={"task_label": "static"})
 
     fw2 = Firework([t21, t22, t23, t24, t25], parents=fw1, name="static")
 

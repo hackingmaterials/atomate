@@ -70,7 +70,19 @@ class TestVaspWorkflows(unittest.TestCase):
         self.assertAlmostEqual(d["calculations"][0]["output"]["crystal"]["lattice"]["a"], 3.867, 2)
         self.assertAlmostEqual(d["calculations"][0]["output"]["outcar"]["total_magnetization"], 0, 3)
         self.assertAlmostEqual(d["analysis"]["bandgap"], 0.85, 1)
-        self.assertEqual(d["analysis"]["is_gap_direct"], True)
+        self.assertEqual(d["analysis"]["is_gap_direct"], True)  # TODO: shouldn't this be false??
+        self.assertLess(d["run_stats"]["overall"]["Elapsed time (sec)"], 180)  # run should take under 3 minutes
+
+    def _check_static_run(self, d):
+        self.assertEqual(d["pretty_formula"], "Si")
+        self.assertEqual(d["nelements"], 1)
+        self.assertEqual(d["state"], "successful")
+        self.assertAlmostEqual(d["output"]["final_energy"], -10.850, 2)
+        self.assertAlmostEqual(d["output"]["final_energy_per_atom"], -5.425, 2)
+        self.assertAlmostEqual(d["calculations"][0]["output"]["crystal"]["lattice"]["a"], 3.867, 2)
+        self.assertAlmostEqual(d["calculations"][0]["output"]["outcar"]["total_magnetization"], 0, 3)
+        self.assertAlmostEqual(d["analysis"]["bandgap"], 0.85, 1)
+        self.assertEqual(d["analysis"]["is_gap_direct"], False)
         self.assertLess(d["run_stats"]["overall"]["Elapsed time (sec)"], 180)  # run should take under 3 minutes
 
 
@@ -109,16 +121,17 @@ class TestVaspWorkflows(unittest.TestCase):
         # add the workflow
         vis = MPVaspInputSet()
         structure = self.struct_si
-        my_wf = get_wf_double_Vasp(structure, vis)
+        my_wf = get_wf_double_Vasp(structure, vis, db_file=">>db_file<<")  # instructs to use db_file set by FWorker, see env_chk
         my_wf = make_fake_workflow(my_wf)
         self.lp.add_wf(my_wf)
 
         # run the workflow
-        rapidfire(self.lp)
+        rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))  # set the db_file variable
 
         # make sure the structure relaxation ran OK
-        fw_id = self.lp.get_fw_ids({"name": "structure optimization"})[0]
-        fw = self.lp.get_fw_by_id(fw_id)
-        with open(os.path.join(fw.launches[-1].launch_dir, "task.json")) as f:
-            d = json.load(f)
-            self._check_relaxation_run(d)
+        d = self._get_task_collection().find_one({"task_label": "structure optimization"})
+        self._check_relaxation_run(d)
+
+        # make sure the static run ran OK
+        d = self._get_task_collection().find_one({"task_label": "static"})
+        self._check_static_run(d)
