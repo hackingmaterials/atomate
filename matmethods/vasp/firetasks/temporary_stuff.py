@@ -56,7 +56,9 @@ class StaticVaspInputSet(DictVaspInputSet):
         self.kpoints_settings.update({"kpoints_density": kpoints_density})
 
     @staticmethod
-    def write_input_from_prevrun(kpoints_density=1000, prev_dir=None, standardization_symprec=0.1, preserve_magmom=True, preserve_old_incar=True, output_dir="."):
+    def write_input_from_prevrun(kpoints_density=1000, prev_dir=None, standardization_symprec=0.1, preserve_magmom=True, preserve_old_incar=False, output_dir=".", user_incar_settings=None):
+
+        user_incar_settings = user_incar_settings or {}
 
         # get old structure, including MAGMOM decoration if desired
         structure = get_structure_from_prev_run(prev_dir, preserve_magmom=preserve_magmom)
@@ -66,36 +68,22 @@ class StaticVaspInputSet(DictVaspInputSet):
             sym_finder = SpacegroupAnalyzer(structure, symprec=standardization_symprec)
             structure = sym_finder.get_primitive_standard_structure()
 
-        vis = StaticVaspInputSet(kpoints_density)
+        # TODO: re-use old CHGCAR (ICHG=1) if you are not standardizing (i.e., changing) the cell.
+
+        vis = StaticVaspInputSet(kpoints_density, user_incar_settings=user_incar_settings)
         vis.write_input(structure, output_dir)
 
-
-
-        """
         if preserve_old_incar:
+            raise NotImplementedError("The option to preserve the old INCAR is not yet implemented!")
             # TODO: parse old incar
-            # TODO: override MAGMOM and also the STATIC_SETTINGS in this INCAR
-            pass
-
-        # TODO: use old CHGCAR!! ICHG=1, if you are not standardizing
-
-        # write incar
-        # TODO: add options to MPStaticVaspInputset constructor
-        mpsvip = MPStaticVaspInputSet()
-        # TODO: get KPOINTS and write it
-        # TODO: get POSCAR and write it
-        # TODO: get POTCAR and write it
-        # TODO: get INCAR and write it -- but keep in mind preserving the old INCAR
+            # TODO: override STATIC_SETTINGS in this INCAR
+            # TODO: make sure MAGMOM aligns correctly with sites in newest INCAR
+            # TODO: make sure LDAU aligns correctly with sites in newest INCAR
+            # TODO: make sure to use the tighter EDIFF
+            # TODO: write the new INCAR
+            # TODO: check old code to see if anything needed is missing
 
         # TODO: add an option to preserve the old KPOINTS??
-
-
-        # TODO: see if anything is missing
-        """
-
-
-
-
 
 
 class MPStaticVaspInputSet(DictVaspInputSet):
