@@ -137,5 +137,5 @@ class TestVaspWorkflows(unittest.TestCase):
         self._check_static_run(d)
 
         # make sure the uniform run ran OK
-        d = self._get_task_collection().find_one({"task_label": "uniform"})
+        d = self._get_task_collection().find_one({"task_label": "non-scf uniform"})
         self._check_static_run(d)  # TODO: fixme

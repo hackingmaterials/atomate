@@ -39,18 +39,15 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_c
     fw2 = Firework(t2, parents=fw1, name="static")
 
     # uniform
-    """
     t3 = []
     t3.append(CopyVaspOutputs(vasp_loc=True))
-    t3.append(WriteVaspStaticFromPrev())  # TODO: make uniform
+    t3.append(WriteVaspUniformFromPrev())  # TODO: make uniform
     t3.append(RunVaspDirect(vasp_cmd=vasp_cmd))
-    t3.append(PassVaspLocs(name="uniform"))
-    t3.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": "uniform"}))
-    fw3 = Firework(t3, parents=fw2, name="uniform")
+    t3.append(PassVaspLocs(name="non-scf uniform"))
+    t3.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": "non-scf uniform"}))
+    fw3 = Firework(t3, parents=fw2, name="non-scf uniform")
 
     return Workflow([fw1, fw2, fw3])
-    """
-    return Workflow([fw1, fw2])
 
 
 if __name__ == "__main__":
