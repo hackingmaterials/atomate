@@ -10,7 +10,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 scratch_dir = os.path.join(module_dir, "scratch")
 
-DEBUG_MODE = False
+DEBUG_MODE = True
 
 
 class TestCopyVaspInputs(unittest.TestCase):
@@ -39,11 +39,11 @@ class TestCopyVaspInputs(unittest.TestCase):
     def test_plain_copy(self):
         ct = CopyVaspOutputs(vasp_dir=self.plain_outdir)
         ct.run_task({})
-        files = ["INCAR", "KPOINTS", "POTCAR", "POSCAR"]
+        files = ["INCAR", "KPOINTS", "POSCAR", "POTCAR", "OUTCAR"]
         for f in files:
             self.assertTrue(os.path.exists(os.path.join(scratch_dir, f)))
 
-        no_files = ["CONTCAR", "OUTCAR"]
+        no_files = ["CONTCAR", "EIGENVAL", "IBZKPT"]
         for f in no_files:
             self.assertFalse(os.path.exists(os.path.join(scratch_dir, f)))
 
@@ -53,13 +53,13 @@ class TestCopyVaspInputs(unittest.TestCase):
                 self.assertEqual(f1.read(), f2.read())
 
     def test_plain_copy_more(self):
-        ct = CopyVaspOutputs(vasp_dir=self.plain_outdir, contcar_to_poscar=False, additional_files=["OUTCAR"])
+        ct = CopyVaspOutputs(vasp_dir=self.plain_outdir, contcar_to_poscar=False, additional_files=["IBZKPT"])
         ct.run_task({})
-        files = ["INCAR", "KPOINTS", "POSCAR", "POTCAR", "OUTCAR"]
+        files = ["INCAR", "KPOINTS", "POSCAR", "POTCAR", "IBZKPT"]
         for f in files:
             self.assertTrue(os.path.exists(os.path.join(scratch_dir, f)))
 
-        no_files = ["CONTCAR"]
+        no_files = ["CONTCAR", "EIGENVAL"]
         for f in no_files:
             self.assertFalse(os.path.exists(os.path.join(scratch_dir, f)))
 
@@ -75,6 +75,6 @@ class TestCopyVaspInputs(unittest.TestCase):
         for f in files:
             self.assertTrue(os.path.exists(os.path.join(scratch_dir, f)))
 
-        no_files = ["CONTCAR", "OUTCAR"]
+        no_files = ["CONTCAR", "EIGENVAL"]
         for f in no_files:
             self.assertFalse(os.path.exists(os.path.join(scratch_dir, f)))
