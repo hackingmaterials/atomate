@@ -9,46 +9,36 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# TODO: get this information from a directory rather than vasp_run and outcar
-def get_structure_from_prev_run(vasp_run, outcar=None, preserve_magmom=True):
+def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
         """
         Process structure for static calculations from previous run.
 
         Args:
-            vasp_run (Vasprun): Vasprun that contains the final structure
-                from previous run.
-            outcar (Outcar): Outcar that contains the magnetization info from
-                previous run.
-            initial_structure (bool): Whether to return the structure from
-                previous run. Default is False.
-            additional_info (bool):
-                Whether to return additional symmetry info related to the
-                structure. If True, return a list of the refined structure (
-                conventional cell), the conventional standard structure,
-                the symmetry dataset and symmetry operations of the
-                structure (see SpacegroupAnalyzer doc for details).
-            sym_prec (float): Tolerance for symmetry finding
+            prev_dir (str): directory of the previous run
+            preserve_magmom (bool): whether to preserve magmom of the old run.
 
         Returns:
-            Returns the magmom-decorated structure that can be passed to get
-            Vasp input files, e.g. get_kpoints.
+            Returns the magmom-decorated structure.
         """
-        structure = vasp_run.final_structure
+
+        prev_dir = prev_dir or os.curdir
 
         if preserve_magmom:
-            if vasp_run.is_spin:
+            vasprun = Vasprun(os.path.join(prev_dir, "vasprun.xml"))
+            outcar = Outcar(os.path.join(prev_dir, "OUTCAR"))
+            structure = vasprun.final_structure
+
+            if vasprun.is_spin:
                 if outcar and outcar.magnetization:
                     magmom = {"magmom": [i['tot'] for i in outcar.magnetization]}
                 else:
                     magmom = {
-                        "magmom": vasp_run.as_dict()['input']['parameters']['MAGMOM']}
+                        "magmom": vasprun.as_dict()['input']['parameters']['MAGMOM']}
             else:
                 magmom = None
-            structure = structure.copy(site_properties=magmom)
-
-        return structure
-
-
+            return structure.copy(site_properties=magmom)
+        else:
+            return Poscar.from_file(os.path.join(prev_dir, "CONTCAR")).structure
 
 
 class StaticVaspInputSet(DictVaspInputSet):
@@ -69,11 +59,7 @@ class StaticVaspInputSet(DictVaspInputSet):
     def write_input_from_prevrun(kpoints_density=1000, prev_dir=None, standardization_symprec=0.1, preserve_magmom=True, preserve_old_incar=True, output_dir="."):
 
         # get old structure, including MAGMOM decoration if desired
-        print os.getcwd()
-        vr = Vasprun("vasprun.xml")
-        # vr = Vasprun(os.path.join(prev_dir, "vasprun.xml"))
-        # TODO: need to convert get_structure_from_prev_run to use dir and not outcar/vasprun objects. e.g. handle .gz extensions
-        structure = get_structure_from_prev_run(vr, preserve_magmom=preserve_magmom)
+        structure = get_structure_from_prev_run(prev_dir, preserve_magmom=preserve_magmom)
 
         # standardize the structure if desired
         if standardization_symprec:
