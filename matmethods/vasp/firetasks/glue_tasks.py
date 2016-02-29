@@ -35,9 +35,9 @@ class PassVaspLocs(FireTaskBase):
 
 
 @explicit_serialize
-class CopyVaspInputs(FireTaskBase):
+class CopyVaspOutputs(FireTaskBase):
     """
-    Copy inputs from a previous VASP run directory to the current directory. Additional files, e.g. CHGCAR, can also be specified.
+    Copy outputs from a previous VASP run directory to the current directory. Additional files, e.g. CHGCAR, can also be specified.
     Automatically handles files that have a ".gz" extension (copies and unzips).
 
     Note that you must specify either "vasp_dir" or "vasp_loc" of the directory containing the previous VASP run.
@@ -58,7 +58,7 @@ class CopyVaspInputs(FireTaskBase):
         if "$ALL" in self.get("additional_files", []):
             files_to_copy = os.listdir(vasp_dir)
         else:
-            files_to_copy = ['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR']
+            files_to_copy = ['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR', 'vasprun.xml']
             if self.get("additional_files"):
                 files_to_copy.extend(self["additional_files"])
 

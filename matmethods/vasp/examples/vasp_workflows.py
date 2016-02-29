@@ -1,5 +1,5 @@
 from fireworks import Firework, Workflow
-from matmethods.vasp.firetasks.glue_tasks import PassVaspLocs, CopyVaspInputs
+from matmethods.vasp.firetasks.glue_tasks import PassVaspLocs, CopyVaspOutputs
 from matmethods.vasp.firetasks.parse_outputs import VaspToDBTask
 from matmethods.vasp.firetasks.run_calc import RunVaspDirect
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspStaticFromPrev
@@ -27,14 +27,13 @@ def get_wf_double_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vas
 
     fw1 = Firework([t11, t12, t13, t14], name="structure optimization")
 
-    t21 = CopyVaspInputs(vasp_loc=True)
+    t21 = CopyVaspOutputs(vasp_loc=True)
     t22 = WriteVaspStaticFromPrev()
-    # TODO: t22 should be a STATIC run that reads the previous vasp loc
-    #t22 = RunVaspDirect(vasp_cmd=vasp_cmd)
-    #t23 = PassVaspLocs(name="static")
-    #t24 = VaspToDBTask(db_file=db_file)
+    t23 = RunVaspDirect(vasp_cmd=vasp_cmd)
+    t24 = PassVaspLocs(name="static")
+    t25 = VaspToDBTask(db_file=db_file)
 
-    fw2 = Firework([t21], parents=fw1, name="static")
+    fw2 = Firework([t21, t22, t23, t24, t25], parents=fw1, name="static")
 
     return Workflow([fw1, fw2])
 

@@ -2,7 +2,7 @@ import os
 import shutil
 import unittest
 
-from matmethods.vasp.firetasks.glue_tasks import CopyVaspInputs
+from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -37,7 +37,7 @@ class TestCopyVaspInputs(unittest.TestCase):
             self.assertTrue(os.path.exists(os.path.join(self.gzip_outdir, f+".gz")))
 
     def test_plain_copy(self):
-        ct = CopyVaspInputs(vasp_dir=self.plain_outdir)
+        ct = CopyVaspOutputs(vasp_dir=self.plain_outdir)
         ct.run_task({})
         files = ["INCAR", "KPOINTS", "POTCAR", "POSCAR"]
         for f in files:
@@ -53,7 +53,7 @@ class TestCopyVaspInputs(unittest.TestCase):
                 self.assertEqual(f1.read(), f2.read())
 
     def test_plain_copy_more(self):
-        ct = CopyVaspInputs(vasp_dir=self.plain_outdir, contcar_to_poscar=False, additional_files=["OUTCAR"])
+        ct = CopyVaspOutputs(vasp_dir=self.plain_outdir, contcar_to_poscar=False, additional_files=["OUTCAR"])
         ct.run_task({})
         files = ["INCAR", "KPOINTS", "POSCAR", "POTCAR", "OUTCAR"]
         for f in files:
@@ -69,7 +69,7 @@ class TestCopyVaspInputs(unittest.TestCase):
                 self.assertEqual(f1.read(), f2.read())
 
     def test_gzip_copy(self):
-        ct = CopyVaspInputs(vasp_dir=self.gzip_outdir)
+        ct = CopyVaspOutputs(vasp_dir=self.gzip_outdir)
         ct.run_task({})
         files = ["INCAR", "KPOINTS", "POTCAR", "POSCAR"]
         for f in files:

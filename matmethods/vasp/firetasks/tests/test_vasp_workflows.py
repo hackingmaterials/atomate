@@ -39,7 +39,6 @@ class TestVaspWorkflows(unittest.TestCase):
 
         cls.module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
         cls.scratch_dir = os.path.join(cls.module_dir, "scratch")
-        cls.reference_dir = os.path.join(cls.module_dir, "reference_files")
 
     def setUp(self):
         if os.path.exists(self.scratch_dir):
@@ -80,7 +79,7 @@ class TestVaspWorkflows(unittest.TestCase):
         vis = MPVaspInputSet()
         structure = self.struct_si
         my_wf = get_wf_single_Vasp(structure, vis)
-        my_wf = make_fake_workflow(my_wf, fake_dir=os.path.join(self.reference_dir, "Si_structure_optimization"))
+        my_wf = make_fake_workflow(my_wf)
         self.lp.add_wf(my_wf)
 
         # run the workflow
@@ -97,7 +96,7 @@ class TestVaspWorkflows(unittest.TestCase):
         vis = MPVaspInputSet()
         structure = self.struct_si
         my_wf = get_wf_single_Vasp(structure, vis, db_file=">>db_file<<")  # instructs to use db_file set by FWorker, see env_chk
-        my_wf = make_fake_workflow(my_wf, fake_dir=os.path.join(self.reference_dir, "Si_structure_optimization"))
+        my_wf = make_fake_workflow(my_wf)
         self.lp.add_wf(my_wf)
 
         # run the workflow
@@ -111,7 +110,7 @@ class TestVaspWorkflows(unittest.TestCase):
         vis = MPVaspInputSet()
         structure = self.struct_si
         my_wf = get_wf_double_Vasp(structure, vis)
-        my_wf = make_fake_workflow(my_wf, fake_dir=os.path.join(self.reference_dir, "Si_structure_optimization"))
+        my_wf = make_fake_workflow(my_wf)
         self.lp.add_wf(my_wf)
 
         # run the workflow
@@ -123,4 +122,3 @@ class TestVaspWorkflows(unittest.TestCase):
         with open(os.path.join(fw.launches[-1].launch_dir, "task.json")) as f:
             d = json.load(f)
             self._check_relaxation_run(d)
-

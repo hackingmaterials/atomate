@@ -50,6 +50,7 @@ def get_structure_from_prev_run(vasp_run, outcar=None, preserve_magmom=True):
 
 
 
+
 class StaticVaspInputSet(DictVaspInputSet):
 
     STATIC_SETTINGS = {"IBRION": -1, "ISMEAR": -5, "LAECHG": True, "LCHARG": True,
@@ -65,16 +66,26 @@ class StaticVaspInputSet(DictVaspInputSet):
         self.kpoints_settings.update({"kpoints_density": kpoints_density})
 
     @staticmethod
-    def write_input_from_prevrun(prev_dir=".", standardization_symprec=0.1, preserve_magmom=True, preserve_old_incar=True, output_dir="."):
-        # TODO: need to convert get_structure_from_prev_run to use dir and not outcar/vasprun objects
+    def write_input_from_prevrun(kpoints_density=1000, prev_dir=None, standardization_symprec=0.1, preserve_magmom=True, preserve_old_incar=True, output_dir="."):
+
         # get old structure, including MAGMOM decoration if desired
-        structure = get_structure_from_prev_run(prev_dir, preserve_magmom=preserve_magmom)
+        print os.getcwd()
+        vr = Vasprun("vasprun.xml")
+        # vr = Vasprun(os.path.join(prev_dir, "vasprun.xml"))
+        # TODO: need to convert get_structure_from_prev_run to use dir and not outcar/vasprun objects. e.g. handle .gz extensions
+        structure = get_structure_from_prev_run(vr, preserve_magmom=preserve_magmom)
 
         # standardize the structure if desired
         if standardization_symprec:
             sym_finder = SpacegroupAnalyzer(structure, symprec=standardization_symprec)
             structure = sym_finder.get_primitive_standard_structure()
 
+        vis = StaticVaspInputSet(kpoints_density)
+        vis.write_input(structure, output_dir)
+
+
+
+        """
         if preserve_old_incar:
             # TODO: parse old incar
             # TODO: override MAGMOM and also the STATIC_SETTINGS in this INCAR
@@ -94,6 +105,7 @@ class StaticVaspInputSet(DictVaspInputSet):
 
 
         # TODO: see if anything is missing
+        """
 
 
 

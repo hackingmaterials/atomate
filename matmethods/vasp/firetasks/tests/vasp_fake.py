@@ -6,6 +6,9 @@ from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
+module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+reference_dir = os.path.join(module_dir, "reference_files")
+fake_dirs={"structure optimization": os.path.join(reference_dir, "Si_structure_optimization"), "static": os.path.join(reference_dir, "Si_static")}
 
 @explicit_serialize
 class RunVaspFake(FireTaskBase):
@@ -61,12 +64,12 @@ class RunVaspFake(FireTaskBase):
         print("RunVaspFake: ran fake VASP, generated outputs")
 
 
-def make_fake_workflow(original_workflow, fake_dir=None):
-
+def make_fake_workflow(original_workflow):
     wf_dict = original_workflow.to_dict()
     for idx_fw, fw in enumerate(original_workflow.fws):
-        for idx_t, t in enumerate(fw.tasks):
-            if "RunVasp" in str(t):
-                wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = RunVaspFake(fake_dir=fake_dir).to_dict()
+        if fw.name in fake_dirs:
+            for idx_t, t in enumerate(fw.tasks):
+                if "RunVasp" in str(t):
+                    wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = RunVaspFake(fake_dir=fake_dirs[fw.name]).to_dict()
 
     return Workflow.from_dict(wf_dict)
