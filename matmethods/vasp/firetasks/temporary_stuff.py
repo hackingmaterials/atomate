@@ -65,7 +65,7 @@ class StaticVaspInputSet(DictVaspInputSet):
         self.kpoints_settings.update({"kpoints_density": kpoints_density})
 
     @staticmethod
-    def write_input_from_prevrun(prev_dir, output_dir=".", standardization_symprec=0.1, preserve_magmom=True, preserve_old_incar=True):
+    def write_input_from_prevrun(prev_dir=".", standardization_symprec=0.1, preserve_magmom=True, preserve_old_incar=True, output_dir="."):
         # TODO: need to convert get_structure_from_prev_run to use dir and not outcar/vasprun objects
         # get old structure, including MAGMOM decoration if desired
         structure = get_structure_from_prev_run(prev_dir, preserve_magmom=preserve_magmom)

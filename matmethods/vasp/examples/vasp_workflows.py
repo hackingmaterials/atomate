@@ -2,7 +2,7 @@ from fireworks import Firework, Workflow
 from matmethods.vasp.firetasks.glue_tasks import PassVaspLocs, CopyVaspInputs
 from matmethods.vasp.firetasks.parse_outputs import VaspToDBTask
 from matmethods.vasp.firetasks.run_calc import RunVaspDirect
-from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet
+from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspStaticFromPrev
 from pymatgen import Lattice, IStructure
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
@@ -28,6 +28,7 @@ def get_wf_double_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vas
     fw1 = Firework([t11, t12, t13, t14], name="structure optimization")
 
     t21 = CopyVaspInputs(vasp_loc=True)
+    t22 = WriteVaspStaticFromPrev()
     # TODO: t22 should be a STATIC run that reads the previous vasp loc
     #t22 = RunVaspDirect(vasp_cmd=vasp_cmd)
     #t23 = PassVaspLocs(name="static")

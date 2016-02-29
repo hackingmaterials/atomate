@@ -1,6 +1,7 @@
 from fireworks import FireTaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
 from matmethods.utils.utils import env_chk
+from matmethods.vasp.firetasks.temporary_stuff import StaticVaspInputSet
 from pymatgen.io.vasp import Incar
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>, Shyue Ping Ong <ongsp@ucsd.edu>'
@@ -119,3 +120,24 @@ class ModifyIncar(FireTaskBase):
 
         # write INCAR
         incar.write_file(self.get("output_filename", "INCAR"))
+
+
+@explicit_serialize
+class WriteVaspStaticFromPrev(FireTaskBase):
+    """
+    Writes input files for a static run. Assumes that output files from a relaxation job can be accessed.
+
+    Optional params:
+        prev_dir (str): directory containing output files of the previous relaxation run. Defaults to current dir.
+        standardization_symprec (float): Symprec for standardization. Set to None for no cell standardization. Defaults to 0.1.
+        preserve_magmom (bool): whether to preserve old MAGMOM. Defaults to True
+        preserve_old_incar (bool): whether to try to preserve most of the older INCAR parameters instead of overriding with Inputset values. Defaults to True.
+    """
+
+    optional_params = ["standardization_symprec", "prev_dir", "preserve_magmom", "preserve_old_incar"]
+
+    def run_task(self, fw_spec):
+        StaticVaspInputSet.write_input_from_prevrun(prev_dir=self.get("prev_dir", "."),
+                                                    standardization_symprec=self.get("standardization_symprec"),
+                                                    preserve_magmom=self.get("preserve_magmom", True),
+                                                    preserve_old_incar=self.get("preserve_old_incar", True))
