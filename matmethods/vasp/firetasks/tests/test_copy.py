@@ -13,7 +13,7 @@ scratch_dir = os.path.join(module_dir, "scratch")
 DEBUG_MODE = False
 
 
-class TestCopyVaspInputs(unittest.TestCase):
+class TestCopyVaspOutputs(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
