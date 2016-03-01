@@ -24,7 +24,7 @@ def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
         prev_dir = prev_dir or os.curdir
 
         if preserve_magmom:
-            vasprun = Vasprun(os.path.join(prev_dir, "vasprun.xml"))
+            vasprun = Vasprun(os.path.join(prev_dir, "vasprun.xml"), parse_dos=False, parse_eigen=False)
             outcar = Outcar(os.path.join(prev_dir, "OUTCAR"))
             structure = vasprun.final_structure
 
@@ -109,36 +109,3 @@ class NonSCFVaspInputSet(DictVaspInputSet):
             raise KeyError("For NonSCF runs, NBANDS value from SC runs is required!")
 
         # self.incar_settings.update(user_incar_settings)  TODO: is this needed?
-
-
-
-
-    @staticmethod
-    def write_input_from_prevrun(kpoints_density=1000, prev_dir=None, standardization_symprec=0.1, preserve_magmom=True, preserve_old_incar=False, output_dir=".", user_incar_settings=None):
-
-        user_incar_settings = user_incar_settings or {}
-
-        # get old structure, including MAGMOM decoration if desired
-        structure = get_structure_from_prev_run(prev_dir, preserve_magmom=preserve_magmom)
-
-        # standardize the structure if desired
-        if standardization_symprec:
-            sym_finder = SpacegroupAnalyzer(structure, symprec=standardization_symprec)
-            structure = sym_finder.get_primitive_standard_structure()
-
-        # TODO: re-use old CHGCAR (ICHG=1) if you are not standardizing (i.e., changing) the cell.
-
-        vis = StaticVaspInputSet(kpoints_density, user_incar_settings=user_incar_settings)
-        vis.write_input(structure, output_dir)
-
-        if preserve_old_incar:
-            raise NotImplementedError("The option to preserve the old INCAR is not yet implemented!")
-            # TODO: parse old incar
-            # TODO: override STATIC_SETTINGS in this INCAR
-            # TODO: make sure MAGMOM aligns correctly with sites in newest INCAR
-            # TODO: make sure LDAU aligns correctly with sites in newest INCAR
-            # TODO: make sure to use the tighter EDIFF
-            # TODO: write the new INCAR
-            # TODO: check old code to see if anything needed is missing
-
-        # TODO: add an option to preserve the old KPOINTS??
