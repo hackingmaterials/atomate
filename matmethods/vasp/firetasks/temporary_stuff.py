@@ -89,79 +89,81 @@ class StaticVaspInputSet(DictVaspInputSet):
 
 class NonSCFVaspInputSet(DictVaspInputSet):
 
-    NSCF_SETTINGS = {"IBRION": -1, "ISMEAR": 0, "SIGMA": 0.001, "LCHARG": False,
-             "LORBIT": 11, "LWAVE": False, "NSW": 0, "ISYM": 0, "ICHARG": 11}
+        NSCF_SETTINGS = {"IBRION": -1, "ISMEAR": 0, "SIGMA": 0.001, "LCHARG": False,
+                 "LORBIT": 11, "LWAVE": False, "NSW": 0, "ISYM": 0, "ICHARG": 11}
 
-    # TODO: kpoints density is not really correct
-    def __init__(self, mode="uniform", kpoints_density=1000, **kwargs):
-        if mode not in ["line", "uniform"]:
-            raise ValueError("Supported modes for NonSCF runs are 'line' and 'uniform'!")
+        # TODO: kpoints density is not really correct
+        def __init__(self, mode="uniform", kpoints_density=1000, **kwargs):
+            if mode not in ["line", "uniform"]:
+                raise ValueError("Supported modes for NonSCF runs are 'line' and 'uniform'!")
 
-        super(NonSCFVaspInputSet, self).__init__("MP Non-SCF",
-            loadfn(os.path.join(MODULE_DIR, "MPVaspInputSet.yaml")), **kwargs)
+            super(NonSCFVaspInputSet, self).__init__("MP Non-SCF",
+                loadfn(os.path.join(MODULE_DIR, "MPVaspInputSet.yaml")), **kwargs)
 
-        self.incar_settings.update(self.NSCF_SETTINGS)
+            self.incar_settings.update(self.NSCF_SETTINGS)
 
-        self.kpoints_settings.update({"kpoints_density": kpoints_density})
-        if mode == "uniform":
-            self.incar_settings.update({"NEDOS": 601})
+            self.kpoints_settings.update({"kpoints_density": kpoints_density})
+            if mode == "uniform":
+                self.incar_settings.update({"NEDOS": 601})
 
-        if "NBANDS" not in kwargs:
-            raise KeyError("For NonSCF runs, NBANDS value from SC runs is required!")
+            if "NBANDS" not in kwargs:
+                raise KeyError("For NonSCF runs, NBANDS value from SC runs is required!")
 
-        # self.incar_settings.update(user_incar_settings)  TODO: is this needed?
+            # self.incar_settings.update(user_incar_settings)  TODO: is this needed?
 
-    @staticmethod
-    def write_input_from_prevrun():
-        # TODO: implement me!
-        """
-        user_incar_settings = user_incar_settings or {}
+        # TODO: add get_incar, get_kpoints, etc....
 
-        try:
-            vasp_run = Vasprun(os.path.join(previous_vasp_dir, "vasprun.xml"),
-                               parse_dos=False, parse_eigen=None)
-            outcar = Outcar(os.path.join(previous_vasp_dir, "OUTCAR"))
-            previous_incar = vasp_run.incar
-        except:
-            traceback.print_exc()
-            raise RuntimeError("Can't get valid results from previous run: {}"
-                               .format(previous_vasp_dir))
+        @staticmethod
+        def write_input_from_prevrun():
+            # TODO: implement me!
+            """
+            user_incar_settings = user_incar_settings or {}
 
-        #Get a Magmom-decorated structure
-        structure = MPNonSCFVaspInputSet.get_structure(vasp_run, outcar,
-                                                       initial_structure=True)
-        nscf_incar_settings = MPNonSCFVaspInputSet.get_incar_settings(vasp_run,
-                                                                      outcar)
-        mpnscfvip = MPNonSCFVaspInputSet(nscf_incar_settings, mode,
-                                         kpoints_density=kpoints_density,
-                                         kpoints_line_density=kpoints_line_density)
-        mpnscfvip.write_input(structure, output_dir, make_dir_if_not_present)
-        if copy_chgcar:
             try:
-                shutil.copyfile(os.path.join(previous_vasp_dir, "CHGCAR"),
-                                os.path.join(output_dir, "CHGCAR"))
-            except Exception as e:
+                vasp_run = Vasprun(os.path.join(previous_vasp_dir, "vasprun.xml"),
+                                   parse_dos=False, parse_eigen=None)
+                outcar = Outcar(os.path.join(previous_vasp_dir, "OUTCAR"))
+                previous_incar = vasp_run.incar
+            except:
                 traceback.print_exc()
-                raise RuntimeError("Can't copy CHGCAR from SC run" + '\n'
-                                   + str(e))
+                raise RuntimeError("Can't get valid results from previous run: {}"
+                                   .format(previous_vasp_dir))
 
-        #Overwrite necessary INCAR parameters from previous runs
-        previous_incar.update({"IBRION": -1, "ISMEAR": 0, "SIGMA": 0.001,
-                               "LCHARG": False, "LORBIT": 11, "LWAVE": False,
-                               "NSW": 0, "ISYM": 0, "ICHARG": 11})
-        previous_incar.update(nscf_incar_settings)
-        previous_incar.update(user_incar_settings)
-        previous_incar.pop("MAGMOM", None)
-        previous_incar.write_file(os.path.join(output_dir, "INCAR"))
+            #Get a Magmom-decorated structure
+            structure = MPNonSCFVaspInputSet.get_structure(vasp_run, outcar,
+                                                           initial_structure=True)
+            nscf_incar_settings = MPNonSCFVaspInputSet.get_incar_settings(vasp_run,
+                                                                          outcar)
+            mpnscfvip = MPNonSCFVaspInputSet(nscf_incar_settings, mode,
+                                             kpoints_density=kpoints_density,
+                                             kpoints_line_density=kpoints_line_density)
+            mpnscfvip.write_input(structure, output_dir, make_dir_if_not_present)
+            if copy_chgcar:
+                try:
+                    shutil.copyfile(os.path.join(previous_vasp_dir, "CHGCAR"),
+                                    os.path.join(output_dir, "CHGCAR"))
+                except Exception as e:
+                    traceback.print_exc()
+                    raise RuntimeError("Can't copy CHGCAR from SC run" + '\n'
+                                       + str(e))
 
-        # Perform checking on INCAR parameters
-        if any([previous_incar.get("NSW", 0) != 0,
-                previous_incar["IBRION"] != -1,
-                previous_incar["ICHARG"] != 11,
-               any([sum(previous_incar["LDAUU"]) <= 0,
-                    previous_incar["LMAXMIX"] < 4])
-               if previous_incar.get("LDAU") else False]):
-            raise ValueError("Incompatible INCAR parameters!")
+            #Overwrite necessary INCAR parameters from previous runs
+            previous_incar.update({"IBRION": -1, "ISMEAR": 0, "SIGMA": 0.001,
+                                   "LCHARG": False, "LORBIT": 11, "LWAVE": False,
+                                   "NSW": 0, "ISYM": 0, "ICHARG": 11})
+            previous_incar.update(nscf_incar_settings)
+            previous_incar.update(user_incar_settings)
+            previous_incar.pop("MAGMOM", None)
+            previous_incar.write_file(os.path.join(output_dir, "INCAR"))
 
-        """
-        pass
+            # Perform checking on INCAR parameters
+            if any([previous_incar.get("NSW", 0) != 0,
+                    previous_incar["IBRION"] != -1,
+                    previous_incar["ICHARG"] != 11,
+                   any([sum(previous_incar["LDAUU"]) <= 0,
+                        previous_incar["LMAXMIX"] < 4])
+                   if previous_incar.get("LDAU") else False]):
+                raise ValueError("Incompatible INCAR parameters!")
+
+            """
+            pass
