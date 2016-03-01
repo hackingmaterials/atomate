@@ -82,6 +82,7 @@ class StaticVaspInputSet(DictVaspInputSet):
             # TODO: make sure to use the tighter EDIFF
             # TODO: write the new INCAR
             # TODO: check old code to see if anything needed is missing
+            # TODO: perform a final sanity check on the parameters(?)
 
         # TODO: add an option to preserve the old KPOINTS??
 
@@ -109,3 +110,9 @@ class NonSCFVaspInputSet(DictVaspInputSet):
             raise KeyError("For NonSCF runs, NBANDS value from SC runs is required!")
 
         # self.incar_settings.update(user_incar_settings)  TODO: is this needed?
+
+    @staticmethod
+    def write_input_from_prevrun():
+        # TODO: implement me!
+
+        pass

@@ -2,7 +2,7 @@ from fireworks import Firework, Workflow
 from matmethods.vasp.firetasks.glue_tasks import PassVaspLocs, CopyVaspOutputs
 from matmethods.vasp.firetasks.parse_outputs import VaspToDBTask
 from matmethods.vasp.firetasks.run_calc import RunVaspDirect
-from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspStaticFromPrev
+from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspStaticFromPrev, WriteVaspNSCFFromPrev
 from pymatgen import Lattice, IStructure
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
@@ -41,11 +41,11 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_c
     # uniform
     t3 = []
     t3.append(CopyVaspOutputs(vasp_loc=True))
-    t3.append(WriteVaspUniformFromPrev())  # TODO: make uniform
+    t3.append(WriteVaspNSCFFromPrev())  # TODO: make uniform
     t3.append(RunVaspDirect(vasp_cmd=vasp_cmd))
-    t3.append(PassVaspLocs(name="non-scf uniform"))
-    t3.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": "non-scf uniform"}))
-    fw3 = Firework(t3, parents=fw2, name="non-scf uniform")
+    t3.append(PassVaspLocs(name="nscf uniform"))
+    t3.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": "nscf uniform"}))
+    fw3 = Firework(t3, parents=fw2, name="nscf uniform")
 
     return Workflow([fw1, fw2, fw3])
 

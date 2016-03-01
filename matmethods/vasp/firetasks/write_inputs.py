@@ -146,7 +146,8 @@ class WriteVaspStaticFromPrev(FireTaskBase):
                                                     preserve_old_incar=self.get("preserve_old_incar", False))
 
 
-class WriteVaspUniformFromPrev(FireTaskBase):
+@explicit_serialize
+class WriteVaspNSCFFromPrev(FireTaskBase):
     """
     Writes input files for a static run. Assumes that output files from an scf job can be accessed.
 
