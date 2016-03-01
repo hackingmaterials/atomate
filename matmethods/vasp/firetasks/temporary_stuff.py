@@ -114,5 +114,54 @@ class NonSCFVaspInputSet(DictVaspInputSet):
     @staticmethod
     def write_input_from_prevrun():
         # TODO: implement me!
+        """
+        user_incar_settings = user_incar_settings or {}
 
+        try:
+            vasp_run = Vasprun(os.path.join(previous_vasp_dir, "vasprun.xml"),
+                               parse_dos=False, parse_eigen=None)
+            outcar = Outcar(os.path.join(previous_vasp_dir, "OUTCAR"))
+            previous_incar = vasp_run.incar
+        except:
+            traceback.print_exc()
+            raise RuntimeError("Can't get valid results from previous run: {}"
+                               .format(previous_vasp_dir))
+
+        #Get a Magmom-decorated structure
+        structure = MPNonSCFVaspInputSet.get_structure(vasp_run, outcar,
+                                                       initial_structure=True)
+        nscf_incar_settings = MPNonSCFVaspInputSet.get_incar_settings(vasp_run,
+                                                                      outcar)
+        mpnscfvip = MPNonSCFVaspInputSet(nscf_incar_settings, mode,
+                                         kpoints_density=kpoints_density,
+                                         kpoints_line_density=kpoints_line_density)
+        mpnscfvip.write_input(structure, output_dir, make_dir_if_not_present)
+        if copy_chgcar:
+            try:
+                shutil.copyfile(os.path.join(previous_vasp_dir, "CHGCAR"),
+                                os.path.join(output_dir, "CHGCAR"))
+            except Exception as e:
+                traceback.print_exc()
+                raise RuntimeError("Can't copy CHGCAR from SC run" + '\n'
+                                   + str(e))
+
+        #Overwrite necessary INCAR parameters from previous runs
+        previous_incar.update({"IBRION": -1, "ISMEAR": 0, "SIGMA": 0.001,
+                               "LCHARG": False, "LORBIT": 11, "LWAVE": False,
+                               "NSW": 0, "ISYM": 0, "ICHARG": 11})
+        previous_incar.update(nscf_incar_settings)
+        previous_incar.update(user_incar_settings)
+        previous_incar.pop("MAGMOM", None)
+        previous_incar.write_file(os.path.join(output_dir, "INCAR"))
+
+        # Perform checking on INCAR parameters
+        if any([previous_incar.get("NSW", 0) != 0,
+                previous_incar["IBRION"] != -1,
+                previous_incar["ICHARG"] != 11,
+               any([sum(previous_incar["LDAUU"]) <= 0,
+                    previous_incar["LMAXMIX"] < 4])
+               if previous_incar.get("LDAU") else False]):
+            raise ValueError("Incompatible INCAR parameters!")
+
+        """
         pass
