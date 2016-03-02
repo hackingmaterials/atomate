@@ -41,7 +41,7 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_c
     # uniform
     t3 = []
     t3.append(CopyVaspOutputs(vasp_loc=True))
-    t3.append(WriteVaspNSCFFromPrev())  # TODO: make uniform
+    t3.append(WriteVaspNSCFFromPrev())
     t3.append(RunVaspDirect(vasp_cmd=vasp_cmd))
     t3.append(PassVaspLocs(name="nscf uniform"))
     t3.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": "nscf uniform"}))
