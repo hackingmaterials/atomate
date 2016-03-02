@@ -1,6 +1,8 @@
 import os
 
 import math
+
+from monty.os.path import zpath
 from monty.serialization import loadfn
 
 from pymatgen.io.vasp import Poscar, Vasprun, Outcar, Kpoints
@@ -25,8 +27,8 @@ def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
         prev_dir = prev_dir or os.curdir
 
         if preserve_magmom:
-            vasprun = Vasprun(os.path.join(prev_dir, "vasprun.xml"), parse_dos=False, parse_eigen=False)
-            outcar = Outcar(os.path.join(prev_dir, "OUTCAR"))
+            vasprun = Vasprun(zpath(os.path.join(prev_dir, "vasprun.xml")), parse_dos=False, parse_eigen=False)
+            outcar = Outcar(zpath(os.path.join(prev_dir, "OUTCAR")))
             structure = vasprun.final_structure
 
             if vasprun.is_spin:
@@ -39,7 +41,7 @@ def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
                 magmom = None
             return structure.copy(site_properties=magmom)
         else:
-            return Poscar.from_file(os.path.join(prev_dir, "CONTCAR")).structure
+            return Poscar.from_file(zpath(os.path.join(prev_dir, "CONTCAR"))).structure
 
 
 class StaticVaspInputSet(DictVaspInputSet):
@@ -159,7 +161,7 @@ class NonSCFVaspInputSet(DictVaspInputSet):
         if magmom_cutoff:
             # turn off ISPIN if previous calc did not have significant magnetic moments (>magmom_cutoff)
             if vasprun.is_spin:
-                outcar = Outcar(os.path.join(prev_dir, "OUTCAR"))
+                outcar = Outcar(zpath(os.path.join(prev_dir, "OUTCAR")))
                 magmom_cutoff = [i['tot'] > magmom_cutoff for i in outcar.magnetization]
                 ispin = 2 if any(magmom_cutoff) else 1
             else:

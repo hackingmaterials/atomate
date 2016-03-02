@@ -44,7 +44,7 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_c
     t3.append(WriteVaspNSCFFromPrev(mode="uniform"))
     t3.append(RunVaspDirect(vasp_cmd=vasp_cmd))
     t3.append(PassVaspLocs(name="nscf uniform"))
-    t3.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": "nscf uniform"}))
+    t3.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": "nscf uniform"}, parse_dos=True, bandstructure_mode="uniform"))
     fw3 = Firework(t3, parents=fw2, name="nscf uniform")
 
     # line mode (run in parallel to uniform)
@@ -53,7 +53,7 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_c
     t4.append(WriteVaspNSCFFromPrev(mode="line"))
     t4.append(RunVaspDirect(vasp_cmd=vasp_cmd))
     t4.append(PassVaspLocs(name="nscf line"))
-    t4.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": "nscf line"}))
+    t4.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": "nscf line"}, bandstructure_mode="line"))
     fw4 = Firework(t4, parents=fw2, name="nscf line")
 
     return Workflow([fw1, fw2, fw3, fw4])

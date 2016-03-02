@@ -25,11 +25,6 @@ class TestVaspWorkflows(unittest.TestCase):
     def setUpClass(cls):
         if not os.environ.get("VASP_PSP_DIR"):
             raise unittest.SkipTest('This system is not set up to run VASP jobs. Please set your VASP_PSP_DIR environment variable.')
-        try:
-            cls.lp = LaunchPad.from_file(os.path.join(db_dir, "my_launchpad.yaml"))
-        except:
-            raise unittest.SkipTest('Cannot connect to MongoDB! Is the database server running? Are the credentials correct?')
-        cls.lp.reset("", require_password=False)
 
         coords = [[0, 0, 0], [0.75, 0.5, 0.75]]
         lattice = Lattice([[3.8401979337, 0.00, 0.00],
@@ -45,20 +40,34 @@ class TestVaspWorkflows(unittest.TestCase):
             shutil.rmtree(self.scratch_dir)
         os.makedirs(self.scratch_dir)
         os.chdir(self.scratch_dir)
+        try:
+            self.lp = LaunchPad.from_file(os.path.join(db_dir, "my_launchpad.yaml"))
+        except:
+            raise unittest.SkipTest('Cannot connect to MongoDB! Is the database server running? Are the credentials correct?')
+        self.lp.reset("", require_password=False)
 
     def tearDown(self):
         if not DEBUG_MODE:
             shutil.rmtree(self.scratch_dir)
-            self._get_task_collection().delete_many({})
             self.lp.reset("", require_password=False)
+            db = self._get_task_database()
+            for coll in db.collection_names():
+                if coll != "system.indexes":
+                    db[coll].drop()
 
-    def _get_task_collection(self):
+    def _get_task_database(self):
         with open(os.path.join(db_dir, "db.json")) as f:
             creds = json.loads(f.read())
             conn = MongoClient(creds["host"], creds["port"])
             db = conn[creds["database"]]
             if "readonly_user" in creds:
                 db.authenticate(creds["readonly_user"], creds["readonly_password"])
+            return db
+
+    def _get_task_collection(self):
+        with open(os.path.join(db_dir, "db.json")) as f:
+            creds = json.loads(f.read())
+            db = self._get_task_database()
             return db[creds["collection"]]
 
     def _check_run(self, d, mode):

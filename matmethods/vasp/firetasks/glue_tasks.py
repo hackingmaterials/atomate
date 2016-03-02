@@ -49,6 +49,7 @@ class CopyVaspOutputs(FireTaskBase):
         contcar_to_poscar(bool): If True (default), will move CONTCAR to POSCAR (original POSCAR is not copied).
     """
 
+    # TODO: add optional params array (here and elsewhere)
     def run_task(self, fw_spec):
 
         vasp_dir = get_vasp_dir(self, fw_spec)
@@ -73,6 +74,7 @@ class CopyVaspOutputs(FireTaskBase):
             dest_path = os.path.join(os.getcwd(), dest_fname)
 
             # detect .gz extension if needed
+            # TODO: probably replace with monty zpath()
             ext = ""
             if os.path.exists(prev_path):
                 pass
