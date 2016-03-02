@@ -152,10 +152,10 @@ class WriteVaspNSCFFromPrev(FireTaskBase):
     Writes input files for a static run. Assumes that output files from an scf job can be accessed.
 
     Required params:
-        (none)
+        mode (str): either "uniform" or "line"
     """
 
 
     def run_task(self, fw_spec):
         # TODO: add more parameters that can be set
-        NonSCFVaspInputSet.write_input_from_prevrun(mode="uniform")
+        NonSCFVaspInputSet.write_input_from_prevrun(mode=self["mode"])

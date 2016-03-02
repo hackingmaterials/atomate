@@ -8,7 +8,8 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 reference_dir = os.path.join(module_dir, "reference_files")
-fake_dirs={"structure optimization": os.path.join(reference_dir, "Si_structure_optimization"), "static": os.path.join(reference_dir, "Si_static"), "nscf uniform": os.path.join(reference_dir, "Si_uniform")}
+fake_dirs={"structure optimization": os.path.join(reference_dir, "Si_structure_optimization"), "static": os.path.join(reference_dir, "Si_static"),
+           "nscf uniform": os.path.join(reference_dir, "Si_nscf_uniform"), "nscf line": os.path.join(reference_dir, "Si_nscf_line")}
 
 @explicit_serialize
 class RunVaspFake(FireTaskBase):

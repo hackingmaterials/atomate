@@ -17,7 +17,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "reference_files", "db_connections")
-DEBUG_MODE = True  # If true, retains the database and output dirs at the end of the test
+DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 
 class TestVaspWorkflows(unittest.TestCase):
 
@@ -62,27 +62,25 @@ class TestVaspWorkflows(unittest.TestCase):
             return db[creds["collection"]]
 
     def _check_run(self, d, mode):
-        if mode not in ["nscf uniform", "static", "structure optimization"]:
+        if mode not in ["structure optimization", "static", "nscf uniform", "nscf line"]:
             raise ValueError("Invalid mode!")
 
         self.assertEqual(d["pretty_formula"], "Si")
         self.assertEqual(d["nelements"], 1)
         self.assertEqual(d["state"], "successful")
-        self.assertAlmostEqual(d["output"]["final_energy"], -10.850, 2)
-        self.assertAlmostEqual(d["output"]["final_energy_per_atom"], -5.425, 2)
         self.assertAlmostEqual(d["calculations"][0]["output"]["crystal"]["lattice"]["a"], 3.867, 2)
+        self.assertEqual(d["analysis"]["is_gap_direct"], False)
 
-        if mode == "nscf uniform":
+        if mode != "nscf line":
+            self.assertAlmostEqual(d["output"]["final_energy"], -10.850, 2)
+            self.assertAlmostEqual(d["output"]["final_energy_per_atom"], -5.425, 2)
+
+        if "nscf" in mode:
             self.assertEqual(d["calculations"][0]["output"]["outcar"]["total_magnetization"], None)
             self.assertAlmostEqual(d["analysis"]["bandgap"], 0.62, 1)
         else:
             self.assertAlmostEqual(d["calculations"][0]["output"]["outcar"]["total_magnetization"], 0, 3)
             self.assertAlmostEqual(d["analysis"]["bandgap"], 0.85, 1)
-
-        if mode == "static":
-            self.assertEqual(d["analysis"]["is_gap_direct"], False)
-        else:
-            self.assertEqual(d["analysis"]["is_gap_direct"], True)  # TODO: this is the wrong result for Si!!
 
         self.assertLess(d["run_stats"]["overall"]["Elapsed time (sec)"], 180)  # run should take under 3 minutes
 
@@ -139,3 +137,7 @@ class TestVaspWorkflows(unittest.TestCase):
         # make sure the uniform run ran OK
         d = self._get_task_collection().find_one({"task_label": "nscf uniform"})
         self._check_run(d, mode="nscf uniform")
+
+        # make sure the uniform run ran OK
+        d = self._get_task_collection().find_one({"task_label": "nscf line"})
+        self._check_run(d, mode="nscf line")

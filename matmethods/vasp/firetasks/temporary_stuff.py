@@ -94,7 +94,10 @@ class NonSCFVaspInputSet(DictVaspInputSet):
              "LORBIT": 11, "LWAVE": False, "NSW": 0, "ISYM": 0, "ICHARG": 11}
 
     # TODO: kpoints density is not really correct
-    def __init__(self, mode="uniform", kpoints_density=1000, sym_prec=0.1, **kwargs):
+    def __init__(self, mode="uniform", kpoints_density=None, sym_prec=0.1, **kwargs):
+        if kpoints_density is None:
+            kpoints_density = 1000 if mode == "uniform" else 20
+
         super(NonSCFVaspInputSet, self).__init__("MP Non-SCF",
             loadfn(os.path.join(MODULE_DIR, "MPVaspInputSet.yaml")), **kwargs)
 
@@ -136,7 +139,7 @@ class NonSCFVaspInputSet(DictVaspInputSet):
                            num_kpts=len(ir_kpts), kpts=kpts, kpts_weights=weights)
 
     @staticmethod
-    def write_input_from_prevrun(mode="uniform", ispin_cutoff=0.2, nbands_factor=1.2, kpoints_density=1000, prev_dir=None, preserve_magmom=True, preserve_old_incar=False, output_dir=".", user_incar_settings=None):
+    def write_input_from_prevrun(mode="uniform", magmom_cutoff=0.2, nbands_factor=1.2, kpoints_density=None, prev_dir=None, preserve_magmom=True, preserve_old_incar=False, output_dir=".", user_incar_settings=None):
 
         user_incar_settings = user_incar_settings or {}
 
@@ -153,11 +156,11 @@ class NonSCFVaspInputSet(DictVaspInputSet):
             if vasprun.incar.get(grid):
                 user_incar_settings[grid] = vasprun.incar.get(grid)
 
-        if ispin_cutoff:
-            # turn off ISPIN if previous calc did not have significant magnetic moments (>ispin_cutoff)
+        if magmom_cutoff:
+            # turn off ISPIN if previous calc did not have significant magnetic moments (>magmom_cutoff)
             if vasprun.is_spin:
                 outcar = Outcar(os.path.join(prev_dir, "OUTCAR"))
-                magmom_cutoff = [i['tot'] > ispin_cutoff for i in outcar.magnetization]
+                magmom_cutoff = [i['tot'] > magmom_cutoff for i in outcar.magnetization]
                 ispin = 2 if any(magmom_cutoff) else 1
             else:
                 ispin = 1
