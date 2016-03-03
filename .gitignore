@@ -43,4 +43,4 @@ nosetests.xml
 .idea/*
 
 # scratch files
-matmethods/vasp/firetasks/tests/scratch/*
+matmethods/vasp/tests/scratch/*
