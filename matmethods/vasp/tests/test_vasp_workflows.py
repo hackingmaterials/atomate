@@ -93,6 +93,10 @@ class TestVaspWorkflows(unittest.TestCase):
 
         self.assertLess(d["run_stats"]["overall"]["Elapsed time (sec)"], 180)  # run should take under 3 minutes
 
+        # check the DOS
+
+
+
     def test_single_Vasp(self):
         # add the workflow
         vis = MPVaspInputSet()

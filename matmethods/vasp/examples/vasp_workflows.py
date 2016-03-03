@@ -21,40 +21,41 @@ def get_wf_single_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vas
 
 def get_wf_bandstructure_Vasp(structure, vasp_input_set="MPVaspInputSet", vasp_cmd="vasp", db_file=None):
 
-    # structure optimization
+    task_label = "structure optimization"
     t1 = []
     t1.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
     t1.append(RunVaspDirect(vasp_cmd=vasp_cmd))
-    t1.append(PassVaspLocs(name="structure optimization"))
-    t1.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": "structure optimization"}))
-    fw1 = Firework(t1, name="structure optimization")
+    t1.append(PassVaspLocs(name=task_label))
+    t1.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": task_label}))
+    fw1 = Firework(t1, name=task_label)
 
-    # static
+    task_label = "static"
     t2 = []
     t2.append(CopyVaspOutputs(vasp_loc=True))
     t2.append(WriteVaspStaticFromPrev())
     t2.append(RunVaspDirect(vasp_cmd=vasp_cmd))
-    t2.append(PassVaspLocs(name="static"))
-    t2.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": "static"}))
-    fw2 = Firework(t2, parents=fw1, name="static")
+    t2.append(PassVaspLocs(name=task_label))
+    t2.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": task_label}))
+    fw2 = Firework(t2, parents=fw1, name=task_label)
 
-    # uniform
+    task_label = "nscf uniform"
     t3 = []
     t3.append(CopyVaspOutputs(vasp_loc=True))
     t3.append(WriteVaspNSCFFromPrev(mode="uniform"))
     t3.append(RunVaspDirect(vasp_cmd=vasp_cmd))
-    t3.append(PassVaspLocs(name="nscf uniform"))
-    t3.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": "nscf uniform"}, parse_dos=True, bandstructure_mode="uniform"))
-    fw3 = Firework(t3, parents=fw2, name="nscf uniform")
+    t3.append(PassVaspLocs(name=task_label))
+    t3.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": task_label}, parse_dos=True, bandstructure_mode="uniform"))
+    fw3 = Firework(t3, parents=fw2, name=task_label)
 
     # line mode (run in parallel to uniform)
     t4 = []
+    task_label = "nscf line"
     t4.append(CopyVaspOutputs(vasp_loc=True))
     t4.append(WriteVaspNSCFFromPrev(mode="line"))
     t4.append(RunVaspDirect(vasp_cmd=vasp_cmd))
-    t4.append(PassVaspLocs(name="nscf line"))
-    t4.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": "nscf line"}, bandstructure_mode="line"))
-    fw4 = Firework(t4, parents=fw2, name="nscf line")
+    t4.append(PassVaspLocs(name=task_label))
+    t4.append(VaspToDBTask(db_file=db_file, additional_fields={"task_label": task_label}, bandstructure_mode="line"))
+    fw4 = Firework(t4, parents=fw2, name=task_label)
 
     return Workflow([fw1, fw2, fw3, fw4])
 
