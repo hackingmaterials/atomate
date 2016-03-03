@@ -2,6 +2,8 @@ import json
 import os
 import shutil
 
+import gridfs
+import zlib
 from pymongo import MongoClient
 
 from fireworks import LaunchPad, FWorker
@@ -93,15 +95,57 @@ class TestVaspWorkflows(unittest.TestCase):
 
         self.assertLess(d["run_stats"]["overall"]["Elapsed time (sec)"], 180)  # run should take under 3 minutes
 
-        # check the DOS
+        # check the DOS and band structure
+        if mode == "nscf uniform" or mode == "nscf line":
+            fs = gridfs.GridFS(self._get_task_database(), 'bandstructure_fs')
 
+            # check the band structure
+            bs_fs_id = d["calculations"][0]["bandstructure_fs_id"]
+            bs_json = zlib.decompress(fs.get(bs_fs_id).read())
+            bs = json.loads(bs_json)
 
+            self.assertEqual(bs["is_spin_polarized"], True)  # TODO: should this be false?
+            self.assertEqual(bs["band_gap"]["direct"], True)  # TODO: this should almost certainly be false
+            self.assertAlmostEqual(bs["band_gap"]["energy"], 0.85, 1)  # TODO: this does not match the value from earlier in the unit test for nscf uniform runs
+            self.assertEqual(bs["is_metal"], False)
+
+            if mode == "nscf uniform":
+                for k in ["is_spin_polarized", "band_gap", "structure", "kpoints", "is_metal", "vbm", "cbm", "labels_dict", "projections", "lattice_rec", "bands"]:
+                    self.assertTrue(k in bs)
+                    self.assertIsNotNone(bs[k])
+
+                self.assertEqual(bs["@class"], "BandStructure")
+
+            else:
+                for k in ["is_spin_polarized", "band_gap", "structure", "kpoints", "is_metal", "vbm", "cbm", "labels_dict", "projections", "lattice_rec", "bands", "branches"]:
+                    self.assertTrue(k in bs)
+                    self.assertIsNotNone(bs[k])
+                self.assertEqual(bs["@class"], "BandStructureSymmLine")
+                # TODO: the branches key seems wrong??
+
+            # check the DOS
+            if mode == "nscf uniform":
+                fs = gridfs.GridFS(self._get_task_database(), 'dos_fs')
+                dos_fs_id = d["calculations"][0]["dos_fs_id"]
+
+                dos_json = zlib.decompress(fs.get(dos_fs_id).read())
+                dos = json.loads(dos_json)
+                for k in ["densities", "energies", "pdos", "spd_dos", "atom_dos", "structure"]:
+                    self.assertTrue(k in dos)
+                    self.assertIsNotNone(dos[k])
+
+                self.assertAlmostEqual(dos["spd_dos"]["p"]["efermi"], 5.625, 1)
+                self.assertAlmostEqual(dos["atom_dos"]["Si"]["efermi"], 5.625, 1)
+                self.assertAlmostEqual(dos["structure"]["lattice"]["a"], 3.867, 2)
+                self.assertAlmostEqual(dos["spd_dos"]["p"]["efermi"], 5.625, 1)
+                self.assertAlmostEqual(dos["atom_dos"]["Si"]["efermi"], 5.625, 1)
+                self.assertAlmostEqual(dos["structure"]["lattice"]["a"], 3.867, 2)
 
     def test_single_Vasp(self):
         # add the workflow
         vis = MPVaspInputSet()
         structure = self.struct_si
-        my_wf = get_wf_single_Vasp(structure, vis, name="structure optimization")
+        my_wf = get_wf_single_Vasp(structure, vis, task_label="structure optimization")
         my_wf = make_fake_workflow(my_wf)
         self.lp.add_wf(my_wf)
 
@@ -118,7 +162,7 @@ class TestVaspWorkflows(unittest.TestCase):
         # add the workflow
         vis = MPVaspInputSet()
         structure = self.struct_si
-        my_wf = get_wf_single_Vasp(structure, vis, db_file=">>db_file<<", name="structure optimization")  # instructs to use db_file set by FWorker, see env_chk
+        my_wf = get_wf_single_Vasp(structure, vis, db_file=">>db_file<<", task_label="structure optimization")  # instructs to use db_file set by FWorker, see env_chk
         my_wf = make_fake_workflow(my_wf)
         self.lp.add_wf(my_wf)
 
