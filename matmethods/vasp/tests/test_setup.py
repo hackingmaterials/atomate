@@ -53,3 +53,6 @@ class TestSetup(unittest.TestCase):
             raise ValueError(help_str)
 
         self._verify_files()
+
+if __name__ == "__main__":
+    unittest.main()

@@ -92,7 +92,5 @@ class TestWriteVasp(unittest.TestCase):
         self.assertEqual(incar_mod['ENCUT'], 780)
         self.assertEqual(incar_mod['ISPIN'], 1)
 
-
-
 if __name__ == '__main__':
     unittest.main()

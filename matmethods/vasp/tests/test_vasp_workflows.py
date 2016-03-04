@@ -198,3 +198,6 @@ class TestVaspWorkflows(unittest.TestCase):
         # make sure the uniform run ran OK
         d = self._get_task_collection().find_one({"task_label": "nscf line"})
         self._check_run(d, mode="nscf line")
+
+if __name__ == "__main__":
+    unittest.main()

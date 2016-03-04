@@ -78,3 +78,6 @@ class TestCopyVaspOutputs(unittest.TestCase):
         no_files = ["CONTCAR", "EIGENVAL"]
         for f in no_files:
             self.assertFalse(os.path.exists(os.path.join(scratch_dir, f)))
+
+if __name__ == "__main__":
+    unittest.main()
