@@ -20,7 +20,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 
 @explicit_serialize
-class VaspToDBTask(FireTaskBase):
+class VaspToDbTask(FireTaskBase):
     """
     Enter a VASP run into the database. By default, the VASP directory is assumed to be the current directory.
 
