@@ -9,7 +9,7 @@ from pymongo import MongoClient
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 from matmethods.vasp.examples.vasp_workflows import get_wf_single_Vasp, get_wf_bandstructure_Vasp
-from matmethods.vasp.tests.vasp_fake import make_fake_workflow
+from matmethods.vasp.tests.vasp_fake import make_fake_workflow, make_custodian_workflow
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp.sets import MPVaspInputSet
 
@@ -149,6 +149,8 @@ class TestVaspWorkflows(unittest.TestCase):
         my_wf = get_wf_single_Vasp(structure, vis, task_label="structure optimization")
         if not REALLY_RUN_VASP:
             my_wf = make_fake_workflow(my_wf)
+        else:
+            my_wf = make_custodian_workflow(my_wf)
         self.lp.add_wf(my_wf)
 
         # run the workflow
@@ -167,6 +169,8 @@ class TestVaspWorkflows(unittest.TestCase):
         my_wf = get_wf_single_Vasp(structure, vis, db_file=">>db_file<<", task_label="structure optimization")  # instructs to use db_file set by FWorker, see env_chk
         if not REALLY_RUN_VASP:
             my_wf = make_fake_workflow(my_wf)
+        else:
+            my_wf = make_custodian_workflow(my_wf)
         self.lp.add_wf(my_wf)
 
         # run the workflow
@@ -182,6 +186,8 @@ class TestVaspWorkflows(unittest.TestCase):
         my_wf = get_wf_bandstructure_Vasp(structure, vis, db_file=">>db_file<<")  # instructs to use db_file set by FWorker, see env_chk
         if not REALLY_RUN_VASP:
             my_wf = make_fake_workflow(my_wf)
+        else:
+            my_wf = make_custodian_workflow(my_wf)
         self.lp.add_wf(my_wf)
 
         # run the workflow
