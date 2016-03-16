@@ -93,7 +93,7 @@ class RunVaspCustodian(FireTaskBase):
         # construct jobs
         jobs = []
         if job_type == "normal":
-            jobs = [VaspJob(vasp_cmd, default_vasp_input_set=None, auto_npar=auto_npar, gamma_vasp_cmd=gamma_vasp_cmd)]
+            jobs = [VaspJob(vasp_cmd, auto_npar=auto_npar, gamma_vasp_cmd=gamma_vasp_cmd)]
         elif job_type == "double_relaxation_run":
             jobs = VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar)
         elif job_type == "full_opt_run":
