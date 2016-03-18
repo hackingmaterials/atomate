@@ -81,8 +81,10 @@ class StaticVaspInputSet(DictVaspInputSet):
         d["config_dict"]["INCAR"].update(self.STATIC_SETTINGS)
         super(StaticVaspInputSet, self).__init__(**d)
 
+    # TODO: user_incar_settings = config_dict_override
+    # TODO: default KPOints density?
     @staticmethod
-    def write_input_from_prevrun(kpoints_density=1000, prev_dir=None, standardization_symprec=0.1, preserve_magmom=True, preserve_old_incar=False, output_dir=".", user_incar_settings=None):
+    def write_input_from_prevrun(kpoints_density=75, prev_dir=None, standardization_symprec=0.1, preserve_magmom=True, preserve_old_incar=False, output_dir=".", user_incar_settings=None):
 
         user_incar_settings = user_incar_settings or {}
 
@@ -96,7 +98,7 @@ class StaticVaspInputSet(DictVaspInputSet):
 
         # TODO: re-use old CHGCAR (ICHG=1) if you are not standardizing (i.e., changing) the cell.
 
-        vis = StaticVaspInputSet(kpoints_density, user_incar_settings=user_incar_settings)
+        vis = StaticVaspInputSet(config_dict_override=user_incar_settings, reciprocal_density=kpoints_density)
         vis.write_input(structure, output_dir)
 
         if preserve_old_incar:
@@ -164,9 +166,10 @@ class NonSCFVaspInputSet(DictVaspInputSet):
                            num_kpts=len(ir_kpts), kpts=kpts, kpts_weights=weights)
 
     @staticmethod
-    def write_input_from_prevrun(mode="uniform", magmom_cutoff=0.2, nbands_factor=1.2, kpoints_density=None, prev_dir=None, preserve_magmom=True, preserve_old_incar=False, output_dir=".", user_incar_settings=None):
+    def write_input_from_prevrun(mode="uniform", magmom_cutoff=0.2, nbands_factor=1.2, kpoints_density=None, prev_dir=None, preserve_magmom=True, preserve_old_incar=False, output_dir=".", config_dict_override=None):
 
-        user_incar_settings = user_incar_settings or {}
+        # TODO: the user_incar_settings are not used ... FIX THISSSSSS!!
+        user_incar_settings = {}
 
         # get old structure, including MAGMOM decoration if desired
         structure = get_structure_from_prev_run(prev_dir, preserve_magmom=preserve_magmom)
@@ -191,7 +194,8 @@ class NonSCFVaspInputSet(DictVaspInputSet):
                 ispin = 1
             user_incar_settings["ISPIN"] = ispin
 
-        nscfvis = NonSCFVaspInputSet(mode=mode, kpoints_density=kpoints_density, user_incar_settings=user_incar_settings)
+        # TODO: add config_diect override
+        nscfvis = NonSCFVaspInputSet(mode=mode, kpoints_density=kpoints_density)
         nscfvis.write_input(structure, output_dir)
 
         if preserve_old_incar:
