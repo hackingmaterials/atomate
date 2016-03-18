@@ -145,7 +145,7 @@ class NonSCFVaspInputSet(DictVaspInputSet):
             return Kpoints(comment="Non SCF run along symmetry lines", style=Kpoints.supported_modes.Reciprocal,
                            num_kpts=len(frac_k_points), kpts=frac_k_points, labels=k_points_labels, kpts_weights=[1] * len(frac_k_points))
         else:
-            kpoints = Kpoints.automatic_density_by_vol(self.reciprocal_density, force_gamma=True)
+            kpoints = Kpoints.automatic_density_by_vol(structure, self.reciprocal_density, force_gamma=True)
             mesh = kpoints.kpts[0]
             ir_kpts = SpacegroupAnalyzer(structure, symprec=self.sym_prec).get_ir_reciprocal_mesh(mesh)
             kpts = []
