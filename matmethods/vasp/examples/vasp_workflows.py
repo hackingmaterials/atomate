@@ -43,7 +43,6 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp", d
     t2.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": task_label}))
     fw2 = Firework(t2, parents=fw1, name="{}:{}".format(structure.composition.reduced_formula, task_label))
 
-    """
     task_label = "nscf uniform"
     t3 = []
     t3.append(CopyVaspOutputs(vasp_loc=True))
@@ -64,11 +63,6 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp", d
     fw4 = Firework(t4, parents=fw2, name="{}:{}".format(structure.composition.reduced_formula, task_label))
 
     return Workflow([fw1, fw2, fw3, fw4])
-    """
-
-    return Workflow([fw1, fw2])
-
-
 
 
 if __name__ == "__main__":

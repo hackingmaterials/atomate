@@ -139,6 +139,7 @@ class WriteVaspStaticFromPrev(FireTaskBase):
 
     optional_params = ["standardization_symprec", "prev_dir", "preserve_magmom", "preserve_old_incar"]
 
+    # TODO: add more options, e.g. k density
     def run_task(self, fw_spec):
         StaticVaspInputSet.write_input_from_prevrun(prev_dir=self.get("prev_dir", None),
                                                     standardization_symprec=self.get("standardization_symprec"),

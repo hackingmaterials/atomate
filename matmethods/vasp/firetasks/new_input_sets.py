@@ -71,13 +71,13 @@ class StaticVaspInputSet(DictVaspInputSet):
         d = kwargs
         d["name"] = "static"
         d["config_dict"] = loadfn(os.path.join(MODULE_DIR, "MPVaspInputSet.yaml"))
-        if config_dict_override:
-            d["config_dict"].update(config_dict_override)
         d["force_gamma"] = True
         if "grid_density" in d["config_dict"]["KPOINTS"]:
             del d["config_dict"]["KPOINTS"]["grid_density"]
         d["config_dict"]["KPOINTS"]["reciprocal_density"] = reciprocal_density
         d["config_dict"]["INCAR"].update(self.STATIC_SETTINGS)
+        if config_dict_override:
+            d["config_dict"].update(config_dict_override)
         super(StaticVaspInputSet, self).__init__(**d)
 
     @staticmethod
@@ -107,31 +107,28 @@ class StaticVaspInputSet(DictVaspInputSet):
             # TODO: check old code to see if anything needed is missing
             # TODO: perform a final sanity check on the parameters(?)
 
-        # TODO: add an option to preserve the old KPOINTS??
-
 
 class NonSCFVaspInputSet(DictVaspInputSet):
 
     NSCF_SETTINGS = {"IBRION": -1, "ISMEAR": 0, "SIGMA": 0.001, "LCHARG": False,
              "LORBIT": 11, "LWAVE": False, "NSW": 0, "ISYM": 0, "ICHARG": 11}
 
-    # TODO: kpoints density is not really correct
-    def __init__(self, config_dict_override=None, mode="uniform", kpoints_density=None, sym_prec=0.1, **kwargs):
-        if kpoints_density is None:
-            kpoints_density = 1000 if mode == "uniform" else 20
-
-        self.kpoints_density = kpoints_density  # used by the "get_kpoints()" method
+    # TODO: document. allowed modes are "uniform" and "line".
+    def __init__(self, config_dict_override=None, mode="uniform", reciprocal_density=None, sym_prec=0.1, **kwargs):
+        if reciprocal_density is None:
+            reciprocal_density = 1000 if mode == "uniform" else 20
 
         d = kwargs
         d["name"] = "non scf"
         d["config_dict"] = loadfn(os.path.join(MODULE_DIR, "MPVaspInputSet.yaml"))
-        if config_dict_override:
-            d["config_dict"].update(config_dict_override)
         d["config_dict"]["INCAR"].update(self.NSCF_SETTINGS)
         if mode == "uniform":
             d["config_dict"]["INCAR"].update({"NEDOS": 601})
+        if config_dict_override:
+            d["config_dict"].update(config_dict_override)
         super(NonSCFVaspInputSet, self).__init__(**d)
 
+        self.reciprocal_density = reciprocal_density  # used by the "get_kpoints()" method
         self.sym_prec = sym_prec
         self.mode = mode
 
@@ -144,12 +141,11 @@ class NonSCFVaspInputSet(DictVaspInputSet):
 
         if self.mode == "line":
             kpath = HighSymmKpath(structure)
-            frac_k_points, k_points_labels = kpath.get_kpoints(line_density=self.kpoints_settings["kpoints_line_density"], coords_are_cartesian=False)
+            frac_k_points, k_points_labels = kpath.get_kpoints(line_density=self.reciprocal_density, coords_are_cartesian=False)
             return Kpoints(comment="Non SCF run along symmetry lines", style=Kpoints.supported_modes.Reciprocal,
                            num_kpts=len(frac_k_points), kpts=frac_k_points, labels=k_points_labels, kpts_weights=[1] * len(frac_k_points))
         else:
-            num_kpoints = self.kpoints_settings["kpoints_density"] * structure.lattice.reciprocal_lattice.volume
-            kpoints = Kpoints.automatic_density(structure, num_kpoints * structure.num_sites)
+            kpoints = Kpoints.automatic_density_by_vol(self.reciprocal_density, force_gamma=True)
             mesh = kpoints.kpts[0]
             ir_kpts = SpacegroupAnalyzer(structure, symprec=self.sym_prec).get_ir_reciprocal_mesh(mesh)
             kpts = []
@@ -161,10 +157,9 @@ class NonSCFVaspInputSet(DictVaspInputSet):
                            num_kpts=len(ir_kpts), kpts=kpts, kpts_weights=weights)
 
     @staticmethod
-    def write_input_from_prevrun(mode="uniform", magmom_cutoff=0.2, nbands_factor=1.2, kpoints_density=None, prev_dir=None, preserve_magmom=True, preserve_old_incar=False, output_dir=".", config_dict_override=None):
+    def write_input_from_prevrun(config_dict_override=None, reciprocal_density=None, mode="uniform", magmom_cutoff=0.2, nbands_factor=1.2, prev_dir=None, preserve_magmom=True, preserve_old_incar=False, output_dir="."):
 
-        # TODO: the user_incar_settings are not used ... FIX THISSSSSS!!
-        user_incar_settings = {}
+        nscf_config_dict = {"INCAR": {}, "KPOINTS": {}}
 
         # get old structure, including MAGMOM decoration if desired
         structure = get_structure_from_prev_run(prev_dir, preserve_magmom=preserve_magmom)
@@ -172,12 +167,12 @@ class NonSCFVaspInputSet(DictVaspInputSet):
         # crank up NBANDS by nbands_factor
         prev_dir = prev_dir or os.curdir
         vasprun = Vasprun(os.path.join(prev_dir, "vasprun.xml"), parse_dos=False, parse_eigen=False)
-        user_incar_settings["NBANDS"] = int(math.ceil(vasprun.as_dict()["input"]["parameters"]["NBANDS"] * nbands_factor))
+        nscf_config_dict["INCAR"]["NBANDS"] = int(math.ceil(vasprun.as_dict()["input"]["parameters"]["NBANDS"] * nbands_factor))
 
         # retain grid of old run
         for grid in ["NGX", "NGY", "NGZ"]:
             if vasprun.incar.get(grid):
-                user_incar_settings[grid] = vasprun.incar.get(grid)
+                nscf_config_dict["INCAR"][grid] = vasprun.incar.get(grid)
 
         if magmom_cutoff:
             # turn off ISPIN if previous calc did not have significant magnetic moments (>magmom_cutoff)
@@ -187,14 +182,15 @@ class NonSCFVaspInputSet(DictVaspInputSet):
                 ispin = 2 if any(magmom_cutoff) else 1
             else:
                 ispin = 1
-            user_incar_settings["ISPIN"] = ispin
+            nscf_config_dict["INCAR"]["ISPIN"] = ispin
 
-        # TODO: add config_diect override
-        nscfvis = NonSCFVaspInputSet(mode=mode, kpoints_density=kpoints_density)
+        if config_dict_override:
+            nscf_config_dict["INCAR"].update(config_dict_override["INCAR"])
+            nscf_config_dict["KPOINTS"].update(config_dict_override["KPOINTS"])
+
+        nscfvis = NonSCFVaspInputSet(config_dict_override=nscf_config_dict, reciprocal_density=reciprocal_density, mode=mode)
         nscfvis.write_input(structure, output_dir)
 
         if preserve_old_incar:
             raise NotImplementedError("The option to preserve the old INCAR is not yet implemented!")
             # TODO: implement me!
-
-        # TODO: perform final checks on parameters

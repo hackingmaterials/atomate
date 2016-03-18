@@ -201,7 +201,6 @@ class TestVaspWorkflows(unittest.TestCase):
         d = self._get_task_collection().find_one({"task_label": "static"})
         self._check_run(d, mode="static")
 
-        """
         # make sure the uniform run ran OK
         d = self._get_task_collection().find_one({"task_label": "nscf uniform"})
         self._check_run(d, mode="nscf uniform")
@@ -209,7 +208,7 @@ class TestVaspWorkflows(unittest.TestCase):
         # make sure the uniform run ran OK
         d = self._get_task_collection().find_one({"task_label": "nscf line"})
         self._check_run(d, mode="nscf line")
-        """
+
 
 if __name__ == "__main__":
     unittest.main()
