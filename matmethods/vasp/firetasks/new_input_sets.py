@@ -67,8 +67,7 @@ class StaticVaspInputSet(DictVaspInputSet):
              "LORBIT": 11, "LVHAR": True, "LVTOT": True, "LWAVE": False, "NSW": 0,
              "ICHARG": 0, "EDIFF": 0.000001, "ALGO": "Fast"}
 
-    # TODO: kpoints density is not really correct!! 75 should be something else
-    def __init__(self, config_dict_override=None, reciprocal_density=75, **kwargs):
+    def __init__(self, config_dict_override=None, reciprocal_density=100, **kwargs):
         d = kwargs
         d["name"] = "static"
         d["config_dict"] = loadfn(os.path.join(MODULE_DIR, "MPVaspInputSet.yaml"))
@@ -81,12 +80,8 @@ class StaticVaspInputSet(DictVaspInputSet):
         d["config_dict"]["INCAR"].update(self.STATIC_SETTINGS)
         super(StaticVaspInputSet, self).__init__(**d)
 
-    # TODO: user_incar_settings = config_dict_override
-    # TODO: default KPOints density?
     @staticmethod
-    def write_input_from_prevrun(kpoints_density=75, prev_dir=None, standardization_symprec=0.1, preserve_magmom=True, preserve_old_incar=False, output_dir=".", user_incar_settings=None):
-
-        user_incar_settings = user_incar_settings or {}
+    def write_input_from_prevrun(config_dict_override=None, reciprocal_density=100, prev_dir=None, standardization_symprec=0.1, preserve_magmom=True, preserve_old_incar=False, output_dir="."):
 
         # get old structure, including MAGMOM decoration if desired
         structure = get_structure_from_prev_run(prev_dir, preserve_magmom=preserve_magmom)
@@ -96,9 +91,9 @@ class StaticVaspInputSet(DictVaspInputSet):
             sym_finder = SpacegroupAnalyzer(structure, symprec=standardization_symprec)
             structure = sym_finder.get_primitive_standard_structure()
 
-        # TODO: re-use old CHGCAR (ICHG=1) if you are not standardizing (i.e., changing) the cell.
+        # TODO: re-use old CHGCAR (ICHG=1) if you are NOT standardizing (i.e., changing) the cell for faster performance. This is probably rare.
 
-        vis = StaticVaspInputSet(config_dict_override=user_incar_settings, reciprocal_density=kpoints_density)
+        vis = StaticVaspInputSet(config_dict_override=config_dict_override, reciprocal_density=reciprocal_density)
         vis.write_input(structure, output_dir)
 
         if preserve_old_incar:
