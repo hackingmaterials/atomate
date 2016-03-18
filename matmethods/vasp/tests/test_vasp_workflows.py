@@ -20,7 +20,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "reference_files", "db_connections")
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
-REALLY_RUN_VASP = False  # If true, runs VASP. If false, runs a "fake" VASP
+VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
 class TestVaspWorkflows(unittest.TestCase):
 
@@ -146,8 +146,8 @@ class TestVaspWorkflows(unittest.TestCase):
         # add the workflow
         vis = StructureOptimizationVaspInputSet()
         structure = self.struct_si
-        my_wf = get_wf_single_Vasp(structure, vis, task_label="structure optimization")
-        if not REALLY_RUN_VASP:
+        my_wf = get_wf_single_Vasp(structure, vis, vasp_cmd=VASP_CMD, task_label="structure optimization")
+        if not VASP_CMD:
             my_wf = make_fake_workflow(my_wf)
         else:
             my_wf = make_custodian_workflow(my_wf)
@@ -166,8 +166,8 @@ class TestVaspWorkflows(unittest.TestCase):
         # add the workflow
         vis = StructureOptimizationVaspInputSet()
         structure = self.struct_si
-        my_wf = get_wf_single_Vasp(structure, vis, db_file=">>db_file<<", task_label="structure optimization")  # instructs to use db_file set by FWorker, see env_chk
-        if not REALLY_RUN_VASP:
+        my_wf = get_wf_single_Vasp(structure, vis, vasp_cmd=VASP_CMD, db_file=">>db_file<<", task_label="structure optimization")  # instructs to use db_file set by FWorker, see env_chk
+        if not VASP_CMD:
             my_wf = make_fake_workflow(my_wf)
         else:
             my_wf = make_custodian_workflow(my_wf)
@@ -183,8 +183,8 @@ class TestVaspWorkflows(unittest.TestCase):
         # add the workflow
         vis = StructureOptimizationVaspInputSet()
         structure = self.struct_si
-        my_wf = get_wf_bandstructure_Vasp(structure, vis, db_file=">>db_file<<")  # instructs to use db_file set by FWorker, see env_chk
-        if not REALLY_RUN_VASP:
+        my_wf = get_wf_bandstructure_Vasp(structure, vis, vasp_cmd=VASP_CMD, db_file=">>db_file<<")  # instructs to use db_file set by FWorker, see env_chk
+        if not VASP_CMD:
             my_wf = make_fake_workflow(my_wf)
         else:
             my_wf = make_custodian_workflow(my_wf)
