@@ -1,6 +1,6 @@
 import os
 from fireworks.utilities.fw_serializers import load_object
-from matmethods.vasp.firetasks.new_input_sets import OptimizeStructureVaspInputSet
+from matmethods.vasp.firetasks.new_input_sets import StructureOptimizationVaspInputSet
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspFromPMGObjects, ModifyIncar
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
@@ -46,7 +46,7 @@ class TestWriteVasp(unittest.TestCase):
             self.assertEqual(str(Kpoints.from_file(os.path.join(module_dir, "KPOINTS"))), str(self.ref_kpoints))
 
     def test_ioset_explicit(self):
-        ft = WriteVaspFromIOSet(dict(structure=self.struct_si, vasp_input_set=OptimizeStructureVaspInputSet()))
+        ft = WriteVaspFromIOSet(dict(structure=self.struct_si, vasp_input_set=StructureOptimizationVaspInputSet()))
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
         self._verify_files()
@@ -69,7 +69,7 @@ class TestWriteVasp(unittest.TestCase):
         self._verify_files(skip_kpoints=True)
 
     def test_pmgobjects(self):
-        mpvis = OptimizeStructureVaspInputSet()
+        mpvis = StructureOptimizationVaspInputSet()
         ft = WriteVaspFromPMGObjects({"incar": mpvis.get_incar(self.struct_si),
                                       "poscar": mpvis.get_poscar(self.struct_si),
                                       "kpoints": mpvis.get_kpoints(self.struct_si),

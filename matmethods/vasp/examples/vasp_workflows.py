@@ -1,6 +1,6 @@
 from fireworks import Firework, Workflow
 from matmethods.vasp.firetasks.glue_tasks import PassVaspLocs, CopyVaspOutputs
-from matmethods.vasp.firetasks.new_input_sets import OptimizeStructureVaspInputSet
+from matmethods.vasp.firetasks.new_input_sets import StructureOptimizationVaspInputSet
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
 from matmethods.vasp.firetasks.run_calc import RunVaspDirect
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspStaticFromPrev, WriteVaspNSCFFromPrev
@@ -11,7 +11,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 def get_wf_single_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=None, task_label="single VASP"):
 
-    vasp_input_set = vasp_input_set if vasp_input_set else OptimizeStructureVaspInputSet()
+    vasp_input_set = vasp_input_set if vasp_input_set else StructureOptimizationVaspInputSet()
 
     write_task = WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
     run_task = RunVaspDirect(vasp_cmd=vasp_cmd)
@@ -24,7 +24,7 @@ def get_wf_single_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=
 
 def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=None):
 
-    vasp_input_set = vasp_input_set if vasp_input_set else OptimizeStructureVaspInputSet()
+    vasp_input_set = vasp_input_set if vasp_input_set else StructureOptimizationVaspInputSet()
 
     task_label = "structure optimization"
     t1 = []

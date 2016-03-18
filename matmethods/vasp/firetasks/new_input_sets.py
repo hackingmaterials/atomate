@@ -45,7 +45,7 @@ def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
             return Poscar.from_file(zpath(os.path.join(prev_dir, "CONTCAR"))).structure
 
 
-class OptimizeStructureVaspInputSet(DictVaspInputSet):
+class StructureOptimizationVaspInputSet(DictVaspInputSet):
 
     def __init__(self, config_dict_override=None, reciprocal_density=50, force_gamma=True, **kwargs):
         d = kwargs
@@ -58,7 +58,7 @@ class OptimizeStructureVaspInputSet(DictVaspInputSet):
             del d["config_dict"]["KPOINTS"]["grid_density"]
         d["config_dict"]["KPOINTS"]["reciprocal_density"] = reciprocal_density
 
-        super(OptimizeStructureVaspInputSet, self).__init__(**d)
+        super(StructureOptimizationVaspInputSet, self).__init__(**d)
 
 
 class StaticVaspInputSet(DictVaspInputSet):
