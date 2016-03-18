@@ -1,7 +1,7 @@
 from fireworks import FireTaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
 from matmethods.utils.utils import env_chk
-from matmethods.vasp.firetasks.temporary_stuff import StaticVaspInputSet, NonSCFVaspInputSet
+from matmethods.vasp.firetasks.new_input_sets import StaticVaspInputSet, NonSCFVaspInputSet
 from pymatgen.io.vasp import Incar
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>, Shyue Ping Ong <ongsp@ucsd.edu>'

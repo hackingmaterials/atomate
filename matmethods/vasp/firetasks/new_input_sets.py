@@ -12,6 +12,7 @@ from pymatgen.symmetry.bandstructure import HighSymmKpath
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+
 def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
         """
         Process structure for static calculations from previous run.
@@ -44,19 +45,41 @@ def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
             return Poscar.from_file(zpath(os.path.join(prev_dir, "CONTCAR"))).structure
 
 
+class OptimizeStructureVaspInputSet(DictVaspInputSet):
+
+    def __init__(self, config_dict_override=None, reciprocal_density=50, force_gamma=True, **kwargs):
+        d = kwargs
+        d["name"] = "structure optimization"
+        d["config_dict"] = loadfn(os.path.join(MODULE_DIR, "MPVaspInputSet.yaml"))
+        if config_dict_override:
+            d["config_dict"].update(config_dict_override)
+        d["force_gamma"] = force_gamma
+        if "grid_density" in d["config_dict"]["KPOINTS"]:
+            del d["config_dict"]["KPOINTS"]["grid_density"]
+        d["config_dict"]["KPOINTS"]["reciprocal_density"] = reciprocal_density
+
+        super(OptimizeStructureVaspInputSet, self).__init__(**d)
+
+
 class StaticVaspInputSet(DictVaspInputSet):
 
     STATIC_SETTINGS = {"IBRION": -1, "ISMEAR": -5, "LAECHG": True, "LCHARG": True,
              "LORBIT": 11, "LVHAR": True, "LVTOT": True, "LWAVE": False, "NSW": 0,
              "ICHARG": 0, "EDIFF": 0.000001, "ALGO": "Fast"}
 
-    # TODO: kpoints density is not really correct
-    def __init__(self, kpoints_density=1000, **kwargs):
-        super(StaticVaspInputSet, self).__init__("MP Static",
-            loadfn(os.path.join(MODULE_DIR, "MPVaspInputSet.yaml")), **kwargs)
-
-        self.incar_settings.update(self.STATIC_SETTINGS)
-        self.kpoints_settings.update({"kpoints_density": kpoints_density})
+    # TODO: kpoints density is not really correct!! 75 should be something else
+    def __init__(self, config_dict_override=None, reciprocal_density=75, **kwargs):
+        d = kwargs
+        d["name"] = "static"
+        d["config_dict"] = loadfn(os.path.join(MODULE_DIR, "MPVaspInputSet.yaml"))
+        if config_dict_override:
+            d["config_dict"].update(config_dict_override)
+        d["force_gamma"] = True
+        if "grid_density" in d["config_dict"]["KPOINTS"]:
+            del d["config_dict"]["KPOINTS"]["grid_density"]
+        d["config_dict"]["KPOINTS"]["reciprocal_density"] = reciprocal_density
+        d["config_dict"]["INCAR"].update(self.STATIC_SETTINGS)
+        super(StaticVaspInputSet, self).__init__(**d)
 
     @staticmethod
     def write_input_from_prevrun(kpoints_density=1000, prev_dir=None, standardization_symprec=0.1, preserve_magmom=True, preserve_old_incar=False, output_dir=".", user_incar_settings=None):
@@ -96,24 +119,24 @@ class NonSCFVaspInputSet(DictVaspInputSet):
              "LORBIT": 11, "LWAVE": False, "NSW": 0, "ISYM": 0, "ICHARG": 11}
 
     # TODO: kpoints density is not really correct
-    def __init__(self, mode="uniform", kpoints_density=None, sym_prec=0.1, **kwargs):
+    def __init__(self, config_dict_override=None, mode="uniform", kpoints_density=None, sym_prec=0.1, **kwargs):
         if kpoints_density is None:
             kpoints_density = 1000 if mode == "uniform" else 20
 
-        super(NonSCFVaspInputSet, self).__init__("MP Non-SCF",
-            loadfn(os.path.join(MODULE_DIR, "MPVaspInputSet.yaml")), **kwargs)
+        self.kpoints_density = kpoints_density  # used by the "get_kpoints()" method
 
-        self.incar_settings.update(self.NSCF_SETTINGS)
+        d = kwargs
+        d["name"] = "non scf"
+        d["config_dict"] = loadfn(os.path.join(MODULE_DIR, "MPVaspInputSet.yaml"))
+        if config_dict_override:
+            d["config_dict"].update(config_dict_override)
+        d["config_dict"]["INCAR"].update(self.NSCF_SETTINGS)
+        if mode == "uniform":
+            d["config_dict"]["INCAR"].update({"NEDOS": 601})
+        super(NonSCFVaspInputSet, self).__init__(**d)
+
         self.sym_prec = sym_prec
         self.mode = mode
-
-        if mode == "uniform":
-            self.incar_settings.update({"NEDOS": 601})
-            self.kpoints_settings.update({"kpoints_density": kpoints_density})
-        elif mode == "line":
-            self.kpoints_settings.update({"kpoints_line_density": kpoints_density})
-        else:
-            raise ValueError("Supported modes for NonSCF runs are 'line' and 'uniform'!")
 
     def get_kpoints(self, structure):
         """

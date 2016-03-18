@@ -1,7 +1,8 @@
 import os
+
+from matmethods.vasp.firetasks.new_input_sets import OptimizeStructureVaspInputSet
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
-from pymatgen.io.vasp.sets import MPVaspInputSet
 
 import unittest
 
@@ -43,8 +44,8 @@ class TestSetup(unittest.TestCase):
 
     def test_setup(self):
         try:
-            mpvi = MPVaspInputSet()
-            mpvi.write_input(self.struct_si, ".")
+            vi = OptimizeStructureVaspInputSet()
+            vi.write_input(self.struct_si, ".")
         except ValueError:
             import traceback
             traceback.print_exc()
