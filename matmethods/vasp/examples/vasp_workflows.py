@@ -62,9 +62,9 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp", d
     t4.append(PassVaspLocs(name=task_label))
     t4.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": task_label}, bandstructure_mode="line"))
     fw4 = Firework(t4, parents=fw2, name="{}:{}".format(structure.composition.reduced_formula, task_label))
-
-    return Workflow([fw1, fw2, fw3, fw4])
     """
+    
+    return Workflow([fw1, fw2, fw3, fw4])
 
 
 if __name__ == "__main__":
