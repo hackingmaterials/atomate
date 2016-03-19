@@ -51,8 +51,14 @@ class StructureOptimizationVaspInputSet(DictVaspInputSet):
         d = kwargs
         d["name"] = "structure optimization"
         d["config_dict"] = loadfn(os.path.join(MODULE_DIR, "MPVaspInputSet.yaml"))
-        if config_dict_override:
-            d["config_dict"].update(config_dict_override)
+
+        for k in ["INCAR", "KPOINTS", "POSCAR", "POTCAR"]:
+            if config_dict_override and config_dict_override.get(k):
+                if k in d["config_dict"]:
+                    d["config_dict"][k].update(config_dict_override[k])
+                else:
+                    d["config_dict"][k] = config_dict_override[k]
+
         d["force_gamma"] = force_gamma
         if "grid_density" in d["config_dict"]["KPOINTS"]:
             del d["config_dict"]["KPOINTS"]["grid_density"]
@@ -76,8 +82,12 @@ class StaticVaspInputSet(DictVaspInputSet):
             del d["config_dict"]["KPOINTS"]["grid_density"]
         d["config_dict"]["KPOINTS"]["reciprocal_density"] = reciprocal_density
         d["config_dict"]["INCAR"].update(self.STATIC_SETTINGS)
-        if config_dict_override:
-            d["config_dict"].update(config_dict_override)
+        for k in ["INCAR", "KPOINTS", "POSCAR", "POTCAR"]:
+            if config_dict_override and config_dict_override.get(k):
+                if k in d["config_dict"]:
+                    d["config_dict"][k].update(config_dict_override[k])
+                else:
+                    d["config_dict"][k] = config_dict_override[k]
         super(StaticVaspInputSet, self).__init__(**d)
 
     @staticmethod
@@ -124,8 +134,12 @@ class NonSCFVaspInputSet(DictVaspInputSet):
         d["config_dict"]["INCAR"].update(self.NSCF_SETTINGS)
         if mode == "uniform":
             d["config_dict"]["INCAR"].update({"NEDOS": 601})
-        if config_dict_override:
-            d["config_dict"].update(config_dict_override)
+        for k in ["INCAR", "KPOINTS", "POSCAR", "POTCAR"]:
+            if config_dict_override and config_dict_override.get(k):
+                if k in d["config_dict"]:
+                    d["config_dict"][k].update(config_dict_override[k])
+                else:
+                    d["config_dict"][k] = config_dict_override[k]
         super(NonSCFVaspInputSet, self).__init__(**d)
 
         self.reciprocal_density = reciprocal_density  # used by the "get_kpoints()" method
