@@ -83,16 +83,20 @@ class TestVaspWorkflows(unittest.TestCase):
         self.assertAlmostEqual(d["calculations"][0]["output"]["crystal"]["lattice"]["a"], 3.867, 2)
         self.assertEqual(d["analysis"]["is_gap_direct"], False)
 
-        if mode != "nscf line":
+        if mode in ["structure optimization", "static"]:
             self.assertAlmostEqual(d["output"]["final_energy"], -10.850, 2)
             self.assertAlmostEqual(d["output"]["final_energy_per_atom"], -5.425, 2)
 
+        elif mode in ["ncsf uniform"]:
+            self.assertAlmostEqual(d["output"]["final_energy"], -10.828, 2)
+            self.assertAlmostEqual(d["output"]["final_energy_per_atom"], -5.414, 2)
+
+        self.assertAlmostEqual(d["analysis"]["bandgap"], 0.65, 1)
+
         if "nscf" in mode:
             self.assertEqual(d["calculations"][0]["output"]["outcar"]["total_magnetization"], None)
-            self.assertAlmostEqual(d["analysis"]["bandgap"], 0.62, 1)
         else:
             self.assertAlmostEqual(d["calculations"][0]["output"]["outcar"]["total_magnetization"], 0, 3)
-            self.assertAlmostEqual(d["analysis"]["bandgap"], 0.65, 1)
 
         self.assertLess(d["run_stats"]["overall"]["Elapsed time (sec)"], 180)  # run should take under 3 minutes
 
@@ -104,10 +108,9 @@ class TestVaspWorkflows(unittest.TestCase):
             bs_fs_id = d["calculations"][0]["bandstructure_fs_id"]
             bs_json = zlib.decompress(fs.get(bs_fs_id).read())
             bs = json.loads(bs_json)
-
             self.assertEqual(bs["is_spin_polarized"], True)  # TODO: should this be false?
-            self.assertEqual(bs["band_gap"]["direct"], True)  # TODO: this should almost certainly be false
-            self.assertAlmostEqual(bs["band_gap"]["energy"], 0.85, 1)  # TODO: this does not match the value from earlier in the unit test for nscf uniform runs
+            self.assertEqual(bs["band_gap"]["direct"], False)
+            self.assertAlmostEqual(bs["band_gap"]["energy"], 0.65, 1)
             self.assertEqual(bs["is_metal"], False)
 
             if mode == "nscf uniform":
