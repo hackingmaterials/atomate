@@ -32,6 +32,7 @@ class VaspToDbTask(FireTaskBase):
         bandstructure_mode (str): Set to "uniform" for uniform band structure. Set to "line" for line mode. If not set, band structure will not be parsed.
         additional_fields (dict): dict of additional fields to add
     """
+    optional_params = ["db_file", "vasp_dir", "vasp_loc", "parse_dos", "bandstructure_mode", "additional_fields"]
 
     def run_task(self, fw_spec):
 
@@ -55,7 +56,6 @@ class VaspToDbTask(FireTaskBase):
         # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
 
-        # TODO: Many options of VaspToDbTaskDrone cannot be set by the user
         if not db_file:
             drone = VaspToDbTaskDrone(simulate_mode=True)
             task_doc = drone.get_task_doc(vasp_dir)

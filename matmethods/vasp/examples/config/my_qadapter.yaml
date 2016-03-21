@@ -10,6 +10,7 @@ pre_rocket: |
             <<CMD 2>>
             <<CMD 3>>
             <<CMD 4>>
+            <<or delete the pre-rocket entirely...>>
 
 post_rocket: null
 logdir: <<LOGDIR>>
