@@ -125,7 +125,6 @@ class TestVaspWorkflows(unittest.TestCase):
                     self.assertTrue(k in bs)
                     self.assertIsNotNone(bs[k])
                 self.assertEqual(bs["@class"], "BandStructureSymmLine")
-                # TODO: the branches key seems wrong??
 
             # check the DOS
             if mode == "nscf uniform":
