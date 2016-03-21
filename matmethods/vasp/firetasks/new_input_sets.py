@@ -183,9 +183,7 @@ class NonSCFVaspInputSet(DictVaspInputSet):
         # crank up NBANDS by nbands_factor
         prev_dir = prev_dir or os.curdir
         vasprun = Vasprun(os.path.join(prev_dir, "vasprun.xml"), parse_dos=False, parse_eigen=False)
-        print("The previous NBANDS was: {}".format(vasprun.as_dict()["input"]["parameters"]["NBANDS"]))
         nscf_config_dict["INCAR"]["NBANDS"] = int(math.ceil(vasprun.as_dict()["input"]["parameters"]["NBANDS"] * nbands_factor))
-        print("The new NBANDS is: {}".format(nscf_config_dict["INCAR"]["NBANDS"]))
         # retain grid of old run
         for grid in ["NGX", "NGY", "NGZ"]:
             if vasprun.incar.get(grid):
