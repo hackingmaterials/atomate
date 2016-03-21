@@ -23,9 +23,9 @@ In order to use the VASP functionality, make sure you set up VASP_PSP_DIR variab
 
 To test the VASP functionality, run the unit tests in ``matmethods.vasp.tests``. These unit tests are designed to run without installing VASP. Some of them start with a VASP workflow but apply the ``make_fake_workflow`` method to replace calling the VASP executable with a "Faker" that verifies basic properties of the inputs and copies pre-stored output files to the current directory, thus simulating the execution of VASP.
 
-The unit tests in matmethods/vasp/tests/test_vasp_workflows.py can be modified to actually run VASP by setting REALLY_RUN_VASP to true.
+The unit tests in matmethods/vasp/tests/test_vasp_workflows.py can be modified to actually run VASP by setting VASP_CMD to a String representing your VASP command.
 
-Many tests have a DEBUG option that can sometimes help in finding problems.
+Many tests have a DEBUG option that can sometimes help in finding problems. Sometimes you need to toggle DEBUG on/off a couple of times if you are doing this to make sure all the old data is actually cleared between debug runs; the tearDown() and setUp() methods are stil a bit finicky.
 
 Learning to use MatMethods
 ==========================
