@@ -101,11 +101,12 @@ Install some codes
 #. I would suggest making a subdirectory for codes, e.g. ``<<INSTALL_DIR>>/codes`` and then moving to that directory for the remainder.
 
 #. Technically, you just need the MatMethods code which will contain all the dependencies, and you might be able to get by using the ``pip`` install. What I do is actually install the full source of the MatMethods code and all of its important dependencies inside ``<<INSTALL_DIR>>/codes``. This includes a ``git clone`` followed by a ``python setup.py develop`` for the following codes:
-    - fireworks
-    - pymatgen
-    - pymatgen-db
-    - custodian
-    - MatMethods
+
+   - fireworks
+   - pymatgen
+   - pymatgen-db
+   - custodian
+   - MatMethods
 
 #. asdf
 
