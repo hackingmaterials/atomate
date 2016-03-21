@@ -80,7 +80,34 @@ Here are some notes on how to get MatMethods up and running in a production syst
 Things you need to do once
 ==========================
 
-There are some things.
+Here are some things you will likely only need to do once (per machine) as an "initial install".
+
+Set some environment variables
+------------------------------
+
+1. Make sure your ``VASP_PSP_DIR`` environment variable is set to point to your VASP pseudopotential directories. Probably you want to put this in your ``.bash_profile`` (or equivalent, e.g., ``.bashrc.ext`` at NERSC) and never have to worry about this again.
+
+Install some codes
+------------------
+
+1. Load any modules that are needed to do a Python installation.
+
+#. Create a directory in a spot on disk that has relatively fast access from compute nodes. Your Python codes and config files will go here. We will call this place ``<<INSTALL_DIR>>``.
+
+#. It's probably best to make this directory a virtual environment, in case you want to have multiple environments later (for different projects, perhaps for different machines, etc). This will also help in avoiding permissions problems with installing Python codes. So create a virtualenv in the ``<<INSTALL_DIR>>`` using the ``virtualenv`` command. If you know what you are doing, you can probably make things work without virtualenv.
+
+#. Activate your virtualenv, e.g. ``source <<INSTALL_DIR>>/bin/activate``. Now you are ready to install codes.
+
+#. I would suggest making a subdirectory for codes, e.g. ``<<INSTALL_DIR>>/codes`` and then moving to that directory for the remainder.
+
+#. Technically, you just need the MatMethods code which will contain all the dependencies, and you might be able to get by using the ``pip`` install. What I do is actually install the full source of the MatMethods code and all of its important dependencies inside ``<<INSTALL_DIR>>/codes``. This includes a ``git clone`` followed by a ``python setup.py develop`` for the following codes:
+    * fireworks
+    * pymatgen
+    * pymatgen-db
+    * custodian
+    * MatMethods
+
+#. asdf
 
 Blah
 ----
