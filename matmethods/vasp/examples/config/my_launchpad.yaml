@@ -1,0 +1,10 @@
+host: <<HOSTNAME>>
+port: <<PORT_NUM>>
+logdir: <<LOGDIR or null>>
+name: <<DB_NAME>>
+username: <<DB_USERNAME>>
+password: <<DB_PASSWORD>>
+ssl_ca_file: null
+strm_lvl: INFO
+user_indices: []
+wf_user_indices: []

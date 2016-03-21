@@ -1,0 +1,15 @@
+_fw_name: <<QADAPTER_NAME>
+rocket_launch: <<RLAUNCH_CMD>>
+mppwidth: <<QADAPTER_NCORES>>
+walltime: <<WALLTIME>>
+queue: <<QUEUENAME>>
+account: <<ACCOUNTNAME>>
+job_name: <<DEFAULT_JOBNAME>>
+pre_rocket: |
+            <<CMD 1>>
+            <<CMD 2>>
+            <<CMD 3>>
+            <<CMD 4>>
+
+post_rocket: null
+logdir: <<LOGDIR>>

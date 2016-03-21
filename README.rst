@@ -82,6 +82,12 @@ Things you need to do once
 
 Here are some things you will likely only need to do once (per machine) as an "initial install".
 
+Preliminaries
+-------------
+
+1. Make sure you can access to a MongoDB installation from the compute nodes. i.e. you can either start and stop a Mongo server yourself or have credentials to a Mongo server that's always available. Also confirm there are no firewalls from your compute node to your Mongo server. If you are able to get through the FireWorks tutorials on running jobs through a queue, then this step is probably OK.
+2. Make sure you have access to the VASP executable and pseudopotential files. If you cannot run VASP manually, you cannot do it through this infrastructure.
+
 Set some environment variables
 ------------------------------
 
@@ -108,9 +114,11 @@ Install some codes
    - custodian
    - MatMethods
 
-#. asdf
+#. If all the installation seemed to go smoothly, you are all set! You can try running some unit tests in the code to help confirm things. Note that some of the unit tests in some of the codes will require a MongoDB server.
 
-Blah
-----
+Configure a bunch of things
+---------------------------
+
+1. To be continued...
 
 
