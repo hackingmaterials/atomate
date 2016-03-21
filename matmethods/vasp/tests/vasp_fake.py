@@ -19,8 +19,8 @@ class RunVaspFake(FireTaskBase):
 
     def run_task(self, fw_spec):
         self._verify_inputs()
+        self._clear_inputs()
         self._generate_outputs()
-
 
     def _verify_inputs(self):
         user_incar = Incar.from_file(os.path.join(os.getcwd(), "INCAR"))
@@ -55,6 +55,11 @@ class RunVaspFake(FireTaskBase):
 
         print("RunVaspFake: verified inputs successfully")
 
+    def _clear_inputs(self):
+        for x in ["INCAR", "KPOINTS", "POSCAR", "POTCAR", "CHGCAR", "OUTCAR", "vasprun.xml"]:
+            p = os.path.join(os.getcwd(), x)
+            if os.path.exists(p):
+                os.remove(p)
 
     def _generate_outputs(self):
         output_dir = os.path.join(self["fake_dir"], "outputs")
