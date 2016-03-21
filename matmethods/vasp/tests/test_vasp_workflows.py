@@ -108,7 +108,7 @@ class TestVaspWorkflows(unittest.TestCase):
             bs_fs_id = d["calculations"][0]["bandstructure_fs_id"]
             bs_json = zlib.decompress(fs.get(bs_fs_id).read())
             bs = json.loads(bs_json)
-            self.assertEqual(bs["is_spin_polarized"], True)  # TODO: should this be false?
+            self.assertEqual(bs["is_spin_polarized"], False)
             self.assertEqual(bs["band_gap"]["direct"], False)
             self.assertAlmostEqual(bs["band_gap"]["energy"], 0.65, 1)
             self.assertEqual(bs["is_metal"], False)
