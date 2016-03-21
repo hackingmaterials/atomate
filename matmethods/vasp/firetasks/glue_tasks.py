@@ -73,25 +73,25 @@ class CopyVaspOutputs(FireTaskBase):
             dest_fname = 'POSCAR' if f == 'CONTCAR' and contcar_to_poscar else f
             dest_path = os.path.join(os.getcwd(), dest_fname)
 
-            # detect .gz extension if needed
-            # TODO: probably replace with monty zpath()
+            # detect .gz extension if needed - note that monty zpath() did not seem useful here
             ext = ""
-            if os.path.exists(prev_path):
-                pass
-            elif os.path.exists(prev_path+".gz"):
-                ext = ".gz"
-            else:
+            if not os.path.exists(prev_path):
+                for possible_ext in [".gz", ".GZ"]:
+                    if os.path.exists(prev_path+possible_ext):
+                        ext = possible_ext
+
+            if not os.path.exists(prev_path+ext):
                 raise ValueError("Cannot find file: {}".format(prev_path))
 
             # copy the file
             shutil.copy2(prev_path+ext, dest_path+ext)
 
             # unzip the .gz if needed
-            if ext == '.gz':
+            if ext == '.gz' or ext == ".GZ":
                 # unzip dest file
-                f = gzip.open(dest_path+".gz", 'rb')
+                f = gzip.open(dest_path+ext, 'rb')
                 file_content = f.read()
                 with open(dest_path, 'wb') as f_out:
                     f_out.writelines(file_content)
                 f.close()
-                os.remove(dest_path+".gz")
+                os.remove(dest_path+ext)
