@@ -2,7 +2,6 @@ import os
 import shutil
 
 from fireworks import FireTaskBase, explicit_serialize, Workflow
-from matmethods.vasp.firetasks.run_calc import RunVaspCustodian
 from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
@@ -80,18 +79,5 @@ def make_fake_workflow(original_workflow):
                 for idx_t, t in enumerate(fw.tasks):
                     if "RunVasp" in str(t):
                         wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = RunVaspFake(fake_dir=fake_dirs[job_type]).to_dict()
-
-    return Workflow.from_dict(wf_dict)
-
-# TODO: move this to "powerups"
-def make_custodian_workflow(original_workflow):
-    wf_dict = original_workflow.to_dict()
-    for idx_fw, fw in enumerate(original_workflow.fws):
-        for job_type in fake_dirs.keys():
-            if job_type in fw.name:
-                for idx_t, t in enumerate(fw.tasks):
-                    if "RunVasp" in str(t):
-                        vasp_cmd = wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"]
-                        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = RunVaspCustodian(vasp_cmd=vasp_cmd).to_dict()
 
     return Workflow.from_dict(wf_dict)

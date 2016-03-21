@@ -12,8 +12,6 @@ from pymatgen.symmetry.bandstructure import HighSymmKpath
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# TODO: move this entire module to a different package
-
 
 def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
         """
@@ -101,9 +99,9 @@ class StaticVaspInputSet(DictVaspInputSet):
         :param reciprocal_density: (int) density of k-mesh by reciprocal volume (defaults to 100)
         :param prev_dir: (str) directory containing output files of the previous relaxation run. Defaults to current dir.
         :param standardization_symprec: (float) Symprec for standardization. Set to None for no cell standardization. Defaults to 0.1.
-        :param international_monoclinic: (bool) Whether to use international convention (vs Curtarolo) for monoclinc. Defaults true.
+        :param international_monoclinic: (bool) Whether to use international convention (vs Curtarolo) for monoclinic. Defaults True.
         :param preserve_magmom: (bool) whether to preserve old MAGMOM. Defaults to True
-        :param preserve_old_incar: (bool) whether to try to preserve most of the older INCAR parameters instead of overriding with Inputset values. Defaults to False.
+        :param preserve_old_incar: (bool) whether to try to preserve most of the older INCAR parameters instead of overriding with Inputset values. Defaults False.
         :param output_dir: (str) where to put the output files (defaults current dir)
         """
 
@@ -120,23 +118,28 @@ class StaticVaspInputSet(DictVaspInputSet):
 
         if preserve_old_incar:
             raise NotImplementedError("The option to preserve the old INCAR is not yet implemented!")
-            # TODO: parse old incar
-            # TODO: override STATIC_SETTINGS in this INCAR
-            # TODO: make sure MAGMOM aligns correctly with sites in newest INCAR
-            # TODO: make sure LDAU aligns correctly with sites in newest INCAR
-            # TODO: make sure to use the tighter EDIFF
-            # TODO: write the new INCAR
-            # TODO: check old code to see if anything needed is missing
-            # TODO: perform a final sanity check on the parameters(?)
+            # TODO: parse old incar - see notes below
+            # override STATIC_SETTINGS in this INCAR
+            # make sure MAGMOM aligns correctly with sites in newest INCAR
+            # make sure LDAU aligns correctly with sites in newest INCAR
+            # make sure to use the tighter EDIFF
+            # write the new INCAR
+            # check old code to see if anything needed is missing
+            # perform a final sanity check on the parameters(?)
 
 
 class NonSCFVaspInputSet(DictVaspInputSet):
 
-    NSCF_SETTINGS = {"IBRION": -1, "ISMEAR": 0, "SIGMA": 0.001, "LCHARG": False,
-             "LORBIT": 11, "LWAVE": False, "NSW": 0, "ISYM": 0, "ICHARG": 11}
+    NSCF_SETTINGS = {"IBRION": -1, "ISMEAR": 0, "SIGMA": 0.001, "LCHARG": False, "LORBIT": 11, "LWAVE": False,
+                     "NSW": 0, "ISYM": 0, "ICHARG": 11}
 
-    # TODO: document. allowed modes are "uniform" and "line".
+    ALLOWED_MODES = ["line", "uniform"]
+
     def __init__(self, config_dict_override=None, mode="uniform", reciprocal_density=None, sym_prec=0.1, **kwargs):
+
+        if mode not in self.ALLOWED_MODES:
+            raise ValueError("{} is not an allowed 'mode'! Possible values are: {}".format(mode, self.ALLOWED_MODES))
+
         if reciprocal_density is None:
             reciprocal_density = 1000 if mode == "uniform" else 20
 

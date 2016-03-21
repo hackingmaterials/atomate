@@ -55,8 +55,7 @@ class VaspToDbTask(FireTaskBase):
         # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
 
-        # TODO: Many important options of VaspToDbTaskDrone are not yet supported
-
+        # TODO: Many options of VaspToDbTaskDrone cannot be set by the user
         if not db_file:
             drone = VaspToDbTaskDrone(simulate_mode=True)
             task_doc = drone.get_task_doc(vasp_dir)
