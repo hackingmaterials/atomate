@@ -93,17 +93,27 @@ class StaticVaspInputSet(DictVaspInputSet):
         super(StaticVaspInputSet, self).__init__(**d)
 
     @staticmethod
-    def write_input_from_prevrun(config_dict_override=None, reciprocal_density=100, prev_dir=None, standardization_symprec=0.1, preserve_magmom=True, preserve_old_incar=False, output_dir="."):
+    def write_input_from_prevrun(config_dict_override=None, reciprocal_density=100, prev_dir=None,
+                                 standardization_symprec=0.1, international_monoclinic=True, preserve_magmom=True,
+                                 preserve_old_incar=False, output_dir="."):
+        """
+        :param config_dict_override: (dict) like {"INCAR": {"NPAR": 2}} to override the default input set
+        :param reciprocal_density: (int) density of k-mesh by reciprocal volume (defaults to 100)
+        :param prev_dir: (str) directory containing output files of the previous relaxation run. Defaults to current dir.
+        :param standardization_symprec: (float) Symprec for standardization. Set to None for no cell standardization. Defaults to 0.1.
+        :param international_monoclinic: (bool) Whether to use international convention (vs Curtarolo) for monoclinc. Defaults true.
+        :param preserve_magmom: (bool) whether to preserve old MAGMOM. Defaults to True
+        :param preserve_old_incar: (bool) whether to try to preserve most of the older INCAR parameters instead of overriding with Inputset values. Defaults to False.
+        :param output_dir: (str) where to put the output files (defaults current dir)
+        """
 
-        # get old structure, including MAGMOM decoration if desired
         structure = get_structure_from_prev_run(prev_dir, preserve_magmom=preserve_magmom)
 
         # standardize the structure if desired
         if standardization_symprec:
+            print("Standardizing cell...")
             sym_finder = SpacegroupAnalyzer(structure, symprec=standardization_symprec)
-            structure = sym_finder.get_primitive_standard_structure()
-
-        # TODO: re-use old CHGCAR (ICHG=1) if you are NOT standardizing (i.e., changing) the cell for faster performance. This is probably rare.
+            structure = sym_finder.get_primitive_standard_structure(international_monoclinic=international_monoclinic)
 
         vis = StaticVaspInputSet(config_dict_override=config_dict_override, reciprocal_density=reciprocal_density)
         vis.write_input(structure, output_dir)
@@ -173,7 +183,20 @@ class NonSCFVaspInputSet(DictVaspInputSet):
                            num_kpts=len(ir_kpts), kpts=kpts, kpts_weights=weights)
 
     @staticmethod
-    def write_input_from_prevrun(config_dict_override=None, reciprocal_density=None, mode="uniform", magmom_cutoff=0.2, nbands_factor=1.2, prev_dir=None, preserve_magmom=True, preserve_old_incar=False, output_dir="."):
+    def write_input_from_prevrun(config_dict_override=None, reciprocal_density=None, prev_dir=None,
+                                 mode="uniform", magmom_cutoff=0.1, nbands_factor=1.2, preserve_magmom=True,
+                                 preserve_old_incar=False, output_dir="."):
+        """
+        :param config_dict_override: (dict) like {"INCAR": {"NPAR": 2}} to override the default input set
+        :param reciprocal_density: (int) density of k-mesh by reciprocal volume (defaults to 1000 in uniform, 20 in line mode)
+        :param prev_dir: (str) directory containing output files of the previous relaxation run. Defaults to current dir.
+        :param mode: (str) either "uniform" (default) or "line"
+        :param magmom_cutoff: (float) if not None, ISPIN is turned off if all magnetic moments of previous run less than this
+        :param nbands_factor: (float) factor to increase NBANDS from previous run
+        :param preserve_magmom: (bool) whether to preserve old MAGMOM. Defaults to True
+        :param preserve_old_incar: (bool) whether to try to preserve most of the older INCAR parameters instead of overriding with Inputset values. Defaults to False.
+        :param output_dir: (str) where to put the output files (defaults current dir)
+        """
 
         nscf_config_dict = {"INCAR": {}, "KPOINTS": {}}
 
@@ -184,6 +207,7 @@ class NonSCFVaspInputSet(DictVaspInputSet):
         prev_dir = prev_dir or os.curdir
         vasprun = Vasprun(os.path.join(prev_dir, "vasprun.xml"), parse_dos=False, parse_eigen=False)
         nscf_config_dict["INCAR"]["NBANDS"] = int(math.ceil(vasprun.as_dict()["input"]["parameters"]["NBANDS"] * nbands_factor))
+
         # retain grid of old run
         for grid in ["NGX", "NGY", "NGZ"]:
             if vasprun.incar.get(grid):

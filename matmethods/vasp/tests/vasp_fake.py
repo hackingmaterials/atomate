@@ -12,6 +12,7 @@ reference_dir = os.path.join(module_dir, "reference_files")
 fake_dirs={"structure optimization": os.path.join(reference_dir, "Si_structure_optimization"), "static": os.path.join(reference_dir, "Si_static"),
            "nscf uniform": os.path.join(reference_dir, "Si_nscf_uniform"), "nscf line": os.path.join(reference_dir, "Si_nscf_line")}
 
+
 @explicit_serialize
 class RunVaspFake(FireTaskBase):
 
@@ -29,8 +30,8 @@ class RunVaspFake(FireTaskBase):
         # perform some BASIC tests
 
         # check INCAR
-        params_to_check = ["ISPIN", "ENCUT", "ISMEAR", "SIGMA", "IBRION"]
-        defaults = {"ISPIN": 1, "ISMEAR": 1, "SIGMA": 2}
+        params_to_check = ["ISPIN", "ENCUT", "ISMEAR", "SIGMA", "IBRION", "LORBIT", "NBANDS", "LMAXMIX"]
+        defaults = {"ISPIN": 1, "ISMEAR": 1, "SIGMA": 0.2}
         for p in params_to_check:
             if user_incar.get(p, defaults.get(p)) != ref_incar.get(p, defaults.get(p)):
                 raise ValueError("INCAR value of {} is inconsistent!".format(p))
@@ -65,7 +66,7 @@ class RunVaspFake(FireTaskBase):
         output_dir = os.path.join(self["fake_dir"], "outputs")
         for file_name in os.listdir(output_dir):
             full_file_name = os.path.join(output_dir, file_name)
-            if (os.path.isfile(full_file_name)):
+            if os.path.isfile(full_file_name):
                 shutil.copy(full_file_name, os.getcwd())
 
         print("RunVaspFake: ran fake VASP, generated outputs")

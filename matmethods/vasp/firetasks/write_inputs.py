@@ -131,18 +131,18 @@ class WriteVaspStaticFromPrev(FireTaskBase):
         (none)
 
     Optional params:
-        prev_dir (str): directory containing output files of the previous relaxation run. Defaults to current dir.
-        standardization_symprec (float): Symprec for standardization. Set to None for no cell standardization. Defaults to 0.1.
-        preserve_magmom (bool): whether to preserve old MAGMOM. Defaults to True
-        preserve_old_incar (bool): whether to try to preserve most of the older INCAR parameters instead of overriding with Inputset values. Defaults to False.
+        (documentation for all optional params can be found in StaticVaspInputSet.write_input_from_prevrun)
     """
 
-    optional_params = ["standardization_symprec", "prev_dir", "preserve_magmom", "preserve_old_incar"]
+    optional_params = ["config_dict_override", "reciprocal_density", "prev_dir", "standardization_symprec",
+                       "international_monoclinic", "preserve_magmom", "preserve_old_incar"]
 
-    # TODO: add more options, e.g. k density
     def run_task(self, fw_spec):
-        StaticVaspInputSet.write_input_from_prevrun(prev_dir=self.get("prev_dir", None),
-                                                    standardization_symprec=self.get("standardization_symprec"),
+        StaticVaspInputSet.write_input_from_prevrun(config_dict_override=self.get("config_dict_override"),
+                                                    reciprocal_density=self.get("reciprocal_density", 100),
+                                                    prev_dir=self.get("prev_dir"),
+                                                    standardization_symprec=self.get("standardization_symprec", 0.1),
+                                                    international_monoclinic=self.get("international_monoclinic", True),
                                                     preserve_magmom=self.get("preserve_magmom", True),
                                                     preserve_old_incar=self.get("preserve_old_incar", False))
 
@@ -153,10 +153,21 @@ class WriteVaspNSCFFromPrev(FireTaskBase):
     Writes input files for a static run. Assumes that output files from an scf job can be accessed.
 
     Required params:
-        mode (str): either "uniform" or "line"
+        (none)
+
+    Optional params:
+        (documentation for all optional params can be found in NonSCFVaspInputSet.write_input_from_prevrun)
     """
 
+    optional_params = ["config_dict_override", "reciprocal_density", "prev_dir", "mode", "magmom_cutoff",
+                       "nbands_factor", "preserve_magmom", "preserve_old_incar"]
 
     def run_task(self, fw_spec):
-        # TODO: add more parameters that can be set
-        NonSCFVaspInputSet.write_input_from_prevrun(mode=self["mode"])
+        NonSCFVaspInputSet.write_input_from_prevrun(config_dict_override=self.get("config_dict_override"),
+                                                    reciprocal_density=self.get("reciprocal_density"),
+                                                    prev_dir=self.get("prev_dir"),
+                                                    mode=self.get("mode", "uniform"),
+                                                    magmom_cutoff=self.get("magmom_cutoff", 0.1),
+                                                    nbands_factor=self.get("nbands_factor", 1.2),
+                                                    preserve_magmom=(self.get("preserve_magmom"), True),
+                                                    preserve_old_incar=self.get("preserve_old_incar", False))
