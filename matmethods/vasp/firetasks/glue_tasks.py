@@ -40,16 +40,20 @@ class CopyVaspOutputs(FireTaskBase):
     Copy outputs from a previous VASP run directory to the current directory. Additional files, e.g. CHGCAR, can also be specified.
     Automatically handles files that have a ".gz" extension (copies and unzips).
 
-    Note that you must specify either "vasp_dir" or "vasp_loc" of the directory containing the previous VASP run.
+    Note that you must specify either "vasp_loc" or "vasp_dir" to indicate the directory containing the previous VASP run.
+
+    Required params:
+        (none) - but you must specify either "vasp_loc" OR "vasp_dir"
 
     Optional params:
-        vasp_dir (str): path to dir (on current filesystem) that contains VASP output files.
         vasp_loc (str OR bool): if True will set most recent vasp_loc. If str search for the most recent vasp_loc with the matching name
+        vasp_dir (str): path to dir (on current filesystem) that contains VASP output files.
         additional_files ([str]): additional files to copy, e.g. ["CHGCAR", "WAVECAR"]. Use $ALL if you just want to copy everything
         contcar_to_poscar(bool): If True (default), will move CONTCAR to POSCAR (original POSCAR is not copied).
     """
 
-    # TODO: add optional params array (here and elsewhere)
+    optional_params = ["vasp_loc", "vasp_dir", "additional_files", "contcar_to_poscar"]
+
     def run_task(self, fw_spec):
 
         vasp_dir = get_vasp_dir(self, fw_spec)

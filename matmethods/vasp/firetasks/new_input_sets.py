@@ -232,4 +232,4 @@ class NonSCFVaspInputSet(DictVaspInputSet):
 
         if preserve_old_incar:
             raise NotImplementedError("The option to preserve the old INCAR is not yet implemented!")
-            # TODO: implement me!
+            # TODO: parse old INCAR (see notes for static runs...)
