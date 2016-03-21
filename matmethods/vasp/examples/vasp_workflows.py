@@ -45,7 +45,7 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp", d
 
     task_label = "nscf uniform"
     t3 = []
-    t3.append(CopyVaspOutputs(vasp_loc=True))
+    t3.append(CopyVaspOutputs(vasp_loc=True, additional_files=["CHGCAR"]))
     t3.append(WriteVaspNSCFFromPrev(mode="uniform"))
     t3.append(RunVaspDirect(vasp_cmd=vasp_cmd))
     t3.append(PassVaspLocs(name=task_label))
@@ -55,7 +55,7 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp", d
     # line mode (run in parallel to uniform)
     t4 = []
     task_label = "nscf line"
-    t4.append(CopyVaspOutputs(vasp_loc=True))
+    t4.append(CopyVaspOutputs(vasp_loc=True, additional_files=["CHGCAR"]))
     t4.append(WriteVaspNSCFFromPrev(mode="line"))
     t4.append(RunVaspDirect(vasp_cmd=vasp_cmd))
     t4.append(PassVaspLocs(name=task_label))
