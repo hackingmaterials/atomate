@@ -1,7 +1,14 @@
+# coding: utf-8
+
+from __future__ import division, print_function, unicode_literals, \
+    absolute_import
+
 from fireworks import FireTaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
+
 from matmethods.utils.utils import env_chk
-from matmethods.vasp.new_input_sets import StaticVaspInputSet, NonSCFVaspInputSet
+from matmethods.vasp.new_input_sets import StaticVaspInputSet, \
+    NonSCFVaspInputSet
 from pymatgen.io.vasp import Incar
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>, Shyue Ping Ong <ongsp@ucsd.edu>'
@@ -15,20 +22,23 @@ def load_class(mod, name):
 @explicit_serialize
 class WriteVaspFromIOSet(FireTaskBase):
     """
-    Create VASP input files using implementations of pymatgen's AbstractVaspInputSet.
-    An input set can be provided as an object or as a String/parameter combo.
+    Create VASP input files using implementations of pymatgen's
+    AbstractVaspInputSet. An input set can be provided as an object or as a
+    String/parameter combo.
 
     Required params:
         structure (Structure): structure
-        vasp_input_set (AbstractVaspInputSet or str): Either a VaspInputSet object or
-            a string name for the VASP input set (e.g., "MPVaspInputSet").
+        vasp_input_set (AbstractVaspInputSet or str): Either a VaspInputSet
+            object or a string name for the VASP input set (e.g.,
+            "MPVaspInputSet").
 
     Optional params:
-        vasp_input_params (dict): When using a string name for VASP input set, use
-            this as a dict to specify kwargs for instantiating the input set
-            parameters. For example, if you want to change the user_incar_settings, you
-            should provide: {"user_incar_settings": ...}. This setting is ignored if you
-            provide the full object representation of a VaspInputSet rather than a String.
+        vasp_input_params (dict): When using a string name for VASP input set,
+            use this as a dict to specify kwargs for instantiating the input
+            set parameters. For example, if you want to change the
+            user_incar_settings, you should provide: {"user_incar_settings": ...}.
+            This setting is ignored if you provide the full object
+            representation of a VaspInputSet rather than a String.
     """
 
     required_params = ["structure", "vasp_input_set"]
@@ -89,13 +99,16 @@ class ModifyIncar(FireTaskBase):
 
     Optional params:
         key_update (dict): overwrite Incar dict key. Supports env_chk.
-        key_multiply ([{<str>:<float>}]) - multiply Incar key by a constant factor. Supports env_chk.
-        key_dictmod ([{}]): use DictMod language to change Incar. Supports env_chk.
+        key_multiply ([{<str>:<float>}]) - multiply Incar key by a constant
+            factor. Supports env_chk.
+        key_dictmod ([{}]): use DictMod language to change Incar.
+            Supports env_chk.
         input_filename (str): Input filename (if not "INCAR")
         output_filename (str): Output filename (if not "INCAR")
     """
 
-    optional_params = ["key_update", "key_multiply", "key_dictmod", "input_filename", "output_filename"]
+    optional_params = ["key_update", "key_multiply", "key_dictmod",
+                       "input_filename", "output_filename"]
 
     def run_task(self, fw_spec):
 
@@ -125,49 +138,60 @@ class ModifyIncar(FireTaskBase):
 @explicit_serialize
 class WriteVaspStaticFromPrev(FireTaskBase):
     """
-    Writes input files for a static run. Assumes that output files from a relaxation job can be accessed.
+    Writes input files for a static run. Assumes that output files from a
+    relaxation job can be accessed.
 
     Required params:
         (none)
 
     Optional params:
-        (documentation for all optional params can be found in StaticVaspInputSet.write_input_from_prevrun)
+        (documentation for all optional params can be found in
+        StaticVaspInputSet.write_input_from_prevrun)
     """
 
-    optional_params = ["config_dict_override", "reciprocal_density", "prev_dir", "standardization_symprec",
-                       "international_monoclinic", "preserve_magmom", "preserve_old_incar"]
+    optional_params = ["config_dict_override", "reciprocal_density",
+                       "prev_dir", "standardization_symprec",
+                       "international_monoclinic", "preserve_magmom",
+                       "preserve_old_incar"]
 
     def run_task(self, fw_spec):
-        StaticVaspInputSet.write_input_from_prevrun(config_dict_override=self.get("config_dict_override"),
-                                                    reciprocal_density=self.get("reciprocal_density", 100),
-                                                    prev_dir=self.get("prev_dir"),
-                                                    standardization_symprec=self.get("standardization_symprec", 0.1),
-                                                    international_monoclinic=self.get("international_monoclinic", True),
-                                                    preserve_magmom=self.get("preserve_magmom", True),
-                                                    preserve_old_incar=self.get("preserve_old_incar", False))
+        StaticVaspInputSet.write_input_from_prevrun(
+            config_dict_override=self.get("config_dict_override"),
+            reciprocal_density=self.get("reciprocal_density", 100),
+            prev_dir=self.get("prev_dir"),
+            standardization_symprec=self.get("standardization_symprec", 0.1),
+            international_monoclinic=self.get("international_monoclinic",
+                                              True),
+            preserve_magmom=self.get("preserve_magmom", True),
+            preserve_old_incar=self.get("preserve_old_incar", False))
 
 
 @explicit_serialize
 class WriteVaspNSCFFromPrev(FireTaskBase):
     """
-    Writes input files for a static run. Assumes that output files from an scf job can be accessed.
+    Writes input files for a static run. Assumes that output files from an
+    scf job can be accessed.
 
     Required params:
         (none)
 
     Optional params:
-        (documentation for all optional params can be found in NonSCFVaspInputSet.write_input_from_prevrun)
+        (documentation for all optional params can be found in
+        NonSCFVaspInputSet.write_input_from_prevrun)
     """
 
-    optional_params = ["config_dict_override", "reciprocal_density", "prev_dir", "mode", "magmom_cutoff",
-                       "nbands_factor", "preserve_magmom", "preserve_old_incar"]
+    optional_params = ["config_dict_override", "reciprocal_density",
+                       "prev_dir", "mode", "magmom_cutoff",
+                       "nbands_factor", "preserve_magmom",
+                       "preserve_old_incar"]
 
     def run_task(self, fw_spec):
-        NonSCFVaspInputSet.write_input_from_prevrun(config_dict_override=self.get("config_dict_override"),
-                                                    reciprocal_density=self.get("reciprocal_density"),
-                                                    prev_dir=self.get("prev_dir"),
-                                                    mode=self.get("mode", "uniform"),
-                                                    magmom_cutoff=self.get("magmom_cutoff", 0.1),
-                                                    nbands_factor=self.get("nbands_factor", 1.2),
-                                                    preserve_magmom=(self.get("preserve_magmom"), True),
-                                                    preserve_old_incar=self.get("preserve_old_incar", False))
+        NonSCFVaspInputSet.write_input_from_prevrun(
+            config_dict_override=self.get("config_dict_override"),
+            reciprocal_density=self.get("reciprocal_density"),
+            prev_dir=self.get("prev_dir"),
+            mode=self.get("mode", "uniform"),
+            magmom_cutoff=self.get("magmom_cutoff", 0.1),
+            nbands_factor=self.get("nbands_factor", 1.2),
+            preserve_magmom=(self.get("preserve_magmom"), True),
+            preserve_old_incar=self.get("preserve_old_incar", False))

@@ -1,3 +1,8 @@
+# coding: utf-8
+
+from __future__ import division, print_function, unicode_literals, \
+    absolute_import
+
 import os
 import shutil
 import traceback
@@ -161,7 +166,9 @@ class MPStaticVaspInputSet(DictVaspInputSet):
             previous_kpoints = vasp_run.kpoints
         except:
             traceback.print_exc()
-            raise RuntimeError("Can't get valid results from previous run. prev dir: {}".format(previous_vasp_dir))
+            raise RuntimeError(
+                "Can't get valid results from previous run. prev dir: {}".format(
+                    previous_vasp_dir))
 
         mpsvip = MPStaticVaspInputSet(kpoints_density=kpoints_density,
                                       sym_prec=sym_prec)
@@ -208,17 +215,18 @@ class MPStaticVaspInputSet(DictVaspInputSet):
         if any([previous_incar.get("NSW", 0) != 0,
                 previous_incar["IBRION"] != -1,
                 previous_incar["LCHARG"] is not True,
-               any([sum(previous_incar["LDAUU"]) <= 0,
-                    previous_incar["LMAXMIX"] < 4])
-               if previous_incar.get("LDAU") else False]):
+                any([sum(previous_incar["LDAUU"]) <= 0,
+                     previous_incar["LMAXMIX"] < 4])
+                if previous_incar.get("LDAU") else False]):
             raise ValueError("Incompatible INCAR parameters!")
 
         # Prefer to use k-point scheme from previous run
         new_kpoints = mpsvip.get_kpoints(structure)
         if previous_kpoints.style != new_kpoints.style:
             if previous_kpoints.style == Kpoints.supported_modes.Monkhorst and \
-                    SpacegroupAnalyzer(structure, 0.1).get_lattice_type() != \
-                    "hexagonal":
+                            SpacegroupAnalyzer(structure,
+                                               0.1).get_lattice_type() != \
+                            "hexagonal":
                 k_div = (kp + 1 if kp % 2 == 1 else kp
                          for kp in new_kpoints.kpts[0])
                 Kpoints.monkhorst_automatic(k_div). \
@@ -228,7 +236,6 @@ class MPStaticVaspInputSet(DictVaspInputSet):
                     write_file(os.path.join(output_dir, "KPOINTS"))
         else:
             new_kpoints.write_file(os.path.join(output_dir, "KPOINTS"))
-
 
 
 class MPNonSCFVaspInputSet(MPStaticVaspInputSet):
@@ -270,10 +277,11 @@ class MPNonSCFVaspInputSet(MPStaticVaspInputSet):
             raise ValueError("Supported modes for NonSCF runs are 'Line' and "
                              "'Uniform'!")
         DictVaspInputSet.__init__(self,
-            "Materials Project Static",
-            loadfn(os.path.join(MODULE_DIR, "MPVaspInputSet.yaml")),
-            constrain_total_magmom=constrain_total_magmom,
-            sort_structure=sort_structure)
+                                  "Materials Project Static",
+                                  loadfn(os.path.join(MODULE_DIR,
+                                                      "MPVaspInputSet.yaml")),
+                                  constrain_total_magmom=constrain_total_magmom,
+                                  sort_structure=sort_structure)
         self.user_incar_settings = user_incar_settings
         self.incar_settings.update(
             {"IBRION": -1, "ISMEAR": 0, "SIGMA": 0.001, "LCHARG": False,
@@ -309,7 +317,7 @@ class MPNonSCFVaspInputSet(MPStaticVaspInputSet):
                            kpts_weights=[1] * len(frac_k_points))
         else:
             num_kpoints = self.kpoints_settings["kpoints_density"] * \
-                structure.lattice.reciprocal_lattice.volume
+                          structure.lattice.reciprocal_lattice.volume
             kpoints = Kpoints.automatic_density(
                 structure, num_kpoints * structure.num_sites)
             mesh = kpoints.kpts[0]
@@ -345,8 +353,9 @@ class MPNonSCFVaspInputSet(MPStaticVaspInputSet):
             ispin = 2
         else:
             ispin = 1
-        nbands = int(np.ceil(vasp_run.as_dict()["input"]["parameters"]["NBANDS"]
-                             * 1.2))
+        nbands = int(
+            np.ceil(vasp_run.as_dict()["input"]["parameters"]["NBANDS"]
+                    * 1.2))
         incar_settings = {"ISPIN": ispin, "NBANDS": nbands}
         for grid in ["NGX", "NGY", "NGZ"]:
             if vasp_run.incar.get(grid):
@@ -417,7 +426,7 @@ class MPNonSCFVaspInputSet(MPStaticVaspInputSet):
             raise RuntimeError("Can't get valid results from previous run: {}"
                                .format(previous_vasp_dir))
 
-        #Get a Magmom-decorated structure
+        # Get a Magmom-decorated structure
         structure = MPNonSCFVaspInputSet.get_structure(vasp_run, outcar,
                                                        initial_structure=True)
         nscf_incar_settings = MPNonSCFVaspInputSet.get_incar_settings(vasp_run,
@@ -435,7 +444,7 @@ class MPNonSCFVaspInputSet(MPStaticVaspInputSet):
                 raise RuntimeError("Can't copy CHGCAR from SC run" + '\n'
                                    + str(e))
 
-        #Overwrite necessary INCAR parameters from previous runs
+        # Overwrite necessary INCAR parameters from previous runs
         previous_incar.update({"IBRION": -1, "ISMEAR": 0, "SIGMA": 0.001,
                                "LCHARG": False, "LORBIT": 11, "LWAVE": False,
                                "NSW": 0, "ISYM": 0, "ICHARG": 11})
@@ -448,7 +457,7 @@ class MPNonSCFVaspInputSet(MPStaticVaspInputSet):
         if any([previous_incar.get("NSW", 0) != 0,
                 previous_incar["IBRION"] != -1,
                 previous_incar["ICHARG"] != 11,
-               any([sum(previous_incar["LDAUU"]) <= 0,
-                    previous_incar["LMAXMIX"] < 4])
-               if previous_incar.get("LDAU") else False]):
+                any([sum(previous_incar["LDAUU"]) <= 0,
+                     previous_incar["LMAXMIX"] < 4])
+                if previous_incar.get("LDAU") else False]):
             raise ValueError("Incompatible INCAR parameters!")
