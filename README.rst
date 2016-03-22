@@ -186,4 +186,13 @@ You can put all of these things inside your ``.bash_profile`` or equivalent in o
 C. Running some jobs
 ====================
 
-To be continued...
+Ok, you are now ready to test running some jobs!
+
+1. Make sure you have completed steps A + B above.
+#. Go to ``<<INSTALL_DIR>>/codes/MatMethods/matmethods/vasp/examples``.
+#. Run the command ``python add_vasp_wfs_to_db.py``. This will add 3 workflows to your database. Look inside this code to see what is going on. It is simple.
+#. Verify the workflows are there, e.g. ``lpad get_wflows -d more``.
+#. Navigate to where you want to run the workflows. e.g. ``<<INSTALL_DIR>>/scratch``.
+#. Type ``qlaunch -r rapidfire``
+
+And away we go! If all is well, this will submit jobs to your system until the workflows finish. You can inspect your FWS Launchpad and also your tasks database to make sure things are progressing well.
