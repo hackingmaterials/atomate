@@ -144,9 +144,9 @@ You can test whether your connection is running by running ``lpad -l my_launchpa
 
 This file contains credentials needed by the pymatgen-db code to insert the results of your VASP calculations. The easiest solution is to use the same database as your FireWorks database, but just use a different collection name. Or, you could use separate databases for FireWorks and VASP results. It is up to you.
 
-For all settings, set to the same as the FireWorks database if you're keeping things simple. Or, use the settings for your dedicated database for VASP outputs. Note that since this is a JSON file, you need to use valid JSON conventions. e.g., wrap String values in quotes.
+For all settings, set to the same as the FireWorks database (``my_launchpad.yaml``) if you're keeping things simple. Or, use the settings for your dedicated database for VASP outputs. Note that since this is a JSON file, you need to use valid JSON conventions. e.g., wrap String values in quotes.
 
-Once you've set up the credentials you should be good to go.
+Once you've set up the credentials this file should be good to go.
 
 **FW_config.yaml**
 
@@ -155,4 +155,40 @@ This file contains your global FireWorks settings. Later on (not now), you will 
 * ``<<PATH_TO_CONFIG_DIR>>`` - this is the **full** name of the directory containing the files ``my_launchpad.yaml``, ``my_fworker.yaml``, and ``my_qadapter.yaml``. The easiest way to set this variable is to navigate to ``<<INSTALL_DIR/config>>``, type ``pwd``, and paste the result into this variable.
 * ``<<ECHO_TEST>>`` - the simplest thing is to delete this line. If you want, put an identifying string here. Whatever you put will be echoed back whenever you issue a FireWorks command. It is sometimes helpful if you are working with multiple databases and prefer a reminder of which database you are working with.
 
- 
+**my_fworker.yaml**
+
+This file is both simple and complicated. The basic setup is simple. But, setting the ``env`` variable properly requires knowing about the details of the workflows you are going to run. Make sure you understand the ``env_chk`` framework (described elsewhere in the docs) to really know what is going on here.
+
+* ``<<name>>`` - set to any name that describes this Worker. e.g. ``Generic NERSC``.
+* ``<<env.db_file>>`` - many of the workflows implemented in MatMethods use the ``env_chk`` framework to get the path to the tasks database file from here. This allows setting different database files on different systems. Anyway, you want to put the **full** path of ``<<INSTALL_DIR>>/config/db.json``.
+* ``<<env.vasp_cmd>>`` - many of the workflows implemented in MatMethods use the ``env_chk`` framework to get the actual command needed to run VASP because this command differs on different systems and cannot be hard-coded in the workflow itself. So put your full VASP command, e.g. ``mpirun -n 16 vasp`` here.
+
+Note that all of these values might depend on the specific system you are running on. The point of the ``my_fworker.yaml`` is precisely to allow for different settings on different
+systems. By having a different ``my_fworker.yaml`` file for each intended systems, you can tailor the execution of workflows across systems. This procedure is straightforward but is not covered here.
+
+**my_qadapter.yaml**
+
+This file controls the format of your queue submission script and the commands to submit jobs to the queue (e.g., ``qsub`` versus ``squeue``). I will not go over how to set this file here. Please refer to the FWS tutorials for that. Note that ``<<CONFIG_DIR>>`` should point to the **full** path of ``<<INSTALL_DIR>>/config``.
+
+That's it! You've finished basic configuration!
+
+Things you need to do each time (or maybe just once if you put it in your .bash_profile)
+========================================================================================
+
+In order to run jobs, you must:
+
+1. Load modules for any important libraries (e.g., Python / VASP)
+#. Activate your virtualenv (``source <<INSTALL_DIR>>/bin/activate``).
+#. set your ``FW_CONFIG_FILE`` env variable to point to ``FW_config.yaml`` (``export FW_CONFIG_FILE=<<INSTALL_DIR>>/config/FW_config.yaml``).
+
+You can put all of these things inside your ``.bash_profile`` or equivalent in order to make them automatic when you log into the cluster. It is up to you.
+
+Advanced installation (multiple clusters, multiple VASP commands, multiple queue settings, etc.)
+================================================================================================
+
+For now, just know that this is possible. It is not documented yet. If you are advanced, you will understand that you can just set up a second config dir, and point your ``FW_CONFIG_FILE`` environment variable to that second config dir in order to use different settings (e.g., different ``my_fworker.yaml``).
+
+Running some jobs
+=================
+
+To be continued...
