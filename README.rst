@@ -77,16 +77,16 @@ Detailed Installation Notes
 
 Here are some notes on how to get MatMethods up and running in a production system at your supercomputing center. These notes are geared towards the NERSC supercomputing center. You'll need to fill in details and adapt accordingly for other centers. Hopefully, you are not a complete beginner.
 
-Things you need to do once
-==========================
+A. Things you need to do once
+=============================
 
 Here are some things you will likely only need to do once (per machine) as an "initial install".
 
 Preliminaries
 -------------
 
-1. Make sure you can access to a MongoDB installation from the compute nodes. i.e. you can either start and stop a Mongo server yourself or have credentials to a Mongo server that's always available. Also confirm there are no firewalls from your compute node to your Mongo server. If you are able to get through the FireWorks tutorials on running jobs through a queue, then this step is probably OK.
-2. Make sure you have access to the VASP executable and pseudopotential files. If you cannot run VASP manually, you cannot do it through this infrastructure.
+1. Make sure you can access to a MongoDB installation from the compute nodes. i.e. you can either start and stop a Mongo server yourself or have credentials to a Mongo server that's always available. Also confirm there are no firewalls from your compute node to your Mongo server. If you are able to get through the FireWorks tutorials on running jobs through a queue, then this step is probably OK. If you are unsure, I recommend actually trying that first before going through all the MatMethods stuff.
+2. Make sure you have access to the VASP executable and pseudopotential files. If you cannot run VASP manually, you cannot do it through this infrastructure. I recommend making sure you know how to run VASP manually on your supercomputer before embarking on this installation.
 
 Set some environment variables
 ------------------------------
@@ -164,7 +164,7 @@ This file is both simple and complicated. The basic setup is simple. But, settin
 * ``<<env.vasp_cmd>>`` - many of the workflows implemented in MatMethods use the ``env_chk`` framework to get the actual command needed to run VASP because this command differs on different systems and cannot be hard-coded in the workflow itself. So put your full VASP command, e.g. ``mpirun -n 16 vasp`` here.
 
 Note that all of these values might depend on the specific system you are running on. The point of the ``my_fworker.yaml`` is precisely to allow for different settings on different
-systems. By having a different ``my_fworker.yaml`` file for each intended systems, you can tailor the execution of workflows across systems. This procedure is straightforward but is not covered here.
+systems. By having a different ``my_fworker.yaml`` file for each intended systems, you can tailor the execution of workflows across systems. This procedure is straightforward but is not covered here. If you are advanced, you will understand that you can just set up a second config dir, and point your ``FW_CONFIG_FILE`` environment variable to that second config dir in order to use different settings (e.g., different ``my_fworker.yaml``).
 
 **my_qadapter.yaml**
 
@@ -172,8 +172,8 @@ This file controls the format of your queue submission script and the commands t
 
 That's it! You've finished basic configuration!
 
-Things you need to do each time (or maybe just once if you put it in your .bash_profile)
-========================================================================================
+B. Things you need to do each time (or maybe just once if you put it in your .bash_profile)
+===========================================================================================
 
 In order to run jobs, you must:
 
@@ -183,12 +183,7 @@ In order to run jobs, you must:
 
 You can put all of these things inside your ``.bash_profile`` or equivalent in order to make them automatic when you log into the cluster. It is up to you.
 
-Advanced installation (multiple clusters, multiple VASP commands, multiple queue settings, etc.)
-================================================================================================
-
-For now, just know that this is possible. It is not documented yet. If you are advanced, you will understand that you can just set up a second config dir, and point your ``FW_CONFIG_FILE`` environment variable to that second config dir in order to use different settings (e.g., different ``my_fworker.yaml``).
-
-Running some jobs
-=================
+C. Running some jobs
+====================
 
 To be continued...
