@@ -172,8 +172,8 @@ This file controls the format of your queue submission script and the commands t
 
 That's it! You've finished basic configuration!
 
-B. Things you need to do each time (or maybe just once if you put it in your .bash_profile)
-===========================================================================================
+B. Things you need to do each time you log in (or just once if you put it in your .bash_profile)
+================================================================================================
 
 In order to run jobs, you must:
 
