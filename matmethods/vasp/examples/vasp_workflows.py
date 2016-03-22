@@ -10,7 +10,7 @@ from pymatgen import Lattice, IStructure
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 
-def get_wf_single_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=None, task_label="single VASP", use_custodian=False):
+def get_wf_single_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=None, task_label="single VASP", custodian_powerup=False):
 
     vasp_input_set = vasp_input_set if vasp_input_set else StructureOptimizationVaspInputSet()
 
@@ -22,13 +22,13 @@ def get_wf_single_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=
 
     my_wf = Workflow.from_Firework(my_fw)
 
-    if use_custodian:
+    if custodian_powerup:
         my_wf = use_custodian(my_wf)
 
     return my_wf
 
 
-def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=None, use_custodian=False):
+def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=None, custodian_powerup=False):
 
     vasp_input_set = vasp_input_set if vasp_input_set else StructureOptimizationVaspInputSet()
 
@@ -70,7 +70,7 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp", d
 
     my_wf = Workflow([fw1, fw2, fw3, fw4])
 
-    if use_custodian:
+    if custodian_powerup:
         my_wf = use_custodian(my_wf)
 
     return my_wf
