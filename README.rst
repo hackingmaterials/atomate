@@ -15,7 +15,7 @@ To cite MatMethods, you can cite the following two papers::
 Overview
 ========
 
-MatMethods is still not ready for production. However, the following notes might be helpful.
+MatMethods is still not ready for production, however it is **working code**. The following notes might be helpful for the brave.
 
 ============
 Installation
