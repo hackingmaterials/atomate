@@ -77,16 +77,16 @@ Detailed Installation Notes
 
 Here are some notes on how to get MatMethods up and running in a production system at your supercomputing center. These notes are geared towards the NERSC supercomputing center. You'll need to fill in details and adapt accordingly for other centers. Hopefully, you are not a complete beginner.
 
-Things you need to do once
-==========================
+A. Things you need to do once
+=============================
 
 Here are some things you will likely only need to do once (per machine) as an "initial install".
 
 Preliminaries
 -------------
 
-1. Make sure you can access to a MongoDB installation from the compute nodes. i.e. you can either start and stop a Mongo server yourself or have credentials to a Mongo server that's always available. Also confirm there are no firewalls from your compute node to your Mongo server. If you are able to get through the FireWorks tutorials on running jobs through a queue, then this step is probably OK.
-2. Make sure you have access to the VASP executable and pseudopotential files. If you cannot run VASP manually, you cannot do it through this infrastructure.
+1. Make sure you can access to a MongoDB installation from the compute nodes. i.e. you can either start and stop a Mongo server yourself or have credentials to a Mongo server that's always available. Also confirm there are no firewalls from your compute node to your Mongo server. If you are able to get through the FireWorks tutorials on running jobs through a queue, then this step is probably OK. If you are unsure, I recommend actually trying that first before going through all the MatMethods stuff.
+2. Make sure you have access to the VASP executable and pseudopotential files. If you cannot run VASP manually, you cannot do it through this infrastructure. I recommend making sure you know how to run VASP manually on your supercomputer before embarking on this installation.
 
 Set some environment variables
 ------------------------------
@@ -119,6 +119,71 @@ Install some codes
 Configure a bunch of things
 ---------------------------
 
-1. To be continued...
+In addition to having the code installed, you will need to configure a bunch of settings for running at your computing cluster. This includes setting up your queue adapter and submission script template, providing credentials to your databases, and setting locations of loggers and miscellaneous items.
 
+1. Copy the contents of ``matmethods/vasp/examples/config`` to ``<<INSTALL_DIR>>/config``. We can work off these files to begin with rather than creating the files from scratch.
 
+There is a lot to configure, so let's tackle the files one by one. We will start simple and get more complex.
+
+Note that all variables enclosed in ``<<>>``, e.g. ``<<HOSTNAME>>``, must be modified by the user.
+
+**my_launchpad.yaml**
+
+As you should know, this file contains the configuration for the FireWorks database (LaunchPad). Make sure to set:
+
+* ``<<HOSTNAME>>`` - the host of your FWS db server
+* ``<<PORT_NUM>>`` - the port of your FWS db server
+* ``<<DB_NAME>>`` - whatever you want to call your database. If you are not feeling creative, call it ``vasp_calcs``.
+* ``<<ADMIN_USERNAME>>`` and ``<<ADMIN_PASSWORD>>`` - the (write) credentials to access your DB. Delete these lines if you do not have password protection in your DB.
+* ``<<LOG_DIR>>`` - you can leave this to ``null``. If you want logging, put a directory name str here.
+* The other settings, I've left to defaults. Feel free to modify them if you know what you are doing.
+
+You can test whether your connection is running by running ``lpad -l my_launchpad.yaml reset``. This will reset and initialize your FireWorks database. Note that you might see some strange message about ``<<ECHO_STR>>``. We will fix that configuration later - feel free to ignore it for now.
+
+**db.json**
+
+This file contains credentials needed by the pymatgen-db code to insert the results of your VASP calculations. The easiest solution is to use the same database as your FireWorks database, but just use a different collection name. Or, you could use separate databases for FireWorks and VASP results. It is up to you.
+
+For all settings, set to the same as the FireWorks database (``my_launchpad.yaml``) if you're keeping things simple. Or, use the settings for your dedicated database for VASP outputs. Note that since this is a JSON file, you need to use valid JSON conventions. e.g., wrap String values in quotes.
+
+Once you've set up the credentials this file should be good to go.
+
+**FW_config.yaml**
+
+This file contains your global FireWorks settings. Later on (not now), you will set an environment variable called ``FW_CONFIG_FILE`` that points to this file. This file subsequently gives the directory name of where to find the other FWS-related files (my_launchpad.yaml, my_fworker.yaml, and my_qadapter.yaml). Anyway, in terms of setting up this file, set:
+
+* ``<<PATH_TO_CONFIG_DIR>>`` - this is the **full** name of the directory containing the files ``my_launchpad.yaml``, ``my_fworker.yaml``, and ``my_qadapter.yaml``. The easiest way to set this variable is to navigate to ``<<INSTALL_DIR/config>>``, type ``pwd``, and paste the result into this variable.
+* ``<<ECHO_TEST>>`` - the simplest thing is to delete this line. If you want, put an identifying string here. Whatever you put will be echoed back whenever you issue a FireWorks command. It is sometimes helpful if you are working with multiple databases and prefer a reminder of which database you are working with.
+
+**my_fworker.yaml**
+
+This file is both simple and complicated. The basic setup is simple. But, setting the ``env`` variable properly requires knowing about the details of the workflows you are going to run. Make sure you understand the ``env_chk`` framework (described elsewhere in the docs) to really know what is going on here.
+
+* ``<<name>>`` - set to any name that describes this Worker. e.g. ``Generic NERSC``.
+* ``<<env.db_file>>`` - many of the workflows implemented in MatMethods use the ``env_chk`` framework to get the path to the tasks database file from here. This allows setting different database files on different systems. Anyway, you want to put the **full** path of ``<<INSTALL_DIR>>/config/db.json``.
+* ``<<env.vasp_cmd>>`` - many of the workflows implemented in MatMethods use the ``env_chk`` framework to get the actual command needed to run VASP because this command differs on different systems and cannot be hard-coded in the workflow itself. So put your full VASP command, e.g. ``mpirun -n 16 vasp`` here.
+
+Note that all of these values might depend on the specific system you are running on. The point of the ``my_fworker.yaml`` is precisely to allow for different settings on different
+systems. By having a different ``my_fworker.yaml`` file for each intended systems, you can tailor the execution of workflows across systems. This procedure is straightforward but is not covered here. If you are advanced, you will understand that you can just set up a second config dir, and point your ``FW_CONFIG_FILE`` environment variable to that second config dir in order to use different settings (e.g., different ``my_fworker.yaml``).
+
+**my_qadapter.yaml**
+
+This file controls the format of your queue submission script and the commands to submit jobs to the queue (e.g., ``qsub`` versus ``squeue``). I will not go over how to set this file here. Please refer to the FWS tutorials for that. Note that ``<<CONFIG_DIR>>`` should point to the **full** path of ``<<INSTALL_DIR>>/config``.
+
+That's it! You've finished basic configuration!
+
+B. Things you need to do each time you log in (or just once if you put it in your .bash_profile)
+================================================================================================
+
+In order to run jobs, you must:
+
+1. Load modules for any important libraries (e.g., Python / VASP)
+#. Activate your virtualenv (``source <<INSTALL_DIR>>/bin/activate``).
+#. set your ``FW_CONFIG_FILE`` env variable to point to ``FW_config.yaml`` (``export FW_CONFIG_FILE=<<INSTALL_DIR>>/config/FW_config.yaml``).
+
+You can put all of these things inside your ``.bash_profile`` or equivalent in order to make them automatic when you log into the cluster. It is up to you.
+
+C. Running some jobs
+====================
+
+To be continued...

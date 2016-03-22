@@ -4,5 +4,3 @@ query: '{}'
 env:
     db_file: <</FULL/PATH/TO/DB.JSON>>
     vasp_cmd: <<VASP_CMD>>
-    INCAR:
-      NPAR: <<NPAR>>

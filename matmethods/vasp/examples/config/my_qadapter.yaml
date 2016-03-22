@@ -1,16 +1,12 @@
-_fw_name: <<QADAPTER_NAME>
-rocket_launch: <<RLAUNCH_CMD>>
-mppwidth: <<QADAPTER_NCORES>>
+_fw_name: CommonAdapter
+_fw_q_type: SLURM
+rocket_launch: rlaunch -c <<CONFIG_DIR>> singleshot
+nodes: <<NUM_NODES>>
+ntasks_per_node: <<NCORES_PER_NODE>>
 walltime: <<WALLTIME>>
-queue: <<QUEUENAME>>
-account: <<ACCOUNTNAME>>
-job_name: <<DEFAULT_JOBNAME>>
-pre_rocket: |
-            <<CMD 1>>
-            <<CMD 2>>
-            <<CMD 3>>
-            <<CMD 4>>
-            <<or delete the pre-rocket entirely...>>
-
+queue: regular
+account: matgen
+job_name: null
+pre_rocket: null
 post_rocket: null
-logdir: <<LOGDIR>>
+logdir: <<LOGDIR or null>>

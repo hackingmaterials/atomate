@@ -1,9 +1,9 @@
 host: <<HOSTNAME>>
 port: <<PORT_NUM>>
-logdir: <<LOGDIR or null>>
 name: <<DB_NAME>>
-username: <<DB_USERNAME>>
-password: <<DB_PASSWORD>>
+username: <<ADMIN_USERNAME>>
+password: <<ADMIN_PASSWORD>>
+logdir: <<LOGDIR or null>>
 ssl_ca_file: null
 strm_lvl: INFO
 user_indices: []
