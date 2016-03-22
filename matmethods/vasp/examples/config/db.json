@@ -4,6 +4,6 @@
     "admin_user": <<ADMIN_USERNAME>>,
     "admin_password": <<ADMIN_PASSWORD>>,
     "host": <<HOSTNAME>>,
-    "port": <<PORT_NUMBER>>,
+    "port": <<PORT_NUM>>,
     "aliases": {}
 }

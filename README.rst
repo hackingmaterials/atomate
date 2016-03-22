@@ -119,6 +119,40 @@ Install some codes
 Configure a bunch of things
 ---------------------------
 
-1. To be continued...
+In addition to having the code installed, you will need to configure a bunch of settings for running at your computing cluster. This includes setting up your queue adapter and submission script template, providing credentials to your databases, and setting locations of loggers and miscellaneous items.
 
+1. Copy the contents of ``matmethods/vasp/examples/config`` to ``<<INSTALL_DIR>>/config``. We can work off these files to begin with rather than creating the files from scratch.
 
+There is a lot to configure, so let's tackle the files one by one. We will start simple and get more complex.
+
+Note that all variables enclosed in ``<<>>``, e.g. ``<<HOSTNAME>>``, must be modified by the user.
+
+**my_launchpad.yaml**
+
+As you should know, this file contains the configuration for the FireWorks database (LaunchPad). Make sure to set:
+
+* ``<<HOSTNAME>>`` - the host of your FWS db server
+* ``<<PORT_NUM>>`` - the port of your FWS db server
+* ``<<DB_NAME>>`` - whatever you want to call your database. If you are not feeling creative, call it ``vasp_calcs``.
+* ``<<ADMIN_USERNAME>>`` and ``<<ADMIN_PASSWORD>>`` - the (write) credentials to access your DB. Delete these lines if you do not have password protection in your DB.
+* ``<<LOG_DIR>>`` - you can leave this to ``null``. If you want logging, put a directory name str here.
+* The other settings, I've left to defaults. Feel free to modify them if you know what you are doing.
+
+You can test whether your connection is running by running ``lpad -l my_launchpad.yaml reset``. This will reset and initialize your FireWorks database. Note that you might see some strange message about ``<<ECHO_STR>>``. We will fix that configuration later - feel free to ignore it for now.
+
+**db.json**
+
+This file contains credentials needed by the pymatgen-db code to insert the results of your VASP calculations. The easiest solution is to use the same database as your FireWorks database, but just use a different collection name. Or, you could use separate databases for FireWorks and VASP results. It is up to you.
+
+For all settings, set to the same as the FireWorks database if you're keeping things simple. Or, use the settings for your dedicated database for VASP outputs. Note that since this is a JSON file, you need to use valid JSON conventions. e.g., wrap String values in quotes.
+
+Once you've set up the credentials you should be good to go.
+
+**FW_config.yaml**
+
+This file contains your global FireWorks settings. Later on (not now), you will set an environment variable called ``FW_CONFIG_FILE`` that points to this file. This file subsequently gives the directory name of where to find the other FWS-related files (my_launchpad.yaml, my_fworker.yaml, and my_qadapter.yaml). Anyway, in terms of setting up this file, set:
+
+* ``<<PATH_TO_CONFIG_DIR>>`` - this is the **full** name of the directory containing the files ``my_launchpad.yaml``, ``my_fworker.yaml``, and ``my_qadapter.yaml``. The easiest way to set this variable is to navigate to ``<<INSTALL_DIR/config>>``, type ``pwd``, and paste the result into this variable.
+* ``<<ECHO_TEST>>`` - the simplest thing is to delete this line. If you want, put an identifying string here. Whatever you put will be echoed back whenever you issue a FireWorks command. It is sometimes helpful if you are working with multiple databases and prefer a reminder of which database you are working with.
+
+ 
