@@ -1,9 +1,34 @@
 {
-    "database": <<DB_NAME>>,
-    "collection": "tasks",
-    "admin_user": <<ADMIN_USERNAME>>,
-    "admin_password": <<ADMIN_PASSWORD>>,
-    "host": <<HOSTNAME>>,
-    "port": <<PORT_NUMBER>>,
-    "aliases": {}
+  "database":
+  <
+  <
+  DB_NAME
+  >
+  >,
+  "collection": "tasks",
+  "admin_user":
+  <
+  <
+  ADMIN_USERNAME
+  >
+  >,
+  "admin_password":
+  <
+  <
+  ADMIN_PASSWORD
+  >
+  >,
+  "host":
+  <
+  <
+  HOSTNAME
+  >
+  >,
+  "port":
+  <
+  <
+  PORT_NUMBER
+  >
+  >,
+  "aliases": {}
 }

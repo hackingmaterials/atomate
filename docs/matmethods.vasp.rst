@@ -17,15 +17,15 @@ matmethods.vasp.vasp_utils module
 ---------------------------------
 
 .. automodule:: matmethods.vasp.vasp_utils
-    :members:
-    :undoc-members:
-    :show-inheritance:
+:members:
+        :undoc-members:
+        :show-inheritance:
 
 
 Module contents
 ---------------
 
 .. automodule:: matmethods.vasp
-    :members:
-    :undoc-members:
-    :show-inheritance:
+:members:
+        :undoc-members:
+        :show-inheritance:
