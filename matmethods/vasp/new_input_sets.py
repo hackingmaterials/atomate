@@ -8,7 +8,6 @@ import os
 
 from monty.os.path import zpath
 from monty.serialization import loadfn
-
 from pymatgen.io.vasp import Poscar, Vasprun, Outcar, Kpoints
 from pymatgen.io.vasp.sets import DictVaspInputSet
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer

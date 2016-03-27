@@ -7,7 +7,6 @@ import os
 import shutil
 
 from fireworks import FireTaskBase, explicit_serialize, Workflow
-
 from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
@@ -44,7 +43,7 @@ class RunVaspFake(FireTaskBase):
         for p in params_to_check:
             if user_incar.get(p, defaults.get(p)) != ref_incar.get(p,
                                                                    defaults.get(
-                                                                           p)):
+                                                                       p)):
                 raise ValueError(
                     "INCAR value of {} is inconsistent!".format(p))
 

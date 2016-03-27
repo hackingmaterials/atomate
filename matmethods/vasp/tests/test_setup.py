@@ -6,9 +6,10 @@ from __future__ import division, print_function, unicode_literals, \
 import os
 import unittest
 
-from matmethods.vasp.new_input_sets import StructureOptimizationVaspInputSet
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
+
+from matmethods.vasp.new_input_sets import StructureOptimizationVaspInputSet
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 

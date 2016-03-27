@@ -3,10 +3,10 @@
 from __future__ import division, print_function, unicode_literals, \
     absolute_import
 
-import six
 import shlex
 import subprocess
 
+import six
 from custodian import Custodian
 from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, \
     MeshSymmetryErrorHandler, \

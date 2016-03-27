@@ -7,12 +7,12 @@ import os
 import unittest
 
 from fireworks.utilities.fw_serializers import load_object
+from pymatgen import IStructure, Lattice
+from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
 
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, \
     WriteVaspFromPMGObjects, ModifyIncar
 from matmethods.vasp.new_input_sets import StructureOptimizationVaspInputSet
-from pymatgen import IStructure, Lattice
-from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 

@@ -3,12 +3,12 @@
 from __future__ import division, print_function, unicode_literals, \
     absolute_import
 
-import six
 import json
 import os
 import zlib
 
 import gridfs
+import six
 from fireworks import FireTaskBase
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.utilities.fw_utilities import explicit_serialize
@@ -16,10 +16,10 @@ from matgendb.creator import VaspToDbTaskDrone
 from matgendb.util import get_settings
 from monty.json import MontyEncoder
 from monty.os.path import zpath
+from pymatgen.io.vasp import Vasprun
 from pymongo import MongoClient
 
 from matmethods.utils.utils import env_chk
-from pymatgen.io.vasp import Vasprun
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 

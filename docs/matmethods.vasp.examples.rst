@@ -10,7 +10,7 @@ matmethods.vasp.examples.vasp_workflows module
 .. automodule:: matmethods.vasp.examples.vasp_workflows
 :members:
         :undoc-members:
-        :show-inheritance:
+            :show-inheritance:
 
 
 Module contents
@@ -19,4 +19,4 @@ Module contents
 .. automodule:: matmethods.vasp.examples
 :members:
         :undoc-members:
-        :show-inheritance:
+            :show-inheritance:

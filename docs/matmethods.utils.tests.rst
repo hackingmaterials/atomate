@@ -10,7 +10,7 @@ matmethods.utils.tests.test_utils module
 .. automodule:: matmethods.utils.tests.test_utils
 :members:
         :undoc-members:
-        :show-inheritance:
+            :show-inheritance:
 
 
 Module contents
@@ -19,4 +19,4 @@ Module contents
 .. automodule:: matmethods.utils.tests
 :members:
         :undoc-members:
-        :show-inheritance:
+            :show-inheritance:
