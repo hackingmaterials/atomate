@@ -3,6 +3,11 @@
 from __future__ import division, print_function, unicode_literals, \
     absolute_import
 
+"""
+This module defines tasks for writing vasp input sets for various types of
+vasp calculations
+"""
+
 from fireworks import FireTaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
 from pymatgen.io.vasp import Incar
