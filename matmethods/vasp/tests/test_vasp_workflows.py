@@ -17,7 +17,7 @@ from pymongo import MongoClient
 
 from matmethods.vasp.examples.vasp_workflows import get_wf_single_Vasp, \
     get_wf_bandstructure_Vasp
-from matmethods.vasp.new_input_sets import StructureOptimizationVaspInputSet
+from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 from matmethods.vasp.tests.vasp_fake import make_fake_workflow
 from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name
 

@@ -13,7 +13,7 @@ from fireworks.utilities.dict_mods import apply_mod
 from pymatgen.io.vasp import Incar
 
 from matmethods.utils.utils import env_chk
-from matmethods.vasp.new_input_sets import StaticVaspInputSet, \
+from matmethods.vasp.input_sets import StaticVaspInputSet, \
     NonSCFVaspInputSet
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>, Shyue Ping Ong <ongsp@ucsd.edu>'

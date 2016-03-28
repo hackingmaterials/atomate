@@ -10,7 +10,7 @@ from pymatgen import IStructure
 from pymatgen import Lattice
 
 from matmethods.vasp.examples.vasp_workflows import get_wf_bandstructure_Vasp
-from matmethods.vasp.new_input_sets import StructureOptimizationVaspInputSet
+from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 from matmethods.vasp.vasp_powerups import decorate_priority, use_custodian
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'

@@ -9,7 +9,7 @@ import unittest
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
 
-from matmethods.vasp.new_input_sets import StructureOptimizationVaspInputSet
+from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 

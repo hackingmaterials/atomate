@@ -6,7 +6,7 @@ from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
 from matmethods.vasp.firetasks.run_calc import RunVaspDirect
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, \
     WriteVaspStaticFromPrev, WriteVaspNSCFFromPrev
-from matmethods.vasp.new_input_sets import StructureOptimizationVaspInputSet
+from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
