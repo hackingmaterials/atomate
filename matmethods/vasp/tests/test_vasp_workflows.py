@@ -93,6 +93,7 @@ class TestVaspWorkflows(unittest.TestCase):
             raise ValueError("Invalid mode!")
 
         self.assertEqual(d["pretty_formula"], "Si")
+        self.assertEqual(d["anonymous_formula"], "A")
         self.assertEqual(d["nelements"], 1)
         self.assertEqual(d["state"], "successful")
         self.assertAlmostEqual(

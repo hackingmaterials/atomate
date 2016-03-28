@@ -22,6 +22,7 @@ from monty.json import MontyEncoder
 
 import numpy as np
 
+from pymatgen.core.composition import Composition
 from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp import Vasprun, Outcar
@@ -60,7 +61,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                           "anonymous_formula", "calculations", "completed_at",
                           "nsites", "unit_cell_formula",
                           "reduced_cell_formula", "pretty_formula",
-                          "elements", "nelements", "run_type",
+                          "elements", "nelements",
                           "input", "output", "state", "analysis"}
         self.input_keys = {'is_lasph', 'is_hubbard', 'xc_override',
                            'potcar_spec', 'hubbards', 'structure',
@@ -69,11 +70,11 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                             'final_energy_per_atom', 'vbm', 'cbm',
                             'spacegroup', 'final_energy', 'structure'}
         self.calculations_keys = {'dir_name', 'run_type', 'elements',
-                                  'hubbards', 'nelements', 'pretty_formula',
+                                  'nelements', 'pretty_formula',
                                   'reduced_cell_formula', 'vasp_version',
                                   'nsites', 'unit_cell_formula',
                                   'completed_at', 'output',
-                                  'task', 'is_hubbard', 'input', 'task',
+                                  'task', 'input', 'task',
                                   'has_vasp_completed'}
         self.analysis_keys = {'delta_volume_percent', 'delta_volume',
                               'max_force', 'errors', 'warnings'}
@@ -163,12 +164,12 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             d_calc = d["calculations"]
             d["chemsys"] = "-".join(sorted(d_calc["elements"]))
             vals = sorted(d_calc["reduced_cell_formula"].values())
-            d["anonymous_formula"] = {string.ascii_uppercase[i]: float(vals[i])
-                                      for i in range(len(vals))}
+            d["anonymous_formula"] = (Composition.from_dict(d_calc[
+                                                                "unit_cell_formula"])).anonymized_formula
             for root_key in ["completed_at", "nsites",
                              "unit_cell_formula",
                              "reduced_cell_formula", "pretty_formula",
-                             "elements", "nelements", "run_type"]:
+                             "elements", "nelements"]:
                 d[root_key] = d_calc[root_key]
             self.set_input_data(d_calc, d)
             self.set_output_data(d_calc, d)
@@ -221,8 +222,8 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         pot_type = p[0]
         functional = "lda" if len(pot_type) == 1 else "_".join(p[1:])
         d["input"] = {"structure": d_calc["input"]["structure"],
-                      "is_hubbard": d_calc["is_hubbard"],
-                      "hubbards": d_calc["hubbards"],
+                      "is_hubbard": d_calc.pop("is_hubbard"),
+                      "hubbards": d_calc.pop("hubbards"),
                       "is_lasph": d_calc["input"]["incar"].get("LASPH", False),
                       "potcar_spec": d_calc["input"].get("potcar_spec"),
                       "xc_override": xc,
