@@ -8,10 +8,12 @@ This module defines the drones
 """
 
 import os
+import sys
 import string
 import datetime
 from fnmatch import fnmatch
 from collections import OrderedDict
+import logging
 
 from monty.os.path import zpath
 
@@ -27,6 +29,13 @@ from matgendb.creator import VaspToDbTaskDrone
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 __date__ = 'Mar 27, 2016'
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
+sh = logging.StreamHandler(stream=sys.stdout)
+sh.setFormatter(formatter)
+logger.addHandler(sh)
 
 
 class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
@@ -84,11 +93,11 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
 
         Get the entire task doc for a path, including any post-processing.
         """
-        print("Getting task doc for base dir :{}".format(path))
+        logger.info("Getting task doc for base dir :{}".format(path))
         files = os.listdir(path)
         vasprun_files = OrderedDict()
         if "STOPCAR" in files:
-            print(path + " contains stopped run")
+            logger.warn(path + " contains stopped run")
         for f in files:  # get any vasprun from the folder
             if fnmatch(f, "vasprun.xml*") and \
                             f not in vasprun_files.values():
@@ -133,8 +142,8 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             return d
         except Exception as ex:
             import traceback
-            print(traceback.format_exc())
-            print("Error in " + os.path.abspath(dir_name) +
+            logger.error(traceback.format_exc())
+            logger.error("Error in " + os.path.abspath(dir_name) +
                   ".\n" + traceback.format_exc())
             return None
 
@@ -160,7 +169,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             try:
                 d["dos"] = r.complete_dos.as_dict()
             except Exception:
-                print("No valid dos data exist in {}.\n Skipping dos"
+                logger.error("No valid dos data exist in {}.\n Skipping dos"
                       .format(dir_name))
         d["task"] = {"type": taskname, "name": taskname}
         return d
