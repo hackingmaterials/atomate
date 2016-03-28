@@ -10,7 +10,8 @@ from fireworks import FireTaskBase, explicit_serialize, Workflow
 from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
 from matmethods.utils.utils import get_logger
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = 'Anubhav Jain'
+__email__ = 'ajain@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 reference_dir = os.path.join(module_dir, "reference_files")

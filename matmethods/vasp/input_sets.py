@@ -16,6 +16,9 @@ from pymatgen.symmetry.bandstructure import HighSymmKpath
 
 from matmethods.utils.utils import get_logger
 
+__author__ = 'Anubhav Jain'
+__email__ = 'ajain@lbl.gov'
+
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 logger = get_logger(__name__)

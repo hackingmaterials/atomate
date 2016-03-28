@@ -9,7 +9,8 @@ import unittest
 
 from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = 'Anubhav Jain'
+__email__ = 'ajain@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 scratch_dir = os.path.join(module_dir, "scratch")

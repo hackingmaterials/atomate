@@ -9,7 +9,8 @@ from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, \
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = 'Anubhav Jain, Kiran Mathew'
+__email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 
 def get_wf_single_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp",

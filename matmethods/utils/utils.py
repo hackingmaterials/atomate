@@ -8,7 +8,8 @@ import sys
 
 import six
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = 'Anubhav Jain, Kiran Mathew'
+__email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 
 def env_chk(val, fw_spec, strict=True):

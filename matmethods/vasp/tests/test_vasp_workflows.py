@@ -21,7 +21,8 @@ from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 from matmethods.vasp.tests.vasp_fake import make_fake_workflow
 from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = 'Anubhav Jain, Kiran Mathew'
+__email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "reference_files", "db_connections")

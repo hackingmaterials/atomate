@@ -9,7 +9,8 @@ from fireworks.utilities.fw_utilities import get_slug
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian
 from matmethods.vasp.tests.vasp_fake import fake_dirs
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = 'Anubhav Jain'
+__email__ = 'ajain@lbl.gov'
 
 
 def decorate_priority(original_wf, root_priority, child_priority=None):
