@@ -40,8 +40,7 @@ class TestCopyVaspOutputs(unittest.TestCase):
         files = ["INCAR", "KPOINTS", "POTCAR", "POSCAR", "CONTCAR", "OUTCAR"]
         for f in files:
             self.assertTrue(os.path.exists(os.path.join(self.plain_outdir, f)))
-            self.assertTrue(
-                os.path.exists(os.path.join(self.gzip_outdir, f + ".gz")))
+            self.assertTrue(os.path.exists(os.path.join(self.gzip_outdir, f + ".gz")))
 
     def test_plain_copy(self):
         ct = CopyVaspOutputs(vasp_dir=self.plain_outdir)

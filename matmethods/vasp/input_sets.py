@@ -269,9 +269,8 @@ class NonSCFVaspInputSet(DictVaspInputSet):
         prev_dir = prev_dir or os.curdir
         vasprun = Vasprun(os.path.join(prev_dir, "vasprun.xml"),
                           parse_dos=False, parse_eigen=False)
-        nscf_config_dict["INCAR"]["NBANDS"] = int(math.ceil(
-            vasprun.as_dict()["input"]["parameters"][
-                "NBANDS"] * nbands_factor))
+        nscf_config_dict["INCAR"]["NBANDS"] = int(
+            math.ceil(vasprun.as_dict()["input"]["parameters"]["NBANDS"] * nbands_factor))
 
         # retain grid of old run
         for grid in ["NGX", "NGY", "NGZ"]:
