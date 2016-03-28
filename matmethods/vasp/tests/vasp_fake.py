@@ -8,6 +8,7 @@ import shutil
 
 from fireworks import FireTaskBase, explicit_serialize, Workflow
 from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
+from matmethods.utils.utils import get_logger
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -18,6 +19,8 @@ fake_dirs = {"structure optimization": os.path.join(reference_dir,
              "static": os.path.join(reference_dir, "Si_static"),
              "nscf uniform": os.path.join(reference_dir, "Si_nscf_uniform"),
              "nscf line": os.path.join(reference_dir, "Si_nscf_line")}
+
+logger = get_logger(__name__)
 
 
 @explicit_serialize
@@ -67,8 +70,7 @@ class RunVaspFake(FireTaskBase):
             os.path.join(self["fake_dir"], "inputs", "POTCAR"))
         if user_potcar.symbols != ref_potcar.symbols:
             raise ValueError("POTCAR files are inconsistent!".format(p))
-
-        print("RunVaspFake: verified inputs successfully")
+        logger.info("RunVaspFake: verified inputs successfully")
 
     def _clear_inputs(self):
         for x in ["INCAR", "KPOINTS", "POSCAR", "POTCAR", "CHGCAR", "OUTCAR",
@@ -83,8 +85,7 @@ class RunVaspFake(FireTaskBase):
             full_file_name = os.path.join(output_dir, file_name)
             if os.path.isfile(full_file_name):
                 shutil.copy(full_file_name, os.getcwd())
-
-        print("RunVaspFake: ran fake VASP, generated outputs")
+        logger.info("RunVaspFake: ran fake VASP, generated outputs")
 
 
 def make_fake_workflow(original_workflow):

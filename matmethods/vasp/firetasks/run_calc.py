@@ -21,10 +21,12 @@ from custodian.vasp.jobs import VaspJob
 from custodian.vasp.validators import VasprunXMLValidator
 from fireworks import explicit_serialize, FireTaskBase, FWAction
 
-from matmethods.utils.utils import env_chk
+from matmethods.utils.utils import env_chk, get_logger
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 __credits__ = 'Shyue Ping Ong <ong.sp>'
+
+logger = get_logger(__name__)
 
 
 @explicit_serialize
@@ -42,9 +44,10 @@ class RunVaspDirect(FireTaskBase):
     def run_task(self, fw_spec):
         vasp_cmd = env_chk(self["vasp_cmd"], fw_spec)
 
-        print("Running VASP using exe: {}".format(vasp_cmd))
+        logger.info("Running VASP using exe: {}".format(vasp_cmd))
         return_code = subprocess.call(vasp_cmd, shell=True)
-        print("VASP finished running with returncode: {}".format(return_code))
+        logger.info("VASP finished running with returncode: {}".format(
+            return_code))
 
 
 @explicit_serialize
