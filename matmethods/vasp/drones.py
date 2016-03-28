@@ -9,21 +9,29 @@ This module defines the drones
 
 import os
 import sys
+import re
 import string
 import datetime
+import zlib
 from fnmatch import fnmatch
 from collections import OrderedDict
+import json
+import glob
 import logging
 
-from monty.os.path import zpath
+from monty.io import zopen
+from monty.json import MontyEncoder
 
 import numpy as np
 
 from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.io.vasp import Vasprun
+from pymatgen.io.vasp import Vasprun, Outcar
 
-from matgendb.creator import VaspToDbTaskDrone
+from pymongo import MongoClient
+import gridfs
+
+from matgendb.creator import VaspToDbTaskDrone, get_uri
 
 
 __author__ = 'Kiran Mathew'
@@ -49,9 +57,11 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
 
     def __init__(self, host="127.0.0.1", port=27017, database="vasp",
                  user=None, password=None, collection="tasks",
+                 taskname="standard",
                  parse_dos=False, compress_dos=False, simulate_mode=False,
                  additional_fields=None, update_duplicates=True,
                  mapi_key=None, use_full_uri=True, runs=None):
+        self.taskname = taskname
         super(MMVaspToDbTaskDrone, self).__init__(host=host, port=port,
                                                   database=database,
                                                   user=user, password=password,
@@ -95,22 +105,21 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         """
         logger.info("Getting task doc for base dir :{}".format(path))
         files = os.listdir(path)
-        vasprun_files = OrderedDict()
+        vasprun_file = OrderedDict()
         if "STOPCAR" in files:
             logger.warn(path + " contains stopped run")
-        for f in files:  # get any vasprun from the folder
-            if fnmatch(f, "vasprun.xml*") and \
-                            f not in vasprun_files.values():
-                vasprun_files['standard'] = f
+        for f in files:
+            if fnmatch(f, "vasprun.xml*"):
+                vasprun_file['standard'] = f
         d = {}
-        if len(vasprun_files) > 0:
-            d = self.generate_doc(path, vasprun_files)
+        if len(vasprun_file) > 0:
+            d = self.generate_doc(path, vasprun_file)
             self.post_process(path, d)
         else:
             raise ValueError("No VASP files found!")
         return d
 
-    def generate_doc(self, dir_name, vasprun_files):
+    def generate_doc(self, dir_name, vasprun_file):
         """
         Adapted from matgendb.creator.generate_doc
         """
@@ -120,23 +129,21 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             d["name"] = "MatMethods"
             d["dir_name"] = fullpath
             d["schema_version"] = MMVaspToDbTaskDrone.__version__
-            d["calculations"] = [
-                self.process_vasprun(dir_name, taskname, filename)
-                for taskname, filename in vasprun_files.items()]
-            d1 = d["calculations"][0]
-            d2 = d["calculations"][-1]
-            d["chemsys"] = "-".join(sorted(d2["elements"]))
-            vals = sorted(d2["reduced_cell_formula"].values())
+            filename = vasprun_file[self.taskname]
+            d["calculations"] = self.process_vasprun(dir_name, filename)
+            d_calc = d["calculations"]
+            d["chemsys"] = "-".join(sorted(d_calc["elements"]))
+            vals = sorted(d_calc["reduced_cell_formula"].values())
             d["anonymous_formula"] = {string.ascii_uppercase[i]: float(vals[i])
                                       for i in range(len(vals))}
             for root_key in ["completed_at", "nsites",
                              "unit_cell_formula",
                              "reduced_cell_formula", "pretty_formula",
                              "elements", "nelements", "run_type"]:
-                d[root_key] = d2[root_key]
-            self.set_input_data(d1, d2, d)
-            self.set_output_data(d1, d2, d)
-            self.set_state(vasprun_files, d1, d2, d)
+                d[root_key] = d_calc[root_key]
+            self.set_input_data(d_calc, d)
+            self.set_output_data(d_calc, d)
+            self.set_state(vasprun_file, d_calc, d)
             self.set_analysis(d)
             d["last_updated"] = datetime.datetime.today()
             return d
@@ -147,7 +154,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                   ".\n" + traceback.format_exc())
             return None
 
-    def process_vasprun(self, dir_name, taskname, filename):
+    def process_vasprun(self, dir_name, filename):
         """
         Adapted from matgendb.creator
 
@@ -164,51 +171,49 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         # replace 'crystal' with 'structure'
         d["input"]["structure"] = d["input"].pop("crystal")
         d["output"]["structure"] = d["output"].pop("crystal")
-        if self.parse_dos and (self.parse_dos != 'final' \
-                                       or taskname == self.runs[-1]):
+        if self.parse_dos and self.parse_dos != 'final':
             try:
                 d["dos"] = r.complete_dos.as_dict()
             except Exception:
                 logger.error("No valid dos data exist in {}.\n Skipping dos"
                       .format(dir_name))
-        d["task"] = {"type": taskname, "name": taskname}
+        d["task"] = {"type": self.taskname, "name": self.taskname}
         return d
 
-    def set_input_data(self, d1, d2, d):
+    def set_input_data(self, d_calc, d):
         """
         set the 'input' key
         """
         # store any overrides to the exchange correlation functional
-        xc = d2["input"]["incar"].get("GGA")
+        xc = d_calc["input"]["incar"].get("GGA")
         if xc:
             xc = xc.upper()
-        p = d2["input"]["potcar_type"][0].split("_")
+        p = d_calc["input"]["potcar_type"][0].split("_")
         pot_type = p[0]
         functional = "lda" if len(pot_type) == 1 else "_".join(p[1:])
-        d["input"] = {"structure": d1["input"]["structure"],
-                      "is_hubbard": d2["is_hubbard"],
-                      "hubbards": d2["hubbards"],
-                      "is_lasph": d2["input"]["incar"].get("LASPH", False),
-                      "potcar_spec": d1["input"].get("potcar_spec"),
+        d["input"] = {"structure": d_calc["input"]["structure"],
+                      "is_hubbard": d_calc["is_hubbard"],
+                      "hubbards": d_calc["hubbards"],
+                      "is_lasph": d_calc["input"]["incar"].get("LASPH", False),
+                      "potcar_spec": d_calc["input"].get("potcar_spec"),
                       "xc_override": xc,
                       "pseudo_potential": {"functional": functional.lower(),
                                            "pot_type": pot_type.lower(),
-                                           "labels": d2["input"]["potcar"]}
+                                           "labels": d_calc["input"]["potcar"]}
                       }
 
-    def set_output_data(self, d1, d2, d):
+    def set_output_data(self, d_calc, d):
         """
         set the 'output' key
         """
         d["output"] = {
-            "structure": d2["output"]["structure"],
-            "density": d2["density"],
-            "final_energy": d2["output"]["final_energy"],
-            "final_energy_per_atom": d2["output"]["final_energy_per_atom"]
-        }
+            "structure": d_calc["output"]["structure"],
+            "density": d_calc["density"],
+            "final_energy": d_calc["output"]["final_energy"],
+            "final_energy_per_atom": d_calc["output"]["final_energy_per_atom"]}
         d["output"].update(self.get_basic_processed_data(d))
-        sg = SpacegroupAnalyzer(Structure.from_dict(d2["output"]["structure"]),
-                                0.1)
+        sg = SpacegroupAnalyzer(
+            Structure.from_dict(d_calc["output"]["structure"]), 0.1)
         d["output"]["spacegroup"] = {
             "source": "spglib",
             "symbol": sg.get_spacegroup_symbol(),
@@ -217,13 +222,12 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             "crystal_system": sg.get_crystal_system(),
             "hall": sg.get_hall()}
 
-    def set_state(self, vasprun_files, d1, d2, d):
+    def set_state(self, vasprun_file, d_calc, d):
         """
         set the 'state' key
         """
-        if len(d["calculations"]) == len(self.runs) or \
-                        list(vasprun_files.keys())[0] != "relax1":
-            d["state"] = "successful" if d2["has_vasp_completed"] \
+        if list(vasprun_file.keys())[0] == "standard":
+            d["state"] = "successful" if d_calc["has_vasp_completed"] \
                 else "unsuccessful"
         else:
             d["state"] = "stopped"
@@ -246,11 +250,11 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                                 .format(volume_change_threshold * 100))
         max_force = None
         if d["state"] == "successful" and \
-                        d["calculations"][0]["input"]["parameters"].get("NSW",
+                        d["calculations"]["input"]["parameters"].get("NSW",
                                                                         0) > 0:
             # handle the max force and max force error
             max_force = max([np.linalg.norm(a)
-                             for a in d["calculations"][-1]["output"]
+                             for a in d["calculations"]["output"]
                              ["ionic_steps"][-1]["forces"]])
             if max_force > max_force_threshold:
                 error_msgs.append("Final max force exceeds {} eV"
@@ -270,7 +274,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         """
         return processed data such as vbm, cbm, gap
         """
-        calc = d["calculations"][-1]
+        calc = d["calculations"]
         gap = calc["output"]["bandgap"]
         cbm = calc["output"]["cbm"]
         vbm = calc["output"]["vbm"]
@@ -281,18 +285,158 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             "vbm": vbm,
             "is_gap_direct": is_direct}
 
+    def _insert_doc(self, d):
+        if not self.simulate:
+            # Perform actual insertion into db. Because db connections cannot
+            # be pickled, every insertion needs to create a new connection
+            # to the db.
+            conn = MongoClient(self.host, self.port)
+            db = conn[self.database]
+            if self.user:
+                db.authenticate(self.user, self.password)
+            coll = db[self.collection]
+            # Insert dos data into gridfs and then remove it from the dict.
+            # DOS data tends to be above the 4Mb limit for mongo docs. A ref
+            # to the dos file is in the dos_fs_id.
+            result = coll.find_one({"dir_name": d["dir_name"]},
+                                   ["dir_name", "task_id"])
+            if result is None or self.update_duplicates:
+                if self.parse_dos and "calculations" in d:
+                        if "dos" in d["calculations"]:
+                            dos = json.dumps(d["calculations"]["dos"], cls=MontyEncoder)
+                            if self.compress_dos:
+                                dos = zlib.compress(dos, self.compress_dos)
+                                d["calculations"]["dos_compression"] = "zlib"
+                            fs = gridfs.GridFS(db, "dos_fs")
+                            dosid = fs.put(dos)
+                            d["calculations"]["dos_fs_id"] = dosid
+                            del d["calculations"]["dos"]
+                d["last_updated"] = datetime.datetime.today()
+                if result is None:
+                    if ("task_id" not in d) or (not d["task_id"]):
+                        d["task_id"] = db.counter.find_and_modify(
+                            query={"_id": "taskid"},
+                            update={"$inc": {"c": 1}}
+                        )["c"]
+                    logger.info("Inserting {} with taskid = {}"
+                                .format(d["dir_name"], d["task_id"]))
+                elif self.update_duplicates:
+                    d["task_id"] = result["task_id"]
+                    logger.info("Updating {} with taskid = {}"
+                                .format(d["dir_name"], d["task_id"]))
 
-def is_valid_vasp_dir(mydir):
-    """
-    Copied from matgendb.creator
+                coll.update({"dir_name": d["dir_name"]}, {"$set": d},
+                            upsert=True)
+                return d["task_id"]
+            else:
+                logger.info("Skipping duplicate {}".format(d["dir_name"]))
+        else:
+            d["task_id"] = 0
+            logger.info("Simulated insert into database for {} with task_id {}"
+                        .format(d["dir_name"], d["task_id"]))
+            return d
 
-    note: that the OUTCAR and POSCAR are known to be empty in some situations
-    """
-    files = ["OUTCAR", "POSCAR", "INCAR", "KPOINTS"]
-    for f in files:
-        m_file = os.path.join(mydir, f)
-        if not os.path.exists(zpath(m_file)) or not (
-                        os.stat(m_file).st_size > 0 or os.stat(
-                        m_file + '.gz').st_size > 0):
-            return False
-    return True
+    def post_process(self, dir_name, d):
+        """
+        Simple post-processing for various files other than the vasprun.xml.
+        Called by generate_task_doc. Modify this if your runs have other
+        kinds of processing requirements.
+
+        Args:
+            dir_name:
+                The dir_name.
+            d:
+                Current doc generated.
+        """
+        logger.info("Post-processing dir:{}".format(dir_name))
+        fullpath = os.path.abspath(dir_name)
+        # VASP input generated by pymatgen's alchemy has a
+        # transformations.json file that keeps track of the origin of a
+        # particular structure. This is extremely useful for tracing back a
+        # result. If such a file is found, it is inserted into the task doc
+        # as d["transformations"]
+        transformations = {}
+        filenames = glob.glob(os.path.join(fullpath, "transformations.json*"))
+        if len(filenames) >= 1:
+            with zopen(filenames[0], "rt") as f:
+                transformations = json.load(f)
+                try:
+                    m = re.match("(\d+)-ICSD",
+                                 transformations["history"][0]["source"])
+                    if m:
+                        d["icsd_id"] = int(m.group(1))
+                except Exception as ex:
+                    logger.warning("Cannot parse ICSD from transformations "
+                                   "file.")
+                    pass
+        else:
+            logger.warning("Transformations file does not exist.")
+
+        other_parameters = transformations.get("other_parameters")
+        new_tags = None
+        if other_parameters:
+            # We don't want to leave tags or authors in the
+            # transformations file because they'd be copied into
+            # every structure generated after this one.
+            new_tags = other_parameters.pop("tags", None)
+            new_author = other_parameters.pop("author", None)
+            if new_author:
+                d["author"] = new_author
+            if not other_parameters:  # if dict is now empty remove it
+                transformations.pop("other_parameters")
+        d["transformations"] = transformations
+        # Calculations done using custodian has a custodian.json,
+        # which tracks the jobs performed and any errors detected and fixed.
+        # This is useful for tracking what has actually be done to get a
+        # result. If such a file is found, it is inserted into the task doc
+        # as d["custodian"]
+        filenames = glob.glob(os.path.join(fullpath, "custodian.json*"))
+        if len(filenames) >= 1:
+            with zopen(filenames[0], "r") as f:
+                d["custodian"] = json.load(f)
+        # Parse OUTCAR for additional information and run stats that are
+        # generally not in vasprun.xml.
+        try:
+            run_stats = {}
+            for filename in glob.glob(os.path.join(fullpath, "OUTCAR*")):
+                outcar = Outcar(filename)
+                d["calculations"]["output"]["outcar"] = outcar.as_dict()
+                run_stats[self.taskname] = outcar.run_stats
+        except:
+            logger.error("Bad OUTCAR for {}.".format(fullpath))
+        try:
+            overall_run_stats = {}
+            for key in ["Total CPU time used (sec)", "User time (sec)",
+                        "System time (sec)", "Elapsed time (sec)"]:
+                overall_run_stats[key] = sum([v[key]
+                                              for v in run_stats.values()])
+            run_stats["overall"] = overall_run_stats
+        except:
+            logger.error("Bad run stats for {}.".format(fullpath))
+        d["run_stats"] = run_stats
+        # Convert to full uri path.
+        if self.use_full_uri:
+            d["dir_name"] = get_uri(dir_name)
+        if new_tags:
+            d["tags"] = new_tags
+        logger.info("Post-processed " + fullpath)
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(**d["init_args"])
+
+    def as_dict(self):
+        init_args = {"host": self.host, "port": self.port,
+                     "database": self.database, "user": self.user,
+                     "password": self.password,
+                     "collection": self.collection,
+                     "taskname": self.taskname,
+                     "parse_dos": self.parse_dos,
+                     "simulate_mode": self.simulate,
+                     "additional_fields": self.additional_fields,
+                     "update_duplicates": self.update_duplicates}
+        output = {"name": self.__class__.__name__,
+                  "init_args": init_args, "version":
+                      self.__class__.__version__}
+        return output
+
