@@ -3,9 +3,13 @@
 from __future__ import division, print_function, unicode_literals, \
     absolute_import
 
+import logging
+import sys
+
 import six
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = 'Anubhav Jain, Kiran Mathew'
+__email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 
 def env_chk(val, fw_spec, strict=True):
@@ -40,3 +44,15 @@ def env_chk(val, fw_spec, strict=True):
             return fw_spec['_fw_env'][val[2:-2]]
         return fw_spec.get('_fw_env', {}).get(val[2:-2])
     return val
+
+
+def get_logger(name, level=logging.DEBUG,
+               format='%(asctime)s %(levelname)s %(name)s %(message)s',
+               stream=sys.stdout):
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+    formatter = logging.Formatter(format)
+    sh = logging.StreamHandler(stream=stream)
+    sh.setFormatter(formatter)
+    logger.addHandler(sh)
+    return logger

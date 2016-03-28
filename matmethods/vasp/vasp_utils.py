@@ -5,8 +5,8 @@ from __future__ import division, print_function, unicode_literals, \
 
 import six
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
-
+__author__ = 'Anubhav Jain'
+__email__ = 'ajain@lbl.gov'
 
 def get_vasp_dir(d, fw_spec):
     vasp_dir = None

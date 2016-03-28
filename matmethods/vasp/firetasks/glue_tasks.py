@@ -18,7 +18,8 @@ from fireworks import explicit_serialize, FireTaskBase, FWAction
 from matmethods.utils.utils import env_chk
 from matmethods.vasp.vasp_utils import get_vasp_dir
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = 'Anubhav Jain'
+__email__ = 'ajain@lbl.gov'
 
 
 @explicit_serialize

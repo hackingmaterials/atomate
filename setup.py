@@ -10,11 +10,12 @@ if __name__ == "__main__":
     setup(
         name='MatMethods',
         version='0.0.2',
-        description='MatMethods has implementations of FireWorks workflows for Materials Science',
+        description='MatMethods has implementations of FireWorks workflows for '
+                    'Materials Science',
         long_description=open(os.path.join(module_dir, 'README.rst')).read(),
         url='https://github.com/hackingmaterials/MatMethods',
-        author='Anubhav Jain',
-        author_email='anubhavster@gmail.com',
+        author='Anubhav Jain, Kiran Mathew',
+        author_email='anubhavster@gmail.com, kmathew@lbl.gov',
         license='modified BSD',
         packages=find_packages(),
         package_data={},
@@ -24,6 +25,7 @@ if __name__ == "__main__":
                           'monty>=0.8.0'],
         extras_require={},
         classifiers=['Programming Language :: Python :: 2.7',
+                     "Programming Language :: Python :: 3",
                      'Development Status :: 4 - Beta',
                      'Intended Audience :: Science/Research',
                      'Intended Audience :: System Administrators',

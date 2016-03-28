@@ -16,7 +16,8 @@ from matmethods.utils.utils import env_chk
 from matmethods.vasp.input_sets import StaticVaspInputSet, \
     NonSCFVaspInputSet
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>, Shyue Ping Ong <ongsp@ucsd.edu>'
+__author__ = 'Anubhav Jain, Shyue Ping Ong'
+__email__ = 'ajain@lbl.gov'
 
 
 def load_class(mod, name):

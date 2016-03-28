@@ -13,7 +13,8 @@ from matmethods.vasp.examples.vasp_workflows import get_wf_bandstructure_Vasp
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 from matmethods.vasp.vasp_powerups import decorate_priority, use_custodian
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = 'Anubhav Jain'
+__email__ = 'ajain@lbl.gov'
 
 
 class TestVaspPowerups(unittest.TestCase):

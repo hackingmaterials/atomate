@@ -4,7 +4,9 @@ from pymatgen import Structure
 from matmethods.vasp.examples.vasp_workflows import get_wf_bandstructure_Vasp
 from matmethods.vasp.vasp_powerups import decorate_write_name
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = 'Anubhav Jain, Kiran Mathew'
+__email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
+
 
 if __name__ == "__main__":
     struct_si = {u'lattice': {u'a': 3.839943374653261, u'c': 3.83994338,

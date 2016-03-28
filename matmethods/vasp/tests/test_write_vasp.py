@@ -14,7 +14,8 @@ from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, \
     WriteVaspFromPMGObjects, ModifyIncar
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = 'Anubhav Jain, Kiran Mathew'
+__email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 

@@ -3,29 +3,29 @@
 from __future__ import division, print_function, unicode_literals, \
     absolute_import
 
-import six
 import json
 import os
 import zlib
 
 import gridfs
-
+import six
 from fireworks import FireTaskBase
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.utilities.fw_utilities import explicit_serialize
-
 from matgendb.util import get_settings
-
 from monty.json import MontyEncoder
 from monty.os.path import zpath
-
 from pymatgen.io.vasp import Vasprun
 from pymongo import MongoClient
 
 from matmethods.utils.utils import env_chk
 from matmethods.vasp.drones import MMVaspToDbTaskDrone
+from matmethods.utils.utils import get_logger
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = 'Anubhav Jain, Kiran Mathew'
+__email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
+
+logger = get_logger(__name__)
 
 
 @explicit_serialize
@@ -52,10 +52,8 @@ class VaspToDbTask(FireTaskBase):
                        "bandstructure_mode", "additional_fields"]
 
     def run_task(self, fw_spec):
-
         # get the directory that contains the VASP dir to parse
         vasp_dir = os.getcwd()
-
         if "vasp_dir" in self:
             vasp_dir = self["vasp_dir"]
         elif self.get("vasp_loc"):
@@ -66,19 +64,15 @@ class VaspToDbTask(FireTaskBase):
                         break
             else:
                 vasp_dir = fw_spec["vasp_locs"][-1]["path"]
-
         # parse the VASP directory
-        print("PARSING DIRECTORY: {}".format(vasp_dir))
-
+        logger.info("PARSING DIRECTORY: {}".format(vasp_dir))
         # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
-
         if not db_file:
             drone = MMVaspToDbTaskDrone(simulate_mode=True)
             task_doc = drone.get_task_doc(vasp_dir)
             with open("task.json", "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
-
         else:
             d = get_settings(db_file)
             drone = MMVaspToDbTaskDrone(host=d["host"], port=d["port"],
@@ -91,10 +85,9 @@ class VaspToDbTask(FireTaskBase):
                                         parse_dos=self.get("parse_dos", False),
                                         compress_dos=1)
             t_id = drone.assimilate(vasp_dir)
-            print("Finished parsing with task_id: {}".format(t_id))
-
+            logger.info("Finished parsing with task_id: {}".format(t_id))
             if self.get("bandstructure_mode"):
-                print("Attempting to parse band structure...")
+                logger.info("Attempting to parse band structure...")
                 # connect to output database for further processing
                 conn = MongoClient(d["host"], d["port"])
                 db = conn[d["database"]]
@@ -105,8 +98,8 @@ class VaspToDbTask(FireTaskBase):
                 state = tasks.find_one({"task_id": t_id}, {"state": 1})[
                     "state"]
                 if state != "successful":
-                    print("Skipping band structure insertion; task was not "
-                          "successful")
+                    logger.warn("Skipping band structure insertion; task was "
+                              "not successful")
                 else:
                     vasprun = Vasprun(
                         zpath(os.path.join(vasp_dir, "vasprun.xml")),
@@ -120,4 +113,4 @@ class VaspToDbTask(FireTaskBase):
                     tasks.find_one_and_update({"task_id": t_id}, {
                         "$set": {"calculations.bandstructure_fs_id": bs_id,
                                  "calculations.bandstructure_compression": "zlib"}})
-                    print("Finished parsing band structure.")
+                    logger.info("Finished parsing band structure.")
