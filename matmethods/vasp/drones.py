@@ -33,7 +33,6 @@ import gridfs
 
 from matgendb.creator import VaspToDbTaskDrone, get_uri
 
-
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 __date__ = 'Mar 27, 2016'
@@ -55,13 +54,38 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
 
     __version__ = 0.1
 
-    def __init__(self, host="127.0.0.1", port=27017, database="vasp",
-                 user=None, password=None, collection="tasks",
-                 taskname="standard",
+    def __init__(self, host="127.0.0.1", port=27017,
+                 database="vasp", collection="tasks",
+                 user=None, password=None, taskname="standard",
                  parse_dos=False, compress_dos=False, simulate_mode=False,
                  additional_fields=None, update_duplicates=True,
                  mapi_key=None, use_full_uri=True, runs=None):
         self.taskname = taskname
+        self.root_keys = {"name", "dir_name", "schema_version", "chemsys",
+                          "anonymous_formula", "calculations", "completed_at",
+                          "nsites", "unit_cell_formula",
+                          "reduced_cell_formula", "pretty_formula",
+                          "elements", "nelements", "run_type",
+                          "input", "output", "state", "analysis"}
+        self.input_keys = {'is_lasph', 'is_hubbard', 'xc_override',
+                           'potcar_spec', 'hubbards', 'structure',
+                           'pseudo_potential'}
+        self.output_keys = {'is_gap_direct', 'density', 'bandgap',
+                            'final_energy_per_atom', 'vbm', 'cbm',
+                            'spacegroup', 'final_energy', 'structure'}
+        self.calculations_keys = {'dir_name', 'run_type', 'elements',
+                                  'hubbards', 'nelements', 'pretty_formula',
+                                  'reduced_cell_formula', 'vasp_version',
+                                  'nsites', 'unit_cell_formula',
+                                  'completed_at', 'output',
+                                  'task', 'is_hubbard', 'input', 'task',
+                                  'has_vasp_completed'}
+        self.analysis_keys = {'delta_volume_percent', 'delta_volume',
+                              'max_force', 'errors', 'warnings'}
+        self.all_keys = {"root": self.root_keys, "input": self.input_keys,
+                         "output": self.output_keys,
+                         "calculations": self.calculations_keys,
+                         "analysis": self.analysis_keys}
         super(MMVaspToDbTaskDrone, self).__init__(host=host, port=port,
                                                   database=database,
                                                   user=user, password=password,
@@ -79,8 +103,10 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
     def assimilate(self, path):
         """
         Adapted from matgendb.creator
+        Parses vasp runs(vasprun.xml file) and insert the result into the db.
 
-        Parses vasp runs and insert the result into the db.
+        Args:
+            path (str): Path to the directory containing vasprun.xml file
 
         Returns:
             If in simulate_mode, the entire doc is returned for debugging
@@ -100,8 +126,15 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
     def get_task_doc(self, path):
         """
         Adapted from matgendb.creator
+        Get the entire task doc from the vasprum.xml file in the path.
+        Processes only one xml file from the given path.
+        Also adds some post-processed info.
 
-        Get the entire task doc for a path, including any post-processing.
+        Args:
+            path (str): Path to the directory containing vasprun.xml file
+
+        Returns:
+            The dictionary to be inserted into the db
         """
         logger.info("Getting task doc for base dir :{}".format(path))
         files = os.listdir(path)
@@ -112,11 +145,12 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             if fnmatch(f, "vasprun.xml*"):
                 vasprun_file['standard'] = f
         d = {}
-        if len(vasprun_file) > 0:
+        if vasprun_file:
             d = self.generate_doc(path, vasprun_file)
             self.post_process(path, d)
         else:
             raise ValueError("No VASP files found!")
+        self.check_keys(d)
         return d
 
     def generate_doc(self, dir_name, vasprun_file):
@@ -151,7 +185,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             import traceback
             logger.error(traceback.format_exc())
             logger.error("Error in " + os.path.abspath(dir_name) +
-                  ".\n" + traceback.format_exc())
+                         ".\n" + traceback.format_exc())
             return None
 
     def process_vasprun(self, dir_name, filename):
@@ -161,22 +195,22 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         Process a vasprun.xml file.
         """
         vasprun_file = os.path.join(dir_name, filename)
-        r = Vasprun(vasprun_file)
-        d = r.as_dict()
+        vrun = Vasprun(vasprun_file)
+        d = vrun.as_dict()
         d["dir_name"] = os.path.abspath(dir_name)
         d["completed_at"] = \
             str(datetime.datetime.fromtimestamp(os.path.getmtime(
                 vasprun_file)))
-        d["density"] = r.final_structure.density
+        d["density"] = vrun.final_structure.density
         # replace 'crystal' with 'structure'
         d["input"]["structure"] = d["input"].pop("crystal")
         d["output"]["structure"] = d["output"].pop("crystal")
         if self.parse_dos and self.parse_dos != 'final':
             try:
-                d["dos"] = r.complete_dos.as_dict()
+                d["dos"] = vrun.complete_dos.as_dict()
             except Exception:
                 logger.error("No valid dos data exist in {}.\n Skipping dos"
-                      .format(dir_name))
+                             .format(dir_name))
         d["task"] = {"type": self.taskname, "name": self.taskname}
         return d
 
@@ -208,7 +242,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         """
         d["output"] = {
             "structure": d_calc["output"]["structure"],
-            "density": d_calc["density"],
+            "density": d_calc.pop("density"),
             "final_energy": d_calc["output"]["final_energy"],
             "final_energy_per_atom": d_calc["output"]["final_energy_per_atom"]}
         d["output"].update(self.get_basic_processed_data(d))
@@ -251,7 +285,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         max_force = None
         if d["state"] == "successful" and \
                         d["calculations"]["input"]["parameters"].get("NSW",
-                                                                        0) > 0:
+                                                                     0) > 0:
             # handle the max force and max force error
             max_force = max([np.linalg.norm(a)
                              for a in d["calculations"]["output"]
@@ -302,15 +336,16 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                                    ["dir_name", "task_id"])
             if result is None or self.update_duplicates:
                 if self.parse_dos and "calculations" in d:
-                        if "dos" in d["calculations"]:
-                            dos = json.dumps(d["calculations"]["dos"], cls=MontyEncoder)
-                            if self.compress_dos:
-                                dos = zlib.compress(dos, self.compress_dos)
-                                d["calculations"]["dos_compression"] = "zlib"
-                            fs = gridfs.GridFS(db, "dos_fs")
-                            dosid = fs.put(dos)
-                            d["calculations"]["dos_fs_id"] = dosid
-                            del d["calculations"]["dos"]
+                    if "dos" in d["calculations"]:
+                        dos = json.dumps(d["calculations"]["dos"],
+                                         cls=MontyEncoder)
+                        if self.compress_dos:
+                            dos = zlib.compress(dos, self.compress_dos)
+                            d["calculations"]["dos_compression"] = "zlib"
+                        fs = gridfs.GridFS(db, "dos_fs")
+                        dosid = fs.put(dos)
+                        d["calculations"]["dos_fs_id"] = dosid
+                        del d["calculations"]["dos"]
                 d["last_updated"] = datetime.datetime.today()
                 if result is None:
                     if ("task_id" not in d) or (not d["task_id"]):
@@ -421,6 +456,16 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             d["tags"] = new_tags
         logger.info("Post-processed " + fullpath)
 
+    def check_keys(self, d):
+        """
+        Sanity check.
+        Make sure all the important keys are set
+        """
+        for k, v in self.all_keys.items():
+            diff = v.difference(set(d.get(k, d).keys()))
+            if diff:
+                logger.warn("The keys {0} in {1} not set".format(diff, k))
+
     @classmethod
     def from_dict(cls, d):
         return cls(**d["init_args"])
@@ -439,4 +484,3 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                   "init_args": init_args, "version":
                       self.__class__.__version__}
         return output
-
