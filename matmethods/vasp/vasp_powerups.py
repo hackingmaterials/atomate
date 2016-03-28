@@ -52,12 +52,9 @@ def use_custodian(original_workflow):
             if job_type in fw.name:
                 for idx_t, t in enumerate(fw.tasks):
                     if "RunVasp" in str(t):
-                        vasp_cmd = \
-                            wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t][
-                                "vasp_cmd"]
+                        vasp_cmd = wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"]
                         wf_dict["fws"][idx_fw]["spec"]["_tasks"][
-                            idx_t] = RunVaspCustodian(
-                            vasp_cmd=vasp_cmd).to_dict()
+                            idx_t] = RunVaspCustodian(vasp_cmd=vasp_cmd).to_dict()
     return Workflow.from_dict(wf_dict)
 
 
