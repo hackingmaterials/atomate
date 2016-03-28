@@ -3,10 +3,14 @@
 from __future__ import division, print_function, unicode_literals, \
     absolute_import
 
-import six
+"""
+This module defines tasks that support running vasp in various ways.
+"""
+
 import shlex
 import subprocess
 
+import six
 from custodian import Custodian
 from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, \
     MeshSymmetryErrorHandler, \

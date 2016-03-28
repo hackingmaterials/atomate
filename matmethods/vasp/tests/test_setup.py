@@ -6,9 +6,10 @@ from __future__ import division, print_function, unicode_literals, \
 import os
 import unittest
 
-from matmethods.vasp.new_input_sets import StructureOptimizationVaspInputSet
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
+
+from matmethods.vasp.new_input_sets import StructureOptimizationVaspInputSet
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -55,8 +56,9 @@ class TestSetup(unittest.TestCase):
         self.assertEqual(
             str(Poscar.from_file(os.path.join(module_dir, "POSCAR"))),
             str(self.ref_poscar))
-        self.assertEqual(Potcar.from_file(os.path.join(module_dir, "POTCAR")),
-                         self.ref_potcar)
+        self.assertEqual((Potcar.from_file(os.path.join(module_dir,
+                                                        "POTCAR")).symbols),
+                         self.ref_potcar.symbols)
         self.assertEqual(
             str(Kpoints.from_file(os.path.join(module_dir, "KPOINTS"))),
             str(self.ref_kpoints))

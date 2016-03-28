@@ -12,6 +12,7 @@ import zlib
 import gridfs
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
+from pymatgen import IStructure, Lattice
 from pymongo import MongoClient
 
 from matmethods.vasp.examples.vasp_workflows import get_wf_single_Vasp, \
@@ -19,7 +20,6 @@ from matmethods.vasp.examples.vasp_workflows import get_wf_single_Vasp, \
 from matmethods.vasp.new_input_sets import StructureOptimizationVaspInputSet
 from matmethods.vasp.tests.vasp_fake import make_fake_workflow
 from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name
-from pymatgen import IStructure, Lattice
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -95,9 +95,9 @@ class TestVaspWorkflows(unittest.TestCase):
         self.assertEqual(d["nelements"], 1)
         self.assertEqual(d["state"], "successful")
         self.assertAlmostEqual(
-            d["calculations"][0]["output"]["crystal"]["lattice"]["a"], 3.867,
+            d["calculations"]["output"]["structure"]["lattice"]["a"], 3.867,
             2)
-        self.assertEqual(d["analysis"]["is_gap_direct"], False)
+        self.assertEqual(d["output"]["is_gap_direct"], False)
 
         if mode in ["structure optimization", "static"]:
             self.assertAlmostEqual(d["output"]["final_energy"], -10.850, 2)
@@ -109,13 +109,13 @@ class TestVaspWorkflows(unittest.TestCase):
             self.assertAlmostEqual(d["output"]["final_energy_per_atom"],
                                    -5.414, 2)
 
-        self.assertAlmostEqual(d["analysis"]["bandgap"], 0.65, 1)
+        self.assertAlmostEqual(d["output"]["bandgap"], 0.65, 1)
 
         if "nscf" in mode:
-            self.assertEqual(d["calculations"][0]["output"]["outcar"][
+            self.assertEqual(d["calculations"]["output"]["outcar"][
                                  "total_magnetization"], None)
         else:
-            self.assertAlmostEqual(d["calculations"][0]["output"]["outcar"][
+            self.assertAlmostEqual(d["calculations"]["output"]["outcar"][
                                        "total_magnetization"], 0, 3)
 
         self.assertLess(d["run_stats"]["overall"]["Elapsed time (sec)"],
@@ -126,7 +126,7 @@ class TestVaspWorkflows(unittest.TestCase):
             fs = gridfs.GridFS(self._get_task_database(), 'bandstructure_fs')
 
             # check the band structure
-            bs_fs_id = d["calculations"][0]["bandstructure_fs_id"]
+            bs_fs_id = d["calculations"]["bandstructure_fs_id"]
             bs_json = zlib.decompress(fs.get(bs_fs_id).read())
             bs = json.loads(bs_json)
             self.assertEqual(bs["is_spin_polarized"], False)
@@ -154,7 +154,7 @@ class TestVaspWorkflows(unittest.TestCase):
             # check the DOS
             if mode == "nscf uniform":
                 fs = gridfs.GridFS(self._get_task_database(), 'dos_fs')
-                dos_fs_id = d["calculations"][0]["dos_fs_id"]
+                dos_fs_id = d["calculations"]["dos_fs_id"]
 
                 dos_json = zlib.decompress(fs.get(dos_fs_id).read())
                 dos = json.loads(dos_json)

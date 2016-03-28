@@ -19,7 +19,7 @@ matmethods.vasp.vasp_utils module
 .. automodule:: matmethods.vasp.vasp_utils
 :members:
         :undoc-members:
-        :show-inheritance:
+                :show-inheritance:
 
 
 Module contents
@@ -28,4 +28,4 @@ Module contents
 .. automodule:: matmethods.vasp
 :members:
         :undoc-members:
-        :show-inheritance:
+                :show-inheritance:
