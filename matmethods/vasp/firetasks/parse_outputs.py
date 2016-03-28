@@ -3,23 +3,27 @@
 from __future__ import division, print_function, unicode_literals, \
     absolute_import
 
+import six
 import json
 import os
 import zlib
 
 import gridfs
-import six
+
 from fireworks import FireTaskBase
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.utilities.fw_utilities import explicit_serialize
-from matgendb.creator import VaspToDbTaskDrone
+
 from matgendb.util import get_settings
+
 from monty.json import MontyEncoder
 from monty.os.path import zpath
+
 from pymatgen.io.vasp import Vasprun
 from pymongo import MongoClient
 
 from matmethods.utils.utils import env_chk
+from matmethods.vasp.drones import MMVaspToDbTaskDrone
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -70,22 +74,22 @@ class VaspToDbTask(FireTaskBase):
         db_file = env_chk(self.get('db_file'), fw_spec)
 
         if not db_file:
-            drone = VaspToDbTaskDrone(simulate_mode=True)
+            drone = MMVaspToDbTaskDrone(simulate_mode=True)
             task_doc = drone.get_task_doc(vasp_dir)
             with open("task.json", "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
 
         else:
             d = get_settings(db_file)
-            drone = VaspToDbTaskDrone(host=d["host"], port=d["port"],
-                                      database=d["database"],
-                                      user=d.get("admin_user"),
-                                      password=d.get("admin_password"),
-                                      collection=d["collection"],
-                                      additional_fields=self.get(
-                                          "additional_fields"),
-                                      parse_dos=self.get("parse_dos", False),
-                                      compress_dos=1)
+            drone = MMVaspToDbTaskDrone(host=d["host"], port=d["port"],
+                                        database=d["database"],
+                                        user=d.get("admin_user"),
+                                        password=d.get("admin_password"),
+                                        collection=d["collection"],
+                                        additional_fields=self.get(
+                                            "additional_fields"),
+                                        parse_dos=self.get("parse_dos", False),
+                                        compress_dos=1)
             t_id = drone.assimilate(vasp_dir)
             print("Finished parsing with task_id: {}".format(t_id))
 

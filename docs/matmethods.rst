@@ -15,4 +15,4 @@ Module contents
 .. automodule:: matmethods
 :members:
         :undoc-members:
-            :show-inheritance:
+                :show-inheritance:

@@ -10,7 +10,7 @@ matmethods.vasp.firetasks.glue_tasks module
 .. automodule:: matmethods.vasp.firetasks.glue_tasks
 :members:
         :undoc-members:
-            :show-inheritance:
+                :show-inheritance:
 
 matmethods.vasp.firetasks.parse_outputs module
 ----------------------------------------------
@@ -18,7 +18,7 @@ matmethods.vasp.firetasks.parse_outputs module
 .. automodule:: matmethods.vasp.firetasks.parse_outputs
 :members:
         :undoc-members:
-            :show-inheritance:
+                :show-inheritance:
 
 matmethods.vasp.firetasks.run_calc module
 -----------------------------------------
@@ -26,7 +26,7 @@ matmethods.vasp.firetasks.run_calc module
 .. automodule:: matmethods.vasp.firetasks.run_calc
 :members:
         :undoc-members:
-            :show-inheritance:
+                :show-inheritance:
 
 matmethods.vasp.firetasks.temporary_stuff module
 ------------------------------------------------
@@ -34,7 +34,7 @@ matmethods.vasp.firetasks.temporary_stuff module
 .. automodule:: matmethods.vasp.firetasks.temporary_stuff
 :members:
         :undoc-members:
-            :show-inheritance:
+                :show-inheritance:
 
 matmethods.vasp.firetasks.to_delete module
 ------------------------------------------
@@ -42,7 +42,7 @@ matmethods.vasp.firetasks.to_delete module
 .. automodule:: matmethods.vasp.firetasks.to_delete
 :members:
         :undoc-members:
-            :show-inheritance:
+                :show-inheritance:
 
 matmethods.vasp.firetasks.write_inputs module
 ---------------------------------------------
@@ -50,7 +50,7 @@ matmethods.vasp.firetasks.write_inputs module
 .. automodule:: matmethods.vasp.firetasks.write_inputs
 :members:
         :undoc-members:
-            :show-inheritance:
+                :show-inheritance:
 
 
 Module contents
@@ -59,4 +59,4 @@ Module contents
 .. automodule:: matmethods.vasp.firetasks
 :members:
         :undoc-members:
-            :show-inheritance:
+                :show-inheritance:

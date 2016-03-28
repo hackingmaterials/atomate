@@ -56,8 +56,9 @@ class TestSetup(unittest.TestCase):
         self.assertEqual(
             str(Poscar.from_file(os.path.join(module_dir, "POSCAR"))),
             str(self.ref_poscar))
-        self.assertEqual(Potcar.from_file(os.path.join(module_dir, "POTCAR")),
-                         self.ref_potcar)
+        self.assertEqual((Potcar.from_file(os.path.join(module_dir,
+                                                        "POTCAR")).symbols),
+                         self.ref_potcar.symbols)
         self.assertEqual(
             str(Kpoints.from_file(os.path.join(module_dir, "KPOINTS"))),
             str(self.ref_kpoints))

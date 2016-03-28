@@ -17,7 +17,7 @@ matmethods.utils.utils module
 .. automodule:: matmethods.utils.utils
 :members:
         :undoc-members:
-            :show-inheritance:
+                :show-inheritance:
 
 
 Module contents
@@ -26,4 +26,4 @@ Module contents
 .. automodule:: matmethods.utils
 :members:
         :undoc-members:
-            :show-inheritance:
+                :show-inheritance:

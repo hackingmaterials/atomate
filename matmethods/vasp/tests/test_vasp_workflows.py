@@ -95,9 +95,9 @@ class TestVaspWorkflows(unittest.TestCase):
         self.assertEqual(d["nelements"], 1)
         self.assertEqual(d["state"], "successful")
         self.assertAlmostEqual(
-            d["calculations"][0]["output"]["crystal"]["lattice"]["a"], 3.867,
+            d["calculations"][0]["output"]["structure"]["lattice"]["a"], 3.867,
             2)
-        self.assertEqual(d["analysis"]["is_gap_direct"], False)
+        self.assertEqual(d["output"]["is_gap_direct"], False)
 
         if mode in ["structure optimization", "static"]:
             self.assertAlmostEqual(d["output"]["final_energy"], -10.850, 2)
@@ -109,7 +109,7 @@ class TestVaspWorkflows(unittest.TestCase):
             self.assertAlmostEqual(d["output"]["final_energy_per_atom"],
                                    -5.414, 2)
 
-        self.assertAlmostEqual(d["analysis"]["bandgap"], 0.65, 1)
+        self.assertAlmostEqual(d["output"]["bandgap"], 0.65, 1)
 
         if "nscf" in mode:
             self.assertEqual(d["calculations"][0]["output"]["outcar"][
