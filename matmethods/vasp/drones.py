@@ -8,7 +8,6 @@ This module defines the drones
 """
 
 import os
-import sys
 import re
 import string
 import datetime
@@ -17,7 +16,6 @@ from fnmatch import fnmatch
 from collections import OrderedDict
 import json
 import glob
-import logging
 
 from monty.io import zopen
 from monty.json import MontyEncoder
@@ -33,16 +31,13 @@ import gridfs
 
 from matgendb.creator import VaspToDbTaskDrone, get_uri
 
+from matmethods.utils.utils import get_logger
+
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 __date__ = 'Mar 27, 2016'
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
-sh = logging.StreamHandler(stream=sys.stdout)
-sh.setFormatter(formatter)
-logger.addHandler(sh)
+logger = get_logger(__name__)
 
 
 class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
