@@ -34,14 +34,11 @@ class TestSetup(unittest.TestCase):
         cls.ref_incar = Incar.from_file(
             os.path.join(module_dir, "reference_files", "setup_test", "INCAR"))
         cls.ref_poscar = Poscar.from_file(
-            os.path.join(module_dir, "reference_files", "setup_test",
-                         "POSCAR"))
+            os.path.join(module_dir, "reference_files", "setup_test", "POSCAR"))
         cls.ref_potcar = Potcar.from_file(
-            os.path.join(module_dir, "reference_files", "setup_test",
-                         "POTCAR"))
+            os.path.join(module_dir, "reference_files", "setup_test", "POTCAR"))
         cls.ref_kpoints = Kpoints.from_file(
-            os.path.join(module_dir, "reference_files", "setup_test",
-                         "KPOINTS"))
+            os.path.join(module_dir, "reference_files", "setup_test", "KPOINTS"))
 
     def setUp(self):
         os.chdir(module_dir)
@@ -57,12 +54,10 @@ class TestSetup(unittest.TestCase):
         self.assertEqual(
             str(Poscar.from_file(os.path.join(module_dir, "POSCAR"))),
             str(self.ref_poscar))
-        self.assertEqual((Potcar.from_file(os.path.join(module_dir,
-                                                        "POTCAR")).symbols),
+        self.assertEqual(Potcar.from_file(os.path.join(module_dir, "POTCAR")).symbols,
                          self.ref_potcar.symbols)
-        self.assertEqual(
-            str(Kpoints.from_file(os.path.join(module_dir, "KPOINTS"))),
-            str(self.ref_kpoints))
+        self.assertEqual(str(Kpoints.from_file(os.path.join(module_dir, "KPOINTS"))),
+                         str(self.ref_kpoints))
 
     def test_setup(self):
         try:
@@ -73,8 +68,8 @@ class TestSetup(unittest.TestCase):
             traceback.print_exc()
 
             help_str = "This system is not set up to run VASP jobs. " \
-                       "See further error tracebacks for help. T" \
-                       "ry making sure your VASP_PSP_DIR has the proper " \
+                       "See further error tracebacks for help. Try " \
+                       "making sure your VASP_PSP_DIR has the proper " \
                        "subdirs as outlined in PotcarSingle class of " \
                        "pymatgen, e.g. POT_GGA_PAW_PBE subdir."
             raise ValueError(help_str)
