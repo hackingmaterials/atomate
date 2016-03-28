@@ -30,6 +30,12 @@ __date__ = 'Mar 27, 2016'
 
 
 class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
+    """
+    VaspToDbTaskDrone with updated schema.
+    Also removed the processing of aflow style runs.
+    Please refer to matgendb.creator.VaspToDbTaskDrone documentation
+    """
+
     __version__ = 0.1
 
     def __init__(self, host="127.0.0.1", port=27017, database="vasp",
