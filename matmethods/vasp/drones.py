@@ -112,16 +112,32 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             If in simulate_mode, the entire doc is returned for debugging
             purposes. Else, only the task_id of the inserted doc is returned.
         """
+        return self.assimilate_return_task_doc(path)[0]
+
+
+    def assimilate_return_task_doc(self, path):
+        """
+        Adapted from matgendb.creator
+        Parses vasp runs(vasprun.xml file) and insert the result into the db.
+
+        Args:
+            path (str): Path to the directory containing vasprun.xml file
+
+        Returns:
+            If successful, tuple of (task_id, task_doc dict)
+            Else, tuple of (False, None)
+        """
         try:
             d = self.get_task_doc(path)
             if self.mapi_key is not None and d["state"] == "successful":
                 self.calculate_stability(d)
             tid = self._insert_doc(d)
-            return tid
-        except Exception as ex:
+            return tid, d
+
+        except:
             import traceback
             logger.error(traceback.format_exc())
-            return False
+            return False, None
 
     def get_task_doc(self, path):
         """
