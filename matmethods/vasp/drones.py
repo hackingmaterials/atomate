@@ -180,9 +180,9 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         try:
             fullpath = os.path.abspath(dir_name)
             d = {k: v for k, v in self.additional_fields.items()}
-            d["name"] = "MatMethods"
+            d["schema"] = {"code": "MatMethods",
+                           "version": MMVaspToDbTaskDrone.__version__}
             d["dir_name"] = fullpath
-            d["schema_version"] = MMVaspToDbTaskDrone.__version__
             d["calculations_initial"] = [
                 self.process_vasprun(dir_name, taskname, filename)
                 for taskname, filename in vasprun_files.items()[:-1]]
