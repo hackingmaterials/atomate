@@ -163,8 +163,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                         vasprun_files[r] = f
         if len(vasprun_files) == 0:
             for f in files:  # get any vasprun from the folder
-                if fnmatch(f, "vasprun.xml*") and \
-                                f not in vasprun_files.values():
+                if fnmatch(f, "vasprun.xml*"):
                     vasprun_files['standard'] = f
         if len(vasprun_files) > 0:
             d = self.generate_doc(path, vasprun_files)
