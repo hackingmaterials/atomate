@@ -4,7 +4,10 @@ from __future__ import division, print_function, unicode_literals, \
     absolute_import
 
 """
-This module defines the drones
+This Drone tries to produce a more sensible task dictionary than
+the default VaspToDbTaskDrone. Some of the changes are documented
+in this thread:
+https://groups.google.com/forum/#!topic/pymatgen/pQ-emBpeV5U
 """
 
 import os
@@ -34,11 +37,13 @@ from matgendb.creator import VaspToDbTaskDrone, get_uri
 from matmethods.utils.utils import get_logger
 
 __author__ = 'Kiran Mathew'
+__credits__ = 'Anubhav Jain'
 __email__ = 'kmathew@lbl.gov'
 __date__ = 'Mar 27, 2016'
 
 logger = get_logger(__name__)
 
+# TODO: needs comprehensive unit tests
 
 class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
     """
