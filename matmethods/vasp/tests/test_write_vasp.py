@@ -46,7 +46,7 @@ class TestWriteVasp(unittest.TestCase):
                          "KPOINTS"))
         cls.ref_incar_preserve = Incar.from_file(os.path.join(module_dir,
                                                               "reference_files",
-                                                              "Si_structure_optimization",
+                                                              "Si_structure_optimization_plain",
                                                               "outputs",
                                                               "INCAR"))
         cls.ref_incar_preserve.update(StaticVaspInputSet.STATIC_SETTINGS)
