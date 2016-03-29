@@ -18,6 +18,7 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
+# TODO: for "preserve_incar", the most important test is to retain LDA+U and MAGMOM orderings even when the cell changes setting
 
 class TestWriteVasp(unittest.TestCase):
     @classmethod
@@ -46,7 +47,7 @@ class TestWriteVasp(unittest.TestCase):
                          "KPOINTS"))
         cls.ref_incar_preserve = Incar.from_file(os.path.join(module_dir,
                                                               "reference_files",
-                                                              "Si_structure_optimization",
+                                                              "Si_structure_optimization_plain",
                                                               "outputs",
                                                               "INCAR"))
         cls.ref_incar_preserve.update(StaticVaspInputSet.STATIC_SETTINGS)

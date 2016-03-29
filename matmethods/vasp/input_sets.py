@@ -321,7 +321,7 @@ def get_incar_from_prev_run(incar_from_struct, default_settings, prev_dir,
     """
     prev_incar = None
     try:
-        prev_incar = Incar.from_file(os.path.join(prev_dir, "INCAR"))
+        prev_incar = Incar.from_file(zpath(os.path.join(prev_dir, "INCAR")))
     except:
         raise RuntimeError(
             "Can't get valid results from previous run. prev dir: {}".format(

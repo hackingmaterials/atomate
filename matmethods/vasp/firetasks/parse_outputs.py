@@ -68,6 +68,9 @@ class VaspToDbTask(FireTaskBase):
         logger.info("PARSING DIRECTORY: {}".format(vasp_dir))
         # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
+
+        task_doc = None
+
         if not db_file:
             drone = MMVaspToDbTaskDrone(simulate_mode=True)
             task_doc = drone.get_task_doc(vasp_dir)
@@ -84,23 +87,15 @@ class VaspToDbTask(FireTaskBase):
                                             "additional_fields"),
                                         parse_dos=self.get("parse_dos", False),
                                         compress_dos=1)
-            t_id = drone.assimilate(vasp_dir)
+            t_id, task_doc = drone.assimilate_return_task_doc(vasp_dir)
             logger.info("Finished parsing with task_id: {}".format(t_id))
+
             if self.get("bandstructure_mode"):
                 logger.info("Attempting to parse band structure...")
-                # connect to output database for further processing
-                conn = MongoClient(d["host"], d["port"])
-                db = conn[d["database"]]
-                if "admin_user" in d:
-                    db.authenticate(d["admin_user"], d["admin_password"])
-                tasks = db[d["collection"]]
-
-                state = tasks.find_one({"task_id": t_id}, {"state": 1})[
-                    "state"]
-                if state != "successful":
-                    logger.warn("Skipping band structure insertion; task was "
-                              "not successful")
+                if task_doc["state"] != "successful":
+                    logger.warn("Skipping band structure insertion; task was not successful!")
                 else:
+                    # parse band structure
                     vasprun = Vasprun(
                         zpath(os.path.join(vasp_dir, "vasprun.xml")),
                         parse_eigen=True, parse_projected_eigen=True)
@@ -108,10 +103,19 @@ class VaspToDbTask(FireTaskBase):
                         line_mode=(self["bandstructure_mode"] == "line"))
                     bs_json = json.dumps(bs.as_dict(), cls=MontyEncoder)
                     bs_compress = zlib.compress(bs_json, 1)
+
+                    # insert band structure data into database
+                    conn = MongoClient(d["host"], d["port"])
+                    db = conn[d["database"]]
+                    if "admin_user" in d:
+                        db.authenticate(d["admin_user"], d["admin_password"])
+                    tasks = db[d["collection"]]
                     fs = gridfs.GridFS(db, "bandstructure_fs")
                     bs_id = fs.put(bs_compress)
                     tasks.find_one_and_update({"task_id": t_id}, {
                         "$set": {"calculation.bandstructure_fs_id": bs_id,
                                  "calculation.bandstructure_compression": "zlib"}})
                     logger.info("Finished parsing band structure.")
-                return FWAction(stored_data={"task_id": t_id})
+
+        return FWAction(stored_data={"task_id": task_doc["task_id"]},
+                        defuse_children= (task_doc["state"] != "successful"))

@@ -22,9 +22,9 @@ class TestCopyVaspOutputs(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.plain_outdir = os.path.join(module_dir, "reference_files",
-                                        "Si_structure_optimization", "outputs")
+                                        "Si_structure_optimization_plain", "outputs")
         cls.gzip_outdir = os.path.join(module_dir, "reference_files",
-                                       "Si_nscf_uniform", "outputs")
+                                       "Si_structure_optimization", "outputs")
 
     def setUp(self):
         if os.path.exists(scratch_dir):
