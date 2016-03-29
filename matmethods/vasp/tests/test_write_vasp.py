@@ -18,6 +18,7 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
+# TODO: for "preserve_incar", the most important test is to retain LDA+U and MAGMOM orderings even when the cell changes setting
 
 class TestWriteVasp(unittest.TestCase):
     @classmethod
