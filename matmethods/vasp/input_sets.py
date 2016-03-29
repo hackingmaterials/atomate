@@ -58,6 +58,61 @@ def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
             zpath(os.path.join(prev_dir, "CONTCAR"))).structure
 
 
+def get_incar_from_prev_run(new_incar, settings, prev_dir, config_dict_override):
+    """
+    Return incar object from the previous run with custom settings as well as structure dependent
+    adjustments for parameters such as magmom and ldau.
+    Adapted from pymatgen.io.vasp.sets
+
+    Args:
+        new_incar (Incar): Incar from the structure
+        settings (dict): default settings
+        prev_dir (str): path to the previous run directory
+        config_dict_override (dict): dictionary of Incar parameters to be overridden
+
+    Returns:
+        Incar object
+    """
+    try:
+        vasp_run = Vasprun(os.path.join(prev_dir, "vasprun.xml"), parse_dos=False, parse_eigen=False)
+        prev_incar = vasp_run.incar
+    except:
+        raise RuntimeError("Can't get valid results from previous run. prev dir: {}".format(prev_dir))
+    # Use previous run INCAR and override necessary parameters
+    prev_incar.update(settings)
+    for incar_key in ["MAGMOM", "NUPDOWN"]:
+        if new_incar.get(incar_key, None):
+            prev_incar.update({incar_key: new_incar[incar_key]})
+        else:
+            prev_incar.pop(incar_key, None)
+    # use new LDAUU when possible b/c the Poscar might have changed
+    # representation
+    if prev_incar.get('LDAU'):
+        u = prev_incar.get('LDAUU', [])
+        j = prev_incar.get('LDAUJ', [])
+        if sum([u[x] - j[x] for x, y in enumerate(u)]) > 0:
+            for tag in ('LDAUU', 'LDAUL', 'LDAUJ'):
+                prev_incar.update({tag: new_incar[tag]})
+        # ensure to have LMAXMIX for GGA+U static run
+        if "LMAXMIX" not in previous_incar:
+            prev_incar.update({"LMAXMIX": new_incar["LMAXMIX"]})
+    # Compare ediff between previous and staticinputset values,
+    # choose the tighter ediff
+    prev_incar.update({"EDIFF": min(prev_incar.get("EDIFF", 1), new_incar["EDIFF"])})
+    # override settings
+    if config_dict_override:
+        prev_incar.update(config_dict_override)
+    # Perform checking on INCAR parameters
+    if any([prev_incar.get("NSW", 0) != 0,
+            prev_incar["IBRION"] != -1,
+            prev_incar["LCHARG"] is not True,
+            any([sum(prev_incar["LDAUU"]) <= 0,
+                 prev_incar["LMAXMIX"] < 4])
+            if prev_incar.get("LDAU") else False]):
+        raise ValueError("Incompatible INCAR parameters!")
+    return prev_incar
+
+
 class StructureOptimizationVaspInputSet(DictVaspInputSet):
     def __init__(self, config_dict_override=None, reciprocal_density=50,
                  force_gamma=True, **kwargs):
@@ -142,22 +197,14 @@ class StaticVaspInputSet(DictVaspInputSet):
                                             symprec=standardization_symprec)
             structure = sym_finder.get_primitive_standard_structure(
                 international_monoclinic=international_monoclinic)
-
         vis = StaticVaspInputSet(config_dict_override=config_dict_override,
                                  reciprocal_density=reciprocal_density)
         vis.write_input(structure, output_dir)
-
         if preserve_old_incar:
-            raise NotImplementedError(
-                "The option to preserve the old INCAR is not yet implemented!")
-            # TODO: parse old incar - see notes below
-            # override STATIC_SETTINGS in this INCAR
-            # make sure MAGMOM aligns correctly with sites in newest INCAR
-            # make sure LDAU aligns correctly with sites in newest INCAR
-            # make sure to use the tighter EDIFF
-            # write the new INCAR
-            # check old code to see if anything needed is missing
-            # perform a final sanity check on the parameters(?)
+            new_incar = vis.get_incar(structure)
+            incar = get_incar_from_prev_run(new_incar, StaticVaspInputSet.STATIC_SETTINGS, prev_dir,
+                                            config_dict_override["INCAR"])
+            incar.write_file(os.path.join(output_dir, "INCAR"))
 
 
 class NonSCFVaspInputSet(DictVaspInputSet):
@@ -288,7 +335,6 @@ class NonSCFVaspInputSet(DictVaspInputSet):
             else:
                 ispin = 1
             nscf_config_dict["INCAR"]["ISPIN"] = ispin
-
         if config_dict_override:
             nscf_config_dict["INCAR"].update(config_dict_override["INCAR"])
             nscf_config_dict["KPOINTS"].update(config_dict_override["KPOINTS"])
@@ -297,8 +343,8 @@ class NonSCFVaspInputSet(DictVaspInputSet):
                                      reciprocal_density=reciprocal_density,
                                      mode=mode)
         nscfvis.write_input(structure, output_dir)
-
         if preserve_old_incar:
-            raise NotImplementedError(
-                "The option to preserve the old INCAR is not yet implemented!")
-            # TODO: parse old INCAR (see notes for static runs...)
+            new_incar = nscfvis.get_incar(structure)
+            incar = get_incar_from_prev_run(new_incar, NonSCFVaspInputSet.NSCF_SETTINGS, prev_dir,
+                                            config_dict_override["INCAR"])
+            incar.write_file(os.path.join(output_dir, "INCAR"))
