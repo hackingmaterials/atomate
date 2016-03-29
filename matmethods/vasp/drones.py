@@ -56,7 +56,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                  additional_fields=None, update_duplicates=True,
                  mapi_key=None, use_full_uri=True, runs=None):
         self.root_keys = {"name", "dir_name", "schema_version", "chemsys",
-                          "anonymous_formula", "preliminary_calculations","calculation",
+                          "anonymous_formula", "calculations_initial", "calculation",
                           "completed_at",
                           "nsites", "unit_cell_formula",
                           "reduced_cell_formula", "pretty_formula",
@@ -166,7 +166,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             d["name"] = "MatMethods"
             d["dir_name"] = fullpath
             d["schema_version"] = MMVaspToDbTaskDrone.__version__
-            d["preliminary_calculations"] = [ self.process_vasprun(dir_name, taskname, filename)
+            d["calculations_initial"] = [ self.process_vasprun(dir_name, taskname, filename)
                                               for taskname, filename in vasprun_files.items()[:-1]]
             taskname_initial, filename_initial = vasprun_files.items()[0]
             taskname_final, filename_final = vasprun_files.items()[-1]
