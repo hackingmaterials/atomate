@@ -9,7 +9,6 @@ This module defines the drones
 
 import os
 import re
-import string
 import datetime
 import zlib
 from fnmatch import fnmatch
@@ -22,6 +21,7 @@ from monty.json import MontyEncoder
 
 import numpy as np
 
+from pymatgen.core.composition import Composition
 from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp import Vasprun, Outcar
@@ -51,16 +51,16 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
 
     def __init__(self, host="127.0.0.1", port=27017,
                  database="vasp", collection="tasks",
-                 user=None, password=None, taskname="standard",
+                 user=None, password=None,
                  parse_dos=False, compress_dos=False, simulate_mode=False,
                  additional_fields=None, update_duplicates=True,
                  mapi_key=None, use_full_uri=True, runs=None):
-        self.taskname = taskname
         self.root_keys = {"name", "dir_name", "schema_version", "chemsys",
-                          "anonymous_formula", "calculations", "completed_at",
+                          "anonymous_formula", "preliminary_calculations","calculation",
+                          "completed_at",
                           "nsites", "unit_cell_formula",
                           "reduced_cell_formula", "pretty_formula",
-                          "elements", "nelements", "run_type",
+                          "elements", "nelements",
                           "input", "output", "state", "analysis"}
         self.input_keys = {'is_lasph', 'is_hubbard', 'xc_override',
                            'potcar_spec', 'hubbards', 'structure',
@@ -69,17 +69,17 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                             'final_energy_per_atom', 'vbm', 'cbm',
                             'spacegroup', 'final_energy', 'structure'}
         self.calculations_keys = {'dir_name', 'run_type', 'elements',
-                                  'hubbards', 'nelements', 'pretty_formula',
+                                  'nelements', 'pretty_formula',
                                   'reduced_cell_formula', 'vasp_version',
                                   'nsites', 'unit_cell_formula',
                                   'completed_at', 'output',
-                                  'task', 'is_hubbard', 'input', 'task',
+                                  'task', 'input', 'task',
                                   'has_vasp_completed'}
         self.analysis_keys = {'delta_volume_percent', 'delta_volume',
                               'max_force', 'errors', 'warnings'}
         self.all_keys = {"root": self.root_keys, "input": self.input_keys,
                          "output": self.output_keys,
-                         "calculations": self.calculations_keys,
+                         "calculation": self.calculations_keys,
                          "analysis": self.analysis_keys}
         super(MMVaspToDbTaskDrone, self).__init__(host=host, port=port,
                                                   database=database,
@@ -133,22 +133,30 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         """
         logger.info("Getting task doc for base dir :{}".format(path))
         files = os.listdir(path)
-        vasprun_file = OrderedDict()
-        if "STOPCAR" in files:
-            logger.warn(path + " contains stopped run")
-        for f in files:
-            if fnmatch(f, "vasprun.xml*"):
-                vasprun_file['standard'] = f
-        d = {}
-        if vasprun_file:
-            d = self.generate_doc(path, vasprun_file)
+        vasprun_files = OrderedDict()
+        for r in self.runs:
+            if r in files:  # try subfolder schema
+                for f in os.listdir(os.path.join(path, r)):
+                    if fnmatch(f, "vasprun.xml*"):
+                        vasprun_files[r] = os.path.join(r, f)
+            else:  # try extension schema
+                for f in files:
+                    if fnmatch(f, "vasprun.xml.{}*".format(r)):
+                        vasprun_files[r] = f
+        if len(vasprun_files) == 0:
+            for f in files:  # get any vasprun from the folder
+                if fnmatch(f, "vasprun.xml*") and \
+                                f not in vasprun_files.values():
+                    vasprun_files['standard'] = f
+        if len(vasprun_files) > 0:
+            d = self.generate_doc(path, vasprun_files)
             self.post_process(path, d)
         else:
             raise ValueError("No VASP files found!")
         self.check_keys(d)
         return d
 
-    def generate_doc(self, dir_name, vasprun_file):
+    def generate_doc(self, dir_name, vasprun_files):
         """
         Adapted from matgendb.creator.generate_doc
         """
@@ -158,21 +166,24 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             d["name"] = "MatMethods"
             d["dir_name"] = fullpath
             d["schema_version"] = MMVaspToDbTaskDrone.__version__
-            filename = vasprun_file[self.taskname]
-            d["calculations"] = self.process_vasprun(dir_name, filename)
-            d_calc = d["calculations"]
-            d["chemsys"] = "-".join(sorted(d_calc["elements"]))
-            vals = sorted(d_calc["reduced_cell_formula"].values())
-            d["anonymous_formula"] = {string.ascii_uppercase[i]: float(vals[i])
-                                      for i in range(len(vals))}
+            d["preliminary_calculations"] = [ self.process_vasprun(dir_name, taskname, filename)
+                                              for taskname, filename in vasprun_files.items()[:-1]]
+            taskname_initial, filename_initial = vasprun_files.items()[0]
+            taskname_final, filename_final = vasprun_files.items()[-1]
+            d_calc_initial = self.process_vasprun(dir_name, taskname_initial, filename_initial)
+            d_calc_final = self.process_vasprun(dir_name, taskname_final, filename_final)
+            d["calculation"] = d_calc_final
+            d["chemsys"] = "-".join(sorted(d_calc_final["elements"]))
+            d["anonymous_formula"] = (Composition.from_dict(d_calc_final[
+                                                                "unit_cell_formula"])).anonymized_formula
             for root_key in ["completed_at", "nsites",
                              "unit_cell_formula",
                              "reduced_cell_formula", "pretty_formula",
-                             "elements", "nelements", "run_type"]:
-                d[root_key] = d_calc[root_key]
-            self.set_input_data(d_calc, d)
-            self.set_output_data(d_calc, d)
-            self.set_state(vasprun_file, d_calc, d)
+                             "elements", "nelements"]:
+                d[root_key] = d_calc_final[root_key]
+            self.set_input_data(d_calc_initial, d)
+            self.set_output_data(d_calc_final, d)
+            self.set_state(d_calc_final, d)
             self.set_analysis(d)
             d["last_updated"] = datetime.datetime.today()
             return d
@@ -183,7 +194,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                          ".\n" + traceback.format_exc())
             return None
 
-    def process_vasprun(self, dir_name, filename):
+    def process_vasprun(self, dir_name, taskname, filename):
         """
         Adapted from matgendb.creator
 
@@ -206,7 +217,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             except Exception:
                 logger.error("No valid dos data exist in {}.\n Skipping dos"
                              .format(dir_name))
-        d["task"] = {"type": self.taskname, "name": self.taskname}
+        d["task"] = {"type": taskname, "name": taskname}
         return d
 
     def set_input_data(self, d_calc, d):
@@ -221,8 +232,8 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         pot_type = p[0]
         functional = "lda" if len(pot_type) == 1 else "_".join(p[1:])
         d["input"] = {"structure": d_calc["input"]["structure"],
-                      "is_hubbard": d_calc["is_hubbard"],
-                      "hubbards": d_calc["hubbards"],
+                      "is_hubbard": d_calc.pop("is_hubbard"),
+                      "hubbards": d_calc.pop("hubbards"),
                       "is_lasph": d_calc["input"]["incar"].get("LASPH", False),
                       "potcar_spec": d_calc["input"].get("potcar_spec"),
                       "xc_override": xc,
@@ -251,15 +262,11 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             "crystal_system": sg.get_crystal_system(),
             "hall": sg.get_hall()}
 
-    def set_state(self, vasprun_file, d_calc, d):
+    def set_state(self, d_calc, d):
         """
         set the 'state' key
         """
-        if list(vasprun_file.keys())[0] == "standard":
-            d["state"] = "successful" if d_calc["has_vasp_completed"] \
-                else "unsuccessful"
-        else:
-            d["state"] = "stopped"
+        d["state"] = "successful" if d_calc["has_vasp_completed"] else "unsuccessful"
 
     def set_analysis(self, d, max_force_threshold=0.5,
                      volume_change_threshold=0.2):
@@ -279,11 +286,11 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                                 .format(volume_change_threshold * 100))
         max_force = None
         if d["state"] == "successful" and \
-                        d["calculations"]["input"]["parameters"].get("NSW",
+                        d["calculation"]["input"]["parameters"].get("NSW",
                                                                      0) > 0:
             # handle the max force and max force error
             max_force = max([np.linalg.norm(a)
-                             for a in d["calculations"]["output"]
+                             for a in d["calculation"]["output"]
                              ["ionic_steps"][-1]["forces"]])
             if max_force > max_force_threshold:
                 error_msgs.append("Final max force exceeds {} eV"
@@ -303,7 +310,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         """
         return processed data such as vbm, cbm, gap
         """
-        calc = d["calculations"]
+        calc = d["calculation"]
         gap = calc["output"]["bandgap"]
         cbm = calc["output"]["cbm"]
         vbm = calc["output"]["vbm"]
@@ -330,17 +337,17 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             result = coll.find_one({"dir_name": d["dir_name"]},
                                    ["dir_name", "task_id"])
             if result is None or self.update_duplicates:
-                if self.parse_dos and "calculations" in d:
-                    if "dos" in d["calculations"]:
-                        dos = json.dumps(d["calculations"]["dos"],
+                if self.parse_dos and "calculation" in d:
+                    if "dos" in d["calculation"]:
+                        dos = json.dumps(d["calculation"]["dos"],
                                          cls=MontyEncoder)
                         if self.compress_dos:
                             dos = zlib.compress(dos, self.compress_dos)
-                            d["calculations"]["dos_compression"] = "zlib"
+                            d["calculation"]["dos_compression"] = "zlib"
                         fs = gridfs.GridFS(db, "dos_fs")
                         dosid = fs.put(dos)
-                        d["calculations"]["dos_fs_id"] = dosid
-                        del d["calculations"]["dos"]
+                        d["calculation"]["dos_fs_id"] = dosid
+                        del d["calculation"]["dos"]
                 d["last_updated"] = datetime.datetime.today()
                 if result is None:
                     if ("task_id" not in d) or (not d["task_id"]):
@@ -430,8 +437,9 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             run_stats = {}
             for filename in glob.glob(os.path.join(fullpath, "OUTCAR*")):
                 outcar = Outcar(filename)
-                d["calculations"]["output"]["outcar"] = outcar.as_dict()
-                run_stats[self.taskname] = outcar.run_stats
+                taskname = "relax2" if re.search("relax2", filename) else "standard"
+                d["calculation"]["output"]["outcar"] = outcar.as_dict()
+                run_stats[taskname] = outcar.run_stats
         except:
             logger.error("Bad OUTCAR for {}.".format(fullpath))
         try:
@@ -460,22 +468,3 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             diff = v.difference(set(d.get(k, d).keys()))
             if diff:
                 logger.warn("The keys {0} in {1} not set".format(diff, k))
-
-    @classmethod
-    def from_dict(cls, d):
-        return cls(**d["init_args"])
-
-    def as_dict(self):
-        init_args = {"host": self.host, "port": self.port,
-                     "database": self.database, "user": self.user,
-                     "password": self.password,
-                     "collection": self.collection,
-                     "taskname": self.taskname,
-                     "parse_dos": self.parse_dos,
-                     "simulate_mode": self.simulate,
-                     "additional_fields": self.additional_fields,
-                     "update_duplicates": self.update_duplicates}
-        output = {"name": self.__class__.__name__,
-                  "init_args": init_args, "version":
-                      self.__class__.__version__}
-        return output
