@@ -7,12 +7,11 @@ import os
 import unittest
 
 from fireworks.utilities.fw_serializers import load_object
+from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, \
+    WriteVaspFromPMGObjects, ModifyIncar, WriteVaspStaticFromPrev
+from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet, StaticVaspInputSet
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
-
-from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, \
-    WriteVaspFromPMGObjects, ModifyIncar
-from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
@@ -45,6 +44,12 @@ class TestWriteVasp(unittest.TestCase):
         cls.ref_kpoints = Kpoints.from_file(
             os.path.join(module_dir, "reference_files", "setup_test",
                          "KPOINTS"))
+        cls.ref_incar_preserve = Incar.from_file(os.path.join(module_dir,
+                                                              "reference_files",
+                                                              "Si_structure_optimization",
+                                                              "outputs",
+                                                              "INCAR"))
+        cls.ref_incar_preserve.update(StaticVaspInputSet.STATIC_SETTINGS)
 
     def setUp(self):
         os.chdir(module_dir)
@@ -54,19 +59,27 @@ class TestWriteVasp(unittest.TestCase):
             if os.path.exists(os.path.join(module_dir, x)):
                 os.remove(os.path.join(module_dir, x))
 
-    def _verify_files(self, skip_kpoints=False):
-        self.assertEqual(Incar.from_file(os.path.join(module_dir, "INCAR")),
-                         self.ref_incar)
-        self.assertEqual(
-            str(Poscar.from_file(os.path.join(module_dir, "POSCAR"))),
-            str(self.ref_poscar))
-        self.assertEqual((Potcar.from_file(os.path.join(module_dir,
-                                                        "POTCAR"))).symbols,
-                         self.ref_potcar.symbols)
-        if not skip_kpoints:
+    def _verify_files(self, skip_kpoints=False, preserve_incar=False):
+        if not preserve_incar:
             self.assertEqual(
-                str(Kpoints.from_file(os.path.join(module_dir, "KPOINTS"))),
-                str(self.ref_kpoints))
+                Incar.from_file(os.path.join(module_dir, "INCAR")),
+                self.ref_incar)
+            self.assertEqual(
+                str(Poscar.from_file(os.path.join(module_dir, "POSCAR"))),
+                str(self.ref_poscar))
+            self.assertEqual((Potcar.from_file(os.path.join(module_dir,
+                                                            "POTCAR"))).symbols,
+                             self.ref_potcar.symbols)
+            if not skip_kpoints:
+                self.assertEqual(
+                    str(Kpoints.from_file(
+                        os.path.join(module_dir, "KPOINTS"))),
+                    str(self.ref_kpoints))
+        else:
+            #self.ref_incar_preserve.update({"KPOINT_BSE":"-1", "LVTOT": True})
+            self.assertEqual(
+                Incar.from_file(os.path.join(module_dir, "INCAR")),
+                self.ref_incar_preserve)
 
     def test_ioset_explicit(self):
         ft = WriteVaspFromIOSet(dict(structure=self.struct_si,
@@ -106,6 +119,16 @@ class TestWriteVasp(unittest.TestCase):
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
         self._verify_files()
+
+    def test_preserve_incar(self):
+        ft = WriteVaspStaticFromPrev(prev_dir=os.path.join(module_dir,
+                                                           "reference_files",
+                                                           "Si_structure_optimization",
+                                                           "outputs"),
+                                     preserve_old_incar=True)
+        ft = load_object(ft.to_dict())
+        ft.run_task({})
+        self._verify_files(preserve_incar=True)
 
     def test_modifyincar(self):
         # create an INCAR
