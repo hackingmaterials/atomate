@@ -9,108 +9,19 @@ import os
 from monty.os.path import zpath
 from monty.serialization import loadfn
 
-from pymatgen.io.vasp import Poscar, Vasprun, Outcar, Kpoints
+from pymatgen.io.vasp import Incar, Poscar, Vasprun, Outcar, Kpoints
 from pymatgen.io.vasp.sets import DictVaspInputSet
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.symmetry.bandstructure import HighSymmKpath
 
 from matmethods.utils.utils import get_logger
 
-__author__ = 'Anubhav Jain'
-__email__ = 'ajain@lbl.gov'
+__author__ = 'Anubhav Jain, Kiran Mathew'
+__email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 logger = get_logger(__name__)
-
-
-def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
-    """
-    Process structure for static calculations from previous run.
-
-    Args:
-        prev_dir (str): directory of the previous run
-        preserve_magmom (bool): whether to preserve magmom of the old run.
-
-    Returns:
-        Returns the magmom-decorated structure.
-    """
-    prev_dir = prev_dir or os.curdir
-
-    if preserve_magmom:
-        vasprun = Vasprun(zpath(os.path.join(prev_dir, "vasprun.xml")),
-                          parse_dos=False, parse_eigen=False)
-        outcar = Outcar(zpath(os.path.join(prev_dir, "OUTCAR")))
-        structure = vasprun.final_structure
-
-        if vasprun.is_spin:
-            if outcar and outcar.magnetization:
-                magmom = {"magmom": [i['tot'] for i in outcar.magnetization]}
-            else:
-                magmom = {
-                    "magmom": vasprun.as_dict()['input']['parameters'][
-                        'MAGMOM']}
-        else:
-            magmom = None
-        return structure.copy(site_properties=magmom)
-    else:
-        return Poscar.from_file(
-            zpath(os.path.join(prev_dir, "CONTCAR"))).structure
-
-
-def get_incar_from_prev_run(new_incar, settings, prev_dir, config_dict_override):
-    """
-    Return incar object from the previous run with custom settings as well as structure dependent
-    adjustments for parameters such as magmom and ldau.
-    Adapted from pymatgen.io.vasp.sets
-
-    Args:
-        new_incar (Incar): Incar from the structure
-        settings (dict): default settings
-        prev_dir (str): path to the previous run directory
-        config_dict_override (dict): dictionary of Incar parameters to be overridden
-
-    Returns:
-        Incar object
-    """
-    try:
-        vasp_run = Vasprun(os.path.join(prev_dir, "vasprun.xml"), parse_dos=False, parse_eigen=False)
-        prev_incar = vasp_run.incar
-    except:
-        raise RuntimeError("Can't get valid results from previous run. prev dir: {}".format(prev_dir))
-    # Use previous run INCAR and override necessary parameters
-    prev_incar.update(settings)
-    for incar_key in ["MAGMOM", "NUPDOWN"]:
-        if new_incar.get(incar_key, None):
-            prev_incar.update({incar_key: new_incar[incar_key]})
-        else:
-            prev_incar.pop(incar_key, None)
-    # use new LDAUU when possible b/c the Poscar might have changed
-    # representation
-    if prev_incar.get('LDAU'):
-        u = prev_incar.get('LDAUU', [])
-        j = prev_incar.get('LDAUJ', [])
-        if sum([u[x] - j[x] for x, y in enumerate(u)]) > 0:
-            for tag in ('LDAUU', 'LDAUL', 'LDAUJ'):
-                prev_incar.update({tag: new_incar[tag]})
-        # ensure to have LMAXMIX for GGA+U static run
-        if "LMAXMIX" not in previous_incar:
-            prev_incar.update({"LMAXMIX": new_incar["LMAXMIX"]})
-    # Compare ediff between previous and staticinputset values,
-    # choose the tighter ediff
-    prev_incar.update({"EDIFF": min(prev_incar.get("EDIFF", 1), new_incar["EDIFF"])})
-    # override settings
-    if config_dict_override:
-        prev_incar.update(config_dict_override)
-    # Perform checking on INCAR parameters
-    if any([prev_incar.get("NSW", 0) != 0,
-            prev_incar["IBRION"] != -1,
-            prev_incar["LCHARG"] is not True,
-            any([sum(prev_incar["LDAUU"]) <= 0,
-                 prev_incar["LMAXMIX"] < 4])
-            if prev_incar.get("LDAU") else False]):
-        raise ValueError("Incompatible INCAR parameters!")
-    return prev_incar
 
 
 class StructureOptimizationVaspInputSet(DictVaspInputSet):
@@ -201,9 +112,13 @@ class StaticVaspInputSet(DictVaspInputSet):
                                  reciprocal_density=reciprocal_density)
         vis.write_input(structure, output_dir)
         if preserve_old_incar:
-            new_incar = vis.get_incar(structure)
-            incar = get_incar_from_prev_run(new_incar, StaticVaspInputSet.STATIC_SETTINGS, prev_dir,
-                                            config_dict_override["INCAR"])
+            incar_from_struct = vis.get_incar(structure)
+            incar_dict_override = config_dict_override.get("INCAR", None) if\
+                config_dict_override else None
+            incar = get_incar_from_prev_run(incar_from_struct,
+                                            StaticVaspInputSet.STATIC_SETTINGS,
+                                            prev_dir,
+                                            incar_dict_override=incar_dict_override)
             incar.write_file(os.path.join(output_dir, "INCAR"))
 
 
@@ -239,8 +154,8 @@ class NonSCFVaspInputSet(DictVaspInputSet):
                 else:
                     d["config_dict"][k] = config_dict_override[k]
         super(NonSCFVaspInputSet, self).__init__(**d)
-
-        self.reciprocal_density = reciprocal_density  # used by the "get_kpoints()" method
+        # used by the "get_kpoints()" method
+        self.reciprocal_density = reciprocal_density
         self.sym_prec = sym_prec
         self.mode = mode
 
@@ -317,13 +232,12 @@ class NonSCFVaspInputSet(DictVaspInputSet):
         vasprun = Vasprun(os.path.join(prev_dir, "vasprun.xml"),
                           parse_dos=False, parse_eigen=False)
         nscf_config_dict["INCAR"]["NBANDS"] = int(
-            math.ceil(vasprun.as_dict()["input"]["parameters"]["NBANDS"] * nbands_factor))
-
+            math.ceil(vasprun.as_dict()["input"]["parameters"][
+                          "NBANDS"] * nbands_factor))
         # retain grid of old run
         for grid in ["NGX", "NGY", "NGZ"]:
             if vasprun.incar.get(grid):
                 nscf_config_dict["INCAR"][grid] = vasprun.incar.get(grid)
-
         if magmom_cutoff:
             # turn off ISPIN if previous calc did not have significant
             # magnetic moments (>magmom_cutoff)
@@ -345,6 +259,102 @@ class NonSCFVaspInputSet(DictVaspInputSet):
         nscfvis.write_input(structure, output_dir)
         if preserve_old_incar:
             new_incar = nscfvis.get_incar(structure)
-            incar = get_incar_from_prev_run(new_incar, NonSCFVaspInputSet.NSCF_SETTINGS, prev_dir,
-                                            config_dict_override["INCAR"])
+            incar_dict_override = config_dict_override.get("INCAR", None) if \
+                config_dict_override else None
+            incar = get_incar_from_prev_run(new_incar,
+                                            NonSCFVaspInputSet.NSCF_SETTINGS,
+                                            prev_dir,
+                                            incar_dict_override=incar_dict_override)
             incar.write_file(os.path.join(output_dir, "INCAR"))
+
+
+def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
+    """
+    Process structure for static calculations from previous run.
+
+    Args:
+        prev_dir (str): directory of the previous run
+        preserve_magmom (bool): whether to preserve magmom of the old run.
+
+    Returns:
+        Returns the magmom-decorated structure.
+    """
+    prev_dir = prev_dir or os.curdir
+
+    if preserve_magmom:
+        vasprun = Vasprun(zpath(os.path.join(prev_dir, "vasprun.xml")),
+                          parse_dos=False, parse_eigen=False)
+        outcar = Outcar(zpath(os.path.join(prev_dir, "OUTCAR")))
+        structure = vasprun.final_structure
+
+        if vasprun.is_spin:
+            if outcar and outcar.magnetization:
+                magmom = {"magmom": [i['tot'] for i in outcar.magnetization]}
+            else:
+                magmom = {
+                    "magmom": vasprun.as_dict()['input']['parameters'][
+                        'MAGMOM']}
+        else:
+            magmom = None
+        return structure.copy(site_properties=magmom)
+    else:
+        return Poscar.from_file(
+            zpath(os.path.join(prev_dir, "CONTCAR"))).structure
+
+
+def get_incar_from_prev_run(incar_from_struct, default_settings, prev_dir,
+                            incar_dict_override=None):
+    """
+    Return incar object from the previous run with custom settings as well as
+    structure dependent adjustments for parameters such as magmom and ldau.
+    Adapted from pymatgen.io.vasp.sets
+
+    Args:
+        incar_from_struct (Incar): Incar from the structure
+        default_settings (dict): default settings
+        prev_dir (str): path to the previous run directory
+        config_dict_override (dict): dictionary of Incar parameters to be
+            overridden
+
+    Returns:
+        Incar object
+    """
+    prev_incar = None
+    try:
+        prev_incar = Incar.from_file(os.path.join(prev_dir, "INCAR"))
+    except:
+        raise RuntimeError(
+            "Can't get valid results from previous run. prev dir: {}".format(
+                prev_dir))
+    # Override using the default parameter settings
+    prev_incar.update(default_settings)
+    for incar_key in ["MAGMOM", "NUPDOWN"]:
+        if incar_from_struct.get(incar_key, None):
+            prev_incar.update({incar_key: incar_from_struct[incar_key]})
+        else:
+            prev_incar.pop(incar_key, None)
+    # use new LDAUU when possible b/c the Poscar might have changed
+    # representation
+    if prev_incar.get('LDAU'):
+        u = prev_incar.get('LDAUU', [])
+        j = prev_incar.get('LDAUJ', [])
+        if sum([u[x] - j[x] for x, y in enumerate(u)]) > 0:
+            for tag in ('LDAUU', 'LDAUL', 'LDAUJ'):
+                prev_incar.update({tag: incar_from_struct[tag]})
+        # ensure to have LMAXMIX for GGA+U static run
+        if "LMAXMIX" not in prev_incar:
+            prev_incar.update({"LMAXMIX": incar_from_struct["LMAXMIX"]})
+    # Choose the tighter ediff
+    prev_incar.update(
+        {"EDIFF": min(prev_incar.get("EDIFF", 1), incar_from_struct["EDIFF"])})
+    # override settings
+    if incar_dict_override:
+        prev_incar.update(incar_dict_override)
+    # Sanity check
+    prev_incar_dict = prev_incar.as_dict()
+    check_list = []
+    for k, v in default_settings.items():
+        check_list.append(prev_incar_dict[k] != v)
+    if any(check_list):
+        raise ValueError("INCAR parameters not set properly!")
+    return prev_incar
