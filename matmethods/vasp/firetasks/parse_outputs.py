@@ -9,7 +9,7 @@ import zlib
 
 import gridfs
 import six
-from fireworks import FireTaskBase
+from fireworks import FireTaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.utilities.fw_utilities import explicit_serialize
 from matgendb.util import get_settings
@@ -114,3 +114,4 @@ class VaspToDbTask(FireTaskBase):
                         "$set": {"calculation.bandstructure_fs_id": bs_id,
                                  "calculation.bandstructure_compression": "zlib"}})
                     logger.info("Finished parsing band structure.")
+                return FWAction(stored_data={"task_id": t_id})
