@@ -132,7 +132,7 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp",
                    name="{}-{}".format(structure.composition.reduced_formula,
                                        task_label))
 
-    my_wf = Workflow([fw1, fw2, fw3, fw4])
+    my_wf = Workflow([fw1, fw2, fw3, fw4], name=structure.composition.reduced_formula)
 
     if custodian_powerup:
         my_wf = use_custodian(my_wf)
