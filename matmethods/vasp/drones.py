@@ -45,11 +45,13 @@ logger = get_logger(__name__)
 
 # TODO: needs comprehensive unit tests
 
+
 class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
     """
     VaspToDbTaskDrone with updated schema.
     Also removed the processing of aflow style runs.
     Please refer to matgendb.creator.VaspToDbTaskDrone documentation
+
     """
 
     __version__ = 0.1
@@ -60,45 +62,40 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                  parse_dos=False, compress_dos=False, simulate_mode=False,
                  additional_fields=None, update_duplicates=True,
                  mapi_key=None, use_full_uri=True, runs=None):
+        # TODO: I don't understand some of the fields. What does "runs" do?
         self.root_keys = {"name", "dir_name", "schema_version", "chemsys",
-                          "anonymous_formula", "calculations_initial", "calculation",
+                          "formula_anonymous", "calculations_initial",
+                          "calculation",
                           "completed_at",
-                          "nsites", "unit_cell_formula",
-                          "reduced_cell_formula", "pretty_formula",
+                          "nsites", "composition_unit_cell",
+                          "composition_reduced", "formula_pretty",
                           "elements", "nelements",
                           "input", "output", "state", "analysis"}
         self.input_keys = {'is_lasph', 'is_hubbard', 'xc_override',
                            'potcar_spec', 'hubbards', 'structure',
                            'pseudo_potential'}
         self.output_keys = {'is_gap_direct', 'density', 'bandgap',
-                            'final_energy_per_atom', 'vbm', 'cbm',
-                            'spacegroup', 'final_energy', 'structure'}
-        self.calculations_keys = {'dir_name', 'run_type', 'elements',
-                                  'nelements', 'pretty_formula',
-                                  'reduced_cell_formula', 'vasp_version',
-                                  'nsites', 'unit_cell_formula',
-                                  'completed_at', 'output',
-                                  'task', 'input', 'task',
-                                  'has_vasp_completed'}
+                            'energy_per_atom', 'vbm', 'cbm',
+                            'spacegroup', 'energy', 'structure'}
+        self.calculations_keys = {
+            'dir_name', 'run_type', 'elements', 'nelements', 'pretty_formula',
+            'composition_reduced', 'vasp_version', 'nsites',
+            'composition_unit_cell', 'completed_at', 'output', 'task',
+            'input', 'has_vasp_completed'}
         self.analysis_keys = {'delta_volume_percent', 'delta_volume',
                               'max_force', 'errors', 'warnings'}
         self.all_keys = {"root": self.root_keys, "input": self.input_keys,
                          "output": self.output_keys,
                          "calculation": self.calculations_keys,
                          "analysis": self.analysis_keys}
-        super(MMVaspToDbTaskDrone, self).__init__(host=host, port=port,
-                                                  database=database,
-                                                  user=user, password=password,
-                                                  collection=collection,
-                                                  parse_dos=parse_dos,
-                                                  compress_dos=compress_dos,
-                                                  simulate_mode=simulate_mode,
-                                                  additional_fields=additional_fields,
-                                                  update_duplicates=update_duplicates,
-                                                  mapi_key=mapi_key,
-                                                  use_full_uri=use_full_uri,
-                                                  runs=runs
-                                                  )
+        super(MMVaspToDbTaskDrone, self).__init__(
+            host=host, port=port, database=database, user=user,
+            password=password, collection=collection, parse_dos=parse_dos,
+            compress_dos=compress_dos, simulate_mode=simulate_mode,
+            additional_fields=additional_fields,
+            update_duplicates=update_duplicates,
+            mapi_key=mapi_key, use_full_uri=use_full_uri, runs=runs
+        )
 
     def assimilate(self, path):
         """
@@ -171,19 +168,22 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             d["name"] = "MatMethods"
             d["dir_name"] = fullpath
             d["schema_version"] = MMVaspToDbTaskDrone.__version__
-            d["calculations_initial"] = [ self.process_vasprun(dir_name, taskname, filename)
-                                              for taskname, filename in vasprun_files.items()[:-1]]
+            d["calculations_initial"] = [
+                self.process_vasprun(dir_name, taskname, filename)
+                for taskname, filename in vasprun_files.items()[:-1]]
             taskname_initial, filename_initial = vasprun_files.items()[0]
             taskname_final, filename_final = vasprun_files.items()[-1]
-            d_calc_initial = self.process_vasprun(dir_name, taskname_initial, filename_initial)
-            d_calc_final = self.process_vasprun(dir_name, taskname_final, filename_final)
+            d_calc_initial = self.process_vasprun(dir_name, taskname_initial,
+                                                  filename_initial)
+            d_calc_final = self.process_vasprun(dir_name, taskname_final,
+                                                filename_final)
             d["calculation"] = d_calc_final
             d["chemsys"] = "-".join(sorted(d_calc_final["elements"]))
-            d["anonymous_formula"] = (Composition.from_dict(d_calc_final[
-                                                                "unit_cell_formula"])).anonymized_formula
+            d["formula_anonymous"] = Composition(
+                d_calc_final["composition_unit_cell"]).anonymized_formula
             for root_key in ["completed_at", "nsites",
-                             "unit_cell_formula",
-                             "reduced_cell_formula", "pretty_formula",
+                             "composition_unit_cell",
+                             "composition_reduced", "formula_pretty",
                              "elements", "nelements"]:
                 d[root_key] = d_calc_final[root_key]
             self.set_input_data(d_calc_initial, d)
@@ -208,6 +208,12 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         vasprun_file = os.path.join(dir_name, filename)
         vrun = Vasprun(vasprun_file)
         d = vrun.as_dict()
+        for k, v in {"formula_pretty": "pretty_formula",
+                     "composition_reduced": "reduced_cell_formula",
+                     "composition_unit_cell": "unit_cell_formula"}.items():
+            d[k] = d[v]
+            del d[v]
+
         d["dir_name"] = os.path.abspath(dir_name)
         d["completed_at"] = \
             str(datetime.datetime.fromtimestamp(os.path.getmtime(
@@ -216,6 +222,12 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         # replace 'crystal' with 'structure'
         d["input"]["structure"] = d["input"].pop("crystal")
         d["output"]["structure"] = d["output"].pop("crystal")
+        for k, v in {"energy": "final_energy",
+                     "energy_per_atom":
+                         "final_energy_per_atom"}.items():
+
+            d["output"][k] = d["output"][v]
+            del d["output"][v]
         if self.parse_dos and self.parse_dos != 'final':
             try:
                 d["dos"] = vrun.complete_dos.as_dict()
@@ -254,8 +266,8 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         d["output"] = {
             "structure": d_calc["output"]["structure"],
             "density": d_calc.pop("density"),
-            "final_energy": d_calc["output"]["final_energy"],
-            "final_energy_per_atom": d_calc["output"]["final_energy_per_atom"]}
+            "energy": d_calc["output"]["energy"],
+            "energy_per_atom": d_calc["output"]["energy_per_atom"]}
         d["output"].update(self.get_basic_processed_data(d))
         sg = SpacegroupAnalyzer(
             Structure.from_dict(d_calc["output"]["structure"]), 0.1)
