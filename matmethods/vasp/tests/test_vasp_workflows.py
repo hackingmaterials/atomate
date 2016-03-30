@@ -92,8 +92,8 @@ class TestVaspWorkflows(unittest.TestCase):
                         "nscf line"]:
             raise ValueError("Invalid mode!")
 
-        self.assertEqual(d["pretty_formula"], "Si")
-        self.assertEqual(d["anonymous_formula"], "A")
+        self.assertEqual(d["formula_pretty"], "Si")
+        self.assertEqual(d["formula_anonymous"], "A")
         self.assertEqual(d["nelements"], 1)
         self.assertEqual(d["state"], "successful")
         self.assertAlmostEqual(
@@ -102,13 +102,13 @@ class TestVaspWorkflows(unittest.TestCase):
         self.assertEqual(d["output"]["is_gap_direct"], False)
 
         if mode in ["structure optimization", "static"]:
-            self.assertAlmostEqual(d["output"]["final_energy"], -10.850, 2)
-            self.assertAlmostEqual(d["output"]["final_energy_per_atom"],
+            self.assertAlmostEqual(d["output"]["energy"], -10.850, 2)
+            self.assertAlmostEqual(d["output"]["energy_per_atom"],
                                    -5.425, 2)
 
         elif mode in ["ncsf uniform"]:
-            self.assertAlmostEqual(d["output"]["final_energy"], -10.828, 2)
-            self.assertAlmostEqual(d["output"]["final_energy_per_atom"],
+            self.assertAlmostEqual(d["output"]["energy"], -10.828, 2)
+            self.assertAlmostEqual(d["output"]["energy_per_atom"],
                                    -5.414, 2)
 
         self.assertAlmostEqual(d["output"]["bandgap"], 0.65, 1)
