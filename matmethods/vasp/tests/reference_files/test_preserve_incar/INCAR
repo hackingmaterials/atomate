@@ -1,0 +1,30 @@
+SYSTEM   = NiO
+
+ISTART   = 0
+
+ISPIN    = 2
+MAGMOM   = 2*2.0 2*-2.0 4*0
+
+ENMAX    = 250.0
+EDIFF    = 1E-3
+
+ISMEAR   = -5
+
+AMIX     = 0.2
+BMIX     = 0.00001
+AMIX_MAG = 0.8
+BMIX_MAG = 0.00001
+
+LORBIT   = 11
+
+LDAU      = .TRUE.
+LDAUTYPE  = 2
+LDAUL     = 2 -1
+LDAUU     = 8.00 0.00
+LDAUJ     = 0.95 0.0
+LDAUPRINT = 2
+
+LMAXMIX   = 4
+
+IBRION = 2
+NSW = 49
