@@ -49,7 +49,7 @@ class TestWriteVasp(unittest.TestCase):
                          "KPOINTS"))
         cls.ref_incar_preserve = Incar.from_file(os.path.join(module_dir,
                                                               "reference_files",
-                                                              "test_preserve_incar",
+                                                              "preserve_incar",
                                                               "INCAR"))
         cls.ref_incar_preserve.update(StaticVaspInputSet.STATIC_SETTINGS)
 
@@ -124,17 +124,18 @@ class TestWriteVasp(unittest.TestCase):
     def test_preserve_incar(self):
         prev_structure = Structure.from_file(os.path.join(module_dir,
                                                           "reference_files",
-                                                          "test_preserve_incar",
+                                                          "preserve_incar",
                                                           "POSCAR_inverted"))
         prev_structure_decorated = prev_structure.copy()
-        prev_structure_decorated.add_site_property("magmom", [0.0, 0.0, 2.0,
-                                                              -2.0])
+        prev_structure_decorated.add_site_property("magmom",
+                                                   [0.0, 0.0, 2.0, -2.0])
+        # new structure is sorted and is a supercell of the previous one
         new_structure = prev_structure_decorated.copy()
         new_structure.sort()
         new_structure.make_supercell([2, 1, 1])
         prev_incar = Incar.from_file(os.path.join(module_dir,
                                                   "reference_files",
-                                                  "test_preserve_incar",
+                                                  "preserve_incar",
                                                   "INCAR_inverted"))
         # overide the ldau params read from the default yaml inputset
         # get_incar method expects ldau params in {"most_elec_neg":{
@@ -144,12 +145,15 @@ class TestWriteVasp(unittest.TestCase):
             "INCAR": self._get_processed_incar_dict(prev_incar,
                                                     Poscar(prev_structure))}
         vis = StaticVaspInputSet(config_dict_override=config_dict_override)
+        # get the incar corresponding to the new structure
         new_incar = vis.get_incar(new_structure)
+        # get the incar settings from the previous directory with structure
+        # dependent adjustments to magmom and ladu parameters
         incar = get_incar_from_prev_run(new_incar, new_structure,
-                                        StaticVaspInputSet.STATIC_SETTINGS,
+                                        vis.STATIC_SETTINGS,
                                         prev_dir=os.path.join(module_dir,
                                                               "reference_files",
-                                                              "test_preserve_incar"))
+                                                              "preserve_incar"))
         incar.write_file(os.path.join(".", "INCAR"))
         self._verify_files(preserve_incar=True)
 

@@ -325,6 +325,7 @@ def get_incar_from_prev_run(new_incar, new_structure, default_settings,
     prev_incar = None
     try:
         prev_incar = Incar.from_file(zpath(os.path.join(prev_dir, "INCAR")))
+        # the poscar is used only to get the ldau parameter mappings
         prev_poscar = Poscar.from_file(zpath(os.path.join(prev_dir, "POSCAR")))
     except:
         raise RuntimeError(
