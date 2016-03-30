@@ -7,10 +7,13 @@ import os
 import unittest
 
 from fireworks.utilities.fw_serializers import load_object
+
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, \
-    WriteVaspFromPMGObjects, ModifyIncar, WriteVaspStaticFromPrev
-from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet, StaticVaspInputSet
-from pymatgen import IStructure, Lattice
+    WriteVaspFromPMGObjects, ModifyIncar
+from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet, \
+    StaticVaspInputSet, get_incar_from_prev_run
+
+from pymatgen import IStructure, Lattice, Structure
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
@@ -18,7 +21,6 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
-# TODO: for "preserve_incar", the most important test is to retain LDA+U and MAGMOM orderings even when the cell changes setting
 
 class TestWriteVasp(unittest.TestCase):
     @classmethod
@@ -47,8 +49,7 @@ class TestWriteVasp(unittest.TestCase):
                          "KPOINTS"))
         cls.ref_incar_preserve = Incar.from_file(os.path.join(module_dir,
                                                               "reference_files",
-                                                              "Si_structure_optimization_plain",
-                                                              "outputs",
+                                                              "preserve_incar",
                                                               "INCAR"))
         cls.ref_incar_preserve.update(StaticVaspInputSet.STATIC_SETTINGS)
 
@@ -77,7 +78,6 @@ class TestWriteVasp(unittest.TestCase):
                         os.path.join(module_dir, "KPOINTS"))),
                     str(self.ref_kpoints))
         else:
-            #self.ref_incar_preserve.update({"KPOINT_BSE":"-1", "LVTOT": True})
             self.assertEqual(
                 Incar.from_file(os.path.join(module_dir, "INCAR")),
                 self.ref_incar_preserve)
@@ -122,14 +122,55 @@ class TestWriteVasp(unittest.TestCase):
         self._verify_files()
 
     def test_preserve_incar(self):
-        ft = WriteVaspStaticFromPrev(prev_dir=os.path.join(module_dir,
-                                                           "reference_files",
-                                                           "Si_structure_optimization",
-                                                           "outputs"),
-                                     preserve_old_incar=True)
-        ft = load_object(ft.to_dict())
-        ft.run_task({})
+        prev_structure = Structure.from_file(os.path.join(module_dir,
+                                                          "reference_files",
+                                                          "preserve_incar",
+                                                          "POSCAR_inverted"))
+        prev_structure_decorated = prev_structure.copy()
+        prev_structure_decorated.add_site_property("magmom",
+                                                   [0.0, 0.0, 2.0, -2.0])
+        # new structure is sorted and is a supercell of the previous one
+        new_structure = prev_structure_decorated.copy()
+        new_structure.sort()
+        new_structure.make_supercell([2, 1, 1])
+        prev_incar = Incar.from_file(os.path.join(module_dir,
+                                                  "reference_files",
+                                                  "preserve_incar",
+                                                  "INCAR_inverted"))
+        # overide the ldau params read from the default yaml inputset
+        # get_incar method expects ldau params in {"most_elec_neg":{
+        # "symbol": value}} format and incar.as_dict() yields the ldau
+        # params as list
+        config_dict_override = {
+            "INCAR": self._get_processed_incar_dict(prev_incar,
+                                                    Poscar(prev_structure))}
+        vis = StaticVaspInputSet(config_dict_override=config_dict_override)
+        # get the incar corresponding to the new structure
+        new_incar = vis.get_incar(new_structure)
+        # get the incar settings from the previous directory with structure
+        # dependent adjustments to magmom and ladu parameters
+        incar = get_incar_from_prev_run(new_incar, new_structure,
+                                        vis.STATIC_SETTINGS,
+                                        prev_dir=os.path.join(module_dir,
+                                                              "reference_files",
+                                                              "preserve_incar"))
+        incar.write_file(os.path.join(".", "INCAR"))
         self._verify_files(preserve_incar=True)
+
+    def _get_processed_incar_dict(self, incar, poscar):
+        incar_dict = incar.as_dict()
+        comp = poscar.structure.composition
+        elements = sorted([el for el in comp.elements if comp[el] > 0],
+                          key=lambda e: e.X)
+        most_electroneg = elements[-1].symbol
+        for lda_param in ("LDAUL", "LDAUU", "LDAUJ"):
+            if incar_dict.get(lda_param):
+                vals = incar_dict[lda_param]
+                if isinstance(vals, list):
+                    incar_dict[lda_param] = {most_electroneg: {}}
+                    for i, sym in enumerate(poscar.site_symbols):
+                        incar_dict[lda_param][most_electroneg][sym] = vals[i]
+        return incar_dict
 
     def test_modifyincar(self):
         # create an INCAR
