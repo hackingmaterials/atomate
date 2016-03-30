@@ -75,3 +75,5 @@ def decorate_write_name(original_wf, use_slug=True):
         fw.spec["_tasks"].insert(0, FileWriteTask(
             files_to_write=[{"filename": fname, "contents": ""}]).to_dict())
     return original_wf
+
+# TODO: add trackers powerup
