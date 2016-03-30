@@ -183,16 +183,12 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             d["schema"] = {"code": "MatMethods",
                            "version": MMVaspToDbTaskDrone.__version__}
             d["dir_name"] = fullpath
-            d["calculations_initial"] = [
+            d["calcs_reversed"] = [
                 self.process_vasprun(dir_name, taskname, filename)
-                for taskname, filename in vasprun_files.items()[:-1]]
-            taskname_initial, filename_initial = vasprun_files.items()[0]
-            taskname_final, filename_final = vasprun_files.items()[-1]
-            d_calc_initial = self.process_vasprun(dir_name, taskname_initial,
-                                                  filename_initial)
-            d_calc_final = self.process_vasprun(dir_name, taskname_final,
-                                                filename_final)
-            d["calculation"] = d_calc_final
+                for taskname, filename in vasprun_files.items()]
+            d["calcs_reversed"].reverse()
+            d_calc_initial = d["calcs_reversed"][-1]
+            d_calc_final = d["calcs_reversed"][0]
             d["chemsys"] = "-".join(sorted(d_calc_final["elements"]))
             d["formula_anonymous"] = Composition(
                 d_calc_final["composition_unit_cell"]).anonymized_formula
@@ -317,12 +313,12 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             warning_msgs.append("Volume change > {}%"
                                 .format(volume_change_threshold * 100))
         max_force = None
+        calc = d["calcs_reversed"][0]
         if d["state"] == "successful" and \
-                        d["calculation"]["input"]["parameters"].get("NSW",
-                                                                     0) > 0:
+                calc["input"]["parameters"].get("NSW", 0) > 0:
             # handle the max force and max force error
             max_force = max([np.linalg.norm(a)
-                             for a in d["calculation"]["output"]
+                             for a in calc["output"]
                              ["ionic_steps"][-1]["forces"]])
             if max_force > max_force_threshold:
                 error_msgs.append("Final max force exceeds {} eV"
@@ -342,7 +338,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         """
         return processed data such as vbm, cbm, gap
         """
-        calc = d["calculation"]
+        calc = d["calcs_reversed"][0]
         gap = calc["output"]["bandgap"]
         cbm = calc["output"]["cbm"]
         vbm = calc["output"]["vbm"]
