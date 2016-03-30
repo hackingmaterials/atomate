@@ -222,8 +222,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         for k, v in {"formula_pretty": "pretty_formula",
                      "composition_reduced": "reduced_cell_formula",
                      "composition_unit_cell": "unit_cell_formula"}.items():
-            d[k] = d[v]
-            del d[v]
+            d[k] = d.pop(v)
 
         d["dir_name"] = os.path.abspath(dir_name)
         d["completed_at"] = \
@@ -237,8 +236,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                      "energy_per_atom":
                          "final_energy_per_atom"}.items():
 
-            d["output"][k] = d["output"][v]
-            del d["output"][v]
+            d["output"][k] = d["output"].pop(v)
         if self.parse_dos and self.parse_dos != 'final':
             try:
                 d["dos"] = vrun.complete_dos.as_dict()

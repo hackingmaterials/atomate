@@ -37,6 +37,8 @@ class MMVaspToDbTaskDroneTest(unittest.TestCase):
         self.assertAlmostEqual(doc["output"]["energy"], -10.84671647)
         self.assertEqual(doc["formula_pretty"], 'Si')
         self.assertEqual(doc["formula_anonymous"], 'A')
+        self.assertEqual(doc["calcs_reversed"][0]["output"]["energy"],
+                         doc["output"]["energy"])
 
 
 if __name__ == "__main__":
