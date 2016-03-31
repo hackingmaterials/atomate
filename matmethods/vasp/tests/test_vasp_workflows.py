@@ -13,7 +13,7 @@ import gridfs
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 from pymatgen import IStructure, Lattice
-from pymongo import MongoClient
+from pymongo import MongoClient, DESCENDING
 
 from matmethods.vasp.examples.vasp_workflows import get_wf_single_Vasp, \
     get_wf_bandstructure_Vasp
@@ -25,7 +25,7 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "reference_files", "db_connections")
-DEBUG_MODE = True  # If true, retains the database and output dirs at the end of the test
+DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
 
@@ -241,21 +241,23 @@ class TestVaspWorkflows(unittest.TestCase):
                                                                         "db.json")}))
 
         # make sure the structure relaxation ran OK
-        d = self._get_task_collection().find_one(
-            {"task_label": "structure optimization"})
+        d = self._get_task_collection().find_one({"task_label": "structure optimization"},
+                                                 sort=[("_id", DESCENDING)])
         self._check_run(d, mode="structure optimization")
 
         # make sure the static run ran OK
-        d = self._get_task_collection().find_one({"task_label": "static"})
+        d = self._get_task_collection().find_one({"task_label": "static"},
+                                                 sort=[("_id", DESCENDING)])
         self._check_run(d, mode="static")
 
         # make sure the uniform run ran OK
-        d = self._get_task_collection().find_one(
-            {"task_label": "nscf uniform"})
+        d = self._get_task_collection().find_one({"task_label": "nscf uniform"},
+                                                 sort=[("_id", DESCENDING)])
         self._check_run(d, mode="nscf uniform")
 
         # make sure the uniform run ran OK
-        d = self._get_task_collection().find_one({"task_label": "nscf line"})
+        d = self._get_task_collection().find_one({"task_label": "nscf line"},
+                                                 sort=[("_id", DESCENDING)])
         self._check_run(d, mode="nscf line")
 
 
