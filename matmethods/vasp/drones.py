@@ -36,7 +36,7 @@ from matgendb.creator import VaspToDbTaskDrone, get_uri
 
 from matmethods.utils.utils import get_logger
 
-__author__ = 'Kiran Mathew'
+__author__ = 'Kiran Mathew, Shyue Ping Ong'
 __credits__ = 'Anubhav Jain'
 __email__ = 'kmathew@lbl.gov'
 __date__ = 'Mar 27, 2016'
@@ -75,17 +75,18 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         self.output_keys = {'is_gap_direct', 'density', 'bandgap',
                             'energy_per_atom', 'vbm', 'cbm',
                             'spacegroup', 'energy', 'structure'}
-        self.calculations_keys = {
-            'dir_name', 'run_type', 'elements', 'nelements', 'formula_pretty',
-            'composition_reduced', 'vasp_version', 'nsites',
-            'composition_unit_cell', 'completed_at', 'output', 'task',
-            'input', 'has_vasp_completed'}
+        self.calcs_reversed_keys = {'dir_name', 'run_type', 'elements',
+                                    'nelements', 'formula_pretty',
+                                    'composition_reduced', 'vasp_version',
+                                    'nsites', 'composition_unit_cell',
+                                    'completed_at', 'output', 'task',
+                                    'input', 'has_vasp_completed'}
         self.analysis_keys = {'delta_volume_percent', 'delta_volume',
                               'max_force', 'errors', 'warnings'}
         self.all_keys = {"root": self.root_keys,
                          "input": self.input_keys,
                          "output": self.output_keys,
-                         "calculation": self.calculations_keys,
+                         "calcs_reversed": self.calcs_reversed_keys,
                          "analysis": self.analysis_keys}
         super(MMVaspToDbTaskDrone, self).__init__(
             host=host, port=port, database=database, user=user,
@@ -490,6 +491,9 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         Make sure all the important keys are set
         """
         for k, v in self.all_keys.items():
-            diff = v.difference(set(d.get(k, d).keys()))
+            if k == "calcs_reversed":
+                diff = v.difference(set(d.get(k, d)[0].keys()))
+            else:
+                diff = v.difference(set(d.get(k, d).keys()))
             if diff:
                 logger.warn("The keys {0} in {1} not set".format(diff, k))
