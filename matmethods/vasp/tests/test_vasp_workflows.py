@@ -18,7 +18,8 @@ from pymongo import MongoClient, DESCENDING
 from matmethods.vasp.examples.vasp_workflows import get_wf_single_Vasp, \
     get_wf_bandstructure_Vasp
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
-from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name, make_fake_workflow
+from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name, make_fake_workflow, \
+    add_trackers
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
@@ -259,6 +260,28 @@ class TestVaspWorkflows(unittest.TestCase):
         d = self._get_task_collection().find_one({"task_label": "nscf line"},
                                                  sort=[("_id", DESCENDING)])
         self._check_run(d, mode="nscf line")
+
+    def test_trackers(self):
+        # add the workflow
+        vis = StructureOptimizationVaspInputSet()
+        structure = self.struct_si
+        my_wf = get_wf_single_Vasp(structure, vis, vasp_cmd=VASP_CMD,
+                                   task_label="structure optimization")
+
+        if not VASP_CMD:
+            my_wf = make_fake_workflow(my_wf)
+        else:
+            my_wf = use_custodian(my_wf)
+
+        my_wf = add_trackers(my_wf)
+        self.lp.add_wf(my_wf)
+
+        # run the workflow
+        rapidfire(self.lp)
+
+        for x in self.lp.get_tracker_data(1):
+            for t in x["trackers"]:
+                self.assertGreater(len(t.content.split("\n")), 20)
 
 
 if __name__ == "__main__":

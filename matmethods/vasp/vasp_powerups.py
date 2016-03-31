@@ -145,8 +145,8 @@ def add_trackers(original_wf):
         original_wf (Workflow)
 
     """
-    tracker1 = Tracker('OUTCAR', nlines=25)
-    tracker2 = Tracker('OSZICAR', nlines=25)
+    tracker1 = Tracker('OUTCAR', nlines=25, allow_zipped=True)
+    tracker2 = Tracker('OSZICAR', nlines=25, allow_zipped=True)
 
     wf_dict = original_wf.to_dict()
 
