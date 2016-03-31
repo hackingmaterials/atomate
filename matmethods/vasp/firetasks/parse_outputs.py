@@ -113,8 +113,9 @@ class VaspToDbTask(FireTaskBase):
                     fs = gridfs.GridFS(db, "bandstructure_fs")
                     bs_id = fs.put(bs_compress)
                     tasks.find_one_and_update({"task_id": t_id}, {
-                        "$set": {"calculation.bandstructure_fs_id": bs_id,
-                                 "calculation.bandstructure_compression": "zlib"}})
+                        "$set": {"calcs_reversed.0.bandstructure_fs_id": bs_id,
+                                 "calcs_reversed.0.bandstructure_compression":
+                                     "zlib"}})
                     logger.info("Finished parsing band structure.")
 
         return FWAction(stored_data={"task_id": task_doc["task_id"]},

@@ -63,13 +63,11 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                  additional_fields=None, update_duplicates=True,
                  mapi_key=None, use_full_uri=True, runs=None):
         # TODO: I don't understand some of the fields. What does "runs" do?
-        self.root_keys = {"name", "dir_name", "schema_version", "chemsys",
-                          "formula_anonymous", "calculations_initial",
-                          "calculation",
-                          "completed_at",
-                          "nsites", "composition_unit_cell",
+        self.root_keys = {"schema", "dir_name", "chemsys",
                           "composition_reduced", "formula_pretty",
-                          "elements", "nelements",
+                          "elements", "nelements", "formula_anonymous",
+                          "calcs_reversed", "completed_at",
+                          "nsites", "composition_unit_cell",
                           "input", "output", "state", "analysis"}
         self.input_keys = {'is_lasph', 'is_hubbard', 'xc_override',
                            'potcar_spec', 'hubbards', 'structure',
@@ -78,13 +76,14 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                             'energy_per_atom', 'vbm', 'cbm',
                             'spacegroup', 'energy', 'structure'}
         self.calculations_keys = {
-            'dir_name', 'run_type', 'elements', 'nelements', 'pretty_formula',
+            'dir_name', 'run_type', 'elements', 'nelements', 'formula_pretty',
             'composition_reduced', 'vasp_version', 'nsites',
             'composition_unit_cell', 'completed_at', 'output', 'task',
             'input', 'has_vasp_completed'}
         self.analysis_keys = {'delta_volume_percent', 'delta_volume',
                               'max_force', 'errors', 'warnings'}
-        self.all_keys = {"root": self.root_keys, "input": self.input_keys,
+        self.all_keys = {"root": self.root_keys,
+                         "input": self.input_keys,
                          "output": self.output_keys,
                          "calculation": self.calculations_keys,
                          "analysis": self.analysis_keys}
@@ -363,17 +362,17 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             result = coll.find_one({"dir_name": d["dir_name"]},
                                    ["dir_name", "task_id"])
             if result is None or self.update_duplicates:
-                if self.parse_dos and "calculation" in d:
-                    if "dos" in d["calculation"]:
-                        dos = json.dumps(d["calculation"]["dos"],
+                if self.parse_dos and "calcs_reversed" in d:
+                    if "dos" in d["calcs_reversed"][0]:
+                        dos = json.dumps(d["calcs_reversed"][0]["dos"],
                                          cls=MontyEncoder)
                         if self.compress_dos:
                             dos = zlib.compress(dos, self.compress_dos)
-                            d["calculation"]["dos_compression"] = "zlib"
+                            d["calcs_reversed"][0]["dos_compression"] = "zlib"
                         fs = gridfs.GridFS(db, "dos_fs")
                         dosid = fs.put(dos)
-                        d["calculation"]["dos_fs_id"] = dosid
-                        del d["calculation"]["dos"]
+                        d["calcs_reversed"][0]["dos_fs_id"] = dosid
+                        del d["calcs_reversed"][0]["dos"]
                 d["last_updated"] = datetime.datetime.today()
                 if result is None:
                     if ("task_id" not in d) or (not d["task_id"]):
@@ -464,7 +463,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             for filename in glob.glob(os.path.join(fullpath, "OUTCAR*")):
                 outcar = Outcar(filename)
                 taskname = "relax2" if re.search("relax2", filename) else "standard"
-                d["calculation"]["output"]["outcar"] = outcar.as_dict()
+                d["output"]["outcar"] = outcar.as_dict()
                 run_stats[taskname] = outcar.run_stats
         except:
             logger.error("Bad OUTCAR for {}.".format(fullpath))
