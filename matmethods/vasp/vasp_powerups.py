@@ -7,10 +7,48 @@ from fireworks import Workflow, FileWriteTask
 from fireworks.utilities.fw_utilities import get_slug
 
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian
-from matmethods.vasp.tests.vasp_fake import fake_dirs
+from matmethods.vasp.tests.vasp_fake import fake_dirs, RunVaspFake
 
 __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
+
+
+def is_runvasp_task(task):
+    """
+    Given a FireTask, tells you if it runs VASP.
+
+    Args:
+        task (FireTask): FireTask
+
+    Returns:
+       True/False
+    """
+    if "RunVasp" in str(task):
+        return True
+
+    return False
+
+
+def _get_runvasp_fws_and_tasks(workflow):
+    """
+    Given a workflow, returns back the fw_ids and task_ids of RunVasp-type tasks
+
+    Args:
+        workflow (Workflow): Workflow
+
+    Returns:
+       a list of tuples of the form (fw_id, task_id) of the RunVasp-type tasks
+    """
+    fws_and_tasks = []
+
+    for idx_fw, fw in enumerate(workflow.fws):
+        for job_type in fake_dirs.keys():
+            if job_type in fw.name:
+                for idx_t, t in enumerate(fw.tasks):
+                    if is_runvasp_task(t):
+                        fws_and_tasks.append((idx_fw, idx_t))
+
+    return fws_and_tasks
 
 
 def decorate_priority(original_wf, root_priority, child_priority=None):
@@ -47,16 +85,27 @@ def use_custodian(original_workflow):
         original_workflow (Workflow)
     """
     wf_dict = original_workflow.to_dict()
+    vasp_fws_and_tasks = _get_runvasp_fws_and_tasks(original_workflow)
+
+    for idx_fw, idx_t in vasp_fws_and_tasks:
+        vasp_cmd = wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"]
+        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
+            RunVaspCustodian(vasp_cmd=vasp_cmd).to_dict()
+
+    return Workflow.from_dict(wf_dict)
+
+def make_fake_workflow(original_workflow):
+    wf_dict = original_workflow.to_dict()
     for idx_fw, fw in enumerate(original_workflow.fws):
         for job_type in fake_dirs.keys():
             if job_type in fw.name:
                 for idx_t, t in enumerate(fw.tasks):
-                    if "RunVasp" in str(t):
-                        vasp_cmd = wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"]
+                    if is_runvasp_task(t):
                         wf_dict["fws"][idx_fw]["spec"]["_tasks"][
-                            idx_t] = RunVaspCustodian(vasp_cmd=vasp_cmd).to_dict()
-    return Workflow.from_dict(wf_dict)
+                            idx_t] = RunVaspFake(
+                            fake_dir=fake_dirs[job_type]).to_dict()
 
+    return Workflow.from_dict(wf_dict)
 
 def decorate_write_name(original_wf, use_slug=True):
     """
@@ -76,4 +125,9 @@ def decorate_write_name(original_wf, use_slug=True):
             files_to_write=[{"filename": fname, "contents": ""}]).to_dict())
     return original_wf
 
-# TODO: add trackers powerup
+"""
+def add_output_trackers(original_wf):
+    tracker1 = Tracker('words.txt', nlines=25)
+    tracker2 = Tracker('inputs.txt', nlines=25)
+    fw = Firework([firetask1, firetask2], spec={"_trackers": [tracker1, tracker2]})
+"""

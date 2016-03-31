@@ -18,8 +18,7 @@ from pymongo import MongoClient
 from matmethods.vasp.examples.vasp_workflows import get_wf_single_Vasp, \
     get_wf_bandstructure_Vasp
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
-from matmethods.vasp.tests.vasp_fake import make_fake_workflow
-from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name
+from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name, make_fake_workflow
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
