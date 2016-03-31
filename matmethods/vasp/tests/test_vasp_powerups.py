@@ -18,6 +18,17 @@ __email__ = 'ajain@lbl.gov'
 
 
 class TestVaspPowerups(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        lattice = Lattice([[3.8401979337, 0.00, 0.00],
+                           [1.9200989668, 3.3257101909, 0.00],
+                           [0.00, -2.2171384943, 3.1355090603]])
+        coords = [[0, 0, 0], [0.75, 0.5, 0.75]]
+        struct_si = IStructure(lattice, ["Si"] * 2, coords)
+        vis = StructureOptimizationVaspInputSet()
+        cls.bs_wf = get_wf_bandstructure_Vasp(struct_si, vis, vasp_cmd="test_VASP")
+
     def test_decorate_priority(self):
         fw1 = Firework([ScriptTask(script=None)], fw_id=-1)
         fw2 = Firework([ScriptTask(script=None)], parents=[fw1], fw_id=-2)
@@ -31,15 +42,7 @@ class TestVaspPowerups(unittest.TestCase):
         self.assertEqual(wf.id_fw[-3].spec["_priority"], 8)
 
     def test_use_custodian(self):
-        coords = [[0, 0, 0], [0.75, 0.5, 0.75]]
-        lattice = Lattice([[3.8401979337, 0.00, 0.00],
-                           [1.9200989668, 3.3257101909, 0.00],
-                           [0.00, -2.2171384943, 3.1355090603]])
-        struct_si = IStructure(lattice, ["Si"] * 2, coords)
-        vis = StructureOptimizationVaspInputSet()
-        my_wf = get_wf_bandstructure_Vasp(struct_si, vis, vasp_cmd="test_VASP")
-
-        my_wf = use_custodian(my_wf)
+        my_wf = use_custodian(self.bs_wf)
 
         for fw in my_wf.fws:
             task_idx = 1 if "structure optimization" in fw.name else 2
@@ -51,15 +54,7 @@ class TestVaspPowerups(unittest.TestCase):
                 "test_VASP")
 
     def test_add_trackers(self):
-        coords = [[0, 0, 0], [0.75, 0.5, 0.75]]
-        lattice = Lattice([[3.8401979337, 0.00, 0.00],
-                           [1.9200989668, 3.3257101909, 0.00],
-                           [0.00, -2.2171384943, 3.1355090603]])
-        struct_si = IStructure(lattice, ["Si"] * 2, coords)
-        vis = StructureOptimizationVaspInputSet()
-        my_wf = get_wf_bandstructure_Vasp(struct_si, vis, vasp_cmd="test_VASP")
-
-        my_wf = add_trackers(my_wf)
+        my_wf = add_trackers(self.bs_wf)
 
         for fw in my_wf.fws:
             self.assertEqual(len(fw.spec["_trackers"]), 2)
