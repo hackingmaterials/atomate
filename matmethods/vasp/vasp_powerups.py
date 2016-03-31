@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals, \
     absolute_import
 
 from fireworks import Workflow, FileWriteTask
+from fireworks.core.firework import Tracker
 from fireworks.utilities.fw_utilities import get_slug
 
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian
@@ -29,7 +30,7 @@ def is_runvasp_task(task):
     return False
 
 
-def _get_runvasp_fws_and_tasks(workflow):
+def get_runvasp_fws_and_tasks(workflow):
     """
     Given a workflow, returns back the fw_ids and task_ids of RunVasp-type tasks
 
@@ -85,7 +86,7 @@ def use_custodian(original_workflow):
         original_workflow (Workflow)
     """
     wf_dict = original_workflow.to_dict()
-    vasp_fws_and_tasks = _get_runvasp_fws_and_tasks(original_workflow)
+    vasp_fws_and_tasks = get_runvasp_fws_and_tasks(original_workflow)
 
     for idx_fw, idx_t in vasp_fws_and_tasks:
         vasp_cmd = wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"]
@@ -94,7 +95,16 @@ def use_custodian(original_workflow):
 
     return Workflow.from_dict(wf_dict)
 
+
 def make_fake_workflow(original_workflow):
+    """
+    Replaces all tasks with "RunVasp" (e.g. RunVaspDirect) to be
+    RunVaspFake. Thus, we do not actually run VASP but copy
+    pre-determined inputs and outputs.
+
+    Args:
+        original_workflow (Workflow)
+    """
     wf_dict = original_workflow.to_dict()
     for idx_fw, fw in enumerate(original_workflow.fws):
         for job_type in fake_dirs.keys():
@@ -106,6 +116,7 @@ def make_fake_workflow(original_workflow):
                             fake_dir=fake_dirs[job_type]).to_dict()
 
     return Workflow.from_dict(wf_dict)
+
 
 def decorate_write_name(original_wf, use_slug=True):
     """
@@ -125,9 +136,24 @@ def decorate_write_name(original_wf, use_slug=True):
             files_to_write=[{"filename": fname, "contents": ""}]).to_dict())
     return original_wf
 
-"""
-def add_output_trackers(original_wf):
-    tracker1 = Tracker('words.txt', nlines=25)
-    tracker2 = Tracker('inputs.txt', nlines=25)
-    fw = Firework([firetask1, firetask2], spec={"_trackers": [tracker1, tracker2]})
-"""
+
+def add_trackers(original_wf):
+    """
+    Every FireWork that runs VASP also tracks the OUTCAR and OSZICAR using FWS Trackers.
+
+    Args:
+        original_wf (Workflow)
+
+    """
+    tracker1 = Tracker('OUTCAR', nlines=25)
+    tracker2 = Tracker('OSZICAR', nlines=25)
+
+    wf_dict = original_wf.to_dict()
+
+    for idx_fw, idx_t in get_runvasp_fws_and_tasks(original_wf):
+        if "_trackers" in wf_dict["fws"][idx_fw]["spec"]:
+            wf_dict["fws"][idx_fw]["spec"]["_trackers"].extend([tracker1, tracker2])
+        else:
+            wf_dict["fws"][idx_fw]["spec"]["_trackers"] = [tracker1, tracker2]
+
+    return Workflow.from_dict(wf_dict)
