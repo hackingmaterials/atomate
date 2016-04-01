@@ -72,7 +72,6 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp",
         vasp_input_set (DictVaspInputSet): vasp input set.
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
-        task_label (str): workflow name.
         custodian_powerup (bool): If set the vasp run will be wrapped in
              custodian.
 

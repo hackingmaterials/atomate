@@ -300,7 +300,7 @@ def get_incar_from_prev_run(prev_dir, new_structure, default_settings=None,
             without modifications
         default_settings (dict): default settings
         prev_dir (str): path to the previous run directory
-        config_dict_override (dict): dictionary of Incar parameters to be
+        incar_dict_override (dict): dictionary of Incar parameters to be
             overridden
 
     Returns:
@@ -360,6 +360,7 @@ def get_param_mappings(param, incar, poscar):
     type in the poscar file from the values set in the provided incar.
 
     Args:
+        param (str) : Atomic species dependent incar parameter
         incar (Incar): Incar object with the values for LDA+U parameters
             set.
         poscar (Poscar): Poscar object.
@@ -401,6 +402,7 @@ def set_params(param, incar, prev_poscar, new_poscar):
     the prev_poscar.
 
     Args:
+        param (str): Atomic species dependent incar parameter
         incar (Incar): Incar object
         prev_poscar (Poscar): previous poscar
         new_poscar (Poscar): new poscar
