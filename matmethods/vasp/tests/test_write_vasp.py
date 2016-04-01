@@ -11,7 +11,7 @@ from fireworks.utilities.fw_serializers import load_object
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, \
     WriteVaspFromPMGObjects, ModifyIncar
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet, \
-    StaticVaspInputSet, get_incar_from_prev_run
+    StaticVaspInputSet, write_preserved_incar
 
 from pymatgen import IStructure, Lattice, Structure
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
@@ -51,7 +51,7 @@ class TestWriteVasp(unittest.TestCase):
                                                               "reference_files",
                                                               "preserve_incar",
                                                               "INCAR"))
-        cls.ref_incar_preserve.update(StaticVaspInputSet.STATIC_SETTINGS)
+        cls.ref_incar_preserve.update(StaticVaspInputSet.DEFAULT_SETTINGS)
 
     def setUp(self):
         os.chdir(module_dir)
@@ -138,23 +138,18 @@ class TestWriteVasp(unittest.TestCase):
                                                   "preserve_incar",
                                                   "INCAR_inverted"))
         # overide the ldau params read from the default yaml inputset
-        # get_incar method expects ldau params in {"most_elec_neg":{
+        # get_incar method expects ldau params in {"most_electroneg":{
         # "symbol": value}} format and incar.as_dict() yields the ldau
         # params as list
-        config_dict_override = {
+        config_dict = {
             "INCAR": self._get_processed_incar_dict(prev_incar,
                                                     Poscar(prev_structure))}
-        vis = StaticVaspInputSet(config_dict_override=config_dict_override)
-        # get the incar corresponding to the new structure
-        new_incar = vis.get_incar(new_structure)
-        # get the incar settings from the previous directory with structure
-        # dependent adjustments to magmom and ladu parameters
-        incar = get_incar_from_prev_run(new_incar, new_structure,
-                                        vis.STATIC_SETTINGS,
-                                        prev_dir=os.path.join(module_dir,
-                                                              "reference_files",
-                                                              "preserve_incar"))
-        incar.write_file(os.path.join(".", "INCAR"))
+        vis = StaticVaspInputSet()
+        vis.incar_settings = config_dict['INCAR']
+        vis.incar_settings.update(vis.DEFAULT_SETTINGS)
+        write_preserved_incar(vis, new_structure, os.path.join(module_dir,
+                                                               "reference_files",
+                                                               "preserve_incar"))
         self._verify_files(preserve_incar=True)
 
     def _get_processed_incar_dict(self, incar, poscar):

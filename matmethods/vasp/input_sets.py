@@ -47,7 +47,7 @@ class StructureOptimizationVaspInputSet(DictVaspInputSet):
 
 
 class StaticVaspInputSet(DictVaspInputSet):
-    STATIC_SETTINGS = {"IBRION": -1, "ISMEAR": -5, "LAECHG": True,
+    DEFAULT_SETTINGS = {"IBRION": -1, "ISMEAR": -5, "LAECHG": True,
                        "LCHARG": True,
                        "LORBIT": 11, "LVHAR": True, "LVTOT": True,
                        "LWAVE": False, "NSW": 0,
@@ -63,7 +63,7 @@ class StaticVaspInputSet(DictVaspInputSet):
         if "grid_density" in d["config_dict"]["KPOINTS"]:
             del d["config_dict"]["KPOINTS"]["grid_density"]
         d["config_dict"]["KPOINTS"]["reciprocal_density"] = reciprocal_density
-        d["config_dict"]["INCAR"].update(self.STATIC_SETTINGS)
+        d["config_dict"]["INCAR"].update(self.DEFAULT_SETTINGS)
         for k in ["INCAR", "KPOINTS", "POSCAR", "POTCAR"]:
             if config_dict_override and config_dict_override.get(k):
                 if k in d["config_dict"]:
@@ -112,18 +112,11 @@ class StaticVaspInputSet(DictVaspInputSet):
                                  reciprocal_density=reciprocal_density)
         vis.write_input(structure, output_dir)
         if preserve_old_incar:
-            new_incar = vis.get_incar(structure)
-            incar_dict_override = config_dict_override.get("INCAR", None) if \
-                config_dict_override else None
-            incar = get_incar_from_prev_run(new_incar, structure,
-                                            StaticVaspInputSet.STATIC_SETTINGS,
-                                            prev_dir,
-                                            incar_dict_override=incar_dict_override)
-            incar.write_file(os.path.join(output_dir, "INCAR"))
+            write_preserved_incar(vis, structure, config_dict_override, output_dir)
 
 
 class NonSCFVaspInputSet(DictVaspInputSet):
-    NSCF_SETTINGS = {"IBRION": -1, "ISMEAR": 0, "SIGMA": 0.001,
+    DEFAULT_SETTINGS = {"IBRION": -1, "ISMEAR": 0, "SIGMA": 0.001,
                      "LCHARG": False, "LORBIT": 11, "LWAVE": False,
                      "NSW": 0, "ISYM": 0, "ICHARG": 11}
 
@@ -144,7 +137,7 @@ class NonSCFVaspInputSet(DictVaspInputSet):
         d["name"] = "non scf"
         d["config_dict"] = loadfn(
             os.path.join(MODULE_DIR, "MPVaspInputSet.yaml"))
-        d["config_dict"]["INCAR"].update(self.NSCF_SETTINGS)
+        d["config_dict"]["INCAR"].update(self.DEFAULT_SETTINGS)
         if mode == "uniform":
             d["config_dict"]["INCAR"].update({"NEDOS": 601})
         for k in ["INCAR", "KPOINTS", "POSCAR", "POTCAR"]:
@@ -258,14 +251,8 @@ class NonSCFVaspInputSet(DictVaspInputSet):
                                      mode=mode)
         nscfvis.write_input(structure, output_dir)
         if preserve_old_incar:
-            new_incar = nscfvis.get_incar(structure)
-            incar_dict_override = config_dict_override.get("INCAR", None) if \
-                config_dict_override else None
-            incar = get_incar_from_prev_run(new_incar, structure,
-                                            NonSCFVaspInputSet.NSCF_SETTINGS,
-                                            prev_dir,
-                                            incar_dict_override=incar_dict_override)
-            incar.write_file(os.path.join(output_dir, "INCAR"))
+            write_preserved_incar(nscfvis, structure, config_dict_override,
+                                  output_dir)
 
 
 def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
@@ -302,16 +289,13 @@ def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
             zpath(os.path.join(prev_dir, "CONTCAR"))).structure
 
 
-def get_incar_from_prev_run(new_incar, new_structure, default_settings,
-                            prev_dir,
+def get_incar_from_prev_run(prev_dir, new_structure, default_settings=None,
                             incar_dict_override=None):
     """
     Return incar object from the previous run with custom settings as well as
     structure dependent adjustments for parameters such as magmom and ldau.
-    Adapted from pymatgen.io.vasp.sets
 
     Args:
-        new_incar (Incar): Incar from the new structure
         new_structure (Structure): structure from the previous dir with or
             without modifications
         default_settings (dict): default settings
@@ -320,7 +304,8 @@ def get_incar_from_prev_run(new_incar, new_structure, default_settings,
             overridden
 
     Returns:
-        Incar object
+        Incar object with default_settings overridden by previous incar and
+        incar_dict_override, in that order
     """
     prev_incar = None
     try:
@@ -331,27 +316,35 @@ def get_incar_from_prev_run(new_incar, new_structure, default_settings,
         raise RuntimeError(
             "Can't get valid results from previous run. prev dir: {}".format(
                 prev_dir))
-    # Override using the default parameter settings
-    prev_incar.update(default_settings)
-    for incar_key in ["MAGMOM", "NUPDOWN"]:
-        if new_incar.get(incar_key, None):
-            prev_incar.update({incar_key: new_incar[incar_key]})
-        else:
-            prev_incar.pop(incar_key, None)
+    # apply the default parameter settings
+    if default_settings:
+        prev_incar.update(default_settings)
+    # set structure dependent incar parameters
+    # set MAGMOM
+    # Note: site dependent parameters like MAGMOM need structure with the
+    # corresponding site properties set.
+    if prev_incar.get("MAGMOM", None):
+        # new_incar obtained from get_incar will have the magmom settings(
+        # based on the site properties('magmom', 'spin') of the structure)
+        # set only if the default yaml input set has magmom set in it
+        if hasattr(new_structure[0], "magmom"):
+            mag = []
+            for site in new_structure:
+                mag.append(site.magmom)
+            prev_incar["MAGMOM"] = mag
     # set LDAU parameters
-    if prev_incar.get('LDAU'):
-        new_poscar = Poscar(new_structure)
-        set_lda_params(prev_incar, prev_poscar, new_poscar)
-        # ensure to have LMAXMIX for GGA+U static run
-        if "LMAXMIX" not in prev_incar:
-            prev_incar.update({"LMAXMIX": new_incar["LMAXMIX"]})
-    # Choose the tighter ediff
-    prev_incar.update(
-        {"EDIFF": min(prev_incar.get("EDIFF", 1), new_incar["EDIFF"])})
-    # override settings
+    for incar_key in ["LDAUL", "LDAUU", "LDAUJ"]:
+        if prev_incar.get(incar_key, None):
+            new_poscar = Poscar(new_structure)
+            set_params(incar_key, prev_incar, prev_poscar, new_poscar)
+    # choose the tighter ediff
+    tighter_ediff = min(prev_incar.get("EDIFF", 1), incar_dict_override["EDIFF"])
+    # override the parameter settings
     if incar_dict_override:
         prev_incar.update(incar_dict_override)
-    # Sanity check
+    # set ediff
+    prev_incar.update({"EDIFF": tighter_ediff})
+    # sanity check
     prev_incar_dict = prev_incar.as_dict()
     check_list = []
     for k, v in default_settings.items():
@@ -361,10 +354,10 @@ def get_incar_from_prev_run(new_incar, new_structure, default_settings,
     return prev_incar
 
 
-def get_lda_mappings(incar, poscar):
+def get_param_mappings(param, incar, poscar):
     """
-    Get the lda+u parameters mapping for each atomic type in the poscar file
-    from the values set in incar.
+    Get the mapping for INCAR parameter 'param' for each atomic
+    type in the poscar file from the values set in the provided incar.
 
     Args:
         incar (Incar): Incar object with the values for LDA+U parameters
@@ -372,23 +365,39 @@ def get_lda_mappings(incar, poscar):
         poscar (Poscar): Poscar object.
 
     Returns:
-        dict
+        mappings (dict): {param : {atomic_symbol: value}} format
     """
-    lda_mappings = {}
-    for lda_param in ("LDAUL", "LDAUU", "LDAUJ"):
-        if incar.get(lda_param):
-            vals = incar[lda_param]
-            if isinstance(vals, list):
-                lda_mappings[lda_param] = {}
-                for i, sym in enumerate(poscar.site_symbols):
-                    lda_mappings[lda_param][sym] = vals[i]
-    return lda_mappings
+    mappings = {}
+    if incar.get(param):
+        mappings[param] = {}
+        vals = incar[param]
+        if isinstance(vals, list):
+            for i, sym in enumerate(poscar.site_symbols):
+                mappings[param][sym] = vals[i]
+        elif isinstance(vals, dict):
+            comp = poscar.structure.composition
+            elements = sorted([el for el in comp.elements if comp[el] > 0],
+                              key=lambda e: e.X)
+            most_electroneg = elements[-1].symbol
+            # if vals is in {"most_electroneg": {"symbol": value}} format,
+            # the way they are set in the default inuputset yaml files for
+            # LDAU
+            if vals.get(most_electroneg,None):
+                mappings[param] = vals[most_electroneg]
+            else:
+                mappings[param] = vals
+        else:
+            logger.error("Unknown format for specifying the values "
+                         "for the parameter "
+                         "{0}. Provided {1}".format(param, vals))
+            raise ValueError
+    return mappings
 
 
-def set_lda_params(incar, prev_poscar, new_poscar):
+def set_params(param, incar, prev_poscar, new_poscar):
     """
-    Set the LDA+U parameters  in the Incar file based on the atomic type
-    info from the new_poscar and the ladau parameter mappings obtained from
+    Set the parameter 'param' in the Incar file based on the atomic type
+    info from the new_poscar and the parameter mappings obtained from
     the prev_poscar.
 
     Args:
@@ -396,6 +405,37 @@ def set_lda_params(incar, prev_poscar, new_poscar):
         prev_poscar (Poscar): previous poscar
         new_poscar (Poscar): new poscar
     """
-    lda_mappings = get_lda_mappings(incar, prev_poscar)
-    for param, mappings in lda_mappings.items():
-        incar[param] = [mappings[sym] for sym in new_poscar.site_symbols]
+    mappings = get_param_mappings(param, incar, prev_poscar)
+    if mappings:
+        incar[param] = [mappings[param].get(sym,0) for sym in
+                    new_poscar.site_symbols]
+
+
+def write_preserved_incar(vis, structure, prev_dir, config_dict_override=None,
+                          output_dir="."):
+    """
+    Get the incar from the previous directory, update it based on the
+    provided structure and input set and write it to the output
+    directory.
+
+    Args:
+        vis (DictVaspInputSet): vasp input set
+        structure (Structure): the structure that will be used to adjust
+            incar parameters.
+        prev_dir (str): directory from where the incar file settings will
+            be taken.
+        config_dict_override (dict): override settings.
+        output_dir (str): directory where the incar file will be written.
+    """
+    new_incar = vis.get_incar(structure)
+    incar_dict_override = config_dict_override.get("INCAR", {}) if \
+        config_dict_override else {}
+    # choose tighter ediff
+    incar_dict_override.update(
+        {"EDIFF": min(incar_dict_override.get("EDIFF", 1),
+                      new_incar.get("EDIFF", 1))})
+    incar = get_incar_from_prev_run(prev_dir, structure,
+                                    vis.DEFAULT_SETTINGS,
+                                    incar_dict_override=incar_dict_override)
+    incar.write_file(os.path.join(output_dir, "INCAR"))
+
