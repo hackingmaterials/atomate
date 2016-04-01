@@ -87,17 +87,3 @@ class RunVaspFake(FireTaskBase):
             if os.path.isfile(full_file_name):
                 shutil.copy(full_file_name, os.getcwd())
         logger.info("RunVaspFake: ran fake VASP, generated outputs")
-
-
-def make_fake_workflow(original_workflow):
-    wf_dict = original_workflow.to_dict()
-    for idx_fw, fw in enumerate(original_workflow.fws):
-        for job_type in fake_dirs.keys():
-            if job_type in fw.name:
-                for idx_t, t in enumerate(fw.tasks):
-                    if "RunVasp" in str(t):
-                        wf_dict["fws"][idx_fw]["spec"]["_tasks"][
-                            idx_t] = RunVaspFake(
-                            fake_dir=fake_dirs[job_type]).to_dict()
-
-    return Workflow.from_dict(wf_dict)

@@ -118,5 +118,5 @@ class VaspToDbTask(FireTaskBase):
                                      "zlib"}})
                     logger.info("Finished parsing band structure.")
 
-        return FWAction(stored_data={"task_id": task_doc["task_id"]},
+        return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
                         defuse_children= (task_doc["state"] != "successful"))
