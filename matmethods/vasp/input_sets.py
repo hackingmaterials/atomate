@@ -341,7 +341,7 @@ def get_incar_from_prev_run(new_incar, new_structure, default_settings,
     # set LDAU parameters
     if prev_incar.get('LDAU'):
         new_poscar = Poscar(new_structure)
-        set_lda_params(prev_incar, prev_poscar, new_poscar)
+        set_ldau_params(prev_incar, prev_poscar, new_poscar)
         # ensure to have LMAXMIX for GGA+U static run
         if "LMAXMIX" not in prev_incar:
             prev_incar.update({"LMAXMIX": new_incar["LMAXMIX"]})
@@ -361,10 +361,10 @@ def get_incar_from_prev_run(new_incar, new_structure, default_settings,
     return prev_incar
 
 
-def get_lda_mappings(incar, poscar):
+def get_ldau_mappings(incar, poscar):
     """
-    Get the lda+u parameters mapping for each atomic type in the poscar file
-    from the values set in incar.
+    Get the lda+u parameters(LDAUL, LDAUU, LDAUJ) mapping for each atomic
+    type in the poscar file from the values set in the provided incar.
 
     Args:
         incar (Incar): Incar object with the values for LDA+U parameters
@@ -372,20 +372,33 @@ def get_lda_mappings(incar, poscar):
         poscar (Poscar): Poscar object.
 
     Returns:
-        dict
+        ldau_mappings (dict): {ldau_parameter : {atomic_symbol: value}} format
     """
-    lda_mappings = {}
-    for lda_param in ("LDAUL", "LDAUU", "LDAUJ"):
-        if incar.get(lda_param):
-            vals = incar[lda_param]
+    ldau_mappings = {}
+    for ldau_param in ("LDAUL", "LDAUU", "LDAUJ"):
+        ldau_mappings[ldau_param] = {}
+        if incar.get(ldau_param):
+            vals = incar[ldau_param]
             if isinstance(vals, list):
-                lda_mappings[lda_param] = {}
                 for i, sym in enumerate(poscar.site_symbols):
-                    lda_mappings[lda_param][sym] = vals[i]
-    return lda_mappings
+                    ldau_mappings[ldau_param][sym] = vals[i]
+            # expects vals in {"most_electroneg": {"symbol": value}} format,
+            # the way they are set in the default inuputset yaml files
+            elif isinstance(vals, dict):
+                comp = poscar.structure.composition
+                elements = sorted([el for el in comp.elements if comp[el] > 0],
+                                  key=lambda e: e.X)
+                most_electroneg = elements[-1].symbol
+                ldau_mappings[ldau_param] = vals[most_electroneg]
+            else:
+                logger.error("Unknown format for specifying the values "
+                             "for LDAU parameter "
+                             "{0}. Provided {1}".format(ldau_param, vals))
+                raise ValueError
+    return ldau_mappings
 
 
-def set_lda_params(incar, prev_poscar, new_poscar):
+def set_ldau_params(incar, prev_poscar, new_poscar):
     """
     Set the LDA+U parameters  in the Incar file based on the atomic type
     info from the new_poscar and the ladau parameter mappings obtained from
@@ -396,6 +409,8 @@ def set_lda_params(incar, prev_poscar, new_poscar):
         prev_poscar (Poscar): previous poscar
         new_poscar (Poscar): new poscar
     """
-    lda_mappings = get_lda_mappings(incar, prev_poscar)
-    for param, mappings in lda_mappings.items():
-        incar[param] = [mappings[sym] for sym in new_poscar.site_symbols]
+    ldau_mappings = get_ldau_mappings(incar, prev_poscar)
+    if ldau_mappings:
+        for param, mappings in ldau_mappings.items():
+            incar[param] = [mappings.get(sym,0) for sym in \
+                    new_poscar.site_symbols]

@@ -138,7 +138,7 @@ class TestWriteVasp(unittest.TestCase):
                                                   "preserve_incar",
                                                   "INCAR_inverted"))
         # overide the ldau params read from the default yaml inputset
-        # get_incar method expects ldau params in {"most_elec_neg":{
+        # get_incar method expects ldau params in {"most_electroneg":{
         # "symbol": value}} format and incar.as_dict() yields the ldau
         # params as list
         config_dict_override = {
