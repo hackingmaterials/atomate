@@ -1,4 +1,4 @@
-FireWorks>=1.2.6
+FireWorks>=1.2.7
 pymatgen>=3.2.1
 pymatgen-db>=0.5.1
 custodian>=0.8.8
