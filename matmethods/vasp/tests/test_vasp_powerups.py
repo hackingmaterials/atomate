@@ -53,6 +53,7 @@ class TestVaspPowerups(unittest.TestCase):
 
         my_wf_double_relax = use_custodian(self.bs_wf, fw_name_filter="structure optimization",
                                            custodian_params={"job_type": "double_relaxation_run"})
+
         for fw in my_wf_double_relax.fws:
             if "structure optimization" in fw.name:
                 self.assertTrue("RunVaspCustodian" in fw.to_dict()["spec"]["_tasks"][1]["_fw_name"])

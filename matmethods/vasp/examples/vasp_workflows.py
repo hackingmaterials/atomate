@@ -53,7 +53,7 @@ def get_wf_single_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp",
 
 
 def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp",
-                              db_file=None, custodian_powerup=False):
+                              db_file=None, custodian_powerup=False, double_relax=False):
     """
     Return vasp workflow consisting of 4 fireworks.
     Firework 1 : write vasp input set for structural relaxation, run vasp,
@@ -74,6 +74,7 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp",
         db_file (str): path to file containing the database credentials.
         custodian_powerup (bool): If set the vasp run will be wrapped in
              custodian.
+        double_relax (bool): whether to double relax the structure optimization
 
     Returns:
         Workflow
@@ -82,15 +83,12 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp",
 
     task_label = "structure optimization"
     t1 = []
-    t1.append(
-        WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
+    t1.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
     t1.append(RunVaspDirect(vasp_cmd=vasp_cmd))
     t1.append(PassVaspLocs(name=task_label))
     t1.append(VaspToDbTask(db_file=db_file,
                            additional_fields={"task_label": task_label}))
-    fw1 = Firework(t1,
-                   name="{}-{}".format(structure.composition.reduced_formula,
-                                       task_label))
+    fw1 = Firework(t1, name="{}-{}".format(structure.composition.reduced_formula, task_label))
 
     task_label = "static"
     t2 = []
@@ -98,11 +96,9 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp",
     t2.append(WriteVaspStaticFromPrev())
     t2.append(RunVaspDirect(vasp_cmd=vasp_cmd))
     t2.append(PassVaspLocs(name=task_label))
-    t2.append(VaspToDbTask(db_file=db_file,
-                           additional_fields={"task_label": task_label}))
-    fw2 = Firework(t2, parents=fw1,
-                   name="{}-{}".format(structure.composition.reduced_formula,
-                                       task_label))
+    t2.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": task_label}))
+    fw2 = Firework(t2, parents=fw1, name="{}-{}".format(structure.composition.reduced_formula,
+                                                        task_label))
 
     task_label = "nscf uniform"
     t3 = []
@@ -113,9 +109,8 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp",
     t3.append(VaspToDbTask(db_file=db_file,
                            additional_fields={"task_label": task_label},
                            parse_dos=True, bandstructure_mode="uniform"))
-    fw3 = Firework(t3, parents=fw2,
-                   name="{}-{}".format(structure.composition.reduced_formula,
-                                       task_label))
+    fw3 = Firework(t3, parents=fw2, name="{}-{}".format(structure.composition.reduced_formula,
+                                                        task_label))
 
     # line mode (run in parallel to uniform)
     t4 = []
@@ -124,17 +119,19 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp",
     t4.append(WriteVaspNSCFFromPrev(mode="line"))
     t4.append(RunVaspDirect(vasp_cmd=vasp_cmd))
     t4.append(PassVaspLocs(name=task_label))
-    t4.append(VaspToDbTask(db_file=db_file,
-                           additional_fields={"task_label": task_label},
+    t4.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": task_label},
                            bandstructure_mode="line"))
-    fw4 = Firework(t4, parents=fw2,
-                   name="{}-{}".format(structure.composition.reduced_formula,
-                                       task_label))
+    fw4 = Firework(t4, parents=fw2, name="{}-{}".format(structure.composition.reduced_formula,
+                                                        task_label))
 
     my_wf = Workflow([fw1, fw2, fw3, fw4], name=structure.composition.reduced_formula)
 
     if custodian_powerup:
         my_wf = use_custodian(my_wf)
+
+    if double_relax:
+        my_wf = use_custodian(my_wf, fw_name_filter="structure optimization",
+                              custodian_params={"job_type": "double_relaxation_run"})
 
     return my_wf
 
