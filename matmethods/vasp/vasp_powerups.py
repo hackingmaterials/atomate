@@ -76,7 +76,7 @@ def decorate_priority(original_wf, root_priority, child_priority=None):
     return original_wf
 
 
-def use_custodian(original_wf, custodian_params=None):
+def use_custodian(original_wf, fw_name_filter=None, custodian_params=None):
     """
     Replaces all tasks with "RunVasp" (e.g. RunVaspDirect) to be
     RunVaspCustodian. Thus, this powerup adds error correction into VASP
@@ -84,21 +84,27 @@ def use_custodian(original_wf, custodian_params=None):
 
     Args:
         original_wf (Workflow)
+        fw_name_filter (str) - Only apply changes to FWs where fw_name contains this substring. For
+                               example, use custodian only for certain runs, or set job_type to
+                               "double_relaxation_run" only for structure optimization run,
+                               or set different handler_lvl for different runs.
         custodian_params (dict) - A dict of parameters for RunVaspCustodian. e.g., use it to set
                                   a "scratch_dir" or "handler_lvl".
     """
+
     custodian_params = custodian_params if custodian_params else {}
     wf_dict = original_wf.to_dict()
     vasp_fws_and_tasks = get_runvasp_fws_and_tasks(original_wf)
 
     for idx_fw, idx_t in vasp_fws_and_tasks:
-        if "vasp_cmd" in custodian_params:
-            wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
-                RunVaspCustodian(**custodian_params).to_dict()
-        else:
-            vasp_cmd = wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"]
-            wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
-                RunVaspCustodian(vasp_cmd=vasp_cmd, **custodian_params).to_dict()
+        if fw_name_filter is None or fw_name_filter in wf_dict["fws"][idx_fw]["name"]:
+            if "vasp_cmd" in custodian_params:
+                wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
+                    RunVaspCustodian(**custodian_params).to_dict()
+            else:
+                vasp_cmd = wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"]
+                wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
+                    RunVaspCustodian(vasp_cmd=vasp_cmd, **custodian_params).to_dict()
 
     return Workflow.from_dict(wf_dict)
 
