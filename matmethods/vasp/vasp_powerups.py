@@ -76,17 +76,17 @@ def decorate_priority(original_wf, root_priority, child_priority=None):
     return original_wf
 
 
-def use_custodian(original_workflow):
+def use_custodian(original_wf):
     """
     Replaces all tasks with "RunVasp" (e.g. RunVaspDirect) to be
     RunVaspCustodian. Thus, this powerup adds error correction into VASP
     runs if not originally present.
 
     Args:
-        original_workflow (Workflow)
+        original_wf (Workflow)
     """
-    wf_dict = original_workflow.to_dict()
-    vasp_fws_and_tasks = get_runvasp_fws_and_tasks(original_workflow)
+    wf_dict = original_wf.to_dict()
+    vasp_fws_and_tasks = get_runvasp_fws_and_tasks(original_wf)
 
     for idx_fw, idx_t in vasp_fws_and_tasks:
         vasp_cmd = wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"]
@@ -96,17 +96,17 @@ def use_custodian(original_workflow):
     return Workflow.from_dict(wf_dict)
 
 
-def make_fake_workflow(original_workflow):
+def make_fake_workflow(original_wf):
     """
     Replaces all tasks with "RunVasp" (e.g. RunVaspDirect) to be
     RunVaspFake. Thus, we do not actually run VASP but copy
     pre-determined inputs and outputs.
 
     Args:
-        original_workflow (Workflow)
+        original_wf (Workflow)
     """
-    wf_dict = original_workflow.to_dict()
-    for idx_fw, fw in enumerate(original_workflow.fws):
+    wf_dict = original_wf.to_dict()
+    for idx_fw, fw in enumerate(original_wf.fws):
         for job_type in fake_dirs.keys():
             if job_type in fw.name:
                 for idx_t, t in enumerate(fw.tasks):
