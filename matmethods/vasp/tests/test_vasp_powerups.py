@@ -11,7 +11,8 @@ from pymatgen import Lattice
 
 from matmethods.vasp.examples.vasp_workflows import get_wf_bandstructure_Vasp
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
-from matmethods.vasp.vasp_powerups import decorate_priority, use_custodian, add_trackers
+from matmethods.vasp.vasp_powerups import decorate_priority, use_custodian, add_trackers, \
+    add_modify_incar
 
 __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
@@ -29,6 +30,9 @@ class TestVaspPowerups(unittest.TestCase):
         vis = StructureOptimizationVaspInputSet()
         cls.bs_wf = get_wf_bandstructure_Vasp(struct_si, vis, vasp_cmd="test_VASP")
 
+    def _copy_wf(self, wf):
+        return Workflow.from_dict(wf.to_dict())
+
     def test_decorate_priority(self):
         fw1 = Firework([ScriptTask(script=None)], fw_id=-1)
         fw2 = Firework([ScriptTask(script=None)], parents=[fw1], fw_id=-2)
@@ -42,7 +46,7 @@ class TestVaspPowerups(unittest.TestCase):
         self.assertEqual(wf.id_fw[-3].spec["_priority"], 8)
 
     def test_use_custodian(self):
-        my_wf = use_custodian(self.bs_wf)
+        my_wf = use_custodian(self._copy_wf(self.bs_wf))
 
         for fw in my_wf.fws:
             task_idx = 1 if "structure optimization" in fw.name else 2
@@ -51,7 +55,8 @@ class TestVaspPowerups(unittest.TestCase):
             self.assertEqual(
                 fw.to_dict()["spec"]["_tasks"][task_idx]["vasp_cmd"], "test_VASP")
 
-        my_wf_double_relax = use_custodian(self.bs_wf, fw_name_filter="structure optimization",
+        my_wf_double_relax = use_custodian(self._copy_wf(self.bs_wf),
+                                           fw_name_filter="structure optimization",
                                            custodian_params={"job_type": "double_relaxation_run"})
 
         for fw in my_wf_double_relax.fws:
@@ -63,11 +68,20 @@ class TestVaspPowerups(unittest.TestCase):
                 self.assertTrue("RunVaspDirect" in fw.to_dict()["spec"]["_tasks"][2]["_fw_name"])
                 self.assertFalse("job_type" in fw.to_dict()["spec"]["_tasks"][2])
 
+    def test_modify_incar(self):
+        my_wf = add_modify_incar(self._copy_wf(self.bs_wf), {"key_update": {"NCORE": 1}},
+                                 fw_name_filter="structure optimization")
 
-
+        for fw in my_wf.fws:
+            if "structure optimization" in fw.name:
+                self.assertTrue("ModifyIncar" in fw.to_dict()["spec"]["_tasks"][0]["_fw_name"])
+                self.assertEqual(fw.to_dict()["spec"]["_tasks"][0]["key_update"], {"NCORE": 1})
+            else:
+                for t in fw.to_dict()["spec"]["_tasks"]:
+                    self.assertFalse("ModifyIncar" in t["_fw_name"])
 
     def test_add_trackers(self):
-        my_wf = add_trackers(self.bs_wf)
+        my_wf = add_trackers(self._copy_wf(self.bs_wf))
 
         for fw in my_wf.fws:
             self.assertEqual(len(fw.spec["_trackers"]), 2)

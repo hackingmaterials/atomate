@@ -8,6 +8,7 @@ from fireworks.core.firework import Tracker
 from fireworks.utilities.fw_utilities import get_slug
 
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian
+from matmethods.vasp.firetasks.write_inputs import ModifyIncar
 from matmethods.vasp.tests.vasp_fake import fake_dirs, RunVaspFake
 
 __author__ = 'Anubhav Jain'
@@ -170,3 +171,36 @@ def add_trackers(original_wf):
             wf_dict["fws"][idx_fw]["spec"]["_trackers"] = [tracker1, tracker2]
 
     return Workflow.from_dict(wf_dict)
+
+
+def add_modify_incar(original_wf, modify_incar_params, fw_name_filter=None):
+    """
+    Every FireWork that runs VASP has a ModifyIncar task just beforehand. For example, allows
+    you to modify the INCAR based on the Worker using env_chk or using hard-coded changes.
+
+    Args:
+        original_wf (Workflow)
+        fw_name_filter (str) - Only apply changes to FWs where fw_name contains this substring.
+        modify_incar_params (dict) - dict of parameters for ModifyIncar.
+
+    """
+
+    for idx_fw, idx_t in get_runvasp_fws_and_tasks(original_wf):
+        if fw_name_filter is None or fw_name_filter in original_wf.fws[idx_fw].name:
+            original_wf.fws[idx_fw].spec["_tasks"].insert(idx_t-1, ModifyIncar(**modify_incar_params).
+                                                            to_dict())
+
+    return original_wf
+
+
+def add_modify_incar_envchk(original_wf, fw_name_filter=None,):
+    """
+    If you set the "incar_update" parameter in the Worker env, the INCAR will update this
+    parameter for all matching VASP runs
+
+    Args:
+        original_wf (Workflow)
+        fw_name_filter (str) - Only apply changes to FWs where fw_name contains this substring.
+    """
+    return add_modify_incar(original_wf, {"key_update": ">>incar_update<<"},
+                            fw_name_filter=fw_name_filter)
