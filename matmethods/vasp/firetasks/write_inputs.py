@@ -156,7 +156,7 @@ class WriteVaspStaticFromPrev(FireTaskBase):
     """
 
     optional_params = ["config_dict_override", "reciprocal_density",
-                       "prev_dir", "standardization_symprec",
+                       "reciprocal_density_small_gap", "prev_dir", "standardization_symprec",
                        "international_monoclinic", "preserve_magmom",
                        "preserve_old_incar"]
 
@@ -164,6 +164,7 @@ class WriteVaspStaticFromPrev(FireTaskBase):
         StaticVaspInputSet.write_input_from_prevrun(
             config_dict_override=self.get("config_dict_override"),
             reciprocal_density=self.get("reciprocal_density", 100),
+            reciprocal_density_small_gap=self.get("reciprocal_density_small_gap", None),
             prev_dir=self.get("prev_dir"),
             standardization_symprec=self.get("standardization_symprec", 0.1),
             international_monoclinic=self.get("international_monoclinic",
@@ -187,7 +188,7 @@ class WriteVaspNSCFFromPrev(FireTaskBase):
     """
 
     optional_params = ["config_dict_override", "reciprocal_density",
-                       "prev_dir", "mode", "magmom_cutoff",
+                       "reciprocal_density_small_gap", "prev_dir", "mode", "magmom_cutoff",
                        "nbands_factor", "preserve_magmom",
                        "preserve_old_incar"]
 
@@ -195,6 +196,7 @@ class WriteVaspNSCFFromPrev(FireTaskBase):
         NonSCFVaspInputSet.write_input_from_prevrun(
             config_dict_override=self.get("config_dict_override"),
             reciprocal_density=self.get("reciprocal_density"),
+            reciprocal_density_small_gap=self.get("reciprocal_density_small_gap", None),
             prev_dir=self.get("prev_dir"),
             mode=self.get("mode", "uniform"),
             magmom_cutoff=self.get("magmom_cutoff", 0.1),
