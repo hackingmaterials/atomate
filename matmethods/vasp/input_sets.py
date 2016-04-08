@@ -10,6 +10,7 @@ from monty.os.path import zpath
 from monty.serialization import loadfn
 
 from matmethods.utils.utils import get_logger
+from pymatgen.analysis.structure_matcher import StructureMatcher
 
 from pymatgen.io.vasp import Incar, Poscar, Vasprun, Outcar, Kpoints
 from pymatgen.io.vasp.sets import DictVaspInputSet
@@ -106,8 +107,24 @@ class StaticVaspInputSet(DictVaspInputSet):
             logger.info("Standardizing cell...")
             sym_finder = SpacegroupAnalyzer(structure,
                                             symprec=standardization_symprec)
-            structure = sym_finder.get_primitive_standard_structure(
+            new_structure = sym_finder.get_primitive_standard_structure(
                 international_monoclinic=international_monoclinic)
+            logger.info("Validating new cell...")
+            # the primitive structure finding has had several bugs in the past
+            # defend through validation
+            vpa_old = structure.volume/structure.num_sites
+            vpa_new = new_structure.volume/new_structure.num_sites
+            if abs(vpa_old - vpa_new)/vpa_old > 0.02:
+                raise ValueError("Standardizing cell failed! VPA old: {}, VPA new: {}"
+                                 .format(vpa_old, vpa_new))
+
+            sm = StructureMatcher()
+            if not sm.fit(structure, new_structure):
+                raise ValueError("Standardizing cell failed! Old structure doesn't match new.")
+
+            structure = new_structure
+            logger.info("Finished cell standardization procedure.")
+
         vis = StaticVaspInputSet(config_dict_override=config_dict_override,
                                  reciprocal_density=reciprocal_density)
         vis.write_input(structure, output_dir)
