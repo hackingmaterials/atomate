@@ -6,6 +6,8 @@ from matmethods.vasp.workflows.base.single_vasp import get_wf_single_Vasp
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
+# TODO: allow standard behavior to be modified via a config file (but keep structure as only param)
+
 
 def wf_band_structure(structure):
 
