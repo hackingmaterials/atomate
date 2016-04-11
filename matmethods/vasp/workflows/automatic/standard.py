@@ -22,7 +22,8 @@ def wf_band_structure(structure):
     wf = use_custodian(wf, fw_name_constraint="structure optimization",
                        custodian_params={"job_type": "double_relaxation_run"})
     wf = decorate_write_name(wf)
-    wf = add_small_gap_multiplier(0.5, 5)
+    wf = add_small_gap_multiplier(0.5, 5, "static")
+    wf = add_small_gap_multiplier(0.5, 10, "nscf")
 
     return wf
 
