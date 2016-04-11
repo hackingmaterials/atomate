@@ -15,40 +15,26 @@ __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
 
 
-def is_runvasp_task(task):
+def get_fws_and_tasks(workflow, fw_name_constraint=None, task_name_constraint=None):
     """
-    Given a FireTask, tells you if it runs VASP.
-
-    Args:
-        task (FireTask): FireTask
-
-    Returns:
-       True/False
-    """
-    if "RunVasp" in str(task):
-        return True
-
-    return False
-
-
-def get_runvasp_fws_and_tasks(workflow):
-    """
-    Given a workflow, returns back the fw_ids and task_ids of RunVasp-type tasks
+    Given a workflow, returns back the fw_ids and task_ids that match
 
     Args:
         workflow (Workflow): Workflow
+        fw_name_constraint (str): a constraint on the FW name
+        task_name_constraint (str): a constraint on the task name
 
     Returns:
        a list of tuples of the form (fw_id, task_id) of the RunVasp-type tasks
     """
+
     fws_and_tasks = []
 
     for idx_fw, fw in enumerate(workflow.fws):
-        for job_type in fake_dirs.keys():
-            if job_type in fw.name:
-                for idx_t, t in enumerate(fw.tasks):
-                    if is_runvasp_task(t):
-                        fws_and_tasks.append((idx_fw, idx_t))
+        if fw_name_constraint is None or fw_name_constraint in fw.name:
+            for idx_t, t in enumerate(fw.tasks):
+                if task_name_constraint is None or task_name_constraint in str(t):
+                    fws_and_tasks.append((idx_fw, idx_t))
 
     return fws_and_tasks
 
@@ -95,7 +81,7 @@ def use_custodian(original_wf, fw_name_filter=None, custodian_params=None):
 
     custodian_params = custodian_params if custodian_params else {}
     wf_dict = original_wf.to_dict()
-    vasp_fws_and_tasks = get_runvasp_fws_and_tasks(original_wf)
+    vasp_fws_and_tasks = get_fws_and_tasks(original_wf, task_name_constraint="RunVasp")
 
     for idx_fw, idx_t in vasp_fws_and_tasks:
         if fw_name_filter is None or fw_name_filter in wf_dict["fws"][idx_fw]["name"]:
@@ -124,7 +110,7 @@ def make_fake_workflow(original_wf):
         for job_type in fake_dirs.keys():
             if job_type in fw.name:
                 for idx_t, t in enumerate(fw.tasks):
-                    if is_runvasp_task(t):
+                    if "RunVasp" in str(t):
                         wf_dict["fws"][idx_fw]["spec"]["_tasks"][
                             idx_t] = RunVaspFake(
                             fake_dir=fake_dirs[job_type]).to_dict()
@@ -164,7 +150,7 @@ def add_trackers(original_wf):
 
     wf_dict = original_wf.to_dict()
 
-    for idx_fw, idx_t in get_runvasp_fws_and_tasks(original_wf):
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="RunVasp"):
         if "_trackers" in wf_dict["fws"][idx_fw]["spec"]:
             wf_dict["fws"][idx_fw]["spec"]["_trackers"].extend([tracker1, tracker2])
         else:
@@ -185,7 +171,7 @@ def add_modify_incar(original_wf, modify_incar_params, fw_name_filter=None):
 
     """
 
-    for idx_fw, idx_t in get_runvasp_fws_and_tasks(original_wf):
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="RunVasp"):
         if fw_name_filter is None or fw_name_filter in original_wf.fws[idx_fw].name:
             original_wf.fws[idx_fw].spec["_tasks"].insert(idx_t-1, ModifyIncar(**modify_incar_params).
                                                             to_dict())
