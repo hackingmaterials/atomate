@@ -9,6 +9,11 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 def wf_band_structure(structure):
 
+    """
+    optimizes structure, then computes both uniform and line mode band structures
+    :param structure:
+    :return:
+    """
     wf = get_wf_bandstructure_Vasp(structure, vasp_input_set=StructureOptimizationVaspInputSet(),
                                    vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<")
     wf = use_custodian(wf)
@@ -21,7 +26,11 @@ def wf_band_structure(structure):
 
 
 def wf_static(structure):
-
+    """
+    single static calculation
+    :param structure:
+    :return:
+    """
     wf = get_wf_single_Vasp(structure, vasp_input_set=StaticVaspInputSet(), vasp_cmd=">>vasp_cmd<<",
                             db_file=">>db_file<<", task_label="static")
     wf = use_custodian(wf)
@@ -30,7 +39,12 @@ def wf_static(structure):
     return wf
 
 
-def wf_relaxation(structure):
+def wf_stucture_optimization(structure):
+    """
+    single structure optimization calculation
+    :param structure:
+    :return:
+    """
     wf = get_wf_single_Vasp(structure, vasp_input_set=StructureOptimizationVaspInputSet(),
                             vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
                             task_label="structure optimization")
