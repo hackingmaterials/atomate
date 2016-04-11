@@ -12,7 +12,7 @@ from pymatgen import Lattice
 from matmethods.vasp.examples.vasp_workflows import get_wf_bandstructure_Vasp
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 from matmethods.vasp.vasp_powerups import decorate_priority, use_custodian, add_trackers, \
-    add_modify_incar
+    add_modify_incar, add_small_gap_multiplier
 
 __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
@@ -56,7 +56,7 @@ class TestVaspPowerups(unittest.TestCase):
                 fw.to_dict()["spec"]["_tasks"][task_idx]["vasp_cmd"], "test_VASP")
 
         my_wf_double_relax = use_custodian(self._copy_wf(self.bs_wf),
-                                           fw_name_filter="structure optimization",
+                                           fw_name_constraint="structure optimization",
                                            custodian_params={"job_type": "double_relaxation_run"})
 
         for fw in my_wf_double_relax.fws:
@@ -70,7 +70,7 @@ class TestVaspPowerups(unittest.TestCase):
 
     def test_modify_incar(self):
         my_wf = add_modify_incar(self._copy_wf(self.bs_wf), {"key_update": {"NCORE": 1}},
-                                 fw_name_filter="structure optimization")
+                                 fw_name_constraint="structure optimization")
 
         for fw in my_wf.fws:
             if "structure optimization" in fw.name:
@@ -85,6 +85,21 @@ class TestVaspPowerups(unittest.TestCase):
 
         for fw in my_wf.fws:
             self.assertEqual(len(fw.spec["_trackers"]), 2)
+
+    def test_add_small_gap_multiplier(self):
+        my_wf = self._copy_wf(self.bs_wf)
+        my_wf = add_small_gap_multiplier(my_wf, 0.5, 1.5, "static")
+        found=False
+
+        for fw in my_wf.fws:
+            if "static" in fw.name:
+                for t in fw.tasks:
+                    if 'WriteVasp' in str(t):
+                        self.assertEqual(t["small_gap_multiplier"], [0.5, 1.5])
+                        found=True
+
+        self.assertEqual(found, True)
+
 
 
 if __name__ == "__main__":

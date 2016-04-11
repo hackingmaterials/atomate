@@ -63,7 +63,7 @@ def decorate_priority(original_wf, root_priority, child_priority=None):
     return original_wf
 
 
-def use_custodian(original_wf, fw_name_filter=None, custodian_params=None):
+def use_custodian(original_wf, fw_name_constraint=None, custodian_params=None):
     """
     Replaces all tasks with "RunVasp" (e.g. RunVaspDirect) to be
     RunVaspCustodian. Thus, this powerup adds error correction into VASP
@@ -71,7 +71,7 @@ def use_custodian(original_wf, fw_name_filter=None, custodian_params=None):
 
     Args:
         original_wf (Workflow)
-        fw_name_filter (str) - Only apply changes to FWs where fw_name contains this substring. For
+        fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this substring. For
                                example, use custodian only for certain runs, or set job_type to
                                "double_relaxation_run" only for structure optimization run,
                                or set different handler_lvl for different runs.
@@ -81,17 +81,17 @@ def use_custodian(original_wf, fw_name_filter=None, custodian_params=None):
 
     custodian_params = custodian_params if custodian_params else {}
     wf_dict = original_wf.to_dict()
-    vasp_fws_and_tasks = get_fws_and_tasks(original_wf, task_name_constraint="RunVasp")
+    vasp_fws_and_tasks = get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
+                                           task_name_constraint="RunVasp")
 
     for idx_fw, idx_t in vasp_fws_and_tasks:
-        if fw_name_filter is None or fw_name_filter in wf_dict["fws"][idx_fw]["name"]:
-            if "vasp_cmd" in custodian_params:
-                wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
-                    RunVaspCustodian(**custodian_params).to_dict()
-            else:
-                vasp_cmd = wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"]
-                wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
-                    RunVaspCustodian(vasp_cmd=vasp_cmd, **custodian_params).to_dict()
+        if "vasp_cmd" in custodian_params:
+            wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
+                RunVaspCustodian(**custodian_params).to_dict()
+        else:
+            vasp_cmd = wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"]
+            wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
+                RunVaspCustodian(vasp_cmd=vasp_cmd, **custodian_params).to_dict()
 
     return Workflow.from_dict(wf_dict)
 
@@ -159,34 +159,56 @@ def add_trackers(original_wf):
     return Workflow.from_dict(wf_dict)
 
 
-def add_modify_incar(original_wf, modify_incar_params, fw_name_filter=None):
+def add_modify_incar(original_wf, modify_incar_params, fw_name_constraint=None):
     """
     Every FireWork that runs VASP has a ModifyIncar task just beforehand. For example, allows
     you to modify the INCAR based on the Worker using env_chk or using hard-coded changes.
 
     Args:
         original_wf (Workflow)
-        fw_name_filter (str) - Only apply changes to FWs where fw_name contains this substring.
+        fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this substring.
         modify_incar_params (dict) - dict of parameters for ModifyIncar.
 
     """
 
-    for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="RunVasp"):
-        if fw_name_filter is None or fw_name_filter in original_wf.fws[idx_fw].name:
-            original_wf.fws[idx_fw].spec["_tasks"].insert(idx_t-1, ModifyIncar(**modify_incar_params).
-                                                            to_dict())
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
+                                           task_name_constraint="RunVasp"):
+        original_wf.fws[idx_fw].spec["_tasks"].insert(idx_t-1, ModifyIncar(**modify_incar_params).
+                                                      to_dict())
 
     return original_wf
 
 
-def add_modify_incar_envchk(original_wf, fw_name_filter=None,):
+def add_modify_incar_envchk(original_wf, fw_name_constraint=None, ):
     """
     If you set the "incar_update" parameter in the Worker env, the INCAR will update this
     parameter for all matching VASP runs
 
     Args:
         original_wf (Workflow)
-        fw_name_filter (str) - Only apply changes to FWs where fw_name contains this substring.
+        fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this substring.
     """
     return add_modify_incar(original_wf, {"key_update": ">>incar_update<<"},
-                            fw_name_filter=fw_name_filter)
+                            fw_name_constraint=fw_name_constraint)
+
+
+def add_small_gap_multiplier(original_wf, gap_cutoff, density_multiplier, fw_name_constraint=None):
+    """
+    In all FWs with specified name constraints, add a 'small_gap_multiplier' parameter that
+    multiplies the k-mesh density of compounds with gap < gap_cutoff by density multiplier.
+    Note that this powerup only works on FireWorks with the appropriate WriteVasp* tasks that
+    accept the small_gap_multiplier argument...
+
+    :param original_wf:
+    :param gap_cutoff:
+    :param density_multiplier:
+    :param fw_name_constraint:
+    """
+
+    wf_dict = original_wf.to_dict()
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
+                                           task_name_constraint="WriteVasp"):
+        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["small_gap_multiplier"] = \
+            [gap_cutoff, density_multiplier]
+
+    return Workflow.from_dict(wf_dict)

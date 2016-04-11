@@ -130,7 +130,7 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp",
         my_wf = use_custodian(my_wf)
 
     if double_relax:
-        my_wf = use_custodian(my_wf, fw_name_filter="structure optimization",
+        my_wf = use_custodian(my_wf, fw_name_constraint="structure optimization",
                               custodian_params={"job_type": "double_relaxation_run"})
 
     return my_wf
