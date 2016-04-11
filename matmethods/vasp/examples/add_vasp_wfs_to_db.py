@@ -1,6 +1,6 @@
 from fireworks import LaunchPad
 from matmethods.vasp.vasp_powerups import decorate_write_name
-from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure_Vasp
+from matmethods.vasp.workflows.automatic.band_structure import wf_band_structure
 from pymatgen import Structure
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
@@ -88,10 +88,5 @@ if __name__ == "__main__":
     lp = LaunchPad.auto_load()
 
     for s in [struct_si, struct_al, struct_fe2o3]:
-        wf = get_wf_bandstructure_Vasp(Structure.from_dict(s),
-                                       vasp_input_set=None,
-                                       vasp_cmd=">>vasp_cmd<<",
-                                       db_file=">>db_file<<",
-                                       custodian_powerup=True)
-        wf = decorate_write_name(wf)
+        wf = wf_band_structure(Structure.from_dict(s))
         lp.add_wf(wf)

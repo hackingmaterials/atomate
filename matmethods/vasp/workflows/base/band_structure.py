@@ -14,7 +14,7 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 
 def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp",
-                              db_file=None, custodian_powerup=False, double_relax=False):
+                              db_file=None):
     """
     Return vasp workflow consisting of 4 fireworks.
     Firework 1 : write vasp input set for structural relaxation, run vasp,
@@ -33,9 +33,6 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp",
         vasp_input_set (DictVaspInputSet): vasp input set.
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
-        custodian_powerup (bool): If set the vasp run will be wrapped in
-             custodian.
-        double_relax (bool): whether to double relax the structure optimization
 
     Returns:
         Workflow
@@ -85,16 +82,7 @@ def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp",
     fw4 = Firework(t4, parents=fw2, name="{}-{}".format(structure.composition.reduced_formula,
                                                         task_label))
 
-    my_wf = Workflow([fw1, fw2, fw3, fw4], name=structure.composition.reduced_formula)
-
-    if custodian_powerup:
-        my_wf = use_custodian(my_wf)
-
-    if double_relax:
-        my_wf = use_custodian(my_wf, fw_name_constraint="structure optimization",
-                              custodian_params={"job_type": "double_relaxation_run"})
-
-    return my_wf
+    return Workflow([fw1, fw2, fw3, fw4], name=structure.composition.reduced_formula)
 
 
 def add_to_lpad(workflow, decorate=False):
