@@ -1,8 +1,7 @@
 from fireworks import LaunchPad
-from pymatgen import Structure
-
-from matmethods.vasp.examples.vasp_workflows import get_wf_bandstructure_Vasp
 from matmethods.vasp.vasp_powerups import decorate_write_name
+from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure_Vasp
+from pymatgen import Structure
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'

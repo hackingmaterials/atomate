@@ -10,16 +10,16 @@ import unittest
 import zlib
 
 import gridfs
-from fireworks import LaunchPad, FWorker
-from fireworks.core.rocket_launcher import rapidfire
-from pymatgen import IStructure, Lattice
 from pymongo import MongoClient, DESCENDING
 
-from matmethods.vasp.examples.vasp_workflows import get_wf_single_Vasp, \
-    get_wf_bandstructure_Vasp
+from fireworks import LaunchPad, FWorker
+from fireworks.core.rocket_launcher import rapidfire
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name, make_fake_workflow, \
     add_trackers
+from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure_Vasp
+from matmethods.vasp.workflows.base.single_vasp import get_wf_single_Vasp
+from pymatgen import IStructure, Lattice
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'

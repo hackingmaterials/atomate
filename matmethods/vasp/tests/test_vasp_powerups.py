@@ -6,13 +6,12 @@ from __future__ import division, print_function, unicode_literals, \
 import unittest
 
 from fireworks import Firework, ScriptTask, Workflow
-from pymatgen import IStructure
-from pymatgen import Lattice
-
-from matmethods.vasp.examples.vasp_workflows import get_wf_bandstructure_Vasp
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 from matmethods.vasp.vasp_powerups import decorate_priority, use_custodian, add_trackers, \
     add_modify_incar, add_small_gap_multiplier
+from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure_Vasp
+from pymatgen import IStructure
+from pymatgen import Lattice
 
 __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
