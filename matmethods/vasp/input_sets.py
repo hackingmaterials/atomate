@@ -76,7 +76,7 @@ class StaticVaspInputSet(DictVaspInputSet):
     @staticmethod
     def write_input_from_prevrun(config_dict_override=None,
                                  reciprocal_density=100,
-                                 reciprocal_density_small_gap=None,
+                                 small_gap_multiply=None,
                                  prev_dir=None,
                                  standardization_symprec=0.1,
                                  international_monoclinic=True,
@@ -88,8 +88,8 @@ class StaticVaspInputSet(DictVaspInputSet):
                                 override the default input set
             reciprocal_density (int): density of k-mesh by reciprocal
                                     volume (defaults to 100)
-            reciprocal_density_small_gap ([float, float]) - if the gap is less than 1st index,
-                                use the reciprocal_density given by the 2nd index
+            small_gap_multiply ([float, float]) - if the gap is less than 1st index,
+                                multiply the default reciprocal_density by the 2nd index
             prev_dir(str): directory containing output files of the previous
                         relaxation run. Defaults to current dir.
             standardization_symprec (float): Symprec for standardization.
@@ -130,12 +130,12 @@ class StaticVaspInputSet(DictVaspInputSet):
             logger.info("Finished cell standardization procedure.")
 
         # multiply the reciprocal density if needed:
-        if reciprocal_density_small_gap:
+        if small_gap_multiply:
             prev_dir = prev_dir or os.curdir
             vasprun = Vasprun(zpath(os.path.join(prev_dir, "vasprun.xml")), parse_dos=False)
             gap = vasprun.eigenvalue_band_properties[0]
-            if gap >= reciprocal_density_small_gap[0]:
-                reciprocal_density = reciprocal_density_small_gap[1]
+            if gap >= small_gap_multiply[0]:
+                reciprocal_density = reciprocal_density * small_gap_multiply[1]
 
         vis = StaticVaspInputSet(config_dict_override=config_dict_override,
                                  reciprocal_density=reciprocal_density)
@@ -218,7 +218,7 @@ class NonSCFVaspInputSet(DictVaspInputSet):
 
     @staticmethod
     def write_input_from_prevrun(config_dict_override=None,
-                                 reciprocal_density=None, reciprocal_density_small_gap=None,
+                                 reciprocal_density=None, small_gap_multiply=None,
                                  prev_dir=None, mode="uniform", magmom_cutoff=0.1,
                                  nbands_factor=1.2, preserve_magmom=True,
                                  preserve_old_incar=False, output_dir="."):
@@ -228,8 +228,8 @@ class NonSCFVaspInputSet(DictVaspInputSet):
                 override the default input set
             reciprocal_density (int): density of k-mesh by reciprocal volume
                 (defaults to 1000 in uniform, 20 in line mode)
-            reciprocal_density_small_gap ([float, float]) - if the gap is less than 1st index,
-                                use the reciprocal_density given by the 2nd index
+            small_gap_multiply ([float, float]) - if the gap is less than 1st index,
+                                multiply the default reciprocal_density by the 2nd index
             prev_dir (str): directory containing output files of the
                 previous relaxation run. Defaults to current dir.
             mode (str): either "uniform" (default) or "line"
@@ -278,12 +278,12 @@ class NonSCFVaspInputSet(DictVaspInputSet):
             nscf_config_dict["KPOINTS"].update(config_dict_override["KPOINTS"])
 
         # multiply the reciprocal density if needed for small gap compounds
-        if reciprocal_density_small_gap:
+        if small_gap_multiply:
             prev_dir = prev_dir or os.curdir
             vasprun = Vasprun(zpath(os.path.join(prev_dir, "vasprun.xml")), parse_dos=False)
             gap = vasprun.eigenvalue_band_properties[0]
-            if gap >= reciprocal_density_small_gap[0]:
-                reciprocal_density = reciprocal_density_small_gap[1]
+            if gap >= small_gap_multiply[0]:
+                reciprocal_density = reciprocal_density * small_gap_multiply[1]
 
         nscfvis = NonSCFVaspInputSet(config_dict_override=nscf_config_dict,
                                      reciprocal_density=reciprocal_density,
