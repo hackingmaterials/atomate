@@ -1,6 +1,5 @@
 from fireworks import LaunchPad
-from matmethods.vasp.vasp_powerups import decorate_write_name
-from matmethods.vasp.workflows.automatic.band_structure import wf_band_structure
+from matmethods.vasp.workflows.automatic.standard import wf_band_structure
 from pymatgen import Structure
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
