@@ -134,7 +134,7 @@ class StaticVaspInputSet(DictVaspInputSet):
             prev_dir = prev_dir or os.curdir
             vasprun = Vasprun(zpath(os.path.join(prev_dir, "vasprun.xml")), parse_dos=False)
             gap = vasprun.eigenvalue_band_properties[0]
-            if gap >= small_gap_multiply[0]:
+            if gap <= small_gap_multiply[0]:
                 reciprocal_density = reciprocal_density * small_gap_multiply[1]
 
         vis = StaticVaspInputSet(config_dict_override=config_dict_override,
@@ -282,7 +282,7 @@ class NonSCFVaspInputSet(DictVaspInputSet):
             prev_dir = prev_dir or os.curdir
             vasprun = Vasprun(zpath(os.path.join(prev_dir, "vasprun.xml")), parse_dos=False)
             gap = vasprun.eigenvalue_band_properties[0]
-            if gap >= small_gap_multiply[0]:
+            if gap <= small_gap_multiply[0]:
                 reciprocal_density = reciprocal_density * small_gap_multiply[1]
 
         nscfvis = NonSCFVaspInputSet(config_dict_override=nscf_config_dict,

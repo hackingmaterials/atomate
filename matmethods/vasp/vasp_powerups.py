@@ -195,12 +195,12 @@ def add_modify_incar_envchk(original_wf, fw_name_constraint=None, ):
                             fw_name_constraint=fw_name_constraint)
 
 
-def add_small_gap_multiplier(original_wf, gap_cutoff, density_multiplier, fw_name_constraint=None):
+def add_small_gap_multiply(original_wf, gap_cutoff, density_multiplier, fw_name_constraint=None):
     """
-    In all FWs with specified name constraints, add a 'small_gap_multiplier' parameter that
+    In all FWs with specified name constraints, add a 'small_gap_multiply' parameter that
     multiplies the k-mesh density of compounds with gap < gap_cutoff by density multiplier.
     Note that this powerup only works on FireWorks with the appropriate WriteVasp* tasks that
-    accept the small_gap_multiplier argument...
+    accept the small_gap_multiply argument...
 
     :param original_wf:
     :param gap_cutoff:
@@ -211,7 +211,7 @@ def add_small_gap_multiplier(original_wf, gap_cutoff, density_multiplier, fw_nam
     wf_dict = original_wf.to_dict()
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="WriteVasp"):
-        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["small_gap_multiplier"] = \
+        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["small_gap_multiply"] = \
             [gap_cutoff, density_multiplier]
 
     return Workflow.from_dict(wf_dict)

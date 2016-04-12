@@ -8,7 +8,7 @@ import unittest
 from fireworks import Firework, ScriptTask, Workflow
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 from matmethods.vasp.vasp_powerups import decorate_priority, use_custodian, add_trackers, \
-    add_modify_incar, add_small_gap_multiplier, use_scratch_dir
+    add_modify_incar, add_small_gap_multiply, use_scratch_dir
 from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure_Vasp
 from pymatgen import IStructure
 from pymatgen import Lattice
@@ -85,16 +85,16 @@ class TestVaspPowerups(unittest.TestCase):
         for fw in my_wf.fws:
             self.assertEqual(len(fw.spec["_trackers"]), 2)
 
-    def test_add_small_gap_multiplier(self):
+    def test_add_small_gap_multiply(self):
         my_wf = self._copy_wf(self.bs_wf)
-        my_wf = add_small_gap_multiplier(my_wf, 0.5, 1.5, "static")
+        my_wf = add_small_gap_multiply(my_wf, 0.5, 1.5, "static")
         found=False
 
         for fw in my_wf.fws:
             if "static" in fw.name:
                 for t in fw.tasks:
                     if 'WriteVasp' in str(t):
-                        self.assertEqual(t["small_gap_multiplier"], [0.5, 1.5])
+                        self.assertEqual(t["small_gap_multiply"], [0.5, 1.5])
                         found=True
 
         self.assertEqual(found, True)
