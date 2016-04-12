@@ -106,11 +106,13 @@ class CopyVaspOutputs(FireTaskBase):
 
             # detect .relax## if needed - uses last relaxation (up to 9 relaxations)
             relax_ext = ""
-            # TODO: modify sorting for >9 relaxations
-            relax_path = sorted(glob(prev_path+".relax*"), reverse=True)
-            if relax_path:
-                # TODO: change \d to \d* for >9 relaxations
-                m = re.search('\.relax\d', relax_path[0])
+            relax_paths = sorted(glob(prev_path+".relax*"), reverse=True)
+            if relax_paths:
+                if len(relax_paths) > 9:
+                    # TODO: modify relax_paths sorting for >9 relaxations
+                    # TODO: change re.search \d to \d* for >9 relaxations
+                    raise ValueError("CopyVaspOutputs doesn't properly handle >9 relaxations!")
+                m = re.search('\.relax\d', relax_paths[0])
                 relax_ext = m.group(0)
 
             # detect .gz extension if needed - note that monty zpath() did not
