@@ -16,7 +16,7 @@ from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name, make_fake_workflow, \
-    add_trackers, add_small_gap_multiply
+    add_trackers
 from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure_Vasp
 from matmethods.vasp.workflows.base.single_vasp import get_wf_single_Vasp
 from pymatgen import IStructure, Lattice
@@ -26,7 +26,7 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "reference_files", "db_connections")
-DEBUG_MODE = True  # If true, retains the database and output dirs at the end of the test
+DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
 
@@ -230,8 +230,6 @@ class TestVaspWorkflows(unittest.TestCase):
             my_wf = make_fake_workflow(my_wf)
         else:
             my_wf = use_custodian(my_wf)
-
-        my_wf = add_small_gap_multiply(my_wf, 1.5, 10)
 
         my_wf = decorate_write_name(
             my_wf)  # add a slug of fw-name to output files

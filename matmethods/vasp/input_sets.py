@@ -244,6 +244,8 @@ class NonSCFVaspInputSet(DictVaspInputSet):
             output_dir (str): where to put the output files (defaults
                 current dir)
         """
+        if reciprocal_density is None:
+            reciprocal_density = 1000 if mode == "uniform" else 20
 
         nscf_config_dict = {"INCAR": {}, "KPOINTS": {}}
 
