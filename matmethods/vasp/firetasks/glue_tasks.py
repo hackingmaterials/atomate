@@ -12,6 +12,8 @@ from previous run directory oto the current one.
 import gzip
 import os
 import shutil
+import re
+from glob import glob
 
 from fireworks import explicit_serialize, FireTaskBase, FWAction
 
@@ -102,26 +104,35 @@ class CopyVaspOutputs(FireTaskBase):
             dest_fname = 'POSCAR' if f == 'CONTCAR' and contcar_to_poscar else f
             dest_path = os.path.join(os.getcwd(), dest_fname)
 
+            # detect .relax## if needed - uses last relaxation (up to 9 relaxations)
+            relax_ext = ""
+            # TODO: modify sorting for >9 relaxations
+            relax_path = sorted(glob(prev_path+".relax*"), reverse=True)
+            if relax_path:
+                # TODO: change \d to \d* for >9 relaxations
+                m = re.search('\.relax\d', relax_path[0])
+                relax_ext = m.group(0)
+
             # detect .gz extension if needed - note that monty zpath() did not
             # seem useful here
-            ext = ""
-            if not os.path.exists(prev_path):
+            gz_ext = ""
+            if not os.path.exists(prev_path + relax_ext):
                 for possible_ext in [".gz", ".GZ"]:
-                    if os.path.exists(prev_path + possible_ext):
-                        ext = possible_ext
+                    if os.path.exists(prev_path + relax_ext + possible_ext):
+                        gz_ext = possible_ext
 
-            if not os.path.exists(prev_path + ext):
+            if not os.path.exists(prev_path + relax_ext + gz_ext):
                 raise ValueError("Cannot find file: {}".format(prev_path))
 
-            # copy the file
-            shutil.copy2(prev_path + ext, dest_path + ext)
+            # copy the file (minus the relaxation extension)
+            shutil.copy2(prev_path + relax_ext + gz_ext, dest_path + gz_ext)
 
             # unzip the .gz if needed
-            if ext == '.gz' or ext == ".GZ":
+            if gz_ext == '.gz' or gz_ext == ".GZ":
                 # unzip dest file
-                f = gzip.open(dest_path + ext, 'rb')
+                f = gzip.open(dest_path + gz_ext, 'rb')
                 file_content = f.read()
                 with open(dest_path, 'wb') as f_out:
                     f_out.writelines(file_content)
                 f.close()
-                os.remove(dest_path + ext)
+                os.remove(dest_path + gz_ext)

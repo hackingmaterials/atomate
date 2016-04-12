@@ -25,6 +25,8 @@ class TestCopyVaspOutputs(unittest.TestCase):
                                         "Si_structure_optimization_plain", "outputs")
         cls.gzip_outdir = os.path.join(module_dir, "reference_files",
                                        "Si_structure_optimization", "outputs")
+        cls.relax2_outdir = os.path.join(module_dir, "reference_files",
+                                       "Si_structure_optimization_relax2", "outputs")
 
     def setUp(self):
         if os.path.exists(scratch_dir):
@@ -41,6 +43,13 @@ class TestCopyVaspOutputs(unittest.TestCase):
         for f in files:
             self.assertTrue(os.path.exists(os.path.join(self.plain_outdir, f)))
             self.assertTrue(os.path.exists(os.path.join(self.gzip_outdir, f + ".gz")))
+            if f == "POTCAR":
+                self.assertTrue(os.path.exists(os.path.join(self.relax2_outdir, f + ".gz")))
+                self.assertTrue(os.path.exists(os.path.join(self.relax2_outdir, f + ".orig.gz")))
+            else:
+                self.assertTrue(os.path.exists(os.path.join(self.relax2_outdir, f + ".relax1.gz")))
+                self.assertTrue(os.path.exists(os.path.join(self.relax2_outdir, f + ".relax2.gz")))
+
 
     def test_plain_copy(self):
         ct = CopyVaspOutputs(vasp_dir=self.plain_outdir)
@@ -80,6 +89,17 @@ class TestCopyVaspOutputs(unittest.TestCase):
         ct = CopyVaspOutputs(vasp_dir=self.gzip_outdir)
         ct.run_task({})
         files = ["INCAR", "KPOINTS", "POTCAR", "POSCAR"]
+        for f in files:
+            self.assertTrue(os.path.exists(os.path.join(scratch_dir, f)))
+
+        no_files = ["CONTCAR", "EIGENVAL"]
+        for f in no_files:
+            self.assertFalse(os.path.exists(os.path.join(scratch_dir, f)))
+
+    def test_relax2_copy(self):
+        ct = CopyVaspOutputs(vasp_dir=self.relax2_outdir, additional_files=["IBZKPT"])
+        ct.run_task({})
+        files = ["INCAR", "KPOINTS", "POTCAR", "POSCAR", "IBZKPT"]
         for f in files:
             self.assertTrue(os.path.exists(os.path.join(scratch_dir, f)))
 
