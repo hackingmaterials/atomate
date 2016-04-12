@@ -128,13 +128,16 @@ def decorate_write_name(original_wf, use_slug=True):
         original_wf (Workflow)
         use_slug (bool): whether to replace whitespace-type chars with a slug
     """
-    for fw in original_wf.fws:
-        fname = "FW--{}".format(fw.name)
+    wf_dict = original_wf.to_dict()
+
+    for idx, fw in enumerate(wf_dict["fws"]):
+        fname = "FW--{}".format(fw["name"])
         if use_slug:
             fname = get_slug(fname)
-        fw.spec["_tasks"].insert(0, FileWriteTask(
+        wf_dict["fws"][idx]["spec"]["_tasks"].insert(0, FileWriteTask(
             files_to_write=[{"filename": fname, "contents": ""}]).to_dict())
-    return original_wf
+
+    return Workflow.from_dict(wf_dict)
 
 
 def add_trackers(original_wf):
