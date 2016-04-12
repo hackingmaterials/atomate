@@ -4,3 +4,4 @@ query: '{}'
 env:
     db_file: <</FULL/PATH/TO/DB.JSON>>
     vasp_cmd: <<VASP_CMD>>
+    scratch_dir: <<SCRATCH_DIR>>
