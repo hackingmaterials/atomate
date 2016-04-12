@@ -1,6 +1,6 @@
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet, StaticVaspInputSet
 from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name, \
-    add_small_gap_multiplier
+    add_small_gap_multiplier, use_scratch_dir
 from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure_Vasp
 from matmethods.vasp.workflows.base.single_vasp import get_wf_single_Vasp
 
@@ -24,6 +24,7 @@ def wf_band_structure(structure):
     wf = decorate_write_name(wf)
     wf = add_small_gap_multiplier(wf, 0.5, 5, "static")
     wf = add_small_gap_multiplier(wf, 0.5, 10, "nscf")
+    wf = use_scratch_dir(wf, ">>scratch_dir<<")
 
     return wf
 
@@ -38,6 +39,7 @@ def wf_static(structure):
                             db_file=">>db_file<<", task_label="static")
     wf = use_custodian(wf)
     wf = decorate_write_name(wf)
+    wf = use_scratch_dir(wf, ">>scratch_dir<<")
 
     return wf
 
@@ -54,5 +56,6 @@ def wf_stucture_optimization(structure):
     wf = use_custodian(wf, fw_name_constraint="structure optimization",
                        custodian_params={"job_type": "double_relaxation_run"})
     wf = decorate_write_name(wf)
+    wf = use_scratch_dir(wf, ">>scratch_dir<<")
 
     return wf

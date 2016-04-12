@@ -8,7 +8,7 @@ import unittest
 from fireworks import Firework, ScriptTask, Workflow
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 from matmethods.vasp.vasp_powerups import decorate_priority, use_custodian, add_trackers, \
-    add_modify_incar, add_small_gap_multiplier
+    add_modify_incar, add_small_gap_multiplier, use_scratch_dir
 from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure_Vasp
 from pymatgen import IStructure
 from pymatgen import Lattice
@@ -98,6 +98,20 @@ class TestVaspPowerups(unittest.TestCase):
                         found=True
 
         self.assertEqual(found, True)
+
+    def test_use_scratch_dir(self):
+        my_wf = self._copy_wf(self.bs_wf)
+        my_wf = use_custodian(my_wf)
+        my_wf = use_scratch_dir(my_wf, ">>scratch_dir<<")
+        found = 0
+
+        for fw in my_wf.fws:
+            for t in fw.tasks:
+                if 'RunVaspCustodian' in str(t):
+                    self.assertEqual(t["scratch_dir"], ">>scratch_dir<<")
+                    found += 1
+
+        self.assertEqual(found, 4)
 
 
 

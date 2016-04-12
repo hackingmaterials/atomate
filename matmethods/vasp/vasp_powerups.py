@@ -212,3 +212,18 @@ def add_small_gap_multiplier(original_wf, gap_cutoff, density_multiplier, fw_nam
             [gap_cutoff, density_multiplier]
 
     return Workflow.from_dict(wf_dict)
+
+
+def use_scratch_dir(original_wf, scratch_dir):
+    """
+    For all RunVaspCustodian tasks, add the desired scratch dir.
+
+    :param original_wf:
+    :param scratch_dir: The scratch dir to use. Supports env_chk
+    """
+
+    wf_dict = original_wf.to_dict()
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="RunVaspCustodian"):
+        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["scratch_dir"] = scratch_dir
+
+    return Workflow.from_dict(wf_dict)
