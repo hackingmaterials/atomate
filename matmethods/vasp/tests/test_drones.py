@@ -27,7 +27,7 @@ class MMVaspToDbTaskDroneTest(unittest.TestCase):
         cls.relax = os.path.join(module_dir, "reference_files",
                                  "Si_structure_optimization", "outputs")
 
-    def test_assimimlate(self):
+    def test_assimilate(self):
         drone = MMVaspToDbTaskDrone()
         doc = drone.get_task_doc(self.relax)
         # Only the main changes from the vasprun as dict format and currently
