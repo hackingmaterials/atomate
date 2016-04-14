@@ -200,21 +200,22 @@ Ok, you are now ready to test running some jobs!
 #. Type ``qlaunch -r rapidfire``
 
 D. Note on NERSC machines
-=========================
+==========================
 
-**Hostname: max # tasks per node**
-
-Edison: 24
-
-Cori: 32
-
-Matgen: 16
++--------------------+------------------------+
+| Hostname           | max # tasks per node   |
++--------------------+------------------------+
+| Edison	     |          24            |                   
++--------------------+------------------------+
+| Cori               |          32            |
++--------------------+------------------------+
+| Matgen             |          16            |
++--------------------+------------------------+
 
 This information might come in handy when setting the NCORE parameter in the INCAR file. Since
-the ``ModifyIncar`` firetask supports ``env_chk``, these values can also be set in the fireworker config file(my_fworker.yaml). 
-e.g.
-env:
-  key_update:
+the ``ModifyIncar`` firetask supports ``env_chk``, these values can also be set in the fireworker config file(my_fworker.yaml). e.g.
+ env:
+   key_update:
        NCORE: 24
 
 And away we go! If all is well, this will submit jobs to your system until the workflows finish. You can inspect your FWS Launchpad and also your tasks database to make sure things are progressing well.
