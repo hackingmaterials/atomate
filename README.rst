@@ -36,7 +36,7 @@ To test the VASP functionality, run the unit tests in ``matmethods.vasp.tests``.
 
 The unit tests in matmethods/vasp/tests/test_vasp_workflows.py can be modified to actually run VASP by setting VASP_CMD to a String representing your VASP command.
 
-Many tests have a DEBUG option that can sometimes help in finding problems. Sometimes you need to toggle DEBUG on/off a couple of times if you are doing this to make sure all the old data is actually cleared between debug runs; the tearDown() and setUp() methods are stil a bit finicky.
+Many tests have a DEBUG option that can sometimes help in finding problems. Sometimes you need to toggle DEBUG on/off a couple of times if you are doing this to make sure all the old data is actually cleared between debug runs; the tearDown() and setUp() methods are still a bit finicky.
 
 ==========================
 Learning to use MatMethods
@@ -198,5 +198,20 @@ Ok, you are now ready to test running some jobs!
 #. Verify the workflows are there, e.g. ``lpad get_wflows -d more``.
 #. Navigate to where you want to run the workflows. e.g. ``<<INSTALL_DIR>>/scratch``.
 #. Type ``qlaunch -r rapidfire``
+
+D. Note on NERSC machines
+=========================
+
+Hostname: max # tasks per node
+-------------------------------
+Edison: 24
+Cori: 32
+Matgen: 16
+
+This information might come in handy when setting the NCORE parameter in the INCAR file. Since the``` ModifyIncar`` firetask supports ``env_chk``, these values can be set 
+in the fireworker config file(my_fworker.yaml). 
+e.g. env: 
+     	 key_update: 
+     	 	    NCORE : 24
 
 And away we go! If all is well, this will submit jobs to your system until the workflows finish. You can inspect your FWS Launchpad and also your tasks database to make sure things are progressing well.
