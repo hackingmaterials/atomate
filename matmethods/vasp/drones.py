@@ -40,6 +40,7 @@ __author__ = 'Kiran Mathew, Shyue Ping Ong'
 __credits__ = 'Anubhav Jain'
 __email__ = 'kmathew@lbl.gov'
 __date__ = 'Mar 27, 2016'
+__version__ = "0.1.0"
 
 logger = get_logger(__name__)
 
@@ -498,6 +499,24 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                 diff = v.difference(set(d.get(k, d).keys()))
             if diff:
                 logger.warn("The keys {0} in {1} not set".format(diff, k))
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(**d["init_args"])
+
+    def as_dict(self):
+        init_args = {"host": self.host, "port": self.port,
+                     "database": self.database, "user": self.user,
+                     "password": self.password,
+                     "collection": self.collection,
+                     "parse_dos": self.parse_dos,
+                     "simulate_mode": self.simulate,
+                     "additional_fields": self.additional_fields,
+                     "update_duplicates": self.update_duplicates}
+        output = {"@module": self.__class__.__module__,
+                  "@class": self.__class__.__name__,
+                  "init_args": init_args, "version": __version__}
+        return output
 
     @classmethod
     def from_db_doc(cls, dbdoc=None, additional_fields=None, options=None):
