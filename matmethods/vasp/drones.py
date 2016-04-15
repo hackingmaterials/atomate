@@ -111,7 +111,6 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         """
         return self.assimilate_return_task_doc(path)[0]
 
-
     def assimilate_return_task_doc(self, path):
         """
         Adapted from matgendb.creator
@@ -292,7 +291,8 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         """
         set the 'state' key
         """
-        d["state"] = "successful" if d_calc["has_vasp_completed"] else "unsuccessful"
+        d["state"] = "successful" if d_calc[
+            "has_vasp_completed"] else "unsuccessful"
 
     def set_analysis(self, d, max_force_threshold=0.5,
                      volume_change_threshold=0.2):
@@ -463,7 +463,8 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             run_stats = {}
             for filename in glob.glob(os.path.join(fullpath, "OUTCAR*")):
                 outcar = Outcar(filename)
-                taskname = "relax2" if re.search("relax2", filename) else "standard"
+                taskname = "relax2" if re.search(
+                    "relax2", filename) else "standard"
                 d["output"]["outcar"] = outcar.as_dict()
                 run_stats[taskname] = outcar.run_stats
         except:
@@ -497,3 +498,29 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                 diff = v.difference(set(d.get(k, d).keys()))
             if diff:
                 logger.warn("The keys {0} in {1} not set".format(diff, k))
+
+    @classmethod
+    def from_db_doc(cls, dbdoc=None, additional_fields=None, options=None):
+
+        additional_fields = additional_fields if additional_fields else {}
+        options = options if options else {}
+
+        if dbdoc:
+            return MMVaspToDbTaskDrone(host=dbdoc["host"], port=dbdoc["port"],
+                                       database=dbdoc["database"],
+                                       user=dbdoc.get("admin_user"),
+                                       password=dbdoc.get("admin_password"),
+                                       collection=dbdoc["collection"],
+                                       additional_fields=additional_fields,
+                                       parse_dos=options.get("parse_dos",
+                                                             False),
+                                       compress_dos=options.get("compress_dos",
+                                                                True),
+                                       update_duplicates=options.get("update_dupliucates",
+                                                                     True),
+                                       mapi_key=options.get("mapi_key", None),
+                                       use_full_uri=options.get("use_full_uri",
+                                                                True),
+                                       runs=options.get("runs", None))
+        else:
+            return MMVaspToDbTaskDrone(simulate_mode=True)
