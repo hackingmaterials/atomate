@@ -52,12 +52,12 @@ class VaspToDbTask(FireTaskBase):
             vasp_dir = self["vasp_dir"]
         elif self.get("vasp_loc"):
             if isinstance(self["vasp_loc"], six.string_types):
-                for doc in reversed(fw_spec["vasp_locs"]):
+                for doc in reversed(fw_spec["calc_locs"]):
                     if doc["name"] == self["vasp_loc_name"]:
                         vasp_dir = doc["path"]
                         break
             else:
-                vasp_dir = fw_spec["vasp_locs"][-1]["path"]
+                vasp_dir = fw_spec["calc_locs"][-1]["path"]
         # parse the VASP directory
         logger.info("PARSING DIRECTORY: {}".format(vasp_dir))
         # get the database connection

@@ -25,9 +25,9 @@ __email__ = 'ajain@lbl.gov'
 
 
 @explicit_serialize
-class PassVaspLocs(FireTaskBase):
+class PassCalcLocs(FireTaskBase):
     """
-    Passes the vasp_locs key. Should be called in the same FireWork as a
+    Passes the calc_locs key. Should be called in the same FireWork as a
     VASP run. This passes information about where the current run is located
     for the next FireWork.
 
@@ -48,7 +48,7 @@ class PassVaspLocs(FireTaskBase):
                "filesystem": env_chk(self.get('filesystem', None), fw_spec),
                "path": self.get("path", os.getcwd())}
 
-        return FWAction(mod_spec=[{'_push': {'vasp_locs': doc, 'calc_locs': doc}}])
+        return FWAction(mod_spec=[{'_push': {'calc_locs': doc, 'calc_locs': doc}}])
 
 
 @explicit_serialize
