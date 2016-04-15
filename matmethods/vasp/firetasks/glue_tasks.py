@@ -18,7 +18,7 @@ from glob import glob
 from fireworks import explicit_serialize, FireTaskBase, FWAction
 
 from matmethods.utils.utils import env_chk
-from matmethods.vasp.vasp_utils import get_vasp_dir
+from matmethods.vasp.vasp_utils import get_calc_dir
 
 __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
@@ -58,16 +58,16 @@ class CopyVaspOutputs(FireTaskBase):
     Additional files, e.g. CHGCAR, can also be specified.
     Automatically handles files that have a ".gz" extension (copies and unzips).
 
-    Note that you must specify either "vasp_loc" or "vasp_dir" to indicate
+    Note that you must specify either "calc_loc" or "calc_dir" to indicate
     the directory containing the previous VASP run.
 
     Required params:
-        (none) - but you must specify either "vasp_loc" OR "vasp_dir"
+        (none) - but you must specify either "calc_loc" OR "calc_dir"
 
     Optional params:
-        vasp_loc (str OR bool): if True will set most recent vasp_loc. If str
-            search for the most recent vasp_loc with the matching name
-        vasp_dir (str): path to dir (on current filesystem) that contains VASP
+        calc_loc (str OR bool): if True will set most recent calc_loc. If str
+            search for the most recent calc_loc with the matching name
+        calc_dir (str): path to dir (on current filesystem) that contains VASP
             output files.
         additional_files ([str]): additional files to copy,
             e.g. ["CHGCAR", "WAVECAR"]. Use $ALL if you just want to copy
@@ -76,17 +76,17 @@ class CopyVaspOutputs(FireTaskBase):
             POSCAR (original POSCAR is not copied).
     """
 
-    optional_params = ["vasp_loc", "vasp_dir", "additional_files",
+    optional_params = ["calc_loc", "calc_dir", "additional_files",
                        "contcar_to_poscar"]
 
     def run_task(self, fw_spec):
 
-        vasp_dir = get_vasp_dir(self, fw_spec)
+        calc_dir = get_calc_dir(self, fw_spec)
         contcar_to_poscar = self.get("contcar_to_poscar", True)
 
         # determine what files need to be copied
         if "$ALL" in self.get("additional_files", []):
-            files_to_copy = os.listdir(vasp_dir)
+            files_to_copy = os.listdir(calc_dir)
         else:
             files_to_copy = ['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR',
                              'vasprun.xml']
@@ -100,7 +100,7 @@ class CopyVaspOutputs(FireTaskBase):
 
         # start file copy
         for f in files_to_copy:
-            prev_path = os.path.join(vasp_dir, f)
+            prev_path = os.path.join(calc_dir, f)
             dest_fname = 'POSCAR' if f == 'CONTCAR' and contcar_to_poscar else f
             dest_path = os.path.join(os.getcwd(), dest_fname)
 
