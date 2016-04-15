@@ -206,7 +206,7 @@ VASP has certain INCAR parameters like NCORE, NPAR, KPAR, etc. that can be tuned
 the ``ModifyIncar`` firetask supports ``env_chk``, these values can also be set in the fireworker config file (my_fworker.yaml). e.g.
 
  env:
-   key_update:
+   incar_update:
        NCORE: 24
 
 Note that NCORE sets the number of cores that work on a single orbital. Typically, you want to set this between 1 (higher memory requirements) and the number of cores per node (lower memory requirements while still maintaining fast communication times between workers on an a single orbital). A good starting point might be setting NCORE equal to the number of cores per node. The following information might come in handy when setting the NCORE parameter on NERSC machines:

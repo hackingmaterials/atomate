@@ -68,13 +68,13 @@ class TestVaspPowerups(unittest.TestCase):
                 self.assertFalse("job_type" in fw.to_dict()["spec"]["_tasks"][2])
 
     def test_modify_incar(self):
-        my_wf = add_modify_incar(self._copy_wf(self.bs_wf), {"key_update": {"NCORE": 1}},
+        my_wf = add_modify_incar(self._copy_wf(self.bs_wf), {"incar_update": {"NCORE": 1}},
                                  fw_name_constraint="structure optimization")
 
         for fw in my_wf.fws:
             if "structure optimization" in fw.name:
                 self.assertTrue("ModifyIncar" in fw.to_dict()["spec"]["_tasks"][0]["_fw_name"])
-                self.assertEqual(fw.to_dict()["spec"]["_tasks"][0]["key_update"], {"NCORE": 1})
+                self.assertEqual(fw.to_dict()["spec"]["_tasks"][0]["incar_update"], {"NCORE": 1})
             else:
                 for t in fw.to_dict()["spec"]["_tasks"]:
                     self.assertFalse("ModifyIncar" in t["_fw_name"])
