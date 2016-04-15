@@ -90,4 +90,4 @@ class VaspToDbTask(FireTaskBase):
             t_id, task_doc = drone.assimilate_return_task_doc(vasp_dir)
             logger.info("Finished parsing with task_id: {}".format(t_id))
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
-                        defuse_children= (task_doc["state"] != "successful"))
+                        defuse_children=(task_doc["state"] != "successful"))
