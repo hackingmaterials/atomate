@@ -129,6 +129,11 @@ class ToDbTask(FireTaskBase):
     Enter data from a claculation into the database.
     Utilizes a drone to parse the current directory into the DB file to insert.
 
+
+    Required params:
+        drone_cls (AbstractDrone): Class of the drone to conver the data to dict
+
+
     Optional params:
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
@@ -139,14 +144,14 @@ class ToDbTask(FireTaskBase):
         additional_fields (dict): dict of additional fields to add
     """
 
-    required_params = ["drone_cls"]
+    required_params = ["drone"]
     optional_params = ["db_file", "calc_dir", "calc_loc", "additional_fields"]
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
         calc_dir = os.getcwd()
         if "calc_dir" in self:
-            calc_dir = self["vasp_dir"]
+            calc_dir = self["calc_dir"]
         elif self.get("calc_loc"):
             if isinstance(self["calc_loc"], six.string_types):
                 for doc in reversed(fw_spec["calc_locs"]):
@@ -156,20 +161,20 @@ class ToDbTask(FireTaskBase):
             else:
                 calc_dir = fw_spec["calc_locs"][-1]["path"]
         # parse the Calc directory
-        logger.info("PARSING DIRECTORY: {} \nUSING DRONE: {}".format(calc_dir,drone_cls.__name__))
+        logger.info("PARSING DIRECTORY: {} USING DRONE: {}".format(calc_dir,self['drone'].__class__.__name__))
         # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
 
         task_doc = None
 
         if not db_file:
-            drone = drone_cls(simulate_mode=True)
+            drone = self['drone'].__class__(simulate_mode=True)
             task_doc = drone.get_task_doc(calc_dir)
             with open("task.json", "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
             d = get_settings(db_file)
-            drone = drone_cls.from_db_doc(dbdoc=d,
+            drone = self['drone'].from_db_doc(dbdoc=d,
                                           additional_fields=self.get("additional_fields"),
                                           options = {"parse_dos": self.get("parse_dos", False),
                                                      "compress_dos" : 1})
