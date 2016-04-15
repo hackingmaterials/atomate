@@ -48,7 +48,7 @@ class PassVaspLocs(FireTaskBase):
                "filesystem": env_chk(self.get('filesystem', None), fw_spec),
                "path": self.get("path", os.getcwd())}
 
-        return FWAction(mod_spec=[{'_push': {'vasp_locs': doc}}])
+        return FWAction(mod_spec=[{'_push': {'vasp_locs': doc, 'calc_locs': doc}}])
 
 
 @explicit_serialize
