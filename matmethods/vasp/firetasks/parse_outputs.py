@@ -83,40 +83,11 @@ class VaspToDbTask(FireTaskBase):
                                         user=d.get("admin_user"),
                                         password=d.get("admin_password"),
                                         collection=d["collection"],
-                                        additional_fields=self.get(
-                                            "additional_fields"),
-                                        parse_dos=self.get("parse_dos", False),
-                                        compress_dos=1)
+                                        additional_fields=self.get("additional_fields"),
+                                        parse_dos=self.get("parse_dos", False), compress_dos=1,
+                                        bandstructure_mode=self.get("bandstructure_mode", False),
+                                        compress_bs=1)
             t_id, task_doc = drone.assimilate_return_task_doc(vasp_dir)
             logger.info("Finished parsing with task_id: {}".format(t_id))
-
-            if self.get("bandstructure_mode"):
-                logger.info("Attempting to parse band structure...")
-                if task_doc["state"] != "successful":
-                    logger.warn("Skipping band structure insertion; task was not successful!")
-                else:
-                    # parse band structure
-                    vasprun = Vasprun(
-                        zpath(os.path.join(vasp_dir, "vasprun.xml")),
-                        parse_eigen=True, parse_projected_eigen=True)
-                    bs = vasprun.get_band_structure(
-                        line_mode=(self["bandstructure_mode"] == "line"))
-                    bs_json = json.dumps(bs.as_dict(), cls=MontyEncoder)
-                    bs_compress = zlib.compress(bs_json, 1)
-
-                    # insert band structure data into database
-                    conn = MongoClient(d["host"], d["port"])
-                    db = conn[d["database"]]
-                    if "admin_user" in d:
-                        db.authenticate(d["admin_user"], d["admin_password"])
-                    tasks = db[d["collection"]]
-                    fs = gridfs.GridFS(db, "bandstructure_fs")
-                    bs_id = fs.put(bs_compress)
-                    tasks.find_one_and_update({"task_id": t_id}, {
-                        "$set": {"calcs_reversed.0.bandstructure_fs_id": bs_id,
-                                 "calcs_reversed.0.bandstructure_compression":
-                                     "zlib"}})
-                    logger.info("Finished parsing band structure.")
-
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
                         defuse_children= (task_doc["state"] != "successful"))
