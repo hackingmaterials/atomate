@@ -36,7 +36,7 @@ from matgendb.creator import VaspToDbTaskDrone, get_uri
 
 from matmethods.utils.utils import get_logger
 
-__author__ = 'Kiran Mathew, Shyue Ping Ong'
+__author__ = 'Kiran Mathew, Shyue Ping Ong, Shyam Dwaraknath'
 __credits__ = 'Anubhav Jain'
 __email__ = 'kmathew@lbl.gov'
 __date__ = 'Mar 27, 2016'

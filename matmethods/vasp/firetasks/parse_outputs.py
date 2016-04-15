@@ -16,8 +16,8 @@ from matmethods.utils.utils import env_chk
 from matmethods.vasp.drones import MMVaspToDbTaskDrone
 from matmethods.utils.utils import get_logger
 
-__author__ = 'Anubhav Jain, Kiran Mathew'
-__email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
+__author__ = 'Anubhav Jain, Kiran Mathew, Shyam Dwaraknath'
+__email__ = 'ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov'
 
 logger = get_logger(__name__)
 
