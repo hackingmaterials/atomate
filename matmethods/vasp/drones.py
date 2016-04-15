@@ -59,11 +59,14 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
 
     def __init__(self, host="127.0.0.1", port=27017,
                  database="vasp", collection="tasks",
-                 user=None, password=None,
-                 parse_dos=False, compress_dos=False, simulate_mode=False,
+                 user=None, password=None, simulate_mode=False,
+                 parse_dos=False, compress_dos=False,
+                 bandstructure_mode=False, compress_bs=False,
                  additional_fields=None, update_duplicates=True,
                  mapi_key=None, use_full_uri=True, runs=None):
         # TODO: I don't understand some of the fields. What does "runs" do?
+        self.bandstructure_mode = bandstructure_mode
+        self.compress_bs = compress_bs
         self.root_keys = {"schema", "dir_name", "chemsys",
                           "composition_reduced", "formula_pretty",
                           "elements", "nelements", "formula_anonymous",
@@ -217,7 +220,10 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         Process a vasprun.xml file.
         """
         vasprun_file = os.path.join(dir_name, filename)
-        vrun = Vasprun(vasprun_file)
+        if self.bandstructure_mode:
+            vrun = Vasprun(vasprun_file, parse_eigen=True, parse_projected_eigen=True)
+        else:
+            vrun = Vasprun(vasprun_file)
         d = vrun.as_dict()
         for k, v in {"formula_pretty": "pretty_formula",
                      "composition_reduced": "reduced_cell_formula",
@@ -242,6 +248,13 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                 d["dos"] = vrun.complete_dos.as_dict()
             except Exception:
                 logger.error("No valid dos data exist in {}.\n Skipping dos"
+                             .format(dir_name))
+        if self.bandstructure_mode:
+            try:
+                bs = vrun.get_band_structure(line_mode=(self.bandstructure_mode == "line"))
+                d["bandstructure"] = bs.as_dict()
+            except Exception:
+                logger.error("No valid band structure data exist in {}.\n Skipping band structure"
                              .format(dir_name))
         d["task"] = {"type": taskname, "name": taskname}
         return d
@@ -375,6 +388,16 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                         dosid = fs.put(dos)
                         d["calcs_reversed"][0]["dos_fs_id"] = dosid
                         del d["calcs_reversed"][0]["dos"]
+                if self.bandstructure_mode and "calcs_reversed" in d:
+                    if "bandstructure" in d["calcs_reversed"][0]:
+                        bs = json.dumps(d["calcs_reversed"][0]["bandstructure"], cls=MontyEncoder)
+                        if self.compress_bs:
+                            bs = zlib.compress(bs, self.compress_bs)
+                            d["calcs_reversed"][0]["bandstructure_compression"] = "zlib"
+                        fs = gridfs.GridFS(db, "bandstructure_fs")
+                        bsid = fs.put(bs)
+                        d["calcs_reversed"][0]["bandstructure_fs_id"] = bsid
+                        del d["calcs_reversed"][0]["bandstructure"]
                 d["last_updated"] = datetime.datetime.today()
                 if result is None:
                     if ("task_id" not in d) or (not d["task_id"]):

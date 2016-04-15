@@ -104,16 +104,16 @@ class ModifyIncar(FireTaskBase):
         (none)
 
     Optional params:
-        key_update (dict): overwrite Incar dict key. Supports env_chk.
-        key_multiply ([{<str>:<float>}]) - multiply Incar key by a constant
+        incar_update (dict): overwrite Incar dict key. Supports env_chk.
+        incar_multiply ([{<str>:<float>}]) - multiply Incar key by a constant
             factor. Supports env_chk.
-        key_dictmod ([{}]): use DictMod language to change Incar.
+        incar_dictmod ([{}]): use DictMod language to change Incar.
             Supports env_chk.
         input_filename (str): Input filename (if not "INCAR")
         output_filename (str): Output filename (if not "INCAR")
     """
 
-    optional_params = ["key_update", "key_multiply", "key_dictmod",
+    optional_params = ["incar_update", "incar_multiply", "incar_dictmod",
                        "input_filename", "output_filename"]
 
     def run_task(self, fw_spec):
@@ -123,19 +123,19 @@ class ModifyIncar(FireTaskBase):
         incar = Incar.from_file(incar_name)
 
         # process FireWork env values via env_chk
-        key_update = env_chk(self.get('key_update'), fw_spec)
-        key_multiply = env_chk(self.get('key_multiply'), fw_spec)
-        key_dictmod = env_chk(self.get('key_dictmod'), fw_spec)
+        incar_update = env_chk(self.get('incar_update'), fw_spec)
+        incar_multiply = env_chk(self.get('incar_multiply'), fw_spec)
+        incar_dictmod = env_chk(self.get('incar_dictmod'), fw_spec)
 
-        if key_update:
-            incar.update(key_update)
+        if incar_update:
+            incar.update(incar_update)
 
-        if key_multiply:
-            for k in key_multiply:
-                incar[k] = incar[k] * key_multiply[k]
+        if incar_multiply:
+            for k in incar_multiply:
+                incar[k] = incar[k] * incar_multiply[k]
 
-        if key_dictmod:
-            apply_mod(key_dictmod, incar)
+        if incar_dictmod:
+            apply_mod(incar_dictmod, incar)
 
         # write INCAR
         incar.write_file(self.get("output_filename", "INCAR"))

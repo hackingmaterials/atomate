@@ -174,8 +174,8 @@ class TestWriteVasp(unittest.TestCase):
 
         # modify and test
         ft = ModifyIncar(
-            {"key_update": {"ISMEAR": 1000}, "key_multiply": {"ENCUT": 1.5},
-             "key_dictmod": {"_inc": {"ISPIN": -1}}})
+            {"incar_update": {"ISMEAR": 1000}, "incar_multiply": {"ENCUT": 1.5},
+             "incar_dictmod": {"_inc": {"ISPIN": -1}}})
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
 

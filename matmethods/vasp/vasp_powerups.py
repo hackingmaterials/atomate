@@ -191,7 +191,7 @@ def add_modify_incar_envchk(original_wf, fw_name_constraint=None, ):
         original_wf (Workflow)
         fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this substring.
     """
-    return add_modify_incar(original_wf, {"key_update": ">>incar_update<<"},
+    return add_modify_incar(original_wf, {"incar_update": ">>incar_update<<"},
                             fw_name_constraint=fw_name_constraint)
 
 
