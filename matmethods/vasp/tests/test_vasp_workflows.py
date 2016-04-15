@@ -76,9 +76,9 @@ class TestVaspWorkflows(unittest.TestCase):
             creds = json.loads(f.read())
             conn = MongoClient(creds["host"], creds["port"])
             db = conn[creds["database"]]
-            if "readonly_user" in creds:
-                db.authenticate(creds["readonly_user"],
-                                creds["readonly_password"])
+            if "admin_user" in creds:
+                db.authenticate(creds["admin_user"],
+                                creds["admin_password"])
             return db
 
     def _get_task_collection(self):
