@@ -95,6 +95,7 @@ class VaspToDbTask(FireTaskBase):
                 if task_doc["state"] != "successful":
                     logger.warn("Skipping band structure insertion; task was not successful!")
                 else:
+                    # TODO: probably move this into the Drone itself as suggested by Shyam
                     # parse band structure
                     vasprun = Vasprun(
                         zpath(os.path.join(vasp_dir, "vasprun.xml")),
