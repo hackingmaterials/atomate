@@ -15,6 +15,7 @@ import re
 import datetime
 import zlib
 from fnmatch import fnmatch
+
 from collections import OrderedDict
 import json
 import glob
@@ -36,10 +37,11 @@ from matgendb.creator import VaspToDbTaskDrone, get_uri
 
 from matmethods.utils.utils import get_logger
 
-__author__ = 'Kiran Mathew, Shyue Ping Ong'
+__author__ = 'Kiran Mathew, Shyue Ping Ong, Shyam Dwaraknath'
 __credits__ = 'Anubhav Jain'
 __email__ = 'kmathew@lbl.gov'
 __date__ = 'Mar 27, 2016'
+__version__ = "0.1.0"
 
 logger = get_logger(__name__)
 
@@ -113,7 +115,6 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             purposes. Else, only the task_id of the inserted doc is returned.
         """
         return self.assimilate_return_task_doc(path)[0]
-
 
     def assimilate_return_task_doc(self, path):
         """
@@ -520,3 +521,45 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                 diff = v.difference(set(d.get(k, d).keys()))
             if diff:
                 logger.warn("The keys {0} in {1} not set".format(diff, k))
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(**d["init_args"])
+
+    def as_dict(self):
+        init_args = {"host": self.host, "port": self.port,
+                     "database": self.database,
+                     "user": self.user,
+                     "password": self.password,
+                     "collection": self.collection,
+                     "parse_dos": self.parse_dos,
+                     "simulate_mode": self.simulate,
+                     "additional_fields": self.additional_fields,
+                     "update_duplicates": self.update_duplicates}
+        output = {"@module": self.__class__.__module__,
+                  "@class": self.__class__.__name__,
+                  "init_args": init_args,
+                  "version": __version__}
+        return output
+
+    @classmethod
+    def from_db_doc(cls, dbdoc=None, additional_fields=None, options=None):
+
+        additional_fields = additional_fields if additional_fields else {}
+        options = options if options else {}
+
+        if dbdoc:
+            return MMVaspToDbTaskDrone(host=dbdoc["host"], port=dbdoc["port"],
+                                       database=dbdoc["database"],
+                                       user=dbdoc.get("admin_user"),
+                                       password=dbdoc.get("admin_password"),
+                                       collection=dbdoc["collection"],
+                                       additional_fields=additional_fields,
+                                       parse_dos=options.get("parse_dos", False),
+                                       compress_dos=options.get("compress_dos", True),
+                                       update_duplicates=options.get("update_dupliucates", True),
+                                       mapi_key=options.get("mapi_key", None),
+                                       use_full_uri=options.get("use_full_uri", True),
+                                       runs=options.get("runs", None))
+        else:
+            return MMVaspToDbTaskDrone(simulate_mode=True)

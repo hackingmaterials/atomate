@@ -52,7 +52,7 @@ class TestCopyVaspOutputs(unittest.TestCase):
 
 
     def test_plain_copy(self):
-        ct = CopyVaspOutputs(vasp_dir=self.plain_outdir)
+        ct = CopyVaspOutputs(calc_dir=self.plain_outdir)
         ct.run_task({})
         files = ["INCAR", "KPOINTS", "POSCAR", "POTCAR", "OUTCAR"]
         for f in files:
@@ -68,7 +68,7 @@ class TestCopyVaspOutputs(unittest.TestCase):
                 self.assertEqual(f1.read(), f2.read())
 
     def test_plain_copy_more(self):
-        ct = CopyVaspOutputs(vasp_dir=self.plain_outdir,
+        ct = CopyVaspOutputs(calc_dir=self.plain_outdir,
                              contcar_to_poscar=False,
                              additional_files=["IBZKPT"])
         ct.run_task({})
@@ -86,7 +86,7 @@ class TestCopyVaspOutputs(unittest.TestCase):
                 self.assertEqual(f1.read(), f2.read())
 
     def test_gzip_copy(self):
-        ct = CopyVaspOutputs(vasp_dir=self.gzip_outdir)
+        ct = CopyVaspOutputs(calc_dir=self.gzip_outdir)
         ct.run_task({})
         files = ["INCAR", "KPOINTS", "POTCAR", "POSCAR"]
         for f in files:
@@ -97,7 +97,7 @@ class TestCopyVaspOutputs(unittest.TestCase):
             self.assertFalse(os.path.exists(os.path.join(scratch_dir, f)))
 
     def test_relax2_copy(self):
-        ct = CopyVaspOutputs(vasp_dir=self.relax2_outdir, additional_files=["IBZKPT"])
+        ct = CopyVaspOutputs(calc_dir=self.relax2_outdir, additional_files=["IBZKPT"])
         ct.run_task({})
         files = ["INCAR", "KPOINTS", "POTCAR", "POSCAR", "IBZKPT"]
         for f in files:

@@ -136,7 +136,7 @@ class MPStaticVaspInputSet(DictVaspInputSet):
             return sym_finder.get_primitive_standard_structure(False)
 
     @staticmethod
-    def from_previous_vasp_run(previous_vasp_dir, output_dir='.',
+    def from_previous_vasp_run(previous_calc_dir, output_dir='.',
                                user_incar_settings=None,
                                make_dir_if_not_present=True,
                                kpoints_density=90, sym_prec=0.1):
@@ -145,7 +145,7 @@ class MPStaticVaspInputSet(DictVaspInputSet):
         directory of previous Vasp run.
 
         Args:
-            previous_vasp_dir (str): Directory containing the outputs(
+            previous_calc_dir (str): Directory containing the outputs(
                 vasprun.xml and OUTCAR) of previous vasp run.
             output_dir (str): Directory to write the VASP input files for
                 the static calculations. Defaults to current directory.
@@ -159,16 +159,16 @@ class MPStaticVaspInputSet(DictVaspInputSet):
         """
         # Read input and output from previous run
         try:
-            vasp_run = Vasprun(os.path.join(previous_vasp_dir, "vasprun.xml"),
+            vasp_run = Vasprun(os.path.join(previous_calc_dir, "vasprun.xml"),
                                parse_dos=False, parse_eigen=None)
-            outcar = Outcar(os.path.join(previous_vasp_dir, "OUTCAR"))
+            outcar = Outcar(os.path.join(previous_calc_dir, "OUTCAR"))
             previous_incar = vasp_run.incar
             previous_kpoints = vasp_run.kpoints
         except:
             traceback.print_exc()
             raise RuntimeError(
                 "Can't get valid results from previous run. prev dir: {}".format(
-                    previous_vasp_dir))
+                    previous_calc_dir))
 
         mpsvip = MPStaticVaspInputSet(kpoints_density=kpoints_density,
                                       sym_prec=sym_prec)
@@ -383,7 +383,7 @@ class MPNonSCFVaspInputSet(MPStaticVaspInputSet):
             return Poscar(structure)
 
     @staticmethod
-    def from_previous_vasp_run(previous_vasp_dir, output_dir='.',
+    def from_previous_vasp_run(previous_calc_dir, output_dir='.',
                                mode="Uniform", user_incar_settings=None,
                                copy_chgcar=True, make_dir_if_not_present=True,
                                kpoints_density=1000, kpoints_line_density=20):
@@ -392,7 +392,7 @@ class MPNonSCFVaspInputSet(MPStaticVaspInputSet):
         directory of previous static Vasp run.
 
         Args:
-            previous_vasp_dir (str): The directory contains the outputs(
+            previous_calc_dir (str): The directory contains the outputs(
                 vasprun.xml and OUTCAR) of previous vasp run.
             output_dir (str): The directory to write the VASP input files
                 for the NonSCF calculations. Default to write in the current
@@ -417,14 +417,14 @@ class MPNonSCFVaspInputSet(MPStaticVaspInputSet):
         user_incar_settings = user_incar_settings or {}
 
         try:
-            vasp_run = Vasprun(os.path.join(previous_vasp_dir, "vasprun.xml"),
+            vasp_run = Vasprun(os.path.join(previous_calc_dir, "vasprun.xml"),
                                parse_dos=False, parse_eigen=None)
-            outcar = Outcar(os.path.join(previous_vasp_dir, "OUTCAR"))
+            outcar = Outcar(os.path.join(previous_calc_dir, "OUTCAR"))
             previous_incar = vasp_run.incar
         except:
             traceback.print_exc()
             raise RuntimeError("Can't get valid results from previous run: {}"
-                               .format(previous_vasp_dir))
+                               .format(previous_calc_dir))
 
         # Get a Magmom-decorated structure
         structure = MPNonSCFVaspInputSet.get_structure(vasp_run, outcar,
@@ -437,7 +437,7 @@ class MPNonSCFVaspInputSet(MPStaticVaspInputSet):
         mpnscfvip.write_input(structure, output_dir, make_dir_if_not_present)
         if copy_chgcar:
             try:
-                shutil.copyfile(os.path.join(previous_vasp_dir, "CHGCAR"),
+                shutil.copyfile(os.path.join(previous_calc_dir, "CHGCAR"),
                                 os.path.join(output_dir, "CHGCAR"))
             except Exception as e:
                 traceback.print_exc()
