@@ -1,22 +1,22 @@
-matmethods.vasp.examples package
+MatMethods.vasp.examples package
 ================================
 
 Submodules
 ----------
 
-matmethods.vasp.examples.vasp_workflows module
-----------------------------------------------
+MatMethods.vasp.examples.add_vasp_wfs_to_db module
+--------------------------------------------------
 
-.. automodule:: matmethods.vasp.examples.vasp_workflows
-:members:
-        :undoc-members:
-                :show-inheritance:
+.. automodule:: MatMethods.vasp.examples.add_vasp_wfs_to_db
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 
 Module contents
 ---------------
 
-.. automodule:: matmethods.vasp.examples
-:members:
-        :undoc-members:
-                :show-inheritance:
+.. automodule:: MatMethods.vasp.examples
+    :members:
+    :undoc-members:
+    :show-inheritance:

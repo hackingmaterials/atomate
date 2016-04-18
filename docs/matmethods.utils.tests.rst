@@ -1,22 +1,22 @@
-matmethods.utils.tests package
+MatMethods.utils.tests package
 ==============================
 
 Submodules
 ----------
 
-matmethods.utils.tests.test_utils module
+MatMethods.utils.tests.test_utils module
 ----------------------------------------
 
-.. automodule:: matmethods.utils.tests.test_utils
-:members:
-        :undoc-members:
-                :show-inheritance:
+.. automodule:: MatMethods.utils.tests.test_utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 
 Module contents
 ---------------
 
-.. automodule:: matmethods.utils.tests
-:members:
-        :undoc-members:
-                :show-inheritance:
+.. automodule:: MatMethods.utils.tests
+    :members:
+    :undoc-members:
+    :show-inheritance:

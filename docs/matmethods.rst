@@ -1,4 +1,4 @@
-matmethods package
+MatMethods package
 ==================
 
 Subpackages
@@ -6,13 +6,13 @@ Subpackages
 
 .. toctree::
 
-    matmethods.utils
-    matmethods.vasp
+    MatMethods.utils
+    MatMethods.vasp
 
 Module contents
 ---------------
 
-.. automodule:: matmethods
-:members:
-        :undoc-members:
-                :show-inheritance:
+.. automodule:: MatMethods
+    :members:
+    :undoc-members:
+    :show-inheritance:

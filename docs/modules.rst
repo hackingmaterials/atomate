@@ -1,7 +1,7 @@
-matmethods
+MatMethods
 ==========
 
 .. toctree::
-:maxdepth: 4
+   :maxdepth: 4
 
-       matmethods
+   MatMethods

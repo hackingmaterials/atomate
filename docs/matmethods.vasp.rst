@@ -1,4 +1,4 @@
-matmethods.vasp package
+MatMethods.vasp package
 =======================
 
 Subpackages
@@ -6,26 +6,51 @@ Subpackages
 
 .. toctree::
 
-    matmethods.vasp.examples
-    matmethods.vasp.firetasks
-    matmethods.vasp.tests
+    MatMethods.vasp.examples
+    MatMethods.vasp.firetasks
+    MatMethods.vasp.tests
+    MatMethods.vasp.workflows
 
 Submodules
 ----------
 
-matmethods.vasp.vasp_utils module
+MatMethods.vasp.drones module
+-----------------------------
+
+.. automodule:: MatMethods.vasp.drones
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+MatMethods.vasp.input_sets module
 ---------------------------------
 
-.. automodule:: matmethods.vasp.vasp_utils
-:members:
-        :undoc-members:
-                :show-inheritance:
+.. automodule:: MatMethods.vasp.input_sets
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+MatMethods.vasp.vasp_powerups module
+------------------------------------
+
+.. automodule:: MatMethods.vasp.vasp_powerups
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+MatMethods.vasp.vasp_utils module
+---------------------------------
+
+.. automodule:: MatMethods.vasp.vasp_utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 
 Module contents
 ---------------
 
-.. automodule:: matmethods.vasp
-:members:
-        :undoc-members:
-                :show-inheritance:
+.. automodule:: MatMethods.vasp
+    :members:
+    :undoc-members:
+    :show-inheritance:

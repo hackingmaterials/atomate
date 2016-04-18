@@ -1,4 +1,4 @@
-matmethods.utils package
+MatMethods.utils package
 ========================
 
 Subpackages
@@ -6,24 +6,24 @@ Subpackages
 
 .. toctree::
 
-    matmethods.utils.tests
+    MatMethods.utils.tests
 
 Submodules
 ----------
 
-matmethods.utils.utils module
+MatMethods.utils.utils module
 -----------------------------
 
-.. automodule:: matmethods.utils.utils
-:members:
-        :undoc-members:
-                :show-inheritance:
+.. automodule:: MatMethods.utils.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 
 Module contents
 ---------------
 
-.. automodule:: matmethods.utils
-:members:
-        :undoc-members:
-                :show-inheritance:
+.. automodule:: MatMethods.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
