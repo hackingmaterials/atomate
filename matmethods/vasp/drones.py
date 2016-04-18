@@ -69,7 +69,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         self.bandstructure_mode = bandstructure_mode
         self.compress_bs = compress_bs
         self.root_keys = {"schema", "dir_name", "chemsys",
-                          "composition_reduced", "formula_pretty",
+                          "composition_reduced", "formula_pretty", "formula_reduced_abc",
                           "elements", "nelements", "formula_anonymous",
                           "calcs_reversed", "completed_at",
                           "nsites", "composition_unit_cell",
@@ -81,8 +81,8 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                             'energy_per_atom', 'vbm', 'cbm',
                             'spacegroup', 'energy', 'structure'}
         self.calcs_reversed_keys = {'dir_name', 'run_type', 'elements',
-                                    'nelements', 'formula_pretty',
-                                    'composition_reduced', 'vasp_version',
+                                    'nelements', 'formula_pretty', 'formula_reduced_abc',
+                                    'composition_reduced', 'vasp_version', 'formula_anonymous',
                                     'nsites', 'composition_unit_cell',
                                     'completed_at', 'output', 'task',
                                     'input', 'has_vasp_completed'}
@@ -194,13 +194,15 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             d_calc_initial = d["calcs_reversed"][-1]
             d_calc_final = d["calcs_reversed"][0]
             d["chemsys"] = "-".join(sorted(d_calc_final["elements"]))
-            d["formula_anonymous"] = Composition(
-                d_calc_final["composition_unit_cell"]).anonymized_formula
+            comp = Composition(d_calc_final["composition_unit_cell"])
+            d["formula_anonymous"] = comp.anonymized_formula
+            d["formula_reduced_abc"] = comp.reduced_composition.alphabetical_formula
             for root_key in ["completed_at", "nsites",
                              "composition_unit_cell",
                              "composition_reduced", "formula_pretty",
                              "elements", "nelements"]:
                 d[root_key] = d_calc_final[root_key]
+
             self.set_input_data(d_calc_initial, d)
             self.set_output_data(d_calc_final, d)
             self.set_state(d_calc_final, d)
@@ -231,6 +233,9 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                      "composition_unit_cell": "unit_cell_formula"}.items():
             d[k] = d.pop(v)
 
+        comp = Composition(d["composition_unit_cell"])
+        d["formula_anonymous"] = comp.anonymized_formula
+        d["formula_reduced_abc"] = comp.reduced_composition.alphabetical_formula
         d["dir_name"] = os.path.abspath(dir_name)
         d["completed_at"] = \
             str(datetime.datetime.fromtimestamp(os.path.getmtime(
