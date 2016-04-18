@@ -84,7 +84,7 @@ class VaspToDbTask(FireTaskBase):
             t_id, task_doc = drone.assimilate_return_task_doc(calc_dir)
             logger.info("Finished parsing with task_id: {}".format(t_id))
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
-                        defuse_children= (task_doc["state"] != "successful"))
+                        defuse_children=(task_doc["state"] != "successful"))
 
 
 @explicit_serialize
@@ -99,12 +99,9 @@ class ToDbTask(FireTaskBase):
 
 
     Optional params:
-        db_file (str): path to file containing the database credentials.
-            Supports env_chk. Default: write data to JSON file.
-        calc_dir (str): path to dir (on current filesystem) that contains calculation
-            output files. Default: use current working directory.
-        calc_loc (str OR bool): if True will set most recent calc_loc. If str
-            search for the most recent calc_loc with the matching name
+        db_file (str): path to file containing the database credentials. Supports env_chk. Default: write data to JSON file.
+        calc_dir (str): path to dir (on current filesystem) that contains calculation output files. Default: use current working directory.
+        calc_loc (str OR bool): if True will set most recent calc_loc. If str search for the most recent calc_loc with the matching name
         additional_fields (dict): dict of additional fields to add
     """
 
@@ -125,7 +122,8 @@ class ToDbTask(FireTaskBase):
             else:
                 calc_dir = fw_spec["calc_locs"][-1]["path"]
         # parse the Calc directory
-        logger.info("PARSING DIRECTORY: {} USING DRONE: {}".format(calc_dir,self['drone'].__class__.__name__))
+        logger.info("PARSING DIRECTORY: {} USING DRONE: {}".format(
+            calc_dir, self['drone'].__class__.__name__))
         # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
 
@@ -139,12 +137,11 @@ class ToDbTask(FireTaskBase):
         else:
             d = get_settings(db_file)
             drone = self['drone'].from_db_doc(dbdoc=d,
-                                          additional_fields=self.get("additional_fields"),
-                                          options = {"parse_dos": self.get("parse_dos", False),
-                                                     "compress_dos" : 1})
+                                              additional_fields=self.get("additional_fields"),
+                                              options={"parse_dos": self.get("parse_dos", False),
+                                                       "compress_dos": 1})
             t_id, task_doc = drone.assimilate_return_task_doc(calc_dir)
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
-
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
-                        defuse_children= (task_doc["state"] != "successful"))
+                        defuse_children=(task_doc["state"] != "successful"))

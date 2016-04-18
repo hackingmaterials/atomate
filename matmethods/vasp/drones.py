@@ -15,6 +15,7 @@ import re
 import datetime
 import zlib
 from fnmatch import fnmatch
+
 from collections import OrderedDict
 import json
 import glob
@@ -305,8 +306,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         """
         set the 'state' key
         """
-        d["state"] = "successful" if d_calc[
-            "has_vasp_completed"] else "unsuccessful"
+        d["state"] = "successful" if d_calc["has_vasp_completed"] else "unsuccessful"
 
     def set_analysis(self, d, max_force_threshold=0.5,
                      volume_change_threshold=0.2):
@@ -487,8 +487,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             run_stats = {}
             for filename in glob.glob(os.path.join(fullpath, "OUTCAR*")):
                 outcar = Outcar(filename)
-                taskname = "relax2" if re.search(
-                    "relax2", filename) else "standard"
+                taskname = "relax2" if re.search("relax2", filename) else "standard"
                 d["output"]["outcar"] = outcar.as_dict()
                 run_stats[taskname] = outcar.run_stats
         except:
@@ -529,7 +528,8 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
 
     def as_dict(self):
         init_args = {"host": self.host, "port": self.port,
-                     "database": self.database, "user": self.user,
+                     "database": self.database,
+                     "user": self.user,
                      "password": self.password,
                      "collection": self.collection,
                      "parse_dos": self.parse_dos,
@@ -538,7 +538,8 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                      "update_duplicates": self.update_duplicates}
         output = {"@module": self.__class__.__module__,
                   "@class": self.__class__.__name__,
-                  "init_args": init_args, "version": __version__}
+                  "init_args": init_args,
+                  "version": __version__}
         return output
 
     @classmethod
@@ -554,15 +555,11 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                                        password=dbdoc.get("admin_password"),
                                        collection=dbdoc["collection"],
                                        additional_fields=additional_fields,
-                                       parse_dos=options.get("parse_dos",
-                                                             False),
-                                       compress_dos=options.get("compress_dos",
-                                                                True),
-                                       update_duplicates=options.get("update_dupliucates",
-                                                                     True),
+                                       parse_dos=options.get("parse_dos", False),
+                                       compress_dos=options.get("compress_dos", True),
+                                       update_duplicates=options.get("update_dupliucates", True),
                                        mapi_key=options.get("mapi_key", None),
-                                       use_full_uri=options.get("use_full_uri",
-                                                                True),
+                                       use_full_uri=options.get("use_full_uri", True),
                                        runs=options.get("runs", None))
         else:
             return MMVaspToDbTaskDrone(simulate_mode=True)
