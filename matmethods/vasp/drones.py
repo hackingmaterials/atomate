@@ -1,7 +1,6 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, \
-    absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
 This Drone tries to produce a more sensible task dictionary than
@@ -51,9 +50,7 @@ logger = get_logger(__name__)
 class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
     """
     VaspToDbTaskDrone with updated schema.
-    Also removed the processing of aflow style runs.
-    Please refer to matgendb.creator.VaspToDbTaskDrone documentation
-
+    Please refer to matgendb.creator.VaspToDbTaskDrone documentation.
     """
 
     __version__ = 0.1
@@ -65,29 +62,24 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                  bandstructure_mode=False, compress_bs=False,
                  additional_fields=None, update_duplicates=True,
                  mapi_key=None, use_full_uri=True, runs=None):
-        # TODO: I don't understand some of the fields. What does "runs" do?
         self.bandstructure_mode = bandstructure_mode
         self.compress_bs = compress_bs
-        self.root_keys = {"schema", "dir_name", "chemsys",
-                          "composition_reduced", "formula_pretty", "formula_reduced_abc",
-                          "elements", "nelements", "formula_anonymous",
-                          "calcs_reversed", "completed_at",
-                          "nsites", "composition_unit_cell",
-                          "input", "output", "state", "analysis"}
-        self.input_keys = {'is_lasph', 'is_hubbard', 'xc_override',
-                           'potcar_spec', 'hubbards', 'structure',
-                           'pseudo_potential'}
-        self.output_keys = {'is_gap_direct', 'density', 'bandgap',
-                            'energy_per_atom', 'vbm', 'cbm',
+        self.root_keys = {"schema", "dir_name", "chemsys", "composition_reduced",
+                          "formula_pretty", "formula_reduced_abc", "elements", "nelements",
+                          "formula_anonymous", "calcs_reversed", "completed_at", "nsites",
+                          "composition_unit_cell", "input", "output", "state", "analysis",
+                          "run_stats"}
+        self.input_keys = {'is_lasph', 'is_hubbard', 'xc_override', 'potcar_spec', 'hubbards',
+                           'structure', 'pseudo_potential'}
+        self.output_keys = {'is_gap_direct', 'density', 'bandgap', 'energy_per_atom', 'vbm', 'cbm',
                             'spacegroup', 'energy', 'structure'}
-        self.calcs_reversed_keys = {'dir_name', 'run_type', 'elements',
-                                    'nelements', 'formula_pretty', 'formula_reduced_abc',
+        self.calcs_reversed_keys = {'dir_name', 'run_type', 'elements', 'nelements',
+                                    'formula_pretty', 'formula_reduced_abc',
                                     'composition_reduced', 'vasp_version', 'formula_anonymous',
-                                    'nsites', 'composition_unit_cell',
-                                    'completed_at', 'output', 'task',
-                                    'input', 'has_vasp_completed'}
-        self.analysis_keys = {'delta_volume_percent', 'delta_volume',
-                              'max_force', 'errors', 'warnings'}
+                                    'nsites', 'composition_unit_cell', 'completed_at', 'output',
+                                    'task', 'input', 'has_vasp_completed'}
+        self.analysis_keys = {'delta_volume_percent', 'delta_volume', 'max_force', 'errors',
+                              'warnings'}
         self.all_keys = {"root": self.root_keys,
                          "input": self.input_keys,
                          "output": self.output_keys,
@@ -212,8 +204,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         except Exception as ex:
             import traceback
             logger.error(traceback.format_exc())
-            logger.error("Error in " + os.path.abspath(dir_name) +
-                         ".\n" + traceback.format_exc())
+            logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
             return None
 
     def process_vasprun(self, dir_name, taskname, filename):
@@ -237,24 +228,19 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         d["formula_anonymous"] = comp.anonymized_formula
         d["formula_reduced_abc"] = comp.reduced_composition.alphabetical_formula
         d["dir_name"] = os.path.abspath(dir_name)
-        d["completed_at"] = \
-            str(datetime.datetime.fromtimestamp(os.path.getmtime(
-                vasprun_file)))
+        d["completed_at"] = str(datetime.datetime.fromtimestamp(os.path.getmtime(vasprun_file)))
         d["density"] = vrun.final_structure.density
         # replace 'crystal' with 'structure'
         d["input"]["structure"] = d["input"].pop("crystal")
         d["output"]["structure"] = d["output"].pop("crystal")
         for k, v in {"energy": "final_energy",
-                     "energy_per_atom":
-                         "final_energy_per_atom"}.items():
-
+                     "energy_per_atom": "final_energy_per_atom"}.items():
             d["output"][k] = d["output"].pop(v)
         if self.parse_dos and self.parse_dos != 'final':
             try:
                 d["dos"] = vrun.complete_dos.as_dict()
             except Exception:
-                logger.error("No valid dos data exist in {}.\n Skipping dos"
-                             .format(dir_name))
+                logger.error("No valid dos data exist in {}.\n Skipping dos".format(dir_name))
         if self.bandstructure_mode:
             try:
                 bs = vrun.get_band_structure(line_mode=(self.bandstructure_mode == "line"))
@@ -313,8 +299,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
         """
         d["state"] = "successful" if d_calc["has_vasp_completed"] else "unsuccessful"
 
-    def set_analysis(self, d, max_force_threshold=0.5,
-                     volume_change_threshold=0.2):
+    def set_analysis(self, d, max_force_threshold=0.5, volume_change_threshold=0.2):
         """
         Adapted from matgendb.creator
 
@@ -331,8 +316,7 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
                                 .format(volume_change_threshold * 100))
         max_force = None
         calc = d["calcs_reversed"][0]
-        if d["state"] == "successful" and \
-                calc["input"]["parameters"].get("NSW", 0) > 0:
+        if d["state"] == "successful" and calc["input"]["parameters"].get("NSW", 0) > 0:
             # handle the max force and max force error
             max_force = max([np.linalg.norm(a)
                              for a in calc["output"]
@@ -453,13 +437,11 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             with zopen(filenames[0], "rt") as f:
                 transformations = json.load(f)
                 try:
-                    m = re.match("(\d+)-ICSD",
-                                 transformations["history"][0]["source"])
+                    m = re.match("(\d+)-ICSD", transformations["history"][0]["source"])
                     if m:
                         d["icsd_id"] = int(m.group(1))
                 except Exception as ex:
-                    logger.warning("Cannot parse ICSD from transformations "
-                                   "file.")
+                    logger.warning("Cannot parse ICSD from transformations file.")
                     pass
         else:
             logger.warning("Transformations file does not exist.")
@@ -492,9 +474,14 @@ class MMVaspToDbTaskDrone(VaspToDbTaskDrone):
             run_stats = {}
             for filename in glob.glob(os.path.join(fullpath, "OUTCAR*")):
                 outcar = Outcar(filename)
-                taskname = "relax2" if re.search("relax2", filename) else "standard"
-                d["output"]["outcar"] = outcar.as_dict()
+                taskname = "standard"
+                for run in self.runs:
+                    if re.search(str(run), filename):
+                        taskname = str(run)
                 run_stats[taskname] = outcar.run_stats
+                for d_calc in d["calcs_reversed"]:
+                    if d_calc["task"]["name"] == taskname:
+                        d_calc["output"]["outcar"] = outcar.as_dict()
         except:
             logger.error("Bad OUTCAR for {}.".format(fullpath))
         try:
