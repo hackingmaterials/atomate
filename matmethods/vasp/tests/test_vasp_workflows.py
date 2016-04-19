@@ -114,11 +114,9 @@ class TestVaspWorkflows(unittest.TestCase):
         self.assertAlmostEqual(d["output"]["bandgap"], 0.65, 1)
 
         if "nscf" in mode:
-            self.assertEqual(d["output"]["outcar"][
-                                 "total_magnetization"], None)
+            self.assertEqual(d["calcs_reversed"][0]["output"]["outcar"]["total_magnetization"], None)
         else:
-            self.assertAlmostEqual(d["output"]["outcar"][
-                                       "total_magnetization"], 0, 3)
+            self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["outcar"]["total_magnetization"], 0, 3)
 
         self.assertLess(d["run_stats"]["overall"]["Elapsed time (sec)"],
                         180)  # run should take under 3 minutes
