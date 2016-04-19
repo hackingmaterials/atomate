@@ -108,8 +108,7 @@ class TestVaspWorkflows(unittest.TestCase):
 
         elif mode in ["ncsf uniform"]:
             self.assertAlmostEqual(d["output"]["energy"], -10.828, 2)
-            self.assertAlmostEqual(d["output"]["energy_per_atom"],
-                                   -5.414, 2)
+            self.assertAlmostEqual(d["output"]["energy_per_atom"], -5.414, 2)
 
         self.assertAlmostEqual(d["output"]["bandgap"], 0.65, 1)
 
