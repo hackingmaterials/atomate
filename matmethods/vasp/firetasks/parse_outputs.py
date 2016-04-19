@@ -13,7 +13,7 @@ from fireworks.utilities.fw_utilities import explicit_serialize
 from matgendb.util import get_settings
 
 from matmethods.utils.utils import env_chk
-from matmethods.vasp.drones import MMVaspToDbTaskDrone
+from matmethods.vasp.drones import VaspToDbTaskDrone
 from matmethods.utils.utils import get_logger
 
 __author__ = 'Anubhav Jain, Kiran Mathew, Shyam Dwaraknath'
@@ -66,21 +66,21 @@ class VaspToDbTask(FireTaskBase):
         task_doc = None
 
         if not db_file:
-            drone = MMVaspToDbTaskDrone(simulate_mode=True)
+            drone = VaspToDbTaskDrone(simulate_mode=True)
             task_doc = drone.get_task_doc(calc_dir)
             with open("task.json", "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
             d = get_settings(db_file)
-            drone = MMVaspToDbTaskDrone(host=d["host"], port=d["port"],
-                                        database=d["database"],
-                                        user=d.get("admin_user"),
-                                        password=d.get("admin_password"),
-                                        collection=d["collection"],
-                                        additional_fields=self.get("additional_fields"),
-                                        parse_dos=self.get("parse_dos", False), compress_dos=1,
-                                        bandstructure_mode=self.get("bandstructure_mode", False),
-                                        compress_bs=1)
+            drone = VaspToDbTaskDrone(host=d["host"], port=d["port"],
+                                      database=d["database"],
+                                      user=d.get("admin_user"),
+                                      password=d.get("admin_password"),
+                                      collection=d["collection"],
+                                      additional_fields=self.get("additional_fields"),
+                                      parse_dos=self.get("parse_dos", False), compress_dos=1,
+                                      bandstructure_mode=self.get("bandstructure_mode", False),
+                                      compress_bs=1)
             t_id, task_doc = drone.assimilate_return_task_doc(calc_dir)
             logger.info("Finished parsing with task_id: {}".format(t_id))
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
