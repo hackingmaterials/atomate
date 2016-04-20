@@ -138,11 +138,12 @@ class RunVaspCustodian(FireTaskBase):
                              NonConvergingErrorHandler(), PotimErrorHandler(),
                              PositiveEnergyErrorHandler()])
         if handler_lvl > 1:
-            handlers.append(AliasingErrorHandler())
-        if handler_lvl > 2:
-            handlers.append(FrozenJobErrorHandler())
-        if handler_lvl > 3:
             handlers.append(MaxForceErrorHandler())
+        if handler_lvl > 2:
+            # Default aliasing errors can be safely ignored according to VASP
+            handlers.append(AliasingErrorHandler)
+        if handler_lvl > 3:
+            handlers.append(FrozenJobErrorHandler())
 
         validators = [VasprunXMLValidator()]
 
