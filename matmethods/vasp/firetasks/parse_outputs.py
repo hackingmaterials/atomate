@@ -90,26 +90,27 @@ class VaspToDbTask(FireTaskBase):
 @explicit_serialize
 class ToDbTask(FireTaskBase):
     """
-    Enter data from a claculation into the database.
+    Enter data from a calculation into the database.
     Utilizes a drone to parse the current directory into the DB file to insert.
 
 
     Required params:
-        drone_cls (AbstractDrone): Class of the drone to conver the data to dict
+        drone (AbstractDrone): Drone to convert the data to dict
 
 
     Optional params:
         db_file (str): path to file containing the database credentials. Supports env_chk. Default: write data to JSON file.
         calc_dir (str): path to dir (on current filesystem) that contains calculation output files. Default: use current working directory.
         calc_loc (str OR bool): if True will set most recent calc_loc. If str search for the most recent calc_loc with the matching name
+        options (dict): dict of options to pass into the Drone
         additional_fields (dict): dict of additional fields to add
     """
 
     required_params = ["drone"]
-    optional_params = ["db_file", "calc_dir", "calc_loc", "additional_fields"]
+    optional_params = ["db_file", "calc_dir", "calc_loc", "additional_fields", "options"]
 
     def run_task(self, fw_spec):
-        # get the directory that contains the VASP dir to parse
+        # get the directory that contains the dir to parse
         calc_dir = os.getcwd()
         if "calc_dir" in self:
             calc_dir = self["calc_dir"]
@@ -121,7 +122,8 @@ class ToDbTask(FireTaskBase):
                         break
             else:
                 calc_dir = fw_spec["calc_locs"][-1]["path"]
-        # parse the Calc directory
+
+        # parse the calc directory
         logger.info("PARSING DIRECTORY: {} USING DRONE: {}".format(
             calc_dir, self['drone'].__class__.__name__))
         # get the database connection
@@ -138,9 +140,9 @@ class ToDbTask(FireTaskBase):
             d = get_settings(db_file)
             drone = self['drone'].from_db_doc(dbdoc=d,
                                               additional_fields=self.get("additional_fields"),
-                                              options={"parse_dos": self.get("parse_dos", False),
-                                                       "compress_dos": 1})
-            t_id, task_doc = drone.assimilate_return_task_doc(calc_dir)
+                                              options=self.get("options"))
+            t_id, task_doc = drone.assimilate_return_task_doc(calc_dir)  # TODO: this method is only present for drone in Matmethods! So only that specific drone will work!
+
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
