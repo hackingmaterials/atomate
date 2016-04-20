@@ -11,14 +11,13 @@ from previous run directory oto the current one.
 
 import gzip
 import os
-import shutil
 import re
 from glob import glob
 
 from fireworks import explicit_serialize, FireTaskBase, FWAction
 
-from matmethods.utils.utils import env_chk
-from matmethods.vasp.vasp_utils import get_calc_dir
+from matmethods.utils.utils import env_chk, list_dir, copy_file
+from matmethods.vasp.vasp_utils import get_calc_key
 
 __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
@@ -69,6 +68,7 @@ class CopyVaspOutputs(FireTaskBase):
             search for the most recent calc_loc with the matching name
         calc_dir (str): path to dir (on current filesystem) that contains VASP
             output files.
+        filesystem (str): remote filesystem. e.g. username@host
         additional_files ([str]): additional files to copy,
             e.g. ["CHGCAR", "WAVECAR"]. Use $ALL if you just want to copy
             everything
@@ -76,17 +76,21 @@ class CopyVaspOutputs(FireTaskBase):
             POSCAR (original POSCAR is not copied).
     """
 
-    optional_params = ["calc_loc", "calc_dir", "additional_files",
+    optional_params = ["calc_loc", "calc_dir", "filesystem", "additional_files",
                        "contcar_to_poscar"]
 
     def run_task(self, fw_spec):
 
-        calc_dir = get_calc_dir(self, fw_spec)
+        calc_dir = get_calc_key(self, fw_spec, "calc_dir")
+        if not calc_dir:
+            raise ValueError("Must specify either {} or calc_loc!".format(calc_dir))
+        filesystem = get_calc_key(self, fw_spec, "filesystem")
         contcar_to_poscar = self.get("contcar_to_poscar", True)
 
+        all_files = list_dir(calc_dir, filesystem=filesystem)
         # determine what files need to be copied
         if "$ALL" in self.get("additional_files", []):
-            files_to_copy = os.listdir(calc_dir)
+            files_to_copy = all_files
         else:
             files_to_copy = ['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR',
                              'vasprun.xml']
@@ -109,25 +113,23 @@ class CopyVaspOutputs(FireTaskBase):
             relax_paths = sorted(glob(prev_path+".relax*"), reverse=True)
             if relax_paths:
                 if len(relax_paths) > 9:
-                    # TODO: modify relax_paths sorting for >9 relaxations
-                    # TODO: change re.search \d to \d* for >9 relaxations
                     raise ValueError("CopyVaspOutputs doesn't properly handle >9 relaxations!")
-                m = re.search('\.relax\d', relax_paths[0])
+                m = re.search('\.relax\d*', relax_paths[0])
                 relax_ext = m.group(0)
 
             # detect .gz extension if needed - note that monty zpath() did not
             # seem useful here
             gz_ext = ""
-            if not os.path.exists(prev_path + relax_ext):
+            if not ((prev_path + relax_ext) in all_files):
                 for possible_ext in [".gz", ".GZ"]:
-                    if os.path.exists(prev_path + relax_ext + possible_ext):
+                    if (prev_path + relax_ext + possible_ext) in all_files:
                         gz_ext = possible_ext
 
-            if not os.path.exists(prev_path + relax_ext + gz_ext):
+            if not (prev_path + relax_ext + gz_ext) in all_files:
                 raise ValueError("Cannot find file: {}".format(prev_path))
 
             # copy the file (minus the relaxation extension)
-            shutil.copy2(prev_path + relax_ext + gz_ext, dest_path + gz_ext)
+            copy_file(prev_path + relax_ext + gz_ext, dest_path + gz_ext, filesystem=filesystem)
 
             # unzip the .gz if needed
             if gz_ext == '.gz' or gz_ext == ".GZ":

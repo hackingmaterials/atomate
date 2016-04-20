@@ -3,3 +3,4 @@ pymatgen>=3.2.1
 pymatgen-db>=0.5.1
 custodian>=0.8.8
 monty>=0.8.0
+paramiko>=1.15.0

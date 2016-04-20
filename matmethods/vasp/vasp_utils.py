@@ -5,23 +5,23 @@ from __future__ import division, print_function, unicode_literals, \
 
 import six
 
-__author__ = 'Anubhav Jain'
-__email__ = 'ajain@lbl.gov'
+__author__ = 'Anubhav Jain, Kiran Mathew'
+__email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
-def get_calc_dir(d, fw_spec):
-    calc_dir = None
-    if "calc_dir" in d:
-        calc_dir = d["calc_dir"]
 
+def get_calc_key(d, fw_spec, key):
+    val = None
+    calc_loc_key = "path" if key == "calc_dir" else key
+    if key in d:
+        val = d[key]
     elif d.get("calc_loc"):
         if isinstance(d["calc_loc"], six.string_types):
             for doc in reversed(fw_spec["calc_locs"]):
-                if doc["name"] == d["calc_loc_name"]:
-                    calc_dir = doc["path"]
+                if doc["name"] == d["calc_loc"]:
+                    val = doc[calc_loc_key]
                     break
         else:
-            calc_dir = fw_spec["calc_locs"][-1]["path"]
-
+            val = fw_spec["calc_locs"][-1][calc_loc_key]
     else:
-        raise ValueError("Must specify either calc_dir or calc_loc!")
-    return calc_dir
+        return None
+    return val
