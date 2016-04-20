@@ -115,8 +115,7 @@ class MMos(object):
 
     def listdir(self, ldir):
         """
-        Wrapper of getting the directory listing from either the local or
-        remote filesystem.
+        Get the directory listing from either the local or remote filesystem.
 
         Args:
             ldir (string): full path to the directory
@@ -137,11 +136,9 @@ class MMos(object):
         else:
             return [f for f in os.listdir(ldir)]
 
-
     def copy(self, source, dest):
         """
-        Wrapper for copying from source to destination. The source can be
-        a remote filesystem
+        Copy from source to destination.
 
         Args:
             source (string): source full path
@@ -162,7 +159,6 @@ class MMos(object):
         else:
             shutil.copy2(source, dest)
 
-
     def abspath(self, path):
         """
         return the absolute path
@@ -180,10 +176,9 @@ class MMos(object):
         else:
             return os.path.abspath(path)
 
-
     def glob(self, path):
         """
-        return the absolute path
+        return the glob
         """
         if self.ssh:
             try:
