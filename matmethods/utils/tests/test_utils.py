@@ -4,11 +4,10 @@ from __future__ import division, print_function, unicode_literals, \
     absolute_import
 
 import unittest
-import os
 import getpass
 from collections import defaultdict
 
-from matmethods.utils.utils import env_chk, get_ssh_connection, get_logger
+from matmethods.utils.utils import env_chk, MMos, get_logger
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -40,8 +39,9 @@ class UtilsTests(unittest.TestCase):
     def test_remote_filesystem(self):
         username = getpass.getuser()
         host = "localhost"
-        ssh = get_ssh_connection(username, host, "~/.ssh/id_rsa")
-        if ssh:
+        filesystem = "{}@{}".format(username, host)
+        mmos = MMos(filesystem)
+        if mmos.ssh:
             logger.debug("paramiko connection OK")
         else:
             logger.error("paramiko connection ERROR. Make sure that passwordless ssh login is setup "

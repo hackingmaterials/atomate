@@ -12,11 +12,10 @@ from previous run directory oto the current one.
 import gzip
 import os
 import re
-from glob import glob
 
 from fireworks import explicit_serialize, FireTaskBase, FWAction
 
-from matmethods.utils.utils import env_chk, list_dir, copy_file
+from matmethods.utils.utils import env_chk, MMos
 from matmethods.vasp.vasp_utils import get_calc_key
 
 __author__ = 'Anubhav Jain'
@@ -85,9 +84,13 @@ class CopyVaspOutputs(FireTaskBase):
         if not calc_dir:
             raise ValueError("Must specify either {} or calc_loc!".format(calc_dir))
         filesystem = get_calc_key(self, fw_spec, "filesystem")
+
+        mmos = MMos(filesystem=filesystem)
+
+        calc_dir = mmos.abspath(calc_dir)
         contcar_to_poscar = self.get("contcar_to_poscar", True)
 
-        all_files = list_dir(calc_dir, filesystem=filesystem)
+        all_files = mmos.listdir(calc_dir)
         # determine what files need to be copied
         if "$ALL" in self.get("additional_files", []):
             files_to_copy = all_files
@@ -104,13 +107,15 @@ class CopyVaspOutputs(FireTaskBase):
 
         # start file copy
         for f in files_to_copy:
-            prev_path = os.path.join(calc_dir, f)
+            prev_path_full = os.path.join(calc_dir, f)
+            #prev_path = os.path.join(os.path.split(calc_dir)[1], f)
             dest_fname = 'POSCAR' if f == 'CONTCAR' and contcar_to_poscar else f
             dest_path = os.path.join(os.getcwd(), dest_fname)
 
             # detect .relax## if needed - uses last relaxation (up to 9 relaxations)
             relax_ext = ""
-            relax_paths = sorted(glob(prev_path+".relax*"), reverse=True)
+            relax_paths = sorted(mmos.glob(prev_path_full+".relax*"), reverse=True)
+
             if relax_paths:
                 if len(relax_paths) > 9:
                     raise ValueError("CopyVaspOutputs doesn't properly handle >9 relaxations!")
@@ -119,17 +124,18 @@ class CopyVaspOutputs(FireTaskBase):
 
             # detect .gz extension if needed - note that monty zpath() did not
             # seem useful here
+
             gz_ext = ""
-            if not ((prev_path + relax_ext) in all_files):
+            if not (f + relax_ext) in all_files:
                 for possible_ext in [".gz", ".GZ"]:
-                    if (prev_path + relax_ext + possible_ext) in all_files:
+                    if (f + relax_ext + possible_ext) in all_files:
                         gz_ext = possible_ext
 
-            if not (prev_path + relax_ext + gz_ext) in all_files:
-                raise ValueError("Cannot find file: {}".format(prev_path))
+            if not (f + relax_ext + gz_ext) in all_files:
+                raise ValueError("Cannot find file: {}".format(f))
 
             # copy the file (minus the relaxation extension)
-            copy_file(prev_path + relax_ext + gz_ext, dest_path + gz_ext, filesystem=filesystem)
+            mmos.copy(prev_path_full + relax_ext + gz_ext, dest_path + gz_ext)
 
             # unzip the .gz if needed
             if gz_ext == '.gz' or gz_ext == ".GZ":
