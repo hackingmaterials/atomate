@@ -45,5 +45,5 @@ class UtilsTests(unittest.TestCase):
             logger.debug("paramiko connection OK")
         else:
             logger.error("paramiko connection ERROR. Make sure that passwordless ssh login is setup "
-                     "and yor private key is in standard location '~/.ssh/id_rsa'")
+                     "and your private key is in standard location.  e.g. '~/.ssh/id_rsa'")
 

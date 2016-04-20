@@ -64,12 +64,24 @@ def get_ssh_connection(username, host, pkey_file):
     """
     Setup ssh connection using paramiko and return the channel
     """
+    privatekeyfile = os.path.expanduser(pkey_file)
+    if not os.path.exists(privatekeyfile):
+        possible_keys = ["~/.ssh/id_rsa", "~/.ssh/id_dsa", "/etc/ssh/id_rsa", "/etc/ssh/id_dsa"]
+        for key in possible_keys:
+            if os.path.exists(os.path.expanduser(key)):
+                privatekeyfile = os.path.expanduser(key)
+                break
+    tokens = privatekeyfile.split("id_")
     try:
-        privatekeyfile = os.path.expanduser(pkey_file)
+        if tokens[1] == "rsa":
+            mykey = paramiko.RSAKey.from_private_key_file(privatekeyfile)
+        elif tokens[1] == "dsa":
+            mykey = paramiko.DSSKey.from_private_key_file(privatekeyfile)
+        else:
+            print("Unknown private key format. Must be either rsa(preferred) or dsa")
     except:
-        print("the private ket file {} doesnot exist".format(pkey_file))
+        print("Found the private key file {}, but not able to load".format(pkey_file))
         return None
-    mykey = paramiko.RSAKey.from_private_key_file(privatekeyfile)
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     try:
@@ -104,7 +116,7 @@ def list_dir(ldir, filesystem=None, pkey_file='~/.ssh/id_rsa'):
             return [os.path.join(ldir, l.split('\n')[0]) for l in stdout]
         else:
             print("paramiko connection error. Make sure that passwordless ssh login is setup and "
-                  "yor private key is in standard location '~/.ssh/id_rsa'")
+                  "yor private key is in standard location. e.g. '~/.ssh/id_rsa'")
             return []
     else:
         return [os.path.join(ldir, f) for f in os.listdir(ldir)]
@@ -132,7 +144,7 @@ def copy_file(source, dest, filesystem=None, pkey_file='~/.ssh/id_rsa'):
             sftp.get(source, dest)
         else:
             print("paramiko connection error. Make sure that passwordless ssh login is setup and "
-                  "yor private key is in standard location '~/.ssh/id_rsa'")
+                  "yor private key is in standard location. e.g. '~/.ssh/id_rsa'")
             raise IOError
     else:
         shutil.copy2(source, dest)
