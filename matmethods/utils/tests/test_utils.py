@@ -4,11 +4,14 @@ from __future__ import division, print_function, unicode_literals, \
     absolute_import
 
 import unittest
+import getpass
 from collections import defaultdict
 
-from matmethods.utils.utils import env_chk
+from matmethods.utils.utils import env_chk, MMos, get_logger
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
+
+logger = get_logger(__name__)
 
 
 class UtilsTests(unittest.TestCase):
@@ -28,3 +31,19 @@ class UtilsTests(unittest.TestCase):
         self.assertEqual(env_chk(">>hello<<", fw_spec_invalid, False), None)
 
         self.assertEqual(env_chk(None, fw_spec_valid, False), None)
+
+    #@unittest.skipIf(not os.path.exists(os.path.expanduser("~/.ssh/id_rsa")) and not
+    #os.path.exists(os.path.expanduser("~/.ssh/authorized_keys")),
+    #                 "no '~/.ssh/id_rsa' private key file paramiko test skipped")
+    @unittest.skip("paramiko test skipped")
+    def test_remote_filesystem(self):
+        username = getpass.getuser()
+        host = "localhost"
+        filesystem = "{}@{}".format(username, host)
+        mmos = MMos(filesystem)
+        if mmos.ssh:
+            logger.debug("paramiko connection OK")
+        else:
+            logger.error("paramiko connection ERROR. Make sure that passwordless ssh login is setup "
+                     "and your private key is in standard location.  e.g. '~/.ssh/id_rsa'")
+

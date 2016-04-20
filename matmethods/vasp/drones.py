@@ -93,8 +93,8 @@ class VaspToDbTaskDrone(AbstractDrone):
                           "run_stats"}
         self.input_keys = {'is_lasph', 'is_hubbard', 'xc_override', 'potcar_spec', 'hubbards',
                            'structure', 'pseudo_potential'}
-        self.output_keys = {'is_gap_direct', 'density', 'bandgap', 'energy_per_atom', 'vbm', 'cbm',
-                            'spacegroup', 'energy', 'structure'}
+        self.output_keys = {'structure', 'spacegroup', 'density', 'energy', 'energy_per_atom',
+                            'is_gap_direct',  'bandgap', 'vbm', 'cbm', 'is_metal'}
         self.calcs_reversed_keys = {'dir_name', 'run_type', 'elements', 'nelements',
                                     'formula_pretty', 'formula_reduced_abc',
                                     'composition_reduced', 'vasp_version', 'formula_anonymous',
@@ -273,6 +273,7 @@ class VaspToDbTaskDrone(AbstractDrone):
             vrun = Vasprun(vasprun_file, parse_eigen=True, parse_projected_eigen=True)
         else:
             vrun = Vasprun(vasprun_file)
+
         d = vrun.as_dict()
         for k, v in {"formula_pretty": "pretty_formula",
                      "composition_reduced": "reduced_cell_formula",
@@ -303,6 +304,14 @@ class VaspToDbTaskDrone(AbstractDrone):
             except Exception:
                 logger.error("No valid band structure data exist in {}.\n Skipping band structure"
                              .format(dir_name))
+        else:
+            bs = vrun.get_band_structure()
+        d["output"]["vbm"] = bs.get_vbm()["energy"]
+        d["output"]["cbm"] = bs.get_cbm()["energy"]
+        bs_gap = bs.get_band_gap()
+        d["output"]["bandgap"] = bs_gap["energy"]
+        d["output"]["is_gap_direct"] = bs_gap["direct"]
+        d["output"]["is_metal"] = bs.is_metal()
         d["task"] = {"type": taskname, "name": taskname}
         return d
 
@@ -416,18 +425,20 @@ class VaspToDbTaskDrone(AbstractDrone):
 
     def get_basic_processed_data(self, d):
         """
-        return processed data such as vbm, cbm, gap
+        return processed data such as vbm, cbm, gap etc.
         """
         calc = d["calcs_reversed"][0]
         gap = calc["output"]["bandgap"]
         cbm = calc["output"]["cbm"]
         vbm = calc["output"]["vbm"]
         is_direct = calc["output"]["is_gap_direct"]
+        is_metal = calc["output"]["is_metal"]
         return {
             "bandgap": gap,
             "cbm": cbm,
             "vbm": vbm,
-            "is_gap_direct": is_direct}
+            "is_gap_direct": is_direct,
+            "is_metal": is_metal}
 
     def post_process(self, dir_name, d):
         """

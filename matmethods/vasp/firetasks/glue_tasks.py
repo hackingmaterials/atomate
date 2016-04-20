@@ -11,14 +11,12 @@ from previous run directory oto the current one.
 
 import gzip
 import os
-import shutil
 import re
-from glob import glob
 
 from fireworks import explicit_serialize, FireTaskBase, FWAction
 
-from matmethods.utils.utils import env_chk
-from matmethods.vasp.vasp_utils import get_calc_dir
+from matmethods.utils.utils import env_chk, MMos
+from matmethods.vasp.vasp_utils import get_calc_key
 
 __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
@@ -69,6 +67,7 @@ class CopyVaspOutputs(FireTaskBase):
             search for the most recent calc_loc with the matching name
         calc_dir (str): path to dir (on current filesystem) that contains VASP
             output files.
+        filesystem (str): remote filesystem. e.g. username@host
         additional_files ([str]): additional files to copy,
             e.g. ["CHGCAR", "WAVECAR"]. Use $ALL if you just want to copy
             everything
@@ -76,17 +75,25 @@ class CopyVaspOutputs(FireTaskBase):
             POSCAR (original POSCAR is not copied).
     """
 
-    optional_params = ["calc_loc", "calc_dir", "additional_files",
+    optional_params = ["calc_loc", "calc_dir", "filesystem", "additional_files",
                        "contcar_to_poscar"]
 
     def run_task(self, fw_spec):
 
-        calc_dir = get_calc_dir(self, fw_spec)
+        calc_dir = get_calc_key(self, fw_spec, "calc_dir")
+        if not calc_dir:
+            raise ValueError("Must specify either {} or calc_loc!".format(calc_dir))
+        filesystem = get_calc_key(self, fw_spec, "filesystem")
+
+        mmos = MMos(filesystem=filesystem)
+
+        calc_dir = mmos.abspath(calc_dir)
         contcar_to_poscar = self.get("contcar_to_poscar", True)
 
+        all_files = mmos.listdir(calc_dir)
         # determine what files need to be copied
         if "$ALL" in self.get("additional_files", []):
-            files_to_copy = os.listdir(calc_dir)
+            files_to_copy = all_files
         else:
             files_to_copy = ['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR',
                              'vasprun.xml']
@@ -100,34 +107,35 @@ class CopyVaspOutputs(FireTaskBase):
 
         # start file copy
         for f in files_to_copy:
-            prev_path = os.path.join(calc_dir, f)
+            prev_path_full = os.path.join(calc_dir, f)
+            #prev_path = os.path.join(os.path.split(calc_dir)[1], f)
             dest_fname = 'POSCAR' if f == 'CONTCAR' and contcar_to_poscar else f
             dest_path = os.path.join(os.getcwd(), dest_fname)
 
             # detect .relax## if needed - uses last relaxation (up to 9 relaxations)
             relax_ext = ""
-            relax_paths = sorted(glob(prev_path+".relax*"), reverse=True)
+            relax_paths = sorted(mmos.glob(prev_path_full+".relax*"), reverse=True)
+
             if relax_paths:
                 if len(relax_paths) > 9:
-                    # TODO: modify relax_paths sorting for >9 relaxations
-                    # TODO: change re.search \d to \d* for >9 relaxations
                     raise ValueError("CopyVaspOutputs doesn't properly handle >9 relaxations!")
-                m = re.search('\.relax\d', relax_paths[0])
+                m = re.search('\.relax\d*', relax_paths[0])
                 relax_ext = m.group(0)
 
             # detect .gz extension if needed - note that monty zpath() did not
             # seem useful here
+
             gz_ext = ""
-            if not os.path.exists(prev_path + relax_ext):
+            if not (f + relax_ext) in all_files:
                 for possible_ext in [".gz", ".GZ"]:
-                    if os.path.exists(prev_path + relax_ext + possible_ext):
+                    if (f + relax_ext + possible_ext) in all_files:
                         gz_ext = possible_ext
 
-            if not os.path.exists(prev_path + relax_ext + gz_ext):
-                raise ValueError("Cannot find file: {}".format(prev_path))
+            if not (f + relax_ext + gz_ext) in all_files:
+                raise ValueError("Cannot find file: {}".format(f))
 
             # copy the file (minus the relaxation extension)
-            shutil.copy2(prev_path + relax_ext + gz_ext, dest_path + gz_ext)
+            mmos.copy(prev_path_full + relax_ext + gz_ext, dest_path + gz_ext)
 
             # unzip the .gz if needed
             if gz_ext == '.gz' or gz_ext == ".GZ":

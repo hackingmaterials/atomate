@@ -22,7 +22,7 @@ if __name__ == "__main__":
         zip_safe=False,
         install_requires=['FireWorks>=1.2.7', 'pymatgen>=3.2.1',
                           'custodian>=0.8.8', 'pymatgen-db>=0.5.1',
-                          'monty>=0.8.0'],
+                          'monty>=0.8.0', 'paramiko>=1.15.0'],
         extras_require={},
         classifiers=['Programming Language :: Python :: 2.7',
                      "Programming Language :: Python :: 3",

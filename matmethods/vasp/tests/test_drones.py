@@ -28,6 +28,7 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
                                  "outputs")
         cls.relax2 = os.path.join(module_dir, "reference_files", "Si_structure_optimization_relax2",
                                  "outputs")
+        cls.Al = os.path.join(module_dir, "reference_files", "Al")
 
     def test_assimilate(self):
         drone = VaspToDbTaskDrone()
@@ -66,6 +67,23 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
         self.assertEqual(doc["run_stats"][doc["calcs_reversed"][1]["task"]["name"]], run_stats1)
         self.assertEqual(doc["calcs_reversed"][0]["output"]["outcar"], outcar2)
         self.assertEqual(doc["calcs_reversed"][1]["output"]["outcar"], outcar1)
+
+    def test_bandstructure(self):
+        drone = VaspToDbTaskDrone()
+        doc = drone.get_task_doc(self.Al)
+        self.assertEqual(doc["composition_reduced"], {'Al': 1.0})
+        self.assertEqual(doc["formula_pretty"], 'Al')
+        self.assertEqual(doc["formula_anonymous"], 'A')
+        self.assertEqual(doc["calcs_reversed"][0]["output"]["vbm"], None)
+        self.assertEqual(doc["calcs_reversed"][0]["output"]["cbm"], None)
+        self.assertEqual(doc["calcs_reversed"][0]["output"]["bandgap"], 0.0)
+        self.assertEqual(doc["calcs_reversed"][0]["output"]["is_gap_direct"], False)
+        self.assertEqual(doc["calcs_reversed"][0]["output"]["is_metal"], True)
+        self.assertEqual(doc["output"]["vbm"], None)
+        self.assertEqual(doc["output"]["cbm"], None)
+        self.assertEqual(doc["output"]["bandgap"], 0.0)
+        self.assertEqual(doc["output"]["is_gap_direct"], False)
+        self.assertEqual(doc["output"]["is_metal"], True)
 
 
 if __name__ == "__main__":
