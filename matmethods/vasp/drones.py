@@ -12,14 +12,12 @@ https://groups.google.com/forum/#!topic/pymatgen/pQ-emBpeV5U
 import os
 import re
 import datetime
-import zlib
 from fnmatch import fnmatch
 from collections import OrderedDict
 import json
 import glob
 
 from monty.io import zopen
-from monty.json import MontyEncoder
 
 import numpy as np
 
@@ -30,9 +28,6 @@ from pymatgen.io.vasp import Vasprun, Outcar
 from pymatgen.apps.borg.hive import AbstractDrone
 from pymatgen.entries.computed_entries import ComputedEntry
 from pymatgen.matproj.rest import MPRester
-
-from pymongo import MongoClient
-import gridfs
 
 from matgendb.creator import get_uri
 
@@ -49,7 +44,7 @@ logger = get_logger(__name__)
 # TODO: needs comprehensive unit tests
 
 
-class VaspToDbTaskDrone(AbstractDrone):
+class VaspDrone(AbstractDrone):
     """
     pymatgen-db VaspToDbTaskDrone with updated schema and documents processing methods.
     Please refer to matgendb.creator.VaspToDbTaskDrone documentation.
@@ -57,34 +52,18 @@ class VaspToDbTaskDrone(AbstractDrone):
 
     __version__ = 0.1
 
-    def __init__(self, host="127.0.0.1", port=27017, database="vasp", collection="tasks",
-                 user=None, password=None, simulate_mode=False, runs=["relax1", "relax2"],
+    def __init__(self, runs=["relax1", "relax2"],
                  parse_dos=False, compress_dos=False, bandstructure_mode=False,
-                 compress_bs=False, additional_fields={}, update_duplicates=True,
+                 compress_bs=False, additional_fields={},
                  mapi_key=None, use_full_uri=True):
-        self.host = host
-        self.database = database
-        self.user = user
-        self.password = password
-        self.collection = collection
-        self.port = port
-        self.simulate = simulate_mode
         self.parse_dos = parse_dos
         self.compress_dos = compress_dos
         self.additional_fields = additional_fields
-        self.update_duplicates = update_duplicates
         self.mapi_key = mapi_key
         self.use_full_uri = use_full_uri
         self.runs = runs
         self.bandstructure_mode = bandstructure_mode
         self.compress_bs = compress_bs
-        if not simulate_mode:
-            conn = MongoClient(self.host, self.port, j=True)
-            db = conn[self.database]
-            if self.user:
-                db.authenticate(self.user, self.password)
-            if db.counter.find({"_id": "taskid"}).count() == 0:
-                db.counter.insert({"_id": "taskid", "c": 1})
         # set of important keys and sub-keys
         self.root_keys = {"schema", "dir_name", "chemsys", "composition_reduced",
                           "formula_pretty", "formula_reduced_abc", "elements", "nelements",
@@ -110,20 +89,6 @@ class VaspToDbTaskDrone(AbstractDrone):
 
     def assimilate(self, path):
         """
-        Adapted from matgendb.creator
-        Parses vasp runs(vasprun.xml file) and insert the result into the db.
-
-        Args:
-            path (str): Path to the directory containing vasprun.xml file
-
-        Returns:
-            If in simulate_mode, the entire doc is returned for debugging
-            purposes. Else, only the task_id of the inserted doc is returned.
-        """
-        return self.assimilate_return_task_doc(path)[0]
-
-    def assimilate_return_task_doc(self, path):
-        """
         Parses vasp runs(vasprun.xml file) and insert the result into the db.
 
         Args:
@@ -137,9 +102,7 @@ class VaspToDbTaskDrone(AbstractDrone):
             d = self.get_task_doc(path)
             if self.mapi_key is not None and d["state"] == "successful":
                 self.calculate_stability(d)
-            tid = self._insert_doc(d)
-            return tid, d
-
+            return d
         except:
             import traceback
             logger.error(traceback.format_exc())
@@ -213,7 +176,7 @@ class VaspToDbTaskDrone(AbstractDrone):
             fullpath = os.path.abspath(dir_name)
             d = {k: v for k, v in self.additional_fields.items()}
             d["schema"] = {"code": "MatMethods",
-                           "version": VaspToDbTaskDrone.__version__}
+                           "version": VaspDrone.__version__}
             d["dir_name"] = fullpath
             d["calcs_reversed"] = [self.process_vasprun(dir_name, taskname, filename)
                                    for taskname, filename in vasprun_files.items()]
@@ -516,68 +479,6 @@ class VaspToDbTaskDrone(AbstractDrone):
             if diff:
                 logger.warn("The keys {0} in {1} not set".format(diff, k))
 
-    def _insert_doc(self, d):
-        if not self.simulate:
-            # Perform actual insertion into db. Because db connections cannot
-            # be pickled, every insertion needs to create a new connection
-            # to the db.
-            conn = MongoClient(self.host, self.port)
-            db = conn[self.database]
-            if self.user:
-                db.authenticate(self.user, self.password)
-            coll = db[self.collection]
-            # Insert dos data into gridfs and then remove it from the dict.
-            # DOS data tends to be above the 4Mb limit for mongo docs. A ref
-            # to the dos file is in the dos_fs_id.
-            result = coll.find_one({"dir_name": d["dir_name"]},
-                                   ["dir_name", "task_id"])
-            if result is None or self.update_duplicates:
-                if self.parse_dos and "calcs_reversed" in d:
-                    if "dos" in d["calcs_reversed"][0]:
-                        dos = json.dumps(d["calcs_reversed"][0]["dos"],
-                                         cls=MontyEncoder)
-                        if self.compress_dos:
-                            dos = zlib.compress(dos, self.compress_dos)
-                            d["calcs_reversed"][0]["dos_compression"] = "zlib"
-                        fs = gridfs.GridFS(db, "dos_fs")
-                        dosid = fs.put(dos)
-                        d["calcs_reversed"][0]["dos_fs_id"] = dosid
-                        del d["calcs_reversed"][0]["dos"]
-                if self.bandstructure_mode and "calcs_reversed" in d:
-                    if "bandstructure" in d["calcs_reversed"][0]:
-                        bs = json.dumps(d["calcs_reversed"][0]["bandstructure"], cls=MontyEncoder)
-                        if self.compress_bs:
-                            bs = zlib.compress(bs, self.compress_bs)
-                            d["calcs_reversed"][0]["bandstructure_compression"] = "zlib"
-                        fs = gridfs.GridFS(db, "bandstructure_fs")
-                        bsid = fs.put(bs)
-                        d["calcs_reversed"][0]["bandstructure_fs_id"] = bsid
-                        del d["calcs_reversed"][0]["bandstructure"]
-                d["last_updated"] = datetime.datetime.today()
-                if result is None:
-                    if ("task_id" not in d) or (not d["task_id"]):
-                        d["task_id"] = db.counter.find_and_modify(
-                            query={"_id": "taskid"},
-                            update={"$inc": {"c": 1}}
-                        )["c"]
-                    logger.info("Inserting {} with taskid = {}"
-                                .format(d["dir_name"], d["task_id"]))
-                elif self.update_duplicates:
-                    d["task_id"] = result["task_id"]
-                    logger.info("Updating {} with taskid = {}"
-                                .format(d["dir_name"], d["task_id"]))
-
-                coll.update({"dir_name": d["dir_name"]}, {"$set": d},
-                            upsert=True)
-                return d["task_id"]
-            else:
-                logger.info("Skipping duplicate {}".format(d["dir_name"]))
-        else:
-            d["task_id"] = 0
-            logger.info("Simulated insert into database for {} with task_id {}"
-                        .format(d["dir_name"], d["task_id"]))
-            return d
-
     def get_valid_paths(self, path):
         """
         Required by the AbstractDrone.
@@ -586,18 +487,12 @@ class VaspToDbTaskDrone(AbstractDrone):
         pass
 
     def as_dict(self):
-        init_args = {"host": self.host, "port": self.port,
-                     "database": self.database,
-                     "user": self.user,
-                     "password": self.password,
-                     "collection": self.collection,
+        init_args = {
                      "parse_dos": self.parse_dos,
                      "compress_dos": self.compress_dos,
                      "bandstructure_mode": self.bandstructure_mode,
                      "compress_bs": self.compress_bs,
-                     "simulate_mode": self.simulate,
                      "additional_fields": self.additional_fields,
-                     "update_duplicates": self.update_duplicates,
                      "mapi_key": self.mapi_key,
                      "use_full_uri": self.use_full_uri,
                      "runs": self.runs}
@@ -610,29 +505,3 @@ class VaspToDbTaskDrone(AbstractDrone):
     @classmethod
     def from_dict(cls, d):
         return cls(**d["init_args"])
-
-    @classmethod
-    def from_db_doc(cls, dbdoc=None, additional_fields=None, options=None):
-        """
-        Set the drone from the database connection settings.
-        """
-        additional_fields = additional_fields if additional_fields else {}
-        options = options if options else {}
-
-        if dbdoc:
-            return VaspToDbTaskDrone(host=dbdoc["host"], port=dbdoc["port"],
-                                     database=dbdoc["database"],
-                                     user=dbdoc.get("admin_user"),
-                                     password=dbdoc.get("admin_password"),
-                                     collection=dbdoc["collection"],
-                                     additional_fields=additional_fields,
-                                     parse_dos=options.get("parse_dos", False),
-                                     compress_dos=options.get("compress_dos", False),
-                                     bandstructure_mode=options.get("bandstructure_mod", False),
-                                     compress_bs=options.get("compress_bs", False),
-                                     update_duplicates=options.get("update_duplicates", True),
-                                     mapi_key=options.get("mapi_key", None),
-                                     use_full_uri=options.get("use_full_uri", True),
-                                     runs=options.get("runs", ["relax1", "relax2"]))
-        else:
-            return VaspToDbTaskDrone(simulate_mode=True)
