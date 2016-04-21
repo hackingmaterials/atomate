@@ -8,9 +8,9 @@ from __future__ import division, print_function, unicode_literals, \
 import os
 import unittest
 
-from pymatgen.io.vasp import Vasprun, Outcar, Oszicar
+from pymatgen.io.vasp import Outcar, Oszicar
 
-from matmethods.vasp.drones import VaspToDbTaskDrone_to_remove
+from matmethods.vasp.drones import VaspDrone
 
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
@@ -31,8 +31,8 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
         cls.Al = os.path.join(module_dir, "reference_files", "Al")
 
     def test_assimilate(self):
-        drone = VaspToDbTaskDrone_to_remove()
-        doc = drone.get_task_doc(self.relax)
+        drone = VaspDrone()
+        doc = drone.assimilate(self.relax)
         # Only the main changes from the vasprun as dict format and currently
         # used schema in pymatgen-db are tested for now.
         self.assertEqual(doc["composition_reduced"], {'Si': 1.0})
@@ -43,8 +43,8 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
         self.assertEqual(doc["calcs_reversed"][0]["output"]["energy"], doc["output"]["energy"])
 
     def test_runs_assimilate(self):
-        drone = VaspToDbTaskDrone_to_remove(runs=["relax1", "relax2"])
-        doc = drone.get_task_doc(self.relax2)
+        drone = VaspDrone(runs=["relax1", "relax2"])
+        doc = drone.assimilate(self.relax2)
         oszicar2 = Oszicar(os.path.join(self.relax2, "OSZICAR.relax2.gz"))
         outcar1 = Outcar(os.path.join(self.relax2, "OUTCAR.relax1.gz"))
         outcar2 = Outcar(os.path.join(self.relax2, "OUTCAR.relax2.gz"))
@@ -69,8 +69,8 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
         self.assertEqual(doc["calcs_reversed"][1]["output"]["outcar"], outcar1)
 
     def test_bandstructure(self):
-        drone = VaspToDbTaskDrone_to_remove()
-        doc = drone.get_task_doc(self.Al)
+        drone = VaspDrone()
+        doc = drone.assimilate(self.Al)
         self.assertEqual(doc["composition_reduced"], {'Al': 1.0})
         self.assertEqual(doc["formula_pretty"], 'Al')
         self.assertEqual(doc["formula_anonymous"], 'A')
