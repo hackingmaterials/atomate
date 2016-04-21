@@ -56,7 +56,8 @@ class MMDb(object):
             indices (list): list of single field indices to be built.
             background (bool): Run in the background or not.
 
-        TODO: make sure that the index building is sensible
+        TODO: make sure that the index building is sensible and check for
+            existing indices.
         """
         _indices = indices if indices else ["formula_pretty", "formula_anonymous",
                                             "output.energy", "output.energy_per_atom"]
