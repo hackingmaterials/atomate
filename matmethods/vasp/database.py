@@ -10,7 +10,7 @@ import datetime
 import zlib
 
 import gridfs
-from pymongo import MongoClient
+from pymongo import MongoClient, ASCENDING, DESCENDING
 
 from matmethods.utils.utils import get_logger
 
@@ -22,9 +22,9 @@ logger = get_logger(__name__)
 
 class MMDb(object):
     """
-    Mongodb insertion
+    Mongodb interface.
     """
-    def __init__(self, host="127.0.0.1", port=27017, database="vasp", collection="tasks",
+    def __init__(self, host="localhost", port=27017, database="vasp", collection="tasks",
                  user=None, password=None):
         self.host = host
         self.database = database
@@ -50,17 +50,30 @@ class MMDb(object):
 
     def build(self, indices=[], background=True):
         """
-        Build the indices
+        Build the indices.
 
         Args:
-            indices (list): list of indices to be built
-            background (bool): Run in the background or not
+            indices (list): list of single field indices to be built.
+            background (bool): Run in the background or not.
+
+        TODO: make sure that the index building is sensible
         """
-        _indices = indices if indices else ["task_id", "formula_pretty", "formula_anonymous",
-                                            "output.energy", "output.energy_per_atom",
-                                            "output.bandgap"]
+        _indices = indices if indices else ["formula_pretty", "formula_anonymous",
+                                            "output.energy", "output.energy_per_atom"]
+        self.collection.create_index("task_id", unique=True, background=background)
+        # build single field indices
         for i in _indices:
-            self.collection.create_index(i, unique=True, background=background)
+            self.collection.create_index(i, background=background)
+        # build compound indices
+        for formula in ("formula_pretty", "formula_anonymous"):
+            self.collection.create_index([(formula, ASCENDING),
+                                          ("output.energy", DESCENDING),
+                                          ("completed_at", DESCENDING)],
+                                         background=background)
+            self.collection.create_index([(formula, ASCENDING),
+                                          ("output.energy_per_atom", DESCENDING),
+                                          ("completed_at", DESCENDING)],
+                                         background=background)
 
     def insert_gridfs(self, d, root_coll_name="fs", compress=True):
         """
