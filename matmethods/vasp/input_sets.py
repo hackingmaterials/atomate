@@ -128,9 +128,10 @@ class StaticVaspInputSet(DictVaspInputSet):
 
         vis = StaticVaspInputSet(config_dict_override=config_dict_override,
                                  reciprocal_density=reciprocal_density)
-        vis.write_input(structure, output_dir)
         if preserve_old_incar:
             write_preserved_incar(vis, structure, prev_dir, config_dict_override, output_dir)
+        else:
+            vis.write_input(structure, output_dir)
 
 
 class NonSCFVaspInputSet(DictVaspInputSet):
@@ -341,6 +342,7 @@ def get_incar_from_prev_run(prev_dir, new_structure, default_settings=None,incar
         incar_dict_override, in that order
     """
     prev_incar = None
+    prev_dir = prev_dir or os.curdir
     try:
         prev_incar = Incar.from_file(zpath(os.path.join(prev_dir, "INCAR")))
         # the poscar is used only to get the ldau parameter mappings
@@ -471,4 +473,5 @@ def write_preserved_incar(vis, structure, prev_dir, config_dict_override=None, o
                 if not isinstance(m, list):
                     val.append([0, 0, m])
         incar["MAGMOM"] = val
+    vis.write_input(structure, output_dir)
     incar.write_file(os.path.join(output_dir, "INCAR"))
