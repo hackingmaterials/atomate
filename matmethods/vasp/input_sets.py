@@ -377,13 +377,6 @@ def get_incar_from_prev_run(prev_dir, new_structure, default_settings=None,incar
         prev_incar.update(incar_dict_override)
     # set ediff
     prev_incar.update({"EDIFF": tighter_ediff})
-    # sanity check
-    prev_incar_dict = prev_incar.as_dict()
-    check_list = []
-    for k, v in default_settings.items():
-        check_list.append(prev_incar_dict[k] != v)
-    if any(check_list):
-        raise ValueError("INCAR parameters not set properly!")
     return prev_incar
 
 
