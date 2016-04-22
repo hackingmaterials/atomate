@@ -74,17 +74,12 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
         self.assertEqual(doc["composition_reduced"], {'Al': 1.0})
         self.assertEqual(doc["formula_pretty"], 'Al')
         self.assertEqual(doc["formula_anonymous"], 'A')
-        self.assertEqual(doc["calcs_reversed"][0]["output"]["vbm"], None)
-        self.assertEqual(doc["calcs_reversed"][0]["output"]["cbm"], None)
-        self.assertEqual(doc["calcs_reversed"][0]["output"]["bandgap"], 0.0)
-        self.assertEqual(doc["calcs_reversed"][0]["output"]["is_gap_direct"], False)
-        self.assertEqual(doc["calcs_reversed"][0]["output"]["is_metal"], True)
-        self.assertEqual(doc["output"]["vbm"], None)
-        self.assertEqual(doc["output"]["cbm"], None)
-        self.assertEqual(doc["output"]["bandgap"], 0.0)
-        self.assertEqual(doc["output"]["is_gap_direct"], False)
-        self.assertEqual(doc["output"]["is_metal"], True)
-
+        for d in [doc["calcs_reversed"][0]["output"], ["output"]]:
+            self.assertIsNone(d["vbm"])
+            self.assertIsNone(d["cbm"])
+            self.assertEqual(d["bandgap"], 0.0)
+            self.assertFalse(d["is_gap_direct"])
+            self.assertTrue(d["is_metal"])
 
 if __name__ == "__main__":
     unittest.main()
