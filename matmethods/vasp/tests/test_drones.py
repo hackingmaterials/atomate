@@ -74,7 +74,7 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
         self.assertEqual(doc["composition_reduced"], {'Al': 1.0})
         self.assertEqual(doc["formula_pretty"], 'Al')
         self.assertEqual(doc["formula_anonymous"], 'A')
-        for d in [doc["calcs_reversed"][0]["output"], ["output"]]:
+        for d in [doc["calcs_reversed"][0]["output"], doc["output"]]:
             self.assertIsNone(d["vbm"])
             self.assertIsNone(d["cbm"])
             self.assertEqual(d["bandgap"], 0.0)
