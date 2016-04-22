@@ -9,7 +9,7 @@ from fireworks import Firework, ScriptTask, Workflow
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 from matmethods.vasp.vasp_powerups import decorate_priority, use_custodian, add_trackers, \
     add_modify_incar, add_small_gap_multiply, use_scratch_dir
-from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure_Vasp
+from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure
 from pymatgen import IStructure
 from pymatgen import Lattice
 
@@ -27,7 +27,7 @@ class TestVaspPowerups(unittest.TestCase):
         coords = [[0, 0, 0], [0.75, 0.5, 0.75]]
         struct_si = IStructure(lattice, ["Si"] * 2, coords)
         vis = StructureOptimizationVaspInputSet()
-        cls.bs_wf = get_wf_bandstructure_Vasp(struct_si, vis, vasp_cmd="test_VASP")
+        cls.bs_wf = get_wf_bandstructure(struct_si, vis, vasp_cmd="test_VASP")
 
     def _copy_wf(self, wf):
         return Workflow.from_dict(wf.to_dict())
