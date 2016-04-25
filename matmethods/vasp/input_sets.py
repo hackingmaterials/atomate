@@ -298,12 +298,12 @@ def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
         Returns the magmom-decorated structure.
     """
     prev_dir = prev_dir or os.curdir
-
+    vasprun = Vasprun(zpath(os.path.join(prev_dir, "vasprun.xml")), parse_dos=False,
+                      parse_eigen=False)
+    structure = vasprun.final_structure
+    magmom = None
     if preserve_magmom:
-        vasprun = Vasprun(zpath(os.path.join(prev_dir, "vasprun.xml")),
-                          parse_dos=False, parse_eigen=False)
         outcar = Outcar(zpath(os.path.join(prev_dir, "OUTCAR")))
-        structure = vasprun.final_structure
 
         if vasprun.is_spin:
             incar = Incar.from_file(zpath(os.path.join(prev_dir, "INCAR")))
@@ -316,12 +316,7 @@ def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
                 magmom = {"magmom": [i['tot'] for i in outcar.magnetization]}
             else:
                 logger.warn("No MAGMOM found for the spin-polarized calculation !")
-        else:
-            magmom = None
-        return structure.copy(site_properties=magmom)
-    else:
-        return Poscar.from_file(
-            zpath(os.path.join(prev_dir, "CONTCAR"))).structure
+    return structure.copy(site_properties=magmom)
 
 
 def get_incar_from_prev_run(prev_dir, new_structure, default_settings=None,incar_dict_override=None):
