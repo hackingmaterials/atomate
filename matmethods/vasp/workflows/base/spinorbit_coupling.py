@@ -54,10 +54,7 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
     t1 = []
     vasp_input_set = vasp_input_set if vasp_input_set else StructureOptimizationVaspInputSet()
     t1.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
-    # TODO: remove this customization, must override as_dict and from_dict in custom 
-    # inputset to ensure that the config_override is preserved
-    t1.append(ModifyIncar(incar_update = {"ISIF": 2}, 
-                          incar_dictmod = {"_unset": {"MAGMOM": ""}}))
+    t1.append(ModifyIncar(incar_dictmod = {"_unset": {"MAGMOM": ""}}))
     t1.append(RunVaspDirect(vasp_cmd=vasp_cmd))
     t1.append(PassCalcLocs(name=task_label))
     t1.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": task_label}))
