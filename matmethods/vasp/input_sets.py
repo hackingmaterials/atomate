@@ -27,6 +27,9 @@ logger = get_logger(__name__)
 class StructureOptimizationVaspInputSet(DictVaspInputSet):
     def __init__(self, config_dict_override=None, reciprocal_density=50,
                  force_gamma=True, **kwargs):
+        self.config_dict_override = config_dict_override
+        self.reciprocal_density = reciprocal_density
+        self.force_gamma = force_gamma
         d = kwargs
         d["name"] = "structure optimization"
         d["config_dict"] = loadfn(
@@ -44,6 +47,41 @@ class StructureOptimizationVaspInputSet(DictVaspInputSet):
         d["config_dict"]["KPOINTS"]["reciprocal_density"] = reciprocal_density
 
         super(StructureOptimizationVaspInputSet, self).__init__(**d)
+
+    def as_dict(self):
+        config_dict = {
+            "INCAR": self.incar_settings,
+            "KPOINTS": self.kpoints_settings,
+            "POTCAR": self.potcar_settings
+        }
+        return {
+            "config_dict_override": self.config_dict_override,
+            "reciprocal_density": self.reciprocal_density,
+            "force_gamma": self.force_gamma,
+            "name": self.name,
+            "config_dict": config_dict,
+            "hubbard_off": self.hubbard_off,
+            "constrain_total_magmom": self.set_nupdown,
+            "sort_structure": self.sort_structure,
+            "potcar_functional": self.potcar_functional,
+            "ediff_per_atom": self.ediff_per_atom,
+            "reduce_structure": self.reduce_structure,
+            "@class": self.__class__.__name__,
+            "@module": self.__class__.__module__
+        }
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(config_dict_override=d.get("config_dict_override", None),
+                   reciprocal_density=d.get("reciprocal_density", 50),
+                   force_gamma=d.get("force_gamma", True),
+                   name=d["name"], config_dict=d["config_dict"],
+                   hubbard_off=d.get("hubbard_off", False),
+                   constrain_total_magmom=d["constrain_total_magmom"],
+                   sort_structure=d.get("sort_structure", True),
+                   potcar_functional=d.get("potcar_functional", None),
+                   ediff_per_atom=d.get("ediff_per_atom", True),
+                   reduce_structure=d.get("reduce_structure", None))
 
 
 class StaticVaspInputSet(DictVaspInputSet):
