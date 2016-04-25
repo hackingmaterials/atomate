@@ -129,7 +129,7 @@ class StaticVaspInputSet(DictVaspInputSet):
         vis = StaticVaspInputSet(config_dict_override=config_dict_override,
                                  reciprocal_density=reciprocal_density)
         if preserve_old_incar:
-            write_preserved_incar(vis, structure, prev_dir, config_dict_override, output_dir)
+            write_with_preserved_incar(vis, structure, prev_dir, config_dict_override, output_dir)
         else:
             vis.write_input(structure, output_dir)
 
@@ -280,10 +280,10 @@ class NonSCFVaspInputSet(DictVaspInputSet):
         nscfvis = NonSCFVaspInputSet(config_dict_override=nscf_config_dict,
                                      reciprocal_density=reciprocal_density,
                                      mode=mode)
-        nscfvis.write_input(structure, output_dir)
         if preserve_old_incar:
-            write_preserved_incar(nscfvis, structure, config_dict_override,
-                                  output_dir)
+            write_with_preserved_incar(nscfvis, structure, prev_dir, config_dict_override, output_dir)
+        else:
+            nscfvis.write_input(structure, output_dir)
 
 
 def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
@@ -441,7 +441,7 @@ def set_params(param, incar, prev_poscar, new_poscar):
                     new_poscar.site_symbols]
 
 
-def write_preserved_incar(vis, structure, prev_dir, config_dict_override=None, output_dir="."):
+def write_with_preserved_incar(vis, structure, prev_dir, config_dict_override=None, output_dir="."):
     """
     Get the incar from the previous directory, update it based on the
     provided structure and input set and write it to the output
@@ -462,16 +462,24 @@ def write_preserved_incar(vis, structure, prev_dir, config_dict_override=None, o
     incar_dict_override.update({"EDIFF": min(incar_dict_override.get("EDIFF", 1), new_incar.get("EDIFF", 1))})
     # incar from prev run
     incar = get_incar_from_prev_run(prev_dir, structure, vis.DEFAULT_SETTINGS,incar_dict_override=incar_dict_override)
-    # set MAGMOM = 0 0 total_magnetization
-    # use the previous values if not overridden
+    # format the MAGMOM(set MAGMOM = 0 0 total_magnetization) setting from previous incar if the
+    # current calculation involves spin-orbit  coupling
+    # use the previous values if present and not overridden
     # assumption previous calculation is non-collinear
-    if not incar_dict_override.get("MAGMOM") and incar.get("LSORBIT") or incar.get("LNONCOLLINEAR"):
-        val = []
-        if incar.get("MAGMOM"):
+    if incar.get("MAGMOM"):
+        if not incar_dict_override.get("MAGMOM") and (incar.get("LSORBIT") or incar.get("LNONCOLLINEAR")):
+            val = []
             for m in incar["MAGMOM"]:
                 # make sure the previous calc in non-collinear
                 if not isinstance(m, list):
                     val.append([0, 0, m])
-        incar["MAGMOM"] = val
+            incar["MAGMOM"] = val
+    # set MAGMOM from the new structure based incar
+    elif "MAGMOM" in new_incar:
+        if (incar.get("LSORBIT") or incar.get("LNONCOLLINEAR")) and (hasattr(structure[0], "magmom")
+                                                                     and not isinstance(structure[0].magmom[0], list)):
+            logger.error("the structure must have the magmom property set to list of list values if doing SOC calc")
+            raise ValueError
+        incar["MAGMOM"] = new_incar["MAGMOM"]
     vis.write_input(structure, output_dir)
     incar.write_file(os.path.join(output_dir, "INCAR"))
