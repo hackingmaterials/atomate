@@ -71,7 +71,8 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
         task_label = "non-scf soc " + "".join(str(x) for x in saxis)
         fw_name = "{}-{}".format(structure.composition.reduced_formula, task_label)
         soc_task = []
-        config_dict_override = {"INCAR": {"MAGMOM": [[0, 0, m] for m in magmom],
+        config_dict_override = {"INCAR": {"MAGMOM": dict([(s, [0, 0, m]) for
+                                                          s, m in zip(structure, magmom)]),
                                           "ISYM": -1,
                                           "LSORBIT": "T",
                                           "ICHARG": 11,
