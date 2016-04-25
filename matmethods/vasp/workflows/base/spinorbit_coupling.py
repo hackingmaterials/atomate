@@ -11,7 +11,7 @@ from fireworks import Firework, Workflow
 from matmethods.vasp.firetasks.glue_tasks import PassCalcLocs, CopyVaspOutputs
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
 from matmethods.vasp.firetasks.run_calc import RunVaspDirect
-from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspStaticFromPrev
+from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspStaticFromPrev, ModifyIncar
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 
 __author__ = 'Kiran Mathew'
@@ -52,13 +52,10 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
 
     task_label = "non-magnetic structure optimization"
     t1 = []
-    # need WAVECAR and CHGCAR for the next step
-    config_dict_override = {"INCAR": {"LCHARG": "T"}}
-    vasp_input_set = vasp_input_set if vasp_input_set \
-        else StructureOptimizationVaspInputSet(config_dict_override=config_dict_override)
-    del vasp_input_set.incar_settings["MAGMOM"]
-    t1.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set,
-                                 config_dict_override=config_dict_override))
+    vasp_input_set = vasp_input_set if vasp_input_set else StructureOptimizationVaspInputSet()
+    t1.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
+    t1.append(ModifyIncar(incar_update = {"LCHARG": True}, 
+                          incar_dictmod = {"_unset": {"MAGMOM": ""}}))
     t1.append(RunVaspDirect(vasp_cmd=vasp_cmd))
     t1.append(PassCalcLocs(name=task_label))
     t1.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": task_label}))
@@ -71,8 +68,7 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
         task_label = "non-scf soc " + "".join(str(x) for x in saxis)
         fw_name = "{}-{}".format(structure.composition.reduced_formula, task_label)
         soc_task = []
-        config_dict_override = {"INCAR": {"MAGMOM": dict([(s, [0, 0, m]) for
-                                                          s, m in zip(structure, magmom)]),
+        config_dict_override = {"INCAR": {"MAGMOM": [[0, 0, m] for m in  magmom],
                                           "ISYM": -1,
                                           "LSORBIT": "T",
                                           "ICHARG": 11,

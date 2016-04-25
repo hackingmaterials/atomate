@@ -128,6 +128,10 @@ class StaticVaspInputSet(DictVaspInputSet):
 
         vis = StaticVaspInputSet(config_dict_override=config_dict_override,
                                  reciprocal_density=reciprocal_density)
+        # DictInputSet expect magmom settings as a dict with the specie symbol as key
+        if config_dict_override.get("INCAR"):
+            if "LSORBIT" in config_dict_override["INCAR"]:
+                    del vis.incar_settings["MAGMOM"]
         if preserve_old_incar:
             write_with_preserved_incar(vis, structure, prev_dir, config_dict_override, output_dir)
         else:
@@ -476,5 +480,7 @@ def write_with_preserved_incar(vis, structure, prev_dir, config_dict_override=No
             logger.error("the structure must have the magmom property set to list of list values if doing SOC calc")
             raise ValueError
         incar["MAGMOM"] = new_incar["MAGMOM"]
+    # dont use the default incar settings at all
+    vis.incar_settings = {}
     vis.write_input(structure, output_dir)
     incar.write_file(os.path.join(output_dir, "INCAR"))
