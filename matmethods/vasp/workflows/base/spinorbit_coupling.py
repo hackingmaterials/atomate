@@ -54,12 +54,27 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
     t1 = []
     vasp_input_set = vasp_input_set if vasp_input_set else StructureOptimizationVaspInputSet()
     t1.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
-    t1.append(ModifyIncar(incar_update = {"LCHARG": True}, 
+    # TODO: remove this customization, must override as_dict and from_dict in custom 
+    # inputset to ensure that the config_override is preserved
+    t1.append(ModifyIncar(incar_update = {"ISIF": 2}, 
                           incar_dictmod = {"_unset": {"MAGMOM": ""}}))
     t1.append(RunVaspDirect(vasp_cmd=vasp_cmd))
     t1.append(PassCalcLocs(name=task_label))
     t1.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": task_label}))
     fw1 = Firework(t1, name="{}-{}".format(structure.composition.reduced_formula, task_label))
+
+
+    task_label = "non-magnetic static scf"
+    t2 = []
+    t2.append(CopyVaspOutputs(calc_loc=True))
+    t2.append(WriteVaspStaticFromPrev(standardization_symprec=False,
+                                      preserve_magmom=False, preserve_old_incar=True))
+    t2.append(ModifyIncar(incar_update = {"LCHARG": True}, 
+                          incar_dictmod = {"_unset": {"MAGMOM": ""}}))
+    t2.append(RunVaspDirect(vasp_cmd=vasp_cmd))
+    t2.append(PassCalcLocs(name=task_label))
+    t2.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": task_label}))
+    fw2 = Firework(t2, parents=fw1, name="{}-{}".format(structure.composition.reduced_formula, task_label))
 
     soc_fws = []
     if len(structure) != len(magmom):
@@ -82,7 +97,7 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
         soc_task.append(RunVaspDirect(vasp_cmd=vasp_ncl))
         soc_task.append(PassCalcLocs(name=task_label))
         soc_task.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": task_label}))
-        fw = Firework(soc_task, parents=fw1, name=fw_name)
+        fw = Firework(soc_task, parents=fw2, name=fw_name)
         soc_fws.append(fw)
 
-    return Workflow([fw1]+soc_fws, name="SOC-"+structure.composition.reduced_formula)
+    return Workflow([fw1, fw2]+soc_fws, name="SOC-"+structure.composition.reduced_formula)

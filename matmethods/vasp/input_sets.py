@@ -129,8 +129,9 @@ class StaticVaspInputSet(DictVaspInputSet):
         vis = StaticVaspInputSet(config_dict_override=config_dict_override,
                                  reciprocal_density=reciprocal_density)
         # DictInputSet expect magmom settings as a dict with the specie symbol as key
-        if config_dict_override.get("INCAR"):
-            if "LSORBIT" in config_dict_override["INCAR"]:
+        if config_dict_override:
+            if config_dict_override.get("INCAR"):
+                if "LSORBIT" in config_dict_override["INCAR"]:
                     del vis.incar_settings["MAGMOM"]
         if preserve_old_incar:
             write_with_preserved_incar(vis, structure, prev_dir, config_dict_override, output_dir)
