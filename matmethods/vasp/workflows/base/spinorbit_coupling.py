@@ -88,4 +88,4 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
         fw = Firework(soc_task, parents=fw1, name=fw_name)
         soc_fws.append(fw)
 
-    return Workflow([fw1, soc_fws], name="SOC-"+structure.composition.reduced_formula)
+    return Workflow([fw1]+soc_fws, name="SOC-"+structure.composition.reduced_formula)
