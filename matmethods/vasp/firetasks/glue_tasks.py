@@ -14,7 +14,8 @@ import re
 
 from fireworks import explicit_serialize, FireTaskBase, FWAction
 
-from matmethods.utils.utils import env_chk, MMos
+from matmethods.utils.utils import env_chk
+from matmethods.utils.fileio import MMos
 from matmethods.vasp.vasp_utils import get_calc_key
 
 __author__ = 'Anubhav Jain'

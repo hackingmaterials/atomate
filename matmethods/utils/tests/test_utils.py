@@ -7,7 +7,8 @@ import unittest
 import getpass
 from collections import defaultdict
 
-from matmethods.utils.utils import env_chk, MMos, get_logger
+from matmethods.utils.utils import env_chk, get_logger
+from matmethods.utils.fileio import MMos
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
