@@ -72,10 +72,7 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
     task_label = "non-magnetic static scf"
     t2 = []
     t2.append(CopyVaspOutputs(calc_loc=True))
-    t2.append(WriteVaspStaticFromPrev(standardization_symprec=False,
-                                      preserve_magmom=False, preserve_old_incar=True))
-    t2.append(ModifyIncar(incar_update = {"LCHARG": True}, 
-                          incar_dictmod = {"_unset": {"MAGMOM": ""}}))
+    t2.append(ModifyIncar(incar_update = {"NSW":0, "LCHARG": True}))
     t2.append(RunVaspDirect(vasp_cmd=vasp_cmd))
     t2.append(PassCalcLocs(name=task_label))
     t2.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": task_label}))
@@ -88,17 +85,13 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
         task_label = "non-scf soc " + "".join(str(x) for x in saxis)
         fw_name = "{}-{}".format(structure.composition.reduced_formula, task_label)
         soc_task = []
-        config_dict_override = {"INCAR": {"MAGMOM": [[0, 0, m] for m in  magmom],
-                                          "ISYM": -1,
-                                          "LSORBIT": "T",
-                                          "ICHARG": 11,
-                                          "SAXIS": saxis}}
-
         additional_files = ["CHGCAR"]
         soc_task.append(CopyVaspOutputs(calc_loc=True, additional_files=additional_files))
-        soc_task.append(WriteVaspStaticFromPrev(config_dict_override=config_dict_override,
-                                                standardization_symprec=False,
-                                                preserve_magmom=False, preserve_old_incar=True))
+        soc_task.append(ModifyIncar(incar_update = {"MAGMOM": [[0, 0, m] for m in  magmom],
+                                                    "ISYM": -1,
+                                                    "LSORBIT": "T",
+                                                    "ICHARG": 11,
+                                                    "SAXIS": saxis} ))
         soc_task.append(RunVaspDirect(vasp_cmd=vasp_ncl))
         soc_task.append(PassCalcLocs(name=task_label))
         soc_task.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": task_label}))

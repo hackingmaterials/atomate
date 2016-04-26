@@ -8,9 +8,9 @@ from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 
 if __name__ == "__main__":
     
-    fe_monomer = Structure([[1.73, 1.73,0.0],[-1.73,1.73,0.0],[0.0,0.0,8.63]], 
+    fe_monomer = Structure([[1.73, 1.73,0.0],[-1.73,1.73,0.0],[0.0,0.0,10.0]], 
                          ["Fe"], [[0,0,0]])
-    config_dict_override = {"INCAR":{"ISIF":2}}
+    config_dict_override = {"INCAR":{"ISIF":2, "NPAR":4, "ALGO": "Normal", "LREAL": ".FALSE."}}
     vis = StructureOptimizationVaspInputSet(config_dict_override=config_dict_override)
     lp = LaunchPad.auto_load()
     wf = get_wf_spinorbit_coupling(fe_monomer, [3.0], field_directions=[[0,0,1]],
