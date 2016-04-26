@@ -31,12 +31,12 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
           database insertion
 
     fw2 : Copy files from prev dir
-          modify incar
+          modify incar for non-magnetic static run, CHGCAR file retained
           run vasp
           pass run location
           database insertion
 
-    soc_fws : list of fireworks consisting of the following firetasks:
+    soc_fws : list of fireworks(one for each field direction) consisting of the following firetasks:
                  copy files(additional files = CHGCAR) from previous run
                  modify incar
                  run vasp with non-collinear binary(vasp_ncl)
@@ -67,11 +67,10 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
     t1.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": task_label}))
     fw1 = Firework(t1, name="{}-{}".format(structure.composition.reduced_formula, task_label))
 
-
     task_label = "non-magnetic static scf"
     t2 = []
     t2.append(CopyVaspOutputs(calc_loc=True))
-    t2.append(ModifyIncar(incar_update = {"NSW":0, "LCHARG": True}))
+    t2.append(ModifyIncar(incar_update={"NSW":0, "LCHARG": True}))
     t2.append(RunVaspDirect(vasp_cmd=vasp_cmd))
     t2.append(PassCalcLocs(name=task_label))
     t2.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": task_label}))
@@ -86,11 +85,11 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
         soc_task = []
         additional_files = ["CHGCAR"]
         soc_task.append(CopyVaspOutputs(calc_loc=True, additional_files=additional_files))
-        soc_task.append(ModifyIncar(incar_update = {"MAGMOM": [[0, 0, m] for m in  magmom],
-                                                    "ISYM": -1,
-                                                    "LSORBIT": "T",
-                                                    "ICHARG": 11,
-                                                    "SAXIS": saxis} ))
+        soc_task.append(ModifyIncar(incar_update={"MAGMOM": [[0, 0, m] for m in  magmom],
+                                                  "ISYM": -1,
+                                                  "LSORBIT": "T",
+                                                  "ICHARG": 11,
+                                                  "SAXIS": saxis} ))
         soc_task.append(RunVaspDirect(vasp_cmd=vasp_ncl))
         soc_task.append(PassCalcLocs(name=task_label))
         soc_task.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": task_label}))
