@@ -1,32 +1,57 @@
+# coding: utf-8
+
+from __future__ import division, print_function, unicode_literals, absolute_import
+
+"""
+This module defines functions that generate workflows for bandstructure calculations.
+"""
+
 from fireworks import Firework, Workflow, LaunchPad
+
 from matmethods.vasp.firetasks.glue_tasks import PassCalcLocs, CopyVaspOutputs
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
 from matmethods.vasp.firetasks.run_calc import RunVaspDirect
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, \
     WriteVaspStaticFromPrev, WriteVaspNSCFFromPrev
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
-from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name
-from matmethods.vasp.workflows.base.single_vasp import get_wf_single_Vasp
+from matmethods.vasp.vasp_powerups import decorate_write_name
+from matmethods.vasp.workflows.base.single_vasp import get_wf_single
+
 from pymatgen import Lattice, IStructure
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 
-def get_wf_bandstructure_Vasp(structure, vasp_input_set=None, vasp_cmd="vasp",
-                              db_file=None):
+def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
+                         db_file=None):
     """
-    Return vasp workflow consisting of 4 fireworks.
-    Firework 1 : write vasp input set for structural relaxation, run vasp,
-        pass run location and database insertion.
-    Firework 2 : copy files from previous run, write vasp input set for
-        static run, run vasp, pass run location and database insertion.
-    Firework 3 : copy files from previous run, write vasp input set for
-        non self-consistent(constant charge density) run in uniform mode,
-        run vasp, pass run location and database insertion.
-    Firework 4 : copy files from previous run, write vasp input set for
-        non self-consistent(constant charge density) run in line mode,
-        run vasp, pass run location and database insertion.
+    Return vasp workflow consisting of 4 fireworks:
+
+    Firework 1 : write vasp input set for structural relaxation,
+                 run vasp,
+                 pass run location,
+                 database insertion.
+
+    Firework 2 : copy files from previous run,
+                 write vasp input set for static run,
+                 run vasp,
+                 pass run location
+                 database insertion.
+
+    Firework 3 : copy files from previous run,
+                 write vasp input set for non self-consistent(constant charge density) run in
+                 uniform mode,
+                 run vasp,
+                 pass run location
+                 database insertion.
+
+    Firework 4 : copy files from previous run,
+                 write vasp input set for non self-consistent(constant charge density) run in
+                 line mode,
+                 run vasp,
+                 pass run location
+                 database insertion.
 
     Args:
         structure (Structure): input structure to be relaxed.
@@ -105,5 +130,5 @@ if __name__ == "__main__":
                        [1.9200989668, 3.3257101909, 0.00],
                        [0.00, -2.2171384943, 3.1355090603]])
     structure = IStructure(lattice, ["Si"] * 2, coords)
-    wf = get_wf_single_Vasp(structure)
+    wf = get_wf_single(structure)
     add_to_lpad(wf, decorate=True)

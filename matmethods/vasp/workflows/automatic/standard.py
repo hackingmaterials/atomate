@@ -1,8 +1,8 @@
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet, StaticVaspInputSet
 from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name, \
     add_small_gap_multiply, use_scratch_dir
-from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure_Vasp
-from matmethods.vasp.workflows.base.single_vasp import get_wf_single_Vasp
+from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure
+from matmethods.vasp.workflows.base.single_vasp import get_wf_single
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -16,8 +16,8 @@ def wf_band_structure(structure):
     :param structure:
     :return:
     """
-    wf = get_wf_bandstructure_Vasp(structure, vasp_input_set=StructureOptimizationVaspInputSet(),
-                                   vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<")
+    wf = get_wf_bandstructure(structure, vasp_input_set=StructureOptimizationVaspInputSet(),
+                              vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<")
     wf = use_custodian(wf)
     wf = use_custodian(wf, fw_name_constraint="structure optimization",
                        custodian_params={"job_type": "double_relaxation_run"})
@@ -35,8 +35,8 @@ def wf_static(structure):
     :param structure:
     :return:
     """
-    wf = get_wf_single_Vasp(structure, vasp_input_set=StaticVaspInputSet(), vasp_cmd=">>vasp_cmd<<",
-                            db_file=">>db_file<<", task_label="static")
+    wf = get_wf_single(structure, vasp_input_set=StaticVaspInputSet(), vasp_cmd=">>vasp_cmd<<",
+                       db_file=">>db_file<<", task_label="static")
     wf = use_custodian(wf)
     wf = decorate_write_name(wf)
     wf = use_scratch_dir(wf, ">>scratch_dir<<")
@@ -44,15 +44,15 @@ def wf_static(structure):
     return wf
 
 
-def wf_stucture_optimization(structure):
+def wf_structure_optimization(structure):
     """
     single structure optimization calculation
     :param structure:
     :return:
     """
-    wf = get_wf_single_Vasp(structure, vasp_input_set=StructureOptimizationVaspInputSet(),
-                            vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
-                            task_label="structure optimization")
+    wf = get_wf_single(structure, vasp_input_set=StructureOptimizationVaspInputSet(),
+                       vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
+                       task_label="structure optimization")
     wf = use_custodian(wf, fw_name_constraint="structure optimization",
                        custodian_params={"job_type": "double_relaxation_run"})
     wf = decorate_write_name(wf)

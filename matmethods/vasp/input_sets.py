@@ -1,7 +1,6 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, \
-    absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 import math
 import os
@@ -26,8 +25,11 @@ logger = get_logger(__name__)
 
 
 class StructureOptimizationVaspInputSet(DictVaspInputSet):
-    def __init__(self, config_dict_override=None, reciprocal_density=50,
-                 force_gamma=True, **kwargs):
+
+    def __init__(self, config_dict_override=None, reciprocal_density=50, force_gamma=True, **kwargs):
+        self.config_dict_override = config_dict_override
+        self.reciprocal_density = reciprocal_density
+        self.force_gamma = force_gamma
         d = kwargs
         d["name"] = "structure optimization"
         d["config_dict"] = loadfn(
@@ -46,20 +48,54 @@ class StructureOptimizationVaspInputSet(DictVaspInputSet):
 
         super(StructureOptimizationVaspInputSet, self).__init__(**d)
 
+    def as_dict(self):
+        config_dict = {
+            "INCAR": self.incar_settings,
+            "KPOINTS": self.kpoints_settings,
+            "POTCAR": self.potcar_settings
+        }
+        return {
+            "config_dict_override": self.config_dict_override,
+            "reciprocal_density": self.reciprocal_density,
+            "force_gamma": self.force_gamma,
+            "name": self.name,
+            "config_dict": config_dict,
+            "hubbard_off": self.hubbard_off,
+            "constrain_total_magmom": self.set_nupdown,
+            "sort_structure": self.sort_structure,
+            "potcar_functional": self.potcar_functional,
+            "ediff_per_atom": self.ediff_per_atom,
+            "reduce_structure": self.reduce_structure,
+            "@class": self.__class__.__name__,
+            "@module": self.__class__.__module__
+        }
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(config_dict_override=d.get("config_dict_override", None),
+                   reciprocal_density=d.get("reciprocal_density", 50),
+                   force_gamma=d.get("force_gamma", True),
+                   name=d["name"], config_dict=d["config_dict"],
+                   hubbard_off=d.get("hubbard_off", False),
+                   constrain_total_magmom=d["constrain_total_magmom"],
+                   sort_structure=d.get("sort_structure", True),
+                   potcar_functional=d.get("potcar_functional", None),
+                   ediff_per_atom=d.get("ediff_per_atom", True),
+                   reduce_structure=d.get("reduce_structure", None))
+
 
 class StaticVaspInputSet(DictVaspInputSet):
-    DEFAULT_SETTINGS = {"IBRION": -1, "ISMEAR": -5, "LAECHG": True,
-                       "LCHARG": True,
-                       "LORBIT": 11, "LVHAR": True, "LVTOT": True,
-                       "LWAVE": False, "NSW": 0,
-                       "ICHARG": 0, "EDIFF": 0.000001, "ALGO": "Fast"}
 
-    def __init__(self, config_dict_override=None, reciprocal_density=100,
-                 **kwargs):
+    DEFAULT_SETTINGS = {"IBRION": -1, "ISMEAR": -5, "LAECHG": True, "LCHARG": True, "LORBIT": 11,
+                        "LVHAR": True, "LVTOT": True, "LWAVE": False, "NSW": 0, "ICHARG": 0,
+                        "EDIFF": 0.000001, "ALGO": "Fast"}
+
+    def __init__(self, config_dict_override=None, reciprocal_density=100, **kwargs):
+        self.config_dict_override = config_dict_override
+        self.reciprocal_density = reciprocal_density
         d = kwargs
         d["name"] = "static"
-        d["config_dict"] = loadfn(
-            os.path.join(MODULE_DIR, "MPVaspInputSet.yaml"))
+        d["config_dict"] = loadfn(os.path.join(MODULE_DIR, "MPVaspInputSet.yaml"))
         d["force_gamma"] = True
         if "grid_density" in d["config_dict"]["KPOINTS"]:
             del d["config_dict"]["KPOINTS"]["grid_density"]
@@ -74,14 +110,10 @@ class StaticVaspInputSet(DictVaspInputSet):
         super(StaticVaspInputSet, self).__init__(**d)
 
     @staticmethod
-    def write_input_from_prevrun(config_dict_override=None,
-                                 reciprocal_density=100,
-                                 small_gap_multiply=None,
-                                 prev_dir=None,
-                                 standardization_symprec=0.1,
-                                 international_monoclinic=True,
-                                 preserve_magmom=True,
-                                 preserve_old_incar=False, output_dir="."):
+    def write_input_from_prevrun(config_dict_override=None, reciprocal_density=100,
+                                 small_gap_multiply=None, prev_dir=None,
+                                 standardization_symprec=0.1, international_monoclinic=True,
+                                 preserve_magmom=True, preserve_old_incar=False, output_dir="."):
         """
         Args:
             config_dict_override (dict): like {"INCAR": {"NPAR": 2}} to
@@ -109,8 +141,7 @@ class StaticVaspInputSet(DictVaspInputSet):
         # standardize the structure if desired
         if standardization_symprec:
             logger.info("Standardizing cell...")
-            sym_finder = SpacegroupAnalyzer(structure,
-                                            symprec=standardization_symprec)
+            sym_finder = SpacegroupAnalyzer(structure, symprec=standardization_symprec)
             new_structure = sym_finder.get_primitive_standard_structure(
                 international_monoclinic=international_monoclinic)
             logger.info("Validating new cell...")
@@ -119,8 +150,7 @@ class StaticVaspInputSet(DictVaspInputSet):
             vpa_old = structure.volume/structure.num_sites
             vpa_new = new_structure.volume/new_structure.num_sites
             if abs(vpa_old - vpa_new)/vpa_old > 0.02:
-                raise ValueError("Standardizing cell failed! VPA old: {}, VPA new: {}"
-                                 .format(vpa_old, vpa_new))
+                raise ValueError("Standardizing cell failed! VPA old: {}, VPA new: {}".format(vpa_old, vpa_new))
 
             sm = StructureMatcher()
             if not sm.fit(structure, new_structure):
@@ -139,21 +169,64 @@ class StaticVaspInputSet(DictVaspInputSet):
 
         vis = StaticVaspInputSet(config_dict_override=config_dict_override,
                                  reciprocal_density=reciprocal_density)
-        vis.write_input(structure, output_dir)
+        # DictInputSet expect magmom settings as a dict with the specie symbol as key
+        if config_dict_override:
+            if config_dict_override.get("INCAR"):
+                if "LSORBIT" in config_dict_override["INCAR"]:
+                    del vis.incar_settings["MAGMOM"]
         if preserve_old_incar:
-            write_preserved_incar(vis, structure, config_dict_override, output_dir)
+            write_with_preserved_incar(vis, structure, prev_dir, config_dict_override, output_dir)
+        else:
+            vis.write_input(structure, output_dir)
+
+    def as_dict(self):
+        config_dict = {
+            "INCAR": self.incar_settings,
+            "KPOINTS": self.kpoints_settings,
+            "POTCAR": self.potcar_settings
+        }
+        return {
+            "config_dict_override": self.config_dict_override,
+            "reciprocal_density": self.reciprocal_density,
+            "force_gamma": self.force_gamma,
+            "name": self.name,
+            "config_dict": config_dict,
+            "hubbard_off": self.hubbard_off,
+            "constrain_total_magmom": self.set_nupdown,
+            "sort_structure": self.sort_structure,
+            "potcar_functional": self.potcar_functional,
+            "ediff_per_atom": self.ediff_per_atom,
+            "reduce_structure": self.reduce_structure,
+            "@class": self.__class__.__name__,
+            "@module": self.__class__.__module__
+        }
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(config_dict_override=d.get("config_dict_override", None),
+                   reciprocal_density=d.get("reciprocal_density", 100),
+                   force_gamma=d.get("force_gamma", True),
+                   name=d["name"], config_dict=d["config_dict"],
+                   hubbard_off=d.get("hubbard_off", False),
+                   constrain_total_magmom=d["constrain_total_magmom"],
+                   sort_structure=d.get("sort_structure", True),
+                   potcar_functional=d.get("potcar_functional", None),
+                   ediff_per_atom=d.get("ediff_per_atom", True),
+                   reduce_structure=d.get("reduce_structure", None))
 
 
 class NonSCFVaspInputSet(DictVaspInputSet):
-    DEFAULT_SETTINGS = {"IBRION": -1, "ISMEAR": 0, "SIGMA": 0.001,
-                     "LCHARG": False, "LORBIT": 11, "LWAVE": False,
-                     "NSW": 0, "ISYM": 0, "ICHARG": 11}
+    DEFAULT_SETTINGS = {"IBRION": -1, "ISMEAR": 0, "SIGMA": 0.001, "LCHARG": False, "LORBIT": 11,
+                        "LWAVE": False, "NSW": 0, "ISYM": 0, "ICHARG": 11}
 
     ALLOWED_MODES = ["line", "uniform"]
 
-    def __init__(self, config_dict_override=None, mode="uniform",
-                 reciprocal_density=None, sym_prec=0.1, **kwargs):
-
+    def __init__(self, config_dict_override=None, mode="uniform", reciprocal_density=None,
+                 sym_prec=0.1, **kwargs):
+        self.config_dict_override = config_dict_override
+        self.mode = mode
+        self.reciprocal_density = reciprocal_density
+        self.sym_prec = sym_prec
         if mode not in self.ALLOWED_MODES:
             raise ValueError(
                 "{} is not an allowed 'mode'! Possible values are: {}".format(
@@ -217,10 +290,9 @@ class NonSCFVaspInputSet(DictVaspInputSet):
                            kpts_weights=weights)
 
     @staticmethod
-    def write_input_from_prevrun(config_dict_override=None,
-                                 reciprocal_density=None, small_gap_multiply=None,
-                                 prev_dir=None, mode="uniform", magmom_cutoff=0.1,
-                                 nbands_factor=1.2, preserve_magmom=True,
+    def write_input_from_prevrun(config_dict_override=None, reciprocal_density=None,
+                                 small_gap_multiply=None, prev_dir=None, mode="uniform",
+                                 magmom_cutoff=0.1, nbands_factor=1.2, preserve_magmom=True,
                                  preserve_old_incar=False, output_dir="."):
         """
         Args:
@@ -290,10 +362,50 @@ class NonSCFVaspInputSet(DictVaspInputSet):
         nscfvis = NonSCFVaspInputSet(config_dict_override=nscf_config_dict,
                                      reciprocal_density=reciprocal_density,
                                      mode=mode)
-        nscfvis.write_input(structure, output_dir)
         if preserve_old_incar:
-            write_preserved_incar(nscfvis, structure, config_dict_override,
-                                  output_dir)
+            write_with_preserved_incar(nscfvis, structure, prev_dir, config_dict_override, output_dir)
+        else:
+            nscfvis.write_input(structure, output_dir)
+
+    def as_dict(self):
+        config_dict = {
+            "INCAR": self.incar_settings,
+            "KPOINTS": self.kpoints_settings,
+            "POTCAR": self.potcar_settings
+        }
+        return {
+            "config_dict_override": self.config_dict_override,
+            "mode": self.mode,
+            "reciprocal_density": self.reciprocal_density,
+            "symprec": self.sym_prec,
+            "force_gamma": self.force_gamma,
+            "name": self.name,
+            "config_dict": config_dict,
+            "hubbard_off": self.hubbard_off,
+            "constrain_total_magmom": self.set_nupdown,
+            "sort_structure": self.sort_structure,
+            "potcar_functional": self.potcar_functional,
+            "ediff_per_atom": self.ediff_per_atom,
+            "reduce_structure": self.reduce_structure,
+            "@class": self.__class__.__name__,
+            "@module": self.__class__.__module__
+        }
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(
+            config_dict_override=d.get("config_dict_override", None),
+            mode=d.get("mode", "uniform"),
+            reciprocal_density=d.get("reciprocal_density", 100),
+            sym_prec=d.get("sym_prec", 0.1),
+            force_gamma=d.get("force_gamma", True),
+            name=d["name"], config_dict=d["config_dict"],
+            hubbard_off=d.get("hubbard_off", False),
+            constrain_total_magmom=d["constrain_total_magmom"],
+            sort_structure=d.get("sort_structure", True),
+            potcar_functional=d.get("potcar_functional", None),
+            ediff_per_atom=d.get("ediff_per_atom", True),
+            reduce_structure=d.get("reduce_structure", None))
 
 
 def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
@@ -308,30 +420,28 @@ def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
         Returns the magmom-decorated structure.
     """
     prev_dir = prev_dir or os.curdir
-
+    vasprun = Vasprun(zpath(os.path.join(prev_dir, "vasprun.xml")), parse_dos=False,
+                      parse_eigen=False)
+    structure = vasprun.final_structure
+    magmom = None
     if preserve_magmom:
-        vasprun = Vasprun(zpath(os.path.join(prev_dir, "vasprun.xml")),
-                          parse_dos=False, parse_eigen=False)
         outcar = Outcar(zpath(os.path.join(prev_dir, "OUTCAR")))
-        structure = vasprun.final_structure
 
         if vasprun.is_spin:
-            if outcar and outcar.magnetization:
+            incar = Incar.from_file(zpath(os.path.join(prev_dir, "INCAR")))
+            if incar and incar.get("MAGMOM"):
+                magmom = {"magmom": incar["MAGMOM"]}
+            elif vasprun:
+                magmom = {"magmom": vasprun.as_dict()['input']['parameters']['MAGMOM']}
+            # dont trust the parsing mag stuff from outcar. last resort..
+            elif outcar and outcar.magnetization:
                 magmom = {"magmom": [i['tot'] for i in outcar.magnetization]}
             else:
-                magmom = {
-                    "magmom": vasprun.as_dict()['input']['parameters'][
-                        'MAGMOM']}
-        else:
-            magmom = None
-        return structure.copy(site_properties=magmom)
-    else:
-        return Poscar.from_file(
-            zpath(os.path.join(prev_dir, "CONTCAR"))).structure
+                logger.warn("No MAGMOM found for the spin-polarized calculation !")
+    return structure.copy(site_properties=magmom)
 
 
-def get_incar_from_prev_run(prev_dir, new_structure, default_settings=None,
-                            incar_dict_override=None):
+def get_incar_from_prev_run(prev_dir, new_structure, default_settings=None,incar_dict_override=None):
     """
     Return incar object from the previous run with custom settings as well as
     structure dependent adjustments for parameters such as magmom and ldau.
@@ -349,6 +459,7 @@ def get_incar_from_prev_run(prev_dir, new_structure, default_settings=None,
         incar_dict_override, in that order
     """
     prev_incar = None
+    prev_dir = prev_dir or os.curdir
     try:
         prev_incar = Incar.from_file(zpath(os.path.join(prev_dir, "INCAR")))
         # the poscar is used only to get the ldau parameter mappings
@@ -385,13 +496,6 @@ def get_incar_from_prev_run(prev_dir, new_structure, default_settings=None,
         prev_incar.update(incar_dict_override)
     # set ediff
     prev_incar.update({"EDIFF": tighter_ediff})
-    # sanity check
-    prev_incar_dict = prev_incar.as_dict()
-    check_list = []
-    for k, v in default_settings.items():
-        check_list.append(prev_incar_dict[k] != v)
-    if any(check_list):
-        raise ValueError("INCAR parameters not set properly!")
     return prev_incar
 
 
@@ -454,8 +558,7 @@ def set_params(param, incar, prev_poscar, new_poscar):
                     new_poscar.site_symbols]
 
 
-def write_preserved_incar(vis, structure, prev_dir, config_dict_override=None,
-                          output_dir="."):
+def write_with_preserved_incar(vis, structure, prev_dir, config_dict_override=None, output_dir="."):
     """
     Get the incar from the previous directory, update it based on the
     provided structure and input set and write it to the output
@@ -471,14 +574,31 @@ def write_preserved_incar(vis, structure, prev_dir, config_dict_override=None,
         output_dir (str): directory where the incar file will be written.
     """
     new_incar = vis.get_incar(structure)
-    incar_dict_override = config_dict_override.get("INCAR", {}) if \
-        config_dict_override else {}
+    incar_dict_override = config_dict_override.get("INCAR", {}) if config_dict_override else {}
     # choose tighter ediff
-    incar_dict_override.update(
-        {"EDIFF": min(incar_dict_override.get("EDIFF", 1),
-                      new_incar.get("EDIFF", 1))})
-    incar = get_incar_from_prev_run(prev_dir, structure,
-                                    vis.DEFAULT_SETTINGS,
-                                    incar_dict_override=incar_dict_override)
+    incar_dict_override.update({"EDIFF": min(incar_dict_override.get("EDIFF", 1), new_incar.get("EDIFF", 1))})
+    # incar from prev run
+    incar = get_incar_from_prev_run(prev_dir, structure, vis.DEFAULT_SETTINGS,incar_dict_override=incar_dict_override)
+    # format the MAGMOM(set MAGMOM = 0 0 total_magnetization) setting from previous incar if the
+    # current calculation involves spin-orbit  coupling
+    # use the previous values if present and not overridden
+    # assumption previous calculation is non-collinear
+    if incar.get("MAGMOM"):
+        if not incar_dict_override.get("MAGMOM") and (incar.get("LSORBIT") or incar.get("LNONCOLLINEAR")):
+            val = []
+            for m in incar["MAGMOM"]:
+                # make sure the previous calc in non-collinear
+                if not isinstance(m, list):
+                    val.append([0, 0, m])
+            incar["MAGMOM"] = val
+    # set MAGMOM from the new structure based incar
+    elif "MAGMOM" in new_incar:
+        if (incar.get("LSORBIT") or incar.get("LNONCOLLINEAR")) and (hasattr(structure[0], "magmom")
+                                                                     and not isinstance(structure[0].magmom[0], list)):
+            logger.error("the structure must have the magmom property set to list of list values if doing SOC calc")
+            raise ValueError
+        incar["MAGMOM"] = new_incar["MAGMOM"]
+    # dont use the default incar settings at all
+    vis.incar_settings = {}
+    vis.write_input(structure, output_dir)
     incar.write_file(os.path.join(output_dir, "INCAR"))
-

@@ -17,8 +17,8 @@ from fireworks.core.rocket_launcher import rapidfire
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name, make_fake_workflow, \
     add_trackers
-from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure_Vasp
-from matmethods.vasp.workflows.base.single_vasp import get_wf_single_Vasp
+from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure
+from matmethods.vasp.workflows.base.single_vasp import get_wf_single
 from pymatgen import IStructure, Lattice
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
@@ -177,8 +177,8 @@ class TestVaspWorkflows(unittest.TestCase):
         # add the workflow
         vis = StructureOptimizationVaspInputSet()
         structure = self.struct_si
-        my_wf = get_wf_single_Vasp(structure, vis, vasp_cmd=VASP_CMD,
-                                   task_label="structure optimization")
+        my_wf = get_wf_single(structure, vis, vasp_cmd=VASP_CMD,
+                              task_label="structure optimization")
         if not VASP_CMD:
             my_wf = make_fake_workflow(my_wf)
         else:
@@ -199,9 +199,9 @@ class TestVaspWorkflows(unittest.TestCase):
         vis = StructureOptimizationVaspInputSet()
         structure = self.struct_si
         # instructs to use db_file set by FWorker, see env_chk
-        my_wf = get_wf_single_Vasp(structure, vis, vasp_cmd=VASP_CMD,
-                                   db_file=">>db_file<<",
-                                   task_label="structure optimization")
+        my_wf = get_wf_single(structure, vis, vasp_cmd=VASP_CMD,
+                              db_file=">>db_file<<",
+                              task_label="structure optimization")
         if not VASP_CMD:
             my_wf = make_fake_workflow(my_wf)
         else:
@@ -221,8 +221,8 @@ class TestVaspWorkflows(unittest.TestCase):
         vis = StructureOptimizationVaspInputSet()
         structure = self.struct_si
         # instructs to use db_file set by FWorker, see env_chk
-        my_wf = get_wf_bandstructure_Vasp(structure, vis, vasp_cmd=VASP_CMD,
-                                          db_file=">>db_file<<")
+        my_wf = get_wf_bandstructure(structure, vis, vasp_cmd=VASP_CMD,
+                                     db_file=">>db_file<<")
         if not VASP_CMD:
             my_wf = make_fake_workflow(my_wf)
         else:
@@ -262,8 +262,8 @@ class TestVaspWorkflows(unittest.TestCase):
         # add the workflow
         vis = StructureOptimizationVaspInputSet()
         structure = self.struct_si
-        my_wf = get_wf_single_Vasp(structure, vis, vasp_cmd=VASP_CMD,
-                                   task_label="structure optimization")
+        my_wf = get_wf_single(structure, vis, vasp_cmd=VASP_CMD,
+                              task_label="structure optimization")
 
         if not VASP_CMD:
             my_wf = make_fake_workflow(my_wf)

@@ -1,5 +1,5 @@
 FireWorks>=1.2.7
-pymatgen>=3.2.1
+pymatgen>=3.5.0
 pymatgen-db>=0.5.1
 custodian>=0.8.8
 monty>=0.8.0
