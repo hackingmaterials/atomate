@@ -31,15 +31,14 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
           database insertion
 
     fw2 : Copy files from prev dir
-          write vasp input set for non-magnetic static calculation and retain CHGCAR file
-          modify incar to remove magmom settings and set LCHARG
+          modify incar
           run vasp
           pass run location
           database insertion
 
     soc_fws : list of fireworks consisting of the following firetasks:
-                 copy files(additional files = CHGCAR) from previous run,
-                 write vasp input set for static run with incar settings overridden for SOC,
+                 copy files(additional files = CHGCAR) from previous run
+                 modify incar
                  run vasp with non-collinear binary(vasp_ncl)
                  pass run location
                  database insertion.
