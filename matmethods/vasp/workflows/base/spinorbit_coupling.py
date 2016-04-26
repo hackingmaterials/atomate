@@ -24,17 +24,25 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
     """
     Return Spin-Orbit coupling workflow :
 
-    fw1 : write vasp input set for non-magnetic structural relaxation and retain CHGCAR/WAVECAR files
-          run vasp,
-          pass run location,
-          database insertion.
+    fw1 : write vasp input set for non-magnetic structural relaxation.
+          modify incar to remove magmom settings
+          run vasp
+          pass run location
+          database insertion
 
-    soc_fws : list of fireworks consisting of firetasks:
-                     copy files(additional files = CHGCAR, WAVECAR) from previous run,
-                     write vasp input set for static run with incar settings overridden for SOC,
-                     run vasp with non-collinear binary(vasp_ncl)
-                     pass run location
-                     database insertion.
+    fw2 : Copy files from prev dir
+          write vasp input set for non-magnetic static calculation and retain CHGCAR file
+          modify incar to remove magmom settings and set LCHARG
+          run vasp
+          pass run location
+          database insertion
+
+    soc_fws : list of fireworks consisting of the following firetasks:
+                 copy files(additional files = CHGCAR) from previous run,
+                 write vasp input set for static run with incar settings overridden for SOC,
+                 run vasp with non-collinear binary(vasp_ncl)
+                 pass run location
+                 database insertion.
 
     Args:
         structure (Structure): input structure to be relaxed.

@@ -1,7 +1,6 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, \
-    absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
 This module defines tasks for writing vasp input sets for various types of
@@ -13,8 +12,7 @@ from fireworks.utilities.dict_mods import apply_mod
 from pymatgen.io.vasp import Incar
 
 from matmethods.utils.utils import env_chk
-from matmethods.vasp.input_sets import StaticVaspInputSet, \
-    NonSCFVaspInputSet
+from matmethods.vasp.input_sets import StaticVaspInputSet, NonSCFVaspInputSet
 
 __author__ = 'Anubhav Jain, Shyue Ping Ong'
 __email__ = 'ajain@lbl.gov'

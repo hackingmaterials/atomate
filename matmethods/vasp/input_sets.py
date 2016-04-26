@@ -25,8 +25,8 @@ logger = get_logger(__name__)
 
 
 class StructureOptimizationVaspInputSet(DictVaspInputSet):
-    def __init__(self, config_dict_override=None, reciprocal_density=50,
-                 force_gamma=True, **kwargs):
+
+    def __init__(self, config_dict_override=None, reciprocal_density=50, force_gamma=True, **kwargs):
         self.config_dict_override = config_dict_override
         self.reciprocal_density = reciprocal_density
         self.force_gamma = force_gamma
@@ -85,11 +85,14 @@ class StructureOptimizationVaspInputSet(DictVaspInputSet):
 
 
 class StaticVaspInputSet(DictVaspInputSet):
+
     DEFAULT_SETTINGS = {"IBRION": -1, "ISMEAR": -5, "LAECHG": True, "LCHARG": True, "LORBIT": 11,
                         "LVHAR": True, "LVTOT": True, "LWAVE": False, "NSW": 0, "ICHARG": 0,
                         "EDIFF": 0.000001, "ALGO": "Fast"}
 
     def __init__(self, config_dict_override=None, reciprocal_density=100, **kwargs):
+        self.config_dict_override = config_dict_override
+        self.reciprocal_density = reciprocal_density
         d = kwargs
         d["name"] = "static"
         d["config_dict"] = loadfn(os.path.join(MODULE_DIR, "MPVaspInputSet.yaml"))
@@ -176,17 +179,54 @@ class StaticVaspInputSet(DictVaspInputSet):
         else:
             vis.write_input(structure, output_dir)
 
+    def as_dict(self):
+        config_dict = {
+            "INCAR": self.incar_settings,
+            "KPOINTS": self.kpoints_settings,
+            "POTCAR": self.potcar_settings
+        }
+        return {
+            "config_dict_override": self.config_dict_override,
+            "reciprocal_density": self.reciprocal_density,
+            "force_gamma": self.force_gamma,
+            "name": self.name,
+            "config_dict": config_dict,
+            "hubbard_off": self.hubbard_off,
+            "constrain_total_magmom": self.set_nupdown,
+            "sort_structure": self.sort_structure,
+            "potcar_functional": self.potcar_functional,
+            "ediff_per_atom": self.ediff_per_atom,
+            "reduce_structure": self.reduce_structure,
+            "@class": self.__class__.__name__,
+            "@module": self.__class__.__module__
+        }
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(config_dict_override=d.get("config_dict_override", None),
+                   reciprocal_density=d.get("reciprocal_density", 100),
+                   force_gamma=d.get("force_gamma", True),
+                   name=d["name"], config_dict=d["config_dict"],
+                   hubbard_off=d.get("hubbard_off", False),
+                   constrain_total_magmom=d["constrain_total_magmom"],
+                   sort_structure=d.get("sort_structure", True),
+                   potcar_functional=d.get("potcar_functional", None),
+                   ediff_per_atom=d.get("ediff_per_atom", True),
+                   reduce_structure=d.get("reduce_structure", None))
+
 
 class NonSCFVaspInputSet(DictVaspInputSet):
-    DEFAULT_SETTINGS = {"IBRION": -1, "ISMEAR": 0, "SIGMA": 0.001,
-                     "LCHARG": False, "LORBIT": 11, "LWAVE": False,
-                     "NSW": 0, "ISYM": 0, "ICHARG": 11}
+    DEFAULT_SETTINGS = {"IBRION": -1, "ISMEAR": 0, "SIGMA": 0.001, "LCHARG": False, "LORBIT": 11,
+                        "LWAVE": False, "NSW": 0, "ISYM": 0, "ICHARG": 11}
 
     ALLOWED_MODES = ["line", "uniform"]
 
-    def __init__(self, config_dict_override=None, mode="uniform",
-                 reciprocal_density=None, sym_prec=0.1, **kwargs):
-
+    def __init__(self, config_dict_override=None, mode="uniform", reciprocal_density=None,
+                 sym_prec=0.1, **kwargs):
+        self.config_dict_override = config_dict_override
+        self.mode = mode
+        self.reciprocal_density = reciprocal_density
+        self.sym_prec = sym_prec
         if mode not in self.ALLOWED_MODES:
             raise ValueError(
                 "{} is not an allowed 'mode'! Possible values are: {}".format(
@@ -250,10 +290,9 @@ class NonSCFVaspInputSet(DictVaspInputSet):
                            kpts_weights=weights)
 
     @staticmethod
-    def write_input_from_prevrun(config_dict_override=None,
-                                 reciprocal_density=None, small_gap_multiply=None,
-                                 prev_dir=None, mode="uniform", magmom_cutoff=0.1,
-                                 nbands_factor=1.2, preserve_magmom=True,
+    def write_input_from_prevrun(config_dict_override=None, reciprocal_density=None,
+                                 small_gap_multiply=None, prev_dir=None, mode="uniform",
+                                 magmom_cutoff=0.1, nbands_factor=1.2, preserve_magmom=True,
                                  preserve_old_incar=False, output_dir="."):
         """
         Args:
@@ -327,6 +366,46 @@ class NonSCFVaspInputSet(DictVaspInputSet):
             write_with_preserved_incar(nscfvis, structure, prev_dir, config_dict_override, output_dir)
         else:
             nscfvis.write_input(structure, output_dir)
+
+    def as_dict(self):
+        config_dict = {
+            "INCAR": self.incar_settings,
+            "KPOINTS": self.kpoints_settings,
+            "POTCAR": self.potcar_settings
+        }
+        return {
+            "config_dict_override": self.config_dict_override,
+            "mode": self.mode,
+            "reciprocal_density": self.reciprocal_density,
+            "symprec": self.sym_prec,
+            "force_gamma": self.force_gamma,
+            "name": self.name,
+            "config_dict": config_dict,
+            "hubbard_off": self.hubbard_off,
+            "constrain_total_magmom": self.set_nupdown,
+            "sort_structure": self.sort_structure,
+            "potcar_functional": self.potcar_functional,
+            "ediff_per_atom": self.ediff_per_atom,
+            "reduce_structure": self.reduce_structure,
+            "@class": self.__class__.__name__,
+            "@module": self.__class__.__module__
+        }
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(
+            config_dict_override=d.get("config_dict_override", None),
+            mode=d.get("mode", "uniform"),
+            reciprocal_density=d.get("reciprocal_density", 100),
+            sym_prec=d.get("sym_prec", 0.1),
+            force_gamma=d.get("force_gamma", True),
+            name=d["name"], config_dict=d["config_dict"],
+            hubbard_off=d.get("hubbard_off", False),
+            constrain_total_magmom=d["constrain_total_magmom"],
+            sort_structure=d.get("sort_structure", True),
+            potcar_functional=d.get("potcar_functional", None),
+            ediff_per_atom=d.get("ediff_per_atom", True),
+            reduce_structure=d.get("reduce_structure", None))
 
 
 def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
