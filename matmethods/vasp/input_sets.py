@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import math
 import os
+from glob import glob
 
 from monty.os.path import zpath
 from monty.serialization import loadfn
@@ -461,10 +462,17 @@ def get_incar_from_prev_run(prev_dir, new_structure, default_settings=None,incar
     prev_incar = None
     prev_dir = prev_dir or os.curdir
     try:
-        # TODO: what about INCAR.relax2? POSCAR.relax2?
-        prev_incar = Incar.from_file(zpath(os.path.join(prev_dir, "INCAR")))
+        incars = glob(os.path.join(prev_dir, "INCAR*"))
+        poscars = glob(os.path.join(prev_dir, "POSCAR*"))
+        if len(incars) > 0:
+            prev_incar = Incar.from_file(zpath(sorted(incars)[-1]))
+        else:
+            raise ValueError("Found no INCAR")
         # the poscar is used only to get the ldau parameter mappings
-        prev_poscar = Poscar.from_file(zpath(os.path.join(prev_dir, "POSCAR")))
+        if len(poscars) > 0:
+            prev_poscar = Poscar.from_file(zpath(sorted(poscars)[-1]))
+        else:
+            raise ValueError("Found no POSCAR")
     except:
         raise RuntimeError(
             "Can't get valid results from previous run. prev dir: {}".format(
