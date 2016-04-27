@@ -461,6 +461,7 @@ def get_incar_from_prev_run(prev_dir, new_structure, default_settings=None,incar
     prev_incar = None
     prev_dir = prev_dir or os.curdir
     try:
+        # TODO: what about INCAR.relax2? POSCAR.relax2?
         prev_incar = Incar.from_file(zpath(os.path.join(prev_dir, "INCAR")))
         # the poscar is used only to get the ldau parameter mappings
         prev_poscar = Poscar.from_file(zpath(os.path.join(prev_dir, "POSCAR")))
