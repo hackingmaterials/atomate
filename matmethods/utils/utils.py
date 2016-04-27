@@ -5,7 +5,8 @@ from __future__ import division, print_function, unicode_literals, \
 
 import logging
 import sys
-
+import os
+import warnings
 import six
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
@@ -56,3 +57,15 @@ def get_logger(name, level=logging.DEBUG,
     sh.setFormatter(formatter)
     logger.addHandler(sh)
     return logger
+
+
+def _warning(message, category=UserWarning, filename='', lineno=-1):
+    print("{}".format(message))
+
+
+warnings.showwarning = _warning
+
+
+def soc_warning():
+    warnings.warn("MAGMOM processing for Spin-Orbit coupling is supported only in latest "
+                  "development version of pymatgen")

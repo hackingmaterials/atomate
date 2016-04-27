@@ -11,13 +11,16 @@ from fireworks import Firework, Workflow
 from matmethods.vasp.firetasks.glue_tasks import PassCalcLocs, CopyVaspOutputs
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
 from matmethods.vasp.firetasks.run_calc import RunVaspDirect
-from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspStaticFromPrev, ModifyIncar
+from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, ModifyIncar
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
+from matmethods.utils.utils import soc_warning
 
 __author__ = 'Kiran Mathew'
 __credits__ = 'Anubhav jain'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
+
+soc_warning()
 
 def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vasp_input_set=None,
                               vasp_cmd="vasp", vasp_ncl="vasp_ncl", db_file=None):

@@ -462,17 +462,19 @@ def get_incar_from_prev_run(prev_dir, new_structure, default_settings=None,incar
     prev_incar = None
     prev_dir = prev_dir or os.curdir
     try:
-        incars = glob(os.path.join(prev_dir, "INCAR*"))
-        poscars = glob(os.path.join(prev_dir, "POSCAR*"))
-        if len(incars) > 0:
-            prev_incar = Incar.from_file(zpath(sorted(incars)[-1]))
-        else:
-            raise ValueError("Found no INCAR")
+        incars = [os.path.join(prev_dir, "INCAR")]
+        # add INCAR.relax* or INCAR_relax* files
+        for i in glob(os.path.join(prev_dir, "INCAR*")):
+            if "relax" in i.split("INCAR")[-1]:
+                incars.append(i)
+        poscars = [os.path.join(prev_dir, "POSCAR")]
+        # add POSCAR.relax* or POSCAR_relax* files
+        for p in glob(os.path.join(prev_dir, "POSCAR*")):
+            if "relax" in p.split("POSCAR")[-1]:
+                poscars.append(p)
+        prev_incar = Incar.from_file(zpath(sorted(incars)[-1]))
         # the poscar is used only to get the ldau parameter mappings
-        if len(poscars) > 0:
-            prev_poscar = Poscar.from_file(zpath(sorted(poscars)[-1]))
-        else:
-            raise ValueError("Found no POSCAR")
+        prev_poscar = Poscar.from_file(zpath(sorted(poscars)[-1]))
     except:
         raise RuntimeError(
             "Can't get valid results from previous run. prev dir: {}".format(
