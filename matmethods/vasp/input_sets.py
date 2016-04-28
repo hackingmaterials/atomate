@@ -37,8 +37,7 @@ class StructureOptimizationVaspInputSet(DictVaspInputSet):
         self.force_gamma = force_gamma
         d = kwargs
         d["name"] = "structure optimization"
-        d["config_dict"] = loadfn(
-            os.path.join(MODULE_DIR, "MPVaspInputSet.yaml"))
+        d["config_dict"] = loadfn(os.path.join(MODULE_DIR, "MPVaspInputSet.yaml"))
 
         for k in ["INCAR", "KPOINTS", "POSCAR", "POTCAR"]:
             if config_dict_override and config_dict_override.get(k):
@@ -61,8 +60,7 @@ class StructureOptimizationVaspInputSet(DictVaspInputSet):
 
     @classmethod
     def from_dict(cls, d):
-        decoded = {k: MontyDecoder().process_decoded(v) for k, v in d.items()
-                   if not k.startswith("@")}
+        decoded = {k: MontyDecoder().process_decoded(v) for k, v in d.items() if not k.startswith("@")}
         return cls(**decoded)
 
 
@@ -144,7 +142,7 @@ class StaticVaspInputSet(DictVaspInputSet):
         # multiply the reciprocal density if needed:
         if small_gap_multiply:
             prev_dir = prev_dir or os.curdir
-            vasprun = Vasprun(zpath(os.path.join(prev_dir, "vasprun.xml")), parse_dos=False)
+            vasprun = Vasprun(zpath(find_file(prev_dir, "vasprun.xml")), parse_dos=False)
             gap = vasprun.eigenvalue_band_properties[0]
             if gap <= small_gap_multiply[0]:
                 reciprocal_density = reciprocal_density * small_gap_multiply[1]
@@ -169,8 +167,7 @@ class StaticVaspInputSet(DictVaspInputSet):
 
     @classmethod
     def from_dict(cls, d):
-        decoded = {k: MontyDecoder().process_decoded(v) for k, v in d.items()
-                   if not k.startswith("@")}
+        decoded = {k: MontyDecoder().process_decoded(v) for k, v in d.items() if not k.startswith("@")}
         return cls(**decoded)
 
 
@@ -281,16 +278,13 @@ class NonSCFVaspInputSet(DictVaspInputSet):
         nscf_config_dict = {"INCAR": {}, "KPOINTS": {}}
 
         # get old structure, including MAGMOM decoration if desired
-        structure = get_structure_from_prev_run(prev_dir,
-                                                preserve_magmom=preserve_magmom)
+        structure = get_structure_from_prev_run(prev_dir, preserve_magmom=preserve_magmom)
 
         # crank up NBANDS by nbands_factor
         prev_dir = prev_dir or os.curdir
-        vasprun = Vasprun(os.path.join(prev_dir, "vasprun.xml"),
-                          parse_dos=False, parse_eigen=False)
+        vasprun = Vasprun(find_file(prev_dir, "vasprun.xml"), parse_dos=False, parse_eigen=False)
         nscf_config_dict["INCAR"]["NBANDS"] = int(
-            math.ceil(vasprun.as_dict()["input"]["parameters"][
-                          "NBANDS"] * nbands_factor))
+            math.ceil(vasprun.as_dict()["input"]["parameters"]["NBANDS"] * nbands_factor))
         # retain grid of old run
         for grid in ["NGX", "NGY", "NGZ"]:
             if vasprun.incar.get(grid):
@@ -299,9 +293,8 @@ class NonSCFVaspInputSet(DictVaspInputSet):
             # turn off ISPIN if previous calc did not have significant
             # magnetic moments (>magmom_cutoff)
             if vasprun.is_spin:
-                outcar = Outcar(zpath(os.path.join(prev_dir, "OUTCAR")))
-                magmom_cutoff = [i['tot'] > magmom_cutoff for i in
-                                 outcar.magnetization]
+                outcar = Outcar(zpath(find_file(prev_dir, "OUTCAR")))
+                magmom_cutoff = [i['tot'] > magmom_cutoff for i in outcar.magnetization]
                 ispin = 2 if any(magmom_cutoff) else 1
             else:
                 ispin = 1
@@ -313,7 +306,7 @@ class NonSCFVaspInputSet(DictVaspInputSet):
         # multiply the reciprocal density if needed for small gap compounds
         if small_gap_multiply:
             prev_dir = prev_dir or os.curdir
-            vasprun = Vasprun(zpath(os.path.join(prev_dir, "vasprun.xml")), parse_dos=False)
+            vasprun = Vasprun(zpath(find_file(prev_dir, "vasprun.xml")), parse_dos=False)
             gap = vasprun.eigenvalue_band_properties[0]
             if gap <= small_gap_multiply[0]:
                 reciprocal_density = reciprocal_density * small_gap_multiply[1]
@@ -334,8 +327,7 @@ class NonSCFVaspInputSet(DictVaspInputSet):
 
     @classmethod
     def from_dict(cls, d):
-        decoded = {k: MontyDecoder().process_decoded(v) for k, v in d.items()
-                   if not k.startswith("@")}
+        decoded = {k: MontyDecoder().process_decoded(v) for k, v in d.items() if not k.startswith("@")}
         return cls(**decoded)
 
 
@@ -351,15 +343,14 @@ def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
         Returns the magmom-decorated structure.
     """
     prev_dir = prev_dir or os.curdir
-    vasprun = Vasprun(zpath(os.path.join(prev_dir, "vasprun.xml")), parse_dos=False,
-                      parse_eigen=False)
+    vasprun = Vasprun(zpath(find_file(prev_dir, "vasprun.xml")), parse_dos=False, parse_eigen=False)
     structure = vasprun.final_structure
     magmom = None
     if preserve_magmom:
-        outcar = Outcar(zpath(os.path.join(prev_dir, "OUTCAR")))
+        outcar = Outcar(zpath(find_file(prev_dir, "OUTCAR")))
 
         if vasprun.is_spin:
-            incar = Incar.from_file(zpath(os.path.join(prev_dir, "INCAR")))
+            incar = Incar.from_file(zpath(find_file(prev_dir, "INCAR")))
             if incar and incar.get("MAGMOM"):
                 magmom = {"magmom": incar["MAGMOM"]}
             elif vasprun:
@@ -392,19 +383,9 @@ def get_incar_from_prev_run(prev_dir, new_structure, default_settings=None,incar
     prev_incar = None
     prev_dir = prev_dir or os.curdir
     try:
-        incars = [os.path.join(prev_dir, "INCAR")]
-        # add INCAR.relax* or INCAR_relax* files
-        for i in glob(os.path.join(prev_dir, "INCAR*")):
-            if "relax" in i.split("INCAR")[-1]:
-                incars.append(i)
-        poscars = [os.path.join(prev_dir, "POSCAR")]
-        # add POSCAR.relax* or POSCAR_relax* files
-        for p in glob(os.path.join(prev_dir, "POSCAR*")):
-            if "relax" in p.split("POSCAR")[-1]:
-                poscars.append(p)
-        prev_incar = Incar.from_file(zpath(sorted(incars)[-1]))
+        prev_incar = Incar.from_file(zpath(find_file(prev_dir, "INCAR")))
         # the poscar is used only to get the ldau parameter mappings
-        prev_poscar = Poscar.from_file(zpath(sorted(poscars)[-1]))
+        prev_poscar = Poscar.from_file(zpath(find_file(prev_dir, "POSCAR")))
     except:
         raise RuntimeError(
             "Can't get valid results from previous run. prev dir: {}".format(
@@ -463,8 +444,7 @@ def get_param_mappings(param, incar, poscar):
                 mappings[param][sym] = vals[i]
         elif isinstance(vals, dict):
             comp = poscar.structure.composition
-            elements = sorted([el for el in comp.elements if comp[el] > 0],
-                              key=lambda e: e.X)
+            elements = sorted([el for el in comp.elements if comp[el] > 0], key=lambda e: e.X)
             most_electroneg = elements[-1].symbol
             # if vals is in {"most_electroneg": {"symbol": value}} format,
             # the way they are set in the default inuputset yaml files for
@@ -474,8 +454,7 @@ def get_param_mappings(param, incar, poscar):
             else:
                 mappings[param] = vals
         else:
-            logger.error("Unknown format for specifying the values "
-                         "for the parameter "
+            logger.error("Unknown format for specifying the values for the parameter "
                          "{0}. Provided {1}".format(param, vals))
             raise ValueError
     return mappings
@@ -495,8 +474,7 @@ def set_params(param, incar, prev_poscar, new_poscar):
     """
     mappings = get_param_mappings(param, incar, prev_poscar)
     if mappings:
-        incar[param] = [mappings[param].get(sym,0) for sym in
-                    new_poscar.site_symbols]
+        incar[param] = [mappings[param].get(sym,0) for sym in new_poscar.site_symbols]
 
 
 def write_with_preserved_incar(vis, structure, prev_dir, config_dict_override=None, output_dir="."):
@@ -543,3 +521,17 @@ def write_with_preserved_incar(vis, structure, prev_dir, config_dict_override=No
     vis.incar_settings = {}
     vis.write_input(structure, output_dir)
     incar.write_file(os.path.join(output_dir, "INCAR"))
+
+
+def find_file(path, filename):
+    """
+    return path to file containing the string 'filename' if an exact match is not found.
+
+    Adapted from pymatgen.
+    """
+    all_files = glob(os.path.join(path, filename+"*"))
+    if len(all_files) == 0:
+        raise ValueError("Unable to get {} from {}".format(filename, path))
+    preferred_file = os.path.join(path, filename)
+    f = preferred_file if preferred_file in all_files else sorted(all_files)[-1]
+    return f
