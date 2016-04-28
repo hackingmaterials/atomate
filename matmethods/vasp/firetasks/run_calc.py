@@ -9,6 +9,7 @@ This module defines tasks that support running vasp in various ways.
 
 import shlex
 import subprocess
+import os
 
 import six
 from custodian import Custodian
@@ -106,6 +107,7 @@ class RunVaspCustodian(FireTaskBase):
     def run_task(self, fw_spec):
         vasp_cmd = env_chk(self["vasp_cmd"], fw_spec)
         if isinstance(vasp_cmd, six.string_types):
+            vasp_cmd = os.path.expandvars(vasp_cmd)
             vasp_cmd = shlex.split(vasp_cmd)
 
         # initialize variables
