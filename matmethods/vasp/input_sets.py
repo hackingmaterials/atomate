@@ -8,6 +8,7 @@ from glob import glob
 
 from monty.os.path import zpath
 from monty.serialization import loadfn
+from monty.json import MSONable, MontyDecoder
 
 from matmethods.utils.utils import get_logger
 from pymatgen.analysis.structure_matcher import StructureMatcher
@@ -25,6 +26,9 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 logger = get_logger(__name__)
 
 
+#TODO: subclass DerivedVaspInputSet from pymatgen and maybe replace some of the classes with the pymatgen ones after
+# the release of next pymatgen.
+#
 class StructureOptimizationVaspInputSet(DictVaspInputSet):
 
     def __init__(self, config_dict_override=None, reciprocal_density=50, force_gamma=True, **kwargs):
@@ -50,39 +54,16 @@ class StructureOptimizationVaspInputSet(DictVaspInputSet):
         super(StructureOptimizationVaspInputSet, self).__init__(**d)
 
     def as_dict(self):
-        config_dict = {
-            "INCAR": self.incar_settings,
-            "KPOINTS": self.kpoints_settings,
-            "POTCAR": self.potcar_settings
-        }
-        return {
-            "config_dict_override": self.config_dict_override,
-            "reciprocal_density": self.reciprocal_density,
-            "force_gamma": self.force_gamma,
-            "name": self.name,
-            "config_dict": config_dict,
-            "hubbard_off": self.hubbard_off,
-            "constrain_total_magmom": self.set_nupdown,
-            "sort_structure": self.sort_structure,
-            "potcar_functional": self.potcar_functional,
-            "ediff_per_atom": self.ediff_per_atom,
-            "reduce_structure": self.reduce_structure,
-            "@class": self.__class__.__name__,
-            "@module": self.__class__.__module__
-        }
+        d = MSONable.as_dict(self)
+        if hasattr(self, "kwargs"):
+            d.update(**self.kwargs)
+        return d
 
     @classmethod
     def from_dict(cls, d):
-        return cls(config_dict_override=d.get("config_dict_override", None),
-                   reciprocal_density=d.get("reciprocal_density", 50),
-                   force_gamma=d.get("force_gamma", True),
-                   name=d["name"], config_dict=d["config_dict"],
-                   hubbard_off=d.get("hubbard_off", False),
-                   constrain_total_magmom=d["constrain_total_magmom"],
-                   sort_structure=d.get("sort_structure", True),
-                   potcar_functional=d.get("potcar_functional", None),
-                   ediff_per_atom=d.get("ediff_per_atom", True),
-                   reduce_structure=d.get("reduce_structure", None))
+        decoded = {k: MontyDecoder().process_decoded(v) for k, v in d.items()
+                   if not k.startswith("@")}
+        return cls(**decoded)
 
 
 class StaticVaspInputSet(DictVaspInputSet):
@@ -181,39 +162,16 @@ class StaticVaspInputSet(DictVaspInputSet):
             vis.write_input(structure, output_dir)
 
     def as_dict(self):
-        config_dict = {
-            "INCAR": self.incar_settings,
-            "KPOINTS": self.kpoints_settings,
-            "POTCAR": self.potcar_settings
-        }
-        return {
-            "config_dict_override": self.config_dict_override,
-            "reciprocal_density": self.reciprocal_density,
-            "force_gamma": self.force_gamma,
-            "name": self.name,
-            "config_dict": config_dict,
-            "hubbard_off": self.hubbard_off,
-            "constrain_total_magmom": self.set_nupdown,
-            "sort_structure": self.sort_structure,
-            "potcar_functional": self.potcar_functional,
-            "ediff_per_atom": self.ediff_per_atom,
-            "reduce_structure": self.reduce_structure,
-            "@class": self.__class__.__name__,
-            "@module": self.__class__.__module__
-        }
+        d = MSONable.as_dict(self)
+        if hasattr(self, "kwargs"):
+            d.update(**self.kwargs)
+        return d
 
     @classmethod
     def from_dict(cls, d):
-        return cls(config_dict_override=d.get("config_dict_override", None),
-                   reciprocal_density=d.get("reciprocal_density", 100),
-                   force_gamma=d.get("force_gamma", True),
-                   name=d["name"], config_dict=d["config_dict"],
-                   hubbard_off=d.get("hubbard_off", False),
-                   constrain_total_magmom=d["constrain_total_magmom"],
-                   sort_structure=d.get("sort_structure", True),
-                   potcar_functional=d.get("potcar_functional", None),
-                   ediff_per_atom=d.get("ediff_per_atom", True),
-                   reduce_structure=d.get("reduce_structure", None))
+        decoded = {k: MontyDecoder().process_decoded(v) for k, v in d.items()
+                   if not k.startswith("@")}
+        return cls(**decoded)
 
 
 class NonSCFVaspInputSet(DictVaspInputSet):
@@ -369,44 +327,16 @@ class NonSCFVaspInputSet(DictVaspInputSet):
             nscfvis.write_input(structure, output_dir)
 
     def as_dict(self):
-        config_dict = {
-            "INCAR": self.incar_settings,
-            "KPOINTS": self.kpoints_settings,
-            "POTCAR": self.potcar_settings
-        }
-        return {
-            "config_dict_override": self.config_dict_override,
-            "mode": self.mode,
-            "reciprocal_density": self.reciprocal_density,
-            "symprec": self.sym_prec,
-            "force_gamma": self.force_gamma,
-            "name": self.name,
-            "config_dict": config_dict,
-            "hubbard_off": self.hubbard_off,
-            "constrain_total_magmom": self.set_nupdown,
-            "sort_structure": self.sort_structure,
-            "potcar_functional": self.potcar_functional,
-            "ediff_per_atom": self.ediff_per_atom,
-            "reduce_structure": self.reduce_structure,
-            "@class": self.__class__.__name__,
-            "@module": self.__class__.__module__
-        }
+        d = MSONable.as_dict(self)
+        if hasattr(self, "kwargs"):
+            d.update(**self.kwargs)
+        return d
 
     @classmethod
     def from_dict(cls, d):
-        return cls(
-            config_dict_override=d.get("config_dict_override", None),
-            mode=d.get("mode", "uniform"),
-            reciprocal_density=d.get("reciprocal_density", 100),
-            sym_prec=d.get("sym_prec", 0.1),
-            force_gamma=d.get("force_gamma", True),
-            name=d["name"], config_dict=d["config_dict"],
-            hubbard_off=d.get("hubbard_off", False),
-            constrain_total_magmom=d["constrain_total_magmom"],
-            sort_structure=d.get("sort_structure", True),
-            potcar_functional=d.get("potcar_functional", None),
-            ediff_per_atom=d.get("ediff_per_atom", True),
-            reduce_structure=d.get("reduce_structure", None))
+        decoded = {k: MontyDecoder().process_decoded(v) for k, v in d.items()
+                   if not k.startswith("@")}
+        return cls(**decoded)
 
 
 def get_structure_from_prev_run(prev_dir, preserve_magmom=True):
