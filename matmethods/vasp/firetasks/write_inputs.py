@@ -214,8 +214,7 @@ class WriteVaspDFPTDielectricFromPrev(FireTaskBase):
         (none)
 
     Optional params:
-        (documentation for all optional params can be found in
-        NonSCFVaspInputSet.write_input_from_prevrun)
+        (none)
     """
 
     def run_task(self, fw_spec):
