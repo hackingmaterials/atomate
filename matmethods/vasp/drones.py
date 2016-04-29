@@ -243,6 +243,9 @@ class VaspDrone(AbstractDrone):
                      "composition_unit_cell": "unit_cell_formula"}.items():
             d[k] = d.pop(v)
 
+        for k in ["eigenvalues", "projected_eigenvalues"]:  # large storage space breaks some docs
+            del d[k]
+
         comp = Composition(d["composition_unit_cell"])
         d["formula_anonymous"] = comp.anonymized_formula
         d["formula_reduced_abc"] = comp.reduced_composition.alphabetical_formula
