@@ -12,19 +12,20 @@ from matmethods.vasp.firetasks.glue_tasks import PassCalcLocs, CopyVaspOutputs
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
 from matmethods.vasp.firetasks.run_calc import RunVaspDirect
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, \
-    WriteVaspStaticFromPrev, WriteVaspNSCFFromPrev
+    WriteVaspStaticFromPrev, WriteVaspNSCFFromPrev, WriteVaspDFPTDielectricFromPrev
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 from matmethods.vasp.vasp_powerups import decorate_write_name
 from matmethods.vasp.workflows.base.single_vasp import get_wf_single
 
 from pymatgen import Lattice, IStructure
 
+
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 
 def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
-                         db_file=None):
+                         db_file=None, dielectric=False):
     """
     Return vasp workflow consisting of 4 fireworks:
 
@@ -58,6 +59,7 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
         vasp_input_set (DictVaspInputSet): vasp input set.
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
+        dielectric (bool): Whether to add a dielectric task.
 
     Returns:
         Workflow
@@ -106,6 +108,20 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
                            bandstructure_mode="line"))
     fw4 = Firework(t4, parents=fw2, name="{}-{}".format(structure.composition.reduced_formula,
                                                         task_label))
+
+    wf = [fw1, fw2, fw3, fw4]
+
+    if dielectric:
+        task_label = "static dielectric"
+        t5 = [CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True),
+              WriteVaspDFPTDielectricFromPrev(),
+              RunVaspDirect(vasp_cmd=vasp_cmd),
+              PassCalcLocs(name=task_label),
+              VaspToDbTask(db_file=db_file, additional_fields={"task_label": task_label})]
+        fw5 = Firework(t5, parents=fw2,
+                       name="{}-{}".format(structure.composition.reduced_formula,
+                                           task_label))
+        wf.append(fw5)
 
     return Workflow([fw1, fw2, fw3, fw4], name=structure.composition.reduced_formula)
 

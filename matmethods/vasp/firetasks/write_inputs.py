@@ -9,10 +9,11 @@ vasp calculations
 
 from fireworks import FireTaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
-from pymatgen.io.vasp import Incar
+from pymatgen.io.vasp import Incar, Poscar
 
 from matmethods.utils.utils import env_chk
 from matmethods.vasp.input_sets import StaticVaspInputSet, NonSCFVaspInputSet
+from pymatgen.io.vasp.sets import MPStaticDielectricDFPTVaspInputSet
 
 __author__ = 'Anubhav Jain, Shyue Ping Ong'
 __email__ = 'ajain@lbl.gov'
@@ -201,3 +202,24 @@ class WriteVaspNSCFFromPrev(FireTaskBase):
             nbands_factor=self.get("nbands_factor", 1.2),
             preserve_magmom=(self.get("preserve_magmom"), True),
             preserve_old_incar=self.get("preserve_old_incar", False))
+
+
+@explicit_serialize
+class WriteVaspDFPTDielectricFromPrev(FireTaskBase):
+    """
+    Writes input files for a static run. Assumes that output files from an
+    scf job can be accessed.
+
+    Required params:
+        (none)
+
+    Optional params:
+        (documentation for all optional params can be found in
+        NonSCFVaspInputSet.write_input_from_prevrun)
+    """
+
+    def run_task(self, fw_spec):
+        vis = MPStaticDielectricDFPTVaspInputSet(ionic=True)
+        p = Poscar.from_file("POSCAR")
+        vis.get_incar(p.structure).write_file("INCAR")
+        vis.get_kpoints(p.structure).write_file("KPOINTS")
