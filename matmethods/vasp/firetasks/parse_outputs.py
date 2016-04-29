@@ -90,7 +90,7 @@ class VaspToDbTask(FireTaskBase):
                     db.build(indices=self.get("db_indices"))
             # insert dos/bandstructure to GridFS and update the task document
             if self.get("parse_dos") and "calcs_reversed" in task_doc:
-                for idx in len(task_doc["calcs_reversed"]):
+                for idx, x in enumerate(task_doc["calcs_reversed"]):
                     if "dos" in task_doc["calcs_reversed"][idx]:
                         if idx == 0:  # only store most recent DOS
                             dos = json.dumps(task_doc["calcs_reversed"][idx]["dos"], cls=MontyEncoder)
@@ -99,7 +99,7 @@ class VaspToDbTask(FireTaskBase):
                             task_doc["calcs_reversed"][idx]["dos_fs_id"] = gfs_id
                         del task_doc["calcs_reversed"][idx]["dos"]
             if self.get("bandstructure_mode") and "calcs_reversed" in task_doc:
-                for idx in len(task_doc["calcs_reversed"]):
+                for idx, x in enumerate(task_doc["calcs_reversed"]):
                     if "bandstructure" in task_doc["calcs_reversed"][idx]:
                         if idx == 0:  # only store most recent band structure
                             bs = json.dumps(task_doc["calcs_reversed"][idx]["bandstructure"], cls=MontyEncoder)
