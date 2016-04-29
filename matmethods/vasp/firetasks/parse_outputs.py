@@ -89,14 +89,14 @@ class VaspToDbTask(FireTaskBase):
                 if self.get("db_indices"):
                     db.build(indices=self.get("db_indices"))
             # insert dos/bandstructure to GridFS and update the task document
-            if self.get("parse_dos", False) and "calcs_reversed" in task_doc:
+            if self.get("parse_dos") and "calcs_reversed" in task_doc:
                 if "dos" in task_doc["calcs_reversed"][0]:
                     dos = json.dumps(task_doc["calcs_reversed"][0]["dos"], cls=MontyEncoder)
                     gfs_id, compression_type = db.insert_gridfs(dos, "dos_fs")
                     task_doc["calcs_reversed"][0]["dos_compression"] = compression_type
                     task_doc["calcs_reversed"][0]["dos_fs_id"] = gfs_id
                     del task_doc["calcs_reversed"][0]["dos"]
-            if self.get("bandstructure_mode", False) and "calcs_reversed" in task_doc:
+            if self.get("bandstructure_mode") and "calcs_reversed" in task_doc:
                 if "bandstructure" in task_doc["calcs_reversed"][0]:
                     bs = json.dumps(task_doc["calcs_reversed"][0]["bandstructure"], cls=MontyEncoder)
                     gfs_id, compression_type = db.insert_gridfs(bs, "bandstructure_fs")
