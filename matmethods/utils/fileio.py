@@ -6,8 +6,6 @@ import glob
 import os
 import shutil
 
-import paramiko
-
 """
 This module defines the wrapper class for remote file io using paramiko.
 """
@@ -41,6 +39,7 @@ class MMos(object):
         """
         Setup ssh connection using paramiko and return the channel
         """
+        import paramiko
         privatekeyfile = os.path.expanduser(pkey_file)
         if not os.path.exists(privatekeyfile):
             possible_keys = ["~/.ssh/id_rsa", "~/.ssh/id_dsa", "/etc/ssh/id_rsa", "/etc/ssh/id_dsa"]
