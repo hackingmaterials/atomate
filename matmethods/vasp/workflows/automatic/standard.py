@@ -20,7 +20,8 @@ def wf_band_structure(structure):
                               vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<")
     wf = use_custodian(wf)
     wf = use_custodian(wf, fw_name_constraint="structure optimization",
-                       custodian_params={"job_type": "double_relaxation_run"})
+                       custodian_params={"job_type": "double_relaxation_run",
+                                         "max_force_threshold": 0.25})
     wf = decorate_write_name(wf)
     wf = add_small_gap_multiply(wf, 0.5, 5, "static")
     wf = add_small_gap_multiply(wf, 0.5, 5, "nscf")
@@ -54,7 +55,8 @@ def wf_structure_optimization(structure):
                        vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
                        task_label="structure optimization")
     wf = use_custodian(wf, fw_name_constraint="structure optimization",
-                       custodian_params={"job_type": "double_relaxation_run"})
+                       custodian_params={"job_type": "double_relaxation_run",
+                                         "max_force_threshold": 0.25})
     wf = decorate_write_name(wf)
     wf = use_scratch_dir(wf, ">>scratch_dir<<")
 

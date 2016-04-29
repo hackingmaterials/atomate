@@ -91,6 +91,8 @@ class RunVaspCustodian(FireTaskBase):
             "double_relaxation_run" (two consecutive jobs), and "full_opt_run"
         handler_lvl: (int) - level of handlers to use,0-4. 0 means no handlers,
             2 is the default, 4 is highest level.
+        max_force_threshold: (float) - if >0, adds MaxForceErrorHandler. Not recommended for
+            nscf runs.
         scratch_dir: (str) - if specified, uses this directory as the root
             scratch dir. Supports env_chk.
         gzip_output: (bool) - gzip output (default=T)
@@ -101,8 +103,8 @@ class RunVaspCustodian(FireTaskBase):
             Supports env_chk.
     """
     required_params = ["vasp_cmd"]
-    optional_params = ["job_type", "handler_lvl", "scratch_dir", "gzip_output",
-                       "max_errors", "auto_npar", "gamma_vasp_cmd"]
+    optional_params = ["job_type", "handler_lvl", "max_force_threshold", "scratch_dir",
+                       "gzip_output", "max_errors", "auto_npar", "gamma_vasp_cmd"]
 
     def run_task(self, fw_spec):
         vasp_cmd = env_chk(self["vasp_cmd"], fw_spec)
@@ -139,13 +141,14 @@ class RunVaspCustodian(FireTaskBase):
                              UnconvergedErrorHandler(),
                              NonConvergingErrorHandler(), PotimErrorHandler(),
                              PositiveEnergyErrorHandler()])
-        if handler_lvl > 1:
-            handlers.append(MaxForceErrorHandler())
         if handler_lvl > 2:
             # Default aliasing errors can be safely ignored according to VASP
             handlers.append(AliasingErrorHandler)
         if handler_lvl > 3:
             handlers.append(FrozenJobErrorHandler())
+
+        if self.get("max_force_threshold"):
+            handlers.append(MaxForceErrorHandler(max_force_threshold=self["max_force_threshold"]))
 
         validators = [VasprunXMLValidator()]
 

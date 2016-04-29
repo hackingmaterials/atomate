@@ -13,14 +13,13 @@ from matmethods.vasp.firetasks.parse_outputs import ToDbTask
 from matmethods.vasp.firetasks.run_calc import RunVaspDirect
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet
 from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
-from matmethods.vasp.vasp_powerups import use_custodian
 from matmethods.vasp.drones import VaspDrone
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 
 def get_wf_single(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=None,
-                  task_label="single VASP", custodian_powerup=False):
+                  task_label="single VASP"):
     """
     Return vasp workflow consisting of a single firework made of 3 firetasks:
         write inputset for structural relaxation,
@@ -33,7 +32,6 @@ def get_wf_single(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=None,
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
         task_label (str): workflow name.
-        custodian_powerup (bool): If set the vasp run will be wrapped in custodian.
 
     Returns:
         Workflow
@@ -47,8 +45,5 @@ def get_wf_single(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=None,
     my_fw = Firework([write_task, run_task, parse_task],
                      name="{}-{}".format(structure.composition.reduced_formula, task_label))
     my_wf = Workflow.from_Firework(my_fw)
-
-    if custodian_powerup:
-        my_wf = use_custodian(my_wf)
 
     return my_wf
