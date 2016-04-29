@@ -90,19 +90,23 @@ class VaspToDbTask(FireTaskBase):
                     db.build(indices=self.get("db_indices"))
             # insert dos/bandstructure to GridFS and update the task document
             if self.get("parse_dos") and "calcs_reversed" in task_doc:
-                if "dos" in task_doc["calcs_reversed"][0]:
-                    dos = json.dumps(task_doc["calcs_reversed"][0]["dos"], cls=MontyEncoder)
-                    gfs_id, compression_type = db.insert_gridfs(dos, "dos_fs")
-                    task_doc["calcs_reversed"][0]["dos_compression"] = compression_type
-                    task_doc["calcs_reversed"][0]["dos_fs_id"] = gfs_id
-                    del task_doc["calcs_reversed"][0]["dos"]
+                for idx in len(task_doc["calcs_reversed"]):
+                    if "dos" in task_doc["calcs_reversed"][idx]:
+                        if idx == 0:  # only store most recent DOS
+                            dos = json.dumps(task_doc["calcs_reversed"][idx]["dos"], cls=MontyEncoder)
+                            gfs_id, compression_type = db.insert_gridfs(dos, "dos_fs")
+                            task_doc["calcs_reversed"][idx]["dos_compression"] = compression_type
+                            task_doc["calcs_reversed"][idx]["dos_fs_id"] = gfs_id
+                        del task_doc["calcs_reversed"][idx]["dos"]
             if self.get("bandstructure_mode") and "calcs_reversed" in task_doc:
-                if "bandstructure" in task_doc["calcs_reversed"][0]:
-                    bs = json.dumps(task_doc["calcs_reversed"][0]["bandstructure"], cls=MontyEncoder)
-                    gfs_id, compression_type = db.insert_gridfs(bs, "bandstructure_fs")
-                    task_doc["calcs_reversed"][0]["bandstructure_compression"] = compression_type
-                    task_doc["calcs_reversed"][0]["bandstructure_fs_id"] = gfs_id
-                    del task_doc["calcs_reversed"][0]["bandstructure"]
+                for idx in len(task_doc["calcs_reversed"]):
+                    if "bandstructure" in task_doc["calcs_reversed"][idx]:
+                        if idx == 0:  # only store most recent band structure
+                            bs = json.dumps(task_doc["calcs_reversed"][idx]["bandstructure"], cls=MontyEncoder)
+                            gfs_id, compression_type = db.insert_gridfs(bs, "bandstructure_fs")
+                            task_doc["calcs_reversed"][idx]["bandstructure_compression"] = compression_type
+                            task_doc["calcs_reversed"][idx]["bandstructure_fs_id"] = gfs_id
+                        del task_doc["calcs_reversed"][idx]["bandstructure"]
             # insert the task document
             t_id = db.insert(task_doc)
             logger.info("Finished parsing with task_id: {}".format(t_id))
