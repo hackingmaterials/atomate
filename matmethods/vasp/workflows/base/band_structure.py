@@ -20,6 +20,7 @@ from matmethods.vasp.workflows.base.single_vasp import get_wf_single
 from matmethods.vasp.fws import OptimizeFW, StaticFW, NonSCFUniformFW, NonSCFLineFW
 
 from pymatgen import Lattice, IStructure
+from monty.json import MontyDecoder
 
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
@@ -66,8 +67,6 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
     Returns:
         Workflow
      """
-    vasp_input_set = vasp_input_set if vasp_input_set else StructureOptimizationVaspInputSet()
-
     common_kwargs = {"vasp_cmd": vasp_cmd, "db_file": db_file}
 
     fw1 = OptimizeFW(structure=structure, vasp_input_set=vasp_input_set, **common_kwargs)
@@ -108,12 +107,54 @@ def add_to_lpad(workflow, decorate=False):
     lp.add_wf(workflow)
 
 
+
+def get_wf_from_spec_dict(structure, wfspec):
+    fws = []
+    for d in wfspec["fireworks"]:
+        modname, classname = d["fw"].rsplit(".", 1)
+        mod = __import__(modname, globals(), locals(), [classname], 0)
+        if hasattr(mod, classname):
+            cls_ = getattr(mod, classname)
+            kwargs = {k: MontyDecoder().process_decoded(v) for k, v in d.get("params", {}).items()}
+            if "parents" in kwargs:
+                kwargs["parents"] = fws[kwargs["parents"]]
+            fws.append(cls_(structure, **kwargs))
+    return Workflow(fws, name=structure.composition.reduced_formula)
+
+
 if __name__ == "__main__":
     coords = [[0, 0, 0], [0.75, 0.5, 0.75]]
     lattice = Lattice([[3.8401979337, 0.00, 0.00],
                        [1.9200989668, 3.3257101909, 0.00],
                        [0.00, -2.2171384943, 3.1355090603]])
     structure = IStructure(lattice, ["Si"] * 2, coords)
-    wf = get_wf_bandstructure(structure)
+    #wf = get_wf_bandstructure(structure)
     #wf = get_wf_single(structure)
     #add_to_lpad(wf, decorate=True)
+
+    spec = {
+        "fireworks": [
+            {
+                "fw": "matmethods.vasp.fws.OptimizeFW"
+            },
+            {
+                "fw": "matmethods.vasp.fws.StaticFW",
+                "params": {
+                    "copy_vasp_outputs": False,
+                    "parents": 0
+                }
+            },
+            {
+                "fw"  : "matmethods.vasp.fws.LepsFW",
+                "params": {
+                    "copy_vasp_outputs": False,
+                    "parents"          : 0
+                }
+            },
+        ]
+    }
+
+    wf = get_wf_from_spec_dict(structure, spec)
+    print(wf)
+    import yaml
+    print(yaml.safe_dump(spec, default_flow_style=False))

@@ -14,6 +14,8 @@ class OptimizeFW(Firework):
 
     def __init__(self, structure, name="structure optimization", vasp_input_set=None, vasp_cmd="vasp",
                  db_file=None, parents=None, **kwargs):
+        vasp_input_set = vasp_input_set if vasp_input_set else StructureOptimizationVaspInputSet()
+
         t1 = []
         t1.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
         t1.append(RunVaspDirect(vasp_cmd=vasp_cmd))
@@ -26,7 +28,7 @@ class OptimizeFW(Firework):
 
 class StaticFW(Firework):
 
-    def __init__(self, name="static", vasp_cmd="vasp", copy_vasp_outputs=True,
+    def __init__(self, structure, name="static", vasp_cmd="vasp", copy_vasp_outputs=True,
                  db_file=None, parents=None, **kwargs):
 
         t2 = []
@@ -36,12 +38,13 @@ class StaticFW(Firework):
         t2.append(RunVaspDirect(vasp_cmd=vasp_cmd))
         t2.append(PassCalcLocs(name=name))
         t2.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": name}))
-        super(StaticFW, self).__init__(t2, parents=parents, name=name, **kwargs)
+        super(StaticFW, self).__init__(t2, parents=parents, name="{}-{}".format(structure.composition.reduced_formula,
+                                           name), **kwargs)
 
 
 class NonSCFUniformFW(Firework):
 
-    def __init__(self, name="nscf uniform", vasp_cmd="vasp", copy_vasp_outputs=True,
+    def __init__(self, structure, name="nscf uniform", vasp_cmd="vasp", copy_vasp_outputs=True,
                  db_file=None, parents=None, **kwargs):
         t3 = []
         if copy_vasp_outputs:
@@ -52,12 +55,13 @@ class NonSCFUniformFW(Firework):
         t3.append(VaspToDbTask(db_file=db_file,
                                additional_fields={"task_label": name},
                                parse_dos=True, bandstructure_mode="uniform"))
-        super(NonSCFUniformFW, self).__init__(t3, parents=parents, name=name, **kwargs)
+        super(NonSCFUniformFW, self).__init__(t3, parents=parents, name="{}-{}".format(structure.composition.reduced_formula,
+                                           name), **kwargs)
 
 
 class NonSCFLineFW(Firework):
 
-    def __init__(self, name="nscf line", vasp_cmd="vasp", copy_vasp_outputs=True,
+    def __init__(self, structure, name="nscf line", vasp_cmd="vasp", copy_vasp_outputs=True,
                  db_file=None, parents=None, **kwargs):
         t4 = []
         if copy_vasp_outputs:
@@ -68,4 +72,18 @@ class NonSCFLineFW(Firework):
         t4.append(VaspToDbTask(db_file=db_file,
                                additional_fields={"task_label": name},
                                bandstructure_mode="line"))
-        super(NonSCFLineFW, self).__init__(t4, parents=parents, name=name, **kwargs)
+        super(NonSCFLineFW, self).__init__(t4, parents=parents, name="{}-{}".format(structure.composition.reduced_formula,
+                                           name), **kwargs)
+
+class LepsFW(Firework):
+
+    def __init__(self, structure, name="static dielectric", vasp_cmd="vasp", copy_vasp_outputs=True,
+                 db_file=None, parents=None, **kwargs):
+        t5 = [CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True),
+              WriteVaspDFPTDielectricFromPrev(),
+              RunVaspDirect(vasp_cmd=vasp_cmd),
+              PassCalcLocs(name=name),
+              VaspToDbTask(db_file=db_file,
+                           additional_fields={"task_label": name})]
+        super(LepsFW, self).__init__(t5, parents=parents, name="{}-{}".format(structure.composition.reduced_formula,
+                                           name), **kwargs)
