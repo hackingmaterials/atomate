@@ -6,7 +6,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 This module defines functions that generate workflows for bandstructure calculations.
 """
 
-from fireworks import Workflow, LaunchPad
+from fireworks import Workflow
 
 
 from matmethods.vasp.fws import OptimizeFW, StaticFW, NonSCFUniformFW, \
@@ -106,10 +106,16 @@ if __name__ == "__main__":
                     "parents"          : 0
                 }
             },
-        ]
+        ],
+        "common_params": {
+            "db_file": "db.json"
+        }
     }
-
+    from matmethods import get_wf_from_spec_dict
     wf = get_wf_from_spec_dict(structure, spec)
-    print(wf)
+    print(wf.links)
+    for f in wf.fws:
+        print(f)
+        print(f.spec)
     import yaml
     print(yaml.safe_dump(spec, default_flow_style=False))

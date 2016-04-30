@@ -25,6 +25,8 @@ default_yaml = """fireworks:
 - fw: matmethods.vasp.fws.NonSCFLineFW
   params:
     parents: 1
+common_params:
+  db_file: None
 """
 
 def add_wf(args):
