@@ -46,7 +46,6 @@ class StaticFW(Firework):
             t.append(WriteVaspFromIOSet(structure=structure,
                                         vasp_input_set=vasp_input_set))
 
-        t.append(WriteVaspStaticFromPrev())
         t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
