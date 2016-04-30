@@ -10,7 +10,7 @@ import argparse
 from monty.serialization import loadfn
 import yaml
 
-from matmethods import get_wf_from_spec_dict
+from matmethods import get_wf_from_spec_dict, add_to_lpad
 from pymatgen import Structure, MPRester
 
 
@@ -39,7 +39,8 @@ def add_wf(args):
             s = Structure.from_file(f)
         else:
             s = MPRester().get_structure_by_material_id(f)
-        print(get_wf_from_spec_dict(s, d))
+        wf = get_wf_from_spec_dict(s, d)
+        add_to_lpad(wf, decorate=False)
 
 
 if __name__ == "__main__":
