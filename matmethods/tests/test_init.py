@@ -21,7 +21,9 @@ class FuncTest(unittest.TestCase):
         self.assertEqual(len(wf.fws), 4)
         for f in wf.fws:
             self.assertEqual(f.spec['_tasks'][-1]["db_file"], "db.json")
-        self.assertEqual(wf.links,{-4: [], -1: [-2], -2: [-3, -4], -3: []})
+
+        self.assertEqual(sorted([len(v) for v in wf.links.values()]),
+                         [0, 0, 1, 2])
 
 if __name__ == '__main__':
     unittest.main()
