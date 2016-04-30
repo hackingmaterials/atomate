@@ -11,7 +11,7 @@ from monty.serialization import loadfn
 import yaml
 
 from matmethods import get_wf_from_spec_dict
-from pymatgen import Structure
+from pymatgen import Structure, MPRester
 
 
 default_yaml = """fireworks:
@@ -35,7 +35,10 @@ def add_wf(args):
     else:
         d = yaml.load(default_yaml)
     for f in args.files:
-        s = Structure.from_file(f)
+        if not args.mp:
+            s = Structure.from_file(f)
+        else:
+            s = MPRester().get_structure_by_material_id(f)
         print(get_wf_from_spec_dict(s, d))
 
 
@@ -49,6 +52,9 @@ if __name__ == "__main__":
     padd = subparsers.add_parser("add", help="Add workflows.")
     padd.add_argument("-s", "--spec",
                       dest="spec_file", type=str, help="YAML/JSON spec file. If none is specified, a default MP-style workflow of relax + static + uniform + line is used.")
+    padd.add_argument("-m", "--mp", dest="mp", action='store_true',
+                      help="If this option is set, the files argurment is interpreted as a list of Materials Project IDS. Note that your MAPI_KEY environment variable must be set to get structures from the Materials Project.")
+
     padd.add_argument("files", metavar="files", type=str, nargs="+",
                       help="Structures to add workflows for.")
     padd.set_defaults(func=add_wf)

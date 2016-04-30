@@ -15,7 +15,6 @@ class FuncTest(unittest.TestCase):
                    [0.00, -2.2171384943, 3.1355090603]]
         self.structure = Structure(lattice, ["Si"] * 2, coords)
 
-
     def test_get_wf_from_spec_dict(self):
         d = loadfn(os.path.join(os.path.abspath(os.path.dirname(__file__)), "spec.yaml"))
         wf = get_wf_from_spec_dict(self.structure, d)
