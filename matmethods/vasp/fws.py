@@ -36,9 +36,10 @@ class StaticFW(Firework):
                  db_file=None, parents=None, **kwargs):
 
         t = []
-        if copy_vasp_outputs:
-            t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
+
         if parents:
+            if copy_vasp_outputs:
+                t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
             t.append(WriteVaspStaticFromPrev())
         else:
             vasp_input_set = MPStaticSet()
