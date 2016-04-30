@@ -8,7 +8,6 @@ This module defines functions that generate workflows for bandstructure calculat
 
 from fireworks import Workflow, LaunchPad
 
-from matmethods.vasp.vasp_powerups import decorate_write_name
 
 from matmethods.vasp.fws import OptimizeFW, StaticFW, NonSCFUniformFW, \
     NonSCFLineFW, LepsFW
@@ -75,22 +74,6 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
         wf.append(LepsFW(structure=structure, copy_vasp_outputs=True, parents=fw2, **common_kwargs))
 
     return Workflow([fw1, fw2, fw3, fw4], name=structure.composition.reduced_formula)
-
-
-def add_to_lpad(workflow, decorate=False):
-    """
-    Add the workflow to the launchpad
-
-    Args:
-        workflow (Workflow): workflow for db insertion
-        decorate (bool): If set an empty file with the name
-            "FW--<fw.name>" will be written to the launch directory
-    """
-    lp = LaunchPad.auto_load()
-    workflow = decorate_write_name(workflow) if decorate else workflow
-    lp.add_wf(workflow)
-
-
 
 
 
