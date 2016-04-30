@@ -8,10 +8,11 @@ import unittest
 from fireworks.utilities.fw_serializers import load_object
 
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspFromPMGObjects, ModifyIncar
-from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet, StaticVaspInputSet, write_with_preserved_incar
+from matmethods.vasp.input_sets import StaticVaspInputSet, write_with_preserved_incar
 
 from pymatgen import IStructure, Lattice, Structure
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
+from pymatgen.io.vasp.sets import MPVaspInputSet
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
@@ -81,7 +82,7 @@ class TestWriteVasp(unittest.TestCase):
 
     def test_ioset_explicit(self):
         ft = WriteVaspFromIOSet(dict(structure=self.struct_si,
-                                     vasp_input_set=StructureOptimizationVaspInputSet()))
+                                     vasp_input_set=MPVaspInputSet(force_gamma=True)))
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
         self._verify_files()
@@ -106,7 +107,7 @@ class TestWriteVasp(unittest.TestCase):
         self._verify_files(skip_kpoints=True)
 
     def test_pmgobjects(self):
-        mpvis = StructureOptimizationVaspInputSet()
+        mpvis = MPVaspInputSet(force_gamma=True)
         ft = WriteVaspFromPMGObjects({"incar": mpvis.get_incar(self.struct_si),
                                       "poscar": mpvis.get_poscar(
                                           self.struct_si),

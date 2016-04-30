@@ -1,3 +1,5 @@
+from pymatgen.io.vasp.sets import MPVaspInputSet
+
 from fireworks import Firework
 
 from matmethods.vasp.firetasks.glue_tasks import PassCalcLocs, CopyVaspOutputs
@@ -5,16 +7,13 @@ from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
 from matmethods.vasp.firetasks.run_calc import RunVaspDirect
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, \
     WriteVaspStaticFromPrev, WriteVaspNSCFFromPrev, WriteVaspDFPTDielectricFromPrev
-from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
-from matmethods.vasp.vasp_powerups import decorate_write_name
-from matmethods.vasp.workflows.base.single_vasp import get_wf_single
 
 
 class OptimizeFW(Firework):
 
     def __init__(self, structure, name="structure optimization", vasp_input_set=None, vasp_cmd="vasp",
                  db_file=None, parents=None, **kwargs):
-        vasp_input_set = vasp_input_set if vasp_input_set else StructureOptimizationVaspInputSet()
+        vasp_input_set = vasp_input_set if vasp_input_set else MPVaspInputSet(force_gamma=True)
 
         t1 = []
         t1.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))

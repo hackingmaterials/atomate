@@ -6,13 +6,14 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 This module defines functions that generate workflows for Spin-Orbit calculations.
 """
 
+from pymatgen.io.vasp.sets import MPVaspInputSet
+
 from fireworks import Firework, Workflow
 
 from matmethods.vasp.firetasks.glue_tasks import PassCalcLocs, CopyVaspOutputs
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
 from matmethods.vasp.firetasks.run_calc import RunVaspDirect
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, ModifyIncar
-from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 from matmethods.utils.utils import soc_warning
 
 __author__ = 'Kiran Mathew'
@@ -62,7 +63,7 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
 
     task_label = "non-magnetic structure optimization"
     t1 = []
-    vasp_input_set = vasp_input_set if vasp_input_set else StructureOptimizationVaspInputSet()
+    vasp_input_set = vasp_input_set if vasp_input_set else MPVaspInputSet(force_gamma=True)
     t1.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
     t1.append(ModifyIncar(incar_dictmod = {"_unset": {"MAGMOM": ""}}))
     t1.append(RunVaspDirect(vasp_cmd=vasp_cmd))

@@ -14,12 +14,15 @@ from pymongo import MongoClient, DESCENDING
 
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
-from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
+
 from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name, make_fake_workflow, \
     add_trackers
 from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure
 from matmethods.vasp.workflows.base.single_vasp import get_wf_single
+
 from pymatgen import IStructure, Lattice
+from pymatgen.io.vasp.sets import MPVaspInputSet
+
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
@@ -175,7 +178,7 @@ class TestVaspWorkflows(unittest.TestCase):
 
     def test_single_Vasp(self):
         # add the workflow
-        vis = StructureOptimizationVaspInputSet()
+        vis = MPVaspInputSet(force_gamma=True)
         structure = self.struct_si
         my_wf = get_wf_single(structure, vis, vasp_cmd=VASP_CMD,
                               task_label="structure optimization")
@@ -196,7 +199,7 @@ class TestVaspWorkflows(unittest.TestCase):
 
     def test_single_Vasp_dbinsertion(self):
         # add the workflow
-        vis = StructureOptimizationVaspInputSet()
+        vis = MPVaspInputSet(force_gamma=True)
         structure = self.struct_si
         # instructs to use db_file set by FWorker, see env_chk
         my_wf = get_wf_single(structure, vis, vasp_cmd=VASP_CMD,
@@ -218,7 +221,7 @@ class TestVaspWorkflows(unittest.TestCase):
 
     def test_bandstructure_Vasp(self):
         # add the workflow
-        vis = StructureOptimizationVaspInputSet()
+        vis = MPVaspInputSet(force_gamma=True)
         structure = self.struct_si
         # instructs to use db_file set by FWorker, see env_chk
         my_wf = get_wf_bandstructure(structure, vis, vasp_cmd=VASP_CMD,
@@ -260,7 +263,7 @@ class TestVaspWorkflows(unittest.TestCase):
 
     def test_trackers(self):
         # add the workflow
-        vis = StructureOptimizationVaspInputSet()
+        vis = MPVaspInputSet(force_gamma=True)
         structure = self.struct_si
         my_wf = get_wf_single(structure, vis, vasp_cmd=VASP_CMD,
                               task_label="structure optimization")

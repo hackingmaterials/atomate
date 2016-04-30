@@ -1,4 +1,6 @@
-from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet, StaticVaspInputSet
+from pymatgen.io.vasp.sets import MPVaspInputSet
+
+from matmethods.vasp.input_sets import StaticVaspInputSet
 from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name, \
     add_small_gap_multiply, use_scratch_dir
 from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure
@@ -16,7 +18,7 @@ def wf_band_structure(structure):
     :param structure:
     :return:
     """
-    wf = get_wf_bandstructure(structure, vasp_input_set=StructureOptimizationVaspInputSet(),
+    wf = get_wf_bandstructure(structure, vasp_input_set=MPVaspInputSet(force_gamma=True),
                               vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<")
     wf = use_custodian(wf)
     wf = use_custodian(wf, fw_name_constraint="structure optimization",
@@ -51,7 +53,7 @@ def wf_structure_optimization(structure):
     :param structure:
     :return:
     """
-    wf = get_wf_single(structure, vasp_input_set=StructureOptimizationVaspInputSet(),
+    wf = get_wf_single(structure, vasp_input_set=MPVaspInputSet(force_gamma=True),
                        vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
                        task_label="structure optimization")
     wf = use_custodian(wf, fw_name_constraint="structure optimization",
