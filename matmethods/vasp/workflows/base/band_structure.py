@@ -6,18 +6,12 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 This module defines functions that generate workflows for bandstructure calculations.
 """
 
-from fireworks import Firework, Workflow, LaunchPad
+from fireworks import Workflow, LaunchPad
 
-from matmethods.vasp.firetasks.glue_tasks import PassCalcLocs, CopyVaspOutputs
-from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
-from matmethods.vasp.firetasks.run_calc import RunVaspDirect
-from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, \
-    WriteVaspStaticFromPrev, WriteVaspNSCFFromPrev, WriteVaspDFPTDielectricFromPrev
-from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
 from matmethods.vasp.vasp_powerups import decorate_write_name
-from matmethods.vasp.workflows.base.single_vasp import get_wf_single
 
-from matmethods.vasp.fws import OptimizeFW, StaticFW, NonSCFUniformFW, NonSCFLineFW
+from matmethods.vasp.fws import OptimizeFW, StaticFW, NonSCFUniformFW, \
+    NonSCFLineFW, LepsFW
 
 from pymatgen import Lattice, IStructure
 from monty.json import MontyDecoder
@@ -70,25 +64,16 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
     common_kwargs = {"vasp_cmd": vasp_cmd, "db_file": db_file}
 
     fw1 = OptimizeFW(structure=structure, vasp_input_set=vasp_input_set, **common_kwargs)
-    fw2 = StaticFW(copy_vasp_outputs=True, parents=fw1, **common_kwargs)
-    fw3 = NonSCFUniformFW(copy_vasp_outputs=True, parents=fw2, **common_kwargs)
-    fw4 = NonSCFLineFW(copy_vasp_outputs=True, parents=fw2, **common_kwargs)
+    fw2 = StaticFW(structure=structure, copy_vasp_outputs=True, parents=fw1, **common_kwargs)
+    fw3 = NonSCFUniformFW(structure=structure, copy_vasp_outputs=True, parents=fw2, **common_kwargs)
+    fw4 = NonSCFLineFW(structure=structure, copy_vasp_outputs=True, parents=fw2, **common_kwargs)
 
     # line mode (run in parallel to uniform)
 
     wf = [fw1, fw2, fw3, fw4]
 
     if dielectric:
-        task_label = "static dielectric"
-        t5 = [CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True),
-              WriteVaspDFPTDielectricFromPrev(),
-              RunVaspDirect(vasp_cmd=vasp_cmd),
-              PassCalcLocs(name=task_label),
-              VaspToDbTask(db_file=db_file, additional_fields={"task_label": task_label})]
-        fw5 = Firework(t5, parents=fw2,
-                       name="{}-{}".format(structure.composition.reduced_formula,
-                                           task_label))
-        wf.append(fw5)
+        wf.append(LepsFW(structure=structure, copy_vasp_outputs=True, parents=fw2, **common_kwargs))
 
     return Workflow([fw1, fw2, fw3, fw4], name=structure.composition.reduced_formula)
 
