@@ -37,7 +37,7 @@ class StaticFW(Firework):
 
         t = []
         if copy_vasp_outputs:
-            t.append(CopyVaspOutputs(calc_loc=True))
+            t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
         if parents:
             t.append(WriteVaspStaticFromPrev())
         else:
