@@ -3,17 +3,14 @@ import unittest
 from matmethods.utils.loaders import get_wf_from_spec_dict
 import os
 from pymatgen import Structure
+from pymatgen.util.testing import PymatgenTest
 
 from monty.serialization import loadfn
 
-class FuncTest(unittest.TestCase):
+class FuncTest(PymatgenTest):
 
     def setUp(self):
-        coords = [[0, 0, 0], [0.75, 0.5, 0.75]]
-        lattice = [[3.8401979337, 0.00, 0.00],
-                   [1.9200989668, 3.3257101909, 0.00],
-                   [0.00, -2.2171384943, 3.1355090603]]
-        self.structure = Structure(lattice, ["Si"] * 2, coords)
+        self.structure = PymatgenTest.get_structure("Si")
 
     def test_get_wf_from_spec_dict(self):
         d = loadfn(os.path.join(os.path.abspath(os.path.dirname(__file__)), "spec.yaml"))

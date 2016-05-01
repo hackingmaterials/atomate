@@ -20,9 +20,8 @@ from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name, ma
 from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure
 from matmethods.vasp.workflows.base.single_vasp import get_wf_single
 
-from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp.sets import MPVaspInputSet
-
+from pymatgen.util.testing import PymatgenTest
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
@@ -41,11 +40,7 @@ class TestVaspWorkflows(unittest.TestCase):
                 'This system is not set up to run VASP jobs. '
                 'Please set your VASP_PSP_DIR environment variable.')
 
-        coords = [[0, 0, 0], [0.75, 0.5, 0.75]]
-        lattice = Lattice([[3.8401979337, 0.00, 0.00],
-                           [1.9200989668, 3.3257101909, 0.00],
-                           [0.00, -2.2171384943, 3.1355090603]])
-        cls.struct_si = IStructure(lattice, ["Si"] * 2, coords)
+        cls.struct_si = PymatgenTest.get_structure("Si")
 
         cls.module_dir = os.path.join(
             os.path.dirname(os.path.abspath(__file__)))

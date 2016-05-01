@@ -9,7 +9,7 @@ from fireworks.utilities.fw_serializers import load_object
 
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspFromPMGObjects, ModifyIncar
 
-from pymatgen import IStructure, Lattice, Structure
+from pymatgen.util.testing import PymatgenTest
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
 from pymatgen.io.vasp.sets import MPVaspInputSet
 
@@ -19,7 +19,7 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 
-class TestWriteVasp(unittest.TestCase):
+class TestWriteVasp(PymatgenTest):
     @classmethod
     def setUpClass(cls):
         if not os.environ.get("VASP_PSP_DIR"):
@@ -27,11 +27,7 @@ class TestWriteVasp(unittest.TestCase):
                 'This system is not set up to run VASP jobs. '
                 'Please set your VASP_PSP_DIR environment variable.')
 
-        coords = [[0, 0, 0], [0.75, 0.5, 0.75]]
-        lattice = Lattice([[3.8401979337, 0.00, 0.00],
-                           [1.9200989668, 3.3257101909, 0.00],
-                           [0.00, -2.2171384943, 3.1355090603]])
-        cls.struct_si = IStructure(lattice, ["Si"] * 2, coords)
+        cls.struct_si = PymatgenTest.get_structure("Si")
 
         cls.ref_incar = Incar.from_file(
             os.path.join(module_dir, "reference_files", "setup_test", "INCAR"))

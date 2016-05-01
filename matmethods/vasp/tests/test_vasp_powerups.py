@@ -11,9 +11,9 @@ from matmethods.vasp.vasp_powerups import decorate_priority, use_custodian, add_
     add_modify_incar, add_small_gap_multiply, use_scratch_dir
 from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure
 
-from pymatgen import IStructure
-from pymatgen import Lattice
 from pymatgen.io.vasp.sets import MPVaspInputSet
+from pymatgen.util.testing import PymatgenTest
+
 
 __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
@@ -23,11 +23,7 @@ class TestVaspPowerups(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        lattice = Lattice([[3.8401979337, 0.00, 0.00],
-                           [1.9200989668, 3.3257101909, 0.00],
-                           [0.00, -2.2171384943, 3.1355090603]])
-        coords = [[0, 0, 0], [0.75, 0.5, 0.75]]
-        struct_si = IStructure(lattice, ["Si"] * 2, coords)
+        struct_si = PymatgenTest.get_structure("Si")
         vis = MPVaspInputSet(force_gamma=True)
         cls.bs_wf = get_wf_bandstructure(struct_si, vis, vasp_cmd="test_VASP")
 
