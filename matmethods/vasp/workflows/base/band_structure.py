@@ -75,7 +75,7 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
     if dielectric:
         wf.append(LepsFW(structure=structure, copy_vasp_outputs=True, parents=fw2, **common_kwargs))
 
-    return Workflow([fw1, fw2, fw3, fw4], name=structure.composition.reduced_formula)
+    return Workflow(wf, name=structure.composition.reduced_formula)
 
 
 def add_to_lpad(workflow, decorate=False):
@@ -113,33 +113,5 @@ if __name__ == "__main__":
                        [1.9200989668, 3.3257101909, 0.00],
                        [0.00, -2.2171384943, 3.1355090603]])
     structure = IStructure(lattice, ["Si"] * 2, coords)
-    #wf = get_wf_bandstructure(structure)
-    #wf = get_wf_single(structure)
+    wf = get_wf_bandstructure(structure)
     #add_to_lpad(wf, decorate=True)
-
-    spec = {
-        "fireworks": [
-            {
-                "fw": "matmethods.vasp.fws.OptimizeFW"
-            },
-            {
-                "fw": "matmethods.vasp.fws.StaticFW",
-                "params": {
-                    "copy_vasp_outputs": False,
-                    "parents": 0
-                }
-            },
-            {
-                "fw"  : "matmethods.vasp.fws.LepsFW",
-                "params": {
-                    "copy_vasp_outputs": False,
-                    "parents"          : 0
-                }
-            },
-        ]
-    }
-
-    wf = get_wf_from_spec_dict(structure, spec)
-    print(wf)
-    import yaml
-    print(yaml.safe_dump(spec, default_flow_style=False))
