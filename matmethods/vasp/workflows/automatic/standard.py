@@ -1,6 +1,5 @@
-from pymatgen.io.vasp.sets import MPVaspInputSet
+from pymatgen.io.vasp.sets import MPVaspInputSet, MPStaticSet
 
-from matmethods.vasp.input_sets import StaticVaspInputSet
 from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name, \
     add_small_gap_multiply, use_scratch_dir
 from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure
@@ -38,7 +37,7 @@ def wf_static(structure):
     :param structure:
     :return:
     """
-    wf = get_wf_single(structure, vasp_input_set=StaticVaspInputSet(), vasp_cmd=">>vasp_cmd<<",
+    wf = get_wf_single(structure, vasp_input_set=MPStaticSet(structure), vasp_cmd=">>vasp_cmd<<",
                        db_file=">>db_file<<", task_label="static")
     wf = use_custodian(wf)
     wf = decorate_write_name(wf)

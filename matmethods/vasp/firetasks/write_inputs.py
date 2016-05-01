@@ -9,13 +9,13 @@ vasp calculations
 
 from fireworks import FireTaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
+
 from pymatgen.io.vasp import Incar, Poscar
+from pymatgen.io.vasp.sets import MPStaticDielectricDFPTVaspInputSet, MPStaticSet, MPNonSCFSet
 
 from matmethods.utils.utils import env_chk
-from matmethods.vasp.input_sets import StaticVaspInputSet, NonSCFVaspInputSet
-from pymatgen.io.vasp.sets import MPStaticDielectricDFPTVaspInputSet
 
-__author__ = 'Anubhav Jain, Shyue Ping Ong'
+__author__ = 'Anubhav Jain, Shyue Ping Ong, Kiran Mathew'
 __email__ = 'ajain@lbl.gov'
 
 
@@ -151,25 +151,23 @@ class WriteVaspStaticFromPrev(FireTaskBase):
 
     Optional params:
         (documentation for all optional params can be found in
-        StaticVaspInputSet.write_input_from_prevrun)
+        MPStaticSet.from_prev_calc)
     """
 
-    optional_params = ["config_dict_override", "reciprocal_density",
-                       "small_gap_multiply", "prev_dir", "standardization_symprec",
-                       "international_monoclinic", "preserve_magmom",
-                       "preserve_old_incar"]
+    required_params = ["prev_calc_dir"]
+    optional_params = ["reciprocal_density", "small_gap_multiply", "standardize", "sym_prec",
+                       "international_monoclinic", "other_params"]
 
     def run_task(self, fw_spec):
-        StaticVaspInputSet.write_input_from_prevrun(
-            config_dict_override=self.get("config_dict_override"),
+        vis = MPStaticSet.from_prev_calc(
+            prev_calc_dir=self["prev_calc_dir"],
             reciprocal_density=self.get("reciprocal_density", 100),
             small_gap_multiply=self.get("small_gap_multiply", None),
-            prev_dir=self.get("prev_dir"),
-            standardization_symprec=self.get("standardization_symprec", 0.1),
-            international_monoclinic=self.get("international_monoclinic",
-                                              True),
-            preserve_magmom=self.get("preserve_magmom", True),
-            preserve_old_incar=self.get("preserve_old_incar", False))
+            standardize=self.get("standardize", False),
+            sym_prec=self.get("sym_prec", 0.1),
+            international_monoclinic=self.get("international_monoclinic",True),
+            **self.get("other_params", {}))
+        vis.write_input(".")
 
 
 @explicit_serialize
@@ -186,22 +184,26 @@ class WriteVaspNSCFFromPrev(FireTaskBase):
         NonSCFVaspInputSet.write_input_from_prevrun)
     """
 
-    optional_params = ["config_dict_override", "reciprocal_density",
-                       "small_gap_multiply", "prev_dir", "mode", "magmom_cutoff",
-                       "nbands_factor", "preserve_magmom",
-                       "preserve_old_incar"]
+    required_params = ["prev_calc_dir"]
+    optional_params = ["copy_chgcar", "nbands_factor", "reciprocal_density",
+                       "small_gap_multiply", "standardize", "sym_prec",
+                       "international_monoclinic", "mode", "nedos", "optics", "other_params"]
 
     def run_task(self, fw_spec):
-        NonSCFVaspInputSet.write_input_from_prevrun(
-            config_dict_override=self.get("config_dict_override"),
-            reciprocal_density=self.get("reciprocal_density"),
-            small_gap_multiply=self.get("small_gap_multiply", None),
-            prev_dir=self.get("prev_dir"),
-            mode=self.get("mode", "uniform"),
-            magmom_cutoff=self.get("magmom_cutoff", 0.1),
+        vis = MPNonSCFSet.from_prev_calc(
+            prev_calc_dir=self["prev_calc_dir"],
+            copy_chgcar=self.get("copy_chgcar", True),
             nbands_factor=self.get("nbands_factor", 1.2),
-            preserve_magmom=(self.get("preserve_magmom"), True),
-            preserve_old_incar=self.get("preserve_old_incar", False))
+            reciprocal_density=self.get("reciprocal_density", None),
+            small_gap_multiply=self.get("small_gap_multiply", None),
+            standardize=self.get("standardize", False),
+            sym_prec=self.get("sym_prec", 0.1),
+            international_monoclinic=self.get("international_monoclinic", True),
+            mode=self.get("mode", "uniform"),
+            nedos=self.get("nedos", 601),
+            optics=self.get("optics", False),
+            **self.get("other_params", {}))
+        vis.write_input(".")
 
 
 @explicit_serialize

@@ -39,7 +39,7 @@ class StaticFW(Firework):
         if parents:
             if copy_vasp_outputs:
                 t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
-            t.append(WriteVaspStaticFromPrev())
+            t.append(WriteVaspStaticFromPrev(prev_calc_dir='.'))
         else:
             vasp_input_set = MPStaticSet(structure)
             t.append(WriteVaspFromIOSet(structure=structure,
@@ -62,7 +62,7 @@ class NonSCFUniformFW(Firework):
         if copy_vasp_outputs:
             t.append(
                 CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
-        t.append(WriteVaspNSCFFromPrev(mode="uniform"))
+        t.append(WriteVaspNSCFFromPrev(prev_calc_dir=".", mode="uniform", reciprocal_density=1000))
         t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
@@ -82,7 +82,7 @@ class NonSCFLineFW(Firework):
         if copy_vasp_outputs:
             t.append(
                 CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
-        t.append(WriteVaspNSCFFromPrev(mode="line"))
+        t.append(WriteVaspNSCFFromPrev(prev_calc_dir=".", mode="line", reciprocal_density=20))
         t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
