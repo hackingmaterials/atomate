@@ -32,8 +32,7 @@ class OptimizeFW(Firework):
 
 class StaticFW(Firework):
     def __init__(self, structure, name="static", vasp_cmd="vasp",
-                 copy_vasp_outputs=True,
-                 db_file=None, parents=None, **kwargs):
+                 copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
 
         t = []
 
