@@ -7,9 +7,10 @@ This module defines functions that generate workflows for bandstructure calculat
 """
 
 from fireworks import Workflow
-
+import os
 from pymatgen.io.vasp.sets import MPVaspInputSet
 
+from monty.serialization import loadfn
 from matmethods.utils.loaders import get_wf_from_spec_dict
 
 from pymatgen import Lattice, IStructure
@@ -61,24 +62,14 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
     """
     v = vasp_input_set if vasp_input_set is not None else MPVaspInputSet()
 
-    d = {
-        "fireworks": [
-            {"fw": "matmethods.vasp.fws.OptimizeFW",
-             "params": {"vasp_input_set": v.as_dict()}},
-            {"fw": "matmethods.vasp.fws.StaticFW", "params": {"parents": 0}},
-            {"fw": "matmethods.vasp.fws.NonSCFUniformFW",
-             "params": {"parents": 1}},
-            {"fw": "matmethods.vasp.fws.NonSCFLineFW",
-             "params": {"parents": 1}},
-        ],
-        "common_params": {
+    d = loadfn(os.path.join(os.path.dirname(__file__), "mpwf.yaml"))
+    d["fireworks"][0]["params"] = {"vasp_input_set": v.as_dict()}
+    d["common_params"] = {
             "vasp_cmd": vasp_cmd,
             "db_file": db_file
-        }
     }
 
     return get_wf_from_spec_dict(structure, d)
-
 
 
 if __name__ == "__main__":
