@@ -5,7 +5,7 @@
 from __future__ import division, unicode_literals, print_function
 
 """
-#TODO: Replace with proper module doc.
+Various helper functions to load and add workflows from YAML specs.
 """
 
 

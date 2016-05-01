@@ -1,6 +1,6 @@
 import unittest
 
-from matmethods import get_wf_from_spec_dict
+from matmethods.utils.loaders import get_wf_from_spec_dict
 import os
 from pymatgen import Structure
 
