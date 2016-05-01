@@ -8,8 +8,7 @@ import unittest
 
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
-
-from matmethods.vasp.input_sets import StructureOptimizationVaspInputSet
+from pymatgen.io.vasp.sets import MPVaspInputSet
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
@@ -61,7 +60,7 @@ class TestSetup(unittest.TestCase):
 
     def test_setup(self):
         try:
-            vi = StructureOptimizationVaspInputSet()
+            vi = MPVaspInputSet(force_gamma=True)
             vi.write_input(self.struct_si, ".")
         except ValueError:
             import traceback

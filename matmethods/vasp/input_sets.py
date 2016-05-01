@@ -29,40 +29,6 @@ logger = get_logger(__name__)
 #TODO: subclass DerivedVaspInputSet from pymatgen and maybe replace some of the classes with the pymatgen ones after
 # the release of next pymatgen.
 #
-class StructureOptimizationVaspInputSet(DictVaspInputSet):
-
-    def __init__(self, config_dict_override=None, reciprocal_density=50, force_gamma=True, **kwargs):
-        self.config_dict_override = config_dict_override
-        self.reciprocal_density = reciprocal_density
-        self.force_gamma = force_gamma
-        d = kwargs
-        d["name"] = "structure optimization"
-        d["config_dict"] = loadfn(os.path.join(MODULE_DIR, "MPVaspInputSet.yaml"))
-
-        for k in ["INCAR", "KPOINTS", "POSCAR", "POTCAR"]:
-            if config_dict_override and config_dict_override.get(k):
-                if k in d["config_dict"]:
-                    d["config_dict"][k].update(config_dict_override[k])
-                else:
-                    d["config_dict"][k] = config_dict_override[k]
-        d["force_gamma"] = force_gamma
-        if "grid_density" in d["config_dict"]["KPOINTS"]:
-            del d["config_dict"]["KPOINTS"]["grid_density"]
-        d["config_dict"]["KPOINTS"]["reciprocal_density"] = reciprocal_density
-
-        super(StructureOptimizationVaspInputSet, self).__init__(**d)
-
-    def as_dict(self):
-        d = MSONable.as_dict(self)
-        if hasattr(self, "kwargs"):
-            d.update(**self.kwargs)
-        return d
-
-    @classmethod
-    def from_dict(cls, d):
-        decoded = {k: MontyDecoder().process_decoded(v) for k, v in d.items() if not k.startswith("@")}
-        return cls(**decoded)
-
 
 class StaticVaspInputSet(DictVaspInputSet):
 

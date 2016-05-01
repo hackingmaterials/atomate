@@ -6,15 +6,13 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 This module defines functions that generate workflows for bandstructure calculations.
 """
 
-from fireworks import Workflow, LaunchPad
+from fireworks import Workflow
 
-from matmethods.vasp.vasp_powerups import decorate_write_name
+from pymatgen.io.vasp.sets import MPVaspInputSet
 
-from matmethods.vasp.fws import OptimizeFW, StaticFW, NonSCFUniformFW, \
-    NonSCFLineFW, LepsFW
+from matmethods.utils.loaders import get_wf_from_spec_dict
 
 from pymatgen import Lattice, IStructure
-from monty.json import MontyDecoder
 
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
@@ -22,7 +20,7 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 
 def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
-                         db_file=None, dielectric=False):
+                         db_file=None):
     """
     Return vasp workflow consisting of 4 fireworks:
 
@@ -60,51 +58,25 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
 
     Returns:
         Workflow
-     """
-    common_kwargs = {"vasp_cmd": vasp_cmd, "db_file": db_file}
-
-    fw1 = OptimizeFW(structure=structure, vasp_input_set=vasp_input_set, **common_kwargs)
-    fw2 = StaticFW(structure=structure, copy_vasp_outputs=True, parents=fw1, **common_kwargs)
-    fw3 = NonSCFUniformFW(structure=structure, copy_vasp_outputs=True, parents=fw2, **common_kwargs)
-    fw4 = NonSCFLineFW(structure=structure, copy_vasp_outputs=True, parents=fw2, **common_kwargs)
-
-    # line mode (run in parallel to uniform)
-
-    wf = [fw1, fw2, fw3, fw4]
-
-    if dielectric:
-        wf.append(LepsFW(structure=structure, copy_vasp_outputs=True, parents=fw2, **common_kwargs))
-
-    return Workflow(wf, name=structure.composition.reduced_formula)
-
-
-def add_to_lpad(workflow, decorate=False):
     """
-    Add the workflow to the launchpad
+    v = vasp_input_set if vasp_input_set is not None else MPVaspInputSet()
 
-    Args:
-        workflow (Workflow): workflow for db insertion
-        decorate (bool): If set an empty file with the name
-            "FW--<fw.name>" will be written to the launch directory
-    """
-    lp = LaunchPad.auto_load()
-    workflow = decorate_write_name(workflow) if decorate else workflow
-    lp.add_wf(workflow)
+    d = {
+        "fireworks": [
+            {"fw": "matmethods.vasp.fws.OptimizeFW",
+             "params": {"vasp_input_set": v.as_dict()}},
+            {"fw": "matmethods.vasp.fws.StaticFW", "parents": 0},
+            {"fw": "matmethods.vasp.fws.NonSCFUniformFW", "parents": 1},
+            {"fw": "matmethods.vasp.fws.NonSCFLineFW", "parents": 1},
+        ],
+        "common_params": {
+            "vasp_cmd": vasp_cmd,
+            "db_file": db_file
+        }
+    }
 
+    return get_wf_from_spec_dict(structure, d)
 
-
-def get_wf_from_spec_dict(structure, wfspec):
-    fws = []
-    for d in wfspec["fireworks"]:
-        modname, classname = d["fw"].rsplit(".", 1)
-        mod = __import__(modname, globals(), locals(), [classname], 0)
-        if hasattr(mod, classname):
-            cls_ = getattr(mod, classname)
-            kwargs = {k: MontyDecoder().process_decoded(v) for k, v in d.get("params", {}).items()}
-            if "parents" in kwargs:
-                kwargs["parents"] = fws[kwargs["parents"]]
-            fws.append(cls_(structure, **kwargs))
-    return Workflow(fws, name=structure.composition.reduced_formula)
 
 
 if __name__ == "__main__":
