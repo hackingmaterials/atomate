@@ -13,7 +13,7 @@ from pymatgen.io.vasp.sets import MPVaspInputSet
 from monty.serialization import loadfn
 from matmethods.utils.loaders import get_wf_from_spec_dict
 
-from pymatgen import Lattice, IStructure
+
 
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
@@ -73,10 +73,8 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
 
 
 if __name__ == "__main__":
-    coords = [[0, 0, 0], [0.75, 0.5, 0.75]]
-    lattice = Lattice([[3.8401979337, 0.00, 0.00],
-                       [1.9200989668, 3.3257101909, 0.00],
-                       [0.00, -2.2171384943, 3.1355090603]])
-    structure = IStructure(lattice, ["Si"] * 2, coords)
+    from pymatgen.util.testing import PymatgenTest
+    structure = PymatgenTest.get_structure("Si")
+    print(structure)
     wf = get_wf_bandstructure(structure)
     #add_to_lpad(wf, decorate=True)
