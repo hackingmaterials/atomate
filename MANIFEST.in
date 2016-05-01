@@ -1,4 +1,4 @@
-include LICENSE *.txt
+include LICENSE *.txt README.rst
 recursive-include matmethods *
 recursive-exclude matmethods *.pyc
 recursive-include docs *
