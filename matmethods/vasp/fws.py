@@ -86,7 +86,7 @@ class NonSCFLineFW(Firework):
         t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
-                              additional_fields={"task_label": name},
+                              additional_fields={"task_label": name}, parse_dos=False,
                               bandstructure_mode="line"))
         super(NonSCFLineFW, self).__init__(t, parents=parents,
                                            name="{}-{}".format(
