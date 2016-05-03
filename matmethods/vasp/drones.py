@@ -244,8 +244,8 @@ class VaspDrone(AbstractDrone):
             d[k] = d.pop(v)
 
         for k in ["eigenvalues", "projected_eigenvalues"]:  # large storage space breaks some docs
-            if k in d:
-                del d[k]
+            if k in d["output"]:
+                del d["output"][k]
 
         comp = Composition(d["composition_unit_cell"])
         d["formula_anonymous"] = comp.anonymized_formula
