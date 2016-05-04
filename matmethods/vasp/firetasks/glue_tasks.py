@@ -25,15 +25,15 @@ __email__ = 'ajain@lbl.gov'
 class PassCalcLocs(FireTaskBase):
     """
     Passes the calc_locs key. Should be called in the same FireWork as a
-    VASP run. This passes information about where the current run is located
+    the calculation. This passes information about where the current run is located
     for the next FireWork.
 
     Required params:
-        name: descriptive name for this VASP file/dir
+        name: descriptive name for this calculation file/dir
 
     Optional params:
         filesystem: name of filesystem. Supports env_chk. defaults to None
-        path: The path to the directory containing the VASP run. defaults to
+        path: The path to the directory containing the calculation. defaults to
             current working directory.
     """
 
