@@ -42,11 +42,7 @@ class MMos(object):
         import paramiko
         privatekeyfile = os.path.expanduser(pkey_file)
         if not os.path.exists(privatekeyfile):
-            possible_keys = ["~/.ssh/id_rsa", "~/.ssh/id_dsa", "/etc/ssh/id_rsa", "/etc/ssh/id_dsa"]
-            for key in possible_keys:
-                if os.path.exists(os.path.expanduser(key)):
-                    privatekeyfile = os.path.expanduser(key)
-                    break
+            raise ValueError("Cannot locate private key file: {}".format(privatekeyfile))
         tokens = privatekeyfile.split("id_")
         try:
             if tokens[1] == "rsa":
@@ -60,11 +56,7 @@ class MMos(object):
             return None
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        try:
-            ssh.connect(host, username=username, pkey=mykey)
-        except paramiko.SSHException:
-            print("Connection Error: host: {}, username: {}".format(host, username))
-            return None
+        ssh.connect(host, username=username, pkey=mykey)
         return ssh
 
     def listdir(self, ldir):
