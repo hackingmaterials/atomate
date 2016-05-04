@@ -25,9 +25,10 @@ class FileClient(object):
 
     def __init__(self, filesystem=None, pkey_file="~/.ssh/id_rsa"):
         """
-        filesystem (string): remote filesystem, e.g. username@remote_host. If None, use local
-        pkey_file (string): path to the private key file (for remote connections only)
-            Note: passwordless ssh login must be setup
+        Args:
+            filesystem (str): remote filesystem, e.g. username@remote_host. If None, use local
+            pkey_file (str): path to the private key file (for remote connections only)
+                Note: passwordless ssh login must be setup
         """
         self.ssh = None
         if filesystem:
@@ -43,6 +44,15 @@ class FileClient(object):
 
     @staticmethod
     def get_ssh_connection(username, host, pkey_file):
+        """
+        Args:
+            username (str):
+            host (str):
+            pkey_file (str):  path to private key file
+
+        Returns:
+
+        """
         import paramiko
         pkey_file = os.path.expanduser(pkey_file)
         if not os.path.exists(pkey_file):
@@ -55,7 +65,11 @@ class FileClient(object):
     @staticmethod
     def exists(sftp, path):
         """
-        os.path.exists for paramiko's SCP object
+        os.path.exists() for paramiko's SCP object
+
+        Args:
+            sftp (SFTPClient):
+            path (str): path to check existence of
         """
         try:
             sftp.stat(path)
@@ -71,11 +85,12 @@ class FileClient(object):
         Get the directory listing from either the local or remote filesystem.
 
         Args:
-            ldir (string): full path to the directory
+            ldir (str): full path to the directory
 
         Returns:
             iterator of filenames
         """
+
         # TODO: this pattern of "if self.ssh: self.ssh.X() else os.X() could be generalized beyond X()=listdir() in much more general code than this
 
         if not self.ssh:
@@ -88,8 +103,8 @@ class FileClient(object):
         Copy from source to destination.
 
         Args:
-            src (string): source full path
-            dest (string): destination file full path
+            src (str): source full path
+            dest (str): destination file full path
 
         """
         if not self.ssh:
@@ -108,6 +123,9 @@ class FileClient(object):
     def abspath(self, path):
         """
         return the absolute path
+
+        Args:
+            path (str):
         """
         if not self.ssh:
             return os.path.abspath(path)
@@ -121,6 +139,9 @@ class FileClient(object):
     def glob(self, path):
         """
         return the glob
+
+        Args:
+            path (str):
         """
         if not self.ssh:
             return glob.glob(path)
