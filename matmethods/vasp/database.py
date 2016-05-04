@@ -48,7 +48,7 @@ class MMDb(object):
             self.db.counter.insert({"_id": "taskid", "c": 1})
         self.collection = self.db[collection]
 
-    def build(self, indices=[], background=True):
+    def build(self, indices=None, background=True):
         """
         Build the indices.
 
