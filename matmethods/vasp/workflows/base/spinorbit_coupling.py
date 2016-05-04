@@ -14,7 +14,6 @@ from matmethods.vasp.firetasks.glue_tasks import PassCalcLocs, CopyVaspOutputs
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
 from matmethods.vasp.firetasks.run_calc import RunVaspDirect
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, ModifyIncar
-from matmethods.utils.utils import soc_warning
 
 __author__ = 'Kiran Mathew'
 __credits__ = 'Anubhav jain'

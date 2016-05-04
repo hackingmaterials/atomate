@@ -18,8 +18,6 @@ if __name__ == "__main__":
                            "ALGO": "Normal",
                            "LREAL": ".FALSE."}
     vis = MPVaspInputSet(user_incar_settings=user_incar_settings, force_gamma=True)
-    lp = LaunchPad.auto_load()
     wf = get_wf_spinorbit_coupling(fe_monomer, [3.0], field_directions=[[0,0,1]],
                                    vasp_input_set=vis, vasp_cmd="srun vasp",
                                    vasp_ncl="srun vasp_ncl",  db_file=">>db_file<<")
-    lp.add_wf(wf)
