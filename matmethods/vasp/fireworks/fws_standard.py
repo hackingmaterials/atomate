@@ -1,3 +1,7 @@
+"""
+Defines standardized Fireworks that can be chained easily to perform various sequences of VASP calculations.
+"""
+
 from fireworks import Firework
 from pymatgen.io.vasp.sets import MPVaspInputSet, MPStaticSet
 
