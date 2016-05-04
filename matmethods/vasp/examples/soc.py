@@ -1,8 +1,6 @@
 from pymatgen import Structure
 from pymatgen.io.vasp.sets import MPVaspInputSet
 
-from fireworks import LaunchPad
-
 from matmethods.vasp.workflows.base.spinorbit_coupling import get_wf_spinorbit_coupling
 
 
