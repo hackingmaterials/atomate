@@ -51,7 +51,7 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
                  database insertion.
 
     Args:
-        structure (Structure): input structure to be relaxed.
+        structure (Structure): input structure to be optimized and run
         vasp_input_set (DictVaspInputSet): vasp input set.
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
