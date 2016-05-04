@@ -1,5 +1,5 @@
 # coding: utf-8
-# Copyright (c) Materials Virtual Lab.
+# Copyright (c) Materials Virtual Lab & HackingMaterials.
 # Distributed under the terms of the BSD License.
 
 from __future__ import division, unicode_literals, print_function
@@ -62,8 +62,15 @@ def get_wf_from_spec_dict(structure, wfspec):
         params = {k: MontyDecoder().process_decoded(v) for k, v in d.get("params", {}).items()}
         params.update(common_params)
         if "parents" in params:
-            params["parents"] = fws[params["parents"]]
+            if isinstance(params["parents"], int):
+                params["parents"] = fws[params["parents"]]
+            else:
+                p = []
+                for parent_idx in params["parents"]:
+                    p.append(fws[parent_idx])
+                params["parents"] = p
         fws.append(cls_(structure, **params))
+
     return Workflow(fws, name=structure.composition.reduced_formula)
 
 

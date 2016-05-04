@@ -25,5 +25,11 @@ class FuncTest(PymatgenTest):
 
         self.assertRaises(ImportError, get_wf_from_spec_dict, self.structure, d)
 
+    def test_multi_parent(self):
+        d = loadfn(os.path.join(os.path.abspath(os.path.dirname(__file__)), "spec_multi.yaml"))
+        wf = get_wf_from_spec_dict(self.structure, d)
+        self.assertEqual(len(wf.fws), 3)
+        self.assertEqual(sorted([len(v) for v in wf.links.values()]), [0, 1, 1])
+
 if __name__ == '__main__':
     unittest.main()

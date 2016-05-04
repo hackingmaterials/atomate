@@ -1,0 +1,9 @@
+fireworks:
+- fw: matmethods.vasp.fireworks.core.OptimizeFW
+- fw: matmethods.vasp.fireworks.core.StaticFW
+- fw: matmethods.vasp.fireworks.core.NonSCFFW
+  params:
+    parents: [0, 1]
+common_params:
+  db_file: db.json
+  vasp_cmd: /opt/vasp
