@@ -21,8 +21,6 @@ __credits__ = 'Anubhav jain'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 
-soc_warning()
-
 def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vasp_input_set=None,
                               vasp_cmd="vasp", vasp_ncl="vasp_ncl", db_file=None):
     """
