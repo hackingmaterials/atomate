@@ -58,13 +58,12 @@ def get_wf_from_spec_dict(structure, wfspec):
     for d in wfspec["fireworks"]:
         modname, classname = d["fw"].rsplit(".", 1)
         mod = __import__(modname, globals(), locals(), [classname], 0)
-        if hasattr(mod, classname):
-            cls_ = getattr(mod, classname)
-            params = {k: MontyDecoder().process_decoded(v) for k, v in d.get("params", {}).items()}
-            params.update(common_params)
-            if "parents" in params:
-                params["parents"] = fws[params["parents"]]
-            fws.append(cls_(structure, **params))
+        cls_ = getattr(mod, classname)
+        params = {k: MontyDecoder().process_decoded(v) for k, v in d.get("params", {}).items()}
+        params.update(common_params)
+        if "parents" in params:
+            params["parents"] = fws[params["parents"]]
+        fws.append(cls_(structure, **params))
     return Workflow(fws, name=structure.composition.reduced_formula)
 
 
