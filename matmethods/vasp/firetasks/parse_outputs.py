@@ -43,12 +43,9 @@ class VaspToDbTask(FireTaskBase):
         additional_fields (dict): dict of additional fields to add
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
-        build_db (bool): whether to build the indices or not.
-        db_indices (list): list of db indices to be built.
     """
     optional_params = ["calc_dir", "calc_loc", "parse_dos",
-                       "bandstructure_mode", "additional_fields", "db_file", "build_db",
-                       "db_indices"]
+                       "bandstructure_mode", "additional_fields", "db_file"]
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
@@ -62,8 +59,6 @@ class VaspToDbTask(FireTaskBase):
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
         # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
-
-        task_doc = None
 
         drone = VaspDrone(additional_fields=self.get("additional_fields"),
                           parse_dos=self.get("parse_dos", False), compress_dos=1,
@@ -79,10 +74,7 @@ class VaspToDbTask(FireTaskBase):
             db = MMDb(host=db_config["host"], port=db_config["port"], database=db_config["database"],
                       user=db_config.get("admin_user"), password=db_config.get("admin_password"),
                       collection=db_config["collection"])
-            # build the indices
-            if self.get("build_db", False):
-                if self.get("db_indices"):
-                    db.build(indices=self.get("db_indices"))
+
             # insert dos/bandstructure to GridFS and update the task document
             if self.get("parse_dos") and "calcs_reversed" in task_doc:
                 for idx, x in enumerate(task_doc["calcs_reversed"]):
