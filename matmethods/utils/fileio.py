@@ -11,7 +11,9 @@ This module defines the wrapper class for remote file io using paramiko.
 """
 
 __author__ = 'Kiran Mathew'
+__credits__ = 'Anubhav Jain <ajain@lbl.gov>'
 __email__ = 'kmathew@lbl.gov'
+
 
 # TODO: properly document this
 # TODO: make this easily compatible with VaspLocs. e.g. given a VaspLoc be able to connect properly
@@ -81,7 +83,6 @@ class MMos(object):
         else:
             return self.sftp.listdir()
 
-
     def copy(self, src, dest):
         """
         Copy from source to destination.
@@ -99,11 +100,10 @@ class MMos(object):
                 if not MMos.exists(self.sftp, dest):
                     self.sftp.mkdir(dest)
                 for f in os.listdir(src):
-                    if os.path.isfile(os.path.join(src,f)):
+                    if os.path.isfile(os.path.join(src, f)):
                         self.sftp.put(os.path.join(src, f), os.path.join(dest, f))
             else:
                 self.sftp.put(src, os.path.join(dest, os.path.basename(src)))
-
 
     def abspath(self, path):
         """
@@ -111,12 +111,12 @@ class MMos(object):
         """
         if not self.ssh:
             return os.path.abspath(path)
+
         else:
             command = ". ./.bashrc; readlink -f {}".format(path)
             stdin, stdout, stderr = self.ssh.exec_command(command)
             full_path = [l.split('\n')[0] for l in stdout]
             return full_path[0]
-
 
     def glob(self, path):
         """
