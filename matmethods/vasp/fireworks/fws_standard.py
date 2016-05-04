@@ -1,6 +1,5 @@
-from pymatgen.io.vasp.sets import MPVaspInputSet, MPStaticSet
-
 from fireworks import Firework
+from pymatgen.io.vasp.sets import MPVaspInputSet, MPStaticSet
 
 from matmethods.vasp.firetasks.glue_tasks import PassCalcLocs, CopyVaspOutputs
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
