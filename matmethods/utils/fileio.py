@@ -76,11 +76,11 @@ class MMos(object):
         """
         # TODO: this pattern of "if self.ssh: self.ssh.X() else os.X() could be generalized beyond X()=listdir() in much more general code than this
 
-        if self.ssh:
+        if not self.ssh:
+            return os.listdir(ldir)
+        else:
             return self.sftp.listdir()
 
-        else:
-            return os.listdir(ldir)
 
     def copy(self, src, dest):
         """
@@ -91,7 +91,10 @@ class MMos(object):
             dest (string): destination file full path
 
         """
-        if self.ssh:
+        if not self.ssh:
+            shutil.copy2(src, dest)
+
+        else:
             if os.path.isdir(src):
                 if not MMos.exists(self.sftp, dest):
                     self.sftp.mkdir(dest)
@@ -101,28 +104,28 @@ class MMos(object):
             else:
                 self.sftp.put(src, os.path.join(dest, os.path.basename(src)))
 
-        else:
-            shutil.copy2(src, dest)
 
     def abspath(self, path):
         """
         return the absolute path
         """
-        if self.ssh:
+        if not self.ssh:
+            return os.path.abspath(path)
+        else:
             command = ". ./.bashrc; readlink -f {}".format(path)
             stdin, stdout, stderr = self.ssh.exec_command(command)
             full_path = [l.split('\n')[0] for l in stdout]
             return full_path[0]
-        else:
-            return os.path.abspath(path)
+
 
     def glob(self, path):
         """
         return the glob
         """
-        if self.ssh:
+        if not self.ssh:
+            return glob.glob(path)
+
+        else:
             command = ". ./.bashrc; for i in $(ls {}); do readlink -f $i; done".format(path)
             stdin, stdout, stderr = self.ssh.exec_command(command)
             return [l.split('\n')[0] for l in stdout]
-        else:
-            return glob.glob(path)
