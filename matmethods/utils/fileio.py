@@ -50,6 +50,7 @@ class FileClient(object):
             pkey_file (str):  path to private key file
 
         Returns:
+            SSHClient
 
         """
         import paramiko
