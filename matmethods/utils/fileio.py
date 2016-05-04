@@ -20,7 +20,8 @@ __email__ = 'kmathew@lbl.gov'
 
 class FileClient(object):
     """
-    paramiko wrapper
+    A client that allows performing many file operations while being agnostic of whether
+    those operations are happening locally or via SSH
     """
 
     def __init__(self, filesystem=None, pkey_file="~/.ssh/id_rsa"):
