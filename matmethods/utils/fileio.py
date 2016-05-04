@@ -13,6 +13,8 @@ This module defines the wrapper class for remote file io using paramiko.
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 
+# TODO: properly document this
+# TODO: make this easily compatible with VaspLocs. e.g. given a VaspLoc be able to connect properly
 
 class MMos(object):
     """
@@ -21,43 +23,46 @@ class MMos(object):
 
     def __init__(self, filesystem=None, pkey_file="~/.ssh/id_rsa"):
         """
-        filesystem (string): remote filesystem, e.g. username@remote_host
-        pkey_file (string): path to the private key file.
+        filesystem (string): remote filesystem, e.g. username@remote_host. If None, use local
+        pkey_file (string): path to the private key file (for remote connections only)
             Note: passwordless ssh login must be setup
         """
         self.ssh = None
-        username = None
-        host = None
         if filesystem:
-            tokens = filesystem.split('@')
-            username = tokens[0]
-            host = tokens[1]
-        if username and host:
-            self.ssh = self._get_ssh_connection(username, host, pkey_file)
-
-    def _get_ssh_connection(self, username, host, pkey_file):
-        """
-        Setup ssh connection using paramiko and return the channel
-        """
-        import paramiko
-        privatekeyfile = os.path.expanduser(pkey_file)
-        if not os.path.exists(privatekeyfile):
-            raise ValueError("Cannot locate private key file: {}".format(privatekeyfile))
-        tokens = privatekeyfile.split("id_")
-        try:
-            if tokens[1] == "rsa":
-                mykey = paramiko.RSAKey.from_private_key_file(privatekeyfile)
-            elif tokens[1] == "dsa":
-                mykey = paramiko.DSSKey.from_private_key_file(privatekeyfile)
+            if '@' in filesystem:
+                username = filesystem.split('@')[0]
+                host = filesystem.split('@')[1]
             else:
-                print("Unknown private key format. Must be either rsa(preferred) or dsa")
-        except:
-            print("Found the private key file {}, but not able to load".format(pkey_file))
-            return None
+                username = None  # paramiko sets default username
+                host = filesystem
+
+            self.ssh = MMos.get_ssh_connection(username, host, pkey_file)
+            self.sftp = self.ssh.open_sftp()
+
+    @staticmethod
+    def get_ssh_connection(username, host, pkey_file):
+        import paramiko
+        pkey_file = os.path.expanduser(pkey_file)
+        if not os.path.exists(pkey_file):
+            raise ValueError("Cannot locate private key file: {}".format(pkey_file))
+
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(host, username=username, pkey=mykey)
-        return ssh
+        return ssh.connect(host, username=username, key_filename=pkey_file)
+
+    @staticmethod
+    def exists(sftp, path):
+        """
+        os.path.exists for paramiko's SCP object
+        """
+        try:
+            sftp.stat(path)
+        except IOError as e:
+            if e[0] == 2:
+                return False
+            raise
+        else:
+            return True
 
     def listdir(self, ldir):
         """
@@ -67,58 +72,47 @@ class MMos(object):
             ldir (string): full path to the directory
 
         Returns:
-            list of filenames
+            iterator of filenames
         """
-        if self.ssh:
-            try:
-                #command = ". ./.bashrc; for i in {}/*; do readlink -f $i; done".format(ldir)
-                command = ". ./.bashrc; ls {}".format(ldir)
-                stdin, stdout, stderr = self.ssh.exec_command(command)
-                return [l.split('\n')[0] for l in stdout]
-            except:
-                print("paramiko connection error. Make sure that passwordless ssh login is setup and "
-                      "yor private key is in standard location. e.g. '~/.ssh/id_rsa'")
-                return []
-        else:
-            return [f for f in os.listdir(ldir)]
+        # TODO: this pattern of "if self.ssh: self.ssh.X() else os.X() could be generalized beyond X()=listdir() in much more general code than this
 
-    def copy(self, source, dest):
+        if self.ssh:
+            return self.sftp.listdir()
+
+        else:
+            return os.listdir(ldir)
+
+    def copy(self, src, dest):
         """
         Copy from source to destination.
 
         Args:
-            source (string): source full path
+            src (string): source full path
             dest (string): destination file full path
 
         """
         if self.ssh:
-            try:
-                command = ". ./.bashrc; readlink -f {}".format(source)
-                stdin, stdout, stderr = self.ssh.exec_command(command)
-                source_full_path = [l.split('\n')[0] for l in stdout]
-                sftp = self.ssh.open_sftp()
-                sftp.get(source_full_path[0], dest)
-            except:
-                print("paramiko connection error. Make sure that passwordless ssh login is setup and "
-                      "yor private key is in standard location. e.g. '~/.ssh/id_rsa'")
-                raise IOError
+            if os.path.isdir(src):
+                if not MMos.exists(self.sftp, dest):
+                    self.sftp.mkdir(dest)
+                for f in os.listdir(src):
+                    if os.path.isfile(os.path.join(src,f)):
+                        self.sftp.put(os.path.join(src, f), os.path.join(dest, f))
+            else:
+                self.sftp.put(src, os.path.join(dest, os.path.basename(src)))
+
         else:
-            shutil.copy2(source, dest)
+            shutil.copy2(src, dest)
 
     def abspath(self, path):
         """
         return the absolute path
         """
         if self.ssh:
-            try:
-                command = ". ./.bashrc; readlink -f {}".format(path)
-                stdin, stdout, stderr = self.ssh.exec_command(command)
-                full_path = [l.split('\n')[0] for l in stdout]
-                return full_path[0]
-            except:
-                print("paramiko connection error. Make sure that passwordless ssh login is setup and "
-                      "yor private key is in standard location. e.g. '~/.ssh/id_rsa'")
-                raise IOError
+            command = ". ./.bashrc; readlink -f {}".format(path)
+            stdin, stdout, stderr = self.ssh.exec_command(command)
+            full_path = [l.split('\n')[0] for l in stdout]
+            return full_path[0]
         else:
             return os.path.abspath(path)
 
@@ -127,13 +121,8 @@ class MMos(object):
         return the glob
         """
         if self.ssh:
-            try:
-                command = ". ./.bashrc; for i in $(ls {}); do readlink -f $i; done".format(path)
-                stdin, stdout, stderr = self.ssh.exec_command(command)
-                return [l.split('\n')[0] for l in stdout]
-            except:
-                print("paramiko connection error. Make sure that passwordless ssh login is setup and "
-                      "yor private key is in standard location. e.g. '~/.ssh/id_rsa'")
-                raise IOError
+            command = ". ./.bashrc; for i in $(ls {}); do readlink -f $i; done".format(path)
+            stdin, stdout, stderr = self.ssh.exec_command(command)
+            return [l.split('\n')[0] for l in stdout]
         else:
             return glob.glob(path)
