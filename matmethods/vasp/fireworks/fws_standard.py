@@ -82,7 +82,7 @@ class NonSCFFW(Firework):
     def __init__(self, structure, name="nscf", mode="uniform", vasp_cmd="vasp",
                  copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
         """
-        Standard NonSCF Uniform calculation Firework.
+        Standard NonSCF Calculation Firework supporting both uniform and line modes.
 
         Args:
             structure (Structure): Input structure.
@@ -98,14 +98,15 @@ class NonSCFFW(Firework):
         if copy_vasp_outputs:
             t.append(
                 CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
-        if mode.lower() == "uniform":
+        mode = mode.lower()
+        if mode == "uniform":
             t.append(WriteVaspNSCFFromPrev(prev_calc_dir=".", mode="uniform", reciprocal_density=1000))
         else:
             t.append(WriteVaspNSCFFromPrev(prev_calc_dir=".", mode="line", reciprocal_density=20))
         t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
-        t.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": name},
-                              parse_dos=(mode.lower() == "uniform"), bandstructure_mode=mode))
+        t.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": name + " " + mode},
+                              parse_dos=(mode == "uniform"), bandstructure_mode=mode))
         super(NonSCFFW, self).__init__(t, parents=parents, name="%s-%s %s" % (
                                                   structure.composition.reduced_formula,
                                                   name, mode), **kwargs)
@@ -113,8 +114,19 @@ class NonSCFFW(Firework):
 
 class LepsFW(Firework):
     def __init__(self, structure, name="static dielectric", vasp_cmd="vasp",
-                 copy_vasp_outputs=True,
-                 db_file=None, parents=None, **kwargs):
+                 copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
+        """
+        Standard static calculation Firework for dielectric constants using DFPT.
+
+        Args:
+            structure (Structure): Input structure.
+            name (str): Name for the Firework.
+            vasp_cmd (str): Command to run vasp.
+            copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
+            db_file (str): Path to file specifying db credentials.
+            parents (Firework): Parents of this particular Firework.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
         t = []
         if copy_vasp_outputs:
             t.append(
