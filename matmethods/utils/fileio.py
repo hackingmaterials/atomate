@@ -33,8 +33,7 @@ class FileClient(object):
         self.ssh = None
         if filesystem:
             if '@' in filesystem:
-                username = filesystem.split('@')[0]
-                host = filesystem.split('@')[1]
+                username, host = filesystem.split('@')
             else:
                 username = None  # paramiko sets default username
                 host = filesystem
