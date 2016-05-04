@@ -26,14 +26,14 @@ def get_wf_from_spec_dict(structure, wfspec):
 
             ```
             fireworks:
-            - fw: matmethods.vasp.fireworks.fws_standard.OptimizeFW
-            - fw: matmethods.vasp.fireworks.fws_standard.StaticFW
+            - fw: matmethods.vasp.fireworks.core.OptimizeFW
+            - fw: matmethods.vasp.fireworks.core.StaticFW
               params:
                 parents: 0
-            - fw: matmethods.vasp.fireworks.fws_standard.NonSCFUniformFW
+            - fw: matmethods.vasp.fireworks.core.NonSCFUniformFW
               params:
                 parents: 1
-            - fw: matmethods.vasp.fireworks.fws_standard.NonSCFLineFW
+            - fw: matmethods.vasp.fireworks.core.NonSCFLineFW
               params:
                 parents: 1
             common_params:

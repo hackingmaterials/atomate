@@ -15,15 +15,15 @@ from pymatgen import Structure, MPRester
 
 
 default_yaml = """fireworks:
-- fw: matmethods.vasp.fireworks.fws_standard.OptimizeFW
-- fw: matmethods.vasp.fireworks.fws_standard.StaticFW
+- fw: matmethods.vasp.fireworks.core.OptimizeFW
+- fw: matmethods.vasp.fireworks.core.StaticFW
   params:
     parents: 0
-- fw: matmethods.vasp.fireworks.fws_standard.NonSCFFW
+- fw: matmethods.vasp.fireworks.core.NonSCFFW
   params:
     parents: 1
     mode: uniform
-- fw: matmethods.vasp.fireworks.fws_standard.NonSCFFW
+- fw: matmethods.vasp.fireworks.core.NonSCFFW
   params:
     parents: 1
     mode: line
