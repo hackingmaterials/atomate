@@ -16,10 +16,37 @@ from fireworks import explicit_serialize, FireTaskBase, FWAction
 
 from matmethods.utils.utils import env_chk
 from matmethods.utils.fileio import FileClient
-from matmethods.vasp.vasp_utils import get_calc_key
 
 __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
+
+
+def get_calc_loc(target_loc, calc_locs):
+
+    """
+    This is a helper method that - given a target_loc and a dictionary of calc_locs - will
+    extract the correct calculation directory. i.e., if there are many calc_locs that have been
+    passed, this will return the correct parent calc information
+
+    Args:
+        target_loc: (bool or str) If str, will search for calc_loc with matching name.
+            Else use most recent calc_loc that has been passed (likely most common use).
+        calc_locs: (dict) The dictionary of all calc_locs
+
+    Returns:
+        (dict) dict with subkeys path, filesystem, and name
+    """
+
+    if isinstance(target_loc, basestring):
+        for doc in reversed(calc_locs):
+            if doc["name"] == target_loc:
+                return doc
+        raise ValueError("Could not find the target_loc: {}".format(target_loc))
+
+    else:
+        return calc_locs[-1]
+
+
 
 
 @explicit_serialize
@@ -80,23 +107,29 @@ class CopyVaspOutputs(FireTaskBase):
 
     def run_task(self, fw_spec):
 
-        calc_dir = get_calc_key(self, fw_spec, "calc_dir")
-        if not calc_dir:
-            raise ValueError("Must specify either {} or calc_loc!".format(calc_dir))
-        filesystem = get_calc_key(self, fw_spec, "filesystem")
+        if self.get("calc_dir"):  # direct setting of calc dir - no calc_locs or filesystem!
+            calc_dir = self["calc_dir"]
+            filesystem = None
+        elif self.get("calc_loc"):  # search for calc dir and filesystem within calc_locs
+            calc_loc = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])
+            calc_dir = calc_loc["path"]
+            filesystem = calc_loc["filesystem"]
+        else:
+            raise ValueError("Must specify either calc_dir or calc_loc!")
 
         fileclient = FileClient(filesystem=filesystem)
-
         calc_dir = fileclient.abspath(calc_dir)
         contcar_to_poscar = self.get("contcar_to_poscar", True)
 
         all_files = fileclient.listdir(calc_dir)
+
         # determine what files need to be copied
         if "$ALL" in self.get("additional_files", []):
             files_to_copy = all_files
         else:
             files_to_copy = ['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR',
                              'vasprun.xml']
+
             if self.get("additional_files"):
                 files_to_copy.extend(self["additional_files"])
 
