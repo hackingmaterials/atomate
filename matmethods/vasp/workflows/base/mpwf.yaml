@@ -3,9 +3,11 @@ fireworks:
 - fw: matmethods.vasp.fireworks.fws_standard.StaticFW
   params:
     parents: 0
-- fw: matmethods.vasp.fireworks.fws_standard.NonSCFUniformFW
+- fw: matmethods.vasp.fireworks.fws_standard.NonSCFFW
   params:
     parents: 1
+    mode: uniform
 - fw: matmethods.vasp.fireworks.fws_standard.NonSCFLineFW
   params:
     parents: 1
+    mode: line

@@ -10,9 +10,23 @@ from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, \
 
 
 class OptimizeFW(Firework):
+
     def __init__(self, structure, name="structure optimization",
                  vasp_input_set=None, vasp_cmd="vasp",
                  db_file=None, parents=None, **kwargs):
+        """
+        Standard structure optimization Firework.
+
+        Args:
+            structure (Structure): Input structure.
+            name (str): Name for the Firework.
+            vasp_input_set (VaspInputSet): input set to use. Defaults to MPVaspInputSet() if None.
+            vasp_cmd (str): Command to run vasp.
+            db_file (str): Path to file specifying db credentials.
+            parents (Firework): Parents of this particular Firework.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+
         vasp_input_set = vasp_input_set if vasp_input_set else MPVaspInputSet(
             force_gamma=True)
 
@@ -32,7 +46,18 @@ class OptimizeFW(Firework):
 class StaticFW(Firework):
     def __init__(self, structure, name="static", vasp_cmd="vasp",
                  copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
+        """
+        Standard static calculation Firework.
 
+        Args:
+            structure (Structure): Input structure.
+            name (str): Name for the Firework.
+            vasp_cmd (str): Command to run vasp.
+            copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
+            db_file (str): Path to file specifying db credentials.
+            parents (Firework): Parents of this particular Firework.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
         t = []
 
         if parents:
@@ -53,44 +78,37 @@ class StaticFW(Firework):
             name), **kwargs)
 
 
-class NonSCFUniformFW(Firework):
-    def __init__(self, structure, name="nscf uniform", vasp_cmd="vasp",
-                 copy_vasp_outputs=True,
-                 db_file=None, parents=None, **kwargs):
+class NonSCFFW(Firework):
+    def __init__(self, structure, name="nscf", mode="uniform", vasp_cmd="vasp",
+                 copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
+        """
+        Standard NonSCF Uniform calculation Firework.
+
+        Args:
+            structure (Structure): Input structure.
+            name (str): Name for the Firework.
+            mode (str): uniform or line mode.
+            vasp_cmd (str): Command to run vasp.
+            copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
+            db_file (str): Path to file specifying db credentials.
+            parents (Firework): Parents of this particular Firework.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
         t = []
         if copy_vasp_outputs:
             t.append(
                 CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
-        t.append(WriteVaspNSCFFromPrev(prev_calc_dir=".", mode="uniform", reciprocal_density=1000))
+        if mode.lower() == "uniform":
+            t.append(WriteVaspNSCFFromPrev(prev_calc_dir=".", mode="uniform", reciprocal_density=1000))
+        else:
+            t.append(WriteVaspNSCFFromPrev(prev_calc_dir=".", mode="line", reciprocal_density=20))
         t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
-        t.append(VaspToDbTask(db_file=db_file,
-                              additional_fields={"task_label": name},
-                              parse_dos=True, bandstructure_mode="uniform"))
-        super(NonSCFUniformFW, self).__init__(t, parents=parents,
-                                              name="{}-{}".format(
+        t.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": name},
+                              parse_dos=(mode.lower() == "uniform"), bandstructure_mode=mode))
+        super(NonSCFFW, self).__init__(t, parents=parents, name="%s-%s %s" % (
                                                   structure.composition.reduced_formula,
-                                                  name), **kwargs)
-
-
-class NonSCFLineFW(Firework):
-    def __init__(self, structure, name="nscf line", vasp_cmd="vasp",
-                 copy_vasp_outputs=True,
-                 db_file=None, parents=None, **kwargs):
-        t = []
-        if copy_vasp_outputs:
-            t.append(
-                CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
-        t.append(WriteVaspNSCFFromPrev(prev_calc_dir=".", mode="line", reciprocal_density=20))
-        t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
-        t.append(PassCalcLocs(name=name))
-        t.append(VaspToDbTask(db_file=db_file,
-                              additional_fields={"task_label": name}, parse_dos=False,
-                              bandstructure_mode="line"))
-        super(NonSCFLineFW, self).__init__(t, parents=parents,
-                                           name="{}-{}".format(
-                                               structure.composition.reduced_formula,
-                                               name), **kwargs)
+                                                  name, mode), **kwargs)
 
 
 class LepsFW(Firework):
