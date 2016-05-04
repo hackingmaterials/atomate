@@ -71,31 +71,39 @@ class VaspToDbTask(FireTaskBase):
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
             db_config = get_settings(db_file)
-            db = MMDb(host=db_config["host"], port=db_config["port"], database=db_config["database"],
+            db = MMDb(host=db_config["host"], port=db_config["port"],
+                      database=db_config["database"],
                       user=db_config.get("admin_user"), password=db_config.get("admin_password"),
                       collection=db_config["collection"])
 
-            # insert dos/bandstructure to GridFS and update the task document
+            # insert dos into GridFS
             if self.get("parse_dos") and "calcs_reversed" in task_doc:
                 for idx, x in enumerate(task_doc["calcs_reversed"]):
                     if "dos" in task_doc["calcs_reversed"][idx]:
                         if idx == 0:  # only store most recent DOS
-                            dos = json.dumps(task_doc["calcs_reversed"][idx]["dos"], cls=MontyEncoder)
+                            dos = json.dumps(task_doc["calcs_reversed"][idx]["dos"],
+                                             cls=MontyEncoder)
                             gfs_id, compression_type = db.insert_gridfs(dos, "dos_fs")
                             task_doc["calcs_reversed"][idx]["dos_compression"] = compression_type
                             task_doc["calcs_reversed"][idx]["dos_fs_id"] = gfs_id
                         del task_doc["calcs_reversed"][idx]["dos"]
+
+            # insert band structure into GridFS
             if self.get("bandstructure_mode") and "calcs_reversed" in task_doc:
                 for idx, x in enumerate(task_doc["calcs_reversed"]):
                     if "bandstructure" in task_doc["calcs_reversed"][idx]:
                         if idx == 0:  # only store most recent band structure
-                            bs = json.dumps(task_doc["calcs_reversed"][idx]["bandstructure"], cls=MontyEncoder)
+                            bs = json.dumps(task_doc["calcs_reversed"][idx]["bandstructure"],
+                                            cls=MontyEncoder)
                             gfs_id, compression_type = db.insert_gridfs(bs, "bandstructure_fs")
-                            task_doc["calcs_reversed"][idx]["bandstructure_compression"] = compression_type
+                            task_doc["calcs_reversed"][idx][
+                                "bandstructure_compression"] = compression_type
                             task_doc["calcs_reversed"][idx]["bandstructure_fs_id"] = gfs_id
                         del task_doc["calcs_reversed"][idx]["bandstructure"]
+
             # insert the task document
             t_id = db.insert(task_doc)
+
             logger.info("Finished parsing with task_id: {}".format(t_id))
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
                         defuse_children=(task_doc["state"] != "successful"))
@@ -104,8 +112,8 @@ class VaspToDbTask(FireTaskBase):
 @explicit_serialize
 class ToDbTask(FireTaskBase):
     """
-    Enter data from a calculation into the database.
-    Utilizes a drone to parse the current directory into the DB file to insert.
+    General task to enter data from a calculation into the database.
+    Can use any drone to parse the current directory into the DB file to insert.
 
 
     Required params:
@@ -129,21 +137,13 @@ class ToDbTask(FireTaskBase):
         if "calc_dir" in self:
             calc_dir = self["calc_dir"]
         elif self.get("calc_loc"):
-            if isinstance(self["calc_loc"], six.string_types):
-                for doc in reversed(fw_spec["calc_locs"]):
-                    if doc["name"] == self["calc_loc_name"]:
-                        calc_dir = doc["path"]
-                        break
-            else:
-                calc_dir = fw_spec["calc_locs"][-1]["path"]
+            calc_dir = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])["path"]
 
         # parse the calc directory
         logger.info("PARSING DIRECTORY: {} USING DRONE: {}".format(
             calc_dir, self['drone'].__class__.__name__))
         # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
-
-        task_doc = None
 
         drone = self['drone'].__class__()
         task_doc = drone.assimilate(calc_dir)
