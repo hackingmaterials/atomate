@@ -15,7 +15,7 @@ import re
 from fireworks import explicit_serialize, FireTaskBase, FWAction
 
 from matmethods.utils.utils import env_chk
-from matmethods.utils.fileio import MMos
+from matmethods.utils.fileio import FileClient
 from matmethods.vasp.vasp_utils import get_calc_key
 
 __author__ = 'Anubhav Jain'
@@ -85,12 +85,12 @@ class CopyVaspOutputs(FireTaskBase):
             raise ValueError("Must specify either {} or calc_loc!".format(calc_dir))
         filesystem = get_calc_key(self, fw_spec, "filesystem")
 
-        mmos = MMos(filesystem=filesystem)
+        fileclient = FileClient(filesystem=filesystem)
 
-        calc_dir = mmos.abspath(calc_dir)
+        calc_dir = fileclient.abspath(calc_dir)
         contcar_to_poscar = self.get("contcar_to_poscar", True)
 
-        all_files = mmos.listdir(calc_dir)
+        all_files = fileclient.listdir(calc_dir)
         # determine what files need to be copied
         if "$ALL" in self.get("additional_files", []):
             files_to_copy = all_files
@@ -114,7 +114,7 @@ class CopyVaspOutputs(FireTaskBase):
 
             # detect .relax## if needed - uses last relaxation (up to 9 relaxations)
             relax_ext = ""
-            relax_paths = sorted(mmos.glob(prev_path_full+".relax*"), reverse=True)
+            relax_paths = sorted(fileclient.glob(prev_path_full+".relax*"), reverse=True)
 
             if relax_paths:
                 if len(relax_paths) > 9:
@@ -135,7 +135,7 @@ class CopyVaspOutputs(FireTaskBase):
                 raise ValueError("Cannot find file: {}".format(f))
 
             # copy the file (minus the relaxation extension)
-            mmos.copy(prev_path_full + relax_ext + gz_ext, dest_path + gz_ext)
+            fileclient.copy(prev_path_full + relax_ext + gz_ext, dest_path + gz_ext)
 
             # unzip the .gz if needed
             if gz_ext == '.gz' or gz_ext == ".GZ":

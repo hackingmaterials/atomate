@@ -18,7 +18,7 @@ __email__ = 'kmathew@lbl.gov'
 # TODO: properly document this
 # TODO: make this easily compatible with VaspLocs. e.g. given a VaspLoc be able to connect properly
 
-class MMos(object):
+class FileClient(object):
     """
     paramiko wrapper
     """
@@ -38,7 +38,7 @@ class MMos(object):
                 username = None  # paramiko sets default username
                 host = filesystem
 
-            self.ssh = MMos.get_ssh_connection(username, host, pkey_file)
+            self.ssh = FileClient.get_ssh_connection(username, host, pkey_file)
             self.sftp = self.ssh.open_sftp()
 
     @staticmethod
@@ -97,7 +97,7 @@ class MMos(object):
 
         else:
             if os.path.isdir(src):
-                if not MMos.exists(self.sftp, dest):
+                if not FileClient.exists(self.sftp, dest):
                     self.sftp.mkdir(dest)
                 for f in os.listdir(src):
                     if os.path.isfile(os.path.join(src, f)):

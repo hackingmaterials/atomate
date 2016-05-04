@@ -1,7 +1,7 @@
 import unittest
 import getpass
 
-from matmethods.utils.fileio import MMos
+from matmethods.utils.fileio import FileClient
 
 
 # TODO: Kiran please either activate this test or remove it ...
@@ -17,7 +17,7 @@ class FileIOTests(unittest.TestCase):
         username = getpass.getuser()
         host = "localhost"
         filesystem = "{}@{}".format(username, host)
-        mmos = MMos(filesystem)
-        self.assertIsNotNone(mmos.ssh)
+        fileclient = FileClient(filesystem)
+        self.assertIsNotNone(fileclient.ssh)
 
 """
