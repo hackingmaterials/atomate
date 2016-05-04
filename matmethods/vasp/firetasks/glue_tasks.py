@@ -12,40 +12,13 @@ import gzip
 import os
 import re
 
-from fireworks import explicit_serialize, FireTaskBase, FWAction
+from fireworks import explicit_serialize, FireTaskBase
 
-from matmethods.utils.utils import env_chk, get_calc_loc
+from matmethods.utils.utils import get_calc_loc
 from matmethods.utils.fileio import FileClient
 
 __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
-
-
-@explicit_serialize
-class PassCalcLocs(FireTaskBase):
-    """
-    Passes the calc_locs key. Should be called in the same FireWork as a
-    the calculation. This passes information about where the current run is located
-    for the next FireWork.
-
-    Required params:
-        name: descriptive name for this calculation file/dir
-
-    Optional params:
-        filesystem: name of filesystem. Supports env_chk. defaults to None
-        path: The path to the directory containing the calculation. defaults to
-            current working directory.
-    """
-
-    required_params = ["name"]
-    optional_params = ["filesystem", "path"]
-
-    def run_task(self, fw_spec):
-        doc = {"name": self["name"],
-               "filesystem": env_chk(self.get('filesystem', None), fw_spec),
-               "path": self.get("path", os.getcwd())}
-
-        return FWAction(mod_spec=[{'_push': {'calc_locs': doc}}])
 
 
 @explicit_serialize

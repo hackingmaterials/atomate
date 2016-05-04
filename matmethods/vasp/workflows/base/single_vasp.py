@@ -11,7 +11,7 @@ from pymatgen.io.vasp.sets import MPVaspInputSet
 
 from fireworks import Firework, Workflow
 
-from matmethods.vasp.firetasks.parse_outputs import ToDbTask
+from matmethods.common.firetasks.parse_outputs import ToDbTask
 from matmethods.vasp.firetasks.run_calc import RunVaspDirect
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet
 from matmethods.vasp.drones import VaspDrone
