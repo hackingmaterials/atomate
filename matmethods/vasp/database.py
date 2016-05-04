@@ -19,6 +19,7 @@ __email__ = 'kmathew@lbl.gov'
 
 logger = get_logger(__name__)
 
+# TODO: AJ needs to review this code
 
 class MMDb(object):
     """

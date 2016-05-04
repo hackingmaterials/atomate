@@ -42,7 +42,7 @@ __version__ = "0.1.0"
 logger = get_logger(__name__)
 
 # TODO: needs comprehensive unit tests
-
+# TODO: AJ needs to review this code
 
 class VaspDrone(AbstractDrone):
     """

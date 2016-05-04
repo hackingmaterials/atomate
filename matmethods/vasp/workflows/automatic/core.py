@@ -7,7 +7,10 @@ from matmethods.vasp.workflows.base.single_vasp import get_wf_single
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
-# TODO: allow standard behavior to be modified via a config file (but keep structure as only param)
+# TODO: allow standard behavior to be modified via a config file (but retain structure as only param)
+# TODO: add SOC workflow
+# TODO: add HSE workflow
+# TODO: add dielectric workflow
 
 
 def wf_band_structure(structure):
