@@ -44,6 +44,31 @@ def env_chk(val, fw_spec, strict=True):
     return val
 
 
+def get_calc_loc(target_loc, calc_locs):
+
+    """
+    This is a helper method that - given a target_loc and a dictionary of calc_locs - will
+    extract the correct calculation directory. i.e., if there are many calc_locs that have been
+    passed, this will return the correct parent calc information
+
+    Args:
+        target_loc: (bool or str) If str, will search for calc_loc with matching name.
+            Else use most recent calc_loc that has been passed (likely most common use).
+        calc_locs: (dict) The dictionary of all calc_locs
+
+    Returns:
+        (dict) dict with subkeys path, filesystem, and name
+    """
+
+    if isinstance(target_loc, basestring):
+        for doc in reversed(calc_locs):
+            if doc["name"] == target_loc:
+                return doc
+        raise ValueError("Could not find the target_loc: {}".format(target_loc))
+
+    else:
+        return calc_locs[-1]
+
 def get_logger(name, level=logging.DEBUG,
                format='%(asctime)s %(levelname)s %(name)s %(message)s',
                stream=sys.stdout):

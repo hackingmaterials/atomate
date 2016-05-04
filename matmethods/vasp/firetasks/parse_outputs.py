@@ -13,7 +13,7 @@ from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.utilities.fw_utilities import explicit_serialize
 from matgendb.util import get_settings
 
-from matmethods.utils.utils import env_chk
+from matmethods.utils.utils import env_chk, get_calc_loc
 from matmethods.vasp.drones import VaspDrone
 from matmethods.vasp.database import MMDb
 from matmethods.utils.utils import get_logger
@@ -56,13 +56,8 @@ class VaspToDbTask(FireTaskBase):
         if "calc_dir" in self:
             calc_dir = self["calc_dir"]
         elif self.get("calc_loc"):
-            if isinstance(self["calc_loc"], six.string_types):
-                for doc in reversed(fw_spec["calc_locs"]):
-                    if doc["name"] == self["calc_loc_name"]:
-                        calc_dir = doc["path"]
-                        break
-            else:
-                calc_dir = fw_spec["calc_locs"][-1]["path"]
+            calc_dir = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])["path"]
+
         # parse the VASP directory
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
         # get the database connection
