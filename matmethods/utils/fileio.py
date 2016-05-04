@@ -15,8 +15,7 @@ __credits__ = 'Anubhav Jain <ajain@lbl.gov>'
 __email__ = 'kmathew@lbl.gov'
 
 
-# TODO: properly document this
-# TODO: make this easily compatible with VaspLocs. e.g. given a VaspLoc be able to connect properly
+# TODO: properly document this (i.e., all methods)
 
 class FileClient(object):
     """
