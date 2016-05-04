@@ -20,6 +20,10 @@ class FuncTest(PymatgenTest):
 
         self.assertEqual(sorted([len(v) for v in wf.links.values()]),
                          [0, 0, 1, 2])
+        d = loadfn(os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                                "badspec.yaml"))
+
+        self.assertRaises(ImportError, get_wf_from_spec_dict, self.structure, d)
 
 if __name__ == '__main__':
     unittest.main()

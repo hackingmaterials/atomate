@@ -1,0 +1,5 @@
+fireworks:
+- fw: matmethods.nonexistent.FW
+common_params:
+  db_file: db.json
+  vasp_cmd: /opt/vasp
