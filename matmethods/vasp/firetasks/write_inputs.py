@@ -222,5 +222,4 @@ class WriteVaspDFPTDielectricFromPrev(FireTaskBase):
     def run_task(self, fw_spec):
         vis = MPStaticDielectricDFPTVaspInputSet(ionic=True)
         p = Poscar.from_file("POSCAR")
-        vis.get_incar(p.structure).write_file("INCAR")
-        vis.get_kpoints(p.structure).write_file("KPOINTS")
+        vis.write_input(p.structure, ".")
