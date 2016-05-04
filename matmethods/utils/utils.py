@@ -39,8 +39,7 @@ def env_chk(val, fw_spec, strict=True):
         strict(bool): if True, errors if env value cannot be found
     """
 
-    if isinstance(val, six.string_types) and val.startswith(
-            ">>") and val.endswith("<<"):
+    if isinstance(val, six.string_types) and val.startswith(">>") and val.endswith("<<"):
         if strict:
             return fw_spec['_fw_env'][val[2:-2]]
         return fw_spec.get('_fw_env', {}).get(val[2:-2])
