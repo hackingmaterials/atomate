@@ -2,7 +2,6 @@ import unittest
 
 from matmethods.utils.loaders import get_wf_from_spec_dict
 import os
-from pymatgen import Structure
 from pymatgen.util.testing import PymatgenTest
 
 from monty.serialization import loadfn
