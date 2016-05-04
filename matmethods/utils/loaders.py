@@ -5,7 +5,7 @@
 from __future__ import division, unicode_literals, print_function
 
 """
-Various helper functions to load and add workflows from YAML specs.
+Load workflow from YAML spec.
 """
 
 from monty.json import MontyDecoder
@@ -37,6 +37,7 @@ def get_wf_from_spec_dict(structure, wfspec):
             common_params:
               db_file: db.json
               vasp_cmd: /opt/vasp
+            name: bandstructure
             ```
 
             The `fireworks` key is a list of fireworks. Each firework is
@@ -47,6 +48,8 @@ def get_wf_from_spec_dict(structure, wfspec):
 
             `common_params` specify a common set of parameters that are
             passed to all fireworks, e.g., db settings.
+
+            `name` is used to set the Workflow name (structure formula + name)
 
     Returns:
         Workflow
@@ -69,4 +72,6 @@ def get_wf_from_spec_dict(structure, wfspec):
                 params["parents"] = p
         fws.append(cls_(structure, **params))
 
-    return Workflow(fws, name=structure.composition.reduced_formula)
+    wfname = "{}:{}".format(structure.composition.reduced_formula, wfspec["name"]) if \
+        wfspec.get("name") else structure.composition.reduced_formula
+    return Workflow(fws, name=wfname)
