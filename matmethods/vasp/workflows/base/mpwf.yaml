@@ -7,7 +7,7 @@ fireworks:
   params:
     parents: 1
     mode: uniform
-- fw: matmethods.vasp.fireworks.fws_standard.NonSCFLineFW
+- fw: matmethods.vasp.fireworks.fws_standard.NonSCFFW
   params:
     parents: 1
     mode: line

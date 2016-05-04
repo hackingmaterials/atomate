@@ -19,12 +19,14 @@ default_yaml = """fireworks:
 - fw: matmethods.vasp.fireworks.fws_standard.StaticFW
   params:
     parents: 0
-- fw: matmethods.vasp.fireworks.fws_standard.NonSCFUniformFW
+- fw: matmethods.vasp.fireworks.fws_standard.NonSCFFW
   params:
     parents: 1
-- fw: matmethods.vasp.fireworks.fws_standard.NonSCFLineFW
+    mode: uniform
+- fw: matmethods.vasp.fireworks.fws_standard.NonSCFFW
   params:
     parents: 1
+    mode: line
 common_params:
   db_file: None
 """
