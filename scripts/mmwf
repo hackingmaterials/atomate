@@ -10,7 +10,9 @@ import sys
 from monty.serialization import loadfn
 import yaml
 
-from matmethods import get_wf_from_spec_dict, add_to_lpad
+from fireworks import LaunchPad
+from matmethods import get_wf_from_spec_dict
+from matmethods.vasp.vasp_powerups import decorate_write_name
 from pymatgen import Structure, MPRester
 
 
@@ -30,6 +32,20 @@ default_yaml = """fireworks:
 common_params:
   db_file: None
 """
+
+def add_to_lpad(workflow, decorate=False):
+    """
+    Add the workflow to the launchpad
+
+    Args:
+        workflow (Workflow): workflow for db insertion
+        decorate (bool): If set an empty file with the name
+            "FW--<fw.name>" will be written to the launch directory
+    """
+    lp = LaunchPad.auto_load()
+    workflow = decorate_write_name(workflow) if decorate else workflow
+    lp.add_wf(workflow)
+
 
 def add_wf(args):
     if args.spec_file:

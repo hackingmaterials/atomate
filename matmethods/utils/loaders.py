@@ -8,10 +8,8 @@ from __future__ import division, unicode_literals, print_function
 Various helper functions to load and add workflows from YAML specs.
 """
 
-
 from monty.json import MontyDecoder
-from fireworks import Workflow, LaunchPad
-from matmethods.vasp.vasp_powerups import decorate_write_name
+from fireworks import Workflow
 
 
 def get_wf_from_spec_dict(structure, wfspec):
@@ -72,17 +70,3 @@ def get_wf_from_spec_dict(structure, wfspec):
         fws.append(cls_(structure, **params))
 
     return Workflow(fws, name=structure.composition.reduced_formula)
-
-
-def add_to_lpad(workflow, decorate=False):
-    """
-    Add the workflow to the launchpad
-
-    Args:
-        workflow (Workflow): workflow for db insertion
-        decorate (bool): If set an empty file with the name
-            "FW--<fw.name>" will be written to the launch directory
-    """
-    lp = LaunchPad.auto_load()
-    workflow = decorate_write_name(workflow) if decorate else workflow
-    lp.add_wf(workflow)
