@@ -5,8 +5,6 @@ from __future__ import division, print_function, unicode_literals, \
 
 import logging
 import sys
-import os
-import warnings
 import six
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
