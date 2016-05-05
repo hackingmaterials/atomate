@@ -15,26 +15,27 @@ from pymongo import MongoClient, ASCENDING, DESCENDING
 from matmethods.utils.utils import get_logger
 
 __author__ = 'Kiran Mathew'
+__credits__ = 'Anubhav Jain'
 __email__ = 'kmathew@lbl.gov'
 
 logger = get_logger(__name__)
 
-# TODO: AJ needs to review this code
 
 class MMDb(object):
     """
-    Mongodb interface.
+    Class to help manage database insertions of Vasp drones
     """
+
     def __init__(self, host="localhost", port=27017, database="vasp", collection="tasks",
                  user=None, password=None):
         self.host = host
-        self.database = database
+        self.db_name = database
         self.user = user
         self.password = password
         self.port = port
         try:
-            connection = MongoClient(self.host, self.port, j=True)
-            self.db = connection[self.database]
+            self.connection = MongoClient(self.host, self.port, j=True)
+            self.db = self.connection[self.db_name]
         except:
             logger.error("Mongodb connection failed")
             raise Exception
@@ -44,29 +45,32 @@ class MMDb(object):
         except:
             logger.error("Mongodb authentication failed")
             raise ValueError
+
+        self.collection = self.db[collection]
+
         # set counter collection
         if self.db.counter.find({"_id": "taskid"}).count() == 0:
             self.db.counter.insert({"_id": "taskid", "c": 1})
-        self.collection = self.db[collection]
+            self.build_indexes()
 
-    def build(self, indices=None, background=True):
+    def build_indexes(self, indexes=None, background=True):
         """
-        Build the indices.
+        Build the indexes.
 
         Args:
-            indices (list): list of single field indices to be built.
+            indexes (list): list of single field indexes to be built.
             background (bool): Run in the background or not.
 
         TODO: make sure that the index building is sensible and check for
-            existing indices.
+            existing indexes.
         """
-        _indices = indices if indices else ["formula_pretty", "formula_anonymous",
+        _indices = indexes if indexes else ["formula_pretty", "formula_anonymous",
                                             "output.energy", "output.energy_per_atom"]
         self.collection.create_index("task_id", unique=True, background=background)
-        # build single field indices
+        # build single field indexes
         for i in _indices:
             self.collection.create_index(i, background=background)
-        # build compound indices
+        # build compound indexes
         for formula in ("formula_pretty", "formula_anonymous"):
             self.collection.create_index([(formula, ASCENDING),
                                           ("output.energy", DESCENDING),
@@ -77,13 +81,13 @@ class MMDb(object):
                                           ("completed_at", DESCENDING)],
                                          background=background)
 
-    def insert_gridfs(self, d, root_coll_name="fs", compress=True):
+    def insert_gridfs(self, d, collection="fs", compress=True):
         """
-        Insert the given document ot GridFS.
+        Insert the given document into GridFS.
 
         Args:
             d (dict): the document
-            root_coll_name (string): the root collection name
+            collection (string): the GridFS collection name
             compress (bool): Whether to compress the data or not
 
         Returns:
@@ -91,7 +95,7 @@ class MMDb(object):
         """
         if compress:
             d = zlib.compress(d, compress)
-        fs = gridfs.GridFS(self.db, root_coll_name)
+        fs = gridfs.GridFS(self.db, collection)
         fs_id = fs.put(d)
         return fs_id, "zlib"
 
@@ -122,3 +126,8 @@ class MMDb(object):
         else:
             logger.info("Skipping duplicate {}".format(d["dir_name"]))
             return None
+
+    def reset(self):
+        self.connection.drop_database(self.db_name)
+        self.db.counter.insert({"_id": "taskid", "c": 1})
+        self.build_indexes()
