@@ -33,7 +33,7 @@ class OptimizeFW(Firework):
                 settings, e.g., user_incar_settings, etc.
             vasp_cmd (str): Command to run vasp.
             db_file (str): Path to file specifying db credentials.
-            parents (Firework): Parents of this particular Firework.
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         override_default_vasp_params = override_default_vasp_params or {}
@@ -64,7 +64,7 @@ class StaticFW(Firework):
             vasp_cmd (str): Command to run vasp.
             copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
             db_file (str): Path to file specifying db credentials.
-            parents (Firework): Parents of this particular Firework.
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         t = []
@@ -100,7 +100,7 @@ class NonSCFFW(Firework):
             vasp_cmd (str): Command to run vasp.
             copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
             db_file (str): Path to file specifying db credentials.
-            parents (Firework): Parents of this particular Firework.
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         t = []
@@ -133,7 +133,7 @@ class LepsFW(Firework):
             vasp_cmd (str): Command to run vasp.
             copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
             db_file (str): Path to file specifying db credentials.
-            parents (Firework): Parents of this particular Firework.
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         t = []

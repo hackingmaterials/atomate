@@ -48,3 +48,8 @@ def get_wf_single(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=None,
     my_wf = Workflow.from_Firework(my_fw)
 
     return my_wf
+
+if __name__ == "__main__":
+    from pymatgen.util.testing import PymatgenTest
+    structure = PymatgenTest.get_structure("Si")
+    wf = get_wf_single(structure)

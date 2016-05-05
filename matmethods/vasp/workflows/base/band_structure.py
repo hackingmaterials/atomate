@@ -51,7 +51,7 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
                  database insertion.
 
     Args:
-        structure (Structure): input structure to be relaxed.
+        structure (Structure): input structure to be optimized and run
         vasp_input_set (DictVaspInputSet): vasp input set.
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
@@ -60,7 +60,7 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
     Returns:
         Workflow
     """
-    v = vasp_input_set if vasp_input_set is not None else MPVaspInputSet()
+    v = vasp_input_set if vasp_input_set is not None else MPVaspInputSet(force_gamma=True)
 
     d = loadfn(os.path.join(os.path.dirname(__file__), "mpwf.yaml"))
     d["fireworks"][0]["params"] = {"vasp_input_set": v.as_dict()}
@@ -75,6 +75,4 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
 if __name__ == "__main__":
     from pymatgen.util.testing import PymatgenTest
     structure = PymatgenTest.get_structure("Si")
-    print(structure)
     wf = get_wf_bandstructure(structure)
-    #add_to_lpad(wf, decorate=True)
