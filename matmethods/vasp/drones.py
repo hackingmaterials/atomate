@@ -320,6 +320,10 @@ class VaspDrone(AbstractDrone):
             "point_group": sg.get_point_group(),
             "crystal_system": sg.get_crystal_system(),
             "hall": sg.get_hall()}
+        if d["input"]["parameters"].get("LEPSILON"):
+            for k in ['epsilon_static', 'epsilon_static_wolfe',
+                      'epsilon_ionic']:
+                d["output"][k] = d_calc["output"][k]
 
     def set_state(self, d_calc, d):
         """
