@@ -63,7 +63,7 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
 
     task_label = "non-magnetic structure optimization"
     t1 = []
-    vasp_input_set = vasp_input_set if vasp_input_set else MPVaspInputSet(force_gamma=True)
+    vasp_input_set = vasp_input_set or MPVaspInputSet(force_gamma=True)
     t1.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
     t1.append(ModifyIncar(incar_dictmod = {"_unset": {"MAGMOM": ""}}))
     t1.append(RunVaspDirect(vasp_cmd=vasp_cmd))

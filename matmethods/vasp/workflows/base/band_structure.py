@@ -60,7 +60,7 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
     Returns:
         Workflow
     """
-    v = vasp_input_set if vasp_input_set is not None else MPVaspInputSet(force_gamma=True)
+    v = vasp_input_set or MPVaspInputSet(force_gamma=True)
 
     d = loadfn(os.path.join(os.path.dirname(__file__), "mpwf.yaml"))
     d["fireworks"][0]["params"] = {"vasp_input_set": v.as_dict()}

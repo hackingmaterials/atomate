@@ -37,7 +37,7 @@ def get_wf_single(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=None,
     Returns:
         Workflow
     """
-    vasp_input_set = vasp_input_set if vasp_input_set else MPVaspInputSet(force_gamma=True)
+    vasp_input_set = vasp_input_set or MPVaspInputSet(force_gamma=True)
 
     write_task = WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
     run_task = RunVaspDirect(vasp_cmd=vasp_cmd)
