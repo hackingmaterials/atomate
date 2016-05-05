@@ -26,23 +26,19 @@ from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp import Vasprun, Outcar
 from pymatgen.apps.borg.hive import AbstractDrone
-from pymatgen.entries.computed_entries import ComputedEntry
-from pymatgen.matproj.rest import MPRester
 
 from matgendb.creator import get_uri
 
 from matmethods.utils.utils import get_logger
 
-__author__ = 'Kiran Mathew, Shyue Ping Ong, Shyam Dwaraknath'
-__credits__ = 'Anubhav Jain'
+__author__ = 'Kiran Mathew, Shyue Ping Ong, Shyam Dwaraknath, Anubhav Jain'
 __email__ = 'kmathew@lbl.gov'
 __date__ = 'Mar 27, 2016'
 __version__ = "0.1.0"
 
 logger = get_logger(__name__)
 
-# TODO: needs comprehensive unit tests
-# TODO: AJ needs to review this code
+# TODO: this code could use some cleanup ...
 
 class VaspDrone(AbstractDrone):
     """
@@ -50,18 +46,15 @@ class VaspDrone(AbstractDrone):
     Please refer to matgendb.creator.VaspToDbTaskDrone documentation.
     """
 
-    __version__ = 0.1
+    __version__ = 0.2
 
-    def __init__(self, runs=["relax1", "relax2"],
-                 parse_dos=False, compress_dos=False, bandstructure_mode=False,
-                 compress_bs=False, additional_fields={},
-                 mapi_key=None, use_full_uri=True):
+    def __init__(self, runs=None, parse_dos=False, compress_dos=False, bandstructure_mode=False,
+                 compress_bs=False, additional_fields=None, use_full_uri=True):
         self.parse_dos = parse_dos
         self.compress_dos = compress_dos
-        self.additional_fields = additional_fields
-        self.mapi_key = mapi_key
+        self.additional_fields = additional_fields if additional_fields else {}
         self.use_full_uri = use_full_uri
-        self.runs = runs
+        self.runs = runs if runs else ["relax1", "relax2"]  # TODO: make this auto-detected
         self.bandstructure_mode = bandstructure_mode
         self.compress_bs = compress_bs
         # set of important keys and sub-keys
@@ -73,7 +66,7 @@ class VaspDrone(AbstractDrone):
         self.input_keys = {'is_lasph', 'is_hubbard', 'xc_override', 'potcar_spec', 'hubbards',
                            'structure', 'pseudo_potential'}
         self.output_keys = {'structure', 'spacegroup', 'density', 'energy', 'energy_per_atom',
-                            'is_gap_direct',  'bandgap', 'vbm', 'cbm', 'is_metal'}
+                            'is_gap_direct', 'bandgap', 'vbm', 'cbm', 'is_metal'}
         self.calcs_reversed_keys = {'dir_name', 'run_type', 'elements', 'nelements',
                                     'formula_pretty', 'formula_reduced_abc',
                                     'composition_reduced', 'vasp_version', 'formula_anonymous',
@@ -95,18 +88,9 @@ class VaspDrone(AbstractDrone):
             path (str): Path to the directory containing vasprun.xml file
 
         Returns:
-            If successful, tuple of (task_id, task_doc dict)
-            Else, tuple of (False, None)
+            tuple of (task_id, task_doc dict)
         """
-        try:
-            d = self.get_task_doc(path)
-            if self.mapi_key is not None and d["state"] == "successful":
-                self.calculate_stability(d)
-            return d
-        except:
-            import traceback
-            logger.error(traceback.format_exc())
-            return False, None
+        return self.get_task_doc(path)
 
     def get_task_doc(self, path):
         """
@@ -186,7 +170,7 @@ class VaspDrone(AbstractDrone):
             # set run_stats and calcs_reversed.x.output.outcar
             for i, d_calc in enumerate(d["calcs_reversed"]):
                 run_stats[d_calc["task"]["name"]] = outcar_data[i].pop("run_stats")
-                if d_calc.get("output", {}):
+                if d_calc.get("output"):
                     d_calc["output"].update({"outcar": outcar_data[i]})
                 else:
                     d_calc["output"] = {"outcar": outcar_data[i]}
@@ -259,20 +243,23 @@ class VaspDrone(AbstractDrone):
         for k, v in {"energy": "final_energy",
                      "energy_per_atom": "final_energy_per_atom"}.items():
             d["output"][k] = d["output"].pop(v)
+
         if self.parse_dos and self.parse_dos != 'final':
             try:
                 d["dos"] = vrun.complete_dos.as_dict()
-            except Exception:
+            except:
                 logger.error("No valid dos data exist in {}.\n Skipping dos".format(dir_name))
+
         if self.bandstructure_mode:
             try:
                 bs = vrun.get_band_structure(line_mode=(self.bandstructure_mode == "line"))
                 d["bandstructure"] = bs.as_dict()
-            except Exception:
+            except:
                 logger.error("No valid band structure data exist in {}.\n Skipping band structure"
                              .format(dir_name))
         else:
             bs = vrun.get_band_structure()
+
         d["output"]["vbm"] = bs.get_vbm()["energy"]
         d["output"]["cbm"] = bs.get_cbm()["energy"]
         bs_gap = bs.get_band_gap()
@@ -286,9 +273,7 @@ class VaspDrone(AbstractDrone):
         """
         Process the outcar file
         """
-        outcar_file = os.path.join(dir_name, filename)
-        outcar = Outcar(outcar_file)
-        return outcar.as_dict()
+        return Outcar(os.path.join(dir_name, filename)).as_dict()
 
     def set_input_data(self, d_calc, d):
         """
@@ -373,22 +358,6 @@ class VaspDrone(AbstractDrone):
                          "max_force": max_force,
                          "warnings": warning_msgs,
                          "errors": error_msgs}
-
-    def calculate_stability(self, d):
-        """
-        Compute the stability of the new entry wrt the existing entries of
-        similar composition from the materialsproject database.
-
-        Adapted from pymatgen-db
-        """
-        m = MPRester(self.mapi_key)
-        functional = d["pseudo_potential"]["functional"]
-        syms = ["{} {}".format(functional, l) for l in d["pseudo_potential"]["labels"]]
-        entry = ComputedEntry(Composition(d["unit_cell_formula"]), d["output"]["final_energy"],
-                              parameters={"hubbards": d["hubbards"], "potcar_symbols": syms})
-        data = m.get_stability([entry])[0]
-        for k in ("e_above_hull", "decomposes_to"):
-            d["analysis"][k] = data[k]
 
     def get_basic_processed_data(self, d):
         """
@@ -492,19 +461,18 @@ class VaspDrone(AbstractDrone):
 
     def as_dict(self):
         init_args = {
-                     "parse_dos": self.parse_dos,
-                     "compress_dos": self.compress_dos,
-                     "bandstructure_mode": self.bandstructure_mode,
-                     "compress_bs": self.compress_bs,
-                     "additional_fields": self.additional_fields,
-                     "mapi_key": self.mapi_key,
-                     "use_full_uri": self.use_full_uri,
-                     "runs": self.runs}
+            "parse_dos": self.parse_dos,
+            "compress_dos": self.compress_dos,
+            "bandstructure_mode": self.bandstructure_mode,
+            "compress_bs": self.compress_bs,
+            "additional_fields": self.additional_fields,
+            "use_full_uri": self.use_full_uri,
+            "runs": self.runs}
         return {"@module": self.__class__.__module__,
-             "@class": self.__class__.__name__,
-             "version": self.__class__.__version__,
-             "init_args": init_args
-             }
+                "@class": self.__class__.__name__,
+                "version": self.__class__.__version__,
+                "init_args": init_args
+                }
 
     @classmethod
     def from_dict(cls, d):
