@@ -15,7 +15,7 @@ from pymongo import MongoClient, DESCENDING
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
-from matmethods.vasp.vasp_powerups import use_custodian, decorate_write_name, make_fake_workflow, \
+from matmethods.vasp.vasp_powerups import use_custodian, add_namefile, use_fake_vasp, \
     add_trackers
 from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure
 from matmethods.vasp.workflows.base.single_vasp import get_wf_single
@@ -178,7 +178,7 @@ class TestVaspWorkflows(unittest.TestCase):
         my_wf = get_wf_single(structure, vis, vasp_cmd=VASP_CMD,
                               task_label="structure optimization")
         if not VASP_CMD:
-            my_wf = make_fake_workflow(my_wf)
+            my_wf = use_fake_vasp(my_wf)
         else:
             my_wf = use_custodian(my_wf)
         self.lp.add_wf(my_wf)
@@ -201,7 +201,7 @@ class TestVaspWorkflows(unittest.TestCase):
                               db_file=">>db_file<<",
                               task_label="structure optimization")
         if not VASP_CMD:
-            my_wf = make_fake_workflow(my_wf)
+            my_wf = use_fake_vasp(my_wf)
         else:
             my_wf = use_custodian(my_wf)
         self.lp.add_wf(my_wf)
@@ -222,11 +222,11 @@ class TestVaspWorkflows(unittest.TestCase):
         my_wf = get_wf_bandstructure(structure, vis, vasp_cmd=VASP_CMD,
                                      db_file=">>db_file<<")
         if not VASP_CMD:
-            my_wf = make_fake_workflow(my_wf)
+            my_wf = use_fake_vasp(my_wf)
         else:
             my_wf = use_custodian(my_wf)
 
-        my_wf = decorate_write_name(
+        my_wf = add_namefile(
             my_wf)  # add a slug of fw-name to output files
 
         self.lp.add_wf(my_wf)
@@ -264,7 +264,7 @@ class TestVaspWorkflows(unittest.TestCase):
                               task_label="structure optimization")
 
         if not VASP_CMD:
-            my_wf = make_fake_workflow(my_wf)
+            my_wf = use_fake_vasp(my_wf)
         else:
             my_wf = use_custodian(my_wf)
 

@@ -14,11 +14,10 @@ from matmethods.vasp.tests.vasp_fake import fake_dirs, RunVaspFake
 __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
 
-# TODO: AJ needs to re-review this code
 
 def get_fws_and_tasks(workflow, fw_name_constraint=None, task_name_constraint=None):
     """
-    Given a workflow, returns back the fw_ids and task_ids that match
+    Helper method: given a workflow, returns back the fw_ids and task_ids that match constraints
 
     Args:
         workflow (Workflow): Workflow
@@ -40,7 +39,7 @@ def get_fws_and_tasks(workflow, fw_name_constraint=None, task_name_constraint=No
     return fws_and_tasks
 
 
-def decorate_priority(original_wf, root_priority, child_priority=None):
+def add_priority(original_wf, root_priority, child_priority=None):
     """
     Adds priority to a workflow
 
@@ -71,13 +70,13 @@ def use_custodian(original_wf, fw_name_constraint=None, custodian_params=None):
     runs if not originally present.
 
     Args:
-        original_wf (Workflow)
-        fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this substring. For
-                               example, use custodian only for certain runs, or set job_type to
-                               "double_relaxation_run" only for structure optimization run,
-                               or set different handler_lvl for different runs.
-        custodian_params (dict) - A dict of parameters for RunVaspCustodian. e.g., use it to set
-                                  a "scratch_dir" or "handler_lvl".
+        original_wf (Workflow): original workflow
+        fw_name_constraint (str): Only apply changes to FWs where fw_name contains this substring.
+            For example, use custodian only for certain runs, or set job_type to
+            "double_relaxation_run" only for structure optimization run, or set different
+            handler_lvl for different runs.
+        custodian_params (dict): A dict of parameters for RunVaspCustodian. e.g., use it to set
+            a "scratch_dir" or "handler_lvl".
     """
 
     custodian_params = custodian_params if custodian_params else {}
@@ -86,18 +85,17 @@ def use_custodian(original_wf, fw_name_constraint=None, custodian_params=None):
                                            task_name_constraint="RunVasp")
 
     for idx_fw, idx_t in vasp_fws_and_tasks:
-        if "vasp_cmd" in custodian_params:
-            wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
-                RunVaspCustodian(**custodian_params).to_dict()
-        else:
-            vasp_cmd = wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"]
-            wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
-                RunVaspCustodian(vasp_cmd=vasp_cmd, **custodian_params).to_dict()
+        if "vasp_cmd" not in custodian_params:
+            custodian_params["vasp_cmd"] = \
+                wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"]
+
+        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
+            RunVaspCustodian(**custodian_params).to_dict()
 
     return Workflow.from_dict(wf_dict)
 
 
-def make_fake_workflow(original_wf):
+def use_fake_vasp(original_wf):
     """
     Replaces all tasks with "RunVasp" (e.g. RunVaspDirect) to be
     RunVaspFake. Thus, we do not actually run VASP but copy
@@ -112,14 +110,13 @@ def make_fake_workflow(original_wf):
             if job_type in fw.name:
                 for idx_t, t in enumerate(fw.tasks):
                     if "RunVasp" in str(t):
-                        wf_dict["fws"][idx_fw]["spec"]["_tasks"][
-                            idx_t] = RunVaspFake(
-                            fake_dir=fake_dirs[job_type]).to_dict()
+                        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
+                            RunVaspFake(fake_dir=fake_dirs[job_type]).to_dict()
 
     return Workflow.from_dict(wf_dict)
 
 
-def decorate_write_name(original_wf, use_slug=True):
+def add_namefile(original_wf, use_slug=True):
     """
     Every FireWork begins by writing an empty file with the name
     "FW--<fw.name>". This makes it easy to figure out what jobs are in what
@@ -177,7 +174,7 @@ def add_modify_incar(original_wf, modify_incar_params, fw_name_constraint=None):
 
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp"):
-        original_wf.fws[idx_fw].spec["_tasks"].insert(idx_t-1, ModifyIncar(**modify_incar_params).
+        original_wf.fws[idx_fw].spec["_tasks"].insert(idx_t - 1, ModifyIncar(**modify_incar_params).
                                                       to_dict())
 
     return original_wf

@@ -7,7 +7,7 @@ import unittest
 
 from fireworks import Firework, ScriptTask, Workflow
 
-from matmethods.vasp.vasp_powerups import decorate_priority, use_custodian, add_trackers, \
+from matmethods.vasp.vasp_powerups import add_priority, use_custodian, add_trackers, \
     add_modify_incar, add_small_gap_multiply, use_scratch_dir
 from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure
 
@@ -30,14 +30,14 @@ class TestVaspPowerups(unittest.TestCase):
     def _copy_wf(self, wf):
         return Workflow.from_dict(wf.to_dict())
 
-    def test_decorate_priority(self):
+    def test_add_priority(self):
         fw1 = Firework([ScriptTask(script=None)], fw_id=-1)
         fw2 = Firework([ScriptTask(script=None)], parents=[fw1], fw_id=-2)
         fw3 = Firework([ScriptTask(script=None)], parents=[fw1], fw_id=-3)
 
         wf = Workflow([fw1, fw2, fw3])
 
-        wf = decorate_priority(wf, 4, 8)
+        wf = add_priority(wf, 4, 8)
         self.assertEqual(wf.id_fw[-1].spec["_priority"], 4)
         self.assertEqual(wf.id_fw[-2].spec["_priority"], 8)
         self.assertEqual(wf.id_fw[-3].spec["_priority"], 8)

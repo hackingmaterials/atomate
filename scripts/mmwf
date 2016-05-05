@@ -12,7 +12,7 @@ import yaml
 
 from fireworks import LaunchPad
 from matmethods import get_wf_from_spec_dict
-from matmethods.vasp.vasp_powerups import decorate_write_name
+from matmethods.vasp.vasp_powerups import add_namefile
 from pymatgen import Structure, MPRester
 
 
@@ -33,17 +33,17 @@ common_params:
   db_file: None
 """
 
-def add_to_lpad(workflow, decorate=False):
+def add_to_lpad(workflow, write_namefile=False):
     """
     Add the workflow to the launchpad
 
     Args:
         workflow (Workflow): workflow for db insertion
-        decorate (bool): If set an empty file with the name
+        write_namefile (bool): If set an empty file with the name
             "FW--<fw.name>" will be written to the launch directory
     """
     lp = LaunchPad.auto_load()
-    workflow = decorate_write_name(workflow) if decorate else workflow
+    workflow = add_namefile(workflow) if write_namefile else workflow
     lp.add_wf(workflow)
 
 
@@ -58,7 +58,7 @@ def add_wf(args):
         else:
             s = MPRester().get_structure_by_material_id(f)
         wf = get_wf_from_spec_dict(s, d)
-        add_to_lpad(wf, decorate=False)
+        add_to_lpad(wf, write_namefile=False)
 
 
 if __name__ == "__main__":
