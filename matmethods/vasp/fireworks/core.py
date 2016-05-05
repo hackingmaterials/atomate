@@ -18,6 +18,7 @@ class OptimizeFW(Firework):
 
     def __init__(self, structure, name="structure optimization",
                  vasp_input_set=None, vasp_cmd="vasp",
+                 override_default_vasp_params=None,
                  db_file=None, parents=None, **kwargs):
         """
         Standard structure optimization Firework.
@@ -26,14 +27,17 @@ class OptimizeFW(Firework):
             structure (Structure): Input structure.
             name (str): Name for the Firework.
             vasp_input_set (VaspInputSet): input set to use. Defaults to MPVaspInputSet() if None.
+            override_default_vasp_params (dict): If this is not None,
+                these params are passed to the default vasp_input_set, i.e.,
+                MPVaspInputSet. This allows one to easily override some
+                settings, e.g., user_incar_settings, etc.
             vasp_cmd (str): Command to run vasp.
             db_file (str): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-
-        vasp_input_set = vasp_input_set if vasp_input_set else MPVaspInputSet(
-            force_gamma=True)
+        override_default_vasp_params = override_default_vasp_params or {}
+        vasp_input_set = vasp_input_set or MPVaspInputSet(force_gamma=True, **override_default_vasp_params)
 
         t = []
         t.append(WriteVaspFromIOSet(structure=structure,
