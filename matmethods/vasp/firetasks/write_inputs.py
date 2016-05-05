@@ -11,7 +11,8 @@ from fireworks import FireTaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
 
 from pymatgen.io.vasp import Incar, Poscar
-from pymatgen.io.vasp.sets import MPStaticDielectricDFPTVaspInputSet, MPStaticSet, MPNonSCFSet
+from pymatgen.io.vasp.sets import MPStaticDielectricDFPTVaspInputSet, \
+    MPStaticSet, MPNonSCFSet
 
 from matmethods.utils.utils import env_chk
 
@@ -218,8 +219,14 @@ class WriteVaspDFPTDielectricFromPrev(FireTaskBase):
     Optional params:
         (none)
     """
+    required_params = ["prev_calc_dir"]
+    optional_params = ["copy_chgcar"]
 
     def run_task(self, fw_spec):
-        vis = MPStaticDielectricDFPTVaspInputSet(ionic=True)
+        vis = MPStaticSet.from_prev_calc(
+            prev_calc_dir=self["prev_calc_dir"],
+            copy_chgcar=self.get("copy_chgcar", True),
+            lepsilon=True
+        )
         p = Poscar.from_file("POSCAR")
         vis.write_input(p.structure, ".")
