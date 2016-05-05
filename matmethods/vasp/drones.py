@@ -48,37 +48,41 @@ class VaspDrone(AbstractDrone):
 
     __version__ = 0.2
 
+    # Schema def of important keys and sub-keys
+    schema = {
+        "root": {
+            "schema", "dir_name", "chemsys", "composition_reduced",
+            "formula_pretty", "formula_reduced_abc", "elements",
+            "nelements", "formula_anonymous", "calcs_reversed", "completed_at",
+            "nsites", "composition_unit_cell", "input", "output", "state",
+            "analysis", "run_stats"
+        },
+        "input": {'is_lasph', 'is_hubbard', 'xc_override', 'potcar_spec',
+                  'hubbards', 'structure', 'pseudo_potential'},
+        "output": {'structure', 'spacegroup', 'density', 'energy',
+                   'energy_per_atom', 'is_gap_direct', 'bandgap', 'vbm',
+                   'cbm', 'is_metal'},
+        "calcs_reversed": {
+            'dir_name', 'run_type', 'elements', 'nelements',
+            'formula_pretty', 'formula_reduced_abc', 'composition_reduced',
+            'vasp_version', 'formula_anonymous', 'nsites',
+            'composition_unit_cell', 'completed_at', 'task', 'input', 'output',
+            'has_vasp_completed'
+        },
+        "analysis": {'delta_volume_percent', 'delta_volume', 'max_force',
+                     'errors',
+                     'warnings'}
+    }
+
     def __init__(self, runs=None, parse_dos=False, compress_dos=False, bandstructure_mode=False,
                  compress_bs=False, additional_fields=None, use_full_uri=True):
         self.parse_dos = parse_dos
         self.compress_dos = compress_dos
-        self.additional_fields = additional_fields if additional_fields else {}
+        self.additional_fields = additional_fields or {}
         self.use_full_uri = use_full_uri
-        self.runs = runs if runs else ["relax1", "relax2"]  # TODO: make this auto-detected
+        self.runs = runs or ["relax1", "relax2"]  # TODO: make this auto-detected
         self.bandstructure_mode = bandstructure_mode
         self.compress_bs = compress_bs
-        # set of important keys and sub-keys
-        self.root_keys = {"schema", "dir_name", "chemsys", "composition_reduced",
-                          "formula_pretty", "formula_reduced_abc", "elements", "nelements",
-                          "formula_anonymous", "calcs_reversed", "completed_at", "nsites",
-                          "composition_unit_cell", "input", "output", "state", "analysis",
-                          "run_stats"}
-        self.input_keys = {'is_lasph', 'is_hubbard', 'xc_override', 'potcar_spec', 'hubbards',
-                           'structure', 'pseudo_potential'}
-        self.output_keys = {'structure', 'spacegroup', 'density', 'energy', 'energy_per_atom',
-                            'is_gap_direct', 'bandgap', 'vbm', 'cbm', 'is_metal'}
-        self.calcs_reversed_keys = {'dir_name', 'run_type', 'elements', 'nelements',
-                                    'formula_pretty', 'formula_reduced_abc',
-                                    'composition_reduced', 'vasp_version', 'formula_anonymous',
-                                    'nsites', 'composition_unit_cell', 'completed_at',
-                                    'task', 'input', 'output', 'has_vasp_completed'}
-        self.analysis_keys = {'delta_volume_percent', 'delta_volume', 'max_force', 'errors',
-                              'warnings'}
-        self.all_keys = {"root": self.root_keys,
-                         "input": self.input_keys,
-                         "output": self.output_keys,
-                         "calcs_reversed": self.calcs_reversed_keys,
-                         "analysis": self.analysis_keys}
 
     def assimilate(self, path):
         """
@@ -444,7 +448,7 @@ class VaspDrone(AbstractDrone):
         Sanity check.
         Make sure all the important keys are set
         """
-        for k, v in self.all_keys.items():
+        for k, v in self.schema.items():
             if k == "calcs_reversed":
                 diff = v.difference(set(d.get(k, d)[0].keys()))
             else:
