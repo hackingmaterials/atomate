@@ -194,20 +194,19 @@ C. Running some jobs
 
 Ok, you are now ready to test running some jobs! Note that the testing procedure was recently changed and is under development. For now, try::
 
-``mmwf --help``
-``mmwf add --help``
+mmwf --help
+mmwf add --help
 
 which will show you the commands. For example::
 
-``export MAPI_KEY=<MY MAPI KEY>``
-``mmwf add -m "mp-149"``
-
+export MAPI_KEY=<My Materials API key obtained through Materials Project>
+mmwf add -m "mp-149"
 
 * Verify the workflows are there, e.g. ``lpad get_wflows -d more``.
 * Navigate to where you want to run the workflows. e.g. ``<<INSTALL_DIR>>/scratch``.
 * Type ``qlaunch -r rapidfire``
 
-And away we go! If all is well, this will submit jobs to your system until the workflows finish. You can inspect your FWS Launchpad and also your tasks database to make sure things are progressing well.
+And away we go! If all is well, this will submit jobs to your system until the workflows finish. You can inspect your FWS Launchpad and also your tasks database to make sure things are progressing well. Of course, with the code you can easily submit anything not just Materials Project structures. Just bear with the code until things are a bit more polished...
 
 D. Tuning performance on different machines
 ===========================================
