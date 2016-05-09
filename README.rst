@@ -206,7 +206,7 @@ mmwf add -m "mp-149"
 * Navigate to where you want to run the workflows. e.g. ``<<INSTALL_DIR>>/scratch``.
 * Type ``qlaunch -r rapidfire``
 
-And away we go! If all is well, this will submit jobs to your system until the workflows finish. You can inspect your FWS Launchpad and also your tasks database to make sure things are progressing well. Of course, with the code you can easily submit anything not just Materials Project structures. Just bear with the code until things are a bit more polished...
+And away we go! If all is well, this will submit jobs to your system until the workflows finish. You can inspect your FWS Launchpad and also your tasks database to make sure things are progressing well. Of course, with the code you can easily submit anything not just Materials Project structures. Note that there are also some workflows in the ``vasp/workflows/auto`` package in which you can just give a Structure and get back a workflow. In some cases this might be more useful than using ``mmwf``. Just bear with the code until things are a bit more polished...
 
 D. Tuning performance on different machines
 ===========================================
