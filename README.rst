@@ -2,7 +2,7 @@
 MatMethods
 ==========
 
-MatMethods is a library for Materials Science workflows. It is currently in development and **unsupported**.
+MatMethods is a library for Materials Science workflows. It is currently in development and **unsupported** except for contributors to the code.
 
 To cite MatMethods, you can cite the following two papers::
 
@@ -18,7 +18,7 @@ To cite MatMethods, you can cite the following two papers::
 Overview
 ========
 
-MatMethods is still not ready for production, however it is **working code**. The following notes might be helpful for the brave.
+MatMethods is still in development, however it is **working code**. The following notes might be helpful for the brave.
 
 ============
 Installation
@@ -42,7 +42,7 @@ Many tests have a DEBUG option that can sometimes help in finding problems. Some
 Learning to use MatMethods
 ==========================
 
-If you are familiar with (i) VASP, (ii) pymatgen, (iii) custodian, and (iv) FireWorks, then most of MatMethods such be fairly straightforward. For example, the workflows in matmethods/vasp/examples/vasp_workflows.py should make sense to you. A good place to begin is by reviewing these workflows and confirming that this is the case.
+If you are familiar with (i) VASP, (ii) pymatgen, (iii) custodian, and (iv) FireWorks, then most of MatMethods such be fairly straightforward. For example, the Fireworks implemented in ``matmethods/vasp/fireworks`` and the the explicit workflow in ``matmethods/vasp/base/single_vasp.py``, which runs a single VASP calculation, should make sense to you. (note that the band structure workflow is loading Fireworks from a YAML specification).
 
 There are only a couple of new concepts in MatMethods that you might need to familiarize yourself with, and they are described below.
 
@@ -55,30 +55,32 @@ The ``env_chk`` functionality is a way to support both hard-coding of parameters
 
 Option 1 is to use something like ``my_task = RunVaspDirect(vasp_cmd="vasp")``. This behaves exactly as you would expect in regular Python, i.e., the string literal "vasp" set as the ``vasp_cmd`` parameter.
 
-Option 2 is to use the ``env_chk`` notation which looks like this: ``my_task = RunVaspDirect(vasp_cmd=">>my_vasp_cmd<<")``. If ``env_chk`` parameters like `vasp_cmd`` are enclosed in the ``>><<`` symbols, it is interpreted that the user wants to get the values from the FireWorker's ``env`` value. That is, when executing the workflow, one must use a FireWorker that contains an env that looks like ``{"my_vasp_cmd": "mpirun -n 24 vasp"}``. Here, the ``my_vasp_cmd`` in the dictionary matches the ``>>my_vasp_cmd<<`` string in the env_chk. Thus, when VASP is executed via this FireWorker, it will execute the command ``mpirun -n 24 vasp``. Other FireWorkers might execute different VASP commands and can support this by setting a different value of the FireWorker ``env``. The workflow can be kept intact since the workflow is merely pointing to the ``my_vasp_cmd`` env variable and not setting the VASP command explicitly. There are more details about setting the FireWorker env variables in the FireWorks tutorials (in particular the Worker tutorial). The unit tests also use the env_chk feature to find the db configuration file. e.g., see the unit test: ``matmethods.vasp.tests.test_vasp_workflows.TestVaspWorkflows#test_single_Vasp_dbinsertion`` and you will have a flavor for how this works. Just remember that if you see something like this ``>>db_file<<``, when running your Workflow your FireWorker will need to set the env like this: ``FWorker(env={"db_file": "path/to/db.json"})`` and you will need to use that FireWorker when launching the jobs.
+Option 2 is to use the ``env_chk`` notation which looks like this: ``my_task = RunVaspDirect(vasp_cmd=">>my_vasp_cmd<<")``. If ``env_chk`` parameters like `vasp_cmd`` are enclosed in the ``>><<`` symbols, it is interpreted that the user wants to get the values from the FireWorker's ``env`` value. That is, when executing the workflow, one must use a FireWorker that contains an env that looks like ``{"my_vasp_cmd": "mpirun -n 24 vasp"}``. Here, the ``my_vasp_cmd`` in the dictionary matches the ``>>my_vasp_cmd<<`` string in the env_chk. Thus, when VASP is executed via this FireWorker, it will execute the command ``mpirun -n 24 vasp``. Other FireWorkers, for example located on different computing centers, might execute different VASP commands and can support this by setting a different value of the FireWorker ``env``. The workflow can be kept intact since the workflow is merely pointing to the ``my_vasp_cmd`` env variable and not setting the VASP command explicitly. There are more details about setting the FireWorker env variables in the FireWorks tutorials (in particular the Worker tutorial). The unit tests also use the env_chk feature to find the db configuration file. e.g., see the unit test: ``matmethods.vasp.tests.test_vasp_workflows.TestVaspWorkflows#test_single_Vasp_dbinsertion`` and you will have a flavor for how this works. Just remember that if you see something like this ``>>db_file<<``, when running your Workflow your FireWorker will need to set the env like this: ``FWorker(env={"db_file": "path/to/db.json"})`` and you will need to use that FireWorker when launching the jobs.
 
 CalcLocs
 ========
 
-If you are running multiple VASP jobs that depend on copying the outputs of previous jobs, one issue is how to pass the directory information of previous VASP jobs from Firework to Firework. It is possible to do this manually (as was done in the MPWorks codebase), or using the ``pass_job_info`` keyword built into Fireworks, but the standard way to do this in MatMethods is *CalcLocs*. Procedurally, all you need to do is add the ```PassCalcLocs`` FireTask to every Firework that contains a VASP job (see ``matmethods.vasp.workflows.base.band_structure.get_wf_bandstructure`` for an example). Downstream jobs like ``CopyVaspOutput`` will have a ``calc_loc`` variable that can be set to True, and will automatically get the previous VASP dir parsed from before. Similar with ``VaspToDbTask``. Note that a couple of advantages of this system are:
+If you are running multiple VASP jobs that depend on copying the outputs of previous jobs, one issue is how to pass the directory information of previous VASP jobs from Firework to Firework. It is possible to do this manually (as was done in the MPWorks codebase), or using the ``pass_job_info`` keyword built into Fireworks, but the standard way to do this in MatMethods is *CalcLocs*. Procedurally, all you need to do is add the ```PassCalcLocs`` FireTask to every Firework that contains a VASP job (see ``matmethods.vasp.fireworks.core`` for examples). Downstream jobs like ``CopyVaspOutput`` will have a ``calc_loc`` variable that can be set to True, and will automatically get the previous VASP dir parsed from before. Similar with ``VaspToDbTask``. Note that a couple of advantages of this system are:
 
 * It is a general way of passing VASP dirs that works with any Firework, and doesn't require you to code the logic of passing VASP directories inside of other functions (e.g., database insertion tasks as was done previously in MPWorks). Thus, the task of reporting and passing the VASP job location is well-separated from the other functions and can just be added in very easily. The only downside is that you have to remember to add in this FireTask.
 * The CalcLocs maintains a running dictionary of job type to job location. If you need to grab outputs from multiple jobs (or say, from two jobs back), it is all supported within the framework. Just read the docs, e.g., of ``CopyVaspOutput``.
-* In the future, if the job directories are located across different machines and require ``scp`` or some other complex transfer mechanism, that can be built into this infrastracture and the user does not need to worry about it.
+* Job directories are located across different machines and require ``scp`` or some other complex transfer mechanism are automatically handled by this infrastructure. You don't have to lift a finger! Just tell the parent Firework to pass the calcloc and the child firework to copy the vasp output (which supports the calcloc framework).
 
 Workflow "Powerups"
 ===================
 
-Workflow powerups are intended to be like function decorators, but for Workflows. For example, let's say you've built a multi-step workflow that computes a band structure. Now, you to make sure that once a workflow starts running, it is prioritized to finish that workflow versus starting other workflows. By passing your workflow through a "powerup", you can get back a decorated workflow that sets the priorities of the Fireworks inside your workflow to endow this behavior (e.g., give all children Fireworks 2X the priority of the root parent). Another planned "powerup" is to endow Workflows with duplicate checking, i.e., to make sure the same structure is not run twice. In the past, such duplicate checking logic would be mixed in with the rest of the Workflow (about setting up VASP parameters, running VASP, etc.), and the end result was a very messy workflow code. It was also difficult to turn duplicate checking off and on as desired since all the logic was intermixed. By moving the duplicate checking to a "powerup", one can simply enable duplicate checking by passing the Workflow through the appropriate powerup.
+Workflow powerups are intended to be like function decorators, but for Workflows. For example, let's say you've built a multi-step workflow that computes a band structure. Now, you to make sure that once a workflow starts running, it is prioritized to finish that particular workflow versus starting other workflows. By passing your workflow through a "powerup", you can get back a decorated workflow that sets the priorities of the Fireworks inside your workflow to endow this behavior (e.g., give all children Fireworks 2X the priority of the root parent). This particular powerup is located in ``matmethods.vasp.vasp_powerups.add_priority``. Other powerups allow you to run VASP with custodian rather than directly call it (reducing your error rate considerably), track the status of your jobs (last few lines in output files) in a database, and more.
 
-See the "vasp_powerups.py" file for examples.
+Note that another planned "powerup" is to endow Workflows with duplicate checking, i.e., to make sure the same structure is not run twice. In the past, such duplicate checking logic would be mixed in with the rest of the Workflow (about setting up VASP parameters, running VASP, etc.), and the end result was a very messy workflow code. It was also difficult to turn duplicate checking off and on as desired since all the logic was intermixed. By moving the duplicate checking to a "powerup", one can simply enable duplicate checking by passing the Workflow through the appropriate powerup.
+
+See the ``vasp_powerups.py`` file for examples.
 
 
 ===========================
 Detailed Installation Notes
 ===========================
 
-Here are some notes on how to get MatMethods up and running in a production system at your supercomputing center. These notes are geared towards the NERSC supercomputing center. You'll need to fill in details and adapt accordingly for other centers. Hopefully, you are not a complete beginner.
+Here are some notes on how to get MatMethods up and running in a production system at your supercomputing center. These notes are geared towards the NERSC supercomputing center. You'll need to fill in details and adapt accordingly for other centers.
 
 A. Things you need to do once
 =============================
@@ -94,7 +96,7 @@ Preliminaries
 Set some environment variables
 ------------------------------
 
-1. Make sure your ``VASP_PSP_DIR`` environment variable is set to point to your VASP pseudopotential directories. Probably you want to put this in your ``.bash_profile`` (or equivalent, e.g., ``.bashrc.ext`` at NERSC) and never have to worry about this again.
+1. Make sure your ``VASP_PSP_DIR`` environment variable is set to point to your VASP pseudopotential directories (this is a pymatgen thing). Probably you want to put this in your ``.bash_profile`` (or equivalent, e.g., ``.bashrc.ext`` at NERSC) and never have to worry about this again. Otherwise, you will need to do this each and every time.
 
 Install some codes
 ------------------
@@ -190,14 +192,22 @@ You can put all of these things inside your ``.bash_profile`` or equivalent in o
 C. Running some jobs
 ====================
 
-Ok, you are now ready to test running some jobs!
+Ok, you are now ready to test running some jobs! Note that the testing procedure was recently changed and is under development. For now, try:
 
-1. Make sure you have completed steps A + B above.
-#. Go to ``<<INSTALL_DIR>>/codes/MatMethods/matmethods/vasp/examples``.
-#. Run the command ``python add_vasp_wfs_to_db.py``. This will add 3 workflows to your database. Look inside this code to see what is going on. It is simple.
-#. Verify the workflows are there, e.g. ``lpad get_wflows -d more``.
-#. Navigate to where you want to run the workflows. e.g. ``<<INSTALL_DIR>>/scratch``.
-#. Type ``qlaunch -r rapidfire``
+``mmwf --help``
+``mmwf add --help``
+
+which will show you the commands. For example,
+
+``export MAPI_KEY=<MY MAPI KEY>``
+``mmwf add -m "mp-149"``
+
+
+Verify the workflows are there, e.g. ``lpad get_wflows -d more``.
+Navigate to where you want to run the workflows. e.g. ``<<INSTALL_DIR>>/scratch``.
+Type ``qlaunch -r rapidfire``
+
+And away we go! If all is well, this will submit jobs to your system until the workflows finish. You can inspect your FWS Launchpad and also your tasks database to make sure things are progressing well.
 
 D. Tuning performance on different machines
 ===========================================
@@ -214,14 +224,9 @@ Note that NCORE sets the number of cores that work on a single orbital. Typicall
 +--------------------+------------------------+
 | Hostname           | max # tasks per node   |
 +--------------------+------------------------+
-| Edison	     |          24            |
+| Edison	         |          24            |
 +--------------------+------------------------+
 | Cori               |          32            |
 +--------------------+------------------------+
 | Matgen             |          16            |
 +--------------------+------------------------+
-
-
-
-
-And away we go! If all is well, this will submit jobs to your system until the workflows finish. You can inspect your FWS Launchpad and also your tasks database to make sure things are progressing well.
