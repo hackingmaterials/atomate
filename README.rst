@@ -210,17 +210,28 @@ which will show you the commands. For example,
 * Navigate to where you want to run the workflows. e.g. ``<<INSTALL_DIR>>/scratch``.
 * Type ``qlaunch -r rapidfire``
 
-And away we go! If all is well, this will submit jobs to your system until the workflows finish. You can inspect your FWS Launchpad and also your tasks database to make sure things are progressing well. Of course, with the code you can easily submit anything not just Materials Project structures. Note that there are also some workflows in the ``vasp/workflows/auto`` package in which you can just give a Structure and get back a workflow. In some cases this might be more useful than using ``mmwf``. Just bear with the code until things are a bit more polished...
+And away we go! If all is well, this will submit jobs to your system until the
+workflows finish. You can inspect your FWS Launchpad and also your tasks
+database to make sure things are progressing well. Of course, with the code you
+can easily submit anything not just Materials Project structures. Note that
+there are also some workflows in the ``vasp/workflows/auto`` package in which
+you can just give a Structure and get back a workflow. In some cases this might
+be more useful than using ``mmwf``. Just bear with the code until things are a
+bit more polished...
 
 D. Tuning performance on different machines
 ===========================================
 
-VASP has certain INCAR parameters like NCORE, NPAR, KPAR, etc. that can be tuned based on your machine. Since
-the ``ModifyIncar`` firetask supports ``env_chk``, these values can also be set in the fireworker config file (my_fworker.yaml). e.g.
+VASP has certain INCAR parameters like NCORE, NPAR, KPAR, etc. that can be tuned
+based on your machine. Since the ``ModifyIncar`` firetask supports
+``env_chk``, these values can also be set in the fireworker config file
+(my_fworker.yaml). E.g.,
 
- env:
-   incar_update:
-       NCORE: 24
+.. code-block:: yaml
+
+    env:
+      incar_update:
+        NCORE: 24
 
 Note that NCORE sets the number of cores that work on a single orbital. Typically, you want to set this between 1 (higher memory requirements) and the number of cores per node (lower memory requirements while still maintaining fast communication times between workers on an a single orbital). A good starting point might be setting NCORE equal to the number of cores per node. The following information might come in handy when setting the NCORE parameter on NERSC machines:
 
