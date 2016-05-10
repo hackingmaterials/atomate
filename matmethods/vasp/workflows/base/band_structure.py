@@ -1,6 +1,7 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, \
+    absolute_import
 
 """
 This module defines functions that generate workflows for bandstructure calculations.
@@ -12,9 +13,6 @@ from pymatgen.io.vasp.sets import MPVaspInputSet
 
 from monty.serialization import loadfn
 from matmethods.utils.loaders import get_wf_from_spec_dict
-
-
-
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
@@ -60,13 +58,14 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
     Returns:
         Workflow
     """
-    v = vasp_input_set or MPVaspInputSet(force_gamma=True)
-
     d = loadfn(os.path.join(os.path.dirname(__file__), "mpwf.yaml"))
+
+    v = vasp_input_set or MPVaspInputSet(force_gamma=True)
     d["fireworks"][0]["params"] = {"vasp_input_set": v.as_dict()}
+
     d["common_params"] = {
-            "vasp_cmd": vasp_cmd,
-            "db_file": db_file
+        "vasp_cmd": vasp_cmd,
+        "db_file": db_file
     }
 
     return get_wf_from_spec_dict(structure, d)
@@ -74,5 +73,6 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
 
 if __name__ == "__main__":
     from pymatgen.util.testing import PymatgenTest
+
     structure = PymatgenTest.get_structure("Si")
     wf = get_wf_bandstructure(structure)
