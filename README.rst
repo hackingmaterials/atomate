@@ -192,12 +192,16 @@ You can put all of these things inside your ``.bash_profile`` or equivalent in o
 C. Running some jobs
 ====================
 
-Ok, you are now ready to test running some jobs! Note that the testing procedure was recently changed and is under development. For now, try::
+Ok, you are now ready to test running some jobs! Note that the testing procedure was recently changed and is under development. For now, try
+
+.. code-block:: bash
 
     mmwf --help
     mmwf add --help
 
 which will show you the commands. For example::
+
+.. code-block:: bash
 
     export MAPI_KEY=<My Materials API key obtained through Materials Project>
     mmwf add -m "mp-149"
