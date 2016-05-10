@@ -199,7 +199,7 @@ Ok, you are now ready to test running some jobs! Note that the testing procedure
     mmwf --help
     mmwf add --help
 
-which will show you the commands. For example::
+which will show you the commands. For example,
 
 .. code-block:: bash
 
