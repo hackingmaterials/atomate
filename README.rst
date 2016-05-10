@@ -194,8 +194,8 @@ C. Running some jobs
 
 Ok, you are now ready to test running some jobs! Note that the testing procedure was recently changed and is under development. For now, try::
 
-mmwf --help
-mmwf add --help
+    mmwf --help
+    mmwf add --help
 
 which will show you the commands. For example::
 
