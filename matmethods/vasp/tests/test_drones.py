@@ -41,6 +41,7 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
         self.assertEqual(doc["formula_pretty"], 'Si')
         self.assertEqual(doc["formula_anonymous"], 'A')
         self.assertEqual(doc["calcs_reversed"][0]["output"]["energy"], doc["output"]["energy"])
+        self.assertEqual(doc["input"]["parameters"]["ISMEAR"], -5)
 
     def test_runs_assimilate(self):
         drone = VaspDrone(runs=["relax1", "relax2"])

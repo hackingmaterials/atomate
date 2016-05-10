@@ -298,7 +298,9 @@ class VaspDrone(AbstractDrone):
                       "xc_override": xc,
                       "pseudo_potential": {"functional": functional.lower(),
                                            "pot_type": pot_type.lower(),
-                                           "labels": d_calc["input"]["potcar"]}
+                                           "labels": d_calc["input"]["potcar"]},
+                      "parameters": d_calc["input"]["parameters"],
+                      "incar": d_calc["input"]["incar"]
                       }
 
     def set_output_data(self, d_calc, d):
