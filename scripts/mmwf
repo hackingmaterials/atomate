@@ -33,6 +33,7 @@ common_params:
   db_file: None
 """
 
+
 def add_to_lpad(workflow, write_namefile=False):
     """
     Add the workflow to the launchpad
