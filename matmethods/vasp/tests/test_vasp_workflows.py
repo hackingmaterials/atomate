@@ -54,11 +54,12 @@ class TestVaspWorkflows(unittest.TestCase):
         try:
             self.lp = LaunchPad.from_file(
                 os.path.join(db_dir, "my_launchpad.yaml"))
+            self.lp.reset("", require_password=False)
+            
         except:
             raise unittest.SkipTest(
                 'Cannot connect to MongoDB! Is the database server running? '
                 'Are the credentials correct?')
-        self.lp.reset("", require_password=False)
 
     def tearDown(self):
         if not DEBUG_MODE:
