@@ -55,22 +55,29 @@ class RunVaspFake(FireTaskBase):
         user_kpoints = Kpoints.from_file(os.path.join(os.getcwd(), "KPOINTS"))
         ref_kpoints = Kpoints.from_file(
             os.path.join(self["fake_dir"], "inputs", "KPOINTS"))
-        if user_kpoints._style != ref_kpoints.style or user_kpoints.num_kpts != ref_kpoints.num_kpts:
-            raise ValueError("KPOINT files are inconsistent!".format(p))
+        if user_kpoints.style != ref_kpoints.style \
+                or user_kpoints.num_kpts != ref_kpoints.num_kpts:
+            raise ValueError("KPOINT files are inconsistent! "
+                             "Paths are:\n{}\n{}".format(
+                p, os.getcwd(), os.path.join(self["fake_dir"], "inputs")))
 
         # check POSCAR
         user_poscar = Poscar.from_file(os.path.join(os.getcwd(), "POSCAR"))
         ref_poscar = Poscar.from_file(
             os.path.join(self["fake_dir"], "inputs", "POSCAR"))
         if user_poscar.natoms != ref_poscar.natoms or user_poscar.site_symbols != ref_poscar.site_symbols:
-            raise ValueError("POSCAR files are inconsistent!".format(p))
+            raise ValueError("POSCAR files are inconsistent! "
+                             "Paths are:\n{}\n{}".format(
+                p, os.getcwd(), os.path.join(self["fake_dir"], "inputs")))
 
         # check POTCAR
         user_potcar = Potcar.from_file(os.path.join(os.getcwd(), "POTCAR"))
         ref_potcar = Potcar.from_file(
             os.path.join(self["fake_dir"], "inputs", "POTCAR"))
         if user_potcar.symbols != ref_potcar.symbols:
-            raise ValueError("POTCAR files are inconsistent!".format(p))
+            raise ValueError("POTCAR files are inconsistent! "
+                             "Paths are:\n{}\n{}".format(
+                p, os.getcwd(), os.path.join(self["fake_dir"], "inputs")))
         logger.info("RunVaspFake: verified inputs successfully")
 
     def _clear_inputs(self):
