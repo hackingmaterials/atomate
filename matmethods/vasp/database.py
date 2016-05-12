@@ -121,6 +121,9 @@ class MMDb(object):
             elif update_duplicates:
                 d["task_id"] = result["task_id"]
                 logger.info("Updating {} with taskid = {}".format(d["dir_name"], d["task_id"]))
+            logger.info(d)
+            print("----")
+            print(d)
             self.collection.update({"dir_name": d["dir_name"]}, {"$set": d}, upsert=True)
             return d["task_id"]
         else:
