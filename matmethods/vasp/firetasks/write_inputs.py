@@ -156,8 +156,9 @@ class WriteVaspStaticFromPrev(FireTaskBase):
     """
 
     required_params = ["prev_calc_dir"]
-    optional_params = ["reciprocal_density", "small_gap_multiply", "standardize", "sym_prec",
-                       "international_monoclinic", "other_params"]
+    optional_params = ["reciprocal_density", "small_gap_multiply",
+                       "standardize", "sym_prec", "international_monoclinic",
+                       "other_params"]
 
     def run_task(self, fw_spec):
         vis = MPStaticSet.from_prev_calc(
@@ -220,12 +221,10 @@ class WriteVaspDFPTDielectricFromPrev(FireTaskBase):
         (none)
     """
     required_params = ["prev_calc_dir"]
-    optional_params = ["copy_chgcar"]
 
     def run_task(self, fw_spec):
         vis = MPStaticSet.from_prev_calc(
             prev_calc_dir=self["prev_calc_dir"],
-            copy_chgcar=self.get("copy_chgcar", True),
             lepsilon=True
         )
         p = Poscar.from_file("POSCAR")
