@@ -228,4 +228,4 @@ class WriteVaspDFPTDielectricFromPrev(FireTaskBase):
             lepsilon=True
         )
         p = Poscar.from_file("POSCAR")
-        vis.write_input(p.structure, ".")
+        vis.write_input(".")
