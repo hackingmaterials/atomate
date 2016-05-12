@@ -126,11 +126,13 @@ class RunVaspCustodian(FireTaskBase):
             jobs = [VaspJob(vasp_cmd, auto_npar=auto_npar,
                             gamma_vasp_cmd=gamma_vasp_cmd)]
         elif job_type == "double_relaxation_run":
-            jobs = VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar, ediffg=None,
-                                                 half_kpts_first_relax=True)
+            jobs = VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar,
+                                                 ediffg=None,
+                                                 half_kpts_first_relax=False)
         elif job_type == "full_opt_run":
-            jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar, ediffg=None, max_steps=4,
-                                        half_kpts_first_relax=True)
+            jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar,
+                                        ediffg=None, max_steps=4,
+                                        half_kpts_first_relax=False)
         else:
             raise ValueError("Unsupported job type: {}".format(job_type))
 
