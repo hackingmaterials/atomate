@@ -1,10 +1,11 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, \
+    absolute_import
 
 """
-This module defines functions that generate workflows for single structural optimization
-calculation.
+This module defines functions that generate workflows for single structural
+optimization calculation.
 """
 
 from pymatgen.io.vasp.sets import MPVaspInputSet
@@ -19,7 +20,8 @@ from matmethods.vasp.drones import VaspDrone
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 
-def get_wf_single(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=None,
+def get_wf_single(structure, vasp_input_set=None, vasp_cmd="vasp",
+                  db_file=None,
                   task_label="single VASP"):
     """
     Return vasp workflow consisting of a single firework made of 3 firetasks:
@@ -39,17 +41,21 @@ def get_wf_single(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=None,
     """
     vasp_input_set = vasp_input_set or MPVaspInputSet(force_gamma=True)
 
-    write_task = WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
+    write_task = WriteVaspFromIOSet(structure=structure,
+                                    vasp_input_set=vasp_input_set)
     run_task = RunVaspDirect(vasp_cmd=vasp_cmd)
     parse_task = ToDbTask(db_file=db_file, drone=VaspDrone())
 
     my_fw = Firework([write_task, run_task, parse_task],
-                     name="{}-{}".format(structure.composition.reduced_formula, task_label))
+                     name="{}-{}".format(structure.composition.reduced_formula,
+                                         task_label))
     my_wf = Workflow.from_Firework(my_fw)
 
     return my_wf
 
+
 if __name__ == "__main__":
     from pymatgen.util.testing import PymatgenTest
+
     structure = PymatgenTest.get_structure("Si")
     wf = get_wf_single(structure)
