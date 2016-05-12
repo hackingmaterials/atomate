@@ -4,7 +4,7 @@ from __future__ import division, print_function, unicode_literals, \
     absolute_import
 
 """
-This module defines workflows for bandstructure calculations.
+This module defines workflows for optical properties.
 """
 
 from fireworks import Workflow
@@ -14,11 +14,11 @@ from pymatgen.io.vasp.sets import MPVaspInputSet
 from monty.serialization import loadfn
 from matmethods.utils.loaders import get_wf_from_spec_dict
 
-__author__ = 'Anubhav Jain, Kiran Mathew'
-__email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
+__author__ = 'Anubhav Jain, Shyue Ping Ong'
+__email__ = 'ajain@lbl.gov, ongsp@eng.ucsd.edu'
 
 
-def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
+def get_wf_dielectric_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
                          db_file=None):
     """
     Return vasp workflow consisting of 4 fireworks:
@@ -29,23 +29,7 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
                  database insertion.
 
     Firework 2 : copy files from previous run,
-                 write vasp input set for static run,
-                 run vasp,
-                 pass run location
-                 database insertion.
-
-    Firework 3 : copy files from previous run,
-                 write vasp input set for non self-consistent
-                 (constant charge density) run in
-                 uniform mode,
-                 run vasp,
-                 pass run location
-                 database insertion.
-
-    Firework 4 : copy files from previous run,
-                 write vasp input set for non self-consistent
-                 (constant charge density) run in
-                 line mode,
+                 write vasp input set for static dielectric run,
                  run vasp,
                  pass run location
                  database insertion.
@@ -59,7 +43,8 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
     Returns:
         Workflow
     """
-    d = loadfn(os.path.join(os.path.dirname(__file__), "band_structure.yaml"))
+    d = loadfn(os.path.join(os.path.dirname(__file__),
+                            "dielectric_constant.yaml"))
 
     v = vasp_input_set or MPVaspInputSet(force_gamma=True)
     d["fireworks"][0]["params"] = {"vasp_input_set": v.as_dict()}
@@ -76,4 +61,5 @@ if __name__ == "__main__":
     from pymatgen.util.testing import PymatgenTest
 
     structure = PymatgenTest.get_structure("Si")
-    wf = get_wf_bandstructure(structure)
+    wf = get_wf_dielectric_constant(structure)
+
