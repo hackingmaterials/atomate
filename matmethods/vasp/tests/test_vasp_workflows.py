@@ -35,8 +35,10 @@ class TestVaspWorkflows(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         if not os.environ.get("VASP_PSP_DIR"):
-            raise unittest.SkipTest(
-                'This system is not set up to run VASP jobs. '
+            os.environ["VASP_PSP_DIR"] = os.path.join(module_dir,
+                                                      "reference_files")
+            print(
+                'Note: This system is not set up to run VASP jobs. '
                 'Please set your VASP_PSP_DIR environment variable.')
 
         cls.struct_si = PymatgenTest.get_structure("Si")
