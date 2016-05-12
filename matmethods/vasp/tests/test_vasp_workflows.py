@@ -20,7 +20,6 @@ from matmethods.vasp.vasp_powerups import use_custodian, add_namefile, use_fake_
 from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure
 from matmethods.vasp.workflows.base.single_vasp import get_wf_single
 
-from pymatgen.io.vasp.sets import MPVaspInputSet
 from pymatgen.util.testing import PymatgenTest
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
@@ -36,8 +35,10 @@ class TestVaspWorkflows(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         if not os.environ.get("VASP_PSP_DIR"):
-            raise unittest.SkipTest(
-                'This system is not set up to run VASP jobs. '
+            os.environ["VASP_PSP_DIR"] = os.path.join(module_dir,
+                                                      "reference_files")
+            print(
+                'Note: This system is not set up to run VASP jobs. '
                 'Please set your VASP_PSP_DIR environment variable.')
 
         cls.struct_si = PymatgenTest.get_structure("Si")
@@ -54,11 +55,12 @@ class TestVaspWorkflows(unittest.TestCase):
         try:
             self.lp = LaunchPad.from_file(
                 os.path.join(db_dir, "my_launchpad.yaml"))
+            self.lp.reset("", require_password=False)
+
         except:
             raise unittest.SkipTest(
                 'Cannot connect to MongoDB! Is the database server running? '
                 'Are the credentials correct?')
-        self.lp.reset("", require_password=False)
 
     def tearDown(self):
         if not DEBUG_MODE:
@@ -173,9 +175,8 @@ class TestVaspWorkflows(unittest.TestCase):
 
     def test_single_Vasp(self):
         # add the workflow
-        vis = MPVaspInputSet(force_gamma=True)
         structure = self.struct_si
-        my_wf = get_wf_single(structure, vis, vasp_cmd=VASP_CMD,
+        my_wf = get_wf_single(structure, vasp_cmd=VASP_CMD,
                               task_label="structure optimization")
         if not VASP_CMD:
             my_wf = use_fake_vasp(my_wf)
@@ -194,10 +195,9 @@ class TestVaspWorkflows(unittest.TestCase):
 
     def test_single_Vasp_dbinsertion(self):
         # add the workflow
-        vis = MPVaspInputSet(force_gamma=True)
         structure = self.struct_si
         # instructs to use db_file set by FWorker, see env_chk
-        my_wf = get_wf_single(structure, vis, vasp_cmd=VASP_CMD,
+        my_wf = get_wf_single(structure, vasp_cmd=VASP_CMD,
                               db_file=">>db_file<<",
                               task_label="structure optimization")
         if not VASP_CMD:
@@ -216,10 +216,9 @@ class TestVaspWorkflows(unittest.TestCase):
 
     def test_bandstructure_Vasp(self):
         # add the workflow
-        vis = MPVaspInputSet(force_gamma=True)
         structure = self.struct_si
         # instructs to use db_file set by FWorker, see env_chk
-        my_wf = get_wf_bandstructure(structure, vis, vasp_cmd=VASP_CMD,
+        my_wf = get_wf_bandstructure(structure, vasp_cmd=VASP_CMD,
                                      db_file=">>db_file<<")
         if not VASP_CMD:
             my_wf = use_fake_vasp(my_wf)
@@ -258,9 +257,8 @@ class TestVaspWorkflows(unittest.TestCase):
 
     def test_trackers(self):
         # add the workflow
-        vis = MPVaspInputSet(force_gamma=True)
         structure = self.struct_si
-        my_wf = get_wf_single(structure, vis, vasp_cmd=VASP_CMD,
+        my_wf = get_wf_single(structure, vasp_cmd=VASP_CMD,
                               task_label="structure optimization")
 
         if not VASP_CMD:

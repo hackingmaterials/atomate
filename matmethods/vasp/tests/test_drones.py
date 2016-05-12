@@ -20,10 +20,6 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        if not os.environ.get("VASP_PSP_DIR"):
-            raise unittest.SkipTest(
-                'This system is not set up to run VASP jobs. '
-                'Please set your VASP_PSP_DIR environment variable.')
         cls.relax = os.path.join(module_dir, "reference_files", "Si_structure_optimization",
                                  "outputs")
         cls.relax2 = os.path.join(module_dir, "reference_files", "Si_structure_optimization_relax2",
