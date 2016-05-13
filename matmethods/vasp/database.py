@@ -125,6 +125,8 @@ class MMDb(object):
                 logger.info("Updating {} with taskid = {}".format(d["dir_name"], d["task_id"]))
             self.collection.update({"dir_name": d["dir_name"]}, {"$set": d}, upsert=True)
             return d["task_id"]
+            # TODO: reinstate line below when new monty is released
+            # d = jsanitize(d, allow_objectid=True)
         else:
             logger.info("Skipping duplicate {}".format(d["dir_name"]))
             return None
