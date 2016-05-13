@@ -69,8 +69,8 @@ def get_calc_loc(target_loc, calc_locs):
     else:
         return calc_locs[-1]
 
-def get_logger(name, level=logging.DEBUG,
-               format='%(asctime)s %(levelname)s %(name)s %(message)s',
+
+def get_logger(name, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(message)s',
                stream=sys.stdout):
     logger = logging.getLogger(name)
     logger.setLevel(level)

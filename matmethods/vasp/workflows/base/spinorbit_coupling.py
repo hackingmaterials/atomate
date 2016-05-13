@@ -23,7 +23,7 @@ __credits__ = 'Anubhav jain'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 
-def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vasp_input_set=None,
+def get_wf_spinorbit_coupling(structure, magmom, field_directions=((0, 0, 1),), vasp_input_set=None,
                               vasp_cmd="vasp", vasp_ncl="vasp_ncl", db_file=None):
     """
     Return Spin-Orbit coupling workflow :
@@ -50,7 +50,7 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
     Args:
         structure (Structure): input structure to be relaxed.
         magmom (list): list of magnetic moment values for each site in the structure.
-        field_directions (list): list of magnetic directions for which non-scf vasp soc are to
+        field_directions (tuple): list of magnetic directions for which non-scf vasp soc are to
             be run.
         vasp_input_set (DictVaspInputSet): vasp input set.
         vasp_cmd (string): command to run
@@ -65,7 +65,7 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
     t1 = []
     vasp_input_set = vasp_input_set or MPVaspInputSet(force_gamma=True)
     t1.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
-    t1.append(ModifyIncar(incar_dictmod = {"_unset": {"MAGMOM": ""}}))
+    t1.append(ModifyIncar(incar_dictmod={"_unset": {"MAGMOM": ""}}))
     t1.append(RunVaspDirect(vasp_cmd=vasp_cmd))
     t1.append(PassCalcLocs(name=task_label))
     t1.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": task_label}))
@@ -74,7 +74,7 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
     task_label = "non-magnetic static scf"
     t2 = []
     t2.append(CopyVaspOutputs(calc_loc=True))
-    t2.append(ModifyIncar(incar_update={"NSW":0, "LCHARG": True}))
+    t2.append(ModifyIncar(incar_update={"NSW": 0, "LCHARG": True}))
     t2.append(RunVaspDirect(vasp_cmd=vasp_cmd))
     t2.append(PassCalcLocs(name=task_label))
     t2.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": task_label}))
@@ -89,11 +89,11 @@ def get_wf_spinorbit_coupling(structure, magmom, field_directions=[[0,0,1]], vas
         soc_task = []
         additional_files = ["CHGCAR"]
         soc_task.append(CopyVaspOutputs(calc_loc=True, additional_files=additional_files))
-        soc_task.append(ModifyIncar(incar_update={"MAGMOM": [[0, 0, m] for m in  magmom],
+        soc_task.append(ModifyIncar(incar_update={"MAGMOM": [[0, 0, m] for m in magmom],
                                                   "ISYM": -1,
                                                   "LSORBIT": "T",
                                                   "ICHARG": 11,
-                                                  "SAXIS": saxis} ))
+                                                  "SAXIS": list(saxis)}))
         soc_task.append(RunVaspDirect(vasp_cmd=vasp_ncl))
         soc_task.append(PassCalcLocs(name=task_label))
         soc_task.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": task_label}))
@@ -115,6 +115,6 @@ if __name__ == "__main__":
                            "ALGO": "Normal",
                            "LREAL": ".FALSE."}
     vis = MPVaspInputSet(user_incar_settings=user_incar_settings, force_gamma=True)
-    wf = get_wf_spinorbit_coupling(fe_monomer, [3.0], field_directions=[[0,0,1]],
+    wf = get_wf_spinorbit_coupling(fe_monomer, [3.0], field_directions=((0, 0, 1), ),
                                    vasp_input_set=vis, vasp_cmd="srun vasp",
                                    vasp_ncl="srun vasp_ncl",  db_file=">>db_file<<")
