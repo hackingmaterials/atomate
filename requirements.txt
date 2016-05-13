@@ -2,6 +2,6 @@ FireWorks>=1.2.7
 pymatgen>=3.5.3
 pymatgen-db>=0.5.1
 custodian>=0.8.8
-monty>=0.8.3
+monty>=0.8.4
 paramiko>=1.15.0
 unittest2>=1.1.0
