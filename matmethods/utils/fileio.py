@@ -23,11 +23,11 @@ class FileClient(object):
     those operations are happening locally or via SSH
     """
 
-    def __init__(self, filesystem=None, pkey_file="~/.ssh/id_rsa"):
+    def __init__(self, filesystem=None, private_key="~/.ssh/id_rsa"):
         """
         Args:
             filesystem (str): remote filesystem, e.g. username@remote_host. If None, use local
-            pkey_file (str): path to the private key file (for remote connections only)
+            private_key (str): path to the private key file (for remote connections only)
                 Note: passwordless ssh login must be setup
         """
         self.ssh = None
@@ -38,29 +38,32 @@ class FileClient(object):
                 username = None  # paramiko sets default username
                 host = filesystem
 
-            self.ssh = FileClient.get_ssh_connection(username, host, pkey_file)
+            self.ssh = FileClient.get_ssh_connection(username, host, private_key)
             self.sftp = self.ssh.open_sftp()
 
     @staticmethod
-    def get_ssh_connection(username, host, pkey_file):
+    def get_ssh_connection(username, host, private_key):
         """
+        Connect to the remote host via paramiko using the private key.
+        If the host key is not present it will be added automatically.
+
         Args:
             username (str):
             host (str):
-            pkey_file (str):  path to private key file
+            private_key (str):  path to private key file
 
         Returns:
             SSHClient
 
         """
         import paramiko
-        pkey_file = os.path.expanduser(pkey_file)
-        if not os.path.exists(pkey_file):
-            raise ValueError("Cannot locate private key file: {}".format(pkey_file))
+        private_key = os.path.expanduser(private_key)
+        if not os.path.exists(private_key):
+            raise ValueError("Cannot locate private key file: {}".format(private_key))
 
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        return ssh.connect(host, username=username, key_filename=pkey_file)
+        return ssh.connect(host, username=username, key_filename=private_key)
 
     @staticmethod
     def exists(sftp, path):
