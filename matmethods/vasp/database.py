@@ -2,6 +2,8 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
+from monty.json import jsanitize
+
 """
 This module defines the database classes.
 """
@@ -121,9 +123,7 @@ class MMDb(object):
             elif update_duplicates:
                 d["task_id"] = result["task_id"]
                 logger.info("Updating {} with taskid = {}".format(d["dir_name"], d["task_id"]))
-            logger.info(d)
-            print("----")
-            print(d)
+            d = jsanitize(d)
             self.collection.update({"dir_name": d["dir_name"]}, {"$set": d}, upsert=True)
             return d["task_id"]
         else:
