@@ -4,7 +4,7 @@ various sequences of VASP calculations.
 """
 
 from fireworks import Firework
-from pymatgen.io.vasp.sets import MPVaspInputSet, MPStaticSet
+from pymatgen.io.vasp.sets import MPVaspInputSet, MPStaticSet, MPSOCSet
 
 from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
@@ -183,12 +183,18 @@ class SOCFW(Firework):
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         t = []
-        if copy_vasp_outputs:
-            t.append(
-                CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
-                                contcar_to_poscar=True))
+
+        if parents:
+            if copy_vasp_outputs:
+                t.append(
+                    CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
+                                    ontcar_to_poscar=True))
+            t.append(WriteVaspSOCFromPrev(prev_calc_dir=".", magmom=magmom, saxis=saxis))
+        else:
+            vasp_input_set = MPSOCSet(structure)
+            t.append(WriteVaspFromIOSet(structure=structure,
+                                        vasp_input_set=vasp_input_set))
         t.extend([
-            WriteVaspSOCFromPrev(prev_calc_dir=".", magmom=magmom, saxis=saxis),
             RunVaspDirect(vasp_cmd=vasp_cmd),
             PassCalcLocs(name=name),
             VaspToDbTask(db_file=db_file,

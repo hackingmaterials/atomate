@@ -6,6 +6,3 @@ fireworks:
 - fw: matmethods.vasp.fireworks.core.SOCFW
   params:
     parents: 1
-    magmom: [3.0]
-    saxis: [0, 0, 1]
-    vasp_cmd: vasp_ncl
