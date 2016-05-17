@@ -166,8 +166,7 @@ class LepsFW(Firework):
 
 class SOCFW(Firework):
     def __init__(self, structure, magmom, name="spinorbit coupling",
-                 field_directions=(0, 0, 1),
-                 vasp_cmd="vasp", vasp_ncl="vasp_ncl",
+                 saxis=(0, 0, 1), vasp_cmd="vasp_ncl",
                  copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
         """
         Firework for spin orbit coupling calculation.
@@ -189,8 +188,8 @@ class SOCFW(Firework):
                 CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
                                 contcar_to_poscar=True))
         t.extend([
-            WriteVaspSOCFromPrev(prev_calc_dir="."),
-            RunVaspDirect(vasp_cmd=vasp_ncl),
+            WriteVaspSOCFromPrev(prev_calc_dir=".", magmom=magmom, saxis=saxis),
+            RunVaspDirect(vasp_cmd=vasp_cmd),
             PassCalcLocs(name=name),
             VaspToDbTask(db_file=db_file,
                          additional_fields={"task_label": name})])
