@@ -61,8 +61,8 @@ def get_wf_spinorbit_coupling(structure, magmom=None, saxis=(0, 0, 1), vasp_inpu
 
     v = vasp_input_set or MPVaspInputSet(force_gamma=True)
     d["fireworks"][0]["params"] = {"vasp_input_set": v.as_dict(), "vasp_cmd": vasp_cmd}
-    d["fireworks"][1]["params"] = {"vasp_cmd": vasp_cmd}
-    d["fireworks"][2]["params"] = {"magmom": magmom, "saxis": saxis, "vasp_cmd": vasp_ncl}
+    d["fireworks"][1]["params"].update({"vasp_cmd": vasp_cmd})
+    d["fireworks"][2]["params"].update({"magmom": magmom, "saxis": saxis, "vasp_cmd": vasp_ncl})
 
     d["common_params"] = {
         "db_file": db_file
