@@ -229,3 +229,23 @@ class WriteVaspDFPTDielectricFromPrev(FireTaskBase):
         )
         p = Poscar.from_file("POSCAR")
         vis.write_input(".")
+
+
+@explicit_serialize
+class WriteVaspSOCFromPrev(FireTaskBase):
+    """
+    Writes input files for a spinorbit coupling calculation.
+
+    Required params:
+        (none)
+
+    Optional params:
+        (none)
+    """
+    required_params = ["prev_calc_dir"]
+
+    def run_task(self, fw_spec):
+        vis = MPStaticSet.from_prev_calc(
+            prev_calc_dir=self["prev_calc_dir"],
+        )
+        vis.write_input(".")

@@ -1,0 +1,10 @@
+fireworks:
+- fw: matmethods.vasp.fireworks.core.OptimizeFW
+- fw: matmethods.vasp.fireworks.core.StaticFW
+  params:
+    parents: 0
+- fw: matmethods.vasp.fireworks.core.SOCFW
+  params:
+    parents: 1
+    field_directions: [0, 0, 1]
+    vasp_ncl: "vasp_ncl"

@@ -12,7 +12,7 @@ from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
 from matmethods.vasp.firetasks.run_calc import RunVaspDirect
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, \
     WriteVaspStaticFromPrev, WriteVaspNSCFFromPrev, \
-    WriteVaspDFPTDielectricFromPrev
+    WriteVaspDFPTDielectricFromPrev, WriteVaspSOCFromPrev
 
 
 class OptimizeFW(Firework):
@@ -161,5 +161,39 @@ class LepsFW(Firework):
             VaspToDbTask(db_file=db_file,
                          additional_fields={"task_label": name})])
         super(LepsFW, self).__init__(t, parents=parents, name="{}-{}".format(
+            structure.composition.reduced_formula,
+            name), **kwargs)
+
+class SOCFW(Firework):
+    def __init__(self, structure, magmom, name="spinorbit coupling",
+                 field_directions=(0, 0, 1),
+                 vasp_cmd="vasp", vasp_ncl="vasp_ncl",
+                 copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
+        """
+        Firework for spin orbit coupling calculation.
+
+        Args:
+            structure (Structure): Input structure.
+            name (str): Name for the Firework.
+            vasp_cmd (str): Command to run vasp.
+            copy_vasp_outputs (bool): Whether to copy outputs from previous
+                run. Defaults to True.
+            db_file (str): Path to file specifying db credentials.
+            parents (Firework): Parents of this particular Firework.
+                FW or list of FWS.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+        t = []
+        if copy_vasp_outputs:
+            t.append(
+                CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
+                                contcar_to_poscar=True))
+        t.extend([
+            WriteVaspSOCFromPrev(prev_calc_dir="."),
+            RunVaspDirect(vasp_cmd=vasp_ncl),
+            PassCalcLocs(name=name),
+            VaspToDbTask(db_file=db_file,
+                         additional_fields={"task_label": name})])
+        super(SOCFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula,
             name), **kwargs)
