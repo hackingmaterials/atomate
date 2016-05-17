@@ -12,7 +12,7 @@ from fireworks.utilities.dict_mods import apply_mod
 
 from pymatgen.io.vasp import Incar, Poscar
 from pymatgen.io.vasp.sets import MPStaticDielectricDFPTVaspInputSet, \
-    MPStaticSet, MPNonSCFSet
+    MPStaticSet, MPNonSCFSet, MPSOCSet
 
 from matmethods.utils.utils import env_chk
 
@@ -228,4 +228,39 @@ class WriteVaspDFPTDielectricFromPrev(FireTaskBase):
             lepsilon=True
         )
         p = Poscar.from_file("POSCAR")
+        vis.write_input(".")
+
+
+@explicit_serialize
+class WriteVaspSOCFromPrev(FireTaskBase):
+    """
+    Writes input files for a spinorbit coupling calculation.
+
+    Required params:
+        prev_calc_dir: path to previous calculation
+        magmom (list): magnetic moment values for each site in the structure.
+        saxis (list): magnetic field direction
+
+    Optional params:
+        (none)
+    """
+    required_params = ["prev_calc_dir", "magmom", "saxis"]
+
+    optional_params = ["copy_chgcar", "nbands_factor", "reciprocal_density",
+                       "small_gap_multiply", "standardize", "sym_prec",
+                       "international_monoclinic", "other_params"]
+
+    def run_task(self, fw_spec):
+        vis = MPSOCSet.from_prev_calc(
+            prev_calc_dir=self["prev_calc_dir"],
+            magmom=self["magmom"],
+            saxis=self["saxis"],
+            copy_chgcar=self.get("copy_chgcar", True),
+            nbands_factor=self.get("nbands_factor", 1.2),
+            reciprocal_density=self.get("reciprocal_density", 100),
+            small_gap_multiply=self.get("small_gap_multiply", None),
+            standardize=self.get("standardize", False),
+            sym_prec=self.get("sym_prec", 0.1),
+            international_monoclinic=self.get("international_monoclinic", True),
+            **self.get("other_params", {}))
         vis.write_input(".")
