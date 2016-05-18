@@ -2,7 +2,7 @@
 # Copyright (c) Materials Virtual Lab & HackingMaterials.
 # Distributed under the terms of the BSD License.
 
-from __future__ import division, unicode_literals, print_function
+from __future__ import division, unicode_literals, print_function, absolute_import
 
 from monty.json import MontyDecoder
 from fireworks import Workflow

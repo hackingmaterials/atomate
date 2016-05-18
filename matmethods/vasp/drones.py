@@ -40,6 +40,7 @@ logger = get_logger(__name__)
 
 # TODO: this code could use some cleanup ...
 
+
 class VaspDrone(AbstractDrone):
     """
     pymatgen-db VaspToDbTaskDrone with updated schema and documents processing methods.

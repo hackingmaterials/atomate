@@ -164,6 +164,7 @@ class LepsFW(Firework):
             structure.composition.reduced_formula,
             name), **kwargs)
 
+
 class SOCFW(Firework):
     def __init__(self, structure, magmom, name="spinorbit coupling",
                  saxis=(0, 0, 1), vasp_cmd="vasp_ncl",

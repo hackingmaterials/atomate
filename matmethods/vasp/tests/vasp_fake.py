@@ -6,7 +6,7 @@ from __future__ import division, print_function, unicode_literals, \
 import os
 import shutil
 
-from fireworks import FireTaskBase, explicit_serialize, Workflow
+from fireworks import FireTaskBase, explicit_serialize
 from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
 from matmethods.utils.utils import get_logger
 

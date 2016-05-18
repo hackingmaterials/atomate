@@ -86,7 +86,7 @@ class CopyVaspOutputs(FireTaskBase):
         # start file copy
         for f in files_to_copy:
             prev_path_full = os.path.join(calc_dir, f)
-            #prev_path = os.path.join(os.path.split(calc_dir)[1], f)
+            # prev_path = os.path.join(os.path.split(calc_dir)[1], f)
             dest_fname = 'POSCAR' if f == 'CONTCAR' and contcar_to_poscar else f
             dest_path = os.path.join(os.getcwd(), dest_fname)
 

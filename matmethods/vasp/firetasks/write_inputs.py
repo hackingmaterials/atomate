@@ -10,9 +10,8 @@ vasp calculations
 from fireworks import FireTaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
 
-from pymatgen.io.vasp import Incar, Poscar
-from pymatgen.io.vasp.sets import MPStaticDielectricDFPTVaspInputSet, \
-    MPStaticSet, MPNonSCFSet, MPSOCSet
+from pymatgen.io.vasp import Incar
+from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet
 
 from matmethods.utils.utils import env_chk
 
@@ -167,7 +166,7 @@ class WriteVaspStaticFromPrev(FireTaskBase):
             small_gap_multiply=self.get("small_gap_multiply", None),
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
-            international_monoclinic=self.get("international_monoclinic",True),
+            international_monoclinic=self.get("international_monoclinic", True),
             **self.get("other_params", {}))
         vis.write_input(".")
 
@@ -227,7 +226,6 @@ class WriteVaspDFPTDielectricFromPrev(FireTaskBase):
             prev_calc_dir=self["prev_calc_dir"],
             lepsilon=True
         )
-        p = Poscar.from_file("POSCAR")
         vis.write_input(".")
 
 

@@ -1,7 +1,6 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, \
-    absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
 This module defines workflows for optical properties.
@@ -18,8 +17,7 @@ __author__ = 'Anubhav Jain, Shyue Ping Ong'
 __email__ = 'ajain@lbl.gov, ongsp@eng.ucsd.edu'
 
 
-def get_wf_dielectric_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
-                         db_file=None):
+def get_wf_dielectric_constant(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=None):
     """
     Return vasp workflow consisting of 4 fireworks:
 
