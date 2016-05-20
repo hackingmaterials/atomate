@@ -12,7 +12,7 @@ from fireworks.utilities.dict_mods import apply_mod
 
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
-from pymatgen.io.vasp import Incar
+from pymatgen.io.vasp import Incar, Poscar
 from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet
 
 from matmethods.utils.utils import env_chk
@@ -270,16 +270,16 @@ class WriteVaspSOCFromPrev(FireTaskBase):
 class WriteTransmutedStructureIOSet(FireTaskBase):
     """
     Apply the provided transformations to the input structure and write the
-    input set for that structure.
+    input set for that structure. Reads structure from POSCAR if no structure provided
 
     Required params:
-        structure (Structure): input structure
         transformations (list): list of names of transformation classes as defined in
             the modules in pymatgen.transformations
         vasp_input_set (string): string name for the VASP input set (e.g.,
             "MPVaspInputSet").
 
     Optional params:
+        structure (Structure): input structure
         transformation_params (list): list of dicts where each dict specify the input parameters to
             instantiate the transformation class in the transforamtions list.
         vasp_input_params (dict): When using a string name for VASP input set,
@@ -311,7 +311,7 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
                 t_obj = t_cls(**transformation_params.pop(0))
                 transformations.append(t_obj)
 
-        structure = self['structure']
+        structure = self['structure'] if self['structure'] else Poscar('POSCAR').structure
         ts = TransformedStructure(structure)
         transmuter = StandardTransmuter([ts], transformations)
         vis = vis_cls(transmuter.transformed_structures[-1].final_structure, **self.get("vasp_input_params", {}))
