@@ -288,10 +288,11 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
             user_incar_settings, you should provide: {"user_incar_settings": ...}.
             This setting is ignored if you provide the full object
             representation of a VaspInputSet rather than a String.
+        prev_calc_dir: path to previous calculation if using structure from another calcalation
     """
 
     required_params = ["structure", "transformations", "vasp_input_set"]
-    optional_params = ["transformation_params", "vasp_input_params"]
+    optional_params = ["prev_calc_dir","transformation_params", "vasp_input_params"]
 
     def run_task(self, fw_spec):
 
@@ -311,7 +312,7 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
                 t_obj = t_cls(**transformation_params.pop(0))
                 transformations.append(t_obj)
 
-        structure = self['structure'] if self['structure'] else Poscar('POSCAR').structure
+        structure = self['structure'] if self['prev_calc_dir'] else Poscar(os.path.join(self['prev_calc_dir'],'POSCAR')).structure
         ts = TransformedStructure(structure)
         transmuter = StandardTransmuter([ts], transformations)
         vis = vis_cls(transmuter.transformed_structures[-1].final_structure, **self.get("vasp_input_params", {}))

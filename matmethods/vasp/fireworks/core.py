@@ -204,7 +204,7 @@ class SOCFW(Firework):
 
 
 class TransmuterFW(Firework):
-    def __init__(self, structure, transformations, transformation_params=None,
+    def __init__(self, transformations, structure=None, transformation_params=None,
                  vasp_input_set="MPStaticSet", name="structure transmuter", vasp_cmd="vasp",
                  copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
         """
@@ -231,11 +231,16 @@ class TransmuterFW(Firework):
         if parents:
             if copy_vasp_outputs:
                 t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
-
-        t.append(WriteTransmutedStructureIOSet(structure=structure, transformations=transformations,
-                                               transformation_params=transformation_params,
-                                               vasp_input_set=vasp_input_set,
-                                               vasp_input_params=kwargs.get("vasp_input_params",{})))
+            t.append(WriteTransmutedStructureIOSet(structure=structure, transformations=transformations,
+                                                   transformation_params=transformation_params,
+                                                   vasp_input_set=vasp_input_set,
+                                                   vasp_input_params=kwargs.get("vasp_input_params",{})),
+                                                   prev_calc_dir=".")
+        else:
+            t.append(WriteTransmutedStructureIOSet(structure=structure, transformations=transformations,
+                                                   transformation_params=transformation_params,
+                                                   vasp_input_set=vasp_input_set,
+                                                   vasp_input_params=kwargs.get("vasp_input_params",{})))
         t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
