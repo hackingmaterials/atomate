@@ -290,8 +290,8 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
             representation of a VaspInputSet rather than a String.
     """
 
-    required_params = ["transformations", "vasp_input_set"]
-    optional_params = ["structure", "transformation_params", "vasp_input_params"]
+    required_params = ["structure", "transformations", "vasp_input_set"]
+    optional_params = ["transformation_params", "vasp_input_params"]
 
     def run_task(self, fw_spec):
 
