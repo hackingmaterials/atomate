@@ -72,7 +72,6 @@ if __name__ == "__main__":
 
     padd = subparsers.add_parser("add", help="Add workflows.")
     padd.add_argument("-s", "--spec",
-<<<<<<< HEAD
                       dest="spec_file", type=str,
                       help="YAML/JSON spec file. If none is specified, "
                            "a default MP-style workflow of relax + static + "
@@ -83,16 +82,6 @@ if __name__ == "__main__":
                            "Note that your MAPI_KEY environment variable must "
                            "be set to get structures from the Materials "
                            "Project.")
-=======
-                      dest="spec_file", type=str, help="YAML/JSON spec file. If none is specified, "
-                                                       "a default MP-style workflow of relax + static + "
-                                                       "uniform + line is used.")
-    padd.add_argument("-m", "--mp", dest="mp", action='store_true',
-                      help="If this option is set, the files argument is interpreted as a list of "
-                           "Materials Project IDS. Note that your MAPI_KEY environment variable "
-                           "must be set to get structures from the Materials Project.")
->>>>>>> 03dec3298a0c605c1afbce69fed768d370690da6
-
     padd.add_argument("files", metavar="files", type=str, nargs="+",
                       help="Structures to add workflows for.")
     padd.set_defaults(func=add_wf)
