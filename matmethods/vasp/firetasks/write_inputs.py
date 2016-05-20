@@ -303,12 +303,13 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
         for t in self["transformations"]:
             for m in ["advanced_transformations", "defect_transformations", "site_transformations",
                       "standard_transformations"]:
+                mod = __import__("pymatgen.transformations." + m, globals(), locals(), [t], -1)
                 try:
-                    mod = __import__("pymatgen.transformations."+m, globals(), locals(), [t], -1)
-                    t_obj = getattr(mod, t)(**transformation_params.pop(0))
-                    transformations.append(t_obj)
-                except:
+                    t_cls = getattr(mod, t)
+                except AttributeError:
                     continue
+                t_obj = t_cls(**transformation_params.pop(0))
+                transformations.append(t_obj)
 
         structure = self['structure']
         ts = TransformedStructure(structure)
