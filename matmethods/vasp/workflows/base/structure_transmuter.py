@@ -3,7 +3,7 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
-This module defines workflows for bandstructure calculations.
+This module defines workflows for vasp calculations that require structure transformations.
 """
 
 from fireworks import Workflow
@@ -13,14 +13,13 @@ from pymatgen.io.vasp.sets import MPVaspInputSet
 from monty.serialization import loadfn
 from matmethods.utils.loaders import get_wf_from_spec_dict
 
-__author__ = 'Anubhav Jain, Kiran Mathew'
-__email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
+__author__ = 'Kiran Mathew'
+__email__ = 'kmathew@lbl.gov'
 
 
-def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
-                         db_file=None):
+def get_wf_transmuter(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=None):
     """
-    Return vasp workflow consisting of 4 fireworks:
+    Return vasp workflow consisting of 2 fireworks:
 
     Firework 1 : write vasp input set for structural relaxation,
                  run vasp,
@@ -28,23 +27,7 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
                  database insertion.
 
     Firework 2 : copy files from previous run,
-                 write vasp input set for static run,
-                 run vasp,
-                 pass run location
-                 database insertion.
-
-    Firework 3 : copy files from previous run,
-                 write vasp input set for non self-consistent
-                 (constant charge density) run in
-                 uniform mode,
-                 run vasp,
-                 pass run location
-                 database insertion.
-
-    Firework 4 : copy files from previous run,
-                 write vasp input set for non self-consistent
-                 (constant charge density) run in
-                 line mode,
+                 apply the transformations and write vasp input set,
                  run vasp,
                  pass run location
                  database insertion.
@@ -58,7 +41,7 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
     Returns:
         Workflow
     """
-    d = loadfn(os.path.join(os.path.dirname(__file__), "band_structure.yaml"))
+    d = loadfn(os.path.join(os.path.dirname(__file__), "transmuter.yaml"))
 
     v = vasp_input_set or MPVaspInputSet(force_gamma=True)
     d["fireworks"][0]["params"] = {"vasp_input_set": v.as_dict()}
@@ -75,4 +58,4 @@ if __name__ == "__main__":
     from pymatgen.util.testing import PymatgenTest
 
     structure = PymatgenTest.get_structure("Si")
-    wf = get_wf_bandstructure(structure)
+    wf = get_wf_transmuter(structure)

@@ -6,6 +6,7 @@ from pymatgen.util.testing import PymatgenTest
 
 from monty.serialization import loadfn
 
+
 class FuncTest(PymatgenTest):
 
     def setUp(self):

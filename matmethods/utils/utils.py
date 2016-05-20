@@ -1,7 +1,6 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, \
-    absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 import logging
 import sys
@@ -60,7 +59,7 @@ def get_calc_loc(target_loc, calc_locs):
         (dict) dict with subkeys path, filesystem, and name
     """
 
-    if isinstance(target_loc, basestring):
+    if isinstance(target_loc, six.string_types):
         for doc in reversed(calc_locs):
             if doc["name"] == target_loc:
                 return doc

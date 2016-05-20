@@ -10,9 +10,10 @@ vasp calculations
 from fireworks import FireTaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
 
-from pymatgen.io.vasp import Incar, Poscar
-from pymatgen.io.vasp.sets import MPStaticDielectricDFPTVaspInputSet, \
-    MPStaticSet, MPNonSCFSet, MPSOCSet
+from pymatgen.alchemy.materials import TransformedStructure
+from pymatgen.alchemy.transmuters import StandardTransmuter
+from pymatgen.io.vasp import Incar
+from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet
 
 from matmethods.utils.utils import env_chk
 
@@ -167,7 +168,7 @@ class WriteVaspStaticFromPrev(FireTaskBase):
             small_gap_multiply=self.get("small_gap_multiply", None),
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
-            international_monoclinic=self.get("international_monoclinic",True),
+            international_monoclinic=self.get("international_monoclinic", True),
             **self.get("other_params", {}))
         vis.write_input(".")
 
@@ -227,7 +228,6 @@ class WriteVaspDFPTDielectricFromPrev(FireTaskBase):
             prev_calc_dir=self["prev_calc_dir"],
             lepsilon=True
         )
-        p = Poscar.from_file("POSCAR")
         vis.write_input(".")
 
 
@@ -264,3 +264,59 @@ class WriteVaspSOCFromPrev(FireTaskBase):
             international_monoclinic=self.get("international_monoclinic", True),
             **self.get("other_params", {}))
         vis.write_input(".")
+
+
+@explicit_serialize
+class WriteTransmutedStructureIOSet(FireTaskBase):
+    """
+    Apply the provided transformations to the input structure and write the
+    input set for that structure.
+
+    Required params:
+        structure (Structure): input structure
+        transformations (list): list of names of transformation classes as defined in
+            the modules in pymatgen.transformations
+        vasp_input_set (string): string name for the VASP input set (e.g.,
+            "MPVaspInputSet").
+
+    Optional params:
+        transformation_params (list): list of dicts where each dict specify the input parameters to
+            instantiate the transformation class in the transforamtions list.
+        vasp_input_params (dict): When using a string name for VASP input set,
+            use this as a dict to specify kwargs for instantiating the input
+            set parameters. For example, if you want to change the
+            user_incar_settings, you should provide: {"user_incar_settings": ...}.
+            This setting is ignored if you provide the full object
+            representation of a VaspInputSet rather than a String.
+    """
+
+    required_params = ["structure", "transformations", "vasp_input_set"]
+    optional_params = ["transformation_params", "vasp_input_params"]
+
+    def run_task(self, fw_spec):
+
+        vis_cls = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])
+
+        transformations = []
+        transformation_params = self.get("transformation_params",
+                                         [{} for i in range(len(self["transformations"]))])
+        for t in self["transformations"]:
+            for m in ["advanced_transformations", "defect_transformations", "site_transformations",
+                      "standard_transformations"]:
+                try:
+                    mod = __import__("pymatgen.transformations."+m, globals(), locals(), [t], -1)
+                    t_obj = getattr(mod, t)(**transformation_params.pop(0))
+                    transformations.append(t_obj)
+                except:
+                    continue
+
+        structure = self['structure']
+        ts = TransformedStructure(structure)
+        transmuter = StandardTransmuter([ts], transformations)
+        vis = vis_cls(transmuter.transformed_structures[-1].final_structure, **self.get("vasp_input_params", {}))
+        vis.write_input(".")
+
+        # The following works only for the old inputset with write_input that takes structure as an
+        # argument the new ones that subclass DerivedSet needs structure to initialize
+        #vis = vis_cls(**self.get("vasp_input_params", {}))
+        #transmuter.write_vasp_input(vis, ".")
