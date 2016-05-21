@@ -292,7 +292,11 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
     """
 
     required_params = ["structure", "transformations", "vasp_input_set"]
+<<<<<<< HEAD
     optional_params = ["prev_calc_dir","transformation_params", "vasp_input_params"]
+=======
+    optional_params = ["transformation_params", "vasp_input_params"]
+>>>>>>> parent of e75c622... Updated Transmuter FW and fixed write input structure requirement
 
     def run_task(self, fw_spec):
 
