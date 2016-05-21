@@ -10,7 +10,7 @@ from fireworks import Workflow
 import os
 from pymatgen.io.vasp.sets import MPVaspInputSet
 from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW
-
+from pymatgen.transformations.standard_transformations import DeformStructureTransformation
 
 __author__ = 'Shyam Dwaraknath, Joseph Montoya'
 __email__ = 'shyamd@lbl.gov, montoyjh@lbl.gov'
@@ -69,7 +69,11 @@ def get_wf_elastic_constant(structure, max_norm_deformation=0.01, max_shear_defo
             deformations.append(defo)
 
     for deformation in deformations:
-    
+        fws.append(TransmuterFW(structure=strcuture,transformations=[DeformStructureTransformation],transformation_params=[{"deformation" : deformation.tolist()}],parents=fws[0]))
+
+
+    # TODO: Analyze the data -  OR MAYBE THIS SHOULD BE A BUILDER ????
+
 
 def symm_reduce(self, symm_ops, deformation_list, tolerance = 1e-2):
         """
@@ -100,4 +104,4 @@ if __name__ == "__main__":
     from pymatgen.util.testing import PymatgenTest
 
     structure = PymatgenTest.get_structure("Si")
-    wf = get_wf_dielectric_constant(structure)
+    wf = get_wf_elastic_constant(structure)
