@@ -204,7 +204,7 @@ class SOCFW(Firework):
 
 
 class TransmuterFW(Firework):
-    def __init__(self, transformations, structure=None, transformation_params=None,
+    def __init__(self, structure, transformations, transformation_params=None,
                  vasp_input_set="MPStaticSet", name="structure transmuter", vasp_cmd="vasp",
                  copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
         """
