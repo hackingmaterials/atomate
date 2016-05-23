@@ -28,7 +28,6 @@ class PassStressStrainData(FireTaskBase):
 
     Required params:
         deformation: the deformation gradient used in the elastic analysis.
-
     """
 
     required_params = ["deformation"]
@@ -98,7 +97,7 @@ def get_wf_elastic_constant(structure, max_norm_deformation=0.01, max_shear_defo
                               {"deformation": deformation.tolist()}],
                           parents=fws[0])
 
-        fw['_tasks'].append(PassStressStrainData(deformation=deformation.tolist()))
+        fw['_tasks'].append(PassStressStrainData(deformation=deformation.tolist()).to_dict())
         fws.append(fw)
 
     # TODO: Analyze the data -  OR MAYBE THIS SHOULD BE A BUILDER ????
