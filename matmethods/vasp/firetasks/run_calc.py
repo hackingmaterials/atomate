@@ -154,6 +154,10 @@ class RunVaspCustodian(FireTaskBase):
         if handler_lvl > 3:
             handlers.append(FrozenJobErrorHandler())
 
+        if handler_lvl < 0:
+            # minimal handlers for MD
+            handlers.extend([VaspErrorHandler(), NonConvergingErrorHandler()])
+
         if self.get("max_force_threshold"):
             handlers.append(MaxForceErrorHandler(max_force_threshold=self["max_force_threshold"]))
 
