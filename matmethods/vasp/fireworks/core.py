@@ -261,7 +261,6 @@ class MDFW(Firework):
             vasp_input_set (string): string name for the VASP input set (e.g.,
                 "MITMDVaspInputSet").
             vasp_cmd (string): Command to run vasp.
-            gamma_vasp_cmd (string): Command to run gamma-optimized vasp
             override_default_vasp_params (dict): If this is not None,
                 these params are passed to the default vasp_input_set, i.e.,
                 MITMDVaspInputSet. This allows one to easily override some
@@ -284,7 +283,7 @@ class MDFW(Firework):
                 t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
                                         contcar_to_poscar=True))
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
-        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>env_check<<",
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                   wall_time=wall_time))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
