@@ -16,7 +16,7 @@ from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, \
     MeshSymmetryErrorHandler, \
     UnconvergedErrorHandler, MaxForceErrorHandler, PotimErrorHandler, \
     FrozenJobErrorHandler, NonConvergingErrorHandler, \
-    PositiveEnergyErrorHandler
+    PositiveEnergyErrorHandler, WalltimeHandler
 from custodian.vasp.jobs import VaspJob
 from custodian.vasp.validators import VasprunXMLValidator
 from fireworks import explicit_serialize, FireTaskBase, FWAction
@@ -101,11 +101,12 @@ class RunVaspCustodian(FireTaskBase):
             for single-node jobs only. Supports env_chk.
         gamma_vasp_cmd: (str) - cmd for Gamma-optimized VASP compilation.
             Supports env_chk.
+        wall_time (int): Total wall time in seconds. Activates WalltimeHandler.
     """
     required_params = ["vasp_cmd"]
     optional_params = ["job_type", "handler_lvl", "max_force_threshold",
                        "ediffg", "scratch_dir", "gzip_output", "max_errors",
-                       "auto_npar", "gamma_vasp_cmd"]
+                       "auto_npar", "gamma_vasp_cmd", "wall_time"]
 
     def run_task(self, fw_spec):
         vasp_cmd = env_chk(self["vasp_cmd"], fw_spec)
@@ -155,6 +156,9 @@ class RunVaspCustodian(FireTaskBase):
 
         if self.get("max_force_threshold"):
             handlers.append(MaxForceErrorHandler(max_force_threshold=self["max_force_threshold"]))
+
+        if self.get("wall_time"):
+            handlers.append(WalltimeHandler(wall_time=self["wall_time"]))
 
         validators = [VasprunXMLValidator()]
 
