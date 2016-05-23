@@ -54,8 +54,16 @@ def get_wf_transmuter(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=N
     return get_wf_from_spec_dict(structure, d)
 
 
-if __name__ == "__main__":
-    from pymatgen.util.testing import PymatgenTest
+# Note to others: You can always write your tests in the same file for a start.
+# This way, when you are ready, you simply copy this to a new file.
+# Instead of writing a main method.
+# It is not that much longer, especially if you have test snippets stored in a
+# text replacement program like me. -- Hulk
+from pymatgen.util.testing import PymatgenTest
 
-    structure = PymatgenTest.get_structure("Si")
-    wf = get_wf_transmuter(structure)
+class FuncTest(PymatgenTest):
+
+    def test_get_wf_transmuter(self):
+        # Should replace with proper test.
+        structure = PymatgenTest.get_structure("Si")
+        wf = get_wf_transmuter(structure)
