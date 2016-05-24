@@ -92,6 +92,7 @@ class RunVaspCustodian(FireTaskBase):
             2 is the default, 4 is highest level.
         max_force_threshold: (float) - if >0, adds MaxForceErrorHandler. Not recommended for
             nscf runs.
+        ediffg: (float) if not None, will set ediffg for special jobs
         scratch_dir: (str) - if specified, uses this directory as the root
             scratch dir. Supports env_chk.
         gzip_output: (bool) - gzip output (default=T)
@@ -102,8 +103,9 @@ class RunVaspCustodian(FireTaskBase):
             Supports env_chk.
     """
     required_params = ["vasp_cmd"]
-    optional_params = ["job_type", "handler_lvl", "max_force_threshold", "scratch_dir",
-                       "gzip_output", "max_errors", "auto_npar", "gamma_vasp_cmd"]
+    optional_params = ["job_type", "handler_lvl", "max_force_threshold",
+                       "ediffg", "scratch_dir", "gzip_output", "max_errors",
+                       "auto_npar", "gamma_vasp_cmd"]
 
     def run_task(self, fw_spec):
         vasp_cmd = env_chk(self["vasp_cmd"], fw_spec)
@@ -115,9 +117,10 @@ class RunVaspCustodian(FireTaskBase):
         job_type = self.get("job_type", "normal")
         scratch_dir = env_chk(self.get("scratch_dir"), fw_spec)
         gzip_output = self.get("gzip_output", True)
-        max_errors = self.get("max_errors", 2)
+        max_errors = self.get("max_errors", 5)
         auto_npar = self.get("auto_npar", True)
         gamma_vasp_cmd = self.get("gamma_vasp_cmd")
+        ediffg = self.get("ediffg")
 
         # construct jobs
         jobs = []
@@ -126,11 +129,11 @@ class RunVaspCustodian(FireTaskBase):
                             gamma_vasp_cmd=gamma_vasp_cmd)]
         elif job_type == "double_relaxation_run":
             jobs = VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar,
-                                                 ediffg=None,
+                                                 ediffg=ediffg,
                                                  half_kpts_first_relax=False)
         elif job_type == "full_opt_run":
             jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar,
-                                        ediffg=None, max_steps=4,
+                                        ediffg=ediffg, max_steps=4,
                                         half_kpts_first_relax=False)
         else:
             raise ValueError("Unsupported job type: {}".format(job_type))

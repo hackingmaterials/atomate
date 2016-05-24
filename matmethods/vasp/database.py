@@ -131,6 +131,7 @@ class MMDb(object):
             return None
 
     def reset(self):
-        self.connection.drop_database(self.db_name)
+        self.collection.remove()
+        self.db.counter.remove()
         self.db.counter.insert({"_id": "taskid", "c": 1})
         self.build_indexes()

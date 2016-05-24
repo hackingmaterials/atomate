@@ -173,13 +173,13 @@ def add_modify_incar(original_wf, modify_incar_params, fw_name_constraint=None):
 
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp"):
-        original_wf.fws[idx_fw].spec["_tasks"].insert(idx_t - 1, ModifyIncar(**modify_incar_params).
+        original_wf.fws[idx_fw].spec["_tasks"].insert(idx_t, ModifyIncar(**modify_incar_params).
                                                       to_dict())
 
     return original_wf
 
 
-def add_modify_incar_envchk(original_wf, fw_name_constraint=None, ):
+def add_modify_incar_envchk(original_wf, fw_name_constraint=None):
     """
     If you set the "incar_update" parameter in the Worker env, the INCAR will update this
     parameter for all matching VASP runs
