@@ -89,7 +89,7 @@ class RunVaspCustodian(FireTaskBase):
         job_type: (str) - choose from "normal" (default),
             "double_relaxation_run" (two consecutive jobs), and "full_opt_run"
         handler_lvl: (int) - level of handlers to use,0-4. 0 means no handlers,
-            2 is the default, 4 is highest level.
+            2 is the default, 4 is highest level. Negative values activate MD handlers.
         max_force_threshold: (float) - if >0, adds MaxForceErrorHandler. Not recommended for
             nscf runs.
         ediffg: (float) if not None, will set ediffg for special jobs
@@ -101,7 +101,7 @@ class RunVaspCustodian(FireTaskBase):
             for single-node jobs only. Supports env_chk.
         gamma_vasp_cmd: (str) - cmd for Gamma-optimized VASP compilation.
             Supports env_chk.
-        wall_time (int): Total wall time in seconds. Activates WalltimeHandler.
+        wall_time (int): Total wall time in seconds. Activates WalltimeHandler if set.
     """
     required_params = ["vasp_cmd"]
     optional_params = ["job_type", "handler_lvl", "max_force_threshold",
