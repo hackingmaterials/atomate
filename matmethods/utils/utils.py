@@ -10,7 +10,7 @@ __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 
-def env_chk(val, fw_spec, strict=True):
+def env_chk(val, fw_spec, strict=True, default=None):
     """
     env_chk() is a way to set different values for a property depending
     on the worker machine. For example, you might have slightly different
@@ -32,14 +32,18 @@ def env_chk(val, fw_spec, strict=True):
     Args:
         val: any value, with ">><<" notation reserved for special env lookup
             values
-        fw_spec: fw_spec where one can find the _fw_env keys
-        strict(bool): if True, errors if env value cannot be found
+        fw_spec: (dict) fw_spec where one can find the _fw_env keys
+        strict (bool): if True, errors if env value cannot be found
+        default: if val is None or env cannot be found in non-strict mode,
+                 return default
     """
+    if val is None:
+        return default
 
     if isinstance(val, six.string_types) and val.startswith(">>") and val.endswith("<<"):
         if strict:
             return fw_spec['_fw_env'][val[2:-2]]
-        return fw_spec.get('_fw_env', {}).get(val[2:-2])
+        return fw_spec.get('_fw_env', {}).get(val[2:-2], default)
     return val
 
 
