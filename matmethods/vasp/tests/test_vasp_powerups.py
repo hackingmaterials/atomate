@@ -86,14 +86,14 @@ class TestVaspPowerups(unittest.TestCase):
     def test_add_small_gap_multiply(self):
         my_wf = self._copy_wf(self.bs_wf)
         my_wf = add_small_gap_multiply(my_wf, 0.5, 1.5, "static")
-        found=False
+        found = False
 
         for fw in my_wf.fws:
             if "static" in fw.name:
                 for t in fw.tasks:
                     if 'WriteVasp' in str(t):
                         self.assertEqual(t["small_gap_multiply"], [0.5, 1.5])
-                        found=True
+                        found = True
 
         self.assertEqual(found, True)
 
@@ -110,7 +110,6 @@ class TestVaspPowerups(unittest.TestCase):
                     found += 1
 
         self.assertEqual(found, 4)
-
 
 
 if __name__ == "__main__":

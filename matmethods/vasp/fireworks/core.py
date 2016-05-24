@@ -10,9 +10,7 @@ from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
 from matmethods.vasp.firetasks.run_calc import RunVaspDirect
-from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, \
-    WriteVaspStaticFromPrev, WriteVaspNSCFFromPrev, \
-    WriteVaspDFPTDielectricFromPrev, WriteVaspSOCFromPrev
+from matmethods.vasp.firetasks.write_inputs import *
 
 
 class OptimizeFW(Firework):
@@ -164,6 +162,7 @@ class LepsFW(Firework):
             structure.composition.reduced_formula,
             name), **kwargs)
 
+
 class SOCFW(Firework):
     def __init__(self, structure, magmom, name="spinorbit coupling",
                  saxis=(0, 0, 1), vasp_cmd="vasp_ncl",
@@ -188,7 +187,7 @@ class SOCFW(Firework):
             if copy_vasp_outputs:
                 t.append(
                     CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
-                                    ontcar_to_poscar=True))
+                                    contcar_to_poscar=True))
             t.append(WriteVaspSOCFromPrev(prev_calc_dir=".", magmom=magmom, saxis=saxis))
         else:
             vasp_input_set = MPSOCSet(structure)
@@ -202,3 +201,45 @@ class SOCFW(Firework):
         super(SOCFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula,
             name), **kwargs)
+
+
+class TransmuterFW(Firework):
+    def __init__(self, structure, transformations, transformation_params=None,
+                 vasp_input_set="MPStaticSet", name="structure transmuter", vasp_cmd="vasp",
+                 copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
+        """
+        Apply the transformations to the input structure, write the input set corresponding
+        to the transformed structure and run vasp on them.
+
+        Args:
+            structure (Structure): Input structure.
+            transformations (list): list of names of transformation classes as defined in
+                the modules in pymatgen.transformations
+            transformation_params (list): list of dicts where each dict specify the input parameters to
+                instantiate the transformation class in the transforamtions list.
+            vasp_input_set (string): string name for the VASP input set (e.g.,
+                "MPStaticSet").
+            name (string): Name for the Firework.
+            vasp_cmd (string): Command to run vasp.
+            copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
+            db_file (string): Path to file specifying db credentials.
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+        t = []
+
+        if parents:
+            if copy_vasp_outputs:
+                t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
+
+        t.append(WriteTransmutedStructureIOSet(structure=structure, transformations=transformations,
+                                               transformation_params=transformation_params,
+                                               vasp_input_set=vasp_input_set,
+                                               vasp_input_params=kwargs.get("vasp_input_params",{})))
+        t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
+        t.append(PassCalcLocs(name=name))
+        t.append(VaspToDbTask(db_file=db_file,
+                              additional_fields={"task_label": name}))
+        super(TransmuterFW, self).__init__(t, parents=parents,
+                                           name="{}-{}".format(structure.composition.reduced_formula, name),
+                                           **kwargs)

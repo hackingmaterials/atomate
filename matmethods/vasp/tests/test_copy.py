@@ -50,7 +50,6 @@ class TestCopyVaspOutputs(unittest.TestCase):
                 self.assertTrue(os.path.exists(os.path.join(self.relax2_outdir, f + ".relax1.gz")))
                 self.assertTrue(os.path.exists(os.path.join(self.relax2_outdir, f + ".relax2.gz")))
 
-
     def test_plain_copy(self):
         ct = CopyVaspOutputs(calc_dir=self.plain_outdir)
         ct.run_task({})

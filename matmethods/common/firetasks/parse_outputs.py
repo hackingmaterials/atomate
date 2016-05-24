@@ -23,9 +23,12 @@ class ToDbTask(FireTaskBase):
 
 
     Optional params:
-        db_file (str): path to file containing the database credentials. Supports env_chk. Default: write data to JSON file.
-        calc_dir (str): path to dir (on current filesystem) that contains calculation output files. Default: use current working directory.
-        calc_loc (str OR bool): if True will set most recent calc_loc. If str search for the most recent calc_loc with the matching name
+        db_file (str): path to file containing the database credentials. Supports env_chk.
+            Default: write data to JSON file.
+        calc_dir (str): path to dir (on current filesystem) that contains calculation output files.
+            Default: use current working directory.
+        calc_loc (str OR bool): if True will set most recent calc_loc. If str search for the most
+            recent calc_loc with the matching name
         options (dict): dict of options to pass into the Drone
         additional_fields (dict): dict of additional fields to add
     """

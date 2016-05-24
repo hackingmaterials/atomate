@@ -78,6 +78,6 @@ if __name__ == "__main__":
                             [0.0, 0.0, 10.0]],
                            ["Fe"],
                            [[0, 0, 0]])
-    wf = get_wf_spinorbit_coupling(fe_monomer, magmom=[3.0], saxis=(0,0,1),
+    wf = get_wf_spinorbit_coupling(fe_monomer, magmom=[3.0], saxis=(0, 0, 1),
                                    vasp_cmd="srun vasp", vasp_ncl="srun vasp_ncl",
                                    db_file=">>db_file<<")
