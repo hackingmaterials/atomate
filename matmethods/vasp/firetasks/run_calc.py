@@ -118,7 +118,8 @@ class RunVaspCustodian(FireTaskBase):
         scratch_dir = env_chk(self.get("scratch_dir"), fw_spec)
         gzip_output = self.get("gzip_output", True)
         max_errors = self.get("max_errors", 5)
-        auto_npar = self.get("auto_npar", True)
+        auto_npar = env_chk(self.get("auto_npar"), fw_spec, strict=False,
+                            default=False)
         gamma_vasp_cmd = self.get("gamma_vasp_cmd")
         ediffg = self.get("ediffg")
 
