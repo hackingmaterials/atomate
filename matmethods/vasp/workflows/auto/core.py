@@ -2,7 +2,7 @@ from matmethods.vasp.workflows.base.optical import get_wf_dielectric_constant
 from pymatgen.io.vasp.sets import MPVaspInputSet, MPStaticSet
 
 from matmethods.vasp.vasp_powerups import use_custodian, add_namefile, \
-    add_small_gap_multiply, use_scratch_dir
+    add_small_gap_multiply, use_scratch_dir, add_modify_incar_envchk
 from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure
 from matmethods.vasp.workflows.base.single_vasp import get_wf_single
 
@@ -78,7 +78,7 @@ def wf_dielectric_constant(structure):
     wf = use_custodian(wf)
     wf = use_custodian(wf, fw_name_constraint="structure optimization",
                        custodian_params={"job_type": "double_relaxation_run",
-                                         "max_force_threshold": 0.25})
+                                         "ediffg": -0.05})
     wf = add_namefile(wf)
     wf = use_scratch_dir(wf, ">>scratch_dir<<")
 

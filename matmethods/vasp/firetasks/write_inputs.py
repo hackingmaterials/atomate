@@ -225,9 +225,9 @@ class WriteVaspDFPTDielectricFromPrev(FireTaskBase):
 
     def run_task(self, fw_spec):
         vis = MPStaticSet.from_prev_calc(
-            prev_calc_dir=self["prev_calc_dir"],
-            lepsilon=True
-        )
+            prev_calc_dir=self["prev_calc_dir"], lepsilon=True,
+            user_incar_settings={"EDIFF": 1E-5}, ediff_per_atom=False,
+            reciprocal_density=200)
         vis.write_input(".")
 
 
