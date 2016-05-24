@@ -179,7 +179,7 @@ def add_modify_incar(original_wf, modify_incar_params, fw_name_constraint=None):
     return original_wf
 
 
-def add_modify_incar_envchk(original_wf, fw_name_constraint=None, ):
+def add_modify_incar_envchk(original_wf, fw_name_constraint=None):
     """
     If you set the "incar_update" parameter in the Worker env, the INCAR will update this
     parameter for all matching VASP runs
