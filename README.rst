@@ -178,7 +178,7 @@ systems. By having a different ``my_fworker.yaml`` file for each intended system
 
 **my_qadapter.yaml**
 
-This file controls the format of your queue submission script and the commands to submit jobs to the queue (e.g., ``qsub`` versus ``squeue``). I will not go over how to set this file here. Please refer to the FWS tutorials for that. Note that ``<<CONFIG_DIR>>`` should point to the **full** path of ``<<INSTALL_DIR>>/config``.
+This file controls the format of your queue submission script and the commands to submit jobs to the queue (e.g., ``qsub`` versus ``squeue``). I will not go over how to set this file here. Please refer to the FWS tutorials for that. Note that ``<<CONFIG_DIR>>`` should point to the **full** path of ``<<INSTALL_DIR>>/config``. One further note on this file is that the default uses ``singleshot`` in "reservation" (``-r``) mode. If you want to pack multiple Fireworks into a queue submission you might try turning off reservation mode, and using ``rapidfire`` mode with the appropriate options.
 
 That's it! You've finished basic configuration!
 
