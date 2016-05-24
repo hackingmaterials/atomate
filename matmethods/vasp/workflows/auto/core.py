@@ -78,7 +78,7 @@ def wf_dielectric_constant(structure):
     wf = use_custodian(wf)
     wf = use_custodian(wf, fw_name_constraint="structure optimization",
                        custodian_params={"job_type": "double_relaxation_run",
-                                         "max_force_threshold": 0.25})
+                                         "ediffg": -0.05})
     wf = add_namefile(wf)
     wf = use_scratch_dir(wf, ">>scratch_dir<<")
 
