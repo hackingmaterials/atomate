@@ -35,6 +35,31 @@ def wf_band_structure(structure):
     return wf
 
 
+def wf_band_structure_plus_hse(structure):
+
+    """
+    optimizes structure, then computes both uniform and line mode band structures
+    Also adds HSE run...
+    :param structure:
+    :return:
+    """
+
+    # TODO: clean this up - duplication!!
+    wf = get_wf_bandstructure(
+        structure, vasp_input_set=MPVaspInputSet(force_gamma=True),
+        vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<", add_hse_gap=True)
+    wf = use_custodian(wf)
+    wf = use_custodian(wf, fw_name_constraint="structure optimization",
+                       custodian_params={"job_type": "double_relaxation_run",
+                                         "max_force_threshold": 0.25})
+    wf = add_namefile(wf)
+    wf = add_small_gap_multiply(wf, 0.5, 5, "static")
+    wf = add_small_gap_multiply(wf, 0.5, 5, "nscf")
+    wf = use_scratch_dir(wf, ">>scratch_dir<<")
+
+    return wf
+
+
 def wf_static(structure):
     """
     single static calculation
