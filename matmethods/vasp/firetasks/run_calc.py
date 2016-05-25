@@ -136,6 +136,7 @@ class RunVaspCustodian(FireTaskBase):
         auto_npar = env_chk(self.get("auto_npar"), fw_spec, strict=False,
                             default=False)
         gamma_vasp_cmd = env_chk(self.get("gamma_vasp_cmd"), fw_spec, strict=False)
+        gamma_vasp_cmd = gamma_vasp_cmd.split() if gamma_vasp_cmd else None
         ediffg = self.get("ediffg")
 
         # construct jobs
