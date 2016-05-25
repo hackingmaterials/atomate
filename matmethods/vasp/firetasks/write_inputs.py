@@ -13,7 +13,8 @@ from fireworks.utilities.dict_mods import apply_mod
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
 from pymatgen.io.vasp import Incar
-from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet
+from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, \
+    MPHSEGapSet
 
 from matmethods.utils.utils import env_chk
 
@@ -170,6 +171,28 @@ class WriteVaspStaticFromPrev(FireTaskBase):
             sym_prec=self.get("sym_prec", 0.1),
             international_monoclinic=self.get("international_monoclinic", True),
             **self.get("other_params", {}))
+        vis.write_input(".")
+
+
+@explicit_serialize
+class WriteVaspHSEGapFromPrev(FireTaskBase):
+    """
+    Writes input files for HSE Gap run. Assumes that output files from a
+    an NSCF job (for getting VBM/CBM) can be accessed.
+
+    Required params:
+        prev_calc_dir
+
+    Optional params:
+        (documentation for all optional params can be found in
+        MPStaticSet.from_prev_calc)
+    """
+
+    required_params = ["prev_calc_dir"]
+    optional_params = []
+
+    def run_task(self, fw_spec):
+        vis = MPHSEGapSet.from_prev_calc(self["prev_calc_dir"])
         vis.write_input(".")
 
 

@@ -88,6 +88,34 @@ class StaticFW(Firework):
             name), **kwargs)
 
 
+class HSEGapFW(Firework):
+    def __init__(self, structure, parents, name="hse gap", vasp_cmd="vasp",
+                 db_file=None, **kwargs):
+        """
+        For getting a more accurate band gap with HSE - requires previous
+        calculation that gives VBM/CBM info. Note that this method is not
+        intended for energies, etc. due to sparse k-mesh.
+
+        Args:
+            structure (Structure): Input structure.
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            name (str): Name for the Firework.
+            vasp_cmd (str): Command to run vasp.
+            db_file (str): Path to file specifying db credentials.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+        t = []
+        t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
+        t.append(WriteVaspHSEGapFromPrev(prev_calc_dir='.'))
+        t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
+        t.append(PassCalcLocs(name=name))
+        t.append(VaspToDbTask(db_file=db_file,
+                              additional_fields={"task_label": name}))
+        super(HSEGapFW, self).__init__(t, parents=parents, name="{}-{}".format(
+            structure.composition.reduced_formula,
+            name), **kwargs)
+
+
 class NonSCFFW(Firework):
     def __init__(self, structure, name="nscf", mode="uniform", vasp_cmd="vasp",
                  copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
