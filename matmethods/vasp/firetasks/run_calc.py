@@ -112,16 +112,16 @@ class RunVaspCustodian(FireTaskBase):
     def run_task(self, fw_spec):
 
         handler_groups = {
-        "default": [VaspErrorHandler(), MeshSymmetryErrorHandler(),
-                    UnconvergedErrorHandler(), NonConvergingErrorHandler(),
-                    PotimErrorHandler(), PositiveEnergyErrorHandler()],
-        "strict": [VaspErrorHandler(), MeshSymmetryErrorHandler(),
-                    UnconvergedErrorHandler(), NonConvergingErrorHandler(),
-                    PotimErrorHandler(), PositiveEnergyErrorHandler(),
-                    FrozenJobErrorHandler(), AliasingErrorHandler() ],
-        "md": [VaspErrorHandler(), NonConvergingErrorHandler()],
-        "no_handler": []
-        }
+            "default": [VaspErrorHandler(), MeshSymmetryErrorHandler(),
+                        UnconvergedErrorHandler(), NonConvergingErrorHandler(),
+                        PotimErrorHandler(), PositiveEnergyErrorHandler()],
+            "strict": [VaspErrorHandler(), MeshSymmetryErrorHandler(),
+                       UnconvergedErrorHandler(), NonConvergingErrorHandler(),
+                       PotimErrorHandler(), PositiveEnergyErrorHandler(),
+                       FrozenJobErrorHandler(), AliasingErrorHandler()],
+            "md": [VaspErrorHandler(), NonConvergingErrorHandler()],
+            "no_handler": []
+            }
 
         vasp_cmd = env_chk(self["vasp_cmd"], fw_spec)
         if isinstance(vasp_cmd, six.string_types):
