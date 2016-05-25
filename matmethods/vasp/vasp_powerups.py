@@ -73,9 +73,9 @@ def use_custodian(original_wf, fw_name_constraint=None, custodian_params=None):
         fw_name_constraint (str): Only apply changes to FWs where fw_name contains this substring.
             For example, use custodian only for certain runs, or set job_type to
             "double_relaxation_run" only for structure optimization run, or set different
-            handler_lvl for different runs.
+            handler_group for different runs.
         custodian_params (dict): A dict of parameters for RunVaspCustodian. e.g., use it to set
-            a "scratch_dir" or "handler_lvl".
+            a "scratch_dir" or "handler_group".
     """
 
     custodian_params = custodian_params if custodian_params else {}
