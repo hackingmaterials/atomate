@@ -88,8 +88,9 @@ class RunVaspCustodian(FireTaskBase):
     Optional params:
         job_type: (str) - choose from "normal" (default),
             "double_relaxation_run" (two consecutive jobs), and "full_opt_run"
-        handler_lvl: (int) - level of handlers to use,0-4. 0 means no handlers,
-            2 is the default, 4 is highest level. Negative values activate MD handlers.
+        handler_group: (str) - group of handlers to use. Options include:
+            "default", "strict", "md" or "no_handler". Defaults to "default".
+            See handler_groups dict below for the complete list of handlers in each group.
         max_force_threshold: (float) - if >0, adds MaxForceErrorHandler. Not recommended for
             nscf runs.
         ediffg: (float) if not None, will set ediffg for special jobs
@@ -104,11 +105,24 @@ class RunVaspCustodian(FireTaskBase):
         wall_time (int): Total wall time in seconds. Activates WalltimeHandler if set.
     """
     required_params = ["vasp_cmd"]
-    optional_params = ["job_type", "handler_lvl", "max_force_threshold",
+    optional_params = ["job_type", "handler_group", "max_force_threshold",
                        "ediffg", "scratch_dir", "gzip_output", "max_errors",
                        "auto_npar", "gamma_vasp_cmd", "wall_time"]
 
     def run_task(self, fw_spec):
+
+        handler_groups = {
+        "default": [VaspErrorHandler(), MeshSymmetryErrorHandler(),
+                    UnconvergedErrorHandler(), NonConvergingErrorHandler(),
+                    PotimErrorHandler(), PositiveEnergyErrorHandler()],
+        "strict": [VaspErrorHandler(), MeshSymmetryErrorHandler(),
+                    UnconvergedErrorHandler(), NonConvergingErrorHandler(),
+                    PotimErrorHandler(), PositiveEnergyErrorHandler(),
+                    FrozenJobErrorHandler(), AliasingErrorHandler() ],
+        "md": [VaspErrorHandler(), NonConvergingErrorHandler()],
+        "no_handler": []
+        }
+
         vasp_cmd = env_chk(self["vasp_cmd"], fw_spec)
         if isinstance(vasp_cmd, six.string_types):
             vasp_cmd = os.path.expandvars(vasp_cmd)
@@ -121,7 +135,7 @@ class RunVaspCustodian(FireTaskBase):
         max_errors = self.get("max_errors", 5)
         auto_npar = env_chk(self.get("auto_npar"), fw_spec, strict=False,
                             default=False)
-        gamma_vasp_cmd = self.get("gamma_vasp_cmd")
+        gamma_vasp_cmd = env_chk(self.get("gamma_vasp_cmd"), fw_spec, strict=False)
         ediffg = self.get("ediffg")
 
         # construct jobs
@@ -141,22 +155,7 @@ class RunVaspCustodian(FireTaskBase):
             raise ValueError("Unsupported job type: {}".format(job_type))
 
         # construct handlers
-        handlers = []
-        handler_lvl = self.get("handler_lvl", 2)
-        if handler_lvl > 0:
-            handlers.extend([VaspErrorHandler(), MeshSymmetryErrorHandler(),
-                             UnconvergedErrorHandler(),
-                             NonConvergingErrorHandler(), PotimErrorHandler(),
-                             PositiveEnergyErrorHandler()])
-        if handler_lvl > 2:
-            # Default aliasing errors can be safely ignored according to VASP
-            handlers.append(AliasingErrorHandler)
-        if handler_lvl > 3:
-            handlers.append(FrozenJobErrorHandler())
-
-        if handler_lvl < 0:
-            # minimal handlers for MD
-            handlers.extend([VaspErrorHandler(), NonConvergingErrorHandler()])
+        handlers = handler_groups[self.get("handler_group", "default")]
 
         if self.get("max_force_threshold"):
             handlers.append(MaxForceErrorHandler(max_force_threshold=self["max_force_threshold"]))
