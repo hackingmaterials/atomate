@@ -284,7 +284,7 @@ class MDFW(Firework):
                                         contcar_to_poscar=True))
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
-                                  handler_lvl=-1, wall_time=wall_time))
+                                  handler_group="md", wall_time=wall_time))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
                               additional_fields={"task_label": name}))
