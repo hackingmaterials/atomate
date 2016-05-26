@@ -5,12 +5,13 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 
-from fireworks import Workflow
-
+from fireworks import Workflow, FireTaskBase, explicit_serialize
 from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW
 from pymatgen.io.vasp.sets import MPVaspInputSet
+"""
 from pymatgen.transformations.standard_transformations import \
     DeformStructureTransformation
+"""
 
 """
 This module defines the elastic workflow
@@ -35,11 +36,13 @@ class PassStressStrainData(FireTaskBase):
     def run_task(self, fw_spec):
         v = Vasprun('Vasprun.xml')
         stress = v['ionic_steps'][-1]['stress']
-        return FWAction(mod_spec=[{'_push': {'deformation': self['deformation'], 'stress': stress}}])
+        return FWAction(mod_spec=[{'_push': {'deformation': self['deformation'], 
+                                             'stress': stress}}])
 
 
-def get_wf_elastic_constant(structure, max_norm_deformation=0.01, max_shear_deformation=0.08,
-                            num_norm=4, num_shear=4, vasp_input_set=None, vasp_cmd="vasp", db_file=None):
+def get_wf_elastic_constant(structure, norm_deformations=None, 
+                            shear_deformations=None, vasp_input_set=None, 
+                            vasp_cmd="vasp", db_file=None):
     """
     Returns a workflow to calculate elastic consants. This workflow is dynamic
 
@@ -58,6 +61,8 @@ def get_wf_elastic_constant(structure, max_norm_deformation=0.01, max_shear_defo
 
     Args:
         structure (Structure): input structure to be optimized and run
+        norm_deformations (list): list of values to for normal deformations
+        shear_deformations (list): list of values to for shear deformations
         vasp_input_set (DictVaspInputSet): vasp input set.
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
@@ -66,18 +71,18 @@ def get_wf_elastic_constant(structure, max_norm_deformation=0.01, max_shear_defo
         Workflow
     """
 
+    # MP standards for elastic vasp inputs, kpoints
     v = vasp_input_set or MPVaspInputSet(force_gamma=True)
+    v.incar_settings.update({"ENCUT": 700, "EDIFF": 1e-6})
+    v.kpoints_settings.update({"grid_density": 7000})
 
     fws = []
 
     fws.append(OptimizeFW(structure=structure))
-
-    norm_deformations = np.linspace(-max_norm_deformation, max_norm_deformation, num=num_norm)
-    norm_deformations = norm_deformations[norm_deformations.nonzero()]
-    shear_deformations = np.linspace(-max_shear_deformation, max_shear_deformation, num=num_shear)
-    shear_deformations = shear_deformations[shear_deformations.nonzero()]
-
+    
     deformations = []
+    nd = norm_deformations or [-0.01, -0.005, 0.005, 0.01]
+    sd = shear_deformations or  [-0.08, -0.04, 0.04, 0.08]
 
     # Generate deformations
     for ind in [(0, 0), (1, 1), (2, 2)]:
@@ -91,18 +96,18 @@ def get_wf_elastic_constant(structure, max_norm_deformation=0.01, max_shear_defo
             deformations.append(defo)
 
     for deformation in deformations:
-        fw = TransmuterFW(structure=strcuture,
+        v.incar_settings.update({"ISIF": 2})
+        fw = TransmuterFW(structure=structure,
                           transformations=[DeformStructureTransformation],
                           transformation_params=[
                               {"deformation": deformation.tolist()}],
                           parents=fws[0])
-
         fw['_tasks'].append(PassStressStrainData(deformation=deformation.tolist()).to_dict())
         fws.append(fw)
 
     # TODO: Analyze the data -  OR MAYBE THIS SHOULD BE A BUILDER ????
 
-
+# We might consider making a custom duplicate checker?
 def symm_reduce(self, symm_ops, deformation_list, tolerance=1e-2):
     """
     Checks list of deformation gradient tensors for symmetrical
