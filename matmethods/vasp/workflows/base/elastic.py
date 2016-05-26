@@ -5,13 +5,16 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 
-from fireworks import Workflow
 import numpy as np
+from fireworks import Workflow
+from fireworks.features.dupefinder import DupeFinderBase
+
 from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
 from pymatgen.analysis.elasticity.strain import IndependentStrain
 from pymatgen.analysis.elasticity.stress import Stress
 from pymatgen.io.vasp.sets import MPVaspInputSet
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.transformations.standard_transformations import \
     DeformStructureTransformation
 
@@ -212,33 +215,47 @@ class AnalyzeStressStrainData(FireTaskBase):
             logger.info("Finished analyzing elasticity data")
 
 
-def elastic_from_stress_dict(cls, stress_dict, tol=0.1, vasp=True, symmetry=False):
+class DupeFinderEquivelantDeformation(DupeFinderBase):
     """
-    Constructs the elastic tensor from IndependentStrain-Stress dictionary
-    corresponding to legacy behavior of elasticity package.
+    This DupeFinder finds symmetrically equiavelant deformations
+    """
 
-    Args:
-        stress_dict (dict): dictionary of stresses indexed by corresponding
-            IndependentStrain objects.
-        tol (float): tolerance for zeroing small values of the tensor
-        vasp (boolean): flag for whether the stress tensor should be
-            converted based on vasp units/convention for stress
-        symmetry (boolean): flag for whether or not the elastic tensor
-            should fit from data based on symmetry
-    """
-    inds = [(0, 0), (1, 1), (2, 2), (1, 2), (0, 2), (0, 1)]
-    c_ij = np.array([[np.polyfit([strain[ind1] for strain in list(stress_dict.keys())
-                                  if (strain.i, strain.j) == ind1],
-                                 [stress_dict[strain][ind2] for strain
-                                  in list(stress_dict.keys())
-                                  if (strain.i, strain.j) == ind1], 1)[0]
-                      for ind1 in inds] for ind2 in inds])
-    if vasp:
-        c_ij *= -0.1  # Convert units/sign convention of vasp stress tensor
-    c_ij[0:, 3:] = 0.5 * c_ij[0:, 3:]  # account for voigt doubling of e4,e5,e6
-    c = cls.from_voigt(c_ij)
-    c = c.zeroed()
-    return c
+    _fw_name = 'DupeFinderEquivelantDeformation'
+
+    def verify(self, spec1, spec2):
+        # Same type of firework and composition
+        if spec1['name'] is not spec2['name']:
+            return False
+
+        # Correct type of firework?
+        if "elastic deformation analysis" not in spec1['name']:
+            return False
+
+        # Find the write io task and check structure
+        writeio1 = [task for task in spec1['_task'] if task['_fw_name']
+            is "{{matmethods.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet}}"]
+        writeio2 = [task for task in spec2['_task'] if task['_fw_name']
+            is "{{matmethods.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet}}"]
+
+        if writeio1['structure'] is not writeio2['structure']:
+            return False
+
+        # Are the deformations symmetrically equivelant?
+        sga = SpacegroupAnalyzer(writeio1['structure'], tol=0.1)
+        symm_ops = sga.get_symmetry_operations(cartesian=True)
+        self.deformations = symm_reduce(symm_ops, self.deformations)
+        if not equivelant_by_symmetry(writeio1['transformation_params']['deformation'],
+                                      writeio2['transformation_params']['deformation'],
+                                      symm_ops):
+            return False
+
+        return True
+
+    def query(self, spec):
+
+        #TODO: How do we provide a replacement that is the transformed stress/strain to match
+        return {}
+
 
 
 def get_wf_elastic_constant(structure, max_norm_deformation=0.01, max_shear_deformation=0.08,
@@ -297,7 +314,8 @@ def get_wf_elastic_constant(structure, max_norm_deformation=0.01, max_shear_defo
             deformations.append(defo)
 
     for deformation in deformations:
-        fw = TransmuterFW(structure=strcuture,
+        fw = TransmuterFW(name="elastic deformation analysis"
+                          structure=strcuture,
                           transformations=[DeformStructureTransformation],
                           transformation_params=[
                               {"deformation": deformation.tolist()}],
@@ -309,36 +327,19 @@ def get_wf_elastic_constant(structure, max_norm_deformation=0.01, max_shear_defo
         fw['_tasks'].append(PassStressStrainData(deformation=deformation.tolist()).to_dict())
         fws.append(fw)
 
-    # TODO: Analyze the data -  OR MAYBE THIS SHOULD BE A BUILDER ????
+    fws.append(AnalyzeStressStrainData(parents=fws[1:])
 
 
-def symm_reduce(self, symm_ops, deformation_list, tolerance=1e-2):
-    """
-    Checks list of deformation gradient tensors for symmetrical
-    equivalents and returns a new list with reduntant ones removed
+def equivelant_by_symmetry(tensor1, tensor2, symm_ops, tolerance=1e-2):
 
-    Args:
-        symm_ops (list of SymmOps): list of SymmOps objects with which
-            to check the list of deformation tensors for duplicates
-        deformation_list (list of Deformations): list of deformation
-            gradient objects to check for duplicates
-        tolerance (float): tolerance for assigning equal defo. gradients
-    """
-    unique_defos = []
-    for defo in deformation_list:
-        in_unique = False
-        for op in symm_ops:
-            if np.any([(np.abs(defo - defo.transform(symm_op)) < tol).all()
-                       for unique_defo in unique_defos]):
-                in_unique = True
-                break
-        if not in_unique:
-            unique_defos += [defo]
-    return unique_defos
+    for sym in symm_ops:
+        if (np.abs(symm_op.transform_tensor(tensor1) - tensor2) < tol).all():
+            return True
 
+    return False
 
 if __name__ == "__main__":
     from pymatgen.util.testing import PymatgenTest
 
-    structure = PymatgenTest.get_structure("Si")
-    wf = get_wf_elastic_constant(structure)
+    structure=PymatgenTest.get_structure("Si")
+    wf=get_wf_elastic_constant(structure)
