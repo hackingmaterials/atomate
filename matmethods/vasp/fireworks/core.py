@@ -16,6 +16,7 @@ from matmethods.vasp.firetasks.write_inputs import *
 class OptimizeFW(Firework):
     def __init__(self, structure, name="structure optimization",
                  vasp_input_set=None, vasp_cmd="vasp",
+                 force_gamma=True, reciprocal_density=50,
                  override_default_vasp_params=None,
                  db_file=None, parents=None, **kwargs):
         """
@@ -37,12 +38,8 @@ class OptimizeFW(Firework):
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         override_default_vasp_params = override_default_vasp_params or {}
-        reciprocal_density = 50
-        if override_default_vasp_params.get("reciprocal_density"):
-            reciprocal_density = override_default_vasp_params["reciprocal_density"]
-            del override_default_vasp_params["reciprocal_density"]
         vasp_input_set = vasp_input_set or MPVaspInputSet(
-            force_gamma=True, **override_default_vasp_params)
+            force_gamma=force_gamma, **override_default_vasp_params)
         if vasp_input_set.kpoints_settings.get("grid_density"):
             del vasp_input_set.kpoints_settings["grid_density"]
         vasp_input_set.kpoints_settings["reciprocal_density"] = reciprocal_density
