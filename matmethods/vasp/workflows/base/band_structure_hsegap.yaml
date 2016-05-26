@@ -11,6 +11,6 @@ fireworks:
   params:
     parents: 1
     mode: line
-- fw: matmethods.vasp.fireworks.core.HSEGapFW
+- fw: matmethods.vasp.fireworks.core.HSEBSFW
   params:
     parents: 3

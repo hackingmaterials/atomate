@@ -62,7 +62,7 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
         Workflow
     """
 
-    wf_file = "band_structure_hsegap.yaml" if add_hse_gap \
+    wf_file = "band_structure_hsebs.yaml" if add_hse_gap \
         else "band_structure.yaml"
 
     d = loadfn(os.path.join(os.path.dirname(__file__), wf_file))

@@ -88,7 +88,7 @@ class StaticFW(Firework):
             name), **kwargs)
 
 
-class HSEGapFW(Firework):
+class HSEBSFW(Firework):
     def __init__(self, structure, parents, name="hse gap", vasp_cmd="vasp",
                  db_file=None, **kwargs):
         """
@@ -106,12 +106,12 @@ class HSEGapFW(Firework):
         """
         t = []
         t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
-        t.append(WriteVaspHSEGapFromPrev(prev_calc_dir='.'))
+        t.append(WriteVaspHSEBSFromPrev(prev_calc_dir='.'))
         t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
                               additional_fields={"task_label": name}))
-        super(HSEGapFW, self).__init__(t, parents=parents, name="{}-{}".format(
+        super(HSEBSFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula,
             name), **kwargs)
 
