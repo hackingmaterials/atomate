@@ -263,7 +263,7 @@ class TransmuterFW(Firework):
                                                    transformation_params=transformation_params,
                                                    vasp_input_set=vasp_input_set,
                                                    vasp_input_params=kwargs.get("vasp_input_params",{}),
-                                                   prev_calc_dir=".")
+                                                   prev_calc_dir="."))
         else:
             t.append(WriteTransmutedStructureIOSet(structure=structure, transformations=transformations,
                                                    transformation_params=transformation_params,
