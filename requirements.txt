@@ -1,5 +1,5 @@
 FireWorks>=1.2.7
--e git+git@github.com:materialsproject/pymatgen.git@HEAD#egg=pymatgen_tmp
+-e git+git@github.com:materialsproject/pymatgen.git#egg=pymatgen_tmp
 pymatgen-db>=0.5.1
 custodian>=0.8.8
 monty>=0.8.4
