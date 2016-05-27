@@ -4,12 +4,12 @@ various sequences of VASP calculations.
 """
 
 from fireworks import Firework
-from pymatgen.io.vasp.sets import MPVaspInputSet, MPStaticSet, MPSOCSet
+from pymatgen.io.vasp.sets import MPVaspInputSet, MPStaticSet, MPSOCSet, MITMDVaspInputSet
 
 from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
-from matmethods.vasp.firetasks.run_calc import RunVaspDirect
+from matmethods.vasp.firetasks.run_calc import RunVaspDirect, RunVaspCustodian
 from matmethods.vasp.firetasks.write_inputs import *
 
 
@@ -84,6 +84,34 @@ class StaticFW(Firework):
         t.append(VaspToDbTask(db_file=db_file,
                               additional_fields={"task_label": name}))
         super(StaticFW, self).__init__(t, parents=parents, name="{}-{}".format(
+            structure.composition.reduced_formula,
+            name), **kwargs)
+
+
+class HSEBSFW(Firework):
+    def __init__(self, structure, parents, name="hse gap", vasp_cmd="vasp",
+                 db_file=None, **kwargs):
+        """
+        For getting a more accurate band gap with HSE - requires previous
+        calculation that gives VBM/CBM info. Note that this method is not
+        intended for energies, etc. due to sparse k-mesh.
+
+        Args:
+            structure (Structure): Input structure.
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            name (str): Name for the Firework.
+            vasp_cmd (str): Command to run vasp.
+            db_file (str): Path to file specifying db credentials.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+        t = []
+        t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
+        t.append(WriteVaspHSEBSFromPrev(prev_calc_dir='.'))
+        t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
+        t.append(PassCalcLocs(name=name))
+        t.append(VaspToDbTask(db_file=db_file,
+                              additional_fields={"task_label": name}))
+        super(HSEBSFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula,
             name), **kwargs)
 
@@ -243,3 +271,51 @@ class TransmuterFW(Firework):
         super(TransmuterFW, self).__init__(t, parents=parents,
                                            name="{}-{}".format(structure.composition.reduced_formula, name),
                                            **kwargs)
+
+
+class MDFW(Firework):
+    def __init__(self, structure, start_temp, end_temp, nsteps,
+                 name="molecular dynamics run", vasp_input_set=None, vasp_cmd="vasp",
+                 override_default_vasp_params=None, wall_time=19200,
+                 db_file=None, parents=None, copy_vasp_outputs=True, **kwargs):
+        """
+        Standard firework for a single MD run.
+        Args:
+            structure (Structure): Input structure.
+            start_temp (float): Start temperature of MD run.
+            end_temp (float): End temperature of MD run.
+            nsteps (int): Number of MD steps
+            name (string): Name for the Firework.
+            vasp_input_set (string): string name for the VASP input set (e.g.,
+                "MITMDVaspInputSet").
+            vasp_cmd (string): Command to run vasp.
+            override_default_vasp_params (dict): If this is not None,
+                these params are passed to the default vasp_input_set, i.e.,
+                MITMDVaspInputSet. This allows one to easily override some
+                settings, e.g., user_incar_settings, etc. Particular to MD,
+                one can control time_step and all other settings of the input set.
+            wall_time (int): Total wall time in seconds.
+            copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
+            db_file (string): Path to file specifying db credentials.
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+
+        override_default_vasp_params = override_default_vasp_params or {}
+        vasp_input_set = vasp_input_set or MITMDVaspInputSet(start_temp=start_temp, end_temp=end_temp,
+                        nsteps=nsteps, **override_default_vasp_params)
+
+        t = []
+        if parents:
+            if copy_vasp_outputs:
+                t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
+                                        contcar_to_poscar=True))
+        t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
+                                  handler_group="md", wall_time=wall_time))
+        t.append(PassCalcLocs(name=name))
+        t.append(VaspToDbTask(db_file=db_file,
+                              additional_fields={"task_label": name}))
+        super(MDFW, self).__init__(
+                t, parents=parents, name="{}-{}".
+                format(structure.composition.reduced_formula, name), **kwargs)

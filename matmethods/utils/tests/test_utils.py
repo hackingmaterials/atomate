@@ -29,6 +29,10 @@ class UtilsTests(unittest.TestCase):
 
         self.assertRaises(KeyError, env_chk, ">>hello<<", fw_spec_invalid)
         self.assertEqual(env_chk(">>hello<<", fw_spec_invalid, False), None)
+        self.assertEqual(env_chk(">>hello<<", fw_spec_invalid,
+                                 False, "fallback"), "fallback")
 
         self.assertEqual(env_chk(None, fw_spec_valid, False), None)
+        self.assertEqual(env_chk(None, fw_spec_valid, False, "fallback"),
+                         "fallback")
 
