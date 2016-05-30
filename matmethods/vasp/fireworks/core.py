@@ -343,9 +343,8 @@ class MPStaticSetMod(MPStaticSet):
     """
     def __init__(self, structure, prev_incar=None, prev_kpoints=None,
                  lepsilon=False, lcalcpol=False, reciprocal_density=100, **kwargs):
-        #Is there a more compact way to modify the MPStaticSet.__init__ method?
         """
-        Init a MPStaticSet. Typically, you would use the classmethod
+        Init a MPStaticSetMod. Typically, you would use the classmethod
         from_prev_calc instead.
 
         Args:
@@ -356,15 +355,10 @@ class MPStaticSetMod(MPStaticSet):
                 volume (defaults to 100)
             \*\*kwargs: kwargs supported by MPVaspInputSet.
         """
-
-        self.prev_incar = prev_incar
-        self.prev_kpoints = prev_kpoints
-        self.reciprocal_density = reciprocal_density
-        self.structure = structure
-        self.kwargs = kwargs
-        self.lepsilon = lepsilon
         self.lcalcpol = lcalcpol
-        self.parent_vis = MPVaspInputSet(**self.kwargs)
+
+        super(MPStaticSetMod,self).__init__(structure, prev_incar, prev_kpoints,
+            lepsilon, reciprocal_density, **kwargs)
 
     def incar(self):
         incar = super(MPStaticMod, self).incar()
@@ -422,7 +416,9 @@ class LcalcpolFW(Firework):
             PassCalcLocs(name=name),
             VaspToDbTask(db_file=db_file,
                          additional_fields={"task_label": name})])
+        # Need to ensure that OUTCAR is processed so that the read_lcalcpol
+        # can be used and polarization stored.
+
         super(LcalcpolFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula,
             name), **kwargs)
-
