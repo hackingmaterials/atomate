@@ -4,6 +4,7 @@ various sequences of VASP calculations.
 """
 
 from fireworks import Firework
+from fireworks import FireTaskBase, explicit_serialize 
 from pymatgen.io.vasp.sets import MPVaspInputSet, MPStaticSet, MPSOCSet, MITMDVaspInputSet
 
 from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
@@ -329,3 +330,66 @@ class MDFW(Firework):
         super(MDFW, self).__init__(
                 t, parents=parents, name="{}-{}".
                 format(structure.composition.reduced_formula, name), **kwargs)
+
+"""
+The classes below are in progress works for supporting polarization Fireworks.
+"""
+
+class MPStaticSetMod(MPStaticSet):
+    """
+    This class should be a copy of pymatgen.io.vasp.sets.MPStaticSet
+    but also allow setting the LCALCPOL INCAR flag for calculating the 
+    dipole moment from the Berry phase.
+    """
+    def __init__(self, structure, prev_incar=None, prev_kpoints=None,
+                 lepsilon=False, lcalcpol=False, reciprocal_density=100, **kwargs):
+        #Is there a more compact way to modify the MPStaticSet.__init__ method?
+        """
+        Init a MPStaticSet. Typically, you would use the classmethod
+        from_prev_calc instead.
+
+        Args:
+            structure (Structure): Structure from previous run.
+            prev_incar (Incar): Incar file from previous run.
+            prev_kpoints (Kpoints): Kpoints from previous run.
+            reciprocal_density (int): density of k-mesh by reciprocal
+                volume (defaults to 100)
+            \*\*kwargs: kwargs supported by MPVaspInputSet.
+        """
+
+        self.prev_incar = prev_incar
+        self.prev_kpoints = prev_kpoints
+        self.reciprocal_density = reciprocal_density
+        self.structure = structure
+        self.kwargs = kwargs
+        self.lepsilon = lepsilon
+        self.lcalcpol = lcalcpol
+        self.parent_vis = MPVaspInputSet(**self.kwargs)
+
+    def incar(self):
+        incar = super(MPStaticMod, self).incar()
+        if self.lcalpol == True:
+            incar["LCALCPOL"] = True
+        return incar
+
+@explicit_serialize
+class WriteVaspPolarizationFromPrev(FireTaskBase):
+    """
+    Writes input files for a static run. Assumes that output files from an
+    scf job can be accessed.
+
+    Required params:
+        (none)
+
+    Optional params:
+        (none)
+    """
+    required_params = ["prev_calc_dir"]
+
+    def run_task(self, fw_spec):
+        vis = MPStaticSetMod.from_prev_calc(
+            prev_calc_dir=self["prev_calc_dir"], lcalcpol=True,
+            user_incar_settings={"EDIFF": 1E-5}, ediff_per_atom=False,
+            reciprocal_density=200)
+        # Need to check if user_incar_settings or reciprocal_density should differ
+        vis.write_input(".")
