@@ -16,7 +16,6 @@ from matmethods.vasp.firetasks.write_inputs import *
 class OptimizeFW(Firework):
     def __init__(self, structure, name="structure optimization",
                  vasp_input_set=None, vasp_cmd="vasp",
-                 force_gamma=True, reciprocal_density=50,
                  override_default_vasp_params=None,
                  db_file=None, parents=None, **kwargs):
         """
@@ -39,10 +38,7 @@ class OptimizeFW(Firework):
         """
         override_default_vasp_params = override_default_vasp_params or {}
         vasp_input_set = vasp_input_set or MPVaspInputSet(
-            force_gamma=force_gamma, **override_default_vasp_params)
-        if vasp_input_set.kpoints_settings.get("grid_density"):
-            del vasp_input_set.kpoints_settings["grid_density"]
-        vasp_input_set.kpoints_settings["reciprocal_density"] = reciprocal_density
+            force_gamma=True, **override_default_vasp_params)
 
         t = []
         t.append(WriteVaspFromIOSet(structure=structure,
@@ -88,6 +84,34 @@ class StaticFW(Firework):
         t.append(VaspToDbTask(db_file=db_file,
                               additional_fields={"task_label": name}))
         super(StaticFW, self).__init__(t, parents=parents, name="{}-{}".format(
+            structure.composition.reduced_formula,
+            name), **kwargs)
+
+
+class HSEBSFW(Firework):
+    def __init__(self, structure, parents, name="hse gap", vasp_cmd="vasp",
+                 db_file=None, **kwargs):
+        """
+        For getting a more accurate band gap with HSE - requires previous
+        calculation that gives VBM/CBM info. Note that this method is not
+        intended for energies, etc. due to sparse k-mesh.
+
+        Args:
+            structure (Structure): Input structure.
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            name (str): Name for the Firework.
+            vasp_cmd (str): Command to run vasp.
+            db_file (str): Path to file specifying db credentials.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+        t = []
+        t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
+        t.append(WriteVaspHSEBSFromPrev(prev_calc_dir='.'))
+        t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
+        t.append(PassCalcLocs(name=name))
+        t.append(VaspToDbTask(db_file=db_file,
+                              additional_fields={"task_label": name}))
+        super(HSEBSFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula,
             name), **kwargs)
 
@@ -238,13 +262,18 @@ class TransmuterFW(Firework):
             t.append(WriteTransmutedStructureIOSet(structure=structure, transformations=transformations,
                                                    transformation_params=transformation_params,
                                                    vasp_input_set=vasp_input_set,
-                                                   vasp_input_params=kwargs.get("vasp_input_params",{})),
-                                                   prev_calc_dir=".")
+                                                   vasp_input_params=kwargs.get("vasp_input_params",{}),
+                                                   prev_calc_dir="."))
         else:
             t.append(WriteTransmutedStructureIOSet(structure=structure, transformations=transformations,
                                                    transformation_params=transformation_params,
                                                    vasp_input_set=vasp_input_set,
                                                    vasp_input_params=kwargs.get("vasp_input_params",{})))
+
+        t.append(WriteTransmutedStructureIOSet(structure=structure, transformations=transformations,
+                                               transformation_params=transformation_params,
+                                               vasp_input_set=vasp_input_set,
+                                               vasp_input_params=kwargs.get("vasp_input_params",{})))
         t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
