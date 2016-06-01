@@ -1,0 +1,19 @@
+fireworks:
+- fw: matmethods.vasp.fireworks.core.OptimizeFW
+- fw: matmethods.vasp.fireworks.core.StaticFW
+  params:
+    parents: 0
+- fw: matmethods.vasp.fireworks.core.NonSCFFW
+  params:
+    parents: 1
+    mode: uniform
+- fw: matmethods.vasp.fireworks.core.NonSCFFW
+  params:
+    parents: 1
+    mode: line
+- fw: matmethods.vasp.fireworks.core.StaticPolarFW  # split into 10 volumes
+  params:
+    parents: 3
+- fw: matmethods.vasp.fireworks.core.HSEBSFW  # add condition: run if PBE band gap < 1 eV
+  params:
+    parents: 3

@@ -331,9 +331,11 @@ class MDFW(Firework):
                 t, parents=parents, name="{}-{}".
                 format(structure.composition.reduced_formula, name), **kwargs)
 
+
 """
 The classes below are in progress works for supporting polarization Fireworks.
 """
+
 
 class MPStaticSetMod(MPStaticSet):
     """
@@ -366,6 +368,7 @@ class MPStaticSetMod(MPStaticSet):
             incar["LCALCPOL"] = True
         return incar
 
+
 @explicit_serialize
 class WriteVaspPolarizationFromPrev(FireTaskBase):
     """
@@ -387,6 +390,7 @@ class WriteVaspPolarizationFromPrev(FireTaskBase):
             reciprocal_density=200)
         # Need to check if user_incar_settings or reciprocal_density should differ
         vis.write_input(".")
+
 
 class LcalcpolFW(Firework):
     def __init__(self, structure, name="static dipole moment", vasp_cmd="vasp",
@@ -422,3 +426,62 @@ class LcalcpolFW(Firework):
         super(LcalcpolFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula,
             name), **kwargs)
+
+"""
+Saurabh
+"""
+
+
+class StaticPolarFW(Firework):
+    def __init__(self, structure, name="static polar", vasp_cmd="vasp",
+                 copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
+        """
+        Standard polar static calculation Firework.
+
+        Args:
+            structure (Structure): Input structure.
+            name (str): Name for the Firework.
+            vasp_cmd (str): Command to run vasp.
+            copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
+            db_file (str): Path to file specifying db credentials.
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+        t = []
+
+        if parents:
+            if copy_vasp_outputs:
+                t.append(
+                    CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
+            t.append(WriteVaspPolarFromPrev(prev_calc_dir='.'))
+        else:
+            vasp_input_set = MPStaticSet(structure)
+            t.append(WriteVaspFromIOSet(structure=structure,
+                                        vasp_input_set=vasp_input_set))
+
+        t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
+        t.append(PassCalcLocs(name=name))
+        t.append(VaspToDbTask(db_file=db_file,
+                              additional_fields={"task_label": name}))
+        super(StaticPolarFW, self).__init__(t, parents=parents, name="{}-{}".format(
+            structure.composition.reduced_formula,
+            name), **kwargs)
+
+
+class MPStaticPolarSet(MPStaticSet):
+
+    def __init__(self, structure, prev_incar=None, prev_kpoints=None, lcalcpol=True):
+        MPStaticSet.__init__(self, structure, prev_incar, prev_kpoints)
+        self.lcalcpol = lcalcpol
+
+    @property
+    def incar(self):
+
+        parent_incar = self.parent_vis.get_incar(self.structure)
+        incar = Incar(self.prev_incar) if self.prev_incar is not None else \
+            Incar(parent_incar)
+
+        if self.lepsilon:
+            incar["LCALCPOL"] = True
+
+        return incar
