@@ -382,6 +382,8 @@ class LcalcpolFW(Firework):
         t = []
         if copy_vasp_outputs:
             t.append(
+            # Need to change calc_loc to calc_dir with directory of correct calculation to start from since that will
+            # not necessarily be the parent calculations
                 CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
                                 contcar_to_poscar=True))
         t.extend([

@@ -142,6 +142,8 @@ def generate_ferroelectric_template(nimages=5,optimize=True,band_hse=True):
 def get_wf_ferroelectric(structure_polar, structure_nonpolar, vasp_input_set=None, vasp_cmd="vasp",
                          db_file=None):
     """
+    NEED TO REWRITE TO DESCRIBE YAML GENERATION
+
     Return vasp workflow consisting of 4 fireworks:
 
     Firework 1 : write vasp input set for structural relaxation,
@@ -205,9 +207,7 @@ def get_wf_ferroelectric(structure_polar, structure_nonpolar, vasp_input_set=Non
     # can't use the default method because we need to specify multiple structures.
     #return get_wf_from_spec_dict(structure, wfspec)
 
-
     #### COPIED FROM loaders.get_wf_from_spec_dict
-
 
     dec = MontyDecoder()
 
@@ -234,11 +234,6 @@ def get_wf_ferroelectric(structure_polar, structure_nonpolar, vasp_input_set=Non
 
     # Note that interpolation of structures has to happen after optimizations
 
-    """
-    Special notes about processing ferroelectric.yaml
-
-    Interpolate
-    """
 
     for d in wfspec["fireworks"]:
         cls_ = load_class(d["fw"])
@@ -262,5 +257,6 @@ def get_wf_ferroelectric(structure_polar, structure_nonpolar, vasp_input_set=Non
 if __name__ == "__main__":
     from pymatgen.util.testing import PymatgenTest
 
+# TO DO: replace this with BaTiO3 polar and nonpolar structures
     structure = PymatgenTest.get_structure("Si")
     wf = get_wf_ferroelectric(structure)
