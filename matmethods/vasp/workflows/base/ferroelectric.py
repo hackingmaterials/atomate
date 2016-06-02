@@ -13,8 +13,6 @@ from pymatgen.io.vasp.sets import MPVaspInputSet
 from monty.serialization import loadfn
 from matmethods.utils.loaders import get_wf_from_spec_dict
 
-from matmethods.vasp.core import MPVaspInputSetMod
-
 
 def generate_ferroelectric_template(nimages=5,optimize=True,band_hse=True):
     """
@@ -45,99 +43,90 @@ def generate_ferroelectric_template(nimages=5,optimize=True,band_hse=True):
     yaml = ""
 
     if optimize:
-        yaml= """
-        fireworks:
-        - fw: matmethods.vasp.fireworks.core.OptimizeFW
-          params:
-            structure: 'polar'
+        yaml= """fireworks:
+- fw: matmethods.vasp.fireworks.core.OptimizeFW
+    params:
+        structure: 'polar'
         """
 
     yaml += """
-    - fw: matmethods.vasp.fireworks.core.StaticFW
-      params:
+- fw: matmethods.vasp.fireworks.core.StaticFW
+    params:
         parents: 0
         structure: 'polar'
-    - fw: matmethods.vasp.fireworks.core.NonSCFFW
-      params:
-        parents: 1
-        mode: uniform
-        structure: 'polar'
-    - fw: matmethods.vasp.fireworks.core.NonSCFFW
-      params:
+- fw: matmethods.vasp.fireworks.core.NonSCFFW
+    params:
+    parents: 1
+    mode: uniform
+    structure: 'polar'
+- fw: matmethods.vasp.fireworks.core.NonSCFFW
+    params:
         parents: 1
         mode: line
         structure: 'polar'
         defuse_children:
-            band_gap:
-                lt: 0
-    """
+        band_gap:
+            lt: 0 """
+
     if optimize:
-        yaml +="""
-        - fw: matmethods.vasp.fireworks.core.OptimizeFW
-            params:
-                parents: 2,3
-                prev: None
-                structure: 'nonpolar'
-        """
+        yaml += """
+- fw: matmethods.vasp.fireworks.core.OptimizeFW
+    params:
+        parents: 2,3
+        prev: None
+        structure: 'nonpolar' """
+
 
     fireworks = 2
     if optimize:
         fireworks += 2
 
-    current_lcalcol_parent = 4
+    current_lcalcpol_parent = 1
 
     for i in range(nimages):
-        if i==0 and optimize:
-            yaml +=
+        if i==nimages-1 and optimize:
+            yaml += """
+- fw: matmethods.vasp.fireworks.core.StaticFW
+    params:
+        parents: {p}
+        prev: {prev_calc}
+        structure: {i}
             """
-            - fw: matmethods.vasp.fireworks.core.StaticFW  # split into nimage volumes
-                params:
-                    parents: {p}
-                    prev: {prev}
-                    structure: {i}
-            """
-
-            yaml.format(p='2,3', i=i, prev=fireworks)
+            yaml = yaml.format(p='2,3', i=i, prev_calc=fireworks)
 
         elif (i != nimages-1 and i != 0) or (i==0 and not optimize):
-            yaml +=
-            """
-            - fw: matmethods.vasp.fireworks.core.StaticFW  # split into nimage volumes
-                params:
-                    parents: {p}
-                    prev: None
-                    structure: {i}
-            """
+            yaml += """
+- fw: matmethods.vasp.fireworks.core.StaticFW
+    params:
+        parents: {p}
+        prev: None
+        structure: {i}"""
 
-            yaml.format(p='2,3',i=i)
+            yaml = yaml.format(p='2,3',i=i)
             fireworks += 1
-            current_lcalcol_parent = fireworks
+            current_lcalcpol_parent = 4
 
-        yaml +=
-        """
-        - fw: matmethods.vasp.fireworks.core.LcalcpolFW  # split into nimage volumes
-            params:
-                parents: {p}
-                structure: {i}
-                nimages: 5
-        """
-
-        yaml.format(p=current_lcalcol_parent,i=i)
+        yaml += """
+- fw: matmethods.vasp.fireworks.core.LcalcpolFW
+    params:
+        parents: {p}
+        structure: {i}"""
+        yaml = yaml.format(p=current_lcalcpol_parent,i=i)
         fireworks += 1
 
 # Also may want to add fw (or perhaps task) that calculates effective polarization.
 # Alternatively, we can leave this to post-processing the database.
 
     if band_hse:
-        yaml +="""
-        - fw: matmethods.vasp.fireworks.core.HSEBSFW  # add condition: run if PBE band gap < 1 eV
-            params:
-                parents: 2,3
-                structure: 'polar'
-        """
-        yaml.format(hse_cut=hse_cut)
+        yaml += """
+- fw: matmethods.vasp.fireworks.core.HSEBSFW
+    params:
+        parents: 2,3
+        structure: 'polar' """
 
         fireworks += 1
+
+    return yaml
 
 def get_wf_ferroelectric(structure_polar, structure_nonpolar, vasp_input_set=None, vasp_cmd="vasp",
                          db_file=None):
@@ -195,7 +184,7 @@ def get_wf_ferroelectric(structure_polar, structure_nonpolar, vasp_input_set=Non
 
     wfspec = generate_ferroelectric_template()
 
-    v = vasp_input_set or MPVaspInputSetMod()
+    v = vasp_input_set or MPVaspInputSet()
     # We need to add lanthanide +U to the standard MP Vasp Inputs and copy as the FerroelectricSearchInputSet
     wfspec["fireworks"][0]["params"] = {"vasp_input_set": v.as_dict()}
 
@@ -254,9 +243,9 @@ def get_wf_ferroelectric(structure_polar, structure_nonpolar, vasp_input_set=Non
         wfspec.get("name") else structure.composition.reduced_formula
     return Workflow(fws, name=wfname)
 
-if __name__ == "__main__":
-    from pymatgen.util.testing import PymatgenTest
+#if __name__ == "__main__":
+#    from pymatgen.util.testing import PymatgenTest
 
 # TO DO: replace this with BaTiO3 polar and nonpolar structures
-    structure = PymatgenTest.get_structure("Si")
-    wf = get_wf_ferroelectric(structure)
+#    structure = PymatgenTest.get_structure("Si")
+#    wf = get_wf_ferroelectric(structure)
