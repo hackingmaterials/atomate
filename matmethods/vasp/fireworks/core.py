@@ -336,38 +336,8 @@ class MDFW(Firework):
 The classes below are in progress works for supporting polarization Fireworks.
 """
 
-
-class MPStaticSetMod(MPStaticSet):
-    """
-    This class should be a copy of pymatgen.io.vasp.sets.MPStaticSet
-    but also allow setting the LCALCPOL INCAR flag for calculating the 
-    dipole moment from the Berry phase.
-    """
-    def __init__(self, structure, prev_incar=None, prev_kpoints=None,
-                 lepsilon=False, lcalcpol=False, reciprocal_density=100, **kwargs):
-        """
-        Init a MPStaticSetMod. Typically, you would use the classmethod
-        from_prev_calc instead.
-
-        Args:
-            structure (Structure): Structure from previous run.
-            prev_incar (Incar): Incar file from previous run.
-            prev_kpoints (Kpoints): Kpoints from previous run.
-            reciprocal_density (int): density of k-mesh by reciprocal
-                volume (defaults to 100)
-            \*\*kwargs: kwargs supported by MPVaspInputSet.
-        """
-        self.lcalcpol = lcalcpol
-
-        super(MPStaticSetMod,self).__init__(structure, prev_incar, prev_kpoints,
-            lepsilon, reciprocal_density, **kwargs)
-
-    def incar(self):
-        incar = super(MPStaticMod, self).incar()
-        if self.lcalpol == True:
-            incar["LCALCPOL"] = True
-        return incar
-
+# MPStaticSetMod is now not need since I changed MPStaticSet on the polarization branch of my forked pymatgen repo.
+# I had to change Outcar.__init__ to make sure that the polarization information would by default be copied
 
 @explicit_serialize
 class WriteVaspPolarizationFromPrev(FireTaskBase):
@@ -384,7 +354,7 @@ class WriteVaspPolarizationFromPrev(FireTaskBase):
     required_params = ["prev_calc_dir"]
 
     def run_task(self, fw_spec):
-        vis = MPStaticSetMod.from_prev_calc(
+        vis = MPStaticSet.from_prev_calc(
             prev_calc_dir=self["prev_calc_dir"], lcalcpol=True,
             user_incar_settings={"EDIFF": 1E-5}, ediff_per_atom=False,
             reciprocal_density=200)
@@ -466,22 +436,3 @@ class StaticPolarFW(Firework):
         super(StaticPolarFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula,
             name), **kwargs)
-
-
-class MPStaticPolarSet(MPStaticSet):
-
-    def __init__(self, structure, prev_incar=None, prev_kpoints=None, lcalcpol=True):
-        MPStaticSet.__init__(self, structure, prev_incar, prev_kpoints)
-        self.lcalcpol = lcalcpol
-
-    @property
-    def incar(self):
-
-        parent_incar = self.parent_vis.get_incar(self.structure)
-        incar = Incar(self.prev_incar) if self.prev_incar is not None else \
-            Incar(parent_incar)
-
-        if self.lepsilon:
-            incar["LCALCPOL"] = True
-
-        return incar
