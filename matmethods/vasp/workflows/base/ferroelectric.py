@@ -158,6 +158,18 @@ def get_wf_ferroelectric(structure_polar, structure_nonpolar, nimages=5):
         + pass interpolated structures to relevant Fireworks after relaxed polar and nonpolar structures
         + call completed job data or pass it such that cuts can be included as a FireTask
 
+        ideas for doing these things:
+
+        re cuts:
+            see MakeBandgapCut in parse_outputs.py
+                This is a firetask that essentially redoes the work of VaspToDBTask but does not submit to the database.
+                It uses the bandgap that gets inserted into the vasp database to make a cut.
+
+
+        re passing interpolated structures:
+            see GetInterpolatedPOSCAR vasp/firetasks/glue_tasks.py
+
+
     Args:
         structure_polar (Structure): input polar structure
         structure_nonpolar (Structure):

@@ -105,3 +105,38 @@ class VaspToDbTask(FireTaskBase):
             logger.info("Finished parsing with task_id: {}".format(t_id))
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
                         defuse_children=(task_doc["state"] != "successful"))
+
+
+@explicit_serialize
+class MakeBandgapCut(FireTaskBase):
+    """
+    General class for making band gap cuts on calculations that result in whether or not to defuse children Fireworks.
+    It possibly should be merged with VaspToDBTask...
+
+    """
+
+    optional_params = ['gt','lt',"calc_dir", "calc_loc", "parse_dos",
+                       "bandstructure_mode", "additional_fields", "db_file"]
+
+    def run_task(self, fw_spec):
+        # get the directory that contains the VASP dir to parse
+        calc_dir = os.getcwd()
+        if "calc_dir" in self:
+            calc_dir = self["calc_dir"]
+        elif self.get("calc_loc"):
+            calc_dir = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])["path"]
+
+        drone = VaspDrone(additional_fields=self.get("additional_fields"),
+                          parse_dos=self.get("parse_dos", False), compress_dos=1,
+                          bandstructure_mode=self.get("bandstructure_mode", False), compress_bs=1)
+        # assimilate
+        task_doc = drone.assimilate(calc_dir)
+
+        k = task_doc["calcs_reversed"].keys()
+        bandgap = task_doc["calcs_reversed"][k[0]]['output']['bandgap']
+
+        if bandgap < self.get('lt',1.0e10) and bandgap > self.get('gt',0.001):
+            return FWAction(stored_data={"bandgap": bandgap})
+        else:
+            return FWAction(stored_data={"bandgap": bandgap},
+                            defuse_children=True)

@@ -16,6 +16,7 @@ from fireworks import explicit_serialize, FireTaskBase
 
 from matmethods.utils.utils import get_calc_loc
 from matmethods.utils.fileio import FileClient
+from pymatgen.core.structure import Structure
 
 __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
@@ -124,3 +125,60 @@ class CopyVaspOutputs(FireTaskBase):
                     f_out.writelines(file_content)
                 f.close()
                 os.remove(dest_path + gz_ext)
+
+
+class GetInterpolatedPOSCAR(FireTaskBase):
+    """
+    Grabs POSCARs from a list of 2 calc_loc names and grabs specific interpolation.
+
+    """
+
+    optional_params = ["calc_locs", "calc_dirs", "filesystem", "nimages", "this_image"]
+
+    def run_task(self, fw_spec):
+
+        if self.get("calc_dirs"):
+            calc_dirs = self["calc_dirs"]
+            filesystems = None
+        elif self.get("calc_locs"):
+            calc_locs = [get_calc_loc(c, fw_spec["calc_locs"]) for c in self["calc_locs"]]
+            calc_dirs = [c["path"] for c in calc_locs]
+            filesystems = [c["filesystem"] for c in calc_locs]
+        else:
+            raise ValueError("Must specify either calc_dirs or calc_locs!")
+
+        fileclients = [FileClient(filesystem=filesystem) for filesystem in filesystems]
+        calc_dirs = [fileclient.abspath(c) for c in calc_dirs]
+
+        if len(calc_dirs) != 2:
+            raise ValueError("calc_locs or calc_dirs should have length 2")
+
+        # make folder for poscar interpolation
+        interpolate_folder = 'interpolate'
+        if not os.path.exists(os.getcwd()+interpolate_folder):
+            os.makedirs(os.getcwd()+interpolate_folder)
+
+        # start file copy
+        for i,calc_dir in enumerate(calc_dirs):
+            prev_path_full = os.path.join(calc_dir, 'POSCAR')
+            dest_fname = 'POSCAR_'+str(i)
+            dest_path = os.path.join(os.getcwd()+interpolate_folder, dest_fname)
+
+            if not f in all_files:
+                raise ValueError("Cannot find file: {}".format(f))
+
+            # copy the file (minus the relaxation extension)
+            fileclients[i].copy(prev_path_full, dest_path)
+
+        # assuming first calc_dir is polar structure for ferroelectric search
+
+        s1 = Structure.from_file("interpolate/POSCAR_0")
+        s2 = Structure.from_file("interpolate/POSCAR_1")
+
+        structs = s1.interpolate(s2,self.get('nimages',5))
+
+        i = self.get("this_image",0)
+        s = structs[i]
+        s.to(fmt='POSCAR', filename=os.getcwd()+"/POSCAR")
+
+        # will want to call this method after getting first VASP set
