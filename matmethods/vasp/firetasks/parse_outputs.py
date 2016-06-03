@@ -25,8 +25,8 @@ logger = get_logger(__name__)
 @explicit_serialize
 class VaspToDbTask(FireTaskBase):
     """
-    Enter a VASP run into the database. By default, the VASP directory is
-    assumed to be the current directory.
+    Enter a VASP run into the database. Uses current directory unless you
+    specify calc_dir or calc_loc.
 
     Optional params:
         calc_dir (str): path to dir (on current filesystem) that contains VASP
@@ -51,7 +51,8 @@ class VaspToDbTask(FireTaskBase):
         if "calc_dir" in self:
             calc_dir = self["calc_dir"]
         elif self.get("calc_loc"):
-            calc_dir = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])["path"]
+            calc_dir = get_calc_loc(self["calc_loc"],
+                                    fw_spec["calc_locs"])["path"]
 
         # parse the VASP directory
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
@@ -61,8 +62,10 @@ class VaspToDbTask(FireTaskBase):
         drone = VaspDrone(additional_fields=self.get("additional_fields"),
                           parse_dos=self.get("parse_dos", False), compress_dos=1,
                           bandstructure_mode=self.get("bandstructure_mode", False), compress_bs=1)
-        # assimilate
+
+        # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)
+
         # db insertion
         if not db_file:
             with open("task.json", "w") as f:
