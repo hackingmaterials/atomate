@@ -161,18 +161,20 @@ class WriteVaspStaticFromPrev(FireTaskBase):
     required_params = ["prev_calc_dir"]
     optional_params = ["reciprocal_density", "small_gap_multiply",
                        "standardize", "sym_prec", "international_monoclinic",
-                       "lepsilon", "ediff_per_atom", "other_params"]
+                       "lepsilon", "other_params"]
 
     def run_task(self, fw_spec):
         lepsilon = self.get("lepsilon")
 
-        default_ediff_per_atom = True if not lepsilon else False
         default_reciprocal_density = 100 if not lepsilon else 200
         other_params = self.get("other_params", {})
 
         # for lepsilon runs, set EDIFF to 1E-5 unless user says otherwise
-        if lepsilon and "EDIFF" not in \
-                self.get("other_params", {}).get("user_incar_settings", {}):
+        prior_incar_settings = self.get("other_params", {}).\
+            get("user_incar_settings", {})
+
+        if lepsilon and "EDIFF" not in prior_incar_settings and \
+                        "EDIFF_PER_ATOM" not in prior_incar_settings:
             if "user_incar_settings" not in other_params:
                 other_params["user_incar_settings"] = {}
             other_params["user_incar_settings"]["EDIFF"] = 1E-5
@@ -185,8 +187,7 @@ class WriteVaspStaticFromPrev(FireTaskBase):
             sym_prec=self.get("sym_prec", 0.1),
             international_monoclinic=self.get("international_monoclinic",
                                               True),
-            lepsilon=lepsilon, ediff_per_atom=default_ediff_per_atom,
-            **other_params)
+            lepsilon=lepsilon, **other_params)
         vis.write_input(".")
 
 
