@@ -4,14 +4,16 @@ import unittest
 
 from fireworks import LaunchPad
 from fireworks.core.firework import Firework, Workflow
-from fireworks.core.rocket_launcher import rapidfire, launch_rocket
+from fireworks.core.rocket_launcher import rapidfire
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
 from matmethods.utils.utils import get_calc_loc
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-db_dir = os.path.join(module_dir, "..", "..", "reference_files", "db_connections")
+db_dir = os.path.join(module_dir, "..", "..", "reference_files",
+                      "db_connections")
+
 
 class TestPassCalcLocs(unittest.TestCase):
 
@@ -61,7 +63,6 @@ class TestPassCalcLocs(unittest.TestCase):
         self.assertEqual(get_calc_loc("fw1", calc_locs), calc_locs[0])
         self.assertEqual(get_calc_loc("fw2", calc_locs), calc_locs[1])
         self.assertEqual(get_calc_loc(True, calc_locs), calc_locs[1])
-
 
 
 
