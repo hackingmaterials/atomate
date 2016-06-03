@@ -135,11 +135,12 @@ class RunVaspCustodian(FireTaskBase):
         max_errors = self.get("max_errors", 5)
         auto_npar = env_chk(self.get("auto_npar"), fw_spec, strict=False,
                             default=False)
-        gamma_vasp_cmd = env_chk(self.get("gamma_vasp_cmd"), fw_spec, strict=False)
-        gamma_vasp_cmd = gamma_vasp_cmd.split() if gamma_vasp_cmd else None
+        gamma_vasp_cmd = env_chk(self.get("gamma_vasp_cmd"), fw_spec,
+                                 strict=False, default=None)
+        if gamma_vasp_cmd:
+            gamma_vasp_cmd = shlex.split(gamma_vasp_cmd)
 
         # construct jobs
-        jobs = []
         if job_type == "normal":
             jobs = [VaspJob(vasp_cmd, auto_npar=auto_npar,
                             gamma_vasp_cmd=gamma_vasp_cmd)]
@@ -149,7 +150,7 @@ class RunVaspCustodian(FireTaskBase):
                                                  half_kpts_first_relax=False)
         elif job_type == "full_opt_run":
             jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar,
-                                        ediffg=None, max_steps=4,
+                                        ediffg=None, max_steps=5,
                                         half_kpts_first_relax=False)
         else:
             raise ValueError("Unsupported job type: {}".format(job_type))
@@ -158,7 +159,8 @@ class RunVaspCustodian(FireTaskBase):
         handlers = handler_groups[self.get("handler_group", "default")]
 
         if self.get("max_force_threshold"):
-            handlers.append(MaxForceErrorHandler(max_force_threshold=self["max_force_threshold"]))
+            handlers.append(MaxForceErrorHandler(
+                max_force_threshold=self["max_force_threshold"]))
 
         if self.get("wall_time"):
             handlers.append(WalltimeHandler(wall_time=self["wall_time"]))
