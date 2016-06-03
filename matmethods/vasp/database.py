@@ -3,6 +3,7 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 from monty.json import jsanitize
+from monty.serialization import loadfn
 
 """
 This module defines the database classes.
@@ -135,3 +136,31 @@ class MMDb(object):
         self.db.counter.remove()
         self.db.counter.insert({"_id": "taskid", "c": 1})
         self.build_indexes()
+
+    @staticmethod
+    def from_db_file(db_file, admin=True):
+        """
+        Create MMDB from database file. File requires host, port, database,
+        collection, and optionally admin_user/readonly_user and
+        admin_password/readonly_password
+
+        Args:
+            db_file: file containing the credentials
+            admin: T/F - whether to use the admin user
+
+        Returns:
+            MMDb object
+        """
+        creds = loadfn(db_file)
+
+        if admin:
+            user = creds.get("admin_user")
+            password = creds.get("admin_password")
+        else:
+            user = creds.get("readonly_user")
+            password = creds.get("readonly_password")
+
+        return MMDb(creds["host"], creds["port"], creds["database"],
+                    creds["collection"], user, password)
+
+
