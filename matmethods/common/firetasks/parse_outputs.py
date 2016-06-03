@@ -8,7 +8,7 @@ from matmethods.utils.utils import get_calc_loc, env_chk
 from matmethods.vasp.database import MMDb
 from matmethods.vasp.firetasks.parse_outputs import logger
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = 'Shyam Dwaraknath <shyamd@lbl.gov>, Anubhav Jain <ajain@lbl.gov>'
 
 
 @explicit_serialize
