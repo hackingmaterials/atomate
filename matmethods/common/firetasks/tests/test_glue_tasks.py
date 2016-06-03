@@ -6,6 +6,7 @@ from fireworks import LaunchPad
 from fireworks.core.firework import Firework, Workflow
 from fireworks.core.rocket_launcher import rapidfire, launch_rocket
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
+from matmethods.utils.utils import get_calc_loc
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -55,6 +56,12 @@ class TestPassCalcLocs(unittest.TestCase):
         self.assertEqual(fw3.spec["calc_locs"][1]["name"], "fw2")
         self.assertNotEqual(fw3.spec["calc_locs"][0]["path"],
                             fw3.spec["calc_locs"][1]["path"])
+
+        calc_locs = fw3.spec["calc_locs"]
+        self.assertEqual(get_calc_loc("fw1", calc_locs), calc_locs[0])
+        self.assertEqual(get_calc_loc("fw2", calc_locs), calc_locs[1])
+        self.assertEqual(get_calc_loc(True, calc_locs), calc_locs[1])
+
 
 
 
