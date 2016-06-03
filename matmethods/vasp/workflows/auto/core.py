@@ -100,10 +100,10 @@ def wf_dielectric_constant(structure):
         structure, vasp_input_set=MPVaspInputSet(force_gamma=True),
         vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<")
 
+    # Note: need to set force convergence here
     wf = use_custodian(wf)
     wf = use_custodian(wf, fw_name_constraint="structure optimization",
-                       custodian_params={"job_type": "double_relaxation_run",
-                                         "ediffg": -0.05})
+                       custodian_params={"job_type": "double_relaxation_run"})
     wf = add_namefile(wf)
     wf = use_scratch_dir(wf, ">>scratch_dir<<")
 

@@ -1,6 +1,7 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, \
+    absolute_import
 
 import glob
 import os
@@ -15,22 +16,22 @@ __credits__ = 'Anubhav Jain <ajain@lbl.gov>'
 __email__ = 'kmathew@lbl.gov'
 
 
-# TODO: properly document this (i.e., all methods)
-
 class FileClient(object):
     """
-    A client that allows performing many file operations while being agnostic of whether
-    those operations are happening locally or via SSH
+    A client that allows performing many file operations while being agnostic
+    of whether those operations are happening locally or via SSH
     """
 
     def __init__(self, filesystem=None, private_key="~/.ssh/id_rsa"):
         """
         Args:
-            filesystem (str): remote filesystem, e.g. username@remote_host. If None, use local
-            private_key (str): path to the private key file (for remote connections only)
-                Note: passwordless ssh login must be setup
+            filesystem (str): remote filesystem, e.g. username@remote_host.
+                If None, use local
+            private_key (str): path to the private key file (for remote
+                connections only). Note: passwordless ssh login must be setup
         """
         self.ssh = None
+
         if filesystem:
             if '@' in filesystem:
                 username, host = filesystem.split('@', 1)
@@ -38,7 +39,8 @@ class FileClient(object):
                 username = None  # paramiko sets default username
                 host = filesystem
 
-            self.ssh = FileClient.get_ssh_connection(username, host, private_key)
+            self.ssh = FileClient.get_ssh_connection(username, host,
+                                                     private_key)
             self.sftp = self.ssh.open_sftp()
 
     @staticmethod
@@ -59,7 +61,8 @@ class FileClient(object):
         import paramiko
         private_key = os.path.expanduser(private_key)
         if not os.path.exists(private_key):
-            raise ValueError("Cannot locate private key file: {}".format(private_key))
+            raise ValueError(
+                "Cannot locate private key file: {}".format(private_key))
 
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -93,9 +96,6 @@ class FileClient(object):
         Returns:
             iterator of filenames
         """
-
-        # TODO: this pattern of "if self.ssh: self.ssh.X() else os.X() could be generalized beyond X()=listdir() in much more general code than this
-
         if not self.ssh:
             return os.listdir(ldir)
         else:
@@ -119,7 +119,8 @@ class FileClient(object):
                     self.sftp.mkdir(dest)
                 for f in os.listdir(src):
                     if os.path.isfile(os.path.join(src, f)):
-                        self.sftp.put(os.path.join(src, f), os.path.join(dest, f))
+                        self.sftp.put(os.path.join(src, f),
+                                      os.path.join(dest, f))
             else:
                 self.sftp.put(src, os.path.join(dest, os.path.basename(src)))
 
@@ -128,7 +129,7 @@ class FileClient(object):
         return the absolute path
 
         Args:
-            path (str):
+            path (str): path to get absolute string of
         """
         if not self.ssh:
             return os.path.abspath(path)
@@ -144,12 +145,13 @@ class FileClient(object):
         return the glob
 
         Args:
-            path (str):
+            path (str): path to glob
         """
         if not self.ssh:
             return glob.glob(path)
 
         else:
-            command = ". ./.bashrc; for i in $(ls {}); do readlink -f $i; done".format(path)
+            command = ". ./.bashrc; for i in $(ls {}); do readlink -f $i; done".format(
+                path)
             stdin, stdout, stderr = self.ssh.exec_command(command)
             return [l.split('\n')[0] for l in stdout]

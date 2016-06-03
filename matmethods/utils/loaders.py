@@ -41,17 +41,24 @@ def get_wf_from_spec_dict(structure, wfspec):
             name: bandstructure
             ```
 
-            The `fireworks` key is a list of fireworks. Each firework is
-            specified via "fw": <explicit path>, and all parameters other than
-            structure are specified via `params` which is a dict. `parents` is
-            a special parameter, which provides the *indices* of the parents
-            of that particular firework in the list. Any param starting with
-            a $ will be expanded using environmental variables.
+            The `fireworks` key is a list of Fireworks; it is expected that
+            all such Fireworks have "structure" as the first argument and
+            other optional arguments following that. Each Firework is specified
+            via "fw": <explicit path>.
 
-            `common_params` specify a common set of parameters that are
-            passed to all fireworks, e.g., db settings.
+            You can pass arguments into the constructor using the special
+            keyword `params`, which is a dict. If multiple fireworks share the
+            same `params`, you can use `common_params` to specify a common set
+            of arguments that are passed to all fireworks. Any param starting
+            with a $ will be expanded using environment variables.
 
-            `name` is used to set the Workflow name (structure formula + name)
+            Another special keyword is `parents`, which provides
+            the *indices* of the parents of that particular Firework in the
+            list. This allows you to link the Fireworks into a logical
+            workflow.
+
+            Finally, `name` is used to set the Workflow name
+            (structure formula + name) which can be helpful in record keeping.
 
     Returns:
         Workflow

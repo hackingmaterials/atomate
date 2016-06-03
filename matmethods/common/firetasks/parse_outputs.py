@@ -8,7 +8,7 @@ from matmethods.utils.utils import get_calc_loc, env_chk
 from matmethods.vasp.database import MMDb
 from matmethods.vasp.firetasks.parse_outputs import logger
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = 'Shyam Dwaraknath <shyamd@lbl.gov>, Anubhav Jain <ajain@lbl.gov>'
 
 
 @explicit_serialize
@@ -17,14 +17,12 @@ class ToDbTask(FireTaskBase):
     General task to enter data from a calculation into the database.
     Can use any drone to parse the current directory into the DB file to insert.
 
-
     Required params:
         drone (AbstractDrone): Drone to convert the data to dict
 
-
     Optional params:
         db_file (str): path to file containing the database credentials. Supports env_chk.
-            Default: write data to JSON file.
+            Default: write data to JSON file (None).
         calc_dir (str): path to dir (on current filesystem) that contains calculation output files.
             Default: use current working directory.
         calc_loc (str OR bool): if True will set most recent calc_loc. If str search for the most

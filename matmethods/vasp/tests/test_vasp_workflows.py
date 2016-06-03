@@ -26,7 +26,7 @@ __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-db_dir = os.path.join(module_dir, "reference_files", "db_connections")
+db_dir = os.path.join(module_dir, "..", "..", "common", "reference_files", "db_connections")
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
@@ -43,9 +43,7 @@ class TestVaspWorkflows(unittest.TestCase):
 
         cls.struct_si = PymatgenTest.get_structure("Si")
 
-        cls.module_dir = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)))
-        cls.scratch_dir = os.path.join(cls.module_dir, "scratch")
+        cls.scratch_dir = os.path.join(module_dir, "scratch")
 
     def setUp(self):
         if os.path.exists(self.scratch_dir):
