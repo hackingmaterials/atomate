@@ -3,6 +3,8 @@
 from __future__ import division, print_function, unicode_literals, \
     absolute_import
 
+import os
+
 """
 This module defines tasks for writing vasp input sets for various types of
 vasp calculations
@@ -304,11 +306,12 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
         transformations (list): list of names of transformation classes as defined in
             the modules in pymatgen.transformations
         vasp_input_set (string): string name for the VASP input set (e.g.,
-            "MPVaspInputSet").
+            "MPRelaxSet").
 
     Optional params:
-        transformation_params (list): list of dicts where each dict specify the input parameters to
-            instantiate the transformation class in the transforamtions list.
+        transformation_params (list): list of dicts where each dict specifies
+            the input parameters to instantiate the transformation class in
+            the transformations list.
         vasp_input_params (dict): When using a string name for VASP input set,
             use this as a dict to specify kwargs for instantiating the input
             set parameters. For example, if you want to change the
@@ -318,7 +321,8 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
     """
 
     required_params = ["structure", "transformations", "vasp_input_set"]
-    optional_params = ["prev_calc_dir", "transformation_params", "vasp_input_params"]
+    optional_params = ["prev_calc_dir", "transformation_params",
+                       "vasp_input_params"]
 
     def run_task(self, fw_spec):
 
@@ -348,8 +352,3 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
         vis = vis_cls(transmuter.transformed_structures[-1].final_structure,
                       **self.get("vasp_input_params", {}))
         vis.write_input(".")
-
-        # The following works only for the old inputset with write_input that takes structure as an
-        # argument the new ones that subclass DerivedSet needs structure to initialize
-        # vis = vis_cls(**self.get("vasp_input_params", {}))
-        # transmuter.write_vasp_input(vis, ".")
