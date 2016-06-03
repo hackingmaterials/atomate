@@ -44,7 +44,8 @@ class WriteVaspFromIOSet(FireTaskBase):
         vasp_input_params (dict): When using a string name for VASP input set,
             use this as a dict to specify kwargs for instantiating the input
             set parameters. For example, if you want to change the
-            user_incar_settings, you should provide: {"user_incar_settings": ...}.
+            user_incar_settings, you should provide:
+            {"user_incar_settings": ...}.
             This setting is ignored if you provide the full object
             representation of a VaspInputSet rather than a String.
     """
@@ -147,31 +148,45 @@ class ModifyIncar(FireTaskBase):
 class WriteVaspStaticFromPrev(FireTaskBase):
     """
     Writes input files for a static run. Assumes that output files from a
-    relaxation job can be accessed.
+    relaxation job can be accessed. Also allows lepsilon calcs.
 
     Required params:
         (none)
 
     Optional params:
         (documentation for all optional params can be found in
-        MPStaticSet.from_prev_calc)
+        MPStaticSet)
     """
 
     required_params = ["prev_calc_dir"]
     optional_params = ["reciprocal_density", "small_gap_multiply",
                        "standardize", "sym_prec", "international_monoclinic",
-                       "other_params"]
+                       "lepsilon", "ediff_per_atom", "other_params"]
 
     def run_task(self, fw_spec):
+        lepsilon = self.get("lepsilon")
+
+        default_ediff_per_atom = True if not lepsilon else False
+        default_reciprocal_density = 100 if not lepsilon else 200
+        other_params = self.get("other_params", {})
+
+        # for lepsilon runs, set EDIFF to 1E-5 unless user says otherwise
+        if lepsilon and "EDIFF" not in \
+                self.get("other_params", {}).get("user_incar_settings", {}):
+            if "user_incar_settings" not in other_params:
+                other_params["user_incar_settings"] = {}
+            other_params["user_incar_settings"]["EDIFF"] = 1E-5
+
         vis = MPStaticSet.from_prev_calc(
             prev_calc_dir=self["prev_calc_dir"],
-            reciprocal_density=self.get("reciprocal_density", 100),
+            reciprocal_density=default_reciprocal_density,
             small_gap_multiply=self.get("small_gap_multiply", None),
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
             international_monoclinic=self.get("international_monoclinic",
                                               True),
-            **self.get("other_params", {}))
+            lepsilon=lepsilon, ediff_per_atom=default_ediff_per_atom,
+            **other_params)
         vis.write_input(".")
 
 
@@ -186,7 +201,7 @@ class WriteVaspHSEBSFromPrev(FireTaskBase):
 
     Optional params:
         (documentation for all optional params can be found in
-        MPHSEBSSet.from_prev_calc)
+        MPHSEBSSet)
     """
 
     required_params = ["prev_calc_dir"]
@@ -204,29 +219,31 @@ class WriteVaspHSEBSFromPrev(FireTaskBase):
 @explicit_serialize
 class WriteVaspNSCFFromPrev(FireTaskBase):
     """
-    Writes input files for a static run. Assumes that output files from an
-    scf job can be accessed.
+    Writes input files for an NSCF static run. Assumes that output files from an
+    scf job can be accessed. There are many options, e.g. uniform mode,
+    line mode, adding the optical properties, etc.
 
     Required params:
         (none)
 
     Optional params:
         (documentation for all optional params can be found in
-        NonSCFVaspInputSet.write_input_from_prevrun)
+        NonSCFVaspInputSet)
     """
 
     required_params = ["prev_calc_dir"]
     optional_params = ["copy_chgcar", "nbands_factor", "reciprocal_density",
-                       "small_gap_multiply", "standardize", "sym_prec",
-                       "international_monoclinic", "mode", "nedos", "optics",
-                       "other_params"]
+                       "kpoints_line_density", "small_gap_multiply",
+                       "standardize", "sym_prec", "international_monoclinic",
+                       "mode", "nedos", "optics", "other_params"]
 
     def run_task(self, fw_spec):
         vis = MPNonSCFSet.from_prev_calc(
             prev_calc_dir=self["prev_calc_dir"],
             copy_chgcar=self.get("copy_chgcar", False),
             nbands_factor=self.get("nbands_factor", 1.2),
-            reciprocal_density=self.get("reciprocal_density", None),
+            reciprocal_density=self.get("reciprocal_density", 100),
+            kpoints_line_density=self.get("kpoints_line_density", 20),
             small_gap_multiply=self.get("small_gap_multiply", None),
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
@@ -236,28 +253,6 @@ class WriteVaspNSCFFromPrev(FireTaskBase):
             nedos=self.get("nedos", 601),
             optics=self.get("optics", False),
             **self.get("other_params", {}))
-        vis.write_input(".")
-
-
-@explicit_serialize
-class WriteVaspDFPTDielectricFromPrev(FireTaskBase):
-    """
-    Writes input files for a static run. Assumes that output files from an
-    scf job can be accessed.
-
-    Required params:
-        (none)
-
-    Optional params:
-        (none)
-    """
-    required_params = ["prev_calc_dir"]
-
-    def run_task(self, fw_spec):
-        vis = MPStaticSet.from_prev_calc(
-            prev_calc_dir=self["prev_calc_dir"], lepsilon=True,
-            user_incar_settings={"EDIFF": 1E-5}, ediff_per_atom=False,
-            reciprocal_density=200)
         vis.write_input(".")
 
 

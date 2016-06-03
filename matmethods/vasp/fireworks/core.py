@@ -181,7 +181,7 @@ class LepsFW(Firework):
                 CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
                                 contcar_to_poscar=True))
         t.extend([
-            WriteVaspDFPTDielectricFromPrev(prev_calc_dir="."),
+            WriteVaspStaticFromPrev(prev_calc_dir=".", lepsilon=True),
             RunVaspDirect(vasp_cmd=vasp_cmd),
             PassCalcLocs(name=name),
             VaspToDbTask(db_file=db_file,
