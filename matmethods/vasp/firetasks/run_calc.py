@@ -1,6 +1,7 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, \
+    absolute_import
 
 """
 This module defines tasks that support running vasp in various ways.
@@ -88,12 +89,11 @@ class RunVaspCustodian(FireTaskBase):
     Optional params:
         job_type: (str) - choose from "normal" (default),
             "double_relaxation_run" (two consecutive jobs), and "full_opt_run"
-        handler_group: (str) - group of handlers to use. Options include:
-            "default", "strict", "md" or "no_handler". Defaults to "default".
-            See handler_groups dict below for the complete list of handlers in each group.
-        max_force_threshold: (float) - if >0, adds MaxForceErrorHandler. Not recommended for
-            nscf runs.
-        ediffg: (float) if not None, will set ediffg for special jobs
+        handler_group: (str) - group of handlers to use. See handler_groups
+            dict in the code for the groups and complete list of handlers in
+            each group.
+        max_force_threshold: (float) - if >0, adds MaxForceErrorHandler.
+            Not recommended for nscf runs.
         scratch_dir: (str) - if specified, uses this directory as the root
             scratch dir. Supports env_chk.
         gzip_output: (bool) - gzip output (default=T)
@@ -106,7 +106,7 @@ class RunVaspCustodian(FireTaskBase):
     """
     required_params = ["vasp_cmd"]
     optional_params = ["job_type", "handler_group", "max_force_threshold",
-                       "ediffg", "scratch_dir", "gzip_output", "max_errors",
+                       "scratch_dir", "gzip_output", "max_errors",
                        "auto_npar", "gamma_vasp_cmd", "wall_time"]
 
     def run_task(self, fw_spec):
@@ -137,7 +137,6 @@ class RunVaspCustodian(FireTaskBase):
                             default=False)
         gamma_vasp_cmd = env_chk(self.get("gamma_vasp_cmd"), fw_spec, strict=False)
         gamma_vasp_cmd = gamma_vasp_cmd.split() if gamma_vasp_cmd else None
-        ediffg = self.get("ediffg")
 
         # construct jobs
         jobs = []
@@ -146,11 +145,11 @@ class RunVaspCustodian(FireTaskBase):
                             gamma_vasp_cmd=gamma_vasp_cmd)]
         elif job_type == "double_relaxation_run":
             jobs = VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar,
-                                                 ediffg=ediffg,
+                                                 ediffg=None,
                                                  half_kpts_first_relax=False)
         elif job_type == "full_opt_run":
             jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar,
-                                        ediffg=ediffg, max_steps=4,
+                                        ediffg=None, max_steps=4,
                                         half_kpts_first_relax=False)
         else:
             raise ValueError("Unsupported job type: {}".format(job_type))
