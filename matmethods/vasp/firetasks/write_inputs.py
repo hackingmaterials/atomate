@@ -170,11 +170,11 @@ class WriteVaspStaticFromPrev(FireTaskBase):
         other_params = self.get("other_params", {})
 
         # for lepsilon runs, set EDIFF to 1E-5 unless user says otherwise
-        prior_incar_settings = self.get("other_params", {}).\
+        user_incar_settings = self.get("other_params", {}).\
             get("user_incar_settings", {})
 
-        if lepsilon and "EDIFF" not in prior_incar_settings and \
-                        "EDIFF_PER_ATOM" not in prior_incar_settings:
+        if lepsilon and "EDIFF" not in user_incar_settings and \
+                        "EDIFF_PER_ATOM" not in user_incar_settings:
             if "user_incar_settings" not in other_params:
                 other_params["user_incar_settings"] = {}
             other_params["user_incar_settings"]["EDIFF"] = 1E-5
