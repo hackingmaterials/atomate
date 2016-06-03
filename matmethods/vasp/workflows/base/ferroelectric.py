@@ -10,9 +10,10 @@ from fireworks import Workflow
 import os
 from pymatgen.io.vasp.sets import MPVaspInputSet
 
-from monty.serialization import loadfn
-from matmethods.utils.loaders import get_wf_from_spec_dict
+from matmethods.vasp.fireworks.core import OptimizeFW, StaticFW, HSEBSFW, LcalcpolFW, NonSCFFW
+from pymatgen.io.vasp.sets import MPStaticSet
 
+from monty.serialization import loadfn
 
 def generate_ferroelectric_template(nimages=5,optimize=True,band_hse=True):
     """
@@ -72,7 +73,7 @@ def generate_ferroelectric_template(nimages=5,optimize=True,band_hse=True):
         yaml += """
 - fw: matmethods.vasp.fireworks.core.OptimizeFW
     params:
-        parents: 2,3
+        parents: [2,3]
         prev: None
         structure: 'nonpolar' """
 
@@ -81,7 +82,9 @@ def generate_ferroelectric_template(nimages=5,optimize=True,band_hse=True):
     if optimize:
         fireworks += 2
 
-    current_lcalcpol_parent = '2,3'
+    current_lcalcpol_parent = '[2,3]'
+    if optimize:
+        current_lcalcpol_parent = '4'
 
     for i in range(nimages):
         if i==nimages-1 and optimize:
@@ -102,7 +105,10 @@ def generate_ferroelectric_template(nimages=5,optimize=True,band_hse=True):
         prev: None
         structure: {i}"""
 
-            yaml = yaml.format(p='2,3',i=i)
+            p = '[2,3]'
+            if optimize:
+                p = '4'
+            yaml = yaml.format(p=p,i=i)
             fireworks += 1
             current_lcalcpol_parent = fireworks
 
@@ -125,126 +131,71 @@ def generate_ferroelectric_template(nimages=5,optimize=True,band_hse=True):
         yaml += """
 - fw: matmethods.vasp.fireworks.core.HSEBSFW
     params:
-        parents: 2,3
+        parents: [2,3]
         structure: 'polar' """
 
         fireworks += 1
 
     return yaml
 
-def get_wf_ferroelectric(structure_polar, structure_nonpolar, vasp_input_set=None, vasp_cmd="vasp",
-                         db_file=None):
+def get_wf_ferroelectric(structure_polar, structure_nonpolar, nimages=5):
     """
-    NEED TO REWRITE TO DESCRIBE YAML GENERATION
+    Simple workflow for ferroelectric search calculations. It includes these calculations:
+        StaticFW x nimages
+        LcalcpolFW x nimages
+        NSCF x 1
+        HSEBSFW x 1
 
-    Return vasp workflow consisting of 4 fireworks:
+    dependency of form:
+        polar SCF
+            polar NSCF
+                interpolated and nonpolar SCF
+                    interpolated and polar and nonpolar polarization
+                polar HSEBSFW
 
-    Firework 1 : write vasp input set for structural relaxation,
-                 run vasp,
-                 pass run location,
-                 database insertion.
 
-    Firework 2 : copy files from previous run,
-                 write vasp input set for static run,
-                 run vasp,
-                 pass run location
-                 database insertion.
-
-    Firework 3 : copy files from previous run,
-                 write vasp input set for non self-consistent
-                 (constant charge density) run in
-                 uniform mode,
-                 run vasp,
-                 pass run location
-                 database insertion.
-
-    Firework 4 : copy files from previous run,
-                 write vasp input set for non self-consistent
-                 (constant charge density) run in
-                 line mode,
-                 run vasp,
-                 pass run location
-                 database insertion.
-
-    Firework 5 : (optional) HSE gap run
+    This does not yet include cuts or structure optimization. To incorporate such tasks we need to be able to:
+        + pass interpolated structures to relevant Fireworks after relaxed polar and nonpolar structures
+        + call completed job data or pass it such that cuts can be included as a FireTask
 
     Args:
         structure_polar (Structure): input polar structure
         structure_nonpolar (Structure):
             input nonpolar structure in polar symmetry setting. This is important since structures will be interpolated
             between each other
-        vasp_input_set (DictVaspInputSet): vasp input set.
-        vasp_cmd (str): command to run
-        db_file (str): path to file containing the database credentials.
-        add_hse_gap (bool): add an HSE gap
 
     Returns:
         Workflow
     """
 
-#    wf_file = "ferroelectric.yaml"
-
-#    wfspec = loadfn(os.path.join(os.path.dirname(__file__), wf_file))
-
-    wfspec = generate_ferroelectric_template()
-
-    v = vasp_input_set or MPVaspInputSet()
-    # We need to add lanthanide +U to the standard MP Vasp Inputs and copy as the FerroelectricSearchInputSet
-    wfspec["fireworks"][0]["params"] = {"vasp_input_set": v.as_dict()}
-
-    wfspec["common_params"] = {
-        "vasp_cmd": vasp_cmd,
-        "db_file": db_file
-    }
-
-    # can't use the default method because we need to specify multiple structures.
-    #return get_wf_from_spec_dict(structure, wfspec)
-
-    #### COPIED FROM loaders.get_wf_from_spec_dict
-
-    dec = MontyDecoder()
-
-    def load_class(dotpath):
-        modname, classname = dotpath.rsplit(".", 1)
-        mod = __import__(modname, globals(), locals(), [classname], 0)
-        return getattr(mod, classname)
-
-    def process_params(d):
-        decoded = {}
-        for k, v in d.items():
-            if k.startswith("$"):
-                if isinstance(v, list):
-                    v = [os.path.expandvars(i) for i in v]
-                elif isinstance(v, dict):
-                    v = {k2: os.path.expandvars(v2) for k2, v2 in v.items()}
-                else:
-                    v = os.path.expandvars(v)
-            decoded[k.strip("$")] = dec.process_decoded(v)
-        return decoded
-
-    fws = []
-    common_params = process_params(wfspec.get("common_params", {}))
-
-    # Note that interpolation of structures has to happen after optimizations
+    wfname = "{}-{}".format("FerroelectricSearch",
+        structure_polar.composition.reduced_formula)
 
 
-    for d in wfspec["fireworks"]:
-        cls_ = load_class(d["fw"])
-        params = process_params(d.get("params", {}))
-        params.update(common_params)
-        if "parents" in params:
-            if isinstance(params["parents"], int):
-                params["parents"] = fws[params["parents"]]
-            else:
-                p = []
-                for parent_idx in params["parents"]:
-                    p.append(fws[parent_idx])
-                params["parents"] = p
-        fws.append(cls_(structure, **params))
+    commom_params={vasp_cmd: ">>vasp_cmd<<", db_file: '>>db_file<<'}
 
+    # Interpolate structures from polar to nonpolar
+    structs = structure_polar.interpolate(structure_nonpolar,nimages,interpolate_lattices=True)
 
-    wfname = "{}:{}".format(structure.composition.reduced_formula, wfspec["name"]) if \
-        wfspec.get("name") else structure.composition.reduced_formula
+    scf_fw = []
+    polarization_fw = []
+
+    scf_fw.append(StaticFW(s,name="scf_0",vasp_input_set=MPStaticSet(s),**commom_params))
+
+    nscf = NonSCFFW(s[0],scf_fw[0],**commom_params)
+
+    polarization_fw.append(
+        LcalcpolFW(s, calc_loc="scf_0", parents=nscf, **commom_params))
+
+    hsebs = HSEBSFW(s[0],nscf,**commom_params)
+
+    for i,s in enumerate(structs[1:]):
+        scf_fw.append(StaticFW(s,name="scf_"+str(i+1),parents=nscf,vasp_input_set=MPStaticSet(s),**commom_params))
+        polarization_fw.append(
+            LcalcpolFW(s,calc_loc="scf_"+str(i+1),parents=scf_fw[i+1],**commom_params))
+
+    fws = scf_fw + polarization_fw + [nscf,hsebs]
+
     return Workflow(fws, name=wfname)
 
 #if __name__ == "__main__":

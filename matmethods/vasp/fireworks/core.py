@@ -55,7 +55,7 @@ class OptimizeFW(Firework):
 
 class StaticFW(Firework):
     def __init__(self, structure, name="static", vasp_cmd="vasp",
-                 copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
+                 copy_vasp_outputs=True, db_file=None, parents=None, calc_loc=True **kwargs):
         """
         Standard static calculation Firework.
 
@@ -73,7 +73,7 @@ class StaticFW(Firework):
         if parents:
             if copy_vasp_outputs:
                 t.append(
-                    CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
+                    CopyVaspOutputs(calc_loc=calc_loc, contcar_to_poscar=True))
             t.append(WriteVaspStaticFromPrev(prev_calc_dir='.'))
         else:
             vasp_input_set = MPStaticSet(structure)
@@ -87,7 +87,6 @@ class StaticFW(Firework):
         super(StaticFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula,
             name), **kwargs)
-
 
 class HSEBSFW(Firework):
     def __init__(self, structure, parents, name="hse gap", vasp_cmd="vasp",
@@ -331,40 +330,9 @@ class MDFW(Firework):
                 t, parents=parents, name="{}-{}".
                 format(structure.composition.reduced_formula, name), **kwargs)
 
-
-"""
-The classes below are in progress works for supporting polarization Fireworks.
-"""
-
-# MPStaticSetMod is now not need since I changed MPStaticSet on the polarization branch of my forked pymatgen repo.
-# I had to change Outcar.__init__ to make sure that the polarization information would by default be copied
-
-@explicit_serialize
-class WriteVaspPolarizationFromPrev(FireTaskBase):
-    """
-    Writes input files for a static run. Assumes that output files from an
-    scf job can be accessed.
-
-    Required params:
-        (none)
-
-    Optional params:
-        (none)
-    """
-    required_params = ["prev_calc_dir"]
-
-    def run_task(self, fw_spec):
-        vis = MPStaticSet.from_prev_calc(
-            prev_calc_dir=self["prev_calc_dir"], lcalcpol=True,
-            user_incar_settings={"EDIFF": 1E-5}, ediff_per_atom=False,
-            reciprocal_density=200)
-        # Need to check if user_incar_settings or reciprocal_density should differ
-        vis.write_input(".")
-
-
 class LcalcpolFW(Firework):
     def __init__(self, structure, name="static dipole moment", vasp_cmd="vasp",
-                 copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
+                 copy_vasp_outputs=True, db_file=None, parents=None, calc_loc = True, **kwargs):
         """
         Standard static calculation Firework for dipole moment.
 
@@ -384,10 +352,10 @@ class LcalcpolFW(Firework):
             t.append(
             # Need to change calc_loc to calc_dir with directory of correct calculation to start from since that will
             # not necessarily be the parent calculations
-                CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
+                CopyVaspOutputs(calc_loc=calc_loc, additional_files=["CHGCAR","WAVECAR"],
                                 contcar_to_poscar=True))
         t.extend([
-            WriteVaspPolarizationFromPrev(prev_calc_dir="."),
+            WriteVaspStaticFromPrev(prev_calc_dir=".",other_params={'lcalcpol':True}),
             RunVaspDirect(vasp_cmd=vasp_cmd),
             PassCalcLocs(name=name),
             VaspToDbTask(db_file=db_file,
@@ -396,45 +364,5 @@ class LcalcpolFW(Firework):
         # can be used and polarization stored.
 
         super(LcalcpolFW, self).__init__(t, parents=parents, name="{}-{}".format(
-            structure.composition.reduced_formula,
-            name), **kwargs)
-
-"""
-Saurabh
-"""
-
-
-class StaticPolarFW(Firework):
-    def __init__(self, structure, name="static polar", vasp_cmd="vasp",
-                 copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
-        """
-        Standard polar static calculation Firework.
-
-        Args:
-            structure (Structure): Input structure.
-            name (str): Name for the Firework.
-            vasp_cmd (str): Command to run vasp.
-            copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
-            db_file (str): Path to file specifying db credentials.
-            parents (Firework): Parents of this particular Firework. FW or list of FWS.
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
-        """
-        t = []
-
-        if parents:
-            if copy_vasp_outputs:
-                t.append(
-                    CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
-            t.append(WriteVaspPolarFromPrev(prev_calc_dir='.'))
-        else:
-            vasp_input_set = MPStaticSet(structure)
-            t.append(WriteVaspFromIOSet(structure=structure,
-                                        vasp_input_set=vasp_input_set))
-
-        t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
-        t.append(PassCalcLocs(name=name))
-        t.append(VaspToDbTask(db_file=db_file,
-                              additional_fields={"task_label": name}))
-        super(StaticPolarFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula,
             name), **kwargs)
