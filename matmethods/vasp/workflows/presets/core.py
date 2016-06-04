@@ -1,7 +1,4 @@
-from matmethods.vasp.workflows.base.optical import get_wf_dielectric_constant
-
 from matmethods.vasp.workflows.base.core import get_wf
-from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
 
 from matmethods.vasp.vasp_powerups import add_namefile, \
     add_small_gap_multiply, use_scratch_dir
