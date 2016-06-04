@@ -17,7 +17,8 @@ __author__ = 'Anubhav Jain, Shyue Ping Ong'
 __email__ = 'ajain@lbl.gov, ongsp@eng.ucsd.edu'
 
 
-def get_wf_dielectric_constant(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=None):
+def get_wf_dielectric_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
+                               db_file=None):
     """
     Return vasp workflow consisting of 4 fireworks:
 
