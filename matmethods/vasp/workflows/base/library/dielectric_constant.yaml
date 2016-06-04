@@ -1,6 +1,8 @@
 # Structure optimize + static dielectric constant
 fireworks:
 - fw: matmethods.vasp.fireworks.core.OptimizeFW
+  params:
+    ediffg: -0.05
 - fw: matmethods.vasp.fireworks.core.LepsFW
   params:
     parents: 0

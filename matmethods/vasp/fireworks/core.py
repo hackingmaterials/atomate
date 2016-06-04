@@ -16,7 +16,7 @@ from matmethods.vasp.firetasks.write_inputs import *
 class OptimizeFW(Firework):
     def __init__(self, structure, name="structure optimization",
                  vasp_input_set=None, vasp_cmd="vasp",
-                 override_default_vasp_params=None,
+                 override_default_vasp_params=None, ediffg=None,
                  db_file=None, parents=None, **kwargs):
         """
         Standard structure optimization Firework.
@@ -31,6 +31,7 @@ class OptimizeFW(Firework):
                 MPRelaxSet. This allows one to easily override some
                 settings, e.g., user_incar_settings, etc.
             vasp_cmd (str): Command to run vasp.
+            ediffg (float): Shortcut to set ediffg in certain jobs
             db_file (str): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework.
                 FW or list of FWS.
@@ -46,7 +47,8 @@ class OptimizeFW(Firework):
                                     vasp_input_set=vasp_input_set))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd,
                                   job_type="double_relaxation_run",
-                                  max_force_threshold=0.25))
+                                  max_force_threshold=0.25,
+                                  ediffg=ediffg))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
                               additional_fields={"task_label": name}))
