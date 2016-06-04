@@ -6,7 +6,7 @@ from fireworks import Workflow, FileWriteTask
 from fireworks.core.firework import Tracker
 from fireworks.utilities.fw_utilities import get_slug
 
-from matmethods.vasp.firetasks.run_calc import RunVaspCustodian
+from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspDirect
 from matmethods.vasp.firetasks.write_inputs import ModifyIncar
 from matmethods.vasp.tests.vasp_fake import fake_dirs, RunVaspFake
 
@@ -62,11 +62,34 @@ def add_priority(original_wf, root_priority, child_priority=None):
     return original_wf
 
 
+def remove_custodian(original_wf, fw_name_constraint=None):
+    """
+    Replaces all tasks with "RunVasp*" (e.g. RunVaspCustodian) to be
+    RunVaspDirect.
+
+    Args:
+        original_wf (Workflow): original workflow
+        fw_name_constraint (str): Only apply changes to FWs where fw_name
+            contains this substring.
+    """
+
+    wf_dict = original_wf.to_dict()
+    vasp_fws_and_tasks = get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
+                                           task_name_constraint="RunVasp")
+
+    for idx_fw, idx_t in vasp_fws_and_tasks:
+        vasp_cmd = wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"]
+        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
+            RunVaspDirect(vasp_cmd=vasp_cmd).to_dict()
+
+    return Workflow.from_dict(wf_dict)
+
+
 def use_custodian(original_wf, fw_name_constraint=None, custodian_params=None):
     """
-    Replaces all tasks with "RunVasp" (e.g. RunVaspDirect) to be
+    Replaces all tasks with "RunVasp*" (e.g. RunVaspDirect) to be
     RunVaspCustodian. Thus, this powerup adds error correction into VASP
-    runs if not originally present.
+    runs if not originally present and/or modifies the correction behavior.
 
     Args:
         original_wf (Workflow): original workflow
