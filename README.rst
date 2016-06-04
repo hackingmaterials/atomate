@@ -260,12 +260,12 @@ FAQS
 
 1. **What do I actually need to do to get a job running?**
 
-First, you need to install and configure MatMethods (see the installation notes above) for your computing center of interest. Next you need to get some workflows. The easiest way is to throw a pymatgen Structure object into one of the prebuilt workflow functions in matmethods/vasp/workflows/presets. Et voila! You have a workflow object. Next you need to put the workflow into your LaunchPad using the add_wf method in FireWorks. Finally, you need to run the workflow using FireWorks, e.g. using rlaunch, qlaunch or any of the other FireWorks tools.
+First, you need to install and configure MatMethods (see the installation notes above) for your computing center of interest. Next you need to get some workflows. The easiest way is to throw a pymatgen Structure object into one of the prebuilt workflow functions in matmethods/vasp/workflows/presets. Et voilá! You have a workflow object. Next you need to put the workflow into your LaunchPad using the add_wf method in FireWorks. Finally, you need to run the workflow using FireWorks, e.g. using rlaunch, qlaunch or any of the other FireWorks tools.
 Basically, the goal of MatMethods is to help you get some workflows. e.g., you have a structure and you know you want the dielectric constant - MatMethods will help you get a workflow to accomplish that. All the details of running workflows, managing them, etc. is handled by FireWorks. Note that there is also an ``mmwf`` script that is intended to help you in putting a Workflow in the LaunchPad, but if you don't really understand what it's doing, it's probably best to ignore this for now.
 
 2. **How do I know what workflows are available?**
 
-Browse the library folder in matmethods/vasp/workflows/base for the raw workflows. Browse matmethods/vasp/workflows/presets
+Browse the library folder in ``matmethods/vasp/workflows/base`` for the raw workflows. Browse ``matmethods/vasp/workflows/presets`` for preset workflows (just give a Structure, get back a workflow)
 
 3. **I have a workflow that is almost what I want, but I want to tune some settings. How?**
 
