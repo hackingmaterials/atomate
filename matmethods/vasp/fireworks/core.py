@@ -44,7 +44,9 @@ class OptimizeFW(Firework):
         t = []
         t.append(WriteVaspFromIOSet(structure=structure,
                                     vasp_input_set=vasp_input_set))
-        t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd,
+                                  job_type="double_relaxation_run",
+                                  max_force_threshold=0.25))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
                               additional_fields={"task_label": name}))
@@ -80,7 +82,7 @@ class StaticFW(Firework):
             t.append(WriteVaspFromIOSet(structure=structure,
                                         vasp_input_set=vasp_input_set))
 
-        t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
                               additional_fields={"task_label": name}))
@@ -108,7 +110,7 @@ class HSEBSFW(Firework):
         t = []
         t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
         t.append(WriteVaspHSEBSFromPrev(prev_calc_dir='.'))
-        t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
                               additional_fields={"task_label": name}))
@@ -147,7 +149,7 @@ class NonSCFFW(Firework):
         else:
             t.append(WriteVaspNSCFFromPrev(prev_calc_dir=".", mode="line",
                                            reciprocal_density=20))
-        t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file, additional_fields={
             "task_label": name + " " + mode},
@@ -183,7 +185,7 @@ class LepsFW(Firework):
                                 contcar_to_poscar=True))
         t.extend([
             WriteVaspStaticFromPrev(prev_calc_dir=".", lepsilon=True),
-            RunVaspDirect(vasp_cmd=vasp_cmd),
+            RunVaspCustodian(vasp_cmd=vasp_cmd),
             PassCalcLocs(name=name),
             VaspToDbTask(db_file=db_file,
                          additional_fields={"task_label": name})])
@@ -223,7 +225,7 @@ class SOCFW(Firework):
             t.append(WriteVaspFromIOSet(structure=structure,
                                         vasp_input_set=vasp_input_set))
         t.extend([
-            RunVaspDirect(vasp_cmd=vasp_cmd),
+            RunVaspCustodian(vasp_cmd=vasp_cmd),
             PassCalcLocs(name=name),
             VaspToDbTask(db_file=db_file,
                          additional_fields={"task_label": name})])
@@ -275,7 +277,7 @@ class TransmuterFW(Firework):
                                                transformation_params=transformation_params,
                                                vasp_input_set=vasp_input_set,
                                                vasp_input_params=kwargs.get("vasp_input_params",{})))
-        t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
                               additional_fields={"task_label": name}))
