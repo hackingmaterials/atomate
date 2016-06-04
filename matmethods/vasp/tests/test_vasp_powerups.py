@@ -9,7 +9,7 @@ from fireworks import Firework, ScriptTask, Workflow
 
 from matmethods.vasp.vasp_powerups import add_priority, use_custodian, add_trackers, \
     add_modify_incar, add_small_gap_multiply, use_scratch_dir, remove_custodian
-from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure
+from matmethods.vasp.workflows.base.core import get_wf
 
 from pymatgen.io.vasp.sets import MPRelaxSet
 from pymatgen.util.testing import PymatgenTest
@@ -25,7 +25,8 @@ class TestVaspPowerups(unittest.TestCase):
     def setUpClass(cls):
         struct_si = PymatgenTest.get_structure("Si")
         vis = MPRelaxSet(struct_si, force_gamma=True)
-        cls.bs_wf = get_wf_bandstructure(struct_si, vis, vasp_cmd="test_VASP")
+        cls.bs_wf = get_wf(struct_si, "band_structure.yaml",
+                           vis, vasp_cmd="test_VASP")
 
     def _copy_wf(self, wf):
         return Workflow.from_dict(wf.to_dict())
