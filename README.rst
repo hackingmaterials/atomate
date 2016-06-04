@@ -44,9 +44,9 @@ Note that the unit tests in matmethods/vasp/tests/test_vasp_workflows.py can be 
 Learning to use MatMethods
 ==========================
 
-If you are familiar with (i) VASP, (ii) pymatgen, (iii) custodian, and (iv) FireWorks, then most of MatMethods such be fairly straightforward. For example, the FireTasks implemented in ``matmethods/vasp/firetasks`` should look make at least *some* sense, and the Fireworks implemented in ``matmethods/vasp/fireworks`` should also seem logical and mostly clear. Workflows are simply chains of Fireworks (technically, DAGs). Normally, they would be implemented in simple Python, i.e. see the FireWorks codebase about how to compose Workflows with Python, but it turns out they are simple enough that one can write them in a simple YAML text file instead of Python code. There is a custom YAML format that is described in the README for the matmethods/vasp/workflows/base/library folder.
+If you are familiar with (i) VASP, (ii) pymatgen, (iii) custodian, and (iv) FireWorks, then most of MatMethods such be fairly straightforward. For example, the FireTasks implemented in ``matmethods/vasp/firetasks`` should look make at least *some* sense, and the Fireworks implemented in ``matmethods/vasp/fireworks`` should also seem logical and mostly clear. Workflows are simply chains of Fireworks (technically, DAGs). Normally, they would be implemented in simple Python, i.e. see the FireWorks codebase about how to compose Workflows with Python, but it turns out they are simple enough that one can write them in a simple YAML text file instead of Python code. There is a custom YAML format that is described in the README for the ``matmethods/vasp/workflows/base/library`` folder.
 
-In practice, getting prebuilt workflows is easier than this. For this, just look in matmethods/vasp/workflows/presets. This folder contains functions where one can simply give a crystal structure and get back an appropriate workflow. Nothing to it!
+In practice, getting prebuilt workflows is easier than this. For this, just look in ``matmethods/vasp/workflows/presets``. This folder contains functions where one can simply give a crystal structure and get back an appropriate workflow. Nothing to it!
 
 There are only a couple of new concepts in MatMethods that you might need to familiarize yourself with, and they are described below.
 
@@ -195,32 +195,7 @@ You can put all of these things inside your ``.bash_profile`` or equivalent in o
 C. Running some jobs
 ====================
 
-Ok, you are now ready to test running some jobs! Note that the testing procedure was recently changed and is under development. For now, try
-
-.. code-block:: bash
-
-    mmwf --help
-    mmwf add --help
-
-which will show you the commands. For example,
-
-.. code-block:: bash
-
-    export MAPI_KEY=<My Materials API key obtained through Materials Project>
-    mmwf add -m "mp-149"
-
-* Verify the workflows are there, e.g. ``lpad get_wflows -d more``.
-* Navigate to where you want to run the workflows. e.g. ``<<INSTALL_DIR>>/scratch``.
-* Type ``qlaunch -r rapidfire``
-
-And away we go! If all is well, this will submit jobs to your system until the
-workflows finish. You can inspect your FWS Launchpad and also your tasks
-database to make sure things are progressing well. Of course, with the code you
-can easily submit anything not just Materials Project structures. Note that
-there are also some workflows in the ``vasp/workflows/auto`` package in which
-you can just give a Structure and get back a workflow. In some cases this might
-be more useful than using ``mmwf``. Just bear with the code until things are a
-bit more polished...
+Ok, you are now ready to test running some jobs! Note that the testing procedure was recently changed and is under development. For now, try getting a workflow from the the ``vasp/workflows/preset`` package in which you can just give a Structure and get back a workflow. Then add that workflow to your LaunchPad and then use FireWorks to launch it in the manner of your desire.
 
 D. Tuning performance on different machines
 ===========================================
@@ -260,7 +235,7 @@ FAQS
 
 1. **What do I actually need to do to get a job running?**
 
-First, you need to install and configure MatMethods (see the installation notes above) for your computing center of interest. Next you need to get some workflows. The easiest way is to throw a pymatgen Structure object into one of the prebuilt workflow functions in matmethods/vasp/workflows/presets. Et voilá! You have a workflow object. Next you need to put the workflow into your LaunchPad using the add_wf method in FireWorks. Finally, you need to run the workflow using FireWorks, e.g. using rlaunch, qlaunch or any of the other FireWorks tools.
+First, you need to install and configure MatMethods (see the installation notes above) for your computing center of interest. Next you need to get some workflows. The easiest way is to throw a pymatgen Structure object into one of the prebuilt workflow functions in ``matmethods/vasp/workflows/presets``. Et voilá! You have a workflow object. Next you need to put the workflow into your LaunchPad using the add_wf method in FireWorks. Finally, you need to run the workflow using FireWorks, e.g. using rlaunch, qlaunch or any of the other FireWorks tools.
 Basically, the goal of MatMethods is to help you get some workflows. e.g., you have a structure and you know you want the dielectric constant - MatMethods will help you get a workflow to accomplish that. All the details of running workflows, managing them, etc. is handled by FireWorks. Note that there is also an ``mmwf`` script that is intended to help you in putting a Workflow in the LaunchPad, but if you don't really understand what it's doing, it's probably best to ignore this for now.
 
 2. **How do I know what workflows are available?**
@@ -281,3 +256,6 @@ If the Fireworks that are currently implemented in MatMethods do not contain the
 
 We are working on it...
 
+5. **Is there a command line tool?**
+
+The ``mmwf`` tool is there but somewhat under development. If you know what you are doing it is probably helpful, if you don't know what you are doing then using this tool probably will not lead to your success in running a workflow.
