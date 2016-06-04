@@ -40,7 +40,7 @@ class WriteVaspFromIOSet(FireTaskBase):
         structure (Structure): structure
         vasp_input_set (AbstractVaspInputSet or str): Either a VaspInputSet
             object or a string name for the VASP input set (e.g.,
-            "MPVaspInputSet").
+            "MPRelaxSet").
 
     Optional params:
         vasp_input_params (dict): When using a string name for VASP input set,
@@ -56,20 +56,18 @@ class WriteVaspFromIOSet(FireTaskBase):
     optional_params = ["vasp_input_params"]
 
     def run_task(self, fw_spec):
-        structure = self['structure']
-
         # if a full VaspInputSet object was provided
         if hasattr(self['vasp_input_set'], 'write_input'):
             vis = self['vasp_input_set']
 
         # if VaspInputSet String + parameters was provided
         else:
-            mod = __import__("pymatgen.io.vasp.sets", globals(), locals(),
-                             [self["vasp_input_set"]], -1)
-            vis = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])(
-                **self.get("vasp_input_params", {}))
+            vis_cls = load_class("pymatgen.io.vasp.sets",
+                                 self["vasp_input_set"])
+            vis = vis_cls(self["structure"],
+                          **self.get("vasp_input_params", {}))
 
-        vis.write_input(structure, ".")
+        vis.write_input(".")
 
 
 @explicit_serialize

@@ -11,7 +11,7 @@ from matmethods.vasp.vasp_powerups import add_priority, use_custodian, add_track
     add_modify_incar, add_small_gap_multiply, use_scratch_dir
 from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure
 
-from pymatgen.io.vasp.sets import MPVaspInputSet
+from pymatgen.io.vasp.sets import MPRelaxSet
 from pymatgen.util.testing import PymatgenTest
 
 
@@ -24,7 +24,7 @@ class TestVaspPowerups(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         struct_si = PymatgenTest.get_structure("Si")
-        vis = MPVaspInputSet(force_gamma=True)
+        vis = MPRelaxSet(struct_si, force_gamma=True)
         cls.bs_wf = get_wf_bandstructure(struct_si, vis, vasp_cmd="test_VASP")
 
     def _copy_wf(self, wf):

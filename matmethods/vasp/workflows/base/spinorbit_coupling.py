@@ -11,7 +11,7 @@ This module defines functions that generate workflows for Spin-Orbit calculation
 
 from fireworks import Workflow
 import os
-from pymatgen.io.vasp.sets import MPVaspInputSet
+from pymatgen.io.vasp.sets import MPRelaxSet
 
 from monty.serialization import loadfn
 from matmethods.utils.loaders import get_wf_from_spec_dict
@@ -59,7 +59,7 @@ def get_wf_spinorbit_coupling(structure, magmom=None, saxis=(0, 0, 1), vasp_inpu
 
     d = loadfn(os.path.join(os.path.dirname(__file__), "spinorbit_coupling.yaml"))
 
-    v = vasp_input_set or MPVaspInputSet(force_gamma=True)
+    v = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
     d["fireworks"][0]["params"] = {"vasp_input_set": v.as_dict(), "vasp_cmd": vasp_cmd}
     d["fireworks"][1]["params"].update({"vasp_cmd": vasp_cmd})
     d["fireworks"][2]["params"].update({"magmom": magmom, "saxis": saxis, "vasp_cmd": vasp_ncl})

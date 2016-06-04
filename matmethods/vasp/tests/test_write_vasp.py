@@ -11,7 +11,7 @@ from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVasp
 
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
-from pymatgen.io.vasp.sets import MPVaspInputSet
+from pymatgen.io.vasp.sets import MPRelaxSet
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
@@ -78,21 +78,23 @@ class TestWriteVasp(PymatgenTest):
 
     def test_ioset_explicit(self):
         ft = WriteVaspFromIOSet(dict(structure=self.struct_si,
-                                     vasp_input_set=MPVaspInputSet(force_gamma=True)))
+                                     vasp_input_set=
+                                     MPRelaxSet(self.struct_si,
+                                                force_gamma=True)))
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
         self._verify_files()
 
     def test_ioset_implicit(self):
         ft = WriteVaspFromIOSet(
-            dict(structure=self.struct_si, vasp_input_set="MPVaspInputSet"))
+            dict(structure=self.struct_si, vasp_input_set="MPRelaxSet"))
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
         self._verify_files(skip_kpoints=True)
 
     def test_ioset_params(self):
         ft = WriteVaspFromIOSet(
-            dict(structure=self.struct_si, vasp_input_set="MPVaspInputSet",
+            dict(structure=self.struct_si, vasp_input_set="MPRelaxSet",
                  vasp_input_params={"user_incar_settings": {"ISMEAR": 1000}}))
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
@@ -103,14 +105,11 @@ class TestWriteVasp(PymatgenTest):
         self._verify_files(skip_kpoints=True)
 
     def test_pmgobjects(self):
-        mpvis = MPVaspInputSet(force_gamma=True)
-        ft = WriteVaspFromPMGObjects({"incar": mpvis.get_incar(self.struct_si),
-                                      "poscar": mpvis.get_poscar(
-                                          self.struct_si),
-                                      "kpoints": mpvis.get_kpoints(
-                                          self.struct_si),
-                                      "potcar": mpvis.get_potcar(
-                                          self.struct_si)})
+        mpvis = MPRelaxSet(self.struct_si, force_gamma=True)
+        ft = WriteVaspFromPMGObjects({"incar": mpvis.incar,
+                                      "poscar": mpvis.poscar,
+                                      "kpoints": mpvis.kpoints,
+                                      "potcar": mpvis.potcar})
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
         self._verify_files()

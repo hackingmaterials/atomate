@@ -8,7 +8,7 @@ This module defines workflows for bandstructure calculations.
 
 from fireworks import Workflow
 import os
-from pymatgen.io.vasp.sets import MPVaspInputSet
+from pymatgen.io.vasp.sets import MPRelaxSet
 
 from monty.serialization import loadfn
 from matmethods.utils.loaders import get_wf_from_spec_dict
@@ -67,7 +67,7 @@ def get_wf_bandstructure(structure, vasp_input_set=None, vasp_cmd="vasp",
 
     d = loadfn(os.path.join(os.path.dirname(__file__), wf_file))
 
-    v = vasp_input_set or MPVaspInputSet(force_gamma=True)
+    v = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
     d["fireworks"][0]["params"] = {"vasp_input_set": v.as_dict()}
 
     d["common_params"] = {

@@ -1,5 +1,5 @@
 from matmethods.vasp.workflows.base.optical import get_wf_dielectric_constant
-from pymatgen.io.vasp.sets import MPVaspInputSet, MPStaticSet
+from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
 
 from matmethods.vasp.vasp_powerups import use_custodian, add_namefile, \
     add_small_gap_multiply, use_scratch_dir, add_modify_incar_envchk
@@ -21,7 +21,7 @@ def wf_band_structure(structure):
     :return:
     """
     wf = get_wf_bandstructure(
-        structure, vasp_input_set=MPVaspInputSet(force_gamma=True),
+        structure, vasp_input_set=MPRelaxSet(structure, force_gamma=True),
         vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<")
     wf = use_custodian(wf)
     wf = use_custodian(wf, fw_name_constraint="structure optimization",
@@ -46,7 +46,7 @@ def wf_band_structure_plus_hse(structure):
 
     # TODO: clean this up - duplication!!
     wf = get_wf_bandstructure(
-        structure, vasp_input_set=MPVaspInputSet(force_gamma=True),
+        structure, vasp_input_set=MPRelaxSet(structure, force_gamma=True),
         vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<", add_hse_gap=True)
     wf = use_custodian(wf)
     wf = use_custodian(wf, fw_name_constraint="structure optimization",
@@ -83,7 +83,7 @@ def wf_structure_optimization(structure):
     :param structure:
     :return:
     """
-    wf = get_wf_single(structure, vasp_input_set=MPVaspInputSet(force_gamma=True),
+    wf = get_wf_single(structure, vasp_input_set=MPRelaxSet(structure, force_gamma=True),
                        vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
                        task_label="structure optimization")
     wf = use_custodian(wf, fw_name_constraint="structure optimization",
@@ -97,7 +97,7 @@ def wf_structure_optimization(structure):
 
 def wf_dielectric_constant(structure):
     wf = get_wf_dielectric_constant(
-        structure, vasp_input_set=MPVaspInputSet(force_gamma=True),
+        structure, vasp_input_set=MPRelaxSet(force_gamma=True),
         vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<")
 
     # Note: need to set force convergence here

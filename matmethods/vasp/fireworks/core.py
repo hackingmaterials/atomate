@@ -4,7 +4,7 @@ various sequences of VASP calculations.
 """
 
 from fireworks import Firework
-from pymatgen.io.vasp.sets import MPVaspInputSet, MPStaticSet, MPSOCSet, MITMDVaspInputSet
+from pymatgen.io.vasp.sets import MPRelaxSet, MITMDVaspInputSet
 
 from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
@@ -25,10 +25,10 @@ class OptimizeFW(Firework):
             structure (Structure): Input structure.
             name (str): Name for the Firework.
             vasp_input_set (VaspInputSet): input set to use.
-                Defaults to MPVaspInputSet() if None.
+                Defaults to MPRelaxSet() if None.
             override_default_vasp_params (dict): If this is not None,
                 these params are passed to the default vasp_input_set, i.e.,
-                MPVaspInputSet. This allows one to easily override some
+                MPRelaxSet. This allows one to easily override some
                 settings, e.g., user_incar_settings, etc.
             vasp_cmd (str): Command to run vasp.
             db_file (str): Path to file specifying db credentials.
@@ -37,8 +37,9 @@ class OptimizeFW(Firework):
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         override_default_vasp_params = override_default_vasp_params or {}
-        vasp_input_set = vasp_input_set or MPVaspInputSet(
-            force_gamma=True, **override_default_vasp_params)
+        vasp_input_set = vasp_input_set or \
+                         MPRelaxSet(structure, force_gamma=True,
+                                    **override_default_vasp_params)
 
         t = []
         t.append(WriteVaspFromIOSet(structure=structure,

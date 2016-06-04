@@ -7,7 +7,7 @@ This module defines functions that generate workflows for single structural
 optimization calculation.
 """
 
-from pymatgen.io.vasp.sets import MPVaspInputSet
+from pymatgen.io.vasp.sets import MPRelaxSet
 
 from fireworks import Firework, Workflow
 
@@ -38,7 +38,7 @@ def get_wf_single(structure, vasp_input_set=None, vasp_cmd="vasp",
     Returns:
         Workflow
     """
-    vasp_input_set = vasp_input_set or MPVaspInputSet(force_gamma=True)
+    vasp_input_set = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
 
     write_task = WriteVaspFromIOSet(structure=structure,
                                     vasp_input_set=vasp_input_set)
