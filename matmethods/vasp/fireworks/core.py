@@ -179,19 +179,26 @@ class LepsFW(Firework):
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         t = []
-        if copy_vasp_outputs:
-            t.append(
-                CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
-                                contcar_to_poscar=True))
+        if parents:
+            if copy_vasp_outputs:
+                t.append(
+                    CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
+                                    contcar_to_poscar=True))
+                t.append(WriteVaspStaticFromPrev(prev_calc_dir=".",
+                                                 lepsilon=True))
+        else:
+            vasp_input_set = MPStaticSet(structure, lepsilon=True)
+            t.append(WriteVaspFromIOSet(structure=structure,
+                                        vasp_input_set=vasp_input_set))
+
         t.extend([
-            WriteVaspStaticFromPrev(prev_calc_dir=".", lepsilon=True),
             RunVaspCustodian(vasp_cmd=vasp_cmd),
             PassCalcLocs(name=name),
             VaspToDbTask(db_file=db_file,
                          additional_fields={"task_label": name})])
+
         super(LepsFW, self).__init__(t, parents=parents, name="{}-{}".format(
-            structure.composition.reduced_formula,
-            name), **kwargs)
+            structure.composition.reduced_formula, name), **kwargs)
 
 
 class SOCFW(Firework):
@@ -219,7 +226,8 @@ class SOCFW(Firework):
                 t.append(
                     CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
                                     contcar_to_poscar=True))
-            t.append(WriteVaspSOCFromPrev(prev_calc_dir=".", magmom=magmom, saxis=saxis))
+            t.append(WriteVaspSOCFromPrev(prev_calc_dir=".", magmom=magmom,
+                                          saxis=saxis))
         else:
             vasp_input_set = MPSOCSet(structure)
             t.append(WriteVaspFromIOSet(structure=structure,
