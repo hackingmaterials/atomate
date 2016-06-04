@@ -4,12 +4,12 @@ various sequences of VASP calculations.
 """
 
 from fireworks import Firework
-from pymatgen.io.vasp.sets import MPRelaxSet, MITMDVaspInputSet
+from pymatgen.io.vasp.sets import MPRelaxSet, MITMDSet
 
 from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
-from matmethods.vasp.firetasks.run_calc import RunVaspDirect, RunVaspCustodian
+from matmethods.vasp.firetasks.run_calc import RunVaspCustodian
 from matmethods.vasp.firetasks.write_inputs import *
 
 
@@ -312,7 +312,7 @@ class MDFW(Firework):
             vasp_cmd (string): Command to run vasp.
             override_default_vasp_params (dict): If this is not None,
                 these params are passed to the default vasp_input_set, i.e.,
-                MITMDVaspInputSet. This allows one to easily override some
+                MITMDSet. This allows one to easily override some
                 settings, e.g., user_incar_settings, etc. Particular to MD,
                 one can control time_step and all other settings of the input set.
             wall_time (int): Total wall time in seconds.
@@ -323,8 +323,9 @@ class MDFW(Firework):
         """
 
         override_default_vasp_params = override_default_vasp_params or {}
-        vasp_input_set = vasp_input_set or MITMDVaspInputSet(start_temp=start_temp, end_temp=end_temp,
-                        nsteps=nsteps, **override_default_vasp_params)
+        vasp_input_set = vasp_input_set or MITMDSet(
+            structure, start_temp=start_temp, end_temp=end_temp,
+            nsteps=nsteps, **override_default_vasp_params)
 
         t = []
         if parents:
