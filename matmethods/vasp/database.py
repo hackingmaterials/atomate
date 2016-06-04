@@ -134,9 +134,9 @@ class MMDb(object):
             return None
 
     def reset(self):
-        self.collection.remove()
-        self.db.counter.remove()
-        self.db.counter.insert({"_id": "taskid", "c": 1})
+        self.collection.delete_many({})
+        self.db.counter.delete_many({})
+        self.db.counter.insert_one({"_id": "taskid", "c": 1})
         self.build_indexes()
 
     @staticmethod
