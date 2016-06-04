@@ -36,17 +36,17 @@ Testing the VASP functionality
 
 In order to use the VASP functionality, make sure you set up VASP_PSP_DIR variable (see pymatgen docs). Also, make sure you have MongoDB running in order to execute all the tests.
 
-To test the VASP functionality, run the unit tests in ``matmethods.vasp.tests``. These unit tests are designed to run without installing VASP. Some of them start with a VASP workflow but apply the ``use_fake_vasp`` method to replace calling the VASP executable with a "Faker" that verifies basic properties of the inputs and copies pre-stored output files to the current directory, thus simulating the execution of VASP.
+To test the VASP functionality, first run the unit tests in ``matmethods.vasp.tests``. These unit tests are designed to run without installing VASP. Some of them start with a VASP workflow but apply the ``use_fake_vasp`` method to replace calling the VASP executable with a "Faker" that verifies basic properties of the inputs and copies pre-stored output files to the current directory, thus simulating the execution of VASP. Anyway this will help make sure your installation is in good shape.
 
-The unit tests in matmethods/vasp/tests/test_vasp_workflows.py can be modified to actually run VASP by setting VASP_CMD to a String representing your VASP command.
-
-Many tests have a DEBUG option that can sometimes help in finding problems. Sometimes you need to toggle DEBUG on/off a couple of times if you are doing this to make sure all the old data is actually cleared between debug runs; the tearDown() and setUp() methods are still a bit finicky.
+Note that the unit tests in matmethods/vasp/tests/test_vasp_workflows.py can be modified to actually run VASP by setting VASP_CMD to a String representing your VASP command. If you need to debug at a later point, this might be something to refer back to. Furthermore, many tests have a DEBUG option that can sometimes help in finding problems. Sometimes you need to toggle DEBUG on/off a couple of times if you are doing this to make sure all the old data is actually cleared between debug runs; the tearDown() and setUp() methods are still a bit finicky.
 
 ==========================
 Learning to use MatMethods
 ==========================
 
-If you are familiar with (i) VASP, (ii) pymatgen, (iii) custodian, and (iv) FireWorks, then most of MatMethods such be fairly straightforward. For example, the Fireworks implemented in ``matmethods/vasp/fireworks`` and the the explicit workflow in ``matmethods/vasp/base/single_vasp.py``, which runs a single VASP calculation, should make sense to you. (note that the band structure workflow is loading Fireworks from a YAML specification).
+If you are familiar with (i) VASP, (ii) pymatgen, (iii) custodian, and (iv) FireWorks, then most of MatMethods such be fairly straightforward. For example, the FireTasks implemented in ``matmethods/vasp/firetasks`` should look make at least *some* sense, and the Fireworks implemented in ``matmethods/vasp/fireworks`` should also seem logical and mostly clear. Workflows are simply chains of Fireworks (technically, DAGs). Normally, they would be implemented in simple Python, i.e. see the FireWorks codebase about how to compose Workflows with Python, but it turns out they are simple enough that one can write them in a simple YAML text file instead of Python code. There is a custom YAML format that is described in the README for the ``matmethods/vasp/workflows/base/library`` folder.
+
+In practice, getting prebuilt workflows is easier than this. For this, just look in ``matmethods/vasp/workflows/presets``. This folder contains functions where one can simply give a crystal structure and get back an appropriate workflow. Nothing to it!
 
 There are only a couple of new concepts in MatMethods that you might need to familiarize yourself with, and they are described below.
 
@@ -73,12 +73,11 @@ If you are running multiple VASP jobs that depend on copying the outputs of prev
 Workflow "Powerups"
 ===================
 
-Workflow powerups are intended to be like function decorators, but for Workflows. For example, let's say you've built a multi-step workflow that computes a band structure. Now, you want to make sure that once a workflow starts running, it is prioritized to finish that particular workflow versus starting other workflows. By passing your workflow through a "powerup", you can get back a decorated workflow that sets the priorities of the Fireworks inside your workflow to endow this behavior (e.g., give all children Fireworks 2X the priority of the root parent). This particular powerup is located in ``matmethods.vasp.vasp_powerups.add_priority``. Other powerups allow you to run VASP with custodian rather than directly call it (reducing your error rate considerably), track the status of your jobs (last few lines in output files) in a database, and more.
+Workflow powerups are intended to be like function decorators, but for Workflows. For example, let's say you've built a multi-step workflow that computes a band structure. Now, you want to make sure that once a workflow starts running, it is prioritized to finish that particular workflow versus starting other workflows. By passing your workflow through a "powerup", you can get back a decorated workflow that sets the priorities of the Fireworks inside your workflow to endow this behavior (e.g., give all children Fireworks 2X the priority of the root parent). This particular powerup is located in ``matmethods.vasp.vasp_powerups.add_priority``. Another powerups allows you to track the status of your jobs (last few lines in output files) in the FireWorks database, for example.
 
 Note that another planned "powerup" is to endow Workflows with duplicate checking, i.e., to make sure the same structure is not run twice. In the past, such duplicate checking logic would be mixed in with the rest of the Workflow (about setting up VASP parameters, running VASP, etc.), and the end result was a very messy workflow code. It was also difficult to turn duplicate checking off and on as desired since all the logic was intermixed. By moving the duplicate checking to a "powerup", one can simply enable duplicate checking by passing the Workflow through the appropriate powerup.
 
 See the ``vasp_powerups.py`` file for examples.
-
 
 ===========================
 Detailed Installation Notes
@@ -196,32 +195,7 @@ You can put all of these things inside your ``.bash_profile`` or equivalent in o
 C. Running some jobs
 ====================
 
-Ok, you are now ready to test running some jobs! Note that the testing procedure was recently changed and is under development. For now, try
-
-.. code-block:: bash
-
-    mmwf --help
-    mmwf add --help
-
-which will show you the commands. For example,
-
-.. code-block:: bash
-
-    export MAPI_KEY=<My Materials API key obtained through Materials Project>
-    mmwf add -m "mp-149"
-
-* Verify the workflows are there, e.g. ``lpad get_wflows -d more``.
-* Navigate to where you want to run the workflows. e.g. ``<<INSTALL_DIR>>/scratch``.
-* Type ``qlaunch -r rapidfire``
-
-And away we go! If all is well, this will submit jobs to your system until the
-workflows finish. You can inspect your FWS Launchpad and also your tasks
-database to make sure things are progressing well. Of course, with the code you
-can easily submit anything not just Materials Project structures. Note that
-there are also some workflows in the ``vasp/workflows/auto`` package in which
-you can just give a Structure and get back a workflow. In some cases this might
-be more useful than using ``mmwf``. Just bear with the code until things are a
-bit more polished...
+Ok, you are now ready to test running some jobs! Note that the testing procedure was recently changed and is under development. For now, try getting a workflow from the the ``vasp/workflows/preset`` package in which you can just give a Structure and get back a workflow. Then add that workflow to your LaunchPad and then use FireWorks to launch it in the manner of your desire.
 
 D. Tuning performance on different machines
 ===========================================
@@ -254,3 +228,34 @@ NCORE parameter on NERSC machines:
 +--------------------+------------------------+
 | Matgen             |          16            |
 +--------------------+------------------------+
+
+====
+FAQS
+====
+
+1. **What do I actually need to do to get a job running?**
+
+First, you need to install and configure MatMethods (see the installation notes above) for your computing center of interest. Next you need to get some workflows. The easiest way is to throw a pymatgen Structure object into one of the prebuilt workflow functions in ``matmethods/vasp/workflows/presets``. Et voilá! You have a workflow object. Next you need to put the workflow into your LaunchPad using the add_wf method in FireWorks. Finally, you need to run the workflow using FireWorks, e.g. using rlaunch, qlaunch or any of the other FireWorks tools.
+Basically, the goal of MatMethods is to help you get some workflows. e.g., you have a structure and you know you want the dielectric constant - MatMethods will help you get a workflow to accomplish that. All the details of running workflows, managing them, etc. is handled by FireWorks. Note that there is also an ``mmwf`` script that is intended to help you in putting a Workflow in the LaunchPad, but if you don't really understand what it's doing, it's probably best to ignore this for now.
+
+2. **How do I know what workflows are available?**
+
+Browse the library folder in ``matmethods/vasp/workflows/base`` for the raw workflows. Browse ``matmethods/vasp/workflows/presets`` for preset workflows (just give a Structure, get back a workflow)
+
+3. **I have a workflow that is almost what I want, but I want to tune some settings. How?**
+
+Workflows are composed of Fireworks which are in turn composed of FireTasks. First look at code of the actual Fireworks that your workflow is referring to. Does the Firework contain a parameter for the setting that you want? If so, you can modify the workflow YAML file to set that parameter. If you are sure your Firework does not have the parameter you want, look at the FireTasks inside the Firework. Do those have a parameter for the setting that you want? If yes, the best option is to probably compose the Workflow in Python rather than YAML. It is generally *very* easy to do this. If you don't see the option anywhere, you will need to code it inside the FireTask/Firework.
+
+4. **How do I create a brand new workflow?**
+
+If you just want to rearrange, add, or delete Fireworks in one of the existing workflows, simply create a new YAML file that contains the sequence of steps you want.
+
+If the Fireworks that are currently implemented in MatMethods do not contain the function you want, you will need to write a new Firework (and maybe new FireTasks) and connect them into a workflow. Maybe try referring to how some of the existing workflows are constructed to learn how to do this.
+
+4. **Are there any unit tests to make sure MatMethods is giving me sensible answers?**
+
+We are working on it...
+
+5. **Is there a command line tool?**
+
+The ``mmwf`` tool is there but somewhat under development. If you know what you are doing it is probably helpful, if you don't know what you are doing then using this tool probably will not lead to your success in running a workflow.
