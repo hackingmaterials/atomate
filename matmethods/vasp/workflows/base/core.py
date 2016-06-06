@@ -33,7 +33,9 @@ def get_wf(structure, wf_filename, vasp_input_set=None, vasp_cmd="vasp",
     """
     d = loadfn(os.path.join(module_dir, "library", wf_filename))
     v = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
-    d["fireworks"][0]["params"] = {"vasp_input_set": v.as_dict()}
+    if "params" not in d["fireworks"][0]:
+        d["fireworks"][0]["params"] = {}
+    d["fireworks"][0]["params"]["vasp_input_set"] = v.as_dict()
     d["common_params"] = {"vasp_cmd": vasp_cmd, "db_file": db_file}
 
     if params:
