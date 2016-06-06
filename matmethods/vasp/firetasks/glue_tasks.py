@@ -150,7 +150,7 @@ class CheckStability(FireTaskBase):
         MAPI_KEY: (str) set MAPI key directly. Supports env_chk.
         calc_dir: (str) string to path containing vasprun.xml (default currdir)
     """
-    
+
     required_params = []
     optional_params = ["ehull_cutoff", "MAPI_KEY", "calc_dir"]
 
@@ -162,17 +162,9 @@ class CheckStability(FireTaskBase):
                                              parse_eigen=False)
 
         my_entry = vasprun.get_computed_entry(inc_structure=False)
-        entries = mpr.get_entries_in_chemsys(my_entry.composition.elements,
-                                             inc_structure=False)
-        entries.append(my_entry)
+        stored_data = mpr.get_stability([my_entry])[0]
 
-        pd = PhaseDiagram(entries)
-        pda = PDAnalyzer(pd)
-        decomp, ehull = pda.get_decomp_and_e_above_hull(my_entry)
-
-        stored_data = {"decomp": decomp, "ehull": ehull}
-
-        if ehull > self.get("ehull_cutoff", 0.1):
+        if stored_data["e_above_hull"] > self.get("ehull_cutoff", 0.1):
             return FWAction(stored_data=stored_data, exit=True,
                             defuse_workflow=True)
 
