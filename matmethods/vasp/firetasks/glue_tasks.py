@@ -135,6 +135,7 @@ class CopyVaspOutputs(FireTaskBase):
                 os.remove(dest_path + gz_ext)
 
 
+@explicit_serialize
 class CheckStability(FireTaskBase):
     """
     Checks the stability of the entry against the Materials Project database.
