@@ -1,7 +1,7 @@
 from matmethods.vasp.workflows.base.core import get_wf
 
 from matmethods.vasp.vasp_powerups import add_namefile, \
-    add_small_gap_multiply, use_scratch_dir
+    add_small_gap_multiply, use_scratch_dir, add_stability_check
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -16,6 +16,7 @@ def wf_band_structure(structure):
     wf = add_small_gap_multiply(wf, 0.5, 5, "static")
     wf = add_small_gap_multiply(wf, 0.5, 5, "nscf")
     wf = use_scratch_dir(wf, ">>scratch_dir<<")
+    wf = add_stability_check(wf, fw_name_constraint="structure optimization")
     return wf
 
 
@@ -26,6 +27,7 @@ def wf_band_structure_plus_hse(structure):
     wf = add_small_gap_multiply(wf, 0.5, 5, "static")
     wf = add_small_gap_multiply(wf, 0.5, 5, "nscf")
     wf = use_scratch_dir(wf, ">>scratch_dir<<")
+    wf = add_stability_check(wf, fw_name_constraint="structure optimization")
     return wf
 
 

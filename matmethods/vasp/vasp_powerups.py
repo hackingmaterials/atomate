@@ -5,6 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 from fireworks import Workflow, FileWriteTask
 from fireworks.core.firework import Tracker
 from fireworks.utilities.fw_utilities import get_slug
+from matmethods.vasp.firetasks.glue_tasks import CheckStability
 
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspDirect
 from matmethods.vasp.firetasks.write_inputs import ModifyIncar
@@ -189,8 +190,8 @@ def add_modify_incar(original_wf, modify_incar_params, fw_name_constraint=None):
 
     Args:
         original_wf (Workflow)
-        fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this substring.
         modify_incar_params (dict) - dict of parameters for ModifyIncar.
+        fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this substring.
 
     """
 
@@ -198,6 +199,26 @@ def add_modify_incar(original_wf, modify_incar_params, fw_name_constraint=None):
                                            task_name_constraint="RunVasp"):
         original_wf.fws[idx_fw].spec["_tasks"].insert(idx_t, ModifyIncar(**modify_incar_params).
                                                       to_dict())
+
+    return original_wf
+
+
+def add_stability_check(original_wf, check_stability_params=None, fw_name_constraint=None):
+    """
+    Every FireWork that runs VASP has a CheckStability task afterward. This
+    allows defusing jobs that are not stable. In practice, you might want
+    to set the fw_name_constraint so that the stability is only checked at the
+    beginning of the workflow
+
+    Args:
+        original_wf (Workflow)
+        check_stability_params (dict): a **kwargs** style dict of params
+        fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this substring.
+    """
+
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
+                                           task_name_constraint="RunVasp"):
+        original_wf.fws[idx_fw].spec["_tasks"].insert(idx_t+1, CheckStability(**check_stability_params).to_dict())
 
     return original_wf
 
