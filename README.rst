@@ -219,15 +219,9 @@ A good starting point might be setting NCORE equal to the number of cores
 per node. The following information might come in handy when setting the
 NCORE parameter on NERSC machines:
 
-+--------------------+------------------------+
-| Hostname           | max # tasks per node   |
-+--------------------+------------------------+
-| Edison	         |          24            |
-+--------------------+------------------------+
-| Cori               |          32            |
-+--------------------+------------------------+
-| Matgen             |          16            |
-+--------------------+------------------------+
+* Edison - 24 tasks per node
+* Cori - 32 tasks per node
+* Matgen - 16 tasks per node
 
 ====
 FAQS
