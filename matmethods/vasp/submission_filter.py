@@ -2,6 +2,7 @@ from pymatgen import MPRester
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
+# TODO: consider using AbstractStructureFilter / Transmuters framework
 
 class SubmissionFilter:
 
@@ -19,46 +20,34 @@ class SubmissionFilter:
         self.not_in_MP = not_in_MP
         self.MAPI_KEY = MAPI_KEY
 
-    def filter(self, structures):
-        valid_structures = []
-        invalid_structures = []
-        invalid_structure_failures = []
-        for s in structures:
-            failures = []
+    def filter(self, s):
+        failures = []
 
-            if self.is_valid:
-                if not s.is_valid():
-                    failures.append("IS_VALID=False")
+        if self.is_valid:
+            if not s.is_valid():
+                failures.append("IS_VALID=False")
 
-            if self.potcar_exists:
-                elements = s.composition.elements
-                if set(elements).intersection(set(self.NO_POTCARS)):
-                    failures.append("POTCAR_EXISTS=False")
+        if self.potcar_exists:
+            elements = s.composition.elements
+            if set(elements).intersection(set(self.NO_POTCARS)):
+                failures.append("POTCAR_EXISTS=False")
 
-            if self.max_natoms:
-                if s.num_sites > self.max_natoms:
-                    failures.append("MAX_NATOMS=Exceeded")
+        if self.max_natoms:
+            if s.num_sites > self.max_natoms:
+                failures.append("MAX_NATOMS=Exceeded")
 
-            if self.is_ordered:
-                if not s.is_ordered:
-                    failures.append("IS_ORDERED=False")
+        if self.is_ordered:
+            if not s.is_ordered:
+                failures.append("IS_ORDERED=False")
 
-            if self.not_in_MP:
-                mpr = MPRester(self.MAPI_KEY)
-                mpids = mpr.find_structure(s)
-                if mpids:
-                    failures.append("NOT_IN_MP=False ({})".format(mpids[0]))
+        if self.not_in_MP:
+            mpr = MPRester(self.MAPI_KEY)
+            mpids = mpr.find_structure(s)
+            if mpids:
+                failures.append("NOT_IN_MP=False ({})".format(mpids[0]))
 
-            if not failures:
-                valid_structures.append(s)
+        if not failures:
+            return s, None
 
-            else:
-                invalid_structures.append(s)
-                invalid_structure_failures.append(failures)
-                print("{} {}".format(s.composition, failures))
-
-        return valid_structures, invalid_structures, invalid_structure_failures
-
-
-
-
+        else:
+            return None, failures
