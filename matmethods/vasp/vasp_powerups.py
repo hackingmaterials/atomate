@@ -216,6 +216,7 @@ def add_stability_check(original_wf, check_stability_params=None, fw_name_constr
         fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this substring.
     """
 
+    check_stability_params = check_stability_params or {}
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp"):
         original_wf.fws[idx_fw].spec["_tasks"].insert(idx_t+1, CheckStability(**check_stability_params).to_dict())
