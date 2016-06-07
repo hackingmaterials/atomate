@@ -48,7 +48,8 @@ class OptimizeFW(Firework):
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd,
                                   job_type="double_relaxation_run",
                                   max_force_threshold=0.25,
-                                  ediffg=ediffg))
+                                  ediffg=ediffg,
+                                  auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
                               additional_fields={"task_label": name}))
@@ -84,7 +85,8 @@ class StaticFW(Firework):
             t.append(WriteVaspFromIOSet(structure=structure,
                                         vasp_input_set=vasp_input_set))
 
-        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd,
+                                  auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
                               additional_fields={"task_label": name}))
@@ -151,7 +153,8 @@ class NonSCFFW(Firework):
         else:
             t.append(WriteVaspNSCFFromPrev(prev_calc_dir=".", mode="line",
                                            reciprocal_density=20))
-        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd,
+                                  auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file, additional_fields={
             "task_label": name + " " + mode},
@@ -235,7 +238,7 @@ class SOCFW(Firework):
             t.append(WriteVaspFromIOSet(structure=structure,
                                         vasp_input_set=vasp_input_set))
         t.extend([
-            RunVaspCustodian(vasp_cmd=vasp_cmd),
+            RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"),
             PassCalcLocs(name=name),
             VaspToDbTask(db_file=db_file,
                          additional_fields={"task_label": name})])
