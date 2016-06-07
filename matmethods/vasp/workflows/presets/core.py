@@ -1,7 +1,8 @@
 from matmethods.vasp.workflows.base.core import get_wf
 
 from matmethods.vasp.vasp_powerups import add_namefile, \
-    add_small_gap_multiply, use_scratch_dir, add_stability_check
+    add_small_gap_multiply, use_scratch_dir, add_stability_check, \
+    add_modify_incar
 
 # TODO: clean up some code duplication in config params
 
@@ -24,6 +25,9 @@ def wf_band_structure(structure, config=None):
     if config.get("USE_SCRATCH_DIR", True):
         wf = use_scratch_dir(wf, ">>scratch_dir<<")
 
+    if config.get("ADD_MODIFY_INCAR", True):
+        wf = add_modify_incar(wf)
+
     if config.get("CHECK_STABILITY", True):
         wf = add_stability_check(wf, fw_name_constraint="structure optimization")
     return wf
@@ -45,6 +49,9 @@ def wf_band_structure_plus_hse(structure, config=None):
     if config.get("USE_SCRATCH_DIR", True):
         wf = use_scratch_dir(wf, ">>scratch_dir<<")
 
+    if config.get("ADD_MODIFY_INCAR", True):
+        wf = add_modify_incar(wf)
+
     if config.get("CHECK_STABILITY", True):
         wf = add_stability_check(wf, fw_name_constraint="structure optimization")
 
@@ -59,6 +66,9 @@ def wf_static(structure, config=None):
 
     if config.get("ADD_NAMEFILE", True):
         wf = add_namefile(wf)
+
+    if config.get("ADD_MODIFY_INCAR", True):
+        wf = add_modify_incar(wf)
 
     if config.get("USE_SCRATCH_DIR", True):
         wf = use_scratch_dir(wf, ">>scratch_dir<<")
@@ -75,6 +85,9 @@ def wf_structure_optimization(structure, config=None):
     if config.get("ADD_NAMEFILE", True):
         wf = add_namefile(wf)
 
+    if config.get("ADD_MODIFY_INCAR", True):
+        wf = add_modify_incar(wf)
+
     if config.get("USE_SCRATCH_DIR", True):
         wf = use_scratch_dir(wf, ">>scratch_dir<<")
 
@@ -90,6 +103,9 @@ def wf_dielectric_constant(structure, config=None):
 
     if config.get("ADD_NAMEFILE", True):
         wf = add_namefile(wf)
+
+    if config.get("ADD_MODIFY_INCAR", True):
+        wf = add_modify_incar(wf)
 
     if config.get("USE_SCRATCH_DIR", True):
         wf = use_scratch_dir(wf, ">>scratch_dir<<")

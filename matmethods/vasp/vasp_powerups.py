@@ -183,7 +183,7 @@ def add_trackers(original_wf):
     return Workflow.from_dict(wf_dict)
 
 
-def add_modify_incar(original_wf, modify_incar_params, fw_name_constraint=None):
+def add_modify_incar(original_wf, modify_incar_params=None, fw_name_constraint=None):
     """
     Every FireWork that runs VASP has a ModifyIncar task just beforehand. For example, allows
     you to modify the INCAR based on the Worker using env_chk or using hard-coded changes.
@@ -195,6 +195,7 @@ def add_modify_incar(original_wf, modify_incar_params, fw_name_constraint=None):
 
     """
 
+    modify_incar_params = modify_incar_params or {"incar_update": ">>incar_update<<"}
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp"):
         original_wf.fws[idx_fw].spec["_tasks"].insert(idx_t, ModifyIncar(**modify_incar_params).
