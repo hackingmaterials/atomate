@@ -223,8 +223,9 @@ might come in handy when setting the NCORE parameter on NERSC machines:
 * Cori - 32 tasks per node
 * Matgen - 16 tasks per node
 
-Thus, a good starting point is to set NCORE=4 for all machines, with Cori
-(perhaps) bumped to NCORES=8.
+Thus, a good starting point is to set NCORE=4 for Matgen/Edison and NCORE=8 for
+Cori. Reduce NCORE if you want to try to increase speed at the risk of having
+lower memory available per orbital.
 
 ====
 FAQS
