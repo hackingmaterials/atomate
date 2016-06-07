@@ -137,6 +137,10 @@ class MMDb(object):
         self.collection.delete_many({})
         self.db.counter.delete_many({})
         self.db.counter.insert_one({"_id": "taskid", "c": 1})
+        self.db.dos_fs.files.delete_many({})
+        self.db.dos_fs.chunks.delete_many({})
+        self.db.bandstructure_fs.files.delete_many({})
+        self.db.bandstructure_fs.chunks.delete_many({})
         self.build_indexes()
 
     @staticmethod
