@@ -25,7 +25,7 @@ def wf_band_structure(structure, config=None):
     if config.get("USE_SCRATCH_DIR", True):
         wf = use_scratch_dir(wf, ">>scratch_dir<<")
 
-    if config.get("ADD_MODIFY_INCAR", True):
+    if config.get("ADD_MODIFY_INCAR", False):
         wf = add_modify_incar(wf)
 
     if config.get("CHECK_STABILITY", True):
@@ -49,7 +49,7 @@ def wf_band_structure_plus_hse(structure, config=None):
     if config.get("USE_SCRATCH_DIR", True):
         wf = use_scratch_dir(wf, ">>scratch_dir<<")
 
-    if config.get("ADD_MODIFY_INCAR", True):
+    if config.get("ADD_MODIFY_INCAR", False):
         wf = add_modify_incar(wf)
 
     if config.get("CHECK_STABILITY", True):
@@ -67,7 +67,7 @@ def wf_static(structure, config=None):
     if config.get("ADD_NAMEFILE", True):
         wf = add_namefile(wf)
 
-    if config.get("ADD_MODIFY_INCAR", True):
+    if config.get("ADD_MODIFY_INCAR", False):
         wf = add_modify_incar(wf)
 
     if config.get("USE_SCRATCH_DIR", True):
@@ -85,7 +85,7 @@ def wf_structure_optimization(structure, config=None):
     if config.get("ADD_NAMEFILE", True):
         wf = add_namefile(wf)
 
-    if config.get("ADD_MODIFY_INCAR", True):
+    if config.get("ADD_MODIFY_INCAR", False):
         wf = add_modify_incar(wf)
 
     if config.get("USE_SCRATCH_DIR", True):
@@ -104,7 +104,7 @@ def wf_dielectric_constant(structure, config=None):
     if config.get("ADD_NAMEFILE", True):
         wf = add_namefile(wf)
 
-    if config.get("ADD_MODIFY_INCAR", True):
+    if config.get("ADD_MODIFY_INCAR", False):
         wf = add_modify_incar(wf)
 
     if config.get("USE_SCRATCH_DIR", True):
