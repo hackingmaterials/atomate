@@ -215,13 +215,16 @@ Note that NCORE sets the number of cores that work on a single orbital.
 Typically, you want to set this between 1 (higher memory requirements) and
 the number of cores per node (lower memory requirements while still
 maintaining fast communication times between workers on an a single orbital).
-A good starting point might be setting NCORE equal to the number of cores
-per node. The following information might come in handy when setting the
-NCORE parameter on NERSC machines:
+A good starting point might be setting NCORE equal to the square root of
+number of cores per node as per the VASP manual. The following information
+might come in handy when setting the NCORE parameter on NERSC machines:
 
 * Edison - 24 tasks per node
 * Cori - 32 tasks per node
 * Matgen - 16 tasks per node
+
+Thus, a good starting point is to set NCORE=4 for all machines, with Cori
+(perhaps) bumped to NCORES=8.
 
 ====
 FAQS
