@@ -147,7 +147,7 @@ class CheckStability(FireTaskBase):
 
     Optional params:
         ehull_cutoff: (float) energy in eV/atom to use as ehull cutoff. Default
-            is 0.1 eV/atom.
+            is 0.05 eV/atom.
         MAPI_KEY: (str) set MAPI key directly. Supports env_chk.
         calc_dir: (str) string to path containing vasprun.xml (default currdir)
     """
@@ -165,7 +165,7 @@ class CheckStability(FireTaskBase):
         my_entry = vasprun.get_computed_entry(inc_structure=False)
         stored_data = mpr.get_stability([my_entry])[0]
 
-        if stored_data["e_above_hull"] > self.get("ehull_cutoff", 0.1):
+        if stored_data["e_above_hull"] > self.get("ehull_cutoff", 0.05):
             return FWAction(stored_data=stored_data, exit=True,
                             defuse_workflow=True)
 
