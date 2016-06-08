@@ -28,7 +28,7 @@ def wf_band_structure(structure, config=None):
     if config.get("ADD_MODIFY_INCAR", False):
         wf = add_modify_incar(wf)
 
-    if config.get("CHECK_STABILITY", True):
+    if config.get("CHECK_STABILITY", False):
         wf = add_stability_check(wf, fw_name_constraint="structure optimization")
     return wf
 
@@ -52,7 +52,7 @@ def wf_band_structure_plus_hse(structure, config=None):
     if config.get("ADD_MODIFY_INCAR", False):
         wf = add_modify_incar(wf)
 
-    if config.get("CHECK_STABILITY", True):
+    if config.get("CHECK_STABILITY", False):
         wf = add_stability_check(wf, fw_name_constraint="structure optimization")
 
     return wf
