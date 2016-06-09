@@ -1,61 +1,61 @@
-MatMethods.vasp.tests package
+matmethods.vasp.tests package
 =============================
 
 Submodules
 ----------
 
-MatMethods.vasp.tests.test_copy module
+matmethods.vasp.tests.test_copy module
 --------------------------------------
 
-.. automodule:: MatMethods.vasp.tests.test_copy
+.. automodule:: matmethods.vasp.tests.test_copy
     :members:
     :undoc-members:
     :show-inheritance:
 
-MatMethods.vasp.tests.test_drones module
+matmethods.vasp.tests.test_drones module
 ----------------------------------------
 
-.. automodule:: MatMethods.vasp.tests.test_drones
+.. automodule:: matmethods.vasp.tests.test_drones
     :members:
     :undoc-members:
     :show-inheritance:
 
-MatMethods.vasp.tests.test_setup module
+matmethods.vasp.tests.test_setup module
 ---------------------------------------
 
-.. automodule:: MatMethods.vasp.tests.test_setup
+.. automodule:: matmethods.vasp.tests.test_setup
     :members:
     :undoc-members:
     :show-inheritance:
 
-MatMethods.vasp.tests.test_vasp_powerups module
+matmethods.vasp.tests.test_vasp_powerups module
 -----------------------------------------------
 
-.. automodule:: MatMethods.vasp.tests.test_vasp_powerups
+.. automodule:: matmethods.vasp.tests.test_vasp_powerups
     :members:
     :undoc-members:
     :show-inheritance:
 
-MatMethods.vasp.tests.test_vasp_workflows module
+matmethods.vasp.tests.test_vasp_workflows module
 ------------------------------------------------
 
-.. automodule:: MatMethods.vasp.tests.test_vasp_workflows
+.. automodule:: matmethods.vasp.tests.test_vasp_workflows
     :members:
     :undoc-members:
     :show-inheritance:
 
-MatMethods.vasp.tests.test_write_vasp module
+matmethods.vasp.tests.test_write_vasp module
 --------------------------------------------
 
-.. automodule:: MatMethods.vasp.tests.test_write_vasp
+.. automodule:: matmethods.vasp.tests.test_write_vasp
     :members:
     :undoc-members:
     :show-inheritance:
 
-MatMethods.vasp.tests.vasp_fake module
+matmethods.vasp.tests.vasp_fake module
 --------------------------------------
 
-.. automodule:: MatMethods.vasp.tests.vasp_fake
+.. automodule:: matmethods.vasp.tests.vasp_fake
     :members:
     :undoc-members:
     :show-inheritance:
@@ -64,7 +64,7 @@ MatMethods.vasp.tests.vasp_fake module
 Module contents
 ---------------
 
-.. automodule:: MatMethods.vasp.tests
+.. automodule:: matmethods.vasp.tests
     :members:
     :undoc-members:
     :show-inheritance:

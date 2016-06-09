@@ -1,4 +1,4 @@
-MatMethods.vasp.workflows package
+matmethods.vasp.workflows package
 =================================
 
 Subpackages
@@ -6,13 +6,13 @@ Subpackages
 
 .. toctree::
 
-    MatMethods.vasp.workflows.automatic
-    MatMethods.vasp.workflows.base
+    matmethods.vasp.workflows.base
+    matmethods.vasp.workflows.presets
 
 Module contents
 ---------------
 
-.. automodule:: MatMethods.vasp.workflows
+.. automodule:: matmethods.vasp.workflows
     :members:
     :undoc-members:
     :show-inheritance:

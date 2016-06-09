@@ -1,4 +1,4 @@
-MatMethods.utils package
+matmethods.utils package
 ========================
 
 Subpackages
@@ -6,15 +6,31 @@ Subpackages
 
 .. toctree::
 
-    MatMethods.utils.tests
+    matmethods.utils.tests
 
 Submodules
 ----------
 
-MatMethods.utils.utils module
+matmethods.utils.fileio module
+------------------------------
+
+.. automodule:: matmethods.utils.fileio
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+matmethods.utils.loaders module
+-------------------------------
+
+.. automodule:: matmethods.utils.loaders
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+matmethods.utils.utils module
 -----------------------------
 
-.. automodule:: MatMethods.utils.utils
+.. automodule:: matmethods.utils.utils
     :members:
     :undoc-members:
     :show-inheritance:
@@ -23,7 +39,7 @@ MatMethods.utils.utils module
 Module contents
 ---------------
 
-.. automodule:: MatMethods.utils
+.. automodule:: matmethods.utils
     :members:
     :undoc-members:
     :show-inheritance:
