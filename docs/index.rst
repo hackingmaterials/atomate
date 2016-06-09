@@ -288,7 +288,7 @@ Want to see something added or changed? There are many ways to make that a reali
 * Point us to areas of the code that are difficult to understand or use.
 * Contribute code!
 
-The list of contributors to FireWorks can be found :doc:`here </contributors>`.
+The list of contributors to MatMethods can be found :doc:`here </contributors>`.
 
 MatMethods is currently in an alpha release. Although MatMethods is open source, currently no support is provided for MatMethods other than for those who are contributing to its development.
 
