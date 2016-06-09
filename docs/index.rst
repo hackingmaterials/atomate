@@ -20,9 +20,7 @@ very straightforward statements. Features of MatMethods include:
 * Jobs can be run on a variety of computing systems, queue systems, and architectures.
 * MatMethods uses a standard interface for adding new types of calculations and workflows such that it is possible for users to contribute new features and grow the capabilities of the software over time.
 
-Note #1: that MatMethods is currently built to work with the **VASP** electronic structure software, but it is the intention of MatMethods to support a variety of software.
-
-Note #2: MatMethods is currently in an alpha release. Although MatMethods is open source, currently no support is provided for MatMethods other than for those who are contributing to its development.
+Note: that MatMethods is currently built to work with the **VASP** electronic structure software, but it is the intention of MatMethods to support a variety of software.
 
 ============
 Installation
@@ -257,3 +255,64 @@ We are working on it...
 5. **Is there a command line tool?**
 
 The ``mmwf`` tool is there but somewhat under development. If you know what you are doing it is probably helpful, if you don't know what you are doing then using this tool probably will not lead to your success in running a workflow.
+
+=================
+Citing Matmethods
+=================
+
+We will write and publish a paper on MatMethods at a later point. For now, you can cite the following two works::
+
+    (1) Jain, A.; Ong, S. P.; Chen, W.; Medasani, B.; Qu, X.; Kocher, M.;
+    Brafman, M.; Petretto, G.; Rignanese, G.-M.; Hautier, G.; Gunter, D.;
+    Persson, K. A. FireWorks: a dynamic workflow system designed for
+    high-throughput applications, Concurr. Comput. Pract. Exp., 2015, 22,
+    doi:10.1002/cpe.3505.
+
+    (2) Ong, S. P.; Richards, W. D.; Jain, A.; Hautier, G.; Kocher, M.; Cholia,
+    S.; Gunter, D.; Chevrier, V. L.; Persson, K. a.; Ceder, G. Python Materials
+    Genomics (pymatgen): A robust, open-source python library for materials
+    analysis, Comput. Mater. Sci., 2013, 68, 314–319,
+    doi:10.1016/j.commatsci.2012.10.028.
+
+
+.. _contributing-label:
+
+====================================
+Contributing / Contact / Bug Reports
+====================================
+
+Want to see something added or changed? There are many ways to make that a reality! Some ways to get involved are:
+
+* Help us improve the documentation - tell us where you got 'stuck' and improve the install process for everyone.
+* Let us know if you need support for a queueing system or certain features.
+* Point us to areas of the code that are difficult to understand or use.
+* Contribute code!
+
+The list of contributors to FireWorks can be found :doc:`here </contributors>`.
+
+MatMethods is currently in an alpha release. Although MatMethods is open source, currently no support is provided for MatMethods other than for those who are contributing to its development.
+
+=========
+Changelog
+=========
+
+.. toctree::
+   :maxdepth: 1
+
+   changelog
+
+=======
+License
+=======
+
+MatMethods is released under a modified BSD license; the full text can be found :doc:`here</license>`.
+
+===========================
+Comprehensive Documentation
+===========================
+
+Some comprehensive documentation is listed below (only for the brave!)
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
