@@ -71,8 +71,8 @@ class TestVaspPowerups(unittest.TestCase):
 
         for fw in my_wf.fws:
             if "structure optimization" in fw.name:
-                self.assertTrue("ModifyIncar" in fw.to_dict()["spec"]["_tasks"][0]["_fw_name"])
-                self.assertEqual(fw.to_dict()["spec"]["_tasks"][0]["incar_update"], {"NCORE": 1})
+                self.assertTrue("ModifyIncar" in fw.to_dict()["spec"]["_tasks"][1]["_fw_name"])
+                self.assertEqual(fw.to_dict()["spec"]["_tasks"][1]["incar_update"], {"NCORE": 1})
             else:
                 for t in fw.to_dict()["spec"]["_tasks"]:
                     self.assertFalse("ModifyIncar" in t["_fw_name"])

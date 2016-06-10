@@ -16,7 +16,7 @@ from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, \
     MeshSymmetryErrorHandler, \
     UnconvergedErrorHandler, MaxForceErrorHandler, PotimErrorHandler, \
     FrozenJobErrorHandler, NonConvergingErrorHandler, \
-    PositiveEnergyErrorHandler
+    PositiveEnergyErrorHandler, WalltimeHandler
 from custodian.vasp.jobs import VaspJob
 from custodian.vasp.validators import VasprunXMLValidator
 from fireworks import explicit_serialize, FireTaskBase, FWAction
@@ -88,10 +88,12 @@ class RunVaspCustodian(FireTaskBase):
     Optional params:
         job_type: (str) - choose from "normal" (default),
             "double_relaxation_run" (two consecutive jobs), and "full_opt_run"
-        handler_lvl: (int) - level of handlers to use,0-4. 0 means no handlers,
-            2 is the default, 4 is highest level.
+        handler_group: (str) - group of handlers to use. Options include:
+            "default", "strict", "md" or "no_handler". Defaults to "default".
+            See handler_groups dict below for the complete list of handlers in each group.
         max_force_threshold: (float) - if >0, adds MaxForceErrorHandler. Not recommended for
             nscf runs.
+        ediffg: (float) if not None, will set ediffg for special jobs
         scratch_dir: (str) - if specified, uses this directory as the root
             scratch dir. Supports env_chk.
         gzip_output: (bool) - gzip output (default=T)
@@ -100,12 +102,27 @@ class RunVaspCustodian(FireTaskBase):
             for single-node jobs only. Supports env_chk.
         gamma_vasp_cmd: (str) - cmd for Gamma-optimized VASP compilation.
             Supports env_chk.
+        wall_time (int): Total wall time in seconds. Activates WalltimeHandler if set.
     """
     required_params = ["vasp_cmd"]
-    optional_params = ["job_type", "handler_lvl", "max_force_threshold", "scratch_dir",
-                       "gzip_output", "max_errors", "auto_npar", "gamma_vasp_cmd"]
+    optional_params = ["job_type", "handler_group", "max_force_threshold",
+                       "ediffg", "scratch_dir", "gzip_output", "max_errors",
+                       "auto_npar", "gamma_vasp_cmd", "wall_time"]
 
     def run_task(self, fw_spec):
+
+        handler_groups = {
+            "default": [VaspErrorHandler(), MeshSymmetryErrorHandler(),
+                        UnconvergedErrorHandler(), NonConvergingErrorHandler(),
+                        PotimErrorHandler(), PositiveEnergyErrorHandler()],
+            "strict": [VaspErrorHandler(), MeshSymmetryErrorHandler(),
+                       UnconvergedErrorHandler(), NonConvergingErrorHandler(),
+                       PotimErrorHandler(), PositiveEnergyErrorHandler(),
+                       FrozenJobErrorHandler(), AliasingErrorHandler()],
+            "md": [VaspErrorHandler(), NonConvergingErrorHandler()],
+            "no_handler": []
+            }
+
         vasp_cmd = env_chk(self["vasp_cmd"], fw_spec)
         if isinstance(vasp_cmd, six.string_types):
             vasp_cmd = os.path.expandvars(vasp_cmd)
@@ -115,9 +132,12 @@ class RunVaspCustodian(FireTaskBase):
         job_type = self.get("job_type", "normal")
         scratch_dir = env_chk(self.get("scratch_dir"), fw_spec)
         gzip_output = self.get("gzip_output", True)
-        max_errors = self.get("max_errors", 2)
-        auto_npar = self.get("auto_npar", True)
-        gamma_vasp_cmd = self.get("gamma_vasp_cmd")
+        max_errors = self.get("max_errors", 5)
+        auto_npar = env_chk(self.get("auto_npar"), fw_spec, strict=False,
+                            default=False)
+        gamma_vasp_cmd = env_chk(self.get("gamma_vasp_cmd"), fw_spec, strict=False)
+        gamma_vasp_cmd = gamma_vasp_cmd.split() if gamma_vasp_cmd else None
+        ediffg = self.get("ediffg")
 
         # construct jobs
         jobs = []
@@ -126,31 +146,23 @@ class RunVaspCustodian(FireTaskBase):
                             gamma_vasp_cmd=gamma_vasp_cmd)]
         elif job_type == "double_relaxation_run":
             jobs = VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar,
-                                                 ediffg=None,
+                                                 ediffg=ediffg,
                                                  half_kpts_first_relax=False)
         elif job_type == "full_opt_run":
             jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar,
-                                        ediffg=None, max_steps=4,
+                                        ediffg=ediffg, max_steps=4,
                                         half_kpts_first_relax=False)
         else:
             raise ValueError("Unsupported job type: {}".format(job_type))
 
         # construct handlers
-        handlers = []
-        handler_lvl = self.get("handler_lvl", 2)
-        if handler_lvl > 0:
-            handlers.extend([VaspErrorHandler(), MeshSymmetryErrorHandler(),
-                             UnconvergedErrorHandler(),
-                             NonConvergingErrorHandler(), PotimErrorHandler(),
-                             PositiveEnergyErrorHandler()])
-        if handler_lvl > 2:
-            # Default aliasing errors can be safely ignored according to VASP
-            handlers.append(AliasingErrorHandler)
-        if handler_lvl > 3:
-            handlers.append(FrozenJobErrorHandler())
+        handlers = handler_groups[self.get("handler_group", "default")]
 
         if self.get("max_force_threshold"):
             handlers.append(MaxForceErrorHandler(max_force_threshold=self["max_force_threshold"]))
+
+        if self.get("wall_time"):
+            handlers.append(WalltimeHandler(wall_time=self["wall_time"]))
 
         validators = [VasprunXMLValidator()]
 

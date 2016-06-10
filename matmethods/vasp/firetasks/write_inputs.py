@@ -195,7 +195,7 @@ class WriteVaspNSCFFromPrev(FireTaskBase):
     def run_task(self, fw_spec):
         vis = MPNonSCFSet.from_prev_calc(
             prev_calc_dir=self["prev_calc_dir"],
-            copy_chgcar=self.get("copy_chgcar", True),
+            copy_chgcar=self.get("copy_chgcar", False),
             nbands_factor=self.get("nbands_factor", 1.2),
             reciprocal_density=self.get("reciprocal_density", None),
             small_gap_multiply=self.get("small_gap_multiply", None),
@@ -225,9 +225,9 @@ class WriteVaspDFPTDielectricFromPrev(FireTaskBase):
 
     def run_task(self, fw_spec):
         vis = MPStaticSet.from_prev_calc(
-            prev_calc_dir=self["prev_calc_dir"],
-            lepsilon=True
-        )
+            prev_calc_dir=self["prev_calc_dir"], lepsilon=True,
+            user_incar_settings={"EDIFF": 1E-5}, ediff_per_atom=False,
+            reciprocal_density=200)
         vis.write_input(".")
 
 
@@ -255,7 +255,7 @@ class WriteVaspSOCFromPrev(FireTaskBase):
             prev_calc_dir=self["prev_calc_dir"],
             magmom=self["magmom"],
             saxis=self["saxis"],
-            copy_chgcar=self.get("copy_chgcar", True),
+            copy_chgcar=self.get("copy_chgcar", False),
             nbands_factor=self.get("nbands_factor", 1.2),
             reciprocal_density=self.get("reciprocal_density", 100),
             small_gap_multiply=self.get("small_gap_multiply", None),
