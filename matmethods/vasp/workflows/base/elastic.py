@@ -9,14 +9,11 @@ import numpy as np
 from fireworks import Workflow, FireTaskBase, explicit_serialize
 from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
-from pymatgen.analysis.elasticity.strain import IndependentStrain
+from pymatgen.analysis.elasticity.strain import IndependentStrain, Deformation
 from pymatgen.analysis.elasticity.stress import Stress
 from pymatgen.io.vasp.sets import MPVaspInputSet
-
-"""
 from pymatgen.transformations.standard_transformations import \
     DeformStructureTransformation
-"""
 
 """
 This module defines the elastic workflow
@@ -244,8 +241,9 @@ def elastic_from_stress_dict(cls, stress_dict, tol=0.1, vasp=True, symmetry=Fals
     return c
 
 
-def get_wf_elastic_constant(structure, norm_deformations=None, 
-                            shear_deformations=None, vasp_input_set=None, 
+def get_wf_elastic_constant(structure, vasp_input_set=None, 
+                            norm_deformations=[-0.01, -0.005, 0.005, 0.01],
+                            shear_deformations=[-0.08, -0.04, 0.04, 0.08],
                             vasp_cmd="vasp", db_file=None):
     """
     Returns a workflow to calculate elastic consants. This workflow is dynamic
@@ -288,8 +286,6 @@ def get_wf_elastic_constant(structure, norm_deformations=None,
                           db_file=db_file))
 
     deformations = []
-    nd = norm_deformations or [-0.01, -0.005, 0.005, 0.01]
-    sd = shear_deformations or  [-0.08, -0.04, 0.04, 0.08]
 
     # Generate deformations
     for ind in [(0, 0), (1, 1), (2, 2)]:
