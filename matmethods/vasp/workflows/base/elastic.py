@@ -274,7 +274,7 @@ def get_wf_elastic_constant(structure, vasp_input_set=None,
     """
 
     # MP standards for elastic vasp inputs, kpoints
-    v = vasp_input_set or MPVaspInputSet(force_gamma=True)
+    v = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
     v.incar_settings.update({"ENCUT": 700, "EDIFF": 1e-6})
     v.kpoints_settings.update({"grid_density": 7000})
 
@@ -310,6 +310,8 @@ def get_wf_elastic_constant(structure, vasp_input_set=None,
                           parents=fws[0])
         fw['_tasks'].append(PassStressStrainData(deformation=deformation.tolist()).to_dict())
         fws.append(fw)
+
+    return Workflow(fws)
 
     # TODO: Analyze the data -  OR MAYBE THIS SHOULD BE A BUILDER ????
 
