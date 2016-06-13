@@ -261,7 +261,8 @@ class TransmuterFW(Firework):
         Args:
             structure (Structure): Input structure.
             transformations (list): list of names of transformation classes as defined in
-                the modules in pymatgen.transformations
+                the modules in pymatgen.transformations. 
+                eg:  transformations=['DeformStructureTransformation', 'SupercellTransformation']
             transformation_params (list): list of dicts where each dict specify the input parameters to
                 instantiate the transformation class in the transforamtions list.
             vasp_input_set (string): string name for the VASP input set (e.g.,
