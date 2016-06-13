@@ -17,8 +17,7 @@ from fireworks.core.rocket_launcher import rapidfire
 
 from matmethods.vasp.vasp_powerups import use_custodian, add_namefile, use_fake_vasp, \
     add_trackers
-from matmethods.vasp.workflows.base.band_structure import get_wf_bandstructure
-from matmethods.vasp.workflows.base.single_vasp import get_wf_single
+from matmethods.vasp.workflows.base.core import get_wf
 
 from pymatgen.util.testing import PymatgenTest
 
@@ -26,7 +25,7 @@ __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-db_dir = os.path.join(module_dir, "reference_files", "db_connections")
+db_dir = os.path.join(module_dir, "..", "..", "common", "reference_files", "db_connections")
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
@@ -43,9 +42,7 @@ class TestVaspWorkflows(unittest.TestCase):
 
         cls.struct_si = PymatgenTest.get_structure("Si")
 
-        cls.module_dir = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)))
-        cls.scratch_dir = os.path.join(cls.module_dir, "scratch")
+        cls.scratch_dir = os.path.join(module_dir, "scratch")
 
     def setUp(self):
         if os.path.exists(self.scratch_dir):
@@ -176,8 +173,7 @@ class TestVaspWorkflows(unittest.TestCase):
     def test_single_Vasp(self):
         # add the workflow
         structure = self.struct_si
-        my_wf = get_wf_single(structure, vasp_cmd=VASP_CMD,
-                              task_label="structure optimization")
+        my_wf = get_wf(structure, "optimize_only.yaml", vasp_cmd=VASP_CMD)
         if not VASP_CMD:
             my_wf = use_fake_vasp(my_wf)
         else:
@@ -197,9 +193,8 @@ class TestVaspWorkflows(unittest.TestCase):
         # add the workflow
         structure = self.struct_si
         # instructs to use db_file set by FWorker, see env_chk
-        my_wf = get_wf_single(structure, vasp_cmd=VASP_CMD,
-                              db_file=">>db_file<<",
-                              task_label="structure optimization")
+        my_wf = get_wf(structure, "optimize_only.yaml", vasp_cmd=VASP_CMD,
+                              db_file=">>db_file<<")
         if not VASP_CMD:
             my_wf = use_fake_vasp(my_wf)
         else:
@@ -218,7 +213,7 @@ class TestVaspWorkflows(unittest.TestCase):
         # add the workflow
         structure = self.struct_si
         # instructs to use db_file set by FWorker, see env_chk
-        my_wf = get_wf_bandstructure(structure, vasp_cmd=VASP_CMD,
+        my_wf = get_wf(structure, "band_structure.yaml", vasp_cmd=VASP_CMD,
                                      db_file=">>db_file<<")
         if not VASP_CMD:
             my_wf = use_fake_vasp(my_wf)
@@ -258,8 +253,7 @@ class TestVaspWorkflows(unittest.TestCase):
     def test_trackers(self):
         # add the workflow
         structure = self.struct_si
-        my_wf = get_wf_single(structure, vasp_cmd=VASP_CMD,
-                              task_label="structure optimization")
+        my_wf = get_wf(structure, "optimize_only.yaml", vasp_cmd=VASP_CMD)
 
         if not VASP_CMD:
             my_wf = use_fake_vasp(my_wf)

@@ -1,6 +1,15 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, \
+    absolute_import
+
+
+from pymatgen import MPRester
+from pymatgen.entries.computed_entries import ComputedEntry
+from pymatgen.io.vasp.sets import get_structure_from_prev_run, \
+    get_vasprun_outcar
+from pymatgen.phasediagram.analyzer import PDAnalyzer
+from pymatgen.phasediagram.maker import PhaseDiagram
 
 """
 This module defines tasks that acts as a glue between other vasp firetasks
@@ -12,9 +21,9 @@ import gzip
 import os
 import re
 
-from fireworks import explicit_serialize, FireTaskBase
+from fireworks import explicit_serialize, FireTaskBase, FWAction
 
-from matmethods.utils.utils import get_calc_loc
+from matmethods.utils.utils import get_calc_loc, env_chk
 from matmethods.utils.fileio import FileClient
 
 __author__ = 'Anubhav Jain'
@@ -24,8 +33,9 @@ __email__ = 'ajain@lbl.gov'
 @explicit_serialize
 class CopyVaspOutputs(FireTaskBase):
     """
-    Copy outputs from a previous VASP run directory to the current directory.
-    Additional files, e.g. CHGCAR, can also be specified.
+    Copy files from a previous VASP run directory to the current directory.
+    By default, copies 'INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR',
+    and 'vasprun.xml'. Additional files, e.g. 'CHGCAR', can also be specified.
     Automatically handles files that have a ".gz" extension (copies and unzips).
 
     Note that you must specify either "calc_loc" or "calc_dir" to indicate
@@ -37,8 +47,7 @@ class CopyVaspOutputs(FireTaskBase):
     Optional params:
         calc_loc (str OR bool): if True will set most recent calc_loc. If str
             search for the most recent calc_loc with the matching name
-        calc_dir (str): path to dir (on current filesystem) that contains VASP
-            output files.
+        calc_dir (str): path to dir that contains VASP output files.
         filesystem (str): remote filesystem. e.g. username@host
         additional_files ([str]): additional files to copy,
             e.g. ["CHGCAR", "WAVECAR"]. Use $ALL if you just want to copy
@@ -90,19 +99,18 @@ class CopyVaspOutputs(FireTaskBase):
             dest_fname = 'POSCAR' if f == 'CONTCAR' and contcar_to_poscar else f
             dest_path = os.path.join(os.getcwd(), dest_fname)
 
-            # detect .relax## if needed - uses last relaxation (up to 9 relaxations)
             relax_ext = ""
-            relax_paths = sorted(fileclient.glob(prev_path_full+".relax*"), reverse=True)
-
+            relax_paths = sorted(fileclient.glob(prev_path_full+".relax*"),
+                                 reverse=True)
             if relax_paths:
                 if len(relax_paths) > 9:
-                    raise ValueError("CopyVaspOutputs doesn't properly handle >9 relaxations!")
+                    raise ValueError("CopyVaspOutputs doesn't properly "
+                                     "handle >9 relaxations!")
                 m = re.search('\.relax\d*', relax_paths[0])
                 relax_ext = m.group(0)
 
             # detect .gz extension if needed - note that monty zpath() did not
             # seem useful here
-
             gz_ext = ""
             if not (f + relax_ext) in all_files:
                 for possible_ext in [".gz", ".GZ"]:
@@ -113,10 +121,11 @@ class CopyVaspOutputs(FireTaskBase):
                 raise ValueError("Cannot find file: {}".format(f))
 
             # copy the file (minus the relaxation extension)
-            fileclient.copy(prev_path_full + relax_ext + gz_ext, dest_path + gz_ext)
+            fileclient.copy(prev_path_full + relax_ext + gz_ext,
+                            dest_path + gz_ext)
 
             # unzip the .gz if needed
-            if gz_ext == '.gz' or gz_ext == ".GZ":
+            if gz_ext in ['.gz', ".GZ"]:
                 # unzip dest file
                 f = gzip.open(dest_path + gz_ext, 'rb')
                 file_content = f.read()
@@ -124,3 +133,41 @@ class CopyVaspOutputs(FireTaskBase):
                     f_out.writelines(file_content)
                 f.close()
                 os.remove(dest_path + gz_ext)
+
+
+@explicit_serialize
+class CheckStability(FireTaskBase):
+    """
+    Checks the stability of the entry against the Materials Project database.
+    If the stability is less than the cutoff (default is 0.1 eV/atom), then
+    the task will return a FWAction that will defuse all remaining tasks.
+
+    Required params:
+        (none) - but your MAPI key must be set as an environ var in this case
+
+    Optional params:
+        ehull_cutoff: (float) energy in eV/atom to use as ehull cutoff. Default
+            is 0.05 eV/atom.
+        MAPI_KEY: (str) set MAPI key directly. Supports env_chk.
+        calc_dir: (str) string to path containing vasprun.xml (default currdir)
+    """
+
+    required_params = []
+    optional_params = ["ehull_cutoff", "MAPI_KEY", "calc_dir"]
+
+    def run_task(self, fw_spec):
+
+        mpr = MPRester(env_chk(self.get("MAPI_KEY"), fw_spec))
+        vasprun, outcar = get_vasprun_outcar(self.get("calc_dir", "."),
+                                             parse_dos=False,
+                                             parse_eigen=False)
+
+        my_entry = vasprun.get_computed_entry(inc_structure=False)
+        stored_data = mpr.get_stability([my_entry])[0]
+
+        if stored_data["e_above_hull"] > self.get("ehull_cutoff", 0.05):
+            return FWAction(stored_data=stored_data, exit=True,
+                            defuse_workflow=True)
+
+        else:
+            return FWAction(stored_data=stored_data)

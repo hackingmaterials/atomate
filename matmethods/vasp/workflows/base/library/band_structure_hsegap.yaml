@@ -1,3 +1,4 @@
+# A typical band structure with a quick hybrid (HSE) gap estimation
 fireworks:
 - fw: matmethods.vasp.fireworks.core.OptimizeFW
 - fw: matmethods.vasp.fireworks.core.StaticFW
@@ -11,3 +12,6 @@ fireworks:
   params:
     parents: 1
     mode: line
+- fw: matmethods.vasp.fireworks.core.HSEBSFW
+  params:
+    parents: 3
