@@ -6,12 +6,13 @@ from __future__ import (absolute_import, division, print_function,
 import os
 
 import numpy as np
-from fireworks import Workflow
+from fireworks import FireTaskBase, FWAction, Workflow, Firework
 from fireworks.features.dupefinder import DupeFinderBase
+from fireworks.utilities.fw_utilities import explicit_serialize
 
 from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
-from pymatgen.analysis.elasticity.strain import IndependentStrain
+from pymatgen.analysis.elasticity.strain import Deformation, IndependentStrain
 from pymatgen.analysis.elasticity.stress import Stress
 from pymatgen.io.vasp.sets import MPVaspInputSet
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -42,8 +43,8 @@ class PassStressStrainData(FireTaskBase):
         v = Vasprun('vasprun.xml')
         stress = v['ionic_steps'][-1]['stress']
         deformation_dict = {'deformation': self['deformation'],
-                           'stress': stress,
-                           'task_id': fw_spec['task_id']}
+                            'stress': stress,
+                            'task_id': fw_spec['task_id']}
         return FWAction(mod_spec=[{'_push': {'deformations': deformation_dict}}])
 
 
@@ -85,11 +86,11 @@ class AnalyzeStressStrainData(FireTaskBase):
             stress = Stress(deformation['stress'])
             d["deformation_tasks"][dtype] = {'deformation_matrix': defo,
                                              'strain': strain.tolist(),
-                                             'task_id': deformation['task_id']
+                                             'task_id': deformation['task_id'],
                                              'stress': deformation['stress']}
             stress_dict[strain] = stress
 
-        # DETERMINE IF WE HAVE 6 UNIQUE deformations
+        # DETERMINE IF WE HAVE 6 "UNIQUE" deformations
         if len(dtypes) == 6:
             # Perform Elastic tensor fitting and analysis
             result = ElasticTensor.from_stress_dict(stress_dict)
@@ -191,7 +192,7 @@ class AnalyzeStressStrainData(FireTaskBase):
                             "debye": debye
                             }
         else:
-            d['state'] = "Fewer than 20 successful tasks completed"
+            d['state'] = "Fewer than 6 unique deformations"
             return FWAction()
 
         if d["error"]:
@@ -227,15 +228,11 @@ class DupeFinderEquivelantDeformation(DupeFinderBase):
         if spec1['name'] is not spec2['name']:
             return False
 
-        # Correct type of firework?
-        if "elastic deformation analysis" not in spec1['name']:
-            return False
-
         # Find the write io task and check structure
         writeio1 = [task for task in spec1['_task'] if task['_fw_name']
-            is "{{matmethods.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet}}"]
+                    is "{{matmethods.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet}}"]
         writeio2 = [task for task in spec2['_task'] if task['_fw_name']
-            is "{{matmethods.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet}}"]
+                    is "{{matmethods.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet}}"]
 
         if writeio1['structure'] is not writeio2['structure']:
             return False
@@ -243,7 +240,6 @@ class DupeFinderEquivelantDeformation(DupeFinderBase):
         # Are the deformations symmetrically equivelant?
         sga = SpacegroupAnalyzer(writeio1['structure'], tol=0.1)
         symm_ops = sga.get_symmetry_operations(cartesian=True)
-        self.deformations = symm_reduce(symm_ops, self.deformations)
         if not equivelant_by_symmetry(writeio1['transformation_params']['deformation'],
                                       writeio2['transformation_params']['deformation'],
                                       symm_ops):
@@ -252,14 +248,16 @@ class DupeFinderEquivelantDeformation(DupeFinderBase):
         return True
 
     def query(self, spec):
+        # QUERY FOR A EQUIVELANT TRANSFORM STRUCTURE FIREWORK
+        # TODO: How do we provide a replacement that is the transformed stress/strain to match
 
-        #TODO: How do we provide a replacement that is the transformed stress/strain to match
-        return {}
+        # Query for task name and structure
+        return {'name': spec['name']}
 
 
-
-def get_wf_elastic_constant(structure, max_norm_deformation=0.01, max_shear_deformation=0.08,
-                            num_norm=4, num_shear=4, vasp_input_set=None, vasp_cmd="vasp", db_file=None):
+def get_wf_elastic_constant(structure, norm_deformations=[-0.01, -0.005, 0.005, 0.01],
+                            shear_deformations=[-0.08, -0.04, 0.04, 0.08], vasp_input_set=None,
+                            vasp_cmd="vasp", db_file=None):
     """
     Returns a workflow to calculate elastic consants. This workflow is dynamic
 
@@ -295,11 +293,6 @@ def get_wf_elastic_constant(structure, max_norm_deformation=0.01, max_shear_defo
                           vasp_cmd=vasp_cmd,
                           db_file=db_file))
 
-    norm_deformations = np.linspace(-max_norm_deformation, max_norm_deformation, num=num_norm)
-    norm_deformations = norm_deformations[norm_deformations.nonzero()]
-    shear_deformations = np.linspace(-max_shear_deformation, max_shear_deformation, num=num_shear)
-    shear_deformations = shear_deformations[shear_deformations.nonzero()]
-
     deformations = []
 
     # Generate deformations
@@ -314,20 +307,26 @@ def get_wf_elastic_constant(structure, max_norm_deformation=0.01, max_shear_defo
             deformations.append(defo)
 
     for deformation in deformations:
-        fw = TransmuterFW(name="elastic deformation analysis"
-                          structure=strcuture,
-                          transformations=[DeformStructureTransformation],
+        fw = TransmuterFW(name="elastic deformation calculation",
+                          structure=structure,
+                          transformations=["DeformStructureTransformation"],
                           transformation_params=[
                               {"deformation": deformation.tolist()}],
                           copy_vasp_outputs=True,
                           db_file=db_file,
                           vasp_cmd=vasp_cmd,
-                          parents=fws[0])
+                          parents=fws[0],
+                          vasp_input_params={"reciprocal_density": 400,
+                                             "user_incar_settings": {"ENCUT": 700, "EDIFF": 0.000001}})
 
-        fw['_tasks'].append(PassStressStrainData(deformation=deformation.tolist()).to_dict())
+        fw.tasks.append(PassStressStrainData(deformation=deformation.tolist()).to_dict())
         fws.append(fw)
 
-    fws.append(AnalyzeStressStrainData(parents=fws[1:])
+    fws.append(Firework(AnalyzeStressStrainData(structure=structure),name="Analyze Elastic Data",parents=fws[1:]))
+
+    wfname = "{}:{}".format(structure.composition.reduced_formula, "elastic constants")
+    return Workflow(fws, name=wfname)
+
 
 
 def equivelant_by_symmetry(tensor1, tensor2, symm_ops, tolerance=1e-2):
@@ -341,5 +340,5 @@ def equivelant_by_symmetry(tensor1, tensor2, symm_ops, tolerance=1e-2):
 if __name__ == "__main__":
     from pymatgen.util.testing import PymatgenTest
 
-    structure=PymatgenTest.get_structure("Si")
-    wf=get_wf_elastic_constant(structure)
+    structure = PymatgenTest.get_structure("Si")
+    wf = get_wf_elastic_constant(structure)
