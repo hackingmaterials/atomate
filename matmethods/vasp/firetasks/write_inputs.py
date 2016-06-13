@@ -3,6 +3,8 @@
 from __future__ import division, print_function, unicode_literals, \
     absolute_import
 
+import os
+
 """
 This module defines tasks for writing vasp input sets for various types of
 vasp calculations
@@ -38,13 +40,14 @@ class WriteVaspFromIOSet(FireTaskBase):
         structure (Structure): structure
         vasp_input_set (AbstractVaspInputSet or str): Either a VaspInputSet
             object or a string name for the VASP input set (e.g.,
-            "MPVaspInputSet").
+            "MPRelaxSet").
 
     Optional params:
         vasp_input_params (dict): When using a string name for VASP input set,
             use this as a dict to specify kwargs for instantiating the input
             set parameters. For example, if you want to change the
-            user_incar_settings, you should provide: {"user_incar_settings": ...}.
+            user_incar_settings, you should provide:
+            {"user_incar_settings": ...}.
             This setting is ignored if you provide the full object
             representation of a VaspInputSet rather than a String.
     """
@@ -53,20 +56,18 @@ class WriteVaspFromIOSet(FireTaskBase):
     optional_params = ["vasp_input_params"]
 
     def run_task(self, fw_spec):
-        structure = self['structure']
-
         # if a full VaspInputSet object was provided
         if hasattr(self['vasp_input_set'], 'write_input'):
             vis = self['vasp_input_set']
 
         # if VaspInputSet String + parameters was provided
         else:
-            mod = __import__("pymatgen.io.vasp.sets", globals(), locals(),
-                             [self["vasp_input_set"]], -1)
-            vis = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])(
-                **self.get("vasp_input_params", {}))
+            vis_cls = load_class("pymatgen.io.vasp.sets",
+                                 self["vasp_input_set"])
+            vis = vis_cls(self["structure"],
+                          **self.get("vasp_input_params", {}))
 
-        vis.write_input(structure, ".")
+        vis.write_input(".")
 
 
 @explicit_serialize
@@ -147,31 +148,46 @@ class ModifyIncar(FireTaskBase):
 class WriteVaspStaticFromPrev(FireTaskBase):
     """
     Writes input files for a static run. Assumes that output files from a
-    relaxation job can be accessed.
+    relaxation job can be accessed. Also allows lepsilon calcs.
 
     Required params:
         (none)
 
     Optional params:
         (documentation for all optional params can be found in
-        MPStaticSet.from_prev_calc)
+        MPStaticSet)
     """
 
     required_params = ["prev_calc_dir"]
     optional_params = ["reciprocal_density", "small_gap_multiply",
                        "standardize", "sym_prec", "international_monoclinic",
-                       "other_params"]
+                       "lepsilon", "other_params"]
 
     def run_task(self, fw_spec):
+        lepsilon = self.get("lepsilon")
+
+        default_reciprocal_density = 100 if not lepsilon else 200
+        other_params = self.get("other_params", {})
+
+        # for lepsilon runs, set EDIFF to 1E-5 unless user says otherwise
+        user_incar_settings = self.get("other_params", {}).\
+            get("user_incar_settings", {})
+
+        if lepsilon and "EDIFF" not in user_incar_settings and \
+                        "EDIFF_PER_ATOM" not in user_incar_settings:
+            if "user_incar_settings" not in other_params:
+                other_params["user_incar_settings"] = {}
+            other_params["user_incar_settings"]["EDIFF"] = 1E-5
+
         vis = MPStaticSet.from_prev_calc(
             prev_calc_dir=self["prev_calc_dir"],
-            reciprocal_density=self.get("reciprocal_density", 100),
+            reciprocal_density=default_reciprocal_density,
             small_gap_multiply=self.get("small_gap_multiply", None),
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
             international_monoclinic=self.get("international_monoclinic",
                                               True),
-            **self.get("other_params", {}))
+            lepsilon=lepsilon, **other_params)
         vis.write_input(".")
 
 
@@ -186,7 +202,7 @@ class WriteVaspHSEBSFromPrev(FireTaskBase):
 
     Optional params:
         (documentation for all optional params can be found in
-        MPHSEBSSet.from_prev_calc)
+        MPHSEBSSet)
     """
 
     required_params = ["prev_calc_dir"]
@@ -204,29 +220,31 @@ class WriteVaspHSEBSFromPrev(FireTaskBase):
 @explicit_serialize
 class WriteVaspNSCFFromPrev(FireTaskBase):
     """
-    Writes input files for a static run. Assumes that output files from an
-    scf job can be accessed.
+    Writes input files for an NSCF static run. Assumes that output files from an
+    scf job can be accessed. There are many options, e.g. uniform mode,
+    line mode, adding the optical properties, etc.
 
     Required params:
         (none)
 
     Optional params:
         (documentation for all optional params can be found in
-        NonSCFVaspInputSet.write_input_from_prevrun)
+        NonSCFVaspInputSet)
     """
 
     required_params = ["prev_calc_dir"]
     optional_params = ["copy_chgcar", "nbands_factor", "reciprocal_density",
-                       "small_gap_multiply", "standardize", "sym_prec",
-                       "international_monoclinic", "mode", "nedos", "optics",
-                       "other_params"]
+                       "kpoints_line_density", "small_gap_multiply",
+                       "standardize", "sym_prec", "international_monoclinic",
+                       "mode", "nedos", "optics", "other_params"]
 
     def run_task(self, fw_spec):
         vis = MPNonSCFSet.from_prev_calc(
             prev_calc_dir=self["prev_calc_dir"],
             copy_chgcar=self.get("copy_chgcar", False),
             nbands_factor=self.get("nbands_factor", 1.2),
-            reciprocal_density=self.get("reciprocal_density", None),
+            reciprocal_density=self.get("reciprocal_density", 100),
+            kpoints_line_density=self.get("kpoints_line_density", 20),
             small_gap_multiply=self.get("small_gap_multiply", None),
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
@@ -236,28 +254,6 @@ class WriteVaspNSCFFromPrev(FireTaskBase):
             nedos=self.get("nedos", 601),
             optics=self.get("optics", False),
             **self.get("other_params", {}))
-        vis.write_input(".")
-
-
-@explicit_serialize
-class WriteVaspDFPTDielectricFromPrev(FireTaskBase):
-    """
-    Writes input files for a static run. Assumes that output files from an
-    scf job can be accessed.
-
-    Required params:
-        (none)
-
-    Optional params:
-        (none)
-    """
-    required_params = ["prev_calc_dir"]
-
-    def run_task(self, fw_spec):
-        vis = MPStaticSet.from_prev_calc(
-            prev_calc_dir=self["prev_calc_dir"], lepsilon=True,
-            user_incar_settings={"EDIFF": 1E-5}, ediff_per_atom=False,
-            reciprocal_density=200)
         vis.write_input(".")
 
 
@@ -308,11 +304,12 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
         transformations (list): list of names of transformation classes as defined in
             the modules in pymatgen.transformations
         vasp_input_set (string): string name for the VASP input set (e.g.,
-            "MPVaspInputSet").
+            "MPRelaxSet").
 
     Optional params:
-        transformation_params (list): list of dicts where each dict specify the input parameters to
-            instantiate the transformation class in the transforamtions list.
+        transformation_params (list): list of dicts where each dict specifies
+            the input parameters to instantiate the transformation class in
+            the transformations list.
         vasp_input_params (dict): When using a string name for VASP input set,
             use this as a dict to specify kwargs for instantiating the input
             set parameters. For example, if you want to change the
@@ -322,7 +319,8 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
     """
 
     required_params = ["structure", "transformations", "vasp_input_set"]
-    optional_params = ["prev_calc_dir", "transformation_params", "vasp_input_params"]
+    optional_params = ["prev_calc_dir", "transformation_params",
+                       "vasp_input_params"]
 
     def run_task(self, fw_spec):
 
@@ -352,8 +350,3 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
         vis = vis_cls(transmuter.transformed_structures[-1].final_structure,
                       **self.get("vasp_input_params", {}))
         vis.write_input(".")
-
-        # The following works only for the old inputset with write_input that takes structure as an
-        # argument the new ones that subclass DerivedSet needs structure to initialize
-        # vis = vis_cls(**self.get("vasp_input_params", {}))
-        # transmuter.write_vasp_input(vis, ".")

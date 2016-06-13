@@ -3,6 +3,7 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 from monty.json import jsanitize
+from monty.serialization import loadfn
 
 """
 This module defines the database classes.
@@ -12,7 +13,7 @@ import datetime
 import zlib
 
 import gridfs
-from pymongo import MongoClient, ASCENDING, DESCENDING
+from pymongo import MongoClient, ASCENDING, DESCENDING, ReturnDocument
 
 from matmethods.utils.utils import get_logger
 
@@ -52,7 +53,7 @@ class MMDb(object):
 
         # set counter collection
         if self.db.counter.find({"_id": "taskid"}).count() == 0:
-            self.db.counter.insert({"_id": "taskid", "c": 1})
+            self.db.counter.insert_one({"_id": "taskid", "c": 1})
             self.build_indexes()
 
     def build_indexes(self, indexes=None, background=True):
@@ -117,21 +118,55 @@ class MMDb(object):
             d["last_updated"] = datetime.datetime.today()
             if result is None:
                 if ("task_id" not in d) or (not d["task_id"]):
-                    d["task_id"] = self.db.counter.find_and_modify(query={"_id": "taskid"},
-                                                                   update={"$inc": {"c": 1}})["c"]
+                    d["task_id"] = self.db.counter.find_one_and_update(
+                        {"_id": "taskid"}, {"$inc": {"c": 1}},
+                        return_document=ReturnDocument.AFTER)["c"]
                 logger.info("Inserting {} with taskid = {}".format(d["dir_name"], d["task_id"]))
             elif update_duplicates:
                 d["task_id"] = result["task_id"]
                 logger.info("Updating {} with taskid = {}".format(d["dir_name"], d["task_id"]))
             d = jsanitize(d, allow_bson=True)
-            self.collection.update({"dir_name": d["dir_name"]}, {"$set": d}, upsert=True)
+            self.collection.update_one({"dir_name": d["dir_name"]},
+                                       {"$set": d}, upsert=True)
             return d["task_id"]
         else:
             logger.info("Skipping duplicate {}".format(d["dir_name"]))
             return None
 
     def reset(self):
-        self.collection.remove()
-        self.db.counter.remove()
-        self.db.counter.insert({"_id": "taskid", "c": 1})
+        self.collection.delete_many({})
+        self.db.counter.delete_many({})
+        self.db.counter.insert_one({"_id": "taskid", "c": 1})
+        self.db.dos_fs.files.delete_many({})
+        self.db.dos_fs.chunks.delete_many({})
+        self.db.bandstructure_fs.files.delete_many({})
+        self.db.bandstructure_fs.chunks.delete_many({})
         self.build_indexes()
+
+    @staticmethod
+    def from_db_file(db_file, admin=True):
+        """
+        Create MMDB from database file. File requires host, port, database,
+        collection, and optionally admin_user/readonly_user and
+        admin_password/readonly_password
+
+        Args:
+            db_file: file containing the credentials
+            admin: T/F - whether to use the admin user
+
+        Returns:
+            MMDb object
+        """
+        creds = loadfn(db_file)
+
+        if admin:
+            user = creds.get("admin_user")
+            password = creds.get("admin_password")
+        else:
+            user = creds.get("readonly_user")
+            password = creds.get("readonly_password")
+
+        return MMDb(creds["host"], creds["port"], creds["database"],
+                    creds["collection"], user, password)
+
+

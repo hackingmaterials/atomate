@@ -8,7 +8,7 @@ import unittest
 
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
-from pymatgen.io.vasp.sets import MPVaspInputSet
+from pymatgen.io.vasp.sets import MPRelaxSet
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
@@ -60,8 +60,8 @@ class TestSetup(unittest.TestCase):
 
     def test_setup(self):
         try:
-            vi = MPVaspInputSet(force_gamma=True)
-            vi.write_input(self.struct_si, ".")
+            vi = MPRelaxSet(self.struct_si, force_gamma=True)
+            vi.write_input(".")
         except ValueError:
             import traceback
             traceback.print_exc()
