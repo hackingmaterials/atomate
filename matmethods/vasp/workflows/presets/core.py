@@ -111,3 +111,18 @@ def wf_dielectric_constant(structure, config=None):
         wf = use_scratch_dir(wf, ">>scratch_dir<<")
 
     return wf
+
+
+def wf_piezoelectric_constant(structure, config = None):
+    wf = wf_dielectric_constant(structure,config)
+
+    wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 1000,
+                                                                    "ADDGRID": True,
+                                                                    "LREAL": False,
+                                                                    "EDIFF": 1e-7}
+                                                   },
+                          fw_name_constraint="static dielectric")
+    for fw in wf.fws:
+        fw.name.replace("dielectric", "piezoelectric")
+
+    return wf
