@@ -288,11 +288,7 @@ class TransmuterFW(Firework):
                                                    transformation_params=transformation_params,
                                                    vasp_input_set=vasp_input_set,
                                                    vasp_input_params=kwargs.get("vasp_input_params",{})))
-
-        t.append(WriteTransmutedStructureIOSet(structure=structure, transformations=transformations,
-                                               transformation_params=transformation_params,
-                                               vasp_input_set=vasp_input_set,
-                                               vasp_input_params=kwargs.get("vasp_input_params",{})))
+        
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
