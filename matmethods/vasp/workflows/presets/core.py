@@ -123,6 +123,6 @@ def wf_piezoelectric_constant(structure, config = None):
                                                    },
                           fw_name_constraint="static dielectric")
     for fw in wf.fws:
-        fw.name.replace("dielectric", "piezoelectric")
+        fw.name = fw.name.replace("dielectric", "piezoelectric")
 
     return wf
