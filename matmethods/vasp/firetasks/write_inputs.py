@@ -345,7 +345,7 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
                 transformations.append(t_obj)
 
 
-        structure = self['structure'] if not self['prev_calc_dir'] else Poscar(
+        structure = self['structure'] if not self['prev_calc_dir'] else Poscar.from_file(
             os.path.join(self['prev_calc_dir'], 'POSCAR')).structure
         ts = TransformedStructure(structure)
         transmuter = StandardTransmuter([ts], transformations)
