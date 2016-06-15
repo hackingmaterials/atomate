@@ -102,9 +102,20 @@ class VaspToDbTask(FireTaskBase):
                             task_doc["calcs_reversed"][idx]["bandstructure_fs_id"] = gfs_id
                         del task_doc["calcs_reversed"][idx]["bandstructure"]
 
+            # Check for previous task
+            if "prev_task_id" in fw_spec:
+                task_doc["prev_task_id"] = fw_spec["prev_task_id"]
+
             # insert the task document
             t_id = db.insert(task_doc)
 
             logger.info("Finished parsing with task_id: {}".format(t_id))
+
+            # Pass task id to next firework
+            update_spec = {}
+            if "task_id" in task_doc:
+                update_spec["prev_task_id"] = task_doc["task_id"]
+
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
-                        defuse_children=(task_doc["state"] != "successful"))
+                        defuse_children=(task_doc["state"] != "successful"),
+                        update_spec=update_spec)
