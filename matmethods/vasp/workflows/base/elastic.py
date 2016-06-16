@@ -40,12 +40,14 @@ class PassStressStrainData(FireTaskBase):
     required_params = ["deformation"]
 
     def run_task(self, fw_spec):
+        deformations = list(fw_spec.get("deformations", []))
         v = Vasprun('vasprun.xml')
         stress = v['ionic_steps'][-1]['stress']
         deformation_dict = {'deformation': self['deformation'],
                             'stress': stress,
                             'task_id': fw_spec['task_id']}
-        return FWAction(mod_spec=[{'_push': {'deformations': deformation_dict}}])
+        deformations.append(deformation_dict)
+        return FWAction(mod_spec=[{'_push_all': {'deformations': deformations}}])
 
 
 @explicit_serialize
