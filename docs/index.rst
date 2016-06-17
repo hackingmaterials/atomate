@@ -114,11 +114,11 @@ Install some codes
 
 #. Technically, you just need the MatMethods code which will contain all the dependencies, and you might be able to get by using the ``pip`` install. What I do is actually install the full source of the MatMethods code and all of its important dependencies inside ``<<INSTALL_DIR>>/codes``. This includes a ``git clone`` followed by a ``python setup.py develop`` for the following codes:
 
-   - fireworks
-   - pymatgen
-   - pymatgen-db
-   - custodian
-   - MatMethods
+   - fireworks - ``git clone https://www.github.com/materialsproject/fireworks.git``
+   - pymatgen - ``git clone https://www.github.com/materialsproject/pymatgen.git``
+   - pymatgen-db - ``git clone https://www.github.com/materialsproject/pymatgen-db.git``
+   - custodian - ``git clone https://www.github.com/materialsproject/custodian.git``
+   - matmethods (from hackingmaterials org) - ``git clone https://www.github.com/hackingmaterials/matmethods.git``
 
 #. If all the installation seemed to go smoothly, you are all set! You can try running some unit tests in the code to help confirm things. Note that some of the unit tests in some of the codes will require a MongoDB server.
 
