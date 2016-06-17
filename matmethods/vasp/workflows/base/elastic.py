@@ -22,7 +22,6 @@ from pymatgen.transformations.standard_transformations import \
 This module defines the elastic workflow
 """
 
-
 __author__ = 'Shyam Dwaraknath, Joseph Montoya'
 __email__ = 'shyamd@lbl.gov, montoyjh@lbl.gov'
 
@@ -38,10 +37,7 @@ def get_wf_elastic_constant(structure, vasp_input_set=None,
                  pass run location,
                  database insertion.
 
-    Firework 2: Determine which deformations to run based on symmetry if needed
-                TODO: How to turn off children selectively?
-
-    Firework 3 - N: Optimize Deformed Structure
+    Firework 2 - 25: Optimize Deformed Structure
 
     Args:
         structure (Structure): input structure to be optimized and run
@@ -55,13 +51,8 @@ def get_wf_elastic_constant(structure, vasp_input_set=None,
         Workflow
     """
 
-    # MP standards for elastic vasp inputs, kpoints
     v = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
-    """
-                                     user_incar_settings = {"ENCUT": 700,
-                                                            "EDIFF": 1e-6})
-    v.config_dict['KPOINTS'].update({"grid_density": 7000})
-    """
+    
     fws = []
 
     fws.append(OptimizeFW(structure=structure,
@@ -98,19 +89,3 @@ def get_wf_elastic_constant(structure, vasp_input_set=None,
         fws.append(fw)
     
     return Workflow(fws)
-
-if __name__ == "__main__":
-    from pymatgen.util.testing import PymatgenTest
-
-    structure=PymatgenTest.get_structure("Si")
-    import pdb, traceback, sys
-    try:
-        wf=get_wf_elastic_constant(structure, vasp_cmd = ">>vasp_cmd<<",
-                                   db_file = ">>db_file<<")
-        from fireworks import LaunchPad
-        lpad = LaunchPad.auto_load()
-        lpad.add_wf(wf)
-    except:
-        type, value, tb = sys.exc_info()
-        traceback.print_exc()
-        pdb.post_mortem(tb)
