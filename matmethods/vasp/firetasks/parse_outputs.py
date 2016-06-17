@@ -117,8 +117,8 @@ class VaspToDbTask(FireTaskBase):
 
             # Pass task id to next firework
             if "task_id" in task_doc:
-                mod_spec = {"_push_all": {
-                    "task_doc_data": {"prev_task_ids": task_doc["task_id"]}}}
+                mod_spec = {"_push": {
+                    "task_doc_data->prev_task_ids": task_doc["task_id"]}}
 
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
                         defuse_children=(task_doc["state"] != "successful"),
