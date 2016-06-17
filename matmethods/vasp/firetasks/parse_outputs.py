@@ -68,6 +68,7 @@ class VaspToDbTask(FireTaskBase):
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)
+        mod_spec = {}
 
         # db insertion
         if not db_file:
@@ -115,7 +116,6 @@ class VaspToDbTask(FireTaskBase):
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
             # Pass task id to next firework
-            mod_spec = {}
             if "task_id" in task_doc:
                 mod_spec = {"_push_all": {
                     "task_doc_data": {"prev_task_ids": task_doc["task_id"]}}}
