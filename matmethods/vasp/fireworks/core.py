@@ -295,8 +295,9 @@ class TransmuterFW(Firework):
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
                               additional_fields={"task_label": name,
-                                                 "transformations":transformations,
-                                                 "transformation_params":transformation_params
+                                                 "transmuter":{"transformations":transformations,
+                                                               "transformation_params":transformation_params
+                                                              }
                                                 }))
         super(TransmuterFW, self).__init__(t, parents=parents,
                                            name="{}-{}".format(structure.composition.reduced_formula, name),
