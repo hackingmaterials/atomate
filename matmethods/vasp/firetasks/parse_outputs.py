@@ -115,10 +115,10 @@ class VaspToDbTask(FireTaskBase):
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
             # Pass task id to next firework
-            update_spec = {}
+            mod_spec = {}
             if "task_id" in task_doc:
                 mod_spec = {"_push_all": {
-                    "task_doc_data": {"prev_task_ids": task_doc["task_ids"]}}}
+                    "task_doc_data": {"prev_task_ids": task_doc["task_id"]}}}
 
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
                         defuse_children=(task_doc["state"] != "successful"),
