@@ -51,7 +51,7 @@ def add_to_lpad(workflow, write_namefile=False):
     lp.add_wf(workflow)
 
 
-def add_wf(args):
+def _get_wf(args, structure):
     if args.spec_file:
         spec_path = args.spec_file
         if args.library:
@@ -62,14 +62,32 @@ def add_wf(args):
             else:
                 raise ValueError("Unknown library: {}".format(args.library))
         d = loadfn(spec_path)
+        return get_wf_from_spec_dict(structure, d)
+
+    elif args.preset:
+        if args.library:
+            if args.library.lower() == "vasp":
+                modname = "matmethods.vasp.workflows.presets.core"
+                funcname = args.preset
+            else:
+                modname, funcname = args.preset.rsplit(".", 1)
+
+        mod = __import__(modname, globals(), locals(), [str(funcname)], 0)
+        func = getattr(mod, funcname)
+        return func(structure)
+
     else:
         d = yaml.load(default_yaml)
+        return get_wf_from_spec_dict(structure, d)
+
+
+def add_wf(args):
     for f in args.files:
         if not args.mp:
             s = Structure.from_file(f)
         else:
             s = MPRester().get_structure_by_material_id(f)
-        wf = get_wf_from_spec_dict(s, d)
+        wf = _get_wf(args, s)
         add_to_lpad(wf, write_namefile=False)
 
 
@@ -82,15 +100,16 @@ if __name__ == "__main__":
     subparsers = parser.add_subparsers()
 
     padd = subparsers.add_parser("add", help="Add workflows.")
-    padd.add_argument("-s", "--spec",
-                      dest="spec_file", type=str,
-                      help="YAML/JSON spec file. If none is specified, "
-                           "a default MP-style workflow of relax + static + "
-                           "uniform + line is used.")
     padd.add_argument("-l", "--library", dest="library", type=str,
                       help="If this option is set, the path to the spec file"
                            "is taken with respect to the MatMethods base library."
                            "Use 'vasp' for the VASP library of workflows")
+    padd.add_argument("-s", "--spec",
+                      dest="spec_file", type=str,
+                      help="Specify workflow type using YAML/JSON spec file.")
+    padd.add_argument("-p", "--preset",
+                      dest="preset", type=str,
+                      help="Specify workflow type using preset function")
     padd.add_argument("-m", "--mp", dest="mp", action='store_true',
                       help="If this option is set, the files argument is "
                            "interpreted as a list of Materials Project IDS. "
