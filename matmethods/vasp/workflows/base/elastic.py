@@ -6,7 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 import os
 
 import numpy as np
-from fireworks import FireTaskBase, FWAction, Workflow, Firework
+from fireworks import FireTaskBase, Firework, FWAction, Workflow
 from fireworks.features.dupefinder import DupeFinderBase
 from fireworks.utilities.fw_utilities import explicit_serialize
 
@@ -14,6 +14,7 @@ from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
 from pymatgen.analysis.elasticity.strain import Deformation, IndependentStrain
 from pymatgen.analysis.elasticity.stress import Stress
+from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.io.vasp.sets import MPVaspInputSet
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.transformations.standard_transformations import \
@@ -45,7 +46,7 @@ class PassStressStrainData(FireTaskBase):
         stress = v['ionic_steps'][-1]['stress']
         deformation_dict = {'deformation': self['deformation'],
                             'stress': stress,
-                            'task_id': fw_spec['task_id']}
+                            'fw_id': fw_spec['fw_id']}
         deformations.append(deformation_dict)
         return FWAction(mod_spec=[{'_push_all': {'deformations': deformations}}])
 
@@ -319,16 +320,16 @@ def get_wf_elastic_constant(structure, norm_deformations=[-0.01, -0.005, 0.005, 
                           vasp_cmd=vasp_cmd,
                           parents=fws[0],
                           vasp_input_params={"reciprocal_density": 400,
-                                             "user_incar_settings": {"ENCUT": 700, "EDIFF": 0.000001}})
+                                             "user_incar_settings": {"ISIF": 2, "ENCUT": 700, "EDIFF": 0.000001}})
 
-        fw.tasks.append(PassStressStrainData(deformation=deformation.tolist()).to_dict())
+        fw.spec['_tasks'].append(PassStressStrainData(deformation=deformation.tolist()).to_dict())
         fws.append(fw)
 
-    fws.append(Firework(AnalyzeStressStrainData(structure=structure),name="Analyze Elastic Data",parents=fws[1:]))
+    fws.append(Firework(AnalyzeStressStrainData(structure=structure),
+                        name="Analyze Elastic Data", parents=fws[1:]))
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, "elastic constants")
     return Workflow(fws, name=wfname)
-
 
 
 def equivelant_by_symmetry(tensor1, tensor2, symm_ops, tolerance=1e-2):
