@@ -5,6 +5,7 @@
 from __future__ import division, unicode_literals, print_function
 
 import argparse
+import os
 
 import sys
 from monty.serialization import loadfn
@@ -33,6 +34,8 @@ common_params:
   db_file: None
 """
 
+module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+
 
 def add_to_lpad(workflow, write_namefile=False):
     """
@@ -50,7 +53,15 @@ def add_to_lpad(workflow, write_namefile=False):
 
 def add_wf(args):
     if args.spec_file:
-        d = loadfn(args.spec_file)
+        spec_path = args.spec_file
+        if args.library:
+            if args.library.lower() == "vasp":
+                spec_path = os.path.join(module_dir, "..", "matmethods",
+                                         "vasp", "workflows", "base",
+                                         "library", spec_path)
+            else:
+                raise ValueError("Unknown library: {}".format(args.library))
+        d = loadfn(spec_path)
     else:
         d = yaml.load(default_yaml)
     for f in args.files:
@@ -76,6 +87,10 @@ if __name__ == "__main__":
                       help="YAML/JSON spec file. If none is specified, "
                            "a default MP-style workflow of relax + static + "
                            "uniform + line is used.")
+    padd.add_argument("-l", "--library", dest="library", type=str,
+                      help="If this option is set, the path to the spec file"
+                           "is taken with respect to the MatMethods base library."
+                           "Use 'vasp' for the VASP library of workflows")
     padd.add_argument("-m", "--mp", dest="mp", action='store_true',
                       help="If this option is set, the files argument is "
                            "interpreted as a list of Materials Project IDS. "
