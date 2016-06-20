@@ -3,9 +3,9 @@ from matmethods.vasp.workflows.base.core import get_wf
 from matmethods.vasp.vasp_powerups import add_namefile, \
     add_small_gap_multiply, use_scratch_dir, add_stability_check, \
     add_modify_incar
+from matmethods.vasp.workflows.base.elastic import get_wf_elastic_constant
 
 # TODO: clean up some code duplication in config params
-
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 
