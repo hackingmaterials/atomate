@@ -39,10 +39,10 @@ class VaspToDbTask(FireTaskBase):
             Set to "line" for line mode. If not set, band structure will not
             be parsed.
         additional_fields (dict): dict of additional fields to add
+        fw_spec_field (str): if set, will update the task doc with the contents
+            of this key in the fw_spec.
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
-        fw_spec_fields (list): list of keys in the fw_spec which to add
-            to the task document
     """
     optional_params = ["calc_dir", "calc_loc", "parse_dos",
                        "bandstructure_mode", "additional_fields", "db_file",
@@ -68,7 +68,10 @@ class VaspToDbTask(FireTaskBase):
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)
-        mod_spec = {}
+
+        # Check for additional fields to add in the fw_spec
+        if self.get("fw_spec_field"):
+            task_doc.update(fw_spec[self.get("fw_spec_field")])
 
         # db insertion
         if not db_file:
@@ -106,20 +109,10 @@ class VaspToDbTask(FireTaskBase):
                             task_doc["calcs_reversed"][idx]["bandstructure_fs_id"] = gfs_id
                         del task_doc["calcs_reversed"][idx]["bandstructure"]
 
-            # Check for additional task_doc_data in the fw_spec
-            if "task_doc_data" in fw_spec:
-                task_doc.update(fw_spec["task_doc_data"])
-
             # insert the task document
             t_id = db.insert(task_doc)
 
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
-            # Pass task id to next firework
-            if "task_id" in task_doc:
-                mod_spec = {"_push": {
-                    "task_doc_data->prev_task_ids": task_doc["task_id"]}}
-
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
-                        defuse_children=(task_doc["state"] != "successful"),
-                        mod_spec=mod_spec)
+                        defuse_children=(task_doc["state"] != "successful"))
