@@ -171,7 +171,7 @@ This file is both simple and complicated. The basic setup is simple. But, settin
 * ``<<env.scratch_dir>>`` - temporary place where to run VASP calculations using custodian framework. If set to the ``null`` it will simply use the current working directory without using a scratch_dir.
 
 Note that all of these values might depend on the specific system you are running on. The point of the ``my_fworker.yaml`` is precisely to allow for different settings on different
-systems. By having a different ``my_fworker.yaml`` file for each intended systems, you can tailor the execution of workflows across systems. This procedure is straightforward but is not covered here. If you are advanced, you will understand that you can just set up a second config dir, and point your ``FW_CONFIG_FILE`` environment variable to that second config dir in order to use different settings (e.g., different ``my_fworker.yaml``).
+systems. By having a different ``my_fworker.yaml`` file for each intended systems, you can tailor the execution of workflows across systems. This procedure is straightforward but is not covered here. You can set up a second config directory, and point your ``FW_CONFIG_FILE`` environment variable to that second config directory in order to use different settings (e.g., different ``my_fworker.yaml``).
 
 **my_qadapter.yaml**
 
