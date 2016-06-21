@@ -4,6 +4,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import os
+from decimal import Decimal
 
 import numpy as np
 from fireworks import FireTaskBase, Firework, FWAction, Workflow
@@ -43,10 +44,10 @@ class PassStressStrainData(FireTaskBase):
     def run_task(self, fw_spec):
         deformations = list(fw_spec.get("deformations", []))
         v = Vasprun('vasprun.xml.gz')
-        stress = v['ionic_steps'][-1]['stress']
+        stress = v.ionic_steps[-1]['stress']
         deformation_dict = {'deformation': self['deformation'],
-                            'stress': stress,
-                            'fw_id': fw_spec['fw_id']}
+                            'stress': stress}
+#                            'fw_id': fw_spec['fw_id']}
         deformations.append(deformation_dict)
         return FWAction(mod_spec=[{'_push_all': {'deformations': deformations}}])
 
@@ -78,18 +79,18 @@ class AnalyzeStressStrainData(FireTaskBase):
             if d_ind[0] == d_ind[1]:
                 dtype = "_".join(["d", str(d_ind[0][0]),
                                   "{:.0e}".format(delta)])
-                d_types.append("_".join(["d", str(d_ind[0][0])]))
+                dtypes.add("_".join(["d", str(d_ind[0][0])]))
             # Shear deformation
             else:
                 dtype = "_".join(["s", str(d_ind[0] + d_ind[1]),
                                   "{:.0e}".format(delta)])
-                d_types.append("_".join(["s", str(d_ind[0] + d_ind[1])]))
+                dtypes.add("_".join(["s", str(d_ind[0] + d_ind[1])]))
 
             strain = IndependentStrain(defo)
             stress = Stress(deformation['stress'])
             d["deformation_tasks"][dtype] = {'deformation_matrix': defo,
                                              'strain': strain.tolist(),
-                                             'task_id': deformation['task_id'],
+#                                             'task_id': deformation['task_id'],
                                              'stress': deformation['stress']}
             stress_dict[strain] = stress
 
@@ -105,8 +106,6 @@ class AnalyzeStressStrainData(FireTaskBase):
                       "G_Voigt_Reuss_Hill": kg_average[5]})
             d["universal_anisotropy"] = result.universal_anisotropy
             d["homogeneous_poisson"] = result.homogeneous_poisson
-            if ndocs < 24:
-                d["warning"].append("less than 24 tasks completed")
 
             # Perform filter checks
             symm_t = result.symmetrized
@@ -122,6 +121,7 @@ class AnalyzeStressStrainData(FireTaskBase):
             c12 = symm_t[0][1]
             c13 = symm_t[0][2]
             c23 = symm_t[1][2]
+
             d["analysis"]["c11_c12"] = not (abs((c11 - c12) / c11) < 0.05
                                             or c11 < c12)
             d["analysis"]["c11_c13"] = not (abs((c11 - c13) / c11) < 0.05
