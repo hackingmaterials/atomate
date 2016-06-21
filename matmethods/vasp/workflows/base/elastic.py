@@ -47,7 +47,10 @@ class PassStressStrainData(FireTaskBase):
         stress = v.ionic_steps[-1]['stress']
         deformation_dict = {'deformation': self['deformation'],
                             'stress': stress}
+<<<<<<< Updated upstream
 #                            'fw_id': fw_spec['fw_id']}
+=======
+>>>>>>> Stashed changes
         deformations.append(deformation_dict)
         return FWAction(mod_spec=[{'_push_all': {'deformations': deformations}}])
 
@@ -152,10 +155,10 @@ class AnalyzeStressStrainData(FireTaskBase):
                 d["error"].append("Unable to get IEEE tensor: {}".format(e))
             """
             # Add thermal properties
-            nsites = self['struct'].num_sites
-            volume = self['struct'].volume
-            natoms = self['struct'].composition.num_atoms
-            weight = self['struct'].composition.weight
+            nsites = self['structure'].num_sites
+            volume = self['structure'].volume
+            natoms = self['structure'].composition.num_atoms
+            weight = self['structure'].composition.weight
             num_density = 1e30 * nsites / volume
             mass_density = 1.6605e3 * nsites * volume * weight / \
                 (natoms * volume)
