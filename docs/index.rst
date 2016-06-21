@@ -171,11 +171,11 @@ This file is both simple and complicated. The basic setup is simple. But, settin
 * ``<<env.scratch_dir>>`` - temporary place where to run VASP calculations using custodian framework. If set to the ``null`` it will simply use the current working directory without using a scratch_dir.
 
 Note that all of these values might depend on the specific system you are running on. The point of the ``my_fworker.yaml`` is precisely to allow for different settings on different
-systems. By having a different ``my_fworker.yaml`` file for each intended systems, you can tailor the execution of workflows across systems. This procedure is straightforward but is not covered here. You can set up a second config directory, and point your ``FW_CONFIG_FILE`` environment variable to that second config directory in order to use different settings (e.g., different ``my_fworker.yaml``).
+systems. By having a different ``my_fworker.yaml`` file for each intended systems, you can tailor the execution of workflows across systems. This procedure is straightforward but is not covered here. You can set up a second config file, and point your ``FW_CONFIG_FILE`` environment variable to that second config file in order to use different settings (e.g., different ``my_fworker.yaml``).
 
 **my_qadapter.yaml**
 
-This file controls the format of your queue submission script and the commands to submit jobs to the queue (e.g., ``qsub`` versus ``squeue``). I will not go over how to set this file here. Please refer to the FWS tutorials for that. Note that ``<<CONFIG_DIR>>`` should point to the **full** path of ``<<INSTALL_DIR>>/config``. One further note on this file is that the default uses ``singleshot`` in "reservation" (``-r``) mode. If you want to pack multiple Fireworks into a queue submission you might try turning off reservation mode, and using ``rapidfire`` mode with the appropriate options.
+This file controls the format of your queue submission script and the commands to submit jobs to the queue (e.g., ``qsub`` versus ``sbatch``). I will not go over how to set this file here. Please refer to the FWS tutorials for that. Note that ``<<CONFIG_DIR>>`` should point to the **full** path of ``<<INSTALL_DIR>>/config``. One further note on this file is that the default uses ``singleshot`` in "reservation" (``-r``) mode. If you want to pack multiple Fireworks into a queue submission you might try turning off reservation mode, and using ``rapidfire`` mode with the appropriate options.
 
 That's it! You've finished basic configuration!
 
