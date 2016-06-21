@@ -8,7 +8,7 @@
 
 Theory and computations are powerful tools for understanding and designing materials, but conventional
 software for performing these computations are still difficult to use, understand, and automate.
-MatMethods makes makes it possible to perform complex materials science computations using
+MatMethods makes it possible to perform complex materials science computations using
 very straightforward statements. Features of MatMethods include:
 
 * It is built on top of state-of-the-art open-source libraries: **pymatgen**, **custodian**, and **FireWorks**. Building off these libraries means that MatMethods can not only serve as a simple and friendly introduction to computational materials science, but that it is powerful enough for even the most demanding of theory users that require precise control and massive execution.
@@ -20,7 +20,7 @@ very straightforward statements. Features of MatMethods include:
 * Jobs can be run on a variety of computing systems, queue systems, and architectures.
 * MatMethods uses a standard interface for adding new types of calculations and workflows such that it is possible for users to contribute new features and grow the capabilities of the software over time.
 
-Note: that MatMethods is currently built to work with the **VASP** electronic structure software, but it is the intention of MatMethods to support a variety of software.
+Note: that MatMethods is currently built to work with the **VASP** electronic structure software, but it is the intention of MatMethods to support a variety of softwares.
 
 ============
 Installation
