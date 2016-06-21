@@ -20,7 +20,7 @@ very straightforward statements. Features of MatMethods include:
 * Jobs can be run on a variety of computing systems, queue systems, and architectures.
 * MatMethods uses a standard interface for adding new types of calculations and workflows such that it is possible for users to contribute new features and grow the capabilities of the software over time.
 
-Note: that MatMethods is currently built to work with the **VASP** electronic structure software, but it is the intention of MatMethods to support a variety of softwares.
+Note: that MatMethods is currently built to work with the **VASP** electronic structure software, but it is the intention of MatMethods to support a variety of software.
 
 ============
 Installation
