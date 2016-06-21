@@ -5,11 +5,14 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 from decimal import Decimal
+from matmethods.utils.utils import env_chk, get_calc_loc
+
 
 import numpy as np
 from fireworks import FireTaskBase, Firework, FWAction, Workflow
 from fireworks.features.dupefinder import DupeFinderBase
 from fireworks.utilities.fw_utilities import explicit_serialize
+from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
 from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
@@ -47,10 +50,6 @@ class PassStressStrainData(FireTaskBase):
         stress = v.ionic_steps[-1]['stress']
         deformation_dict = {'deformation': self['deformation'],
                             'stress': stress}
-<<<<<<< Updated upstream
-#                            'fw_id': fw_spec['fw_id']}
-=======
->>>>>>> Stashed changes
         deformations.append(deformation_dict)
         return FWAction(mod_spec=[{'_push_all': {'deformations': deformations}}])
 
@@ -68,9 +67,11 @@ class AnalyzeStressStrainData(FireTaskBase):
     optional_params = ['db_file']
 
     def run_task(self, fw_spec):
+
         deformations = fw_spec['deformations']
+
         d = {"analysis": {}, "error": [], "warning": [],
-             'deformation_tasks': {}, 'structure': self['structure']}
+             'deformation_tasks': {}, 'structure': self['structure'].as_dict()}
         stress_dict = {}
 
         dtypes = set()
@@ -117,13 +118,13 @@ class AnalyzeStressStrainData(FireTaskBase):
             for s in self['structure'].species:
                 if s.is_rare_earth_metal:
                     d["analysis"]["not_rare_earth"] = False
-            eigvals = np.linalg.eigvals(symm_t)
+            eigvals = np.linalg.eigvals(symm_t.voigt)
             eig_positive = np.all((eigvals > 0) & np.isreal(eigvals))
             d["analysis"]["eigval_positive"] = bool(eig_positive)
-            c11 = symm_t[0][0]
-            c12 = symm_t[0][1]
-            c13 = symm_t[0][2]
-            c23 = symm_t[1][2]
+            c11 = symm_t.voigt[0][0]
+            c12 = symm_t.voigt[0][1]
+            c13 = symm_t.voigt[0][2]
+            c23 = symm_t.voigt[1][2]
 
             d["analysis"]["c11_c12"] = not (abs((c11 - c12) / c11) < 0.05
                                             or c11 < c12)
@@ -138,23 +139,23 @@ class AnalyzeStressStrainData(FireTaskBase):
             filter_state = np.all(d["analysis"].values())
             d["analysis"]["filter_pass"] = bool(filter_state)
             d["analysis"]["eigval"] = list(eigvals)
-
-            # TODO:
-            # JHM: eventually we can reintroduce the IEEE conversion
-            #       but as of now it's not being used, and it should
-            #       be in pymatgen
-            """
-            # IEEE Conversion
-            try:
-                ieee_tensor = IEEE_conversion.get_ieee_tensor(struct_final, result)
-                d["elastic_tensor_IEEE"] = ieee_tensor[0].tolist()
-                d["analysis"]["IEEE"] = True
-            except Exception as e:
-                d["elastic_tensor_IEEE"] = None
-                d["analysis"]["IEEE"] = False
-                d["error"].append("Unable to get IEEE tensor: {}".format(e))
-            """
-            # Add thermal properties
+            #
+            # # TODO:
+            # # JHM: eventually we can reintroduce the IEEE conversion
+            # #       but as of now it's not being used, and it should
+            # #       be in pymatgen
+            # """
+            # # IEEE Conversion
+            # try:
+            #     ieee_tensor = IEEE_conversion.get_ieee_tensor(struct_final, result)
+            #     d["elastic_tensor_IEEE"] = ieee_tensor[0].tolist()
+            #     d["analysis"]["IEEE"] = True
+            # except Exception as e:
+            #     d["elastic_tensor_IEEE"] = None
+            #     d["analysis"]["IEEE"] = False
+            #     d["error"].append("Unable to get IEEE tensor: {}".format(e))
+            # """
+            # # Add thermal properties
             nsites = self['structure'].num_sites
             volume = self['structure'].volume
             natoms = self['structure'].composition.num_atoms
@@ -162,7 +163,7 @@ class AnalyzeStressStrainData(FireTaskBase):
             num_density = 1e30 * nsites / volume
             mass_density = 1.6605e3 * nsites * volume * weight / \
                 (natoms * volume)
-            tot_mass = sum([e.atomic_mass for e in calc_struct.species])
+            tot_mass = sum([e.atomic_mass for e in self['structure'].species])
             avg_mass = 1.6605e-27 * tot_mass / natoms
             y_mod = 9e9 * result.k_vrh * result.g_vrh / \
                 (3. * result.k_vrh * result.g_vrh)
@@ -187,7 +188,7 @@ class AnalyzeStressStrainData(FireTaskBase):
                             "mass_density": mass_density,
                             "avg_mass": avg_mass,
                             "num_atom_per_unit_formula": natoms,
-                            "youngs_modulus": y_mod,
+                            "youngs" : y_mod,
                             "trans_velocity": trans_v,
                             "long_velocity": long_v,
                             "clarke": clarke,
@@ -203,10 +204,11 @@ class AnalyzeStressStrainData(FireTaskBase):
 
         if d["error"]:
             raise ValueError("Elastic analysis failed: {}".format(d["error"]))
-        elif d["analysis"]["filter_pass"]:
-            d["state"] = "successful"
         else:
-            d["state"] = "filter_failed"
+            d["state"] = "successful"
+
+        # get the database connection
+        db_file = env_chk(self.get('db_file'), fw_spec)
 
         if not db_file:
             with open("elasticity.json", "w") as f:
@@ -329,7 +331,7 @@ def get_wf_elastic_constant(structure, norm_deformations=[-0.01, -0.005, 0.005, 
         fws.append(fw)
 
     fws.append(Firework(AnalyzeStressStrainData(structure=structure),
-                        name="Analyze Elastic Data", parents=fws[1:]))
+                        name="Analyze Elastic Data", db_file=db_file, parents=fws[1:]))
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, "elastic constants")
     return Workflow(fws, name=wfname)
