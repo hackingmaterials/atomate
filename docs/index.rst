@@ -127,7 +127,7 @@ Configure a bunch of things
 
 In addition to having the code installed, you will need to configure a bunch of settings for running at your computing cluster. This includes setting up your queue adapter and submission script template, providing credentials to your databases, and setting locations of loggers and miscellaneous items.
 
-1. Copy the contents of ``matmethods/vasp/examples/config`` to ``<<INSTALL_DIR>>/config``. We can work off these files to begin with rather than creating the files from scratch.
+1. Copy the contents of ``/matmethods/vasp/config_example/standard_config`` to ``<<INSTALL_DIR>>/config``. We can work off these files to begin with rather than creating the files from scratch.
 
 There is a lot to configure, so let's tackle the files one by one. We will start simple and get more complex.
 
