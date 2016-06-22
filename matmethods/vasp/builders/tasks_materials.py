@@ -119,26 +119,27 @@ class TasksMaterialsBuilder:
                                                   taskdoc["task_id"]}})
 
         # get list of labels for each property
-        m_labels = self._materials.find_one({"materials_id": m_id}, {"_tmbuilder.prop_metadata.labels": 1})["_tmbuilder"]["prop_metadata"]["labels"] or {}
+        x = self._materials.find_one({"materials_id": m_id},
+                                            {"_tmbuilder.prop_metadata.labels":
+                                                 1})
+        m_labels = x["_tmbuilder"]["prop_metadata"]["labels"]
 
         task_label = taskdoc["task_label"]
         # figure out what properties need to be updated
         for x in self.property_settings:
             for p in x["properties"]:
+                # check if this is a valid task for getting the property
                 if task_label in x["quality_scores"]:
                     t_quality = x["quality_scores"][task_label]
                     m_label = m_labels.get(p, None)
                     m_quality = x["quality_scores"].get(m_label, None)
+                    # check if this task's quality is better than existing data
                     if not m_quality or t_quality > m_quality:
-                        if x.get("materials_key"):
-                            materials_key = x["materials_key"]+"."+p
-                        else:
-                            materials_key = p
+                        # insert task's properties into material
+                        materials_key = "{}.{}".format(x["materials_key"], p) \
+                            if x.get("materials_key") else p
                         self._materials.\
                             update_one({"materials_id": m_id},
-                                       {"$set": {materials_key:
-                                                     taskdoc[x["tasks_key"]][p],
-                                                 "_tmbuilder.prop_metadata.labels.{}".format(p):
-                                                     task_label, "_tmbuilder.prop_metadata.task_ids.{}".format(p):
-                                                     taskdoc["task_id"]}
-                                        })
+                                       {"$set": {materials_key: taskdoc[x["tasks_key"]][p],
+                                                 "_tmbuilder.prop_metadata.labels.{}".format(p): task_label,
+                                                 "_tmbuilder.prop_metadata.task_ids.{}".format(p): taskdoc["task_id"]}})
