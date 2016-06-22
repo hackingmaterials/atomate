@@ -135,7 +135,7 @@ class MMDb(object):
 
     def reset(self):
         self.collection.delete_many({})
-        self.db.counter.delete_one({"_id": "task_id"})
+        self.db.counter.delete_one({"_id": "taskid"})
         self.db.counter.insert_one({"_id": "taskid", "c": 1})
         self.db.dos_fs.files.delete_many({})
         self.db.dos_fs.chunks.delete_many({})
