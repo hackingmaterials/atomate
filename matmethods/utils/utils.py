@@ -79,6 +79,17 @@ def get_calc_loc(target_name, calc_locs):
         return calc_locs[-1]
 
 
+def get_mongolike(d, key):
+    if "." in key:
+        i, j = key.split(".", 1)
+        try:
+            i = int(i)
+        except:
+            pass
+        return get_mongolike(d[i], j)
+    return d[key]
+
+
 def get_logger(name, level=logging.DEBUG,
                format='%(asctime)s %(levelname)s %(name)s %(message)s',
                stream=sys.stdout):
