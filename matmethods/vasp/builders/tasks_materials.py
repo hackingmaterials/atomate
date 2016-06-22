@@ -35,12 +35,12 @@ class TasksMaterialsBuilder:
 
         print("Initiating list of all previously processed task_ids ...")
         previous_task_ids = []
-        for m in self._materials.find({}, {"all_sources.task_ids": 1}):
-            previous_task_ids.extend(m["all_sources"]["task_ids"])
+        for m in self._materials.find({}, {"_tmbuilder.all_task_ids": 1}):
+            previous_task_ids.extend(m["_tmbuilder"]["all_task_ids"])
 
         if not previous_task_ids:
             # TODO: make this part of the YAML settings file
-            self._materials.create_index("all_sources.task_ids")
+            self._materials.create_index("_tmbuilder.all_task_ids")
             self._materials.create_index("materials_id", unique=True)
 
         print("Initiating list of all successful task_ids ...")
@@ -109,11 +109,10 @@ class TasksMaterialsBuilder:
     def _create_new_material(self, taskdoc):
         self.COUNTER += 1
         doc = {}
-        doc["all_sources"] = {"task_ids": []}
+        doc["_tmbuilder"] = {"all_task_ids": [], "props_labels": {}, "props_task_id": {}}
         doc["formula_reduced_abc"] = taskdoc["formula_reduced_abc"]
         doc["spacegroup"] = taskdoc["output"]["spacegroup"]
         doc["structure"] = taskdoc["output"]["structure"]
-        doc["props_labels"] = {}
         doc["materials_id"] = self.COUNTER
         self._materials.insert_one(doc)
 
@@ -122,11 +121,11 @@ class TasksMaterialsBuilder:
     def _update_material(self, m_id, taskdoc):
         # add task_id to sources
         self._materials.update_one({"materials_id": m_id},
-                                   {"$push": {"all_sources.task_ids":
+                                   {"$push": {"_tmbuilder.all_task_ids":
                                                   taskdoc["task_id"]}})
 
         m_labels = self._materials.find_one(
-            {"materials_id": m_id}, {"props_labels": 1})["props_labels"] or {}
+            {"materials_id": m_id}, {"_tmbuilder.props_labels": 1})["_tmbuilder"]["props_labels"] or {}
 
         task_label = taskdoc["task_label"]
         # figure out what properties need to be updated
@@ -145,6 +144,7 @@ class TasksMaterialsBuilder:
                             update_one({"materials_id": m_id},
                                        {"$set": {materials_key:
                                                      taskdoc[x["tasks_key"]][p],
-                                                 "props_labels.{}".format(p):
-                                                     task_label}})
-
+                                                 "_tmbuilder.props_labels.{}".format(p):
+                                                     task_label, "_tmbuilder.props_task_id.{}".format(p):
+                                                     taskdoc["task_id"]}
+                                        })
