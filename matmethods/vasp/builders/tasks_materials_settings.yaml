@@ -21,6 +21,21 @@ property_settings:
       "structure optimization": 1
       "static": 2
   - properties:
+      - is_hubbard
+      - hubbards
+    tasks_key: input
+    materials_key: calc_settings
+    quality_scores:
+      "structure optimization": 1
+      "static": 2
+  - properties:
+      - potcar_spec
+    tasks_key: input
+    materials_key: calc_settings
+    quality_scores:
+      "structure optimization": 1
+      "static": 2
+  - properties:
       - epsilon_ionic
       - epsilon_static
       - epsilon_static_wolfe

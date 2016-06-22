@@ -3,6 +3,7 @@ from datetime import datetime
 
 from pymongo import ReturnDocument
 
+from matmethods.utils.utils import get_mongolike
 from monty.serialization import loadfn
 from pymatgen import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, \
@@ -18,16 +19,17 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 
 class TasksMaterialsBuilder:
-    def __init__(self, tasks_read, materials_write, counter_write):
-        self._tasks = tasks_read
-        self._materials = materials_write
+    def __init__(self, materials_write, counter_write, tasks_read):
 
+        self._materials = materials_write
         if self._materials.count() == 0:
             self._build_indexes()
 
         self._counter = counter_write
         if self._counter.find({"_id": "materialid"}).count() == 0:
             self._counter.insert_one({"_id": "materialid", "c": 0})
+
+        self._tasks = tasks_read
 
         x = loadfn(os.path.join(module_dir, "tasks_materials_settings.yaml"))
         self.property_settings = x['property_settings']
@@ -57,6 +59,8 @@ class TasksMaterialsBuilder:
                 m_id = self._create_new_material(taskdoc)
 
             self._update_material(m_id, taskdoc)
+
+        print("TasksMaterialsBuilder finished processing.")
 
     def reset(self):
         self._materials.delete_many({})
@@ -149,9 +153,13 @@ class TasksMaterialsBuilder:
                         # insert task's properties into material
                         materials_key = "{}.{}".format(x["materials_key"], p) \
                             if x.get("materials_key") else p
+                        tasks_key = "{}.{}".format(x["tasks_key"], p) \
+                            if x.get("tasks_key") else p
+
+
                         self._materials.\
                             update_one({"material_id": m_id},
-                                       {"$set": {materials_key: taskdoc[x["tasks_key"]][p],
+                                       {"$set": {materials_key: get_mongolike(taskdoc, tasks_key),
                                                  "_tmbuilder.prop_metadata.labels.{}".format(p): task_label,
                                                  "_tmbuilder.prop_metadata.task_ids.{}".format(p): taskdoc["task_id"],
                                                  "_tmbuilder.updated_at": datetime.utcnow()}})
