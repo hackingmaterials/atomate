@@ -3,17 +3,17 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import json
 import os
 from decimal import Decimal
-from matmethods.utils.utils import env_chk, get_calc_loc
-
 
 import numpy as np
 from fireworks import FireTaskBase, Firework, FWAction, Workflow
 from fireworks.features.dupefinder import DupeFinderBase
-from fireworks.utilities.fw_utilities import explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
+from fireworks.utilities.fw_utilities import explicit_serialize
 
+from matmethods.utils.utils import env_chk
 from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
 from pymatgen.analysis.elasticity.strain import Deformation, IndependentStrain
@@ -94,7 +94,6 @@ class AnalyzeStressStrainData(FireTaskBase):
             stress = Stress(deformation['stress'])
             d["deformation_tasks"][dtype] = {'deformation_matrix': defo,
                                              'strain': strain.tolist(),
-#                                             'task_id': deformation['task_id'],
                                              'stress': deformation['stress']}
             stress_dict[strain] = stress
 
@@ -188,7 +187,7 @@ class AnalyzeStressStrainData(FireTaskBase):
                             "mass_density": mass_density,
                             "avg_mass": avg_mass,
                             "num_atom_per_unit_formula": natoms,
-                            "youngs" : y_mod,
+                            "youngs": y_mod,
                             "trans_velocity": trans_v,
                             "long_velocity": long_v,
                             "clarke": clarke,
