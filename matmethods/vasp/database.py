@@ -53,7 +53,7 @@ class MMDb(object):
 
         # set counter collection
         if self.db.counter.find({"_id": "taskid"}).count() == 0:
-            self.db.counter.insert_one({"_id": "taskid", "c": 1})
+            self.db.counter.insert_one({"_id": "taskid", "c": 0})
             self.build_indexes()
 
     def build_indexes(self, indexes=None, background=True):
@@ -136,7 +136,7 @@ class MMDb(object):
     def reset(self):
         self.collection.delete_many({})
         self.db.counter.delete_one({"_id": "taskid"})
-        self.db.counter.insert_one({"_id": "taskid", "c": 1})
+        self.db.counter.insert_one({"_id": "taskid", "c": 0})
         self.db.dos_fs.files.delete_many({})
         self.db.dos_fs.chunks.delete_many({})
         self.db.bandstructure_fs.files.delete_many({})
