@@ -14,19 +14,24 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 # TODO: make this work in parallel for better performance - watch for race conditions w/same formula+spacegroup combo
 # TODO: if multiple entries with same quality, choose lowest energy one. quality score can be a tuple then
+# TODO: add option to give prefix to task-ids when building materials
+
 
 class TasksMaterialsBuilder:
     def __init__(self, tasks_read, materials_write, counter_write):
         self._tasks = tasks_read
         self._materials = materials_write
-        self._counter = counter_write
 
+        if self._materials.count() == 0:
+            self._build_indexes()
+
+        self._counter = counter_write
         if self._counter.find({"_id": "materialid"}).count() == 0:
             self._counter.insert_one({"_id": "materialid", "c": 0})
 
         x = loadfn(os.path.join(module_dir, "tasks_materials_settings.yaml"))
         self.property_settings = x['property_settings']
-        # TODO: add option to give prefix to task-ids when building materials
+        self.indexes = x.get('indexes', [])
 
     def run(self):
 
@@ -34,11 +39,6 @@ class TasksMaterialsBuilder:
         previous_task_ids = []
         for m in self._materials.find({}, {"_tmbuilder.all_task_ids": 1}):
             previous_task_ids.extend(m["_tmbuilder"]["all_task_ids"])
-
-        if not previous_task_ids:
-            # TODO: make this part of the YAML settings file
-            self._materials.create_index("_tmbuilder.all_task_ids")
-            self._materials.create_index("material_id", unique=True)
 
         print("Initiating list of all successful task_ids ...")
         all_task_ids = [t["task_id"] for t in self._tasks.find({"state": "successful"}, {"task_id": 1})]
@@ -62,6 +62,7 @@ class TasksMaterialsBuilder:
         self._materials.delete_many({})
         self._counter.delete_one({"_id": "materialid"})
         self._counter.insert_one({"_id": "materialid", "c": 0})
+        self._build_indexes()
 
     @staticmethod
     def _preprocess_taskdoc(taskdoc):
@@ -154,3 +155,8 @@ class TasksMaterialsBuilder:
                                                  "_tmbuilder.prop_metadata.labels.{}".format(p): task_label,
                                                  "_tmbuilder.prop_metadata.task_ids.{}".format(p): taskdoc["task_id"],
                                                  "_tmbuilder.updated_at": datetime.utcnow()}})
+
+    def _build_indexes(self):
+        self._materials.create_index("material_id", unique=True)
+        for index in self.indexes:
+            self._materials.create_index(index)

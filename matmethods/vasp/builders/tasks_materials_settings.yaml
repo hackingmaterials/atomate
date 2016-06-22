@@ -38,3 +38,9 @@ property_settings:
     materials_key: bandstructure_hse
     quality_scores:
       "hse gap": 1
+
+indexes:
+  - "_tmbuilder.all_task_ids"
+  - "bandstructure.bandgap"
+  - "bandstructure_hse.bandgap"
+  - "thermo.energy_per_atom"
