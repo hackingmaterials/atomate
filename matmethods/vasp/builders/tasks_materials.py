@@ -11,9 +11,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
-# TODO: !! add a real counter collection
 # TODO: make this work in parallel for better performance - watch for race conditions w/same formula+spacegroup combo
-# TODO: support nested keys in settings for tasks_key (probably some easy way to do this via monty or something)
 
 class TasksMaterialsBuilder:
     def __init__(self, tasks_read, materials_write, counter_write):

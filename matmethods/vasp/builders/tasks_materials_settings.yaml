@@ -3,6 +3,8 @@ property_settings:
       - bandgap
       - cbm
       - vbm
+      - is_gap_direct
+      - is_metal
     tasks_key: output
     materials_key: bandstructure
     quality_scores:
@@ -18,3 +20,21 @@ property_settings:
     quality_scores:
       "structure optimization": 1
       "static": 2
+  - properties:
+      - epsilon_ionic
+      - epsilon_static
+      - epsilon_static_wolfe
+    tasks_key: output
+    materials_key: dielectric
+    quality_scores:
+      "static dielectric": 1
+  - properties:
+      - bandgap
+      - cbm
+      - vbm
+      - is_gap_direct
+      - is_metal
+    tasks_key: output
+    materials_key: bandstructure_hse
+    quality_scores:
+      "hse gap": 1
