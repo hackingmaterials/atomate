@@ -102,7 +102,8 @@ class TasksMaterialsBuilder:
     def _create_new_material(self, taskdoc):
         self.COUNTER += 1
         doc = {}
-        doc["_tmbuilder"] = {"all_task_ids": [], "prop_label": {}, "prop_task_id": {}}
+        doc["_tmbuilder"] = {"all_task_ids": [], "prop_metadata":
+            {"labels": {}, "task_ids": {}}}
         doc["formula_reduced_abc"] = taskdoc["formula_reduced_abc"]
         doc["spacegroup"] = taskdoc["output"]["spacegroup"]
         doc["structure"] = taskdoc["output"]["structure"]
@@ -112,13 +113,13 @@ class TasksMaterialsBuilder:
         return self.COUNTER
 
     def _update_material(self, m_id, taskdoc):
-        # add task_id to sources
+        # add task_id to list of all_task_ids
         self._materials.update_one({"materials_id": m_id},
                                    {"$push": {"_tmbuilder.all_task_ids":
                                                   taskdoc["task_id"]}})
 
-        m_labels = self._materials.find_one(
-            {"materials_id": m_id}, {"_tmbuilder.prop_label": 1})["_tmbuilder"]["prop_label"] or {}
+        # get list of labels for each property
+        m_labels = self._materials.find_one({"materials_id": m_id}, {"_tmbuilder.prop_metadata.labels": 1})["_tmbuilder"]["prop_metadata"]["labels"] or {}
 
         task_label = taskdoc["task_label"]
         # figure out what properties need to be updated
@@ -137,7 +138,7 @@ class TasksMaterialsBuilder:
                             update_one({"materials_id": m_id},
                                        {"$set": {materials_key:
                                                      taskdoc[x["tasks_key"]][p],
-                                                 "_tmbuilder.prop_label.{}".format(p):
-                                                     task_label, "_tmbuilder.prop_task_id.{}".format(p):
+                                                 "_tmbuilder.prop_metadata.labels.{}".format(p):
+                                                     task_label, "_tmbuilder.prop_metadata.task_ids.{}".format(p):
                                                      taskdoc["task_id"]}
                                         })
