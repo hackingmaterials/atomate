@@ -137,7 +137,10 @@ class TasksMaterialsBuilder:
                     m_label = m_labels.get(p, None)
                     m_quality = x["quality_scores"].get(m_label, None)
                     if not m_quality or t_quality > m_quality:
-                        materials_key = p  # TODO: !! give proper materials key based on settings
+                        if x.get("materials_key"):
+                            materials_key = x["materials_key"]+"."+p
+                        else:
+                            materials_key = p
                         self._materials.\
                             update_one({"materials_id": m_id},
                                        {"$set": {materials_key:

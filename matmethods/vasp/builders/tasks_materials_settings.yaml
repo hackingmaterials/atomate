@@ -14,7 +14,7 @@ property_settings:
       - energy
       - energy_per_atom
     tasks_key: output
-    materials_key: null
+    materials_key: thermo
     quality_scores:
       "structure optimization": 1
       "static": 2
