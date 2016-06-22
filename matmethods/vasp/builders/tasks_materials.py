@@ -22,13 +22,6 @@ class TasksMaterialsBuilder:
 
         x = loadfn(os.path.join(module_dir, "tasks_materials_settings.yaml"))
         self.property_settings = x['property_settings']
-
-        self.labels_qualities = {}
-        self.labels_qualities["structure optimization"] = {"bandgap": 1, "energy_per_atom": 1}
-        self.labels_qualities["static"] = {"bandgap": 2, "energy_per_atom": 2}
-        self.labels_qualities["nscf uniform"] = {"bandgap": 3, "energy_per_atom": 0}
-        self.labels_qualities["nscf line"] = {"bandgap": 4, "energy_per_atom": 0}
-
         # TODO: add option to give prefix to task-ids when building materials
 
     def run(self):
@@ -84,7 +77,7 @@ class TasksMaterialsBuilder:
             taskdoc: a JSON-like task document
 
         Returns:
-
+            (int) matching materials_id or None
         """
         formula = taskdoc["formula_reduced_abc"]
         sgnum = taskdoc["output"]["spacegroup"]["number"]
@@ -109,7 +102,7 @@ class TasksMaterialsBuilder:
     def _create_new_material(self, taskdoc):
         self.COUNTER += 1
         doc = {}
-        doc["_tmbuilder"] = {"all_task_ids": [], "props_labels": {}, "props_task_id": {}}
+        doc["_tmbuilder"] = {"all_task_ids": [], "prop_label": {}, "prop_task_id": {}}
         doc["formula_reduced_abc"] = taskdoc["formula_reduced_abc"]
         doc["spacegroup"] = taskdoc["output"]["spacegroup"]
         doc["structure"] = taskdoc["output"]["structure"]
@@ -125,7 +118,7 @@ class TasksMaterialsBuilder:
                                                   taskdoc["task_id"]}})
 
         m_labels = self._materials.find_one(
-            {"materials_id": m_id}, {"_tmbuilder.props_labels": 1})["_tmbuilder"]["props_labels"] or {}
+            {"materials_id": m_id}, {"_tmbuilder.prop_label": 1})["_tmbuilder"]["prop_label"] or {}
 
         task_label = taskdoc["task_label"]
         # figure out what properties need to be updated
@@ -144,7 +137,7 @@ class TasksMaterialsBuilder:
                             update_one({"materials_id": m_id},
                                        {"$set": {materials_key:
                                                      taskdoc[x["tasks_key"]][p],
-                                                 "_tmbuilder.props_labels.{}".format(p):
-                                                     task_label, "_tmbuilder.props_task_id.{}".format(p):
+                                                 "_tmbuilder.prop_label.{}".format(p):
+                                                     task_label, "_tmbuilder.prop_task_id.{}".format(p):
                                                      taskdoc["task_id"]}
                                         })
