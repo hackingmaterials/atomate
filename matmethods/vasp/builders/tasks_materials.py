@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 from pymongo import ReturnDocument
 
@@ -12,6 +13,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 # TODO: make this work in parallel for better performance - watch for race conditions w/same formula+spacegroup combo
+# TODO: if multiple entries with same quality, choose lowest energy one. quality score can be a tuple then
 
 class TasksMaterialsBuilder:
     def __init__(self, tasks_read, materials_write, counter_write):
@@ -107,9 +109,9 @@ class TasksMaterialsBuilder:
         return None
 
     def _create_new_material(self, taskdoc):
-        doc = {}
+        doc = {"created_at": datetime.utcnow()}
         doc["_tmbuilder"] = {"all_task_ids": [], "prop_metadata":
-            {"labels": {}, "task_ids": {}}}
+            {"labels": {}, "task_ids": {}}, "updated_at": datetime.utcnow()}
         doc["formula_reduced_abc"] = taskdoc["formula_reduced_abc"]
         doc["spacegroup"] = taskdoc["output"]["spacegroup"]
         doc["structure"] = taskdoc["output"]["structure"]
@@ -150,4 +152,5 @@ class TasksMaterialsBuilder:
                             update_one({"material_id": m_id},
                                        {"$set": {materials_key: taskdoc[x["tasks_key"]][p],
                                                  "_tmbuilder.prop_metadata.labels.{}".format(p): task_label,
-                                                 "_tmbuilder.prop_metadata.task_ids.{}".format(p): taskdoc["task_id"]}})
+                                                 "_tmbuilder.prop_metadata.task_ids.{}".format(p): taskdoc["task_id"],
+                                                 "_tmbuilder.updated_at": datetime.utcnow()}})
