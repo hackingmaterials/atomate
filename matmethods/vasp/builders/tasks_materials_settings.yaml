@@ -1,0 +1,20 @@
+property_settings:
+  - properties:
+      - bandgap
+      - cbm
+      - vbm
+    tasks_key: output
+    materials_key: bandstructure
+    quality_scores:
+      "structure optimization": 1
+      "static": 2
+      "nscf uniform": 3
+      "nscf line": 4
+  - properties:
+      - energy
+      - energy_per_atom
+    tasks_key: output
+    materials_key: null
+    quality_scores:
+      "structure optimization": 1
+      "static": 2
