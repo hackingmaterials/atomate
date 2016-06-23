@@ -17,7 +17,6 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 # TODO: make this work in parallel for better performance - watch for race conditions w/same formula+spacegroup combo
 # TODO: if multiple entries with same quality, choose lowest energy one. quality score can be a tuple then
 # TODO: add option to give prefix to task-ids when building materials
-# TODO: add tqdm progress bar
 
 class TasksMaterialsBuilder:
     def __init__(self, materials_write, counter_write, tasks_read):
@@ -56,15 +55,22 @@ class TasksMaterialsBuilder:
         print("There are {} new task_ids to process".format(len(task_ids)))
 
         for t_id in tqdm(task_ids):
-            print("Processing task id: {}".format(t_id))
-            taskdoc = self._tasks.find_one({"task_id": t_id})
-            self._preprocess_taskdoc(taskdoc)
+            try:
+                taskdoc = self._tasks.find_one({"task_id": t_id})
+                self._preprocess_taskdoc(taskdoc)
 
-            m_id = self._match_material(taskdoc)
-            if not m_id:
-                m_id = self._create_new_material(taskdoc)
+                m_id = self._match_material(taskdoc)
+                if not m_id:
+                    m_id = self._create_new_material(taskdoc)
 
-            self._update_material(m_id, taskdoc)
+                self._update_material(m_id, taskdoc)
+
+            except:
+                import traceback
+                print("<---")
+                print("There was an error processing task_id: {}".format(t_id))
+                traceback.print_exception()
+                print("--->")
 
         print("TasksMaterialsBuilder finished processing.")
 

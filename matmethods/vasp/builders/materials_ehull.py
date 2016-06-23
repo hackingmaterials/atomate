@@ -25,15 +25,22 @@ class MaterialsEhullBuilder:
             q["stability"] = {"$exists": False}
 
         for m in tqdm(self._materials.find(q, {"calc_settings": 1, "structure": 1, "thermo.energy": 1, "material_id": 1})):
-            print("Processing material_id: {}".format(m["material_id"]))
-            params = {}
-            for x in ["is_hubbard", "hubbards", "potcar_spec"]:
-                params[x] = m["calc_settings"][x]
+            try:
+                params = {}
+                for x in ["is_hubbard", "hubbards", "potcar_spec"]:
+                    params[x] = m["calc_settings"][x]
 
-            composition = Structure.from_dict(m["structure"]).composition
-            energy = m["thermo"]["energy"]
+                composition = Structure.from_dict(m["structure"]).composition
+                energy = m["thermo"]["energy"]
 
-            my_entry = ComputedEntry(composition, energy, parameters=params)
-            self._materials.update_one({"material_id": m["material_id"]}, {"$set": {"stability": self.mpr.get_stability([my_entry])[0]}})
+                my_entry = ComputedEntry(composition, energy, parameters=params)
+                self._materials.update_one({"material_id": m["material_id"]}, {"$set": {"stability": self.mpr.get_stability([my_entry])[0]}})
+
+            except:
+                import traceback
+                print("<---")
+                print("There was an error processing material_id: {}".format(m))
+                traceback.print_exception()
+                print("--->")
 
         print("MaterialsEhullBuilder finished processing.")
