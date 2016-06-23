@@ -2,6 +2,10 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
+"""
+This module defines functions that yield lammps workflows
+"""
+
 from fireworks import Workflow, Firework
 
 from pymatgen.io.lammps.input import NVTLammpsInput
@@ -11,12 +15,14 @@ from matmethods.lammps.firetasks.run_calc import RunLammpsDirect
 
 
 __author__ = 'Kiran Mathew'
+__email__ = "kmathew@lbl.gov"
 
 
 def nvt_wf(data_input, input_filename = "nvt.inp", data_filename="in.data",
            user_lammps_settings={}, is_forcefield=False, lammps_bin="lammps"):
     """
-    Returns NVT workflow
+    Returns NVT workflow:
+        Firework: [write lammps input task, run direct task]
 
     Args:
         data_input (string/LammpsData/LammpsForceFieldData): path to the data file

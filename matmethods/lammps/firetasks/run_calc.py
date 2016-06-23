@@ -12,6 +12,7 @@ from fireworks import explicit_serialize, FireTaskBase
 
 
 __author__ = 'Kiran Mathew'
+__email__ = "kmathew@lbl.gov"
 
 
 @explicit_serialize

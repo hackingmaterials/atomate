@@ -2,16 +2,21 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
+"""
+This module defines firetasks for writing LAMMPS input files(data file and the control parameters file)
+"""
+
 from fireworks import FireTaskBase, explicit_serialize
 
 
 __author__ = 'Kiran Mathew'
+__email__ = "kmathew@lbl.gov"
 
 
 @explicit_serialize
 class WritelammpsInputFromDictInput(FireTaskBase):
     """
-    Writes LAMMPS Input files from DictLammpsInput
+    Writes LAMMPS Input files(data file and the control parameters file) from DictLammpsInput.
 
     required_params:
         lammps_dict_input (DictLammpsInput)
