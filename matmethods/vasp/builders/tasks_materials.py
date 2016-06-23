@@ -20,7 +20,13 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 class TasksMaterialsBuilder:
     def __init__(self, materials_write, counter_write, tasks_read):
-
+        """
+        Create a materials collection from a tasks collection
+        Args:
+            materials_write: mongodb collection for materials (write access needed)
+            counter_write: mongodb collection for counter (write access needed)
+            tasks_read: mongodb collection for tasks (suggest read-only for safety)
+        """
         self._materials = materials_write
         if self._materials.count() == 0:
             self._build_indexes()
@@ -36,7 +42,6 @@ class TasksMaterialsBuilder:
         self.indexes = x.get('indexes', [])
 
     def run(self):
-
         print("Initiating list of all previously processed task_ids ...")
         previous_task_ids = []
         for m in self._materials.find({}, {"_tmbuilder.all_task_ids": 1}):
@@ -114,6 +119,14 @@ class TasksMaterialsBuilder:
         return None
 
     def _create_new_material(self, taskdoc):
+        """
+        Create a new material document
+        Args:
+            taskdoc: a JSON-like task document
+
+        Returns:
+            (int) - material_id of the new document
+        """
         doc = {"created_at": datetime.utcnow()}
         doc["_tmbuilder"] = {"all_task_ids": [], "prop_metadata":
             {"labels": {}, "task_ids": {}}, "updated_at": datetime.utcnow()}
@@ -128,7 +141,14 @@ class TasksMaterialsBuilder:
         return doc["material_id"]
 
     def _update_material(self, m_id, taskdoc):
-        # add task_id to list of all_task_ids
+        """
+        Update a material document based on a new task
+
+        Args:
+            m_id: (int) material_id for material document to update
+            taskdoc: a JSON-like task document
+        """
+
         self._materials.update_one({"material_id": m_id},
                                    {"$push": {"_tmbuilder.all_task_ids":
                                                   taskdoc["task_id"]}})
@@ -165,6 +185,9 @@ class TasksMaterialsBuilder:
                                                  "_tmbuilder.updated_at": datetime.utcnow()}})
 
     def _build_indexes(self):
+        """
+        Create indexes for faster searching
+        """
         self._materials.create_index("material_id", unique=True)
         for index in self.indexes:
             self._materials.create_index(index)
