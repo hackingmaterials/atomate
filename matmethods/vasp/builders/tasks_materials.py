@@ -55,12 +55,11 @@ class TasksMaterialsBuilder:
         for t_id in tqdm(task_ids):
             try:
                 taskdoc = self._tasks.find_one({"task_id": t_id})
-                self._preprocess_taskdoc(taskdoc)
+                self._preprocess_taskdoc(taskdoc)  # TODO: move pre-process to separate builder
 
                 m_id = self._match_material(taskdoc)
                 if not m_id:
                     m_id = self._create_new_material(taskdoc)
-
                 self._update_material(m_id, taskdoc)
 
             except:
@@ -153,9 +152,10 @@ class TasksMaterialsBuilder:
             taskdoc: a JSON-like task document
         """
         # get list of labels for each existing property in material
+        # this is used to decide if the taskdoc has higher quality data
         x = self._materials.find_one({"material_id": m_id},
                                             {"_tmbuilder.prop_metadata.labels":
-                                                 1})
+                                                1})
         m_labels = x["_tmbuilder"]["prop_metadata"]["labels"]
 
         task_label = taskdoc["task_label"]
@@ -174,7 +174,6 @@ class TasksMaterialsBuilder:
                             if x.get("materials_key") else p
                         tasks_key = "{}.{}".format(x["tasks_key"], p) \
                             if x.get("tasks_key") else p
-
 
                         self._materials.\
                             update_one({"material_id": m_id},
