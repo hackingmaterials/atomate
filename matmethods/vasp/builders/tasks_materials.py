@@ -27,6 +27,10 @@ class TasksMaterialsBuilder:
             counter_write: mongodb collection for counter (write access needed)
             tasks_read: mongodb collection for tasks (suggest read-only for safety)
         """
+        x = loadfn(os.path.join(module_dir, "tasks_materials_settings.yaml"))
+        self.property_settings = x['property_settings']
+        self.indexes = x.get('indexes', [])
+
         self._materials = materials_write
         if self._materials.count() == 0:
             self._build_indexes()
@@ -37,22 +41,16 @@ class TasksMaterialsBuilder:
 
         self._tasks = tasks_read
 
-        x = loadfn(os.path.join(module_dir, "tasks_materials_settings.yaml"))
-        self.property_settings = x['property_settings']
-        self.indexes = x.get('indexes', [])
-
     def run(self):
-        print("Initiating list of all previously processed task_ids ...")
+        print("MaterialsTaskBuilder starting...")
+        print("Initializing list of all new task_ids to process ...")
         previous_task_ids = []
         for m in self._materials.find({}, {"_tmbuilder.all_task_ids": 1}):
             previous_task_ids.extend(m["_tmbuilder"]["all_task_ids"])
-
-        print("Initiating list of all successful task_ids ...")
         all_task_ids = [t["task_id"] for t in self._tasks.find({"state": "successful"}, {"task_id": 1})]
-
-        print("Determining list of new task_ids ...")
         task_ids = [t_id for t_id in all_task_ids if t_id not in previous_task_ids]
-        print("There are {} new task_ids to process".format(len(task_ids)))
+
+        print("There are {} new task_ids to process.".format(len(task_ids)))
 
         for t_id in tqdm(task_ids):
             try:
@@ -137,7 +135,6 @@ class TasksMaterialsBuilder:
         doc = {"created_at": datetime.utcnow()}
         doc["_tmbuilder"] = {"all_task_ids": [], "prop_metadata":
             {"labels": {}, "task_ids": {}}, "updated_at": datetime.utcnow()}
-        doc["formula_reduced_abc"] = taskdoc["formula_reduced_abc"]
         doc["spacegroup"] = taskdoc["output"]["spacegroup"]
         doc["structure"] = taskdoc["output"]["structure"]
         doc["material_id"] = self._counter.find_one_and_update(

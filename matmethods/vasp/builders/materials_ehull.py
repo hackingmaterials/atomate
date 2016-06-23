@@ -20,6 +20,7 @@ class MaterialsEhullBuilder:
         self.update_all = update_all
 
     def run(self):
+        print("MaterialsEhullBuilder starting...")
         q = {"thermo.energy": {"$exists": True}}
         if not self.update_all:
             q["stability"] = {"$exists": False}
