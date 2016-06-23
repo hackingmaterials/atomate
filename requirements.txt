@@ -6,3 +6,4 @@ monty>=0.8.4
 paramiko>=1.15.0
 unittest2>=1.1.0
 coverage==4.0.3
+tqdm==4.7.4

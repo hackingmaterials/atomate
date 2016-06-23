@@ -1,3 +1,5 @@
+from tqdm import tqdm
+
 from pymatgen import MPRester, Structure
 from pymatgen.entries.computed_entries import ComputedEntry
 
@@ -22,7 +24,7 @@ class MaterialsEhullBuilder:
         if not self.update_all:
             q["stability"] = {"$exists": False}
 
-        for m in self._materials.find(q, {"calc_settings": 1, "structure": 1, "thermo.energy": 1, "material_id": 1}):
+        for m in tqdm(self._materials.find(q, {"calc_settings": 1, "structure": 1, "thermo.energy": 1, "material_id": 1})):
             print("Processing material_id: {}".format(m["material_id"]))
             params = {}
             for x in ["is_hubbard", "hubbards", "potcar_spec"]:

@@ -1,3 +1,5 @@
+from tqdm import tqdm
+
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 
@@ -25,7 +27,7 @@ class FileMaterialsBuilder:
         print("Starting FileMaterials Builder.")
         with open(self._data_file, 'rb') as f:
             line_no = 0
-            for line in f:
+            for line in tqdm(f):
                 line = line.strip()
                 if not line.startswith("#"):
                     line_no += 1

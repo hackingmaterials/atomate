@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 from pymongo import ReturnDocument
+from tqdm import tqdm
 
 from matmethods.utils.utils import get_mongolike
 from monty.serialization import loadfn
@@ -16,7 +17,7 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 # TODO: make this work in parallel for better performance - watch for race conditions w/same formula+spacegroup combo
 # TODO: if multiple entries with same quality, choose lowest energy one. quality score can be a tuple then
 # TODO: add option to give prefix to task-ids when building materials
-
+# TODO: add tqdm progress bar
 
 class TasksMaterialsBuilder:
     def __init__(self, materials_write, counter_write, tasks_read):
@@ -54,7 +55,7 @@ class TasksMaterialsBuilder:
         task_ids = [t_id for t_id in all_task_ids if t_id not in previous_task_ids]
         print("There are {} new task_ids to process".format(len(task_ids)))
 
-        for t_id in task_ids:
+        for t_id in tqdm(task_ids):
             print("Processing task id: {}".format(t_id))
             taskdoc = self._tasks.find_one({"task_id": t_id})
             self._preprocess_taskdoc(taskdoc)
