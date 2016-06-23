@@ -27,5 +27,3 @@ class WritelammpsInputFromDictInput(FireTaskBase):
     def run_task(self, fw_spec):
         lammps_input = self["lammps_dict_input"]
         lammps_input.write_input(self["input_file"], data_file=self.get("data_file", None))
-
-
