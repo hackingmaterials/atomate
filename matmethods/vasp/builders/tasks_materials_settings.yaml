@@ -65,6 +65,10 @@ property_settings:
     quality_scores:
       "hse gap": 1
 
+properties_root:
+  - bandgap
+  - energy_per_atom
+
 indexes:
   - "_tmbuilder.all_task_ids"
   - "bandstructure.bandgap"

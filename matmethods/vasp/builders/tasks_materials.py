@@ -30,6 +30,7 @@ class TasksMaterialsBuilder:
         x = loadfn(os.path.join(module_dir, "tasks_materials_settings.yaml"))
         self.property_settings = x['property_settings']
         self.indexes = x.get('indexes', [])
+        self.properties_root = x.get('properties_root', [])
 
         self._materials = materials_write
         if self._materials.count() == 0:
@@ -181,6 +182,14 @@ class TasksMaterialsBuilder:
                                                  "_tmbuilder.prop_metadata.labels.{}".format(p): task_label,
                                                  "_tmbuilder.prop_metadata.task_ids.{}".format(p): taskdoc["task_id"],
                                                  "_tmbuilder.updated_at": datetime.utcnow()}})
+
+                        # copy property to document root if in properties_root
+                        if p in self.properties_root:
+                            self._materials.\
+                            update_one({"material_id": m_id},
+                                       {"$set": {p: get_mongolike(taskdoc,
+                                                                  tasks_key)}})
+
         
         self._materials.update_one({"material_id": m_id},
                                    {"$push": {"_tmbuilder.all_task_ids":
