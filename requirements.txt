@@ -1,8 +1,9 @@
 FireWorks>=1.2.7
--e git+git@github.com:materialsproject/pymatgen.git#egg=pymatgen_tmp
+pymatgen>=3.7.1
 pymatgen-db>=0.5.1
 custodian>=0.8.8
 monty>=0.8.4
 paramiko>=1.15.0
 unittest2>=1.1.0
 coverage==4.0.3
+tqdm==4.7.4

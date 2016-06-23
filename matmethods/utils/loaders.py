@@ -47,10 +47,11 @@ def get_wf_from_spec_dict(structure, wfspec):
             via "fw": <explicit path>.
 
             You can pass arguments into the constructor using the special
-            keyword `params`, which is a dict. If multiple fireworks share the
-            same `params`, you can use `common_params` to specify a common set
-            of arguments that are passed to all fireworks. Any param starting
-            with a $ will be expanded using environment variables.
+            keyword `params`, which is a dict. Any param starting with a $ will
+            be expanded using environment variables.If multiple fireworks share
+            the same `params`, you can use `common_params` to specify a common
+            set of arguments that are passed to all fireworks. Local params
+            take precedent over global params.
 
             Another special keyword is `parents`, which provides
             the *indices* of the parents of that particular Firework in the
@@ -89,7 +90,9 @@ def get_wf_from_spec_dict(structure, wfspec):
     for d in wfspec["fireworks"]:
         cls_ = load_class(d["fw"])
         params = process_params(d.get("params", {}))
-        params.update(common_params)
+        for k in common_params:
+            if k not in params:  # common params don't override local params
+                params[k] = common_params[k]
         if "parents" in params:
             if isinstance(params["parents"], int):
                 params["parents"] = fws[params["parents"]]

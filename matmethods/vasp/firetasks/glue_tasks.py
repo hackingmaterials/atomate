@@ -3,6 +3,14 @@
 from __future__ import division, print_function, unicode_literals, \
     absolute_import
 
+
+from pymatgen import MPRester
+from pymatgen.entries.computed_entries import ComputedEntry
+from pymatgen.io.vasp.sets import get_structure_from_prev_run, \
+    get_vasprun_outcar
+from pymatgen.phasediagram.analyzer import PDAnalyzer
+from pymatgen.phasediagram.maker import PhaseDiagram
+
 """
 This module defines tasks that acts as a glue between other vasp firetasks
 namely passing the location of current run to the next one and copying files
@@ -13,9 +21,9 @@ import gzip
 import os
 import re
 
-from fireworks import explicit_serialize, FireTaskBase
+from fireworks import explicit_serialize, FireTaskBase, FWAction
 
-from matmethods.utils.utils import get_calc_loc
+from matmethods.utils.utils import get_calc_loc, env_chk
 from matmethods.utils.fileio import FileClient
 from pymatgen.core.structure import Structure
 from matmethods.common.firetasks.glue_tasks import GrabFilesFromCalcLoc
@@ -128,7 +136,6 @@ class CopyVaspOutputs(FireTaskBase):
                 f.close()
                 os.remove(dest_path + gz_ext)
 
-
 class GetInterpolatedPOSCAR(GrabFilesFromCalcLoc):
     """
     Grabs CONTCARS from two previous calculations
@@ -163,3 +170,40 @@ class GetInterpolatedPOSCAR(GrabFilesFromCalcLoc):
         s.to(fmt='POSCAR', filename=os.getcwd()+"/POSCAR")
 
         # will want to call this method after getting first VASP set
+
+@explicit_serialize
+class CheckStability(FireTaskBase):
+    """
+    Checks the stability of the entry against the Materials Project database.
+    If the stability is less than the cutoff (default is 0.1 eV/atom), then
+    the task will return a FWAction that will defuse all remaining tasks.
+
+    Required params:
+        (none) - but your MAPI key must be set as an environ var in this case
+
+    Optional params:
+        ehull_cutoff: (float) energy in eV/atom to use as ehull cutoff. Default
+            is 0.05 eV/atom.
+        MAPI_KEY: (str) set MAPI key directly. Supports env_chk.
+        calc_dir: (str) string to path containing vasprun.xml (default currdir)
+    """
+
+    required_params = []
+    optional_params = ["ehull_cutoff", "MAPI_KEY", "calc_dir"]
+
+    def run_task(self, fw_spec):
+
+        mpr = MPRester(env_chk(self.get("MAPI_KEY"), fw_spec))
+        vasprun, outcar = get_vasprun_outcar(self.get("calc_dir", "."),
+                                             parse_dos=False,
+                                             parse_eigen=False)
+
+        my_entry = vasprun.get_computed_entry(inc_structure=False)
+        stored_data = mpr.get_stability([my_entry])[0]
+
+        if stored_data["e_above_hull"] > self.get("ehull_cutoff", 0.05):
+            return FWAction(stored_data=stored_data, exit=True,
+                            defuse_workflow=True)
+
+        else:
+            return FWAction(stored_data=stored_data)

@@ -39,11 +39,14 @@ class VaspToDbTask(FireTaskBase):
             Set to "line" for line mode. If not set, band structure will not
             be parsed.
         additional_fields (dict): dict of additional fields to add
+        fw_spec_field (str): if set, will update the task doc with the contents
+            of this key in the fw_spec.
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
     """
     optional_params = ["calc_dir", "calc_loc", "parse_dos",
-                       "bandstructure_mode", "additional_fields", "db_file"]
+                       "bandstructure_mode", "additional_fields", "db_file",
+                       "fw_spec_fields"]
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
@@ -65,6 +68,10 @@ class VaspToDbTask(FireTaskBase):
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)
+
+        # Check for additional fields to add in the fw_spec
+        if self.get("fw_spec_field"):
+            task_doc.update(fw_spec[self.get("fw_spec_field")])
 
         # db insertion
         if not db_file:
@@ -106,6 +113,7 @@ class VaspToDbTask(FireTaskBase):
             t_id = db.insert(task_doc)
 
             logger.info("Finished parsing with task_id: {}".format(t_id))
+
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
                         defuse_children=(task_doc["state"] != "successful"))
 

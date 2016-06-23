@@ -1,21 +1,21 @@
-MatMethods.vasp.workflows.base package
+matmethods.vasp.workflows.base package
 ======================================
 
 Submodules
 ----------
 
-MatMethods.vasp.workflows.base.band_structure module
-----------------------------------------------------
+matmethods.vasp.workflows.base.core module
+------------------------------------------
 
-.. automodule:: MatMethods.vasp.workflows.base.band_structure
+.. automodule:: matmethods.vasp.workflows.base.core
     :members:
     :undoc-members:
     :show-inheritance:
 
-MatMethods.vasp.workflows.base.single_vasp module
--------------------------------------------------
+matmethods.vasp.workflows.base.elastic module
+---------------------------------------------
 
-.. automodule:: MatMethods.vasp.workflows.base.single_vasp
+.. automodule:: matmethods.vasp.workflows.base.elastic
     :members:
     :undoc-members:
     :show-inheritance:
@@ -24,7 +24,7 @@ MatMethods.vasp.workflows.base.single_vasp module
 Module contents
 ---------------
 
-.. automodule:: MatMethods.vasp.workflows.base
+.. automodule:: matmethods.vasp.workflows.base
     :members:
     :undoc-members:
     :show-inheritance:

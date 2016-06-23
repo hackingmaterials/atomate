@@ -1,19 +1,17 @@
-matmethods package
-==================
+matmethods.common package
+=========================
 
 Subpackages
 -----------
 
 .. toctree::
 
-    matmethods.common
-    matmethods.utils
-    matmethods.vasp
+    matmethods.common.firetasks
 
 Module contents
 ---------------
 
-.. automodule:: matmethods
+.. automodule:: matmethods.common
     :members:
     :undoc-members:
     :show-inheritance:
