@@ -74,3 +74,6 @@ indexes:
   - "bandstructure.bandgap"
   - "bandstructure_hse.bandgap"
   - "thermo.energy_per_atom"
+  - "formula_pretty"
+  - "formula_reduced_abc"
+  - "sg_number"

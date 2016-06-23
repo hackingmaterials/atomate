@@ -107,7 +107,7 @@ class TasksMaterialsBuilder:
         sgnum = taskdoc["output"]["spacegroup"]["number"]
 
         for m in self._materials.find({"formula_reduced_abc": formula,
-                                       "spacegroup.number": sgnum},
+                                       "sg_number": sgnum},
                                       {"structure": 1, "material_id": 1}):
 
             m_struct = Structure.from_dict(m["structure"])
@@ -136,6 +136,8 @@ class TasksMaterialsBuilder:
         doc["_tmbuilder"] = {"all_task_ids": [], "prop_metadata":
             {"labels": {}, "task_ids": {}}, "updated_at": datetime.utcnow()}
         doc["spacegroup"] = taskdoc["output"]["spacegroup"]
+        doc["sg_symbol"] = doc["spacegroup"]["symbol"]
+        doc["sg_number"] = doc["spacegroup"]["number"]
         doc["structure"] = taskdoc["output"]["structure"]
         doc["material_id"] = self._counter.find_one_and_update(
                         {"_id": "materialid"}, {"$inc": {"c": 1}},
