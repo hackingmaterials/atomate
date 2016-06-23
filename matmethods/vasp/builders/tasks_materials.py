@@ -152,12 +152,7 @@ class TasksMaterialsBuilder:
             m_id: (int) material_id for material document to update
             taskdoc: a JSON-like task document
         """
-
-        self._materials.update_one({"material_id": m_id},
-                                   {"$push": {"_tmbuilder.all_task_ids":
-                                                  taskdoc["task_id"]}})
-
-        # get list of labels for each property
+        # get list of labels for each existing property in material
         x = self._materials.find_one({"material_id": m_id},
                                             {"_tmbuilder.prop_metadata.labels":
                                                  1})
@@ -187,6 +182,10 @@ class TasksMaterialsBuilder:
                                                  "_tmbuilder.prop_metadata.labels.{}".format(p): task_label,
                                                  "_tmbuilder.prop_metadata.task_ids.{}".format(p): taskdoc["task_id"],
                                                  "_tmbuilder.updated_at": datetime.utcnow()}})
+        
+        self._materials.update_one({"material_id": m_id},
+                                   {"$push": {"_tmbuilder.all_task_ids":
+                                                  taskdoc["task_id"]}})
 
     def _build_indexes(self):
         """
