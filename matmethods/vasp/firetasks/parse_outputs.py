@@ -149,13 +149,12 @@ class BandGapCut(FireTaskBase):
         import pickle
         pickle.dump(task_doc["calcs_reversed"],open('test.pkl','wb'))
 
-        bandgap = None
-        for idx, x in enumerate(task_doc["calcs_reversed"]):
-            bandgap = task_doc["calcs_reversed"][idx]['output']['bandgap']
+        bandgap = task_doc["calcs_reversed"][0]['output']['bandgap']
 
-        print(bandgap)
+        print(str(bandgap))
         with open('test','wb') as f:
-            f.write(bandgap)
+            f.write("HERE")
+            f.write(str(bandgap))
 
         if (bandgap < self.get('lt',1.0e10)) and (bandgap > self.get('gt',0.001)):
             return FWAction(stored_data={"bandgap": bandgap})
