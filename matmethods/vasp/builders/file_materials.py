@@ -33,7 +33,7 @@ class FileMaterialsBuilder:
             pbar = tqdm(lines)
             for line in pbar:
                 line = line.strip()
-                if not line.startswith("#"):
+                if line and not line.startswith("#"):
                     line_no += 1
                     if line_no > self.header_lines:
                         line = line.split(self._delimiter)
