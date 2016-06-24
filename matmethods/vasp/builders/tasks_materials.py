@@ -53,7 +53,9 @@ class TasksMaterialsBuilder:
 
         print("There are {} new task_ids to process.".format(len(task_ids)))
 
-        for t_id in tqdm(task_ids):
+        pbar = tqdm(task_ids)
+        for t_id in pbar:
+            pbar.set_description("Processing task_id: {}".format(t_id))
             try:
                 taskdoc = self._tasks.find_one({"task_id": t_id})
                 self._preprocess_taskdoc(taskdoc)  # TODO: move pre-process to separate builder
