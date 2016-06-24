@@ -137,15 +137,19 @@ class BandGapCut(FireTaskBase):
         elif self.get("calc_loc"):
             calc_dir = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])["path"]
 
+        logger.info("PARSING DIRECTORY: {}".format(calc_dir))
+
         drone = VaspDrone(additional_fields=self.get("additional_fields"),
                           parse_dos=self.get("parse_dos", False), compress_dos=1,
                           bandstructure_mode=self.get("bandstructure_mode", False), compress_bs=1)
         # assimilate
         task_doc = drone.assimilate(calc_dir)
 
-        k = task_doc["calcs_reversed"].keys()
-        bandgap = task_doc["calcs_reversed"][k[0]]['output']['bandgap']
+        #k = task_doc["calcs_reversed"].keys()
+        bandgap = task_doc["calcs_reversed"][0]['output']['bandgap']
         print(bandgap)
+        with open('test','wb') as f:
+            f.write(bandgap)
 
         if (bandgap < self.get('lt',1.0e10)) and (bandgap > self.get('gt',0.001)):
             return FWAction(stored_data={"bandgap": bandgap})
