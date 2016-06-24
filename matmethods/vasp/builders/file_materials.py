@@ -1,5 +1,7 @@
 from tqdm import tqdm
 
+from pymatgen import Composition
+
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 
@@ -7,7 +9,7 @@ class FileMaterialsBuilder:
     def __init__(self, materials_write, data_file, delimiter=",", header_lines=0):
         """
         Updates the database using a data file. Format of file must be:
-        <material_id>, <property>, <value>
+        <material_id or formula>, <property>, <value>
         for which <property> is the materials key to update.
 
         Comment lines should start with '#'.
@@ -27,14 +29,22 @@ class FileMaterialsBuilder:
         print("Starting FileMaterials Builder.")
         with open(self._data_file, 'rb') as f:
             line_no = 0
-            for line in tqdm(f):
+            lines = [line for line in f]  # only good for small files
+            pbar = tqdm(lines)
+            for line in pbar:
                 line = line.strip()
                 if not line.startswith("#"):
                     line_no += 1
                     if line_no > self.header_lines:
-                        print("Processing line: {}".format(line))
                         line = line.split(self._delimiter)
-                        m_id = int(line[0])
+
+                        try:
+                            search_val = int(line[0])
+                            search_key = "material_id"
+                        except:
+                            search_key = "formula_reduced_abc"
+                            search_val = Composition(line[0]).reduced_composition.alphabetical_formula
+
                         key = line[1]
                         val = line[2]
                         try:
@@ -42,12 +52,10 @@ class FileMaterialsBuilder:
                         except:
                             pass
 
-                        x = self._materials.find_one_and_update(
-                            {"material_id": m_id}, {"$set": {key: val}},
-                            {"material_id": 1})
-                        if not x:
-                            raise ValueError("Could not find "
-                                             "material with material_id: {}".
-                                             format(m_id))
+                        x = self._materials.update(
+                            {search_key: search_val}, {"$set": {key: val}})
+
+                        if x["n"] == 0:
+                            raise ValueError("Could not find entry with {}={}".format(search_key, search_val))
 
         print("FileMaterials Builder finished processing")
