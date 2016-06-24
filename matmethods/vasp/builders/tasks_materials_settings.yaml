@@ -1,16 +1,5 @@
 property_settings:
   - properties:
-      - formula_anonymous
-      - formula_pretty
-      - formula_reduced_abc
-      - nelements
-      - nsites
-    tasks_key: null
-    materials_key: null
-    quality_scores:
-      "structure optimization": 1
-      "static": 1
-  - properties:
       - bandgap
       - cbm
       - vbm
