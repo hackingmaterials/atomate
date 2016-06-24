@@ -145,8 +145,9 @@ class BandGapCut(FireTaskBase):
 
         k = task_doc["calcs_reversed"].keys()
         bandgap = task_doc["calcs_reversed"][k[0]]['output']['bandgap']
+        print(bandgap)
 
-        if bandgap < self.get('lt',1.0e10) and bandgap > self.get('gt',0.001):
+        if (bandgap < self.get('lt',1.0e10)) and (bandgap > self.get('gt',0.001)):
             return FWAction(stored_data={"bandgap": bandgap})
         else:
             return FWAction(stored_data={"bandgap": bandgap},
