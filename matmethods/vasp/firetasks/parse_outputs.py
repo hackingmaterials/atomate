@@ -146,7 +146,13 @@ class BandGapCut(FireTaskBase):
         task_doc = drone.assimilate(calc_dir)
 
         #k = task_doc["calcs_reversed"].keys()
-        bandgap = task_doc["calcs_reversed"][0]['output']['bandgap']
+        import pickle
+        pickle.dump(task_doc["calcs_reversed"],open('test.pkl','wb'))
+
+        bandgap = None
+        for idx, x in enumerate(task_doc["calcs_reversed"]):
+            bandgap = task_doc["calcs_reversed"][idx]['output']['bandgap']
+
         print(bandgap)
         with open('test','wb') as f:
             f.write(bandgap)
