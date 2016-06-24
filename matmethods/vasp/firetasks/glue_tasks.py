@@ -140,29 +140,34 @@ class GetInterpolatedPOSCAR(GrabFilesFromCalcLoc):
     """
     Grabs CONTCARS from two previous calculations
     """
+    required_params = ["start","end","this_image","nimages"]
 
     def run_task(self, fw_spec):
 
-        start = self['start_struct']
-        end = self['end_struct']
+#        start = self['start_struct']
+#        end = self['end_struct']
+#        start = {'calc_dir':'run_1','calc_loc':None}
+#        end = {'calc_dir':'run_2','calc_loc':None}
 
         # make folder for poscar interpolation start and end structure files.
-        interpolate_folder = 'interpolate'
+        interpolate_folder = '/interpolate'
         if not os.path.exists(os.getcwd()+interpolate_folder):
             os.makedirs(os.getcwd()+interpolate_folder)
 
+            print (os.getcwd()+interpolate_folder)
+
         # use method of GrabFilesFromCalcLoc to grab files from previous locations.
-        self.get_files(calc_dir=start['calc_dir'], calc_loc=start['calc_loc'], filenames="CONTCAR", name_prepend="interpolate/",
-                       name_append="_0")
-        self.get_files(calc_dir=end['calc_dir'], calc_loc=end['calc_loc'], filenames="CONTCAR", name_prepend="interpolate/",
-                       name_append="_1")
+        self.get_files(calc_dir=None, calc_loc=self.get("start","default"), filenames="CONTCAR", name_prepend="interpolate/",
+                       name_append="_0",fw_spec=fw_spec)
+        self.get_files(calc_dir=None, calc_loc=self.get("end","default"), filenames="CONTCAR", name_prepend="interpolate/",
+                       name_append="_1",fw_spec=fw_spec)
 
         # assuming first calc_dir is polar structure for ferroelectric search
 
         s1 = Structure.from_file("interpolate/CONTCAR_0")
         s2 = Structure.from_file("interpolate/CONTCAR_1")
 
-        structs = s1.interpolate(s2,self.get('nimages',5))
+        structs = s1.interpolate(s2,self.get('nimages',5),interpolate_lattices=True)
 
         # save only the interpolation needed for this run
         i = self.get("this_image",0)

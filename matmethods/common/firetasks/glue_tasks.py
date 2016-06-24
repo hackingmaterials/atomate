@@ -3,6 +3,7 @@ import os
 from fireworks import explicit_serialize, FireTaskBase, FWAction
 from matmethods.utils.utils import env_chk
 from matmethods.utils.fileio import FileClient
+from matmethods.utils.utils import get_calc_loc
 import six
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
@@ -47,7 +48,7 @@ class GrabFilesFromCalcLoc(FireTaskBase):
     pulled from fw_spec to determine which files need to be copied.
     """
 
-    def get_files(self,calc_dir=None, calc_loc=None, filenames=None, name_prepend="", name_append=""):
+    def get_files(self,calc_dir=None, calc_loc=None, filenames=None, name_prepend="", name_append="",fw_spec=None):
 
         if calc_dir:
             filesystem = None
@@ -86,3 +87,5 @@ class GrabFilesFromCalcLoc(FireTaskBase):
 
             # copy the file (minus the relaxation extension)
             fileclient.copy(prev_path_full, dest_path)
+            print(prev_path_full)
+            print(dest_path)

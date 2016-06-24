@@ -15,129 +15,6 @@ from pymatgen.io.vasp.sets import MPStaticSet
 
 from monty.serialization import loadfn
 
-def generate_ferroelectric_template(nimages=5,optimize=True,band_hse=True):
-    """
-    This function returns a ferroelectric workflow for a given number of interpolations for the polarization calculation
-    step.
-
-    Args:
-        nimages: number of interpolations for polarization calculations.
-        optimize: optimize polar and nonpolar structures
-        band_hse: calculate HSE band gap for polar structure
-
-    Returns:
-        YAML workflow
-
-    """
-
-    """
-    CURRENT PROBLEMS WITH THIS FUNCTION
-
-    Several of these Fireworks use previous jobs for the calculation. By default the calculation used for copying over
-    the appropriate output files is the parent -- however the parent is not the appropriate previous calculation in
-    several of these cases. Therefore, I have added the param 'prev' to several of the jobs.
-
-    Also, uncertain how multiple parents should be attributed (should I be using links instead of 'parents'?).
-
-    """
-
-    yaml = ""
-
-    if optimize:
-        yaml= """fireworks:
-- fw: matmethods.vasp.fireworks.core.OptimizeFW
-    params:
-        structure: 'polar'
-        """
-
-    yaml += """
-- fw: matmethods.vasp.fireworks.core.StaticFW
-    params:
-        parents: 0
-        structure: 'polar'
-- fw: matmethods.vasp.fireworks.core.NonSCFFW
-    params:
-        parents: 1
-        mode: uniform
-        structure: 'polar'
-- fw: matmethods.vasp.fireworks.core.NonSCFFW
-    params:
-        parents: 1
-        mode: line
-        structure: 'polar'
-        defuse_children:
-            band_gap:
-                lt: 0 """
-
-    if optimize:
-        yaml += """
-- fw: matmethods.vasp.fireworks.core.OptimizeFW
-    params:
-        parents: [2,3]
-        prev: None
-        structure: 'nonpolar' """
-
-
-    fireworks = 2
-    if optimize:
-        fireworks += 2
-
-    current_lcalcpol_parent = '[2,3]'
-    if optimize:
-        current_lcalcpol_parent = '4'
-
-    for i in range(nimages):
-        if i==nimages-1 and optimize:
-            yaml += """
-- fw: matmethods.vasp.fireworks.core.StaticFW
-    params:
-        parents: {p}
-        prev: {prev_calc}
-        structure: {i}
-            """
-            yaml = yaml.format(p='2,3', i=i, prev_calc=4)
-
-        elif (i != nimages-1 and i != 0) or (i==nimages-1 and not optimize):
-            yaml += """
-- fw: matmethods.vasp.fireworks.core.StaticFW
-    params:
-        parents: {p}
-        prev: None
-        structure: {i}"""
-
-            p = '[2,3]'
-            if optimize:
-                p = '4'
-            yaml = yaml.format(p=p,i=i)
-            fireworks += 1
-            current_lcalcpol_parent = fireworks
-
-        yaml += """
-- fw: matmethods.vasp.fireworks.core.LcalcpolFW
-    params:
-        parents: {p}
-        structure: {i}"""
-        yaml = yaml.format(p=current_lcalcpol_parent,i=i)
-        if i==0:
-            yaml +="""
-        prev: {prev_calc}"""
-            yaml = yaml.format(prev_calc=1)
-        fireworks += 1
-
-# Also may want to add fw (or perhaps task) that calculates effective polarization.
-# Alternatively, we can leave this to post-processing the database.
-
-    if band_hse:
-        yaml += """
-- fw: matmethods.vasp.fireworks.core.HSEBSFW
-    params:
-        parents: [2,3]
-        structure: 'polar' """
-
-        fireworks += 1
-
-    return yaml
-
 def get_wf_ferroelectric(structure_polar, structure_nonpolar, nimages=5):
     """
     Simple workflow for ferroelectric search calculations. It includes these calculations:
@@ -187,7 +64,7 @@ def get_wf_ferroelectric(structure_polar, structure_nonpolar, nimages=5):
     commom_params={vasp_cmd: ">>vasp_cmd<<", db_file: '>>db_file<<'}
 
     # Interpolate structures from polar to nonpolar
-    structs = structure_polar.interpolate(structure_nonpolar,nimages,interpolate_lattices=True)
+    #structs = structure_polar.interpolate(structure_nonpolar,nimages,interpolate_lattices=True)
 
     scf_fw = []
     polarization_fw = []
