@@ -119,7 +119,7 @@ class VaspToDbTask(FireTaskBase):
 
 
 @explicit_serialize
-class MakeBandgapCut(FireTaskBase):
+class BandGapCut(FireTaskBase):
     """
     General class for making band gap cuts on calculations that result in whether or not to defuse children Fireworks.
     It possibly should be merged with VaspToDBTask...
