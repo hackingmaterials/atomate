@@ -30,6 +30,7 @@ class TasksMaterialsBuilder:
         x = loadfn(os.path.join(module_dir, "tasks_materials_settings.yaml"))
         self.property_settings = x['property_settings']
         self.indexes = x.get('indexes', [])
+        self.properties_root = x.get('properties_root', [])
 
         self._materials = materials_write
         if self._materials.count() == 0:
@@ -52,15 +53,16 @@ class TasksMaterialsBuilder:
 
         print("There are {} new task_ids to process.".format(len(task_ids)))
 
-        for t_id in tqdm(task_ids):
+        pbar = tqdm(task_ids)
+        for t_id in pbar:
+            pbar.set_description("Processing task_id: {}".format(t_id))
             try:
                 taskdoc = self._tasks.find_one({"task_id": t_id})
-                self._preprocess_taskdoc(taskdoc)
+                self._preprocess_taskdoc(taskdoc)  # TODO: move pre-process to separate builder
 
                 m_id = self._match_material(taskdoc)
                 if not m_id:
                     m_id = self._create_new_material(taskdoc)
-
                 self._update_material(m_id, taskdoc)
 
             except:
@@ -107,7 +109,7 @@ class TasksMaterialsBuilder:
         sgnum = taskdoc["output"]["spacegroup"]["number"]
 
         for m in self._materials.find({"formula_reduced_abc": formula,
-                                       "spacegroup.number": sgnum},
+                                       "sg_number": sgnum},
                                       {"structure": 1, "material_id": 1}):
 
             m_struct = Structure.from_dict(m["structure"])
@@ -136,10 +138,16 @@ class TasksMaterialsBuilder:
         doc["_tmbuilder"] = {"all_task_ids": [], "prop_metadata":
             {"labels": {}, "task_ids": {}}, "updated_at": datetime.utcnow()}
         doc["spacegroup"] = taskdoc["output"]["spacegroup"]
+        doc["sg_symbol"] = doc["spacegroup"]["symbol"]
+        doc["sg_number"] = doc["spacegroup"]["number"]
         doc["structure"] = taskdoc["output"]["structure"]
         doc["material_id"] = self._counter.find_one_and_update(
                         {"_id": "materialid"}, {"$inc": {"c": 1}},
                         return_document=ReturnDocument.AFTER)["c"]
+        for x in ["formula_anonymous", "formula_pretty", "formula_reduced_abc",
+                  "nelements"]:
+            doc[x] = taskdoc[x]
+
         self._materials.insert_one(doc)
 
         return doc["material_id"]
@@ -153,9 +161,10 @@ class TasksMaterialsBuilder:
             taskdoc: a JSON-like task document
         """
         # get list of labels for each existing property in material
+        # this is used to decide if the taskdoc has higher quality data
         x = self._materials.find_one({"material_id": m_id},
                                             {"_tmbuilder.prop_metadata.labels":
-                                                 1})
+                                                1})
         m_labels = x["_tmbuilder"]["prop_metadata"]["labels"]
 
         task_label = taskdoc["task_label"]
@@ -175,13 +184,20 @@ class TasksMaterialsBuilder:
                         tasks_key = "{}.{}".format(x["tasks_key"], p) \
                             if x.get("tasks_key") else p
 
-
                         self._materials.\
                             update_one({"material_id": m_id},
                                        {"$set": {materials_key: get_mongolike(taskdoc, tasks_key),
                                                  "_tmbuilder.prop_metadata.labels.{}".format(p): task_label,
                                                  "_tmbuilder.prop_metadata.task_ids.{}".format(p): taskdoc["task_id"],
                                                  "_tmbuilder.updated_at": datetime.utcnow()}})
+
+                        # copy property to document root if in properties_root
+                        if p in self.properties_root:
+                            self._materials.\
+                            update_one({"material_id": m_id},
+                                       {"$set": {p: get_mongolike(taskdoc,
+                                                                  tasks_key)}})
+
         
         self._materials.update_one({"material_id": m_id},
                                    {"$push": {"_tmbuilder.all_task_ids":

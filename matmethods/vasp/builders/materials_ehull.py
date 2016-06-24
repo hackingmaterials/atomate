@@ -25,7 +25,10 @@ class MaterialsEhullBuilder:
         if not self.update_all:
             q["stability"] = {"$exists": False}
 
-        for m in tqdm(self._materials.find(q, {"calc_settings": 1, "structure": 1, "thermo.energy": 1, "material_id": 1})):
+        mats = [m for m in self._materials.find(q, {"calc_settings": 1, "structure": 1, "thermo.energy": 1, "material_id": 1})]
+        pbar = tqdm(mats)
+        for m in pbar:
+            pbar.set_description("Processing materials_id: {}".format(m['material_id']))
             try:
                 params = {}
                 for x in ["is_hubbard", "hubbards", "potcar_spec"]:
@@ -41,7 +44,7 @@ class MaterialsEhullBuilder:
                 import traceback
                 print("<---")
                 print("There was an error processing material_id: {}".format(m))
-                traceback.print_exception()
+                traceback.print_exc()
                 print("--->")
 
         print("MaterialsEhullBuilder finished processing.")
