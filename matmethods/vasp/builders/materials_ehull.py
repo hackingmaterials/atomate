@@ -1,5 +1,6 @@
 from tqdm import tqdm
 
+from matgendb.util import get_database
 from pymatgen import MPRester, Structure
 from pymatgen.entries.computed_entries import ComputedEntry
 
@@ -48,3 +49,15 @@ class MaterialsEhullBuilder:
                 print("--->")
 
         print("MaterialsEhullBuilder finished processing.")
+
+    @staticmethod
+    def from_db_file(db_file, m="materials", **kwargs):
+        """
+        Get a MaterialsEhullBuilder using only a db file
+        Args:
+            db_file: (str) path to db file
+            m: (str) name of "materials" collection
+            **kwargs: other parameters to feed into the builder, e.g. mapi_key
+        """
+        db_write = get_database(db_file, admin=True)
+        return MaterialsEhullBuilder(db_write[m], **kwargs)

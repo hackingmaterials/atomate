@@ -4,6 +4,7 @@ from datetime import datetime
 from pymongo import ReturnDocument
 from tqdm import tqdm
 
+from matgendb.util import get_database
 from matmethods.utils.utils import get_mongolike
 from monty.serialization import loadfn
 from pymatgen import Structure
@@ -202,6 +203,26 @@ class TasksMaterialsBuilder:
         self._materials.update_one({"material_id": m_id},
                                    {"$push": {"_tmbuilder.all_task_ids":
                                                   taskdoc["task_id"]}})
+
+    @staticmethod
+    def from_db_file(db_file, m="materials", c="counter", t="tasks"):
+        """
+        Get a TaskMaterialsBuilder using only a db file
+        Args:
+            db_file: (str) path to db file
+            m: (str) name of "materials" collection
+            c:  (str) name of "counter" collection
+            t:  (str) name of "tasks" collection
+        """
+        db_write = get_database(db_file, admin=True)
+        try:
+            db_read = get_database(db_file, admin=False)
+        except:
+            print("Warning: could not get read-only database")
+            db_read = get_database(db_file, admin=True)
+
+        return TasksMaterialsBuilder(db_write[m], db_write[c], db_read[t])
+
 
     def _build_indexes(self):
         """
