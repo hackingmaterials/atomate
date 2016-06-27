@@ -14,6 +14,7 @@ class FixTasksBuilder:
 
     def run(self):
 
+        # change string spacegroup numbers to integer
         for t in self._tasks.find({"output.spacegroup.number": {"$type": 2}}, {"task_id": 1, "output": 1}):
             print("Fixing string spacegroup, tid: {}".format(t["task_id"]))
             try:
