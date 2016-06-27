@@ -13,10 +13,9 @@ from pymatgen import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
+# TODO: make this work in parallel for better performance - watch for race conditions w/same formula+spacegroup combo
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-
-# TODO: make this work in parallel for better performance - watch for race conditions w/same formula+spacegroup combo
 
 
 class TasksMaterialsBuilder:
@@ -76,7 +75,6 @@ class TasksMaterialsBuilder:
             pbar.set_description("Processing task_id: {}".format(t_id))
             try:
                 taskdoc = self._tasks.find_one({"task_id": self.tid_int(t_id)})
-                self._preprocess_taskdoc(taskdoc)  # TODO: move pre-process to separate builder
 
                 m_id = self._match_material(taskdoc)
                 if not m_id:
@@ -97,20 +95,6 @@ class TasksMaterialsBuilder:
         self._counter.delete_one({"_id": "materialid"})
         self._counter.insert_one({"_id": "materialid", "c": 0})
         self._build_indexes()
-
-    @staticmethod
-    def _preprocess_taskdoc(taskdoc):
-        """
-        Preprocess a task doc, usually as a way to handle backwards
-        incompatibilities and refactorings that accumulate over time
-
-        Args:
-            taskdoc: A JSON-like task document
-        """
-
-        # cast spacegroup number to int type
-        taskdoc["output"]["spacegroup"]["number"] = \
-            int(taskdoc["output"]["spacegroup"]["number"])
 
     def _match_material(self, taskdoc):
         """
