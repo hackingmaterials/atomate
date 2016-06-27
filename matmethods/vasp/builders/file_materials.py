@@ -1,5 +1,6 @@
 from tqdm import tqdm
 
+from matgendb.util import get_database
 from pymatgen import Composition
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
@@ -59,3 +60,16 @@ class FileMaterialsBuilder:
                             raise ValueError("Could not find entry with {}={}".format(search_key, search_val))
 
         print("FileMaterials Builder finished processing")
+
+    @staticmethod
+    def from_db_file(db_file, data_file, m="materials", **kwargs):
+        """
+        Get a FileMaterialsBuilder using only a db file
+        Args:
+            db_file: (str) path to db file
+            data_file (str) path to data file
+            m: (str) name of "materials" collection
+            **kwargs: other parameters to feed into the builder, e.g. mapi_key
+        """
+        db_write = get_database(db_file, admin=True)
+        return FileMaterialsBuilder(db_write[m], data_file, **kwargs)
