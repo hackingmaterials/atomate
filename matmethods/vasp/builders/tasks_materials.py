@@ -1,3 +1,5 @@
+from __future__ import absolute_import, print_function
+
 import os
 from datetime import datetime
 
@@ -8,8 +10,7 @@ from matgendb.util import get_database
 from matmethods.utils.utils import get_mongolike
 from monty.serialization import loadfn
 from pymatgen import Structure
-from pymatgen.analysis.structure_matcher import StructureMatcher, \
-    ElementComparator
+from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 

@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from pymatgen import MPRester
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'

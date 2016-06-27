@@ -55,10 +55,10 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
         self.assertAlmostEqual(doc["output"]["energy"], oszicar2.ionic_steps[-1]["E0"])
         self.assertEqual(doc["formula_pretty"], 'Si')
         self.assertEqual(doc["formula_anonymous"], 'A')
-        self.assertEqual(doc["calcs_reversed"][0]["input"].keys(),
-                         doc["calcs_reversed"][1]["input"].keys())
-        self.assertEqual(doc["calcs_reversed"][0]["output"].keys(),
-                         doc["calcs_reversed"][1]["output"].keys())
+        self.assertEqual(list(doc["calcs_reversed"][0]["input"].keys()),
+                         list(doc["calcs_reversed"][1]["input"].keys()))
+        self.assertEqual(list(doc["calcs_reversed"][0]["output"].keys()),
+                         list(doc["calcs_reversed"][1]["output"].keys()))
         self.assertEqual(doc["calcs_reversed"][0]["output"]["energy"], doc["output"]["energy"])
         self.assertEqual(doc["run_stats"][doc["calcs_reversed"][0]["task"]["name"]], run_stats2)
         self.assertEqual(doc["run_stats"][doc["calcs_reversed"][1]["task"]["name"]], run_stats1)
