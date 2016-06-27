@@ -17,7 +17,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 # TODO: make this work in parallel for better performance - watch for race conditions w/same formula+spacegroup combo
-# TODO: if multiple entries with same quality, choose lowest energy one. quality score can be a tuple then
+
 
 class TasksMaterialsBuilder:
     def __init__(self, materials_write, counter_write, tasks_read,
@@ -180,33 +180,46 @@ class TasksMaterialsBuilder:
         """
         # get list of labels for each existing property in material
         # this is used to decide if the taskdoc has higher quality data
-        x = self._materials.find_one({"material_id": m_id},
-                                            {"_tmbuilder.prop_metadata.labels":
-                                                1})
-        m_labels = x["_tmbuilder"]["prop_metadata"]["labels"]
+        prop_tlabels = self._materials.find_one(
+            {"material_id": m_id}, {"_tmbuilder.prop_metadata.labels": 1})[
+            "_tmbuilder"]["prop_metadata"]["labels"]
 
-        task_label = taskdoc["task_label"]
+        task_label = taskdoc["task_label"]  #task label of current doc
         # figure out what properties need to be updated
         for x in self.property_settings:
             for p in x["properties"]:
                 # check if this is a valid task for getting the property
                 if task_label in x["quality_scores"]:
+                    # assert: this is a valid task for the property
+                    # but is it the best task for the property?
                     t_quality = x["quality_scores"][task_label]
-                    m_label = m_labels.get(p, None)
-                    m_quality = x["quality_scores"].get(m_label, None)
+                    m_quality = x["quality_scores"].get(prop_tlabels.get(p, None), None)
                     # check if this task's quality is better than existing data
-                    if not m_quality or t_quality > m_quality:
+                    # 3 possibilities:
+                    # i) materials property data not present, so this is best
+                    # ii) task quality higher based on task label
+                    # iii) task quality equal to materials; use lowest energy task
+                    if not m_quality or t_quality > m_quality \
+                            or (t_quality == m_quality
+                                and taskdoc["output"]["energy_per_atom"] <
+                                    self._materials.find_one(
+                                        {"material_id": m_id},
+                                        {"_tmbuilder": 1})["_tmbuilder"][
+                                        "prop_metadata"]["energies"][p]):
+
                         # insert task's properties into material
                         materials_key = "{}.{}".format(x["materials_key"], p) \
                             if x.get("materials_key") else p
                         tasks_key = "{}.{}".format(x["tasks_key"], p) \
                             if x.get("tasks_key") else p
 
+                        # insert metadata about this task
                         self._materials.\
                             update_one({"material_id": m_id},
                                        {"$set": {materials_key: get_mongolike(taskdoc, tasks_key),
                                                  "_tmbuilder.prop_metadata.labels.{}".format(p): task_label,
                                                  "_tmbuilder.prop_metadata.task_ids.{}".format(p): self.tid_str(taskdoc["task_id"]),
+                                                 "_tmbuilder.prop_metadata.energies.{}".format(p): taskdoc["output"]["energy_per_atom"],
                                                  "_tmbuilder.updated_at": datetime.utcnow()}})
 
                         # copy property to document root if in properties_root
@@ -240,7 +253,6 @@ class TasksMaterialsBuilder:
             db_read = get_database(db_file, admin=True)
 
         return TasksMaterialsBuilder(db_write[m], db_write[c], db_read[t], **kwargs)
-
 
     def _build_indexes(self):
         """
