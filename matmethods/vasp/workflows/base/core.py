@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import os
 
 from matmethods import get_wf_from_spec_dict

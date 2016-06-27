@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from matmethods.vasp.workflows.base.core import get_wf
 
 from matmethods.vasp.vasp_powerups import add_namefile, \

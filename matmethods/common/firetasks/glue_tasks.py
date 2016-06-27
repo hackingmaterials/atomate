@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import os
 
 from fireworks import explicit_serialize, FireTaskBase, FWAction

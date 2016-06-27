@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals, \
     absolute_import
 
 import os
+from six.moves import range
 
 """
 This module defines tasks for writing vasp input sets for various types of
