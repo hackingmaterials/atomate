@@ -39,8 +39,7 @@ class FileClient(object):
                 username = None  # paramiko sets default username
                 host = filesystem
 
-            self.ssh = FileClient.get_ssh_connection(username, host,
-                                                     private_key)
+            self.ssh = FileClient.get_ssh_connection(username, host, private_key)
             self.sftp = self.ssh.open_sftp()
 
     @staticmethod
@@ -61,8 +60,7 @@ class FileClient(object):
         import paramiko
         private_key = os.path.expanduser(private_key)
         if not os.path.exists(private_key):
-            raise ValueError(
-                "Cannot locate private key file: {}".format(private_key))
+            raise ValueError("Cannot locate private key file: {}".format(private_key))
 
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -119,8 +117,7 @@ class FileClient(object):
                     self.sftp.mkdir(dest)
                 for f in os.listdir(src):
                     if os.path.isfile(os.path.join(src, f)):
-                        self.sftp.put(os.path.join(src, f),
-                                      os.path.join(dest, f))
+                        self.sftp.put(os.path.join(src, f), os.path.join(dest, f))
             else:
                 self.sftp.put(src, os.path.join(dest, os.path.basename(src)))
 
@@ -149,9 +146,7 @@ class FileClient(object):
         """
         if not self.ssh:
             return glob.glob(path)
-
         else:
-            command = ". ./.bashrc; for i in $(ls {}); do readlink -f $i; done".format(
-                path)
+            command = ". ./.bashrc; for i in $(ls {}); do readlink -f $i; done".format(path)
             stdin, stdout, stderr = self.ssh.exec_command(command)
             return [l.split('\n')[0] for l in stdout]

@@ -30,8 +30,7 @@ class PassCalcLocs(FireTaskBase):
     def run_task(self, fw_spec):
         calc_locs = list(fw_spec.get("calc_locs", []))
         calc_locs.append({"name": self["name"],
-                          "filesystem": env_chk(self.get('filesystem', None),
-                                                fw_spec),
+                          "filesystem": env_chk(self.get('filesystem', None), fw_spec),
                           "path": self.get("path", os.getcwd())})
 
         return FWAction(mod_spec=[{'_push_all': {'calc_locs': calc_locs}}])
