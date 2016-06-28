@@ -140,4 +140,4 @@ class BoltztrapToDBTask(FireTaskBase):
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
         else:
             db = get_database(db_file, admin=True)
-            db.insert(d)
+            db.boltztrap.insert(d)
