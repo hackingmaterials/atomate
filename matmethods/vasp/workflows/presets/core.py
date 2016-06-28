@@ -7,10 +7,11 @@ from matmethods.vasp.vasp_powerups import add_namefile, \
     add_modify_incar
 from matmethods.vasp.workflows.base.elastic import get_wf_elastic_constant
 
-# TODO: clean up some code duplication in config params
+
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
-
+# TODO: clean up some code duplication in config params
+# TODO: this needs massive duplication cleanup - simple but just need to do it
 def wf_band_structure(structure, config=None):
     config = config or {}
 
@@ -39,6 +40,32 @@ def wf_band_structure_plus_hse(structure, config=None):
     config = config or {}
 
     wf = get_wf(structure, "band_structure_hsegap.yaml", vasp_cmd=">>vasp_cmd<<",
+                db_file=">>db_file<<")
+
+    if config.get("ADD_NAMEFILE", True):
+        wf = add_namefile(wf)
+
+    if config.get("SMALLGAP_KPOINT_MULTIPLY", True):
+        wf = add_small_gap_multiply(wf, 0.5, 5, "static")
+        wf = add_small_gap_multiply(wf, 0.5, 5, "nscf")
+
+    if config.get("USE_SCRATCH_DIR", True):
+        wf = use_scratch_dir(wf, ">>scratch_dir<<")
+
+    if config.get("ADD_MODIFY_INCAR", False):
+        wf = add_modify_incar(wf)
+
+    if config.get("CHECK_STABILITY", False):
+        wf = add_stability_check(wf, fw_name_constraint="structure optimization")
+
+    return wf
+
+
+def wf_band_structure_plus_boltztrap(structure, config=None):
+    config = config or {}
+
+    wf = get_wf(structure, "band_structure_boltztrap.yaml",
+                vasp_cmd=">>vasp_cmd<<",
                 db_file=">>db_file<<")
 
     if config.get("ADD_NAMEFILE", True):

@@ -2,6 +2,9 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
+from pymatgen.electronic_structure.boltztrap import BoltztrapRunner
+from pymatgen.io.vasp.sets import get_vasprun_outcar
+
 """
 This module defines tasks that support running vasp in various ways.
 """
@@ -167,3 +170,23 @@ class RunVaspCustodian(FireTaskBase):
 
         output = c.run()
         return FWAction(stored_data=output)
+
+
+@explicit_serialize
+class RunBoltztrap(FireTaskBase):
+    """
+    Run Boltztrap directly. Requires vasprun.xml and OUTCAR to be
+    in current dir.
+
+    Required params:
+        (none)
+    """
+
+    def run_task(self, fw_spec):
+        # TODO: add more options
+        vasprun, outcar = get_vasprun_outcar(".", parse_dos=True,
+                                             parse_eigen=True)
+        bs = vasprun.get_band_structure()
+        nelect = outcar.nelect
+        runner = BoltztrapRunner(bs, nelect)
+        dir = runner.run(path_dir=os.getcwd())
