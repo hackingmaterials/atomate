@@ -5,6 +5,10 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import json
 import os
 
+import zlib
+
+import gridfs
+
 from monty.json import MontyEncoder
 
 from fireworks import FireTaskBase, FWAction
@@ -152,9 +156,10 @@ class BoltztrapToDBTask(FireTaskBase):
 
             # dos gets inserted into GridFS
             dos = json.dumps(d["dos"], cls=MontyEncoder)
-            gfs_id, compression_type = db.insert_gridfs(dos, "dos_boltztrap_fs")
-            d["dos_compression"] = compression_type
-            d["dos_boltztrap_fs_id"] = gfs_id
+            d["dos_compression"] = 1
+            dos = zlib.compress(dos.encode(), d["dos_compression"])
+            fs = gridfs.GridFS(db, collection="dos_boltztrap_fs")
+            d["dos_boltztrap_fs_id"] = fs.put(dos)
             del d["dos"]
 
             db.boltztrap.insert(d)
