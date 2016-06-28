@@ -123,23 +123,38 @@ class BoltztrapToDBTask(FireTaskBase):
     Optional params:
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
+        hall_doping (bool): set True to retain hall_doping in dict
     """
 
-    optional_params = ["db_file"]
+    optional_params = ["db_file", "hall_doping"]
 
     def run_task(self, fw_spec):
         calc_dir = os.path.join(os.getcwd(), "boltztrap")
         bta = BoltztrapAnalyzer.from_files(calc_dir)
 
         d = bta.as_dict()
-        for x in ['cond', 'seebeck', 'kappa', 'hall']:
+
+        # trim the output
+        for x in ['cond', 'seebeck', 'kappa', 'hall', 'mu_steps',
+                  'mu_doping', 'carrier_conc']:
             del d[x]
-        print(d)
-        # db insertion
+
+        if not self.get("hall_doping"):
+            del d["hall_doping"]
+
         db_file = env_chk(self.get('db_file'), fw_spec)
+
         if not db_file:
             with open("boltztrap.json", "w") as f:
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
         else:
             db = get_database(db_file, admin=True)
+
+            # dos gets inserted into GridFS
+            dos = json.dumps(d["dos"], cls=MontyEncoder)
+            gfs_id, compression_type = db.insert_gridfs(dos, "dos_boltztrap_fs")
+            d["dos_compression"] = compression_type
+            d["dos_boltztrap_fs_id"] = gfs_id
+            del d["dos"]
+
             db.boltztrap.insert(d)
