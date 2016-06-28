@@ -132,6 +132,8 @@ class BoltztrapToDBTask(FireTaskBase):
         bta = BoltztrapAnalyzer.from_files(calc_dir)
 
         d = bta.as_dict()
+        for x in ['cond', 'seebeck', 'kappa', 'hall']:
+            del d[x]
         print(d)
         # db insertion
         db_file = env_chk(self.get('db_file'), fw_spec)
