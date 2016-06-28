@@ -40,11 +40,10 @@ class FileMaterialsBuilder:
                     line_no += 1
                     if line_no > self.header_lines:
                         line = line.split(self._delimiter)
-
-                        try:
-                            search_val = int(line[0])
+                        if "-" in line[0]:
+                            search_val = line[0]
                             search_key = "material_id"
-                        except:
+                        else:
                             search_key = "formula_reduced_abc"
                             search_val = Composition(line[0]).reduced_composition.alphabetical_formula
 

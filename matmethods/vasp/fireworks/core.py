@@ -6,7 +6,7 @@ various sequences of VASP calculations.
 """
 
 from fireworks import Firework
-from pymatgen.io.vasp.sets import MPRelaxSet, MITMDSet
+from pymatgen.io.vasp.sets import MPRelaxSet
 
 from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
@@ -334,6 +334,7 @@ class MDFW(Firework):
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
 
+        from pymatgen.io.vasp.sets import MITMDSet
         override_default_vasp_params = override_default_vasp_params or {}
         vasp_input_set = vasp_input_set or MITMDSet(
             structure, start_temp=start_temp, end_temp=end_temp,

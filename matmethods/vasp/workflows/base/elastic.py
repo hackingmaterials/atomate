@@ -3,20 +3,11 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import os
-import numpy as np
 from fireworks import Workflow
-from fireworks.features.dupefinder import DupeFinderBase
 
 from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW
-from pymatgen.analysis.elasticity.elastic import ElasticTensor
-from pymatgen.analysis.elasticity.strain import IndependentStrain, Deformation
-from pymatgen.analysis.elasticity.stress import Stress
+from pymatgen.analysis.elasticity.strain import Deformation
 from pymatgen.io.vasp.sets import MPRelaxSet
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-
-from pymatgen.transformations.standard_transformations import \
-    DeformStructureTransformation
 
 """
 This module defines the elastic workflow
