@@ -8,13 +8,10 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 class SubmissionFilter:
 
-    NO_POTCARS = ['Po', 'At', 'Rn', 'Fr', 'Ra', 'Am', 'Cm', 'Bk', 'Cf', 'Es',
-                  'Fm', 'Md', 'No', 'Lr']
+    NO_POTCARS = ['Po', 'At', 'Rn', 'Fr', 'Ra', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr']
 
-    def __init__(self, is_valid=True, potcar_exists=True,
-                 max_natoms=200, is_ordered=True, not_in_MP=True,
-                 MAPI_KEY=None, require_bandstructure=False):
-
+    def __init__(self, is_valid=True, potcar_exists=True, max_natoms=200, is_ordered=True,
+                 not_in_MP=True, MAPI_KEY=None, require_bandstructure=False):
         self.is_valid = is_valid
         self.potcar_exists = potcar_exists
         self.max_natoms = max_natoms

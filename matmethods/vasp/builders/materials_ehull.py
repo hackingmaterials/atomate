@@ -28,7 +28,8 @@ class MaterialsEhullBuilder:
         if not self.update_all:
             q["stability"] = {"$exists": False}
 
-        mats = [m for m in self._materials.find(q, {"calc_settings": 1, "structure": 1, "thermo.energy": 1, "material_id": 1})]
+        mats = [m for m in self._materials.find(q, {"calc_settings": 1, "structure": 1,
+                                                    "thermo.energy": 1, "material_id": 1})]
         pbar = tqdm(mats)
         for m in pbar:
             pbar.set_description("Processing materials_id: {}".format(m['material_id']))
@@ -41,7 +42,8 @@ class MaterialsEhullBuilder:
                 energy = m["thermo"]["energy"]
 
                 my_entry = ComputedEntry(composition, energy, parameters=params)
-                self._materials.update_one({"material_id": m["material_id"]}, {"$set": {"stability": self.mpr.get_stability([my_entry])[0]}})
+                self._materials.update_one({"material_id": m["material_id"]},
+                                           {"$set": {"stability": self.mpr.get_stability([my_entry])[0]}})
 
             except:
                 import traceback

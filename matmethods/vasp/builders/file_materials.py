@@ -54,8 +54,7 @@ class FileMaterialsBuilder:
                         except:
                             pass
 
-                        x = self._materials.update(
-                            {search_key: search_val}, {"$set": {key: val}})
+                        x = self._materials.update({search_key: search_val}, {"$set": {key: val}})
 
                         if x["n"] == 0:
                             raise ValueError("Could not find entry with {}={}".format(search_key, search_val))

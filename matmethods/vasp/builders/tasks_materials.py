@@ -110,8 +110,7 @@ class TasksMaterialsBuilder:
         formula = taskdoc["formula_reduced_abc"]
         sgnum = taskdoc["output"]["spacegroup"]["number"]
 
-        for m in self._materials.find({"formula_reduced_abc": formula,
-                                       "sg_number": sgnum},
+        for m in self._materials.find({"formula_reduced_abc": formula, "sg_number": sgnum},
                                       {"structure": 1, "material_id": 1}):
 
             m_struct = Structure.from_dict(m["structure"])
@@ -144,10 +143,8 @@ class TasksMaterialsBuilder:
         doc["sg_number"] = doc["spacegroup"]["number"]
         doc["structure"] = taskdoc["output"]["structure"]
         doc["material_id"] = self.mid_str(self._counter.find_one_and_update(
-                        {"_id": "materialid"}, {"$inc": {"c": 1}},
-                        return_document=ReturnDocument.AFTER)["c"])
-        for x in ["formula_anonymous", "formula_pretty", "formula_reduced_abc",
-                  "nelements"]:
+                        {"_id": "materialid"}, {"$inc": {"c": 1}}, return_document=ReturnDocument.AFTER)["c"])
+        for x in ["formula_anonymous", "formula_pretty", "formula_reduced_abc", "nelements"]:
             doc[x] = taskdoc[x]
 
         self._materials.insert_one(doc)
@@ -210,13 +207,10 @@ class TasksMaterialsBuilder:
                         if p in self.properties_root:
                             self._materials.\
                             update_one({"material_id": m_id},
-                                       {"$set": {p: get_mongolike(taskdoc,
-                                                                  tasks_key)}})
+                                       {"$set": {p: get_mongolike(taskdoc, tasks_key)}})
 
-        
         self._materials.update_one({"material_id": m_id},
-                                   {"$push": {"_tmbuilder.all_task_ids":
-                                                  self.tid_str(taskdoc["task_id"])}})
+                                   {"$push": {"_tmbuilder.all_task_ids": self.tid_str(taskdoc["task_id"])}})
 
     @staticmethod
     def from_db_file(db_file, m="materials", c="counter", t="tasks", **kwargs):
