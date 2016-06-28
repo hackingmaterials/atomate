@@ -10,7 +10,8 @@ from pymatgen.io.vasp.sets import MPRelaxSet
 
 from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
-from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
+from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask, \
+    BoltztrapToDBTask
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunBoltztrap
 from matmethods.vasp.firetasks.write_inputs import *
 
@@ -326,11 +327,12 @@ class BoltztrapFW(Firework):
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        # TODO: (soon) fix garbage about vasp_input_set, db_file, and vasp_cmd which are unused but needed to make YAML files work using existing code
+        # TODO: (soon) fix garbage about vasp_input_set and vasp_cmd which are unused but needed to make YAML files work using existing code
 
         t = []
         t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
         t.append(RunBoltztrap())
-
+        t.append(BoltztrapToDBTask(db_file=db_file))
+        t.append(PassCalcLocs(name=name))
         super(BoltztrapFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)

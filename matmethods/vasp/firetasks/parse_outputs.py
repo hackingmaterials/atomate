@@ -11,11 +11,12 @@ from fireworks import FireTaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.utilities.fw_utilities import explicit_serialize
 
-from matgendb.util import get_settings
+from matgendb.util import get_settings, get_database
 from matmethods.utils.utils import env_chk, get_calc_loc
 from matmethods.utils.utils import get_logger
 from matmethods.vasp.database import MMDb
 from matmethods.vasp.drones import VaspDrone
+from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 
 __author__ = 'Anubhav Jain, Kiran Mathew, Shyam Dwaraknath'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov'
@@ -112,3 +113,31 @@ class VaspToDbTask(FireTaskBase):
 
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
                         defuse_children=(task_doc["state"] != "successful"))
+
+
+@explicit_serialize
+class BoltztrapToDBTask(FireTaskBase):
+    """
+    Enter a Boltztrap run into the database.
+
+    Optional params:
+        db_file (str): path to file containing the database credentials.
+            Supports env_chk. Default: write data to JSON file.
+    """
+
+    optional_params = ["db_file"]
+
+    def run_task(self, fw_spec):
+        calc_dir = os.path.join(os.getcwd(), "boltztrap")
+        bta = BoltztrapAnalyzer.from_files(calc_dir)
+
+        d = bta.as_dict()
+        print(d)
+        # db insertion
+        db_file = env_chk(self.get('db_file'), fw_spec)
+        if not db_file:
+            with open("boltztrap.json", "w") as f:
+                f.write(json.dumps(d, default=DATETIME_HANDLER))
+        else:
+            db = get_database(db_file, admin=True)
+            db.insert(d)
