@@ -16,7 +16,8 @@ from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.utilities.fw_utilities import explicit_serialize
 
 from matgendb.util import get_settings, get_database
-from matmethods.utils.utils import env_chk, get_calc_loc
+from matmethods.utils.utils import env_chk, get_calc_loc, \
+    get_meta_from_structure
 from matmethods.utils.utils import get_logger
 from matmethods.vasp.database import MMDb
 from matmethods.vasp.drones import VaspDrone
@@ -151,6 +152,7 @@ class BoltztrapToDBTask(FireTaskBase):
         bandstructure_dir = os.getcwd()
         v, o = get_vasprun_outcar(bandstructure_dir, parse_eigen=False, parse_dos=False)
         d["structure"] = v.final_structure.as_dict()
+        d.update(get_meta_from_structure(d["structure"]))
         d["bandstructure_dir"] = bandstructure_dir
 
         db_file = env_chk(self.get('db_file'), fw_spec)
