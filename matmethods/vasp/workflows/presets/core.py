@@ -115,8 +115,8 @@ def wf_dielectric_constant(structure, config=None):
     return wf
 
 
-def wf_piezoelectric_constant(structure, config = None):
-    wf = wf_dielectric_constant(structure,config)
+def wf_piezoelectric_constant(structure, config=None):
+    wf = wf_dielectric_constant(structure, config)
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 1000,
                                                                     "ADDGRID": True,
@@ -130,13 +130,12 @@ def wf_piezoelectric_constant(structure, config = None):
     return wf
 
 
-def wf_elastic_constant(structure, config = None):
-    wf = get_wf_elastic_constant(structure, vasp_cmd = ">>vasp_cmd<<",
-                                 db_file = ">>db_file<<")
+def wf_elastic_constant(structure, config=None):
+    wf = get_wf_elastic_constant(structure, vasp_cmd=">>vasp_cmd<<",
+                                 db_file=">>db_file<<")
 
-    wf = add_modify_incar(wf, modify_incar_params={"incar_update":{"ENCUT": 700,
-                                                                   "EDIFF": 1e-6}
-                                                  })
+    wf = add_modify_incar(wf, modify_incar_params={"incar_update":
+                                                       {"ENCUT": 700, "EDIFF": 1e-6}})
     return wf
                          
 
