@@ -41,8 +41,7 @@ def env_chk(val, fw_spec, strict=True, default=None):
     if val is None:
         return default
 
-    if isinstance(val, six.string_types) and val.startswith(">>") and \
-            val.endswith("<<"):
+    if isinstance(val, six.string_types) and val.startswith(">>") and val.endswith("<<"):
         if strict:
             return fw_spec['_fw_env'][val[2:-2]]
         return fw_spec.get('_fw_env', {}).get(val[2:-2], default)
@@ -72,9 +71,7 @@ def get_calc_loc(target_name, calc_locs):
         for doc in reversed(calc_locs):
             if doc["name"] == target_name:
                 return doc
-        raise ValueError("Could not find the target_name: {}".
-                         format(target_name))
-
+        raise ValueError("Could not find the target_name: {}".format(target_name))
     else:
         return calc_locs[-1]
 
@@ -90,8 +87,7 @@ def get_mongolike(d, key):
     return d[key]
 
 
-def get_logger(name, level=logging.DEBUG,
-               format='%(asctime)s %(levelname)s %(name)s %(message)s',
+def get_logger(name, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(message)s',
                stream=sys.stdout):
     logger = logging.getLogger(name)
     logger.setLevel(level)
