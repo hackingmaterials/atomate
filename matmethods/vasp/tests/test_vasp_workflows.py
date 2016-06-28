@@ -1,7 +1,6 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, \
-    absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 import json
 import os
@@ -34,8 +33,7 @@ class TestVaspWorkflows(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         if not os.environ.get("VASP_PSP_DIR"):
-            os.environ["VASP_PSP_DIR"] = os.path.join(module_dir,
-                                                      "reference_files")
+            os.environ["VASP_PSP_DIR"] = os.path.join(module_dir, "reference_files")
             print(
                 'Note: This system is not set up to run VASP jobs. '
                 'Please set your VASP_PSP_DIR environment variable.')
@@ -50,8 +48,7 @@ class TestVaspWorkflows(unittest.TestCase):
         os.makedirs(self.scratch_dir)
         os.chdir(self.scratch_dir)
         try:
-            self.lp = LaunchPad.from_file(
-                os.path.join(db_dir, "my_launchpad.yaml"))
+            self.lp = LaunchPad.from_file(os.path.join(db_dir, "my_launchpad.yaml"))
             self.lp.reset("", require_password=False)
 
         except:
@@ -74,8 +71,7 @@ class TestVaspWorkflows(unittest.TestCase):
             conn = MongoClient(creds["host"], creds["port"])
             db = conn[creds["database"]]
             if "admin_user" in creds:
-                db.authenticate(creds["admin_user"],
-                                creds["admin_password"])
+                db.authenticate(creds["admin_user"], creds["admin_password"])
             return db
 
     def _get_task_collection(self):
@@ -85,23 +81,19 @@ class TestVaspWorkflows(unittest.TestCase):
             return db[creds["collection"]]
 
     def _check_run(self, d, mode):
-        if mode not in ["structure optimization", "static", "nscf uniform",
-                        "nscf line"]:
+        if mode not in ["structure optimization", "static", "nscf uniform", "nscf line"]:
             raise ValueError("Invalid mode!")
 
         self.assertEqual(d["formula_pretty"], "Si")
         self.assertEqual(d["formula_anonymous"], "A")
         self.assertEqual(d["nelements"], 1)
         self.assertEqual(d["state"], "successful")
-        self.assertAlmostEqual(
-            d["calcs_reversed"][0]["output"]["structure"]["lattice"]["a"], 3.867,
-            2)
+        self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["a"], 3.867, 2)
         self.assertEqual(d["output"]["is_gap_direct"], False)
 
         if mode in ["structure optimization", "static"]:
             self.assertAlmostEqual(d["output"]["energy"], -10.850, 2)
-            self.assertAlmostEqual(d["output"]["energy_per_atom"],
-                                   -5.425, 2)
+            self.assertAlmostEqual(d["output"]["energy_per_atom"], -5.425, 2)
 
         elif mode in ["ncsf uniform"]:
             self.assertAlmostEqual(d["output"]["energy"], -10.828, 2)
@@ -114,8 +106,7 @@ class TestVaspWorkflows(unittest.TestCase):
         else:
             self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["outcar"]["total_magnetization"], 0, 3)
 
-        self.assertLess(d["run_stats"]["overall"]["Elapsed time (sec)"],
-                        180)  # run should take under 3 minutes
+        self.assertLess(d["run_stats"]["overall"]["Elapsed time (sec)"], 180)  # run should take under 3 minutes
 
         # check the DOS and band structure
         if mode == "nscf uniform" or mode == "nscf line":
@@ -124,7 +115,7 @@ class TestVaspWorkflows(unittest.TestCase):
             # check the band structure
             bs_fs_id = d["calcs_reversed"][0]["bandstructure_fs_id"]
             bs_json = zlib.decompress(fs.get(bs_fs_id).read())
-            bs = json.loads(bs_json)
+            bs = json.loads(bs_json.decode())
             self.assertEqual(bs["is_spin_polarized"], False)
             self.assertEqual(bs["band_gap"]["direct"], False)
             self.assertAlmostEqual(bs["band_gap"]["energy"], 0.65, 1)
@@ -153,22 +144,17 @@ class TestVaspWorkflows(unittest.TestCase):
                 dos_fs_id = d["calcs_reversed"][0]["dos_fs_id"]
 
                 dos_json = zlib.decompress(fs.get(dos_fs_id).read())
-                dos = json.loads(dos_json)
-                for k in ["densities", "energies", "pdos", "spd_dos",
-                          "atom_dos", "structure"]:
+                dos = json.loads(dos_json.decode())
+                for k in ["densities", "energies", "pdos", "spd_dos", "atom_dos", "structure"]:
                     self.assertTrue(k in dos)
                     self.assertIsNotNone(dos[k])
 
                 self.assertAlmostEqual(dos["spd_dos"]["p"]["efermi"], 5.625, 1)
-                self.assertAlmostEqual(dos["atom_dos"]["Si"]["efermi"], 5.625,
-                                       1)
-                self.assertAlmostEqual(dos["structure"]["lattice"]["a"], 3.867,
-                                       2)
+                self.assertAlmostEqual(dos["atom_dos"]["Si"]["efermi"], 5.625, 1)
+                self.assertAlmostEqual(dos["structure"]["lattice"]["a"], 3.867, 2)
                 self.assertAlmostEqual(dos["spd_dos"]["p"]["efermi"], 5.625, 1)
-                self.assertAlmostEqual(dos["atom_dos"]["Si"]["efermi"], 5.625,
-                                       1)
-                self.assertAlmostEqual(dos["structure"]["lattice"]["a"], 3.867,
-                                       2)
+                self.assertAlmostEqual(dos["atom_dos"]["Si"]["efermi"], 5.625, 1)
+                self.assertAlmostEqual(dos["structure"]["lattice"]["a"], 3.867, 2)
 
     def test_single_Vasp(self):
         # add the workflow
@@ -193,8 +179,7 @@ class TestVaspWorkflows(unittest.TestCase):
         # add the workflow
         structure = self.struct_si
         # instructs to use db_file set by FWorker, see env_chk
-        my_wf = get_wf(structure, "optimize_only.yaml", vasp_cmd=VASP_CMD,
-                              db_file=">>db_file<<")
+        my_wf = get_wf(structure, "optimize_only.yaml", vasp_cmd=VASP_CMD, db_file=">>db_file<<")
         if not VASP_CMD:
             my_wf = use_fake_vasp(my_wf)
         else:
@@ -203,8 +188,7 @@ class TestVaspWorkflows(unittest.TestCase):
 
         # run the workflow
         # set the db_file variable
-        rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir,
-                                                                        "db.json")}))
+        rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
         d = self._get_task_collection().find_one()
         self._check_run(d, mode="structure optimization")
@@ -213,22 +197,19 @@ class TestVaspWorkflows(unittest.TestCase):
         # add the workflow
         structure = self.struct_si
         # instructs to use db_file set by FWorker, see env_chk
-        my_wf = get_wf(structure, "band_structure.yaml", vasp_cmd=VASP_CMD,
-                                     db_file=">>db_file<<")
+        my_wf = get_wf(structure, "band_structure.yaml", vasp_cmd=VASP_CMD, db_file=">>db_file<<")
         if not VASP_CMD:
             my_wf = use_fake_vasp(my_wf)
         else:
             my_wf = use_custodian(my_wf)
 
-        my_wf = add_namefile(
-            my_wf)  # add a slug of fw-name to output files
+        my_wf = add_namefile(my_wf)  # add a slug of fw-name to output files
 
         self.lp.add_wf(my_wf)
 
         # run the workflow
         # set the db_file variable
-        rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir,
-                                                                        "db.json")}))
+        rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
         # make sure the structure relaxation ran OK
         d = self._get_task_collection().find_one({"task_label": "structure optimization"},
@@ -236,18 +217,15 @@ class TestVaspWorkflows(unittest.TestCase):
         self._check_run(d, mode="structure optimization")
 
         # make sure the static run ran OK
-        d = self._get_task_collection().find_one({"task_label": "static"},
-                                                 sort=[("_id", DESCENDING)])
+        d = self._get_task_collection().find_one({"task_label": "static"}, sort=[("_id", DESCENDING)])
         self._check_run(d, mode="static")
 
         # make sure the uniform run ran OK
-        d = self._get_task_collection().find_one({"task_label": "nscf uniform"},
-                                                 sort=[("_id", DESCENDING)])
+        d = self._get_task_collection().find_one({"task_label": "nscf uniform"}, sort=[("_id", DESCENDING)])
         self._check_run(d, mode="nscf uniform")
 
         # make sure the uniform run ran OK
-        d = self._get_task_collection().find_one({"task_label": "nscf line"},
-                                                 sort=[("_id", DESCENDING)])
+        d = self._get_task_collection().find_one({"task_label": "nscf line"}, sort=[("_id", DESCENDING)])
         self._check_run(d, mode="nscf line")
 
     def test_trackers(self):

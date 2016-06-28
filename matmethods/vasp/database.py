@@ -97,7 +97,7 @@ class MMDb(object):
             file id, the type of compression used.
         """
         if compress:
-            d = zlib.compress(d, compress)
+            d = zlib.compress(d.encode(), compress)
         fs = gridfs.GridFS(self.db, collection)
         fs_id = fs.put(d)
         return fs_id, "zlib"
