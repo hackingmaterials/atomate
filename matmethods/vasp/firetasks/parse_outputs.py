@@ -21,6 +21,7 @@ from matmethods.utils.utils import get_logger
 from matmethods.vasp.database import MMDb
 from matmethods.vasp.drones import VaspDrone
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
+from pymatgen.io.vasp.sets import get_vasprun_outcar
 
 __author__ = 'Anubhav Jain, Kiran Mathew, Shyam Dwaraknath'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov'
@@ -133,10 +134,10 @@ class BoltztrapToDBTask(FireTaskBase):
     optional_params = ["db_file", "hall_doping"]
 
     def run_task(self, fw_spec):
-        calc_dir = os.path.join(os.getcwd(), "boltztrap")
-        bta = BoltztrapAnalyzer.from_files(calc_dir)
-
+        btrap_dir = os.path.join(os.getcwd(), "boltztrap")
+        bta = BoltztrapAnalyzer.from_files(btrap_dir)
         d = bta.as_dict()
+        d["boltztrap_dir"] = btrap_dir
 
         # trim the output
         for x in ['cond', 'seebeck', 'kappa', 'hall', 'mu_steps',
@@ -145,6 +146,12 @@ class BoltztrapToDBTask(FireTaskBase):
 
         if not self.get("hall_doping"):
             del d["hall_doping"]
+
+        # add the structure
+        bandstructure_dir = os.getcwd()
+        v, o = get_vasprun_outcar(bandstructure_dir, parse_eigen=False, parse_dos=False)
+        d["structure"] = v.final_structure
+        d["bandstructure_dir"] = bandstructure_dir
 
         db_file = env_chk(self.get('db_file'), fw_spec)
 
