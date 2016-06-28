@@ -150,7 +150,7 @@ class BoltztrapToDBTask(FireTaskBase):
         # add the structure
         bandstructure_dir = os.getcwd()
         v, o = get_vasprun_outcar(bandstructure_dir, parse_eigen=False, parse_dos=False)
-        d["structure"] = v.final_structure
+        d["structure"] = v.final_structure.as_dict()
         d["bandstructure_dir"] = bandstructure_dir
 
         db_file = env_chk(self.get('db_file'), fw_spec)
