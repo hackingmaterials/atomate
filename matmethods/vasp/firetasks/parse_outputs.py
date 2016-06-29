@@ -6,6 +6,7 @@ import json
 import os
 
 import zlib
+from datetime import datetime
 
 import gridfs
 
@@ -21,8 +22,10 @@ from matmethods.utils.utils import env_chk, get_calc_loc, \
 from matmethods.utils.utils import get_logger
 from matmethods.vasp.database import MMDb
 from matmethods.vasp.drones import VaspDrone
+from pymatgen import Structure
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 __author__ = 'Anubhav Jain, Kiran Mathew, Shyam Dwaraknath'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov'
@@ -154,6 +157,17 @@ class BoltztrapToDBTask(FireTaskBase):
         d["structure"] = v.final_structure.as_dict()
         d.update(get_meta_from_structure(d["structure"]))
         d["bandstructure_dir"] = bandstructure_dir
+
+        # add the spacegroup
+        sg = SpacegroupAnalyzer(Structure.from_dict(d["structure"]), 0.1)
+        d["spacegroup"] = {"symbol": sg.get_spacegroup_symbol(),
+                           "number": sg.get_spacegroup_number(),
+                           "point_group": sg.get_point_group(),
+                           "source": "spglib",
+                           "crystal_system": sg.get_crystal_system(),
+                           "hall": sg.get_hall()}
+
+        d["created_at"] = datetime.utcnow()
 
         db_file = env_chk(self.get('db_file'), fw_spec)
 
