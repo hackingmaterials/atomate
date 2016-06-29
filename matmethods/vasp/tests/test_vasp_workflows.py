@@ -203,7 +203,7 @@ class TestVaspWorkflows(unittest.TestCase):
         # add the workflow
         structure = self.struct_si
         # instructs to use db_file set by FWorker, see env_chk
-        my_wf = get_wf(structure, "band_structure.yaml",
+        my_wf = get_wf(structure, "bandstructure.yaml",
                        vis=MPRelaxSet(structure, force_gamma=True),
                        common_params={"vasp_cmd": VASP_CMD,
                                       "db_file": ">>db_file<<"})
