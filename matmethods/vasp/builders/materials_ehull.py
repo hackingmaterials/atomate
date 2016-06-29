@@ -19,7 +19,7 @@ class MaterialsEhullBuilder:
             update_all: (bool) - if true, updates all docs. If false, only updates docs w/o a stability key
         """
         self._materials = materials_write
-        self.mpr = MPRester(mapi_key)
+        self.mpr = MPRester(api_key=mapi_key)
         self.update_all = update_all
 
     def run(self):
