@@ -38,7 +38,9 @@ def get_wf(structure, wf_filename, params=None, common_params=None,
             raise ValueError("The length of the params array must match the"
                              "length of the Fireworks array!")
         for idx, v in enumerate(params):
-            d["fireworks"][idx].update(v)
+            if "params" not in d["fireworks"][idx]:
+                d["fireworks"][idx]["params"] = {}
+            d["fireworks"][idx]["params"].update(v)
 
     if common_params:
         if 'common_params' not in d:
