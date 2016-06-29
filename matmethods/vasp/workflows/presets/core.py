@@ -6,7 +6,7 @@ from matmethods.vasp.vasp_powerups import add_namefile, \
     add_small_gap_multiply, use_scratch_dir, add_stability_check, \
     add_modify_incar
 from matmethods.vasp.workflows.base.elastic import get_wf_elastic_constant
-
+from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -14,9 +14,10 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 # TODO: this needs massive duplication cleanup - simple but just need to do it
 def wf_band_structure(structure, config=None):
     config = config or {}
-
-    wf = get_wf(structure, "band_structure.yaml", vasp_cmd=">>vasp_cmd<<",
-                db_file=">>db_file<<")
+    wf = get_wf(structure, "band_structure.yaml",
+                vis=MPRelaxSet(structure, force_gamma=True),
+                common_params={"vasp_cmd": ">>vasp_cmd<<",
+                               "db_file": ">>db_file<<"})
 
     if config.get("ADD_NAMEFILE", True):
         wf = add_namefile(wf)
@@ -39,8 +40,10 @@ def wf_band_structure(structure, config=None):
 def wf_band_structure_plus_hse(structure, config=None):
     config = config or {}
 
-    wf = get_wf(structure, "band_structure_hsegap.yaml", vasp_cmd=">>vasp_cmd<<",
-                db_file=">>db_file<<")
+    wf = get_wf(structure, "band_structure_hsegap.yaml",
+                vis=MPRelaxSet(structure, force_gamma=True),
+                common_params={"vasp_cmd": ">>vasp_cmd<<",
+                               "db_file": ">>db_file<<"})
 
     if config.get("ADD_NAMEFILE", True):
         wf = add_namefile(wf)
@@ -65,8 +68,9 @@ def wf_band_structure_plus_boltztrap(structure, config=None):
     config = config or {}
 
     wf = get_wf(structure, "band_structure_boltztrap.yaml",
-                vasp_cmd=">>vasp_cmd<<",
-                db_file=">>db_file<<")
+                vis=MPRelaxSet(structure, force_gamma=True),
+                common_params={"vasp_cmd": ">>vasp_cmd<<",
+                               "db_file": ">>db_file<<"})
 
     if config.get("ADD_NAMEFILE", True):
         wf = add_namefile(wf)
@@ -90,8 +94,10 @@ def wf_band_structure_plus_boltztrap(structure, config=None):
 def wf_static(structure, config=None):
     config = config or {}
 
-    wf = get_wf(structure, "static_only.yaml", vasp_cmd=">>vasp_cmd<<",
-                db_file=">>db_file<<")
+    wf = get_wf(structure, "static_only.yaml",
+                vis=MPStaticSet(structure),
+                common_params={"vasp_cmd": ">>vasp_cmd<<",
+                               "db_file": ">>db_file<<"})
 
     if config.get("ADD_NAMEFILE", True):
         wf = add_namefile(wf)
@@ -108,8 +114,10 @@ def wf_static(structure, config=None):
 def wf_structure_optimization(structure, config=None):
 
     config = config or {}
-    wf = get_wf(structure, "optimize_only.yaml", vasp_cmd=">>vasp_cmd<<",
-                db_file=">>db_file<<")
+    wf = get_wf(structure, "optimize_only.yaml",
+                vis=MPRelaxSet(structure, force_gamma=True),
+                common_params={"vasp_cmd": ">>vasp_cmd<<",
+                               "db_file": ">>db_file<<"})
 
     if config.get("ADD_NAMEFILE", True):
         wf = add_namefile(wf)
@@ -127,8 +135,10 @@ def wf_dielectric_constant(structure, config=None):
 
     config = config or {}
 
-    wf = get_wf(structure, "dielectric_constant.yaml", vasp_cmd=">>vasp_cmd<<",
-                db_file=">>db_file<<")
+    wf = get_wf(structure, "dielectric_constant.yaml",
+                vis=MPRelaxSet(structure, force_gamma=True),
+                common_params={"vasp_cmd": ">>vasp_cmd<<",
+                               "db_file": ">>db_file<<"})
 
     if config.get("ADD_NAMEFILE", True):
         wf = add_namefile(wf)

@@ -316,8 +316,8 @@ class MDFW(Firework):
 
 
 class BoltztrapFW(Firework):
-    def __init__(self, structure, name="boltztrap", parents=None,
-                 vasp_input_set=None, db_file=None, vasp_cmd=None, **kwargs):
+    def __init__(self, structure, name="boltztrap", db_file=None,
+                 parents=None, **kwargs):
         """
         Run Boltztrap
 
@@ -327,7 +327,6 @@ class BoltztrapFW(Firework):
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        # TODO: (soon) fix garbage about vasp_input_set and vasp_cmd which are unused but needed to make YAML files work using existing code
 
         t = []
         t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))

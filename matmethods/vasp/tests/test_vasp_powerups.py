@@ -25,8 +25,9 @@ class TestVaspPowerups(unittest.TestCase):
     def setUpClass(cls):
         struct_si = PymatgenTest.get_structure("Si")
         vis = MPRelaxSet(struct_si, force_gamma=True)
-        cls.bs_wf = get_wf(struct_si, "band_structure.yaml",
-                           vis, vasp_cmd="test_VASP")
+        cls.bs_wf = get_wf(struct_si,
+                           "band_structure.yaml",
+                           vis=vis, common_params={"vasp_cmd": "test_VASP"})
 
     def _copy_wf(self, wf):
         return Workflow.from_dict(wf.to_dict())
