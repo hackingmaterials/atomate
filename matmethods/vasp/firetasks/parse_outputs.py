@@ -87,11 +87,7 @@ class VaspToDbTask(FireTaskBase):
             with open("task.json", "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
-            db_config = get_settings(db_file)
-            db = MMDb(host=db_config["host"], port=db_config["port"],
-                      database=db_config["database"],
-                      user=db_config.get("admin_user"), password=db_config.get("admin_password"),
-                      collection=db_config["collection"])
+            mmdb = MMDb.from_db_file(db_file, admin=True)
 
             # insert dos into GridFS
             if self.get("parse_dos") and "calcs_reversed" in task_doc:
@@ -99,7 +95,7 @@ class VaspToDbTask(FireTaskBase):
                     if "dos" in task_doc["calcs_reversed"][idx]:
                         if idx == 0:  # only store most recent DOS
                             dos = json.dumps(task_doc["calcs_reversed"][idx]["dos"], cls=MontyEncoder)
-                            gfs_id, compression_type = db.insert_gridfs(dos, "dos_fs")
+                            gfs_id, compression_type = mmdb.insert_gridfs(dos, "dos_fs")
                             task_doc["calcs_reversed"][idx]["dos_compression"] = compression_type
                             task_doc["calcs_reversed"][idx]["dos_fs_id"] = gfs_id
                         del task_doc["calcs_reversed"][idx]["dos"]
@@ -110,13 +106,13 @@ class VaspToDbTask(FireTaskBase):
                     if "bandstructure" in task_doc["calcs_reversed"][idx]:
                         if idx == 0:  # only store most recent band structure
                             bs = json.dumps(task_doc["calcs_reversed"][idx]["bandstructure"], cls=MontyEncoder)
-                            gfs_id, compression_type = db.insert_gridfs(bs, "bandstructure_fs")
+                            gfs_id, compression_type = mmdb.insert_gridfs(bs, "bandstructure_fs")
                             task_doc["calcs_reversed"][idx]["bandstructure_compression"] = compression_type
                             task_doc["calcs_reversed"][idx]["bandstructure_fs_id"] = gfs_id
                         del task_doc["calcs_reversed"][idx]["bandstructure"]
 
             # insert the task document
-            t_id = db.insert(task_doc)
+            t_id = mmdb.insert(task_doc)
 
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
@@ -153,7 +149,8 @@ class BoltztrapToDBTask(FireTaskBase):
 
         # add the structure
         bandstructure_dir = os.getcwd()
-        v, o = get_vasprun_outcar(bandstructure_dir, parse_eigen=False, parse_dos=False)
+        v, o = get_vasprun_outcar(bandstructure_dir, parse_eigen=False,
+                                  parse_dos=False)
         structure = v.final_structure
         d["structure"] = structure.as_dict()
         d.update(get_meta_from_structure(structure))
@@ -176,14 +173,13 @@ class BoltztrapToDBTask(FireTaskBase):
             with open("boltztrap.json", "w") as f:
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
         else:
-            db = get_database(db_file, admin=True)
+            mmdb = MMDb.from_db_file(db_file, admin=True)
 
             # dos gets inserted into GridFS
             dos = json.dumps(d["dos"], cls=MontyEncoder)
-            d["dos_compression"] = 1
-            dos = zlib.compress(dos.encode(), d["dos_compression"])
-            fs = gridfs.GridFS(db, collection="dos_boltztrap_fs")
-            d["dos_boltztrap_fs_id"] = fs.put(dos)
+            fsid, compression = mmdb.insert_gridfs(
+                dos, collection="dos_boltztrap_fs", compress=True)
+            d["dos_boltztrap_fs_id"] = fsid
             del d["dos"]
 
-            db.boltztrap.insert(d)
+            mmdb.db.boltztrap.insert(d)
