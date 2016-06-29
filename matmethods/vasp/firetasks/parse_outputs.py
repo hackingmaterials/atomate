@@ -154,8 +154,9 @@ class BoltztrapToDBTask(FireTaskBase):
         # add the structure
         bandstructure_dir = os.getcwd()
         v, o = get_vasprun_outcar(bandstructure_dir, parse_eigen=False, parse_dos=False)
-        d["structure"] = v.final_structure.as_dict()
-        d.update(get_meta_from_structure(d["structure"]))
+        structure = v.final_structure
+        d["structure"] = structure.as_dict()
+        d.update(get_meta_from_structure(structure))
         d["bandstructure_dir"] = bandstructure_dir
 
         # add the spacegroup
