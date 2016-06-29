@@ -170,7 +170,7 @@ class BoltztrapToDBTask(FireTaskBase):
         db_file = env_chk(self.get('db_file'), fw_spec)
 
         if not db_file:
-            with open("boltztrap.json", "w") as f:
+            with open(os.path.join(btrap_dir, "boltztrap.json"), "w") as f:
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
         else:
             mmdb = MMDb.from_db_file(db_file, admin=True)
