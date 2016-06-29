@@ -67,10 +67,14 @@ def wf_bandstructure_plus_hse(structure, config=None):
 def wf_bandstructure_plus_boltztrap(structure, config=None):
     config = config or {}
 
+    params = []
+    for x in range(4):
+        params.append({"vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"})
+    params.append({})  # no params for Boltztrap FW
+
     wf = get_wf(structure, "bandstructure_boltztrap.yaml",
                 vis=MPRelaxSet(structure, force_gamma=True),
-                common_params={"vasp_cmd": ">>vasp_cmd<<",
-                               "db_file": ">>db_file<<"})
+                params=params)
 
     if config.get("ADD_NAMEFILE", True):
         wf = add_namefile(wf)
