@@ -62,8 +62,8 @@ class TasksMaterialsBuilder:
         print("MaterialsTaskBuilder starting...")
         print("Initializing list of all new task_ids to process ...")
         previous_task_ids = []
-        for m in self._materials.find({}, {"_tmbuilder.all_task_ids": 1}):
-            previous_task_ids.extend(m["_tmbuilder"]["all_task_ids"])
+        for m in self._materials.find({}, {"_tasksbuilder.all_task_ids": 1}):
+            previous_task_ids.extend(m["_tasksbuilder"]["all_task_ids"])
 
         all_task_ids = [self.tid_str(t["task_id"]) for t in self._tasks.find({"state": "successful"}, {"task_id": 1})]
         task_ids = [t_id for t_id in all_task_ids if t_id not in previous_task_ids]
@@ -136,7 +136,7 @@ class TasksMaterialsBuilder:
             (int) - material_id of the new document
         """
         doc = {"created_at": datetime.utcnow()}
-        doc["_tmbuilder"] = {"all_task_ids": [], "prop_metadata":
+        doc["_tasksbuilder"] = {"all_task_ids": [], "prop_metadata":
             {"labels": {}, "task_ids": {}}, "updated_at": datetime.utcnow()}
         doc["spacegroup"] = taskdoc["output"]["spacegroup"]
         doc["sg_symbol"] = doc["spacegroup"]["symbol"]
@@ -162,8 +162,8 @@ class TasksMaterialsBuilder:
         # get list of labels for each existing property in material
         # this is used to decide if the taskdoc has higher quality data
         prop_tlabels = self._materials.find_one(
-            {"material_id": m_id}, {"_tmbuilder.prop_metadata.labels": 1})[
-            "_tmbuilder"]["prop_metadata"]["labels"]
+            {"material_id": m_id}, {"_tasksbuilder.prop_metadata.labels": 1})[
+            "_tasksbuilder"]["prop_metadata"]["labels"]
 
         task_label = taskdoc["task_label"]  #task label of current doc
         # figure out what properties need to be updated
@@ -185,7 +185,7 @@ class TasksMaterialsBuilder:
                                 and taskdoc["output"]["energy_per_atom"] <
                                     self._materials.find_one(
                                         {"material_id": m_id},
-                                        {"_tmbuilder": 1})["_tmbuilder"][
+                                        {"_tasksbuilder": 1})["_tasksbuilder"][
                                         "prop_metadata"]["energies"][p]):
 
                         # insert task's properties into material
@@ -198,10 +198,10 @@ class TasksMaterialsBuilder:
                         self._materials.\
                             update_one({"material_id": m_id},
                                        {"$set": {materials_key: get_mongolike(taskdoc, tasks_key),
-                                                 "_tmbuilder.prop_metadata.labels.{}".format(p): task_label,
-                                                 "_tmbuilder.prop_metadata.task_ids.{}".format(p): self.tid_str(taskdoc["task_id"]),
-                                                 "_tmbuilder.prop_metadata.energies.{}".format(p): taskdoc["output"]["energy_per_atom"],
-                                                 "_tmbuilder.updated_at": datetime.utcnow()}})
+                                                 "_tasksbuilder.prop_metadata.labels.{}".format(p): task_label,
+                                                 "_tasksbuilder.prop_metadata.task_ids.{}".format(p): self.tid_str(taskdoc["task_id"]),
+                                                 "_tasksbuilder.prop_metadata.energies.{}".format(p): taskdoc["output"]["energy_per_atom"],
+                                                 "_tasksbuilder.updated_at": datetime.utcnow()}})
 
                         # copy property to document root if in properties_root
                         if p in self.properties_root:
@@ -210,7 +210,7 @@ class TasksMaterialsBuilder:
                                        {"$set": {p: get_mongolike(taskdoc, tasks_key)}})
 
         self._materials.update_one({"material_id": m_id},
-                                   {"$push": {"_tmbuilder.all_task_ids": self.tid_str(taskdoc["task_id"])}})
+                                   {"$push": {"_tasksbuilder.all_task_ids": self.tid_str(taskdoc["task_id"])}})
 
     @staticmethod
     def from_db_file(db_file, m="materials", c="counter", t="tasks", **kwargs):
