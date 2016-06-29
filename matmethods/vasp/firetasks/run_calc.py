@@ -2,6 +2,9 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
+from pymatgen.electronic_structure.boltztrap import BoltztrapRunner
+from pymatgen.io.vasp.sets import get_vasprun_outcar
+
 """
 This module defines tasks that support running vasp in various ways.
 """
@@ -167,3 +170,36 @@ class RunVaspCustodian(FireTaskBase):
 
         output = c.run()
         return FWAction(stored_data=output)
+
+
+@explicit_serialize
+class RunBoltztrap(FireTaskBase):
+    """
+    Run Boltztrap directly. Requires vasprun.xml and OUTCAR to be
+    in current dir.
+
+    Required params:
+        (none)
+
+    Optional params:
+        scissor: (float) scissor band gap amount in eV
+        tmax: (float) max temperature to evaluate (default = 1300K)
+        tgrid: (float) temperature interval (default = 50K)
+        doping: ([float]) doping levels you want to compute
+    """
+
+    optional_params = ["scissor", "tmax", "tgrid", "doping"]
+
+    def run_task(self, fw_spec):
+        scissor = self.get("scissor", 0.0)
+        tmax = self.get("tmax", 1300)
+        tgrid = self.get("tgrid", 50)
+        doping = self.get("doping", None)
+
+        vasprun, outcar = get_vasprun_outcar(".", parse_dos=True,
+                                             parse_eigen=True)
+        bs = vasprun.get_band_structure()
+        nelect = outcar.nelect
+        runner = BoltztrapRunner(bs, nelect, scissor=scissor, doping=doping,
+                                 tmax=tmax, tgrid=tgrid)
+        runner.run(path_dir=os.getcwd())

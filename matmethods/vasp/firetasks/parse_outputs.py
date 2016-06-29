@@ -5,17 +5,27 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import json
 import os
 
+import zlib
+from datetime import datetime
+
+import gridfs
+
 from monty.json import MontyEncoder
 
 from fireworks import FireTaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.utilities.fw_utilities import explicit_serialize
 
-from matgendb.util import get_settings
-from matmethods.utils.utils import env_chk, get_calc_loc
+from matgendb.util import get_settings, get_database
+from matmethods.utils.utils import env_chk, get_calc_loc, \
+    get_meta_from_structure
 from matmethods.utils.utils import get_logger
 from matmethods.vasp.database import MMDb
 from matmethods.vasp.drones import VaspDrone
+from pymatgen import Structure
+from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
+from pymatgen.io.vasp.sets import get_vasprun_outcar
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 __author__ = 'Anubhav Jain, Kiran Mathew, Shyam Dwaraknath'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov'
@@ -112,3 +122,68 @@ class VaspToDbTask(FireTaskBase):
 
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
                         defuse_children=(task_doc["state"] != "successful"))
+
+
+@explicit_serialize
+class BoltztrapToDBTask(FireTaskBase):
+    """
+    Enter a Boltztrap run into the database.
+
+    Optional params:
+        db_file (str): path to file containing the database credentials.
+            Supports env_chk. Default: write data to JSON file.
+        hall_doping (bool): set True to retain hall_doping in dict
+    """
+
+    optional_params = ["db_file", "hall_doping"]
+
+    def run_task(self, fw_spec):
+        btrap_dir = os.path.join(os.getcwd(), "boltztrap")
+        bta = BoltztrapAnalyzer.from_files(btrap_dir)
+        d = bta.as_dict()
+        d["boltztrap_dir"] = btrap_dir
+
+        # trim the output
+        for x in ['cond', 'seebeck', 'kappa', 'hall', 'mu_steps',
+                  'mu_doping', 'carrier_conc']:
+            del d[x]
+
+        if not self.get("hall_doping"):
+            del d["hall_doping"]
+
+        # add the structure
+        bandstructure_dir = os.getcwd()
+        v, o = get_vasprun_outcar(bandstructure_dir, parse_eigen=False, parse_dos=False)
+        structure = v.final_structure
+        d["structure"] = structure.as_dict()
+        d.update(get_meta_from_structure(structure))
+        d["bandstructure_dir"] = bandstructure_dir
+
+        # add the spacegroup
+        sg = SpacegroupAnalyzer(Structure.from_dict(d["structure"]), 0.1)
+        d["spacegroup"] = {"symbol": sg.get_spacegroup_symbol(),
+                           "number": sg.get_spacegroup_number(),
+                           "point_group": sg.get_point_group(),
+                           "source": "spglib",
+                           "crystal_system": sg.get_crystal_system(),
+                           "hall": sg.get_hall()}
+
+        d["created_at"] = datetime.utcnow()
+
+        db_file = env_chk(self.get('db_file'), fw_spec)
+
+        if not db_file:
+            with open("boltztrap.json", "w") as f:
+                f.write(json.dumps(d, default=DATETIME_HANDLER))
+        else:
+            db = get_database(db_file, admin=True)
+
+            # dos gets inserted into GridFS
+            dos = json.dumps(d["dos"], cls=MontyEncoder)
+            d["dos_compression"] = 1
+            dos = zlib.compress(dos.encode(), d["dos_compression"])
+            fs = gridfs.GridFS(db, collection="dos_boltztrap_fs")
+            d["dos_boltztrap_fs_id"] = fs.put(dos)
+            del d["dos"]
+
+            db.boltztrap.insert(d)

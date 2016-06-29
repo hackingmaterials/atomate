@@ -10,8 +10,9 @@ from pymatgen.io.vasp.sets import MPRelaxSet
 
 from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
-from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
-from matmethods.vasp.firetasks.run_calc import RunVaspCustodian
+from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask, \
+    BoltztrapToDBTask
+from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunBoltztrap
 from matmethods.vasp.firetasks.write_inputs import *
 
 
@@ -307,6 +308,31 @@ class MDFW(Firework):
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                   handler_group="md", wall_time=wall_time))
         t.append(PassCalcLocs(name=name))
-        t.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": name}))
-        super(MDFW, self).__init__(t, parents=parents, name="{}-{}".
-                                   format(structure.composition.reduced_formula, name), **kwargs)
+        t.append(VaspToDbTask(db_file=db_file,
+                              additional_fields={"task_label": name}))
+        super(MDFW, self).__init__(
+                t, parents=parents, name="{}-{}".
+                format(structure.composition.reduced_formula, name), **kwargs)
+
+
+class BoltztrapFW(Firework):
+    def __init__(self, structure, name="boltztrap", parents=None,
+                 vasp_input_set=None, db_file=None, vasp_cmd=None, **kwargs):
+        """
+        Run Boltztrap
+
+        Args:
+            structure: (Structure) - only used for setting name of FW
+            name: (str) name of this FW
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+        # TODO: (soon) fix garbage about vasp_input_set and vasp_cmd which are unused but needed to make YAML files work using existing code
+
+        t = []
+        t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
+        t.append(RunBoltztrap())
+        t.append(BoltztrapToDBTask(db_file=db_file))
+        t.append(PassCalcLocs(name=name))
+        super(BoltztrapFW, self).__init__(t, parents=parents, name="{}-{}".format(
+            structure.composition.reduced_formula, name), **kwargs)

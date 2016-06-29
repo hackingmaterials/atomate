@@ -6,6 +6,8 @@ import logging
 import sys
 import six
 
+from pymatgen import Composition
+
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
@@ -96,3 +98,20 @@ def get_logger(name, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(na
     sh.setFormatter(formatter)
     logger.addHandler(sh)
     return logger
+
+
+def get_meta_from_structure(structure):
+    comp = structure.composition
+    elsyms = sorted(set([e.symbol for e in comp.elements]))
+    meta = {'nsites': len(structure),
+            'elements': elsyms,
+            'nelements': len(elsyms),
+            'formula': comp.formula,
+            'formula_reduced': comp.reduced_formula,
+            'formula_reduced_abc': Composition(comp.reduced_formula)
+            .alphabetical_formula,
+            'formula_anonymous': comp.anonymized_formula,
+            'chemsys': '-'.join(elsyms),
+            'is_ordered': structure.is_ordered,
+            'is_valid': structure.is_valid()}
+    return meta
