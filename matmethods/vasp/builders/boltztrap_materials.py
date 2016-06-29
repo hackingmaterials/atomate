@@ -133,6 +133,7 @@ class BoltztrapMaterialsBuilder:
         db_write = get_database(db_file, admin=True)
         try:
             db_read = get_database(db_file, admin=False)
+            db_read.collection_names()  # throw error if auth failed
         except:
             print("Warning: could not get read-only database")
             db_read = get_database(db_file, admin=True)
