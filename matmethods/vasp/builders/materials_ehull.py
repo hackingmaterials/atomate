@@ -10,7 +10,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 
 class MaterialsEhullBuilder:
-    def __init__(self, materials_write, mapi_key=None, update_all=True):
+    def __init__(self, materials_write, mapi_key=None, update_all=False):
         """
         Starting with an existing materials collection, adds stability information.
         Args:
