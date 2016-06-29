@@ -12,9 +12,9 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 # TODO: clean up some code duplication in config params
 # TODO: this needs massive duplication cleanup - simple but just need to do it
-def wf_band_structure(structure, config=None):
+def wf_bandstructure(structure, config=None):
     config = config or {}
-    wf = get_wf(structure, "band_structure.yaml",
+    wf = get_wf(structure, "bandstructure.yaml",
                 vis=MPRelaxSet(structure, force_gamma=True),
                 common_params={"vasp_cmd": ">>vasp_cmd<<",
                                "db_file": ">>db_file<<"})
@@ -37,10 +37,10 @@ def wf_band_structure(structure, config=None):
     return wf
 
 
-def wf_band_structure_plus_hse(structure, config=None):
+def wf_bandstructure_plus_hse(structure, config=None):
     config = config or {}
 
-    wf = get_wf(structure, "band_structure_hsegap.yaml",
+    wf = get_wf(structure, "bandstructure_hsegap.yaml",
                 vis=MPRelaxSet(structure, force_gamma=True),
                 common_params={"vasp_cmd": ">>vasp_cmd<<",
                                "db_file": ">>db_file<<"})
@@ -64,10 +64,10 @@ def wf_band_structure_plus_hse(structure, config=None):
     return wf
 
 
-def wf_band_structure_plus_boltztrap(structure, config=None):
+def wf_bandstructure_plus_boltztrap(structure, config=None):
     config = config or {}
 
-    wf = get_wf(structure, "band_structure_boltztrap.yaml",
+    wf = get_wf(structure, "bandstructure_boltztrap.yaml",
                 vis=MPRelaxSet(structure, force_gamma=True),
                 common_params={"vasp_cmd": ">>vasp_cmd<<",
                                "db_file": ">>db_file<<"})
