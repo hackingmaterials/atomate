@@ -2,6 +2,15 @@
 MatMethods Changelog
 ====================
 
+**v0.2**
+
+* BoltzTraP transport workflows
+* major builder improvements (merge multiple collections, progressbar, config, more...)
+* use FrozenJobErrorHandler by default
+* add basic configuration overrides for preset workflows
+* misc improvements and bugfixes
+* py3 compatibility fixes (K. Mathew)
+
 **v0.1**
 
 * add some builders
