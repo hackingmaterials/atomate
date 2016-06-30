@@ -10,7 +10,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 
 class MaterialsEhullBuilder:
-    def __init__(self, materials_write, mapi_key=None, update_all=True):
+    def __init__(self, materials_write, mapi_key=None, update_all=False):
         """
         Starting with an existing materials collection, adds stability information.
         Args:
@@ -19,11 +19,13 @@ class MaterialsEhullBuilder:
             update_all: (bool) - if true, updates all docs. If false, only updates docs w/o a stability key
         """
         self._materials = materials_write
-        self.mpr = MPRester(mapi_key)
+        self.mpr = MPRester(api_key=mapi_key)
         self.update_all = update_all
 
     def run(self):
         print("MaterialsEhullBuilder starting...")
+        self._build_indexes()
+
         q = {"thermo.energy": {"$exists": True}}
         if not self.update_all:
             q["stability"] = {"$exists": False}
@@ -53,6 +55,15 @@ class MaterialsEhullBuilder:
                 print("--->")
 
         print("MaterialsEhullBuilder finished processing.")
+
+
+    def reset(self):
+        self._materials.update_many({}, {"$unset": {"stability": 1}})
+        self._build_indexes()
+
+    def _build_indexes(self):
+        self._materials.create_index("stability.e_above_hull")
+
 
     @staticmethod
     def from_db_file(db_file, m="materials", **kwargs):

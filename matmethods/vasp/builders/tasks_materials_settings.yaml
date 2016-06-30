@@ -59,7 +59,7 @@ properties_root:
   - energy_per_atom
 
 indexes:
-  - "_tmbuilder.all_task_ids"
+  - "_tasksbuilder.all_task_ids"
   - "bandstructure.bandgap"
   - "bandstructure_hse.bandgap"
   - "thermo.energy_per_atom"

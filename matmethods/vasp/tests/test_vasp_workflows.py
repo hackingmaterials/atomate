@@ -17,6 +17,7 @@ from fireworks.core.rocket_launcher import rapidfire
 from matmethods.vasp.vasp_powerups import use_custodian, add_namefile, use_fake_vasp, \
     add_trackers
 from matmethods.vasp.workflows.base.core import get_wf
+from pymatgen.io.vasp.sets import MPRelaxSet
 
 from pymatgen.util.testing import PymatgenTest
 
@@ -159,7 +160,9 @@ class TestVaspWorkflows(unittest.TestCase):
     def test_single_Vasp(self):
         # add the workflow
         structure = self.struct_si
-        my_wf = get_wf(structure, "optimize_only.yaml", vasp_cmd=VASP_CMD)
+        my_wf = get_wf(structure, "optimize_only.yaml",
+                       vis=MPRelaxSet(structure, force_gamma=True),
+                       common_params={"vasp_cmd": VASP_CMD})
         if not VASP_CMD:
             my_wf = use_fake_vasp(my_wf)
         else:
@@ -179,7 +182,10 @@ class TestVaspWorkflows(unittest.TestCase):
         # add the workflow
         structure = self.struct_si
         # instructs to use db_file set by FWorker, see env_chk
-        my_wf = get_wf(structure, "optimize_only.yaml", vasp_cmd=VASP_CMD, db_file=">>db_file<<")
+        my_wf = get_wf(structure, "optimize_only.yaml",
+                       vis=MPRelaxSet(structure, force_gamma=True),
+                       common_params={"vasp_cmd": VASP_CMD,
+                                      "db_file": ">>db_file<<"})
         if not VASP_CMD:
             my_wf = use_fake_vasp(my_wf)
         else:
@@ -197,7 +203,10 @@ class TestVaspWorkflows(unittest.TestCase):
         # add the workflow
         structure = self.struct_si
         # instructs to use db_file set by FWorker, see env_chk
-        my_wf = get_wf(structure, "band_structure.yaml", vasp_cmd=VASP_CMD, db_file=">>db_file<<")
+        my_wf = get_wf(structure, "bandstructure.yaml",
+                       vis=MPRelaxSet(structure, force_gamma=True),
+                       common_params={"vasp_cmd": VASP_CMD,
+                                      "db_file": ">>db_file<<"})
         if not VASP_CMD:
             my_wf = use_fake_vasp(my_wf)
         else:
@@ -231,7 +240,9 @@ class TestVaspWorkflows(unittest.TestCase):
     def test_trackers(self):
         # add the workflow
         structure = self.struct_si
-        my_wf = get_wf(structure, "optimize_only.yaml", vasp_cmd=VASP_CMD)
+        my_wf = get_wf(structure, "optimize_only.yaml",
+                       vis=MPRelaxSet(structure, force_gamma=True),
+                       common_params={"vasp_cmd": VASP_CMD})
 
         if not VASP_CMD:
             my_wf = use_fake_vasp(my_wf)

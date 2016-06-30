@@ -9,9 +9,6 @@ from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
-# TODO: rename _bmbuilder (also _tmbuilder in tasks)
-# TODO: implement indexes
-# TODO: implement reset()
 
 class BoltztrapMaterialsBuilder:
     def __init__(self, materials_write, boltztrap_read):
@@ -28,9 +25,12 @@ class BoltztrapMaterialsBuilder:
         print("BoltztrapMaterialsBuilder starting...")
         print("Initializing list of all new boltztrap ids to process ...")
         previous_oids = []
-        for m in self._materials.find({}, {"_bmbuilder.all_object_ids": 1}):
-            if '_bmbuilder' in m:
-                previous_oids.extend(m["_bmbuilder"]["all_object_ids"])
+        for m in self._materials.find({}, {"_boltztrapbuilder.all_object_ids": 1}):
+            if '_boltztrapbuilder' in m:
+                previous_oids.extend(m["_boltztrapbuilder"]["all_object_ids"])
+
+        if not previous_oids:
+            self._build_indexes()
 
         all_btrap_ids = [i["_id"] for i in self._boltztrap.find({}, {"_id": 1})]
         btrap_ids = [o_id for o_id in all_btrap_ids if o_id not in previous_oids]
@@ -55,6 +55,11 @@ class BoltztrapMaterialsBuilder:
                 print("--->")
 
         print("BoltztrapMaterialsBuilder finished processing.")
+
+    def reset(self):
+        self._materials.update_many({}, {"$unset": {"_boltztrapbuilder": 1,
+                                                    "transport": 1}})
+        self._build_indexes()
 
     def _match_material(self, doc):
         """
@@ -104,8 +109,16 @@ class BoltztrapMaterialsBuilder:
         d["kappa_min"] = bta.get_extreme("kappa", maximize=False)
 
         self._materials.update_one({"material_id": m_id}, {"$set": {"transport": d}})
-        self._materials.update_one({"material_id": m_id}, {"$push": {"_bmbuilder.all_object_ids": doc["_id"]}})
-        self._materials.update_one({"material_id": m_id}, {"$set": {"_bmbuilder.blessed_object_id": doc["_id"]}})
+        self._materials.update_one({"material_id": m_id}, {"$push": {"_boltztrapbuilder.all_object_ids": doc["_id"]}})
+        self._materials.update_one({"material_id": m_id}, {"$set": {"_boltztrapbuilder.blessed_object_id": doc["_id"]}})
+
+    def _build_indexes(self):
+        """
+        Create indexes for faster searching
+        """
+        for x in ["zt", "pf", "seebeck", "conductivity", "kappa_max",
+                  "kappa_min"]:
+            self._materials.create_index("transport.{}.best.value".format(x))
 
     @staticmethod
     def from_db_file(db_file, m="materials", b="boltztrap", **kwargs):
@@ -120,14 +133,9 @@ class BoltztrapMaterialsBuilder:
         db_write = get_database(db_file, admin=True)
         try:
             db_read = get_database(db_file, admin=False)
+            db_read.collection_names()  # throw error if auth failed
         except:
             print("Warning: could not get read-only database")
             db_read = get_database(db_file, admin=True)
 
         return BoltztrapMaterialsBuilder(db_write[m], db_read[b], **kwargs)
-
-    def _build_indexes(self):
-        """
-        Create indexes for faster searching
-        """
-        pass
