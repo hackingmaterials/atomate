@@ -12,7 +12,9 @@ from fireworks import FireTaskBase, Firework, FWAction, Workflow
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.utilities.fw_utilities import explicit_serialize
 
-from matmethods.utils.utils import env_chk
+from matmethods.utils.utils import env_chk, get_logger
+from matmethods.vasp.drones import VaspDrone
+from matmethods.vasp.database import MMDb
 from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
 from pymatgen.analysis.elasticity.strain import Deformation, IndependentStrain
@@ -20,6 +22,8 @@ from pymatgen.analysis.elasticity.stress import Stress
 from pymatgen.analysis.elasticity import reverse_voigt_map
 from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.io.vasp.sets import MPRelaxSet
+from pymatgen import Structure
+from matgendb.util import get_settings
 
 from pymatgen.transformations.standard_transformations import \
     DeformStructureTransformation
@@ -30,6 +34,8 @@ This module defines the elastic workflow
 
 __author__ = 'Shyam Dwaraknath, Joseph Montoya'
 __email__ = 'shyamd@lbl.gov, montoyjh@lbl.gov'
+
+logger = get_logger(__name__)
 
 @explicit_serialize
 class PassStressStrainData(FireTaskBase):
@@ -66,10 +72,11 @@ class AnalyzeStressStrainData(FireTaskBase):
 
         # Get optimized structure
         optimize_loc = fw_spec["calc_locs"][0]["path"]
-        logger.info("PARSING INITIAL OPTIMIZATION DIRECTORY: {}".format(calc_dir))
+        logger.info("PARSING INITIAL OPTIMIZATION DIRECTORY: {}".format(optimize_loc))
         drone = VaspDrone()
         optimize_doc = drone.assimilate(optimize_loc)
-        opt_struct = optimize_doc["calcs_reversed"][0]["output"]["structure"]
+        opt_struct = Structure.from_dict(
+            optimize_doc["calcs_reversed"][0]["output"]["structure"])
         
         deformations = fw_spec['deformations']
         d = {"analysis": {}, "deformation_tasks": {},
@@ -83,18 +90,19 @@ class AnalyzeStressStrainData(FireTaskBase):
             d_ind = np.nonzero(defo - np.eye(3))
             delta = Decimal((defo - np.eye(3))[d_ind][0])
             # Shorthand is d_X_V, X is voigt index, V is value
-            dtype = "_".join(["d", str(reverse_voigt_map[d_ind]),
+            dtype = "_".join(["d", str(reverse_voigt_map[d_ind][0]),
                               "{:.0e}".format(delta)])
             strain = IndependentStrain(defo)
             stress = Stress(deformation['stress'])
             d["deformation_tasks"][dtype] = {'deformation_matrix': defo,
                                              'strain': strain.tolist(),
                                              'stress': deformation['stress']}
+            dtypes.append(dtype)
             stress_dict[strain] = stress
 
         logger.info("ANALYZING STRESS/STRAIN DATA")
         # DETERMINE IF WE HAVE 6 "UNIQUE" deformations
-        if len(set([d[:3] for d in dtypes])) == 6:
+        if len(set([de[:3] for de in dtypes])) == 6:
             # Perform Elastic tensor fitting and analysis
             result = ElasticTensor.from_stress_dict(stress_dict)
             d["elastic_tensor"] = result.voigt.tolist()
@@ -107,17 +115,20 @@ class AnalyzeStressStrainData(FireTaskBase):
             d["homogeneous_poisson"] = result.homogeneous_poisson
 
             # Perform filter checks
-            symm_t = 0.5*(result.voigt + np.transpose(result.voigt))
-            fit_t = result.fit_to_structure(structure_final)
+            symm_t = result.voigt_symmetrized
+            fit_t = result.fit_to_structure(opt_struct)
+            d["analysis"]["fit_to_structure"] = \
+                    bool(result.is_fit_to_structure(opt_struct))
             d["symmetrized_tensor"] = symm_t.voigt.tolist()
             d["structure_fit_tensor"] = fit_t.voigt.tolist()
             d["analysis"]["not_rare_earth"] = True
-            for s in self['structure'].species:
+            for s in opt_struct.species:
                 if s.is_rare_earth_metal:
                     d["analysis"]["not_rare_earth"] = False
             eigvals = np.linalg.eigvals(symm_t.voigt)
-            eig_positive = np.all((eigvals > 0) & np.isreal(eigvals))
-            d["analysis"]["eigval_positive"] = bool(eig_positive)
+            eig_positive = bool((eigvals > 0).all() 
+                                and np.isreal(eigvals).all())
+            d["analysis"]["eigval_positive"] = eig_positive
             c11 = symm_t.voigt[0][0]
             c12 = symm_t.voigt[0][1]
             c13 = symm_t.voigt[0][2]
@@ -138,20 +149,20 @@ class AnalyzeStressStrainData(FireTaskBase):
             d["analysis"]["eigval"] = list(eigvals)
             
             # IEEE tensor
-            ieee_tensor = result.get_ieee_tensor(struct_final)
-            fit_ieee_tensor = fit_t.get_ieee_tensor(struct_final)
+            ieee_tensor = result.convert_to_ieee(opt_struct)
+            fit_ieee_tensor = fit_t.convert_to_ieee(opt_struct)
             d["elastic_tensor_IEEE"] = ieee_tensor.voigt.tolist()
-            d["elastic_tensor_IEEE"] = fit_ieee_tensor.tolist()
+            d["structure_fit_IEEE"] = fit_ieee_tensor.voigt.tolist()
             
             # Thermal properties
-            nsites = self['structure'].num_sites
-            volume = self['structure'].volume
-            natoms = self['structure'].composition.num_atoms
-            weight = self['structure'].composition.weight
+            nsites = opt_struct.num_sites
+            volume = opt_struct.volume
+            natoms = opt_struct.composition.num_atoms
+            weight = opt_struct.composition.weight
             num_density = 1e30 * nsites / volume
             mass_density = 1.6605e3 * nsites * volume * weight / \
                 (natoms * volume)
-            tot_mass = sum([e.atomic_mass for e in self['structure'].species])
+            tot_mass = sum([e.atomic_mass for e in opt_struct.species])
             avg_mass = 1.6605e-27 * tot_mass / natoms
             y_mod = 9e9 * result.k_vrh * result.g_vrh / \
                 (3. * result.k_vrh * result.g_vrh)
@@ -187,8 +198,7 @@ class AnalyzeStressStrainData(FireTaskBase):
                             "debye": debye
                             }
         else:
-            d['state'] = "Fewer than 6 unique deformations"
-            return FWAction()
+            raise ValueError("Fewer than 6 unique deformations")
 
         d["state"] = "successful"
 
@@ -199,13 +209,10 @@ class AnalyzeStressStrainData(FireTaskBase):
             with open("elasticity.json", "w") as f:
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
         else:
-            db_config = get_settings(db_file)
-            db = MMDb(host=db_config["host"], port=db_config["port"],
-                      database=db_config["database"],
-                      user=db_config.get("admin_user"),
-                      password=db_config.get("admin_password"),
-                      collection='elasticity')
-            db.collection.insert(d)
+            db = MMDb.from_db_file(db_file, admin=True)
+            db.collection = db.db["elasticity"]
+            import pdb; pdb.set_trace()
+            db.collection.insert_one(d)
             logger.info("ELASTIC ANALYSIS COMPLETE")
 
 
