@@ -1,0 +1,68 @@
+property_settings:
+  - properties:
+      - bandgap
+      - cbm
+      - vbm
+      - is_gap_direct
+      - is_metal
+    tasks_key: output
+    materials_key: bandstructure
+    quality_scores:
+      "structure optimization": 1
+      "static": 2
+      "nscf uniform": 3
+      "nscf line": 4
+  - properties:
+      - energy
+      - energy_per_atom
+    tasks_key: output
+    materials_key: thermo
+    quality_scores:
+      "structure optimization": 1
+      "static": 2
+  - properties:
+      - is_hubbard
+      - hubbards
+    tasks_key: input
+    materials_key: calc_settings
+    quality_scores:
+      "structure optimization": 1
+      "static": 2
+  - properties:
+      - potcar_spec
+    tasks_key: input
+    materials_key: calc_settings
+    quality_scores:
+      "structure optimization": 1
+      "static": 2
+  - properties:
+      - epsilon_ionic
+      - epsilon_static
+      - epsilon_static_wolfe
+    tasks_key: output
+    materials_key: dielectric
+    quality_scores:
+      "static dielectric": 1
+  - properties:
+      - bandgap
+      - cbm
+      - vbm
+      - is_gap_direct
+      - is_metal
+    tasks_key: output
+    materials_key: bandstructure_hse
+    quality_scores:
+      "hse gap": 1
+
+properties_root:
+  - bandgap
+  - energy_per_atom
+
+indexes:
+  - "_tasksbuilder.all_task_ids"
+  - "bandstructure.bandgap"
+  - "bandstructure_hse.bandgap"
+  - "thermo.energy_per_atom"
+  - "formula_pretty"
+  - "formula_reduced_abc"
+  - "sg_number"

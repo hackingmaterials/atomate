@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals, \
     absolute_import
 
 import os
+from six.moves import range
 
 """
 This module defines tasks for writing vasp input sets for various types of
@@ -170,24 +171,20 @@ class WriteVaspStaticFromPrev(FireTaskBase):
         other_params = self.get("other_params", {})
 
         # for lepsilon runs, set EDIFF to 1E-5 unless user says otherwise
-        user_incar_settings = self.get("other_params", {}).\
-            get("user_incar_settings", {})
+        user_incar_settings = self.get("other_params", {}).get("user_incar_settings", {})
 
-        if lepsilon and "EDIFF" not in user_incar_settings and \
-                        "EDIFF_PER_ATOM" not in user_incar_settings:
+        if lepsilon and "EDIFF" not in user_incar_settings and "EDIFF_PER_ATOM" not in user_incar_settings:
             if "user_incar_settings" not in other_params:
                 other_params["user_incar_settings"] = {}
             other_params["user_incar_settings"]["EDIFF"] = 1E-5
 
-        vis = MPStaticSet.from_prev_calc(
-            prev_calc_dir=self["prev_calc_dir"],
-            reciprocal_density=default_reciprocal_density,
-            small_gap_multiply=self.get("small_gap_multiply", None),
-            standardize=self.get("standardize", False),
-            sym_prec=self.get("sym_prec", 0.1),
-            international_monoclinic=self.get("international_monoclinic",
-                                              True),
-            lepsilon=lepsilon, **other_params)
+        vis = MPStaticSet.from_prev_calc(prev_calc_dir=self["prev_calc_dir"],
+                                         reciprocal_density=default_reciprocal_density,
+                                         small_gap_multiply=self.get("small_gap_multiply", None),
+                                         standardize=self.get("standardize", False),
+                                         sym_prec=self.get("sym_prec", 0.1),
+                                         international_monoclinic=self.get("international_monoclinic", True),
+                                         lepsilon=lepsilon, **other_params)
         vis.write_input(".")
 
 
@@ -209,10 +206,8 @@ class WriteVaspHSEBSFromPrev(FireTaskBase):
     optional_params = ["mode", "reciprocal_density"]
 
     def run_task(self, fw_spec):
-        vis = MPHSEBSSet.from_prev_calc(self["prev_calc_dir"],
-                                        mode=self.get("mode", "Uniform"),
-                                        reciprocal_density=self.get(
-                                            "reciprocal_density", 50),
+        vis = MPHSEBSSet.from_prev_calc(self["prev_calc_dir"], mode=self.get("mode", "Uniform"),
+                                        reciprocal_density=self.get("reciprocal_density", 50),
                                         copy_chgcar=False)
         vis.write_input(".")
 
@@ -248,8 +243,7 @@ class WriteVaspNSCFFromPrev(FireTaskBase):
             small_gap_multiply=self.get("small_gap_multiply", None),
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
-            international_monoclinic=self.get("international_monoclinic",
-                                              True),
+            international_monoclinic=self.get("international_monoclinic", True),
             mode=self.get("mode", "uniform"),
             nedos=self.get("nedos", 601),
             optics=self.get("optics", False),
@@ -287,8 +281,7 @@ class WriteVaspSOCFromPrev(FireTaskBase):
             small_gap_multiply=self.get("small_gap_multiply", None),
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
-            international_monoclinic=self.get("international_monoclinic",
-                                              True),
+            international_monoclinic=self.get("international_monoclinic", True),
             **self.get("other_params", {}))
         vis.write_input(".")
 
@@ -321,8 +314,7 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
     """
 
     required_params = ["structure", "transformations", "vasp_input_set"]
-    optional_params = ["prev_calc_dir", "transformation_params",
-                       "vasp_input_params"]
+    optional_params = ["prev_calc_dir", "transformation_params", "vasp_input_params"]
 
     def run_task(self, fw_spec):
 
@@ -330,14 +322,11 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
 
         transformations = []
         transformation_params = self.get("transformation_params",
-                                         [{} for i in
-                                          range(len(self["transformations"]))])
+                                         [{} for i in range(len(self["transformations"]))])
         for t in self["transformations"]:
             for m in ["advanced_transformations", "defect_transformations",
-                      "site_transformations",
-                      "standard_transformations"]:
-                mod = __import__("pymatgen.transformations." + m, globals(),
-                                 locals(), [t], -1)
+                      "site_transformations", "standard_transformations"]:
+                mod = __import__("pymatgen.transformations." + m, globals(), locals(), [t], -1)
                 try:
                     t_cls = getattr(mod, t)
                 except AttributeError:
@@ -345,10 +334,9 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
                 t_obj = t_cls(**transformation_params.pop(0))
                 transformations.append(t_obj)
 
-        structure = self['structure'] if not self['prev_calc_dir'] else Poscar.from_file(
-            os.path.join(self['prev_calc_dir'], 'POSCAR')).structure
+        structure = self['structure'] if 'prev_calc_dir' not in self else \
+                Poscar.from_file(os.path.join(self['prev_calc_dir'], 'POSCAR')).structure
         ts = TransformedStructure(structure)
         transmuter = StandardTransmuter([ts], transformations)
-        vis = vis_cls(transmuter.transformed_structures[-1].final_structure,
-                      **self.get("vasp_input_params", {}))
+        vis = vis_cls(transmuter.transformed_structures[-1].final_structure, **self.get("vasp_input_params", {}))
         vis.write_input(".")

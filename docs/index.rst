@@ -8,7 +8,7 @@
 
 Theory and computations are powerful tools for understanding and designing materials, but conventional
 software for performing these computations are still difficult to use, understand, and automate.
-MatMethods makes makes it possible to perform complex materials science computations using
+MatMethods makes it possible to perform complex materials science computations using
 very straightforward statements. Features of MatMethods include:
 
 * It is built on top of state-of-the-art open-source libraries: **pymatgen**, **custodian**, and **FireWorks**. Building off these libraries means that MatMethods can not only serve as a simple and friendly introduction to computational materials science, but that it is powerful enough for even the most demanding of theory users that require precise control and massive execution.
@@ -127,7 +127,7 @@ Configure a bunch of things
 
 In addition to having the code installed, you will need to configure a bunch of settings for running at your computing cluster. This includes setting up your queue adapter and submission script template, providing credentials to your databases, and setting locations of loggers and miscellaneous items.
 
-1. Copy the contents of ``matmethods/vasp/examples/config`` to ``<<INSTALL_DIR>>/config``. We can work off these files to begin with rather than creating the files from scratch.
+1. Copy the contents of ``/matmethods/vasp/config_example/standard_config`` to ``<<INSTALL_DIR>>/config``. We can work off these files to begin with rather than creating the files from scratch.
 
 There is a lot to configure, so let's tackle the files one by one. We will start simple and get more complex.
 
@@ -171,11 +171,11 @@ This file is both simple and complicated. The basic setup is simple. But, settin
 * ``<<env.scratch_dir>>`` - temporary place where to run VASP calculations using custodian framework. If set to the ``null`` it will simply use the current working directory without using a scratch_dir.
 
 Note that all of these values might depend on the specific system you are running on. The point of the ``my_fworker.yaml`` is precisely to allow for different settings on different
-systems. By having a different ``my_fworker.yaml`` file for each intended systems, you can tailor the execution of workflows across systems. This procedure is straightforward but is not covered here. If you are advanced, you will understand that you can just set up a second config dir, and point your ``FW_CONFIG_FILE`` environment variable to that second config dir in order to use different settings (e.g., different ``my_fworker.yaml``).
+systems. By having a different ``my_fworker.yaml`` file for each intended systems, you can tailor the execution of workflows across systems. This procedure is straightforward but is not covered here. You can set up a second config file, and point your ``FW_CONFIG_FILE`` environment variable to that second config file in order to use different settings (e.g., different ``my_fworker.yaml``).
 
 **my_qadapter.yaml**
 
-This file controls the format of your queue submission script and the commands to submit jobs to the queue (e.g., ``qsub`` versus ``squeue``). I will not go over how to set this file here. Please refer to the FWS tutorials for that. Note that ``<<CONFIG_DIR>>`` should point to the **full** path of ``<<INSTALL_DIR>>/config``. One further note on this file is that the default uses ``singleshot`` in "reservation" (``-r``) mode. If you want to pack multiple Fireworks into a queue submission you might try turning off reservation mode, and using ``rapidfire`` mode with the appropriate options.
+This file controls the format of your queue submission script and the commands to submit jobs to the queue (e.g., ``qsub`` versus ``sbatch``). I will not go over how to set this file here. Please refer to the FWS tutorials for that. Note that ``<<CONFIG_DIR>>`` should point to the **full** path of ``<<INSTALL_DIR>>/config``. One further note on this file is that the default uses ``singleshot`` in "reservation" (``-r``) mode. If you want to pack multiple Fireworks into a queue submission you might try turning off reservation mode, and using ``rapidfire`` mode with the appropriate options.
 
 That's it! You've finished basic configuration!
 

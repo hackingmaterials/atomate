@@ -441,7 +441,7 @@ class VaspDrone(AbstractDrone):
         # as d["custodian"]
         filenames = glob.glob(os.path.join(fullpath, "custodian.json*"))
         if len(filenames) >= 1:
-            with zopen(filenames[0], "r") as f:
+            with zopen(filenames[0], "rt") as f:
                 d["custodian"] = json.load(f)
         # Convert to full uri path.
         if self.use_full_uri:

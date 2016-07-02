@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from pymatgen import MPRester
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
@@ -6,19 +8,17 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 class SubmissionFilter:
 
-    NO_POTCARS = ['Po', 'At', 'Rn', 'Fr', 'Ra', 'Am', 'Cm', 'Bk', 'Cf', 'Es',
-                  'Fm', 'Md', 'No', 'Lr']
+    NO_POTCARS = ['Po', 'At', 'Rn', 'Fr', 'Ra', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr']
 
-    def __init__(self, is_valid=True, potcar_exists=True,
-                 max_natoms=200, is_ordered=True, not_in_MP=True,
-                 MAPI_KEY=None):
-
+    def __init__(self, is_valid=True, potcar_exists=True, max_natoms=200, is_ordered=True,
+                 not_in_MP=True, MAPI_KEY=None, require_bandstructure=False):
         self.is_valid = is_valid
         self.potcar_exists = potcar_exists
         self.max_natoms = max_natoms
         self.is_ordered = is_ordered
         self.not_in_MP = not_in_MP
         self.MAPI_KEY = MAPI_KEY
+        self.require_bandstructure = require_bandstructure
 
     def filter(self, s):
         failures = []
@@ -44,7 +44,16 @@ class SubmissionFilter:
             mpr = MPRester(self.MAPI_KEY)
             mpids = mpr.find_structure(s)
             if mpids:
-                failures.append("NOT_IN_MP=False ({})".format(mpids[0]))
+                if self.require_bandstructure:
+                    for mpid in mpids:
+                        try:
+                            bs = mpr.get_bandstructure_by_material_id(mpid)
+                            if bs:
+                                failures.append("NOT_IN_MP=False ({})".format(mpid))
+                        except:
+                            pass
+                else:
+                    failures.append("NOT_IN_MP=False ({})".format(mpids[0]))
 
         if not failures:
             return s, None

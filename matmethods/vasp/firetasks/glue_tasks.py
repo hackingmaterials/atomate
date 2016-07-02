@@ -56,8 +56,7 @@ class CopyVaspOutputs(FireTaskBase):
             POSCAR (original POSCAR is not copied).
     """
 
-    optional_params = ["calc_loc", "calc_dir", "filesystem", "additional_files",
-                       "contcar_to_poscar"]
+    optional_params = ["calc_loc", "calc_dir", "filesystem", "additional_files", "contcar_to_poscar"]
 
     def run_task(self, fw_spec):
 
@@ -81,16 +80,14 @@ class CopyVaspOutputs(FireTaskBase):
         if "$ALL" in self.get("additional_files", []):
             files_to_copy = all_files
         else:
-            files_to_copy = ['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR',
-                             'vasprun.xml']
+            files_to_copy = ['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR', 'vasprun.xml']
 
             if self.get("additional_files"):
                 files_to_copy.extend(self["additional_files"])
 
         if contcar_to_poscar and "CONTCAR" not in files_to_copy:
             files_to_copy.append("CONTCAR")
-            files_to_copy = [f for f in files_to_copy if
-                             f != 'POSCAR']  # remove POSCAR
+            files_to_copy = [f for f in files_to_copy if f != 'POSCAR']  # remove POSCAR
 
         # start file copy
         for f in files_to_copy:
@@ -100,17 +97,14 @@ class CopyVaspOutputs(FireTaskBase):
             dest_path = os.path.join(os.getcwd(), dest_fname)
 
             relax_ext = ""
-            relax_paths = sorted(fileclient.glob(prev_path_full+".relax*"),
-                                 reverse=True)
+            relax_paths = sorted(fileclient.glob(prev_path_full+".relax*"), reverse=True)
             if relax_paths:
                 if len(relax_paths) > 9:
-                    raise ValueError("CopyVaspOutputs doesn't properly "
-                                     "handle >9 relaxations!")
+                    raise ValueError("CopyVaspOutputs doesn't properly handle >9 relaxations!")
                 m = re.search('\.relax\d*', relax_paths[0])
                 relax_ext = m.group(0)
 
-            # detect .gz extension if needed - note that monty zpath() did not
-            # seem useful here
+            # detect .gz extension if needed - note that monty zpath() did not seem useful here
             gz_ext = ""
             if not (f + relax_ext) in all_files:
                 for possible_ext in [".gz", ".GZ"]:
@@ -121,15 +115,14 @@ class CopyVaspOutputs(FireTaskBase):
                 raise ValueError("Cannot find file: {}".format(f))
 
             # copy the file (minus the relaxation extension)
-            fileclient.copy(prev_path_full + relax_ext + gz_ext,
-                            dest_path + gz_ext)
+            fileclient.copy(prev_path_full + relax_ext + gz_ext, dest_path + gz_ext)
 
             # unzip the .gz if needed
             if gz_ext in ['.gz', ".GZ"]:
                 # unzip dest file
-                f = gzip.open(dest_path + gz_ext, 'rb')
+                f = gzip.open(dest_path + gz_ext, 'rt')
                 file_content = f.read()
-                with open(dest_path, 'wb') as f_out:
+                with open(dest_path, 'w') as f_out:
                     f_out.writelines(file_content)
                 f.close()
                 os.remove(dest_path + gz_ext)
@@ -158,16 +151,13 @@ class CheckStability(FireTaskBase):
     def run_task(self, fw_spec):
 
         mpr = MPRester(env_chk(self.get("MAPI_KEY"), fw_spec))
-        vasprun, outcar = get_vasprun_outcar(self.get("calc_dir", "."),
-                                             parse_dos=False,
-                                             parse_eigen=False)
+        vasprun, outcar = get_vasprun_outcar(self.get("calc_dir", "."), parse_dos=False, parse_eigen=False)
 
         my_entry = vasprun.get_computed_entry(inc_structure=False)
         stored_data = mpr.get_stability([my_entry])[0]
 
         if stored_data["e_above_hull"] > self.get("ehull_cutoff", 0.05):
-            return FWAction(stored_data=stored_data, exit=True,
-                            defuse_workflow=True)
+            return FWAction(stored_data=stored_data, exit=True, defuse_workflow=True)
 
         else:
             return FWAction(stored_data=stored_data)

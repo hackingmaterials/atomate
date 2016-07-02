@@ -1,7 +1,9 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, \
-    absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
+
+from pymatgen.electronic_structure.boltztrap import BoltztrapRunner
+from pymatgen.io.vasp.sets import get_vasprun_outcar
 
 """
 This module defines tasks that support running vasp in various ways.
@@ -10,8 +12,8 @@ This module defines tasks that support running vasp in various ways.
 import shlex
 import subprocess
 import os
-
 import six
+
 from custodian import Custodian
 from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, \
     MeshSymmetryErrorHandler, \
@@ -20,6 +22,7 @@ from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, \
     PositiveEnergyErrorHandler, WalltimeHandler
 from custodian.vasp.jobs import VaspJob
 from custodian.vasp.validators import VasprunXMLValidator
+
 from fireworks import explicit_serialize, FireTaskBase, FWAction
 
 from matmethods.utils.utils import env_chk, get_logger
@@ -47,8 +50,7 @@ class RunVaspDirect(FireTaskBase):
 
         logger.info("Running VASP using exe: {}".format(vasp_cmd))
         return_code = subprocess.call(vasp_cmd, shell=True)
-        logger.info("VASP finished running with returncode: {}".format(
-            return_code))
+        logger.info("VASP finished running with returncode: {}".format(return_code))
 
 
 @explicit_serialize
@@ -115,7 +117,8 @@ class RunVaspCustodian(FireTaskBase):
         handler_groups = {
             "default": [VaspErrorHandler(), MeshSymmetryErrorHandler(),
                         UnconvergedErrorHandler(), NonConvergingErrorHandler(),
-                        PotimErrorHandler(), PositiveEnergyErrorHandler()],
+                        PotimErrorHandler(), PositiveEnergyErrorHandler(),
+                        FrozenJobErrorHandler()],
             "strict": [VaspErrorHandler(), MeshSymmetryErrorHandler(),
                        UnconvergedErrorHandler(), NonConvergingErrorHandler(),
                        PotimErrorHandler(), PositiveEnergyErrorHandler(),
@@ -134,25 +137,20 @@ class RunVaspCustodian(FireTaskBase):
         scratch_dir = env_chk(self.get("scratch_dir"), fw_spec)
         gzip_output = self.get("gzip_output", True)
         max_errors = self.get("max_errors", 5)
-        auto_npar = env_chk(self.get("auto_npar"), fw_spec, strict=False,
-                            default=False)
-        gamma_vasp_cmd = env_chk(self.get("gamma_vasp_cmd"), fw_spec,
-                                 strict=False, default=None)
+        auto_npar = env_chk(self.get("auto_npar"), fw_spec, strict=False, default=False)
+        gamma_vasp_cmd = env_chk(self.get("gamma_vasp_cmd"), fw_spec, strict=False, default=None)
         if gamma_vasp_cmd:
             gamma_vasp_cmd = shlex.split(gamma_vasp_cmd)
 
         # construct jobs
         if job_type == "normal":
-            jobs = [VaspJob(vasp_cmd, auto_npar=auto_npar,
-                            gamma_vasp_cmd=gamma_vasp_cmd)]
+            jobs = [VaspJob(vasp_cmd, auto_npar=auto_npar, gamma_vasp_cmd=gamma_vasp_cmd)]
         elif job_type == "double_relaxation_run":
-            jobs = VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar,
-                                                 ediffg=self.get("ediffg"),
+            jobs = VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar, ediffg=self.get("ediffg"),
                                                  half_kpts_first_relax=False)
         elif job_type == "full_opt_run":
-            jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar,
-                                        ediffg=self.get("ediffg"), max_steps=5,
-                                        half_kpts_first_relax=False)
+            jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar, ediffg=self.get("ediffg"),
+                                        max_steps=5, half_kpts_first_relax=False)
         else:
             raise ValueError("Unsupported job type: {}".format(job_type))
 
@@ -160,17 +158,48 @@ class RunVaspCustodian(FireTaskBase):
         handlers = handler_groups[self.get("handler_group", "default")]
 
         if self.get("max_force_threshold"):
-            handlers.append(MaxForceErrorHandler(
-                max_force_threshold=self["max_force_threshold"]))
+            handlers.append(MaxForceErrorHandler(max_force_threshold=self["max_force_threshold"]))
 
         if self.get("wall_time"):
             handlers.append(WalltimeHandler(wall_time=self["wall_time"]))
 
         validators = [VasprunXMLValidator()]
 
-        c = Custodian(handlers, jobs, validators=validators,
-                      max_errors=max_errors,
+        c = Custodian(handlers, jobs, validators=validators, max_errors=max_errors,
                       scratch_dir=scratch_dir, gzipped_output=gzip_output)
 
         output = c.run()
         return FWAction(stored_data=output)
+
+
+@explicit_serialize
+class RunBoltztrap(FireTaskBase):
+    """
+    Run Boltztrap directly. Requires vasprun.xml and OUTCAR to be
+    in current dir.
+
+    Required params:
+        (none)
+
+    Optional params:
+        scissor: (float) scissor band gap amount in eV
+        tmax: (float) max temperature to evaluate (default = 1300K)
+        tgrid: (float) temperature interval (default = 50K)
+        doping: ([float]) doping levels you want to compute
+    """
+
+    optional_params = ["scissor", "tmax", "tgrid", "doping"]
+
+    def run_task(self, fw_spec):
+        scissor = self.get("scissor", 0.0)
+        tmax = self.get("tmax", 1300)
+        tgrid = self.get("tgrid", 50)
+        doping = self.get("doping", None)
+
+        vasprun, outcar = get_vasprun_outcar(".", parse_dos=True,
+                                             parse_eigen=True)
+        bs = vasprun.get_band_structure()
+        nelect = outcar.nelect
+        runner = BoltztrapRunner(bs, nelect, scissor=scissor, doping=doping,
+                                 tmax=tmax, tgrid=tgrid)
+        runner.run(path_dir=os.getcwd())

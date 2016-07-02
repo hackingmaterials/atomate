@@ -6,7 +6,7 @@ from __future__ import division, print_function, unicode_literals, \
 import unittest
 from collections import defaultdict
 
-from matmethods.utils.utils import env_chk, get_logger
+from matmethods.utils.utils import env_chk, get_logger, get_mongolike
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -36,3 +36,10 @@ class UtilsTests(unittest.TestCase):
         self.assertEqual(env_chk(None, fw_spec_valid, False, "fallback"),
                          "fallback")
 
+    def test_get_mongolike(self):
+        d = {"a": [{"b": 1}, {"c": {"d": 2}}], "e": {"f": {"g": 3}}, "g": 4}
+
+        self.assertEqual(get_mongolike(d, "g"), 4)
+        self.assertEqual(get_mongolike(d, "e.f.g"), 3)
+        self.assertEqual(get_mongolike(d, "a.0.b"), 1)
+        self.assertEqual(get_mongolike(d, "a.1.c.d"), 2)
