@@ -300,6 +300,7 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
     input set for that structure. Reads structure from POSCAR if no structure provided
 
     Required params:
+        structure (Structure): input structure
         transformations (list): list of names of transformation classes as defined in
             the modules in pymatgen.transformations
         vasp_input_set (string): string name for the VASP input set (e.g.,
@@ -315,7 +316,8 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
             user_incar_settings, you should provide: {"user_incar_settings": ...}.
             This setting is ignored if you provide the full object
             representation of a VaspInputSet rather than a String.
-        prev_calc_dir: path to previous calculation if using structure from another calcalation
+        prev_calc_dir: path to previous calculation if using structure 
+            from another calculation
     """
 
     required_params = ["structure", "transformations", "vasp_input_set"]
@@ -343,9 +345,8 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
                 t_obj = t_cls(**transformation_params.pop(0))
                 transformations.append(t_obj)
 
-        structure = self['structure'] if 'prev_calc_dir' not in self else \
-                Poscar.from_file(os.path.join(self['prev_calc_dir'], 
-                                              'POSCAR')).structure
+        structure = self['structure'] if not self['prev_calc_dir'] else Poscar.from_file(
+            os.path.join(self['prev_calc_dir'], 'POSCAR')).structure
         ts = TransformedStructure(structure)
         transmuter = StandardTransmuter([ts], transformations)
         vis = vis_cls(transmuter.transformed_structures[-1].final_structure,
