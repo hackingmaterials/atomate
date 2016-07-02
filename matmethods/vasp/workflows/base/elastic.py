@@ -209,9 +209,10 @@ class AnalyzeStressStrainData(FireTaskBase):
             logger.info("ELASTIC ANALYSIS COMPLETE")
 
 
-def get_wf_elastic_constant(structure, norm_deformations=[-0.01, -0.005, 0.005, 0.01],
-                            shear_deformations=[-0.06, -0.03, 0.03, 0.06], vasp_input_set=None,
-                            vasp_cmd="vasp", db_file=None):
+def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", 
+                            norm_deformations=[-0.01, -0.005, 0.005, 0.01],
+                            shear_deformations=[-0.06, -0.03, 0.03, 0.06],
+                            db_file=None, reciprocal_density=None):
     """
     Returns a workflow to calculate elastic constants.
 
@@ -221,6 +222,8 @@ def get_wf_elastic_constant(structure, norm_deformations=[-0.01, -0.005, 0.005, 
                  database insertion.
 
     Firework 2 - 25: Optimize Deformed Structure
+    
+    Firework 26: Analyze Stress/Strain data and fit the elastic tensor
 
     Args:
         structure (Structure): input structure to be optimized and run
@@ -229,13 +232,16 @@ def get_wf_elastic_constant(structure, norm_deformations=[-0.01, -0.005, 0.005, 
         vasp_input_set (DictVaspInputSet): vasp input set.
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
+        reciprocal_density (int): k-points per reciprocal atom by volume
 
     Returns:
         Workflow
     """
 
     v = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
-    
+    if reciprocal_density:
+        v.config_dict["KPOINTS"].update(
+            {"reciprocal_density":reciprocal_density})
     fws = []
 
     fws.append(OptimizeFW(structure=structure,
@@ -254,11 +260,18 @@ def get_wf_elastic_constant(structure, norm_deformations=[-0.01, -0.005, 0.005, 
         for amount in shear_deformations:
             defo = Deformation.from_index_amount(ind, amount)
             deformations.append(defo)
+
+    def_vasp_params = {"user_incar_settings":{"ISIF":2, "IBRION":2, 
+                                              "NSW":99, "LAECHG":False,
+                                              "LHVAR":False, "ALGO":"Fast",
+                                              "LWAVE":False}}
+    if reciprocal_density:
+        deformation_vasp_params.update(
+            {"reciprocal_density":reciprocal_density})
     
     for deformation in deformations:
         fw = TransmuterFW(name="elastic deformation",
                           structure=structure,
-                          vasp_input_set='MPRelaxSet',
                           transformations=['DeformStructureTransformation'],
                           transformation_params=[
                               {"deformation": deformation.tolist()}],
@@ -266,17 +279,19 @@ def get_wf_elastic_constant(structure, norm_deformations=[-0.01, -0.005, 0.005, 
                           db_file=db_file,
                           vasp_cmd=vasp_cmd,
                           parents=fws[0],
-                          vasp_input_params = {
-                              "user_incar_settings":{"ISIF":2}}
+                          vasp_input_params = def_vasp_params
                          )
-        fw.spec['_tasks'].append(PassStressStrainData(deformation=deformation.tolist()).to_dict())
+        fw.spec['_tasks'].append(
+            PassStressStrainData(deformation=deformation.tolist()).to_dict())
         fws.append(fw)
+    
+    fws.append(Firework(AnalyzeStressStrainData(structure=structure, 
+                                                db_file=db_file),
+                        name="Analyze Elastic Data", parents=fws[1:],
+                        spec = {"_allow_fizzled_parents":True}))
 
-    fws.append(Firework(AnalyzeStressStrainData(structure=structure),
-                        name="Analyze Elastic Data", db_file=db_file, 
-                        parents=fws[1:], spec = {"_allow_fizzled_parents":True}))
-
-    wfname = "{}:{}".format(structure.composition.reduced_formula, "elastic constants")
+    wfname = "{}:{}".format(structure.composition.reduced_formula,
+                            "elastic constants")
     return Workflow(fws, name=wfname)
 
 if __name__ == "__main__":

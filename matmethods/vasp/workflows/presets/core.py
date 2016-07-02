@@ -128,13 +128,14 @@ def wf_piezoelectric_constant(structure, config = None):
     return wf
 
 
-def wf_elastic_constant(structure, config = None):
+def wf_elastic_constant(structure, reciprocal_density=500):
     wf = get_wf_elastic_constant(structure, vasp_cmd = ">>vasp_cmd<<",
                                  db_file = ">>db_file<<")
-
+    
     wf = add_modify_incar(wf, modify_incar_params={"incar_update":{"ENCUT": 700,
                                                                    "EDIFF": 1e-6}
                                                   })
+    wf = add_modify_incar(wf)
     return wf
                          
 

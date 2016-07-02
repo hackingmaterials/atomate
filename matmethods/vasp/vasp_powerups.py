@@ -276,9 +276,8 @@ def use_scratch_dir(original_wf, scratch_dir):
 
 def modify_task_docs(original_wf, update_dict = None):
     """
-    For all VaspToDbTasks in a given workflow, add 
-    information to "additional_fields" to be placed
-    in the task doc.  
+    For all VaspToDbTasks in a given workflow, add information 
+    to "additional_fields" to be placed in the task doc.
     
     Args:
         original_wf (Workflow)
