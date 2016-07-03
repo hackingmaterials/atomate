@@ -40,10 +40,15 @@ class MaterialsEhullBuilder:
                 for x in ["is_hubbard", "hubbards", "potcar_spec"]:
                     params[x] = m["calc_settings"][x]
 
-                composition = Structure.from_dict(m["structure"]).composition
+                structure = Structure.from_dict(m["structure"])
+                try:
+                    mpids = self.mpr.find_structure(structure)
+                except:
+                    mpids = ['N/A']
+                self._materials.update_one({"material_id": m["material_id"]}, {"$set": {"mpids": mpids}}, upsert=True)
                 energy = m["thermo"]["energy"]
 
-                my_entry = ComputedEntry(composition, energy, parameters=params)
+                my_entry = ComputedEntry(structure.composition, energy, parameters=params)
                 self._materials.update_one({"material_id": m["material_id"]},
                                            {"$set": {"stability": self.mpr.get_stability([my_entry])[0]}})
 
