@@ -156,7 +156,7 @@ def wf_elastic_constant(structure, c=None):
                                  db_file=db_file)
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update":
-                                                       {"ENCUT": 700, "EDIFF": 1e-6}})
+                                                   {"ENCUT": 700, "EDIFF": 1e-6}})
 
     wf = add_common_powerups(wf, c)
     return wf
