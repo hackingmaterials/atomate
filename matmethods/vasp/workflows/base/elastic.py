@@ -21,7 +21,7 @@ from pymatgen.analysis.elasticity.strain import Deformation, IndependentStrain
 from pymatgen.analysis.elasticity.stress import Stress
 from pymatgen.analysis.elasticity import reverse_voigt_map
 from pymatgen.io.vasp.outputs import Vasprun
-from pymatgen.io.vasp.sets import MPRelaxSet
+from pymatgen.io.vasp.sets import MPRelaxSet, DictSet
 from pymatgen import Structure
 from matgendb.util import get_settings
 
@@ -211,7 +211,6 @@ class AnalyzeStressStrainData(FireTaskBase):
         else:
             db = MMDb.from_db_file(db_file, admin=True)
             db.collection = db.db["elasticity"]
-            import pdb; pdb.set_trace()
             db.collection.insert_one(d)
             logger.info("ELASTIC ANALYSIS COMPLETE")
 
@@ -249,10 +248,11 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
     if reciprocal_density:
         v.config_dict["KPOINTS"].update(
             {"reciprocal_density":reciprocal_density})
+        v = DictSet(structure, v.config_dict)
     fws = []
 
     fws.append(OptimizeFW(structure=structure,
-                          vasp_input_set=vasp_input_set,
+                          vasp_input_set=v,
                           vasp_cmd=vasp_cmd,
                           db_file=db_file))
 
@@ -273,7 +273,7 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
                                               "LHVAR":False, "ALGO":"Fast",
                                               "LWAVE":False}}
     if reciprocal_density:
-        deformation_vasp_params.update(
+        def_vasp_params.update(
             {"reciprocal_density":reciprocal_density})
     
     for deformation in deformations:
