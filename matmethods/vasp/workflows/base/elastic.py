@@ -114,97 +114,13 @@ class AnalyzeStressStrainData(FireTaskBase):
             d["universal_anisotropy"] = result.universal_anisotropy
             d["homogeneous_poisson"] = result.homogeneous_poisson
 
-            # Perform filter checks
-            symm_t = result.voigt_symmetrized
-            fit_t = result.fit_to_structure(opt_struct)
-            d["analysis"]["fit_to_structure"] = \
-                    bool(result.is_fit_to_structure(opt_struct))
-            d["symmetrized_tensor"] = symm_t.voigt.tolist()
-            d["structure_fit_tensor"] = fit_t.voigt.tolist()
-            d["analysis"]["not_rare_earth"] = True
-            for s in opt_struct.species:
-                if s.is_rare_earth_metal:
-                    d["analysis"]["not_rare_earth"] = False
-            eigvals = np.linalg.eigvals(symm_t.voigt)
-            eig_positive = bool((eigvals > 0).all() 
-                                and np.isreal(eigvals).all())
-            d["analysis"]["eigval_positive"] = eig_positive
-            c11 = symm_t.voigt[0][0]
-            c12 = symm_t.voigt[0][1]
-            c13 = symm_t.voigt[0][2]
-            c23 = symm_t.voigt[1][2]
-
-            d["analysis"]["c11_c12"] = not (abs((c11 - c12) / c11) < 0.05
-                                            or c11 < c12)
-            d["analysis"]["c11_c13"] = not (abs((c11 - c13) / c11) < 0.05
-                                            or c11 < c13)
-            d["analysis"]["c11_c23"] = not (abs((c11 - c23) / c11) < 0.1
-                                            or c11 < c23)
-            d["analysis"]["K_R"] = not (d["K_Reuss"] < 2)
-            d["analysis"]["G_R"] = not (d["G_Reuss"] < 2)
-            d["analysis"]["K_V"] = not (d["K_Voigt"] < 2)
-            d["analysis"]["G_V"] = not (d["G_Voigt"] < 2)
-            filter_state = np.all(d["analysis"].values())
-            d["analysis"]["filter_pass"] = bool(filter_state)
-            d["analysis"]["eigval"] = list(eigvals)
-            
-            # IEEE tensor
-            ieee_tensor = result.convert_to_ieee(opt_struct)
-            fit_ieee_tensor = fit_t.convert_to_ieee(opt_struct)
-            d["elastic_tensor_IEEE"] = ieee_tensor.voigt.tolist()
-            d["structure_fit_IEEE"] = fit_ieee_tensor.voigt.tolist()
-            
-            # Thermal properties
-            nsites = opt_struct.num_sites
-            volume = opt_struct.volume
-            natoms = opt_struct.composition.num_atoms
-            weight = opt_struct.composition.weight
-            num_density = 1e30 * nsites / volume
-            mass_density = 1.6605e3 * nsites * volume * weight / \
-                (natoms * volume)
-            tot_mass = sum([e.atomic_mass for e in opt_struct.species])
-            avg_mass = 1.6605e-27 * tot_mass / natoms
-            y_mod = 9e9 * result.k_vrh * result.g_vrh / \
-                (3. * result.k_vrh * result.g_vrh)
-            trans_v = 1e9 * result.k_vrh / mass_density**0.5
-            long_v = 1e9 * result.k_vrh + \
-                4. / 3. * result.g_vrh / mass_density**0.5
-            clarke = 0.87 * 1.3806e-23 * avg_mass**(-2. / 3.) * \
-                mass_density**(1. / 6.) * y_mod**0.5
-            cahill = 1.3806e-23 / 2.48 * num_density**(2. / 3.) * long_v + \
-                2 * trans_v
-            snyder_ac = 0.38483 * avg_mass * \
-                (long_v + 2. / 3. * trans_v)**3. / \
-                (300. * num_density**(-2. / 3.) * nsites**(1. / 3.))
-            snyder_opt = 1.66914e-23 * (long_v + 2. / 3. * trans_v) / \
-                num_density**(-2. / 3.) * \
-                (1 - nsites**(-1. / 3.))
-            snyder_total = snyder_ac + snyder_opt
-            debye = 2.489e-11 * avg_mass**(-1. / 3.) * \
-                mass_density**(-1. / 6.) * y_mod**0.5
-
-            d["thermal"] = {"num_density": num_density,
-                            "mass_density": mass_density,
-                            "avg_mass": avg_mass,
-                            "num_atom_per_unit_formula": natoms,
-                            "youngs": y_mod,
-                            "trans_velocity": trans_v,
-                            "long_velocity": long_v,
-                            "clarke": clarke,
-                            "cahill": cahill,
-                            "snyder_acou_300K": snyder_ac,
-                            "snyder_opt": snyder_opt,
-                            "snyder_total": snyder_total,
-                            "debye": debye
-                            }
         else:
             raise ValueError("Fewer than 6 unique deformations")
 
         d["state"] = "successful"
 
-        # get the database connection
+        # Save analysis results in json or db
         db_file = env_chk(self.get('db_file'), fw_spec)
-
         if not db_file:
             with open("elasticity.json", "w") as f:
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
@@ -214,6 +130,7 @@ class AnalyzeStressStrainData(FireTaskBase):
             db.collection.insert_one(d)
             logger.info("ELASTIC ANALYSIS COMPLETE")
 
+        return FWAction()
 
 def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", 
                             norm_deformations=[-0.01, -0.005, 0.005, 0.01],
