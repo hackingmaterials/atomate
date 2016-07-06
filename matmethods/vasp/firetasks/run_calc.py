@@ -74,8 +74,7 @@ class RunVaspCustodianFromObjects(FireTaskBase):
     def run_task(self, fw_spec):
         c = Custodian(self["handlers"], self["jobs"], self.get("validators"),
                       **self.get("custodian_params", {}))
-        output = c.run()
-        return FWAction(stored_data=output)
+        c.run()
 
 
 @explicit_serialize
