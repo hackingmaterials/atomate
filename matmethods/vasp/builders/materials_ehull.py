@@ -12,7 +12,7 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 class MaterialsEhullBuilder:
     def __init__(self, materials_write, mapi_key=None, update_all=False):
         """
-        Starting with an existing materials collection, adds stability information.
+        Starting with an existing materials collection, adds stability information and The Materials Project ID.
         Args:
             materials_write: mongodb collection for materials (write access needed)
             mapi_key: (str) Materials API key (if MAPI_KEY env. var. not set)
@@ -40,12 +40,14 @@ class MaterialsEhullBuilder:
                 for x in ["is_hubbard", "hubbards", "potcar_spec"]:
                     params[x] = m["calc_settings"][x]
 
-                composition = Structure.from_dict(m["structure"]).composition
+                structure = Structure.from_dict(m["structure"])
                 energy = m["thermo"]["energy"]
-
-                my_entry = ComputedEntry(composition, energy, parameters=params)
+                my_entry = ComputedEntry(structure.composition, energy, parameters=params)
                 self._materials.update_one({"material_id": m["material_id"]},
                                            {"$set": {"stability": self.mpr.get_stability([my_entry])[0]}})
+
+                mpids = self.mpr.find_structure(structure)
+                self._materials.update_one({"material_id": m["material_id"]}, {"$set": {"mpids": mpids}})
 
             except:
                 import traceback
