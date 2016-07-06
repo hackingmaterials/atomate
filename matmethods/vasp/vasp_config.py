@@ -9,3 +9,4 @@ ADD_MODIFY_INCAR = False
 STABILITY_CHECK = False
 VASP_CMD = ">>vasp_cmd<<"
 DB_FILE = ">>db_file<<"
+ADD_WF_METADATA = True

@@ -5,6 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 from fireworks import Workflow, FileWriteTask
 from fireworks.core.firework import Tracker
 from fireworks.utilities.fw_utilities import get_slug
+from matmethods.utils.utils import get_meta_from_structure
 from matmethods.vasp.firetasks.glue_tasks import CheckStability
 
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspDirect
@@ -200,6 +201,23 @@ def add_modify_incar(original_wf, modify_incar_params=None, fw_name_constraint=N
                                            task_name_constraint="RunVasp"):
         original_wf.fws[idx_fw].spec["_tasks"].insert(idx_t, ModifyIncar(**modify_incar_params).
                                                       to_dict())
+
+    return original_wf
+
+
+def add_wf_metadata(original_wf, structure):
+    """
+    Adds structure metadata to a workflow
+
+    Args:
+        original_wf: (Workflow)
+        structure: (Structure) the structure being run by this workflow
+
+    Returns:
+
+    """
+    original_wf.metadata["structure"] = structure.as_dict()
+    original_wf.metadata.update(get_meta_from_structure(structure))
 
     return original_wf
 
