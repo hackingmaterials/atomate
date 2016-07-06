@@ -2,11 +2,11 @@ from __future__ import absolute_import
 
 from matmethods.vasp.vasp_config import ADD_NAMEFILE, SCRATCH_DIR, \
     SMALLGAP_KPOINT_MULTIPLY, ADD_MODIFY_INCAR, STABILITY_CHECK, VASP_CMD, \
-    DB_FILE
+    DB_FILE, ADD_WF_METADATA
 from matmethods.vasp.workflows.base.core import get_wf
 from matmethods.vasp.vasp_powerups import add_namefile, \
     add_small_gap_multiply, use_scratch_dir, add_stability_check, \
-    add_modify_incar
+    add_modify_incar, add_wf_metadata
 from matmethods.vasp.workflows.base.elastic import get_wf_elastic_constant
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
 
@@ -34,6 +34,9 @@ def wf_bandstructure(structure, c=None):
     if c.get("STABILITY_CHECK", STABILITY_CHECK):
         wf = add_stability_check(wf, fw_name_constraint="structure optimization")
 
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
     return wf
 
 
@@ -55,6 +58,9 @@ def wf_bandstructure_plus_hse(structure, c=None):
 
     if c.get("STABILITY_CHECK", STABILITY_CHECK):
         wf = add_stability_check(wf, fw_name_constraint="structure optimization")
+
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
 
     return wf
 
@@ -82,6 +88,9 @@ def wf_bandstructure_plus_boltztrap(structure, c=None):
     if c.get("STABILITY_CHECK", STABILITY_CHECK):
         wf = add_stability_check(wf, fw_name_constraint="structure optimization")
 
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
     return wf
 
 
@@ -96,6 +105,10 @@ def wf_static(structure, c=None):
                                "db_file": db_file})
 
     wf = add_common_powerups(wf, c)
+
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
     return wf
 
 
@@ -111,6 +124,10 @@ def wf_structure_optimization(structure, c=None):
                                "db_file": db_file})
 
     wf = add_common_powerups(wf, c)
+
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
     return wf
 
 
@@ -126,6 +143,10 @@ def wf_dielectric_constant(structure, c=None):
                                "db_file": db_file})
 
     wf = add_common_powerups(wf, c)
+
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
     return wf
 
 
@@ -143,6 +164,9 @@ def wf_piezoelectric_constant(structure, c=None):
     for fw in wf.fws:
         fw.name = fw.name.replace("dielectric", "piezoelectric")
 
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
     return wf
 
 
@@ -159,6 +183,10 @@ def wf_elastic_constant(structure, c=None):
                                                        {"ENCUT": 700, "EDIFF": 1e-6}})
 
     wf = add_common_powerups(wf, c)
+
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
     return wf
 
 
