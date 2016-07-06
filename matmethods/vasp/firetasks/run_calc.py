@@ -168,8 +168,7 @@ class RunVaspCustodian(FireTaskBase):
         c = Custodian(handlers, jobs, validators=validators, max_errors=max_errors,
                       scratch_dir=scratch_dir, gzipped_output=gzip_output)
 
-        output = c.run()
-        return FWAction(stored_data=output)
+        c.run()
 
 
 @explicit_serialize
