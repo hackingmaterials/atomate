@@ -308,7 +308,7 @@ class MDFW(Firework):
                                   handler_group="md", wall_time=wall_time))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
-                              additional_fields={"task_label": name}))
+                              additional_fields={"task_label": name}, check_defuse_children=False))
         super(MDFW, self).__init__(
                 t, parents=parents, name="{}-{}".
                 format(structure.composition.reduced_formula, name), **kwargs)

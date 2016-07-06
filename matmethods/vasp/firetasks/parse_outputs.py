@@ -54,9 +54,12 @@ class VaspToDbTask(FireTaskBase):
             of this key in the fw_spec.
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
+        defuse_unsuccessful (bool): Defuses children fireworks if VASP run state
+            is not "successful"; i.e. both electronic and ionic convergence are reached.
+            Defaults to True.
     """
     optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
-                       "additional_fields", "db_file", "fw_spec_fields"]
+                       "additional_fields", "db_file", "fw_spec_fields", "defuse_unsuccessful"]
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
@@ -116,8 +119,13 @@ class VaspToDbTask(FireTaskBase):
 
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
+        if self.get("defuse_unsuccessful", True):
+            defuse_children = (task_doc["state"] != "successful")
+        else:
+            defuse_children = False
+
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
-                        defuse_children=(task_doc["state"] != "successful"))
+                        defuse_children=defuse_children)
 
 
 @explicit_serialize
