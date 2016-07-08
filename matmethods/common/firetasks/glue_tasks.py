@@ -48,12 +48,15 @@ class GrabFilesFromCalcLoc(FireTaskBase):
     pulled from fw_spec to determine which files need to be copied.
     """
 
-    def get_files(self,calc_dir=None, calc_loc=None, filenames=None, name_prepend="", name_append="",fw_spec=None):
+    required_params = ["filenames", "name_prepend","name_append"]
+    optional_params = ["calc_dir", "calc_loc"]
 
-        if calc_dir:
+    def run_task(self,fw_spec=None):
+
+        if self.calc_dir:
             filesystem = None
-        elif calc_loc:
-            calc_loc = get_calc_loc(calc_loc, fw_spec["calc_locs"])
+        elif self.calc_loc:
+            calc_loc = get_calc_loc(self.calc_loc, fw_spec["calc_locs"])
             calc_dir = calc_loc["path"]
             filesystem = calc_loc["filesystem"]
         else:
@@ -64,10 +67,10 @@ class GrabFilesFromCalcLoc(FireTaskBase):
 
         all_files = fileclient.listdir(calc_dir)
 
-        if filenames:
-            if type(filenames) == list:
+        if self.filenames:
+            if type(self.filenames) == list:
                 files_to_copy = filenames
-            elif isinstance(filenames, six.string_types):
+            elif isinstance(self.filenames, six.string_types):
                 files_to_copy = [ filenames ]
             else:
                 ValueError("Must have a list of strings or a strings!")
@@ -82,7 +85,7 @@ class GrabFilesFromCalcLoc(FireTaskBase):
         for f in files_to_copy:
             prev_path_full = os.path.join(calc_dir, f)
             # prev_path = os.path.join(os.path.split(calc_dir)[1], f)
-            dest_fname = name_prepend+f+name_append
+            dest_fname = self.name_prepend+f+self.name_append
             dest_path = os.path.join(os.getcwd(), dest_fname)
 
             # copy the file (minus the relaxation extension)

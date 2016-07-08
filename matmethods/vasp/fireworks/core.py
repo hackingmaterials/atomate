@@ -13,6 +13,7 @@ from matmethods.common.firetasks.glue_tasks import PassCalcLocs
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian
 from matmethods.vasp.firetasks.write_inputs import *
+from matmethods.vasp.firetasks.parse_outputs import BandGapCutExitFirework
 
 
 class OptimizeFW(Firework):
@@ -354,10 +355,14 @@ class MDFW(Firework):
                 format(structure.composition.reduced_formula, name), **kwargs)
 
 class LcalcpolFW(Firework):
-    def __init__(self, structure, name="static dipole moment", vasp_cmd="vasp",
-                 copy_vasp_outputs=True, db_file=None, parents=None, calc_loc = True, **kwargs):
+    def __init__(self, structure, name="static dipole moment", static_name="static", vasp_cmd="vasp",
+                 copy_vasp_outputs=True, vasp_input_set=None, db_file=None, parents=None, calc_loc = True,
+                 gap_threshold=0.010 **kwargs):
         """
-        Standard static calculation Firework for dipole moment.
+        Standard static calculation Firework for dipole moment. The calculation will not calculate the polarization
+        if the band gap of the SCF calculation is metallic (have a band gap less than the gap_threshold).
+
+        The SCF calculation can be provided as a previous run or can be computed within this Firework.
 
         Args:
             structure (Structure): Input structure.
@@ -368,23 +373,45 @@ class LcalcpolFW(Firework):
             db_file (str): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework.
                 FW or list of FWS.
+            gap_threshold (float): band gap cutoff for determining whether polarization calculation will proceed from
+                SCF band gap.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         t = []
+
         if copy_vasp_outputs:
-            t.append(
-            # Need to change calc_loc to calc_dir with directory of correct calculation to start from since that will
-            # not necessarily be the parent calculations
-                CopyVaspOutputs(calc_loc=calc_loc, additional_files=["CHGCAR","WAVECAR"],
-                                contcar_to_poscar=True))
+            t.append(CopyVaspOutputs(calc_loc=calc_loc, additional_files=["CHGCAR","WAVECAR"],contcar_to_poscar=True))
+
+            # Exit Firework if bandgap is less than gap_threshold
+            t.append(BandGapCutExitFirework(gt=gap_threshold))
+        else:
+            # Run a static calculation prior to polarization calculation.
+            static = StaticFW(structure, name = static_name, vasp_input_set = vasp_input_set,
+                     vasp_cmd = vasp_cmd, copy_vasp_outputs = True, db_file = db_file, parents = parents,
+                     calc_loc = cal_loc, ** kwargs)
+            t.extend(static.tasks)
+
+            # Exit Firework if bandgap is less than gap_threshold
+            t.append(BandGapCutExitFirework(gt=gap_threshold))
+
+            # Create new directory and move to that directory to perform polarization calculation
+            polarization_folder = "/polarization"
+            if not os.path.exists(os.getcwd() + polarization_folder):
+                os.makedirs(os.getcwd() + polarization_folder)
+            os.chdir(os.getcwd() + polarization_folder)
+
+            t.append(CopyVaspOutputs(calc_loc=static_name, additional_files=["CHGCAR", "WAVECAR"],
+                                     contcar_to_poscar=True))
+
         t.extend([
             WriteVaspStaticFromPrev(prev_calc_dir=".",other_params={'lcalcpol':True}),
             RunVaspDirect(vasp_cmd=vasp_cmd),
             PassCalcLocs(name=name),
             VaspToDbTask(db_file=db_file,
                          additional_fields={"task_label": name})])
-        # Need to ensure that OUTCAR is processed so that the read_lcalcpol
-        # can be used and polarization stored.
+
+        # Note, Outcar must have read_lcalcpol method for polarization information to be processed.
+        # ...assuming VaspDrone will automatically assimilate all properties of the Outcar.
 
         super(LcalcpolFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula,

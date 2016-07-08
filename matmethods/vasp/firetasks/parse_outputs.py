@@ -15,6 +15,7 @@ from matmethods.utils.utils import env_chk, get_calc_loc
 from matmethods.utils.utils import get_logger
 from matmethods.vasp.database import MMDb
 from matmethods.vasp.drones import VaspDrone
+from pymatgen.io.vasp.outputs import Vasprun
 
 __author__ = 'Anubhav Jain, Kiran Mathew, Shyam Dwaraknath'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov'
@@ -119,36 +120,46 @@ class VaspToDbTask(FireTaskBase):
 
 
 @explicit_serialize
-class BandGapCut(FireTaskBase):
+class BandGapCutDefuseChildren(FireTaskBase):
     """
-    General class for making band gap cuts on calculations that result in whether or not to defuse children Fireworks.
-    It possibly should be merged with VaspToDBTask...
-
+    Defuses children FireWorks if band gap condition is not met: gt < gap < lt
     """
 
-    optional_params = ['gt','lt',"calc_dir", "calc_loc", "parse_dos",
-                       "bandstructure_mode", "additional_fields", "db_file"]
+    optional_params = ['gt','lt']
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
+
         calc_dir = os.getcwd()
-        if "calc_dir" in self:
-            calc_dir = self["calc_dir"]
-        elif self.get("calc_loc"):
-            calc_dir = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])["path"]
+        vasprun_file = calc_dir+'/vasprun.xml'
+        vrun = Vasprun(vasprun_file)
+        (gap, cbm, vbm, is_direct) = vrun.eigenvalue_band_properties
 
-        logger.info("PARSING DIRECTORY: {}".format(calc_dir))
-
-        drone = VaspDrone(additional_fields=self.get("additional_fields"),
-                          parse_dos=self.get("parse_dos", False), compress_dos=1,
-                          bandstructure_mode=self.get("bandstructure_mode", False), compress_bs=1)
-        # assimilate
-        task_doc = drone.assimilate(calc_dir)
-
-        bandgap = task_doc["calcs_reversed"][0]['output']['bandgap']
-
-        if (bandgap < self.get('lt',1.0e10)) and (bandgap > self.get('gt',0.001)):
-            return FWAction(stored_data={"bandgap": bandgap})
+        if (gap < self.get('lt',1.0e10)) and (gap > self.get('gt',0.001)):
+            return FWAction(stored_data={"bandgap": gap})
         else:
-            return FWAction(stored_data={"bandgap": bandgap},
+            return FWAction(stored_data={"bandgap": gap},
                             defuse_children=True)
+
+
+@explicit_serialize
+class BandGapCutExitFirework(FireTaskBase):
+    """
+    Skip remaining FireTasks in FireWorks if band gap condition is not met: gt < gap < lt
+    """
+
+    optional_params = ['gt','lt']
+
+    def run_task(self, fw_spec):
+        # get the directory that contains the VASP dir to parse
+
+        calc_dir = os.getcwd()
+        vasprun_file = calc_dir+'/vasprun.xml'
+        vrun = Vasprun(vasprun_file)
+        (gap, cbm, vbm, is_direct) = vrun.eigenvalue_band_properties
+
+        if (gap < self.get('lt',1.0e10)) and (gap > self.get('gt',0.001)):
+            return FWAction(stored_data={"bandgap": gap})
+        else:
+            return FWAction(stored_data={"bandgap": gap},
+                            exit=True)

@@ -136,7 +136,7 @@ class CopyVaspOutputs(FireTaskBase):
                 f.close()
                 os.remove(dest_path + gz_ext)
 
-class GetInterpolatedPOSCAR(GrabFilesFromCalcLoc):
+class GetInterpolatedPOSCAR(FireTaskBase):
     """
     Grabs CONTCARS from two previous calculations
     """
@@ -157,10 +157,10 @@ class GetInterpolatedPOSCAR(GrabFilesFromCalcLoc):
             print (os.getcwd()+interpolate_folder)
 
         # use method of GrabFilesFromCalcLoc to grab files from previous locations.
-        self.get_files(calc_dir=None, calc_loc=self.get("start","default"), filenames="CONTCAR", name_prepend="interpolate/",
-                       name_append="_0",fw_spec=fw_spec)
-        self.get_files(calc_dir=None, calc_loc=self.get("end","default"), filenames="CONTCAR", name_prepend="interpolate/",
-                       name_append="_1",fw_spec=fw_spec)
+        GrabFilesFromCalcLoc(calc_dir=None, calc_loc=self.get("start","default"), filenames="CONTCAR",
+                             name_prepend="interpolate/", name_append="_0").run_task(fw_spec=fw_spec)
+        GrabFilesFromCalcLoc(calc_dir=None, calc_loc=self.get("end","default"), filenames="CONTCAR",
+                             name_prepend="interpolate/", name_append="_1").run_task(fw_spec=fw_spec)
 
         # assuming first calc_dir is polar structure for ferroelectric search
 
