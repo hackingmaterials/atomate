@@ -6,19 +6,18 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 This module defines functions that yield lammps workflows
 """
 
-from fireworks import Workflow, Firework
+from fireworks import Workflow
 
 from pymatgen.io.lammps.input import DictLammpsInput, NVTLammpsInput
 
-from matmethods.lammps.firetasks.write_inputs import WritelammpsInputFromDictInput
-from matmethods.lammps.firetasks.run_calc import RunLammpsDirect
+from matmethods.lammps.workflows.core import get_wf
 
 
 __author__ = 'Kiran Mathew'
 __email__ = "kmathew@lbl.gov"
 
 
-def wf_from_input_template(job_name, input_template_file, lammps_data, data_filename, user_settings,
+def wf_from_input_template(input_template_file, lammps_data, data_filename, user_settings,
                            is_forcefield=False, input_filename="lammps.inp", lammps_bin="lammps"):
     """
     Returns workflow where the input file paramters are set from the give json template file.
@@ -40,15 +39,12 @@ def wf_from_input_template(job_name, input_template_file, lammps_data, data_file
         Workflow
 
     """
+    wf_name = "LAMMPS Wflow from input template {}".format(input_template_file)
     lammps_dict_input = DictLammpsInput.from_file(job_name, input_template_file, lammps_data=lammps_data,
                                                   data_filename=data_filename,
                                                   user_lammps_settings=user_settings,
                                                   is_forcefield=is_forcefield)
-    task1 = WritelammpsInputFromDictInput(lammps_dict_input=lammps_dict_input,
-                                          input_file=input_filename)
-    task2 = RunLammpsDirect(lammps_cmd=lammps_bin + " -in " + input_filename)
-    fw1 = Firework([task1, task2], name='Run lammps')
-    return Workflow([fw1], name="LAMMPS Wflow from input template {}".format(input_template_file))
+    return get_wf(wf_name, lammps_dict_input, input_filename=input_filename, lammps_bin=lammps_bin)
 
 
 def nvt_wf(data_input, input_filename = "nvt.inp", data_filename="in.data",
@@ -67,12 +63,10 @@ def nvt_wf(data_input, input_filename = "nvt.inp", data_filename="in.data",
         is_forcefield (bool): whether or not the data file has forcefiled info.
         lammps_bin (string): path to the lammps binary
     """
+    wf_name = "LAMMPS NVT"
     lammps_dict_input = NVTLammpsInput(lammps_data=data_input, data_filename=data_filename,
                                        user_lammps_settings=user_lammps_settings, is_forcefield=is_forcefield)
-    task1 = WritelammpsInputFromDictInput(lammps_dict_input=lammps_dict_input, input_file=input_filename)
-    task2 = RunLammpsDirect(lammps_cmd=lammps_bin+" -in "+input_filename)
-    fw1 = Firework([task1, task2], name='Run lammps')
-    return Workflow([fw1], name="LAMMPS NVT")
+    return get_wf(wf_name, lammps_dict_input, input_filename=input_filename, lammps_bin=lammps_bin)
 
 
 if __name__ == "__main__":
