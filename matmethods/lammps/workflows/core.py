@@ -19,7 +19,7 @@ __email__ = "kmathew@lbl.gov"
 
 
 def wf_from_input_template(job_name, input_template_file, lammps_data, data_filename, user_settings,
-                           is_forcefield=False, input_filename = "lammps.inp", lammps_bin="lammps"):
+                           is_forcefield=False, input_filename="lammps.inp", lammps_bin="lammps"):
     """
     Returns workflow where the input file paramters are set from the give json template file.
 
@@ -33,6 +33,8 @@ def wf_from_input_template(job_name, input_template_file, lammps_data, data_file
         is_forcefield (bool): whether the data file has forcefield and
                 topology info in it. This is required only if lammps_data is
                 a path to the data file instead of a data object
+        input_filename (string): input file name
+        lammps_bin (string): path to the lammps binary
 
     Returns:
         Workflow
