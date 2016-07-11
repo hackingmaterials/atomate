@@ -6,6 +6,7 @@ Subpackages
 
 .. toctree::
 
+    matmethods.vasp.builders
     matmethods.vasp.firetasks
     matmethods.vasp.fireworks
     matmethods.vasp.tests

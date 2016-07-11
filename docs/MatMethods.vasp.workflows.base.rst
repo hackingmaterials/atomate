@@ -12,6 +12,14 @@ matmethods.vasp.workflows.base.core module
     :undoc-members:
     :show-inheritance:
 
+matmethods.vasp.workflows.base.elastic module
+---------------------------------------------
+
+.. automodule:: matmethods.vasp.workflows.base.elastic
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

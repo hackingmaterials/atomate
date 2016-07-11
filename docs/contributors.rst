@@ -7,4 +7,8 @@ MatMethods development is led by the Hacking Materials research group led by Anu
 Major contributions are provided by:
 
 * The Materials Virtual Lab research group of Prof. Shyue Ping Ong at UC San Diego.
-* Kiran Mathew and Murat Aykol through the research group of Prof. Kristin Persson at UC Berkeley.
+* Kiran Mathew, Shyam Dwaraknath, Joey Montoya, and Murat Aykol through the research group of Prof. Kristin Persson at UC Berkeley.
+
+Minor contributions are provided by:
+
+* Alireza Faghaninia

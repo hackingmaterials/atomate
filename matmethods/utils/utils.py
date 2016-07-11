@@ -6,6 +6,8 @@ import logging
 import sys
 import six
 
+from pymatgen import Composition
+
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
@@ -41,8 +43,7 @@ def env_chk(val, fw_spec, strict=True, default=None):
     if val is None:
         return default
 
-    if isinstance(val, six.string_types) and val.startswith(">>") and \
-            val.endswith("<<"):
+    if isinstance(val, six.string_types) and val.startswith(">>") and val.endswith("<<"):
         if strict:
             return fw_spec['_fw_env'][val[2:-2]]
         return fw_spec.get('_fw_env', {}).get(val[2:-2], default)
@@ -72,15 +73,23 @@ def get_calc_loc(target_name, calc_locs):
         for doc in reversed(calc_locs):
             if doc["name"] == target_name:
                 return doc
-        raise ValueError("Could not find the target_name: {}".
-                         format(target_name))
-
+        raise ValueError("Could not find the target_name: {}".format(target_name))
     else:
         return calc_locs[-1]
 
 
-def get_logger(name, level=logging.DEBUG,
-               format='%(asctime)s %(levelname)s %(name)s %(message)s',
+def get_mongolike(d, key):
+    if "." in key:
+        i, j = key.split(".", 1)
+        try:
+            i = int(i)
+        except:
+            pass
+        return get_mongolike(d[i], j)
+    return d[key]
+
+
+def get_logger(name, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(message)s',
                stream=sys.stdout):
     logger = logging.getLogger(name)
     logger.setLevel(level)
@@ -89,3 +98,20 @@ def get_logger(name, level=logging.DEBUG,
     sh.setFormatter(formatter)
     logger.addHandler(sh)
     return logger
+
+
+def get_meta_from_structure(structure):
+    comp = structure.composition
+    elsyms = sorted(set([e.symbol for e in comp.elements]))
+    meta = {'nsites': len(structure),
+            'elements': elsyms,
+            'nelements': len(elsyms),
+            'formula': comp.formula,
+            'formula_reduced': comp.reduced_formula,
+            'formula_reduced_abc': Composition(comp.reduced_formula)
+            .alphabetical_formula,
+            'formula_anonymous': comp.anonymized_formula,
+            'chemsys': '-'.join(elsyms),
+            'is_ordered': structure.is_ordered,
+            'is_valid': structure.is_valid()}
+    return meta

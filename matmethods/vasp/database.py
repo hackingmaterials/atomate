@@ -23,10 +23,12 @@ __email__ = 'kmathew@lbl.gov'
 
 logger = get_logger(__name__)
 
+# TODO: add Boltztrap management here
+
 
 class MMDb(object):
     """
-    Class to help manage database insertions of Vasp drones
+    Class to help manage database insertions of Vasp + related drones
     """
 
     def __init__(self, host="localhost", port=27017, database="vasp", collection="tasks",
@@ -53,7 +55,7 @@ class MMDb(object):
 
         # set counter collection
         if self.db.counter.find({"_id": "taskid"}).count() == 0:
-            self.db.counter.insert_one({"_id": "taskid", "c": 1})
+            self.db.counter.insert_one({"_id": "taskid", "c": 0})
             self.build_indexes()
 
     def build_indexes(self, indexes=None, background=True):
@@ -97,7 +99,7 @@ class MMDb(object):
             file id, the type of compression used.
         """
         if compress:
-            d = zlib.compress(d, compress)
+            d = zlib.compress(d.encode(), compress)
         fs = gridfs.GridFS(self.db, collection)
         fs_id = fs.put(d)
         return fs_id, "zlib"
@@ -135,10 +137,13 @@ class MMDb(object):
 
     def reset(self):
         self.collection.delete_many({})
-        self.db.counter.delete_many({})
-        self.db.counter.insert_one({"_id": "taskid", "c": 1})
+        self.db.counter.delete_one({"_id": "taskid"})
+        self.db.counter.insert_one({"_id": "taskid", "c": 0})
+        self.db.boltztrap.delete_many({})
         self.db.dos_fs.files.delete_many({})
         self.db.dos_fs.chunks.delete_many({})
+        self.db.dos_boltztrap_fs.files.delete_many({})
+        self.db.dos_boltztrap_fs.chunks.delete_many({})
         self.db.bandstructure_fs.files.delete_many({})
         self.db.bandstructure_fs.chunks.delete_many({})
         self.build_indexes()

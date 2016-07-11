@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import unittest
 
 from matmethods.utils.loaders import get_wf_from_spec_dict
