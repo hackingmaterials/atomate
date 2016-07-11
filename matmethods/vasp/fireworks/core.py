@@ -216,7 +216,7 @@ class SOCFW(Firework):
 class TransmuterFW(Firework):
     def __init__(self, structure, transformations, transformation_params=None,
                  vasp_input_set="MPStaticSet", name="structure transmuter", vasp_cmd="vasp",
-                 copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
+                 copy_vasp_outputs=True, db_file=None, parents=None, vasp_input_params=None, **kwargs):
         """
         Apply the transformations to the input structure, write the input set corresponding
         to the transformed structure and run vasp on them.
@@ -245,15 +245,14 @@ class TransmuterFW(Firework):
             t.append(WriteTransmutedStructureIOSet(structure=structure, transformations=transformations,
                                                    transformation_params=transformation_params,
                                                    vasp_input_set=vasp_input_set,
-                                                   vasp_input_params=kwargs.get("vasp_input_params",{}),
+                                                   vasp_input_params=vasp_input_params,
                                                    prev_calc_dir="."))
         else:
             t.append(WriteTransmutedStructureIOSet(structure=structure, transformations=transformations,
                                                    transformation_params=transformation_params,
                                                    vasp_input_set=vasp_input_set,
-                                                   vasp_input_params=kwargs.get("vasp_input_params",{})))
-        if "vasp_input_params" in kwargs:
-            kwargs.pop("vasp_input_params")
+                                                   vasp_input_params=vasp_input_params))
+        
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
@@ -309,7 +308,7 @@ class MDFW(Firework):
                                   handler_group="md", wall_time=wall_time))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
-                              additional_fields={"task_label": name}))
+                              additional_fields={"task_label": name}, defuse_unsuccessful=False))
         super(MDFW, self).__init__(
                 t, parents=parents, name="{}-{}".
                 format(structure.composition.reduced_formula, name), **kwargs)
