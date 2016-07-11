@@ -40,7 +40,7 @@ def wf_from_input_template(input_template_file, lammps_data, data_filename, user
 
     """
     wf_name = "LAMMPS Wflow from input template {}".format(input_template_file)
-    lammps_dict_input = DictLammpsInput.from_file(job_name, input_template_file, lammps_data=lammps_data,
+    lammps_dict_input = DictLammpsInput.from_file(wf_name, input_template_file, lammps_data=lammps_data,
                                                   data_filename=data_filename,
                                                   user_lammps_settings=user_settings,
                                                   is_forcefield=is_forcefield)

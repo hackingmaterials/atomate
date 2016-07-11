@@ -20,7 +20,7 @@ __email__ = "kmathew@lbl.gov"
 
 def get_wf(job_name, lammps_dict_input, input_filename="lammps.inp", lammps_bin="lammps"):
     """
-    Returns workflow where the input file paramters are set from the give json template file.
+    Returns workflow that writes lammps input/data files and runs lammps.
 
     Args:
         job_name: job name
@@ -35,5 +35,5 @@ def get_wf(job_name, lammps_dict_input, input_filename="lammps.inp", lammps_bin=
     task1 = WritelammpsInputFromDictInput(lammps_dict_input=lammps_dict_input,
                                           input_file=input_filename)
     task2 = RunLammpsDirect(lammps_cmd=lammps_bin + " -in " + input_filename)
-    fw1 = Firework([task1, task2], name='Run lammps')
+    fw1 = Firework([task1, task2], name=job_name)
     return Workflow([fw1], name=job_name)
