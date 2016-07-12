@@ -29,6 +29,7 @@ class TasksMaterialsBuilder:
             tasks_read: mongodb collection for tasks (suggest read-only for safety)
         """
         x = loadfn(os.path.join(module_dir, "tasks_materials_settings.yaml"))
+        self.supported_task_labels = x['supported_task_labels']
         self.property_settings = x['property_settings']
         self.indexes = x.get('indexes', [])
         self.properties_root = x.get('properties_root', [])
@@ -65,7 +66,7 @@ class TasksMaterialsBuilder:
         for m in self._materials.find({}, {"_tasksbuilder.all_task_ids": 1}):
             previous_task_ids.extend(m["_tasksbuilder"]["all_task_ids"])
 
-        all_task_ids = [self.tid_str(t["task_id"]) for t in self._tasks.find({"state": "successful"}, {"task_id": 1})]
+        all_task_ids = [self.tid_str(t["task_id"]) for t in self._tasks.find({"state": "successful", "task_label": {"$in": self.supported_task_labels}}, {"task_id": 1})]
         task_ids = [t_id for t_id in all_task_ids if t_id not in previous_task_ids]
 
         print("There are {} new task_ids to process.".format(len(task_ids)))
