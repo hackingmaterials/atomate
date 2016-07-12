@@ -58,6 +58,13 @@ properties_root:
   - bandgap
   - energy_per_atom
 
+supported_task_labels:
+  - "structure optimization"
+  - "static"
+  - "nscf uniform"
+  - "nscf line"
+  - "static dielectric"
+
 indexes:
   - "_tasksbuilder.all_task_ids"
   - "bandstructure.bandgap"
