@@ -3,7 +3,7 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
-This module defines firetasks for processing the LAMMPS outputfiles to extract useful
+This module defines firetasks for parsing and processing the LAMMPS outputfiles to extract useful
 information such as the summary of transport properties and insert them into the database.
 """
 
@@ -35,28 +35,23 @@ class LammpsToDBTask(FireTaskBase):
 
     Require params:
         lammps_input (DictLammpsInput)
-        dump_file (string): dump file name
-        log_file (string): log file name
-        is_forcefield (bool)
 
     Optional params:
         calc_dir (str): path to dir (on current filesystem) that contains LAMMPS
             output files. Default: use current working directory.
         calc_loc (str OR bool): if True will set most recent calc_loc. If str
             search for the most recent calc_loc with the matching name
-        diffusion_params (dict): parameters to the diffusion_analyzer
+        diffusion_params (dict): parameters to the diffusion_analyzer. If specified a summary
+            of diffusion statistics will be added.
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
     """
 
-    required_params = ["lammps_input", "dump_file", "log_file", "is_forcefield"]
+    required_params = ["lammps_input"]
     optional_params = ["calc_dir", "calc_loc", "diffusion_params", "db_file"]
 
     def run_task(self, fw_spec):
         lammps_input = self["lammps_input"]
-        dump_file = self["dump_file"]
-        log_file = self["log_file"]
-        is_forcefield = self["is_forcefield"]
         diffusion_params = self.get("diffusion_params", {})
 
         # get the directory that contains the LAMMPS dir to parse
@@ -72,6 +67,9 @@ class LammpsToDBTask(FireTaskBase):
         d["dir_name"] = os.path.abspath(os.getcwd())
         d["last_updated"] = datetime.datetime.today()
         d["input"] = lammps_input.as_dict()
+        log_file = lammps_input.config_dict["log"]
+        dump_file = lammps_input.config_dict["dump"].split()[5]
+        is_forcefield = hasattr(lammps_input.lammps_data.bonds_data)
         lammpsrun = LammpsRun(lammps_input.data_filename, dump_file, log_file, is_forcefield=is_forcefield)
         d["natoms"] = lammpsrun.natoms
         d["nmols"] = lammpsrun.nmols

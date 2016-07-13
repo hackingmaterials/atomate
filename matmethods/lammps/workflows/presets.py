@@ -47,14 +47,14 @@ def wf_from_input_template(input_template_file, lammps_data, data_filename, user
     return get_wf(wf_name, lammps_dict_input, input_filename=input_filename, lammps_bin=lammps_bin)
 
 
-def nvt_wf(data_input, input_filename = "nvt.inp", data_filename="in.data",
+def nvt_wf(lammps_data, input_filename = "nvt.inp", data_filename="in.data",
            user_lammps_settings={}, is_forcefield=False, lammps_bin="lammps"):
     """
     Returns NVT workflow:
         Firework: [write lammps input task, run direct task]
 
     Args:
-        data_input (string/LammpsData/LammpsForceFieldData): path to the data file
+        lammps_data (string/LammpsData/LammpsForceFieldData): path to the data file
             or an appropriate object.
         input_filename (string): input file name
         data_filename (string): data file name
@@ -64,11 +64,6 @@ def nvt_wf(data_input, input_filename = "nvt.inp", data_filename="in.data",
         lammps_bin (string): path to the lammps binary
     """
     wf_name = "LAMMPS NVT"
-    lammps_dict_input = NVTLammpsInput(lammps_data=data_input, data_filename=data_filename,
+    lammps_dict_input = NVTLammpsInput(lammps_data=lammps_data, data_filename=data_filename,
                                        user_lammps_settings=user_lammps_settings, is_forcefield=is_forcefield)
     return get_wf(wf_name, lammps_dict_input, input_filename=input_filename, lammps_bin=lammps_bin)
-
-
-if __name__ == "__main__":
-    wf = nvt_wf("test_files/nvt.data", data_filename="nvt.data", is_forcefield=True, lammps_bin="lmp_serial")
-    print(wf.as_dict())
