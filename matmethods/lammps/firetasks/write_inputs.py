@@ -20,7 +20,7 @@ class WritelammpsInputFromDictInput(FireTaskBase):
 
     required_params:
         lammps_dict_input (DictLammpsInput)
-        input_file (string): path to the input file
+        input_file (string): name of the file to which the input params will be written
 
     optional_params:
         data_file (string): if specified the data file will be renamed
