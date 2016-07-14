@@ -67,20 +67,20 @@ class TestVaspWorkflows(unittest.TestCase):
                                         "2 3 33702.4 0.2796 503.0",
                                         "3 3 75844.8 0.2461 396.9"],
                          "thermo_style": "custom step time temp press pe ke etotal enthalpy fmax fnorm",
-                         "fix": "NPT all npt temp {T[0]} {T[1]} {T[2]} iso {P[0]} {P[1]} {P[2]}".format(
-                             T=T, P=P),
+                         "fix": "NPT all npt temp {T[0]} {T[1]} {T[2]} iso {P[0]} {P[1]} {P[2]}".format(T=T, P=P),
                          "dump": [
-                             "peodump all custom {} {} id type x y z ix iy iz mol".format(dump_freq,
-                                                                                          dump_filename),
+                             "peodump all custom {} {} id type x y z ix iy iz mol".format(dump_freq, dump_filename),
                              "traj all dcd {} {}".format(dump_freq, dcd_traj_filename)]}
 
         wf = wf_from_input_template(self.input_template, lammps_data, "npt.data", user_settings,
-                           is_forcefield=True, input_filename="lammps.inp", lammps_bin="lmp_serial")
+                                    is_forcefield=True, input_filename="lammps.inp",
+                                    lammps_bin="lmp_serial")
+        #print(wf.as_dict()['fws'][0]['spec']['_tasks'][0].keys())
         self.lp.add_wf(wf)
 
         # run the workflow
         # set the db_file variable
-        #rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
+        rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
         #d = self._get_task_collection().find_one()
         #self._check_run(d, mode="structure optimization")
 

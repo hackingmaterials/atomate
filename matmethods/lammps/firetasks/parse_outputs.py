@@ -65,11 +65,14 @@ class LammpsToDBTask(FireTaskBase):
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
         d = {}
         d["dir_name"] = os.path.abspath(os.getcwd())
-        d["last_updated"] = datetime.datetime.today()
+        d["last_updated"] = datetime.today()
         d["input"] = lammps_input.as_dict()
         log_file = lammps_input.config_dict["log"]
-        dump_file = lammps_input.config_dict["dump"].split()[5]
-        is_forcefield = hasattr(lammps_input.lammps_data.bonds_data)
+        if isinstance(lammps_input.config_dict["dump"], list):
+            dump_file = lammps_input.config_dict["dump"][0].split()[4]
+        else:
+            dump_file = lammps_input.config_dict["dump"].split()[4]
+        is_forcefield = hasattr(lammps_input.lammps_data, "bonds_data")
         lammpsrun = LammpsRun(lammps_input.data_filename, dump_file, log_file, is_forcefield=is_forcefield)
         d["natoms"] = lammpsrun.natoms
         d["nmols"] = lammpsrun.nmols
@@ -90,8 +93,4 @@ class LammpsToDBTask(FireTaskBase):
             # insert the task document
             t_id = mmdb.insert(d)
             logger.info("Finished parsing with task_id: {}".format(t_id))
-        if self.get("defuse_unsuccessful", True):
-            defuse_children = (d["state"] != "successful")
-        else:
-            defuse_children = False
-        return FWAction(stored_data={"task_id": d.get("task_id", None)}, defuse_children=defuse_children)
+        return FWAction(stored_data={"task_id": d.get("task_id", None)})
