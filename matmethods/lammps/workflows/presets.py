@@ -18,7 +18,8 @@ __email__ = "kmathew@lbl.gov"
 
 
 def wf_from_input_template(input_template_file, lammps_data, data_filename, user_settings,
-                           is_forcefield=False, input_filename="lammps.inp", lammps_bin="lammps"):
+                           is_forcefield=False, input_filename="lammps.inp", lammps_bin="lammps",
+                           dry_run=False):
     """
     Returns workflow where the input file paramters are set from the give json template file.
 
@@ -44,11 +45,12 @@ def wf_from_input_template(input_template_file, lammps_data, data_filename, user
                                                   data_filename=data_filename,
                                                   user_lammps_settings=user_settings,
                                                   is_forcefield=is_forcefield)
-    return get_wf(wf_name, lammps_dict_input, input_filename=input_filename, lammps_bin=lammps_bin)
+    return get_wf(wf_name, lammps_dict_input, input_filename=input_filename, lammps_bin=lammps_bin,
+                  dry_run=dry_run)
 
 
 def nvt_wf(lammps_data, input_filename = "nvt.inp", data_filename="in.data",
-           user_lammps_settings={}, is_forcefield=False, lammps_bin="lammps"):
+           user_lammps_settings={}, is_forcefield=False, lammps_bin="lammps", dry_run=False):
     """
     Returns NVT workflow:
         Firework: [write lammps input task, run direct task]
@@ -66,4 +68,5 @@ def nvt_wf(lammps_data, input_filename = "nvt.inp", data_filename="in.data",
     wf_name = "LAMMPS NVT"
     lammps_dict_input = NVTLammpsInput(lammps_data=lammps_data, data_filename=data_filename,
                                        user_lammps_settings=user_lammps_settings, is_forcefield=is_forcefield)
-    return get_wf(wf_name, lammps_dict_input, input_filename=input_filename, lammps_bin=lammps_bin)
+    return get_wf(wf_name, lammps_dict_input, input_filename=input_filename, lammps_bin=lammps_bin,
+                  dry_run=dry_run)

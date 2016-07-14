@@ -19,7 +19,7 @@ __author__ = 'Kiran Mathew'
 __email__ = "kmathew@lbl.gov"
 
 
-def get_wf(job_name, lammps_dict_input, input_filename="lammps.inp", lammps_bin="lammps"):
+def get_wf(job_name, lammps_dict_input, input_filename="lammps.inp", lammps_bin="lammps", dry_run=False):
     """
     Returns workflow that writes lammps input/data files, runs lammps and inserts to DB.
 
@@ -34,7 +34,11 @@ def get_wf(job_name, lammps_dict_input, input_filename="lammps.inp", lammps_bin=
 
     """
     task1 = WritelammpsInputFromDictInput(lammps_dict_input=lammps_dict_input, input_file=input_filename)
-    task2 = RunLammpsDirect(lammps_cmd=lammps_bin + " -in " + input_filename)
+    if dry_run:
+        lammps_cmd = lammps_bin
+    else:
+        lammps_cmd = lammps_bin + " -in " + input_filename
+    task2 = RunLammpsDirect(lammps_cmd=lammps_cmd)
     task3 = LammpsToDBTask(lammps_input=lammps_dict_input)
     fw1 = Firework([task1, task2, task3], name=job_name)
     return Workflow([fw1], name=job_name)

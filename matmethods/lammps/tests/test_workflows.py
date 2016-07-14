@@ -21,7 +21,7 @@ __email__ = 'kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "common", "reference_files", "db_connections")
-DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
+DEBUG_MODE = True #False  # If true, retains the database and output dirs at the end of the test
 
 
 class TestVaspWorkflows(unittest.TestCase):
@@ -72,14 +72,12 @@ class TestVaspWorkflows(unittest.TestCase):
                              "peodump all custom {} {} id type x y z ix iy iz mol".format(dump_freq, dump_filename),
                              "traj all dcd {} {}".format(dump_freq, dcd_traj_filename)]}
 
+        lammps_bin = "cp  ../../reference_files/peo.* ." #"lmp_serial"
         wf = wf_from_input_template(self.input_template, lammps_data, "npt.data", user_settings,
                                     is_forcefield=True, input_filename="lammps.inp",
-                                    lammps_bin="lmp_serial")
-        #print(wf.as_dict()['fws'][0]['spec']['_tasks'][0].keys())
+                                    lammps_bin=lammps_bin, dry_run=True)
         self.lp.add_wf(wf)
 
-        # run the workflow
-        # set the db_file variable
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
         #d = self._get_task_collection().find_one()
         #self._check_run(d, mode="structure optimization")
