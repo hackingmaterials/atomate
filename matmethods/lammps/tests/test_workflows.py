@@ -6,6 +6,7 @@ import json
 import os
 import shutil
 import unittest
+import filecmp
 from pymongo import MongoClient
 
 from pymatgen.io.lammps.data import LammpsForceFieldData
@@ -21,7 +22,8 @@ __email__ = 'kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "common", "reference_files", "db_connections")
-DEBUG_MODE = True #False  # If true, retains the database and output dirs at the end of the test
+DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
+LAMMPS_CMD = None  # "lmp_serial"
 
 
 class TestVaspWorkflows(unittest.TestCase):
@@ -72,18 +74,27 @@ class TestVaspWorkflows(unittest.TestCase):
                              "peodump all custom {} {} id type x y z ix iy iz mol".format(dump_freq, dump_filename),
                              "traj all dcd {} {}".format(dump_freq, dcd_traj_filename)]}
 
-        lammps_bin = "cp  ../../reference_files/peo.* ." #"lmp_serial"
+        if not LAMMPS_CMD:
+            # fake run
+            lammps_bin = "cp  ../../reference_files/peo.* ."
+            dry_run = True
+        else:
+            lammps_bin = LAMMPS_CMD
+            dry_run = False
         wf = wf_from_input_template(self.input_template, lammps_data, "npt.data", user_settings,
-                                    is_forcefield=True, input_filename="lammps.inp",
-                                    lammps_bin=lammps_bin, dry_run=True)
+                                    is_forcefield=True, input_filename="lammps.inp", lammps_bin=lammps_bin,
+                                    db_file=">>db_file<<", dry_run=dry_run)
         self.lp.add_wf(wf)
-
+        # run
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
-        #d = self._get_task_collection().find_one()
-        #self._check_run(d, mode="structure optimization")
+        d = self._get_task_collection().find_one()
+        self._check_run(d)
 
-    def _check_run(self, d, mode):
-        pass
+    def _check_run(self, d):
+        if not LAMMPS_CMD:
+            self.assertTrue(filecmp.cmp(os.path.join(d["dir_name"], "peo.log"), "../reference_files/peo.log"))
+            self.assertTrue(filecmp.cmp(os.path.join(d["dir_name"], "peo.dump"), "../reference_files/peo.dump"))
+            self.assertTrue(filecmp.cmp(os.path.join(d["dir_name"], "peo.dcd"), "../reference_files/peo.dcd"))
 
     def _get_task_database(self):
         with open(os.path.join(db_dir, "db.json")) as f:
