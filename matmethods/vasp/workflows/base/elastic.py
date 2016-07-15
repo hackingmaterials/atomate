@@ -4,10 +4,10 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import json
-import os
 from decimal import Decimal
 
 import numpy as np
+
 from fireworks import FireTaskBase, Firework, FWAction, Workflow
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.utilities.fw_utilities import explicit_serialize
@@ -16,6 +16,7 @@ from matmethods.utils.utils import env_chk, get_logger
 from matmethods.vasp.drones import VaspDrone
 from matmethods.vasp.database import MMDb
 from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW
+
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
 from pymatgen.analysis.elasticity.strain import Deformation, IndependentStrain
 from pymatgen.analysis.elasticity.stress import Stress
@@ -23,10 +24,6 @@ from pymatgen.analysis.elasticity import reverse_voigt_map
 from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.io.vasp.sets import MPRelaxSet, DictSet
 from pymatgen import Structure
-from matgendb.util import get_settings
-
-from pymatgen.transformations.standard_transformations import \
-    DeformStructureTransformation
 
 """
 This module defines the elastic workflow
