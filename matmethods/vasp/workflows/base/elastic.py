@@ -1,7 +1,10 @@
 # coding: utf-8
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+"""
+This module defines the elastic workflow
+"""
 
 import json
 from decimal import Decimal
@@ -24,10 +27,6 @@ from pymatgen.analysis.elasticity import reverse_voigt_map
 from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.io.vasp.sets import MPRelaxSet, DictSet
 from pymatgen import Structure
-
-"""
-This module defines the elastic workflow
-"""
 
 __author__ = 'Shyam Dwaraknath, Joseph Montoya'
 __email__ = 'shyamd@lbl.gov, montoyjh@lbl.gov'

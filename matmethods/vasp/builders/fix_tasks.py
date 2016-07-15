@@ -1,3 +1,7 @@
+# coding: utf-8
+
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 from matgendb.util import get_database
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
@@ -23,7 +27,6 @@ class FixTasksBuilder:
             except:
                 import traceback
                 traceback.print_exc()
-
         print("FixTasksBuilder finished.")
 
     @staticmethod

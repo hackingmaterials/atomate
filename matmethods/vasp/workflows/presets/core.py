@@ -1,4 +1,6 @@
-from __future__ import absolute_import
+# coding: utf-8
+
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 from matmethods.vasp.vasp_config import ADD_NAMEFILE, SCRATCH_DIR, SMALLGAP_KPOINT_MULTIPLY, \
     ADD_MODIFY_INCAR, STABILITY_CHECK, VASP_CMD, DB_FILE, ADD_WF_METADATA

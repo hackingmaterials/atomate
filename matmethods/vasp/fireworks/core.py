@@ -1,8 +1,10 @@
-from __future__ import absolute_import
+# coding: utf-8
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 """
-Defines standardized Fireworks that can be chained easily to perform
-various sequences of VASP calculations.
+Defines standardized Fireworks that can be chained easily to perform various
+sequences of VASP calculations.
 """
 
 from fireworks import Firework

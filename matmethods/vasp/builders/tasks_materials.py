@@ -1,4 +1,6 @@
-from __future__ import absolute_import, print_function
+# coding: utf-8
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
 from datetime import datetime
@@ -7,8 +9,11 @@ from pymongo import ReturnDocument
 from tqdm import tqdm
 
 from matgendb.util import get_database
+
 from matmethods.utils.utils import get_mongolike
+
 from monty.serialization import loadfn
+
 from pymatgen import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 
