@@ -2,9 +2,6 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-from pymatgen.electronic_structure.boltztrap import BoltztrapRunner
-from pymatgen.io.vasp.sets import get_vasprun_outcar
-
 """
 This module defines tasks that support running vasp in various ways.
 """
@@ -14,16 +11,17 @@ import subprocess
 import os
 import six
 
+from pymatgen.electronic_structure.boltztrap import BoltztrapRunner
+from pymatgen.io.vasp.sets import get_vasprun_outcar
+
 from custodian import Custodian
-from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, \
-    MeshSymmetryErrorHandler, \
-    UnconvergedErrorHandler, MaxForceErrorHandler, PotimErrorHandler, \
-    FrozenJobErrorHandler, NonConvergingErrorHandler, \
-    PositiveEnergyErrorHandler, WalltimeHandler
+from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, MeshSymmetryErrorHandler, \
+    UnconvergedErrorHandler, MaxForceErrorHandler, PotimErrorHandler, FrozenJobErrorHandler, \
+    NonConvergingErrorHandler, PositiveEnergyErrorHandler, WalltimeHandler
 from custodian.vasp.jobs import VaspJob
 from custodian.vasp.validators import VasprunXMLValidator
 
-from fireworks import explicit_serialize, FireTaskBase, FWAction
+from fireworks import explicit_serialize, FireTaskBase
 
 from matmethods.utils.utils import env_chk, get_logger
 

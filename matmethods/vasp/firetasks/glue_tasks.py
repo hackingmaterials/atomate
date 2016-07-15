@@ -1,15 +1,10 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, \
-    absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 
 from pymatgen import MPRester
-from pymatgen.entries.computed_entries import ComputedEntry
-from pymatgen.io.vasp.sets import get_structure_from_prev_run, \
-    get_vasprun_outcar
-from pymatgen.phasediagram.analyzer import PDAnalyzer
-from pymatgen.phasediagram.maker import PhaseDiagram
+from pymatgen.io.vasp.sets import get_vasprun_outcar
 
 """
 This module defines tasks that acts as a glue between other vasp firetasks
