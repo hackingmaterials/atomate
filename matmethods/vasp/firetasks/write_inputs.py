@@ -3,8 +3,7 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
-This module defines tasks for writing vasp input sets for various types of
-vasp calculations
+This module defines tasks for writing vasp input sets for various types of vasp calculations
 """
 
 import os
