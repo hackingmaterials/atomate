@@ -1,4 +1,6 @@
-from __future__ import absolute_import, print_function
+# coding: utf-8
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
 from datetime import datetime
@@ -7,8 +9,11 @@ from pymongo import ReturnDocument
 from tqdm import tqdm
 
 from matgendb.util import get_database
+
 from matmethods.utils.utils import get_mongolike
+
 from monty.serialization import loadfn
+
 from pymatgen import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 
@@ -66,7 +71,10 @@ class TasksMaterialsBuilder:
         for m in self._materials.find({}, {"_tasksbuilder.all_task_ids": 1}):
             previous_task_ids.extend(m["_tasksbuilder"]["all_task_ids"])
 
-        all_task_ids = [self.tid_str(t["task_id"]) for t in self._tasks.find({"state": "successful", "task_label": {"$in": self.supported_task_labels}}, {"task_id": 1})]
+        all_task_ids = [self.tid_str(t["task_id"])
+                        for t in self._tasks.find({"state": "successful",
+                                                   "task_label": {"$in": self.supported_task_labels}},
+                                                  {"task_id": 1})]
         task_ids = [t_id for t_id in all_task_ids if t_id not in previous_task_ids]
 
         print("There are {} new task_ids to process.".format(len(task_ids)))

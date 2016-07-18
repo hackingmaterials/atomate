@@ -1,4 +1,6 @@
-from __future__ import absolute_import, print_function
+# coding: utf-8
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from tqdm import tqdm
 
@@ -26,7 +28,6 @@ class FileMaterialsBuilder:
         self._data_file = data_file
         self._delimiter = delimiter
         self.header_lines = header_lines
-
 
     def run(self):
         print("Starting FileMaterials Builder.")

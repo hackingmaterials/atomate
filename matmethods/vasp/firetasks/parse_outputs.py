@@ -5,10 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import json
 import os
 
-import zlib
 from datetime import datetime
-
-import gridfs
 
 from monty.json import MontyEncoder
 
@@ -16,12 +13,11 @@ from fireworks import FireTaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.utilities.fw_utilities import explicit_serialize
 
-from matgendb.util import get_settings, get_database
-from matmethods.utils.utils import env_chk, get_calc_loc, \
-    get_meta_from_structure
+from matmethods.utils.utils import env_chk, get_calc_loc, get_meta_from_structure
 from matmethods.utils.utils import get_logger
 from matmethods.vasp.database import MMDb
 from matmethods.vasp.drones import VaspDrone
+
 from pymatgen import Structure
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar

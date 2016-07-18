@@ -1,10 +1,13 @@
+# coding: utf-8
+
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 from tqdm import tqdm
 
 from matgendb.util import get_database
-from monty.json import jsanitize
+
 from pymatgen import Structure
-from pymatgen.analysis.structure_matcher import StructureMatcher, \
-    ElementComparator
+from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
