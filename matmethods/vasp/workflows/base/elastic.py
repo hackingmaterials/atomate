@@ -49,13 +49,23 @@ class PassStressStrainData(FireTaskBase):
     required_params = ["deformation"]
 
     def run_task(self, fw_spec):
-        deformations = list(fw_spec.get("deformations", []))
         v = Vasprun('vasprun.xml.gz')
         stress = v.ionic_steps[-1]['stress']
-        deformation_dict = {'deformation': self['deformation'],
-                            'stress': stress}
-        deformations.append(deformation_dict)
-        return FWAction(mod_spec=[{'_push_all': {'deformations': deformations}}])
+        defo = deformation['deformation']
+        d_ind = np.nonzero(defo - np.eye(3))
+        delta = Decimal((defo - np.eye(3))[d_ind][0])
+        # Shorthand is d_X_V, X is voigt index, V is value
+        dtype = "_".join(["d", str(reverse_voigt_map[d_ind][0]),
+                          "{:.0e}".format(delta)])
+        strain = IndependentStrain(defo)
+        stress = Stress(deformation['stress'])
+        defo_dict = {"task_id": fw_spec["stored_data"]["task_id"],
+                     'deformation_matrix': defo,
+                     'strain': strain.tolist(),
+                     'stress': stress.tolist()}
+
+        return FWAction(mod_spec=[{'_set': {
+            'deformation_tasks->{}'.format(dtype): defo_dict}}])
 
 
 @explicit_serialize
@@ -71,6 +81,7 @@ class AnalyzeStressStrainData(FireTaskBase):
     def run_task(self, fw_spec):
 
         # Get optimized structure
+        # TODO: will this find the correct path if the workflow is rerun from the start?
         optimize_loc = fw_spec["calc_locs"][0]["path"]
         logger.info("PARSING INITIAL OPTIMIZATION DIRECTORY: {}".format(optimize_loc))
         drone = VaspDrone()
@@ -82,24 +93,13 @@ class AnalyzeStressStrainData(FireTaskBase):
         d = {"analysis": {}, "deformation_tasks": {},
              "initial_structure": self['structure'].as_dict(), 
              "optimized_structure": opt_struct.as_dict()}
-        stress_dict = {}
 
-        dtypes = []
-        for deformation in deformations:
-            defo = deformation['deformation']
-            d_ind = np.nonzero(defo - np.eye(3))
-            delta = Decimal((defo - np.eye(3))[d_ind][0])
-            # Shorthand is d_X_V, X is voigt index, V is value
-            dtype = "_".join(["d", str(reverse_voigt_map[d_ind][0]),
-                              "{:.0e}".format(delta)])
-            strain = IndependentStrain(defo)
-            stress = Stress(deformation['stress'])
-            d["deformation_tasks"][dtype] = {'deformation_matrix': defo,
-                                             'strain': strain.tolist(),
-                                             'stress': deformation['stress']}
-            dtypes.append(dtype)
-            stress_dict[strain] = stress
-
+        dtypes = fw_spec["deformation_tasks"].keys()
+        strains = [deformation_tasks[dtype]["stress"] for dtype in dtypes]
+        stresses = [deformation_tasks[dtype]["strain"] for dtype in dtypes]
+        stress_dict = {strain : stress for strain, stress 
+                       in zip(strains, stresses)}
+        
         logger.info("ANALYZING STRESS/STRAIN DATA")
         # DETERMINE IF WE HAVE 6 "UNIQUE" deformations
         if len(set([de[:3] for de in dtypes])) == 6:
