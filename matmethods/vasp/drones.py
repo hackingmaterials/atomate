@@ -316,6 +316,10 @@ class VaspDrone(AbstractDrone):
         d["output"].update(self.get_basic_processed_data(d))
         sg = SpacegroupAnalyzer(
             Structure.from_dict(d_calc["output"]["structure"]), 0.1)
+        if not sg.get_symmetry_dataset():
+            sg = SpacegroupAnalyzer(
+                Structure.from_dict(d_calc["output"]["structure"]),
+                1e-3, 1)
         d["output"]["spacegroup"] = {
             "source": "spglib",
             "symbol": sg.get_spacegroup_symbol(),
