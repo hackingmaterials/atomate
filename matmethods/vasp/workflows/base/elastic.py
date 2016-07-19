@@ -47,18 +47,16 @@ class PassStressStrainData(FireTaskBase):
     def run_task(self, fw_spec):
         v = Vasprun('vasprun.xml.gz')
         stress = v.ionic_steps[-1]['stress']
-        defo = deformation['deformation']
+        defo = self['deformation']
         d_ind = np.nonzero(defo - np.eye(3))
         delta = Decimal((defo - np.eye(3))[d_ind][0])
         # Shorthand is d_X_V, X is voigt index, V is value
         dtype = "_".join(["d", str(reverse_voigt_map[d_ind][0]),
                           "{:.0e}".format(delta)])
         strain = IndependentStrain(defo)
-        stress = Stress(deformation['stress'])
-        defo_dict = {"task_id": fw_spec["stored_data"]["task_id"],
-                     'deformation_matrix': defo,
+        defo_dict = {'deformation_matrix': defo,
                      'strain': strain.tolist(),
-                     'stress': stress.tolist()}
+                     'stress': stress}
 
         return FWAction(mod_spec=[{'_set': {
             'deformation_tasks->{}'.format(dtype): defo_dict}}])
@@ -85,7 +83,6 @@ class AnalyzeStressStrainData(FireTaskBase):
         opt_struct = Structure.from_dict(
             optimize_doc["calcs_reversed"][0]["output"]["structure"])
         
-        deformations = fw_spec['deformations']
         d = {"analysis": {}, "deformation_tasks": {},
              "initial_structure": self['structure'].as_dict(), 
              "optimized_structure": opt_struct.as_dict()}
