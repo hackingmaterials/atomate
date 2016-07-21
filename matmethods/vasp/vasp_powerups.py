@@ -5,8 +5,9 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 from fireworks import Workflow, FileWriteTask
 from fireworks.core.firework import Tracker
 from fireworks.utilities.fw_utilities import get_slug
-from matmethods.vasp.firetasks.glue_tasks import CheckStability
 
+from matmethods.utils.utils import get_meta_from_structure
+from matmethods.vasp.firetasks.glue_tasks import CheckStability
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspDirect
 from matmethods.vasp.firetasks.write_inputs import ModifyIncar
 from matmethods.vasp.tests.vasp_fake import fake_dirs, RunVaspFake
@@ -204,6 +205,23 @@ def add_modify_incar(original_wf, modify_incar_params=None, fw_name_constraint=N
     return original_wf
 
 
+def add_wf_metadata(original_wf, structure):
+    """
+    Adds structure metadata to a workflow
+
+    Args:
+        original_wf: (Workflow)
+        structure: (Structure) the structure being run by this workflow
+
+    Returns:
+
+    """
+    original_wf.metadata["structure"] = structure.as_dict()
+    original_wf.metadata.update(get_meta_from_structure(structure))
+
+    return original_wf
+
+
 def add_stability_check(original_wf, check_stability_params=None, fw_name_constraint=None):
     """
     Every FireWork that runs VASP has a CheckStability task afterward. This
@@ -273,3 +291,20 @@ def use_scratch_dir(original_wf, scratch_dir):
         wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["scratch_dir"] = scratch_dir
 
     return Workflow.from_dict(wf_dict)
+
+def modify_task_docs(original_wf, update_dict = None):
+    """
+    For all VaspToDbTasks in a given workflow, add information 
+    to "additional_fields" to be placed in the task doc.
+    
+    Args:
+        original_wf (Workflow)
+        update_dict (Dict): dictionary to add additional_fields
+    """
+    wf_dict = original_wf.to_dict()
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, 
+                                           task_name_constraint="VaspToDbTask"):
+        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["additional_fields"].update(
+            update_dict)
+    return Workflow.from_dict(wf_dict)
+

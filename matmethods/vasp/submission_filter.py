@@ -1,18 +1,21 @@
+# coding: utf-8
+
+from __future__ import division, print_function, unicode_literals, absolute_import
+
+from monty.json import MSONable, MontyDecoder
+
 from pymatgen import MPRester
+from pymatgen.alchemy.filters import AbstractStructureFilter
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = 'Anubhav Jain <ajain@lbl.gov>, Kiran Mathew <kmathew@lbl.gov>'
 
-# TODO: consider using AbstractStructureFilter / Transmuters framework
 
-class SubmissionFilter:
+class SubmissionFilter(AbstractStructureFilter):
 
-    NO_POTCARS = ['Po', 'At', 'Rn', 'Fr', 'Ra', 'Am', 'Cm', 'Bk', 'Cf', 'Es',
-                  'Fm', 'Md', 'No', 'Lr']
+    NO_POTCARS = ['Po', 'At', 'Rn', 'Fr', 'Ra', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr']
 
-    def __init__(self, is_valid=True, potcar_exists=True,
-                 max_natoms=200, is_ordered=True, not_in_MP=True,
-                 MAPI_KEY=None, require_bandstructure=False):
-
+    def __init__(self, is_valid=True, potcar_exists=True, max_natoms=200, is_ordered=True,
+                 not_in_MP=True, MAPI_KEY=None, require_bandstructure=False):
         self.is_valid = is_valid
         self.potcar_exists = potcar_exists
         self.max_natoms = max_natoms
@@ -21,29 +24,29 @@ class SubmissionFilter:
         self.MAPI_KEY = MAPI_KEY
         self.require_bandstructure = require_bandstructure
 
-    def filter(self, s):
+    def test(self, structure):
         failures = []
 
         if self.is_valid:
-            if not s.is_valid():
+            if not structure.is_valid():
                 failures.append("IS_VALID=False")
 
         if self.potcar_exists:
-            elements = s.composition.elements
+            elements = structure.composition.elements
             if set(elements).intersection(set(self.NO_POTCARS)):
                 failures.append("POTCAR_EXISTS=False")
 
         if self.max_natoms:
-            if s.num_sites > self.max_natoms:
+            if structure.num_sites > self.max_natoms:
                 failures.append("MAX_NATOMS=Exceeded")
 
         if self.is_ordered:
-            if not s.is_ordered:
+            if not structure.is_ordered:
                 failures.append("IS_ORDERED=False")
 
         if self.not_in_MP:
             mpr = MPRester(self.MAPI_KEY)
-            mpids = mpr.find_structure(s)
+            mpids = mpr.find_structure(structure)
             if mpids:
                 if self.require_bandstructure:
                     for mpid in mpids:
@@ -55,9 +58,12 @@ class SubmissionFilter:
                             pass
                 else:
                     failures.append("NOT_IN_MP=False ({})".format(mpids[0]))
+        return True if not failures else False
 
-        if not failures:
-            return s, None
+    def as_dict(self):
+        return MSONable.as_dict(self)
 
-        else:
-            return None, failures
+    @classmethod
+    def from_dict(cls, d):
+        decoded = {k: MontyDecoder().process_decoded(v) for k, v in d.items() if not k.startswith("@")}
+        return cls(**decoded)

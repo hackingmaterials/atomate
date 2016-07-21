@@ -1,0 +1,20 @@
+{
+  "log": "lammps.log",
+  "units": "real",
+  "timestep": 1,
+  "dimension": "3",
+  "atom_style": "full",
+  "boundary": "p p p",
+  "neighbor": "10.0 bin",
+  "bond_style": "harmonic",
+  "angle_style": "harmonic",
+  "dihedral_style": "opls",
+  "read_data": "lammps_data.dat",
+  "pair_style": "buck/coul/cut 15.0",
+  "pair_coeff": "* * 1.0 1.0 1.0",
+  "dump": "DUMP mydump all custom 100 lammps.dump id type x y z ix iy iz mol",
+  "thermo_style": "custom step temp press etotal fmax fnorm",
+  "thermo": 100,
+  "fix": "NPT all npt temp 298 298 100.0 iso 0.0 0.0 100.0",
+  "run": 1000
+}
