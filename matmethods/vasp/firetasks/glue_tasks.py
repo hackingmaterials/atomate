@@ -131,11 +131,6 @@ class GetInterpolatedPOSCAR(FireTaskBase):
 
     def run_task(self, fw_spec):
 
-#        start = self['start_struct']
-#        end = self['end_struct']
-#        start = {'calc_dir':'run_1','calc_loc':None}
-#        end = {'calc_dir':'run_2','calc_loc':None}
-
         # make folder for poscar interpolation start and end structure files.
         interpolate_folder = '/interpolate'
         if not os.path.exists(os.getcwd()+interpolate_folder):

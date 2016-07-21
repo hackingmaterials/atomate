@@ -18,6 +18,7 @@ from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask, BoltztrapToDBT
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunBoltztrap
 from matmethods.vasp.firetasks.write_inputs import *
 from matmethods.vasp.firetasks.parse_outputs import BandGapCut
+from matmethods.vasp.firetasks.glue_tasks import GetInterpolatedPOSCAR
 
 
 class OptimizeFW(Firework):
@@ -91,7 +92,7 @@ class StaticFW(Firework):
             structure.composition.reduced_formula, name), **kwargs)
 
 class HSEBSFW(Firework):
-    def __init__(self, structure, parents, name="hse gap", vasp_cmd="vasp", db_file=None, **kwargs):
+    def __init__(self, structure, parents, name="hse gap", vasp_cmd="vasp", db_file=None, calc_loc=True, **kwargs):
         """
         For getting a more accurate band gap with HSE - requires previous
         calculation that gives VBM/CBM info. Note that this method is not
@@ -106,7 +107,7 @@ class HSEBSFW(Firework):
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         t = []
-        t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
+        t.append(CopyVaspOutputs(calc_loc=calc_loc, additional_files=["CHGCAR"]))
         t.append(WriteVaspHSEBSFromPrev(prev_calc_dir='.'))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
@@ -321,7 +322,8 @@ class MDFW(Firework):
 class LcalcpolFW(Firework):
     def __init__(self, structure, name="static dipole moment", static_name="static", vasp_cmd="vasp",
                  copy_vasp_outputs=False, vasp_input_set=None, db_file=None, parents=None, calc_loc = True,
-                 gap_threshold=0.010 **kwargs):
+                 gap_threshold=0.010, defuse_children=False, exit_firework=True,interpolate=False,
+                 start=None, end=None, this_image=0, nimages=5, **kwargs):
         """
         Standard static calculation Firework for dipole moment. The calculation will not calculate the polarization
         if the band gap of the SCF calculation is metallic (have a band gap less than the gap_threshold).
@@ -341,6 +343,13 @@ class LcalcpolFW(Firework):
                 True defaults to parent.
             gap_threshold: Band gap cutoff for determining whether polarization calculation will proceed from
                 SCF band gap.
+            defuse_children (bool): defuse children FireWorks if StaticFW shows material is metallic.
+            exit_firework (bool): do not run polarization calculation if StaticFW shows material is metallic.
+            interpolate (bool): use an interpolated structure
+            start (str): PassCalcLoc name of StaticFW or RelaxFW run of starting structure
+            end (str): PassCalcLoc name of StaticFW or RelaxFW run of ending structure
+            this_image (int): which interpolation to use for this run
+            nimages (int): number of interpolations
         """
 
         t = []
@@ -349,16 +358,18 @@ class LcalcpolFW(Firework):
             t.append(CopyVaspOutputs(calc_loc=calc_loc, additional_files=["CHGCAR","WAVECAR"],contcar_to_poscar=True))
 
             # Exit Firework if bandgap is less than gap_threshold
-            t.append(BandGapCut(gt=gap_threshold,exit_firework=True))
+            t.append(BandGapCut(gt=gap_threshold, exit_firework=exit_firework, defuse_children=defuse_children))
         else:
             # Run a static calculation prior to polarization calculation.
+            if interpolate:
+                t.append(GetInterpolatedPOSCAR(start=start,end=end,this_image=this_image,nimages=nimages)
             static = StaticFW(structure, name = static_name, vasp_input_set = vasp_input_set,
                      vasp_cmd = vasp_cmd, copy_vasp_outputs = True, db_file = db_file, parents = parents,
                      calc_loc = cal_loc, ** kwargs)
             t.extend(static.tasks)
 
             # Exit Firework if bandgap is less than gap_threshold
-            t.append(BandGapCut(gt=gap_threshold,exit_firework=True))
+            t.append(BandGapCut(gt=gap_threshold, exit_firework=exit_firework, defuse_children=defuse_children))
 
             # Create new directory and move to that directory to perform polarization calculation
             polarization_folder = "/polarization"
