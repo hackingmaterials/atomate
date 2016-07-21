@@ -120,12 +120,14 @@ class VaspToDbTask(FireTaskBase):
 
 
 @explicit_serialize
-class BandGapCutDefuseChildren(FireTaskBase):
+class BandGapCut(FireTaskBase):
     """
-    Defuses children FireWorks if band gap condition is not met: gt < gap < lt
+    Defuses children FireWorks and/or exits firework if band gap condition is not met: gt < gap < lt
+
+    Defaults to defuse_children = False and exit = False for FWAction.
     """
 
-    optional_params = ['gt','lt']
+    optional_params = ['gt','lt','defuse_children','exit_firework']
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
@@ -139,27 +141,5 @@ class BandGapCutDefuseChildren(FireTaskBase):
             return FWAction(stored_data={"bandgap": gap})
         else:
             return FWAction(stored_data={"bandgap": gap},
-                            defuse_children=True)
-
-
-@explicit_serialize
-class BandGapCutExitFirework(FireTaskBase):
-    """
-    Skip remaining FireTasks in FireWorks if band gap condition is not met: gt < gap < lt
-    """
-
-    optional_params = ['gt','lt']
-
-    def run_task(self, fw_spec):
-        # get the directory that contains the VASP dir to parse
-
-        calc_dir = os.getcwd()
-        vasprun_file = calc_dir+'/vasprun.xml'
-        vrun = Vasprun(vasprun_file)
-        (gap, cbm, vbm, is_direct) = vrun.eigenvalue_band_properties
-
-        if (gap < self.get('lt',1.0e10)) and (gap > self.get('gt',0.001)):
-            return FWAction(stored_data={"bandgap": gap})
-        else:
-            return FWAction(stored_data={"bandgap": gap},
-                            exit=True)
+                            defuse_children=self.get('defuse_children',False),
+                            exit = self.get('exit_firework',False))

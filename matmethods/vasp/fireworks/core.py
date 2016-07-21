@@ -13,7 +13,7 @@ from matmethods.common.firetasks.glue_tasks import PassCalcLocs
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian
 from matmethods.vasp.firetasks.write_inputs import *
-from matmethods.vasp.firetasks.parse_outputs import BandGapCutExitFirework
+from matmethods.vasp.firetasks.parse_outputs import BandGapCut
 
 
 class OptimizeFW(Firework):
@@ -356,8 +356,28 @@ class MDFW(Firework):
 
 class LcalcpolFW(Firework):
     def __init__(self, structure, name="static dipole moment", static_name="static", vasp_cmd="vasp",
-                 copy_vasp_outputs=True, vasp_input_set=None, db_file=None, parents=None, calc_loc = True,
+                 copy_vasp_outputs=False, vasp_input_set=None, db_file=None, parents=None, calc_loc = True,
                  gap_threshold=0.010 **kwargs):
+        """
+        Standard static calculation Firework for dipole moment. The calculation will not calculate the polarization
+        if the band gap of the SCF calculation is metallic (have a band gap less than the gap_threshold).
+
+        The SCF calculation can be provided as a previous run or can be computed within this Firework.
+
+        Args:
+            structure (Structure): Input structure.
+            name (str): Name for the polarization FireWork.
+            static_name (str): Name for the SCF run to be used in PassCalcLoc if copy_vasp_outputs != True.
+            vasp_cmd (str): Command to run vasp.
+            copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to False.
+            vasp_input_set (str): string name for the VASP input set (e.g., "MITMDVaspInputSet").
+            db_file (str): Path to file specifying db credentials.
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            calc_loc (str or True): Name of the previous SCF calculation to be use for CopyVaspOutputs.
+                True defaults to parent.
+            gap_threshold: Band gap cutoff for determining whether polarization calculation will proceed from
+                SCF band gap.
+        """
         """
         Standard static calculation Firework for dipole moment. The calculation will not calculate the polarization
         if the band gap of the SCF calculation is metallic (have a band gap less than the gap_threshold).
@@ -383,7 +403,7 @@ class LcalcpolFW(Firework):
             t.append(CopyVaspOutputs(calc_loc=calc_loc, additional_files=["CHGCAR","WAVECAR"],contcar_to_poscar=True))
 
             # Exit Firework if bandgap is less than gap_threshold
-            t.append(BandGapCutExitFirework(gt=gap_threshold))
+            t.append(BandGapCut(gt=gap_threshold,exit_firework=True))
         else:
             # Run a static calculation prior to polarization calculation.
             static = StaticFW(structure, name = static_name, vasp_input_set = vasp_input_set,
@@ -392,7 +412,7 @@ class LcalcpolFW(Firework):
             t.extend(static.tasks)
 
             # Exit Firework if bandgap is less than gap_threshold
-            t.append(BandGapCutExitFirework(gt=gap_threshold))
+            t.append(BandGapCut(gt=gap_threshold,exit_firework=True))
 
             # Create new directory and move to that directory to perform polarization calculation
             polarization_folder = "/polarization"
