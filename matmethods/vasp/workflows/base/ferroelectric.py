@@ -36,15 +36,14 @@ __email__ = 'tsmidt@berkeley.edu'
 
 logger = get_logger(__name__)
 
-def get_wf_ferroelectric(polar_structure,nonpolar_structure,
-                         vasp_input_set=None, vasp_cmd="vasp",
+def get_wf_ferroelectric(polar_structure,nonpolar_structure, pair_id = None, vasp_input_set=None, vasp_cmd="vasp",
                          db_file=None, nimages = 5):
 
     """
 
     Args:
-        polar_structure (Structure):
-        nonpolar_structure (Structure):
+        polar_structure (Structure): polar structure of candidate ferroelectric
+        nonpolar_structure (Structure): nonpolar structure of candidate ferroelectric
         vasp_input_set (DictVaspInputSet): vasp input set.
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
@@ -54,9 +53,9 @@ def get_wf_ferroelectric(polar_structure,nonpolar_structure,
 
     """
 
-    # First run polarization calculation on polar structure. Have children fireworks defused if metallic.
+    # First run polarization calculation on polar structure. Defuse children fireworks if metallic.
     polar = LcalcpolFW(polar_structure,name="polar_polarization",static_name="polar_static", parents=None,
-                       vasp_cmd=vasp_cmd,db_file=db_file,vasp_input_set,defuse_children=True)
+                       vasp_cmd=vasp_cmd,db_file=db_file,vasp_input_set=vasp_input_set,defuse_children=True)
 
 
     # Then run polarization calculation on nonpolarstructure structure.
@@ -68,11 +67,13 @@ def get_wf_ferroelectric(polar_structure,nonpolar_structure,
     interpolation = []
     for i in range(nimages)[1:-1]:
         interpolation.append(
-            LcalcpolFW(nonpolar_structure, name="interpolation_{i}_polarization".format(i=i), static_name="nonpolar_static",
-                       vasp_cmd=vasp_cmd, db_file=db_file, vasp_input_set=vasp_input_set, interpolate=True,
-                       start="polar_static",end="nonpolar_static",nimages=5,this_image=i,parents=[polar,nonpolar]))
+            LcalcpolFW(nonpolar_structure, name="interpolation_{i}_polarization".format(i=i),
+                       static_name="nonpolar_static", vasp_cmd=vasp_cmd, db_file=db_file, vasp_input_set=vasp_input_set,
+                       interpolate=True, start="polar_static",end="nonpolar_static",nimages=5,this_image=i,
+                       parents=[polar,nonpolar]))
 
-    # Run HSE calculation at band gap for polar calculation if polar structure is metallic
-    hse = HSEBSFW(polar_structure,polar,name="polar_hse_gap",vasp_cmd=vasp_cmd,db_file=db_file,calc_loc="polar_polarization")
+    # Run HSE calculation at band gap for polar calculation if polar structure is not metallic
+    hse = HSEBSFW(polar_structure,polar,name="polar_hse_gap",vasp_cmd=vasp_cmd,
+                  db_file=db_file,calc_loc="polar_polarization")
 
     return Workflow([polar,nonpolar]+interpolation+[hse])
