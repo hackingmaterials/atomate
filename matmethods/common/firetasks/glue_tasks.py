@@ -40,6 +40,7 @@ class PassCalcLocs(FireTaskBase):
 
         return FWAction(mod_spec=[{'_push_all': {'calc_locs': calc_locs}}])
 
+@explicit_serialize
 class GrabFilesFromCalcLoc(FireTaskBase):
     """
     Based on CopyVaspOutputs but for general file copying
@@ -95,3 +96,17 @@ class GrabFilesFromCalcLoc(FireTaskBase):
             fileclient.copy(prev_path_full, dest_path)
             print(prev_path_full)
             print(dest_path)
+
+@explicit_serialize
+class CreateFolder(FireTaskBase):
+    """
+    FireTask to create new folder with the option of changing directory to the new folder.
+    """
+    required_params = ["folder_name","change_to"]
+
+    def run_task(self, fw_spec):
+        folder = "/"+self.get("folder_name", "test")
+        if not os.path.exists(os.getcwd() + folder):
+            os.makedirs(os.getcwd() + folder)
+        if self.get("change_to", False):
+            os.chdir(os.getcwd() + folder)

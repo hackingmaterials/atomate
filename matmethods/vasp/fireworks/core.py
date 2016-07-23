@@ -8,8 +8,8 @@ sequences of VASP calculations.
 """
 
 from fireworks import Firework
-from fireworks import FireTaskBase, explicit_serialize 
-from pymatgen.io.vasp.sets import MPVaspInputSet, MPStaticSet, MPSOCSet, MITMDVaspInputSet
+from fireworks import FireTaskBase, explicit_serialize
+from fireworks.user_objects.firetasks.script_task import ScriptTask
 from pymatgen.io.vasp.sets import MPRelaxSet, MITMDSet
 
 from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
@@ -19,6 +19,7 @@ from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunBoltztrap
 from matmethods.vasp.firetasks.write_inputs import *
 from matmethods.vasp.firetasks.parse_outputs import BandGapCut
 from matmethods.vasp.firetasks.glue_tasks import GetInterpolatedPOSCAR
+from matmethods.common.firetasks.glue_tasks import CreateFolder
 
 
 class OptimizeFW(Firework):
@@ -362,27 +363,25 @@ class LcalcpolFW(Firework):
         else:
             # Run a static calculation prior to polarization calculation.
             if interpolate:
-                t.append(GetInterpolatedPOSCAR(start=start,end=end,this_image=this_image,nimages=nimages)
+                t.append(GetInterpolatedPOSCAR(start=start,end=end,this_image=this_image,nimages=nimages))
             static = StaticFW(structure, name = static_name, vasp_input_set = vasp_input_set,
-                     vasp_cmd = vasp_cmd, copy_vasp_outputs = True, db_file = db_file, parents = parents,
-                     calc_loc = cal_loc, ** kwargs)
+                        vasp_cmd = vasp_cmd, copy_vasp_outputs = True, db_file = db_file, parents = parents,
+                        calc_loc = calc_loc, ** kwargs)
             t.extend(static.tasks)
 
             # Exit Firework if bandgap is less than gap_threshold
             t.append(BandGapCut(gt=gap_threshold, exit_firework=exit_firework, defuse_children=defuse_children))
 
             # Create new directory and move to that directory to perform polarization calculation
-            polarization_folder = "/polarization"
-            if not os.path.exists(os.getcwd() + polarization_folder):
-                os.makedirs(os.getcwd() + polarization_folder)
-            os.chdir(os.getcwd() + polarization_folder)
+            t.append(CreateFolder(folder_name="polarization",change_to=True))
 
+            # Copy VASP Outputs from static calculation
             t.append(CopyVaspOutputs(calc_loc=static_name, additional_files=["CHGCAR", "WAVECAR"],
                                      contcar_to_poscar=True))
 
         t.extend([
             WriteVaspStaticFromPrev(prev_calc_dir=".",other_params={'lcalcpol':True}),
-            RunVaspDirect(vasp_cmd=vasp_cmd),
+            RunVaspCustodian(vasp_cmd=vasp_cmd),
             PassCalcLocs(name=name),
             VaspToDbTask(db_file=db_file,
                          additional_fields={"task_label": name})])

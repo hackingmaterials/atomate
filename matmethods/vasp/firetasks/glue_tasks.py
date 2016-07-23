@@ -123,6 +123,7 @@ class CopyVaspOutputs(FireTaskBase):
                 f.close()
                 os.remove(dest_path + gz_ext)
 
+@explicit_serialize
 class GetInterpolatedPOSCAR(FireTaskBase):
     """
     Grabs CONTCARS from two previous calculations
