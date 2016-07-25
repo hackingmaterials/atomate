@@ -59,7 +59,7 @@ class OptimizeFW(Firework):
 
 class StaticFW(Firework):
     def __init__(self, structure, name="static", vasp_input_set=None,
-                 vasp_cmd="vasp", copy_vasp_outputs=True, db_file=None,
+                 vasp_cmd="vasp", copy_vasp_outputs=True, write_from_prev=True, db_file=None,
                  parents=None, calc_loc=True,**kwargs):
         """
         Standard static calculation Firework.
@@ -77,7 +77,7 @@ class StaticFW(Firework):
         """
         t = []
 
-        if parents:
+        if write_from_prev:
             if copy_vasp_outputs:
                 t.append(
                     CopyVaspOutputs(calc_loc=calc_loc, contcar_to_poscar=True))
@@ -365,8 +365,8 @@ class LcalcpolFW(Firework):
             if interpolate:
                 t.append(GetInterpolatedPOSCAR(start=start,end=end,this_image=this_image,nimages=nimages))
             static = StaticFW(structure, name = static_name, vasp_input_set = vasp_input_set,
-                        vasp_cmd = vasp_cmd, copy_vasp_outputs = True, db_file = db_file, parents = parents,
-                        calc_loc = calc_loc, ** kwargs)
+                        vasp_cmd = vasp_cmd, copy_vasp_outputs=False, write_from_prev=False, db_file = db_file,
+                        parents = parents, calc_loc = calc_loc, ** kwargs)
             t.extend(static.tasks)
 
             # Exit Firework if bandgap is less than gap_threshold
