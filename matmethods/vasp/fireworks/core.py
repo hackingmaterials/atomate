@@ -60,7 +60,8 @@ class OptimizeFW(Firework):
 class StaticFW(Firework):
     def __init__(self, structure, name="static", vasp_input_set=None,
                  vasp_cmd="vasp", copy_vasp_outputs=True, write_from_prev=True, db_file=None,
-                 parents=None, calc_loc=True,**kwargs):
+                 parents=None, calc_loc=True, interpolate=False, start=None, end=None, this_image=None,
+                 nimages=None,**kwargs):
         """
         Standard static calculation Firework.
 
@@ -85,6 +86,8 @@ class StaticFW(Firework):
         else:
             vasp_input_set = vasp_input_set or MPStaticSet(structure)
             t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
+            if interpolate:
+                t.append(GetInterpolatedPOSCAR(start=start, end=end, this_image=this_image, nimages=nimages))
 
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
@@ -363,10 +366,15 @@ class LcalcpolFW(Firework):
         else:
             # Run a static calculation prior to polarization calculation.
             if interpolate:
-                t.append(GetInterpolatedPOSCAR(start=start,end=end,this_image=this_image,nimages=nimages))
-            static = StaticFW(structure, name = static_name, vasp_input_set = vasp_input_set,
-                        vasp_cmd = vasp_cmd, copy_vasp_outputs=False, write_from_prev=False, db_file = db_file,
-                        parents = parents, calc_loc = calc_loc, ** kwargs)
+                static = StaticFW(structure, name=static_name, vasp_input_set=vasp_input_set,
+                                  vasp_cmd=vasp_cmd, copy_vasp_outputs=False, write_from_prev=False, db_file=db_file,
+                                  parents=parents, calc_loc=calc_loc, start=start, end=end, this_image=this_image,
+                                  nimages=nimages,
+                                  interpolate=True, **kwargs)
+            else:
+                static = StaticFW(structure, name = static_name, vasp_input_set = vasp_input_set,
+                                  vasp_cmd = vasp_cmd, copy_vasp_outputs=False, write_from_prev=False, db_file = db_file,
+                                  parents = parents, calc_loc = calc_loc, ** kwargs)
             t.extend(static.tasks)
 
             # Exit Firework if bandgap is less than gap_threshold
