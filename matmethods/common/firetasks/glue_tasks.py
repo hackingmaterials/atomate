@@ -57,10 +57,10 @@ class GrabFilesFromCalcLoc(FireTaskBase):
 
     def run_task(self,fw_spec=None):
 
-        if self.calc_dir:
+        if self.get('calc_dir',False):
             filesystem = None
-        elif self.calc_loc:
-            calc_loc = get_calc_loc(self.calc_loc, fw_spec["calc_locs"])
+        elif self.get('calc_loc',False):
+            calc_loc = get_calc_loc(self.get('calc_loc',False), fw_spec["calc_locs"])
             calc_dir = calc_loc["path"]
             filesystem = calc_loc["filesystem"]
         else:
@@ -71,25 +71,25 @@ class GrabFilesFromCalcLoc(FireTaskBase):
 
         all_files = fileclient.listdir(calc_dir)
 
-        if self.filenames:
-            if type(self.filenames) == list:
-                files_to_copy = filenames
-            elif isinstance(self.filenames, six.string_types):
-                files_to_copy = [ filenames ]
+        if self.get('filenames',False):
+            if type(self.get('filenames',False)) == list:
+                files_to_copy = self.get('filenames',False)
+            elif isinstance(self.get('filenames',False), six.string_types):
+                files_to_copy = [ self.get('filenames',False) ]
             else:
                 ValueError("Must have a list of strings or a strings!")
         else:
             raise ValueError("Must have a list of filenames!")
 
         # determine what files need to be copied
-        if "$ALL" in filenames:
+        if "$ALL" in self.get('filenames',False):
             files_to_copy = all_files
 
         # start file copy
         for f in files_to_copy:
             prev_path_full = os.path.join(calc_dir, f)
             # prev_path = os.path.join(os.path.split(calc_dir)[1], f)
-            dest_fname = self.name_prepend+f+self.name_append
+            dest_fname = self.get('name_prepend',"")+f+self.get('name_append',"")
             dest_path = os.path.join(os.getcwd(), dest_fname)
 
             # copy the file (minus the relaxation extension)
