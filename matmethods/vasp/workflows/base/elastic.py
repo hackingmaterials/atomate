@@ -83,15 +83,16 @@ class AnalyzeStressStrainData(FireTaskBase):
         opt_struct = Structure.from_dict(
             optimize_doc["calcs_reversed"][0]["output"]["structure"])
         
-        d = {"analysis": {}, "deformation_tasks": {},
+        d = {"analysis": {}, "deformation_tasks": fw_spec["deformation_tasks"],
              "initial_structure": self['structure'].as_dict(), 
              "optimized_structure": opt_struct.as_dict()}
 
         dtypes = fw_spec["deformation_tasks"].keys()
-        strains = [deformation_tasks[dtype]["stress"] for dtype in dtypes]
-        stresses = [deformation_tasks[dtype]["strain"] for dtype in dtypes]
-        stress_dict = {strain : stress for strain, stress 
-                       in zip(strains, stresses)}
+        defos = [fw_spec["deformation_tasks"][dtype]["deformation_matrix"]
+                 for dtype in dtypes]
+        stresses = [fw_spec["deformation_tasks"][dtype]["stress"] for dtype in dtypes]
+        stress_dict = {IndependentStrain(defo) : Stress(stress) for defo, stress 
+                       in zip(defos, stresses)}
         
         logger.info("ANALYZING STRESS/STRAIN DATA")
         # DETERMINE IF WE HAVE 6 "UNIQUE" deformations
@@ -178,15 +179,17 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
             defo = Deformation.from_index_amount(ind, amount)
             deformations.append(defo)
 
-    def_vasp_params = {"user_incar_settings":{"ISIF":2, "IBRION":2, 
-                                              "NSW":99, "LAECHG":False,
-                                              "LHVAR":False, "ALGO":"Fast",
-                                              "LWAVE":False}}
+    def_vasp_params = {"user_incar_settings": v.incar.as_dict()}
+    def_vasp_params["user_incar_settings"].update({"ISIF":2,"ISTART":1})
+
     if reciprocal_density:
         def_vasp_params.update(
             {"reciprocal_density":reciprocal_density})
     
     for deformation in deformations:
+        # TODO: Maybe should be more general, needing to specify
+        #   the vasp input set with a string is a bit unwieldy
+        #   for complete customization of the INCAR parameters
         fw = TransmuterFW(name="elastic deformation",
                           structure=structure,
                           transformations=['DeformStructureTransformation'],
