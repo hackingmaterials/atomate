@@ -6,13 +6,15 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 This module defines tasks that support running vasp in various ways.
 """
 
+import shutil
 import shlex
 import subprocess
 import os
 import six
 
-from pymatgen.electronic_structure.boltztrap import BoltztrapRunner
+from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
 from pymatgen.io.vasp.sets import get_vasprun_outcar
+from pymatgen.electronic_structure.boltztrap import BoltztrapRunner
 
 from custodian import Custodian
 from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, MeshSymmetryErrorHandler, \
@@ -199,3 +201,63 @@ class RunBoltztrap(FireTaskBase):
         runner = BoltztrapRunner(bs, nelect, scissor=scissor, doping=doping,
                                  tmax=tmax, tgrid=tgrid)
         runner.run(path_dir=os.getcwd())
+
+
+@explicit_serialize
+class RunVaspFake(FireTaskBase):
+    required_params = ["fake_dir"]
+
+    def run_task(self, fw_spec):
+        self._verify_inputs()
+        self._clear_inputs()
+        self._generate_outputs()
+
+    def _verify_inputs(self):
+        user_incar = Incar.from_file(os.path.join(os.getcwd(), "INCAR"))
+        ref_incar = Incar.from_file(os.path.join(self["fake_dir"], "inputs", "INCAR"))
+
+        # perform some BASIC tests
+
+        # check INCAR
+        params_to_check = ["ISPIN", "ENCUT", "ISMEAR", "SIGMA", "IBRION",
+                           "LORBIT", "NBANDS", "LMAXMIX"]
+        defaults = {"ISPIN": 1, "ISMEAR": 1, "SIGMA": 0.2}
+        for p in params_to_check:
+            if user_incar.get(p, defaults.get(p)) != ref_incar.get(p, defaults.get(p)):
+                raise ValueError("INCAR value of {} is inconsistent!".format(p))
+
+        # check KPOINTS
+        user_kpoints = Kpoints.from_file(os.path.join(os.getcwd(), "KPOINTS"))
+        ref_kpoints = Kpoints.from_file(os.path.join(self["fake_dir"], "inputs", "KPOINTS"))
+        if user_kpoints.style != ref_kpoints.style or user_kpoints.num_kpts != ref_kpoints.num_kpts:
+            raise ValueError("KPOINT files are inconsistent! Paths are:\n{}\n{}".format(
+                os.getcwd(), os.path.join(self["fake_dir"], "inputs")))
+
+        # check POSCAR
+        user_poscar = Poscar.from_file(os.path.join(os.getcwd(), "POSCAR"))
+        ref_poscar = Poscar.from_file(os.path.join(self["fake_dir"], "inputs", "POSCAR"))
+        if user_poscar.natoms != ref_poscar.natoms or user_poscar.site_symbols != ref_poscar.site_symbols:
+            raise ValueError("POSCAR files are inconsistent! Paths are:\n{}\n{}".format(
+                os.getcwd(), os.path.join(self["fake_dir"], "inputs")))
+
+        # check POTCAR
+        user_potcar = Potcar.from_file(os.path.join(os.getcwd(), "POTCAR"))
+        ref_potcar = Potcar.from_file(os.path.join(self["fake_dir"], "inputs", "POTCAR"))
+        if user_potcar.symbols != ref_potcar.symbols:
+            raise ValueError("POTCAR files are inconsistent! Paths are:\n{}\n{}".format(
+                os.getcwd(), os.path.join(self["fake_dir"], "inputs")))
+        logger.info("RunVaspFake: verified inputs successfully")
+
+    def _clear_inputs(self):
+        for x in ["INCAR", "KPOINTS", "POSCAR", "POTCAR", "CHGCAR", "OUTCAR", "vasprun.xml"]:
+            p = os.path.join(os.getcwd(), x)
+            if os.path.exists(p):
+                os.remove(p)
+
+    def _generate_outputs(self):
+        output_dir = os.path.join(self["fake_dir"], "outputs")
+        for file_name in os.listdir(output_dir):
+            full_file_name = os.path.join(output_dir, file_name)
+            if os.path.isfile(full_file_name):
+                shutil.copy(full_file_name, os.getcwd())
+        logger.info("RunVaspFake: ran fake VASP, generated outputs")

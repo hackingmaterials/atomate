@@ -14,11 +14,10 @@ from pymongo import MongoClient, DESCENDING
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
-from matmethods.vasp.vasp_powerups import use_custodian, add_namefile, use_fake_vasp, \
-    add_trackers
+from matmethods.vasp.vasp_powerups import use_custodian, add_namefile, use_fake_vasp, add_trackers
 from matmethods.vasp.workflows.base.core import get_wf
-from pymatgen.io.vasp.sets import MPRelaxSet
 
+from pymatgen.io.vasp.sets import MPRelaxSet
 from pymatgen.util.testing import PymatgenTest
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
@@ -26,6 +25,13 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "common", "reference_files", "db_connections")
+reference_dir = os.path.join(module_dir, "reference_files")
+
+fake_dirs = {"structure optimization": os.path.join(reference_dir, "Si_structure_optimization"),
+             "static": os.path.join(reference_dir, "Si_static"),
+             "nscf uniform": os.path.join(reference_dir, "Si_nscf_uniform"),
+             "nscf line": os.path.join(reference_dir, "Si_nscf_line")}
+
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
@@ -164,7 +170,7 @@ class TestVaspWorkflows(unittest.TestCase):
                        vis=MPRelaxSet(structure, force_gamma=True),
                        common_params={"vasp_cmd": VASP_CMD})
         if not VASP_CMD:
-            my_wf = use_fake_vasp(my_wf)
+            my_wf = use_fake_vasp(my_wf, fake_dirs)
         else:
             my_wf = use_custodian(my_wf)
         self.lp.add_wf(my_wf)
@@ -187,7 +193,7 @@ class TestVaspWorkflows(unittest.TestCase):
                        common_params={"vasp_cmd": VASP_CMD,
                                       "db_file": ">>db_file<<"})
         if not VASP_CMD:
-            my_wf = use_fake_vasp(my_wf)
+            my_wf = use_fake_vasp(my_wf, fake_dirs)
         else:
             my_wf = use_custodian(my_wf)
         self.lp.add_wf(my_wf)
@@ -208,7 +214,7 @@ class TestVaspWorkflows(unittest.TestCase):
                        common_params={"vasp_cmd": VASP_CMD,
                                       "db_file": ">>db_file<<"})
         if not VASP_CMD:
-            my_wf = use_fake_vasp(my_wf)
+            my_wf = use_fake_vasp(my_wf, fake_dirs)
         else:
             my_wf = use_custodian(my_wf)
 
@@ -245,7 +251,7 @@ class TestVaspWorkflows(unittest.TestCase):
                        common_params={"vasp_cmd": VASP_CMD})
 
         if not VASP_CMD:
-            my_wf = use_fake_vasp(my_wf)
+            my_wf = use_fake_vasp(my_wf, fake_dirs)
         else:
             my_wf = use_custodian(my_wf)
 
