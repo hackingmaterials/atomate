@@ -27,7 +27,7 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "common", "reference_files", "db_connections")
 reference_dir = os.path.join(module_dir, "reference_files")
 
-fake_dirs = {"structure optimization": os.path.join(reference_dir, "Si_structure_optimization"),
+ref_dirs_si = {"structure optimization": os.path.join(reference_dir, "Si_structure_optimization"),
              "static": os.path.join(reference_dir, "Si_static"),
              "nscf uniform": os.path.join(reference_dir, "Si_nscf_uniform"),
              "nscf line": os.path.join(reference_dir, "Si_nscf_line")}
@@ -170,7 +170,7 @@ class TestVaspWorkflows(unittest.TestCase):
                        vis=MPRelaxSet(structure, force_gamma=True),
                        common_params={"vasp_cmd": VASP_CMD})
         if not VASP_CMD:
-            my_wf = use_fake_vasp(my_wf, fake_dirs)
+            my_wf = use_fake_vasp(my_wf, ref_dirs_si)
         else:
             my_wf = use_custodian(my_wf)
         self.lp.add_wf(my_wf)
@@ -193,7 +193,7 @@ class TestVaspWorkflows(unittest.TestCase):
                        common_params={"vasp_cmd": VASP_CMD,
                                       "db_file": ">>db_file<<"})
         if not VASP_CMD:
-            my_wf = use_fake_vasp(my_wf, fake_dirs)
+            my_wf = use_fake_vasp(my_wf, ref_dirs_si)
         else:
             my_wf = use_custodian(my_wf)
         self.lp.add_wf(my_wf)
@@ -214,7 +214,7 @@ class TestVaspWorkflows(unittest.TestCase):
                        common_params={"vasp_cmd": VASP_CMD,
                                       "db_file": ">>db_file<<"})
         if not VASP_CMD:
-            my_wf = use_fake_vasp(my_wf, fake_dirs)
+            my_wf = use_fake_vasp(my_wf, ref_dirs_si)
         else:
             my_wf = use_custodian(my_wf)
 
@@ -251,7 +251,7 @@ class TestVaspWorkflows(unittest.TestCase):
                        common_params={"vasp_cmd": VASP_CMD})
 
         if not VASP_CMD:
-            my_wf = use_fake_vasp(my_wf, fake_dirs)
+            my_wf = use_fake_vasp(my_wf, ref_dirs_si)
         else:
             my_wf = use_custodian(my_wf)
 

@@ -104,7 +104,7 @@ def use_custodian(original_wf, fw_name_constraint=None, custodian_params=None):
     return Workflow.from_dict(wf_dict)
 
 
-def use_fake_vasp(original_wf, fake_dirs):
+def use_fake_vasp(original_wf, ref_dirs):
     """
     Replaces all tasks with "RunVasp" (e.g. RunVaspDirect) to be
     RunVaspFake. Thus, we do not actually run VASP but copy
@@ -112,16 +112,16 @@ def use_fake_vasp(original_wf, fake_dirs):
 
     Args:
         original_wf (Workflow)
-        fake_dirs (dict): key=firework name, value=path to the reference vasp calculation directory
+        ref_dirs (dict): key=firework name, value=path to the reference vasp calculation directory
     """
     wf_dict = original_wf.to_dict()
     for idx_fw, fw in enumerate(original_wf.fws):
-        for job_type in fake_dirs.keys():
+        for job_type in ref_dirs.keys():
             if job_type in fw.name:
                 for idx_t, t in enumerate(fw.tasks):
                     if "RunVasp" in str(t):
                         wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
-                            RunVaspFake(fake_dir=fake_dirs[job_type]).to_dict()
+                            RunVaspFake(fake_dir=ref_dirs[job_type]).to_dict()
     return Workflow.from_dict(wf_dict)
 
 
