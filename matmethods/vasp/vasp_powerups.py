@@ -121,7 +121,7 @@ def use_fake_vasp(original_wf, ref_dirs):
                 for idx_t, t in enumerate(fw.tasks):
                     if "RunVasp" in str(t):
                         wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
-                            RunVaspFake(fake_dir=ref_dirs[job_type]).to_dict()
+                            RunVaspFake(ref_dir=ref_dirs[job_type]).to_dict()
     return Workflow.from_dict(wf_dict)
 
 
