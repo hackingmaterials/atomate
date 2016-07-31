@@ -36,8 +36,8 @@ __email__ = 'tsmidt@berkeley.edu'
 
 logger = get_logger(__name__)
 
-def get_wf_ferroelectric(polar_structure,nonpolar_structure, pair_id = None, vasp_input_set=None, vasp_cmd="vasp",
-                         db_file=None, nimages = 5):
+def get_wf_ferroelectric(polar_structure,nonpolar_structure, pair_id = None, vasp_input_set_polar=None,
+                         vasp_input_set_nonpolar=None, vasp_cmd="vasp", db_file=None, nimages = 5):
 
     """
 
@@ -55,12 +55,12 @@ def get_wf_ferroelectric(polar_structure,nonpolar_structure, pair_id = None, vas
 
     # First run polarization calculation on polar structure. Defuse children fireworks if metallic.
     polar = LcalcpolFW(polar_structure,name="polar_polarization",static_name="polar_static", parents=None,
-                       vasp_cmd=vasp_cmd,db_file=db_file,vasp_input_set=vasp_input_set,defuse_children=True)
+                       vasp_cmd=vasp_cmd,db_file=db_file,vasp_input_set=vasp_input_set_polar,defuse_children=True)
 
 
     # Then run polarization calculation on nonpolarstructure structure.
     nonpolar = LcalcpolFW(nonpolar_structure,name="nonpolar_polarization",static_name="nonpolar_static", parents=polar,
-                          vasp_cmd=vasp_cmd,db_file=db_file,vasp_input_set=vasp_input_set)
+                          vasp_cmd=vasp_cmd,db_file=db_file,vasp_input_set=vasp_input_set_nonpolar)
 
 
     # Interpolation polarization
