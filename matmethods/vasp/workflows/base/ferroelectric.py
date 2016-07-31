@@ -68,7 +68,7 @@ def get_wf_ferroelectric(polar_structure,nonpolar_structure, pair_id = None, vas
     for i in range(nimages)[1:-1]:
         interpolation.append(
             LcalcpolFW(nonpolar_structure, name="interpolation_{i}_polarization".format(i=i),
-                       static_name="nonpolar_static", vasp_cmd=vasp_cmd, db_file=db_file, vasp_input_set=vasp_input_set,
+                       static_name="nonpolar_static", vasp_cmd=vasp_cmd, db_file=db_file, vasp_input_set=vasp_input_set_polar,
                        interpolate=True, start="polar_static",end="nonpolar_static",nimages=5,this_image=i,
                        parents=[polar,nonpolar]))
 
