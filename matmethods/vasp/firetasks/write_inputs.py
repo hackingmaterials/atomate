@@ -1,15 +1,13 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, \
-    absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
+
+"""
+This module defines tasks for writing vasp input sets for various types of vasp calculations
+"""
 
 import os
 from six.moves import range
-
-"""
-This module defines tasks for writing vasp input sets for various types of
-vasp calculations
-"""
 
 from fireworks import FireTaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
@@ -17,8 +15,8 @@ from fireworks.utilities.dict_mods import apply_mod
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
 from pymatgen.io.vasp import Incar, Poscar
-from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, \
-    MPHSEBSSet
+from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, MPHSEBSSet
+
 from matmethods.utils.utils import env_chk
 
 __author__ = 'Anubhav Jain, Shyue Ping Ong, Kiran Mathew'

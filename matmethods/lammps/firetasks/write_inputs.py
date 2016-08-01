@@ -20,7 +20,7 @@ class WritelammpsInputFromDictInput(FireTaskBase):
 
     required_params:
         lammps_dict_input (DictLammpsInput)
-        input_file (string): path to the input file
+        input_file (string): name of the file to which the input params will be written
 
     optional_params:
         data_file (string): if specified the data file will be renamed
@@ -31,4 +31,4 @@ class WritelammpsInputFromDictInput(FireTaskBase):
 
     def run_task(self, fw_spec):
         lammps_input = self["lammps_dict_input"]
-        lammps_input.write_input(self["input_file"], data_file=self.get("data_file", None))
+        lammps_input.write_input(self["input_file"], data_filename=self.get("data_file", None))

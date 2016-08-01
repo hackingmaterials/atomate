@@ -1,5 +1,8 @@
-from matmethods.vasp.builders.boltztrap_materials import \
-    BoltztrapMaterialsBuilder
+# coding: utf-8
+
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+from matmethods.vasp.builders.boltztrap_materials import BoltztrapMaterialsBuilder
 from matmethods.vasp.builders.fix_tasks import FixTasksBuilder
 from matmethods.vasp.builders.materials_ehull import MaterialsEhullBuilder
 from matmethods.vasp.builders.tasks_materials import TasksMaterialsBuilder

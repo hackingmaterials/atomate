@@ -1,17 +1,19 @@
-from __future__ import absolute_import
+# coding: utf-8
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 """
-Defines standardized Fireworks that can be chained easily to perform
-various sequences of VASP calculations.
+Defines standardized Fireworks that can be chained easily to perform various
+sequences of VASP calculations.
 """
 
 from fireworks import Firework
+
 from pymatgen.io.vasp.sets import MPRelaxSet
 
 from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
-from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask, \
-    BoltztrapToDBTask
+from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask, BoltztrapToDBTask
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunBoltztrap
 from matmethods.vasp.firetasks.write_inputs import *
 

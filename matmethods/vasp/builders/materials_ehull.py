@@ -1,4 +1,6 @@
-from __future__ import absolute_import, print_function
+# coding: utf-8
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from tqdm import tqdm
 
@@ -12,11 +14,13 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 class MaterialsEhullBuilder:
     def __init__(self, materials_write, mapi_key=None, update_all=False):
         """
-        Starting with an existing materials collection, adds stability information and The Materials Project ID.
+        Starting with an existing materials collection, adds stability information and
+        The Materials Project ID.
         Args:
             materials_write: mongodb collection for materials (write access needed)
             mapi_key: (str) Materials API key (if MAPI_KEY env. var. not set)
-            update_all: (bool) - if true, updates all docs. If false, only updates docs w/o a stability key
+            update_all: (bool) - if true, updates all docs. If false, only updates
+                docs w/o a stability key
         """
         self._materials = materials_write
         self.mpr = MPRester(api_key=mapi_key)

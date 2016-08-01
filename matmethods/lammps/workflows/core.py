@@ -8,40 +8,41 @@ This module defines functions that yield lammps workflows
 
 from fireworks import Workflow, Firework
 
-from pymatgen.io.lammps.input import NVTLammpsInput
+from pymatgen.io.lammps.input import DictLammpsInput
 
 from matmethods.lammps.firetasks.write_inputs import WritelammpsInputFromDictInput
 from matmethods.lammps.firetasks.run_calc import RunLammpsDirect
+from matmethods.lammps.firetasks.parse_outputs import  LammpsToDBTask
 
 
 __author__ = 'Kiran Mathew'
 __email__ = "kmathew@lbl.gov"
 
 
-def nvt_wf(data_input, input_filename = "nvt.inp", data_filename="in.data",
-           user_lammps_settings={}, is_forcefield=False, lammps_bin="lammps"):
+def get_wf(job_name, lammps_dict_input, input_filename="lammps.inp", lammps_bin="lammps",
+           db_file=None, dry_run=False):
     """
-    Returns NVT workflow:
-        Firework: [write lammps input task, run direct task]
+    Returns workflow that writes lammps input/data files, runs lammps and inserts to DB.
 
     Args:
-        data_input (string/LammpsData/LammpsForceFieldData): path to the data file
-            or an appropriate object.
+        job_name: job name
+        lammps_dict_input (DictLammpsInput): lammps input
         input_filename (string): input file name
-        data_filename (string): data file name
-        user_lammps_settings (dict): used to override the default input file
-            paramter settings
-        is_forcefield (bool): whether or not the data file has forcefiled info.
         lammps_bin (string): path to the lammps binary
+        db_file (string): path to the db file
+        dry_run (bool): for test purposes, decides whether or not to run the lammps binary
+            with the input file.
+
+    Returns:
+        Workflow
+
     """
-    lammps_dict_input = NVTLammpsInput(lammps_data=data_input, data_filename=data_filename,
-                                       user_lammps_settings=user_lammps_settings, is_forcefield=is_forcefield)
     task1 = WritelammpsInputFromDictInput(lammps_dict_input=lammps_dict_input, input_file=input_filename)
-    task2 = RunLammpsDirect(lammps_cmd=lammps_bin+" -in "+input_filename)
-    fw1 = Firework([task1, task2], name='Run lammps')
-    return Workflow([fw1], name="LAMMPS NVT")
-
-
-if __name__ == "__main__":
-    wf = nvt_wf("test_files/nvt.data", data_filename="nvt.data", is_forcefield=True, lammps_bin="lmp_serial")
-    print(wf.as_dict())
+    if dry_run:
+        lammps_cmd = lammps_bin
+    else:
+        lammps_cmd = lammps_bin + " -in " + input_filename
+    task2 = RunLammpsDirect(lammps_cmd=lammps_cmd)
+    task3 = LammpsToDBTask(lammps_input=lammps_dict_input, db_file=db_file)
+    fw1 = Firework([task1, task2, task3], name=job_name)
+    return Workflow([fw1], name=job_name)
