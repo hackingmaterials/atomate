@@ -181,8 +181,8 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
 
     def_incar_settings = v.incar.as_dict()
     def_incar_settings.update({"ISIF":2, "ISTART":1})
-    for key in ["MAGMOM", "@module", "@class"]:
-        def_incar_settings.pop(key)
+    for key in ["MAGMOM", "@module", "@class", "LDAUU", "LDAUJ", "LDAUL"]:
+        def_incar_settings.pop(key, None)
     
     def_vasp_params = {"user_incar_settings":def_incar_settings}
     if reciprocal_density:
