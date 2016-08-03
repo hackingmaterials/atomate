@@ -1,0 +1,92 @@
+units  real
+timestep  1
+dimension  3
+atom_style  full
+boundary  p p p
+neighbor  10.0 bin
+bond_style  harmonic
+angle_style  harmonic
+dihedral_style  opls
+read_data  npt.data
+  orthogonal box = (0 0 0) to (100 100 100)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  408 atoms
+  scanning bonds ...
+  4 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  scanning dihedrals ...
+  9 = max dihedrals/atom
+  reading bonds ...
+  407 bonds
+  reading angles ...
+  754 angles
+  reading dihedrals ...
+  861 dihedrals
+  4 = max # of 1-2 neighbors
+  6 = max # of 1-3 neighbors
+  12 = max # of 1-4 neighbors
+  14 = max # of special neighbors
+pair_style  buck/coul/cut 15.0
+pair_coeff 1 1 2649.6 0.2674 27.22
+pair_coeff 1 2 4320.0 0.2928 137.6
+pair_coeff 1 3 14176.0 0.2563 104.0
+pair_coeff 2 2 14976.0 0.3236 637.6
+pair_coeff 2 3 33702.4 0.2796 503.0
+pair_coeff 3 3 75844.8 0.2461 396.9
+dump peodump all custom 50 peo.dump id type x y z ix iy iz mol
+dump traj all dcd 50 peo.dcd
+thermo_style  custom step time temp press pe ke etotal enthalpy fmax fnorm
+thermo  100
+fix  NPT all npt temp 300 300 100.0 iso 0 0 100.0
+run  1000
+Neighbor list info ...
+  1 neighbor list requests
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 25
+  ghost atom cutoff = 25
+  binsize = 12.5 -> bins = 8 8 8
+Memory usage per processor = 12.3005 Mbytes
+Step Time Temp Press PotEng KinEng TotEng Enthalpy Fmax Fnorm 
+       0            0            0   -348.08518     8612.845            0     8612.845    3536.3797    272.89236    2680.0303 
+     100          100    1826.0691    29.004621    2220.2103    2215.3682    4435.5785     4864.074    325.88249    1844.2929 
+     200          200    936.58864     5.108536    1049.9493    1136.2597    2186.2089    2265.5312    237.46067    1392.9593 
+     300          300     528.3874   -12.121323    606.44439    641.03415    1247.4785    1057.3298    140.66725    978.08991 
+     400          400    382.52497    3.1167992    369.93448    464.07535    834.00983    880.72559    118.22635    793.39821 
+     500          500    267.22446   -18.866174     295.8165    324.19395    620.01045    346.23748    119.13468    751.85075 
+     600          600    258.96107    -8.719388    238.56438     314.1689    552.73328    432.76131    107.03298    701.56305 
+     700          700    280.16456    8.4531214    230.64609    339.89276    570.53885    685.90599    87.837429    703.30332 
+     800          800     321.3336    17.764174    281.31758    389.83861    671.15618    903.69246     142.7755    787.41191 
+     900          900    351.13305   -6.4973889     291.2414      425.991     717.2324    633.59815    111.77148    783.06633 
+    1000         1000    307.12421   -21.339992    270.98912    372.59993    643.58905    359.99978    108.93801    755.78436 
+Loop time of 1.76868 on 1 procs for 1000 steps with 408 atoms
+
+Performance: 48.850 ns/day, 0.491 hours/ns, 565.392 timesteps/s
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.3186     | 1.3186     | 1.3186     |   0.0 | 74.55
+Bond    | 0.39721    | 0.39721    | 0.39721    |   0.0 | 22.46
+Neigh   | 0.0076499  | 0.0076499  | 0.0076499  |   0.0 |  0.43
+Comm    | 0.00060678 | 0.00060678 | 0.00060678 |   0.0 |  0.03
+Output  | 0.020733   | 0.020733   | 0.020733   |   0.0 |  1.17
+Modify  | 0.021324   | 0.021324   | 0.021324   |   0.0 |  1.21
+Other   |            | 0.002583   |            |       |  0.15
+
+Nlocal:    408 ave 408 max 408 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    47474 ave 47474 max 47474 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 47474
+Ave neighs/atom = 116.358
+Ave special neighs/atom = 9.91176
+Neighbor list builds = 7
+Dangerous builds = 0
+Total wall time: 0:00:01

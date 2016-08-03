@@ -1,0 +1,24 @@
+log  peo.log
+units  real
+timestep  1
+dimension  3
+atom_style  full
+boundary  p p p
+neighbor  10.0 bin
+bond_style  harmonic
+angle_style  harmonic
+dihedral_style  opls
+read_data  npt.data
+pair_style  buck/coul/cut 15.0
+pair_coeff 1 1 2649.6 0.2674 27.22
+pair_coeff 1 2 4320.0 0.2928 137.6
+pair_coeff 1 3 14176.0 0.2563 104.0
+pair_coeff 2 2 14976.0 0.3236 637.6
+pair_coeff 2 3 33702.4 0.2796 503.0
+pair_coeff 3 3 75844.8 0.2461 396.9
+dump peodump all custom 50 peo.dump id type x y z ix iy iz mol
+dump traj all dcd 50 peo.dcd
+thermo_style  custom step time temp press pe ke etotal enthalpy fmax fnorm
+thermo  100
+fix  NPT all npt temp 300 300 100.0 iso 0 0 100.0
+run  1000
