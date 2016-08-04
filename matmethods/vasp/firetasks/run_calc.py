@@ -230,9 +230,7 @@ class RunVaspFake(FireTaskBase):
         # perform some BASIC tests
 
         # check INCAR
-        default_params_to_check = ["ISPIN", "ENCUT", "ISMEAR", "SIGMA", "IBRION",
-                                   "LORBIT", "NBANDS", "LMAXMIX"]
-        params_to_check = self.get("params_to_check", default_params_to_check)
+        params_to_check = self.get("params_to_check", [])
         defaults = {"ISPIN": 1, "ISMEAR": 1, "SIGMA": 0.2}
         for p in params_to_check:
             if user_incar.get(p, defaults.get(p)) != ref_incar.get(p, defaults.get(p)):

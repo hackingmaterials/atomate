@@ -115,6 +115,8 @@ def use_fake_vasp(original_wf, ref_dirs, params_to_check=None):
         ref_dirs (dict): key=firework name, value=path to the reference vasp calculation directory
         params_to_check (list): optional list of incar parameters to check.
     """
+    if not params_to_check:
+        params_to_check = ["ISPIN", "ENCUT", "ISMEAR", "SIGMA", "IBRION", "LORBIT", "NBANDS", "LMAXMIX"]
     wf_dict = original_wf.to_dict()
     for idx_fw, fw in enumerate(original_wf.fws):
         for job_type in ref_dirs.keys():
