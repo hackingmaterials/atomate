@@ -205,7 +205,18 @@ class RunBoltztrap(FireTaskBase):
 
 @explicit_serialize
 class RunVaspFake(FireTaskBase):
+    """
+     Vasp Emulator
+
+     Required params:
+         ref_dir (string): Path to reference vasp run directory with input files
+            in the folder named 'inputs' and output files in the folder named 'outputs'.
+
+     Optional params:
+         params_to_check (list): optional list of incar parameters to check.
+     """
     required_params = ["ref_dir"]
+    optional_params = ["params_to_check"]
 
     def run_task(self, fw_spec):
         self._verify_inputs()
@@ -219,8 +230,9 @@ class RunVaspFake(FireTaskBase):
         # perform some BASIC tests
 
         # check INCAR
-        params_to_check = ["ISPIN", "ENCUT", "ISMEAR", "SIGMA", "IBRION",
-                           "LORBIT", "NBANDS", "LMAXMIX"]
+        default_params_to_check = ["ISPIN", "ENCUT", "ISMEAR", "SIGMA", "IBRION",
+                                   "LORBIT", "NBANDS", "LMAXMIX"]
+        params_to_check = self.get("params_to_check", default_params_to_check)
         defaults = {"ISPIN": 1, "ISMEAR": 1, "SIGMA": 0.2}
         for p in params_to_check:
             if user_incar.get(p, defaults.get(p)) != ref_incar.get(p, defaults.get(p)):
