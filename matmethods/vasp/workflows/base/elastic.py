@@ -207,6 +207,7 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
     wfname = "{}:{}".format(structure.composition.reduced_formula, "elastic constants")
     return Workflow(fws, name=wfname)
 
+
 if __name__ == "__main__":
     from pymatgen.util.testing import PymatgenTest
 

@@ -3,9 +3,8 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
-This Drone tries to produce a more sensible task dictionary than
-the default VaspToDbTaskDrone. Some of the changes are documented
-in this thread:
+This Drone tries to produce a more sensible task dictionary than the default VaspToDbTaskDrone.
+Some of the changes are documented in this thread:
 https://groups.google.com/forum/#!topic/pymatgen/pQ-emBpeV5U
 """
 
@@ -164,8 +163,7 @@ class VaspDrone(AbstractDrone):
         try:
             fullpath = os.path.abspath(dir_name)
             d = {k: v for k, v in self.additional_fields.items()}
-            d["schema"] = {"code": "MatMethods",
-                           "version": VaspDrone.__version__}
+            d["schema"] = {"code": "MatMethods", "version": VaspDrone.__version__}
             d["dir_name"] = fullpath
             d["calcs_reversed"] = [self.process_vasprun(dir_name, taskname, filename)
                                    for taskname, filename in vasprun_files.items()]
@@ -196,10 +194,8 @@ class VaspDrone(AbstractDrone):
             comp = Composition(d_calc_final["composition_unit_cell"])
             d["formula_anonymous"] = comp.anonymized_formula
             d["formula_reduced_abc"] = comp.reduced_composition.alphabetical_formula
-            for root_key in ["completed_at", "nsites",
-                             "composition_unit_cell",
-                             "composition_reduced", "formula_pretty",
-                             "elements", "nelements"]:
+            for root_key in ["completed_at", "nsites", "composition_unit_cell",
+                             "composition_reduced", "formula_pretty", "elements", "nelements"]:
                 d[root_key] = d_calc_final[root_key]
             # set other root keys
             self.set_input_data(d_calc_initial, d)
@@ -245,8 +241,7 @@ class VaspDrone(AbstractDrone):
         # replace 'crystal' with 'structure'
         d["input"]["structure"] = d["input"].pop("crystal")
         d["output"]["structure"] = d["output"].pop("crystal")
-        for k, v in {"energy": "final_energy",
-                     "energy_per_atom": "final_energy_per_atom"}.items():
+        for k, v in {"energy": "final_energy", "energy_per_atom": "final_energy_per_atom"}.items():
             d["output"][k] = d["output"].pop(v)
 
         if self.parse_dos and self.parse_dos != 'final':
@@ -314,12 +309,9 @@ class VaspDrone(AbstractDrone):
             "energy": d_calc["output"]["energy"],
             "energy_per_atom": d_calc["output"]["energy_per_atom"]}
         d["output"].update(self.get_basic_processed_data(d))
-        sg = SpacegroupAnalyzer(
-            Structure.from_dict(d_calc["output"]["structure"]), 0.1)
+        sg = SpacegroupAnalyzer(Structure.from_dict(d_calc["output"]["structure"]), 0.1)
         if not sg.get_symmetry_dataset():
-            sg = SpacegroupAnalyzer(
-                Structure.from_dict(d_calc["output"]["structure"]),
-                1e-3, 1)
+            sg = SpacegroupAnalyzer(Structure.from_dict(d_calc["output"]["structure"]), 1e-3, 1)
         d["output"]["spacegroup"] = {
             "source": "spglib",
             "symbol": sg.get_spacegroup_symbol(),
@@ -328,8 +320,7 @@ class VaspDrone(AbstractDrone):
             "crystal_system": sg.get_crystal_system(),
             "hall": sg.get_hall()}
         if d["input"]["parameters"].get("LEPSILON"):
-            for k in ['epsilon_static', 'epsilon_static_wolfe',
-                      'epsilon_ionic']:
+            for k in ['epsilon_static', 'epsilon_static_wolfe', 'epsilon_ionic']:
                 d["output"][k] = d_calc["output"][k]
 
     def set_state(self, d_calc, d):
@@ -351,18 +342,14 @@ class VaspDrone(AbstractDrone):
         warning_msgs = []
         error_msgs = []
         if abs(percent_delta_vol) > volume_change_threshold:
-            warning_msgs.append("Volume change > {}%"
-                                .format(volume_change_threshold * 100))
+            warning_msgs.append("Volume change > {}%".format(volume_change_threshold * 100))
         max_force = None
         calc = d["calcs_reversed"][0]
         if d["state"] == "successful" and calc["input"]["parameters"].get("NSW", 0) > 0:
             # handle the max force and max force error
-            max_force = max([np.linalg.norm(a)
-                             for a in calc["output"]
-                             ["ionic_steps"][-1]["forces"]])
+            max_force = max([np.linalg.norm(a) for a in calc["output"]["ionic_steps"][-1]["forces"]])
             if max_force > max_force_threshold:
-                error_msgs.append("Final max force exceeds {} eV"
-                                  .format(max_force_threshold))
+                error_msgs.append("Final max force exceeds {} eV".format(max_force_threshold))
                 d["state"] = "error"
             s = Structure.from_dict(d["output"]["structure"])
             if not s.is_valid():
@@ -384,12 +371,11 @@ class VaspDrone(AbstractDrone):
         vbm = calc["output"]["vbm"]
         is_direct = calc["output"]["is_gap_direct"]
         is_metal = calc["output"]["is_metal"]
-        return {
-            "bandgap": gap,
-            "cbm": cbm,
-            "vbm": vbm,
-            "is_gap_direct": is_direct,
-            "is_metal": is_metal}
+        return {"bandgap": gap,
+                "cbm": cbm,
+                "vbm": vbm,
+                "is_gap_direct": is_direct,
+                "is_metal": is_metal}
 
     def post_process(self, dir_name, d):
         """
