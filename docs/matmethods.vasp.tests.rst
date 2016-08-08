@@ -52,14 +52,6 @@ matmethods.vasp.tests.test_write_vasp module
     :undoc-members:
     :show-inheritance:
 
-matmethods.vasp.tests.vasp_fake module
---------------------------------------
-
-.. automodule:: matmethods.vasp.tests.vasp_fake
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 
 Module contents
 ---------------

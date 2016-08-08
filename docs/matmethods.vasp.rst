@@ -39,6 +39,14 @@ matmethods.vasp.submission_filter module
     :undoc-members:
     :show-inheritance:
 
+matmethods.vasp.vasp_config module
+----------------------------------
+
+.. automodule:: matmethods.vasp.vasp_config
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 matmethods.vasp.vasp_powerups module
 ------------------------------------
 

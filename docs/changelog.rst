@@ -2,6 +2,17 @@
 MatMethods Changelog
 ====================
 
+**v0.21**
+
+* Lammps workflows and packmol support (K. Mathew)
+* Rework some of the RunVaspFake code (K. Mathew)
+* Fixes to elastic workflow (J. Montoya)
+* Minor refactoring (K. Mathew)
+* Minor MD workflow updates (M. Aykol)
+* Fix builder for HSE gap and add chemsys
+* WF metadata powerup
+* Minor bug fixes and misc. improvements (K. Mathew, J. Montoya, A. Faghaninia)
+
 **v0.2**
 
 * BoltzTraP transport workflows

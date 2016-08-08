@@ -4,10 +4,34 @@ matmethods.vasp.builders package
 Submodules
 ----------
 
+matmethods.vasp.builders.boltztrap_materials module
+---------------------------------------------------
+
+.. automodule:: matmethods.vasp.builders.boltztrap_materials
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+matmethods.vasp.builders.example_build module
+---------------------------------------------
+
+.. automodule:: matmethods.vasp.builders.example_build
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 matmethods.vasp.builders.file_materials module
 ----------------------------------------------
 
 .. automodule:: matmethods.vasp.builders.file_materials
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+matmethods.vasp.builders.fix_tasks module
+-----------------------------------------
+
+.. automodule:: matmethods.vasp.builders.fix_tasks
     :members:
     :undoc-members:
     :show-inheritance:
