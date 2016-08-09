@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
 
     matmethods.common
+    matmethods.lammps
     matmethods.utils
     matmethods.vasp
 

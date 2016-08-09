@@ -45,13 +45,21 @@ class PassStressStrainData(FireTaskBase):
     required_params = ["deformation"]
 
     def run_task(self, fw_spec):
-        deformations = list(fw_spec.get("deformations", []))
         v = Vasprun('vasprun.xml.gz')
         stress = v.ionic_steps[-1]['stress']
-        deformation_dict = {'deformation': self['deformation'],
-                            'stress': stress}
-        deformations.append(deformation_dict)
-        return FWAction(mod_spec=[{'_push_all': {'deformations': deformations}}])
+        defo = self['deformation']
+        d_ind = np.nonzero(defo - np.eye(3))
+        delta = Decimal((defo - np.eye(3))[d_ind][0])
+        # Shorthand is d_X_V, X is voigt index, V is value
+        dtype = "_".join(["d", str(reverse_voigt_map[d_ind][0]),
+                          "{:.0e}".format(delta)])
+        strain = IndependentStrain(defo)
+        defo_dict = {'deformation_matrix': defo,
+                     'strain': strain.tolist(),
+                     'stress': stress}
+
+        return FWAction(mod_spec=[{'_set': {
+            'deformation_tasks->{}'.format(dtype): defo_dict}}])
 
 
 @explicit_serialize
@@ -67,35 +75,24 @@ class AnalyzeStressStrainData(FireTaskBase):
     def run_task(self, fw_spec):
 
         # Get optimized structure
+        # TODO: will this find the correct path if the workflow is rerun from the start?
         optimize_loc = fw_spec["calc_locs"][0]["path"]
         logger.info("PARSING INITIAL OPTIMIZATION DIRECTORY: {}".format(optimize_loc))
         drone = VaspDrone()
         optimize_doc = drone.assimilate(optimize_loc)
-        opt_struct = Structure.from_dict(
-            optimize_doc["calcs_reversed"][0]["output"]["structure"])
+        opt_struct = Structure.from_dict(optimize_doc["calcs_reversed"][0]["output"]["structure"])
         
-        deformations = fw_spec['deformations']
-        d = {"analysis": {}, "deformation_tasks": {},
+        d = {"analysis": {}, "deformation_tasks": fw_spec["deformation_tasks"],
              "initial_structure": self['structure'].as_dict(), 
              "optimized_structure": opt_struct.as_dict()}
-        stress_dict = {}
 
-        dtypes = []
-        for deformation in deformations:
-            defo = deformation['deformation']
-            d_ind = np.nonzero(defo - np.eye(3))
-            delta = Decimal((defo - np.eye(3))[d_ind][0])
-            # Shorthand is d_X_V, X is voigt index, V is value
-            dtype = "_".join(["d", str(reverse_voigt_map[d_ind][0]),
-                              "{:.0e}".format(delta)])
-            strain = IndependentStrain(defo)
-            stress = Stress(deformation['stress'])
-            d["deformation_tasks"][dtype] = {'deformation_matrix': defo,
-                                             'strain': strain.tolist(),
-                                             'stress': deformation['stress']}
-            dtypes.append(dtype)
-            stress_dict[strain] = stress
-
+        dtypes = fw_spec["deformation_tasks"].keys()
+        defos = [fw_spec["deformation_tasks"][dtype]["deformation_matrix"]
+                 for dtype in dtypes]
+        stresses = [fw_spec["deformation_tasks"][dtype]["stress"] for dtype in dtypes]
+        stress_dict = {IndependentStrain(defo) : Stress(stress) for defo, stress 
+                       in zip(defos, stresses)}
+        
         logger.info("ANALYZING STRESS/STRAIN DATA")
         # DETERMINE IF WE HAVE 6 "UNIQUE" deformations
         if len(set([de[:3] for de in dtypes])) == 6:
@@ -125,8 +122,8 @@ class AnalyzeStressStrainData(FireTaskBase):
             db.collection = db.db["elasticity"]
             db.collection.insert_one(d)
             logger.info("ELASTIC ANALYSIS COMPLETE")
-
         return FWAction()
+
 
 def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", 
                             norm_deformations=[-0.01, -0.005, 0.005, 0.01],
@@ -159,15 +156,11 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
 
     v = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
     if reciprocal_density:
-        v.config_dict["KPOINTS"].update(
-            {"reciprocal_density":reciprocal_density})
+        v.config_dict["KPOINTS"].update({"reciprocal_density": reciprocal_density})
         v = DictSet(structure, v.config_dict)
-    fws = []
+    fws=[]
 
-    fws.append(OptimizeFW(structure=structure,
-                          vasp_input_set=v,
-                          vasp_cmd=vasp_cmd,
-                          db_file=db_file))
+    fws.append(OptimizeFW(structure=structure, vasp_input_set=v, vasp_cmd=vasp_cmd, db_file=db_file))
 
     deformations = []
     # Generate deformations
@@ -181,38 +174,39 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
             defo = Deformation.from_index_amount(ind, amount)
             deformations.append(defo)
 
-    def_vasp_params = {"user_incar_settings":{"ISIF":2, "IBRION":2, 
-                                              "NSW":99, "LAECHG":False,
-                                              "LHVAR":False, "ALGO":"Fast",
-                                              "LWAVE":False}}
+    def_incar_settings = v.incar.as_dict()
+    def_incar_settings.update({"ISIF":2, "ISTART":1})
+    for key in ["MAGMOM", "@module", "@class", "LDAUU", "LDAUJ", "LDAUL"]:
+        def_incar_settings.pop(key, None)
+    
+    def_vasp_params = {"user_incar_settings":def_incar_settings}
     if reciprocal_density:
-        def_vasp_params.update(
-            {"reciprocal_density":reciprocal_density})
+        def_vasp_params.update({"reciprocal_density":reciprocal_density})
     
     for deformation in deformations:
+        # TODO: Maybe should be more general, needing to specify
+        #   the vasp input set with a string is a bit unwieldy
+        #   for complete customization of the INCAR parameters
         fw = TransmuterFW(name="elastic deformation",
                           structure=structure,
                           transformations=['DeformStructureTransformation'],
-                          transformation_params=[
-                              {"deformation": deformation.tolist()}],
+                          transformation_params=[{"deformation": deformation.tolist()}],
                           copy_vasp_outputs=True,
                           db_file=db_file,
                           vasp_cmd=vasp_cmd,
                           parents=fws[0],
-                          vasp_input_params = def_vasp_params
+                          vasp_input_params=def_vasp_params
                          )
-        fw.spec['_tasks'].append(
-            PassStressStrainData(deformation=deformation.tolist()).to_dict())
+        fw.spec['_tasks'].append(PassStressStrainData(deformation=deformation.tolist()).to_dict())
         fws.append(fw)
     
-    fws.append(Firework(AnalyzeStressStrainData(structure=structure, 
-                                                db_file=db_file),
+    fws.append(Firework(AnalyzeStressStrainData(structure=structure, db_file=db_file),
                         name="Analyze Elastic Data", parents=fws[1:],
-                        spec = {"_allow_fizzled_parents":True}))
+                        spec={"_allow_fizzled_parents": True}))
 
-    wfname = "{}:{}".format(structure.composition.reduced_formula,
-                            "elastic constants")
+    wfname = "{}:{}".format(structure.composition.reduced_formula, "elastic constants")
     return Workflow(fws, name=wfname)
+
 
 if __name__ == "__main__":
     from pymatgen.util.testing import PymatgenTest

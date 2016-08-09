@@ -153,7 +153,7 @@ class TasksMaterialsBuilder:
         doc["structure"] = taskdoc["output"]["structure"]
         doc["material_id"] = self.mid_str(self._counter.find_one_and_update(
                         {"_id": "materialid"}, {"$inc": {"c": 1}}, return_document=ReturnDocument.AFTER)["c"])
-        for x in ["formula_anonymous", "formula_pretty", "formula_reduced_abc", "nelements"]:
+        for x in ["formula_anonymous", "formula_pretty", "formula_reduced_abc", "nelements", "chemsys"]:
             doc[x] = taskdoc[x]
 
         self._materials.insert_one(doc)
