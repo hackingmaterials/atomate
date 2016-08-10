@@ -176,7 +176,6 @@ class TasksMaterialsBuilder:
 
         task_label = taskdoc["task_label"]  #task label of current doc
         # figure out what properties need to be updated
-        doc = {}
         for x in self.property_settings:
             for p in x["properties"]:
                 # check if this is a valid task for getting the property
@@ -205,19 +204,22 @@ class TasksMaterialsBuilder:
                             if x.get("tasks_key") else p
 
                         # insert metadata about this task
-                        doc.update({materials_key: get_mongolike(taskdoc, tasks_key),
-                                    "_tasksbuilder.prop_metadata.labels.{}".format(p): task_label,
-                                    "_tasksbuilder.prop_metadata.task_ids.{}".format(p): self.tid_str(taskdoc["task_id"]),
-                                    "_tasksbuilder.prop_metadata.energies.{}".format(p): taskdoc["output"]["energy_per_atom"],
-                                    "_tasksbuilder.updated_at": datetime.utcnow()})
+                        self._materials.\
+                            update_one({"material_id": m_id},
+                                       {"$set": {materials_key: get_mongolike(taskdoc, tasks_key),
+                                                 "_tasksbuilder.prop_metadata.labels.{}".format(p): task_label,
+                                                 "_tasksbuilder.prop_metadata.task_ids.{}".format(p): self.tid_str(taskdoc["task_id"]),
+                                                 "_tasksbuilder.prop_metadata.energies.{}".format(p): taskdoc["output"]["energy_per_atom"],
+                                                 "_tasksbuilder.updated_at": datetime.utcnow()}})
 
                         # copy property to document root if in properties_root
                         if p in self.properties_root:
-                            doc.update({p: get_mongolike(taskdoc, tasks_key)})
+                            self._materials.\
+                            update_one({"material_id": m_id},
+                                       {"$set": {p: get_mongolike(taskdoc, tasks_key)}})
 
-        doc.update({"_tasksbuilder.all_task_ids": self.tid_str(taskdoc["task_id"])})
-
-        self._materials.update_one({"material_id": m_id}, {"$push": doc})
+        self._materials.update_one({"material_id": m_id},
+                                   {"$push": {"_tasksbuilder.all_task_ids": self.tid_str(taskdoc["task_id"])}})
 
     @staticmethod
     def from_db_file(db_file, m="materials", c="counter", t="tasks", **kwargs):

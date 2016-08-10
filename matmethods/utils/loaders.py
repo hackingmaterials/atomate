@@ -51,7 +51,7 @@ def get_wf_from_spec_dict(structure, wfspec):
             be expanded using environment variables.If multiple fireworks share
             the same `params`, you can use `common_params` to specify a common
             set of arguments that are passed to all fireworks. Local params
-            take precedence over global params.
+            take precedent over global params.
 
             Another special keyword is `parents`, which provides
             the *indices* of the parents of that particular Firework in the
