@@ -282,8 +282,9 @@ def add_additional_fields_to_taskdocs(original_wf, update_dict=None):
 
 def add_tags(original_wf, tags_list):
     """
-    Adds tags to all Fireworks in the Workflow, WF metadata, and to Fireworkers
-    to track them later.
+    Adds tags to all Fireworks in the Workflow, WF metadata,
+     as well as additional_fields for the VaspDrone to track them later
+     (e.g. all fireworks and vasp tasks related to a research project)
 
     Args:
         original_wf (Workflow)
