@@ -8,7 +8,8 @@ import unittest
 from fireworks import Firework, ScriptTask, Workflow
 
 from matmethods.vasp.vasp_powerups import add_priority, use_custodian, add_trackers, \
-    add_modify_incar, add_small_gap_multiply, use_scratch_dir, remove_custodian
+    add_modify_incar, add_small_gap_multiply, use_scratch_dir, remove_custodian, \
+    add_tags
 from matmethods.vasp.workflows.base.core import get_wf
 
 from pymatgen.io.vasp.sets import MPRelaxSet
@@ -111,6 +112,24 @@ class TestVaspPowerups(unittest.TestCase):
             for t in fw.tasks:
                 if 'RunVaspCustodian' in str(t):
                     self.assertEqual(t["scratch_dir"], ">>scratch_dir<<")
+                    found += 1
+
+        self.assertEqual(found, 4)
+
+    def test_add_tags(self):
+        my_wf = self._copy_wf(self.bs_wf)
+        my_wf.metadata = {"tags": ["a"]}
+        my_wf = add_tags(my_wf, ["b", "c"])
+
+        found = 0
+
+        self.assertEqual(my_wf.metadata["tags"], ["a", "b", "c"])
+        for fw in my_wf.fws:
+            print(fw.spec["tags"])
+            self.assertEqual(fw.spec["tags"], ["b", "c"])
+            for t in fw.tasks:
+                if 'VaspToDbTask' in str(t):
+                    self.assertEqual(t["additional_fields"]["tags"], ["b", "c"])
                     found += 1
 
         self.assertEqual(found, 4)
