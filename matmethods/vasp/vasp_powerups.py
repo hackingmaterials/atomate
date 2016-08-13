@@ -265,7 +265,7 @@ def use_scratch_dir(original_wf, scratch_dir):
     return Workflow.from_dict(wf_dict)
 
 
-def modify_task_docs(original_wf, update_dict = None):
+def add_additional_fields_to_taskdocs(original_wf, update_dict=None):
     """
     For all VaspToDbTasks in a given workflow, add information 
     to "additional_fields" to be placed in the task doc.
@@ -277,4 +277,39 @@ def modify_task_docs(original_wf, update_dict = None):
     wf_dict = original_wf.to_dict()
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="VaspToDbTask"):
         wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["additional_fields"].update(update_dict)
+    return Workflow.from_dict(wf_dict)
+
+
+def add_tags(original_wf, tags_list):
+    """
+    Adds tags to all Fireworks in the Workflow, WF metadata,
+     as well as additional_fields for the VaspDrone to track them later
+     (e.g. all fireworks and vasp tasks related to a research project)
+
+    Args:
+        original_wf (Workflow)
+        tags_list: list of tags parameters (list of strings)
+    """
+    wf_dict = original_wf.to_dict()
+
+    # WF metadata
+    if "tags" in wf_dict["metadata"]:
+        wf_dict["metadata"]["tags"].extend(tags_list)
+    else:
+        wf_dict["metadata"]["tags"] = tags_list
+
+    # FW metadata
+    for idx_fw in xrange(len(original_wf.fws)):
+        if "tags" in wf_dict["fws"][idx_fw]["spec"]:
+            wf_dict["fws"][idx_fw]["spec"]["tags"].extend(tags_list)
+        else:
+            wf_dict["fws"][idx_fw]["spec"]["tags"] = tags_list
+
+    # Drone
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="VaspToDbTask"):
+        if "tags" in wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["additional_fields"]:
+            wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["additional_fields"]["tags"].extend(tags_list)
+        else:
+            wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["additional_fields"]["tags"] = tags_list
+
     return Workflow.from_dict(wf_dict)
