@@ -388,7 +388,8 @@ class LcalcpolFW(Firework):
                                      contcar_to_poscar=True))
 
         t.extend([
-            WriteVaspStaticFromPrev(prev_calc_dir=".",other_params={'lcalcpol':True}),
+            # Need to fix this for case of previous Static run (copy_vasp_outputs=True)
+            WriteVaspStaticFromPrev(prev_calc_dir="../",other_params={'lcalcpol':True}),
             RunVaspCustodian(vasp_cmd=vasp_cmd),
             PassCalcLocs(name=name),
             VaspToDbTask(db_file=db_file,
