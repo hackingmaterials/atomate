@@ -111,24 +111,28 @@ def get_wf_adsorption(structure, adsorption_config, vasp_input_set=None,
     """
 
     v = vasp_input_set or MVLSlabSet(structure, bulk=True)
-
+    fws = []
     fws.append(OptimizeFW(structure=structure, vasp_input_set=v,
                           vasp_cmd=vasp_cmd, db_file=db_file))
 
-    fws.append(Firework(AddAdsorptionTasks(adsorbate_config),
-                        name="Analyze Elastic Data", parents=fws[1:],
+    
+    fws.append(Firework(AddAdsorptionTasks(adsorption_config = adsorption_config),
+                        name="Analyze Elastic Data", parents=fws[0],
                         spec={"_allow_fizzled_parents": True}))
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, "elastic constants")
     return Workflow(fws, name=wfname)
 
 
+@explicit_serialize
 class AddAdsorptionTasks(FireTaskBase):
     """
-    Generates the adsorption tasks
+    Generates the adsorption tasks.  Note that the dynamicism
+    of this workflow makes adding incar modifications and other powerups
+    a little difficult.
     """
-    required_params = ["adsorbate_config"]
-    optional_params = ["user_incar_settings"]
+    required_params = ["adsorption_config"]
+    optional_params = ["user_incar_settings", "incar_update"]
 
     def run_task(self):
         optimize_loc = self.spec["calc_locs"][-1]["path"]
@@ -139,6 +143,7 @@ class AddAdsorptionTasks(FireTaskBase):
                                          [0]["output"]["structure"])
 
         slabs = generate_decorated_slabs(opt_struct)
+        fws = []
         for slab in slabs:
             mi_string = ''.join([str(i) for i in slab.miller_index])
             if mi_string in adsorbate_config.keys():
@@ -155,18 +160,52 @@ class AddAdsorptionTasks(FireTaskBase):
                                               vasp_cmd=vasp_cmd, db_file=db_file))
                     # Analysis FW?
                     # TODO: add some info into task docs
+
+        if incar_update:
+            fws = add_modify_incar(fws, incar_update)
         return FWAction(additions = fws)
 
+class SurfaceFW(Firework):
+    def __init__(self, slab, vasp_input_set="MVLSlabSet", db_file=None,
+                 parents = None, vasp_input_params=None, **kwargs):
+        """
+        """
+        t = []
 
+        if parents:
+            t.append(CopyVaspOutputs(calc_loc))
+        pass
+
+
+
+@explicit_serialize
 class WriteSlabIOSet(FireTaskBase):
     """
     #TODO, can this be made not dynamic?
+    I think so, but more work
     """
-    def run_task(self):
-        pass
 
+    required_params = ["structure", "miller_index", "min_slab_size", 
+                       "min_vacuum_size", "shift"]
+    optional_params = ["vasp_input_set", "slab_gen_config"]
+
+    def run_task(self):
+        structure = self['structure'] if 'prev_calc_dir' not in self else\
+                Poscar.from_file(os.path.join(self['prev_calc_dir'], 'CONTCAR')).structure
+        sg = SlabGenerator(opt_structure, slab.miller_index,
+                           min_slab_size, min_vacuum_size,
+                           **slab_gen_config)
+        new_slab = sg.get_slab(shift = slab.shift)
+        if "surface_properties" in site_properties:
+            adsorbate_sites = [site for site in slab.sites 
+                               if site.site_properties["surface_properties"] == "adsorbate"]
+            new_slab.extend(adsorbate_sites) # This could be problematic...
+
+        vis = 
 if __name__ == "__main__":
     from pymatgen.util.testing import PymatgenTest
-
+    from pymatgen import Molecule
+    co = Molecule("CO", [[0, 0, 0], [0, 0, 1.9]])
+    adsorbate_config = {"111":co}
     structure = PymatgenTest.get_structure("Si")
-    wf = get_wf_adsorption(structure)
+    wf = get_wf_adsorption(structure, adsorbate_config)
