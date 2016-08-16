@@ -82,7 +82,9 @@ class AnalyzeAdsorption(FireTaskBase):
         """
 
 
-def get_wf_adsorption(structure, adsorption_config, vasp_input_set=None, 
+def get_wf_adsorption(structure, adsorption_config, vasp_input_set=None,
+                      min_slab_size = 7.0, min_vacuum_size = 12.0,
+                      max_normal_search = 1, center_slab = True,
                       vasp_cmd="vasp", db_file=None):
     """
     Returns a workflow to calculate elastic constants.
@@ -115,14 +117,58 @@ def get_wf_adsorption(structure, adsorption_config, vasp_input_set=None,
     fws.append(OptimizeFW(structure=structure, vasp_input_set=v,
                           vasp_cmd=vasp_cmd, db_file=db_file))
 
+    max_index = max([int(i) for i in ''.join(adsorption_config.keys())])
+    slabs = generate_decorated_slabs(opt_struct, max_index, min_slab_size,
+                                     min_vacuum_size, max_normal_search,
+                                     center_slab)
+    mi_strings = [''.join([str(i) for i in slab.miller_index])
+                  for slab in slabs]
+    for key in adsorbate_config.keys():
+        if key not in mi_strings:
+            raise ValueError("Miller index not in generated slab list. "
+                             "Unique slabs are {}".format(mi_strings))
     
-    fws.append(Firework(AddAdsorptionTasks(adsorption_config = adsorption_config),
-                        name="Analyze Elastic Data", parents=fws[0],
-                        spec={"_allow_fizzled_parents": True}))
+    for slab in slabs:
+        mi_string = ''.join([str(i) for i in slab.miller_index])
+        if mi_string in adsorbate_config.keys():
+            # Add the slab optimize firework
+            trans = [SlabTransformation(slab.miller_index, min_slab_size, min_vacuum_size,
+                                        shift, **slag_gen_config)]  
+            fws.append(TransmuterFW(name="slab calculation",
+                                    structure = structure,
+                                    transformations = trans,
+                                    copy_vasp_outputs=True,
+                                    db_file=db_file,
+                                    vasp_cmd=vasp_cmd,
+                                    parents=fws[0],
+                                    vasp_input_set = "MVLSlabSet",
+                                    vasp_input_params = slab_input_params)
+                      )
+            # Generate adsorbate configurations and add fws to workflow
+            asf = AdsorbateSiteFinder(slab, selective_dynamics=True)
+            for molecule in adsorbate_config[mi_string]:
+                structures = asf.generate_adsorption_structures(molecule)
+                for struct in structures:
+                    ads_sites = [site for site in slab if 
+                                 site.site_properties["surface_properties"]=="adsorbate"]
+                    add_adsorbate_trans = InsertSitesTransformation(
+                        [site.species_string for site in ads_sites],
+                        [site.frac_coords for site in ads_sites])
+
+                    ads_trans = trans.copy() + [add_adsorbate_trans]
+                    # Might need to generate adsorbate input set
+                    fws.append(TransmuterFW(name="slab calculation",
+                                    structure = structure,
+                                    transformations = trans,
+                                    copy_vasp_outputs=True,
+                                    db_file=db_file,
+                                    vasp_cmd=vasp_cmd,
+                                    parents=fws[0],
+                                    vasp_input_set = "MVLSlabSet",
+                                    vasp_input_params = ads_input_params))
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, "elastic constants")
     return Workflow(fws, name=wfname)
-
 
 @explicit_serialize
 class AddAdsorptionTasks(FireTaskBase):
