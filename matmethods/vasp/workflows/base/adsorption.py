@@ -16,15 +16,14 @@ from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.utilities.fw_utilities import explicit_serialize
 
 from matmethods.utils.utils import env_chk, get_logger
-from matmethods.vasp.drones import VaspDrone
 from matmethods.vasp.database import MMDb
 from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW
 
-from pymatgen.analysis.elasticity.elastic import ElasticTensor
-from pymatgen.analysis.elasticity.strain import Deformation, IndependentStrain
-from pymatgen.analysis.elasticity.stress import Stress
-from pymatgen.analysis.elasticity import reverse_voigt_map
-from pymatgen.io.vasp.outputs import Vasprun
+from pymatgen.analysis.adsorption import generate_decorated_slabs,\
+        AdsorbateSiteFinder
+from pymatgen.transformations.advanced_transformations import SlabTransformation
+from pymatgen.transformations.standard_transformations import SupercellTransformation
+from pymatgen.transformations.site_transformations import InsertSitesTransformation
 from pymatgen.io.vasp.sets import MVLSlabSet
 from pymatgen import Structure
 
@@ -82,22 +81,22 @@ class AnalyzeAdsorption(FireTaskBase):
         """
 
 
-def get_wf_adsorption(structure, adsorption_config, vasp_input_set=None,
-                      min_slab_size = 7.0, min_vacuum_size = 12.0,
-                      max_normal_search = 1, center_slab = True,
-                      vasp_cmd="vasp", db_file=None):
+def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
+                      min_slab_size=7.0, min_vacuum_size=12.0,
+                      max_normal_search=1, center_slab=True,
+                      slab_gen_config=None, vasp_cmd="vasp",
+                      slab_input_params=None, adsorbate_input_params=None,
+                      db_file=None):
     """
-    Returns a workflow to calculate elastic constants.
+    Returns a workflow to calculate adsorption structures and surfaces.
 
     Firework 1 : write vasp input set for structural relaxation,
                  run vasp,
                  pass run location,
                  database insertion.
 
-    Firework 2 - 25: Optimize Deformed Structure
+    Firework 2 - N: Optimize Slab and Adsorbate Structures
     
-    Firework 26: Analyze Stress/Strain data and fit the elastic tensor
-
     Args:
         structure (Structure): input structure to be optimized and run
         # TODO: rethink configuration
@@ -117,8 +116,8 @@ def get_wf_adsorption(structure, adsorption_config, vasp_input_set=None,
     fws.append(OptimizeFW(structure=structure, vasp_input_set=v,
                           vasp_cmd=vasp_cmd, db_file=db_file))
 
-    max_index = max([int(i) for i in ''.join(adsorption_config.keys())])
-    slabs = generate_decorated_slabs(opt_struct, max_index, min_slab_size,
+    max_index = max([int(i) for i in ''.join(adsorbate_config.keys())])
+    slabs = generate_decorated_slabs(structure, max_index, min_slab_size,
                                      min_vacuum_size, max_normal_search,
                                      center_slab)
     mi_strings = [''.join([str(i) for i in slab.miller_index])
@@ -132,8 +131,10 @@ def get_wf_adsorption(structure, adsorption_config, vasp_input_set=None,
         mi_string = ''.join([str(i) for i in slab.miller_index])
         if mi_string in adsorbate_config.keys():
             # Add the slab optimize firework
-            trans = [SlabTransformation(slab.miller_index, min_slab_size, min_vacuum_size,
-                                        shift, **slag_gen_config)]  
+            trans = [SlabTransformation(slab.miller_index, min_slab_size, 
+                                        min_vacuum_size, slab.shift, 
+                                        slab_gen_config)]
+            # TODO: name these more intelligently
             fws.append(TransmuterFW(name="slab calculation",
                                     structure = structure,
                                     transformations = trans,
@@ -148,106 +149,34 @@ def get_wf_adsorption(structure, adsorption_config, vasp_input_set=None,
             asf = AdsorbateSiteFinder(slab, selective_dynamics=True)
             for molecule in adsorbate_config[mi_string]:
                 structures = asf.generate_adsorption_structures(molecule)
+
                 for struct in structures:
+                    trans_slab = [SlabTransformation(struct.miller_index, min_slab_size, 
+                                        min_vacuum_size, slab.shift, 
+                                        slab_gen_config)]
+                    trans_supercell = [SupercellTransformation.from_scaling_factors(
+                        struct.lattice.a / slab.lattice.a, struct.lattice.b / slab.lattice.b)]
                     ads_sites = [site for site in slab if 
-                                 site.site_properties["surface_properties"]=="adsorbate"]
-                    add_adsorbate_trans = InsertSitesTransformation(
+                                 site.properties["surface_properties"]=="adsorbate"]
+                    trans_add_adsorbate = InsertSitesTransformation(
                         [site.species_string for site in ads_sites],
                         [site.frac_coords for site in ads_sites])
 
-                    ads_trans = trans.copy() + [add_adsorbate_trans]
+                    ads_trans = [trans_slab, trans_supercell, trans_add_adsorbate]
                     # Might need to generate adsorbate input set
-                    fws.append(TransmuterFW(name="slab calculation",
+                    fws.append(TransmuterFW(name="adsorbate calculation",
                                     structure = structure,
-                                    transformations = trans,
+                                    transformations = ads_trans,
                                     copy_vasp_outputs=True,
                                     db_file=db_file,
                                     vasp_cmd=vasp_cmd,
                                     parents=fws[0],
                                     vasp_input_set = "MVLSlabSet",
-                                    vasp_input_params = ads_input_params))
+                                    vasp_input_params = adsorbate_input_params))
 
-    wfname = "{}:{}".format(structure.composition.reduced_formula, "elastic constants")
+    wfname = "{}:{}".format(structure.composition.reduced_formula, "Adsorbate calculations")
     return Workflow(fws, name=wfname)
 
-@explicit_serialize
-class AddAdsorptionTasks(FireTaskBase):
-    """
-    Generates the adsorption tasks.  Note that the dynamicism
-    of this workflow makes adding incar modifications and other powerups
-    a little difficult.
-    """
-    required_params = ["adsorption_config"]
-    optional_params = ["user_incar_settings", "incar_update"]
-
-    def run_task(self):
-        optimize_loc = self.spec["calc_locs"][-1]["path"]
-        logger.info("PARSING INITIAL OPTIMIZATION DIRECTORY: {}".format(optimize_loc))
-        drone = VaspDrone()
-        optimize_doc = drone.assimilate(optimize_loc)
-        opt_struct = Structure.from_dict(optimize_doc["calcs_reversed"]\
-                                         [0]["output"]["structure"])
-
-        slabs = generate_decorated_slabs(opt_struct)
-        fws = []
-        for slab in slabs:
-            mi_string = ''.join([str(i) for i in slab.miller_index])
-            if mi_string in adsorbate_config.keys():
-                # Add the slab optimize firework
-                vis = MVLSlabSet(slab, user_incar_settings = user_incar_settings)
-                fws.append(OptimizeFW(slab, vasp_input_set = vis))
-                # Generate adsorbate configurations and add fws to workflow
-                asf = AdsorbateSiteFinder(slab, selective_dynamics=True)
-                for molecule in adsorbate_config[mi_string]:
-                    structures = asf.generate_adsorption_structures(molecule)
-                    for struct in structures:
-                        # Might need to generate adsorbate input set
-                        fws.append(OptimizeFW(struct, vasp_input_set = vis,
-                                              vasp_cmd=vasp_cmd, db_file=db_file))
-                    # Analysis FW?
-                    # TODO: add some info into task docs
-
-        if incar_update:
-            fws = add_modify_incar(fws, incar_update)
-        return FWAction(additions = fws)
-
-class SurfaceFW(Firework):
-    def __init__(self, slab, vasp_input_set="MVLSlabSet", db_file=None,
-                 parents = None, vasp_input_params=None, **kwargs):
-        """
-        """
-        t = []
-
-        if parents:
-            t.append(CopyVaspOutputs(calc_loc))
-        pass
-
-
-
-@explicit_serialize
-class WriteSlabIOSet(FireTaskBase):
-    """
-    #TODO, can this be made not dynamic?
-    I think so, but more work
-    """
-
-    required_params = ["structure", "miller_index", "min_slab_size", 
-                       "min_vacuum_size", "shift"]
-    optional_params = ["vasp_input_set", "slab_gen_config"]
-
-    def run_task(self):
-        structure = self['structure'] if 'prev_calc_dir' not in self else\
-                Poscar.from_file(os.path.join(self['prev_calc_dir'], 'CONTCAR')).structure
-        sg = SlabGenerator(opt_structure, slab.miller_index,
-                           min_slab_size, min_vacuum_size,
-                           **slab_gen_config)
-        new_slab = sg.get_slab(shift = slab.shift)
-        if "surface_properties" in site_properties:
-            adsorbate_sites = [site for site in slab.sites 
-                               if site.site_properties["surface_properties"] == "adsorbate"]
-            new_slab.extend(adsorbate_sites) # This could be problematic...
-
-        vis = 
 if __name__ == "__main__":
     from pymatgen.util.testing import PymatgenTest
     from pymatgen import Molecule
