@@ -359,7 +359,9 @@ class LcalcpolFW(Firework):
         t = []
 
         if copy_vasp_outputs:
-            t.append(CopyVaspOutputs(calc_loc=calc_loc, additional_files=["CHGCAR","WAVECAR","vasprun.xml","OUTCAR","KPOINTS"],contcar_to_poscar=True))
+            t.append(CopyVaspOutputs(calc_loc=calc_loc,
+                                     additional_files=["CHGCAR","WAVECAR","vasprun.xml","OUTCAR","KPOINTS","INCAR"],
+                                     contcar_to_poscar=True))
 
             # Exit Firework if bandgap is less than gap_threshold
             t.append(BandGapCut(gt=gap_threshold, exit_firework=exit_firework, defuse_children=defuse_children))
@@ -384,7 +386,8 @@ class LcalcpolFW(Firework):
             t.append(CreateFolder(folder_name="polarization",change_to=True))
 
             # Copy VASP Outputs from static calculation
-            t.append(CopyVaspOutputs(calc_loc=static_name, additional_files=["CHGCAR", "WAVECAR","vasprun.xml","OUTCAR","KPOINTS"],
+            t.append(CopyVaspOutputs(calc_loc=static_name,
+                                     additional_files=["CHGCAR", "WAVECAR","vasprun.xml","OUTCAR","KPOINTS","INCAR"],
                                      contcar_to_poscar=True))
 
         t.extend([
