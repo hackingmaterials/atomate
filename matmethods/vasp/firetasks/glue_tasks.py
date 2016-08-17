@@ -19,6 +19,8 @@ from fireworks import explicit_serialize, FireTaskBase, FWAction
 
 from matmethods.utils.utils import get_calc_loc, env_chk
 from matmethods.utils.fileio import FileClient
+from pymatgen.core.structure import Structure
+from matmethods.common.firetasks.glue_tasks import GrabFilesFromCalcLoc
 
 __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
@@ -121,6 +123,41 @@ class CopyVaspOutputs(FireTaskBase):
                 f.close()
                 os.remove(dest_path + gz_ext)
 
+@explicit_serialize
+class GetInterpolatedPOSCAR(FireTaskBase):
+    """
+    Grabs CONTCARS from two previous calculations
+    """
+    required_params = ["start","end","this_image","nimages"]
+
+    def run_task(self, fw_spec):
+
+        # make folder for poscar interpolation start and end structure files.
+        interpolate_folder = '/interpolate'
+        if not os.path.exists(os.getcwd()+interpolate_folder):
+            os.makedirs(os.getcwd()+interpolate_folder)
+
+            print (os.getcwd()+interpolate_folder)
+
+        # use method of GrabFilesFromCalcLoc to grab files from previous locations.
+        GrabFilesFromCalcLoc(calc_dir=None, calc_loc=self.get("start","default"), filenames="CONTCAR",
+                             name_prepend="interpolate/", name_append="_0").run_task(fw_spec=fw_spec)
+        GrabFilesFromCalcLoc(calc_dir=None, calc_loc=self.get("end","default"), filenames="CONTCAR",
+                             name_prepend="interpolate/", name_append="_1").run_task(fw_spec=fw_spec)
+
+        # assuming first calc_dir is polar structure for ferroelectric search
+
+        s1 = Structure.from_file("interpolate/CONTCAR_0")
+        s2 = Structure.from_file("interpolate/CONTCAR_1")
+
+        structs = s1.interpolate(s2,self.get('nimages',5),interpolate_lattices=True)
+
+        # save only the interpolation needed for this run
+        i = self.get("this_image",0)
+        s = structs[i]
+        s.to(fmt='POSCAR', filename=os.getcwd()+"/POSCAR")
+
+        # will want to call this method after getting first VASP set
 
 @explicit_serialize
 class CheckStability(FireTaskBase):

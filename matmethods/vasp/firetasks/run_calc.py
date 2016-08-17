@@ -97,7 +97,7 @@ class RunVaspCustodian(FireTaskBase):
             Not recommended for nscf runs.
         scratch_dir: (str) - if specified, uses this directory as the root
             scratch dir. Supports env_chk.
-        gzip_output: (bool) - gzip output (default=T)
+        gzip_output: (bool) - gzip output (default=F)
         max_errors: (int) - maximum # of errors to fix before giving up (default=2)
         ediffg: (float) shortcut for setting EDIFFG in special custodian jobs
         auto_npar: (bool) - use auto_npar (default=F). Recommended set to T
@@ -134,7 +134,7 @@ class RunVaspCustodian(FireTaskBase):
         # initialize variables
         job_type = self.get("job_type", "normal")
         scratch_dir = env_chk(self.get("scratch_dir"), fw_spec)
-        gzip_output = self.get("gzip_output", True)
+        gzip_output = self.get("gzip_output", False)
         max_errors = self.get("max_errors", 5)
         auto_npar = env_chk(self.get("auto_npar"), fw_spec, strict=False, default=False)
         gamma_vasp_cmd = env_chk(self.get("gamma_vasp_cmd"), fw_spec, strict=False, default=None)

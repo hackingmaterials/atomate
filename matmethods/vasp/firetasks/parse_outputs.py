@@ -17,6 +17,7 @@ from matmethods.utils.utils import env_chk, get_calc_loc, get_meta_from_structur
 from matmethods.utils.utils import get_logger
 from matmethods.vasp.database import MMDb
 from matmethods.vasp.drones import VaspDrone
+from pymatgen.io.vasp.outputs import Vasprun
 
 from pymatgen import Structure
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
@@ -121,8 +122,33 @@ class VaspToDbTask(FireTaskBase):
             defuse_children = False
 
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
-                        defuse_children=defuse_children)
+                        defuse_children=(task_doc["state"] != "successful"))
 
+
+@explicit_serialize
+class BandGapCut(FireTaskBase):
+    """
+    Defuses children FireWorks and/or exits firework if band gap condition is not met: gt < gap < lt
+
+    Defaults to defuse_children = False and exit = False for FWAction.
+    """
+
+    optional_params = ['gt','lt','defuse_children','exit_firework']
+
+    def run_task(self, fw_spec):
+        # get the directory that contains the VASP dir to parse
+
+        calc_dir = os.getcwd()
+        vasprun_file = calc_dir+'/vasprun.xml'
+        vrun = Vasprun(vasprun_file)
+        (gap, cbm, vbm, is_direct) = vrun.eigenvalue_band_properties
+
+        if (gap < self.get('lt',1.0e10)) and (gap > self.get('gt',0.001)):
+            return FWAction(stored_data={"bandgap": gap})
+        else:
+            return FWAction(stored_data={"bandgap": gap},
+                            defuse_children=self.get('defuse_children',False),
+                            exit = self.get('exit_firework',False))
 
 @explicit_serialize
 class BoltztrapToDBTask(FireTaskBase):
