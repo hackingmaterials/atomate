@@ -6,6 +6,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 This module defines the workflow for computing the Raman spectra.
 """
 
+from collections import defaultdict
+
+import numpy as np
 from numpy.linalg import norm
 
 from fireworks import FireTaskBase, Firework, FWAction, Workflow
@@ -76,21 +79,33 @@ class PassEpsilonTask(FireTaskBase):
         epsilon_dict = {"mode": self["mode"], "displacement": self["displacement"], "epsilon": epsilon_static}
         return FWAction(mod_spec=[{
             '_set': {
-                'raman_epsilon_{}_{}'.format(str(self["mode"]), str(self["displacement"])): epsilon_dict
+                'raman_epsilon->{}_{}'.format(str(self["mode"]), str(self["displacement"])): epsilon_dict
             }
         }])
 
 
 @explicit_serialize
-class RamanAnalysisTask(FireTaskBase):
+class RamanSusceptibilityTensorTask(FireTaskBase):
     """
     finite difference derivative of epsilon_static wrt position along the normal mode
     --> raman susceptibilty tensor for each mode. See: 10.1103/PhysRevB.63.094305
 
     """
 
+    required_params = ["modes", "displacements"]
+
     def run_task(self, fw_spec):
-        pass
+        mode_disps = fw_spec["raman_epsilon"].keys()
+        # store the dispalcement & epsilon for each mode in a dictionary
+        modes_eps_dict = defaultdict(list)
+        for md in mode_disps:
+            modes_eps_dict[str(fw_spec["raman_epsilon"][md]["mode"])].append(
+                [fw_spec["raman_epsilon"][md]["displacement"],
+                 fw_spec["raman_epsilon"][md]["epsilon"]])
+
+        # raman tensor = finite difference derivative of epsilon wrt displacement.
+        for k, v in modes_eps_dict.items():
+            modes_eps_dict["raman"] = (np.array(v[0][1]) - np.array(v[1][1]))/(v[0][0] - v[1][0])
 
 
 class RamanFW(Firework):
@@ -124,10 +139,13 @@ class RamanFW(Firework):
             structure.composition.reduced_formula, name), **kwargs)
 
 
-def get_wf_raman_spectra(structure, vasp_input_set=None, modes=(0,1), step_size=0.01, vasp_cmd="vasp",
+def get_wf_raman_spectra(structure, vasp_input_set=None, modes=(0, 1), step_size=0.01, vasp_cmd="vasp",
                          db_file=None):
     """
-    Raman spectra workflow
+    Raman spectra workflow:
+        Calculation of phonon normal modes followed by computation of dielectric constant for structures
+        displaced along the normal modes. Finally the dieledctric constants for each displacemnt is used
+        to compute the Raman susceptibility tensor using finite difference(central difference scheme).
 
     Returns:
         Workflow
@@ -153,10 +171,9 @@ def get_wf_raman_spectra(structure, vasp_input_set=None, modes=(0,1), step_size=
             fws.append(RamanFW(structure, mode, disp, fw_leps, vasp_cmd=vasp_cmd, db_file=db_file))
 
     # analysis: compute the intensity
-    #fws.append(Firework(RamanAnalysisTask(modes=modes, displacements=displacements)))
+    #fws.append(Firework(RamanSusceptibilityTensorTask(modes=modes, displacements=displacements)))
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, "raman spectra")
-
     return Workflow(fws, name=wfname)
 
 
