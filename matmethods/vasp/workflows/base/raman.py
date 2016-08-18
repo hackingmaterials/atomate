@@ -20,11 +20,12 @@ from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian
-from matmethods.vasp.firetasks.write_inputs import *
 
+from pymatgen.alchemy.materials import TransformedStructure
+from pymatgen.alchemy.transmuters import StandardTransmuter
 from pymatgen.transformations.site_transformations import TranslateSitesTransformation
 from pymatgen.io.vasp.outputs import Vasprun
-from pymatgen.io.vasp.sets import MPRelaxSet
+from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -49,8 +50,7 @@ class WriteNormalmodeDisplacementTask(FireTaskBase):
         # normalize the eigen vectors
         for i in range(nmodes):
             for j in range(natoms):
-                normalmode_eigenvecs[i, j, :] = normalmode_eigenvecs[i, j, :] / norm(
-                    normalmode_eigenvecs[i, j, :])
+                normalmode_eigenvecs[i, j, :] = normalmode_eigenvecs[i, j, :] / norm(normalmode_eigenvecs[i, j, :])
 
         # displace the sites along the given normal mode
         normalmode_translation = structure.cart_coords + normalmode_eigenvecs[self["mode"], :, :] * self["displacement"]
@@ -76,7 +76,9 @@ class PassEpsilonTask(FireTaskBase):
     def run_task(self, fw_spec):
         vrun = Vasprun('vasprun.xml.gz')
         epsilon_static = vrun.epsilon_static
-        epsilon_dict = {"mode": self["mode"], "displacement": self["displacement"], "epsilon": epsilon_static}
+        epsilon_dict = {"mode": self["mode"],
+                        "displacement": self["displacement"],
+                        "epsilon": epsilon_static}
         return FWAction(mod_spec=[{
             '_set': {
                 'raman_epsilon->{}_{}'.format(str(self["mode"]), str(self["displacement"])): epsilon_dict
@@ -143,9 +145,10 @@ def get_wf_raman_spectra(structure, vasp_input_set=None, modes=(0, 1), step_size
                          db_file=None):
     """
     Raman spectra workflow:
-        Calculation of phonon normal modes followed by computation of dielectric constant for structures
-        displaced along the normal modes. Finally the dieledctric constants for each displacemnt is used
-        to compute the Raman susceptibility tensor using finite difference(central difference scheme).
+        Calculation of phonon normal modes followed by computation of dielectric constant for
+        structures displaced along the normal modes. Finally the dieledctric constants for each
+        displacement is used to compute the Raman susceptibility tensor using finite difference(
+        central difference scheme).
 
     Returns:
         Workflow
@@ -162,7 +165,7 @@ def get_wf_raman_spectra(structure, vasp_input_set=None, modes=(0, 1), step_size
     fws.append(fw_opt)
 
     # leps firework to compute the normal modes
-    fw_leps = LepsFW(structure=structure, vasp_cmd=vasp_cmd, db_file=db_file, parents=[fw_opt])
+    fw_leps = LepsFW(structure=structure, vasp_cmd=vasp_cmd, db_file=db_file, parents=fw_opt)
     fws.append(fw_leps)
 
     # add raman firework for each mode and displacement along that mode
