@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 """
-This module defines the  workflow for Raman spectra
+This module defines the workflow for computing the Raman spectra.
 """
 
 from numpy.linalg import norm
@@ -85,6 +85,8 @@ class PassEpsilonTask(FireTaskBase):
 class RamanAnalysisTask(FireTaskBase):
     """
     finite difference derivative of epsilon_static wrt position along the normal mode
+    --> raman susceptibilty tensor for each mode. See: 10.1103/PhysRevB.63.094305
+
     """
 
     def run_task(self, fw_spec):
