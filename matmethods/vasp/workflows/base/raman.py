@@ -112,6 +112,8 @@ class RamanSusceptibilityTensorTask(FireTaskBase):
         displacements (list): list of displacements(2) along the normal mode(same for all modes) in
             Angstroms that will be used to compute the finite difference derivative of the
             dielectric constant.
+
+    TODO: insert to database
     """
 
     required_params = ["modes", "displacements"]
