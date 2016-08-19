@@ -2,8 +2,6 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from matmethods.vasp.firetasks.parse_outputs import RamanSusceptibilityTensorToDb
-
 """
 This module defines the workflow for computing the Raman spectra.
 """
@@ -12,6 +10,7 @@ from fireworks import Firework, Workflow
 
 from matmethods.utils.utils import get_logger
 from matmethods.vasp.fireworks.core import OptimizeFW, LepsFW, RamanFW
+from matmethods.vasp.firetasks.parse_outputs import RamanSusceptibilityTensorToDb
 
 from pymatgen.io.vasp.sets import MPRelaxSet
 

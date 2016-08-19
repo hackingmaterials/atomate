@@ -2,15 +2,14 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-from numpy.linalg import norm
-from pymatgen.transformations.site_transformations import TranslateSitesTransformation
-
 """
 This module defines tasks for writing vasp input sets for various types of vasp calculations
 """
 
 import os
 from six.moves import range
+
+from numpy.linalg import norm
 
 from fireworks import FireTaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
@@ -19,6 +18,7 @@ from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
 from pymatgen.io.vasp import Incar, Poscar, Vasprun
 from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, MPHSEBSSet
+from pymatgen.transformations.site_transformations import TranslateSitesTransformation
 
 from matmethods.utils.utils import env_chk
 

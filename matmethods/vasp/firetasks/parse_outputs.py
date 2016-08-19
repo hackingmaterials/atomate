@@ -13,7 +13,6 @@ from monty.json import MontyEncoder
 
 from fireworks import FireTaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
-from fireworks.utilities.fw_utilities import explicit_serialize
 
 from matmethods.utils.utils import env_chk, get_calc_loc, get_meta_from_structure
 from matmethods.utils.utils import get_logger
