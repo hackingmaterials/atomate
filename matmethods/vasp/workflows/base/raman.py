@@ -6,11 +6,13 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 This module defines the workflow for computing the Raman spectra.
 """
 
+import json
 from collections import defaultdict
 
 import numpy as np
 from numpy.linalg import norm
 
+from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks import FireTaskBase, Firework, FWAction, Workflow
 from fireworks.utilities.fw_utilities import explicit_serialize
 
@@ -127,6 +129,9 @@ class RamanSusceptibilityTensorTask(FireTaskBase):
         for k, v in modes_eps_dict.items():
             raman_tensor = (np.array(v[0][1]) - np.array(v[1][1]))/(v[0][0] - v[1][0])
             modes_eps_dict["raman_tensor"] = raman_tensor.tolist()
+
+        with open("raman.json", "w") as f:
+            f.write(json.dumps(modes_eps_dict, default=DATETIME_HANDLER))
 
 
 class RamanFW(Firework):
