@@ -2,6 +2,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from matmethods.vasp.workflows.base.raman import PassEpsilonTask
+
 """
 Defines standardized Fireworks that can be chained easily to perform various
 sequences of VASP calculations.
@@ -11,7 +13,7 @@ from fireworks import Firework
 
 from pymatgen.io.vasp.sets import MPRelaxSet
 
-from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
+from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs, PassEpsilonTask
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask, BoltztrapToDBTask
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunBoltztrap
@@ -335,4 +337,37 @@ class BoltztrapFW(Firework):
         t.append(BoltztrapToDBTask(db_file=db_file))
         t.append(PassCalcLocs(name=name))
         super(BoltztrapFW, self).__init__(t, parents=parents, name="{}-{}".format(
+            structure.composition.reduced_formula, name), **kwargs)
+
+
+class RamanFW(Firework):
+    def __init__(self, structure, mode, displacement, parents, vasp_input_set=None,
+                 name="normal mode static dielectric", vasp_cmd="vasp", db_file=None, **kwargs):
+        """
+        Firework that aids Raman susceptibility tensor calculation. This firework utilizes the
+        normal modes computed in the previous step to setup a static calculation with the the sites
+        displaced along the normal mode to compute the dielectric constant.
+
+        Args:
+            structure (Structure): Input structure.
+            mode (int): index of the normal mode
+            displacement (float): displacement along the normal mode in Angstroms
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            vasp_input_set (DictVaspInputSet): input set to use (for jobs w/no parents)
+                Defaults to MPStaticSet() if None.
+            name (str): Name for the Firework.
+            vasp_cmd (str): Command to run vasp.
+            db_file (str): Path to file specifying db credentials.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+        t = []
+        # the input set is overridden with translated structure
+        vasp_input_set = vasp_input_set or MPStaticSet(structure, lepsilon=True)
+        t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
+        t.append(WriteNormalmodeDisplacementIOSet(mode=mode, displacement=displacement, vasp_input_set=vasp_input_set))
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
+        t.append(PassCalcLocs(name=name))
+        t.append(PassEpsilonTask(mode=mode, displacement=displacement))
+        t.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": name}))
+        super(RamanFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)

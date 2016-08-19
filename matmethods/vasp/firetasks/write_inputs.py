@@ -2,6 +2,9 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
+from numpy.linalg import norm
+from pymatgen.transformations.site_transformations import TranslateSitesTransformation
+
 """
 This module defines tasks for writing vasp input sets for various types of vasp calculations
 """
@@ -14,7 +17,7 @@ from fireworks.utilities.dict_mods import apply_mod
 
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
-from pymatgen.io.vasp import Incar, Poscar
+from pymatgen.io.vasp import Incar, Poscar, Vasprun
 from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, MPHSEBSSet
 
 from matmethods.utils.utils import env_chk
@@ -337,4 +340,45 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
         ts = TransformedStructure(structure)
         transmuter = StandardTransmuter([ts], transformations)
         vis = vis_cls(transmuter.transformed_structures[-1].final_structure, **self.get("vasp_input_params", {}))
+        vis.write_input(".")
+
+
+@explicit_serialize
+class WriteNormalmodeDisplacementIOSet(FireTaskBase):
+    """
+    Displace the structure from the previous calculation along the provided normal mode by the
+    given amount and write the corresponding vasp input set for dielectric constant calculation.
+
+    Required params:
+        mode (int): normal mode index
+        displacement (float): displacement along the normal mode in Angstroms
+        vasp_input_set (DictVaspInputSet): vasp input set.
+
+    Optional params:
+        vasp_input_params (dict): user vasp input settings
+    """
+
+    required_params = ["mode", "displacement", "vasp_input_set"]
+    optional_params = ["vasp_input_params"]
+
+    def run_task(self, fw_spec):
+        vrun = Vasprun('vasprun.xml.gz')
+        structure = vrun.final_structure.copy()
+        normalmode_eigenvecs = vrun.normalmode_eigenvecs
+        nmodes, natoms, _ = normalmode_eigenvecs.shape
+        # normalize the eigen vectors
+        for i in range(nmodes):
+            for j in range(natoms):
+                normalmode_eigenvecs[i, j, :] = normalmode_eigenvecs[i, j, :] / norm(normalmode_eigenvecs[i, j, :])
+
+        # displace the sites along the given normal mode
+        normalmode_displacement = normalmode_eigenvecs[self["mode"], :, :] * self["displacement"]
+        transformation = TranslateSitesTransformation(range(len(structure)), normalmode_displacement,
+                                                      vector_in_frac_coords=False)
+        ts = TransformedStructure(structure)
+        transmuter = StandardTransmuter([ts], [transformation])
+
+        # write the static vasp input set corresponding to the transmuted structure to compute epsilon
+        vis = self["vasp_input_set"].__class__(transmuter.transformed_structures[-1].final_structure,
+                                               lepsilon=True, **self.get("vasp_input_params", {}))
         vis.write_input(".")

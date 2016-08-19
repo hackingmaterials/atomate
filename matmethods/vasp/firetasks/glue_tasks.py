@@ -2,6 +2,8 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
+from pymatgen.io.vasp import Vasprun
+
 """
 This module defines tasks that acts as a glue between other vasp firetasks
 namely passing the location of current run to the next one and copying files
@@ -155,3 +157,28 @@ class CheckStability(FireTaskBase):
 
         else:
             return FWAction(stored_data=stored_data)
+
+
+@explicit_serialize
+class PassEpsilonTask(FireTaskBase):
+    """
+    Pass the epsilon(dielectric constant) corresponding to the given normal mode and displacement.
+
+    Required params:
+        mode (int): normal mode index
+        displacement (float): displacement along the normal mode in Angstroms
+    """
+
+    required_params = ["mode", "displacement"]
+
+    def run_task(self, fw_spec):
+        vrun = Vasprun('vasprun.xml.gz')
+        epsilon_static = vrun.epsilon_static
+        epsilon_dict = {"mode": self["mode"],
+                        "displacement": self["displacement"],
+                        "epsilon": epsilon_static}
+        return FWAction(mod_spec=[{
+            '_set': {
+                'raman_epsilon->{}_{}'.format(str(self["mode"]), str(self["displacement"])): epsilon_dict
+            }
+        }])

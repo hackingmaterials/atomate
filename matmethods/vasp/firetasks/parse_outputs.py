@@ -4,12 +4,14 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import json
 import os
+from collections import defaultdict
 
 from datetime import datetime
 
+import numpy as np
 from monty.json import MontyEncoder
 
-from fireworks import FireTaskBase, FWAction
+from fireworks import FireTaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.utilities.fw_utilities import explicit_serialize
 
@@ -187,3 +189,38 @@ class BoltztrapToDBTask(FireTaskBase):
             del d["dos"]
 
             mmdb.db.boltztrap.insert(d)
+
+
+@explicit_serialize
+class RamanSusceptibilityTensorToDb(FireTaskBase):
+    """
+    finite difference derivative of epsilon_static wrt position along the normal mode
+    --> raman susceptibilty tensor for each mode. See: 10.1103/PhysRevB.63.094305
+
+    Required params:
+        modes (list): list of normal mode indices for which the raman tensor will be computed.
+        displacements (list): list of displacements(2) along the normal mode(same for all modes) in
+            Angstroms that will be used to compute the finite difference derivative of the
+            dielectric constant.
+
+    TODO: insert to database
+    """
+
+    required_params = ["modes", "displacements"]
+
+    def run_task(self, fw_spec):
+        mode_disps = fw_spec["raman_epsilon"].keys()
+        # store the dispalcement & epsilon for each mode in a dictionary
+        modes_eps_dict = defaultdict(list)
+        for md in mode_disps:
+            modes_eps_dict[str(fw_spec["raman_epsilon"][md]["mode"])].append(
+                [fw_spec["raman_epsilon"][md]["displacement"],
+                 fw_spec["raman_epsilon"][md]["epsilon"]])
+
+        # raman tensor = finite difference derivative of epsilon wrt displacement.
+        for k, v in modes_eps_dict.items():
+            raman_tensor = (np.array(v[0][1]) - np.array(v[1][1]))/(v[0][0] - v[1][0])
+            modes_eps_dict["raman_tensor"] = raman_tensor.tolist()
+
+        with open("raman.json", "w") as f:
+            f.write(json.dumps(modes_eps_dict, default=DATETIME_HANDLER))
