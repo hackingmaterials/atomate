@@ -135,8 +135,8 @@ class RamanSusceptibilityTensorTask(FireTaskBase):
 
 
 class RamanFW(Firework):
-    def __init__(self, structure, mode, displacement, parents, vasp_input_set=None, name="raman spectra",
-                 vasp_cmd="vasp", db_file=None, **kwargs):
+    def __init__(self, structure, mode, displacement, parents, vasp_input_set=None,
+                 name="normal mode static dielectric", vasp_cmd="vasp", db_file=None, **kwargs):
         """
         Firework that aids Raman susceptibility tensor calculation. This firework utilizes the
         normal modes computed in the previous step to setup a static calculation with the the sites
@@ -203,12 +203,17 @@ def get_wf_raman_spectra(structure, vasp_input_set=None, modes=(0, 1), step_size
     fws.append(fw_leps)
 
     # Raman firework to compute epsilon for each mode and displacement along that mode.
+    fws_nm = []
     for mode in modes:
         for disp in displacements:
-            fws.append(RamanFW(structure, mode, disp, fw_leps, vasp_cmd=vasp_cmd, db_file=db_file))
+            fws_nm.append(RamanFW(structure, mode, disp, fw_leps, vasp_cmd=vasp_cmd, db_file=db_file))
+    fws.extend(fws_nm)
 
     # Compute the Raman susceptibility tensor
-    fws.append(Firework(RamanSusceptibilityTensorTask(modes=modes, displacements=displacements)))
+    fw_analysis = Firework(RamanSusceptibilityTensorTask(modes=modes, displacements=displacements),
+                           parents=fws_nm,
+                           name="{}-{}".format(structure.composition.reduced_formula, "raman analysis"))
+    fws.append(fw_analysis)
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, "raman spectra")
     return Workflow(fws, name=wfname)
