@@ -2,6 +2,13 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
+from _pydecimal import Decimal
+
+import numpy as np
+from pymatgen.analysis.elasticity import reverse_voigt_map
+from pymatgen.analysis.elasticity.strain import IndependentStrain
+from pymatgen.io.vasp import Vasprun
+
 """
 This module defines tasks that acts as a glue between other vasp firetasks
 namely passing the location of current run to the next one and copying files
@@ -155,3 +162,32 @@ class CheckStability(FireTaskBase):
 
         else:
             return FWAction(stored_data=stored_data)
+
+
+@explicit_serialize
+class PassStressStrainData(FireTaskBase):
+    """
+    Passes the stress and deformation for an elastic deformation calculation
+
+    Required params:
+        deformation: the deformation gradient used in the elastic analysis.
+    """
+
+    required_params = ["deformation"]
+
+    def run_task(self, fw_spec):
+        v = Vasprun('vasprun.xml.gz')
+        stress = v.ionic_steps[-1]['stress']
+        defo = self['deformation']
+        d_ind = np.nonzero(defo - np.eye(3))
+        delta = Decimal((defo - np.eye(3))[d_ind][0])
+        # Shorthand is d_X_V, X is voigt index, V is value
+        dtype = "_".join(["d", str(reverse_voigt_map[d_ind][0]),
+                          "{:.0e}".format(delta)])
+        strain = IndependentStrain(defo)
+        defo_dict = {'deformation_matrix': defo,
+                     'strain': strain.tolist(),
+                     'stress': stress}
+
+        return FWAction(mod_spec=[{'_set': {
+            'deformation_tasks->{}'.format(dtype): defo_dict}}])
