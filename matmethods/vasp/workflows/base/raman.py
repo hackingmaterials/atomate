@@ -34,9 +34,18 @@ logger = get_logger(__name__)
 
 
 @explicit_serialize
-class WriteNormalmodeDisplacementTask(FireTaskBase):
+class WriteNormalmodeDisplacementIOSet(FireTaskBase):
     """
-    write the vasp input set corresponding to the structure displaced along the normal mode.
+    Displace the structure from the previous calculation along the provided normal mode by the
+    given amount and write the corresponding vasp input set for dielectric constant calculation.
+
+    Required params:
+        mode (int): normal mode index
+        displacement (float): displacement along the normal mode in Angstroms
+        vasp_input_set (DictVaspInputSet): vasp input set.
+
+    Optional params:
+        vasp_input_params (dict): user vasp input settings
     """
 
     required_params = ["mode", "displacement", "vasp_input_set"]
@@ -61,14 +70,18 @@ class WriteNormalmodeDisplacementTask(FireTaskBase):
 
         # write the static vasp input set corresponding to the transmuted structure
         vis = self["vasp_input_set"].__class__(transmuter.transformed_structures[-1].final_structure,
-                                               **self.get("vasp_input_params", {}))
+                                               lepsilon=True, **self.get("vasp_input_params", {}))
         vis.write_input(".")
 
 
 @explicit_serialize
 class PassEpsilonTask(FireTaskBase):
     """
-    pass the epsilon corresponding to the mode and displacement.
+    Pass the epsilon corresponding to the mode and displacement.
+
+    Required params:
+        mode (int): normal mode index
+        displacement (float): displacement along the normal mode in Angstroms
     """
 
     required_params = ["mode", "displacement"]
@@ -92,6 +105,11 @@ class RamanSusceptibilityTensorTask(FireTaskBase):
     finite difference derivative of epsilon_static wrt position along the normal mode
     --> raman susceptibilty tensor for each mode. See: 10.1103/PhysRevB.63.094305
 
+    Required params:
+        modes (list): list of normal mode indices for which the raman tensor will be computed.
+        displacements (list): list of displacements(2) along the normal mode(same for all modes) in
+            Angstroms that will be used to compute the finite difference derivative of the
+            dielectric constant.
     """
 
     required_params = ["modes", "displacements"]
@@ -107,32 +125,35 @@ class RamanSusceptibilityTensorTask(FireTaskBase):
 
         # raman tensor = finite difference derivative of epsilon wrt displacement.
         for k, v in modes_eps_dict.items():
-            modes_eps_dict["raman"] = (np.array(v[0][1]) - np.array(v[1][1]))/(v[0][0] - v[1][0])
+            raman_tensor = (np.array(v[0][1]) - np.array(v[1][1]))/(v[0][0] - v[1][0])
+            modes_eps_dict["raman_tensor"] = raman_tensor.tolist()
 
 
 class RamanFW(Firework):
     def __init__(self, structure, mode, displacement, parents, vasp_input_set=None, name="raman spectra",
                  vasp_cmd="vasp", db_file=None, **kwargs):
         """
-        Firework for raman spectra calculation.
+        Firework that aids Raman susceptibility tensor calculation. This firework utilizes the
+        normal modes computed in the previous step to setup a static calculation with the the sites
+        displaced along the normal mode to compute the dielectric constant.
 
         Args:
             structure (Structure): Input structure.
             mode (int): index of the normal mode
             displacement (float): displacement along the normal mode in Angstroms
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
-            vasp_input_set VaspInputSet): input set to use (for jobs w/no parents)
+            vasp_input_set (DictVaspInputSet): input set to use (for jobs w/no parents)
                 Defaults to MPStaticSet() if None.
             name (str): Name for the Firework.
             vasp_cmd (str): Command to run vasp.
             db_file (str): Path to file specifying db credentials.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
-
         """
         t = []
-        vasp_input_set = vasp_input_set or MPStaticSet(structure)
+        # the input set is overridden with translated structure
+        vasp_input_set = vasp_input_set or MPStaticSet(structure, lepsilon=True)
         t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
-        t.append(WriteNormalmodeDisplacementTask(mode=mode, displacement=displacement, vasp_input_set=vasp_input_set))
+        t.append(WriteNormalmodeDisplacementIOSet(mode=mode, displacement=displacement, vasp_input_set=vasp_input_set))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(PassEpsilonTask(mode=mode, displacement=displacement))
@@ -150,31 +171,39 @@ def get_wf_raman_spectra(structure, vasp_input_set=None, modes=(0, 1), step_size
         displacement is used to compute the Raman susceptibility tensor using finite difference(
         central difference scheme).
 
+    Args:
+        structure (Structure): Input structure
+        vasp_input_set (DictVaspInputSet): Vasp input set for the first firework(structure optimization)
+        modes (tuple/list): list of modes for which the raman spectra need to be calculated.
+        step_size (float): site displacement along the normal mode in Angstroms
+        vasp_cmd (str): command to run
+        db_file (str): path to file containing the database credentials.
+
     Returns:
         Workflow
     """
     vis = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
     # displacements in + and - direction along the normal mode so that the central difference scheme
-    # can be used
+    # can be used for the evaluation of Raman tensor (derivative of epsilon wrt displacement)
     displacements = [-step_size, step_size]
 
     fws = []
 
-    # optimize
+    # Structure optimization
     fw_opt = OptimizeFW(structure=structure, vasp_input_set=vis, vasp_cmd=vasp_cmd, db_file=db_file)
     fws.append(fw_opt)
 
-    # leps firework to compute the normal modes
+    # Static run compute the normal modes
     fw_leps = LepsFW(structure=structure, vasp_cmd=vasp_cmd, db_file=db_file, parents=fw_opt)
     fws.append(fw_leps)
 
-    # add raman firework for each mode and displacement along that mode
+    # Raman firework to compute epsilon for each mode and displacement along that mode.
     for mode in modes:
         for disp in displacements:
             fws.append(RamanFW(structure, mode, disp, fw_leps, vasp_cmd=vasp_cmd, db_file=db_file))
 
-    # analysis: compute the intensity
-    #fws.append(Firework(RamanSusceptibilityTensorTask(modes=modes, displacements=displacements)))
+    # Compute the Raman susceptibility tensor
+    fws.append(Firework(RamanSusceptibilityTensorTask(modes=modes, displacements=displacements)))
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, "raman spectra")
     return Workflow(fws, name=wfname)
