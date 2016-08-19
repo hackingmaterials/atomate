@@ -11,7 +11,7 @@ from previous run directory oto the current one.
 import gzip
 import os
 import re
-from _pydecimal import Decimal
+from decimal import Decimal
 
 import numpy as np
 
