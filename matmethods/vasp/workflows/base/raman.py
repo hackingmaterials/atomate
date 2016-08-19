@@ -10,7 +10,7 @@ from fireworks import Firework, Workflow
 
 from matmethods.utils.utils import get_logger
 from matmethods.vasp.fireworks.core import OptimizeFW, LepsFW, RamanFW
-from matmethods.vasp.firetasks.parse_outputs import RamanSusceptibilityTensorToDb
+from matmethods.vasp.firetasks.parse_outputs import RamanSusceptibilityTensorToDbTask
 
 from pymatgen.io.vasp.sets import MPRelaxSet
 
@@ -64,7 +64,7 @@ def get_wf_raman_spectra(structure, vasp_input_set=None, modes=(0, 1), step_size
     fws.extend(fws_nm)
 
     # Compute the Raman susceptibility tensor
-    fw_analysis = Firework(RamanSusceptibilityTensorToDb(modes=modes, displacements=displacements),
+    fw_analysis = Firework(RamanSusceptibilityTensorToDbTask(modes=modes, displacements=displacements),
                            parents=fws_nm,
                            name="{}-{}".format(structure.composition.reduced_formula, "raman analysis"))
     fws.append(fw_analysis)

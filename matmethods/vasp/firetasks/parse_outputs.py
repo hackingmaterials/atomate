@@ -191,7 +191,7 @@ class BoltztrapToDBTask(FireTaskBase):
 
 
 @explicit_serialize
-class RamanSusceptibilityTensorToDb(FireTaskBase):
+class RamanSusceptibilityTensorToDbTask(FireTaskBase):
     """
     finite difference derivative of epsilon_static wrt position along the normal mode
     --> raman susceptibilty tensor for each mode. See: 10.1103/PhysRevB.63.094305
