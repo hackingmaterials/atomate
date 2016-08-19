@@ -9,9 +9,8 @@ from datetime import datetime
 
 from monty.json import MontyEncoder
 
-from fireworks import FireTaskBase, FWAction
+from fireworks import FireTaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
-from fireworks.utilities.fw_utilities import explicit_serialize
 
 from matmethods.utils.utils import env_chk, get_calc_loc, get_meta_from_structure
 from matmethods.utils.utils import get_logger
@@ -19,6 +18,9 @@ from matmethods.vasp.database import MMDb
 from matmethods.vasp.drones import VaspDrone
 
 from pymatgen import Structure
+from pymatgen.analysis.elasticity.elastic import ElasticTensor
+from pymatgen.analysis.elasticity.strain import IndependentStrain
+from pymatgen.analysis.elasticity.stress import Stress
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -187,3 +189,66 @@ class BoltztrapToDBTask(FireTaskBase):
             del d["dos"]
 
             mmdb.db.boltztrap.insert(d)
+
+
+@explicit_serialize
+class ElasticTensorToDbTask(FireTaskBase):
+    """
+    Analyzes the stress/strain data of an elastic workflow to produce
+    an elastic tensor and various other quantities.
+    """
+
+    required_params = ['structure']
+    optional_params = ['db_file']
+
+    def run_task(self, fw_spec):
+
+        # Get optimized structure
+        # TODO: will this find the correct path if the workflow is rerun from the start?
+        optimize_loc = fw_spec["calc_locs"][0]["path"]
+        logger.info("PARSING INITIAL OPTIMIZATION DIRECTORY: {}".format(optimize_loc))
+        drone = VaspDrone()
+        optimize_doc = drone.assimilate(optimize_loc)
+        opt_struct = Structure.from_dict(optimize_doc["calcs_reversed"][0]["output"]["structure"])
+
+        d = {"analysis": {}, "deformation_tasks": fw_spec["deformation_tasks"],
+             "initial_structure": self['structure'].as_dict(),
+             "optimized_structure": opt_struct.as_dict()}
+
+        dtypes = fw_spec["deformation_tasks"].keys()
+        defos = [fw_spec["deformation_tasks"][dtype]["deformation_matrix"]
+                 for dtype in dtypes]
+        stresses = [fw_spec["deformation_tasks"][dtype]["stress"] for dtype in dtypes]
+        stress_dict = {IndependentStrain(defo) : Stress(stress) for defo, stress
+                       in zip(defos, stresses)}
+
+        logger.info("ANALYZING STRESS/STRAIN DATA")
+        # DETERMINE IF WE HAVE 6 "UNIQUE" deformations
+        if len(set([de[:3] for de in dtypes])) == 6:
+            # Perform Elastic tensor fitting and analysis
+            result = ElasticTensor.from_stress_dict(stress_dict)
+            d["elastic_tensor"] = result.voigt.tolist()
+            kg_average = result.kg_average
+            d.update({"K_Voigt": kg_average[0], "G_Voigt": kg_average[1],
+                      "K_Reuss": kg_average[2], "G_Reuss": kg_average[3],
+                      "K_Voigt_Reuss_Hill": kg_average[4],
+                      "G_Voigt_Reuss_Hill": kg_average[5]})
+            d["universal_anisotropy"] = result.universal_anisotropy
+            d["homogeneous_poisson"] = result.homogeneous_poisson
+
+        else:
+            raise ValueError("Fewer than 6 unique deformations")
+
+        d["state"] = "successful"
+
+        # Save analysis results in json or db
+        db_file = env_chk(self.get('db_file'), fw_spec)
+        if not db_file:
+            with open("elasticity.json", "w") as f:
+                f.write(json.dumps(d, default=DATETIME_HANDLER))
+        else:
+            db = MMDb.from_db_file(db_file, admin=True)
+            db.collection = db.db["elasticity"]
+            db.collection.insert_one(d)
+            logger.info("ELASTIC ANALYSIS COMPLETE")
+        return FWAction()
