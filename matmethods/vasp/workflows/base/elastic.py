@@ -2,9 +2,6 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from matmethods.vasp.firetasks.glue_tasks import PassStressStrainData
-from matmethods.vasp.firetasks.parse_outputs import ElasticTensorToDbTask
-
 """
 This module defines the elastic workflow
 """
@@ -13,6 +10,8 @@ from fireworks import Firework, Workflow
 
 from matmethods.utils.utils import get_logger
 from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW
+from matmethods.vasp.firetasks.glue_tasks import PassStressStrainData
+from matmethods.vasp.firetasks.parse_outputs import ElasticTensorToDbTask
 
 from pymatgen.analysis.elasticity.strain import Deformation
 from pymatgen.io.vasp.sets import MPRelaxSet, DictSet

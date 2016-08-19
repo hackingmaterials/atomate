@@ -2,13 +2,6 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-from _pydecimal import Decimal
-
-import numpy as np
-from pymatgen.analysis.elasticity import reverse_voigt_map
-from pymatgen.analysis.elasticity.strain import IndependentStrain
-from pymatgen.io.vasp import Vasprun
-
 """
 This module defines tasks that acts as a glue between other vasp firetasks
 namely passing the location of current run to the next one and copying files
@@ -18,9 +11,15 @@ from previous run directory oto the current one.
 import gzip
 import os
 import re
+from _pydecimal import Decimal
+
+import numpy as np
 
 from pymatgen import MPRester
 from pymatgen.io.vasp.sets import get_vasprun_outcar
+from pymatgen.analysis.elasticity import reverse_voigt_map
+from pymatgen.analysis.elasticity.strain import IndependentStrain
+from pymatgen.io.vasp import Vasprun
 
 from fireworks import explicit_serialize, FireTaskBase, FWAction
 
