@@ -7,7 +7,6 @@ import os
 
 from datetime import datetime
 
-from matmethods.vasp.workflows.base.elastic import logger
 from monty.json import MontyEncoder
 
 from fireworks import FireTaskBase, FWAction, explicit_serialize
