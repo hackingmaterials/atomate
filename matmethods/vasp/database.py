@@ -2,8 +2,12 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
+import json
+
 from monty.json import jsanitize
 from monty.serialization import loadfn
+from pymatgen.electronic_structure.bandstructure import BandStructure, \
+    BandStructureSymmLine
 
 """
 This module defines the database classes.
@@ -103,6 +107,18 @@ class MMDb(object):
         fs = gridfs.GridFS(self.db, collection)
         fs_id = fs.put(d)
         return fs_id, "zlib"
+
+    def get_band_structure(self, task_id, line_mode=False):
+        m_task = self.collection.find_one({"task_id": task_id},
+                                          {"calcs_reversed": 1})
+        fs_id = m_task['calcs_reversed'][0]['bandstructure_fs_id']
+        fs = gridfs.GridFS(self.db, 'bandstructure_fs')
+        bs_json = zlib.decompress(fs.get(fs_id).read())
+        bs_dict = json.loads(bs_json)
+        if line_mode:
+            return BandStructureSymmLine.from_dict(bs_dict)
+        else:
+            return BandStructure.from_dict(bs_dict)
 
     def insert(self, d, update_duplicates=True):
         """

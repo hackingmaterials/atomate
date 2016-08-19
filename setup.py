@@ -9,7 +9,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 if __name__ == "__main__":
     setup(
         name='MatMethods',
-        version='0.2',
+        version='0.21',
         description='MatMethods has implementations of FireWorks workflows for '
                     'Materials Science',
         long_description=open(os.path.join(module_dir, 'README.rst')).read(),
@@ -20,9 +20,9 @@ if __name__ == "__main__":
         packages=find_packages(),
         package_data={},
         zip_safe=False,
-        install_requires=['FireWorks>=1.3.3', 'pymatgen>=4.0.0',
+        install_requires=['FireWorks>=1.3.3', 'pymatgen>=4.2.0',
                           'custodian>=1.0.1', 'pymatgen-db>=0.5.1',
-                          'monty>=0.8.4', 'tqdm>=4.7.4', 'six'],
+                          'monty>=0.9.0', 'tqdm>=4.7.4', 'six'],
         extras_require={'rtransfer': ['paramiko>=1.15.0']},
         classifiers=['Programming Language :: Python :: 2.7',
                      "Programming Language :: Python :: 3",

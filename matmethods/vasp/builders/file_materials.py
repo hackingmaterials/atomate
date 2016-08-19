@@ -57,8 +57,9 @@ class FileMaterialsBuilder:
 
                         x = self._materials.update({search_key: search_val}, {"$set": {key: val}})
 
-                        if x["n"] == 0:
-                            raise ValueError("Could not find entry with {}={}".format(search_key, search_val))
+                        # TODO: make this check optional
+                        #if x["n"] == 0:
+                        #    raise ValueError("Could not find entry with {}={}".format(search_key, search_val))
 
         print("FileMaterials Builder finished processing")
 
