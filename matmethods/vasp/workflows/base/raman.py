@@ -10,6 +10,7 @@ from fireworks import Firework, Workflow
 
 from matmethods.utils.utils import get_logger
 from matmethods.vasp.fireworks.core import OptimizeFW, LepsFW, RamanFW
+from matmethods.vasp.firetasks.glue_tasks import PassNormalmodesTask, CopyVaspOutputs
 from matmethods.vasp.firetasks.parse_outputs import RamanSusceptibilityTensorToDbTask
 
 from pymatgen.io.vasp.sets import MPRelaxSet
@@ -55,17 +56,25 @@ def get_wf_raman_spectra(structure, vasp_input_set=None, modes=(0, 1), step_size
     fw_leps = LepsFW(structure=structure, vasp_cmd=vasp_cmd, db_file=db_file, parents=fw_opt)
     fws.append(fw_leps)
 
-    # Raman firework to compute epsilon for each mode and displacement along that mode.
-    fws_nm = []
+    # Extract and pass normal modes
+    # why this firework: avoid parsing the xml in all subsequent firworks,
+    # also the normal modes might be needed in the final evaluation step
+    fw_nm = Firework([CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True),
+                      PassNormalmodesTask(modes=modes, displacements=displacements)],
+                     parents=fw_leps,
+                     name="{}-{}".format(structure.composition.reduced_formula, "pass normal modes"))
+
+    # Static run to compute epsilon for each mode and displacement along that mode.
+    fws_nm_disp = []
     for mode in modes:
         for disp in displacements:
-            fws_nm.append(
-                RamanFW(structure, mode, disp, fw_leps, vasp_cmd=vasp_cmd, db_file=db_file))
-    fws.extend(fws_nm)
+            fws_nm_disp.append(
+                RamanFW(structure, mode, disp, fw_nm, vasp_cmd=vasp_cmd, db_file=db_file))
+    fws.extend(fws_nm_disp)
 
     # Compute the Raman susceptibility tensor
     fw_analysis = Firework(RamanSusceptibilityTensorToDbTask(modes=modes, displacements=displacements),
-                           parents=fws_nm,
+                           parents=fws_nm_disp,
                            name="{}-{}".format(structure.composition.reduced_formula, "raman analysis"))
     fws.append(fw_analysis)
 

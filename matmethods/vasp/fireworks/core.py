@@ -11,8 +11,8 @@ from fireworks import Firework
 
 from pymatgen.io.vasp.sets import MPRelaxSet
 
-from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs, PassEpsilonTask
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
+from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs, PassEpsilonTask
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask, BoltztrapToDBTask
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunBoltztrap
 from matmethods.vasp.firetasks.write_inputs import *
@@ -361,10 +361,8 @@ class RamanFW(Firework):
         t = []
         # the input set is overridden with translated structure
         vasp_input_set = vasp_input_set or MPStaticSet(structure, lepsilon=True)
-        t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
         t.append(WriteNormalmodeDisplacementIOSet(mode=mode, displacement=displacement, vasp_input_set=vasp_input_set))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
-        t.append(PassCalcLocs(name=name))
         t.append(PassEpsilonTask(mode=mode, displacement=displacement))
         t.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": name}))
         super(RamanFW, self).__init__(t, parents=parents, name="{}-{}".format(

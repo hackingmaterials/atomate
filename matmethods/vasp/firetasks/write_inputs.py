@@ -9,14 +9,15 @@ This module defines tasks for writing vasp input sets for various types of vasp 
 import os
 from six.moves import range
 
-from numpy.linalg import norm
+import numpy as np
 
 from fireworks import FireTaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
 
+from pymatgen.core.structure import Structure
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
-from pymatgen.io.vasp import Incar, Poscar, Vasprun
+from pymatgen.io.vasp import Incar, Poscar
 from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, MPHSEBSSet
 from pymatgen.transformations.site_transformations import TranslateSitesTransformation
 
@@ -362,18 +363,14 @@ class WriteNormalmodeDisplacementIOSet(FireTaskBase):
     optional_params = ["vasp_input_params"]
 
     def run_task(self, fw_spec):
-        vrun = Vasprun('vasprun.xml.gz')
-        structure = vrun.final_structure.copy()
-        normalmode_eigenvecs = vrun.normalmode_eigenvecs
-        nmodes, natoms, _ = normalmode_eigenvecs.shape
-        # normalize the eigen vectors
-        for i in range(nmodes):
-            for j in range(natoms):
-                normalmode_eigenvecs[i, j, :] = normalmode_eigenvecs[i, j, :] / norm(normalmode_eigenvecs[i, j, :])
+        structure = Structure.from_dict(fw_spec["normalmodes"]["structure"])
+        nm_eigenvecs = np.array(fw_spec["normalmodes"]["eigenvecs"])
+        nm_norms = np.array(fw_spec["normalmodes"]["norms"])
 
         # displace the sites along the given normal mode
-        normalmode_displacement = normalmode_eigenvecs[self["mode"], :, :] * self["displacement"]
-        transformation = TranslateSitesTransformation(range(len(structure)), normalmode_displacement,
+        nm_displacement = \
+            nm_eigenvecs[self["mode"], :, :] * self["displacement"] / nm_norms[self["mode"], :]
+        transformation = TranslateSitesTransformation(range(len(structure)), nm_displacement,
                                                       vector_in_frac_coords=False)
         ts = TransformedStructure(structure)
         transmuter = StandardTransmuter([ts], [transformation])
