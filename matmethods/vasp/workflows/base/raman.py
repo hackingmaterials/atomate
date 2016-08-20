@@ -63,6 +63,7 @@ def get_wf_raman_spectra(structure, vasp_input_set=None, modes=(0, 1), step_size
                       PassNormalmodesTask(modes=modes, displacements=displacements)],
                      parents=fw_leps,
                      name="{}-{}".format(structure.composition.reduced_formula, "pass normal modes"))
+    fws.append(fw_nm)
 
     # Static run to compute epsilon for each mode and displacement along that mode.
     fws_nm_disp = []
