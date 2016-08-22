@@ -57,10 +57,9 @@ def get_wf_raman_spectra(structure, vasp_input_set=None, modes=(0, 1), step_size
     fws.append(fw_leps)
 
     # Extract and pass normal modes
-    # why this firework: avoid parsing the xml in all subsequent firworks,
+    # why this firework: avoid parsing the xml in all subsequent fireworks,
     # also the normal modes might be needed in the final evaluation step
-    fw_nm = Firework([CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True),
-                      PassNormalmodesTask(modes=modes, displacements=displacements)],
+    fw_nm = Firework([CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True), PassNormalmodesTask()],
                      parents=fw_leps,
                      name="{}-{}".format(structure.composition.reduced_formula, "pass normal modes"))
     fws.append(fw_nm)
@@ -69,8 +68,7 @@ def get_wf_raman_spectra(structure, vasp_input_set=None, modes=(0, 1), step_size
     fws_nm_disp = []
     for mode in modes:
         for disp in displacements:
-            fws_nm_disp.append(
-                RamanFW(structure, mode, disp, fw_nm, vasp_cmd=vasp_cmd, db_file=db_file))
+            fws_nm_disp.append(RamanFW(structure, mode, disp, fw_nm, vasp_cmd=vasp_cmd, db_file=db_file))
     fws.extend(fws_nm_disp)
 
     # Compute the Raman susceptibility tensor

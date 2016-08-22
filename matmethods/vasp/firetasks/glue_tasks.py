@@ -222,6 +222,7 @@ class PassNormalmodesTask(FireTaskBase):
     """
     Extract and pass the normal mode eigenvalues and vectors
     """
+
     def run_task(self, fw_spec):
         vrun = Vasprun('vasprun.xml.gz')
         structure = vrun.final_structure.copy()

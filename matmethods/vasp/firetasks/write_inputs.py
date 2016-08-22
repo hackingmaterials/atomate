@@ -363,19 +363,17 @@ class WriteNormalmodeDisplacementIOSet(FireTaskBase):
     optional_params = ["vasp_input_params"]
 
     def run_task(self, fw_spec):
+        mode = self["mode"]
+        disp = self["displacement"]
         structure = Structure.from_dict(fw_spec["normalmodes"]["structure"])
         nm_eigenvecs = np.array(fw_spec["normalmodes"]["eigenvecs"])
         nm_norms = np.array(fw_spec["normalmodes"]["norms"])
 
         # displace the sites along the given normal mode
-        nm_displacement = \
-            nm_eigenvecs[self["mode"], :, :] * self["displacement"] / nm_norms[self["mode"], :]
-        transformation = TranslateSitesTransformation(range(len(structure)), nm_displacement,
-                                                      vector_in_frac_coords=False)
-        ts = TransformedStructure(structure)
-        transmuter = StandardTransmuter([ts], [transformation])
+        nm_displacement = nm_eigenvecs[mode, :, :] * disp / nm_norms[mode, :, np.newaxis]
+        for i, vec in enumerate(nm_displacement):
+            structure.translate_sites(i, vec, frac_coords=False)
 
         # write the static vasp input set corresponding to the transmuted structure to compute epsilon
-        vis = self["vasp_input_set"].__class__(transmuter.transformed_structures[-1].final_structure,
-                                               lepsilon=True, **self.get("vasp_input_params", {}))
+        vis = self["vasp_input_set"].__class__(structure, lepsilon=True, **self.get("vasp_input_params", {}))
         vis.write_input(".")
