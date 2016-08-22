@@ -49,7 +49,8 @@ def get_wf_raman_spectra(structure, vasp_input_set=None, modes=(0, 1), step_size
     fws = []
 
     # Structure optimization
-    fw_opt = OptimizeFW(structure=structure, vasp_input_set=vis, vasp_cmd=vasp_cmd, db_file=db_file)
+    fw_opt = OptimizeFW(structure=structure, vasp_input_set=vis,  ediffg=-0.05, vasp_cmd=vasp_cmd,
+                        db_file=db_file)
     fws.append(fw_opt)
 
     # Static run compute the normal modes
@@ -68,7 +69,7 @@ def get_wf_raman_spectra(structure, vasp_input_set=None, modes=(0, 1), step_size
     fws_nm_disp = []
     for mode in modes:
         for disp in displacements:
-            fws_nm_disp.append(RamanFW(structure, mode, disp, fw_nm, vasp_cmd=vasp_cmd, db_file=db_file))
+            fws_nm_disp.append(RamanFW(structure, mode, disp, parents=fw_nm, vasp_cmd=vasp_cmd, db_file=db_file))
     fws.extend(fws_nm_disp)
 
     # Compute the Raman susceptibility tensor
