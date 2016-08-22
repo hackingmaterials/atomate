@@ -10,6 +10,7 @@ from matmethods.utils.utils import get_meta_from_structure
 from matmethods.vasp.firetasks.glue_tasks import CheckStability
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspDirect, RunVaspFake
 from matmethods.vasp.firetasks.write_inputs import ModifyIncar
+from matmethods.vasp.vasp_config import ADD_NAMEFILE, SCRATCH_DIR, ADD_MODIFY_INCAR
 
 __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
@@ -299,7 +300,7 @@ def add_tags(original_wf, tags_list):
         wf_dict["metadata"]["tags"] = tags_list
 
     # FW metadata
-    for idx_fw in xrange(len(original_wf.fws)):
+    for idx_fw in range(len(original_wf.fws)):
         if "tags" in wf_dict["fws"][idx_fw]["spec"]:
             wf_dict["fws"][idx_fw]["spec"]["tags"].extend(tags_list)
         else:
@@ -313,3 +314,26 @@ def add_tags(original_wf, tags_list):
             wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["additional_fields"]["tags"] = tags_list
 
     return Workflow.from_dict(wf_dict)
+
+
+def add_common_powerups(wf, c):
+    """
+    Apply the common powerups such as add_namefile, use_scratch_dir etc. from the given config dict.
+
+    Args:
+        wf (Workflow)
+        c (dict): Config dict
+
+    Returns:
+        Workflow
+    """
+    if c.get("ADD_NAMEFILE", ADD_NAMEFILE):
+        wf = add_namefile(wf)
+
+    if c.get("SCRATCH_DIR", SCRATCH_DIR):
+        wf = use_scratch_dir(wf, c.get("SCRATCH_DIR", SCRATCH_DIR))
+
+    if c.get("ADD_MODIFY_INCAR", ADD_MODIFY_INCAR):
+        wf = add_modify_incar(wf)
+
+    return wf
