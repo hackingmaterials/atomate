@@ -345,7 +345,7 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
 
 
 @explicit_serialize
-class WriteNormalmodeDisplacementIOSet(FireTaskBase):
+class WriteNormalmodeDisplacementPoscar(FireTaskBase):
     """
     Displace the structure from the previous calculation along the provided normal mode by the
     given amount and write the corresponding vasp input set for dielectric constant calculation.
@@ -353,19 +353,14 @@ class WriteNormalmodeDisplacementIOSet(FireTaskBase):
     Required params:
         mode (int): normal mode index
         displacement (float): displacement along the normal mode in Angstroms
-        vasp_input_set (DictVaspInputSet): vasp input set.
-
-    Optional params:
-        vasp_input_params (dict): user vasp input settings
     """
 
-    required_params = ["mode", "displacement", "vasp_input_set"]
-    optional_params = ["vasp_input_params"]
+    required_params = ["mode", "displacement"]
 
     def run_task(self, fw_spec):
         mode = self["mode"]
         disp = self["displacement"]
-        structure = Structure.from_dict(fw_spec["normalmodes"]["structure"])
+        structure = Structure.from_file("POSCAR")
         nm_eigenvecs = np.array(fw_spec["normalmodes"]["eigenvecs"])
         nm_norms = np.array(fw_spec["normalmodes"]["norms"])
 
@@ -374,6 +369,5 @@ class WriteNormalmodeDisplacementIOSet(FireTaskBase):
         for i, vec in enumerate(nm_displacement):
             structure.translate_sites(i, vec, frac_coords=False)
 
-        # write the static vasp input set corresponding to the transmuted structure to compute epsilon
-        vis = self["vasp_input_set"].__class__(structure, lepsilon=True, **self.get("vasp_input_params", {}))
-        vis.write_input(".")
+        # write the modified structure to poscar
+        structure.to(fmt="poscar", filename="POSCAR")

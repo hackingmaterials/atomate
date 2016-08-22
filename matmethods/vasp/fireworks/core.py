@@ -339,8 +339,8 @@ class BoltztrapFW(Firework):
 
 
 class RamanFW(Firework):
-    def __init__(self, structure, mode, displacement, parents, vasp_input_set=None,
-                 name="normal mode static dielectric", vasp_cmd="vasp", db_file=None, **kwargs):
+    def __init__(self, structure, mode, displacement, name="raman static dielectric", parents=None,
+                 copy_vasp_outputs=True,  vasp_cmd="vasp",  db_file=None, **kwargs):
         """
         Firework that aids Raman susceptibility tensor calculation. This firework utilizes the
         normal modes computed in the previous step to setup a static calculation with the the sites
@@ -359,9 +359,20 @@ class RamanFW(Firework):
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         t = []
-        # the input set is overridden with translated structure
-        vasp_input_set = vasp_input_set or MPStaticSet(structure, lepsilon=True)
-        t.append(WriteNormalmodeDisplacementIOSet(mode=mode, displacement=displacement, vasp_input_set=vasp_input_set))
+        if parents:
+            if copy_vasp_outputs:
+                t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
+                                         contcar_to_poscar=True))
+                t.append(WriteVaspStaticFromPrev(prev_calc_dir=".", lepsilon=True,
+                                                 reciprocal_density=kwargs.get("reciprocal_density", 200),
+                                                 small_gap_multiply=kwargs.get("small_gap_multiply", None),
+                                                 other_params=kwargs.get("other_params", {})
+                                                 ))
+        else:
+            vasp_input_set = MPStaticSet(structure, lepsilon=True)
+            t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set,
+                                        vasp_input_params=kwargs.get("vasp_input_params", {})))
+        t.append(WriteNormalmodeDisplacementPoscar(mode=mode, displacement=displacement, vasp_input_set=vasp_input_set))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassEpsilonTask(mode=mode, displacement=displacement))
         t.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": name}))
