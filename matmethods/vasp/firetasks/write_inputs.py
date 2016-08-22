@@ -345,10 +345,10 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
 
 
 @explicit_serialize
-class WriteNormalmodeDisplacementPoscar(FireTaskBase):
+class WriteNormalmodeDisplacedPoscar(FireTaskBase):
     """
     Displace the structure from the previous calculation along the provided normal mode by the
-    given amount and write the corresponding vasp input set for dielectric constant calculation.
+    given amount and write the corresponding Poscar file.
 
     Required params:
         mode (int): normal mode index

@@ -366,7 +366,7 @@ class RamanFW(Firework):
         else:
             vasp_input_set = MPStaticSet(structure, lepsilon=True)
             t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
-        t.append(WriteNormalmodeDisplacementPoscar(mode=mode, displacement=displacement))
+        t.append(WriteNormalmodeDisplacedPoscar(mode=mode, displacement=displacement))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassEpsilonTask(mode=mode, displacement=displacement))
         t.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": name}))
