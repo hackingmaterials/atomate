@@ -119,8 +119,8 @@ class ModifyIncar(FireTaskBase):
         output_filename (str): Output filename (if not "INCAR")
     """
 
-    optional_params = ["incar_update", "incar_multiply", "incar_dictmod",
-                       "input_filename", "output_filename"]
+    optional_params = ["incar_update", "incar_multiply", "incar_dictmod", "input_filename",
+                       "output_filename"]
 
     def run_task(self, fw_spec):
 
@@ -162,9 +162,8 @@ class WriteVaspStaticFromPrev(FireTaskBase):
     """
 
     required_params = ["prev_calc_dir"]
-    optional_params = ["reciprocal_density", "small_gap_multiply",
-                       "standardize", "sym_prec", "international_monoclinic",
-                       "lepsilon", "other_params"]
+    optional_params = ["reciprocal_density", "small_gap_multiply", "standardize", "sym_prec",
+                       "international_monoclinic", "lepsilon", "other_params"]
 
     def run_task(self, fw_spec):
         lepsilon = self.get("lepsilon")
@@ -181,7 +180,7 @@ class WriteVaspStaticFromPrev(FireTaskBase):
             other_params["user_incar_settings"]["EDIFF"] = 1E-5
 
         vis = MPStaticSet.from_prev_calc(prev_calc_dir=self["prev_calc_dir"],
-                                         reciprocal_density=default_reciprocal_density,
+                                         reciprocal_density=self.get("reciprocal_density", default_reciprocal_density),
                                          small_gap_multiply=self.get("small_gap_multiply", None),
                                          standardize=self.get("standardize", False),
                                          sym_prec=self.get("sym_prec", 0.1),
@@ -230,9 +229,8 @@ class WriteVaspNSCFFromPrev(FireTaskBase):
     """
 
     required_params = ["prev_calc_dir"]
-    optional_params = ["copy_chgcar", "nbands_factor", "reciprocal_density",
-                       "kpoints_line_density", "small_gap_multiply",
-                       "standardize", "sym_prec", "international_monoclinic",
+    optional_params = ["copy_chgcar", "nbands_factor", "reciprocal_density", "kpoints_line_density",
+                       "small_gap_multiply", "standardize", "sym_prec", "international_monoclinic",
                        "mode", "nedos", "optics", "other_params"]
 
     def run_task(self, fw_spec):
@@ -268,9 +266,8 @@ class WriteVaspSOCFromPrev(FireTaskBase):
     """
     required_params = ["prev_calc_dir", "magmom", "saxis"]
 
-    optional_params = ["copy_chgcar", "nbands_factor", "reciprocal_density",
-                       "small_gap_multiply", "standardize", "sym_prec",
-                       "international_monoclinic", "other_params"]
+    optional_params = ["copy_chgcar", "nbands_factor", "reciprocal_density", "small_gap_multiply",
+                       "standardize", "sym_prec", "international_monoclinic", "other_params"]
 
     def run_task(self, fw_spec):
         vis = MPSOCSet.from_prev_calc(
