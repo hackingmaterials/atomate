@@ -361,17 +361,11 @@ class RamanFW(Firework):
         t = []
         if parents:
             if copy_vasp_outputs:
-                t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
-                                         contcar_to_poscar=True))
-                t.append(WriteVaspStaticFromPrev(prev_calc_dir=".", lepsilon=True,
-                                                 reciprocal_density=kwargs.get("reciprocal_density", 200),
-                                                 small_gap_multiply=kwargs.get("small_gap_multiply", None),
-                                                 other_params=kwargs.get("other_params", {})
-                                                 ))
+                t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"], contcar_to_poscar=True))
+                t.append(WriteVaspStaticFromPrev(prev_calc_dir=".", lepsilon=True))
         else:
             vasp_input_set = MPStaticSet(structure, lepsilon=True)
-            t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set,
-                                        vasp_input_params=kwargs.get("vasp_input_params", {})))
+            t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
         t.append(WriteNormalmodeDisplacementPoscar(mode=mode, displacement=displacement))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassEpsilonTask(mode=mode, displacement=displacement))
