@@ -21,8 +21,7 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_raman_spectra(structure, vasp_input_set=None, modes=(0, 1), step_size=0.01, vasp_cmd="vasp",
-                         db_file=None):
+def get_wf_raman_spectra(structure, modes=(0, 1), step_size=0.01, vasp_cmd="vasp", db_file=None):
     """
     Raman spectra workflow:
         Calculation of phonon normal modes followed by computation of dielectric constant for
@@ -41,7 +40,7 @@ def get_wf_raman_spectra(structure, vasp_input_set=None, modes=(0, 1), step_size
     Returns:
         Workflow
     """
-    vis = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
+    vis = MPRelaxSet(structure, force_gamma=True)
     # displacements in + and - direction along the normal mode so that the central difference scheme
     # can be used for the evaluation of Raman tensor (derivative of epsilon wrt displacement)
     displacements = [-step_size, step_size]
