@@ -226,7 +226,7 @@ class PassNormalmodesTask(FireTaskBase):
     def run_task(self, fw_spec):
         normalmode_dict = fw_spec.get("normalmodes", None)
         if not normalmode_dict:
-            vrun = Vasprun('vasprun.xml.gz')
+            vrun = Vasprun('vasprun.xml')
             structure = vrun.final_structure.copy()
             normalmode_eigenvals = vrun.normalmode_eigenvals
             normalmode_eigenvecs = vrun.normalmode_eigenvecs
