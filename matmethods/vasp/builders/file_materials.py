@@ -7,10 +7,12 @@ from tqdm import tqdm
 from matgendb.util import get_database
 from pymatgen import Composition
 
+from matmethods.vasp.builders.base import AbstractBuilder
+
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 
-class FileMaterialsBuilder:
+class FileMaterialsBuilder(AbstractBuilder):
     def __init__(self, materials_write, data_file, delimiter=",", header_lines=0):
         """
         Updates the database using a data file. Format of file must be:
@@ -63,8 +65,11 @@ class FileMaterialsBuilder:
 
         print("FileMaterials Builder finished processing")
 
-    @staticmethod
-    def from_db_file(db_file, data_file, m="materials", **kwargs):
+    def reset(self):
+        pass
+
+    @classmethod
+    def from_file(cls, db_file, data_file=None, m="materials", **kwargs):
         """
         Get a FileMaterialsBuilder using only a db file.
 
@@ -75,4 +80,7 @@ class FileMaterialsBuilder:
             **kwargs: other parameters to feed into the builder, e.g. mapi_key
         """
         db_write = get_database(db_file, admin=True)
-        return FileMaterialsBuilder(db_write[m], data_file, **kwargs)
+        if data_file:
+            return cls(db_write[m], data_file, **kwargs)
+        else:
+            raise ValueError("data_file must be provided")

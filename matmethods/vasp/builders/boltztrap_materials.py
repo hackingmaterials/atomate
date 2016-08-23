@@ -10,10 +10,12 @@ from pymatgen import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 
+from matmethods.vasp.builders.base import AbstractBuilder
+
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 
-class BoltztrapMaterialsBuilder:
+class BoltztrapMaterialsBuilder(AbstractBuilder):
     def __init__(self, materials_write, boltztrap_read):
         """
         Update materials collection based on boltztrap collection.
@@ -126,8 +128,8 @@ class BoltztrapMaterialsBuilder:
                   "kappa_min"]:
             self._materials.create_index("transport.{}.best.value".format(x))
 
-    @staticmethod
-    def from_db_file(db_file, m="materials", b="boltztrap", **kwargs):
+    @classmethod
+    def from_file(cls, db_file, m="materials", b="boltztrap", **kwargs):
         """
         Get a BoltztrapMaterialsBuilder using only a db file.
 
@@ -145,4 +147,4 @@ class BoltztrapMaterialsBuilder:
             print("Warning: could not get read-only database")
             db_read = get_database(db_file, admin=True)
 
-        return BoltztrapMaterialsBuilder(db_write[m], db_read[b], **kwargs)
+        return cls(db_write[m], db_read[b], **kwargs)

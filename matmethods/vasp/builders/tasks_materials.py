@@ -17,13 +17,15 @@ from monty.serialization import loadfn
 from pymatgen import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 
+from matmethods.vasp.builders.base import AbstractBuilder
+
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 # TODO: make this work in parallel for better performance - watch for race conditions w/same formula+spacegroup combo
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 
-class TasksMaterialsBuilder:
+class TasksMaterialsBuilder(AbstractBuilder):
     def __init__(self, materials_write, counter_write, tasks_read, tasks_prefix="t", materials_prefix="m"):
         """
         Create a materials collection from a tasks collection.
@@ -220,8 +222,8 @@ class TasksMaterialsBuilder:
         self._materials.update_one({"material_id": m_id},
                                    {"$push": {"_tasksbuilder.all_task_ids": self.tid_str(taskdoc["task_id"])}})
 
-    @staticmethod
-    def from_db_file(db_file, m="materials", c="counter", t="tasks", **kwargs):
+    @classmethod
+    def from_file(cls, db_file, m="materials", c="counter", t="tasks", **kwargs):
         """
         Get a TaskMaterialsBuilder using only a db file.
 
@@ -239,8 +241,7 @@ class TasksMaterialsBuilder:
         except:
             print("Warning: could not get read-only database; using write creds")
             db_read = get_database(db_file, admin=True)
-
-        return TasksMaterialsBuilder(db_write[m], db_write[c], db_read[t], **kwargs)
+        return cls(db_write[m], db_write[c], db_read[t], **kwargs)
 
     def _build_indexes(self):
         """

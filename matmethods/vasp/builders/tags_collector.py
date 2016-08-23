@@ -6,10 +6,13 @@ from tqdm import tqdm
 
 from matgendb.util import get_database
 
+from matmethods.vasp.builders.base import AbstractBuilder
+
+
 __author__ = 'Alireza Faghanina <albalu@lbl.gov>'
 
 
-class TagsCollector:
+class TagsCollector(AbstractBuilder):
     def __init__(self, materials_write, tasks_read, update_all=False):
         """
         Starting with an existing materials collection, adds tags from all tasks (if any)
@@ -61,8 +64,8 @@ class TagsCollector:
     def _build_indexes(self):
         self._materials.create_index("tags")
 
-    @staticmethod
-    def from_db_file(db_file, m="materials", t="tasks", **kwargs):
+    @classmethod
+    def from_file(cls, db_file, m="materials", t="tasks", **kwargs):
         """
         Get a TagsCollector using only a db file.
 
@@ -78,4 +81,4 @@ class TagsCollector:
         except:
             print("Warning: could not get read-only database; using write creds")
             db_read = get_database(db_file, admin=True)
-        return TagsCollector(db_write[m], db_read[t], **kwargs)
+        return cls(db_write[m], db_read[t], **kwargs)

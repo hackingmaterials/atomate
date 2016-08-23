@@ -8,10 +8,12 @@ from matgendb.util import get_database
 from pymatgen import MPRester, Structure
 from pymatgen.entries.computed_entries import ComputedEntry
 
+from matmethods.vasp.builders.base import AbstractBuilder
+
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 
-class MaterialsEhullBuilder:
+class MaterialsEhullBuilder(AbstractBuilder):
     def __init__(self, materials_write, mapi_key=None, update_all=False):
         """
         Starting with an existing materials collection, adds stability information and
@@ -69,8 +71,8 @@ class MaterialsEhullBuilder:
     def _build_indexes(self):
         self._materials.create_index("stability.e_above_hull")
 
-    @staticmethod
-    def from_db_file(db_file, m="materials", **kwargs):
+    @classmethod
+    def from_file(cls, db_file, m="materials", **kwargs):
         """
         Get a MaterialsEhullBuilder using only a db file
         Args:
@@ -79,4 +81,4 @@ class MaterialsEhullBuilder:
             **kwargs: other parameters to feed into the builder, e.g. mapi_key
         """
         db_write = get_database(db_file, admin=True)
-        return MaterialsEhullBuilder(db_write[m], **kwargs)
+        return cls(db_write[m], **kwargs)

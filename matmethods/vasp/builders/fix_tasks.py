@@ -4,10 +4,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from matgendb.util import get_database
 
+from matmethods.vasp.builders.base import AbstractBuilder
+
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 
-class FixTasksBuilder:
+class FixTasksBuilder(AbstractBuilder):
     def __init__(self, tasks_write):
         """
         Fix historical problems in the tasks database
@@ -30,15 +32,18 @@ class FixTasksBuilder:
                 traceback.print_exc()
         print("FixTasksBuilder finished.")
 
-    @staticmethod
-    def from_db_file(db_file, t="tasks", **kwargs):
+    def reset(self):
+        pass
+
+    @classmethod
+    def from_file(cls, db_file, t="tasks", **kwargs):
         """
-        Get a FixTasksBuilder using only a db file
+        Get a FixTasksBuilder using only a db file.
+
         Args:
             db_file (str): path to db file
             t (str): name of "tasks" collection
             **kwargs: other params to put into FixTasksBuilder
         """
-
         db_write = get_database(db_file, admin=True)
-        return FixTasksBuilder(db_write[t], **kwargs)
+        return cls(db_write[t], **kwargs)
