@@ -268,7 +268,7 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
             Angstroms that will be used to compute the finite difference derivative of the
             dielectric constant.
 
-    TODO: insert to database
+    TODO: check the equation and insert to database
     """
 
     required_params = ["modes", "displacements"]
