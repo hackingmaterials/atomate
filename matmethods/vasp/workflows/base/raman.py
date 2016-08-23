@@ -9,6 +9,7 @@ This module defines the workflow for computing the Raman spectra.
 from fireworks import Firework, Workflow
 
 from matmethods.utils.utils import get_logger
+from matmethods.common.firetasks.glue_tasks import PassCalcLocs
 from matmethods.vasp.fireworks.core import OptimizeFW, LepsFW, RamanFW
 from matmethods.vasp.firetasks.glue_tasks import PassNormalmodesTask, CopyVaspOutputs
 from matmethods.vasp.firetasks.parse_outputs import RamanSusceptibilityTensorToDbTask
@@ -59,7 +60,9 @@ def get_wf_raman_spectra(structure, modes=(0, 1), step_size=0.01, vasp_cmd="vasp
     # Extract and pass normal modes
     # why this firework: avoid parsing the xml in all subsequent fireworks,
     # also the normal modes might be needed in the final evaluation step
-    fw_nm = Firework([CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True), PassNormalmodesTask()],
+    fw_nm = Firework([CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True),
+                      PassNormalmodesTask(),
+                      PassCalcLocs(name="pass normal modes")],
                      parents=fw_leps,
                      name="{}-{}".format(structure.composition.reduced_formula, "pass normal modes"))
     fws.append(fw_nm)
