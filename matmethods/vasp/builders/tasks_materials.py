@@ -24,14 +24,14 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 
 class TasksMaterialsBuilder:
-    def __init__(self, materials_write, counter_write, tasks_read,
-                 tasks_prefix="t", materials_prefix="m"):
+    def __init__(self, materials_write, counter_write, tasks_read, tasks_prefix="t", materials_prefix="m"):
         """
-        Create a materials collection from a tasks collection
+        Create a materials collection from a tasks collection.
+
         Args:
-            materials_write: mongodb collection for materials (write access needed)
-            counter_write: mongodb collection for counter (write access needed)
-            tasks_read: mongodb collection for tasks (suggest read-only for safety)
+            materials_write (pymongo.collection): mongodb collection for materials (write access needed)
+            counter_write (pymongo.collection): mongodb collection for counter (write access needed)
+            tasks_read (pymongo.collection): mongodb collection for tasks (suggest read-only for safety)
         """
         x = loadfn(os.path.join(module_dir, "tasks_materials_settings.yaml"))
         self.supported_task_labels = x['supported_task_labels']
@@ -111,7 +111,7 @@ class TasksMaterialsBuilder:
          determined by the structure matcher. Returns None if no match.
 
         Args:
-            taskdoc: a JSON-like task document
+            taskdoc (dict): a JSON-like task document
 
         Returns:
             (int) matching material_id or None
@@ -137,9 +137,10 @@ class TasksMaterialsBuilder:
 
     def _create_new_material(self, taskdoc):
         """
-        Create a new material document
+        Create a new material document.
+
         Args:
-            taskdoc: a JSON-like task document
+            taskdoc (dict): a JSON-like task document
 
         Returns:
             (int) - material_id of the new document
@@ -165,14 +166,13 @@ class TasksMaterialsBuilder:
         Update a material document based on a new task
 
         Args:
-            m_id: (int) material_id for material document to update
-            taskdoc: a JSON-like task document
+            m_id (int): material_id for material document to update
+            taskdoc (dict): a JSON-like task document
         """
         # get list of labels for each existing property in material
         # this is used to decide if the taskdoc has higher quality data
         prop_tlabels = self._materials.find_one(
-            {"material_id": m_id}, {"_tasksbuilder.prop_metadata.labels": 1})[
-            "_tasksbuilder"]["prop_metadata"]["labels"]
+            {"material_id": m_id}, {"_tasksbuilder.prop_metadata.labels": 1})["_tasksbuilder"]["prop_metadata"]["labels"]
 
         task_label = taskdoc["task_label"]  #task label of current doc
         # figure out what properties need to be updated
@@ -194,8 +194,7 @@ class TasksMaterialsBuilder:
                                 and taskdoc["output"]["energy_per_atom"] <
                                     self._materials.find_one(
                                         {"material_id": m_id},
-                                        {"_tasksbuilder": 1})["_tasksbuilder"][
-                                        "prop_metadata"]["energies"][p]):
+                                        {"_tasksbuilder": 1})["_tasksbuilder"]["prop_metadata"]["energies"][p]):
 
                         # insert task's properties into material
                         materials_key = "{}.{}".format(x["materials_key"], p) \
@@ -224,12 +223,13 @@ class TasksMaterialsBuilder:
     @staticmethod
     def from_db_file(db_file, m="materials", c="counter", t="tasks", **kwargs):
         """
-        Get a TaskMaterialsBuilder using only a db file
+        Get a TaskMaterialsBuilder using only a db file.
+
         Args:
-            db_file: (str) path to db file
-            m: (str) name of "materials" collection
-            c:  (str) name of "counter" collection
-            t:  (str) name of "tasks" collection
+            db_file (str): path to db file
+            m (str): name of "materials" collection
+            c (str): name of "counter" collection
+            t (str): name of "tasks" collection
             **kwargs: other params to put into TasksMaterialsBuilder
         """
         db_write = get_database(db_file, admin=True)

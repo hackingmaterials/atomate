@@ -21,7 +21,7 @@ class FileMaterialsBuilder:
 
         Args:
             materials_write: mongodb collection for materials (write access needed)
-            data_file: (str) path to data file
+            data_file (str): path to data file
             **kwargs: **kwargs for csv reader
         """
         self._materials = materials_write
@@ -66,11 +66,12 @@ class FileMaterialsBuilder:
     @staticmethod
     def from_db_file(db_file, data_file, m="materials", **kwargs):
         """
-        Get a FileMaterialsBuilder using only a db file
+        Get a FileMaterialsBuilder using only a db file.
+
         Args:
-            db_file: (str) path to db file
-            data_file (str) path to data file
-            m: (str) name of "materials" collection
+            db_file (str): path to db file
+            data_file (str): path to data file
+            m (str): name of "materials" collection
             **kwargs: other parameters to feed into the builder, e.g. mapi_key
         """
         db_write = get_database(db_file, admin=True)
