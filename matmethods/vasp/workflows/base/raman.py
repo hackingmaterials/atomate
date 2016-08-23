@@ -60,7 +60,7 @@ def get_wf_raman_spectra(structure, modes=(0, 1), step_size=0.01, vasp_cmd="vasp
     # Extract and pass normal modes
     # why this firework: avoid parsing the xml in all subsequent fireworks,
     # also the normal modes might be needed in the final evaluation step
-    fw_nm = Firework([CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True),
+    fw_nm = Firework([CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"], contcar_to_poscar=True),
                       PassNormalmodesTask(),
                       PassCalcLocs(name="pass normal modes")],
                      parents=fw_leps,
