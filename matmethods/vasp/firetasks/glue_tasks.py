@@ -220,13 +220,18 @@ class PassEpsilonTask(FireTaskBase):
 @explicit_serialize
 class PassNormalmodesTask(FireTaskBase):
     """
-    Extract and pass the normal mode eigenvalues and vectors
+    Extract and pass the normal mode eigenvalues and vectors.
+
+    optional_params:
+        calc_dir (str): path to the calculation directory
     """
+
+    optional_params = ["calc_dir"]
 
     def run_task(self, fw_spec):
         normalmode_dict = fw_spec.get("normalmodes", None)
         if not normalmode_dict:
-            vrun = Vasprun('vasprun.xml')
+            vrun, _ = get_vasprun_outcar(self.get("calc_dir", "."), parse_dos=False, parse_eigen=True)
             structure = vrun.final_structure.copy()
             normalmode_eigenvals = vrun.normalmode_eigenvals
             normalmode_eigenvecs = vrun.normalmode_eigenvecs
