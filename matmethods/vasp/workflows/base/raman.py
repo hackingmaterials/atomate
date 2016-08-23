@@ -53,12 +53,8 @@ def get_wf_raman_spectra(structure, modes=(0, 1), step_size=0.01, vasp_cmd="vasp
                         db_file=db_file)
     fws.append(fw_opt)
 
-    # Static run: compute the normal modes
-    fw_leps = LepsFW(structure=structure, vasp_cmd=vasp_cmd, db_file=db_file, parents=fw_opt)
-    # append firetask to extract and pass normal modes
-    # why this firework: avoid parsing the xml in all subsequent fireworks,
-    # also the normal modes might be needed in the final evaluation step
-    fw_leps.spec['_tasks'].append(PassNormalmodesTask().to_dict())
+    # Static run: compute the normal modes and pass
+    fw_leps = LepsFW(structure=structure, vasp_cmd=vasp_cmd, db_file=db_file, parents=fw_opt, phonon=True)
     fws.append(fw_leps)
 
     # Static runs to compute epsilon for each mode and displacement along that mode.
@@ -66,7 +62,7 @@ def get_wf_raman_spectra(structure, modes=(0, 1), step_size=0.01, vasp_cmd="vasp
     for mode in modes:
         for disp in displacements:
             fws_nm_disp.append(LepsFW(structure, parents=fw_leps, vasp_cmd=vasp_cmd, db_file=db_file,
-                                      raman=True, mode=mode, displacement=disp))
+                                      phonon=True, mode=mode, displacement=disp))
     fws.extend(fws_nm_disp)
 
     # Compute the Raman susceptibility tensor

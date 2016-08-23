@@ -149,7 +149,7 @@ class NonSCFFW(Firework):
 
 class LepsFW(Firework):
     def __init__(self, structure, name="static dielectric", vasp_cmd="vasp", copy_vasp_outputs=True,
-                 db_file=None, parents=None, raman=False, mode=None, displacement=None, **kwargs):
+                 db_file=None, parents=None, phonon=False, mode=None, displacement=None, **kwargs):
         """
         Standard static calculation Firework for dielectric constants using DFPT.
 
@@ -172,15 +172,13 @@ class LepsFW(Firework):
         else:
             vasp_input_set = MPStaticSet(structure, lepsilon=True)
             t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
-        if raman:
+        if phonon:
             if mode and displacement:
                 name = "raman_{}_{} {}".format(str(mode), str(displacement), name)
                 t.extend([WriteNormalmodeDisplacedPoscar(mode=mode, displacement=displacement),
                           RunVaspCustodian(vasp_cmd=vasp_cmd),
-                          PassEpsilonTask(mode=mode, displacement=displacement),
-                          PassNormalmodesTask()])
-            else:
-                raise ValueError("For raman firework the normal mode and displacement must be given")
+                          PassEpsilonTask(mode=mode, displacement=displacement)])
+            t.append(PassNormalmodesTask())
         else:
             t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.extend([PassCalcLocs(name=name), VaspToDbTask(db_file=db_file, additional_fields={"task_label": name})])
