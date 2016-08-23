@@ -2,19 +2,18 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-import json
-
-from monty.json import jsanitize
-from monty.serialization import loadfn
-from pymatgen.electronic_structure.bandstructure import BandStructure, \
-    BandStructureSymmLine
-
 """
 This module defines the database classes.
 """
 
 import datetime
 import zlib
+import json
+
+from monty.json import jsanitize
+from monty.serialization import loadfn
+
+from pymatgen.electronic_structure.bandstructure import BandStructure, BandStructureSymmLine
 
 import gridfs
 from pymongo import MongoClient, ASCENDING, DESCENDING, ReturnDocument
