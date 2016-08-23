@@ -12,7 +12,7 @@ from fireworks import Firework
 from pymatgen.io.vasp.sets import MPRelaxSet
 
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
-from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs, PassEpsilonTask
+from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs, PassEpsilonTask, PassNormalmodesTask
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask, BoltztrapToDBTask
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunBoltztrap
 from matmethods.vasp.firetasks.write_inputs import *
@@ -369,6 +369,9 @@ class RamanFW(Firework):
         t.append(WriteNormalmodeDisplacedPoscar(mode=mode, displacement=displacement))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassEpsilonTask(mode=mode, displacement=displacement))
+        # pass the normal mode eigen vals and vecs, might need them in the analysis step
+        if parents:
+            t.append(PassNormalmodesTask())
         t.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": name}))
         super(RamanFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)

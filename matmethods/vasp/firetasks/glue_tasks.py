@@ -224,13 +224,15 @@ class PassNormalmodesTask(FireTaskBase):
     """
 
     def run_task(self, fw_spec):
-        vrun = Vasprun('vasprun.xml.gz')
-        structure = vrun.final_structure.copy()
-        normalmode_eigenvals = vrun.normalmode_eigenvals
-        normalmode_eigenvecs = vrun.normalmode_eigenvecs
-        normalmode_norms = np.linalg.norm(normalmode_eigenvecs, axis=2)
-        normalmode_dict = {"structure": structure.as_dict(),
-                           "eigenvals": normalmode_eigenvals.tolist(),
-                           "eigenvecs": normalmode_eigenvecs.tolist(),
-                           "norms": normalmode_norms.tolist()}
+        normalmode_dict = fw_spec.get("normalmodes", None)
+        if not normalmode_dict:
+            vrun = Vasprun('vasprun.xml.gz')
+            structure = vrun.final_structure.copy()
+            normalmode_eigenvals = vrun.normalmode_eigenvals
+            normalmode_eigenvecs = vrun.normalmode_eigenvecs
+            normalmode_norms = np.linalg.norm(normalmode_eigenvecs, axis=2)
+            normalmode_dict = {"structure": structure.as_dict(),
+                               "eigenvals": normalmode_eigenvals.tolist(),
+                               "eigenvecs": normalmode_eigenvecs.tolist(),
+                               "norms": normalmode_norms.tolist()}
         return FWAction(mod_spec=[{'_set': {'normalmodes': normalmode_dict}}])
