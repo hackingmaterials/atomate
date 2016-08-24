@@ -19,7 +19,6 @@ from pymatgen import MPRester
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.analysis.elasticity import reverse_voigt_map
 from pymatgen.analysis.elasticity.strain import IndependentStrain
-from pymatgen.io.vasp import Vasprun
 
 from fireworks import explicit_serialize, FireTaskBase, FWAction
 
@@ -175,7 +174,7 @@ class PassStressStrainData(FireTaskBase):
     required_params = ["deformation"]
 
     def run_task(self, fw_spec):
-        v = Vasprun('vasprun.xml.gz')
+        v, _ = get_vasprun_outcar(self.get("calc_dir", "."), parse_dos=False, parse_eigen=False)
         stress = v.ionic_steps[-1]['stress']
         defo = self['deformation']
         d_ind = np.nonzero(defo - np.eye(3))
