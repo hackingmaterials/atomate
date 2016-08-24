@@ -17,7 +17,7 @@ DB_FILE = "PATH/TO/DB.JSON"  # path to valid db.json file
 MAPI_KEY = None  # set this str if you don't have MAPI_KEY env var set
 
 if __name__ == "__main__":
-    FixTasksBuilder.from_db_file(DB_FILE).run()
-    TasksMaterialsBuilder.from_db_file(DB_FILE).run()
-    MaterialsEhullBuilder.from_db_file(DB_FILE, mapi_key=MAPI_KEY).run()
-    BoltztrapMaterialsBuilder.from_db_file(DB_FILE).run()
+    FixTasksBuilder.from_file(DB_FILE).run()
+    TasksMaterialsBuilder.from_file(DB_FILE).run()
+    MaterialsEhullBuilder.from_file(DB_FILE, mapi_key=MAPI_KEY).run()
+    BoltztrapMaterialsBuilder.from_file(DB_FILE).run()
