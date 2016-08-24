@@ -205,7 +205,7 @@ class PassEpsilonTask(FireTaskBase):
     required_params = ["mode", "displacement"]
 
     def run_task(self, fw_spec):
-        vrun = Vasprun('vasprun.xml.gz')
+        vrun, _ = get_vasprun_outcar(self.get("calc_dir", "."), parse_dos=False, parse_eigen=True)
         epsilon_static = vrun.epsilon_static
         epsilon_dict = {"mode": self["mode"],
                         "displacement": self["displacement"],
