@@ -216,8 +216,8 @@ class SOCFW(Firework):
 
 class TransmuterFW(Firework):
     def __init__(self, structure, transformations, transformation_params=None,
-                 vasp_input_set="MPStaticSet", name="structure transmuter", vasp_cmd="vasp",
-                 copy_vasp_outputs=True, db_file=None, parents=None, vasp_input_params=None, **kwargs):
+                 vasp_input_set=None, name="structure transmuter", vasp_cmd="vasp",
+                 copy_vasp_outputs=True, db_file=None, parents=None, user_input_settings=None, **kwargs):
         """
         Apply the transformations to the input structure, write the input set corresponding
         to the transformed structure and run vasp on them.
@@ -229,16 +229,19 @@ class TransmuterFW(Firework):
                 eg:  transformations=['DeformStructureTransformation', 'SupercellTransformation']
             transformation_params (list): list of dicts where each dict specify the input parameters to
                 instantiate the transformation class in the transforamtions list.
-            vasp_input_set (string): string name for the VASP input set (e.g.,
-                "MPStaticSet").
+            vasp_input_set (VaspInputSet): VASP input set, used to write the input set for the
+                transmuted structure.
             name (string): Name for the Firework.
             vasp_cmd (string): Command to run vasp.
             copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
             db_file (string): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            user_input_settings (dict): additional user input settings for vasp_input_set.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         t = []
+
+        vasp_input_set = MPStaticSet(structure) or vasp_input_set
 
         if parents:
             if copy_vasp_outputs:
@@ -246,13 +249,13 @@ class TransmuterFW(Firework):
             t.append(WriteTransmutedStructureIOSet(structure=structure, transformations=transformations,
                                                    transformation_params=transformation_params,
                                                    vasp_input_set=vasp_input_set,
-                                                   vasp_input_params=vasp_input_params,
+                                                   user_input_settings=user_input_settings,
                                                    prev_calc_dir="."))
         else:
             t.append(WriteTransmutedStructureIOSet(structure=structure, transformations=transformations,
                                                    transformation_params=transformation_params,
                                                    vasp_input_set=vasp_input_set,
-                                                   vasp_input_params=vasp_input_params))
+                                                   user_input_settings=user_input_settings))
         
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
