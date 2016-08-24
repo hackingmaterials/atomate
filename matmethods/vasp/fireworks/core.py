@@ -9,7 +9,7 @@ sequences of VASP calculations.
 
 from fireworks import Firework
 
-from pymatgen.io.vasp.sets import MPRelaxSet
+from pymatgen.io.vasp.sets import MPRelaxSet, MITMDSet
 
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
 from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs, PassEpsilonTask, PassNormalmodesTask
@@ -102,7 +102,7 @@ class HSEBSFW(Firework):
             db_file (str): Path to file specifying db credentials.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        t = []
+        t=[]
         t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
         t.append(WriteVaspHSEBSFromPrev(prev_calc_dir='.'))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
@@ -197,9 +197,8 @@ class LepsFW(Firework):
 
 
 class SOCFW(Firework):
-    def __init__(self, structure, magmom, name="spinorbit coupling",
-                 saxis=(0, 0, 1), vasp_cmd="vasp_ncl", copy_vasp_outputs=True,
-                 db_file=None, parents=None, **kwargs):
+    def __init__(self, structure, magmom, name="spinorbit coupling", saxis=(0, 0, 1),
+                 vasp_cmd="vasp_ncl", copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
         """
         Firework for spin orbit coupling calculation.
 
@@ -283,10 +282,9 @@ class TransmuterFW(Firework):
 
 
 class MDFW(Firework):
-    def __init__(self, structure, start_temp, end_temp, nsteps,
-                 name="molecular dynamics run", vasp_input_set=None, vasp_cmd="vasp",
-                 override_default_vasp_params=None, wall_time=19200,
-                 db_file=None, parents=None, copy_vasp_outputs=True, **kwargs):
+    def __init__(self, structure, start_temp, end_temp, nsteps, name="molecular dynamics run",
+                 vasp_input_set=None, vasp_cmd="vasp", override_default_vasp_params=None,
+                 wall_time=19200, db_file=None, parents=None, copy_vasp_outputs=True, **kwargs):
         """
         Standard firework for a single MD run.
         Args:
@@ -309,12 +307,9 @@ class MDFW(Firework):
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-
-        from pymatgen.io.vasp.sets import MITMDSet
         override_default_vasp_params = override_default_vasp_params or {}
-        vasp_input_set = vasp_input_set or MITMDSet(
-            structure, start_temp=start_temp, end_temp=end_temp,
-            nsteps=nsteps, **override_default_vasp_params)
+        vasp_input_set = vasp_input_set or MITMDSet(structure, start_temp=start_temp, end_temp=end_temp,
+                                                    nsteps=nsteps, **override_default_vasp_params)
 
         t = []
         if parents:
@@ -326,9 +321,8 @@ class MDFW(Firework):
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
                               additional_fields={"task_label": name}, defuse_unsuccessful=False))
-        super(MDFW, self).__init__(
-                t, parents=parents, name="{}-{}".
-                format(structure.composition.reduced_formula, name), **kwargs)
+        super(MDFW, self).__init__(t, parents=parents,
+                                   name="{}-{}".format(structure.composition.reduced_formula, name), **kwargs)
 
 
 class BoltztrapFW(Firework):
