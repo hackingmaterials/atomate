@@ -341,11 +341,12 @@ def add_common_powerups(wf, c):
 
 def update_wf(wf):
     """
-    Simple helper to ensure that the other powerup updates to the workflow dict has taken effect.
+    Simple helper to ensure that the powerup updates to the workflow dict has taken effect.
     This is needed  because all the powerups that modify workflow do so on the dict representation
     of the workflow(or mix thereof eg: add tasks as dict to the fireworks spec etc) and for
-    inspection the powerups rely on the workflow object(along with the constituent fireworks and
-    firetasks objects) that is not in one to one correspondence with the dict representation.
+    inspection the powerups rely on a mix of object and dict representations of workflow object(
+    along with the constituent fireworks and firetasks) that are not in one to one correspondence
+    with the updated dict representation.
 
     Args:
         wf (Workflow)
