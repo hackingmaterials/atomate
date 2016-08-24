@@ -268,22 +268,47 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
             Angstroms that will be used to compute the finite difference derivative of the
             dielectric constant.
 
-    TODO: check the equation and insert to database
+    optional_params:
+        db_file (str): path to the db file
     """
 
+    optional_params = ["db_file"]
+
     def run_task(self, fw_spec):
+        normalmode_norms = np.array(fw_spec["normalmodes"]["norms"])
+        structure = Structure.from_dict(fw_spec["normalmodes"]["structure"])
+
+        d = {"normalmodes": fw_spec["normalmodes"]}
+
         mode_disps = fw_spec["raman_epsilon"].keys()
         # store the dispalcement & epsilon for each mode in a dictionary
         modes_eps_dict = defaultdict(list)
         for md in mode_disps:
-            modes_eps_dict[str(fw_spec["raman_epsilon"][md]["mode"])].append(
+            modes_eps_dict[fw_spec["raman_epsilon"][md]["mode"]].append(
                 [fw_spec["raman_epsilon"][md]["displacement"],
                  fw_spec["raman_epsilon"][md]["epsilon"]])
 
         # raman tensor = finite difference derivative of epsilon wrt displacement.
+        raman_tensor_dict = {}
+        # is this correct?
+        prefactor = structure.volume / 4.0 / np.pi
         for k, v in modes_eps_dict.items():
             raman_tensor = (np.array(v[0][1]) - np.array(v[1][1])) / (v[0][0] - v[1][0])
-            modes_eps_dict["raman_tensor"] = raman_tensor.tolist()
+            # multiply by the prefactor and the average of the eigenvector norm for the mode ?
+            raman_tensor = prefactor * raman_tensor * np.mean(normalmode_norms[k])
+            raman_tensor_dict[k] = raman_tensor.tolist()
 
-        with open("raman.json", "w") as f:
-            f.write(json.dumps(modes_eps_dict, default=DATETIME_HANDLER))
+        d["raman_tensor"] = raman_tensor_dict
+        d["state"] = "successful"
+
+        # store the results
+        db_file = env_chk(self.get("db_file"), fw_spec)
+        if not db_file:
+            with open("raman.json", "w") as f:
+                f.write(json.dumps(d, default=DATETIME_HANDLER))
+        else:
+            db = MMDb.from_db_file(db_file, admin=True)
+            db.collection = db.db["raman"]
+            db.collection.insert_one(d)
+            logger.info("RAMAN SPECTRA CALCULATION COMPLETE")
+        return FWAction()

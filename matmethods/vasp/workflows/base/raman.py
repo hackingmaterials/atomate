@@ -20,7 +20,7 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_raman_spectra(structure, modes=None, step_size=0.01, vasp_cmd="vasp", db_file=None):
+def get_wf_raman_spectra(structure, modes=None, step_size=0.005, vasp_cmd="vasp", db_file=None):
     """
     Raman spectra workflow:
         Calculation of phonon normal modes followed by computation of dielectric constant for
@@ -67,8 +67,7 @@ def get_wf_raman_spectra(structure, modes=None, step_size=0.01, vasp_cmd="vasp",
     fws.extend(fws_nm_disp)
 
     # Compute the Raman susceptibility tensor
-    fw_analysis = Firework(RamanSusceptibilityTensorToDbTask(modes=modes, displacements=displacements),
-                           parents=fws_nm_disp,
+    fw_analysis = Firework(RamanSusceptibilityTensorToDbTask(db_file=db_file), parents=fws_nm_disp,
                            name="{}-{}".format(structure.composition.reduced_formula, "raman analysis"))
     fws.append(fw_analysis)
 

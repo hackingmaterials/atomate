@@ -194,9 +194,19 @@ def wf_elastic_constant(structure, c=None):
 
 
 def wf_raman_spectra(structure, c=None):
+    """
+    Raman spectra workflow from the given structure and config dict
+
+    Args:
+        structure (Structure): input structure
+        c (dict): workflow config dict
+
+    Returns:
+        Workflow
+    """
 
     c = c or {}
-    wf = get_wf_raman_spectra(structure, modes=c.get("modes", [0, 1]), step_size=c.get("step_size", 0.01),
+    wf = get_wf_raman_spectra(structure, modes=c.get("modes", None), step_size=c.get("step_size", 0.005),
                               vasp_cmd=c.get("vasp_cmd", "vasp"), db_file=c.get("db_file", None))
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 600, "EDIFF": 1e-6}},
