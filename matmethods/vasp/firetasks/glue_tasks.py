@@ -211,7 +211,9 @@ class PassEpsilonTask(FireTaskBase):
                         "epsilon": epsilon_static}
         return FWAction(mod_spec=[{
             '_set': {
-                'raman_epsilon->{}_{}'.format(str(self["mode"]), str(self["displacement"])): epsilon_dict
+                'raman_epsilon->{}_{}'.format(
+                    str(self["mode"]),
+                    str(self["displacement"]).replace("-", "m").replace(".", "d")): epsilon_dict
             }
         }])
 
