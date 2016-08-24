@@ -9,9 +9,7 @@ This module defines the workflow for computing the Raman spectra.
 from fireworks import Firework, Workflow
 
 from matmethods.utils.utils import get_logger
-from matmethods.common.firetasks.glue_tasks import PassCalcLocs
-from matmethods.vasp.fireworks.core import OptimizeFW, LepsFW, RamanFW
-from matmethods.vasp.firetasks.glue_tasks import PassNormalmodesTask, CopyVaspOutputs
+from matmethods.vasp.fireworks.core import OptimizeFW, LepsFW
 from matmethods.vasp.firetasks.parse_outputs import RamanSusceptibilityTensorToDbTask
 
 from pymatgen.io.vasp.sets import MPRelaxSet
