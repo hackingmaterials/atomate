@@ -295,29 +295,21 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
         structure (Structure): input structure
         transformations (list): list of names of transformation classes as defined in
             the modules in pymatgen.transformations
-        vasp_input_set (string): string name for the VASP input set (e.g.,
-            "MPRelaxSet").
+        vasp_input_set (VaspInputSet): VASP input set.
 
     Optional params:
         transformation_params (list): list of dicts where each dict specifies
             the input parameters to instantiate the transformation class in
             the transformations list.
-        vasp_input_params (dict): When using a string name for VASP input set,
-            use this as a dict to specify kwargs for instantiating the input
-            set parameters. For example, if you want to change the
-            user_incar_settings, you should provide: {"user_incar_settings": ...}.
-            This setting is ignored if you provide the full object
-            representation of a VaspInputSet rather than a String.
+        user_input_settings (dict): additional user input settings.
         prev_calc_dir: path to previous calculation if using structure 
             from another calculation
     """
 
     required_params = ["structure", "transformations", "vasp_input_set"]
-    optional_params = ["prev_calc_dir", "transformation_params", "vasp_input_params"]
+    optional_params = ["prev_calc_dir", "transformation_params", "user_input_settings"]
 
     def run_task(self, fw_spec):
-
-        vis_cls = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])
 
         transformations = []
         transformation_params = self.get("transformation_params",
@@ -337,7 +329,13 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
                 Poscar.from_file(os.path.join(self['prev_calc_dir'], 'POSCAR')).structure
         ts = TransformedStructure(structure)
         transmuter = StandardTransmuter([ts], transformations)
-        vis = vis_cls(transmuter.transformed_structures[-1].final_structure, **self.get("vasp_input_params", {}))
+        final_structure = transmuter.transformed_structures[-1].final_structure.copy()
+
+        vis_orig = self["vasp_input_set"]
+        vis_dict = vis_orig.as_dict()
+        vis_dict["structure"] = final_structure.as_dict()
+        vis_dict.update(self.get("user_input_settings", {}))
+        vis = vis_orig.__class__.from_dict(vis_dict)
         vis.write_input(".")
 
 
