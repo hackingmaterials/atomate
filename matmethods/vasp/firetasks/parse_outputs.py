@@ -271,8 +271,6 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
     TODO: check the equation and insert to database
     """
 
-    required_params = ["modes", "displacements"]
-
     def run_task(self, fw_spec):
         mode_disps = fw_spec["raman_epsilon"].keys()
         # store the dispalcement & epsilon for each mode in a dictionary
@@ -284,7 +282,7 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
 
         # raman tensor = finite difference derivative of epsilon wrt displacement.
         for k, v in modes_eps_dict.items():
-            raman_tensor = (np.array(v[0][1]) - np.array(v[1][1]))/(v[0][0] - v[1][0])
+            raman_tensor = (np.array(v[0][1]) - np.array(v[1][1])) / (v[0][0] - v[1][0])
             modes_eps_dict["raman_tensor"] = raman_tensor.tolist()
 
         with open("raman.json", "w") as f:
