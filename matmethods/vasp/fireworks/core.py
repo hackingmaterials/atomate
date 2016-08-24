@@ -173,7 +173,9 @@ class LepsFW(Firework):
             vasp_input_set = MPStaticSet(structure, lepsilon=True)
             t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
         if phonon:
-            if mode and displacement:
+            if mode is None and displacement is None:
+                t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
+            else:
                 name = "raman_{}_{} {}".format(str(mode), str(displacement), name)
                 t.extend([WriteNormalmodeDisplacedPoscar(mode=mode, displacement=displacement),
                           RunVaspCustodian(vasp_cmd=vasp_cmd),
