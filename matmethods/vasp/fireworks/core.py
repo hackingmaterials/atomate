@@ -162,6 +162,11 @@ class LepsFW(Firework):
             db_file (str): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework.
                 FW or list of FWS.
+            phonon (bool): Whether or not to extract normal modes and pass it. This argument along
+                with the mode and displacement arguments must be set for the calculation of
+                dielectric constant in the Raman spectra workflow.
+            mode (int): normal mode index.
+            displacement (float): displacement along the normal mode in Angstroms.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         t = []
@@ -172,6 +177,7 @@ class LepsFW(Firework):
         else:
             vasp_input_set = MPStaticSet(structure, lepsilon=True)
             t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
+
         if phonon:
             if mode is None and displacement is None:
                 t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
@@ -183,7 +189,9 @@ class LepsFW(Firework):
             t.append(PassNormalmodesTask())
         else:
             t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
+
         t.extend([PassCalcLocs(name=name), VaspToDbTask(db_file=db_file, additional_fields={"task_label": name})])
+        
         super(LepsFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)
 

@@ -20,7 +20,7 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_raman_spectra(structure, modes=(0, 1), step_size=0.01, vasp_cmd="vasp", db_file=None):
+def get_wf_raman_spectra(structure, modes=None, step_size=0.01, vasp_cmd="vasp", db_file=None):
     """
     Raman spectra workflow:
         Calculation of phonon normal modes followed by computation of dielectric constant for
@@ -30,15 +30,18 @@ def get_wf_raman_spectra(structure, modes=(0, 1), step_size=0.01, vasp_cmd="vasp
 
     Args:
         structure (Structure): Input structure
-        vasp_input_set (DictVaspInputSet): Vasp input set for the first firework(structure optimization)
-        modes (tuple/list): list of modes for which the raman spectra need to be calculated.
-        step_size (float): site displacement along the normal mode in Angstroms
-        vasp_cmd (str): command to run
+        modes (tuple/list): list of modes for which the Raman spectra need to be calculated.
+            The default is to use all the 3N modes.
+        step_size (float): site displacement along the normal mode in Angstroms. Used to compute
+            the finite difference(central difference scheme) first derivative of the dielectric
+            constant along the normal modes.
+        vasp_cmd (str): vasp command to run.
         db_file (str): path to file containing the database credentials.
 
     Returns:
         Workflow
     """
+    modes = 3*len(structure) if not modes else modes
     vis = MPRelaxSet(structure, force_gamma=True)
     # displacements in + and - direction along the normal mode so that the central difference scheme
     # can be used for the evaluation of Raman tensor (derivative of epsilon wrt displacement)
