@@ -282,7 +282,11 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
         # the eigenvectors read from vasprun.xml are not divided by sqrt(M_i)
         nm_norms = nm_norms / np.sqrt(masses)
 
-        d = {"normalmodes": fw_spec["normalmodes"]}
+        d = {"structure": structure.as_dict(),
+             "normalmodes": {"eigenvals": fw_spec["normalmodes"]["eigenvals"],
+                             "eigenvecs": fw_spec["normalmodes"]["eigenvecs"]
+                             }
+             }
 
         mode_disps = fw_spec["raman_epsilon"].keys()
         # store the dispalcement & epsilon for each mode in a dictionary
@@ -297,7 +301,8 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
         scale = np.sqrt(structure.volume/2.0) / 4.0 / np.pi
         for k, v in modes_eps_dict.items():
             raman_tensor = (np.array(v[0][1]) - np.array(v[1][1])) / (v[0][0] - v[1][0])
-            raman_tensor = scale * raman_tensor * np.sum(nm_norms[k]) / np.sqrt(nm_eigenvals[k])
+            # TODO: check eigenvalue sign
+            raman_tensor = scale * raman_tensor * np.sum(nm_norms[k]) #/ np.sqrt(nm_eigenvals[k])
             raman_tensor_dict[k] = raman_tensor.tolist()
 
         d["raman_tensor"] = raman_tensor_dict
@@ -312,5 +317,5 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
             db = MMDb.from_db_file(db_file, admin=True)
             db.collection = db.db["raman"]
             db.collection.insert_one(d)
-            logger.info("RAMAN SPECTRA CALCULATION COMPLETE")
+            logger.info("RAMAN TENSOR CALCULATION COMPLETE")
         return FWAction()
