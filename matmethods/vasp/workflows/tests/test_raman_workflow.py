@@ -37,7 +37,7 @@ class TestVaspWorkflows(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         if not os.environ.get("VASP_PSP_DIR"):
-            os.environ["VASP_PSP_DIR"] = os.path.join(module_dir, "reference_files")
+            os.environ["VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "reference_files")
             print(
                 'Note: This system is not set up to run VASP jobs. '
                 'Please set your VASP_PSP_DIR environment variable.')
@@ -47,7 +47,6 @@ class TestVaspWorkflows(unittest.TestCase):
         cls.raman_config = {"modes": [0, 1], "step_size": 0.005,
                             "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"}
         cls.wf = wf_raman_spectra(cls.struct_si, cls.raman_config)
-        cls.wf = cls._simulate_vasprun(cls.wf)
 
     def setUp(self):
         if os.path.exists(self.scratch_dir):
@@ -99,46 +98,51 @@ class TestVaspWorkflows(unittest.TestCase):
             return db[coll_name]
 
     def _check_run(self, d, mode):
-        if mode not in ["structure optimization", "phonon static dielectric", "raman_0_0.005", "raman analysis"]:
+        if mode not in ["structure optimization", "phonon static dielectric",
+                        "raman_0_0.005 static dielectric", "raman analysis"]:
             raise ValueError("Invalid mode!")
 
-        self.assertEqual(d["formula_pretty"], "Si")
-        self.assertEqual(d["formula_anonymous"], "A")
-        self.assertEqual(d["nelements"], 1)
-        self.assertEqual(d["state"], "successful")
-        self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["a"], 3.867, 2)
+        if mode not in ["raman analysis"]:
+            self.assertEqual(d["formula_pretty"], "Si")
+            self.assertEqual(d["formula_anonymous"], "A")
+            self.assertEqual(d["nelements"], 1)
+            self.assertEqual(d["state"], "successful")
+            self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["a"], 3.867, 2)
 
         if mode in ["structure optimization"]:
             self.assertAlmostEqual(d["output"]["energy"], -10.850, 2)
             self.assertAlmostEqual(d["output"]["energy_per_atom"], -5.425, 2)
         elif mode in ["phonon static dielectric"]:
+            # TODO
             pass
-        elif mode in ["raman_0_0.005"]:
+        elif mode in ["raman_0_0.005 static dielectric"]:
+            # TODO
             pass
         elif mode in ["raman analysis"]:
+            # TODO
             pass
 
+    def test_wf(self):
+        self.wf = self._simulate_vasprun(self.wf)
 
-    def test_raman_tensor(self):
-        self.assertEqual(len(self.wf.fws), self.raman_config["modes"]*2+3)
+        self.assertEqual(len(self.wf.fws), len(self.raman_config["modes"]) * 2 + 3)
+
         self.lp.add_wf(self.wf)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
-        # make sure the structure relaxation ran OK
-        d = self._get_task_collection().find_one({"task_label": "structure optimization"},
-                                                 sort=[("_id", DESCENDING)])
+        d = self._get_task_collection().find_one({"task_label": "structure optimization"})
         self._check_run(d, mode="structure optimization")
 
         # make sure the static run ran OK
-        d = self._get_task_collection().find_one({"task_label": "phonon static dielectric"}, sort=[("_id", DESCENDING)])
+        d = self._get_task_collection().find_one({"task_label": "phonon static dielectric"})
         self._check_run(d, mode="phonon static dielectric")
 
         # make sure the uniform run ran OK
-        d = self._get_task_collection().find_one({"task_label": "raman_0_0.005 static dielectric"}, sort=[("_id", DESCENDING)])
-        self._check_run(d, mode="raman_0_0.005")
+        d = self._get_task_collection().find_one({"task_label": "raman_0_0.005 static dielectric"})
+        self._check_run(d, mode="raman_0_0.005 static dielectric")
 
         # make sure the uniform run ran OK
-        d = self._get_task_collection().find_one({"task_label": "raman analysis"}, sort=[("_id", DESCENDING)])
+        d = self._get_task_collection().find_one({"task_label": "raman analysis"})
         self._check_run(d, mode="raman analysis")
 
 
