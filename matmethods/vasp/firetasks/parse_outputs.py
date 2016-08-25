@@ -303,7 +303,7 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
             raman_tensor = (np.array(v[0][1]) - np.array(v[1][1])) / (v[0][0] - v[1][0])
             # TODO: check eigenvalue sign
             raman_tensor = scale * raman_tensor * np.sum(nm_norms[k]) #/ np.sqrt(nm_eigenvals[k])
-            raman_tensor_dict[k] = raman_tensor.tolist()
+            raman_tensor_dict[str(k)] = raman_tensor.tolist()
 
         d["raman_tensor"] = raman_tensor_dict
         d["state"] = "successful"
