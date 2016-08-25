@@ -260,7 +260,7 @@ class ElasticTensorToDbTask(FireTaskBase):
 class RamanSusceptibilityTensorToDbTask(FireTaskBase):
     """
     finite difference derivative of epsilon_static wrt position along the normal mode
-    --> raman susceptibilty tensor for each mode. See: 10.1103/PhysRevB.63.094305
+    --> raman susceptibilty tensor for each mode. See: 10.1103/PhysRevB.73.104304
 
     Required params:
         modes (list): list of normal mode indices for which the raman tensor will be computed.
@@ -275,8 +275,12 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
     optional_params = ["db_file"]
 
     def run_task(self, fw_spec):
-        normalmode_norms = np.array(fw_spec["normalmodes"]["norms"])
+        nm_norms = np.array(fw_spec["normalmodes"]["norms"])
+        nm_eigenvals = np.array(fw_spec["normalmodes"]["eigenvals"])
         structure = Structure.from_dict(fw_spec["normalmodes"]["structure"])
+        masses = np.array([site.specie.data['Atomic mass'] for site in structure])
+        # the eigenvectors read from vasprun.xml is not divided by sqrt(M_i)
+        nm_norms = nm_norms / np.sqrt(masses)
 
         d = {"normalmodes": fw_spec["normalmodes"]}
 
@@ -290,12 +294,10 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
 
         # raman tensor = finite difference derivative of epsilon wrt displacement.
         raman_tensor_dict = {}
-        # is this correct?
-        prefactor = structure.volume / 4.0 / np.pi
+        scale = np.sqrt(structure.volume/2.0) / 4.0 / np.pi
         for k, v in modes_eps_dict.items():
             raman_tensor = (np.array(v[0][1]) - np.array(v[1][1])) / (v[0][0] - v[1][0])
-            # multiply by the prefactor and the average of the eigenvector norm for the mode ?
-            raman_tensor = prefactor * raman_tensor * np.mean(normalmode_norms[k])
+            raman_tensor = scale * raman_tensor * np.sum(nm_norms[k]) / np.sqrt(nm_eigenvals[k])
             raman_tensor_dict[k] = raman_tensor.tolist()
 
         d["raman_tensor"] = raman_tensor_dict
