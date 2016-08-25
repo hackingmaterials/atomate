@@ -180,6 +180,7 @@ class LepsFW(Firework):
 
         if phonon:
             if mode is None and displacement is None:
+                name = "{} {}".format("phonon", name)
                 t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
             else:
                 name = "raman_{}_{} {}".format(str(mode), str(displacement), name)

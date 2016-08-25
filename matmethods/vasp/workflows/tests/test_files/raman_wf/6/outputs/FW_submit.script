@@ -1,0 +1,16 @@
+#!/bin/bash -l
+
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=16
+#SBATCH --time=00:55:00
+#SBATCH --partition=matgen_debug
+#SBATCH --account=matgen
+#SBATCH --job-name=FW_job
+#SBATCH --output=FW_job-%j.out
+#SBATCH --error=FW_job-%j.error
+
+source /global/homes/k/kmathew/Software/eg_matgen_dev/venv_eg_matgen_dev/bin/activate
+cd /global/u1/k/kmathew/vasp_calcs/Raman/8/6
+rlaunch -c /global/homes/k/kmathew/Software/eg_matgen_dev/config/fw singleshot
+
+# CommonAdapter (SLURM) completed writing Template

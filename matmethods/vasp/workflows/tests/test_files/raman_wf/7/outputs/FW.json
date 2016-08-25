@@ -1,0 +1,372 @@
+{
+    "name": "Si-raman analysis", 
+    "launches": [
+        {
+            "fworker": {
+                "category": "", 
+                "query": "{}", 
+                "name": "matgen", 
+                "env": {
+                    "scratch_dir": "/project/projectdirs/matgen/kmathew/scratch", 
+                    "db_file": "/global/homes/k/kmathew/Software/eg_matgen_dev/config/dbs/db.json", 
+                    "vasp_cmd": "srun vasp"
+                }
+            }, 
+            "trackers": [], 
+            "ip": "10.36.160.10", 
+            "fw_id": 1, 
+            "state": "RUNNING", 
+            "host": "mndlint1501", 
+            "launch_dir": "/global/u1/k/kmathew/vasp_calcs/Raman/8/7", 
+            "action": null, 
+            "launch_id": 7, 
+            "state_history": [
+                {
+                    "updated_on": "2016-08-25T16:42:25.938388", 
+                    "state": "RUNNING", 
+                    "created_on": "2016-08-25T16:42:25.938382"
+                }
+            ]
+        }
+    ], 
+    "fw_id": 1, 
+    "state": "RUNNING", 
+    "created_on": "2016-08-25T14:24:21.393685", 
+    "updated_on": "2016-08-25T16:42:25.939598", 
+    "spec": {
+        "_tasks": [
+            {
+                "_fw_name": "{{matmethods.vasp.firetasks.parse_outputs.RamanSusceptibilityTensorToDbTask}}", 
+                "db_file": ">>db_file<<"
+            }
+        ], 
+        "calc_locs": [
+            {
+                "path": "/global/u1/k/kmathew/vasp_calcs/Raman/8/1", 
+                "name": "structure optimization", 
+                "filesystem": null
+            }, 
+            {
+                "path": "/global/u1/k/kmathew/vasp_calcs/Raman/8/2", 
+                "name": "static dielectric", 
+                "filesystem": null
+            }, 
+            {
+                "path": "/global/u1/k/kmathew/vasp_calcs/Raman/8/3", 
+                "name": "raman_1_0.005 static dielectric", 
+                "filesystem": null
+            }, 
+            {
+                "path": "/global/u1/k/kmathew/vasp_calcs/Raman/8/1", 
+                "name": "structure optimization", 
+                "filesystem": null
+            }, 
+            {
+                "path": "/global/u1/k/kmathew/vasp_calcs/Raman/8/2", 
+                "name": "static dielectric", 
+                "filesystem": null
+            }, 
+            {
+                "path": "/global/u1/k/kmathew/vasp_calcs/Raman/8/4", 
+                "name": "raman_1_-0.005 static dielectric", 
+                "filesystem": null
+            }, 
+            {
+                "path": "/global/u1/k/kmathew/vasp_calcs/Raman/8/1", 
+                "name": "structure optimization", 
+                "filesystem": null
+            }, 
+            {
+                "path": "/global/u1/k/kmathew/vasp_calcs/Raman/8/2", 
+                "name": "static dielectric", 
+                "filesystem": null
+            }, 
+            {
+                "path": "/global/u1/k/kmathew/vasp_calcs/Raman/8/5", 
+                "name": "raman_0_0.005 static dielectric", 
+                "filesystem": null
+            }, 
+            {
+                "path": "/global/u1/k/kmathew/vasp_calcs/Raman/8/1", 
+                "name": "structure optimization", 
+                "filesystem": null
+            }, 
+            {
+                "path": "/global/u1/k/kmathew/vasp_calcs/Raman/8/2", 
+                "name": "static dielectric", 
+                "filesystem": null
+            }, 
+            {
+                "path": "/global/u1/k/kmathew/vasp_calcs/Raman/8/6", 
+                "name": "raman_0_-0.005 static dielectric", 
+                "filesystem": null
+            }
+        ], 
+        "raman_epsilon": {
+            "0_m0d005": {
+                "epsilon": [
+                    [
+                        13.3056412, 
+                        -0.00967641, 
+                        -0.006887
+                    ], 
+                    [
+                        -0.00967676, 
+                        13.21874805, 
+                        0.03262529
+                    ], 
+                    [
+                        -0.00688726, 
+                        0.03262592, 
+                        13.18429144
+                    ]
+                ], 
+                "mode": 0, 
+                "displacement": -0.005
+            }, 
+            "1_0d005": {
+                "epsilon": [
+                    [
+                        13.22851119, 
+                        -0.05688092, 
+                        -0.03980807
+                    ], 
+                    [
+                        -0.05688025, 
+                        13.23022384, 
+                        -0.0015415
+                    ], 
+                    [
+                        -0.0398078, 
+                        -0.00154087, 
+                        13.24995969
+                    ]
+                ], 
+                "mode": 1, 
+                "displacement": 0.005
+            }, 
+            "0_0d005": {
+                "epsilon": [
+                    [
+                        13.16509632, 
+                        0.00850098, 
+                        0.00597267
+                    ], 
+                    [
+                        0.00850097, 
+                        13.25477303, 
+                        -0.02979572
+                    ], 
+                    [
+                        0.00597267, 
+                        -0.0297953, 
+                        13.28883867
+                    ]
+                ], 
+                "mode": 0, 
+                "displacement": 0.005
+            }, 
+            "1_m0d005": {
+                "epsilon": [
+                    [
+                        13.24884377, 
+                        0.05760985, 
+                        0.04114927
+                    ], 
+                    [
+                        0.0576084, 
+                        13.23914427, 
+                        0.00249734
+                    ], 
+                    [
+                        0.04114862, 
+                        0.0024981, 
+                        13.2191384
+                    ]
+                ], 
+                "mode": 1, 
+                "displacement": -0.005
+            }
+        }, 
+        "normalmodes": {
+            "eigenvecs": [
+                [
+                    [
+                        0.110488733, 
+                        -0.53563115, 
+                        -0.448209227
+                    ], 
+                    [
+                        -0.110488733, 
+                        0.53563115, 
+                        0.448209227
+                    ]
+                ], 
+                [
+                    [
+                        -0.694180555, 
+                        -0.0342910458, 
+                        -0.13014408
+                    ], 
+                    [
+                        0.694180555, 
+                        0.0342910458, 
+                        0.13014408
+                    ]
+                ], 
+                [
+                    [
+                        -0.0768478839, 
+                        -0.460351383, 
+                        0.53119771
+                    ], 
+                    [
+                        0.0768478839, 
+                        0.460351383, 
+                        -0.53119771
+                    ]
+                ], 
+                [
+                    [
+                        0.471262367, 
+                        0.525506603, 
+                        -0.0418878401
+                    ], 
+                    [
+                        0.471262367, 
+                        0.525506603, 
+                        -0.0418878401
+                    ]
+                ], 
+                [
+                    [
+                        -0.527156397, 
+                        0.469306127, 
+                        -0.04310327
+                    ], 
+                    [
+                        -0.527156397, 
+                        0.469306127, 
+                        -0.04310327
+                    ]
+                ], 
+                [
+                    [
+                        0.00423250499, 
+                        -0.0599547241, 
+                        -0.704547739
+                    ], 
+                    [
+                        0.00423250499, 
+                        -0.0599547241, 
+                        -0.704547739
+                    ]
+                ]
+            ], 
+            "norms": [
+                [
+                    0.7071067812842734, 
+                    0.7071067812842734
+                ], 
+                [
+                    0.7071067814136788, 
+                    0.7071067814136788
+                ], 
+                [
+                    0.7071067813273783, 
+                    0.7071067813273783
+                ], 
+                [
+                    0.7071067808296605, 
+                    0.7071067808296605
+                ], 
+                [
+                    0.7071067809195827, 
+                    0.7071067809195827
+                ], 
+                [
+                    0.7071067808827812, 
+                    0.7071067808827812
+                ]
+            ], 
+            "eigenvals": [
+                -0.979354291, 
+                -0.979353136, 
+                -0.979353002, 
+                -1.86005062e-17, 
+                2.17694599e-17, 
+                2.89016683e-16
+            ], 
+            "structure": {
+                "lattice": {
+                    "a": 3.867457, 
+                    "c": 3.867456702037141, 
+                    "b": 3.867457607327196, 
+                    "matrix": [
+                        [
+                            3.867457, 
+                            0.0, 
+                            0.0
+                        ], 
+                        [
+                            1.933728, 
+                            3.349317, 
+                            0.0
+                        ], 
+                        [
+                            0.0, 
+                            -2.232876, 
+                            3.157766
+                        ]
+                    ], 
+                    "volume": 40.90361498651472, 
+                    "beta": 90.0, 
+                    "alpha": 119.99998727892986, 
+                    "gamma": 60.00001374803744
+                }, 
+                "sites": [
+                    {
+                        "xyz": [
+                            0.0, 
+                            0.0, 
+                            0.0
+                        ], 
+                        "abc": [
+                            0.0, 
+                            0.0, 
+                            0.0
+                        ], 
+                        "species": [
+                            {
+                                "occu": 1, 
+                                "element": "Si"
+                            }
+                        ], 
+                        "label": "Si"
+                    }, 
+                    {
+                        "xyz": [
+                            3.8674567499999997, 
+                            1.4999999999876223e-06, 
+                            2.3683245
+                        ], 
+                        "abc": [
+                            0.75, 
+                            0.5, 
+                            0.75
+                        ], 
+                        "species": [
+                            {
+                                "occu": 1, 
+                                "element": "Si"
+                            }
+                        ], 
+                        "label": "Si"
+                    }
+                ], 
+                "@class": "Structure", 
+                "@module": "pymatgen.core.structure"
+            }
+        }
+    }
+}

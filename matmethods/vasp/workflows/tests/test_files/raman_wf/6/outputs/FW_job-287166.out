@@ -1,0 +1,547 @@
+[H[2J[H[2JNone
+2016-08-25 08:52:53,073 INFO Hostname/IP lookup (this will take a few seconds)
+2016-08-25 08:52:53,073 INFO Launching Rocket
+2016-08-25 08:52:54,815 DEBUG FW with id: 5 is unique!
+2016-08-25 08:52:54,817 DEBUG Created/updated Launch with launch_id: 6
+2016-08-25 08:52:54,828 DEBUG Checked out FW with id: 5
+2016-08-25 08:52:54,830 INFO RUNNING fw_id: 5 in directory: /global/u1/k/kmathew/vasp_calcs/Raman/8/6
+2016-08-25 08:52:54,835 INFO Task started: {{matmethods.vasp.firetasks.glue_tasks.CopyVaspOutputs}}.
+2016-08-25 08:52:54,860 INFO Task completed: {{matmethods.vasp.firetasks.glue_tasks.CopyVaspOutputs}} 
+2016-08-25 08:52:54,860 INFO Task started: {{matmethods.vasp.firetasks.write_inputs.WriteVaspStaticFromPrev}}.
+2016-08-25 08:52:55,889 INFO Task completed: {{matmethods.vasp.firetasks.write_inputs.WriteVaspStaticFromPrev}} 
+2016-08-25 08:52:55,889 INFO Task started: {{matmethods.vasp.firetasks.write_inputs.WriteNormalmodeDisplacedPoscar}}.
+2016-08-25 08:52:55,891 INFO Task completed: {{matmethods.vasp.firetasks.write_inputs.WriteNormalmodeDisplacedPoscar}} 
+2016-08-25 08:52:55,891 INFO Task started: {{matmethods.vasp.firetasks.write_inputs.ModifyIncar}}.
+2016-08-25 08:52:55,893 INFO Task completed: {{matmethods.vasp.firetasks.write_inputs.ModifyIncar}} 
+2016-08-25 08:52:55,893 INFO Task started: {{matmethods.vasp.firetasks.run_calc.RunVaspDirect}}.
+2016-08-25 08:52:55,894 INFO matmethods.vasp.firetasks.run_calc Running VASP using exe: srun vasp
+ running on   16 total cores
+ distrk:  each k-point on   16 cores,    1 groups
+ distr:  one band on    1 cores,   16 groups
+ using from now: INCAR     
+ vasp.5.4.1 24Jun15 (build Feb 01 2016 23:38:11) complex                        
+  
+ POSCAR found type information on POSCAR  Si
+ POSCAR found :  1 types and       2 ions
+
+ ----------------------------------------------------------------------------- 
+|                                                                             |
+|           W    W    AA    RRRRR   N    N  II  N    N   GGGG   !!!           |
+|           W    W   A  A   R    R  NN   N  II  NN   N  G    G  !!!           |
+|           W    W  A    A  R    R  N N  N  II  N N  N  G       !!!           |
+|           W WW W  AAAAAA  RRRRR   N  N N  II  N  N N  G  GGG   !            |
+|           WW  WW  A    A  R   R   N   NN  II  N   NN  G    G                |
+|           W    W  A    A  R    R  N    N  II  N    N   GGGG   !!!           |
+|                                                                             |
+|      For optimal performance we recommend to set                            |
+|        NCORE= 4 - approx SQRT( number of cores)                             |
+|      NCORE specifies how many cores store one orbital (NPAR=cpu/NCORE).     |
+|      This setting can  greatly improve the performance of VASP for DFT.     |
+|      The default, NPAR=number of cores might be grossly inefficient         |
+|      on modern multi-core architectures or massively parallel machines.     |
+|      Do your own testing !!!!                                               |
+|      Unfortunately you need to use the default for GW and RPA calculations. |
+|      (for HF NCORE is supported but not extensively tested yet)             |
+|                                                                             |
+ ----------------------------------------------------------------------------- 
+
+
+ ----------------------------------------------------------------------------- 
+|                                                                             |
+|  ADVICE TO THIS USER RUNNING 'VASP/VAMP'   (HEAR YOUR MASTER'S VOICE ...):  |
+|                                                                             |
+|      You have a (more or less) 'small supercell' and for smaller cells      |
+|      it is recommended  to use the reciprocal-space projection scheme!      |
+|      The real space optimization is not  efficient for small cells and it   |
+|      is also less accurate ...                                              |
+|      Therefore set LREAL=.FALSE. in the  INCAR file                         |
+|                                                                             |
+ ----------------------------------------------------------------------------- 
+
+ LDA part: xc-table for Pade appr. of Perdew
+ POSCAR, INCAR and KPOINTS ok, starting setup
+ WARNING: small aliasing (wrap around) errors must be expected
+ FFT: planning ...
+ WAVECAR not read
+ augmentation electrons   8.00823957820788     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   8.00823957820788     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   8.00823957820788     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   8.00823957820788     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   8.00823957820788     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   8.00823957820788     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   8.00823957820788     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   8.00823957820788     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   8.00823957820788     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   8.00823957820788     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   8.00823957820788     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   8.00823957820788     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   8.00823957820788     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   8.00823957820788     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   8.00823957820788     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   8.00823957820788     
+ soft         electrons  0.000000000000000E+000
+ total        electrons   8.00823957820788     
+ total        electrons   8.00823957820788     
+ total        electrons   8.00823957820788     
+ total        electrons   8.00823957820788     
+ total        electrons   8.00823957820788     
+ total        electrons   8.00823957820788     
+ total        electrons   8.00823957820788     
+ total        electrons   8.00823957820788     
+ total        electrons   8.00823957820788     
+ total        electrons   8.00823957820788     
+ total        electrons   8.00823957820788     
+ total        electrons   8.00823957820788     
+ total        electrons   8.00823957820788     
+ total        electrons   8.00823957820788     
+ total        electrons   8.00823957820788     
+ total        electrons   8.00823957820788     
+ augmentation electrons  0.000000000000000E+000
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons  0.000000000000000E+000
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons  0.000000000000000E+000
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons  0.000000000000000E+000
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons  0.000000000000000E+000
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons  0.000000000000000E+000
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons  0.000000000000000E+000
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons  0.000000000000000E+000
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons  0.000000000000000E+000
+ augmentation electrons  0.000000000000000E+000
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons  0.000000000000000E+000
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons  0.000000000000000E+000
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons  0.000000000000000E+000
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons  0.000000000000000E+000
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons  0.000000000000000E+000
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons  0.000000000000000E+000
+ soft         electrons  0.000000000000000E+000
+ soft         electrons  0.000000000000000E+000
+ total        electrons  0.000000000000000E+000
+ total        electrons  0.000000000000000E+000
+ total        electrons  0.000000000000000E+000
+ total        electrons  0.000000000000000E+000
+ total        electrons  0.000000000000000E+000
+ total        electrons  0.000000000000000E+000
+ total        electrons  0.000000000000000E+000
+ total        electrons  0.000000000000000E+000
+ total        electrons  0.000000000000000E+000
+ total        electrons  0.000000000000000E+000
+ total        electrons  0.000000000000000E+000
+ total        electrons  0.000000000000000E+000
+ total        electrons  0.000000000000000E+000
+ total        electrons  0.000000000000000E+000
+ total        electrons  0.000000000000000E+000
+ total        electrons  0.000000000000000E+000
+ augmentation electrons   21.5092854550027     
+ augmentation electrons   21.5092854550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   21.5092854550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   21.5092854550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   21.5092854550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   21.5092854550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   21.5092854550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   21.5092854550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   21.5092854550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   21.5092854550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   21.5092854550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   21.5092854550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   21.5092854550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   21.5092854550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   21.5092854550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   21.5092854550027     
+ soft         electrons  0.000000000000000E+000
+ soft         electrons  0.000000000000000E+000
+ total        electrons   21.5092854550027     
+ total        electrons   21.5092854550027     
+ total        electrons   21.5092854550027     
+ total        electrons   21.5092854550027     
+ total        electrons   21.5092854550027     
+ total        electrons   21.5092854550027     
+ total        electrons   21.5092854550027     
+ total        electrons   21.5092854550027     
+ total        electrons   21.5092854550027     
+ total        electrons   21.5092854550027     
+ total        electrons   21.5092854550027     
+ total        electrons   21.5092854550027     
+ total        electrons   21.5092854550027     
+ total        electrons   21.5092854550027     
+ total        electrons   21.5092854550027     
+ total        electrons   21.5092854550027     
+ augmentation electrons   18.7728954550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   18.7728954550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   18.7728954550027     
+ augmentation electrons   18.7728954550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   18.7728954550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   18.7728954550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   18.7728954550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   18.7728954550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   18.7728954550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   18.7728954550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   18.7728954550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   18.7728954550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   18.7728954550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   18.7728954550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   18.7728954550027     
+ soft         electrons  0.000000000000000E+000
+ augmentation electrons   18.7728954550027     
+ soft         electrons  0.000000000000000E+000
+ soft         electrons  0.000000000000000E+000
+ total        electrons   18.7728954550027     
+ total        electrons   18.7728954550027     
+ total        electrons   18.7728954550027     
+ total        electrons   18.7728954550027     
+ total        electrons   18.7728954550027     
+ total        electrons   18.7728954550027     
+ total        electrons   18.7728954550027     
+ total        electrons   18.7728954550027     
+ total        electrons   18.7728954550027     
+ total        electrons   18.7728954550027     
+ total        electrons   18.7728954550027     
+ total        electrons   18.7728954550027     
+ total        electrons   18.7728954550027     
+ total        electrons   18.7728954550027     
+ total        electrons   18.7728954550027     
+ total        electrons   18.7728954550027     
+ initial charge from wavefunction
+ entering main loop
+       N       E                     dE             d eps       ncg     rms          rms(c)
+DAV:   1    -0.685123305145E+01   -0.68512E+01   -0.37730E+03 42640   0.439E+02
+DAV:   2    -0.193702978512E+02   -0.12519E+02   -0.12485E+02 62240   0.443E+01
+DAV:   3    -0.194746095225E+02   -0.10431E+00   -0.10431E+00 49040   0.485E+00
+DAV:   4    -0.194749338035E+02   -0.32428E-03   -0.32428E-03 79104   0.301E-01
+DAV:   5    -0.194749338319E+02   -0.28380E-07   -0.28380E-07 48560   0.235E-03    0.233E+01
+DAV:   6    -0.134215435159E+02    0.60534E+01   -0.16504E+00 57312   0.372E+00    0.139E+01
+DAV:   7    -0.108183815277E+02    0.26032E+01   -0.43724E+00 64544   0.586E+00    0.978E-01
+DAV:   8    -0.108306374242E+02   -0.12256E-01   -0.74231E-02 44320   0.164E+00    0.623E-01
+DAV:   9    -0.108506931471E+02   -0.20056E-01   -0.39645E-02 61984   0.910E-01    0.239E-01
+DAV:  10    -0.108496993330E+02    0.99381E-03   -0.21616E-03 56304   0.177E-01    0.673E-02
+DAV:  11    -0.108492334431E+02    0.46589E-03   -0.12141E-03 49328   0.194E-01    0.342E-02
+DAV:  12    -0.108495437516E+02   -0.31031E-03   -0.44078E-04 45440   0.169E-01    0.592E-03
+DAV:  13    -0.108495447609E+02   -0.10093E-05   -0.37280E-06 80800   0.107E-02    0.338E-03
+DAV:  14    -0.108495446520E+02    0.10884E-06   -0.72018E-07 44896   0.640E-03
+   1 F= -.10849545E+02 E0= -.10849545E+02  d E =0.000000E+00  mag=     0.0000
+
+ ----------------------------------------------------------------------------- 
+|                                                                             |
+|           W    W    AA    RRRRR   N    N  II  N    N   GGGG   !!!           |
+|           W    W   A  A   R    R  NN   N  II  NN   N  G    G  !!!           |
+|           W    W  A    A  R    R  N N  N  II  N N  N  G       !!!           |
+|           W WW W  AAAAAA  RRRRR   N  N N  II  N  N N  G  GGG   !            |
+|           WW  WW  A    A  R   R   N   NN  II  N   NN  G    G                |
+|           W    W  A    A  R    R  N    N  II  N    N   GGGG   !!!           |
+|                                                                             |
+|      Linear response in principle supports LREAL = Auto (or LREAL=.TRUE.)   |
+|      However in some cases we have found that the real space projection     |
+|      is not sufficiently accurate.                                          |
+|      I strongly recommend that you switch it off by setting LREAL=.FALSE.   |
+|                                                                             |
+ ----------------------------------------------------------------------------- 
+
+ Linear response reoptimize wavefunctions to high precision
+DAV:   1    -0.108495454232E+02   -0.77119E-06   -0.89811E-07 49792   0.737E-03
+DAV:   2    -0.108495454236E+02   -0.31710E-09   -0.31711E-09 77216   0.297E-04
+DAV:   3    -0.108495454236E+02   -0.56843E-13   -0.49478E-13 43680   0.273E-06
+ Linear response G [H, r] |phi>, progress :
+  Direction:   1
+       N       E                     dE             d eps       ncg     rms
+RMM:   1    -0.370575222707E+02   -0.37058E+02    0.77788E+00114811   0.250E+01
+RMM:   2    -0.288672580779E+02    0.81903E+01   -0.22096E+00 70672   0.535E+00
+RMM:   3    -0.288352647887E+02    0.31993E-01   -0.37566E-02 71578   0.629E-01
+RMM:   4    -0.288341331312E+02    0.11317E-02   -0.35883E-04 75142   0.671E-02
+RMM:   5    -0.288341260560E+02    0.70752E-05   -0.41256E-06 74005   0.821E-03
+RMM:   6    -0.288341260976E+02   -0.41535E-07   -0.21136E-07 70624   0.118E-03
+ Linear response G [H, r] |phi>, progress :
+  Direction:   2
+       N       E                     dE             d eps       ncg     rms
+RMM:   1    -0.370244240460E+02   -0.37024E+02    0.58993E+00116255   0.249E+01
+RMM:   2    -0.288565888442E+02    0.81678E+01   -0.21035E+00 70889   0.537E+00
+RMM:   3    -0.288329355368E+02    0.23653E-01   -0.34889E-02 71813   0.627E-01
+RMM:   4    -0.288319708362E+02    0.96470E-03   -0.34119E-04 75357   0.669E-02
+RMM:   5    -0.288319640651E+02    0.67711E-05    0.27019E-06 74330   0.819E-03
+RMM:   6    -0.288319647443E+02   -0.67920E-06    0.19716E-07 71458   0.117E-03
+ Linear response G [H, r] |phi>, progress :
+  Direction:   3
+       N       E                     dE             d eps       ncg     rms
+RMM:   1    -0.374065322633E+02   -0.37407E+02    0.12684E+00115615   0.246E+01
+RMM:   2    -0.288474675330E+02    0.85591E+01   -0.19932E+00 70785   0.528E+00
+RMM:   3    -0.288319152824E+02    0.15552E-01   -0.32118E-02 71561   0.613E-01
+RMM:   4    -0.288311775318E+02    0.73775E-03   -0.33600E-04 74839   0.650E-02
+RMM:   5    -0.288311707987E+02    0.67331E-05    0.29202E-07 74220   0.790E-03
+RMM:   6    -0.288311712914E+02   -0.49266E-06   -0.54720E-07 70745   0.113E-03
+ Linear response to external field (no local field effect), progress :
+  Direction:   1
+       N       E                     dE             d eps       ncg     rms          rms(c)
+RMM:   1    -0.141154196590E+01   -0.14115E+01   -0.68561E+00108071   0.229E+00
+RMM:   2    -0.145846045871E+01   -0.46918E-01   -0.85471E-03 69728   0.353E-01
+RMM:   3    -0.145856596746E+01   -0.10551E-03   -0.49164E-05 71227   0.237E-02
+RMM:   4    -0.145856637340E+01   -0.40593E-06   -0.30432E-07 71183   0.216E-03
+ change of polarisation eV/A/(eV/A) component  1 :     2.917    -0.002    -0.002
+ dielectric tensor                  component  1 :    13.905    -0.009    -0.007
+ Linear response to external field (no local field effect), progress :
+  Direction:   2
+       N       E                     dE             d eps       ncg     rms          rms(c)
+RMM:   1    -0.140362662558E+01   -0.14036E+01   -0.67948E+00108960   0.227E+00
+RMM:   2    -0.144900027471E+01   -0.45374E-01   -0.83846E-03 69699   0.351E-01
+RMM:   3    -0.144910266806E+01   -0.10239E-03   -0.48093E-05 71474   0.238E-02
+RMM:   4    -0.144910306756E+01   -0.39951E-06   -0.29885E-07 72059   0.216E-03
+ change of polarisation eV/A/(eV/A) component  2 :    -0.002     2.898     0.007
+ dielectric tensor                  component  2 :    -0.009    13.821     0.032
+ Linear response to external field (no local field effect), progress :
+  Direction:   3
+       N       E                     dE             d eps       ncg     rms          rms(c)
+RMM:   1    -0.139868764972E+01   -0.13987E+01   -0.67525E+00108305   0.220E+00
+RMM:   2    -0.144521661576E+01   -0.46529E-01   -0.81285E-03 69529   0.340E-01
+RMM:   3    -0.144531375124E+01   -0.97135E-04   -0.47714E-05 71206   0.230E-02
+RMM:   4    -0.144531414763E+01   -0.39639E-06   -0.29848E-07 71809   0.211E-03
+ change of polarisation eV/A/(eV/A) component  3 :    -0.002     0.007     2.891
+ dielectric tensor                  component  3 :    -0.007     0.032    13.788
+ Linear response to external field, progress :
+  Direction:   1
+       N       E                     dE             d eps       ncg     rms          rms(c)
+RMM:   1    -0.141154196590E+01   -0.14115E+01   -0.68561E+00108071   0.229E+00
+RMM:   2    -0.145846045871E+01   -0.46918E-01   -0.85471E-03 69728   0.353E-01    0.148E+00
+RMM:   3    -0.142402633355E+01    0.34434E-01   -0.11137E-02 71109   0.373E-01    0.844E-01
+RMM:   4    -0.148151809454E+01   -0.57492E-01   -0.13099E-02 70564   0.427E-01    0.176E-01
+RMM:   5    -0.150477584559E+01   -0.23258E-01   -0.67855E-04 70758   0.115E-01    0.202E-02
+RMM:   6    -0.150570246373E+01   -0.92662E-03   -0.14366E-05 73968   0.163E-02    0.983E-03
+RMM:   7    -0.150651579679E+01   -0.81333E-03   -0.96602E-06 70058   0.134E-02    0.645E-04
+RMM:   8    -0.150652940286E+01   -0.13606E-04   -0.64708E-08 72769   0.102E-03    0.280E-04
+RMM:   9    -0.150652950678E+01   -0.10392E-06   -0.11047E-08 58626   0.502E-04    0.909E-05
+ change of polarisation eV/A/(eV/A) component  1 :     2.782    -0.002    -0.002
+ dielectric tensor                  component  1 :    13.306    -0.010    -0.007
+ Linear response to external field, progress :
+  Direction:   2
+       N       E                     dE             d eps       ncg     rms          rms(c)
+RMM:   1    -0.140362662558E+01   -0.14036E+01   -0.67948E+00108960   0.227E+00
+RMM:   2    -0.144900027471E+01   -0.45374E-01   -0.83846E-03 69699   0.351E-01    0.148E+00
+RMM:   3    -0.141412166913E+01    0.34879E-01   -0.11201E-02 71470   0.373E-01    0.839E-01
+RMM:   4    -0.147063249041E+01   -0.56511E-01   -0.13126E-02 70913   0.426E-01    0.175E-01
+RMM:   5    -0.149362599508E+01   -0.22994E-01   -0.67766E-04 71117   0.115E-01    0.203E-02
+RMM:   6    -0.149458990053E+01   -0.96391E-03   -0.14590E-05 74417   0.164E-02    0.989E-03
+RMM:   7    -0.149536975269E+01   -0.77985E-03   -0.88836E-06 70594   0.128E-02    0.823E-04
+RMM:   8    -0.149541472966E+01   -0.44977E-04   -0.12070E-07 74525   0.139E-03    0.285E-04
+RMM:   9    -0.149541519536E+01   -0.46571E-06   -0.10147E-08 59433   0.472E-04    0.120E-04
+ change of polarisation eV/A/(eV/A) component  2 :    -0.002     2.762     0.007
+ dielectric tensor                  component  2 :    -0.010    13.219     0.033
+ Linear response to external field, progress :
+  Direction:   3
+       N       E                     dE             d eps       ncg     rms          rms(c)
+RMM:   1    -0.139868764972E+01   -0.13987E+01   -0.67525E+00108305   0.220E+00
+RMM:   2    -0.144521661576E+01   -0.46529E-01   -0.81285E-03 69529   0.340E-01    0.147E+00
+RMM:   3    -0.141018712834E+01    0.35029E-01   -0.11203E-02 71051   0.373E-01    0.837E-01
+RMM:   4    -0.146634147033E+01   -0.56154E-01   -0.13125E-02 70727   0.426E-01    0.175E-01
+RMM:   5    -0.148924914133E+01   -0.22908E-01   -0.67616E-04 70782   0.115E-01    0.202E-02
+RMM:   6    -0.149019146732E+01   -0.94233E-03   -0.14218E-05 74184   0.163E-02    0.986E-03
+RMM:   7    -0.149097873167E+01   -0.78726E-03   -0.90828E-06 70333   0.130E-02    0.739E-04
+RMM:   8    -0.149101370124E+01   -0.34970E-04   -0.98346E-08 74271   0.127E-03    0.284E-04
+RMM:   9    -0.149101446249E+01   -0.76125E-06   -0.99530E-09 58867   0.468E-04    0.122E-04
+ change of polarisation eV/A/(eV/A) component  3 :    -0.002     0.007     2.754
+ dielectric tensor                  component  3 :    -0.007     0.033    13.184
+ Linear response DOF=           3
+ Linear response progress:
+  Degree of freedom:   1/  3
+       N       E                     dE             d eps       ncg     rms          rms(c)
+RMM:   1    -0.194539006888E-01   -0.19454E-01    0.11418E-02101121   0.528E-01
+RMM:   2    -0.172302073659E-01    0.22237E-02   -0.45956E-04 67416   0.900E-02    0.783E-02
+RMM:   3    -0.172314213336E-01   -0.12140E-05   -0.15347E-05 70899   0.166E-02    0.468E-02
+RMM:   4    -0.173701911515E-01   -0.13877E-03   -0.18922E-05 69977   0.192E-02    0.529E-03
+RMM:   5    -0.173437126867E-01    0.26478E-04   -0.10090E-06 73139   0.399E-03    0.737E-04
+RMM:   6    -0.173422340235E-01    0.14787E-05    0.26554E-08 74639   0.451E-04    0.423E-04
+RMM:   7    -0.173408210328E-01    0.14130E-05    0.70767E-09 71347   0.443E-04    0.424E-05
+RMM:   8    -0.173408720870E-01   -0.51054E-07    0.99624E-08 74605   0.514E-05    0.196E-05
+ force on displaced ion       1 direction 1 : -13.417  -0.044  -0.031
+ Born effective charge ion    1 direction 1 :  -0.016  -0.000  -0.000
+ Linear response progress:
+  Degree of freedom:   2/  3
+       N       E                     dE             d eps       ncg     rms          rms(c)
+RMM:   1    -0.194980615812E-01   -0.19498E-01    0.11964E-02102093   0.530E-01
+RMM:   2    -0.172749586674E-01    0.22231E-02   -0.48262E-04 67344   0.903E-02    0.787E-02
+RMM:   3    -0.172757151894E-01   -0.75652E-06   -0.15108E-05 71064   0.167E-02    0.469E-02
+RMM:   4    -0.174180004473E-01   -0.14229E-03   -0.18877E-05 70017   0.193E-02    0.529E-03
+RMM:   5    -0.173913826584E-01    0.26618E-04   -0.85260E-07 73365   0.401E-03    0.737E-04
+RMM:   6    -0.173899605928E-01    0.14221E-05   -0.40288E-08 74843   0.448E-04    0.425E-04
+RMM:   7    -0.173885610464E-01    0.13995E-05   -0.24830E-08 71510   0.443E-04    0.424E-05
+RMM:   8    -0.173886149280E-01   -0.53882E-07    0.37620E-09 74850   0.503E-05    0.197E-05
+ force on displaced ion       1 direction 2 :  -0.044 -13.841   0.145
+ Born effective charge ion    1 direction 2 :   0.000  -0.015  -0.000
+ Linear response progress:
+  Degree of freedom:   3/  3
+       N       E                     dE             d eps       ncg     rms          rms(c)
+RMM:   1    -0.194780899724E-01   -0.19478E-01    0.12734E-02101800   0.528E-01
+RMM:   2    -0.172983057903E-01    0.21798E-02   -0.54984E-04 67510   0.907E-02    0.789E-02
+RMM:   3    -0.172943245113E-01    0.39813E-05   -0.20485E-05 71040   0.168E-02    0.470E-02
+RMM:   4    -0.174372441647E-01   -0.14292E-03   -0.17799E-05 69822   0.193E-02    0.529E-03
+RMM:   5    -0.174108844986E-01    0.26360E-04   -0.13163E-06 73090   0.401E-03    0.738E-04
+RMM:   6    -0.174093177348E-01    0.15668E-05    0.12238E-07 74611   0.447E-04    0.426E-04
+RMM:   7    -0.174079443518E-01    0.13734E-05    0.54924E-08 71337   0.443E-04    0.423E-05
+RMM:   8    -0.174080014082E-01   -0.57056E-07    0.29679E-08 74811   0.501E-05    0.196E-05
+ force on displaced ion       1 direction 3 :  -0.032   0.145 -14.000
+ Born effective charge ion    1 direction 3 :   0.000  -0.000  -0.015
+ Linear response finished
+ augmentation electrons -0.452146180982718     
+ augmentation electrons -0.452146180982718     
+ soft         electrons   8.45831463773607     
+ augmentation electrons -0.452146180982718     
+ soft         electrons   8.45831463773607     
+ augmentation electrons -0.452146180982718     
+ soft         electrons   8.45831463773607     
+ augmentation electrons -0.452146180982718     
+ soft         electrons   8.45831463773607     
+ augmentation electrons -0.452146180982718     
+ soft         electrons   8.45831463773607     
+ augmentation electrons -0.452146180982718     
+ soft         electrons   8.45831463773607     
+ augmentation electrons -0.452146180982718     
+ soft         electrons   8.45831463773607     
+ augmentation electrons -0.452146180982718     
+ soft         electrons   8.45831463773607     
+ augmentation electrons -0.452146180982718     
+ soft         electrons   8.45831463773607     
+ augmentation electrons -0.452146180982718     
+ soft         electrons   8.45831463773607     
+ augmentation electrons -0.452146180982718     
+ soft         electrons   8.45831463773607     
+ augmentation electrons -0.452146180982718     
+ soft         electrons   8.45831463773607     
+ augmentation electrons -0.452146180982718     
+ soft         electrons   8.45831463773607     
+ augmentation electrons -0.452146180982718     
+ soft         electrons   8.45831463773607     
+ augmentation electrons -0.452146180982718     
+ soft         electrons   8.45831463773607     
+ soft         electrons   8.45831463773607     
+ total        electrons   8.00616845675335     
+ total        electrons   8.00616845675335     
+ total        electrons   8.00616845675335     
+ total        electrons   8.00616845675335     
+ total        electrons   8.00616845675335     
+ total        electrons   8.00616845675335     
+ total        electrons   8.00616845675335     
+ total        electrons   8.00616845675335     
+ total        electrons   8.00616845675335     
+ total        electrons   8.00616845675335     
+ total        electrons   8.00616845675335     
+ total        electrons   8.00616845675335     
+ total        electrons   8.00616845675335     
+ total        electrons   8.00616845675335     
+ total        electrons   8.00616845675335     
+ total        electrons   8.00616845675335     
+ augmentation electrons  1.084608991322810E-006
+ soft         electrons   8.45831463773607     
+ augmentation electrons  1.084608991322810E-006
+ soft         electrons   8.45831463773607     
+ augmentation electrons  1.084608991322810E-006
+ soft         electrons   8.45831463773607     
+ augmentation electrons  1.084608991322810E-006
+ soft         electrons   8.45831463773607     
+ augmentation electrons  1.084608991322810E-006
+ soft         electrons   8.45831463773607     
+ augmentation electrons  1.084608991322810E-006
+ soft         electrons   8.45831463773607     
+ augmentation electrons  1.084608991322810E-006
+ soft         electrons   8.45831463773607     
+ augmentation electrons  1.084608991322810E-006
+ soft         electrons   8.45831463773607     
+ augmentation electrons  1.084608991322810E-006
+ soft         electrons   8.45831463773607     
+ augmentation electrons  1.084608991322810E-006
+ soft         electrons   8.45831463773607     
+ augmentation electrons  1.084608991322810E-006
+ soft         electrons   8.45831463773607     
+ augmentation electrons  1.084608991322810E-006
+ soft         electrons   8.45831463773607     
+ augmentation electrons  1.084608991322810E-006
+ soft         electrons   8.45831463773607     
+ augmentation electrons  1.084608991322810E-006
+ soft         electrons   8.45831463773607     
+ augmentation electrons  1.084608991322810E-006
+ soft         electrons   8.45831463773607     
+ augmentation electrons  1.084608991322810E-006
+ soft         electrons   8.45831463773607     
+ total        electrons -1.323695616137794E-008
+ total        electrons -1.323695616137794E-008
+ total        electrons -1.323695616137794E-008
+ total        electrons -1.323695616137794E-008
+ total        electrons -1.323695616137794E-008
+ total        electrons -1.323695616137794E-008
+ total        electrons -1.323695616137794E-008
+ total        electrons -1.323695616137794E-008
+ total        electrons -1.323695616137794E-008
+ total        electrons -1.323695616137794E-008
+ total        electrons -1.323695616137794E-008
+ total        electrons -1.323695616137794E-008
+ total        electrons -1.323695616137794E-008
+ total        electrons -1.323695616137794E-008
+ total        electrons -1.323695616137794E-008
+ total        electrons -1.323695616137794E-008
+2016-08-25 09:38:47,293 INFO matmethods.vasp.firetasks.run_calc VASP finished running with returncode: 0
+2016-08-25 09:38:47,294 INFO Task completed: {{matmethods.vasp.firetasks.run_calc.RunVaspDirect}} 
+2016-08-25 09:38:47,294 INFO Task started: {{matmethods.vasp.firetasks.glue_tasks.PassEpsilonTask}}.
+2016-08-25 09:38:52,493 INFO Task completed: {{matmethods.vasp.firetasks.glue_tasks.PassEpsilonTask}} 
+2016-08-25 09:38:52,493 INFO Task started: {{matmethods.vasp.firetasks.glue_tasks.PassNormalmodesTask}}.
+2016-08-25 09:38:52,494 INFO Task completed: {{matmethods.vasp.firetasks.glue_tasks.PassNormalmodesTask}} 
+2016-08-25 09:38:52,494 INFO Task started: {{matmethods.common.firetasks.glue_tasks.PassCalcLocs}}.
+2016-08-25 09:38:52,494 INFO Task completed: {{matmethods.common.firetasks.glue_tasks.PassCalcLocs}} 
+2016-08-25 09:38:52,494 INFO Task started: {{matmethods.vasp.firetasks.parse_outputs.VaspToDbTask}}.
+2016-08-25 09:38:52,494 INFO matmethods.vasp.firetasks.parse_outputs PARSING DIRECTORY: /global/u1/k/kmathew/vasp_calcs/Raman/8/6
+2016-08-25 09:38:52,494 INFO matmethods.vasp.drones Getting task doc for base dir :/global/u1/k/kmathew/vasp_calcs/Raman/8/6
+2016-08-25 09:38:58,341 INFO matmethods.vasp.drones Post-processing dir:/global/u1/k/kmathew/vasp_calcs/Raman/8/6
+2016-08-25 09:38:58,342 WARNING matmethods.vasp.drones Transformations file does not exist.
+2016-08-25 09:38:58,342 INFO matmethods.vasp.drones Post-processed /global/u1/k/kmathew/vasp_calcs/Raman/8/6
+2016-08-25 09:38:58,355 INFO matmethods.vasp.database Inserting mc0837.nersc.gov:/global/u1/k/kmathew/vasp_calcs/Raman/8/6 with taskid = 91
+2016-08-25 09:38:58,397 INFO matmethods.vasp.firetasks.parse_outputs Finished parsing with task_id: 91
+2016-08-25 09:38:58,397 INFO Task completed: {{matmethods.vasp.firetasks.parse_outputs.VaspToDbTask}} 
+2016-08-25 09:38:58,486 INFO Rocket finished

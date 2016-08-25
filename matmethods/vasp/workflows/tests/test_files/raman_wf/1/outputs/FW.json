@@ -1,0 +1,203 @@
+{
+    "name": "Si-structure optimization", 
+    "launches": [
+        {
+            "fworker": {
+                "category": "", 
+                "query": "{}", 
+                "name": "matgen", 
+                "env": {
+                    "scratch_dir": "/project/projectdirs/matgen/kmathew/scratch", 
+                    "db_file": "/global/homes/k/kmathew/Software/eg_matgen_dev/config/dbs/db.json", 
+                    "vasp_cmd": "srun vasp"
+                }
+            }, 
+            "trackers": [], 
+            "ip": "10.36.163.133", 
+            "fw_id": 7, 
+            "state": "RUNNING", 
+            "host": "mc0646", 
+            "launch_dir": "/global/u1/k/kmathew/vasp_calcs/Raman/8/1", 
+            "action": null, 
+            "launch_id": 1, 
+            "state_history": [
+                {
+                    "updated_on": "2016-08-25T14:31:07.432277", 
+                    "state": "RUNNING", 
+                    "created_on": "2016-08-25T14:31:07.432269"
+                }
+            ]
+        }
+    ], 
+    "fw_id": 7, 
+    "state": "RUNNING", 
+    "created_on": "2016-08-25T14:24:21.392336", 
+    "updated_on": "2016-08-25T14:31:07.433715", 
+    "spec": {
+        "_tasks": [
+            {
+                "_fw_name": "{{matmethods.vasp.firetasks.write_inputs.WriteVaspFromIOSet}}", 
+                "vasp_input_set": {
+                    "force_gamma": true, 
+                    "structure": {
+                        "lattice": {
+                            "a": 3.8401979337, 
+                            "c": 3.8401979337177736, 
+                            "b": 3.840198994344244, 
+                            "matrix": [
+                                [
+                                    3.8401979337, 
+                                    0.0, 
+                                    0.0
+                                ], 
+                                [
+                                    1.9200989668, 
+                                    3.3257101909, 
+                                    0.0
+                                ], 
+                                [
+                                    0.0, 
+                                    -2.2171384943, 
+                                    3.1355090603
+                                ]
+                            ], 
+                            "volume": 40.04479464425159, 
+                            "beta": 90.0, 
+                            "alpha": 119.99999086398421, 
+                            "gamma": 60.00000913732221
+                        }, 
+                        "sites": [
+                            {
+                                "xyz": [
+                                    0.0, 
+                                    0.0, 
+                                    0.0
+                                ], 
+                                "abc": [
+                                    0.0, 
+                                    0.0, 
+                                    0.0
+                                ], 
+                                "species": [
+                                    {
+                                        "occu": 1, 
+                                        "element": "Si"
+                                    }
+                                ], 
+                                "label": "Si"
+                            }, 
+                            {
+                                "xyz": [
+                                    3.8401979336749994, 
+                                    1.2247250003039056e-06, 
+                                    2.351631795225
+                                ], 
+                                "abc": [
+                                    0.75, 
+                                    0.5, 
+                                    0.75
+                                ], 
+                                "species": [
+                                    {
+                                        "occu": 1, 
+                                        "element": "Si"
+                                    }
+                                ], 
+                                "label": "Si"
+                            }
+                        ], 
+                        "@class": "Structure", 
+                        "@module": "pymatgen.core.structure"
+                    }, 
+                    "@class": "MPRelaxSet", 
+                    "@module": "pymatgen.io.vasp.sets"
+                }, 
+                "structure": {
+                    "lattice": {
+                        "a": 3.8401979337, 
+                        "c": 3.8401979337177736, 
+                        "b": 3.840198994344244, 
+                        "matrix": [
+                            [
+                                3.8401979337, 
+                                0.0, 
+                                0.0
+                            ], 
+                            [
+                                1.9200989668, 
+                                3.3257101909, 
+                                0.0
+                            ], 
+                            [
+                                0.0, 
+                                -2.2171384943, 
+                                3.1355090603
+                            ]
+                        ], 
+                        "volume": 40.04479464425159, 
+                        "beta": 90.0, 
+                        "alpha": 119.99999086398421, 
+                        "gamma": 60.00000913732221
+                    }, 
+                    "sites": [
+                        {
+                            "xyz": [
+                                0.0, 
+                                0.0, 
+                                0.0
+                            ], 
+                            "abc": [
+                                0.0, 
+                                0.0, 
+                                0.0
+                            ], 
+                            "species": [
+                                {
+                                    "occu": 1, 
+                                    "element": "Si"
+                                }
+                            ], 
+                            "label": "Si"
+                        }, 
+                        {
+                            "xyz": [
+                                3.8401979336749994, 
+                                1.2247250003039056e-06, 
+                                2.351631795225
+                            ], 
+                            "abc": [
+                                0.75, 
+                                0.5, 
+                                0.75
+                            ], 
+                            "species": [
+                                {
+                                    "occu": 1, 
+                                    "element": "Si"
+                                }
+                            ], 
+                            "label": "Si"
+                        }
+                    ], 
+                    "@class": "Structure", 
+                    "@module": "pymatgen.core.structure"
+                }
+            }, 
+            {
+                "_fw_name": "{{matmethods.vasp.firetasks.run_calc.RunVaspDirect}}", 
+                "vasp_cmd": ">>vasp_cmd<<"
+            }, 
+            {
+                "_fw_name": "{{matmethods.common.firetasks.glue_tasks.PassCalcLocs}}", 
+                "name": "structure optimization"
+            }, 
+            {
+                "additional_fields": {
+                    "task_label": "structure optimization"
+                }, 
+                "_fw_name": "{{matmethods.vasp.firetasks.parse_outputs.VaspToDbTask}}", 
+                "db_file": ">>db_file<<"
+            }
+        ]
+    }
+}

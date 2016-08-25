@@ -1,0 +1,280 @@
+{
+    "name": "Si-raman_0_0.005 static dielectric", 
+    "launches": [
+        {
+            "fworker": {
+                "category": "", 
+                "query": "{}", 
+                "name": "matgen", 
+                "env": {
+                    "scratch_dir": "/project/projectdirs/matgen/kmathew/scratch", 
+                    "db_file": "/global/homes/k/kmathew/Software/eg_matgen_dev/config/dbs/db.json", 
+                    "vasp_cmd": "srun vasp"
+                }
+            }, 
+            "trackers": [], 
+            "ip": "10.36.163.134", 
+            "fw_id": 4, 
+            "state": "RUNNING", 
+            "host": "mc0647", 
+            "launch_dir": "/global/u1/k/kmathew/vasp_calcs/Raman/8/5", 
+            "action": null, 
+            "launch_id": 5, 
+            "state_history": [
+                {
+                    "updated_on": "2016-08-25T15:37:55.982153", 
+                    "state": "RUNNING", 
+                    "created_on": "2016-08-25T15:37:55.982146"
+                }
+            ]
+        }
+    ], 
+    "fw_id": 4, 
+    "state": "RUNNING", 
+    "created_on": "2016-08-25T14:24:21.393131", 
+    "updated_on": "2016-08-25T15:37:55.983576", 
+    "spec": {
+        "_tasks": [
+            {
+                "contcar_to_poscar": true, 
+                "calc_loc": true, 
+                "additional_files": [
+                    "CHGCAR"
+                ], 
+                "_fw_name": "{{matmethods.vasp.firetasks.glue_tasks.CopyVaspOutputs}}"
+            }, 
+            {
+                "_fw_name": "{{matmethods.vasp.firetasks.write_inputs.WriteVaspStaticFromPrev}}", 
+                "lepsilon": true, 
+                "prev_calc_dir": "."
+            }, 
+            {
+                "_fw_name": "{{matmethods.vasp.firetasks.write_inputs.WriteNormalmodeDisplacedPoscar}}", 
+                "displacement": 0.005, 
+                "mode": 0
+            }, 
+            {
+                "_fw_name": "{{matmethods.vasp.firetasks.write_inputs.ModifyIncar}}", 
+                "incar_update": {
+                    "EDIFF": 1e-06, 
+                    "ENCUT": 600
+                }
+            }, 
+            {
+                "_fw_name": "{{matmethods.vasp.firetasks.run_calc.RunVaspDirect}}", 
+                "vasp_cmd": ">>vasp_cmd<<"
+            }, 
+            {
+                "_fw_name": "{{matmethods.vasp.firetasks.glue_tasks.PassEpsilonTask}}", 
+                "displacement": 0.005, 
+                "mode": 0
+            }, 
+            {
+                "_fw_name": "{{matmethods.vasp.firetasks.glue_tasks.PassNormalmodesTask}}"
+            }, 
+            {
+                "_fw_name": "{{matmethods.common.firetasks.glue_tasks.PassCalcLocs}}", 
+                "name": "raman_0_0.005 static dielectric"
+            }, 
+            {
+                "additional_fields": {
+                    "task_label": "raman_0_0.005 static dielectric"
+                }, 
+                "_fw_name": "{{matmethods.vasp.firetasks.parse_outputs.VaspToDbTask}}", 
+                "db_file": ">>db_file<<"
+            }
+        ], 
+        "calc_locs": [
+            {
+                "path": "/global/u1/k/kmathew/vasp_calcs/Raman/8/1", 
+                "name": "structure optimization", 
+                "filesystem": null
+            }, 
+            {
+                "path": "/global/u1/k/kmathew/vasp_calcs/Raman/8/2", 
+                "name": "static dielectric", 
+                "filesystem": null
+            }
+        ], 
+        "normalmodes": {
+            "eigenvecs": [
+                [
+                    [
+                        0.110488733, 
+                        -0.53563115, 
+                        -0.448209227
+                    ], 
+                    [
+                        -0.110488733, 
+                        0.53563115, 
+                        0.448209227
+                    ]
+                ], 
+                [
+                    [
+                        -0.694180555, 
+                        -0.0342910458, 
+                        -0.13014408
+                    ], 
+                    [
+                        0.694180555, 
+                        0.0342910458, 
+                        0.13014408
+                    ]
+                ], 
+                [
+                    [
+                        -0.0768478839, 
+                        -0.460351383, 
+                        0.53119771
+                    ], 
+                    [
+                        0.0768478839, 
+                        0.460351383, 
+                        -0.53119771
+                    ]
+                ], 
+                [
+                    [
+                        0.471262367, 
+                        0.525506603, 
+                        -0.0418878401
+                    ], 
+                    [
+                        0.471262367, 
+                        0.525506603, 
+                        -0.0418878401
+                    ]
+                ], 
+                [
+                    [
+                        -0.527156397, 
+                        0.469306127, 
+                        -0.04310327
+                    ], 
+                    [
+                        -0.527156397, 
+                        0.469306127, 
+                        -0.04310327
+                    ]
+                ], 
+                [
+                    [
+                        0.00423250499, 
+                        -0.0599547241, 
+                        -0.704547739
+                    ], 
+                    [
+                        0.00423250499, 
+                        -0.0599547241, 
+                        -0.704547739
+                    ]
+                ]
+            ], 
+            "norms": [
+                [
+                    0.7071067812842734, 
+                    0.7071067812842734
+                ], 
+                [
+                    0.7071067814136788, 
+                    0.7071067814136788
+                ], 
+                [
+                    0.7071067813273783, 
+                    0.7071067813273783
+                ], 
+                [
+                    0.7071067808296605, 
+                    0.7071067808296605
+                ], 
+                [
+                    0.7071067809195827, 
+                    0.7071067809195827
+                ], 
+                [
+                    0.7071067808827812, 
+                    0.7071067808827812
+                ]
+            ], 
+            "eigenvals": [
+                -0.979354291, 
+                -0.979353136, 
+                -0.979353002, 
+                -1.86005062e-17, 
+                2.17694599e-17, 
+                2.89016683e-16
+            ], 
+            "structure": {
+                "lattice": {
+                    "a": 3.867457, 
+                    "c": 3.867456702037141, 
+                    "b": 3.867457607327196, 
+                    "matrix": [
+                        [
+                            3.867457, 
+                            0.0, 
+                            0.0
+                        ], 
+                        [
+                            1.933728, 
+                            3.349317, 
+                            0.0
+                        ], 
+                        [
+                            0.0, 
+                            -2.232876, 
+                            3.157766
+                        ]
+                    ], 
+                    "volume": 40.90361498651472, 
+                    "beta": 90.0, 
+                    "alpha": 119.99998727892986, 
+                    "gamma": 60.00001374803744
+                }, 
+                "sites": [
+                    {
+                        "xyz": [
+                            0.0, 
+                            0.0, 
+                            0.0
+                        ], 
+                        "abc": [
+                            0.0, 
+                            0.0, 
+                            0.0
+                        ], 
+                        "species": [
+                            {
+                                "occu": 1, 
+                                "element": "Si"
+                            }
+                        ], 
+                        "label": "Si"
+                    }, 
+                    {
+                        "xyz": [
+                            3.8674567499999997, 
+                            1.4999999999876223e-06, 
+                            2.3683245
+                        ], 
+                        "abc": [
+                            0.75, 
+                            0.5, 
+                            0.75
+                        ], 
+                        "species": [
+                            {
+                                "occu": 1, 
+                                "element": "Si"
+                            }
+                        ], 
+                        "label": "Si"
+                    }
+                ], 
+                "@class": "Structure", 
+                "@module": "pymatgen.core.structure"
+            }
+        }
+    }
+}
