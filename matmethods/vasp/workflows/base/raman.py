@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 """
-This module defines the workflow for computing the Raman spectra.
+This module defines the workflow to compute the Raman susceptibility tensor.
 """
 
 from fireworks import Firework, Workflow
@@ -23,13 +23,13 @@ logger = get_logger(__name__)
 def get_wf_raman_spectra(structure, modes=None, step_size=0.005, vasp_cmd="vasp", db_file=None):
     """
     Raman spectra workflow:
-        Calculation of phonon normal modes followed by computation of dielectric constant for
-        structures displaced along the normal modes. Finally the dieledctric constants for each
-        displacement is used to compute the Raman susceptibility tensor using finite difference(
+        Calculation of phonon normal modes followed by the computation of dielectric tensor for
+        structures displaced along the normal modes. Finally the dielectric tensors corresponding
+        to each mode are used to compute the Raman susceptibility tensor using finite difference(
         central difference scheme).
 
     Args:
-        structure (Structure): Input structure
+        structure (Structure): Input structure.
         modes (tuple/list): list of modes for which the Raman spectra need to be calculated.
             The default is to use all the 3N modes.
         step_size (float): site displacement along the normal mode in Angstroms. Used to compute
@@ -78,5 +78,5 @@ def get_wf_raman_spectra(structure, modes=None, step_size=0.005, vasp_cmd="vasp"
 if __name__ == "__main__":
     from pymatgen.util.testing import PymatgenTest
 
-    structure = PymatgenTest.get_structure("Si")
-    wf = get_wf_raman_spectra(structure)
+    Si = PymatgenTest.get_structure("Si")
+    wf = get_wf_raman_spectra(Si)
