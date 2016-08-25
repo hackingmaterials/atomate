@@ -259,14 +259,9 @@ class ElasticTensorToDbTask(FireTaskBase):
 @explicit_serialize
 class RamanSusceptibilityTensorToDbTask(FireTaskBase):
     """
-    finite difference derivative of epsilon_static wrt position along the normal mode
-    --> raman susceptibilty tensor for each mode. See: 10.1103/PhysRevB.73.104304
-
-    Required params:
-        modes (list): list of normal mode indices for which the raman tensor will be computed.
-        displacements (list): list of displacements(2) along the normal mode(same for all modes) in
-            Angstroms that will be used to compute the finite difference derivative of the
-            dielectric constant.
+    Raman susceptibilty tensor for each mode = Finite difference derivative of the dielectric
+        tensor wrt the displacement along that mode.
+    See: 10.1103/PhysRevB.73.104304
 
     optional_params:
         db_file (str): path to the db file
@@ -282,10 +277,17 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
         # the eigenvectors read from vasprun.xml are not divided by sqrt(M_i)
         nm_norms = nm_norms / np.sqrt(masses)
 
+        # To get the actual eigenvals, the values read from vasprun.xml must be multiplied by -1.
+        # frequency_i = sqrt(-e_i)
+        # To convert the frequency to THZ: multiply sqrt(-e_i) by 15.633
+        # To convert the frequency to cm^-1: multiply sqrt(-e_i) by 82.995
+        nm_frequencies = np.sqrt(np.abs(nm_eigenvals)) * 82.995  # cm^-1
+
         d = {"structure": structure.as_dict(),
              "normalmodes": {"eigenvals": fw_spec["normalmodes"]["eigenvals"],
                              "eigenvecs": fw_spec["normalmodes"]["eigenvecs"]
-                             }
+                             },
+             "frequencies": nm_frequencies.tolist()
              }
 
         mode_disps = fw_spec["raman_epsilon"].keys()
@@ -301,8 +303,11 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
         scale = np.sqrt(structure.volume/2.0) / 4.0 / np.pi
         for k, v in modes_eps_dict.items():
             raman_tensor = (np.array(v[0][1]) - np.array(v[1][1])) / (v[0][0] - v[1][0])
-            # TODO: check eigenvalue sign
-            raman_tensor = scale * raman_tensor * np.sum(nm_norms[k]) #/ np.sqrt(nm_eigenvals[k])
+            # frequency in cm^-1
+            omega = nm_frequencies[k]
+            if nm_eigenvals[k] > 0:
+                logger.warn("Mode: {} is UNSTABLE. Freq(cm^-1) = {}".format(k, -omega))
+            raman_tensor = scale * raman_tensor * np.sum(nm_norms[k]) / np.sqrt(omega)
             raman_tensor_dict[str(k)] = raman_tensor.tolist()
 
         d["raman_tensor"] = raman_tensor_dict
@@ -318,4 +323,6 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
             db.collection = db.db["raman"]
             db.collection.insert_one(d)
             logger.info("RAMAN TENSOR CALCULATION COMPLETE")
+        logger.info("The frequencies are in the units of cm^-1")
+        logger.info("To convert the frequency to THZ: multiply by 0.1884")
         return FWAction()
