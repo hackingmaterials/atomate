@@ -22,7 +22,7 @@ logger = get_logger(__name__)
 
 def get_wf_raman_spectra(structure, modes=None, step_size=0.005, vasp_cmd="vasp", db_file=None):
     """
-    Raman spectra workflow:
+    Raman susceptibility tensor workflow:
         Calculation of phonon normal modes followed by the computation of dielectric tensor for
         structures displaced along the normal modes. Finally the dielectric tensors corresponding
         to each mode are used to compute the Raman susceptibility tensor using finite difference(

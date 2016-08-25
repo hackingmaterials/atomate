@@ -259,7 +259,7 @@ class ElasticTensorToDbTask(FireTaskBase):
 @explicit_serialize
 class RamanSusceptibilityTensorToDbTask(FireTaskBase):
     """
-    Raman susceptibilty tensor for each mode = Finite difference derivative of the dielectric
+    Raman susceptibility tensor for each mode = Finite difference derivative of the dielectric
         tensor wrt the displacement along that mode.
     See: 10.1103/PhysRevB.73.104304
 
@@ -291,7 +291,7 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
              }
 
         mode_disps = fw_spec["raman_epsilon"].keys()
-        # store the dispalcement & epsilon for each mode in a dictionary
+        # store the displacement & epsilon for each mode in a dictionary
         modes_eps_dict = defaultdict(list)
         for md in mode_disps:
             modes_eps_dict[fw_spec["raman_epsilon"][md]["mode"]].append(

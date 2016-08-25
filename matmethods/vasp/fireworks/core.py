@@ -164,7 +164,7 @@ class LepsFW(Firework):
                 FW or list of FWS.
             phonon (bool): Whether or not to extract normal modes and pass it. This argument along
                 with the mode and displacement arguments must be set for the calculation of
-                dielectric constant in the Raman spectra workflow.
+                dielectric constant in the Raman tensor workflow.
             mode (int): normal mode index.
             displacement (float): displacement along the normal mode in Angstroms.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
@@ -244,7 +244,7 @@ class TransmuterFW(Firework):
                 the modules in pymatgen.transformations. 
                 eg:  transformations=['DeformStructureTransformation', 'SupercellTransformation']
             transformation_params (list): list of dicts where each dict specify the input parameters to
-                instantiate the transformation class in the transforamtions list.
+                instantiate the transformation class in the transformations list.
             vasp_input_set (VaspInputSet): VASP input set, used to write the input set for the
                 transmuted structure.
             name (string): Name for the Firework.
@@ -291,6 +291,7 @@ class MDFW(Firework):
                  wall_time=19200, db_file=None, parents=None, copy_vasp_outputs=True, **kwargs):
         """
         Standard firework for a single MD run.
+
         Args:
             structure (Structure): Input structure.
             start_temp (float): Start temperature of MD run.
