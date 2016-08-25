@@ -277,7 +277,7 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
     def run_task(self, fw_spec):
         nm_norms = np.array(fw_spec["normalmodes"]["norms"])
         nm_eigenvals = np.array(fw_spec["normalmodes"]["eigenvals"])
-        structure = Structure.from_dict(fw_spec["normalmodes"]["structure"])
+        structure = fw_spec["normalmodes"]["structure"]
         masses = np.array([site.specie.data['Atomic mass'] for site in structure])
         # the eigenvectors read from vasprun.xml is not divided by sqrt(M_i)
         nm_norms = nm_norms / np.sqrt(masses)

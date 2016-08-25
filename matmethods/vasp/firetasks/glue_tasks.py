@@ -237,7 +237,7 @@ class PassNormalmodesTask(FireTaskBase):
             normalmode_eigenvals = vrun.normalmode_eigenvals
             normalmode_eigenvecs = vrun.normalmode_eigenvecs
             normalmode_norms = np.linalg.norm(normalmode_eigenvecs, axis=2)
-            normalmode_dict = {"structure": structure.as_dict(),
+            normalmode_dict = {"structure": structure,
                                "eigenvals": normalmode_eigenvals.tolist(),
                                "eigenvecs": normalmode_eigenvecs.tolist(),
                                "norms": normalmode_norms.tolist()}
