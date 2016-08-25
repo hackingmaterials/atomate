@@ -6,19 +6,17 @@ import json
 import os
 import shutil
 import unittest
-import zlib
 
-import gridfs
-from pymongo import MongoClient, DESCENDING
+import numpy as np
+
+from pymongo import MongoClient
 
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
-from matmethods.vasp.vasp_powerups import use_custodian, add_namefile, use_fake_vasp, add_trackers
-from matmethods.vasp.workflows.base.core import get_wf
+from matmethods.vasp.vasp_powerups import use_fake_vasp
 from matmethods.vasp.workflows.presets.core import wf_raman_spectra
 
-from pymatgen.io.vasp.sets import MPRelaxSet
 from pymatgen.util.testing import PymatgenTest
 
 
@@ -38,8 +36,7 @@ class TestVaspWorkflows(unittest.TestCase):
     def setUpClass(cls):
         if not os.environ.get("VASP_PSP_DIR"):
             os.environ["VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "reference_files")
-            print(
-                'Note: This system is not set up to run VASP jobs. '
+            print('Note: This system is not set up to run VASP jobs. '
                 'Please set your VASP_PSP_DIR environment variable.')
 
         cls.struct_si = PymatgenTest.get_structure("Si")
@@ -113,14 +110,29 @@ class TestVaspWorkflows(unittest.TestCase):
             self.assertAlmostEqual(d["output"]["energy"], -10.850, 2)
             self.assertAlmostEqual(d["output"]["energy_per_atom"], -5.425, 2)
         elif mode in ["phonon static dielectric"]:
-            # TODO
-            pass
+            epsilon = [[13.23245131, -1.98e-06, -1.4e-06],
+                       [-1.98e-06, 13.23245913, 8.38e-06],
+                       [-1.4e-06, 8.38e-06, 13.23245619]]
+            np.testing.assert_allclose(epsilon, d["output"]["epsilon_static"], rtol=1e-5)
+
         elif mode in ["raman_0_0.005 static dielectric"]:
-            # TODO
-            pass
+            epsilon = [[13.16509632, 0.00850098, 0.00597267],
+                       [0.00850097, 13.25477303, -0.02979572],
+                       [0.00597267, -0.0297953, 13.28883867]]
+            np.testing.assert_allclose(epsilon, d["output"]["epsilon_static"], rtol=1e-5)
+
         elif mode in ["raman analysis"]:
-            # TODO
-            pass
+            freq = [82.13378641656142, 82.1337379843688, 82.13373236539397,
+                    3.5794336040310436e-07, 3.872360276932139e-07, 1.410955723105983e-06]
+            np.testing.assert_allclose(freq, d["frequencies"], rtol=1e-5)
+            raman_tensor = {'0': [[-0.14893062387265346, 0.01926196125448702,0.013626954435454657],
+                                  [0.019262321540910236, 0.03817444467845385, -0.06614541890150054],
+                                  [0.013627229948601821, -0.06614564143135017, 0.11078513986463052]],
+                            '1': [[-0.021545749071077102, -0.12132200642389818, -0.08578776196143767],
+                                  [-0.12131975993142007, -0.00945267872479081, -0.004279822490713417],
+                                  [-0.08578678706847546, -0.004279960247327641, 0.032660281203217366]]}
+            np.testing.assert_allclose(raman_tensor["0"], d["raman_tensor"]["0"], rtol=1e-5)
+            np.testing.assert_allclose(raman_tensor["1"], d["raman_tensor"]["1"], rtol=1e-5)
 
     def test_wf(self):
         self.wf = self._simulate_vasprun(self.wf)
@@ -130,19 +142,20 @@ class TestVaspWorkflows(unittest.TestCase):
         self.lp.add_wf(self.wf)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
+        # check relaxation
         d = self._get_task_collection().find_one({"task_label": "structure optimization"})
         self._check_run(d, mode="structure optimization")
 
-        # make sure the static run ran OK
+        # check phonon DFPT calculation
         d = self._get_task_collection().find_one({"task_label": "phonon static dielectric"})
         self._check_run(d, mode="phonon static dielectric")
 
-        # make sure the uniform run ran OK
+        # check one of the raman static dielectric calculation
         d = self._get_task_collection().find_one({"task_label": "raman_0_0.005 static dielectric"})
         self._check_run(d, mode="raman_0_0.005 static dielectric")
 
-        # make sure the uniform run ran OK
-        d = self._get_task_collection().find_one({"task_label": "raman analysis"})
+        # check the final results
+        d = self._get_task_collection(coll_name="raman").find_one()
         self._check_run(d, mode="raman analysis")
 
 
