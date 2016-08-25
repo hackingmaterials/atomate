@@ -41,7 +41,7 @@ def get_wf_raman_spectra(structure, modes=None, step_size=0.005, vasp_cmd="vasp"
     Returns:
         Workflow
     """
-    modes = 3*len(structure) if not modes else modes
+    modes = range(3*len(structure)) if not modes else modes
     vis = MPRelaxSet(structure, force_gamma=True)
     # displacements in + and - direction along the normal mode so that the central difference scheme
     # can be used for the evaluation of Raman tensor (derivative of epsilon wrt displacement)
