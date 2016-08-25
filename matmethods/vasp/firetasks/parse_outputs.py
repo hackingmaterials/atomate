@@ -324,5 +324,5 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
             db.collection.insert_one(d)
             logger.info("RAMAN TENSOR CALCULATION COMPLETE")
         logger.info("The frequencies are in the units of cm^-1")
-        logger.info("To convert the frequency to THZ: multiply by 0.1884")
+        logger.info("To convert the frequency to THz: multiply by 0.1884")
         return FWAction()
