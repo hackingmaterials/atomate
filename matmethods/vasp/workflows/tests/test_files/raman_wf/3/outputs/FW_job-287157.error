@@ -1,2 +1,0 @@
-/global/u1/k/kmathew/Software/eg_matgen_dev/codes/pymatgen/pymatgen/io/vasp/outputs.py:546: UserWarning: Final e_wo_entrp differs from the final electronic step. VASP may have included some corrections, e.g., vdw. Vasprun will return the final e_wo_entrp, i.e., including corrections in such instances.
-  warnings.warn("Final e_wo_entrp differs from the final "
