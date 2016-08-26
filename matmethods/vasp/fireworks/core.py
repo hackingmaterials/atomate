@@ -11,8 +11,8 @@ from fireworks import Firework
 
 from pymatgen.io.vasp.sets import MPRelaxSet, MITMDSet
 
-from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
+from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs, PassEpsilonTask, PassNormalmodesTask
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask, BoltztrapToDBTask
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunBoltztrap
 from matmethods.vasp.firetasks.write_inputs import *
@@ -148,11 +148,10 @@ class NonSCFFW(Firework):
 
 
 class LepsFW(Firework):
-    def __init__(self, structure, name="static dielectric", vasp_cmd="vasp",
-                 copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
+    def __init__(self, structure, name="static dielectric", vasp_cmd="vasp", copy_vasp_outputs=True,
+                 db_file=None, parents=None, phonon=False, mode=None, displacement=None, **kwargs):
         """
-        Standard static calculation Firework for dielectric constants
-        using DFPT.
+        Standard static calculation Firework for dielectric constants using DFPT.
 
         Args:
             structure (Structure): Input structure.
@@ -163,6 +162,11 @@ class LepsFW(Firework):
             db_file (str): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework.
                 FW or list of FWS.
+            phonon (bool): Whether or not to extract normal modes and pass it. This argument along
+                with the mode and displacement arguments must be set for the calculation of
+                dielectric constant in the Raman tensor workflow.
+            mode (int): normal mode index.
+            displacement (float): displacement along the normal mode in Angstroms.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         t = []
@@ -174,9 +178,21 @@ class LepsFW(Firework):
             vasp_input_set = MPStaticSet(structure, lepsilon=True)
             t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
 
-        t.extend([RunVaspCustodian(vasp_cmd=vasp_cmd), PassCalcLocs(name=name),
-                  VaspToDbTask(db_file=db_file, additional_fields={"task_label": name})])
+        if phonon:
+            if mode is None and displacement is None:
+                name = "{} {}".format("phonon", name)
+                t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
+            else:
+                name = "raman_{}_{} {}".format(str(mode), str(displacement), name)
+                t.extend([WriteNormalmodeDisplacedPoscar(mode=mode, displacement=displacement),
+                          RunVaspCustodian(vasp_cmd=vasp_cmd),
+                          PassEpsilonTask(mode=mode, displacement=displacement)])
+            t.append(PassNormalmodesTask())
+        else:
+            t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
 
+        t.extend([PassCalcLocs(name=name), VaspToDbTask(db_file=db_file, additional_fields={"task_label": name})])
+        
         super(LepsFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)
 
@@ -229,7 +245,7 @@ class TransmuterFW(Firework):
                 the modules in pymatgen.transformations. 
                 eg:  transformations=['DeformStructureTransformation', 'SupercellTransformation']
             transformation_params (list): list of dicts where each dict specify the input parameters to
-                instantiate the transformation class in the transforamtions list.
+                instantiate the transformation class in the transformations list.
             vasp_input_set (VaspInputSet): VASP input set, used to write the input set for the
                 transmuted structure.
             name (string): Name for the Firework.
@@ -276,6 +292,7 @@ class MDFW(Firework):
                  wall_time=19200, db_file=None, parents=None, copy_vasp_outputs=True, **kwargs):
         """
         Standard firework for a single MD run.
+
         Args:
             structure (Structure): Input structure.
             start_temp (float): Start temperature of MD run.

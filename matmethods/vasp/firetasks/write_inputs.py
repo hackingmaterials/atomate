@@ -9,13 +9,17 @@ This module defines tasks for writing vasp input sets for various types of vasp 
 import os
 from six.moves import range
 
+import numpy as np
+
 from fireworks import FireTaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
 
+from pymatgen.core.structure import Structure
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
 from pymatgen.io.vasp import Incar, Poscar
 from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, MPHSEBSSet
+from pymatgen.transformations.site_transformations import TranslateSitesTransformation
 
 from matmethods.utils.utils import env_chk
 
@@ -333,3 +337,32 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
         vis_dict.update(self.get("override_default_vasp_params", {}))
         vis = vis_orig.__class__.from_dict(vis_dict)
         vis.write_input(".")
+
+
+@explicit_serialize
+class WriteNormalmodeDisplacedPoscar(FireTaskBase):
+    """
+    Displace the structure from the previous calculation along the provided normal mode by the
+    given amount and write the corresponding Poscar file.
+
+    Required params:
+        mode (int): normal mode index
+        displacement (float): displacement along the normal mode in Angstroms
+    """
+
+    required_params = ["mode", "displacement"]
+
+    def run_task(self, fw_spec):
+        mode = self["mode"]
+        disp = self["displacement"]
+        structure = Structure.from_file("POSCAR")
+        nm_eigenvecs = np.array(fw_spec["normalmodes"]["eigenvecs"])
+        nm_norms = np.array(fw_spec["normalmodes"]["norms"])
+
+        # displace the sites along the given normal mode
+        nm_displacement = nm_eigenvecs[mode, :, :] * disp / nm_norms[mode, :, np.newaxis]
+        for i, vec in enumerate(nm_displacement):
+            structure.translate_sites(i, vec, frac_coords=False)
+
+        # write the modified structure to poscar
+        structure.to(fmt="poscar", filename="POSCAR")
