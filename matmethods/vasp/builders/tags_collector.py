@@ -11,8 +11,7 @@ from matmethods.vasp.builders.base import AbstractBuilder
 
 __author__ = 'Alireza Faghanina <albalu@lbl.gov>'
 
-
-class TagsCollector(AbstractBuilder):
+class TagsBuilder(AbstractBuilder):
     def __init__(self, materials_write, tasks_read, update_all=False):
         """
         Starting with an existing materials collection, adds tags from all tasks (if any)
@@ -36,6 +35,7 @@ class TagsCollector(AbstractBuilder):
         if not self.update_all:
             q["tags"] = {"$exists": False}
 
+        # TODO: the logic for the query is incorrect. To build incrementally, you need to keep track of which *tasks* have been processed already, and only update materials for which new tasks are available. Just because a materials has tags already in it, doesn't mean that it doesn't require more tags. Or, simply remove the incremental feature for now to prevent incorrect behavior.
         mats = [m for m in self._materials.find(q, {"_tasksbuilder.all_task_ids": 1, "tags": 1,
                                                     "material_id": 1})]
         pbar = tqdm(mats)
@@ -44,8 +44,9 @@ class TagsCollector(AbstractBuilder):
             all_tags = []
             try:
                 for taskid in m["_tasksbuilder"]["all_task_ids"]:
-                    task = self._tasks.find_one({"task_id": int(taskid[2:]), "tags": {"$exists": True}},{"tags": 1})
-                    if task and len(task) > 0:
+                    # TODO: make this into one overall query for all_task_ids rather than individual queries for each individual task_id. You can use the $in operator in MongoDB to search within an array of task_ids. This will improve performance; logically it is the same.
+                    task = self._tasks.find_one({"task_id": int(taskid.split("-")[1]), "tags": {"$exists": True}},{"tags": 1})
+                    if task and len(task) > 0:  # TODO: this will not be needed if you do a "for" loop using the suggestion above this one
                         all_tags.extend(task["tags"])
                 self._materials.update_one({"material_id": m["material_id"]},
                                            {"$set": {"tags": list(set(all_tags))}})
@@ -55,7 +56,7 @@ class TagsCollector(AbstractBuilder):
                 print("There was an error processing material_id: {}, task_id: {}".format(m["material_id"], taskid))
                 traceback.print_exc()
                 print("--->")
-        print("TagsCollector finished processing.")
+        print("TagsBuilder finished processing.")
 
     def reset(self):
         self._materials.update_many({}, {"$unset": {"tags": 1}})

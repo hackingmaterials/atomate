@@ -9,13 +9,17 @@ This module defines tasks for writing vasp input sets for various types of vasp 
 import os
 from six.moves import range
 
+import numpy as np
+
 from fireworks import FireTaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
 
+from pymatgen.core.structure import Structure
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
 from pymatgen.io.vasp import Incar, Poscar
 from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, MPHSEBSSet
+from pymatgen.transformations.site_transformations import TranslateSitesTransformation
 
 from matmethods.utils.utils import env_chk
 
@@ -291,29 +295,21 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
         structure (Structure): input structure
         transformations (list): list of names of transformation classes as defined in
             the modules in pymatgen.transformations
-        vasp_input_set (string): string name for the VASP input set (e.g.,
-            "MPRelaxSet").
+        vasp_input_set (VaspInputSet): VASP input set.
 
     Optional params:
         transformation_params (list): list of dicts where each dict specifies
             the input parameters to instantiate the transformation class in
             the transformations list.
-        vasp_input_params (dict): When using a string name for VASP input set,
-            use this as a dict to specify kwargs for instantiating the input
-            set parameters. For example, if you want to change the
-            user_incar_settings, you should provide: {"user_incar_settings": ...}.
-            This setting is ignored if you provide the full object
-            representation of a VaspInputSet rather than a String.
+        override_default_vasp_params (dict): additional user input settings.
         prev_calc_dir: path to previous calculation if using structure 
             from another calculation
     """
 
     required_params = ["structure", "transformations", "vasp_input_set"]
-    optional_params = ["prev_calc_dir", "transformation_params", "vasp_input_params"]
+    optional_params = ["prev_calc_dir", "transformation_params", "override_default_vasp_params"]
 
     def run_task(self, fw_spec):
-
-        vis_cls = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])
 
         transformations = []
         transformation_params = self.get("transformation_params",
@@ -333,5 +329,40 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
                 Poscar.from_file(os.path.join(self['prev_calc_dir'], 'POSCAR')).structure
         ts = TransformedStructure(structure)
         transmuter = StandardTransmuter([ts], transformations)
-        vis = vis_cls(transmuter.transformed_structures[-1].final_structure, **self.get("vasp_input_params", {}))
+        final_structure = transmuter.transformed_structures[-1].final_structure.copy()
+
+        vis_orig = self["vasp_input_set"]
+        vis_dict = vis_orig.as_dict()
+        vis_dict["structure"] = final_structure.as_dict()
+        vis_dict.update(self.get("override_default_vasp_params", {}))
+        vis = vis_orig.__class__.from_dict(vis_dict)
         vis.write_input(".")
+
+
+@explicit_serialize
+class WriteNormalmodeDisplacedPoscar(FireTaskBase):
+    """
+    Displace the structure from the previous calculation along the provided normal mode by the
+    given amount and write the corresponding Poscar file.
+
+    Required params:
+        mode (int): normal mode index
+        displacement (float): displacement along the normal mode in Angstroms
+    """
+
+    required_params = ["mode", "displacement"]
+
+    def run_task(self, fw_spec):
+        mode = self["mode"]
+        disp = self["displacement"]
+        structure = Structure.from_file("POSCAR")
+        nm_eigenvecs = np.array(fw_spec["normalmodes"]["eigenvecs"])
+        nm_norms = np.array(fw_spec["normalmodes"]["norms"])
+
+        # displace the sites along the given normal mode
+        nm_displacement = nm_eigenvecs[mode, :, :] * disp / nm_norms[mode, :, np.newaxis]
+        for i, vec in enumerate(nm_displacement):
+            structure.translate_sites(i, vec, frac_coords=False)
+
+        # write the modified structure to poscar
+        structure.to(fmt="poscar", filename="POSCAR")

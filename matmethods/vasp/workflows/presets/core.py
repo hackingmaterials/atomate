@@ -8,6 +8,7 @@ from matmethods.vasp.vasp_powerups import add_small_gap_multiply, add_stability_
     add_wf_metadata, add_common_powerups
 from matmethods.vasp.workflows.base.core import get_wf
 from matmethods.vasp.workflows.base.elastic import get_wf_elastic_constant
+from matmethods.vasp.workflows.base.raman import get_wf_raman_spectra
 
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
 
@@ -185,6 +186,31 @@ def wf_elastic_constant(structure, c=None):
                                                    {"ENCUT": 700, "EDIFF": 1e-6}})
 
     wf = add_common_powerups(wf, c)
+
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
+    return wf
+
+
+def wf_raman_spectra(structure, c=None):
+    """
+    Raman spectra workflow from the given structure and config dict
+
+    Args:
+        structure (Structure): input structure
+        c (dict): workflow config dict
+
+    Returns:
+        Workflow
+    """
+
+    c = c or {}
+    wf = get_wf_raman_spectra(structure, modes=c.get("modes", None), step_size=c.get("step_size", 0.005),
+                              vasp_cmd=c.get("vasp_cmd", "vasp"), db_file=c.get("db_file", None))
+
+    wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 600, "EDIFF": 1e-6}},
+                          fw_name_constraint="static dielectric")
 
     if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
         wf = add_wf_metadata(wf, structure)

@@ -14,7 +14,7 @@ from matmethods.vasp.firetasks.glue_tasks import PassStressStrainData
 from matmethods.vasp.firetasks.parse_outputs import ElasticTensorToDbTask
 
 from pymatgen.analysis.elasticity.strain import Deformation
-from pymatgen.io.vasp.sets import MPRelaxSet, DictSet
+from pymatgen.io.vasp.sets import MPRelaxSet, DictSet, MPStaticSet
 from pymatgen import Structure
 
 __author__ = 'Shyam Dwaraknath, Joseph Montoya'
@@ -56,22 +56,32 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
     Returns:
         Workflow
     """
+    vis_relax = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
 
-    v = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
+    vis_static = MPStaticSet(structure, force_gamma=True)
+    vis_static.incar["ISIF"] = 2
+    vis_static.incar["ISTART"] = 1
+    for key in ["MAGMOM", "LDAUU", "LDAUJ", "LDAUL"]:
+        vis_static.incar.pop(key, None)
+
     if reciprocal_density:
-        v.config_dict["KPOINTS"].update({"reciprocal_density": reciprocal_density})
-        v = DictSet(structure, v.config_dict)
+        vis_relax.config_dict["KPOINTS"].update({"reciprocal_density": reciprocal_density})
+        vis_relax = vis_relax.__class__.from_dict(vis_relax.as_dict())
+        vis_static.reciprocal_density = reciprocal_density
+
     fws=[]
 
-    fws.append(OptimizeFW(structure=structure, vasp_input_set=v, vasp_cmd=vasp_cmd, db_file=db_file))
+    # Structure optimization firework
+    fws.append(OptimizeFW(structure=structure, vasp_input_set=vis_relax, vasp_cmd=vasp_cmd, db_file=db_file))
 
-    deformations = []
     # Generate deformations
+    deformations = []
+    # normal
     for ind in [(0, 0), (1, 1), (2, 2)]:
         for amount in norm_deformations:
             defo = Deformation.from_index_amount(ind, amount)
             deformations.append(defo)
-
+    # shear
     for ind in [(0, 1), (0, 2), (1, 2)]:
         for amount in shear_deformations:
             defo = Deformation.from_index_amount(ind, amount)
@@ -81,28 +91,13 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
         defo = Deformation(defo_mat)
         deformations.append(defo_mat)
 
-    def_incar_settings = v.incar.as_dict()
-    def_incar_settings.update({"ISIF":2, "ISTART":1})
-    for key in ["MAGMOM", "@module", "@class", "LDAUU", "LDAUJ", "LDAUL"]:
-        def_incar_settings.pop(key, None)
-    
-    def_vasp_params = {"user_incar_settings":def_incar_settings}
-    if reciprocal_density:
-        def_vasp_params.update({"reciprocal_density":reciprocal_density})
-    
+    # Deformation fireworks with the task to extract and pass stress-strain appended to it.
     for deformation in deformations:
-        # TODO: Maybe should be more general, is a bit unwieldy
-        #   for complete customization of the INCAR parameters
-        fw = TransmuterFW(name="elastic deformation",
-                          structure=structure,
+        fw = TransmuterFW(name="elastic deformation", structure=structure,
                           transformations=['DeformStructureTransformation'],
                           transformation_params=[{"deformation": deformation.tolist()}],
-                          copy_vasp_outputs=True,
-                          db_file=db_file,
-                          vasp_cmd=vasp_cmd,
-                          parents=fws[0],
-                          vasp_input_params=def_vasp_params
-                         )
+                          vasp_input_set=vis_static, copy_vasp_outputs=True, parents=fws[0],
+                          vasp_cmd=vasp_cmd, db_file=db_file)
         fw.spec['_tasks'].append(PassStressStrainData(deformation=deformation.tolist()).to_dict())
         fws.append(fw)
 

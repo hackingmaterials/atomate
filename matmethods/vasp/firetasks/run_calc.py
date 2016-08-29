@@ -47,7 +47,6 @@ class RunVaspDirect(FireTaskBase):
 
     def run_task(self, fw_spec):
         vasp_cmd = env_chk(self["vasp_cmd"], fw_spec)
-
         logger.info("Running VASP using exe: {}".format(vasp_cmd))
         return_code = subprocess.call(vasp_cmd, shell=True)
         logger.info("VASP finished running with returncode: {}".format(return_code))
@@ -107,20 +106,18 @@ class RunVaspCustodian(FireTaskBase):
         wall_time (int): Total wall time in seconds. Activates WalltimeHandler if set.
     """
     required_params = ["vasp_cmd"]
-    optional_params = ["job_type", "handler_group", "max_force_threshold",
-                       "scratch_dir", "gzip_output", "max_errors", "ediffg",
-                       "auto_npar", "gamma_vasp_cmd", "wall_time"]
+    optional_params = ["job_type", "handler_group", "max_force_threshold", "scratch_dir",
+                       "gzip_output", "max_errors", "ediffg", "auto_npar", "gamma_vasp_cmd",
+                       "wall_time"]
 
     def run_task(self, fw_spec):
 
         handler_groups = {
-            "default": [VaspErrorHandler(), MeshSymmetryErrorHandler(),
-                        UnconvergedErrorHandler(), NonConvergingErrorHandler(),
-                        PotimErrorHandler(), PositiveEnergyErrorHandler(),
+            "default": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
+                        NonConvergingErrorHandler(),PotimErrorHandler(), PositiveEnergyErrorHandler(),
                         FrozenJobErrorHandler()],
-            "strict": [VaspErrorHandler(), MeshSymmetryErrorHandler(),
-                       UnconvergedErrorHandler(), NonConvergingErrorHandler(),
-                       PotimErrorHandler(), PositiveEnergyErrorHandler(),
+            "strict": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
+                       NonConvergingErrorHandler(),PotimErrorHandler(), PositiveEnergyErrorHandler(),
                        FrozenJobErrorHandler(), AliasingErrorHandler()],
             "md": [VaspErrorHandler(), NonConvergingErrorHandler()],
             "no_handler": []
@@ -194,12 +191,10 @@ class RunBoltztrap(FireTaskBase):
         tgrid = self.get("tgrid", 50)
         doping = self.get("doping", None)
 
-        vasprun, outcar = get_vasprun_outcar(".", parse_dos=True,
-                                             parse_eigen=True)
+        vasprun, outcar = get_vasprun_outcar(".", parse_dos=True, parse_eigen=True)
         bs = vasprun.get_band_structure()
         nelect = outcar.nelect
-        runner = BoltztrapRunner(bs, nelect, scissor=scissor, doping=doping,
-                                 tmax=tmax, tgrid=tgrid)
+        runner = BoltztrapRunner(bs, nelect, scissor=scissor, doping=doping, tmax=tmax, tgrid=tgrid)
         runner.run(path_dir=os.getcwd())
 
 

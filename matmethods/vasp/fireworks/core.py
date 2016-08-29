@@ -9,10 +9,10 @@ sequences of VASP calculations.
 
 from fireworks import Firework
 
-from pymatgen.io.vasp.sets import MPRelaxSet
+from pymatgen.io.vasp.sets import MPRelaxSet, MITMDSet
 
-from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
+from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs, PassEpsilonTask, PassNormalmodesTask
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask, BoltztrapToDBTask
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunBoltztrap
 from matmethods.vasp.firetasks.write_inputs import *
@@ -102,7 +102,7 @@ class HSEBSFW(Firework):
             db_file (str): Path to file specifying db credentials.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        t = []
+        t=[]
         t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
         t.append(WriteVaspHSEBSFromPrev(prev_calc_dir='.'))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
@@ -148,11 +148,10 @@ class NonSCFFW(Firework):
 
 
 class LepsFW(Firework):
-    def __init__(self, structure, name="static dielectric", vasp_cmd="vasp",
-                 copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
+    def __init__(self, structure, name="static dielectric", vasp_cmd="vasp", copy_vasp_outputs=True,
+                 db_file=None, parents=None, phonon=False, mode=None, displacement=None, **kwargs):
         """
-        Standard static calculation Firework for dielectric constants
-        using DFPT.
+        Standard static calculation Firework for dielectric constants using DFPT.
 
         Args:
             structure (Structure): Input structure.
@@ -163,6 +162,11 @@ class LepsFW(Firework):
             db_file (str): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework.
                 FW or list of FWS.
+            phonon (bool): Whether or not to extract normal modes and pass it. This argument along
+                with the mode and displacement arguments must be set for the calculation of
+                dielectric constant in the Raman tensor workflow.
+            mode (int): normal mode index.
+            displacement (float): displacement along the normal mode in Angstroms.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         t = []
@@ -174,17 +178,28 @@ class LepsFW(Firework):
             vasp_input_set = MPStaticSet(structure, lepsilon=True)
             t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
 
-        t.extend([RunVaspCustodian(vasp_cmd=vasp_cmd), PassCalcLocs(name=name),
-                  VaspToDbTask(db_file=db_file, additional_fields={"task_label": name})])
+        if phonon:
+            if mode is None and displacement is None:
+                name = "{} {}".format("phonon", name)
+                t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
+            else:
+                name = "raman_{}_{} {}".format(str(mode), str(displacement), name)
+                t.extend([WriteNormalmodeDisplacedPoscar(mode=mode, displacement=displacement),
+                          RunVaspCustodian(vasp_cmd=vasp_cmd),
+                          PassEpsilonTask(mode=mode, displacement=displacement)])
+            t.append(PassNormalmodesTask())
+        else:
+            t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
 
+        t.extend([PassCalcLocs(name=name), VaspToDbTask(db_file=db_file, additional_fields={"task_label": name})])
+        
         super(LepsFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)
 
 
 class SOCFW(Firework):
-    def __init__(self, structure, magmom, name="spinorbit coupling",
-                 saxis=(0, 0, 1), vasp_cmd="vasp_ncl", copy_vasp_outputs=True,
-                 db_file=None, parents=None, **kwargs):
+    def __init__(self, structure, magmom, name="spinorbit coupling", saxis=(0, 0, 1),
+                 vasp_cmd="vasp_ncl", copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
         """
         Firework for spin orbit coupling calculation.
 
@@ -217,8 +232,9 @@ class SOCFW(Firework):
 
 class TransmuterFW(Firework):
     def __init__(self, structure, transformations, transformation_params=None,
-                 vasp_input_set="MPStaticSet", name="structure transmuter", vasp_cmd="vasp",
-                 copy_vasp_outputs=True, db_file=None, parents=None, vasp_input_params=None, **kwargs):
+                 vasp_input_set=None, name="structure transmuter", vasp_cmd="vasp",
+                 copy_vasp_outputs=True, db_file=None, parents=None, override_default_vasp_params=None,
+                 **kwargs):
         """
         Apply the transformations to the input structure, write the input set corresponding
         to the transformed structure and run vasp on them.
@@ -229,17 +245,20 @@ class TransmuterFW(Firework):
                 the modules in pymatgen.transformations. 
                 eg:  transformations=['DeformStructureTransformation', 'SupercellTransformation']
             transformation_params (list): list of dicts where each dict specify the input parameters to
-                instantiate the transformation class in the transforamtions list.
-            vasp_input_set (string): string name for the VASP input set (e.g.,
-                "MPStaticSet").
+                instantiate the transformation class in the transformations list.
+            vasp_input_set (VaspInputSet): VASP input set, used to write the input set for the
+                transmuted structure.
             name (string): Name for the Firework.
             vasp_cmd (string): Command to run vasp.
             copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
             db_file (string): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            override_default_vasp_params (dict): additional user input settings for vasp_input_set.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         t = []
+
+        vasp_input_set = vasp_input_set or MPStaticSet(structure, force_gamma=True, **override_default_vasp_params)
 
         if parents:
             if copy_vasp_outputs:
@@ -247,13 +266,13 @@ class TransmuterFW(Firework):
             t.append(WriteTransmutedStructureIOSet(structure=structure, transformations=transformations,
                                                    transformation_params=transformation_params,
                                                    vasp_input_set=vasp_input_set,
-                                                   vasp_input_params=vasp_input_params,
+                                                   override_default_vasp_params=override_default_vasp_params,
                                                    prev_calc_dir="."))
         else:
             t.append(WriteTransmutedStructureIOSet(structure=structure, transformations=transformations,
                                                    transformation_params=transformation_params,
                                                    vasp_input_set=vasp_input_set,
-                                                   vasp_input_params=vasp_input_params))
+                                                   override_default_vasp_params=override_default_vasp_params))
         
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
@@ -268,12 +287,12 @@ class TransmuterFW(Firework):
 
 
 class MDFW(Firework):
-    def __init__(self, structure, start_temp, end_temp, nsteps,
-                 name="molecular dynamics run", vasp_input_set=None, vasp_cmd="vasp",
-                 override_default_vasp_params=None, wall_time=19200,
-                 db_file=None, parents=None, copy_vasp_outputs=True, **kwargs):
+    def __init__(self, structure, start_temp, end_temp, nsteps, name="molecular dynamics run",
+                 vasp_input_set=None, vasp_cmd="vasp", override_default_vasp_params=None,
+                 wall_time=19200, db_file=None, parents=None, copy_vasp_outputs=True, **kwargs):
         """
         Standard firework for a single MD run.
+
         Args:
             structure (Structure): Input structure.
             start_temp (float): Start temperature of MD run.
@@ -294,12 +313,9 @@ class MDFW(Firework):
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-
-        from pymatgen.io.vasp.sets import MITMDSet
         override_default_vasp_params = override_default_vasp_params or {}
-        vasp_input_set = vasp_input_set or MITMDSet(
-            structure, start_temp=start_temp, end_temp=end_temp,
-            nsteps=nsteps, **override_default_vasp_params)
+        vasp_input_set = vasp_input_set or MITMDSet(structure, start_temp=start_temp, end_temp=end_temp,
+                                                    nsteps=nsteps, **override_default_vasp_params)
 
         t = []
         if parents:
@@ -311,9 +327,8 @@ class MDFW(Firework):
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
                               additional_fields={"task_label": name}, defuse_unsuccessful=False))
-        super(MDFW, self).__init__(
-                t, parents=parents, name="{}-{}".
-                format(structure.composition.reduced_formula, name), **kwargs)
+        super(MDFW, self).__init__(t, parents=parents,
+                                   name="{}-{}".format(structure.composition.reduced_formula, name), **kwargs)
 
 
 class BoltztrapFW(Firework):
