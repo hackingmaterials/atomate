@@ -26,7 +26,9 @@ logger = get_logger(__name__)
 def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
                             norm_deformations=[-0.01, -0.005, 0.005, 0.01],
                             shear_deformations=[-0.06, -0.03, 0.03, 0.06],
-                            db_file=None, reciprocal_density=None):
+                            additional_deformations = [],
+                            db_file=None, reciprocal_density=None,
+                            add_analysis_task=True):
     """
     Returns a workflow to calculate elastic constants.
 
@@ -43,10 +45,13 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
         structure (Structure): input structure to be optimized and run
         norm_deformations (list): list of values to for normal deformations
         shear_deformations (list): list of values to for shear deformations
+        additional_deformations (list of 3x3 array-likes): list of additional
+            deformations to include
         vasp_input_set (DictVaspInputSet): vasp input set.
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
         reciprocal_density (int): k-points per reciprocal atom by volume
+        add_analysis_task (bool): boolean indicating whether to add analysis
 
     Returns:
         Workflow
@@ -82,6 +87,10 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
             defo = Deformation.from_index_amount(ind, amount)
             deformations.append(defo)
 
+    for defo_mat in additional_deformations:
+        defo = Deformation(defo_mat)
+        deformations.append(defo_mat)
+
     # Deformation fireworks with the task to extract and pass stress-strain appended to it.
     for deformation in deformations:
         fw = TransmuterFW(name="elastic deformation", structure=structure,
@@ -92,10 +101,10 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
         fw.spec['_tasks'].append(PassStressStrainData(deformation=deformation.tolist()).to_dict())
         fws.append(fw)
 
-    # Compute elastic tensor firework
-    fws.append(Firework(ElasticTensorToDbTask(structure=structure, db_file=db_file),
-                        name="Analyze Elastic Data", parents=fws[1:],
-                        spec={"_allow_fizzled_parents": True}))
+    if add_analysis_task:
+        fws.append(Firework(ElasticTensorToDbTask(structure=structure, db_file=db_file),
+                            name="Analyze Elastic Data", parents=fws[1:],
+                            spec={"_allow_fizzled_parents": True}))
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, "elastic constants")
     return Workflow(fws, name=wfname)
