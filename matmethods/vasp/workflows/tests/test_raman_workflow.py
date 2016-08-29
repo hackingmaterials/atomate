@@ -19,7 +19,6 @@ from matmethods.vasp.workflows.presets.core import wf_raman_spectra
 
 from pymatgen.util.testing import PymatgenTest
 
-
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 
@@ -31,7 +30,7 @@ DEBUG_MODE = False  # If true, retains the database and output dirs at the end o
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
 
-class TestVaspWorkflows(unittest.TestCase):
+class TestRamanWorkflow(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         if not os.environ.get("VASP_PSP_DIR"):
@@ -74,8 +73,7 @@ class TestVaspWorkflows(unittest.TestCase):
                        "raman_0_-0.005 static dielectric": os.path.join(reference_dir, "6"),
                        "raman_0_0.005 static dielectric": os.path.join(reference_dir, "5"),
                        "raman_1_-0.005 static dielectric": os.path.join(reference_dir, "4"),
-                       "raman_1_0.005 static dielectric": os.path.join(reference_dir, "3"),
-                       "raman analysis": os.path.join(reference_dir, "7"),}
+                       "raman_1_0.005 static dielectric": os.path.join(reference_dir, "3")}
         return use_fake_vasp(wf, si_ref_dirs, params_to_check=["ENCUT"])
 
     def _get_task_database(self):
@@ -109,6 +107,7 @@ class TestVaspWorkflows(unittest.TestCase):
         if mode in ["structure optimization"]:
             self.assertAlmostEqual(d["output"]["energy"], -10.850, 2)
             self.assertAlmostEqual(d["output"]["energy_per_atom"], -5.425, 2)
+
         elif mode in ["phonon static dielectric"]:
             epsilon = [[13.23245131, -1.98e-06, -1.4e-06],
                        [-1.98e-06, 13.23245913, 8.38e-06],
@@ -125,7 +124,7 @@ class TestVaspWorkflows(unittest.TestCase):
             freq = [82.13378641656142, 82.1337379843688, 82.13373236539397,
                     3.5794336040310436e-07, 3.872360276932139e-07, 1.410955723105983e-06]
             np.testing.assert_allclose(freq, d["frequencies"], rtol=1e-5)
-            raman_tensor = {'0': [[-0.14893062387265346, 0.01926196125448702,0.013626954435454657],
+            raman_tensor = {'0': [[-0.14893062387265346, 0.01926196125448702, 0.013626954435454657],
                                   [0.019262321540910236, 0.03817444467845385, -0.06614541890150054],
                                   [0.013627229948601821, -0.06614564143135017, 0.11078513986463052]],
                             '1': [[-0.021545749071077102, -0.12132200642389818, -0.08578776196143767],
