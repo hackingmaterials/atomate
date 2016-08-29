@@ -11,8 +11,7 @@ from matmethods.vasp.builders.base import AbstractBuilder
 
 __author__ = 'Alireza Faghanina <albalu@lbl.gov>'
 
-# TODO: rename to TagsBuilder. The name is important to helping users remember what the class is and does.
-class TagsCollector(AbstractBuilder):
+class TagsBuilder(AbstractBuilder):
     def __init__(self, materials_write, tasks_read, update_all=False):
         """
         Starting with an existing materials collection, adds tags from all tasks (if any)
@@ -45,9 +44,8 @@ class TagsCollector(AbstractBuilder):
             all_tags = []
             try:
                 for taskid in m["_tasksbuilder"]["all_task_ids"]:
-                    # TODO: the 2: is incorrect - the prefix is not necessarily 2 chars. You should split on the "-" character instead and use the 2nd half.
                     # TODO: make this into one overall query for all_task_ids rather than individual queries for each individual task_id. You can use the $in operator in MongoDB to search within an array of task_ids. This will improve performance; logically it is the same.
-                    task = self._tasks.find_one({"task_id": int(taskid[2:]), "tags": {"$exists": True}},{"tags": 1})
+                    task = self._tasks.find_one({"task_id": int(taskid.split("-")[1]), "tags": {"$exists": True}},{"tags": 1})
                     if task and len(task) > 0:  # TODO: this will not be needed if you do a "for" loop using the suggestion above this one
                         all_tags.extend(task["tags"])
                 self._materials.update_one({"material_id": m["material_id"]},
@@ -55,11 +53,10 @@ class TagsCollector(AbstractBuilder):
             except:
                 import traceback
                 print("<---")
-                #TODO: in the print statement below, write "TagsBuilder: " in the beginning
                 print("There was an error processing material_id: {}, task_id: {}".format(m["material_id"], taskid))
                 traceback.print_exc()
                 print("--->")
-        print("TagsCollector finished processing.")
+        print("TagsBuilder finished processing.")
 
     def reset(self):
         self._materials.update_many({}, {"$unset": {"tags": 1}})
