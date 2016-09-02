@@ -24,6 +24,7 @@ from pymatgen.analysis.adsorption import generate_decorated_slabs,\
 from pymatgen.transformations.advanced_transformations import SlabTransformation
 from pymatgen.transformations.standard_transformations import SupercellTransformation
 from pymatgen.transformations.site_transformations import InsertSitesTransformation
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp.sets import MVLSlabSet
 from pymatgen import Structure
 
@@ -82,11 +83,10 @@ class AnalyzeAdsorption(FireTaskBase):
 
 
 def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
-                      min_slab_size=7.0, min_vacuum_size=12.0,
-                      max_normal_search=1, center_slab=True,
-                      slab_gen_config=None, vasp_cmd="vasp",
-                      slab_input_params=None, adsorbate_input_params=None,
-                      db_file=None):
+                      min_slab_size=7.0, min_vacuum_size=12.0, center_slab=True,
+                      max_normal_search=1, slab_gen_config=None, vasp_cmd="vasp",
+                      db_file=None, conventional=True, slab_incar_params={}, 
+                      ads_incar_params={}, auto_dipole=True):
     """
     Returns a workflow to calculate adsorption structures and surfaces.
 
@@ -110,16 +110,23 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
     Returns:
         Workflow
     """
-
+    if conventional:
+        sga = SpacegroupAnalyzer(structure)
+        structure = sga.get_conventional_standard_structure()
     v = vasp_input_set or MVLSlabSet(structure, bulk=True)
+    if not v.incar.get("GGAU", None):
+        ads_incar_params.update({"LDAU":False})
+        slab_incar_params.update({"LDAU":False})
     fws = []
     fws.append(OptimizeFW(structure=structure, vasp_input_set=v,
                           vasp_cmd=vasp_cmd, db_file=db_file))
 
     max_index = max([int(i) for i in ''.join(adsorbate_config.keys())])
-    slabs = generate_decorated_slabs(structure, max_index, min_slab_size,
-                                     min_vacuum_size, max_normal_search,
-                                     center_slab)
+    slabs = generate_decorated_slabs(structure, max_index=max_index, 
+                                     min_slab_size=min_slab_size,
+                                     min_vacuum_size=min_vacuum_size, 
+                                     max_normal_search=max_normal_search,
+                                     center_slab=center_slab)
     mi_strings = [''.join([str(i) for i in slab.miller_index])
                   for slab in slabs]
     for key in adsorbate_config.keys():
@@ -131,49 +138,69 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
         mi_string = ''.join([str(i) for i in slab.miller_index])
         if mi_string in adsorbate_config.keys():
             # Add the slab optimize firework
-            trans = [SlabTransformation(slab.miller_index, min_slab_size, 
-                                        min_vacuum_size, slab.shift, 
-                                        slab_gen_config)]
+            if auto_dipole:
+                weights = [site.species_and_occu.weight for site in slab]
+                dipol_center = [0, 0, 0.5]
+                #np.average(slab.frac_coords, axis = 1).tolist()
+                dipole_dict = {"LDIPOL":"True",
+                               "IDIPOL": 3,
+                               "DIPOL": dipol_center}
+                slab_incar_params.update(dipole_dict)
+                ads_incar_params.update(dipole_dict)
+            slab_trans_params = {"miller_index":slab.miller_index,
+                           "min_slab_size":min_slab_size,
+                           "min_vacuum_size":min_vacuum_size,
+                           "shift":slab.shift,
+                           "center_slab":True,
+                           "max_normal_search":max_normal_search}
+            slab_trans = SlabTransformation(**slab_trans_params)
             # TODO: name these more intelligently
-            fws.append(TransmuterFW(name="slab calculation",
+            fw_name = "{}_{} slab optimization".format(
+                slab.composition.reduced_formula, mi_string)
+            vis_slab = MVLSlabSet(slab, user_incar_settings=slab_incar_params)
+            fws.append(TransmuterFW(name=fw_name,
                                     structure = structure,
-                                    transformations = trans,
+                                    transformations = ["SlabTransformation"],
+                                    transformation_params=[slab_trans_params],
                                     copy_vasp_outputs=True,
                                     db_file=db_file,
                                     vasp_cmd=vasp_cmd,
                                     parents=fws[0],
-                                    vasp_input_set = "MVLSlabSet",
-                                    vasp_input_params = slab_input_params)
+                                    vasp_input_set = vis_slab)
                       )
             # Generate adsorbate configurations and add fws to workflow
             asf = AdsorbateSiteFinder(slab, selective_dynamics=True)
             for molecule in adsorbate_config[mi_string]:
                 structures = asf.generate_adsorption_structures(molecule)
-
                 for struct in structures:
-                    trans_slab = [SlabTransformation(struct.miller_index, min_slab_size, 
-                                        min_vacuum_size, slab.shift, 
-                                        slab_gen_config)]
-                    trans_supercell = [SupercellTransformation.from_scaling_factors(
-                        struct.lattice.a / slab.lattice.a, struct.lattice.b / slab.lattice.b)]
-                    ads_sites = [site for site in slab if 
+                    ads_fw_name = "{}-{}_{} adsorbate optimization".format(
+                        molecule.composition.reduced_formula,
+                        structure.composition.reduced_formula, mi_string)
+                    # This is a bit of a hack to avoid problems with poscar/contcar conversion
+                    struct.add_site_property("velocities", [[0., 0., 0.]]*struct.num_sites)
+                    trans_ads = ["SlabTransformation", "SupercellTransformation", 
+                                  "InsertSitesTransformation", "AddSitePropertyTransformation"]
+                    trans_supercell = SupercellTransformation.from_scaling_factors(
+                        round(struct.lattice.a / slab.lattice.a), 
+                        round(struct.lattice.b / slab.lattice.b))
+                    ads_sites = [site for site in struct if 
                                  site.properties["surface_properties"]=="adsorbate"]
-                    trans_add_adsorbate = InsertSitesTransformation(
-                        [site.species_string for site in ads_sites],
-                        [site.frac_coords for site in ads_sites])
-
-                    ads_trans = [trans_slab, trans_supercell, trans_add_adsorbate]
-                    # Might need to generate adsorbate input set
-                    fws.append(TransmuterFW(name="adsorbate calculation",
-                                    structure = structure,
-                                    transformations = ads_trans,
-                                    copy_vasp_outputs=True,
-                                    db_file=db_file,
-                                    vasp_cmd=vasp_cmd,
-                                    parents=fws[0],
-                                    vasp_input_set = "MVLSlabSet",
-                                    vasp_input_params = adsorbate_input_params))
-
+                    trans_ads_params = [slab_trans_params,
+                                        {"scaling_matrix":trans_supercell.scaling_matrix},
+                                        {"species":[site.species_string for site in ads_sites],
+                                         "coords":[site.frac_coords.tolist() # convert for proper serialization
+                                                   for site in ads_sites]},
+                                        {"site_properties": struct.site_properties}]
+                    vis_ads = MVLSlabSet(structure, user_incar_settings = ads_incar_params)
+                    fws.append(TransmuterFW(name=ads_fw_name,
+                                            structure = structure,
+                                            transformations = trans_ads,
+                                            transformation_params = trans_ads_params,
+                                            copy_vasp_outputs=True,
+                                            db_file=db_file,
+                                            vasp_cmd=vasp_cmd,
+                                            parents=fws[0],
+                                            vasp_input_set = vis_ads))
     wfname = "{}:{}".format(structure.composition.reduced_formula, "Adsorbate calculations")
     return Workflow(fws, name=wfname)
 
@@ -181,6 +208,6 @@ if __name__ == "__main__":
     from pymatgen.util.testing import PymatgenTest
     from pymatgen import Molecule
     co = Molecule("CO", [[0, 0, 0], [0, 0, 1.9]])
-    adsorbate_config = {"111":co}
+    adsorbate_config = {"111":[co]}
     structure = PymatgenTest.get_structure("Si")
     wf = get_wf_adsorption(structure, adsorbate_config)

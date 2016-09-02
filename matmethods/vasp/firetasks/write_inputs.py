@@ -330,7 +330,6 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
         ts = TransformedStructure(structure)
         transmuter = StandardTransmuter([ts], transformations)
         final_structure = transmuter.transformed_structures[-1].final_structure.copy()
-
         vis_orig = self["vasp_input_set"]
         vis_dict = vis_orig.as_dict()
         vis_dict["structure"] = final_structure.as_dict()
