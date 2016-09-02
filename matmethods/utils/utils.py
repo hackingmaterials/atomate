@@ -6,14 +6,7 @@ import logging
 import sys
 import six
 
-from monty.dev import requires
-
 from pymatgen import Composition
-
-try:
-    import matplotlib.pyplot as plt
-except ImportError:
-    plt = None
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
@@ -124,7 +117,11 @@ def get_meta_from_structure(structure):
     return meta
 
 
-@requires(plt, "Requires the matplotlib package.")
+# TODO: move this code as soon as possible.
+# It causes errors in particular Python installations - and even though there is a try-catch, it does not recover!!!
+#   from matplotlib.backends import _macosx
+# RuntimeError: Python is not installed as a framework. The Mac OS X backend will not be able to function correctly if Python is not installed as a framework. See the Python documentation for more information on installing Python as a framework on Mac OS X. Please either reinstall Python as a framework, or try one of the other backends. If you are Working with Matplotlib in a virtual enviroment see 'Working with Matplotlib in Virtual environments' in the Matplotlib FAQ
+
 def plot_wf(wf, depth_factor=1.0, breadth_factor=2.0, labels_on=True, numerical_label=False,
             text_loc_factor=1.0, save_as=None, style='rD--', markersize=10, markerfacecolor='blue',
             fontsize=12,):
@@ -146,6 +143,11 @@ def plot_wf(wf, depth_factor=1.0, breadth_factor=2.0, labels_on=True, numerical_
         markerfacecolor (str): marker face color.
         fontsize (int): font size for the node label.
     """
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError:
+        plt = None
+
     keys = sorted(wf.links.keys(), reverse=True)
 
     # set (x,y) coordinates for each node in the workflow links
