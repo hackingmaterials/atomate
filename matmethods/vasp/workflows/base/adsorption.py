@@ -25,8 +25,8 @@ from pymatgen.transformations.advanced_transformations import SlabTransformation
 from pymatgen.transformations.standard_transformations import SupercellTransformation
 from pymatgen.transformations.site_transformations import InsertSitesTransformation
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.io.vasp.sets import MVLSlabSet
-from pymatgen import Structure
+from pymatgen.io.vasp.sets import MVLSlabSet, MPRelaxSet, DictSet
+from pymatgen import Structure, Lattice
 
 __author__ = 'Joseph Montoya'
 __email__ = 'montoyjh@lbl.gov'
@@ -99,10 +99,7 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
     
     Args:
         structure (Structure): input structure to be optimized and run
-        # TODO: rethink configuration
-        adsorption_config_dict (dict): configuration dictionary for adsorption
-            should be a set of keys corresponding to miller indices/molecules
-            e.g. {"111":Molecule("CO", [[0, 0, 0], [0, 0, 1]])}
+        # TODO: rethink configuration 
         vasp_input_set (DictVaspInputSet): vasp input set.
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
@@ -114,7 +111,7 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
         sga = SpacegroupAnalyzer(structure)
         structure = sga.get_conventional_standard_structure()
     v = vasp_input_set or MVLSlabSet(structure, bulk=True)
-    if not v.incar.get("GGAU", None):
+    if not v.incar.get("LDAU", None):
         ads_incar_params.update({"LDAU":False})
         slab_incar_params.update({"LDAU":False})
     fws = []
@@ -173,6 +170,7 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
             for molecule in adsorbate_config[mi_string]:
                 structures = asf.generate_adsorption_structures(molecule)
                 for struct in structures:
+                    struct = struct.get_sorted_structure() # This is important because InsertSites sorts the structure!
                     ads_fw_name = "{}-{}_{} adsorbate optimization".format(
                         molecule.composition.reduced_formula,
                         structure.composition.reduced_formula, mi_string)
@@ -204,10 +202,55 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
     wfname = "{}:{}".format(structure.composition.reduced_formula, "Adsorbate calculations")
     return Workflow(fws, name=wfname)
 
+def get_wf_molecules(molecules, vasp_input_sets=None,
+                     min_vacuum_size=15.0, vasp_cmd="vasp",
+                     db_file=None):
+    """
+    Returns a workflow to calculate molecular energies as references for the
+    surface workflow.
+
+    Firework 1 : write vasp input set for structural relaxation,
+                 run vasp,
+                 pass run location,
+                 database insertion.
+    Args:
+        molecules (list of molecules): input structure to be optimized and run
+        # TODO: rethink configuration
+        vasp_input_set (DictVaspInputSet): vasp input set.
+        vasp_cmd (str): command to run
+        db_file (str): path to file containing the database credentials.
+
+    Returns:
+        Workflow
+    """
+    fws = []
+    vasp_input_sets = vasp_input_sets or [None for m in molecules]
+    for molecule, vis in zip(molecules, vasp_input_sets):
+        m_struct = Structure(Lattice.cubic(min_vacuum_size), molecule.species_and_occu,
+                             molecule.cart_coords, coords_are_cartesian=True)
+        m_struct.translate_sites(list(range(len(m_struct))),
+                                 np.array([0.5]*3) - np.average(m_struct.frac_coords,axis=0))
+        v = vis or MPRelaxSet(m_struct, user_incar_settings={"ISMEAR":0, 
+                                                             "IBRION":5, 
+                                                             "ISIF":2}) #TODO think about this
+        v.config_dict["KPOINTS"].update({"reciprocal_density": 1})
+        v = DictSet(m_struct, v.config_dict)
+
+        fws.append(OptimizeFW(structure=m_struct, vasp_input_set=v,
+                              vasp_cmd=vasp_cmd, db_file=db_file))
+    wfname = "{}".format("Molecule calculations")
+    return Workflow(fws, name=wfname)
+
+
 if __name__ == "__main__":
+    from fireworks import LaunchPad
+    lpad = LaunchPad.auto_load()
     from pymatgen.util.testing import PymatgenTest
-    from pymatgen import Molecule
-    co = Molecule("CO", [[0, 0, 0], [0, 0, 1.9]])
-    adsorbate_config = {"111":[co]}
+    from pymatgen import Molecule, MPRester
+    mpr = MPRester()
+    pd = mpr.get_structures("mp-2")[0]
+    h2 = Molecule("HH", [[0.35, 0, 0], [-0.35, 0, 0.0]])
+    adsorbate_config = {"111":[h2]}
     structure = PymatgenTest.get_structure("Si")
-    wf = get_wf_adsorption(structure, adsorbate_config)
+    wf = get_wf_adsorption(pd, adsorbate_config)
+    #wf2 = get_wf_molecules([co])
