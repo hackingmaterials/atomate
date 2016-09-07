@@ -99,7 +99,10 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
     
     Args:
         structure (Structure): input structure to be optimized and run
-        # TODO: rethink configuration 
+        adsorbate_config (dict): configuration dictionary, keys are strings
+            corresponding to the miller index, values are molecules to be
+            placed as adsorbates via the adsorption_site_finder
+            e. g. {"111":Molecule("CO", [[0, 0, 0], [0, 0, 1.23]])}
         vasp_input_set (DictVaspInputSet): vasp input set.
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
