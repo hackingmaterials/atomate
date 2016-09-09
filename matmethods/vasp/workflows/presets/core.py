@@ -9,6 +9,7 @@ from matmethods.vasp.vasp_powerups import add_small_gap_multiply, add_stability_
 from matmethods.vasp.workflows.base.core import get_wf
 from matmethods.vasp.workflows.base.elastic import get_wf_elastic_constant
 from matmethods.vasp.workflows.base.raman import get_wf_raman_spectra
+from matmethods.vasp.workflows.base.gibbs import get_wf_gibbs_free_energy
 
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
 
@@ -226,11 +227,10 @@ def wf_gibbs_free_energy(structure, c=None):
     vasp_cmd = c.get("vasp_cmd", VASP_CMD)
     db_file = c.get("db_file", DB_FILE)
     reciprocal_density = c.get("reciprocal_density", 600)
-    deformations = c.get("deformations", [[1.05, 0, 0], [0, 1.05, 0], [0, 0, 1.05]])
+    scaling_matrices = c.get("scaling_matrices", [[[1.05, 0, 0], [0, 1.05, 0], [0, 0, 1.05]]])
 
-    wf = get_wf_elastic_constant(structure, lepsilon=True, reciprocal_density=reciprocal_density,
-                                 additional_deformations=deformations, vasp_cmd=vasp_cmd,
-                                 db_file=db_file, add_analysis_task=False)
+    wf = get_wf_gibbs_free_energy(structure, reciprocal_density=reciprocal_density,
+                                 scaling_matrices=scaling_matrices, vasp_cmd=vasp_cmd, db_file=db_file)
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update":
                                                    {"ENCUT": 600, "EDIFF": 1e-6}})
