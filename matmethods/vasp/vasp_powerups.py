@@ -10,9 +10,10 @@ from matmethods.utils.utils import get_meta_from_structure
 from matmethods.vasp.firetasks.glue_tasks import CheckStability
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspDirect, RunVaspFake
 from matmethods.vasp.firetasks.write_inputs import ModifyIncar
+from matmethods.vasp.vasp_config import ADD_NAMEFILE, SCRATCH_DIR, ADD_MODIFY_INCAR
 
-__author__ = 'Anubhav Jain'
-__email__ = 'ajain@lbl.gov'
+__author__ = 'Anubhav Jain, Kiran Mathew'
+__email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 
 def get_fws_and_tasks(workflow, fw_name_constraint=None, task_name_constraint=None):
@@ -56,7 +57,7 @@ def add_priority(original_wf, root_priority, child_priority=None):
             fw.spec["_priority"] = root_priority
         else:
             fw.spec["_priority"] = child_priority
-    return original_wf
+    return update_wf(original_wf)
 
 
 def remove_custodian(original_wf, fw_name_constraint=None):
@@ -179,10 +180,11 @@ def add_modify_incar(original_wf, modify_incar_params=None, fw_name_constraint=N
 
     """
     modify_incar_params = modify_incar_params or {"incar_update": ">>incar_update<<"}
+    wf_dict = original_wf.to_dict()
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp"):
-        original_wf.fws[idx_fw].spec["_tasks"].insert(idx_t, ModifyIncar(**modify_incar_params).to_dict())
-    return original_wf
+        wf_dict["fws"][idx_fw]["spec"]["_tasks"].insert(idx_t, ModifyIncar(**modify_incar_params).to_dict())
+    return Workflow.from_dict(wf_dict)
 
 
 def add_wf_metadata(original_wf, structure):
@@ -198,7 +200,7 @@ def add_wf_metadata(original_wf, structure):
     """
     original_wf.metadata["structure"] = structure.as_dict()
     original_wf.metadata.update(get_meta_from_structure(structure))
-    return original_wf
+    return update_wf(original_wf)
 
 
 def add_stability_check(original_wf, check_stability_params=None, fw_name_constraint=None):
@@ -217,7 +219,7 @@ def add_stability_check(original_wf, check_stability_params=None, fw_name_constr
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp"):
         original_wf.fws[idx_fw].spec["_tasks"].append(CheckStability(**check_stability_params).to_dict())
-    return original_wf
+    return update_wf(original_wf)
 
 
 def add_modify_incar_envchk(original_wf, fw_name_constraint=None):
@@ -229,8 +231,7 @@ def add_modify_incar_envchk(original_wf, fw_name_constraint=None):
         original_wf (Workflow)
         fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this substring.
     """
-    return add_modify_incar(original_wf, {"incar_update": ">>incar_update<<"},
-                            fw_name_constraint=fw_name_constraint)
+    return add_modify_incar(original_wf, {"incar_update": ">>incar_update<<"}, fw_name_constraint=fw_name_constraint)
 
 
 def add_small_gap_multiply(original_wf, gap_cutoff, density_multiplier, fw_name_constraint=None):
@@ -299,7 +300,7 @@ def add_tags(original_wf, tags_list):
         wf_dict["metadata"]["tags"] = tags_list
 
     # FW metadata
-    for idx_fw in xrange(len(original_wf.fws)):
+    for idx_fw in range(len(original_wf.fws)):
         if "tags" in wf_dict["fws"][idx_fw]["spec"]:
             wf_dict["fws"][idx_fw]["spec"]["tags"].extend(tags_list)
         else:
@@ -313,3 +314,44 @@ def add_tags(original_wf, tags_list):
             wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["additional_fields"]["tags"] = tags_list
 
     return Workflow.from_dict(wf_dict)
+
+
+def add_common_powerups(wf, c):
+    """
+    Apply the common powerups such as add_namefile, use_scratch_dir etc. from the given config dict.
+
+    Args:
+        wf (Workflow)
+        c (dict): Config dict
+
+    Returns:
+        Workflow
+    """
+    if c.get("ADD_NAMEFILE", ADD_NAMEFILE):
+        wf = add_namefile(wf)
+
+    if c.get("SCRATCH_DIR", SCRATCH_DIR):
+        wf = use_scratch_dir(wf, c.get("SCRATCH_DIR", SCRATCH_DIR))
+
+    if c.get("ADD_MODIFY_INCAR", ADD_MODIFY_INCAR):
+        wf = add_modify_incar(wf)
+
+    return wf
+
+
+def update_wf(wf):
+    """
+    Simple helper to ensure that the powerup updates to the workflow dict has taken effect.
+    This is needed  because all the powerups that modify workflow do so on the dict representation
+    of the workflow(or mix thereof eg: add tasks as dict to the fireworks spec etc) and for
+    inspection the powerups rely on a mix of object and dict representations of workflow object(
+    along with the constituent fireworks and firetasks) that are not in one to one correspondence
+    with the updated dict representation.
+
+    Args:
+        wf (Workflow)
+
+    Returns:
+        Workflow
+    """
+    return Workflow.from_dict(wf.as_dict())

@@ -2,12 +2,13 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-from matmethods.vasp.vasp_config import ADD_NAMEFILE, SCRATCH_DIR, SMALLGAP_KPOINT_MULTIPLY, \
-    ADD_MODIFY_INCAR, STABILITY_CHECK, VASP_CMD, DB_FILE, ADD_WF_METADATA
+from matmethods.vasp.vasp_config import SMALLGAP_KPOINT_MULTIPLY, STABILITY_CHECK, VASP_CMD, \
+    DB_FILE, ADD_WF_METADATA
+from matmethods.vasp.vasp_powerups import add_small_gap_multiply, add_stability_check, add_modify_incar, \
+    add_wf_metadata, add_common_powerups
 from matmethods.vasp.workflows.base.core import get_wf
-from matmethods.vasp.vasp_powerups import add_namefile, add_small_gap_multiply, use_scratch_dir, \
-    add_stability_check, add_modify_incar, add_wf_metadata
 from matmethods.vasp.workflows.base.elastic import get_wf_elastic_constant
+from matmethods.vasp.workflows.base.raman import get_wf_raman_spectra
 
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
 
@@ -192,15 +193,26 @@ def wf_elastic_constant(structure, c=None):
     return wf
 
 
-def add_common_powerups(wf, c):
+def wf_raman_spectra(structure, c=None):
+    """
+    Raman spectra workflow from the given structure and config dict
 
-    if c.get("ADD_NAMEFILE", ADD_NAMEFILE):
-        wf = add_namefile(wf)
+    Args:
+        structure (Structure): input structure
+        c (dict): workflow config dict
 
-    if c.get("SCRATCH_DIR", SCRATCH_DIR):
-        wf = use_scratch_dir(wf, c.get("SCRATCH_DIR", SCRATCH_DIR))
+    Returns:
+        Workflow
+    """
 
-    if c.get("ADD_MODIFY_INCAR", ADD_MODIFY_INCAR):
-        wf = add_modify_incar(wf)
+    c = c or {}
+    wf = get_wf_raman_spectra(structure, modes=c.get("modes", None), step_size=c.get("step_size", 0.005),
+                              vasp_cmd=c.get("vasp_cmd", "vasp"), db_file=c.get("db_file", None))
+
+    wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 600, "EDIFF": 1e-6}},
+                          fw_name_constraint="static dielectric")
+
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
 
     return wf

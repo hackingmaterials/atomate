@@ -4,14 +4,15 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import json
 import os
+from collections import defaultdict
 
 from datetime import datetime
 
+import numpy as np
 from monty.json import MontyEncoder
 
-from fireworks import FireTaskBase, FWAction
+from fireworks import FireTaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
-from fireworks.utilities.fw_utilities import explicit_serialize
 
 from matmethods.utils.utils import env_chk, get_calc_loc, get_meta_from_structure
 from matmethods.utils.utils import get_logger
@@ -19,6 +20,9 @@ from matmethods.vasp.database import MMDb
 from matmethods.vasp.drones import VaspDrone
 
 from pymatgen import Structure
+from pymatgen.analysis.elasticity.elastic import ElasticTensor
+from pymatgen.analysis.elasticity.strain import IndependentStrain
+from pymatgen.analysis.elasticity.stress import Stress
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -187,3 +191,138 @@ class BoltztrapToDBTask(FireTaskBase):
             del d["dos"]
 
             mmdb.db.boltztrap.insert(d)
+
+
+@explicit_serialize
+class ElasticTensorToDbTask(FireTaskBase):
+    """
+    Analyzes the stress/strain data of an elastic workflow to produce
+    an elastic tensor and various other quantities.
+    """
+
+    required_params = ['structure']
+    optional_params = ['db_file']
+
+    def run_task(self, fw_spec):
+
+        # Get optimized structure
+        # TODO: will this find the correct path if the workflow is rerun from the start?
+        optimize_loc = fw_spec["calc_locs"][0]["path"]
+        logger.info("PARSING INITIAL OPTIMIZATION DIRECTORY: {}".format(optimize_loc))
+        drone = VaspDrone()
+        optimize_doc = drone.assimilate(optimize_loc)
+        opt_struct = Structure.from_dict(optimize_doc["calcs_reversed"][0]["output"]["structure"])
+
+        d = {"analysis": {}, "deformation_tasks": fw_spec["deformation_tasks"],
+             "initial_structure": self['structure'].as_dict(),
+             "optimized_structure": opt_struct.as_dict()}
+
+        dtypes = fw_spec["deformation_tasks"].keys()
+        defos = [fw_spec["deformation_tasks"][dtype]["deformation_matrix"]
+                 for dtype in dtypes]
+        stresses = [fw_spec["deformation_tasks"][dtype]["stress"] for dtype in dtypes]
+        stress_dict = {IndependentStrain(defo) : Stress(stress) for defo, stress
+                       in zip(defos, stresses)}
+
+        logger.info("ANALYZING STRESS/STRAIN DATA")
+        # DETERMINE IF WE HAVE 6 "UNIQUE" deformations
+        if len(set([de[:3] for de in dtypes])) == 6:
+            # Perform Elastic tensor fitting and analysis
+            result = ElasticTensor.from_stress_dict(stress_dict)
+            d["elastic_tensor"] = result.voigt.tolist()
+            kg_average = result.kg_average
+            d.update({"K_Voigt": kg_average[0], "G_Voigt": kg_average[1],
+                      "K_Reuss": kg_average[2], "G_Reuss": kg_average[3],
+                      "K_Voigt_Reuss_Hill": kg_average[4],
+                      "G_Voigt_Reuss_Hill": kg_average[5]})
+            d["universal_anisotropy"] = result.universal_anisotropy
+            d["homogeneous_poisson"] = result.homogeneous_poisson
+
+        else:
+            raise ValueError("Fewer than 6 unique deformations")
+
+        d["state"] = "successful"
+
+        # Save analysis results in json or db
+        db_file = env_chk(self.get('db_file'), fw_spec)
+        if not db_file:
+            with open("elasticity.json", "w") as f:
+                f.write(json.dumps(d, default=DATETIME_HANDLER))
+        else:
+            db = MMDb.from_db_file(db_file, admin=True)
+            db.collection = db.db["elasticity"]
+            db.collection.insert_one(d)
+            logger.info("ELASTIC ANALYSIS COMPLETE")
+        return FWAction()
+
+
+@explicit_serialize
+class RamanSusceptibilityTensorToDbTask(FireTaskBase):
+    """
+    Raman susceptibility tensor for each mode = Finite difference derivative of the dielectric
+        tensor wrt the displacement along that mode.
+    See: 10.1103/PhysRevB.73.104304
+
+    optional_params:
+        db_file (str): path to the db file
+    """
+
+    optional_params = ["db_file"]
+
+    def run_task(self, fw_spec):
+        nm_norms = np.array(fw_spec["normalmodes"]["norms"])
+        nm_eigenvals = np.array(fw_spec["normalmodes"]["eigenvals"])
+        structure = fw_spec["normalmodes"]["structure"]
+        masses = np.array([site.specie.data['Atomic mass'] for site in structure])
+        # the eigenvectors read from vasprun.xml are not divided by sqrt(M_i)
+        nm_norms = nm_norms / np.sqrt(masses)
+
+        # To get the actual eigenvals, the values read from vasprun.xml must be multiplied by -1.
+        # frequency_i = sqrt(-e_i)
+        # To convert the frequency to THZ: multiply sqrt(-e_i) by 15.633
+        # To convert the frequency to cm^-1: multiply sqrt(-e_i) by 82.995
+        nm_frequencies = np.sqrt(np.abs(nm_eigenvals)) * 82.995  # cm^-1
+
+        d = {"structure": structure.as_dict(),
+             "normalmodes": {"eigenvals": fw_spec["normalmodes"]["eigenvals"],
+                             "eigenvecs": fw_spec["normalmodes"]["eigenvecs"]
+                             },
+             "frequencies": nm_frequencies.tolist()
+             }
+
+        mode_disps = fw_spec["raman_epsilon"].keys()
+        # store the displacement & epsilon for each mode in a dictionary
+        modes_eps_dict = defaultdict(list)
+        for md in mode_disps:
+            modes_eps_dict[fw_spec["raman_epsilon"][md]["mode"]].append(
+                [fw_spec["raman_epsilon"][md]["displacement"],
+                 fw_spec["raman_epsilon"][md]["epsilon"]])
+
+        # raman tensor = finite difference derivative of epsilon wrt displacement.
+        raman_tensor_dict = {}
+        scale = np.sqrt(structure.volume/2.0) / 4.0 / np.pi
+        for k, v in modes_eps_dict.items():
+            raman_tensor = (np.array(v[0][1]) - np.array(v[1][1])) / (v[0][0] - v[1][0])
+            # frequency in cm^-1
+            omega = nm_frequencies[k]
+            if nm_eigenvals[k] > 0:
+                logger.warn("Mode: {} is UNSTABLE. Freq(cm^-1) = {}".format(k, -omega))
+            raman_tensor = scale * raman_tensor * np.sum(nm_norms[k]) / np.sqrt(omega)
+            raman_tensor_dict[str(k)] = raman_tensor.tolist()
+
+        d["raman_tensor"] = raman_tensor_dict
+        d["state"] = "successful"
+
+        # store the results
+        db_file = env_chk(self.get("db_file"), fw_spec)
+        if not db_file:
+            with open("raman.json", "w") as f:
+                f.write(json.dumps(d, default=DATETIME_HANDLER))
+        else:
+            db = MMDb.from_db_file(db_file, admin=True)
+            db.collection = db.db["raman"]
+            db.collection.insert_one(d)
+            logger.info("RAMAN TENSOR CALCULATION COMPLETE")
+        logger.info("The frequencies are in the units of cm^-1")
+        logger.info("To convert the frequency to THz: multiply by 0.1884")
+        return FWAction()

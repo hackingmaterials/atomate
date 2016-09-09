@@ -4,8 +4,8 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import logging
 import sys
-import six
 
+import six
 from pymatgen import Composition
 
 __author__ = 'Anubhav Jain, Kiran Mathew'

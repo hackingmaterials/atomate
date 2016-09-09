@@ -11,17 +11,22 @@ from previous run directory oto the current one.
 import gzip
 import os
 import re
+from decimal import Decimal
+
+import numpy as np
 
 from pymatgen import MPRester
 from pymatgen.io.vasp.sets import get_vasprun_outcar
+from pymatgen.analysis.elasticity import reverse_voigt_map
+from pymatgen.analysis.elasticity.strain import IndependentStrain
 
 from fireworks import explicit_serialize, FireTaskBase, FWAction
 
 from matmethods.utils.utils import get_calc_loc, env_chk
 from matmethods.utils.fileio import FileClient
 
-__author__ = 'Anubhav Jain'
-__email__ = 'ajain@lbl.gov'
+__author__ = 'Anubhav Jain, Kiran Mathew'
+__email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 
 @explicit_serialize
@@ -155,3 +160,85 @@ class CheckStability(FireTaskBase):
 
         else:
             return FWAction(stored_data=stored_data)
+
+
+@explicit_serialize
+class PassStressStrainData(FireTaskBase):
+    """
+    Passes the stress and deformation for an elastic deformation calculation
+
+    Required params:
+        deformation: the deformation gradient used in the elastic analysis.
+    """
+
+    required_params = ["deformation"]
+
+    def run_task(self, fw_spec):
+        v, _ = get_vasprun_outcar(self.get("calc_dir", "."), parse_dos=False, parse_eigen=False)
+        stress = v.ionic_steps[-1]['stress']
+        defo = self['deformation']
+        d_ind = np.nonzero(defo - np.eye(3))
+        delta = Decimal((defo - np.eye(3))[d_ind][0])
+        # Shorthand is d_X_V, X is voigt index, V is value
+        dtype = "_".join(["d", str(reverse_voigt_map[d_ind][0]),
+                          "{:.0e}".format(delta)])
+        strain = IndependentStrain(defo)
+        defo_dict = {'deformation_matrix': defo,
+                     'strain': strain.tolist(),
+                     'stress': stress}
+
+        return FWAction(mod_spec=[{'_set': {
+            'deformation_tasks->{}'.format(dtype): defo_dict}}])
+
+
+@explicit_serialize
+class PassEpsilonTask(FireTaskBase):
+    """
+    Pass the epsilon(dielectric constant) corresponding to the given normal mode and displacement.
+
+    Required params:
+        mode (int): normal mode index
+        displacement (float): displacement along the normal mode in Angstroms
+    """
+
+    required_params = ["mode", "displacement"]
+
+    def run_task(self, fw_spec):
+        vrun, _ = get_vasprun_outcar(self.get("calc_dir", "."), parse_dos=False, parse_eigen=True)
+        epsilon_static = vrun.epsilon_static
+        epsilon_dict = {"mode": self["mode"],
+                        "displacement": self["displacement"],
+                        "epsilon": epsilon_static}
+        return FWAction(mod_spec=[{
+            '_set': {
+                'raman_epsilon->{}_{}'.format(
+                    str(self["mode"]),
+                    str(self["displacement"]).replace("-", "m").replace(".", "d")): epsilon_dict
+            }
+        }])
+
+
+@explicit_serialize
+class PassNormalmodesTask(FireTaskBase):
+    """
+    Extract and pass the normal mode eigenvalues and vectors.
+
+    optional_params:
+        calc_dir (str): path to the calculation directory
+    """
+
+    optional_params = ["calc_dir"]
+
+    def run_task(self, fw_spec):
+        normalmode_dict = fw_spec.get("normalmodes", None)
+        if not normalmode_dict:
+            vrun, _ = get_vasprun_outcar(self.get("calc_dir", "."), parse_dos=False, parse_eigen=True)
+            structure = vrun.final_structure.copy()
+            normalmode_eigenvals = vrun.normalmode_eigenvals
+            normalmode_eigenvecs = vrun.normalmode_eigenvecs
+            normalmode_norms = np.linalg.norm(normalmode_eigenvecs, axis=2)
+            normalmode_dict = {"structure": structure,
+                               "eigenvals": normalmode_eigenvals.tolist(),
+                               "eigenvecs": normalmode_eigenvecs.tolist(),
+                               "norms": normalmode_norms.tolist()}
+        return FWAction(mod_spec=[{'_set': {'normalmodes': normalmode_dict}}])
