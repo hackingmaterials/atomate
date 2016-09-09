@@ -180,6 +180,8 @@ def wf_elastic_constant(structure, c=None):
     reciprocal_density = c.get("reciprocal_density", 600)
 
     wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd,
+                                 norm_deformations=[-0.01, -0.005, 0.005, 0.01],
+                                 shear_deformations=[-0.06, -0.03, 0.03, 0.06],
                                  db_file=db_file, reciprocal_density=reciprocal_density)
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update":
@@ -211,6 +213,28 @@ def wf_raman_spectra(structure, c=None):
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 600, "EDIFF": 1e-6}},
                           fw_name_constraint="static dielectric")
+
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
+    return wf
+
+
+def wf_gibbs_free_energy(structure, c=None):
+
+    c = c or {}
+    vasp_cmd = c.get("vasp_cmd", VASP_CMD)
+    db_file = c.get("db_file", DB_FILE)
+    reciprocal_density = c.get("reciprocal_density", 600)
+
+    wf = get_wf_elastic_constant(structure, lepsilon=True, reciprocal_density=reciprocal_density,
+                                 norm_deformations=[-1.5, -0.75, 0, 0.75, 1.5], vasp_cmd=vasp_cmd,
+                                 db_file=db_file, add_analysis_task=False)
+
+    wf = add_modify_incar(wf, modify_incar_params={"incar_update":
+                                                   {"ENCUT": 600, "EDIFF": 1e-6}})
+
+    wf = add_common_powerups(wf, c)
 
     if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
         wf = add_wf_metadata(wf, structure)

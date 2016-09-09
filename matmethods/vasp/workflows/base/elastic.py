@@ -23,12 +23,9 @@ __email__ = 'shyamd@lbl.gov, montoyjh@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
-                            norm_deformations=[-0.01, -0.005, 0.005, 0.01],
-                            shear_deformations=[-0.06, -0.03, 0.03, 0.06],
-                            additional_deformations = [],
-                            db_file=None, reciprocal_density=None,
-                            add_analysis_task=True):
+def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", norm_deformations=None,
+                            shear_deformations=None, additional_deformations=None, db_file=None,
+                            reciprocal_density=None, add_analysis_task=True, lepsilon=False):
     """
     Returns a workflow to calculate elastic constants.
 
@@ -58,7 +55,7 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
     """
     vis_relax = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
 
-    vis_static = MPStaticSet(structure, force_gamma=True)
+    vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon)
     vis_static.incar["ISIF"] = 2
     vis_static.incar["ISTART"] = 1
     for key in ["MAGMOM", "LDAUU", "LDAUJ", "LDAUL"]:
@@ -76,20 +73,18 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
 
     # Generate deformations
     deformations = []
-    # normal
-    for ind in [(0, 0), (1, 1), (2, 2)]:
-        for amount in norm_deformations:
-            defo = Deformation.from_index_amount(ind, amount)
-            deformations.append(defo)
-    # shear
-    for ind in [(0, 1), (0, 2), (1, 2)]:
-        for amount in shear_deformations:
-            defo = Deformation.from_index_amount(ind, amount)
-            deformations.append(defo)
 
-    for defo_mat in additional_deformations:
-        defo = Deformation(defo_mat)
-        deformations.append(defo_mat)
+    if norm_deformations:
+        deformations.extend([Deformation.from_index_amount(ind, amount)
+                             for ind in [(0, 0), (1, 1), (2, 2)]
+                             for amount in norm_deformations])
+    if shear_deformations:
+        deformations.extend([Deformation.from_index_amount(ind, amount)
+                             for ind in [(0, 1), (0, 2), (1, 2)]
+                             for amount in shear_deformations])
+
+    if additional_deformations:
+        deformations.extend([Deformation(defo_mat) for defo_mat in additional_deformations])
 
     # Deformation fireworks with the task to extract and pass stress-strain appended to it.
     for deformation in deformations:
