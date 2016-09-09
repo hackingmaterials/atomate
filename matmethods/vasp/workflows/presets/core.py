@@ -226,10 +226,10 @@ def wf_gibbs_free_energy(structure, c=None):
     vasp_cmd = c.get("vasp_cmd", VASP_CMD)
     db_file = c.get("db_file", DB_FILE)
     reciprocal_density = c.get("reciprocal_density", 600)
-    normal_deformations = c.get("normal_deformations", [-1.5, -0.75, 0, 0.75, 1.5])
+    deformations = c.get("deformations", [[1.05, 0, 0], [0, 1.05, 0], [0, 0, 1.05]])
 
     wf = get_wf_elastic_constant(structure, lepsilon=True, reciprocal_density=reciprocal_density,
-                                 norm_deformations=normal_deformations, vasp_cmd=vasp_cmd,
+                                 additional_deformations=deformations, vasp_cmd=vasp_cmd,
                                  db_file=db_file, add_analysis_task=False)
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update":
