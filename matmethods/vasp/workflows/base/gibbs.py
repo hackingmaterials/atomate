@@ -37,7 +37,7 @@ def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", de
         for deform in deformations:
             fws.append(TransmuterFW(name="gibbs supercell transformation", structure=structure,
                                     transformations=['DeformStructureTransformation'],
-                                    transformation_params=[{"deformation": deform.tolist()}],
+                                    transformation_params=[{"deformation": deform}],
                                     vasp_input_set=vis_static, copy_vasp_outputs=True, parents=fws[0],
                                     vasp_cmd=vasp_cmd, db_file=db_file))
 
