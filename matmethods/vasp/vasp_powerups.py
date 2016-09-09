@@ -149,22 +149,23 @@ def add_namefile(original_wf, use_slug=True):
     return Workflow.from_dict(wf_dict)
 
 
-def add_trackers(original_wf):
+def add_trackers(original_wf, tracked_files=["OUTCAR", "OSZICAR"], nlines=25):
     """
     Every FireWork that runs VASP also tracks the OUTCAR and OSZICAR using FWS Trackers.
 
     Args:
         original_wf (Workflow)
-
+        tracked_files (list) : list of files to be tracked
+        nlines (int): number of lines at the end of files to be tracked
     """
-    tracker1 = Tracker('OUTCAR', nlines=25, allow_zipped=True)
-    tracker2 = Tracker('OSZICAR', nlines=25, allow_zipped=True)
+    assert nlines<100, "tracking more than 100 lines is NOT permitted for better management of the database size"
+    trackers = [Tracker(f, nlines=nlines, allow_zipped=True) for f in tracked_files]
     wf_dict = original_wf.to_dict()
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="RunVasp"):
         if "_trackers" in wf_dict["fws"][idx_fw]["spec"]:
-            wf_dict["fws"][idx_fw]["spec"]["_trackers"].extend([tracker1, tracker2])
+            wf_dict["fws"][idx_fw]["spec"]["_trackers"].extend(trackers)
         else:
-            wf_dict["fws"][idx_fw]["spec"]["_trackers"] = [tracker1, tracker2]
+            wf_dict["fws"][idx_fw]["spec"]["_trackers"] = trackers
     return Workflow.from_dict(wf_dict)
 
 
