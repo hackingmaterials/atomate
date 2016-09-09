@@ -227,10 +227,10 @@ def wf_gibbs_free_energy(structure, c=None):
     vasp_cmd = c.get("vasp_cmd", VASP_CMD)
     db_file = c.get("db_file", DB_FILE)
     reciprocal_density = c.get("reciprocal_density", 600)
-    scaling_matrices = c.get("scaling_matrices", [[[1.05, 0, 0], [0, 1.05, 0], [0, 0, 1.05]]])
+    deformations = c.get("deformations", [[1.05, 0, 0], [0, 1.05, 0], [0, 0, 1.05]])
 
     wf = get_wf_gibbs_free_energy(structure, reciprocal_density=reciprocal_density,
-                                 scaling_matrices=scaling_matrices, vasp_cmd=vasp_cmd, db_file=db_file)
+                                  deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file)
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update":
                                                    {"ENCUT": 600, "EDIFF": 1e-6}})
