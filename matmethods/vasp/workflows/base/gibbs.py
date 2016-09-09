@@ -45,7 +45,7 @@ def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", sc
 
     if scaling_matrices:
         for scaling_matrix in scaling_matrices:
-            fw = TransmuterFW(name="gibbs deformation", structure=structure,
+            fw = TransmuterFW(name="gibbs supercell transformation", structure=structure,
                               transformations=["SupercellTransformation"],
                               transformation_params=[{"scaling_matrix": scaling_matrix}],
                               vasp_input_set=vis_static, copy_vasp_outputs=True, parents=fws[0],
