@@ -9,6 +9,7 @@ from collections import defaultdict
 from datetime import datetime
 
 import numpy as np
+
 from monty.json import MontyEncoder
 
 from fireworks import FireTaskBase, FWAction, explicit_serialize
@@ -331,12 +332,27 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
 @explicit_serialize
 class GibbsFreeEnergyTask(FireTaskBase):
     """
-    Compute the quasi-harmonic gibbs free energy using phonopy. instead of relying on fw_spec, this
-    task gets the required data directly from the tasks collection for processing.
+    Compute the quasi-harmonic gibbs free energy using phonopy. Instead of relying on fw_spec, this
+    task gets the required data directly from the tasks collection for processing. The summary dict
+    is written to 'gibbs.json' file.
+    Note: Requires phonopy package.
+
+    required_params:
+        tag (str): unique tag appended to the task labels in other fireworks so that all the
+            required data can be queried directly from the database.
+        db_file (str): path to the db file
+
+    optional_params:
+        t_min (float): min temperature
+        t_step (float): temperature step
+        t_max (float): max temperature
+        mesh (list/tuple): reciprocal space density
+        eos (str): equation of state used for fitting the energies and the volumes.
+            supported options: vinet, murnaghan, birch_murnaghan
     """
 
     required_params = ["tag", "db_file"]
-    optional_params = ["t_step", "t_min", "t_max", "mesh", "eos"]
+    optional_params = [ "t_min", "t_step", "t_max", "mesh", "eos"]
 
     def run_task(self, fw_spec):
         try:
@@ -355,13 +371,13 @@ class GibbsFreeEnergyTask(FireTaskBase):
         t_max = self.get("t_max", 1000)
         mesh = self.get("mesh", [20, 20, 20])
         eos = self.get("eos", "vinet")
-        doc = {}
+        gibbs_summary_dict = {}
 
         mmdb = MMDb.from_db_file(db_file, admin=True)
         # get the optimized structure
         d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
-        doc["structure"] = structure.as_dict()
+        gibbs_summary_dict["structure"] = structure.as_dict()
 
         phon_atoms = PhonopyAtoms(symbols=[str(s.specie) for s in structure],
                                   scaled_positions=structure.frac_coords)
@@ -380,9 +396,9 @@ class GibbsFreeEnergyTask(FireTaskBase):
             energies.append(d["calcs_reversed"][-1]["output"]['energy'])
             volumes.append(s.volume)
             force_constants.append(d["calcs_reversed"][-1]["output"]['force_constants'])
-        doc["energies"] = energies
-        doc["volumes"] = volumes
-        doc["force_constants"] = force_constants
+        gibbs_summary_dict["energies"] = energies
+        gibbs_summary_dict["volumes"] = volumes
+        gibbs_summary_dict["force_constants"] = force_constants
 
         # compute the required phonon thermal properties
         temperatures = []
@@ -406,9 +422,9 @@ class GibbsFreeEnergyTask(FireTaskBase):
 
         # gibbs free energy and temperature
         max_t_index = phonopy_qha._qha._max_t_index
-        doc["G"] = phonopy_qha.get_gibbs_temperature()[:max_t_index]
-        doc["T"] = phonopy_qha._qha._temperatures[:max_t_index]
+        gibbs_summary_dict["G"] = phonopy_qha.get_gibbs_temperature()[:max_t_index]
+        gibbs_summary_dict["T"] = phonopy_qha._qha._temperatures[:max_t_index]
 
         with open("gibbs.json", "w") as f:
-            f.write(json.dumps(doc, default=DATETIME_HANDLER))
+            f.write(json.dumps(gibbs_summary_dict, default=DATETIME_HANDLER))
         logger.info("GIBBS FREE ENERGY CALCULATION COMPLETE")

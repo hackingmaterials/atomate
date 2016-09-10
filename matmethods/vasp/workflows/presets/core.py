@@ -2,6 +2,10 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
+import numpy as np
+
+from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
+
 from matmethods.vasp.vasp_config import SMALLGAP_KPOINT_MULTIPLY, STABILITY_CHECK, VASP_CMD, \
     DB_FILE, ADD_WF_METADATA
 from matmethods.vasp.vasp_powerups import add_small_gap_multiply, add_stability_check, add_modify_incar, \
@@ -11,9 +15,8 @@ from matmethods.vasp.workflows.base.elastic import get_wf_elastic_constant
 from matmethods.vasp.workflows.base.raman import get_wf_raman_spectra
 from matmethods.vasp.workflows.base.gibbs import get_wf_gibbs_free_energy
 
-from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
-
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = 'Anubhav Jain, Kiran Mathew'
+__email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 
 # TODO: config dict stuff could be clearer
@@ -222,12 +225,22 @@ def wf_raman_spectra(structure, c=None):
 
 
 def wf_gibbs_free_energy(structure, c=None):
+    """
+    Gibbs free energy workflow from the given structure and config dict.
 
+    Args:
+        structure (Structure): input structure
+        c (dict): workflow config dict
+
+    Returns:
+        Workflow
+    """
     c = c or {}
     vasp_cmd = c.get("vasp_cmd", VASP_CMD)
     db_file = c.get("db_file", DB_FILE)
     reciprocal_density = c.get("reciprocal_density", 600)
-    deformations = c.get("deformations", [[1.05, 0, 0], [0, 1.05, 0], [0, 0, 1.05]])
+    deformations = c.get("deformations", [(np.identity(3)*(1+x)).tolist()
+                                          for x in np.linspace(-0.1, 0.1, 10)])
 
     wf = get_wf_gibbs_free_energy(structure, reciprocal_density=reciprocal_density,
                                   deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file)

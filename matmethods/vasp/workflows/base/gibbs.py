@@ -28,8 +28,31 @@ def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", de
     """
     Returns quasi-harmonic gibbs free energy workflow.
     Note: phonopy package is required for the final analysis step.
+
+    Args:
+        structure (Structure): input structure.
+        vasp_input_set (VaspInputSet)
+        vasp_cmd (str): vasp command to run.
+        deformations (list): list of deformation matrices(list of lists).
+        db_file (str): path to the db file.
+        reciprocal_density (int)
+        t_step (float): temperature step (in K)
+        t_min (float): min temperature (in K)
+        t_max (float): max temperature (in K)
+        mesh (list/tuple): reciprocal space density
+        eos (str): equation of state used for fitting the energies and the volumes.
+            supported equation of states: vinet, murnaghan, birch_murnaghan
+
+    Returns:
+        Workflow
     """
+    try:
+        from phonopy import Phonopy
+    except ImportError:
+        logger.warn("'phonopy' package NOT installed. It is required for the final analysis step.")
+
     tag = datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')
+
     vis_relax = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
     vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=True)
 
