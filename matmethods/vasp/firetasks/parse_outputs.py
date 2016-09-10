@@ -411,3 +411,4 @@ class GibbsFreeEnergyTask(FireTaskBase):
 
         with open("gibbs.json", "w") as f:
             f.write(json.dumps(doc, default=DATETIME_HANDLER))
+        logger.info("GIBBS FREE ENERGY CALCULATION COMPLETE")
