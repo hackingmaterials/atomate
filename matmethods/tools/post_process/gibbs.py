@@ -2,6 +2,7 @@
 Compute the quasi harmonic approximation gibbs free energy using phonopy.
 """
 
+import sys
 import json
 from pymongo import MongoClient
 
@@ -9,9 +10,13 @@ import numpy as np
 
 from pymatgen import Structure
 
-from phonopy import Phonopy
-from phonopy.structure.atoms import Atoms as PhonopyAtoms
-from phonopy import PhonopyQHA
+try:
+    from phonopy import Phonopy
+    from phonopy.structure.atoms import Atoms as PhonopyAtoms
+    from phonopy import PhonopyQHA
+except ImportError:
+    print("Install phonopy. Exiting.")
+    sys.exit()
 
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"
@@ -42,16 +47,16 @@ def get_collection(db_file):
 
 def get_phonopy(structure):
     phon_atoms = PhonopyAtoms(symbols=[str(s.specie) for s in structure],
-                              scaled_positions=structure.frac_coords )
+                              scaled_positions=structure.frac_coords)
     phon_atoms.set_cell(structure.lattice.matrix)
     # supercell size
     scell = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
     return Phonopy(phon_atoms, scell)
 
 
-def get_data(db_file, task_label="gibbs supercell transformation"):
+def get_data(db_file, query):
     coll = get_collection(db_file)
-    docs = coll.find({"task_label": task_label})
+    docs = coll.find(query)
     energies = []
     volumes = []
     force_constants = []
@@ -65,12 +70,13 @@ def get_data(db_file, task_label="gibbs supercell transformation"):
 
 def get_gibbs(structure, db_file, eos="vinet", t_step=10, t_min=0, t_max=1000, mesh=(20, 20, 20),
               plot=False):
-    # birch_murnaghan, and murnaghan
+    # other eos options: birch_murnaghan, murnaghan
     # The physical units of V and T are \AA^3 and K, respectively.
     # The unit of eV for Helmholtz and Gibbs energies,
     # J/K/mol for C_V and entropy, GPa for for bulk modulus and pressure are used.
     phonon = get_phonopy(structure)
-    energies, volumes, force_constants = get_data(db_file)
+    energies, volumes, force_constants = get_data(db_file, query={
+        "task_label": {"$regex": "gibbs*"}, "formula_pretty": structure.composition.reduced_formula})
 
     temperatures = []
     free_energy = []
@@ -101,15 +107,17 @@ def get_gibbs(structure, db_file, eos="vinet", t_step=10, t_min=0, t_max=1000, m
             warnings.simplefilter("ignore")
             import matplotlib.pyplot as plt
             plt.plot(T, G)
-            plt.show()
             plt.savefig("Gibbs.pdf")
+            plt.show()
             #phonopy_qha.plot_qha(thin_number=10, volume_temp_exp=None).show()
     else:
         return T, G
 
 
 if __name__ == "__main__":
+    import os
     from pymatgen.util.testing import PymatgenTest
 
     structure = PymatgenTest.get_structure("Si")
-    get_gibbs(structure, "db.json", plot=True)
+    db_path = os.path.expanduser("~/db.json")
+    get_gibbs(structure, db_path, plot=True)
