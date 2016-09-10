@@ -298,12 +298,10 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
         vasp_input_set (VaspInputSet): VASP input set.
 
     Optional params:
-        transformation_params (list): list of dicts where each dict specifies
-            the input parameters to instantiate the transformation class in
-            the transformations list.
+        transformation_params (list): list of dicts where each dict specifies the input parameters
+            to instantiate the transformation class in the transformations list.
         override_default_vasp_params (dict): additional user input settings.
-        prev_calc_dir: path to previous calculation if using structure 
-            from another calculation
+        prev_calc_dir: path to previous calculation if using structure from another calculation.
     """
 
     required_params = ["structure", "transformations", "vasp_input_set"]
@@ -334,7 +332,7 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
         vis_orig = self["vasp_input_set"]
         vis_dict = vis_orig.as_dict()
         vis_dict["structure"] = final_structure.as_dict()
-        vis_dict.update(self.get("override_default_vasp_params", {}))
+        vis_dict.update(self.get("override_default_vasp_params", {}) or {})
         vis = vis_orig.__class__.from_dict(vis_dict)
         vis.write_input(".")
 
