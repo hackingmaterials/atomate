@@ -349,7 +349,7 @@ class GibbsFreeEnergyTask(FireTaskBase):
             sys.exit()
 
         tag = self["tag"]
-        db_file = self["db_file"]
+        db_file = env_chk(self.get("db_file"), fw_spec)
         t_step = self.get("t_step", 10)
         t_min = self.get("t_min", 0)
         t_max = self.get("t_max", 1000)
