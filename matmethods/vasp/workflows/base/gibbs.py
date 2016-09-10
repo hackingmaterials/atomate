@@ -48,8 +48,8 @@ def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", de
                                     vasp_cmd=vasp_cmd, db_file=db_file))
 
     fws.append(Firework(
-        GibbsFreeEnergyTask(tag, db_file, t_step=t_step, t_min=t_min, t_max=t_max, mesh=mesh, eos=eos),
-        name="Gibbs Free Energy", parents=fws[1:]))
+        GibbsFreeEnergyTask(tag=tag, db_file=db_file, t_step=t_step, t_min=t_min, t_max=t_max,
+                            mesh=mesh, eos=eos), name="Gibbs Free Energy", parents=fws[1:]))
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, "gibbs free energy")
     return Workflow(fws, name=wfname)
