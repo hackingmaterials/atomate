@@ -69,7 +69,6 @@ class WriteVaspFromIOSet(FireTaskBase):
                                  self["vasp_input_set"])
             vis = vis_cls(self["structure"],
                           **self.get("vasp_input_params", {}))
-
         vis.write_input(".")
 
 
@@ -334,7 +333,7 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
         vis_orig = self["vasp_input_set"]
         vis_dict = vis_orig.as_dict()
         vis_dict["structure"] = final_structure.as_dict()
-        vis_dict.update(self.get("override_default_vasp_params", {}))
+        vis_dict.update(self.get("override_default_vasp_params", {}) or {})
         vis = vis_orig.__class__.from_dict(vis_dict)
         vis.write_input(".")
 

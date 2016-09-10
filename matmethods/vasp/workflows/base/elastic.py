@@ -27,7 +27,7 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
                             norm_deformations=[-0.01, -0.005, 0.005, 0.01],
                             shear_deformations=[-0.06, -0.03, 0.03, 0.06],
                             additional_deformations = [],
-                            db_file=None, reciprocal_density=None,
+                            db_file=None, user_kpoints_settings=None,
                             add_analysis_task=True):
     """
     Returns a workflow to calculate elastic constants.
@@ -50,29 +50,27 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp",
         vasp_input_set (DictVaspInputSet): vasp input set.
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
-        reciprocal_density (int): k-points per reciprocal atom by volume
+        user_kpoints_settings (int): user_kpoints_settings for standard input settings
         add_analysis_task (bool): boolean indicating whether to add analysis
 
     Returns:
         Workflow
     """
+    
     vis_relax = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
-
-    vis_static = MPStaticSet(structure, force_gamma=True)
-    vis_static.incar["ISIF"] = 2
-    vis_static.incar["ISTART"] = 1
-    for key in ["MAGMOM", "LDAUU", "LDAUJ", "LDAUL"]:
-        vis_static.incar.pop(key, None)
-
-    if reciprocal_density:
-        vis_relax.config_dict["KPOINTS"].update({"reciprocal_density": reciprocal_density})
-        vis_relax = vis_relax.__class__.from_dict(vis_relax.as_dict())
-        vis_static.reciprocal_density = reciprocal_density
+    if user_kpoints_settings:
+        v = vis_relax.as_dict()
+        v.update({"user_kpoints_settings":user_kpoints_settings})
+        vis_relax = vis_relax.__class__.from_dict(v)
+    vis_static = MPStaticSet(structure, force_gamma=True,
+                             user_kpoints_settings=user_kpoints_settings,
+                             user_incar_settings={"ISIF":2, "ISTART":1})
 
     fws=[]
 
     # Structure optimization firework
-    fws.append(OptimizeFW(structure=structure, vasp_input_set=vis_relax, vasp_cmd=vasp_cmd, db_file=db_file))
+    fws.append(OptimizeFW(structure=structure, vasp_input_set=vis_relax,
+                          vasp_cmd=vasp_cmd, db_file=db_file))
 
     # Generate deformations
     deformations = []
