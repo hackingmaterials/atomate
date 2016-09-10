@@ -7,7 +7,6 @@ from argparse import ArgumentParser
 
 import numpy as np
 
-import matplotlib.pyplot as plt
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -77,6 +76,8 @@ def plot_spectrum(freq, intensities, lorentzian_width):
        intensities (numpy array): intensities computed from the raman tensors
        lorentzian_width (float): width of the lorentzian delta function
     """
+    import matplotlib.pyplot as plt
+    
     # x-axis: wavenumber
     # multiply the wavenumbers by 2*pi    
     wavenumbers = np.linspace(0, np.max(freq)+10, 100)*2*np.pi
