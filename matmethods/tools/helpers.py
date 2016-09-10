@@ -2,7 +2,6 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-import matplotlib.pyplot as plt
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -29,6 +28,8 @@ def plot_wf(wf, depth_factor=1.0, breadth_factor=2.0, labels_on=True, numerical_
         markerfacecolor (str): marker face color.
         fontsize (int): font size for the node label.
     """
+    import matplotlib.pyplot as plt
+    
     keys = sorted(wf.links.keys(), reverse=True)
 
     # set (x,y) coordinates for each node in the workflow links
