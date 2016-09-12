@@ -5,8 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 from fireworks import Workflow, FileWriteTask
 from fireworks.core.firework import Tracker
 from fireworks.utilities.fw_utilities import get_slug
-
-from matmethods.utils.utils import get_meta_from_structure
+from matmethods.utils.utils import get_meta_from_structure, get_fws_and_tasks
 from matmethods.vasp.firetasks.glue_tasks import CheckStability
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspDirect, RunVaspFake
 from matmethods.vasp.firetasks.write_inputs import ModifyIncar
@@ -14,27 +13,6 @@ from matmethods.vasp.vasp_config import ADD_NAMEFILE, SCRATCH_DIR, ADD_MODIFY_IN
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
-
-
-def get_fws_and_tasks(workflow, fw_name_constraint=None, task_name_constraint=None):
-    """
-    Helper method: given a workflow, returns back the fw_ids and task_ids that match constraints
-
-    Args:
-        workflow (Workflow): Workflow
-        fw_name_constraint (str): a constraint on the FW name
-        task_name_constraint (str): a constraint on the task name
-
-    Returns:
-       a list of tuples of the form (fw_id, task_id) of the RunVasp-type tasks
-    """
-    fws_and_tasks = []
-    for idx_fw, fw in enumerate(workflow.fws):
-        if fw_name_constraint is None or fw_name_constraint in fw.name:
-            for idx_t, t in enumerate(fw.tasks):
-                if task_name_constraint is None or task_name_constraint in str(t):
-                    fws_and_tasks.append((idx_fw, idx_t))
-    return fws_and_tasks
 
 
 def add_priority(original_wf, root_priority, child_priority=None):
@@ -148,6 +126,7 @@ def add_namefile(original_wf, use_slug=True):
             files_to_write=[{"filename": fname, "contents": ""}]).to_dict())
     return Workflow.from_dict(wf_dict)
 
+
 def add_trackers(original_wf, tracked_files=None, nlines=25):
     """
     Every FireWork that runs VASP also tracks the OUTCAR, OSZICAR, etc using FWS Trackers.
@@ -167,6 +146,7 @@ def add_trackers(original_wf, tracked_files=None, nlines=25):
         else:
             wf_dict["fws"][idx_fw]["spec"]["_trackers"] = trackers
     return Workflow.from_dict(wf_dict)
+
 
 def add_modify_incar(original_wf, modify_incar_params=None, fw_name_constraint=None):
     """

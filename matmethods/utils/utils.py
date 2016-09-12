@@ -115,3 +115,24 @@ def get_meta_from_structure(structure):
             'is_ordered': structure.is_ordered,
             'is_valid': structure.is_valid()}
     return meta
+
+
+def get_fws_and_tasks(workflow, fw_name_constraint=None, task_name_constraint=None):
+    """
+    Helper method: given a workflow, returns back the fw_ids and task_ids that match constraints
+
+    Args:
+        workflow (Workflow): Workflow
+        fw_name_constraint (str): a constraint on the FW name
+        task_name_constraint (str): a constraint on the task name
+
+    Returns:
+       a list of tuples of the form (fw_id, task_id).
+    """
+    fws_and_tasks = []
+    for idx_fw, fw in enumerate(workflow.fws):
+        if fw_name_constraint is None or fw_name_constraint in fw.name:
+            for idx_t, t in enumerate(fw.tasks):
+                if task_name_constraint is None or task_name_constraint in str(t):
+                    fws_and_tasks.append((idx_fw, idx_t))
+    return fws_and_tasks
