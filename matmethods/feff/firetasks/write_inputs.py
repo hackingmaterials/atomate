@@ -20,8 +20,16 @@ def load_class(mod, name):
 @explicit_serialize
 class WriteFeffFromIOSet(FireTaskBase):
     """
-    """
+    Generate FEFF input(feff.inp) from the given inputset object or inputset name
 
+    Required_params:
+        absorbing_atom (str): absorbing atom symbol
+        structure (Structure): input structure
+
+    Optional_params:
+        radius (float): cluster radius in angstroms
+        other_params (dict)
+    """
     required_params = ["absorbing_atom", "structure", "feff_input_set"]
     optional_params = ["radius", "other_params"]
 

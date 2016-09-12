@@ -22,10 +22,10 @@ logger = get_logger(__name__)
 class RunFeffDirect(FireTaskBase):
     """
     Run FEFF directly (no custodian).
+    Supports env_chk.
 
     Required params:
         feff_cmd (str): the name of the full executable for running FEFF.
-        Supports env_chk.
     """
 
     required_params = ["feff_cmd"]

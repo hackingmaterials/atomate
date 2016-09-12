@@ -22,17 +22,18 @@ logger = get_logger(__name__)
 def get_wf_xanes(absorbing_atom, structure, radius=10.0, feff_input_set=None, feff_cmd="feff",
                  db_file=None):
     """
+    Returns FEFF XANES spectroscopy workflow.
 
     Args:
-        absorbing_atom:
-        structure:
-        radius:
-        feff_input_set:
-        feff_cmd:
-        db_file:
+        absorbing_atom (str): absorbing atom symbol
+        structure (Structure): input structure
+        radius (float): cluster radius in angstroms
+        feff_input_set (FeffDictSet): the input set for the FEFF run
+        feff_cmd (str): path to the feff binary
+        db_file (str):  path to the db file.
 
     Returns:
-
+        Workflow
     """
     fis = feff_input_set or MPXANESSet(absorbing_atom, structure, radius)
     fws = [XANESFW(absorbing_atom, structure, radius=radius, feff_input_set=fis, feff_cmd=feff_cmd,

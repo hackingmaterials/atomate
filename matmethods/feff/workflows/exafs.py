@@ -3,7 +3,7 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
-This module defines FEFF EXAFS spectroscopy workflows.
+This module defines FEFF EXAFS spectroscopy workflow.
 """
 
 from pymatgen.io.feff.sets import MPEXAFSSet
@@ -22,22 +22,24 @@ logger = get_logger(__name__)
 def get_wf_exafs(absorbing_atom, structure, radius=10.0, feff_input_set=None, feff_cmd="feff",
                  db_file=None, user_tag_settings=None):
     """
+    Returns FEFF EXAFS spectroscopy workflow.
+
 
     Args:
-        absorbing_atom:
-        structure:
-        radius:
-        feff_input_set:
-        feff_cmd:
-        db_file:
+        absorbing_atom (str): absorbing atom symbol
+        structure (Structure): input structure
+        radius (float): cluster radius in angstroms
+        feff_input_set (FeffDictSet): the input set for the FEFF run
+        feff_cmd (str): path to the feff binary
+        db_file (str):  path to the db file.
 
     Returns:
-
+        Workflow
     """
     fis = feff_input_set or MPEXAFSSet(absorbing_atom, structure, radius,
                                        user_tag_settings=user_tag_settings or {})
     fws = [EXAFSFW(absorbing_atom, structure, radius=radius, feff_input_set=fis, feff_cmd=feff_cmd,
                    db_file=db_file)]
-    print(fis.tags)
+
     wfname = "{}:{}".format(structure.composition.reduced_formula, "EXAFS spectroscopy")
     return Workflow(fws, name=wfname)
