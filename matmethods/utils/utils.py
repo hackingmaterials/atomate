@@ -235,5 +235,5 @@ def get_wf_from_spec_dict(structure, wfspec):
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, wfspec["name"]) if \
         wfspec.get("name") else structure.composition.reduced_formula
+
     return Workflow(fws, name=wfname)
->>>>>>> minor refactor: move utility funcs to utils.utils module
