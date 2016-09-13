@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 
 
 def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", deformations=None,
-                             db_file=None, reciprocal_density=None, t_step=10, t_min=0, t_max=1000,
+                             db_file=None, user_kpoints_settings=None, t_step=10, t_min=0, t_max=1000,
                              mesh=(20, 20, 20), eos="vinet"):
     """
     Returns quasi-harmonic gibbs free energy workflow.
@@ -33,7 +33,7 @@ def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", de
         vasp_cmd (str): vasp command to run.
         deformations (list): list of deformation matrices(list of lists).
         db_file (str): path to the db file.
-        reciprocal_density (int)
+        user_kpoints_settings (int)
         t_step (float): temperature step (in K)
         t_min (float): min temperature (in K)
         t_max (float): max temperature (in K)
@@ -53,7 +53,8 @@ def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", de
 
     wf_gibbs = get_wf_deformations(structure, deformations, name="gibbs deformation",
                                    vasp_input_set=vasp_input_set, lepsilon=True, vasp_cmd=vasp_cmd,
-                                   db_file=db_file, reciprocal_density=reciprocal_density, tag=tag)
+                                   db_file=db_file, user_kpoints_settings=user_kpoints_settings,
+                                   tag=tag)
 
     fw_analysis = Firework(GibbsFreeEnergyTask(tag=tag, db_file=db_file, t_step=t_step, t_min=t_min,
                                                t_max=t_max, mesh=mesh, eos=eos),

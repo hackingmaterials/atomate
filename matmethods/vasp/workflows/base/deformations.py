@@ -22,7 +22,7 @@ logger = get_logger(__name__)
 
 
 def get_wf_deformations(structure, deformations, name="elastic deformation", vasp_input_set=None,
-                        lepsilon=False, vasp_cmd="vasp", db_file=None, reciprocal_density=None,
+                        lepsilon=False, vasp_cmd="vasp", db_file=None, user_kpoints_settings=None,
                         pass_stress_strain=False, tag=""):
     """
     Returns a deforamtion workflow.
@@ -43,7 +43,7 @@ def get_wf_deformations(structure, deformations, name="elastic deformation", vas
         lepsilon (bool): whether or not compute static dielectric constant/normal modes
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
-        reciprocal_density (int): k-points per reciprocal atom by volume.
+        user_kpoints_settings (int): k-points per reciprocal atom by volume.
         pass_stress_strain (bool): if True, stress and strain will be parsed and passed on.
         tag (str): some unique string that will be appended to the names of the fireworks so that
             the data from those tagged fireworks can be queried later during the analysis.
@@ -51,18 +51,17 @@ def get_wf_deformations(structure, deformations, name="elastic deformation", vas
     Returns:
         Workflow
     """
-    vis_relax = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
 
-    vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon)
-    vis_static.incar["ISIF"] = 2
-    vis_static.incar["ISTART"] = 1
+    vis_relax = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
+    if user_kpoints_settings:
+        v = vis_relax.as_dict()
+        v.update({"user_kpoints_settings": user_kpoints_settings})
+        vis_relax = vis_relax.__class__.from_dict(v)
+    vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
+                             user_kpoints_settings=user_kpoints_settings,
+                             user_incar_settings={"ISIF": 2, "ISTART": 1})
     for key in ["MAGMOM", "LDAUU", "LDAUJ", "LDAUL"]:
         vis_static.incar.pop(key, None)
-
-    if reciprocal_density:
-        vis_relax.config_dict["KPOINTS"].update({"reciprocal_density": reciprocal_density})
-        vis_relax = vis_relax.__class__.from_dict(vis_relax.as_dict())
-        vis_static.reciprocal_density = reciprocal_density
 
     fws = []
 

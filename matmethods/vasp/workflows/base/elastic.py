@@ -53,15 +53,6 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
 
     # Generate deformations
     deformations = []
-    
-    vis_relax = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
-    if user_kpoints_settings:
-        v = vis_relax.as_dict()
-        v.update({"user_kpoints_settings":user_kpoints_settings})
-        vis_relax = vis_relax.__class__.from_dict(v)
-    vis_static = MPStaticSet(structure, force_gamma=True,
-                             user_kpoints_settings=user_kpoints_settings,
-                             user_incar_settings={"ISIF":2, "ISTART":1})
 
     if norm_deformations:
         deformations.extend([Deformation.from_index_amount(ind, amount)
@@ -77,7 +68,7 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
 
     wf_elastic = get_wf_deformations(structure, deformations, vasp_input_set=vasp_input_set,
                                      lepsilon=False, vasp_cmd=vasp_cmd, db_file=db_file,
-                                     reciprocal_density=reciprocal_density, pass_stress_strain=True)
+                                     user_kpoints_settings=user_kpoints_settings, pass_stress_strain=True)
 
     if add_analysis_task:
         fw_analysis = Firework(ElasticTensorToDbTask(structure=structure, db_file=db_file),
