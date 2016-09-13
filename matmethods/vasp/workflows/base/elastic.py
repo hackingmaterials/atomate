@@ -44,7 +44,7 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
         vasp_input_set (DictVaspInputSet): vasp input set.
         vasp_cmd (str): command to run.
         db_file (str): path to file containing the database credentials.
-        user_kpoints_settings (int): user_kpoints_settings for standard input settings
+        user_kpoints_settings (dict): example: {"grid_density": 7000}
         add_analysis_task (bool): boolean indicating whether to add analysis
 
     Returns:

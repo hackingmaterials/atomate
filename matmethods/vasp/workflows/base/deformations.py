@@ -43,7 +43,7 @@ def get_wf_deformations(structure, deformations, name="elastic deformation", vas
         lepsilon (bool): whether or not compute static dielectric constant/normal modes
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
-        user_kpoints_settings (int): k-points per reciprocal atom by volume.
+        user_kpoints_settings (dict): example: {"grid_density": 7000}
         pass_stress_strain (bool): if True, stress and strain will be parsed and passed on.
         tag (str): some unique string that will be appended to the names of the fireworks so that
             the data from those tagged fireworks can be queried later during the analysis.

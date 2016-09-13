@@ -33,7 +33,7 @@ def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", de
         vasp_cmd (str): vasp command to run.
         deformations (list): list of deformation matrices(list of lists).
         db_file (str): path to the db file.
-        user_kpoints_settings (int)
+        user_kpoints_settings (dict): example: {"grid_density": 7000}
         t_step (float): temperature step (in K)
         t_min (float): min temperature (in K)
         t_max (float): max temperature (in K)
