@@ -181,12 +181,13 @@ def wf_elastic_constant(structure, c=None):
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
-    reciprocal_density = c.get("reciprocal_density", 600)
+    user_kpoints_settings = c.get("user_kpoints_settings", 
+                                  {"grid_density":7000})
 
     wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd,
                                  norm_deformations=[-0.01, -0.005, 0.005, 0.01],
                                  shear_deformations=[-0.06, -0.03, 0.03, 0.06],
-                                 db_file=db_file, reciprocal_density=reciprocal_density)
+                                 db_file=db_file, user_kpoints_settings=user_kpoints_settings)
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update":
                                                    {"ENCUT": 700, "EDIFF": 1e-6}})
