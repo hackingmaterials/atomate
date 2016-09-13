@@ -10,11 +10,9 @@ from datetime import datetime
 
 from fireworks import Firework, Workflow
 
-from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
-
-from matmethods.utils.utils import get_logger
-from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW
+from matmethods.utils.utils import get_logger, append_fw_wf
 from matmethods.vasp.firetasks.parse_outputs import GibbsFreeEnergyTask
+from matmethods.vasp.workflows.base.deformations import get_wf_deformations
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -53,26 +51,16 @@ def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", de
 
     tag = datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')
 
-    vis_relax = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
-    vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=True)
+    wf_gibbs = get_wf_deformations(structure, deformations, name="gibbs deformation",
+                                   vasp_input_set=vasp_input_set, lepsilon=True, vasp_cmd=vasp_cmd,
+                                   db_file=db_file, reciprocal_density=reciprocal_density, tag=tag)
 
-    if reciprocal_density:
-        vis_static.reciprocal_density = reciprocal_density
+    fw_analysis = Firework(GibbsFreeEnergyTask(tag=tag, db_file=db_file, t_step=t_step, t_min=t_min,
+                                               t_max=t_max, mesh=mesh, eos=eos),
+                           name="Gibbs Free Energy")
 
-    fws = [OptimizeFW(structure=structure, vasp_input_set=vis_relax, vasp_cmd=vasp_cmd,
-                      db_file=db_file, name="{} structure optimization".format(tag))]
+    append_fw_wf(wf_gibbs, fw_analysis)
 
-    if deformations:
-        for deform in deformations:
-            fws.append(TransmuterFW(name="{} gibbs deformation".format(tag), structure=structure,
-                                    transformations=['DeformStructureTransformation'],
-                                    transformation_params=[{"deformation": deform}],
-                                    vasp_input_set=vis_static, copy_vasp_outputs=True, parents=fws[0],
-                                    vasp_cmd=vasp_cmd, db_file=db_file))
+    wf_gibbs.name = "{}:{}".format(structure.composition.reduced_formula, "gibbs free energy")
 
-    fws.append(Firework(
-        GibbsFreeEnergyTask(tag=tag, db_file=db_file, t_step=t_step, t_min=t_min, t_max=t_max,
-                            mesh=mesh, eos=eos), name="Gibbs Free Energy", parents=fws[1:]))
-
-    wfname = "{}:{}".format(structure.composition.reduced_formula, "gibbs free energy")
-    return Workflow(fws, name=wfname)
+    return wf_gibbs
