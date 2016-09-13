@@ -24,7 +24,7 @@ logger = get_logger(__name__)
 
 def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", deformations=None,
                              db_file=None, user_kpoints_settings=None, t_step=10, t_min=0, t_max=1000,
-                             mesh=(20, 20, 20), eos="vinet"):
+                             mesh=(20, 20, 20), eos="vinet", qha_type="debye_model"):
     """
     Returns quasi-harmonic gibbs free energy workflow.
     Note: phonopy package is required for the final analysis step.
@@ -42,6 +42,8 @@ def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", de
         mesh (list/tuple): reciprocal space density
         eos (str): equation of state used for fitting the energies and the volumes.
             supported equation of states: vinet, murnaghan, birch_murnaghan
+        qha_type(str): quasi-harmonic approximation type: "debye_model" or "phonopy",
+            default is "debye_model"
 
     Returns:
         Workflow
@@ -60,7 +62,7 @@ def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", de
                                    tag=tag)
 
     fw_analysis = Firework(GibbsFreeEnergyTask(tag=tag, db_file=db_file, t_step=t_step, t_min=t_min,
-                                               t_max=t_max, mesh=mesh, eos=eos),
+                                               t_max=t_max, mesh=mesh, eos=eos, qha_type=qha_type),
                            name="Gibbs Free Energy")
 
     append_fw_wf(wf_gibbs, fw_analysis)
