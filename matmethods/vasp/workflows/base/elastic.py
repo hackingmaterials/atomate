@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 
 def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", norm_deformations=None,
                             shear_deformations=None, additional_deformations=None, db_file=None,
-                            reciprocal_density=None, add_analysis_task=True):
+                            user_kpoints_settings=None, add_analysis_task=True):
     """
     Returns a workflow to calculate elastic constants.
 
@@ -44,7 +44,7 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
         vasp_input_set (DictVaspInputSet): vasp input set.
         vasp_cmd (str): command to run.
         db_file (str): path to file containing the database credentials.
-        reciprocal_density (int): k-points per reciprocal atom by volume
+        user_kpoints_settings (int): user_kpoints_settings for standard input settings
         add_analysis_task (bool): boolean indicating whether to add analysis
 
     Returns:
@@ -53,6 +53,15 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
 
     # Generate deformations
     deformations = []
+    
+    vis_relax = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
+    if user_kpoints_settings:
+        v = vis_relax.as_dict()
+        v.update({"user_kpoints_settings":user_kpoints_settings})
+        vis_relax = vis_relax.__class__.from_dict(v)
+    vis_static = MPStaticSet(structure, force_gamma=True,
+                             user_kpoints_settings=user_kpoints_settings,
+                             user_incar_settings={"ISIF":2, "ISTART":1})
 
     if norm_deformations:
         deformations.extend([Deformation.from_index_amount(ind, amount)
