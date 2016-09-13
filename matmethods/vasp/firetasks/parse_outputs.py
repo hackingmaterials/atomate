@@ -428,3 +428,56 @@ class GibbsFreeEnergyTask(FireTaskBase):
         with open("gibbs.json", "w") as f:
             f.write(json.dumps(gibbs_summary_dict, default=DATETIME_HANDLER))
         logger.info("GIBBS FREE ENERGY CALCULATION COMPLETE")
+
+
+@explicit_serialize
+class FitEquationOfStateTask(FireTaskBase):
+    """
+    Retrieve the energy and volume data and fit it to the given equation of state.
+
+    required_params:
+        tag (str): unique tag appended to the task labels in other fireworks so that all the
+            required data can be queried directly from the database.
+        db_file (str): path to the db file
+        eos (str): equation of state used for fitting the energies and the volumes.
+            supported options: "quadratic", "murnaghan", "birch", "birch_murnaghan",
+            "pourier_tarantola", "vinet", "deltafactor"
+    """
+
+    required_params = ["tag", "db_file", "eos"]
+
+    def run_task(self, fw_spec):
+
+        from pymatgen.analysis.eos import EOS
+
+        tag = self["tag"]
+        db_file = env_chk(self.get("db_file"), fw_spec)
+        summary_dict = {}
+
+        mmdb = MMDb.from_db_file(db_file, admin=True)
+        # get the optimized structure
+        d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
+        structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+        summary_dict["structure"] = structure.as_dict()
+
+        # get the data(energy, volume, force constant) from the deformation runs
+        docs = mmdb.collection.find({"task_label": {"$regex": "{} bulk_modulus*".format(tag)},
+                                     "formula_pretty": structure.composition.reduced_formula})
+        energies = []
+        volumes = []
+        for d in docs:
+            s = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+            energies.append(d["calcs_reversed"][-1]["output"]['energy'])
+            volumes.append(s.volume)
+        summary_dict["energies"] = energies
+        summary_dict["volumes"] = volumes
+
+        # fit the equation of state
+        eos = EOS(self["eos"])
+        eos_fit = eos.fit(volumes, energies)
+        summary_dict["results"] = dict(eos_fit.results)
+
+        with open("bulk_modulus.json", "w") as f:
+            f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
+
+        logger.info("BULK MODULUS CALCULATION COMPLETE")
