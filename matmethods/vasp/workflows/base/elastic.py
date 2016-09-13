@@ -2,19 +2,18 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from matmethods.vasp.workflows.base.deformations import get_wf_deformations
-
 """
 This module defines the elastic workflow
 """
 
+from pymatgen.analysis.elasticity.strain import Deformation
+from pymatgen import Structure
+
 from fireworks import Firework, Workflow
 
 from matmethods.utils.utils import get_logger, append_fw_wf
+from matmethods.vasp.workflows.base.deformations import get_wf_deformations
 from matmethods.vasp.firetasks.parse_outputs import ElasticTensorToDbTask
-
-from pymatgen.analysis.elasticity.strain import Deformation
-from pymatgen import Structure
 
 __author__ = 'Shyam Dwaraknath, Joseph Montoya'
 __email__ = 'shyamd@lbl.gov, montoyjh@lbl.gov'
@@ -38,13 +37,12 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
     last Firework : Analyze Stress/Strain data and fit the elastic tensor
 
     Args:
-        structure (Structure): input structure to be optimized and run
-        norm_deformations (list): list of values to for normal deformations
-        shear_deformations (list): list of values to for shear deformations
-        additional_deformations (list of 3x3 array-likes): list of additional
-            deformations to include
+        structure (Structure): input structure to be optimized and run.
+        norm_deformations (list): list of values to for normal deformations.
+        shear_deformations (list): list of values to for shear deformations.
+        additional_deformations (list of 3x3 array-likes): list of additional deformations.
         vasp_input_set (DictVaspInputSet): vasp input set.
-        vasp_cmd (str): command to run
+        vasp_cmd (str): command to run.
         db_file (str): path to file containing the database credentials.
         reciprocal_density (int): k-points per reciprocal atom by volume
         add_analysis_task (bool): boolean indicating whether to add analysis
@@ -77,8 +75,7 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
                                name="Analyze Elastic Data", spec={"_allow_fizzled_parents": True})
         append_fw_wf(wf_elastic, fw_analysis)
 
-    wfname = "{}:{}".format(structure.composition.reduced_formula, "elastic constants")
-    wf_elastic.name = wfname
+    wf_elastic.name = "{}:{}".format(structure.composition.reduced_formula, "elastic constants")
 
     return wf_elastic
 

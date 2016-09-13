@@ -2,6 +2,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+"""
+This module defines the deformation workflow: structure optimization followed by transmuter fireworks.
+"""
+
 from fireworks import Workflow
 
 from matmethods.utils.utils import get_logger
@@ -34,11 +38,15 @@ def get_wf_deformations(structure, deformations, name="elastic deformation", vas
     Args:
         structure (Structure): input structure to be optimized and run
         deformations (list of 3x3 array-likes): list of deformations
+        name (str): some appropriate name for the transmuter fireworks.
         vasp_input_set (DictVaspInputSet): vasp input set.
         lepsilon (bool): whether or not compute static dielectric constant/normal modes
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
-        reciprocal_density (int): k-points per reciprocal atom by volume
+        reciprocal_density (int): k-points per reciprocal atom by volume.
+        pass_stress_strain (bool): if True, stress and strain will be parsed and passed on.
+        tag (str): some unique string that will be appended to the names of the fireworks so that
+            the data from those tagged fireworks can be queried later during the analysis.
 
     Returns:
         Workflow
