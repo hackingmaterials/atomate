@@ -5,6 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 from fireworks import Workflow, FileWriteTask
 from fireworks.core.firework import Tracker
 from fireworks.utilities.fw_utilities import get_slug
+
 from matmethods.utils.utils import get_meta_from_structure, get_fws_and_tasks
 from matmethods.vasp.firetasks.glue_tasks import CheckStability
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspDirect, RunVaspFake
