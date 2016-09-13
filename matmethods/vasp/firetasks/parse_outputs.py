@@ -452,7 +452,7 @@ class FitEquationOfStateTask(FireTaskBase):
 
         tag = self["tag"]
         db_file = env_chk(self.get("db_file"), fw_spec)
-        summary_dict = {}
+        summary_dict = {"eos": self["eos"]}
 
         mmdb = MMDb.from_db_file(db_file, admin=True)
         # get the optimized structure
