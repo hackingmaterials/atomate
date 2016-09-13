@@ -10,6 +10,8 @@ from datetime import datetime
 
 from fireworks import Firework, Workflow
 
+from pymatgen.analysis.elasticity.strain import Deformation
+
 from matmethods.utils.utils import get_logger, append_fw_wf
 from matmethods.vasp.firetasks.parse_outputs import GibbsFreeEnergyTask
 from matmethods.vasp.workflows.base.deformations import get_wf_deformations
@@ -51,6 +53,7 @@ def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", de
 
     tag = datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')
 
+    deformations = [Deformation(defo_mat) for defo_mat in deformations]
     wf_gibbs = get_wf_deformations(structure, deformations, name="gibbs deformation",
                                    vasp_input_set=vasp_input_set, lepsilon=True, vasp_cmd=vasp_cmd,
                                    db_file=db_file, user_kpoints_settings=user_kpoints_settings,
