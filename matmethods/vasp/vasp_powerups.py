@@ -6,7 +6,7 @@ from fireworks import Workflow, FileWriteTask
 from fireworks.core.firework import Tracker
 from fireworks.utilities.fw_utilities import get_slug
 
-from matmethods.utils.utils import get_meta_from_structure, get_fws_and_tasks
+from matmethods.utils.utils import get_meta_from_structure, get_fws_and_tasks, update_wf
 from matmethods.vasp.firetasks.glue_tasks import CheckStability
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspDirect, RunVaspFake
 from matmethods.vasp.firetasks.write_inputs import ModifyIncar
@@ -318,21 +318,3 @@ def add_common_powerups(wf, c):
         wf = add_modify_incar(wf)
 
     return wf
-
-
-def update_wf(wf):
-    """
-    Simple helper to ensure that the powerup updates to the workflow dict has taken effect.
-    This is needed  because all the powerups that modify workflow do so on the dict representation
-    of the workflow(or mix thereof eg: add tasks as dict to the fireworks spec etc) and for
-    inspection the powerups rely on a mix of object and dict representations of workflow object(
-    along with the constituent fireworks and firetasks) that are not in one to one correspondence
-    with the updated dict representation.
-
-    Args:
-        wf (Workflow)
-
-    Returns:
-        Workflow
-    """
-    return Workflow.from_dict(wf.as_dict())

@@ -69,7 +69,6 @@ class WriteVaspFromIOSet(FireTaskBase):
                                  self["vasp_input_set"])
             vis = vis_cls(self["structure"],
                           **self.get("vasp_input_params", {}))
-
         vis.write_input(".")
 
 

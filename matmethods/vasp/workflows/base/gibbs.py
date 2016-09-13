@@ -10,11 +10,9 @@ from datetime import datetime
 
 from fireworks import Firework, Workflow
 
-from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
-
-from matmethods.utils.utils import get_logger
-from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW
+from matmethods.utils.utils import get_logger, append_fw_wf
 from matmethods.vasp.firetasks.parse_outputs import GibbsFreeEnergyTask
+from matmethods.vasp.workflows.base.deformations import get_wf_deformations
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -23,7 +21,7 @@ logger = get_logger(__name__)
 
 
 def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", deformations=None,
-                             db_file=None, reciprocal_density=None, t_step=10, t_min=0, t_max=1000,
+                             db_file=None, user_kpoints_settings=None, t_step=10, t_min=0, t_max=1000,
                              mesh=(20, 20, 20), eos="vinet"):
     """
     Returns quasi-harmonic gibbs free energy workflow.
@@ -35,7 +33,7 @@ def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", de
         vasp_cmd (str): vasp command to run.
         deformations (list): list of deformation matrices(list of lists).
         db_file (str): path to the db file.
-        reciprocal_density (int)
+        user_kpoints_settings (dict): example: {"grid_density": 7000}
         t_step (float): temperature step (in K)
         t_min (float): min temperature (in K)
         t_max (float): max temperature (in K)
@@ -53,26 +51,17 @@ def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", de
 
     tag = datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')
 
-    vis_relax = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
-    vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=True)
+    wf_gibbs = get_wf_deformations(structure, deformations, name="gibbs deformation",
+                                   vasp_input_set=vasp_input_set, lepsilon=True, vasp_cmd=vasp_cmd,
+                                   db_file=db_file, user_kpoints_settings=user_kpoints_settings,
+                                   tag=tag)
 
-    if reciprocal_density:
-        vis_static.reciprocal_density = reciprocal_density
+    fw_analysis = Firework(GibbsFreeEnergyTask(tag=tag, db_file=db_file, t_step=t_step, t_min=t_min,
+                                               t_max=t_max, mesh=mesh, eos=eos),
+                           name="Gibbs Free Energy")
 
-    fws = [OptimizeFW(structure=structure, vasp_input_set=vis_relax, vasp_cmd=vasp_cmd,
-                      db_file=db_file, name="{} structure optimization".format(tag))]
+    append_fw_wf(wf_gibbs, fw_analysis)
 
-    if deformations:
-        for deform in deformations:
-            fws.append(TransmuterFW(name="{} gibbs deformation".format(tag), structure=structure,
-                                    transformations=['DeformStructureTransformation'],
-                                    transformation_params=[{"deformation": deform}],
-                                    vasp_input_set=vis_static, copy_vasp_outputs=True, parents=fws[0],
-                                    vasp_cmd=vasp_cmd, db_file=db_file))
+    wf_gibbs.name = "{}:{}".format(structure.composition.reduced_formula, "gibbs free energy")
 
-    fws.append(Firework(
-        GibbsFreeEnergyTask(tag=tag, db_file=db_file, t_step=t_step, t_min=t_min, t_max=t_max,
-                            mesh=mesh, eos=eos), name="Gibbs Free Energy", parents=fws[1:]))
-
-    wfname = "{}:{}".format(structure.composition.reduced_formula, "gibbs free energy")
-    return Workflow(fws, name=wfname)
+    return wf_gibbs
