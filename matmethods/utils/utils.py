@@ -7,7 +7,7 @@ import os
 import sys
 import six
 
-from fireworks import Workflow
+from fireworks import Workflow, Firework
 
 from monty.json import MontyDecoder
 
@@ -236,3 +236,60 @@ def get_wf_from_spec_dict(structure, wfspec):
     wfname = "{}:{}".format(structure.composition.reduced_formula, wfspec["name"]) if \
         wfspec.get("name") else structure.composition.reduced_formula
     return Workflow(fws, name=wfname)
+
+
+def update_wf(wf):
+    """
+    Simple helper to ensure that the powerup updates to the workflow dict has taken effect.
+    This is needed  because all the powerups that modify workflow do so on the dict representation
+    of the workflow(or mix thereof eg: add tasks as dict to the fireworks spec etc) and for
+    inspection the powerups rely on a mix of object and dict representations of workflow object(
+    along with the constituent fireworks and firetasks) that are not in one to one correspondence
+    with the updated dict representation.
+
+    Args:
+        wf (Workflow)
+
+    Returns:
+        Workflow
+    """
+    return Workflow.from_dict(wf.as_dict())
+
+
+def append_fw_wf(orig_wf, fw_wf):
+    """
+    Add the given firework or workflow to the end of the provided workflow. If there are multiple
+    leaf nodes the newly added firework/workflow will depend on all of them.
+
+    Args:
+        orig_wf (Workflow): The original workflow object.
+        fw_wf (Firework/Workflow): The firework or workflow object to be appended to orig_wf.
+    """
+    new_wf = fw_wf
+    if isinstance(fw_wf, Firework):
+        new_wf = Workflow.from_Firework(new_wf)
+    orig_wf.append_wf(new_wf, orig_wf.leaf_fw_ids)
+
+
+def remove_leaf_fws(orig_wf):
+    """
+    Remove the end nodes(last fireworks) from the given workflow.
+
+    Args:
+        orig_wf (Workflow): The original workflow object.
+
+    Returns:
+        Workflow : the new updated workflow.
+    """
+    wf_dict = orig_wf.as_dict()
+    all_parents = []
+    for i, f in enumerate(orig_wf.as_dict()["fws"]):
+        if f["fw_id"] in orig_wf.leaf_fw_ids:
+            parents = orig_wf.links.parent_links[int(f["fw_id"])]
+            all_parents.extend(parents)
+            del wf_dict["links"][str(f["fw_id"])]
+            del wf_dict["fws"][i]
+            for p in parents:
+                wf_dict["links"][str(p)] = []
+    new_wf = Workflow.from_dict(wf_dict)
+    return update_wf(new_wf)
