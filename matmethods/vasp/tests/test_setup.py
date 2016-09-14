@@ -1,11 +1,11 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, \
-    absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
 import unittest
 
+from pymatgen import SETTINGS
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
 from pymatgen.io.vasp.sets import MPRelaxSet
@@ -19,10 +19,9 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 class TestSetup(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if not os.environ.get("VASP_PSP_DIR"):
-            raise unittest.SkipTest(
-                'This system is not set up to run VASP jobs. '
-                'Please set your VASP_PSP_DIR environment variable.')
+        if "VASP_PSP_DIR" not in SETTINGS:
+            raise unittest.SkipTest('This system is not set up to run VASP jobs. '
+                                    'Please set VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
         coords = [[0, 0, 0], [0.75, 0.5, 0.75]]
         lattice = Lattice([[3.8401979337, 0.00, 0.00],

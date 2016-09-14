@@ -20,7 +20,7 @@ if __name__ == "__main__":
         packages=find_packages(),
         package_data={},
         zip_safe=False,
-        install_requires=['FireWorks>=1.3.3', 'pymatgen>=4.2.0',
+        install_requires=['FireWorks>=1.3.6', 'pymatgen>=4.3.0',
                           'custodian>=1.0.1', 'pymatgen-db>=0.5.1',
                           'monty>=0.9.0', 'tqdm>=4.7.4', 'six'],
         extras_require={'rtransfer': ['paramiko>=1.15.0'],

@@ -17,6 +17,7 @@ from fireworks.core.rocket_launcher import rapidfire
 from matmethods.vasp.vasp_powerups import use_fake_vasp
 from matmethods.vasp.workflows.presets.core import wf_raman_spectra
 
+from pymatgen import SETTINGS
 from pymatgen.util.testing import PymatgenTest
 
 __author__ = 'Kiran Mathew'
@@ -33,10 +34,10 @@ VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this c
 class TestRamanWorkflow(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if not os.environ.get("VASP_PSP_DIR"):
-            os.environ["VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "reference_files")
-            print('Note: This system is not set up to run VASP jobs. '
-                'Please set your VASP_PSP_DIR environment variable.')
+        if "VASP_PSP_DIR" not in SETTINGS:
+            SETTINGS["VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "reference_files")
+            print('This system is not set up to run VASP jobs. '
+                  'Please set VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
         cls.struct_si = PymatgenTest.get_structure("Si")
         cls.scratch_dir = os.path.join(module_dir, "scratch")
