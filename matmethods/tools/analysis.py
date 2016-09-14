@@ -10,7 +10,8 @@ __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 
 
-def get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_step, t_max, mesh, eos):
+def get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_step, t_max, mesh, eos,
+                      pressure=0):
     """
     Compute QHA gibbs free nergy using the phonopy interface.
 
@@ -25,6 +26,7 @@ def get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_st
         mesh (list/tuple): reciprocal space density
         eos (str): equation of state used for fitting the energies and the volumes.
             options supported by phonopy: vinet, murnaghan, birch_murnaghan
+        pressure (float): in GPa, optional.
 
     Returns:
         (numpy.ndarray, numpy.ndarray): Gibbs free energy , Temperature
@@ -33,6 +35,7 @@ def get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_st
         from phonopy import Phonopy
         from phonopy.structure.atoms import Atoms as PhonopyAtoms
         from phonopy import PhonopyQHA
+        from phonopy.units import EVAngstromToGPa
     except ImportError:
         import sys
         print("Install phonopy. Exiting.")
@@ -58,6 +61,8 @@ def get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_st
         entropy.append(e)
         cv.append(c)
 
+    # add pressure contribution
+    energies = np.array(energies) + volumes * pressure / EVAngstromToGPa
     # quasi-harmonic approx
     phonopy_qha = PhonopyQHA(volumes, energies, eos=eos, temperatures=temperatures[0],
                              free_energy=np.array(free_energy).T, cv=np.array(cv).T,
@@ -70,7 +75,7 @@ def get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_st
     return G, T
 
 
-def get_debye_model_gibbs(energies, volumes, structure, t_min, t_step, t_max, eos):
+def get_debye_model_gibbs(energies, volumes, structure, t_min, t_step, t_max, eos, pressure=0):
     """
     Compute QHA gibbs free energy using the debye model. See the paper:
     http://doi.org/10.1016/j.comphy.2003.12.001
@@ -85,6 +90,7 @@ def get_debye_model_gibbs(energies, volumes, structure, t_min, t_step, t_max, eo
         eos (str): equation of state used for fitting the energies and the volumes.
             options supported by pymatgen: "quadratic", "murnaghan", "birch", "birch_murnaghan",
             "pourier_tarantola", "vinet", "deltafactor"
+        pressure (float): in GPa, optional.
 
     Returns:
         (numpy.ndarray, numpy.ndarray): Gibbs free energy , Temperature
@@ -97,7 +103,8 @@ def get_debye_model_gibbs(energies, volumes, structure, t_min, t_step, t_max, eo
     T = []
     for t in temp:
         try:
-            G_tmp = gibbs_minimizer(energies, volumes, mass, natoms, temperature=t, eos=eos)
+            G_tmp = gibbs_minimizer(energies, volumes, mass, natoms, temperature=t, eos=eos,
+                                    pressure=pressure)
         except:
             print("EOS fitting failed, so skipping this data point")
             continue
@@ -108,7 +115,7 @@ def get_debye_model_gibbs(energies, volumes, structure, t_min, t_step, t_max, eo
 
 def debye_integral(y, integrator):
     """
-    Eq(5) in  doi.org/10.1016/j.comphy.2003.12.001
+    Debye integral. Eq(5) in  doi.org/10.1016/j.comphy.2003.12.001
 
     Args:
         y (float)
@@ -117,15 +124,17 @@ def debye_integral(y, integrator):
     Returns:
         float
     """
+    # floating point limit is reached around y=155, so values beyond that are set to the
+    # limiting value(T-->0) of 6.4939394 (obtained wolfram alpha)
     if y < 155:
         return list(integrator(lambda x: x ** 3 / (np.exp(x) - 1), 0, y))[0] * 3. / y ** 3
     else:
-        return 6.493939 * 3. / y ** 3  # limiting value: 6.49393940226684 from (wolfram alpha)
+        return 6.493939 * 3. / y ** 3
 
 
 def A_vib(T, debye, natoms, integrator):
     """
-    Eq(4) in  doi.org/10.1016/j.comphy.2003.12.001
+    Vibrational free energy. Eq(4) in doi.org/10.1016/j.comphy.2003.12.001
 
     Args:
         T (float): temperature in K
@@ -143,39 +152,44 @@ def A_vib(T, debye, natoms, integrator):
 
 def debye_temperature_gibbs(volume, mass, natoms, B, poisson=0.25):
     """
-    Shamelessly stole joey's implementation in pymatgen.
-
-    Calculates the debye temperature accordings to the GIBBS formulation (in SI units)
+    Calculates the debye temperature. Eq(6) in doi.org/10.1016/j.comphy.2003.12.001
+    Thanks to Joey.
 
     Args:
-        volume (flaot)
+        volume (float)
         mass (float): total mass
         natoms (int): number of atoms
         B (float): bulk modulus
-        poisson (flaot): poisson ratio
+        poisson (float): poisson ratio
 
     Returns:
         debye temperature (in SI units)
      """
     avg_mass = 1.6605e-27 * mass / natoms
-    t = poisson
-    f = (3. * (2. * (2. / 3. * (1. + t) / (1. - 2. * t)) ** (1.5)
-               + (1. / 3. * (1. + t) / (1. - t)) ** (1.5)) ** -1) ** (1. / 3.)
-    return 2.9772e-11 * avg_mass ** (-1. / 2.) * (volume / natoms) ** (-1. / 6.) * f * B ** (0.5)
+    term1 = (2. / 3. * (1. + poisson) / (1. - 2. * poisson)) ** (1.5)
+    term2 = (1. / 3. * (1. + poisson) / (1. - poisson)) ** (1.5)
+    f = (3. / (2. * term1 + term2)) ** (1. / 3.)
+    return 2.9772e-11 * (volume / natoms) ** (-1. / 6.) * f * np.sqrt(B/avg_mass)
 
 
 def gibbs_minimizer(energies, volumes, mass, natoms, temperature=298.0, pressure=0, poisson=0.25,
                     eos="murnaghan"):
     """
+    Fit the input energies and volumes to the equation of state to obtain the bulk modulus which is
+    subsequently used to obtain the debye temperature. The debye temperature is then used to compute
+    the  vibrational free energy and the gibbs free energy as a function of volume, temperature and
+    pressure. A second fit is preformed to get the functional form of gibbs free energy:(G, V, T, P).
+    Finally G(V, P, T) is minimized with respect to V and the optimum value of G evaluated at V_opt,
+    G_opt(V_opt, T, P), is returned.
 
     Args:
-        energies:
-        volumes:
-        mass (flaot): total mass
+        energies (list): list of energies
+        volumes (list): list of volumes
+        mass (float): total mass
         natoms (int): number of atoms
         temperature (float): temperature in K
-        pressure (flaot): pressure in GPa
-        poisson (flaot): poisson ratio
+        pressure (float): pressure in GPa
+        poisson (float): poisson ratio
         eos (str): name of the equation of state supported by pymatgen. See pymatgen.analysis.eos.py
 
     Returns:
@@ -197,8 +211,11 @@ def gibbs_minimizer(energies, volumes, mass, natoms, temperature=298.0, pressure
     for i, v in enumerate(volumes):
         debye = debye_temperature_gibbs(v, mass, natoms, eos_fit_1.b0_GPa, poisson=poisson)
         G_V.append(energies[i] + pressure * v + A_vib(temperature, debye, natoms, integrator))
+
+    # G(V, T, P)
     eos_fit_2 = eos.fit(volumes, G_V)
-    # get min vol
     params = eos_fit_2.eos_params.tolist()
+    # minimize G(V, T, P)
     min_vol = minimize(eos_fit_2.func, min(volumes), tuple(params))
+    # G_opt(V_opt, T, P)
     return eos_fit_2.func(min_vol.x, *params)

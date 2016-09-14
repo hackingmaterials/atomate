@@ -237,17 +237,18 @@ def wf_gibbs_free_energy(structure, c=None):
         Workflow
     """
     c = c or {}
+    eos = c.get("eos", "vinet")
+    qha_type = c.get("qha_type", "debye_model")
     vasp_cmd = c.get("vasp_cmd", VASP_CMD)
     db_file = c.get("db_file", DB_FILE)
     user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
     deformations = c.get("deformations", [(np.identity(3)*(1+x)).tolist()
                                           for x in np.linspace(-0.1, 0.1, 10)])
-    eos = c.get("eos", "vinet")
-    qha_type = c.get("qha_type", "debye_model")
+    pressure = c.get("pressure", 0.0)
 
     wf = get_wf_gibbs_free_energy(structure, user_kpoints_settings=user_kpoints_settings,
                                   deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file,
-                                  eos=eos, qha_type=qha_type)
+                                  eos=eos, qha_type=qha_type, pressure=pressure)
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 600, "EDIFF": 1e-6}})
 
