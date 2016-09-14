@@ -10,6 +10,8 @@ from datetime import datetime
 
 from fireworks import Firework, Workflow
 
+from pymatgen.analysis.elasticity.strain import Deformation
+
 from matmethods.utils.utils import get_logger, append_fw_wf
 from matmethods.vasp.firetasks.parse_outputs import GibbsFreeEnergyTask
 from matmethods.vasp.workflows.base.deformations import get_wf_deformations
@@ -22,10 +24,10 @@ logger = get_logger(__name__)
 
 def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", deformations=None,
                              db_file=None, user_kpoints_settings=None, t_step=10, t_min=0, t_max=1000,
-                             mesh=(20, 20, 20), eos="vinet"):
+                             mesh=(20, 20, 20), eos="vinet", qha_type="debye_model", pressure=0.0):
     """
     Returns quasi-harmonic gibbs free energy workflow.
-    Note: phonopy package is required for the final analysis step.
+    Note: phonopy package is required for the final analysis step if qha_type="phonopy"
 
     Args:
         structure (Structure): input structure.
@@ -39,25 +41,34 @@ def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", de
         t_max (float): max temperature (in K)
         mesh (list/tuple): reciprocal space density
         eos (str): equation of state used for fitting the energies and the volumes.
-            supported equation of states: vinet, murnaghan, birch_murnaghan
+            options supported by phonopy: "vinet", "murnaghan", "birch_murnaghan".
+            Note: pymatgen supports more options than phonopy. see pymatgen.analysis.eos.py
+        qha_type(str): quasi-harmonic approximation type: "debye_model" or "phonopy",
+            default is "debye_model"
+        pressure (float): in GPa
 
     Returns:
         Workflow
     """
-    try:
-        from phonopy import Phonopy
-    except ImportError:
-        logger.warn("'phonopy' package NOT installed. It is required for the final analysis step.")
+    if qha_type not in ["debye_model"]:
+        try:
+            from phonopy import Phonopy
+        except ImportError:
+            logger.warn("'phonopy' package NOT installed. Required for the final analysis step."
+                        "The debye model for the quasi harmonic approximation will be used.")
+            qha_type = "debye_model"
 
     tag = datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')
 
+    deformations = [Deformation(defo_mat) for defo_mat in deformations]
     wf_gibbs = get_wf_deformations(structure, deformations, name="gibbs deformation",
                                    vasp_input_set=vasp_input_set, lepsilon=True, vasp_cmd=vasp_cmd,
                                    db_file=db_file, user_kpoints_settings=user_kpoints_settings,
                                    tag=tag)
 
     fw_analysis = Firework(GibbsFreeEnergyTask(tag=tag, db_file=db_file, t_step=t_step, t_min=t_min,
-                                               t_max=t_max, mesh=mesh, eos=eos),
+                                               t_max=t_max, mesh=mesh, eos=eos, qha_type=qha_type,
+                                               pressure=pressure),
                            name="Gibbs Free Energy")
 
     append_fw_wf(wf_gibbs, fw_analysis)
