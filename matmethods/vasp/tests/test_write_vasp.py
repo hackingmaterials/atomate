@@ -24,6 +24,7 @@ class TestWriteVasp(PymatgenTest):
     @classmethod
     def setUpClass(cls):
         if "VASP_PSP_DIR" not in SETTINGS:
+            os.environ["VASP_PSP_DIR"] = os.path.join(module_dir, "reference_files")
             SETTINGS["VASP_PSP_DIR"] = os.path.join(module_dir, "reference_files")
             print('This system is not set up to run VASP jobs. '
                   'Please set VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
