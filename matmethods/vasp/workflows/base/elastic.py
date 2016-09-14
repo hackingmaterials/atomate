@@ -68,7 +68,8 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
 
     wf_elastic = get_wf_deformations(structure, deformations, vasp_input_set=vasp_input_set,
                                      lepsilon=False, vasp_cmd=vasp_cmd, db_file=db_file,
-                                     user_kpoints_settings=user_kpoints_settings, pass_stress_strain=True)
+                                     user_kpoints_settings=user_kpoints_settings,
+                                     pass_stress_strain=True, name="elastic deformation")
 
     if add_analysis_task:
         fw_analysis = Firework(ElasticTensorToDbTask(structure=structure, db_file=db_file),

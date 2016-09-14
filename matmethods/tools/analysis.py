@@ -29,7 +29,7 @@ def get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_st
         pressure (float): in GPa, optional.
 
     Returns:
-        (numpy.ndarray, numpy.ndarray): Gibbs free energy , Temperature
+        (numpy.ndarray, numpy.ndarray): Gibbs free energy, Temperature
     """
     try:
         from phonopy import Phonopy
@@ -94,6 +94,7 @@ def get_debye_model_gibbs(energies, volumes, structure, t_min, t_step, t_max, eo
 
     Returns:
         (numpy.ndarray, numpy.ndarray): Gibbs free energy , Temperature
+        Note: The data points for which the equation of state fitting fails are skipped.
     """
     temp = np.linspace(t_min, t_max, np.ceil((t_max-t_min)/t_step))
     mass = sum([e.atomic_mass for e in structure.species])
@@ -125,11 +126,12 @@ def debye_integral(y, integrator):
         float
     """
     # floating point limit is reached around y=155, so values beyond that are set to the
-    # limiting value(T-->0) of 6.4939394 (obtained wolfram alpha)
+    # limiting value(T-->0, y --> \infty) of 6.4939394 (from wolfram alpha).
+    factor = 3. / y ** 3
     if y < 155:
-        return list(integrator(lambda x: x ** 3 / (np.exp(x) - 1), 0, y))[0] * 3. / y ** 3
+        return list(integrator(lambda x: x ** 3 / (np.exp(x) - 1.), 0, y))[0] * factor
     else:
-        return 6.493939 * 3. / y ** 3
+        return 6.493939 * factor
 
 
 def A_vib(T, debye, natoms, integrator):

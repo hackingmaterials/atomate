@@ -27,7 +27,7 @@ def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", de
                              mesh=(20, 20, 20), eos="vinet", qha_type="debye_model", pressure=0.0):
     """
     Returns quasi-harmonic gibbs free energy workflow.
-    Note: phonopy package is required for the final analysis step.
+    Note: phonopy package is required for the final analysis step if qha_type="phonopy"
 
     Args:
         structure (Structure): input structure.
@@ -41,7 +41,8 @@ def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", de
         t_max (float): max temperature (in K)
         mesh (list/tuple): reciprocal space density
         eos (str): equation of state used for fitting the energies and the volumes.
-            supported equation of states: vinet, murnaghan, birch_murnaghan
+            options supported by phonopy: "vinet", "murnaghan", "birch_murnaghan".
+            Note: pymatgen supports more options than phonopy. see pymatgen.analysis.eos.py
         qha_type(str): quasi-harmonic approximation type: "debye_model" or "phonopy",
             default is "debye_model"
         pressure (float): in GPa
@@ -49,10 +50,13 @@ def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", de
     Returns:
         Workflow
     """
-    try:
-        from phonopy import Phonopy
-    except ImportError:
-        logger.warn("'phonopy' package NOT installed. It is required for the final analysis step.")
+    if qha_type not in ["debye_model"]:
+        try:
+            from phonopy import Phonopy
+        except ImportError:
+            logger.warn("'phonopy' package NOT installed. Required for the final analysis step."
+                        "The debye model for the quasi harmonic approximation will be used.")
+            qha_type = "debye_model"
 
     tag = datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')
 

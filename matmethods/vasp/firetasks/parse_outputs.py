@@ -332,9 +332,11 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
 @explicit_serialize
 class GibbsFreeEnergyTask(FireTaskBase):
     """
-    Compute the quasi-harmonic gibbs free energy. There are 2 available options(set via 'qha_type'
-    parameter): 1) use the phonopy package quasi-harmonic approximation interface or 2) use the
-    debye model. Instead of relying on fw_spec, this task gets the required data directly from the
+    Compute the quasi-harmonic gibbs free energy. There are 2 options available for the
+    quasi-harmonic approximation (set via 'qha_type' parameter):
+    1. use the phonopy package quasi-harmonic approximation interface or
+    2. use the debye model.
+    Note: Instead of relying on fw_spec, this task gets the required data directly from the
     tasks collection for processing. The summary dict is written to 'gibbs.json' file.
 
     required_params:
