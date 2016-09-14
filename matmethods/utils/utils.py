@@ -235,10 +235,7 @@ def get_wf_from_spec_dict(structure, wfspec):
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, wfspec["name"]) if \
         wfspec.get("name") else structure.composition.reduced_formula
-<<<<<<< HEAD
 
-    return Workflow(fws, name=wfname)
-=======
     return Workflow(fws, name=wfname)
 
 
