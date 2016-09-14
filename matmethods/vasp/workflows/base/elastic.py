@@ -54,11 +54,11 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
     # Generate deformations
     deformations = []
 
-    if norm_deformations:
+    if norm_deformations is not None:
         deformations.extend([Deformation.from_index_amount(ind, amount)
                              for ind in [(0, 0), (1, 1), (2, 2)]
                              for amount in norm_deformations])
-    if shear_deformations:
+    if shear_deformations is not None:
         deformations.extend([Deformation.from_index_amount(ind, amount)
                              for ind in [(0, 1), (0, 2), (1, 2)]
                              for amount in shear_deformations])
