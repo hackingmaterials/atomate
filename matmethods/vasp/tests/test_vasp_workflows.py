@@ -17,6 +17,7 @@ from fireworks.core.rocket_launcher import rapidfire
 from matmethods.vasp.vasp_powerups import use_custodian, add_namefile, use_fake_vasp, add_trackers
 from matmethods.vasp.workflows.base.core import get_wf
 
+from pymatgen import SETTINGS
 from pymatgen.io.vasp.sets import MPRelaxSet
 from pymatgen.util.testing import PymatgenTest
 
@@ -39,11 +40,10 @@ VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this c
 class TestVaspWorkflows(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if not os.environ.get("VASP_PSP_DIR"):
-            os.environ["VASP_PSP_DIR"] = os.path.join(module_dir, "reference_files")
-            print(
-                'Note: This system is not set up to run VASP jobs. '
-                'Please set your VASP_PSP_DIR environment variable.')
+        if not SETTINGS.get("VASP_PSP_DIR"):
+            SETTINGS["VASP_PSP_DIR"] = os.path.join(module_dir, "reference_files")
+            print('This system is not set up to run VASP jobs. '
+                  'Please set VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
         cls.struct_si = PymatgenTest.get_structure("Si")
 
@@ -166,8 +166,7 @@ class TestVaspWorkflows(unittest.TestCase):
     def test_single_Vasp(self):
         # add the workflow
         structure = self.struct_si
-        my_wf = get_wf(structure, "optimize_only.yaml",
-                       vis=MPRelaxSet(structure, force_gamma=True),
+        my_wf = get_wf(structure, "optimize_only.yaml", vis=MPRelaxSet(structure, force_gamma=True),
                        common_params={"vasp_cmd": VASP_CMD})
         if not VASP_CMD:
             my_wf = use_fake_vasp(my_wf, ref_dirs_si)
@@ -188,8 +187,7 @@ class TestVaspWorkflows(unittest.TestCase):
         # add the workflow
         structure = self.struct_si
         # instructs to use db_file set by FWorker, see env_chk
-        my_wf = get_wf(structure, "optimize_only.yaml",
-                       vis=MPRelaxSet(structure, force_gamma=True),
+        my_wf = get_wf(structure, "optimize_only.yaml", vis=MPRelaxSet(structure, force_gamma=True),
                        common_params={"vasp_cmd": VASP_CMD,
                                       "db_file": ">>db_file<<"})
         if not VASP_CMD:

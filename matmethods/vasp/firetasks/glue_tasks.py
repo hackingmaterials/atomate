@@ -19,15 +19,14 @@ from pymatgen import MPRester
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.analysis.elasticity import reverse_voigt_map
 from pymatgen.analysis.elasticity.strain import IndependentStrain
-from pymatgen.io.vasp import Vasprun
 
 from fireworks import explicit_serialize, FireTaskBase, FWAction
 
 from matmethods.utils.utils import get_calc_loc, env_chk
 from matmethods.utils.fileio import FileClient
 
-__author__ = 'Anubhav Jain'
-__email__ = 'ajain@lbl.gov'
+__author__ = 'Anubhav Jain, Kiran Mathew'
+__email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 
 @explicit_serialize
@@ -175,7 +174,7 @@ class PassStressStrainData(FireTaskBase):
     required_params = ["deformation"]
 
     def run_task(self, fw_spec):
-        v = Vasprun('vasprun.xml.gz')
+        v, _ = get_vasprun_outcar(self.get("calc_dir", "."), parse_dos=False, parse_eigen=False)
         stress = v.ionic_steps[-1]['stress']
         defo = self['deformation']
         d_ind = np.nonzero(defo - np.eye(3))
@@ -190,3 +189,56 @@ class PassStressStrainData(FireTaskBase):
 
         return FWAction(mod_spec=[{'_set': {
             'deformation_tasks->{}'.format(dtype): defo_dict}}])
+
+
+@explicit_serialize
+class PassEpsilonTask(FireTaskBase):
+    """
+    Pass the epsilon(dielectric constant) corresponding to the given normal mode and displacement.
+
+    Required params:
+        mode (int): normal mode index
+        displacement (float): displacement along the normal mode in Angstroms
+    """
+
+    required_params = ["mode", "displacement"]
+
+    def run_task(self, fw_spec):
+        vrun, _ = get_vasprun_outcar(self.get("calc_dir", "."), parse_dos=False, parse_eigen=True)
+        epsilon_static = vrun.epsilon_static
+        epsilon_dict = {"mode": self["mode"],
+                        "displacement": self["displacement"],
+                        "epsilon": epsilon_static}
+        return FWAction(mod_spec=[{
+            '_set': {
+                'raman_epsilon->{}_{}'.format(
+                    str(self["mode"]),
+                    str(self["displacement"]).replace("-", "m").replace(".", "d")): epsilon_dict
+            }
+        }])
+
+
+@explicit_serialize
+class PassNormalmodesTask(FireTaskBase):
+    """
+    Extract and pass the normal mode eigenvalues and vectors.
+
+    optional_params:
+        calc_dir (str): path to the calculation directory
+    """
+
+    optional_params = ["calc_dir"]
+
+    def run_task(self, fw_spec):
+        normalmode_dict = fw_spec.get("normalmodes", None)
+        if not normalmode_dict:
+            vrun, _ = get_vasprun_outcar(self.get("calc_dir", "."), parse_dos=False, parse_eigen=True)
+            structure = vrun.final_structure.copy()
+            normalmode_eigenvals = vrun.normalmode_eigenvals
+            normalmode_eigenvecs = vrun.normalmode_eigenvecs
+            normalmode_norms = np.linalg.norm(normalmode_eigenvecs, axis=2)
+            normalmode_dict = {"structure": structure,
+                               "eigenvals": normalmode_eigenvals.tolist(),
+                               "eigenvecs": normalmode_eigenvecs.tolist(),
+                               "norms": normalmode_norms.tolist()}
+        return FWAction(mod_spec=[{'_set': {'normalmodes': normalmode_dict}}])

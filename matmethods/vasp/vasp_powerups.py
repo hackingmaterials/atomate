@@ -6,7 +6,7 @@ from fireworks import Workflow, FileWriteTask
 from fireworks.core.firework import Tracker
 from fireworks.utilities.fw_utilities import get_slug
 
-from matmethods.utils.utils import get_meta_from_structure
+from matmethods.utils.utils import get_meta_from_structure, get_fws_and_tasks, update_wf
 from matmethods.vasp.firetasks.glue_tasks import CheckStability
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspDirect, RunVaspFake
 from matmethods.vasp.firetasks.write_inputs import ModifyIncar
@@ -14,27 +14,6 @@ from matmethods.vasp.vasp_config import ADD_NAMEFILE, SCRATCH_DIR, ADD_MODIFY_IN
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
-
-
-def get_fws_and_tasks(workflow, fw_name_constraint=None, task_name_constraint=None):
-    """
-    Helper method: given a workflow, returns back the fw_ids and task_ids that match constraints
-
-    Args:
-        workflow (Workflow): Workflow
-        fw_name_constraint (str): a constraint on the FW name
-        task_name_constraint (str): a constraint on the task name
-
-    Returns:
-       a list of tuples of the form (fw_id, task_id) of the RunVasp-type tasks
-    """
-    fws_and_tasks = []
-    for idx_fw, fw in enumerate(workflow.fws):
-        if fw_name_constraint is None or fw_name_constraint in fw.name:
-            for idx_t, t in enumerate(fw.tasks):
-                if task_name_constraint is None or task_name_constraint in str(t):
-                    fws_and_tasks.append((idx_fw, idx_t))
-    return fws_and_tasks
 
 
 def add_priority(original_wf, root_priority, child_priority=None):
@@ -149,22 +128,24 @@ def add_namefile(original_wf, use_slug=True):
     return Workflow.from_dict(wf_dict)
 
 
-def add_trackers(original_wf):
+def add_trackers(original_wf, tracked_files=None, nlines=25):
     """
-    Every FireWork that runs VASP also tracks the OUTCAR and OSZICAR using FWS Trackers.
+    Every FireWork that runs VASP also tracks the OUTCAR, OSZICAR, etc using FWS Trackers.
 
     Args:
         original_wf (Workflow)
-
+        tracked_files (list) : list of files to be tracked
+        nlines (int): number of lines at the end of files to be tracked
     """
-    tracker1 = Tracker('OUTCAR', nlines=25, allow_zipped=True)
-    tracker2 = Tracker('OSZICAR', nlines=25, allow_zipped=True)
+    if tracked_files == None:
+        tracked_files = ["OUTCAR", "OSZICAR"]
+    trackers = [Tracker(f, nlines=nlines, allow_zipped=True) for f in tracked_files]
     wf_dict = original_wf.to_dict()
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="RunVasp"):
         if "_trackers" in wf_dict["fws"][idx_fw]["spec"]:
-            wf_dict["fws"][idx_fw]["spec"]["_trackers"].extend([tracker1, tracker2])
+            wf_dict["fws"][idx_fw]["spec"]["_trackers"].extend(trackers)
         else:
-            wf_dict["fws"][idx_fw]["spec"]["_trackers"] = [tracker1, tracker2]
+            wf_dict["fws"][idx_fw]["spec"]["_trackers"] = trackers
     return Workflow.from_dict(wf_dict)
 
 
@@ -337,21 +318,3 @@ def add_common_powerups(wf, c):
         wf = add_modify_incar(wf)
 
     return wf
-
-
-def update_wf(wf):
-    """
-    Simple helper to ensure that the powerup updates to the workflow dict has taken effect.
-    This is needed  because all the powerups that modify workflow do so on the dict representation
-    of the workflow(or mix thereof eg: add tasks as dict to the fireworks spec etc) and for
-    inspection the powerups rely on a mix of object and dict representations of workflow object(
-    along with the constituent fireworks and firetasks) that are not in one to one correspondence
-    with the updated dict representation.
-
-    Args:
-        wf (Workflow)
-
-    Returns:
-        Workflow
-    """
-    return Workflow.from_dict(wf.as_dict())

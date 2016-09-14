@@ -4,8 +4,11 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import json
 import os
+from collections import defaultdict
 
 from datetime import datetime
+
+import numpy as np
 
 from monty.json import MontyEncoder
 
@@ -252,3 +255,218 @@ class ElasticTensorToDbTask(FireTaskBase):
             db.collection.insert_one(d)
             logger.info("ELASTIC ANALYSIS COMPLETE")
         return FWAction()
+
+
+@explicit_serialize
+class RamanSusceptibilityTensorToDbTask(FireTaskBase):
+    """
+    Raman susceptibility tensor for each mode = Finite difference derivative of the dielectric
+        tensor wrt the displacement along that mode.
+    See: 10.1103/PhysRevB.73.104304
+
+    optional_params:
+        db_file (str): path to the db file
+    """
+
+    optional_params = ["db_file"]
+
+    def run_task(self, fw_spec):
+        nm_norms = np.array(fw_spec["normalmodes"]["norms"])
+        nm_eigenvals = np.array(fw_spec["normalmodes"]["eigenvals"])
+        structure = fw_spec["normalmodes"]["structure"]
+        masses = np.array([site.specie.data['Atomic mass'] for site in structure])
+        # the eigenvectors read from vasprun.xml are not divided by sqrt(M_i)
+        nm_norms = nm_norms / np.sqrt(masses)
+
+        # To get the actual eigenvals, the values read from vasprun.xml must be multiplied by -1.
+        # frequency_i = sqrt(-e_i)
+        # To convert the frequency to THZ: multiply sqrt(-e_i) by 15.633
+        # To convert the frequency to cm^-1: multiply sqrt(-e_i) by 82.995
+        nm_frequencies = np.sqrt(np.abs(nm_eigenvals)) * 82.995  # cm^-1
+
+        d = {"structure": structure.as_dict(),
+             "normalmodes": {"eigenvals": fw_spec["normalmodes"]["eigenvals"],
+                             "eigenvecs": fw_spec["normalmodes"]["eigenvecs"]
+                             },
+             "frequencies": nm_frequencies.tolist()
+             }
+
+        mode_disps = fw_spec["raman_epsilon"].keys()
+        # store the displacement & epsilon for each mode in a dictionary
+        modes_eps_dict = defaultdict(list)
+        for md in mode_disps:
+            modes_eps_dict[fw_spec["raman_epsilon"][md]["mode"]].append(
+                [fw_spec["raman_epsilon"][md]["displacement"],
+                 fw_spec["raman_epsilon"][md]["epsilon"]])
+
+        # raman tensor = finite difference derivative of epsilon wrt displacement.
+        raman_tensor_dict = {}
+        scale = np.sqrt(structure.volume/2.0) / 4.0 / np.pi
+        for k, v in modes_eps_dict.items():
+            raman_tensor = (np.array(v[0][1]) - np.array(v[1][1])) / (v[0][0] - v[1][0])
+            # frequency in cm^-1
+            omega = nm_frequencies[k]
+            if nm_eigenvals[k] > 0:
+                logger.warn("Mode: {} is UNSTABLE. Freq(cm^-1) = {}".format(k, -omega))
+            raman_tensor = scale * raman_tensor * np.sum(nm_norms[k]) / np.sqrt(omega)
+            raman_tensor_dict[str(k)] = raman_tensor.tolist()
+
+        d["raman_tensor"] = raman_tensor_dict
+        d["state"] = "successful"
+
+        # store the results
+        db_file = env_chk(self.get("db_file"), fw_spec)
+        if not db_file:
+            with open("raman.json", "w") as f:
+                f.write(json.dumps(d, default=DATETIME_HANDLER))
+        else:
+            db = MMDb.from_db_file(db_file, admin=True)
+            db.collection = db.db["raman"]
+            db.collection.insert_one(d)
+            logger.info("RAMAN TENSOR CALCULATION COMPLETE")
+        logger.info("The frequencies are in the units of cm^-1")
+        logger.info("To convert the frequency to THz: multiply by 0.1884")
+        return FWAction()
+
+
+@explicit_serialize
+class GibbsFreeEnergyTask(FireTaskBase):
+    """
+    Compute the quasi-harmonic gibbs free energy. There are 2 options available for the
+    quasi-harmonic approximation (set via 'qha_type' parameter):
+    1. use the phonopy package quasi-harmonic approximation interface or
+    2. use the debye model.
+    Note: Instead of relying on fw_spec, this task gets the required data directly from the
+    tasks collection for processing. The summary dict is written to 'gibbs.json' file.
+
+    required_params:
+        tag (str): unique tag appended to the task labels in other fireworks so that all the
+            required data can be queried directly from the database.
+        db_file (str): path to the db file
+
+    optional_params:
+        qha_type(str): quasi-harmonic approximation type: "debye_model" or "phonopy",
+            default is "debye_model"
+        t_min (float): min temperature
+        t_step (float): temperature step
+        t_max (float): max temperature
+        mesh (list/tuple): reciprocal space density
+        eos (str): equation of state used for fitting the energies and the volumes.
+            options supported by phonopy: "vinet", "murnaghan", "birch_murnaghan".
+        pressure (float): in GPa, optional.
+    """
+
+    required_params = ["tag", "db_file"]
+    optional_params = ["qha_type", "t_min", "t_step", "t_max", "mesh", "eos", "pressure"]
+
+    def run_task(self, fw_spec):
+
+        tag = self["tag"]
+        db_file = env_chk(self.get("db_file"), fw_spec)
+        t_step = self.get("t_step", 10)
+        t_min = self.get("t_min", 0)
+        t_max = self.get("t_max", 1000)
+        mesh = self.get("mesh", [20, 20, 20])
+        eos = self.get("eos", "vinet")
+        qha_type = self.get("qha_type", "debye_model")
+        pressure = self.get("pressure", 0.0)
+        gibbs_summary_dict = {}
+
+        mmdb = MMDb.from_db_file(db_file, admin=True)
+        # get the optimized structure
+        d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
+        structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+        gibbs_summary_dict["structure"] = structure.as_dict()
+
+        # get the data(energy, volume, force constant) from the deformation runs
+        docs = mmdb.collection.find({"task_label": {"$regex": "{} gibbs*".format(tag)},
+                                     "formula_pretty": structure.composition.reduced_formula})
+        energies = []
+        volumes = []
+        force_constants = []
+        for d in docs:
+            s = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+            energies.append(d["calcs_reversed"][-1]["output"]['energy'])
+            volumes.append(s.volume)
+            force_constants.append(d["calcs_reversed"][-1]["output"]['force_constants'])
+        gibbs_summary_dict["energies"] = energies
+        gibbs_summary_dict["volumes"] = volumes
+        gibbs_summary_dict["force_constants"] = force_constants
+
+        G, T = None, None
+        # use debye model
+        if qha_type in ["debye_model"]:
+
+            from matmethods.tools.analysis import get_debye_model_gibbs
+
+            G, T = get_debye_model_gibbs(energies, volumes, structure, t_min, t_step, t_max, eos,
+                                         pressure)
+
+        # use the phonopy interface
+        else:
+
+            from matmethods.tools.analysis import get_phonopy_gibbs
+
+            G, T = get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_step,
+                                     t_max, mesh, eos, pressure)
+
+        gibbs_summary_dict["G"] = G
+        gibbs_summary_dict["T"] = T
+
+        with open("gibbs.json", "w") as f:
+            f.write(json.dumps(gibbs_summary_dict, default=DATETIME_HANDLER))
+        logger.info("GIBBS FREE ENERGY CALCULATION COMPLETE")
+
+
+@explicit_serialize
+class FitEquationOfStateTask(FireTaskBase):
+    """
+    Retrieve the energy and volume data and fit it to the given equation of state. The summary dict
+    is written to 'bulk_modulus.json' file.
+
+    required_params:
+        tag (str): unique tag appended to the task labels in other fireworks so that all the
+            required data can be queried directly from the database.
+        db_file (str): path to the db file
+        eos (str): equation of state used for fitting the energies and the volumes.
+            options supported by pymatgen: "quadratic", "murnaghan", "birch", "birch_murnaghan",
+            "pourier_tarantola", "vinet", "deltafactor"
+    """
+
+    required_params = ["tag", "db_file", "eos"]
+
+    def run_task(self, fw_spec):
+
+        from pymatgen.analysis.eos import EOS
+
+        tag = self["tag"]
+        db_file = env_chk(self.get("db_file"), fw_spec)
+        summary_dict = {"eos": self["eos"]}
+
+        mmdb = MMDb.from_db_file(db_file, admin=True)
+        # get the optimized structure
+        d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
+        structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+        summary_dict["structure"] = structure.as_dict()
+
+        # get the data(energy, volume, force constant) from the deformation runs
+        docs = mmdb.collection.find({"task_label": {"$regex": "{} bulk_modulus*".format(tag)},
+                                     "formula_pretty": structure.composition.reduced_formula})
+        energies = []
+        volumes = []
+        for d in docs:
+            s = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+            energies.append(d["calcs_reversed"][-1]["output"]['energy'])
+            volumes.append(s.volume)
+        summary_dict["energies"] = energies
+        summary_dict["volumes"] = volumes
+
+        # fit the equation of state
+        eos = EOS(self["eos"])
+        eos_fit = eos.fit(volumes, energies)
+        summary_dict["results"] = dict(eos_fit.results)
+
+        with open("bulk_modulus.json", "w") as f:
+            f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
+
+        logger.info("BULK MODULUS CALCULATION COMPLETE")

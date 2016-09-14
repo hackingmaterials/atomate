@@ -2,6 +2,15 @@
 MatMethods Changelog
 ====================
 
+**v0.3**
+
+* Raman workflow (K. Mathew)
+* Gibbs workflow (K. Mathew)
+* More efficient task builder (S. Ong)
+* tag workflows and add_trackers powerups (A. Jain, A. Faghaninia)
+* refactor elastic workflow (K. Mathew)
+* bugfixes and tools package (K. Mathew)
+
 **v0.21**
 
 * Lammps workflows and packmol support (K. Mathew)

@@ -11,8 +11,7 @@ from matmethods.vasp.builders.base import AbstractBuilder
 
 __author__ = 'Alireza Faghanina <albalu@lbl.gov>'
 
-
-class TagsCollector(AbstractBuilder):
+class TagsBuilder(AbstractBuilder):
     def __init__(self, materials_write, tasks_read, update_all=False):
         """
         Starting with an existing materials collection, adds tags from all tasks (if any)
@@ -29,13 +28,18 @@ class TagsCollector(AbstractBuilder):
         self._tasks = tasks_read
 
     def run(self):
-        print("TagsCollector starting...")
+        print("TagsBuilder starting...")
         self._build_indexes()
 
-        q = {"tags": {"$exists": True}}
-        if not self.update_all:
-            q["tags"] = {"$exists": False}
+        # An incorrect incremental update feature:
+        # q = {"tags": {"$exists": True}}
+        # if not self.update_all:
+        #     q["tags"] = {"$exists": False}
 
+        # The incremental update feature is now disabled until I figure out a good/correct way to implement it (AF)
+        q = {}
+
+        # TODO: the logic for the query is incorrect. To build incrementally, you need to keep track of which *tasks* have been processed already, and only update materials for which new tasks are available. Just because a materials has tags already in it, doesn't mean that it doesn't require more tags. Or, simply remove the incremental feature for now to prevent incorrect behavior.
         mats = [m for m in self._materials.find(q, {"_tasksbuilder.all_task_ids": 1, "tags": 1,
                                                     "material_id": 1})]
         pbar = tqdm(mats)
@@ -43,19 +47,19 @@ class TagsCollector(AbstractBuilder):
             pbar.set_description("Processing materials_id: {}".format(m['material_id']))
             all_tags = []
             try:
-                for taskid in m["_tasksbuilder"]["all_task_ids"]:
-                    task = self._tasks.find_one({"task_id": int(taskid[2:]), "tags": {"$exists": True}},{"tags": 1})
-                    if task and len(task) > 0:
-                        all_tags.extend(task["tags"])
+                intid_list = [int(taskid.split("-")[1]) for taskid in m["_tasksbuilder"]["all_task_ids"]]
+                tasks = self._tasks.find({"task_id": {"$in": intid_list}, "tags": {"$exists": True}},{"tags": 1})
+                for task in tasks:
+                    all_tags.extend(task["tags"])
                 self._materials.update_one({"material_id": m["material_id"]},
-                                           {"$set": {"tags": list(set(all_tags))}})
+                                               {"$set": {"tags": list(set(all_tags))}})
             except:
                 import traceback
                 print("<---")
                 print("There was an error processing material_id: {}, task_id: {}".format(m["material_id"], taskid))
                 traceback.print_exc()
                 print("--->")
-        print("TagsCollector finished processing.")
+        print("TagsBuilder finished processing.")
 
     def reset(self):
         self._materials.update_many({}, {"$unset": {"tags": 1}})
