@@ -319,9 +319,9 @@ class VaspDrone(AbstractDrone):
             sg = SpacegroupAnalyzer(Structure.from_dict(d_calc["output"]["structure"]), 1e-3, 1)
         d["output"]["spacegroup"] = {
             "source": "spglib",
-            "symbol": sg.get_spacegroup_symbol(),
-            "number": sg.get_spacegroup_number(),
-            "point_group": sg.get_point_group(),
+            "symbol": sg.get_space_group_symbol(),
+            "number": sg.get_space_group_number(),
+            "point_group": sg.get_point_group_symbol(),
             "crystal_system": sg.get_crystal_system(),
             "hall": sg.get_hall()}
         if d["input"]["parameters"].get("LEPSILON"):
