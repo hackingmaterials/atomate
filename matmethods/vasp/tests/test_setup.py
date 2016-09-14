@@ -19,7 +19,7 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 class TestSetup(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if "VASP_PSP_DIR" not in SETTINGS:
+        if not SETTINGS.get("VASP_PSP_DIR"):
             raise unittest.SkipTest('This system is not set up to run VASP jobs. '
                                     'Please set VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 

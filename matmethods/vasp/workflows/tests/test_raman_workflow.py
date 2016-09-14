@@ -34,7 +34,7 @@ VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this c
 class TestRamanWorkflow(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if "VASP_PSP_DIR" not in SETTINGS:
+        if not SETTINGS.get("VASP_PSP_DIR"):
             os.environ["VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "reference_files")
             SETTINGS["VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "reference_files")
             print('This system is not set up to run VASP jobs. '
