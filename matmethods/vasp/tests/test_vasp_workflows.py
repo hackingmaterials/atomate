@@ -41,7 +41,6 @@ class TestVaspWorkflows(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         if not SETTINGS.get("VASP_PSP_DIR"):
-            os.environ["VASP_PSP_DIR"] = os.path.join(module_dir, "reference_files")
             SETTINGS["VASP_PSP_DIR"] = os.path.join(module_dir, "reference_files")
             print('This system is not set up to run VASP jobs. '
                   'Please set VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
@@ -167,8 +166,7 @@ class TestVaspWorkflows(unittest.TestCase):
     def test_single_Vasp(self):
         # add the workflow
         structure = self.struct_si
-        my_wf = get_wf(structure, "optimize_only.yaml",
-                       vis=MPRelaxSet(structure, force_gamma=True),
+        my_wf = get_wf(structure, "optimize_only.yaml", vis=MPRelaxSet(structure, force_gamma=True),
                        common_params={"vasp_cmd": VASP_CMD})
         if not VASP_CMD:
             my_wf = use_fake_vasp(my_wf, ref_dirs_si)
@@ -189,8 +187,7 @@ class TestVaspWorkflows(unittest.TestCase):
         # add the workflow
         structure = self.struct_si
         # instructs to use db_file set by FWorker, see env_chk
-        my_wf = get_wf(structure, "optimize_only.yaml",
-                       vis=MPRelaxSet(structure, force_gamma=True),
+        my_wf = get_wf(structure, "optimize_only.yaml", vis=MPRelaxSet(structure, force_gamma=True),
                        common_params={"vasp_cmd": VASP_CMD,
                                       "db_file": ">>db_file<<"})
         if not VASP_CMD:

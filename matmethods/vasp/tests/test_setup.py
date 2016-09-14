@@ -47,11 +47,9 @@ class TestSetup(unittest.TestCase):
                 os.remove(os.path.join(module_dir, x))
 
     def _verify_files(self):
-        self.assertEqual(Incar.from_file(os.path.join(module_dir, "INCAR")),
-                         self.ref_incar)
-        self.assertEqual(
-            str(Poscar.from_file(os.path.join(module_dir, "POSCAR"))),
-            str(self.ref_poscar))
+        self.assertEqual(Incar.from_file(os.path.join(module_dir, "INCAR")), self.ref_incar)
+        self.assertEqual(str(Poscar.from_file(os.path.join(module_dir, "POSCAR"))),
+                         str(self.ref_poscar))
         self.assertEqual(Potcar.from_file(os.path.join(module_dir, "POTCAR")).symbols,
                          self.ref_potcar.symbols)
         self.assertEqual(str(Kpoints.from_file(os.path.join(module_dir, "KPOINTS"))),
@@ -65,11 +63,9 @@ class TestSetup(unittest.TestCase):
             import traceback
             traceback.print_exc()
 
-            help_str = "This system is not set up to run VASP jobs. " \
-                       "See further error tracebacks for help. Try " \
-                       "making sure your VASP_PSP_DIR has the proper " \
-                       "subdirs as outlined in PotcarSingle class of " \
-                       "pymatgen, e.g. POT_GGA_PAW_PBE subdir."
+            help_str = "This system is not set up to run VASP jobs. See further error tracebacks " \
+                       "for help. Try making sure your VASP_PSP_DIR has the proper subdirs as " \
+                       "outlined in PotcarSingle class of pymatgen, e.g. POT_GGA_PAW_PBE subdir."
             raise ValueError(help_str)
 
         self._verify_files()
