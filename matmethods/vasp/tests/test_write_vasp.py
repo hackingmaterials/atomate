@@ -9,6 +9,7 @@ from fireworks.utilities.fw_serializers import load_object
 
 from matmethods.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspFromPMGObjects, ModifyIncar
 
+from pymatgen import SETTINGS
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
 from pymatgen.io.vasp.sets import MPRelaxSet
@@ -22,12 +23,10 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 class TestWriteVasp(PymatgenTest):
     @classmethod
     def setUpClass(cls):
-        if not os.environ.get("VASP_PSP_DIR"):
-            os.environ["VASP_PSP_DIR"] = os.path.join(module_dir,
-                                                      "reference_files")
-            print(
-                'Note: This system is not set up to run VASP jobs. '
-                'Please set your VASP_PSP_DIR environment variable.')
+        if not SETTINGS.get("VASP_PSP_DIR"):
+            SETTINGS["VASP_PSP_DIR"] = os.path.join(module_dir, "reference_files")
+            print('This system is not set up to run VASP jobs. '
+                  'Please set VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
         cls.struct_si = PymatgenTest.get_structure("Si")
 
