@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import glob
 
+from pymatgen.analysis.elasticity.strain import Strain
 from pymatgen.io.vasp import Vasprun, zpath
 
 """
@@ -22,7 +23,6 @@ import numpy as np
 from pymatgen import MPRester
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.analysis.elasticity import reverse_voigt_map
-from pymatgen.analysis.elasticity.strain import IndependentStrain
 
 from fireworks import explicit_serialize, FireTaskBase, FWAction
 
