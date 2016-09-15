@@ -217,7 +217,8 @@ class ElasticTensorToDbTask(FireTaskBase):
         d = {"analysis": {}, "deformation_tasks": fw_spec["deformation_tasks"],
              "initial_structure": self['structure'].as_dict(),
              "optimized_structure": opt_struct.as_dict()}
-
+        if fw_spec.get("tags",None):
+            d["tags"] = fw_spec["tags"]
         dtypes = fw_spec["deformation_tasks"].keys()
         defos = [fw_spec["deformation_tasks"][dtype]["deformation_matrix"]
                  for dtype in dtypes]
