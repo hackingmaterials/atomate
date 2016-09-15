@@ -167,7 +167,7 @@ class CheckStability(FireTaskBase):
 
 
 @explicit_serialize
-class CheckGap(FireTaskBase):
+class CheckBandgap(FireTaskBase):
     """
     Checks the band gap of an entry. If band gap is >min_gap or <max_gap, then
     the task will return a FWAction that will defuse all remaining tasks.
@@ -196,7 +196,7 @@ class CheckGap(FireTaskBase):
             if relax_paths:
                 if len(relax_paths) > 9:
                     raise ValueError(
-                        "CheckGap doesn't properly handle >9 relaxations!")
+                        "CheckBandgap doesn't properly handle >9 relaxations!")
                 vr_path = relax_paths[0]
 
 

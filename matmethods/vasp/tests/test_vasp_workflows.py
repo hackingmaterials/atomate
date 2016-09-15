@@ -15,7 +15,7 @@ from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
 from matmethods.vasp.vasp_powerups import use_custodian, add_namefile, use_fake_vasp, add_trackers, \
-    add_gap_check
+    add_bandgap_check
 from matmethods.vasp.workflows.base.core import get_wf
 
 from pymatgen import SETTINGS
@@ -242,7 +242,7 @@ class TestVaspWorkflows(unittest.TestCase):
         d = self._get_task_collection().find_one({"task_label": "nscf line"}, sort=[("_id", DESCENDING)])
         self._check_run(d, mode="nscf line")
 
-    def test_check_stability_Vasp(self):
+    def test_bandgap_check_Vasp(self):
         # add the workflow
         structure = self.struct_si
         # instructs to use db_file set by FWorker, see env_chk
@@ -256,7 +256,7 @@ class TestVaspWorkflows(unittest.TestCase):
             my_wf = use_custodian(my_wf)
 
         my_wf = add_namefile(my_wf)  # add a slug of fw-name to output files
-        my_wf = add_gap_check(my_wf, check_gap_params={"max_gap": 0.1}, fw_name_constraint="structure optimization")
+        my_wf = add_bandgap_check(my_wf, check_bandgap_params={"max_gap": 0.1}, fw_name_constraint="structure optimization")
         self.lp.add_wf(my_wf)
 
         # run the workflow
