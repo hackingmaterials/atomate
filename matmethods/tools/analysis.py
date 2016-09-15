@@ -241,7 +241,7 @@ def get_phonopy_qha(energies, volumes, force_constants, structure, t_min, t_step
         cv.append(c)
 
     # add pressure contribution
-    energies = np.array(energies) + volumes * pressure / EVAngstromToGPa
+    energies = np.array(energies) + np.array(volumes) * pressure / EVAngstromToGPa
     # quasi-harmonic approx
     return PhonopyQHA(volumes, energies, eos=eos, temperatures=temperatures[0],
                       free_energy=np.array(free_energy).T, cv=np.array(cv).T,
