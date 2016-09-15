@@ -34,7 +34,7 @@ ref_dirs_si = {"structure optimization": os.path.join(reference_dir, "Si_structu
              "nscf uniform": os.path.join(reference_dir, "Si_nscf_uniform"),
              "nscf line": os.path.join(reference_dir, "Si_nscf_line")}
 
-DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
+DEBUG_MODE = True  # If true, retains the database and output dirs at the end of the test
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
 

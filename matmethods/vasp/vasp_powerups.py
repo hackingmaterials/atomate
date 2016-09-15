@@ -198,7 +198,7 @@ def add_stability_check(original_wf, check_stability_params=None, fw_name_constr
     """
     check_stability_params = check_stability_params or {}
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
-                                           task_name_constraint="RunVasp"):
+                                           task_name_constraint="DbTask"):
         original_wf.fws[idx_fw].spec["_tasks"].append(CheckStability(**check_stability_params).to_dict())
     return update_wf(original_wf)
 
@@ -217,7 +217,7 @@ def add_gap_check(original_wf, check_gap_params=None, fw_name_constraint=None):
     """
     check_stability_params = check_gap_params or {}
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
-                                           task_name_constraint="RunVasp"):
+                                           task_name_constraint="DbTask"):
         original_wf.fws[idx_fw].spec["_tasks"].append(CheckGap(**check_gap_params).to_dict())
     return update_wf(original_wf)
 
