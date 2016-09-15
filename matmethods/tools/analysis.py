@@ -217,7 +217,5 @@ def gibbs_minimizer(energies, volumes, mass, natoms, temperature=298.0, pressure
     # G(V, T, P)
     eos_fit_2 = eos.fit(volumes, G_V)
     params = eos_fit_2.eos_params.tolist()
-    # minimize G(V, T, P)
-    min_vol = minimize(eos_fit_2.func, min(volumes), tuple(params))
     # G_opt(V_opt, T, P)
-    return eos_fit_2.func(min_vol.x, *params)
+    return params[0]
