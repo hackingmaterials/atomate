@@ -182,7 +182,7 @@ class PassStressStrainData(FireTaskBase):
         # Shorthand is d_X_V, X is voigt index, V is value
         dtype = "_".join(["d", str(reverse_voigt_map[d_ind][0]),
                           "{:.0e}".format(delta)])
-        strain = IndependentStrain(defo)
+        strain = Strain.from_deformation(defo)
         defo_dict = {'deformation_matrix': defo,
                      'strain': strain.tolist(),
                      'stress': stress}
