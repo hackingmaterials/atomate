@@ -44,7 +44,6 @@ class EXAFSFW(Firework):
                                                       **override_default_feff_params)
 
         t = []
-        print(feff_input_set.tags)
         t.append(WriteFeffFromIOSet(absorbing_atom=absorbing_atom, structure=structure,
                                     radius=radius, feff_input_set=feff_input_set))
         t.append(RunFeffDirect(feff_cmd=feff_cmd))

@@ -43,5 +43,5 @@ class WriteFeffFromIOSet(FireTaskBase):
             fis_cls = load_class("pymatgen.io.feff.sets", self["feff_input_set"])
             fis = fis_cls(self["absorbing_atom"], self["structure"], self.get("radius", 10.0),
                           **self.get("other_params", {}))
-        print(fis.tags)
+
         fis.write_input(".")
