@@ -50,19 +50,22 @@ def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", de
     Returns:
         Workflow
     """
+    lepsilon = False
     if qha_type not in ["debye_model"]:
+        lepsilon = True
         try:
             from phonopy import Phonopy
         except ImportError:
             logger.warn("'phonopy' package NOT installed. Required for the final analysis step."
                         "The debye model for the quasi harmonic approximation will be used.")
             qha_type = "debye_model"
+            lepsilon = False
 
     tag = datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
     wf_gibbs = get_wf_deformations(structure, deformations, name="gibbs deformation",
-                                   vasp_input_set=vasp_input_set, lepsilon=True, vasp_cmd=vasp_cmd,
+                                   vasp_input_set=vasp_input_set, lepsilon=lepsilon, vasp_cmd=vasp_cmd,
                                    db_file=db_file, user_kpoints_settings=user_kpoints_settings,
                                    tag=tag)
 

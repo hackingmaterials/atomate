@@ -221,8 +221,8 @@ def get_phonopy_qha(energies, volumes, force_constants, structure, t_min, t_step
         sys.exit()
 
     phon_atoms = PhonopyAtoms(symbols=[str(s.specie) for s in structure],
-                              scaled_positions=structure.frac_coords)
-    phon_atoms.set_cell(structure.lattice.matrix)
+                              scaled_positions=structure.frac_coords,
+                              cell=structure.lattice.matrix)
     scell = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
     phonon = Phonopy(phon_atoms, scell)
     # compute the required phonon thermal properties
