@@ -15,6 +15,8 @@ from matmethods.vasp.workflows.base.elastic import get_wf_elastic_constant
 from matmethods.vasp.workflows.base.raman import get_wf_raman_spectra
 from matmethods.vasp.workflows.base.gibbs import get_wf_gibbs_free_energy
 from matmethods.vasp.workflows.base.bulk_modulus import get_wf_bulk_modulus
+from matmethods.vasp.workflows.base.thermal_expansion import get_wf_thermal_expansion
+
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
@@ -294,7 +296,7 @@ def wf_bulk_modulus(structure, c=None):
 
 def wf_thermal_expansion(structure, c=None):
     """
-    Gibbs free energy workflow from the given structure and config dict.
+    Thermal expansion coefficient workflow from the given structure and config dict.
 
     Args:
         structure (Structure): input structure
@@ -312,7 +314,7 @@ def wf_thermal_expansion(structure, c=None):
                                           for x in np.linspace(-0.1, 0.1, 10)])
     pressure = c.get("pressure", 0.0)
 
-    wf = get_wf_gibbs_free_energy(structure, user_kpoints_settings=user_kpoints_settings,
+    wf = get_wf_thermal_expansion(structure, user_kpoints_settings=user_kpoints_settings,
                                   deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file,
                                   eos=eos, pressure=pressure)
 
