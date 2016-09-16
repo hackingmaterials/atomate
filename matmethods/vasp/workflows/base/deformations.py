@@ -63,8 +63,6 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
     vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
                              user_kpoints_settings=user_kpoints_settings,
                              user_incar_settings=uis_static)
-    for key in ["MAGMOM", "LDAUU", "LDAUJ", "LDAUL"]:
-        vis_static.incar.pop(key, None)
 
     # Structure optimization firework
     fws = [OptimizeFW(structure=structure, vasp_input_set=vis_relax, vasp_cmd=vasp_cmd,
