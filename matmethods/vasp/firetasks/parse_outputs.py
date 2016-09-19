@@ -217,7 +217,8 @@ class ElasticTensorToDbTask(FireTaskBase):
         d = {"analysis": {}, "deformation_tasks": fw_spec["deformation_tasks"],
              "initial_structure": self['structure'].as_dict(),
              "optimized_structure": opt_struct.as_dict()}
-
+        if fw_spec.get("tags",None):
+            d["tags"] = fw_spec["tags"]
         dtypes = fw_spec["deformation_tasks"].keys()
         defos = [fw_spec["deformation_tasks"][dtype]["deformation_matrix"]
                  for dtype in dtypes]
@@ -470,3 +471,73 @@ class FitEquationOfStateTask(FireTaskBase):
             f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
 
         logger.info("BULK MODULUS CALCULATION COMPLETE")
+
+
+@explicit_serialize
+class ThermalExpansionCoeffTask(FireTaskBase):
+    """
+    Compute the quasi-harmonic thermal expansion coefficient using phonopy.
+
+    required_params:
+        tag (str): unique tag appended to the task labels in other fireworks so that all the
+            required data can be queried directly from the database.
+        db_file (str): path to the db file
+
+    optional_params:
+        t_min (float): min temperature
+        t_step (float): temperature step
+        t_max (float): max temperature
+        mesh (list/tuple): reciprocal space density
+        eos (str): equation of state used for fitting the energies and the volumes.
+            options supported by phonopy: "vinet", "murnaghan", "birch_murnaghan".
+        pressure (float): in GPa, optional.
+    """
+
+    required_params = ["tag", "db_file"]
+    optional_params = ["t_min", "t_step", "t_max", "mesh", "eos", "pressure"]
+
+    def run_task(self, fw_spec):
+
+        from matmethods.tools.analysis import get_phonopy_thermal_expansion
+
+        tag = self["tag"]
+        db_file = env_chk(self.get("db_file"), fw_spec)
+        t_step = self.get("t_step", 10)
+        t_min = self.get("t_min", 0)
+        t_max = self.get("t_max", 1000)
+        mesh = self.get("mesh", [20, 20, 20])
+        eos = self.get("eos", "vinet")
+        pressure = self.get("pressure", 0.0)
+        summary_dict = {}
+
+        mmdb = MMDb.from_db_file(db_file, admin=True)
+        # get the optimized structure
+        d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
+        structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+        summary_dict["structure"] = structure.as_dict()
+
+        # get the data(energy, volume, force constant) from the deformation runs
+        docs = mmdb.collection.find({"task_label": {"$regex": "{} thermal_expansion*".format(tag)},
+                                     "formula_pretty": structure.composition.reduced_formula})
+        energies = []
+        volumes = []
+        force_constants = []
+        for d in docs:
+            s = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+            energies.append(d["calcs_reversed"][-1]["output"]['energy'])
+            volumes.append(s.volume)
+            force_constants.append(d["calcs_reversed"][-1]["output"]['force_constants'])
+        summary_dict["energies"] = energies
+        summary_dict["volumes"] = volumes
+        summary_dict["force_constants"] = force_constants
+
+        alpha, T = get_phonopy_thermal_expansion(energies, volumes, force_constants, structure,
+                                                 t_min, t_step, t_max, mesh, eos, pressure)
+
+        summary_dict["alpha"] = alpha
+        summary_dict["T"] = T
+
+        with open("thermal_expansion.json", "w") as f:
+            f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
+
+        logger.info("THERMAL EXPANSION COEFF CALCULATION COMPLETE")

@@ -15,6 +15,8 @@ from matmethods.vasp.workflows.base.elastic import get_wf_elastic_constant
 from matmethods.vasp.workflows.base.raman import get_wf_raman_spectra
 from matmethods.vasp.workflows.base.gibbs import get_wf_gibbs_free_energy
 from matmethods.vasp.workflows.base.bulk_modulus import get_wf_bulk_modulus
+from matmethods.vasp.workflows.base.thermal_expansion import get_wf_thermal_expansion
+
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
@@ -281,6 +283,40 @@ def wf_bulk_modulus(structure, c=None):
 
     wf = get_wf_bulk_modulus(structure, eos=eos, user_kpoints_settings=user_kpoints_settings,
                              deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file)
+
+    wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 600, "EDIFF": 1e-6}})
+
+    wf = add_common_powerups(wf, c)
+
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
+    return wf
+
+
+def wf_thermal_expansion(structure, c=None):
+    """
+    Thermal expansion coefficient workflow from the given structure and config dict.
+
+    Args:
+        structure (Structure): input structure
+        c (dict): workflow config dict
+
+    Returns:
+        Workflow
+    """
+    c = c or {}
+    eos = c.get("eos", "vinet")
+    vasp_cmd = c.get("vasp_cmd", VASP_CMD)
+    db_file = c.get("db_file", DB_FILE)
+    user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
+    deformations = c.get("deformations", [(np.identity(3)*(1+x)).tolist()
+                                          for x in np.linspace(-0.1, 0.1, 10)])
+    pressure = c.get("pressure", 0.0)
+
+    wf = get_wf_thermal_expansion(structure, user_kpoints_settings=user_kpoints_settings,
+                                  deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file,
+                                  eos=eos, pressure=pressure)
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 600, "EDIFF": 1e-6}})
 

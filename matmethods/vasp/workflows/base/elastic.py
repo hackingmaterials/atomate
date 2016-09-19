@@ -54,11 +54,11 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
     # Generate deformations
     deformations = []
 
-    if norm_deformations:
+    if norm_deformations is not None:
         deformations.extend([Deformation.from_index_amount(ind, amount)
                              for ind in [(0, 0), (1, 1), (2, 2)]
                              for amount in norm_deformations])
-    if shear_deformations:
+    if shear_deformations is not None:
         deformations.extend([Deformation.from_index_amount(ind, amount)
                              for ind in [(0, 1), (0, 2), (1, 2)]
                              for amount in shear_deformations])
@@ -69,7 +69,8 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
     wf_elastic = get_wf_deformations(structure, deformations, vasp_input_set=vasp_input_set,
                                      lepsilon=False, vasp_cmd=vasp_cmd, db_file=db_file,
                                      user_kpoints_settings=user_kpoints_settings,
-                                     pass_stress_strain=True, name="elastic deformation")
+                                     pass_stress_strain=True, name="elastic deformation",
+                                     relax_deformed=True)
 
     if add_analysis_task:
         fw_analysis = Firework(ElasticTensorToDbTask(structure=structure, db_file=db_file),

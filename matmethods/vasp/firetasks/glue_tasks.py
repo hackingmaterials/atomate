@@ -2,6 +2,11 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
+import glob
+
+from pymatgen.analysis.elasticity.strain import Strain
+from pymatgen.io.vasp import Vasprun, zpath
+
 """
 This module defines tasks that acts as a glue between other vasp firetasks
 namely passing the location of current run to the next one and copying files
@@ -18,7 +23,6 @@ import numpy as np
 from pymatgen import MPRester
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.analysis.elasticity import reverse_voigt_map
-from pymatgen.analysis.elasticity.strain import IndependentStrain
 
 from fireworks import explicit_serialize, FireTaskBase, FWAction
 
@@ -163,6 +167,57 @@ class CheckStability(FireTaskBase):
 
 
 @explicit_serialize
+class CheckBandgap(FireTaskBase):
+    """
+    Checks the band gap of an entry. If band gap is >min_gap or <max_gap, then
+    the task will return a FWAction that will defuse all remaining tasks.
+
+    Required params:
+        (none) - but you should set either min_gap or max_gap
+
+    Optional params:
+        min_gap: (float) minimum gap energy in eV to proceed
+        max_gap: (float) maximum gap energy in eV to proceed
+        vasprun_path: (str) path to vasprun.xml file
+    """
+
+    required_params = []
+    optional_params = ["min_gap", "max_gap", "vasprun_path"]
+
+    def run_task(self, fw_spec):
+        vr_path = self.get("vasprun_path", "vasprun.xml")
+        min_gap = self.get("min_gap", None)
+        max_gap = self.get("max_gap", None)
+
+        vr_path = zpath(vr_path)
+
+        if not os.path.exists(vr_path):
+            relax_paths = sorted(glob.glob(vr_path + ".relax*"), reverse=True)
+            if relax_paths:
+                if len(relax_paths) > 9:
+                    raise ValueError(
+                        "CheckBandgap doesn't properly handle >9 relaxations!")
+                vr_path = relax_paths[0]
+
+
+        print("Checking the gap of file: {}".format(vr_path))
+        vr = Vasprun(vr_path)
+        gap = vr.get_band_structure().get_band_gap()["energy"]
+        stored_data = {"band_gap": gap}
+        print("The gap is: {}. Min gap: {}. Max gap: {}".format(gap,
+                                                                min_gap,
+                                                                max_gap))
+
+        if min_gap and gap < min_gap or max_gap and gap > max_gap:
+            print("Defusing based on band gap!")
+            return FWAction(stored_data=stored_data, exit=True,
+                            defuse_workflow=True)
+
+        print("Gap OK...")
+        return FWAction(stored_data=stored_data)
+
+
+@explicit_serialize
 class PassStressStrainData(FireTaskBase):
     """
     Passes the stress and deformation for an elastic deformation calculation
@@ -182,7 +237,7 @@ class PassStressStrainData(FireTaskBase):
         # Shorthand is d_X_V, X is voigt index, V is value
         dtype = "_".join(["d", str(reverse_voigt_map[d_ind][0]),
                           "{:.0e}".format(delta)])
-        strain = IndependentStrain(defo)
+        strain = Strain.from_deformation(defo)
         defo_dict = {'deformation_matrix': defo,
                      'strain': strain.tolist(),
                      'stress': stress}

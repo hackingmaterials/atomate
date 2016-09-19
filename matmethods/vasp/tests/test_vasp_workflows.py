@@ -14,7 +14,8 @@ from pymongo import MongoClient, DESCENDING
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
-from matmethods.vasp.vasp_powerups import use_custodian, add_namefile, use_fake_vasp, add_trackers
+from matmethods.vasp.vasp_powerups import use_custodian, add_namefile, use_fake_vasp, add_trackers, \
+    add_bandgap_check
 from matmethods.vasp.workflows.base.core import get_wf
 
 from pymatgen import SETTINGS
@@ -33,7 +34,7 @@ ref_dirs_si = {"structure optimization": os.path.join(reference_dir, "Si_structu
              "nscf uniform": os.path.join(reference_dir, "Si_nscf_uniform"),
              "nscf line": os.path.join(reference_dir, "Si_nscf_line")}
 
-DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
+DEBUG_MODE = True  # If true, retains the database and output dirs at the end of the test
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
 
@@ -240,6 +241,36 @@ class TestVaspWorkflows(unittest.TestCase):
         # make sure the uniform run ran OK
         d = self._get_task_collection().find_one({"task_label": "nscf line"}, sort=[("_id", DESCENDING)])
         self._check_run(d, mode="nscf line")
+
+    def test_bandgap_check_Vasp(self):
+        # add the workflow
+        structure = self.struct_si
+        # instructs to use db_file set by FWorker, see env_chk
+        my_wf = get_wf(structure, "bandstructure.yaml",
+                       vis=MPRelaxSet(structure, force_gamma=True),
+                       common_params={"vasp_cmd": VASP_CMD,
+                                      "db_file": ">>db_file<<"})
+        if not VASP_CMD:
+            my_wf = use_fake_vasp(my_wf, ref_dirs_si)
+        else:
+            my_wf = use_custodian(my_wf)
+
+        my_wf = add_namefile(my_wf)  # add a slug of fw-name to output files
+        my_wf = add_bandgap_check(my_wf, check_bandgap_params={"max_gap": 0.1}, fw_name_constraint="structure optimization")
+        self.lp.add_wf(my_wf)
+
+        # run the workflow
+        # set the db_file variable
+        rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
+
+        # structure optimization should be completed
+        self.assertEqual(self.lp.fireworks.find_one(
+            {"name": "Si-structure optimization"}, {"state": 1})["state"],
+                         "COMPLETED")
+
+        self.assertEqual(self.lp.fireworks.find_one(
+            {"name": "Si-static"}, {"state": 1})["state"],
+                         "DEFUSED")
 
     def test_trackers(self):
         # add the workflow

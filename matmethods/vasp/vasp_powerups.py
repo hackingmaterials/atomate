@@ -7,7 +7,7 @@ from fireworks.core.firework import Tracker
 from fireworks.utilities.fw_utilities import get_slug
 
 from matmethods.utils.utils import get_meta_from_structure, get_fws_and_tasks, update_wf
-from matmethods.vasp.firetasks.glue_tasks import CheckStability
+from matmethods.vasp.firetasks.glue_tasks import CheckStability, CheckBandgap
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspDirect, RunVaspFake
 from matmethods.vasp.firetasks.write_inputs import ModifyIncar
 from matmethods.vasp.vasp_config import ADD_NAMEFILE, SCRATCH_DIR, ADD_MODIFY_INCAR
@@ -198,8 +198,27 @@ def add_stability_check(original_wf, check_stability_params=None, fw_name_constr
     """
     check_stability_params = check_stability_params or {}
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
-                                           task_name_constraint="RunVasp"):
+                                           task_name_constraint="DbTask"):
         original_wf.fws[idx_fw].spec["_tasks"].append(CheckStability(**check_stability_params).to_dict())
+    return update_wf(original_wf)
+
+
+def add_bandgap_check(original_wf, check_bandgap_params=None, fw_name_constraint=None):
+    """
+    Every FireWork that runs VASP has a CheckStability task afterward. This
+    allows defusing jobs that are not stable. In practice, you might want
+    to set the fw_name_constraint so that the stability is only checked at the
+    beginning of the workflow
+
+    Args:
+        original_wf (Workflow)
+        check_bandgap_params (dict): a **kwargs** style dict of params
+        fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this substring.
+    """
+    check_stability_params = check_bandgap_params or {}
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
+                                           task_name_constraint="DbTask"):
+        original_wf.fws[idx_fw].spec["_tasks"].append(CheckBandgap(**check_bandgap_params).to_dict())
     return update_wf(original_wf)
 
 

@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 
 def get_wf_deformations(structure, deformations, name="deformation", vasp_input_set=None,
                         lepsilon=False, vasp_cmd="vasp", db_file=None, user_kpoints_settings=None,
-                        pass_stress_strain=False, tag=""):
+                        pass_stress_strain=False, tag="", relax_deformed=False):
     """
     Returns a structure deformation workflow.
 
@@ -55,12 +55,14 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
         v.update({"user_kpoints_settings": user_kpoints_settings})
         vis_relax = vis_relax.__class__.from_dict(v)
 
+    uis_static = {"ISIF": 2, "ISTART":1}
+    if relax_deformed:
+        uis_static["IBRION"] = 2
+
     # static input set
     vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
                              user_kpoints_settings=user_kpoints_settings,
-                             user_incar_settings={"ISIF": 2, "ISTART": 1})
-    for key in ["MAGMOM", "LDAUU", "LDAUJ", "LDAUL"]:
-        vis_static.incar.pop(key, None)
+                             user_incar_settings=uis_static)
 
     # Structure optimization firework
     fws = [OptimizeFW(structure=structure, vasp_input_set=vis_relax, vasp_cmd=vasp_cmd,
