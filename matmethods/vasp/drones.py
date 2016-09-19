@@ -251,14 +251,11 @@ class VaspDrone(AbstractDrone):
                 logger.error("No valid dos data exist in {}.\n Skipping dos".format(dir_name))
 
         if self.bandstructure_mode:
-            try:
-                bs = vrun.get_band_structure(line_mode=(self.bandstructure_mode == "line"))
-                d["bandstructure"] = bs.as_dict()
-            except:
-                logger.error("No valid band structure data exist in {}.\n Skipping band structure"
-                             .format(dir_name))
+            bs = vrun.get_band_structure(line_mode=(self.bandstructure_mode == "line"))
         else:
             bs = vrun.get_band_structure()
+
+        d["bandstructure"] = bs.as_dict()
 
         d["output"]["vbm"] = bs.get_vbm()["energy"]
         d["output"]["cbm"] = bs.get_cbm()["energy"]
