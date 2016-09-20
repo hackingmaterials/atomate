@@ -248,7 +248,7 @@ class VaspDrone(AbstractDrone):
             try:
                 d["dos"] = vrun.complete_dos.as_dict()
             except:
-                logger.error("No valid dos data exist in {}.\n Skipping dos".format(dir_name))
+                raise ValueError("No valid dos data exist in {}.".format(dir_name))
 
         if self.bandstructure_mode:
             bs = vrun.get_band_structure(line_mode=(self.bandstructure_mode == "line"))
