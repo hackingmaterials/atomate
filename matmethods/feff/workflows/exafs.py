@@ -19,8 +19,8 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_exafs(absorbing_atom, structure, radius=10.0, feff_input_set=None, feff_cmd="feff",
-                 db_file=None, user_tag_settings=None):
+def get_wf_exafs(absorbing_atom, structure, edge="K", radius=10.0, feff_input_set=None,
+                 feff_cmd="feff", db_file=None, user_tag_settings=None):
     """
     Returns FEFF EXAFS spectroscopy workflow.
 
@@ -36,10 +36,10 @@ def get_wf_exafs(absorbing_atom, structure, radius=10.0, feff_input_set=None, fe
     Returns:
         Workflow
     """
-    fis = feff_input_set or MPEXAFSSet(absorbing_atom, structure, radius,
+    fis = feff_input_set or MPEXAFSSet(absorbing_atom, structure, edge=edge, radius=radius,
                                        user_tag_settings=user_tag_settings or {})
-    fws = [EXAFSFW(absorbing_atom, structure, radius=radius, feff_input_set=fis, feff_cmd=feff_cmd,
-                   db_file=db_file)]
+    fws = [EXAFSFW(absorbing_atom, structure, edge=edge, radius=radius, feff_input_set=fis,
+                   feff_cmd=feff_cmd, db_file=db_file)]
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, "EXAFS spectroscopy")
     return Workflow(fws, name=wfname)

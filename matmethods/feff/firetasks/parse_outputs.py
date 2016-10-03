@@ -5,7 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import json
 import os
 
-from pymatgen.io.feff.outputs import Xmu
+import numpy as np
 
 from fireworks import FireTaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
@@ -21,13 +21,16 @@ logger = get_logger(__name__)
 
 
 @explicit_serialize
-class XmuToDbTask(FireTaskBase):
+class AbsorptionSpectrumToDbTask(FireTaskBase):
     """
-    Parse the output of EXAFS calculation(xmu.dat) and insert it into the database("xas" collection).
+    Parse the output of absorption spectrum calculations(xmu.dat, eels.dat) and insert it into the
+    database.
 
     Required_params:
         absorbing_atom (str): absorbing atom symbol
         structure (Structure): input structure
+        spectrum_type (str): XANES, EXAFS, ELNES, EXELFS
+        output_file (str): the output file name. xmu.dat or eels.dat
 
     Optional_params:
         input_file (str): path to the feff input file.
@@ -38,7 +41,7 @@ class XmuToDbTask(FireTaskBase):
         db_file (str): path to the db file.
     """
 
-    required_params = ["absorbing_atom", "structure"]
+    required_params = ["absorbing_atom", "structure", "spectrum_type", "output_file"]
     optional_params = ["input_file", "calc_dir", "calc_loc", "db_file"]
 
     def run_task(self, fw_spec):
@@ -52,20 +55,20 @@ class XmuToDbTask(FireTaskBase):
 
         db_file = env_chk(self.get('db_file'), fw_spec)
 
-        doc = {"structure": self["structure"].as_dict(), "absorbing_atom": self["absorbing_atom"]}
-        input_file = os.path.join(calc_dir, self.get("input_file", "feff.inp"))
-        xmu = Xmu.from_file(os.path.join(calc_dir, "xmu.dat"), input_file)
-        doc["xmu"] = xmu.data.tolist()
+        doc = {"structure": self["structure"].as_dict(),
+               "absorbing_atom": self["absorbing_atom"]}
+        doc["spectrum_type"] = self["spectrum_type"]
+        doc["spectrum"] = np.loadtxt(os.path.join(calc_dir, self["output_file"])).tolist()
 
         # db insertion
         if not db_file:
-            with open("xmu.json", "w") as f:
+            with open("absorption_spectrum.json", "w") as f:
                 f.write(json.dumps(doc, default=DATETIME_HANDLER))
         else:
             db = MMDb.from_db_file(db_file, admin=True)
-            db.collection = db.db["xas"]
+            db.collection = db.db["absorption"]
             db.collection.insert_one(doc)
 
-        logger.info("Finished parsing EXAFS spectrum")
+        logger.info("Finished parsing the absorption spectrum")
 
         return FWAction()

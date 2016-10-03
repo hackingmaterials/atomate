@@ -19,8 +19,8 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_xanes(absorbing_atom, structure, radius=10.0, feff_input_set=None, feff_cmd="feff",
-                 db_file=None):
+def get_wf_xanes(absorbing_atom, structure, edge="K", radius=10.0, feff_input_set=None,
+                 feff_cmd="feff", db_file=None):
     """
     Returns FEFF XANES spectroscopy workflow.
 
@@ -35,8 +35,8 @@ def get_wf_xanes(absorbing_atom, structure, radius=10.0, feff_input_set=None, fe
     Returns:
         Workflow
     """
-    fis = feff_input_set or MPXANESSet(absorbing_atom, structure, radius)
-    fws = [XANESFW(absorbing_atom, structure, radius=radius, feff_input_set=fis, feff_cmd=feff_cmd,
-                   db_file=db_file)]
+    fis = feff_input_set or MPXANESSet(absorbing_atom, structure, edge=edge, radius=radius)
+    fws = [XANESFW(absorbing_atom, structure, edge=edge, radius=radius, feff_input_set=fis,
+                   feff_cmd=feff_cmd, db_file=db_file)]
     wfname = "{}:{}".format(structure.composition.reduced_formula, "XANES spectroscopy")
     return Workflow(fws, name=wfname)
