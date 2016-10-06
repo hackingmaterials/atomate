@@ -169,7 +169,7 @@ class BoltztrapToDBTask(FireTaskBase):
         sg = SpacegroupAnalyzer(Structure.from_dict(d["structure"]), 0.1)
         d["spacegroup"] = {"symbol": sg.get_space_group_symbol(),
                            "number": sg.get_space_group_number(),
-                           "point_group": sg.get_point_group(),
+                           "point_group": sg.get_point_group_symbol(),
                            "source": "spglib",
                            "crystal_system": sg.get_crystal_system(),
                            "hall": sg.get_hall()}
