@@ -12,6 +12,7 @@ from fireworks import Workflow
 
 from matmethods.utils.utils import get_logger
 from matmethods.feff.fireworks.core import EXAFSFW
+from matmethods.feff.fireworks.firework_tscc import EXAFSFW_tscc
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -43,3 +44,18 @@ def get_wf_exafs(absorbing_atom, structure, edge="K", radius=10.0, feff_input_se
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, "EXAFS spectroscopy")
     return Workflow(fws, name=wfname)
+
+
+def exafs_wflow_tscc(absorbing_atom, structure, edge="K", radius=10.0, feff_input_set=None,
+                db_file=None, user_tag_settings=None):
+
+    """
+    To be done
+    """
+    fis = feff_input_set or MPEXAFSSet(absorbing_atom, structure, edge=edge, radius=radius,
+                                       user_tag_settings=user_tag_settings or {})
+    fws = [EXAFSFW_tscc(absorbing_atom, structure, edge=edge, radius=radius, feff_input_set=fis, db_file=db_file)]
+
+    wfname = "{}:{}".format(structure.composition.reduced_formula, "EXAFS spectroscopy")
+    return Workflow(fws, name=wfname)
+
