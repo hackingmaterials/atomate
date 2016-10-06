@@ -106,6 +106,10 @@ class ELNESFW(Firework):
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
+        mp_id = None
+        if kwargs.get("mp_id", None):
+            mp_id = kwargs["mp_id"]
+            del kwargs["mp_id"]
         override_default_feff_params = override_default_feff_params or {}
         feff_input_set = feff_input_set or MPELNESSet(absorbing_atom, structure, edge, radius,
                                                       beam_energy, beam_direction, collection_angle,
@@ -118,6 +122,7 @@ class ELNESFW(Firework):
                                     radius=radius, feff_input_set=feff_input_set))
         t.append(RunFeffDirect(feff_cmd=feff_cmd))
         t.append(AbsorptionSpectrumToDbTask(absorbing_atom=absorbing_atom, structure=structure,
-                                            db_file=db_file, spectrum_type="ELNES", output_file="eels.dat"))
+                                            db_file=db_file, spectrum_type="ELNES",
+                                            output_file="eels.dat", mp_id=mp_id))
         super(ELNESFW, self).__init__(t, parents=parents, name="{}-{}".
                                          format(structure.composition.reduced_formula, name), **kwargs)

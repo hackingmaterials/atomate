@@ -39,10 +39,11 @@ class AbsorptionSpectrumToDbTask(FireTaskBase):
         calc_loc (str OR bool): if True will set most recent calc_loc. If str search for the most
             recent calc_loc with the matching name
         db_file (str): path to the db file.
+        mp_id (str): mp id of the structure.
     """
 
     required_params = ["absorbing_atom", "structure", "spectrum_type", "output_file"]
-    optional_params = ["input_file", "calc_dir", "calc_loc", "db_file"]
+    optional_params = ["input_file", "calc_dir", "calc_loc", "db_file", "mp_id"]
 
     def run_task(self, fw_spec):
         calc_dir = os.getcwd()
@@ -55,15 +56,16 @@ class AbsorptionSpectrumToDbTask(FireTaskBase):
 
         db_file = env_chk(self.get('db_file'), fw_spec)
 
-        doc = {"structure": self["structure"].as_dict(),
-               "absorbing_atom": self["absorbing_atom"]}
-        doc["spectrum_type"] = self["spectrum_type"]
-        doc["spectrum"] = np.loadtxt(os.path.join(calc_dir, self["output_file"])).tolist()
+        doc = {"mp_id": self.get("mp_id", None),
+               "structure": self["structure"].as_dict(),
+               "absorbing_atom": self["absorbing_atom"],
+               "spectrum_type" : self["spectrum_type"],
+               "spectrum": np.loadtxt(os.path.join(calc_dir, self["output_file"])).tolist()}
 
-        # db insertion
         if not db_file:
             with open("absorption_spectrum.json", "w") as f:
                 f.write(json.dumps(doc, default=DATETIME_HANDLER))
+        # db insertion
         else:
             db = MMDb.from_db_file(db_file, admin=True)
             db.collection = db.db["absorption"]
