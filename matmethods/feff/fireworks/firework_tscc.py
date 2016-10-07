@@ -73,6 +73,11 @@ class FEFFWorkflowManager(object):
 
         return feffmanager
 
+    def get_abs_atom_edge(self,admin=True):
+
+        feffdb = FEFFDBManager(self.settings_file,admin)
+        self.absorb_atom, self.edge = feffdb.get_abs_atom_edge(self.eels_index)
+
 
     def create_exafs_workflow(self, absorbing_atom, edge, structure,radius=10,name="EXAFS spectroscopy",feff_input_set=None,override_default_feff_params=None,db_file=None, parents=None, additional_spec=None,**kwargs):
 

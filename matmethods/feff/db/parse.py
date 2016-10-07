@@ -53,14 +53,14 @@ class FEFFDBManager(object):
         """
 
         sample = self.db.eelsdb.find({'eels_index':eels_index})
-        convg_angle = float(sample["meta_data"]["Convergence Semi-angle"].split()[0])
-        coll_angle = float(sample["meta_data"]["Collection Semi-angle"].split()[0])
-        beam_energy = float(sample["meta_data"]["Incident Beam Energy"].split()[0])
-        absorber = sample["meta_data"]["Elemental Edges"].split("_")[0]
-        edge = sample["meta_data"]["Elemental Edges"].split("_")[1]
+        convg_angle = float(sample[0]["meta_data"]["Convergence Semi-angle"].split()[0])
+        coll_angle = float(sample[0]["meta_data"]["Collection Semi-angle"].split()[0])
+        beam_energy = float(sample[0]["meta_data"]["Incident Beam Energy"].split()[0])
+        absorber = sample[0]["meta_data"]["Elemental Edges"].split("_")[0]
+        edge = sample[0]["meta_data"]["Elemental Edges"].split("_")[1]
         return convg_angle, coll_angle, beam_energy, absorber, edge
 
-    def get_xafs_param(self,eels_index):
+    def get_abs_atom_edge(self,eels_index):
         """
         TODO filled in document
         Args:
@@ -87,7 +87,7 @@ class FEFFDBManager(object):
 
         sample = self.db.eelsdb.find({'eels_index':eels_index})
 
-        return sample["mp_id"]
+        return sample[0]["mp_id"]
 
 
 

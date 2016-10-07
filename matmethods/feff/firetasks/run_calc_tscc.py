@@ -23,8 +23,7 @@ __email__ = "kmathew@lbl.gov"
 SUBMIT_FNAME = "submit_script"
 
 
-TEMPLATE = """
-#!/bin/bash
+TEMPLATE = """#!/bin/bash
 #PBS -q {queue}
 #PBS -N {name}
 #PBS -l nodes=1:ppn={nproc}:{proc}
