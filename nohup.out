@@ -1,0 +1,13 @@
+/Users/chenzheng/repos/pymatgen/pymatgen/__init__.py:30: UserWarning: You have VASP_PSP_DIR set in the env. From pmg 5, all settings should be in the .pmgrc.yaml file.
+  "settings should be in the .pmgrc.yaml file." % k)
+/Users/chenzheng/repos/pymatgen/pymatgen/__init__.py:30: UserWarning: You have MAPI_KEY set in the env. From pmg 5, all settings should be in the .pmgrc.yaml file.
+  "settings should be in the .pmgrc.yaml file." % k)
+successfully loaded chenzheng custom FW_config.yaml with path in ~/.fireworks!
+Traceback (most recent call last):
+  File "/Users/chenzheng/anaconda/bin/mdtools", line 6, in <module>
+    exec(compile(open(__file__).read(), __file__, 'exec'))
+  File "/Users/chenzheng/repos/pymacy/scripts/mdtools", line 306, in <module>
+    args.func(args)
+  File "/Users/chenzheng/repos/pymacy/scripts/mdtools", line 135, in reinsert
+    md_id = int(paths[0][-4])
+IndexError: list index out of range
