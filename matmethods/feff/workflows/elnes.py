@@ -49,11 +49,12 @@ def get_wf_elnes(absorbing_atom, structure=None, edge="K", radius=10., beam_ener
         Workflow
     """
     if structure:
-        wfname = "{}:{}".format(structure.composition.reduced_formula, "ELNES spectroscopy")
+        wfname = "{}:{}:{} edge".format(structure.composition.reduced_formula, "ELNES spectroscopy",
+                                        edge)
     elif mp_id:
             structure = PymatgenTest.get_mp_structure(mp_id)
-            wfname = "{}-{}:{}".format(mp_id, structure.composition.reduced_formula,
-                                       "ELNES spectroscopy")
+            wfname = "{}-{}:{}:{} edge".format(mp_id, structure.composition.reduced_formula,
+                                               "ELNES spectroscopy", edge)
     else:
         raise ValueError("Neither structure no mp_id provided.")
     fis = feff_input_set or MPELNESSet(absorbing_atom, structure, edge, radius, beam_energy,

@@ -27,6 +27,7 @@ def get_wf_xanes(absorbing_atom, structure, edge="K", radius=10.0, feff_input_se
     Args:
         absorbing_atom (str): absorbing atom symbol
         structure (Structure): input structure
+        edge (str): absorption edge
         radius (float): cluster radius in angstroms
         feff_input_set (FeffDictSet): the input set for the FEFF run
         feff_cmd (str): path to the feff binary
@@ -38,5 +39,5 @@ def get_wf_xanes(absorbing_atom, structure, edge="K", radius=10.0, feff_input_se
     fis = feff_input_set or MPXANESSet(absorbing_atom, structure, edge=edge, radius=radius)
     fws = [XANESFW(absorbing_atom, structure, edge=edge, radius=radius, feff_input_set=fis,
                    feff_cmd=feff_cmd, db_file=db_file)]
-    wfname = "{}:{}".format(structure.composition.reduced_formula, "XANES spectroscopy")
+    wfname = "{}:{}:{} edge".format(structure.composition.reduced_formula, "XANES spectroscopy", edge)
     return Workflow(fws, name=wfname)
