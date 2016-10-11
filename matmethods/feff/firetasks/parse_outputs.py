@@ -12,7 +12,7 @@ from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
 from matmethods.utils.utils import env_chk, get_calc_loc
 from matmethods.utils.utils import get_logger
-from matmethods.vasp.database import MMDb
+from matmethods.vasp.database import MMFeffDb
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -68,7 +68,7 @@ class SpectrumToDbTask(FireTaskBase):
                 f.write(json.dumps(doc, default=DATETIME_HANDLER))
         # db insertion
         else:
-            db = MMDb.from_db_file(db_file, admin=True)
+            db = MMFeffDb.from_db_file(db_file, admin=True)
             db.collection.insert_one(doc)
 
         logger.info("Finished parsing the spectrum")
