@@ -51,6 +51,11 @@ class MMDb(six.with_metaclass(ABCMeta)):
             raise ValueError
         self.collection = self.db[collection]
 
+        # set counter collection
+        if self.db.counter.find({"_id": "taskid"}).count() == 0:
+            self.db.counter.insert_one({"_id": "taskid", "c": 0})
+            self.build_indexes()
+
     @abstractmethod
     def build_indexes(self, indexes=None, background=True):
         """
@@ -62,16 +67,33 @@ class MMDb(six.with_metaclass(ABCMeta)):
          """
         pass
 
-    @abstractmethod
-    def insert(self, doc, update_duplicates=True):
+    def insert(self, d, update_duplicates=True):
         """
         Insert the task document ot the database collection.
 
         Args:
-            doc (dict): task document
+            d (dict): task document
             update_duplicates (bool): whether to update the duplicates
         """
-        pass
+        result = self.collection.find_one({"dir_name": d["dir_name"]}, ["dir_name", "task_id"])
+        if result is None or update_duplicates:
+            d["last_updated"] = datetime.datetime.today()
+            if result is None:
+                if ("task_id" not in d) or (not d["task_id"]):
+                    d["task_id"] = self.db.counter.find_one_and_update(
+                        {"_id": "taskid"}, {"$inc": {"c": 1}},
+                        return_document=ReturnDocument.AFTER)["c"]
+                logger.info("Inserting {} with taskid = {}".format(d["dir_name"], d["task_id"]))
+            elif update_duplicates:
+                d["task_id"] = result["task_id"]
+                logger.info("Updating {} with taskid = {}".format(d["dir_name"], d["task_id"]))
+            d = jsanitize(d, allow_bson=True)
+            self.collection.update_one({"dir_name": d["dir_name"]},
+                                       {"$set": d}, upsert=True)
+            return d["task_id"]
+        else:
+            logger.info("Skipping duplicate {}".format(d["dir_name"]))
+            return None
 
     @abstractmethod
     def reset(self):
@@ -111,11 +133,6 @@ class MMVaspDb(MMDb):
     def __init__(self, host="localhost", port=27017, database="vasp", collection="tasks", user=None,
                  password=None):
         super(MMVaspDb, self).__init__(host, port, database, collection, user, password)
-
-        # set counter collection
-        if self.db.counter.find({"_id": "taskid"}).count() == 0:
-            self.db.counter.insert_one({"_id": "taskid", "c": 0})
-            self.build_indexes()
 
     def build_indexes(self, indexes=None, background=True):
         """
@@ -174,37 +191,6 @@ class MMVaspDb(MMDb):
             return BandStructureSymmLine.from_dict(bs_dict)
         else:
             return BandStructure.from_dict(bs_dict)
-
-    def insert(self, d, update_duplicates=True):
-        """
-        Insert the task document ot the database collection.
-
-        Args:
-            d (dict): task document
-            update_duplicates (bool): whether to update the duplicates
-
-        Returns:
-            task_id on successful insertion
-        """
-        result = self.collection.find_one({"dir_name": d["dir_name"]}, ["dir_name", "task_id"])
-        if result is None or update_duplicates:
-            d["last_updated"] = datetime.datetime.today()
-            if result is None:
-                if ("task_id" not in d) or (not d["task_id"]):
-                    d["task_id"] = self.db.counter.find_one_and_update(
-                        {"_id": "taskid"}, {"$inc": {"c": 1}},
-                        return_document=ReturnDocument.AFTER)["c"]
-                logger.info("Inserting {} with taskid = {}".format(d["dir_name"], d["task_id"]))
-            elif update_duplicates:
-                d["task_id"] = result["task_id"]
-                logger.info("Updating {} with taskid = {}".format(d["dir_name"], d["task_id"]))
-            d = jsanitize(d, allow_bson=True)
-            self.collection.update_one({"dir_name": d["dir_name"]},
-                                       {"$set": d}, upsert=True)
-            return d["task_id"]
-        else:
-            logger.info("Skipping duplicate {}".format(d["dir_name"]))
-            return None
 
     def reset(self):
         self.collection.delete_many({})
