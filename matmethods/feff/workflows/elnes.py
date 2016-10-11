@@ -11,7 +11,7 @@ from pymatgen.io.feff.sets import MPELNESSet
 from fireworks import Workflow
 
 from matmethods.utils.utils import get_logger
-from matmethods.feff.fireworks.core import ELNESFW
+from matmethods.feff.fireworks.core import EELSFW
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -50,10 +50,11 @@ def get_wf_elnes(absorbing_atom, structure=None, edge="K", radius=10., beam_ener
     fis = feff_input_set or MPELNESSet(absorbing_atom, structure, edge, radius, beam_energy,
                                        beam_direction, collection_angle, convergence_angle,
                                        user_eels_settings=user_eels_settings)
-    fws = [ELNESFW(absorbing_atom, structure, edge=edge, radius=radius, beam_energy=beam_energy,
-                   beam_direction=beam_direction, collection_angle=collection_angle,
-                   convergence_angle=convergence_angle, user_eels_settings=user_eels_settings,
-                   feff_input_set=fis, feff_cmd=feff_cmd, db_file=db_file, metadata=metadata)]
+    fws = [EELSFW(absorbing_atom, structure, "ELNES", edge=edge, radius=radius,
+                  beam_energy=beam_energy, beam_direction=beam_direction,
+                  collection_angle=collection_angle, convergence_angle=convergence_angle,
+                  user_eels_settings=user_eels_settings, feff_input_set=fis, feff_cmd=feff_cmd,
+                  db_file=db_file, metadata=metadata, name="ELNES spectroscopy")]
     wfname = "{}:{}:{} edge".format(structure.composition.reduced_formula, "ELNES spectroscopy",
                                     edge)
     return Workflow(fws, name=wfname, metadata=metadata)

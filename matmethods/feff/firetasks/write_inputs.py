@@ -8,13 +8,11 @@ This module defines tasks for writing FEFF input sets.
 
 from fireworks import FireTaskBase, explicit_serialize
 
+from matmethods.utils.utils import load_class
+
+
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
-
-
-def load_class(mod, name):
-    mod = __import__(mod, globals(), locals(), [name], 0)
-    return getattr(mod, name)
 
 
 @explicit_serialize
