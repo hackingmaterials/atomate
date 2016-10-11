@@ -19,17 +19,11 @@ from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
 from pymatgen.io.vasp import Incar, Poscar
 from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, MPHSEBSSet
-from pymatgen.transformations.site_transformations import TranslateSitesTransformation
 
-from matmethods.utils.utils import env_chk
+from matmethods.utils.utils import env_chk, load_class
 
 __author__ = 'Anubhav Jain, Shyue Ping Ong, Kiran Mathew'
 __email__ = 'ajain@lbl.gov'
-
-
-def load_class(mod, name):
-    mod = __import__(mod, globals(), locals(), [name], 0)
-    return getattr(mod, name)
 
 
 @explicit_serialize
@@ -65,10 +59,8 @@ class WriteVaspFromIOSet(FireTaskBase):
 
         # if VaspInputSet String + parameters was provided
         else:
-            vis_cls = load_class("pymatgen.io.vasp.sets",
-                                 self["vasp_input_set"])
-            vis = vis_cls(self["structure"],
-                          **self.get("vasp_input_params", {}))
+            vis_cls = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])
+            vis = vis_cls(self["structure"], **self.get("vasp_input_params", {}))
         vis.write_input(".")
 
 
