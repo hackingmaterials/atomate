@@ -21,10 +21,10 @@ logger = get_logger(__name__)
 
 
 @explicit_serialize
-class AbsorptionSpectrumToDbTask(FireTaskBase):
+class SpectrumToDbTask(FireTaskBase):
     """
-    Parse the output of absorption spectrum calculations(xmu.dat, eels.dat) and insert it into the
-    database.
+    Parse the output of absorption/core-loss spectrum calculations(xmu.dat, eels.dat) and insert it
+    into the database.
 
     Required_params:
         absorbing_atom (str): absorbing atom symbol
@@ -43,7 +43,7 @@ class AbsorptionSpectrumToDbTask(FireTaskBase):
     """
 
     required_params = ["absorbing_atom", "structure", "spectrum_type", "output_file"]
-    optional_params = ["input_file", "calc_dir", "calc_loc", "db_file", "edge","metadata"]
+    optional_params = ["input_file", "calc_dir", "calc_loc", "db_file", "edge", "metadata"]
 
     def run_task(self, fw_spec):
         calc_dir = os.getcwd()
@@ -64,14 +64,13 @@ class AbsorptionSpectrumToDbTask(FireTaskBase):
                "metadata": self.get("metadata", None)}
 
         if not db_file:
-            with open("absorption_spectrum.json", "w") as f:
+            with open("spectrum.json", "w") as f:
                 f.write(json.dumps(doc, default=DATETIME_HANDLER))
         # db insertion
         else:
             db = MMDb.from_db_file(db_file, admin=True)
-            db.collection = db.db["absorption"]
             db.collection.insert_one(doc)
 
-        logger.info("Finished parsing the absorption spectrum")
+        logger.info("Finished parsing the spectrum")
 
         return FWAction()

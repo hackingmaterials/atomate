@@ -12,7 +12,7 @@ from fireworks import Firework
 from matmethods.utils.utils import load_class
 from matmethods.feff.firetasks.write_inputs import WriteFeffFromIOSet
 from matmethods.feff.firetasks.run_calc import RunFeffDirect
-from matmethods.feff.firetasks.parse_outputs import AbsorptionSpectrumToDbTask
+from matmethods.feff.firetasks.parse_outputs import SpectrumToDbTask
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -54,9 +54,9 @@ class XASFW(Firework):
 
              RunFeffDirect(feff_cmd=feff_cmd),
 
-             AbsorptionSpectrumToDbTask(absorbing_atom=absorbing_atom, structure=structure,
-                                        db_file=db_file, spectrum_type=spectrum_type, edge=edge,
-                                        output_file="xmu.dat", metadata=metadata)]
+             SpectrumToDbTask(absorbing_atom=absorbing_atom, structure=structure,
+                              db_file=db_file, spectrum_type=spectrum_type, edge=edge,
+                              output_file="xmu.dat", metadata=metadata)]
 
         super(XASFW, self).__init__(t, parents=parents, name="{}-{}".
                                     format(structure.composition.reduced_formula, name), **kwargs)
@@ -101,9 +101,9 @@ class EELSFW(Firework):
 
              RunFeffDirect(feff_cmd=feff_cmd),
 
-             AbsorptionSpectrumToDbTask(absorbing_atom=absorbing_atom, structure=structure,
-                                        db_file=db_file, spectrum_type=spectrum_type, edge=edge,
-                                        output_file="eels.dat", metadata=metadata)]
+             SpectrumToDbTask(absorbing_atom=absorbing_atom, structure=structure,
+                              db_file=db_file, spectrum_type=spectrum_type, edge=edge,
+                              output_file="eels.dat", metadata=metadata)]
 
         super(EELSFW, self).__init__(t, parents=parents, name="{}-{}".
                                      format(structure.composition.reduced_formula, name), **kwargs)
