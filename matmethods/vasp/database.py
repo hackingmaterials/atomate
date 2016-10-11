@@ -206,6 +206,19 @@ class MMVaspDb(MMDb):
         self.build_indexes()
 
 
+class MMLammpsDb(MMDb):
+
+    def __init__(self, host="localhost", port=27017, database="lammps", collection="tasks",
+                 user=None, password=None):
+        super(MMLammpsDb, self).__init__(host, port, database, collection, user, password)
+
+    def build_indexes(self, indexes=None, background=True):
+        pass
+
+    def reset(self):
+        pass
+
+
 class MMBoltztrapDb(MMDb):
     # TODO: add Boltztrap management here
     pass
