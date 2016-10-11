@@ -22,7 +22,7 @@ __email__ = 'kmathew@lbl.gov'
 class EXAFSFW(Firework):
     def __init__(self, absorbing_atom, structure, edge="K", radius=10.0, name="EXAFS spectroscopy",
                  feff_input_set=None, feff_cmd="feff", override_default_feff_params=None,
-                 db_file=None, parents=None, **kwargs):
+                 db_file=None, parents=None, metadata=None, **kwargs):
         """
         Write the input set for FEFF-EXAFS spectroscopy, run feff and insert the absorption
         coefficient to the database('xas' collection).
@@ -30,6 +30,7 @@ class EXAFSFW(Firework):
         Args:
             absorbing_atom (str): absorbing atom symbol
             structure (Structure): input structure
+            edge (str): absorption edge
             radius (float): cluster radius in angstroms
             name (str)
             feff_input_set (FeffDictSet)
@@ -37,6 +38,7 @@ class EXAFSFW(Firework):
             override_default_feff_params (dict): override feff tag settings.
             db_file (str): path to the db file.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            metadata (dict): meta data
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
         override_default_feff_params = override_default_feff_params or {}
@@ -48,7 +50,8 @@ class EXAFSFW(Firework):
                                     radius=radius, feff_input_set=feff_input_set))
         t.append(RunFeffDirect(feff_cmd=feff_cmd))
         t.append(AbsorptionSpectrumToDbTask(absorbing_atom=absorbing_atom, structure=structure,
-                                            db_file=db_file, spectrum_type="EXAFS", output_file="xmu.dat"))
+                                            db_file=db_file, spectrum_type="EXAFS", edge=edge,
+                                            output_file="xmu.dat", metadata=metadata))
         super(EXAFSFW, self).__init__(t, parents=parents, name="{}-{}".
                                          format(structure.composition.reduced_formula, name), **kwargs)
 
@@ -56,13 +59,14 @@ class EXAFSFW(Firework):
 class XANESFW(Firework):
     def __init__(self, absorbing_atom, structure, edge="K", radius=10.0, name="XANES spectroscopy",
                  feff_input_set=None, feff_cmd="feff", override_default_feff_params=None,
-                 db_file=None, parents=None, **kwargs):
+                 db_file=None, parents=None, metadata=None, **kwargs):
         """
         Write the input set for FEFF-XANES spectroscopy and run feff.
 
         Args:
             absorbing_atom (str): absorbing atom symbol
             structure (Structure): input structure
+            edge (str): absorption edge
             radius (float): cluster radius in angstroms
             name (str)
             feff_input_set (FeffDictSet)
@@ -70,6 +74,7 @@ class XANESFW(Firework):
             override_default_feff_params (dict): override feff tag settings.
             db_file (str): path to the db file.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            metadata (dict): meta data
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
         override_default_feff_params = override_default_feff_params or {}
@@ -81,22 +86,25 @@ class XANESFW(Firework):
                                     radius=radius, feff_input_set=feff_input_set))
         t.append(RunFeffDirect(feff_cmd=feff_cmd))
         t.append(AbsorptionSpectrumToDbTask(absorbing_atom=absorbing_atom, structure=structure,
-                                            db_file=db_file, spectrum_type="XANES", output_file="xmu.dat"))
+                                            db_file=db_file, spectrum_type="XANES", edge=edge,
+                                            output_file="xmu.dat", metadata=metadata))
         super(XANESFW, self).__init__(t, parents=parents, name="{}-{}".
                                          format(structure.composition.reduced_formula, name), **kwargs)
 
 
 class ELNESFW(Firework):
-    def __init__(self, absorbing_atom, structure, name="ELNES spectroscopy", edge="K", radius=10.,
+    def __init__(self, absorbing_atom, structure, edge="K", radius=10., name="ELNES spectroscopy",
                  beam_energy=100, beam_direction=None, collection_angle=1, convergence_angle=1,
                  user_eels_settings=None, feff_input_set=None, feff_cmd="feff",
-                 override_default_feff_params=None, db_file=None, parents=None, **kwargs):
+                 override_default_feff_params=None, db_file=None, parents=None, metadata=None,
+                 **kwargs):
         """
         Write the input set for FEFF-ELNES spectroscopy and run feff.
 
         Args:
             absorbing_atom (str): absorbing atom symbol
             structure (Structure): input structure
+            edge (str): absorption edge
             radius (float): cluster radius in angstroms
             name (str)
             feff_input_set (FeffDictSet)
@@ -104,12 +112,9 @@ class ELNESFW(Firework):
             override_default_feff_params (dict): override feff tag settings.
             db_file (str): path to the db file.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            metadata (dict): meta data
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        mp_id = None
-        if kwargs.get("mp_id", None):
-            mp_id = kwargs["mp_id"]
-            del kwargs["mp_id"]
         override_default_feff_params = override_default_feff_params or {}
         feff_input_set = feff_input_set or MPELNESSet(absorbing_atom, structure, edge, radius,
                                                       beam_energy, beam_direction, collection_angle,
@@ -122,7 +127,7 @@ class ELNESFW(Firework):
                                     radius=radius, feff_input_set=feff_input_set))
         t.append(RunFeffDirect(feff_cmd=feff_cmd))
         t.append(AbsorptionSpectrumToDbTask(absorbing_atom=absorbing_atom, structure=structure,
-                                            db_file=db_file, spectrum_type="ELNES",
-                                            output_file="eels.dat", mp_id=mp_id))
+                                            db_file=db_file, spectrum_type="ELNES", edge=edge,
+                                            output_file="eels.dat", metadata=metadata))
         super(ELNESFW, self).__init__(t, parents=parents, name="{}-{}".
                                          format(structure.composition.reduced_formula, name), **kwargs)

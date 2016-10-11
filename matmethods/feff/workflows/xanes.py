@@ -20,7 +20,7 @@ logger = get_logger(__name__)
 
 
 def get_wf_xanes(absorbing_atom, structure, edge="K", radius=10.0, feff_input_set=None,
-                 feff_cmd="feff", db_file=None):
+                 feff_cmd="feff", db_file=None, metadata=None):
     """
     Returns FEFF XANES spectroscopy workflow.
 
@@ -32,12 +32,13 @@ def get_wf_xanes(absorbing_atom, structure, edge="K", radius=10.0, feff_input_se
         feff_input_set (FeffDictSet): the input set for the FEFF run
         feff_cmd (str): path to the feff binary
         db_file (str):  path to the db file.
+        metadata (dict): meta data
 
     Returns:
         Workflow
     """
     fis = feff_input_set or MPXANESSet(absorbing_atom, structure, edge=edge, radius=radius)
     fws = [XANESFW(absorbing_atom, structure, edge=edge, radius=radius, feff_input_set=fis,
-                   feff_cmd=feff_cmd, db_file=db_file)]
+                   feff_cmd=feff_cmd, db_file=db_file, metadata=metadata)]
     wfname = "{}:{}:{} edge".format(structure.composition.reduced_formula, "XANES spectroscopy", edge)
-    return Workflow(fws, name=wfname)
+    return Workflow(fws, name=wfname, metadata=metadata)

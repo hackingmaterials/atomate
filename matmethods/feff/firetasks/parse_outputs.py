@@ -39,11 +39,11 @@ class AbsorptionSpectrumToDbTask(FireTaskBase):
         calc_loc (str OR bool): if True will set most recent calc_loc. If str search for the most
             recent calc_loc with the matching name
         db_file (str): path to the db file.
-        mp_id (str): mp id of the structure.
+        metadata (dict): meta data
     """
 
     required_params = ["absorbing_atom", "structure", "spectrum_type", "output_file"]
-    optional_params = ["input_file", "calc_dir", "calc_loc", "db_file", "mp_id"]
+    optional_params = ["input_file", "calc_dir", "calc_loc", "db_file", "edge","metadata"]
 
     def run_task(self, fw_spec):
         calc_dir = os.getcwd()
@@ -56,11 +56,12 @@ class AbsorptionSpectrumToDbTask(FireTaskBase):
 
         db_file = env_chk(self.get('db_file'), fw_spec)
 
-        doc = {"mp_id": self.get("mp_id", None),
-               "structure": self["structure"].as_dict(),
+        doc = {"structure": self["structure"].as_dict(),
                "absorbing_atom": self["absorbing_atom"],
-               "spectrum_type" : self["spectrum_type"],
-               "spectrum": np.loadtxt(os.path.join(calc_dir, self["output_file"])).tolist()}
+               "spectrum_type": self["spectrum_type"],
+               "spectrum": np.loadtxt(os.path.join(calc_dir, self["output_file"])).tolist(),
+               "edge": self.get("edge", None),
+               "metadata": self.get("metadata", None)}
 
         if not db_file:
             with open("absorption_spectrum.json", "w") as f:
