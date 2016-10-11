@@ -9,6 +9,8 @@ This module defines the database classes.
 import datetime
 import zlib
 import json
+import six
+from abc import ABCMeta, abstractmethod
 
 from monty.json import jsanitize
 from monty.serialization import loadfn
@@ -26,21 +28,15 @@ __email__ = 'kmathew@lbl.gov'
 
 logger = get_logger(__name__)
 
-# TODO: add Boltztrap management here
 
+class MMDb(six.with_metaclass(ABCMeta)):
 
-class MMDb(object):
-    """
-    Class to help manage database insertions of Vasp + related drones
-    """
-
-    def __init__(self, host="localhost", port=27017, database="vasp", collection="tasks",
-                 user=None, password=None):
+    def __init__(self, host, port, database, collection, user, password):
         self.host = host
         self.db_name = database
         self.user = user
         self.password = password
-        self.port = port
+        self.port = int(port)
         try:
             self.connection = MongoClient(self.host, self.port, j=True)
             self.db = self.connection[self.db_name]
@@ -53,13 +49,90 @@ class MMDb(object):
         except:
             logger.error("Mongodb authentication failed")
             raise ValueError
-
         self.collection = self.db[collection]
 
         # set counter collection
         if self.db.counter.find({"_id": "taskid"}).count() == 0:
             self.db.counter.insert_one({"_id": "taskid", "c": 0})
             self.build_indexes()
+
+    @abstractmethod
+    def build_indexes(self, indexes=None, background=True):
+        """
+         Build the indexes.
+
+         Args:
+             indexes (list): list of single field indexes to be built.
+             background (bool): Run in the background or not.
+         """
+        pass
+
+    def insert(self, d, update_duplicates=True):
+        """
+        Insert the task document ot the database collection.
+
+        Args:
+            d (dict): task document
+            update_duplicates (bool): whether to update the duplicates
+        """
+        result = self.collection.find_one({"dir_name": d["dir_name"]}, ["dir_name", "task_id"])
+        if result is None or update_duplicates:
+            d["last_updated"] = datetime.datetime.today()
+            if result is None:
+                if ("task_id" not in d) or (not d["task_id"]):
+                    d["task_id"] = self.db.counter.find_one_and_update(
+                        {"_id": "taskid"}, {"$inc": {"c": 1}},
+                        return_document=ReturnDocument.AFTER)["c"]
+                logger.info("Inserting {} with taskid = {}".format(d["dir_name"], d["task_id"]))
+            elif update_duplicates:
+                d["task_id"] = result["task_id"]
+                logger.info("Updating {} with taskid = {}".format(d["dir_name"], d["task_id"]))
+            d = jsanitize(d, allow_bson=True)
+            self.collection.update_one({"dir_name": d["dir_name"]},
+                                       {"$set": d}, upsert=True)
+            return d["task_id"]
+        else:
+            logger.info("Skipping duplicate {}".format(d["dir_name"]))
+            return None
+
+    @abstractmethod
+    def reset(self):
+        pass
+
+    @classmethod
+    def from_db_file(cls, db_file, admin=True):
+        """
+        Create MMDB from database file. File requires host, port, database,
+        collection, and optionally admin_user/readonly_user and
+        admin_password/readonly_password
+
+        Args:
+            db_file (str): path to the file containing the credentials
+            admin (bool): whether to use the admin user
+
+        Returns:
+            MMDb object
+        """
+        creds = loadfn(db_file)
+
+        if admin:
+            user = creds.get("admin_user")
+            password = creds.get("admin_password")
+        else:
+            user = creds.get("readonly_user")
+            password = creds.get("readonly_password")
+
+        return cls(creds["host"], int(creds["port"]), creds["database"], creds["collection"], user, password)
+
+
+class MMVaspDb(MMDb):
+    """
+    Class to help manage database insertions of Vasp drones
+    """
+
+    def __init__(self, host="localhost", port=27017, database="vasp", collection="tasks", user=None,
+                 password=None):
+        super(MMVaspDb, self).__init__(host, port, database, collection, user, password)
 
     def build_indexes(self, indexes=None, background=True):
         """
@@ -119,37 +192,6 @@ class MMDb(object):
         else:
             return BandStructure.from_dict(bs_dict)
 
-    def insert(self, d, update_duplicates=True):
-        """
-        Insert the task document ot the database collection.
-
-        Args:
-            d (dict): task document
-            update_duplicates (bool): whether to update the duplicates
-
-        Returns:
-            task_id on successful insertion
-        """
-        result = self.collection.find_one({"dir_name": d["dir_name"]}, ["dir_name", "task_id"])
-        if result is None or update_duplicates:
-            d["last_updated"] = datetime.datetime.today()
-            if result is None:
-                if ("task_id" not in d) or (not d["task_id"]):
-                    d["task_id"] = self.db.counter.find_one_and_update(
-                        {"_id": "taskid"}, {"$inc": {"c": 1}},
-                        return_document=ReturnDocument.AFTER)["c"]
-                logger.info("Inserting {} with taskid = {}".format(d["dir_name"], d["task_id"]))
-            elif update_duplicates:
-                d["task_id"] = result["task_id"]
-                logger.info("Updating {} with taskid = {}".format(d["dir_name"], d["task_id"]))
-            d = jsanitize(d, allow_bson=True)
-            self.collection.update_one({"dir_name": d["dir_name"]},
-                                       {"$set": d}, upsert=True)
-            return d["task_id"]
-        else:
-            logger.info("Skipping duplicate {}".format(d["dir_name"]))
-            return None
-
     def reset(self):
         self.collection.delete_many({})
         self.db.counter.delete_one({"_id": "taskid"})
@@ -163,30 +205,20 @@ class MMDb(object):
         self.db.bandstructure_fs.chunks.delete_many({})
         self.build_indexes()
 
-    @staticmethod
-    def from_db_file(db_file, admin=True):
-        """
-        Create MMDB from database file. File requires host, port, database,
-        collection, and optionally admin_user/readonly_user and
-        admin_password/readonly_password
 
-        Args:
-            db_file: file containing the credentials
-            admin: T/F - whether to use the admin user
+class MMLammpsDb(MMDb):
 
-        Returns:
-            MMDb object
-        """
-        creds = loadfn(db_file)
+    def __init__(self, host="localhost", port=27017, database="lammps", collection="tasks",
+                 user=None, password=None):
+        super(MMLammpsDb, self).__init__(host, port, database, collection, user, password)
 
-        if admin:
-            user = creds.get("admin_user")
-            password = creds.get("admin_password")
-        else:
-            user = creds.get("readonly_user")
-            password = creds.get("readonly_password")
+    def build_indexes(self, indexes=None, background=True):
+        pass
 
-        return MMDb(creds["host"], creds["port"], creds["database"],
-                    creds["collection"], user, password)
+    def reset(self):
+        pass
 
 
+class MMBoltztrapDb(MMDb):
+    # TODO: add Boltztrap management here
+    pass
