@@ -9,6 +9,8 @@ This module defines the database classes.
 import datetime
 import zlib
 import json
+import six
+from abc import ABCMeta, abstractmethod
 
 from monty.json import jsanitize
 from monty.serialization import loadfn
@@ -26,21 +28,15 @@ __email__ = 'kmathew@lbl.gov'
 
 logger = get_logger(__name__)
 
-# TODO: add Boltztrap management here
 
+class MMDb(six.with_metaclass(ABCMeta)):
 
-class MMDb(object):
-    """
-    Class to help manage database insertions of Vasp + related drones
-    """
-
-    def __init__(self, host="localhost", port=27017, database="vasp", collection="tasks",
-                 user=None, password=None):
+    def __init__(self, host, port, database, collection, user, password):
         self.host = host
         self.db_name = database
         self.user = user
         self.password = password
-        self.port = port
+        self.port = int(port)
         try:
             self.connection = MongoClient(self.host, self.port, j=True)
             self.db = self.connection[self.db_name]
@@ -53,8 +49,68 @@ class MMDb(object):
         except:
             logger.error("Mongodb authentication failed")
             raise ValueError
-
         self.collection = self.db[collection]
+
+    @abstractmethod
+    def build_indexes(self, indexes=None, background=True):
+        """
+         Build the indexes.
+
+         Args:
+             indexes (list): list of single field indexes to be built.
+             background (bool): Run in the background or not.
+         """
+        pass
+
+    @abstractmethod
+    def insert(self, doc, update_duplicates=True):
+        """
+        Insert the task document ot the database collection.
+
+        Args:
+            doc (dict): task document
+            update_duplicates (bool): whether to update the duplicates
+        """
+        pass
+
+    @abstractmethod
+    def reset(self):
+        pass
+
+    @classmethod
+    def from_db_file(cls, db_file, admin=True):
+        """
+        Create MMDB from database file. File requires host, port, database,
+        collection, and optionally admin_user/readonly_user and
+        admin_password/readonly_password
+
+        Args:
+            db_file (str): path to the file containing the credentials
+            admin (bool): whether to use the admin user
+
+        Returns:
+            MMDb object
+        """
+        creds = loadfn(db_file)
+
+        if admin:
+            user = creds.get("admin_user")
+            password = creds.get("admin_password")
+        else:
+            user = creds.get("readonly_user")
+            password = creds.get("readonly_password")
+
+        return cls(creds["host"], int(creds["port"]), creds["database"], creds["collection"], user, password)
+
+
+class MMVaspDb(MMDb):
+    """
+    Class to help manage database insertions of Vasp drones
+    """
+
+    def __init__(self, host="localhost", port=27017, database="vasp", collection="tasks", user=None,
+                 password=None):
+        super(MMVaspDb, self).__init__(host, port, database, collection, user, password)
 
         # set counter collection
         if self.db.counter.find({"_id": "taskid"}).count() == 0:
@@ -163,30 +219,7 @@ class MMDb(object):
         self.db.bandstructure_fs.chunks.delete_many({})
         self.build_indexes()
 
-    @staticmethod
-    def from_db_file(db_file, admin=True):
-        """
-        Create MMDB from database file. File requires host, port, database,
-        collection, and optionally admin_user/readonly_user and
-        admin_password/readonly_password
 
-        Args:
-            db_file: file containing the credentials
-            admin: T/F - whether to use the admin user
-
-        Returns:
-            MMDb object
-        """
-        creds = loadfn(db_file)
-
-        if admin:
-            user = creds.get("admin_user")
-            password = creds.get("admin_password")
-        else:
-            user = creds.get("readonly_user")
-            password = creds.get("readonly_password")
-
-        return MMDb(creds["host"], creds["port"], creds["database"],
-                    creds["collection"], user, password)
-
-
+class MMBoltztrapDb(MMDb):
+    # TODO: add Boltztrap management here
+    pass

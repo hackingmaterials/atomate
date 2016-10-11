@@ -18,7 +18,7 @@ from fireworks.utilities.fw_utilities import explicit_serialize
 
 from matmethods.utils.utils import get_logger, get_calc_loc
 from matmethods.utils.utils import env_chk
-from matmethods.vasp.database import MMDb
+from matmethods.vasp.database import MMVaspDb
 from pymatgen.io.lammps.output import LammpsRun
 
 
@@ -89,7 +89,7 @@ class LammpsToDBTask(FireTaskBase):
             with open("task.json", "w") as f:
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
         else:
-            mmdb = MMDb.from_db_file(db_file, admin=True)
+            mmdb = MMVaspDb.from_db_file(db_file, admin=True)
             # insert the task document
             t_id = mmdb.insert(d)
             logger.info("Finished parsing with task_id: {}".format(t_id))

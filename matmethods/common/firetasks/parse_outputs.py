@@ -9,7 +9,7 @@ from fireworks import explicit_serialize, FireTaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from matgendb.util import get_settings
 from matmethods.utils.utils import get_calc_loc, env_chk
-from matmethods.vasp.database import MMDb
+from matmethods.vasp.database import MMVaspDb
 from matmethods.vasp.firetasks.parse_outputs import logger
 
 __author__ = 'Shyam Dwaraknath <shyamd@lbl.gov>, Anubhav Jain <ajain@lbl.gov>'
@@ -59,10 +59,10 @@ class ToDbTask(FireTaskBase):
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
             db_config = get_settings(db_file)
-            db = MMDb(host=db_config["host"], port=db_config["port"],
-                      database=db_config["database"],
-                      user=db_config.get("admin_user"), password=db_config.get("admin_password"),
-                      collection=db_config["collection"])
+            db = MMVaspDb(host=db_config["host"], port=db_config["port"],
+                          database=db_config["database"],
+                          user=db_config.get("admin_user"), password=db_config.get("admin_password"),
+                          collection=db_config["collection"])
             # insert the task document
             t_id = db.insert(task_doc)
             logger.info("Finished parsing with task_id: {}".format(t_id))
