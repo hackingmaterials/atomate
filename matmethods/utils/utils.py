@@ -197,11 +197,6 @@ def get_wf_from_spec_dict(structure, wfspec):
 
     dec = MontyDecoder()
 
-    def load_class(dotpath):
-        modname, classname = dotpath.rsplit(".", 1)
-        mod = __import__(modname, globals(), locals(), [classname], 0)
-        return getattr(mod, classname)
-
     def process_params(d):
         decoded = {}
         for k, v in d.items():
@@ -218,7 +213,8 @@ def get_wf_from_spec_dict(structure, wfspec):
     fws = []
     common_params = process_params(wfspec.get("common_params", {}))
     for d in wfspec["fireworks"]:
-        cls_ = load_class(d["fw"])
+        modname, classname = d["fw"].rsplit(".", 1)
+        cls_ = load_class(modname, classname)
         params = process_params(d.get("params", {}))
         for k in common_params:
             if k not in params:  # common params don't override local params
@@ -295,3 +291,17 @@ def remove_leaf_fws(orig_wf):
     new_wf = Workflow.from_dict(wf_dict)
     return update_wf(new_wf)
 
+
+def load_class(modulepath, classname):
+    """
+    Load and return the class from the given module.
+
+    Args:
+        modulepath (str): dotted path to the module. eg: "pymatgen.io.vasp.sets"
+        classname (str): name of the class to be loaded.
+
+    Returns:
+        class
+    """
+    module = __import__(modulepath, globals(), locals(), [classname], 0)
+    return getattr(module, classname)
