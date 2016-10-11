@@ -4,8 +4,11 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import json
 import os
+from datetime import datetime
 
 import numpy as np
+
+from pymatgen.io.feff.inputs import Tags
 
 from fireworks import FireTaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
@@ -39,6 +42,7 @@ class SpectrumToDbTask(FireTaskBase):
         calc_loc (str OR bool): if True will set most recent calc_loc. If str search for the most
             recent calc_loc with the matching name
         db_file (str): path to the db file.
+        edge (str): absorption edge
         metadata (dict): meta data
     """
 
@@ -56,21 +60,25 @@ class SpectrumToDbTask(FireTaskBase):
 
         db_file = env_chk(self.get('db_file'), fw_spec)
 
-        doc = {"structure": self["structure"].as_dict(),
+        tags = Tags.from_file(filename="feff.inp")
+        doc = {"input_parameters": tags.as_dict(),
+               "structure": self["structure"].as_dict(),
                "absorbing_atom": self["absorbing_atom"],
                "spectrum_type": self["spectrum_type"],
                "spectrum": np.loadtxt(os.path.join(calc_dir, self["output_file"])).tolist(),
                "edge": self.get("edge", None),
-               "metadata": self.get("metadata", None)}
+               "metadata": self.get("metadata", None),
+               "dir_name": os.path.abspath(os.getcwd()),
+               "last_updated": datetime.today()}
 
         if not db_file:
-            with open("spectrum.json", "w") as f:
+            with open("task.json", "w") as f:
                 f.write(json.dumps(doc, default=DATETIME_HANDLER))
         # db insertion
         else:
             db = MMFeffDb.from_db_file(db_file, admin=True)
-            db.collection.insert_one(doc)
+            db.insert(doc)
 
         logger.info("Finished parsing the spectrum")
 
-        return FWAction()
+        return FWAction(stored_data={"task_id": doc.get("task_id", None)})
