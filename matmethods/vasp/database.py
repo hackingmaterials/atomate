@@ -108,16 +108,3 @@ class MMVaspDb(MMDb):
 class MMBoltztrapDb(MMDb):
     # TODO: add Boltztrap management here
     pass
-
-
-class MMFeffDb(MMDb):
-
-    def __init__(self, host="localhost", port=27017, database="feff", collection="tasks",
-                 user=None, password=None):
-        super(MMFeffDb, self).__init__(host, port, database, collection, user, password)
-
-    def build_indexes(self, indexes=None, background=True):
-        pass
-
-    def reset(self):
-        pass

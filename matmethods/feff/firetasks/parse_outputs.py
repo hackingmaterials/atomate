@@ -15,7 +15,7 @@ from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
 from matmethods.utils.utils import env_chk, get_calc_loc
 from matmethods.utils.utils import get_logger
-from matmethods.vasp.database import MMFeffDb
+from matmethods.feff.database import MMFeffDb
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
