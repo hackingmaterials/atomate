@@ -84,9 +84,9 @@ class AnalyzeAdsorption(FireTaskBase):
 
 def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
                       min_slab_size=7.0, min_vacuum_size=12.0, center_slab=True,
-                      max_normal_search=1, slab_gen_config=None, vasp_cmd="vasp",
-                      db_file=None, conventional=True, slab_incar_params={}, 
-                      ads_incar_params={}, auto_dipole=True):
+                      max_normal_search=None, vasp_cmd="vasp", db_file=None, 
+                      conventional=True, slab_incar_params=None, 
+                      ads_incar_params=None, auto_dipole=True):
     """
     Returns a workflow to calculate adsorption structures and surfaces.
 
@@ -114,6 +114,16 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
         sga = SpacegroupAnalyzer(structure)
         structure = sga.get_conventional_standard_structure()
     v = vasp_input_set or MVLSlabSet(structure, bulk=True)
+    # Default VASP parameters for slabs and adsorbates,
+    # may want to put this in a preset workflow
+    slab_incar_params = slab_incar_params or {"ISIF":0}
+    ads_incar_params = ads_incar_params or {"ISIF":0,
+                                            "AMIX":0.1,
+                                            "AMIX_MAG":0.4,
+                                            "BMIX":0.0001,
+                                            "BMIX_MAG":0.0001,
+                                            "POTIM":0.5}
+
     if not v.incar.get("LDAU", None):
         ads_incar_params.update({"LDAU":False})
         slab_incar_params.update({"LDAU":False})
@@ -171,9 +181,9 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
             # Generate adsorbate configurations and add fws to workflow
             asf = AdsorbateSiteFinder(slab, selective_dynamics=True)
             for molecule in adsorbate_config[mi_string]:
-                structures = asf.generate_adsorption_structures(molecule)
+                structures = asf.generate_adsorption_structures(molecule, repeat=[2, 2, 1])
                 for struct in structures:
-                    struct = struct.get_sorted_structure() # This is important because InsertSites sorts the structure!
+                    struct = struct.get_sorted_structure() # This is important because InsertSites sorts the structure
                     ads_fw_name = "{}-{}_{} adsorbate optimization".format(
                         molecule.composition.reduced_formula,
                         structure.composition.reduced_formula, mi_string)
@@ -234,11 +244,10 @@ def get_wf_molecules(molecules, vasp_input_sets=None,
         m_struct.translate_sites(list(range(len(m_struct))),
                                  np.array([0.5]*3) - np.average(m_struct.frac_coords,axis=0))
         v = vis or MPRelaxSet(m_struct, user_incar_settings={"ISMEAR":0, 
-                                                             "IBRION":5, 
-                                                             "ISIF":2}) #TODO think about this
-        v.config_dict["KPOINTS"].update({"reciprocal_density": 1})
-        v = DictSet(m_struct, v.config_dict)
-
+                                                             "IBRION":2, 
+                                                             "ISIF":0},
+                              user_kpoints_settings = {"grid_density":1}) #TODO think about this
+        # There should also be a method to calculate hessian
         fws.append(OptimizeFW(structure=m_struct, vasp_input_set=v,
                               vasp_cmd=vasp_cmd, db_file=db_file))
     wfname = "{}".format("Molecule calculations")
