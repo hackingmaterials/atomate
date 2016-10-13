@@ -18,7 +18,7 @@ from fireworks.utilities.fw_utilities import explicit_serialize
 
 from matmethods.utils.utils import get_logger, get_calc_loc
 from matmethods.utils.utils import env_chk
-from matmethods.vasp.database import MMLammpsDb
+from matmethods.lammps.database import MMLammpsDb
 from pymatgen.io.lammps.output import LammpsRun
 
 
