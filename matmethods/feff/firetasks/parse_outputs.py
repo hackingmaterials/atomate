@@ -8,7 +8,7 @@ from datetime import datetime
 
 import numpy as np
 
-from pymatgen.io.feff.inputs import Tags
+from pymatgen.io.feff.inputs import Tags, Atoms
 
 from fireworks import FireTaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
@@ -60,8 +60,12 @@ class SpectrumToDbTask(FireTaskBase):
 
         db_file = env_chk(self.get('db_file'), fw_spec)
 
+        cluster_dict = None
         tags = Tags.from_file(filename="feff.inp")
+        if "RECIPROCAL" not in tags:
+            cluster_dict = Atoms.cluster_from_file("feff.inp").as_dict()
         doc = {"input_parameters": tags.as_dict(),
+               "cluster": cluster_dict,
                "structure": self["structure"].as_dict(),
                "absorbing_atom": self["absorbing_atom"],
                "spectrum_type": self["spectrum_type"],
@@ -72,7 +76,7 @@ class SpectrumToDbTask(FireTaskBase):
                "last_updated": datetime.today()}
 
         if not db_file:
-            with open("task.json", "w") as f:
+            with open("feff_task.json", "w") as f:
                 f.write(json.dumps(doc, default=DATETIME_HANDLER))
         # db insertion
         else:
