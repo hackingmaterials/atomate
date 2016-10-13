@@ -3,17 +3,15 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import logging
+import os
 import sys
 import six
 
-from monty.dev import requires
+from fireworks import Workflow, Firework
+
+from monty.json import MontyDecoder
 
 from pymatgen import Composition
-
-try:
-    import matplotlib.pyplot as plt
-except ImportError:
-    plt = None
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
@@ -124,57 +122,185 @@ def get_meta_from_structure(structure):
     return meta
 
 
-@requires(plt, "Requires the matplotlib package.")
-def plot_wf(wf, depth_factor=1.0, breadth_factor=2.0, labels_on=True, numerical_label=False,
-            text_loc_factor=1.0, save_as=None, style='rD--', markersize=10, markerfacecolor='blue',
-            fontsize=12,):
+def get_fws_and_tasks(workflow, fw_name_constraint=None, task_name_constraint=None):
     """
-    Generate a visual representation of the workflow. Useful for checking whether the firework
-    connections are in order before launching the workflow.
+    Helper method: given a workflow, returns back the fw_ids and task_ids that match constraints
 
     Args:
-        wf (Workflow): workflow object.
-        depth_factor (float): adjust this to stretch the plot in y direction.
-        breadth_factor (float): adjust this to stretch the plot in x direction.
-        labels_on (bool): whether to label the nodes or not. The default is to lable the nodes
-            using the firework names.
-        numerical_label (bool): set this to label the nodes using the firework ids.
-        text_loc_factor (float): adjust the label location.
-        save_as (str): save the figure to the given name.
-        style (str): marker style.
-        markersize (int): marker size.
-        markerfacecolor (str): marker face color.
-        fontsize (int): font size for the node label.
+        workflow (Workflow): Workflow
+        fw_name_constraint (str): a constraint on the FW name
+        task_name_constraint (str): a constraint on the task name
+
+    Returns:
+       a list of tuples of the form (fw_id, task_id) of the RunVasp-type tasks
     """
-    keys = sorted(wf.links.keys(), reverse=True)
+    fws_and_tasks = []
+    for idx_fw, fw in enumerate(workflow.fws):
+        if fw_name_constraint is None or fw_name_constraint in fw.name:
+            for idx_t, t in enumerate(fw.tasks):
+                if task_name_constraint is None or task_name_constraint in str(t):
+                    fws_and_tasks.append((idx_fw, idx_t))
+    return fws_and_tasks
 
-    # set (x,y) coordinates for each node in the workflow links
-    points_map = {}
-    points_map.update({keys[0]: (-0.5*breadth_factor, (keys[0]+1)*depth_factor)})
-    for k in keys:
-        if wf.links[k]:
-            for i, j in enumerate(wf.links[k]):
-                if not points_map.get(j, None):
-                    points_map[j] = ((i-len(wf.links[k])/2.0)*breadth_factor, k*depth_factor)
 
-    # connect the dots
-    for k in keys:
-        for i in wf.links[k]:
-            plt.plot([points_map[k][0], points_map[i][0]], [points_map[k][1], points_map[i][1]],
-                     style, markersize=markersize, markerfacecolor=markerfacecolor)
-            if labels_on:
-                label1 = wf.id_fw[k].name
-                label2 = wf.id_fw[i].name
-                if numerical_label:
-                    label1 = str(k)
-                    label2 = str(i)
-                plt.text(points_map[k][0] * text_loc_factor, points_map[k][1] * text_loc_factor,
-                         label1, fontsize=fontsize)
-                plt.text(points_map[i][0] * text_loc_factor, points_map[i][1] * text_loc_factor,
-                         label2, fontsize=fontsize)
+def get_wf_from_spec_dict(structure, wfspec):
+    """
+    Load a WF from a structure and a spec dict. This allows simple
+    custom workflows to be constructed quickly via a YAML file.
 
-    plt.axis('scaled')
-    plt.axis('off')
+    Args:
+        structure (Structure): An input structure object.
+        wfspec (dict): A dict specifying workflow. A sample of the dict in
+            YAML format for the usual MP workflow is given as follows:
 
-    if save_as:
-        plt.savefig(save_as)
+            ```
+            fireworks:
+            - fw: matmethods.vasp.fireworks.core.OptimizeFW
+            - fw: matmethods.vasp.fireworks.core.StaticFW
+              params:
+                parents: 0
+            - fw: matmethods.vasp.fireworks.core.NonSCFUniformFW
+              params:
+                parents: 1
+            - fw: matmethods.vasp.fireworks.core.NonSCFLineFW
+              params:
+                parents: 1
+            common_params:
+              db_file: db.json
+              $vasp_cmd: $HOME/opt/vasp
+            name: bandstructure
+            ```
+
+            The `fireworks` key is a list of Fireworks; it is expected that
+            all such Fireworks have "structure" as the first argument and
+            other optional arguments following that. Each Firework is specified
+            via "fw": <explicit path>.
+
+            You can pass arguments into the constructor using the special
+            keyword `params`, which is a dict. Any param starting with a $ will
+            be expanded using environment variables.If multiple fireworks share
+            the same `params`, you can use `common_params` to specify a common
+            set of arguments that are passed to all fireworks. Local params
+            take precedent over global params.
+
+            Another special keyword is `parents`, which provides
+            the *indices* of the parents of that particular Firework in the
+            list. This allows you to link the Fireworks into a logical
+            workflow.
+
+            Finally, `name` is used to set the Workflow name
+            (structure formula + name) which can be helpful in record keeping.
+
+    Returns:
+        Workflow
+    """
+
+    dec = MontyDecoder()
+
+    def process_params(d):
+        decoded = {}
+        for k, v in d.items():
+            if k.startswith("$"):
+                if isinstance(v, list):
+                    v = [os.path.expandvars(i) for i in v]
+                elif isinstance(v, dict):
+                    v = {k2: os.path.expandvars(v2) for k2, v2 in v.items()}
+                else:
+                    v = os.path.expandvars(v)
+            decoded[k.strip("$")] = dec.process_decoded(v)
+        return decoded
+
+    fws = []
+    common_params = process_params(wfspec.get("common_params", {}))
+    for d in wfspec["fireworks"]:
+        modname, classname = d["fw"].rsplit(".", 1)
+        cls_ = load_class(modname, classname)
+        params = process_params(d.get("params", {}))
+        for k in common_params:
+            if k not in params:  # common params don't override local params
+                params[k] = common_params[k]
+        if "parents" in params:
+            if isinstance(params["parents"], int):
+                params["parents"] = fws[params["parents"]]
+            else:
+                p = []
+                for parent_idx in params["parents"]:
+                    p.append(fws[parent_idx])
+                params["parents"] = p
+        fws.append(cls_(structure, **params))
+
+    wfname = "{}:{}".format(structure.composition.reduced_formula, wfspec["name"]) if \
+        wfspec.get("name") else structure.composition.reduced_formula
+    return Workflow(fws, name=wfname)
+
+
+def update_wf(wf):
+    """
+    Simple helper to ensure that the powerup updates to the workflow dict has taken effect.
+    This is needed  because all the powerups that modify workflow do so on the dict representation
+    of the workflow(or mix thereof eg: add tasks as dict to the fireworks spec etc) and for
+    inspection the powerups rely on a mix of object and dict representations of workflow object(
+    along with the constituent fireworks and firetasks) that are not in one to one correspondence
+    with the updated dict representation.
+
+    Args:
+        wf (Workflow)
+
+    Returns:
+        Workflow
+    """
+    return Workflow.from_dict(wf.as_dict())
+
+
+def append_fw_wf(orig_wf, fw_wf):
+    """
+    Add the given firework or workflow to the end of the provided workflow. If there are multiple
+    leaf nodes the newly added firework/workflow will depend on all of them.
+
+    Args:
+        orig_wf (Workflow): The original workflow object.
+        fw_wf (Firework/Workflow): The firework or workflow object to be appended to orig_wf.
+    """
+    new_wf = fw_wf
+    if isinstance(fw_wf, Firework):
+        new_wf = Workflow.from_Firework(new_wf)
+    orig_wf.append_wf(new_wf, orig_wf.leaf_fw_ids)
+
+
+def remove_leaf_fws(orig_wf):
+    """
+    Remove the end nodes(last fireworks) from the given workflow.
+
+    Args:
+        orig_wf (Workflow): The original workflow object.
+
+    Returns:
+        Workflow : the new updated workflow.
+    """
+    wf_dict = orig_wf.as_dict()
+    all_parents = []
+    for i, f in enumerate(orig_wf.as_dict()["fws"]):
+        if f["fw_id"] in orig_wf.leaf_fw_ids:
+            parents = orig_wf.links.parent_links[int(f["fw_id"])]
+            all_parents.extend(parents)
+            del wf_dict["links"][str(f["fw_id"])]
+            del wf_dict["fws"][i]
+            for p in parents:
+                wf_dict["links"][str(p)] = []
+    new_wf = Workflow.from_dict(wf_dict)
+    return update_wf(new_wf)
+
+
+def load_class(modulepath, classname):
+    """
+    Load and return the class from the given module.
+
+    Args:
+        modulepath (str): dotted path to the module. eg: "pymatgen.io.vasp.sets"
+        classname (str): name of the class to be loaded.
+
+    Returns:
+        class
+    """
+    module = __import__(modulepath, globals(), locals(), [classname], 0)
+    return getattr(module, classname)

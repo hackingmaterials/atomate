@@ -33,7 +33,7 @@ class FileMaterialsBuilder(AbstractBuilder):
 
     def run(self):
         print("Starting FileMaterials Builder.")
-        with open(self._data_file, 'rb') as f:
+        with open(self._data_file, 'rt') as f:
             line_no = 0
             lines = [line for line in f]  # only good for small files
             pbar = tqdm(lines)

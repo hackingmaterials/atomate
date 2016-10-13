@@ -9,6 +9,7 @@ from collections import defaultdict
 from datetime import datetime
 
 import numpy as np
+
 from monty.json import MontyEncoder
 
 from fireworks import FireTaskBase, FWAction, explicit_serialize
@@ -16,7 +17,7 @@ from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
 from matmethods.utils.utils import env_chk, get_calc_loc, get_meta_from_structure
 from matmethods.utils.utils import get_logger
-from matmethods.vasp.database import MMDb
+from matmethods.vasp.database import MMVaspDb
 from matmethods.vasp.drones import VaspDrone
 
 from pymatgen import Structure
@@ -90,7 +91,7 @@ class VaspToDbTask(FireTaskBase):
             with open("task.json", "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
-            mmdb = MMDb.from_db_file(db_file, admin=True)
+            mmdb = MMVaspDb.from_db_file(db_file, admin=True)
 
             # insert dos into GridFS
             if self.get("parse_dos") and "calcs_reversed" in task_doc:
@@ -166,9 +167,9 @@ class BoltztrapToDBTask(FireTaskBase):
 
         # add the spacegroup
         sg = SpacegroupAnalyzer(Structure.from_dict(d["structure"]), 0.1)
-        d["spacegroup"] = {"symbol": sg.get_spacegroup_symbol(),
-                           "number": sg.get_spacegroup_number(),
-                           "point_group": sg.get_point_group(),
+        d["spacegroup"] = {"symbol": sg.get_space_group_symbol(),
+                           "number": sg.get_space_group_number(),
+                           "point_group": sg.get_point_group_symbol(),
                            "source": "spglib",
                            "crystal_system": sg.get_crystal_system(),
                            "hall": sg.get_hall()}
@@ -181,7 +182,7 @@ class BoltztrapToDBTask(FireTaskBase):
             with open(os.path.join(btrap_dir, "boltztrap.json"), "w") as f:
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
         else:
-            mmdb = MMDb.from_db_file(db_file, admin=True)
+            mmdb = MMVaspDb.from_db_file(db_file, admin=True)
 
             # dos gets inserted into GridFS
             dos = json.dumps(d["dos"], cls=MontyEncoder)
@@ -216,7 +217,8 @@ class ElasticTensorToDbTask(FireTaskBase):
         d = {"analysis": {}, "deformation_tasks": fw_spec["deformation_tasks"],
              "initial_structure": self['structure'].as_dict(),
              "optimized_structure": opt_struct.as_dict()}
-
+        if fw_spec.get("tags",None):
+            d["tags"] = fw_spec["tags"]
         dtypes = fw_spec["deformation_tasks"].keys()
         defos = [fw_spec["deformation_tasks"][dtype]["deformation_matrix"]
                  for dtype in dtypes]
@@ -249,7 +251,7 @@ class ElasticTensorToDbTask(FireTaskBase):
             with open("elasticity.json", "w") as f:
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
         else:
-            db = MMDb.from_db_file(db_file, admin=True)
+            db = MMVaspDb.from_db_file(db_file, admin=True)
             db.collection = db.db["elasticity"]
             db.collection.insert_one(d)
             logger.info("ELASTIC ANALYSIS COMPLETE")
@@ -319,10 +321,223 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
             with open("raman.json", "w") as f:
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
         else:
-            db = MMDb.from_db_file(db_file, admin=True)
+            db = MMVaspDb.from_db_file(db_file, admin=True)
             db.collection = db.db["raman"]
             db.collection.insert_one(d)
             logger.info("RAMAN TENSOR CALCULATION COMPLETE")
         logger.info("The frequencies are in the units of cm^-1")
         logger.info("To convert the frequency to THz: multiply by 0.1884")
         return FWAction()
+
+
+@explicit_serialize
+class GibbsFreeEnergyTask(FireTaskBase):
+    """
+    Compute the quasi-harmonic gibbs free energy. There are 2 options available for the
+    quasi-harmonic approximation (set via 'qha_type' parameter):
+    1. use the phonopy package quasi-harmonic approximation interface or
+    2. use the debye model.
+    Note: Instead of relying on fw_spec, this task gets the required data directly from the
+    tasks collection for processing. The summary dict is written to 'gibbs.json' file.
+
+    required_params:
+        tag (str): unique tag appended to the task labels in other fireworks so that all the
+            required data can be queried directly from the database.
+        db_file (str): path to the db file
+
+    optional_params:
+        qha_type(str): quasi-harmonic approximation type: "debye_model" or "phonopy",
+            default is "debye_model"
+        t_min (float): min temperature
+        t_step (float): temperature step
+        t_max (float): max temperature
+        mesh (list/tuple): reciprocal space density
+        eos (str): equation of state used for fitting the energies and the volumes.
+            options supported by phonopy: "vinet", "murnaghan", "birch_murnaghan".
+        pressure (float): in GPa, optional.
+    """
+
+    required_params = ["tag", "db_file"]
+    optional_params = ["qha_type", "t_min", "t_step", "t_max", "mesh", "eos", "pressure"]
+
+    def run_task(self, fw_spec):
+
+        tag = self["tag"]
+        db_file = env_chk(self.get("db_file"), fw_spec)
+        t_step = self.get("t_step", 10)
+        t_min = self.get("t_min", 0)
+        t_max = self.get("t_max", 1000)
+        mesh = self.get("mesh", [20, 20, 20])
+        eos = self.get("eos", "vinet")
+        qha_type = self.get("qha_type", "debye_model")
+        pressure = self.get("pressure", 0.0)
+        gibbs_summary_dict = {}
+
+        mmdb = MMVaspDb.from_db_file(db_file, admin=True)
+        # get the optimized structure
+        d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
+        structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+        gibbs_summary_dict["structure"] = structure.as_dict()
+
+        # get the data(energy, volume, force constant) from the deformation runs
+        docs = mmdb.collection.find({"task_label": {"$regex": "{} gibbs*".format(tag)},
+                                     "formula_pretty": structure.composition.reduced_formula})
+        energies = []
+        volumes = []
+        force_constants = []
+        for d in docs:
+            s = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+            energies.append(d["calcs_reversed"][-1]["output"]['energy'])
+            volumes.append(s.volume)
+            force_constants.append(d["calcs_reversed"][-1]["output"]['force_constants'])
+        gibbs_summary_dict["energies"] = energies
+        gibbs_summary_dict["volumes"] = volumes
+        gibbs_summary_dict["force_constants"] = force_constants
+
+        G, T = None, None
+        # use debye model
+        if qha_type in ["debye_model"]:
+
+            from matmethods.tools.analysis import get_debye_model_gibbs
+
+            G, T = get_debye_model_gibbs(energies, volumes, structure, t_min, t_step, t_max, eos,
+                                         pressure)
+
+        # use the phonopy interface
+        else:
+
+            from matmethods.tools.analysis import get_phonopy_gibbs
+
+            G, T = get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_step,
+                                     t_max, mesh, eos, pressure)
+
+        gibbs_summary_dict["G"] = G
+        gibbs_summary_dict["T"] = T
+
+        with open("gibbs.json", "w") as f:
+            f.write(json.dumps(gibbs_summary_dict, default=DATETIME_HANDLER))
+        logger.info("GIBBS FREE ENERGY CALCULATION COMPLETE")
+
+
+@explicit_serialize
+class FitEquationOfStateTask(FireTaskBase):
+    """
+    Retrieve the energy and volume data and fit it to the given equation of state. The summary dict
+    is written to 'bulk_modulus.json' file.
+
+    required_params:
+        tag (str): unique tag appended to the task labels in other fireworks so that all the
+            required data can be queried directly from the database.
+        db_file (str): path to the db file
+        eos (str): equation of state used for fitting the energies and the volumes.
+            options supported by pymatgen: "quadratic", "murnaghan", "birch", "birch_murnaghan",
+            "pourier_tarantola", "vinet", "deltafactor"
+    """
+
+    required_params = ["tag", "db_file", "eos"]
+
+    def run_task(self, fw_spec):
+
+        from pymatgen.analysis.eos import EOS
+
+        tag = self["tag"]
+        db_file = env_chk(self.get("db_file"), fw_spec)
+        summary_dict = {"eos": self["eos"]}
+
+        mmdb = MMVaspDb.from_db_file(db_file, admin=True)
+        # get the optimized structure
+        d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
+        structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+        summary_dict["structure"] = structure.as_dict()
+
+        # get the data(energy, volume, force constant) from the deformation runs
+        docs = mmdb.collection.find({"task_label": {"$regex": "{} bulk_modulus*".format(tag)},
+                                     "formula_pretty": structure.composition.reduced_formula})
+        energies = []
+        volumes = []
+        for d in docs:
+            s = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+            energies.append(d["calcs_reversed"][-1]["output"]['energy'])
+            volumes.append(s.volume)
+        summary_dict["energies"] = energies
+        summary_dict["volumes"] = volumes
+
+        # fit the equation of state
+        eos = EOS(self["eos"])
+        eos_fit = eos.fit(volumes, energies)
+        summary_dict["results"] = dict(eos_fit.results)
+
+        with open("bulk_modulus.json", "w") as f:
+            f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
+
+        logger.info("BULK MODULUS CALCULATION COMPLETE")
+
+
+@explicit_serialize
+class ThermalExpansionCoeffTask(FireTaskBase):
+    """
+    Compute the quasi-harmonic thermal expansion coefficient using phonopy.
+
+    required_params:
+        tag (str): unique tag appended to the task labels in other fireworks so that all the
+            required data can be queried directly from the database.
+        db_file (str): path to the db file
+
+    optional_params:
+        t_min (float): min temperature
+        t_step (float): temperature step
+        t_max (float): max temperature
+        mesh (list/tuple): reciprocal space density
+        eos (str): equation of state used for fitting the energies and the volumes.
+            options supported by phonopy: "vinet", "murnaghan", "birch_murnaghan".
+        pressure (float): in GPa, optional.
+    """
+
+    required_params = ["tag", "db_file"]
+    optional_params = ["t_min", "t_step", "t_max", "mesh", "eos", "pressure"]
+
+    def run_task(self, fw_spec):
+
+        from matmethods.tools.analysis import get_phonopy_thermal_expansion
+
+        tag = self["tag"]
+        db_file = env_chk(self.get("db_file"), fw_spec)
+        t_step = self.get("t_step", 10)
+        t_min = self.get("t_min", 0)
+        t_max = self.get("t_max", 1000)
+        mesh = self.get("mesh", [20, 20, 20])
+        eos = self.get("eos", "vinet")
+        pressure = self.get("pressure", 0.0)
+        summary_dict = {}
+
+        mmdb = MMVaspDb.from_db_file(db_file, admin=True)
+        # get the optimized structure
+        d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
+        structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+        summary_dict["structure"] = structure.as_dict()
+
+        # get the data(energy, volume, force constant) from the deformation runs
+        docs = mmdb.collection.find({"task_label": {"$regex": "{} thermal_expansion*".format(tag)},
+                                     "formula_pretty": structure.composition.reduced_formula})
+        energies = []
+        volumes = []
+        force_constants = []
+        for d in docs:
+            s = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+            energies.append(d["calcs_reversed"][-1]["output"]['energy'])
+            volumes.append(s.volume)
+            force_constants.append(d["calcs_reversed"][-1]["output"]['force_constants'])
+        summary_dict["energies"] = energies
+        summary_dict["volumes"] = volumes
+        summary_dict["force_constants"] = force_constants
+
+        alpha, T = get_phonopy_thermal_expansion(energies, volumes, force_constants, structure,
+                                                 t_min, t_step, t_max, mesh, eos, pressure)
+
+        summary_dict["alpha"] = alpha
+        summary_dict["T"] = T
+
+        with open("thermal_expansion.json", "w") as f:
+            f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
+
+        logger.info("THERMAL EXPANSION COEFF CALCULATION COMPLETE")

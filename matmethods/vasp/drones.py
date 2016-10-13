@@ -248,17 +248,14 @@ class VaspDrone(AbstractDrone):
             try:
                 d["dos"] = vrun.complete_dos.as_dict()
             except:
-                logger.error("No valid dos data exist in {}.\n Skipping dos".format(dir_name))
+                raise ValueError("No valid dos data exist in {}.".format(dir_name))
 
         if self.bandstructure_mode:
-            try:
-                bs = vrun.get_band_structure(line_mode=(self.bandstructure_mode == "line"))
-                d["bandstructure"] = bs.as_dict()
-            except:
-                logger.error("No valid band structure data exist in {}.\n Skipping band structure"
-                             .format(dir_name))
+            bs = vrun.get_band_structure(line_mode=(self.bandstructure_mode == "line"))
         else:
             bs = vrun.get_band_structure()
+
+        d["bandstructure"] = bs.as_dict()
 
         d["output"]["vbm"] = bs.get_vbm()["energy"]
         d["output"]["cbm"] = bs.get_cbm()["energy"]
@@ -267,6 +264,11 @@ class VaspDrone(AbstractDrone):
         d["output"]["is_gap_direct"] = bs_gap["direct"]
         d["output"]["is_metal"] = bs.is_metal()
         d["task"] = {"type": taskname, "name": taskname}
+        # phonon-dfpt
+        if hasattr(vrun, "force_constants"):
+            d["output"]["force_constants"] = vrun.force_constants.tolist()
+            d["output"]["normalmode_eigenvals"] = vrun.normalmode_eigenvals.tolist()
+            d["output"]["normalmode_eigenvecs"] = vrun.normalmode_eigenvecs.tolist()
         return d
 
     def process_outcar(self, dir_name, filename):
@@ -314,9 +316,9 @@ class VaspDrone(AbstractDrone):
             sg = SpacegroupAnalyzer(Structure.from_dict(d_calc["output"]["structure"]), 1e-3, 1)
         d["output"]["spacegroup"] = {
             "source": "spglib",
-            "symbol": sg.get_spacegroup_symbol(),
-            "number": sg.get_spacegroup_number(),
-            "point_group": sg.get_point_group(),
+            "symbol": sg.get_space_group_symbol(),
+            "number": sg.get_space_group_number(),
+            "point_group": sg.get_point_group_symbol(),
             "crystal_system": sg.get_crystal_system(),
             "hall": sg.get_hall()}
         if d["input"]["parameters"].get("LEPSILON"):

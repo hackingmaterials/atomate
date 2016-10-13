@@ -1,3 +1,3 @@
-__version__ = '0.21'
+__version__ = '0.3'
 
-from matmethods.utils.loaders import get_wf_from_spec_dict
+from matmethods.utils.utils import get_wf_from_spec_dict

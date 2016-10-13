@@ -19,17 +19,11 @@ from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
 from pymatgen.io.vasp import Incar, Poscar
 from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, MPHSEBSSet
-from pymatgen.transformations.site_transformations import TranslateSitesTransformation
 
-from matmethods.utils.utils import env_chk
+from matmethods.utils.utils import env_chk, load_class
 
 __author__ = 'Anubhav Jain, Shyue Ping Ong, Kiran Mathew'
 __email__ = 'ajain@lbl.gov'
-
-
-def load_class(mod, name):
-    mod = __import__(mod, globals(), locals(), [name], 0)
-    return getattr(mod, name)
 
 
 @explicit_serialize
@@ -65,11 +59,8 @@ class WriteVaspFromIOSet(FireTaskBase):
 
         # if VaspInputSet String + parameters was provided
         else:
-            vis_cls = load_class("pymatgen.io.vasp.sets",
-                                 self["vasp_input_set"])
-            vis = vis_cls(self["structure"],
-                          **self.get("vasp_input_params", {}))
-
+            vis_cls = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])
+            vis = vis_cls(self["structure"], **self.get("vasp_input_params", {}))
         vis.write_input(".")
 
 
@@ -298,12 +289,10 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
         vasp_input_set (VaspInputSet): VASP input set.
 
     Optional params:
-        transformation_params (list): list of dicts where each dict specifies
-            the input parameters to instantiate the transformation class in
-            the transformations list.
+        transformation_params (list): list of dicts where each dict specifies the input parameters
+            to instantiate the transformation class in the transformations list.
         override_default_vasp_params (dict): additional user input settings.
-        prev_calc_dir: path to previous calculation if using structure 
-            from another calculation
+        prev_calc_dir: path to previous calculation if using structure from another calculation.
     """
 
     required_params = ["structure", "transformations", "vasp_input_set"]
@@ -333,7 +322,7 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
         vis_orig = self["vasp_input_set"]
         vis_dict = vis_orig.as_dict()
         vis_dict["structure"] = final_structure.as_dict()
-        vis_dict.update(self.get("override_default_vasp_params", {}))
+        vis_dict.update(self.get("override_default_vasp_params", {}) or {})
         vis = vis_orig.__class__.from_dict(vis_dict)
         vis.write_input(".")
 

@@ -1,11 +1,11 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, \
-    absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
 import unittest
 
+from pymatgen import SETTINGS
 from pymatgen import IStructure, Lattice
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
 from pymatgen.io.vasp.sets import MPRelaxSet
@@ -19,10 +19,9 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 class TestSetup(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if not os.environ.get("VASP_PSP_DIR"):
-            raise unittest.SkipTest(
-                'This system is not set up to run VASP jobs. '
-                'Please set your VASP_PSP_DIR environment variable.')
+        if not SETTINGS.get("VASP_PSP_DIR"):
+            raise unittest.SkipTest('This system is not set up to run VASP jobs. '
+                                    'Please set VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
         coords = [[0, 0, 0], [0.75, 0.5, 0.75]]
         lattice = Lattice([[3.8401979337, 0.00, 0.00],
@@ -48,11 +47,9 @@ class TestSetup(unittest.TestCase):
                 os.remove(os.path.join(module_dir, x))
 
     def _verify_files(self):
-        self.assertEqual(Incar.from_file(os.path.join(module_dir, "INCAR")),
-                         self.ref_incar)
-        self.assertEqual(
-            str(Poscar.from_file(os.path.join(module_dir, "POSCAR"))),
-            str(self.ref_poscar))
+        self.assertEqual(Incar.from_file(os.path.join(module_dir, "INCAR")), self.ref_incar)
+        self.assertEqual(str(Poscar.from_file(os.path.join(module_dir, "POSCAR"))),
+                         str(self.ref_poscar))
         self.assertEqual(Potcar.from_file(os.path.join(module_dir, "POTCAR")).symbols,
                          self.ref_potcar.symbols)
         self.assertEqual(str(Kpoints.from_file(os.path.join(module_dir, "KPOINTS"))),
@@ -66,11 +63,9 @@ class TestSetup(unittest.TestCase):
             import traceback
             traceback.print_exc()
 
-            help_str = "This system is not set up to run VASP jobs. " \
-                       "See further error tracebacks for help. Try " \
-                       "making sure your VASP_PSP_DIR has the proper " \
-                       "subdirs as outlined in PotcarSingle class of " \
-                       "pymatgen, e.g. POT_GGA_PAW_PBE subdir."
+            help_str = "This system is not set up to run VASP jobs. See further error tracebacks " \
+                       "for help. Try making sure your VASP_PSP_DIR has the proper subdirs as " \
+                       "outlined in PotcarSingle class of pymatgen, e.g. POT_GGA_PAW_PBE subdir."
             raise ValueError(help_str)
 
         self._verify_files()
