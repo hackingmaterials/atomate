@@ -7,7 +7,7 @@ Defines standardized Fireworks that can be chained easily to perform various
 sequences of FEFF calculations.
 """
 
-from fireworks import Firework
+from fireworks import Firework,Workflow
 
 from pymatgen.io.feff.sets import MPEXAFSSet, MPXANESSet, MPELNESSet
 
@@ -16,6 +16,7 @@ from matmethods.feff.db.parse import FEFFDBManager
 from matmethods.feff.firetasks.run_calc import RunFeffDirect
 from matmethods.feff.firetasks.parse_outputs import AbsorptionSpectrumToDbTask
 from matmethods.feff.firetasks.run_calc_tscc import RunFeffTscc
+from matmethods.feff.firetasks.parse_outputs import TransferResultsTask
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -79,6 +80,12 @@ class FEFFWorkflowManager(object):
         self.absorb_atom, self.edge = feffdb.get_abs_atom_edge(self.eels_index)
 
 
+    def get_eels_para(self,admin=True):
+
+        feffdb = FEFFDBManager(self.settings_file,admin)
+        return feffdb.get_eels_param(self.eels_index)
+
+
     def create_exafs_workflow(self, absorbing_atom, edge, structure,radius=10,name="EXAFS spectroscopy",feff_input_set=None,override_default_feff_params=None,db_file=None, parents=None, additional_spec=None,**kwargs):
 
         override_default_feff_params = override_default_feff_params or {}
@@ -101,6 +108,112 @@ class FEFFWorkflowManager(object):
 
         return fw
 
+
+
+
+    def create_elne_workflow(self,absorbing_atom,structure, edge, radius,beam_energy, beam_direction, collection_angle, convergence_angle,
+                              user_tag_settings,name,feff_input_set=None,user_eels_settings=None,override_default_feff_params=None,additional_spec=None,**kwargs):
+
+
+        override_default_feff_params = override_default_feff_params or {}
+        feff_input_set = feff_input_set or MPELNESSet(absorbing_atom, structure, edge, radius,
+                                                      beam_energy, beam_direction, collection_angle,
+                                                      convergence_angle,
+                                                      user_eels_settings=user_eels_settings,
+                                                      **override_default_feff_params)
+
+        spec = self._get_spec(additional_spec=additional_spec)
+
+        fw_name = '{}_{}'.format(structure.composition.reduced_formula,name)
+
+        fw_1 = Firework(
+            [
+                WriteFeffFromIOSet(absorbing_atom=absorbing_atom, structure=structure,
+                                    radius=radius, feff_input_set=feff_input_set),
+                RunFeffTscc()
+            ],
+            spec=spec,
+            name=fw_name
+
+        )
+        fw_2 = Firework(
+            [
+                TransferResultsTask(folder_name=fw_name)
+            ],
+            parents=[fw_1],
+            spec=spec,
+        )
+
+        wf = Workflow([fw_1, fw_2])
+
+        return wf
+
+
+    def create_elne_workflow_test(self,absorbing_atom,structure, edge, radius,beam_energy, beam_direction, collection_angle, convergence_angle,
+                              user_tag_settings,name,feff_input_set=None,user_eels_settings=None,override_default_feff_params=None,additional_spec=None,**kwargs):
+
+
+        override_default_feff_params = override_default_feff_params or {}
+        feff_input_set = feff_input_set or MPELNESSet(absorbing_atom, structure, edge, radius,
+                                                      beam_energy, beam_direction, collection_angle,
+                                                      convergence_angle,
+                                                      user_eels_settings=user_eels_settings,
+                                                      **override_default_feff_params)
+
+        spec = self._get_spec(additional_spec=additional_spec)
+
+        fw_name = '{}_{}'.format(structure.composition.reduced_formula,name)
+
+        fw_1 = Firework(
+            [
+                WriteFeffFromIOSet(absorbing_atom=absorbing_atom, structure=structure,
+                                    radius=radius, feff_input_set=feff_input_set),
+                RunFeffTscc()
+            ],
+            spec=spec,
+            name=fw_name
+
+        )
+
+
+        return fw_1
+
+    def create_elne_workflow_test2(self,absorbing_atom,structure, edge, radius,beam_energy, beam_direction, collection_angle, convergence_angle,
+                              user_tag_settings,name,feff_input_set=None,user_eels_settings=None,override_default_feff_params=None,additional_spec=None,**kwargs):
+
+
+        override_default_feff_params = override_default_feff_params or {}
+        feff_input_set = feff_input_set or MPELNESSet(absorbing_atom, structure, edge, radius,
+                                                      beam_energy, beam_direction, collection_angle,
+                                                      convergence_angle,
+                                                      user_eels_settings=user_eels_settings,
+                                                      **override_default_feff_params)
+
+        spec = self._get_spec(additional_spec=additional_spec)
+
+        fw_name = '{}_{}'.format(structure.composition.reduced_formula,name)
+
+        fw_1 = Firework(
+            [
+                WriteFeffFromIOSet(absorbing_atom=absorbing_atom, structure=structure,
+                                    radius=radius, feff_input_set=feff_input_set),
+                RunFeffTscc()
+            ],
+            spec=spec,
+            name=fw_name
+
+        )
+        fw_2 = Firework(
+            [
+                TransferResultsTask(folder_name=fw_name)
+            ],
+            name='transfer_{}'.format(name),
+            spec=spec
+        )
+
+        wf = Workflow([fw_1, fw_2],{fw_1:fw_2},name=fw_name)
+
+        return wf
 
 
 class EXAFSFW_tscc(Firework):
@@ -136,3 +249,5 @@ class EXAFSFW_tscc(Firework):
                                             db_file=db_file, spectrum_type="EXAFS", output_file="xmu.dat"))
         super(EXAFSFW_tscc, self).__init__(t, parents=parents, name="{}-{}".
                                          format(structure.composition.reduced_formula, name), **kwargs)
+
+

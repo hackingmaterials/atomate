@@ -17,6 +17,7 @@ from matmethods.utils.utils import env_chk, get_logger
 
 __author__ = 'Kiran Mathew'
 __email__ = "kmathew@lbl.gov"
+logger = get_logger(__name__)
 
 
 
@@ -90,7 +91,7 @@ def proc_submit_script(d, FEFF_HOME, name,queue,walltime,proc,verbosity):
     with open(os.path.join(d,SUBMIT_FNAME),"w") as f:
         f.write(TEMPLATE.format(**p))
 
-    subprocess.call([queue_submission_cmd, SUBMIT_FNAME])
+
 
 
 @explicit_serialize
@@ -129,6 +130,8 @@ class RunFeffTscc(FireTaskBase):
             proc = self["proc"]
 
         proc_submit_script(d,FEFF_HOME,name,queue,walltime,proc,verbosity)
+        return_code = subprocess.call([queue_submission_cmd, SUBMIT_FNAME])
+        logger.info("FEFF finished running with returncode: {}".format(return_code))
 
 
 

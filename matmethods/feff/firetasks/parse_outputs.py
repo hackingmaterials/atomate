@@ -13,6 +13,9 @@ from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from matmethods.utils.utils import env_chk, get_calc_loc
 from matmethods.utils.utils import get_logger
 from matmethods.vasp.database import MMDb
+import glob
+import os
+import shutil
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -72,3 +75,25 @@ class AbsorptionSpectrumToDbTask(FireTaskBase):
         logger.info("Finished parsing the absorption spectrum")
 
         return FWAction()
+
+@explicit_serialize
+class TransferResultsTask(FireTaskBase):
+
+    required_params = ['folder_name']
+
+    def run_task(self, fw_spec):
+
+        dest_root = fw_spec["_fw_env"]["run_dest_root"]
+        folder_name = self["folder_name"]
+
+        dest = "{}/{}".format(dest_root,folder_name)
+
+        existing = glob.glob(dest+"*")
+        if not existing:
+            dest = dest
+        else:
+            dest += "_0"
+
+        src = os.path.abspath('.')
+        shutil.copytree(src,dest)
+
