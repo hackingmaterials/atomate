@@ -119,14 +119,18 @@ class TasksMaterialsBuilder(AbstractBuilder):
             (int) matching material_id or None
         """
         formula = taskdoc["formula_reduced_abc"]
-        sgnum = taskdoc["output"]["spacegroup"]["number"]
 
-        for m in self._materials.find({"formula_reduced_abc": formula, "sg_number": sgnum},
-                                      {"structure": 1, "material_id": 1}):
-
-            m_struct = Structure.from_dict(m["structure"])
+        if "parent_structure" in taskdoc:  # this is used to intentionally combine multiple data w/same formula but slightly different structure, e.g. from an ordering scheme
+            t_struct = Structure.from_dict(taskdoc["parent_structure"]["structure"])
+            q = {"formula_reduced_abc": formula, "parent_structure.spacegroup.number": taskdoc["parent_structure"]["spacegroup"]["number"]}
+        else:
+            sgnum = taskdoc["output"]["spacegroup"]["number"]
             t_struct = Structure.from_dict(taskdoc["output"]["structure"])
+            q = {"formula_reduced_abc": formula, "sg_number": sgnum}
 
+        for m in self._materials.find(q, {"parent_structure": 1, "structure": 1, "material_id": 1}):
+            s_dict = m["parent_structure"]["structure"] if "parent_structure" in m else m["structure"]
+            m_struct = Structure.from_dict(s_dict)
             sm = StructureMatcher(ltol=0.2, stol=0.3, angle_tol=5,
                                   primitive_cell=True, scale=True,
                                   attempt_supercell=False, allow_subset=False,
@@ -160,6 +164,10 @@ class TasksMaterialsBuilder(AbstractBuilder):
                   "elements", "nelements", "chemsys"]:
             doc[x] = taskdoc[x]
 
+        if "parent_structure" in taskdoc:
+            doc["parent_structure"] = taskdoc["parent_structure"]
+            t_struct = Structure.from_dict(taskdoc["parent_structure"]["structure"])
+            doc["parent_structure"]["formula_reduced_abc"] = t_struct.composition.reduced_formula
         self._materials.insert_one(doc)
 
         return doc["material_id"]
