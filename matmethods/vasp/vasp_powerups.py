@@ -215,7 +215,7 @@ def add_bandgap_check(original_wf, check_bandgap_params=None, fw_name_constraint
         check_bandgap_params (dict): a **kwargs** style dict of params
         fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this substring.
     """
-    check_stability_params = check_bandgap_params or {}
+    check_bandgap_params = check_bandgap_params or {}
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="DbTask"):
         original_wf.fws[idx_fw].spec["_tasks"].append(CheckBandgap(**check_bandgap_params).to_dict())

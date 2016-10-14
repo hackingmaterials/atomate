@@ -17,7 +17,7 @@ from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
 from matmethods.utils.utils import env_chk, get_calc_loc, get_meta_from_structure
 from matmethods.utils.utils import get_logger
-from matmethods.vasp.database import MMDb
+from matmethods.vasp.database import MMVaspDb
 from matmethods.vasp.drones import VaspDrone
 
 from pymatgen import Structure
@@ -91,7 +91,7 @@ class VaspToDbTask(FireTaskBase):
             with open("task.json", "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
-            mmdb = MMDb.from_db_file(db_file, admin=True)
+            mmdb = MMVaspDb.from_db_file(db_file, admin=True)
 
             # insert dos into GridFS
             if self.get("parse_dos") and "calcs_reversed" in task_doc:
@@ -167,9 +167,9 @@ class BoltztrapToDBTask(FireTaskBase):
 
         # add the spacegroup
         sg = SpacegroupAnalyzer(Structure.from_dict(d["structure"]), 0.1)
-        d["spacegroup"] = {"symbol": sg.get_spacegroup_symbol(),
-                           "number": sg.get_spacegroup_number(),
-                           "point_group": sg.get_point_group(),
+        d["spacegroup"] = {"symbol": sg.get_space_group_symbol(),
+                           "number": sg.get_space_group_number(),
+                           "point_group": sg.get_point_group_symbol(),
                            "source": "spglib",
                            "crystal_system": sg.get_crystal_system(),
                            "hall": sg.get_hall()}
@@ -182,7 +182,7 @@ class BoltztrapToDBTask(FireTaskBase):
             with open(os.path.join(btrap_dir, "boltztrap.json"), "w") as f:
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
         else:
-            mmdb = MMDb.from_db_file(db_file, admin=True)
+            mmdb = MMVaspDb.from_db_file(db_file, admin=True)
 
             # dos gets inserted into GridFS
             dos = json.dumps(d["dos"], cls=MontyEncoder)
@@ -251,7 +251,7 @@ class ElasticTensorToDbTask(FireTaskBase):
             with open("elasticity.json", "w") as f:
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
         else:
-            db = MMDb.from_db_file(db_file, admin=True)
+            db = MMVaspDb.from_db_file(db_file, admin=True)
             db.collection = db.db["elasticity"]
             db.collection.insert_one(d)
             logger.info("ELASTIC ANALYSIS COMPLETE")
@@ -321,7 +321,7 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
             with open("raman.json", "w") as f:
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
         else:
-            db = MMDb.from_db_file(db_file, admin=True)
+            db = MMVaspDb.from_db_file(db_file, admin=True)
             db.collection = db.db["raman"]
             db.collection.insert_one(d)
             logger.info("RAMAN TENSOR CALCULATION COMPLETE")
@@ -373,7 +373,7 @@ class GibbsFreeEnergyTask(FireTaskBase):
         pressure = self.get("pressure", 0.0)
         gibbs_summary_dict = {}
 
-        mmdb = MMDb.from_db_file(db_file, admin=True)
+        mmdb = MMVaspDb.from_db_file(db_file, admin=True)
         # get the optimized structure
         d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
@@ -444,7 +444,7 @@ class FitEquationOfStateTask(FireTaskBase):
         db_file = env_chk(self.get("db_file"), fw_spec)
         summary_dict = {"eos": self["eos"]}
 
-        mmdb = MMDb.from_db_file(db_file, admin=True)
+        mmdb = MMVaspDb.from_db_file(db_file, admin=True)
         # get the optimized structure
         d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
@@ -510,7 +510,7 @@ class ThermalExpansionCoeffTask(FireTaskBase):
         pressure = self.get("pressure", 0.0)
         summary_dict = {}
 
-        mmdb = MMDb.from_db_file(db_file, admin=True)
+        mmdb = MMVaspDb.from_db_file(db_file, admin=True)
         # get the optimized structure
         d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
