@@ -121,11 +121,12 @@ def wf_static(structure, c=None):
     return wf
 
 
-def wf_structure_optimization(structure, c=None, user_incar_settings=None):
+def wf_structure_optimization(structure, c=None):
 
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
+    user_incar_settings = c.get("USER_INCAR_SETTINGS")
 
     wf = get_wf(structure, "optimize_only.yaml",
                 vis=MPRelaxSet(structure, force_gamma=True,
