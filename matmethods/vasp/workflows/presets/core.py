@@ -6,9 +6,9 @@ import numpy as np
 
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
 
-from matmethods.vasp.vasp_config import SMALLGAP_KPOINT_MULTIPLY, STABILITY_CHECK, VASP_CMD, \
+from matmethods.vasp.config import SMALLGAP_KPOINT_MULTIPLY, STABILITY_CHECK, VASP_CMD, \
     DB_FILE, ADD_WF_METADATA
-from matmethods.vasp.vasp_powerups import add_small_gap_multiply, add_stability_check, add_modify_incar, \
+from matmethods.vasp.powerups import add_small_gap_multiply, add_stability_check, add_modify_incar, \
     add_wf_metadata, add_common_powerups
 from matmethods.vasp.workflows.base.core import get_wf
 from matmethods.vasp.workflows.base.elastic import get_wf_elastic_constant
