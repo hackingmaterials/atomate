@@ -5,4 +5,4 @@ dependencies:
 test:
   override:
     - tox:
-        timeout: 720
+        timeout: 1500
