@@ -1,10 +1,8 @@
 dependencies:
   override:
-    - pip install --upgrade pip
-    - pip install numpy --upgrade
-    - pip install -r requirements.txt --upgrade
-    - python setup.py install
+    - pip install tox tox-pyenv
+    - pyenv local 2.7.12 3.5.2
 test:
   override:
-    - nosetests --config=nose.cfg --all-modules --cover-html --cover-html-dir=$CIRCLE_ARTIFACTS:
+    - tox:
         timeout: 720
