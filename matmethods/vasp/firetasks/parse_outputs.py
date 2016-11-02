@@ -389,10 +389,8 @@ class GibbsFreeEnergyTask(FireTaskBase):
             s = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
             energies.append(d["calcs_reversed"][-1]["output"]['energy'])
             volumes.append(s.volume)
-            force_constants.append(d["calcs_reversed"][-1]["output"]['force_constants'])
         gibbs_summary_dict["energies"] = energies
         gibbs_summary_dict["volumes"] = volumes
-        gibbs_summary_dict["force_constants"] = force_constants
 
         G, T = None, None
         # use debye model
@@ -405,6 +403,9 @@ class GibbsFreeEnergyTask(FireTaskBase):
 
         # use the phonopy interface
         else:
+            for d in docs:
+                force_constants.append(d["calcs_reversed"][-1]["output"]['force_constants'])
+            gibbs_summary_dict["force_constants"] = force_constants
 
             from matmethods.tools.analysis import get_phonopy_gibbs
 
