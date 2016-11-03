@@ -125,7 +125,8 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
                                             "AMIX_MAG":0.4,
                                             "BMIX":0.0001,
                                             "BMIX_MAG":0.0001,
-                                            "POTIM":0.25}
+                                            "POTIM":0.25,
+                                            "EDIFFG":-0.05}
 
     if not v.incar.get("LDAU", None):
         ads_incar_params.update({"LDAU":False})
