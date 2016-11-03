@@ -196,7 +196,7 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
                 for struct in structures:
                     struct = struct.get_sorted_structure() # This is important because InsertSites sorts the structure
                     ads_fw_name = "{}-{}_{} adsorbate optimization".format(
-                        molecule.composition.reduced_formula,
+                        molecule.composition.formula,
                         structure.composition.reduced_formula, mi_string)
                     # This is a bit of a hack to avoid problems with poscar/contcar conversion
                     struct.add_site_property("velocities", [[0., 0., 0.]]*struct.num_sites)
@@ -275,9 +275,17 @@ if __name__ == "__main__":
     from pymatgen import Molecule, MPRester
     mpr = MPRester()
     pd = mpr.get_structures("mp-2")[0]
-    h2 = Molecule("HH", [[0.35, 0, 0], [-0.35, 0, 0.0]])
-    adsorbate_config = {k:[h2] for k in ["111", "100", "110"]}
+    co = mpr.get_structures("mp-54")[0]
+    fe = mpr.get_structures("mp-13")[0]
+    h = Molecule("H", [[0, 0, 0]])
+    adsorbate_config = {k:[h] for k in ["111", "100", "110"]}
     structure = PymatgenTest.get_structure("Si")
     wf1 = get_wf_adsorption(pd, adsorbate_config)
+    wf2 = get_wf_adsorption(co, {"001":[h]})
+    wf3 = get_wf_adsorption(fe, {"100":[h],
+                                 "110":[h]})
+    fw_names = [fw.name for fw in wf1.fws]
+    fw_names2 = [fw.name for fw in wf2.fws]
+    fw_names3 = [fw.name for fw in wf3.fws]
     import pdb; pdb.set_trace()
     #wf2 = get_wf_molecules([co])
