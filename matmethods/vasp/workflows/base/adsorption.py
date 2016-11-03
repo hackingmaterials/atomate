@@ -21,6 +21,7 @@ from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW
 
 from pymatgen.analysis.adsorption import generate_decorated_slabs,\
         AdsorbateSiteFinder
+from pymatgen.core.surface import generate_all_slabs
 from pymatgen.transformations.advanced_transformations import SlabTransformation
 from pymatgen.transformations.standard_transformations import SupercellTransformation
 from pymatgen.transformations.site_transformations import InsertSitesTransformation
@@ -83,10 +84,12 @@ class AnalyzeAdsorption(FireTaskBase):
 
 
 def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
-                      min_slab_size=7.0, min_vacuum_size=12.0, center_slab=True,
+                      min_slab_size=7.0, min_vacuum_size=20.0, center_slab=True,
                       max_normal_search=None, vasp_cmd="vasp", db_file=None, 
                       conventional=True, slab_incar_params=None, 
-                      ads_incar_params=None, auto_dipole=True):
+                      ads_incar_params=None, auto_dipole=True,
+                      use_bulk_coordination=False):
+    #TODO add more detailed docstring
     """
     Returns a workflow to calculate adsorption structures and surfaces.
 
@@ -122,7 +125,7 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
                                             "AMIX_MAG":0.4,
                                             "BMIX":0.0001,
                                             "BMIX_MAG":0.0001,
-                                            "POTIM":0.5}
+                                            "POTIM":0.25}
 
     if not v.incar.get("LDAU", None):
         ads_incar_params.update({"LDAU":False})
@@ -132,11 +135,19 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
                           vasp_cmd=vasp_cmd, db_file=db_file))
 
     max_index = max([int(i) for i in ''.join(adsorbate_config.keys())])
-    slabs = generate_decorated_slabs(structure, max_index=max_index, 
-                                     min_slab_size=min_slab_size,
-                                     min_vacuum_size=min_vacuum_size, 
-                                     max_normal_search=max_normal_search,
-                                     center_slab=center_slab)
+    if use_bulk_coordination:
+        slabs = generate_decorated_slabs(structure, max_index=max_index, 
+                                         min_slab_size=min_slab_size,
+                                         min_vacuum_size=min_vacuum_size, 
+                                         max_normal_search=max_normal_search,
+                                         center_slab=center_slab)
+    else:
+        slabs = generate_all_slabs(structure, max_index=max_index,
+                                   min_slab_size=min_slab_size,
+                                   min_vacuum_size=min_vacuum_size, 
+                                   max_normal_search=max_normal_search,
+                                   center_slab=center_slab)
+
     mi_strings = [''.join([str(i) for i in slab.miller_index])
                   for slab in slabs]
     for key in adsorbate_config.keys():
@@ -245,7 +256,10 @@ def get_wf_molecules(molecules, vasp_input_sets=None,
                                  np.array([0.5]*3) - np.average(m_struct.frac_coords,axis=0))
         v = vis or MPRelaxSet(m_struct, user_incar_settings={"ISMEAR":0, 
                                                              "IBRION":2, 
-                                                             "ISIF":0},
+                                                             "ISIF":0,
+                                                             "EDIFF":1e-6,
+                                                             "EDIFFG":-0.01,
+                                                             "POTIM":0.1},
                               user_kpoints_settings = {"grid_density":1}) #TODO think about this
         # There should also be a method to calculate hessian
         fws.append(OptimizeFW(structure=m_struct, vasp_input_set=v,
@@ -262,7 +276,8 @@ if __name__ == "__main__":
     mpr = MPRester()
     pd = mpr.get_structures("mp-2")[0]
     h2 = Molecule("HH", [[0.35, 0, 0], [-0.35, 0, 0.0]])
-    adsorbate_config = {"111":[h2]}
+    adsorbate_config = {k:[h2] for k in ["111", "100", "110"]}
     structure = PymatgenTest.get_structure("Si")
-    wf = get_wf_adsorption(pd, adsorbate_config)
+    wf1 = get_wf_adsorption(pd, adsorbate_config)
+    import pdb; pdb.set_trace()
     #wf2 = get_wf_molecules([co])
