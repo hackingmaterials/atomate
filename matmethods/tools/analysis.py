@@ -64,7 +64,7 @@ def get_debye_model_gibbs(energies, volumes, structure, t_min, t_step, t_max, eo
         (numpy.ndarray, numpy.ndarray): Gibbs free energy , Temperature
         Note: The data points for which the equation of state fitting fails are skipped.
     """
-    temp = np.linspace(t_min, t_max, np.ceil((t_max-t_min)/t_step))
+    temp = np.linspace(t_min, t_max, np.ceil((t_max-t_min)/t_step)+1)
     mass = sum([e.atomic_mass for e in structure.species])
     natoms = structure.composition.num_atoms
 
@@ -79,7 +79,7 @@ def get_debye_model_gibbs(energies, volumes, structure, t_min, t_step, t_max, eo
             continue
         G.append(G_tmp)
         T.append(t)
-    return np.array(G), np.array(T)
+    return G, T
 
 
 def debye_integral(y, integrator):

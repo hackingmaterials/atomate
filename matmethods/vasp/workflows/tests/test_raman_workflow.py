@@ -14,7 +14,7 @@ from pymongo import MongoClient
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
-from matmethods.vasp.vasp_powerups import use_fake_vasp
+from matmethods.vasp.powerups import use_fake_vasp
 from matmethods.vasp.workflows.presets.core import wf_raman_spectra
 
 from pymatgen import SETTINGS
