@@ -12,6 +12,8 @@ from fireworks import Workflow
 
 from matmethods.utils.utils import get_logger
 from matmethods.feff.fireworks.core import XASFW
+from matmethods.feff.utils import get_all_absorbing_atoms
+
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -37,9 +39,21 @@ def get_wf_exafs(absorbing_atom, structure, edge="K", radius=10.0, feff_input_se
     Returns:
         Workflow
     """
-    fis = feff_input_set or MPEXAFSSet(absorbing_atom, structure, edge=edge, radius=radius,
-                                       user_tag_settings=user_tag_settings or {})
-    fws = [XASFW(absorbing_atom, structure, "EXAFS", edge=edge, radius=radius, feff_input_set=fis,
-                 feff_cmd=feff_cmd, db_file=db_file, metadata=metadata, name="EXAFS spectroscopy")]
+    structure = structure.get_primitive_structure()
+
+    ab_atoms = get_all_absorbing_atoms(absorbing_atom, structure)
+
+    fws = []
+    for aa in ab_atoms:
+        fw_metadata = dict(metadata) if metadata else {}
+        fw_metadata["absorbing_atom_index"] = aa
+        fis = feff_input_set or MPEXAFSSet(absorbing_atom, structure, edge=edge, radius=radius,
+                                           user_tag_settings=user_tag_settings or {})
+        fws = [XASFW(absorbing_atom, structure, "EXAFS", edge=edge, radius=radius, feff_input_set=fis,
+                     feff_cmd=feff_cmd, db_file=db_file, metadata=fw_metadata, name="EXAFS spectroscopy")]
+
+    wf_metadata = dict(metadata) if metadata else {}
+    wf_metadata["absorbing_atom_indices"] = list(ab_atoms)
     wfname = "{}:{}:{} edge".format(structure.composition.reduced_formula, "EXAFS spectroscopy", edge)
+
     return Workflow(fws, name=wfname, metadata=metadata)
