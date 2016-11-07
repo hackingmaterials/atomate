@@ -77,7 +77,7 @@ class StaticFW(Firework):
                 t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
             t.append(WriteVaspStaticFromPrev(prev_calc_dir='.'))
         else:
-            vasp_input_set = MPStaticSet(structure) or vasp_input_set
+            vasp_input_set =  vasp_input_set or MPStaticSet(structure)
             t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
 
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
