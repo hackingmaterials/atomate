@@ -78,14 +78,13 @@ class TestXanesWorkflow(unittest.TestCase):
         # run
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
-        d = self._get_task_collection().find_one()
+        d = self._get_task_collection().find_one({"spectrum_type": "XANES"})
         self._check_run(d)
 
-    def _check_run(self, d1):
-        d = dict(d1)
+    def _check_run(self, d):
         run_dir = d["dir_name"]
         print(d.keys())
-        self.assertEqual(d["spectrum_type"], "XANES")
+        self.assertEqual(d["edge"], self.edge)        
         self.assertEqual(d["absorbing_atom"], self.absorbing_atom)
         tags = Tags.from_file(os.path.join(run_dir, "feff.inp"))
         self.assertEqual(d["input_parameters"], tags.as_dict())
