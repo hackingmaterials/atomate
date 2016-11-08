@@ -9,4 +9,3 @@ coverage==4.2
 tqdm==4.8.4
 six==1.10.0
 pybtex==0.20.1
-pymongo==3.3.1
