@@ -81,8 +81,10 @@ class TestXanesWorkflow(unittest.TestCase):
         d = self._get_task_collection().find_one()
         self._check_run(d)
 
-    def _check_run(self, d):
+    def _check_run(self, d1):
+        d = dict(d1)
         run_dir = d["dir_name"]
+        print(d.keys())
         self.assertEqual(d["spectrum_type"], "XANES")
         self.assertEqual(d["absorbing_atom"], self.absorbing_atom)
         tags = Tags.from_file(os.path.join(run_dir, "feff.inp"))
