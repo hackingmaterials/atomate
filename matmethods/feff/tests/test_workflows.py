@@ -11,7 +11,7 @@ import numpy as np
 
 from pymongo import MongoClient
 
-from pymatgen.util.testing import PymatgenTest
+from pymatgen import Structure
 from pymatgen.io.feff.sets import MPXANESSet
 from pymatgen.io.feff.inputs import Tags
 
@@ -35,7 +35,8 @@ class TestXanesWorkflow(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # CoO
-        cls.structure = PymatgenTest.get_mp_structure("mp-715460")
+        cls.structure = Structure.from_file(os.path.join(module_dir, "reference_files", "Co2O2.cif"))
+        #PymatgenTest.get_mp_structure("mp-715460")
         cls.user_tag_settings = {"RPATH": -1,
                              "SCF": "7 0 30 0.2 3",
                              "FMS": "9 0",
