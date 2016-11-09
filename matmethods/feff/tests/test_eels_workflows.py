@@ -43,7 +43,7 @@ class TestEELSWorkflow(unittest.TestCase):
                                  "COREHOLE": "RPA"}
         # 3rd site
         cls.absorbing_atom = 2
-        cls.edge = "K"
+        cls.edge = "L1"
         cls.nkpts = 1000
         cls.scratch_dir = os.path.join(module_dir, "scratch")
 
@@ -61,9 +61,19 @@ class TestEELSWorkflow(unittest.TestCase):
                 'Are the credentials correct?')
 
     def test_eels_wflow_abatom_by_idx(self):
+        # for the sake of test just copy xmu to eels
+        feff_bin = "cp  ../../reference_files/xmu.dat eels.dat"
         wf = get_wf_eels(self.absorbing_atom, self.structure, spectrum_type="ELNES",
-                        edge="L1", user_tag_settings=self.user_tag_settings, use_primitive=True)
+                        edge="L1", user_tag_settings=self.user_tag_settings, use_primitive=False,
+                         feff_cmd=feff_bin, db_file=">>db_file<<")
         self.assertEqual(len(wf.as_dict()["fws"]), 1)
+
+        self.lp.add_wf(wf)
+        # run
+        rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
+
+        d = self._get_task_collection().find_one({"spectrum_type": "ELNES"})
+        self._check_run(d)
 
     def test_eels_wflow_abatom_by_symbol(self):
         wf_prim =get_wf_eels("O", self.structure, spectrum_type="ELNES",
@@ -86,12 +96,11 @@ class TestEELSWorkflow(unittest.TestCase):
 
     def _check_run(self, d):
         run_dir = d["dir_name"]
+        #ref_feff_inp = os.path.join(module_dir, "reference_files", "feff_eels.inp")
         self.assertEqual(d["edge"], self.edge)
         self.assertEqual(d["absorbing_atom"], self.absorbing_atom)
         tags = Tags.from_file(os.path.join(run_dir, "feff.inp"))
         self.assertEqual(d["input_parameters"], tags.as_dict())
-        xmu = np.loadtxt((os.path.join(run_dir, "xmu.dat")))
-        self.assertEqual(d["spectrum"], xmu.tolist())
 
     def _get_task_database(self):
         with open(os.path.join(db_dir, "db.json")) as f:
