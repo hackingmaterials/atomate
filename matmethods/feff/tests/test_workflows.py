@@ -12,14 +12,13 @@ import numpy as np
 from pymongo import MongoClient
 
 from pymatgen import Structure
-from pymatgen.io.feff.sets import MPXANESSet
 from pymatgen.io.feff.inputs import Tags
 
 from fireworks.core.fworker import FWorker
 from fireworks.core.launchpad import LaunchPad
 from fireworks.core.rocket_launcher import rapidfire
 
-from matmethods.feff.workflows.xanes import get_wf_xanes
+from matmethods.feff.workflows.xas import get_wf_xas
 
 
 __author__ = 'Kiran Mathew'
@@ -31,24 +30,22 @@ DEBUG_MODE = False  # If true, retains the database and output dirs at the end o
 FEFF_CMD = None  # "feff"
 
 
-class TestXanesWorkflow(unittest.TestCase):
+class TestXASWorkflow(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # CoO
         cls.structure = Structure.from_file(os.path.join(module_dir, "reference_files", "Co2O2.cif"))
         #PymatgenTest.get_mp_structure("mp-715460")
         cls.user_tag_settings = {"RPATH": -1,
-                             "SCF": "7 0 30 0.2 3",
-                             "FMS": "9 0",
-                             "LDOS": "-30.0 30.0 0.1",
-                             "RECIPROCAL": "",
-                             "EDGE": "K"}
+                                 "SCF": "7 0 30 0.2 3",
+                                 "FMS": "9 0",
+                                 "LDOS": "-30.0 30.0 0.1",
+                                 "RECIPROCAL": "",
+                                 "EDGE": "K"}
         # 3rd site
         cls.absorbing_atom = 2
         cls.edge = "K"
         cls.nkpts = 1000
-        cls.xanes = MPXANESSet(cls.absorbing_atom, cls.structure, edge=cls.edge, nkpts=cls.nkpts,
-                               user_tag_settings=cls.user_tag_settings)
         cls.scratch_dir = os.path.join(module_dir, "scratch")
 
     def setUp(self):
@@ -64,15 +61,17 @@ class TestXanesWorkflow(unittest.TestCase):
                 'Cannot connect to MongoDB! Is the database server running? '
                 'Are the credentials correct?')
 
-    def test_feff_wflow(self):
+    def test_xas_wflow_abatom_by_idx(self):
         if not FEFF_CMD:
             # fake run
             feff_bin = "cp  ../../reference_files/xmu.dat ."
         else:
             feff_bin = FEFF_CMD
 
-        wf = get_wf_xanes(self.absorbing_atom, self.structure, feff_input_set=self.xanes,
-                          feff_cmd=feff_bin, db_file=">>db_file<<")
+        wf = get_wf_xas(self.absorbing_atom, self.structure, spectrum_type="XANES", edge="K",
+                        feff_cmd=feff_bin, db_file=">>db_file<<", use_primitive=False,
+                        user_tag_settings=self.user_tag_settings)
+        self.assertEqual(len(wf.as_dict()["fws"]), 1)
 
         self.lp.add_wf(wf)
         # run
@@ -81,10 +80,27 @@ class TestXanesWorkflow(unittest.TestCase):
         d = self._get_task_collection().find_one({"spectrum_type": "XANES"})
         self._check_run(d)
 
+    def test_xas_wflow_abatom_by_symbol(self):
+        wf_prim = get_wf_xas("O", self.structure, spectrum_type="XANES", edge="K",
+                             use_primitive=True, user_tag_settings=self.user_tag_settings)
+        wf = get_wf_xas("O", self.structure, spectrum_type="XANES", edge="K",
+                        use_primitive=False, user_tag_settings=self.user_tag_settings)
+        self.assertEqual(len(wf_prim.as_dict()["fws"]), 1)
+        self.assertEqual(len(wf.as_dict()["fws"]), 2)
+
+    def test_xanes_vs_exafs(self):
+        wf_xanes = get_wf_xas(self.absorbing_atom, self.structure, spectrum_type="XANES", edge="K",
+                              user_tag_settings=self.user_tag_settings)
+        wf_exafs = get_wf_xas(self.absorbing_atom, self.structure, spectrum_type="EXAFS", edge="K")
+
+        self.assertEqual(wf_xanes.as_dict()["fws"][0]["spec"]['_tasks'][0]['feff_input_set']['@class'],
+                         'MPXANESSet')
+        self.assertEqual(wf_exafs.as_dict()["fws"][0]["spec"]['_tasks'][0]['feff_input_set']['@class'],
+                         'MPEXAFSSet')
+
     def _check_run(self, d):
         run_dir = d["dir_name"]
-        print(d.keys())
-        self.assertEqual(d["edge"], self.edge)        
+        self.assertEqual(d["edge"], self.edge)
         self.assertEqual(d["absorbing_atom"], self.absorbing_atom)
         tags = Tags.from_file(os.path.join(run_dir, "feff.inp"))
         self.assertEqual(d["input_parameters"], tags.as_dict())
