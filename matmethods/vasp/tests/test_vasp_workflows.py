@@ -14,7 +14,7 @@ from pymongo import MongoClient, DESCENDING
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
-from matmethods.vasp.vasp_powerups import use_custodian, add_namefile, use_fake_vasp, add_trackers, \
+from matmethods.vasp.powerups import use_custodian, add_namefile, use_fake_vasp, add_trackers, \
     add_bandgap_check
 from matmethods.vasp.workflows.base.core import get_wf
 
