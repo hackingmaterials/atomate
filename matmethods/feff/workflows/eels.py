@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 def get_wf_eels(absorbing_atom, structure=None, spectrum_type="ELNES", edge="K", radius=10.,
                 beam_energy=100, beam_direction=None, collection_angle=1, convergence_angle=1,
                 user_eels_settings=None, user_tag_settings=None, feff_cmd="feff", db_file=None,
-                metadata=None, use_primitive=False):
+                metadata=None, use_primitive=False, feff_input_set=None):
     """
     Returns FEFF ELNES/EXELFS spectroscopy workflow.
 
@@ -30,8 +30,8 @@ def get_wf_eels(absorbing_atom, structure=None, spectrum_type="ELNES", edge="K",
         structure (Structure): input structure. If None and mp_id is provided, the corresponding
             structure will be fetched from the Materials Project db.
         spectrum_type (str): ELNES or EXELFS
-        edge (str): absorption edge
-        radius (float): cluster radius in angstroms
+        edge (str): absorption edge. K, L1, L2, L3
+        radius (float): cluster radius in angstroms. Ignored for reciprocal space calculations
         beam_energy (float): the incident beam energy in keV
         beam_direction (list): incident beam direction. Default is none ==> the spectrum will be
             averaged over all directions.
@@ -45,6 +45,7 @@ def get_wf_eels(absorbing_atom, structure=None, spectrum_type="ELNES", edge="K",
         use_primitive (bool): convert the structure to primitive form. This helps to
             reduce the number of fireworks in the workflow if the absorbing atoms is
             specified by its atomic symbol.
+        feff_input_set (FeffDictSet)
 
     Returns:
         Workflow
@@ -57,6 +58,7 @@ def get_wf_eels(absorbing_atom, structure=None, spectrum_type="ELNES", edge="K",
 
     override_default_feff_params = {"user_tag_settings": user_tag_settings}
 
+    # add firework for each absorbing atom site index
     fws = []
     for ab_idx in ab_atom_indices:
         fw_metadata = dict(metadata) if metadata else {}
@@ -66,7 +68,7 @@ def get_wf_eels(absorbing_atom, structure=None, spectrum_type="ELNES", edge="K",
                           beam_energy=beam_energy, beam_direction=beam_direction,
                           collection_angle=collection_angle, convergence_angle=convergence_angle,
                           user_eels_settings=user_eels_settings, feff_cmd=feff_cmd, db_file=db_file,
-                          metadata=fw_metadata, name=fw_name,
+                          metadata=fw_metadata, name=fw_name, feff_input_set=feff_input_set,
                           override_default_feff_params=override_default_feff_params))
 
     wfname = "{}:{}:{} edge".format(structure.composition.reduced_formula,
