@@ -12,6 +12,8 @@ from matmethods.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspDirect, 
 from matmethods.vasp.firetasks.write_inputs import ModifyIncar
 from matmethods.vasp.config import ADD_NAMEFILE, SCRATCH_DIR, ADD_MODIFY_INCAR
 
+from pymatgen import Structure
+
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
@@ -167,6 +169,69 @@ def add_modify_incar(original_wf, modify_incar_params=None, fw_name_constraint=N
         wf_dict["fws"][idx_fw]["spec"]["_tasks"].insert(idx_t, ModifyIncar(**modify_incar_params).to_dict())
     return Workflow.from_dict(wf_dict)
 
+def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None, fw_name_constraint=None):
+    """
+    Takes a regular workflow and transforms its VASP fireworkers that are specified with
+    fw_name_constraints to non-collinear calculations taking spin orbit coupling into account.
+
+    Args:
+        original_wf (Workflow)
+        nbands (int): number of bands selected by the user (for now)
+        structure (Structure)
+        modify_incar_params ({}): a dictionary containing the setting for modyfining the INCAR (e.g. {"ICHARG": 11})
+        fw_name_constraint (string): name of the fireworks to be modified (all if None is passed)
+
+    Returns:
+        modified Workflow with SOC
+    """
+
+    wf_dict = original_wf.to_dict()
+    if structure == None:
+        try:
+            sid = get_fws_and_tasks(original_wf, fw_name_constraint="structure optimization",
+                                    task_name_constraint="RunVasp")[0][0]
+            structure = Structure.from_dict(wf_dict["fws"][sid]["spec"]["_tasks"][1]["vasp_input_set"]["structure"])
+        except:
+            raise ValueError("For this workflow, the structure must be provided as an input")
+    magmom = ""
+    for i in structure:
+        magmom += "0 0 0.6 "
+    #TODO: add saxis as an input parameter with default being (0 0 1)
+    modify_incar_params = modify_incar_params or {"incar_update": {"LSORBIT": "T", "NBANDS": nbands, "MAGMOM": magmom,
+                                                    "ISPIN": 1, "LMAXMIX": 4, "ISYM": 0}}
+
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
+                                           task_name_constraint="RunVasp"):
+        if "structure" not in wf_dict["fws"][idx_fw]["name"] and "static" not in wf_dict["fws"][idx_fw]["name"]:
+            wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"] = ">>vasp_ncl<<"
+            wf_dict["fws"][idx_fw]["spec"]["_tasks"].insert(idx_t, ModifyIncar(**modify_incar_params).to_dict())
+
+        wf_dict["fws"][idx_fw]["name"] += " soc"
+
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
+                                           task_name_constraint="RunBoltztrap"):
+        wf_dict["fws"][idx_fw]["name"] += " soc"
+
+    return Workflow.from_dict(wf_dict)
+
+def tag_fws(original_wf, tag, fw_name_constraint=None):
+    """
+    Tags VASP Fworker(s) of a Workflow; e.g. it can be used to run large-memory jobs on a separate queue
+
+    Args:
+        original_wf (Workflow):
+        tag (string): user-defined tag to be added under fw.spec._fworker (e.g. "large memory", "big", etc)
+        fw_name_constraint (string): name of the fireworks to be modified (all if None is passed)
+
+    Returns:
+        modified workflow with tagged Fworkers
+    """
+    wf_dict = original_wf.to_dict()
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
+                                           task_name_constraint="RunVasp"):
+        wf_dict["fws"][idx_fw]["spec"]["_fworker"] = tag
+
+    return Workflow.from_dict(wf_dict)
 
 def add_wf_metadata(original_wf, structure):
     """
