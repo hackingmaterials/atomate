@@ -268,10 +268,9 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
 
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp"):
-        if "structure" not in wf_dict["fws"][idx_fw]["name"]:
-            wf_dict["fws"][idx_fw]["spec"]["_tasks"].insert(idx_t, ModifyIncar(**modify_incar_params).to_dict())
         if "nscf" in wf_dict["fws"][idx_fw]["name"]:
             wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"] = ">>vasp_ncl<<"
+            wf_dict["fws"][idx_fw]["spec"]["_tasks"].insert(idx_t, ModifyIncar(**modify_incar_params).to_dict())
 
         wf_dict["fws"][idx_fw]["name"] += " soc"
 
