@@ -262,6 +262,7 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
     magmom = ""
     for i in structure:
         magmom += "0 0 0.6 "
+    # TODO: add saxis as an input parameter with default being (0 0 1)
     modify_incar_params = modify_incar_params or {"incar_update": {"LSORBIT": "T", "NBANDS": nbands, "MAGMOM": magmom,
                                                     "ISPIN": 1, "LMAXMIX": 4, "ISYM": 0}}
 
