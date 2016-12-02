@@ -31,15 +31,15 @@ def get_wf_xas(absorbing_atom, structure, spectrum_type="XANES", edge="K", radiu
              same symbol.
         structure (Structure): input structure
         spectrum_type (str): XANES or EXAFS
-        edge (str): absorption edge
-        radius (float): cluster radius in angstroms. Not needed for K space calculations
+        edge (str): absorption edge. Example: K, L1, L2, L3
+        radius (float): cluster radius in angstroms. Ignored for K space calculations
         feff_input_set (FeffDictSet): the input set for the FEFF run
         feff_cmd (str): path to the feff binary
         db_file (str):  path to the db file.
         metadata (dict): meta data
         user_tag_settings (dict): override feff default tag settings
         use_primitive (bool): convert the structure to primitive form. This helps to
-            reduce the number of fireworks in the workflow if the absorbing atoms is
+            reduce the number of fireworks in the workflow if the absorbing atom is
             specified by its atomic symbol.
 
     Returns:
@@ -52,7 +52,8 @@ def get_wf_xas(absorbing_atom, structure, spectrum_type="XANES", edge="K", radiu
     ab_atom_indices = get_all_absorbing_atoms(absorbing_atom, structure)
 
     override_default_feff_params = {"user_tag_settings": user_tag_settings}
-    
+
+    # add firework for each absorbing atom site index
     fws = []
     for ab_idx in ab_atom_indices:
         fw_metadata = dict(metadata) if metadata else {}
