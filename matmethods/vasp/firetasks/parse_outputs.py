@@ -142,6 +142,15 @@ class BoltztrapToDBTask(FireTaskBase):
 
     optional_params = ["db_file", "hall_doping"]
 
+    def get_intrans(self, btrap_dir):
+        intrans = {}
+        with open(os.path.join(btrap_dir, "boltztrap.intrans"), 'r') as f:
+            for line in f:
+                if "iskip" in line:
+                    intrans["scissor"] = float(line.split(" ")[3])*13.605698066 # converted from Ry to eV
+                    break
+        return intrans
+    
     def run_task(self, fw_spec):
         btrap_dir = os.path.join(os.getcwd(), "boltztrap")
         bta = BoltztrapAnalyzer.from_files(btrap_dir)
@@ -155,6 +164,10 @@ class BoltztrapToDBTask(FireTaskBase):
 
         if not self.get("hall_doping"):
             del d["hall_doping"]
+
+        # from files:
+        intrans = self.get_intrans(btrap_dir)
+        d["scissor"] = intrans["scissor"]
 
         # add the structure
         bandstructure_dir = os.getcwd()
