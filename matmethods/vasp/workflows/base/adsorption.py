@@ -19,8 +19,7 @@ from matmethods.utils.utils import env_chk, get_logger
 from matmethods.vasp.database import MMDb
 from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW
 
-from pymatgen.analysis.adsorption import generate_decorated_slabs,\
-        AdsorbateSiteFinder
+from pymatgen.analysis.adsorption import AdsorbateSiteFinder
 from pymatgen.core.surface import generate_all_slabs
 from pymatgen.transformations.advanced_transformations import SlabTransformation
 from pymatgen.transformations.standard_transformations import SupercellTransformation
@@ -40,7 +39,8 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
                       conventional=True, slab_incar_params=None, 
                       ads_incar_params=None, auto_dipole=True,
                       use_bulk_coordination=False):
-    #TODO add more details to docstring
+    #TODO: add more details to docstring
+    #TODO: this could use a general refactoring in the context of new ASF
     """
     Returns a workflow to calculate adsorption structures and surfaces.
 
@@ -87,19 +87,11 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
                           vasp_cmd=vasp_cmd, db_file=db_file))
 
     max_index = max([int(i) for i in ''.join(adsorbate_config.keys())])
-    if use_bulk_coordination:
-        slabs = generate_decorated_slabs(structure, max_index=max_index, 
-                                         min_slab_size=min_slab_size,
-                                         min_vacuum_size=min_vacuum_size, 
-                                         max_normal_search=max_normal_search,
-                                         center_slab=center_slab)
-    else:
-        slabs = generate_all_slabs(structure, max_index=max_index,
-                                   min_slab_size=min_slab_size,
-                                   min_vacuum_size=min_vacuum_size, 
-                                   max_normal_search=max_normal_search,
-                                   center_slab=center_slab)
-
+    slabs = generate_all_slabs(structure, max_index=max_index,
+                               min_slab_size=min_slab_size,
+                               min_vacuum_size=min_vacuum_size, 
+                               max_normal_search=max_normal_search,
+                               center_slab=center_slab)
     mi_strings = [''.join([str(i) for i in slab.miller_index])
                   for slab in slabs]
     for key in adsorbate_config.keys():
@@ -142,7 +134,11 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
                                     vasp_input_set = vis_slab)
                       )
             # Generate adsorbate configurations and add fws to workflow
-            asf = AdsorbateSiteFinder(slab, selective_dynamics=True)
+            if use_bulk_coordination:
+                asf = AdsorbateSiteFinder.from_bulk_and_miller(structure, slab.miller_index,
+                                                               selective_dynamics=True)
+            else:
+                asf = AdsorbateSiteFinder(slab, selective_dynamics=True)
             for molecule in adsorbate_config[mi_string]:
                 structures = asf.generate_adsorption_structures(molecule, repeat=[2, 2, 1])
                 for struct in structures:
