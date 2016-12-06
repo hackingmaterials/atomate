@@ -388,11 +388,13 @@ class GibbsFreeEnergyTask(FireTaskBase):
         for d in docs:
             s = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
             energies.append(d["calcs_reversed"][-1]["output"]['energy'])
+            if qha_type not in ["debye_model"]:
+                force_constants.append(d["calcs_reversed"][-1]["output"]['force_constants'])
             volumes.append(s.volume)
-            force_constants.append(d["calcs_reversed"][-1]["output"]['force_constants'])
         gibbs_summary_dict["energies"] = energies
         gibbs_summary_dict["volumes"] = volumes
-        gibbs_summary_dict["force_constants"] = force_constants
+        if qha_type not in ["debye_model"]:
+            gibbs_summary_dict["force_constants"] = force_constants
 
         G, T = None, None
         # use debye model
