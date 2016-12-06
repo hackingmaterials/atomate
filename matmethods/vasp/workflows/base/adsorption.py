@@ -34,62 +34,13 @@ __email__ = 'montoyjh@lbl.gov'
 
 logger = get_logger(__name__)
 
-@explicit_serialize
-class PassSlabEnergy(FireTaskBase):
-    """
-    Placeholder just in case I need to pass something
-    """
-
-    def run_task(self, fw_spec):
-        pass
-        return FWAction()
-
-
-@explicit_serialize
-class AnalyzeAdsorption(FireTaskBase):
-    """
-    Analyzes the adsorption energies in a workflow
-    """
-
-    required_params = ['structure']
-    optional_params = ['db_file']
-
-    def run_task(self, fw_spec):
-        pass
-        """
-        # Get optimized structure
-        # TODO: will this find the correct path if the workflow is rerun from the start?
-        optimize_loc = fw_spec["calc_locs"][0]["path"]
-        logger.info("PARSING INITIAL OPTIMIZATION DIRECTORY: {}".format(optimize_loc))
-        drone = VaspDrone()
-        optimize_doc = drone.assimilate(optimize_loc)
-        opt_struct = Structure.from_dict(optimize_doc["calcs_reversed"][0]["output"]["structure"])
-        
-        d = {"analysis": {}, "deformation_tasks": fw_spec["deformation_tasks"],
-             "initial_structure": self['structure'].as_dict(), 
-             "optimized_structure": opt_struct.as_dict()}
-
-        # Save analysis results in json or db
-        db_file = env_chk(self.get('db_file'), fw_spec)
-        if not db_file:
-            with open("adsorption.json", "w") as f:
-                f.write(json.dumps(d, default=DATETIME_HANDLER))
-        else:
-            db = MMDb.from_db_file(db_file, admin=True)
-            db.collection = db.db["adsorption"]
-            db.collection.insert_one(d)
-            logger.info("ADSORPTION ANALYSIS COMPLETE")
-        return FWAction()
-        """
-
-
 def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
                       min_slab_size=7.0, min_vacuum_size=20.0, center_slab=True,
                       max_normal_search=None, vasp_cmd="vasp", db_file=None, 
                       conventional=True, slab_incar_params=None, 
                       ads_incar_params=None, auto_dipole=True,
                       use_bulk_coordination=False):
-    #TODO add more detailed docstring
+    #TODO add more details to docstring
     """
     Returns a workflow to calculate adsorption structures and surfaces.
 
@@ -195,11 +146,12 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
             for molecule in adsorbate_config[mi_string]:
                 structures = asf.generate_adsorption_structures(molecule, repeat=[2, 2, 1])
                 for struct in structures:
-                    struct = struct.get_sorted_structure() # This is important because InsertSites sorts the structure
+                    # Sort structure because InsertSites sorts the structure
+                    struct = struct.get_sorted_structure()
                     ads_fw_name = "{}-{}_{} adsorbate optimization".format(
                         molecule.composition.formula,
                         structure.composition.reduced_formula, mi_string)
-                    # This is a bit of a hack to avoid problems with poscar/contcar conversion
+                    # Add velocities to avoid problems with poscar/contcar conversion
                     struct.add_site_property("velocities", [[0., 0., 0.]]*struct.num_sites)
                     trans_ads = ["SlabTransformation", "SupercellTransformation", 
                                   "InsertSitesTransformation", "AddSitePropertyTransformation"]
@@ -240,7 +192,6 @@ def get_wf_molecules(molecules, vasp_input_sets=None,
                  database insertion.
     Args:
         molecules (list of molecules): input structure to be optimized and run
-        # TODO: rethink configuration
         vasp_input_set (DictVaspInputSet): vasp input set.
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
