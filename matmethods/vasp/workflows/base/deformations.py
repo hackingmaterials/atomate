@@ -69,8 +69,8 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
                       db_file=db_file, name="{} structure optimization".format(tag))]
 
     # Deformation fireworks with the task to extract and pass stress-strain appended to it.
-    for deformation in deformations:
-        fw = TransmuterFW(name="{} {}".format(tag, name), structure=structure,
+    for n, deformation in enumerate(deformations):
+        fw = TransmuterFW(name="{} {} {}".format(tag, name, n), structure=structure,
                           transformations=['DeformStructureTransformation'],
                           transformation_params=[{"deformation": deformation.tolist()}],
                           vasp_input_set=vis_static, copy_vasp_outputs=True, parents=fws[0],
