@@ -169,10 +169,11 @@ def wf_piezoelectric_constant(structure, c=None):
     wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 1000,
                                                                     "ADDGRID": True,
                                                                     "LREAL": False,
-                                                                    "EDIFF": 1e-8
-                                                                    }
+                                                                    "EDIFF": 1e-7}
                                                    },
                           fw_name_constraint="static dielectric")
+    for fw in wf.fws:
+        fw.name = fw.name.replace("dielectric", "piezoelectric")
 
     if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
         wf = add_wf_metadata(wf, structure)
