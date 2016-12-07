@@ -19,6 +19,7 @@ from matmethods.vasp.workflows.presets.core import wf_elastic_constant
 
 from pymatgen import SETTINGS
 from pymatgen.util.testing import PymatgenTest
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 __author__ = 'Kiran Mathew, Joseph Montoya'
 __email__ = 'montoyjh@lbl.gov'
@@ -39,12 +40,13 @@ class TestElasticWorkflow(unittest.TestCase):
             print('This system is not set up to run VASP jobs. '
                   'Please set VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
-        cls.struct_si = PymatgenTest.get_structure("Si")
+        cls.struct_si = SpacegroupAnalyzer(
+                PymatgenTest.get_structure("Si")).get_conventional_standard_structure()
         cls.scratch_dir = os.path.join(module_dir, "scratch")
         cls.elastic_config = {"norm_deformations":[0.01],
                               "shear_deformations":[0.03],
                               "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"}
-        cls.defo_wf = wf_elastic_constant(cls.struct_si, cls.elastic_config)
+        cls.wf = wf_elastic_constant(cls.struct_si, cls.elastic_config)
 
     def setUp(self):
         if os.path.exists(self.scratch_dir):
@@ -71,12 +73,12 @@ class TestElasticWorkflow(unittest.TestCase):
     def _simulate_vasprun(self, wf):
         reference_dir = os.path.abspath(os.path.join(ref_dir, "elastic_wf"))
         si_ref_dirs = {"structure optimization": os.path.join(reference_dir, "1"),
-                       "elastic_0_0.01 deformation": os.path.join(reference_dir, "7"),
-                       "elastic_1_0.01 deformation": os.path.join(reference_dir, "6"),
-                       "elastic_2_0.01 deformation": os.path.join(reference_dir, "5"),
-                       "elastic_3_0.03 deformation": os.path.join(reference_dir, "4"),
-                       "elastic_4_0.03 deformation": os.path.join(reference_dir, "3"),
-                       "elastic_5_0.03 deformation": os.path.join(reference_dir, "2")}
+                       "elastic deformation 0": os.path.join(reference_dir, "7"),
+                       "elastic deformation 1": os.path.join(reference_dir, "6"),
+                       "elastic deformation 2": os.path.join(reference_dir, "5"),
+                       "elastic deformation 3": os.path.join(reference_dir, "4"),
+                       "elastic deformation 4": os.path.join(reference_dir, "3"),
+                       "elastic deformation 5": os.path.join(reference_dir, "2")}
         return use_fake_vasp(wf, si_ref_dirs, params_to_check=["ENCUT"])
 
     def _get_task_database(self):
@@ -100,21 +102,21 @@ class TestElasticWorkflow(unittest.TestCase):
                         "elastic_3_0.03 deformation", "elastic analysis"]:
             raise ValueError("Invalid mode!")
 
-        if mode not in ["raman analysis"]:
+        if mode not in ["elastic analysis"]:
+            if not d:
+                import pdb; pdb.set_trace()
             self.assertEqual(d["formula_pretty"], "Si")
             self.assertEqual(d["formula_anonymous"], "A")
             self.assertEqual(d["nelements"], 1)
             self.assertEqual(d["state"], "successful")
-            self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["a"], 3.867, 2)
-        """
+        
         if mode in ["structure optimization"]:
-            self.assertAlmostEqual(d["output"]["energy"], -10.850, 2)
+            self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["a"], 5.469, 2)
             self.assertAlmostEqual(d["output"]["energy_per_atom"], -5.425, 2)
 
-        elif mode in ["phonon deformation"]:
-            epsilon = [[13.23245131, -1.98e-06, -1.4e-06],
-                       [-1.98e-06, 13.23245913, 8.38e-06],
-                       [-1.4e-06, 8.38e-06, 13.23245619]]
+        """
+        elif mode in ["elastic deformation 1"]:
+
             np.testing.assert_allclose(epsilon, d["output"]["epsilon_static"], rtol=1e-5)
 
         elif mode in ["raman_0_0.005 deformation"]:
@@ -140,19 +142,18 @@ class TestElasticWorkflow(unittest.TestCase):
     def test_wf(self):
         self.wf = self._simulate_vasprun(self.wf)
 
-        self.assertEqual(len(self.wf.fws), len(self.raman_config["modes"]) * 2 + 3)
+        self.assertEqual(len(self.wf.fws), 8)
 
         self.lp.add_wf(self.wf)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
         # check relaxation
-        d = self._get_task_collection().find_one({"task_label": "structure optimization"})
+        d = self._get_task_collection().find_one({"task_label": "elastic structure optimization"})
         self._check_run(d, mode="structure optimization")
-
+        """
         # check phonon DFPT calculation
         d = self._get_task_collection().find_one({"task_label": "structure optimization"})
         self._check_run(d, mode="structure optimization")
-        """
         # check one of the raman deformation calculation
         d = self._get_task_collection().find_one({"task_label": "raman_0_0.005 deformation"})
         self._check_run(d, mode="raman_0_0.005 deformation")
