@@ -10,6 +10,7 @@ import os
 import sys
 from monty.serialization import loadfn
 import yaml
+from datetime import datetime
 
 from fireworks import LaunchPad
 from matmethods import get_wf_from_spec_dict
@@ -93,29 +94,31 @@ def add_wf(args):
 
 def test_suite(args):
     """
-    Creates workflows for default
+    Creates a test suite of workflows and adds it to the LaunchPad
     """
     mpr = MPRester()
+    dt = datetime.utcnow()
     if args.reset:
         LaunchPad.auto_load().reset(password='', require_password=False)
-    compounds = ["mp-149", "mp-715262", "mp-573697"] #Si, MgO, CsCl
-    custom_compounds = {"wf_elastic_constant":"mp-117",# Sn
-                        "wf_piezoelectric_constant":"mp-938"} # GeTe
-    structures = [mpr.get_structure_by_material_id(c) for c in compounds]
-    # Default
-    d = yaml.load(default_yaml)
-    wfs = [get_wf_from_spec_dict(s, d) for s in structures]
-    # Presets
-    for name, wf_func in core.__dict__.iteritems():
-        if callable(wf_func) and name[:2]=="wf":
-            if name in custom_compounds:
-                custom_structure = mpr.get_structure_by_material_id(custom_compounds[name])
-                wfs.append(wf_func(custom_structure))
-            else:
-                wfs.append(wf_func(structures[0]))
-    wf = add_tags(wf, "test set")
-    for wf in wfs:
-        add_to_lpad(wf, write_namefile=False)
+    elif args.submit:
+        compounds = ["mp-149", "mp-715262", "mp-573697"] #Si, MgO, CsCl
+        custom_compounds = {"wf_elastic_constant":"mp-117",# Sn
+                            "wf_piezoelectric_constant":"mp-938"} # GeTe
+        structures = [mpr.get_structure_by_material_id(c) for c in compounds]
+        # Default
+        d = yaml.load(default_yaml)
+        wfs = [get_wf_from_spec_dict(s, d) for s in structures]
+        # Presets
+        for name, wf_func in core.__dict__.iteritems():
+            if callable(wf_func) and name[:2]=="wf":
+                if name in custom_compounds:
+                    custom_structure = mpr.get_structure_by_material_id(custom_compounds[name])
+                    wfs.append(wf_func(custom_structure))
+                else:
+                    wfs.append(wf_func(structures[0]))
+        wf = add_tags(wf, "test set {}".format(dt))
+        for wf in wfs:
+            add_to_lpad(wf, write_namefile=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -147,8 +150,14 @@ if __name__ == "__main__":
     padd.set_defaults(func=add_wf)
 
     ptest = subparsers.add_parser("test", help="Add test suite.")
+    ptest.add_argument("-s", "--submit", dest="submit", action='store_true',
+                       help="If this option is set, test workflows will be "
+                            "submitted")
     ptest.add_argument("-r", "--reset", dest="reset", action='store_true',
                        help="If this option is set, launchpad will be reset.")
+    ptest.add_argument("-v", "--verify", dest="verify", action="store_true",
+                       help="Use this option to verify test workflows "
+                            "against previous results.")
 
     ptest.set_defaults(func=test_suite)
 
