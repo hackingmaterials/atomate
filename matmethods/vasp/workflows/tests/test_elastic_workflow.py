@@ -98,13 +98,11 @@ class TestElasticWorkflow(unittest.TestCase):
             return db[coll_name]
 
     def _check_run(self, d, mode):
-        if mode not in ["structure optimization", "elastic_0_0.01 deformation",
-                        "elastic_3_0.03 deformation", "elastic analysis"]:
+        if mode not in ["structure optimization", "elastic deformation 0",
+                        "elastic deformation 3", "elastic analysis"]:
             raise ValueError("Invalid mode!")
 
         if mode not in ["elastic analysis"]:
-            if not d:
-                import pdb; pdb.set_trace()
             self.assertEqual(d["formula_pretty"], "Si")
             self.assertEqual(d["formula_anonymous"], "A")
             self.assertEqual(d["nelements"], 1)
@@ -114,30 +112,20 @@ class TestElasticWorkflow(unittest.TestCase):
             self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["a"], 5.469, 2)
             self.assertAlmostEqual(d["output"]["energy_per_atom"], -5.425, 2)
 
-        """
-        elif mode in ["elastic deformation 1"]:
+        elif mode in ["elastic deformation 0"]:
+            stress = np.diag([-14.741,-5.107, -5.107])
+            np.testing.assert_allclose(stress,
+                    d["calcs_reversed"][0]["output"]["ionic_steps"][-1]["stress"], rtol=1e-2)
 
-            np.testing.assert_allclose(epsilon, d["output"]["epsilon_static"], rtol=1e-5)
+        elif mode in ["elastic deformation 3"]:
+            stress = d["calcs_reversed"][0]["output"]["ionic_steps"][-1]["stress"]
+            self.assertAlmostEqual(stress[0][1], -22.4, places=1)
 
-        elif mode in ["raman_0_0.005 deformation"]:
-            epsilon = [[13.16509632, 0.00850098, 0.00597267],
-                       [0.00850097, 13.25477303, -0.02979572],
-                       [0.00597267, -0.0297953, 13.28883867]]
-            np.testing.assert_allclose(epsilon, d["output"]["epsilon_static"], rtol=1e-5)
-
-        elif mode in ["raman analysis"]:
-            freq = [82.13378641656142, 82.1337379843688, 82.13373236539397,
-                    3.5794336040310436e-07, 3.872360276932139e-07, 1.410955723105983e-06]
-            np.testing.assert_allclose(freq, d["frequencies"], rtol=1e-5)
-            raman_tensor = {'0': [[-0.14893062387265346, 0.01926196125448702, 0.013626954435454657],
-                                  [0.019262321540910236, 0.03817444467845385, -0.06614541890150054],
-                                  [0.013627229948601821, -0.06614564143135017, 0.11078513986463052]],
-                            '1': [[-0.021545749071077102, -0.12132200642389818, -0.08578776196143767],
-                                  [-0.12131975993142007, -0.00945267872479081, -0.004279822490713417],
-                                  [-0.08578678706847546, -0.004279960247327641, 0.032660281203217366]]}
-            np.testing.assert_allclose(raman_tensor["0"], d["raman_tensor"]["0"], rtol=1e-5)
-            np.testing.assert_allclose(raman_tensor["1"], d["raman_tensor"]["1"], rtol=1e-5)
-        """
+        elif mode in ["elastic analysis"]:
+            c_ij = np.array(d['elastic_tensor'])
+            np.testing.assert_allclose([c_ij[0, 0], c_ij[0, 1], c_ij[3, 3]],
+                                       [146.68, 50.817, 74.706], rtol=1e-2)
+            self.assertAlmostEqual(d['K_Voigt'], 83, places=0)
 
     def test_wf(self):
         self.wf = self._simulate_vasprun(self.wf)
@@ -150,18 +138,16 @@ class TestElasticWorkflow(unittest.TestCase):
         # check relaxation
         d = self._get_task_collection().find_one({"task_label": "elastic structure optimization"})
         self._check_run(d, mode="structure optimization")
-        """
-        # check phonon DFPT calculation
-        d = self._get_task_collection().find_one({"task_label": "structure optimization"})
-        self._check_run(d, mode="structure optimization")
-        # check one of the raman deformation calculation
-        d = self._get_task_collection().find_one({"task_label": "raman_0_0.005 deformation"})
-        self._check_run(d, mode="raman_0_0.005 deformation")
+        # check two of the deformation calculations
+        d = self._get_task_collection().find_one({"task_label": "elastic deformation 0"})
+        self._check_run(d, mode="elastic deformation 0")
+        
+        d = self._get_task_collection().find_one({"task_label": "elastic deformation 3"})
+        self._check_run(d, mode="elastic deformation 3")
 
         # check the final results
-        d = self._get_task_collection(coll_name="raman").find_one()
-        self._check_run(d, mode="raman analysis")
-        """
+        d = self._get_task_collection(coll_name="elasticity").find_one()
+        self._check_run(d, mode="elastic analysis")
 
 
 if __name__ == "__main__":
