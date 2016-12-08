@@ -13,7 +13,8 @@ import yaml
 
 from fireworks import LaunchPad
 from matmethods import get_wf_from_spec_dict
-from matmethods.vasp.vasp_powerups import add_namefile
+from matmethods.vasp.powerups import add_namefile
+from matmethods.vasp.workflows.presets import core
 from pymatgen import Structure, MPRester
 
 
@@ -90,6 +91,30 @@ def add_wf(args):
         wf = _get_wf(args, s)
         add_to_lpad(wf, write_namefile=False)
 
+def test_suite(args):
+    """
+    Creates workflows for default
+    """
+    mpr = MPRester()
+    if args.reset:
+        LaunchPad.auto_load().reset(password='', require_password=False)
+    compounds = ["mp-149", "mp-715262", "mp-573697"] #Si, MgO, CsCl
+    custom_compounds = {"wf_elastic_constant":"mp-117",# Sn
+                        "wf_piezoelectric_constant":"mp-938"} # GeTe
+    structures = [mpr.get_structure_by_material_id(c) for c in compounds]
+    # Default
+    d = yaml.load(default_yaml)
+    wfs = [get_wf_from_spec_dict(s, d) for s in structures]
+    # Presets
+    for name, wf_func in core.__dict__.iteritems():
+        if callable(wf_func) and name[:2]=="wf":
+            if name in custom_compounds:
+                custom_structure = mpr.get_structure_by_material_id(custom_compounds[name])
+                wfs.append(wf_func(custom_structure))
+            else:
+                wfs.append(wf_func(structures[0]))
+    for wf in wfs:
+        add_to_lpad(wf, write_namefile=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -116,9 +141,16 @@ if __name__ == "__main__":
                            "Note that your MAPI_KEY environment variable must "
                            "be set to get structures from the Materials "
                            "Project.")
+
     padd.add_argument("files", metavar="files", type=str, nargs="+",
                       help="Structures to add workflows for.")
     padd.set_defaults(func=add_wf)
+
+    ptest = subparsers.add_parser("test", help="Add test suite.")
+    ptest.add_argument("-r", "--reset", dest="reset", action='store_true',
+                       help="If this option is set, launchpad will be reset.")
+
+    ptest.set_defaults(func=test_suite)
 
     args = parser.parse_args()
 
