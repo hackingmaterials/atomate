@@ -113,6 +113,7 @@ def test_suite(args):
                 wfs.append(wf_func(custom_structure))
             else:
                 wfs.append(wf_func(structures[0]))
+    wf = add_tags(wf, "test set")
     for wf in wfs:
         add_to_lpad(wf, write_namefile=False)
 
