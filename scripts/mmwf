@@ -175,11 +175,8 @@ if __name__ == "__main__":
     pverify = subparsers.add_parser("verify", help="verify test results.")
     
     pverify.add_argument("-r", "--report", dest="report", action="store_true",
-                         help="Use this option to print FireWorks report "
-                              "on test workflows.")
-    pverify.add_argument("-i", "--introspect", dest="introspect", action="store_true",
-                         help="Use this option to use FireWorks introspection "
-                              "on test workflows.")
+                         help="Use this option to print summary of test workflow "
+                              "states.")
     pverify.set_defaults(func=verify_test_suite)
 
     args = parser.parse_args()
