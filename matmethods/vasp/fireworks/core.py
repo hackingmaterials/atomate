@@ -88,7 +88,7 @@ class StaticFW(Firework):
 
 
 class HSEBSFW(Firework):
-    def __init__(self, structure, parents, name="hse gap", vasp_cmd="vasp", db_file=None, **kwargs):
+    def __init__(self, structure, parents, mode="uniform", name="hse ", vasp_cmd="vasp", db_file=None, **kwargs):
         """
         For getting a more accurate band gap with HSE - requires previous
         calculation that gives VBM/CBM info. Note that this method is not
@@ -102,9 +102,14 @@ class HSEBSFW(Firework):
             db_file (str): Path to file specifying db credentials.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
+        if mode=="uniform":
+            name += "gap"
+        elif mode=="line":
+            name += "line"
+
         t=[]
         t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
-        t.append(WriteVaspHSEBSFromPrev(prev_calc_dir='.'))
+        t.append(WriteVaspHSEBSFromPrev(prev_calc_dir='.', mode=mode.capitalize()))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": name}))
