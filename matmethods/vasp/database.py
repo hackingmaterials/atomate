@@ -2,6 +2,8 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
+from pymatgen.electronic_structure.dos import CompleteDos
+
 """
 This module defines the database classes.
 """
@@ -90,6 +92,15 @@ class MMVaspDb(MMDb):
             return BandStructureSymmLine.from_dict(bs_dict)
         else:
             return BandStructure.from_dict(bs_dict)
+
+    def get_dos(self, task_id):
+        m_task = self.collection.find_one({"task_id": task_id},
+                                          {"calcs_reversed": 1})
+        fs_id = m_task['calcs_reversed'][0]['dos_fs_id']
+        fs = gridfs.GridFS(self.db, 'dos_fs')
+        dos_json = zlib.decompress(fs.get(fs_id).read())
+        dos_dict = json.loads(dos_json)
+        return CompleteDos.from_dict(dos_dict)
 
     def reset(self):
         self.collection.delete_many({})
