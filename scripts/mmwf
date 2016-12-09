@@ -13,8 +13,6 @@ import yaml
 from datetime import datetime
 
 from fireworks import LaunchPad
-from fireworks.features.fw_report import FWReport
-from fireworks.features.introspect import Introspector
 from matmethods import get_wf_from_spec_dict
 from matmethods.vasp.powerups import add_namefile, add_tags
 from matmethods.vasp.workflows.presets import core
@@ -121,31 +119,24 @@ def submit_test_suite(args):
         add_to_lpad(wf, write_namefile=False)
 
 def verify_test_suite(args):
-    fwr = FWReport(lpad)
-    isp = Introspector(lpad)
     tags = lpad.fireworks.distinct("spec.tags", {"spec.tags":{"$regex":"test set"}})
     for tag in tags:
+        pipeline = [{"$match":{"spec.tags":tag}}, {"$project":{"state":1}},
+                    {"$group":{"_id":"$state", "count":{"$sum":1}}}]
+        rep_dict = {k["_id"]:k["count"] for k in lpad.fireworks.aggregate(pipeline)}
         dt = ''.join(tag.split()[2:])
         print("Test set submitted at {}".format(dt))
-        report = fwr.get_stats(coll="workflows", interval="years", 
-                num_intervals=1, additional_query={"metadata.tags":tag})
         if args.report:
-            report_str = fwr.get_stats_str(report)
-            print("LaunchPad report:")
-            print(report_str)
-        if args.introspect:
-            print("Introspection:")
-            isp.introspect_fizzled()
-            table = isp.introspect_fizzled(coll='fireworks')
-            isp.print_report(table, 'fireworks')
-        states = report[-1]['states']
-        count = report[-1]['count']
-        if states['COMPLETED']==count:
-            print("All test workflows successfully completed")
-        elif states["FIZZLED"]==0:
-            print("No fizzled workflows, but testing is not yet complete.")
+            print("   Test fw state summary:")
+            for state, count in rep_dict.items():
+                print("   -{}: {}".format(state, count))
+        count = sum(rep_dict.values())
+        if rep_dict.get('COMPLETED', None)==count:
+            print("   All test workflows successfully completed")
+        elif not rep_dict.get('FIZZLED', None):
+            print("   No fizzled workflows, testing not yet complete.")
         else:
-            print("Workflows have fizzled.")
+            print("   {} fireworks have have fizzled.".format(rep_dict["FIZZLED"]))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
