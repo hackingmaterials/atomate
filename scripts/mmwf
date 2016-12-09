@@ -13,8 +13,10 @@ import yaml
 from datetime import datetime
 
 from fireworks import LaunchPad
+from fireworks.features.fw_report import FWReport
+from fireworks.features.introspect import Introspector
 from matmethods import get_wf_from_spec_dict
-from matmethods.vasp.powerups import add_namefile
+from matmethods.vasp.powerups import add_namefile, add_tags
 from matmethods.vasp.workflows.presets import core
 from pymatgen import Structure, MPRester
 
@@ -37,7 +39,7 @@ common_params:
 """
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-
+lpad = LaunchPad.auto_load()
 
 def add_to_lpad(workflow, write_namefile=False):
     """
@@ -48,9 +50,8 @@ def add_to_lpad(workflow, write_namefile=False):
         write_namefile (bool): If set an empty file with the name
             "FW--<fw.name>" will be written to the launch directory
     """
-    lp = LaunchPad.auto_load()
     workflow = add_namefile(workflow) if write_namefile else workflow
-    lp.add_wf(workflow)
+    lpad.add_wf(workflow)
 
 
 def _get_wf(args, structure):
@@ -92,15 +93,15 @@ def add_wf(args):
         wf = _get_wf(args, s)
         add_to_lpad(wf, write_namefile=False)
 
-def test_suite(args):
+def submit_test_suite(args):
     """
     Creates a test suite of workflows and adds it to the LaunchPad
     """
     mpr = MPRester()
     dt = datetime.utcnow()
     if args.reset:
-        LaunchPad.auto_load().reset(password='', require_password=False)
-    elif args.submit:
+        lpad.reset(password='', require_password=False)
+    if args.submit:
         compounds = ["mp-149", "mp-715262", "mp-573697"] #Si, MgO, CsCl
         custom_compounds = {"wf_elastic_constant":"mp-117",# Sn
                             "wf_piezoelectric_constant":"mp-938"} # GeTe
@@ -116,9 +117,36 @@ def test_suite(args):
                     wfs.append(wf_func(custom_structure))
                 else:
                     wfs.append(wf_func(structures[0]))
-        wf = add_tags(wf, "test set {}".format(dt))
+        wfs = [add_tags(wf, "test set {}".format(dt)) for wf in wfs]
         for wf in wfs:
             add_to_lpad(wf, write_namefile=False)
+
+def verify_test_suite(args):
+    fwr = FWReport(lpad)
+    isp = Introspector(lpad)
+    tags = lpad.fireworks.distinct("spec.tags", {"spec.tags":{"$regex":"test set"}})
+    for tag in tags:
+        dt = ''.join(tag.split()[2:])
+        print("Test set submitted at {}".format(dt))
+        report = fwr.get_stats(coll="workflows", interval="years", 
+                num_intervals=1, additional_query={"metadata.tags":tag})
+        if args.report:
+            report_str = fwr.get_stats_str(report)
+            print("LaunchPad report:")
+            print(report_str)
+        if args.introspect:
+            print("Introspection:")
+            isp.introspect_fizzled()
+            table = isp.introspect_fizzled(coll='fireworks')
+            isp.print_report(table, 'fireworks')
+        states = report[-1]['states']
+        count = report[-1]['count']
+        if states['COMPLETED']==count:
+            print("All test workflows successfully completed")
+        elif states["FIZZLED"]==0:
+            print("No fizzled workflows, but testing is not yet complete.")
+        else:
+            print("Workflows have fizzled.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -150,16 +178,19 @@ if __name__ == "__main__":
     padd.set_defaults(func=add_wf)
 
     ptest = subparsers.add_parser("test", help="Add test suite.")
-    ptest.add_argument("-s", "--submit", dest="submit", action='store_true',
-                       help="If this option is set, test workflows will be "
-                            "submitted")
     ptest.add_argument("-r", "--reset", dest="reset", action='store_true',
                        help="If this option is set, launchpad will be reset.")
-    ptest.add_argument("-v", "--verify", dest="verify", action="store_true",
-                       help="Use this option to verify test workflows "
-                            "against previous results.")
+    ptest.set_defaults(func=submit_test_suite)
 
-    ptest.set_defaults(func=test_suite)
+    pverify = subparsers.add_parser("verify", help="verify test results.")
+    
+    pverify.add_argument("-r", "--report", dest="report", action="store_true",
+                         help="Use this option to print FireWorks report "
+                              "on test workflows.")
+    pverify.add_argument("-i", "--introspect", dest="introspect", action="store_true",
+                         help="Use this option to use FireWorks introspection "
+                              "on test workflows.")
+    pverify.set_defaults(func=verify_test_suite)
 
     args = parser.parse_args()
 
