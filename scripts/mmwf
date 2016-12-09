@@ -101,25 +101,24 @@ def submit_test_suite(args):
     dt = datetime.utcnow()
     if args.reset:
         lpad.reset(password='', require_password=False)
-    if args.submit:
-        compounds = ["mp-149", "mp-715262", "mp-573697"] #Si, MgO, CsCl
-        custom_compounds = {"wf_elastic_constant":"mp-117",# Sn
-                            "wf_piezoelectric_constant":"mp-938"} # GeTe
-        structures = [mpr.get_structure_by_material_id(c) for c in compounds]
-        # Default
-        d = yaml.load(default_yaml)
-        wfs = [get_wf_from_spec_dict(s, d) for s in structures]
-        # Presets
-        for name, wf_func in core.__dict__.iteritems():
-            if callable(wf_func) and name[:2]=="wf":
-                if name in custom_compounds:
-                    custom_structure = mpr.get_structure_by_material_id(custom_compounds[name])
-                    wfs.append(wf_func(custom_structure))
-                else:
-                    wfs.append(wf_func(structures[0]))
-        wfs = [add_tags(wf, "test set {}".format(dt)) for wf in wfs]
-        for wf in wfs:
-            add_to_lpad(wf, write_namefile=False)
+    compounds = ["mp-149", "mp-715262", "mp-573697"] #Si, MgO, CsCl
+    custom_compounds = {"wf_elastic_constant":"mp-117",# Sn
+                        "wf_piezoelectric_constant":"mp-938"} # GeTe
+    structures = [mpr.get_structure_by_material_id(c) for c in compounds]
+    # Default
+    d = yaml.load(default_yaml)
+    wfs = [get_wf_from_spec_dict(s, d) for s in structures]
+    # Presets
+    for name, wf_func in core.__dict__.iteritems():
+        if callable(wf_func) and name[:2]=="wf":
+            if name in custom_compounds:
+                custom_structure = mpr.get_structure_by_material_id(custom_compounds[name])
+                wfs.append(wf_func(custom_structure))
+            else:
+                wfs.append(wf_func(structures[0]))
+    wfs = [add_tags(wf, "test set {}".format(dt)) for wf in wfs]
+    for wf in wfs:
+        add_to_lpad(wf, write_namefile=False)
 
 def verify_test_suite(args):
     fwr = FWReport(lpad)
