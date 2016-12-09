@@ -307,7 +307,7 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
         for t in self["transformations"]:
             for m in ["advanced_transformations", "defect_transformations",
                       "site_transformations", "standard_transformations"]:
-                mod = import_module("pymatgen.{}.{}".format(t, m))
+                mod = import_module("pymatgen.transformations.{}".format(m))
                 try:
                     t_cls = getattr(mod, t)
                 except AttributeError:
