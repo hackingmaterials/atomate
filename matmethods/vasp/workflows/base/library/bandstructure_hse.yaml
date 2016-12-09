@@ -15,4 +15,3 @@ fireworks:
 - fw: matmethods.vasp.fireworks.core.HSEBSFW
   params:
     parents: 3
-    mode: Line
