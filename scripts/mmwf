@@ -104,6 +104,7 @@ def submit_test_suite(args):
     structs = [PymatgenTest.get_structure(c) for c in compounds]
     structs.append(Structure.from_spacegroup("Fm-3m", Lattice.cubic(4.204), ["Ni","O"],
                                              [[0, 0, 0], [0.5, 0.5, 0.5]]))
+    structs = [s.get_primitive_structure() for s in structs]
 
     # Compounds for specific workflows, if not specified uses Si
     custom_compounds = {"wf_elastic_constant":PymatgenTest.get_structure("Sn"),
