@@ -88,7 +88,7 @@ class StaticFW(Firework):
 
 
 class HSEBSFW(Firework):
-    def __init__(self, structure, parents, mode="uniform", name="hse ", vasp_cmd="vasp", db_file=None, **kwargs):
+    def __init__(self, structure, parents, mode="gap", name=None, vasp_cmd="vasp", db_file=None, **kwargs):
         """
         For getting a more accurate band gap or a full band structure with HSE - requires previous
         calculation that gives VBM/CBM info or the high-symmetry kpoints.
@@ -98,16 +98,14 @@ class HSEBSFW(Firework):
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
             mode (string): options:
                 "line" to get a full band structure or
-                "uniform" to get the energy at the CBM and VBM
+                "gap" to get the energy at the CBM and VBM
             name (str): Name for the Firework.
             vasp_cmd (str): Command to run vasp.
             db_file (str): Path to file specifying db credentials.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        if mode=="uniform":
-            name += "gap"
-        elif mode=="line":
-            name += "line"
+        if name==None:
+            name = "{} {}".format("hse", mode)
 
         t=[]
         t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
