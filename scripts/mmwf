@@ -16,8 +16,8 @@ from fireworks import LaunchPad
 from matmethods import get_wf_from_spec_dict
 from matmethods.vasp.powerups import add_namefile, add_tags
 from matmethods.vasp.workflows.presets import core
-from pymatgen import Structure, MPRester
-
+from pymatgen import Structure, Lattice
+from pymatgen.util.testing import PymatgenTest
 
 default_yaml = """fireworks:
 - fw: matmethods.vasp.fireworks.core.OptimizeFW
@@ -95,25 +95,30 @@ def submit_test_suite(args):
     """
     Creates a test suite of workflows and adds it to the LaunchPad
     """
-    mpr = MPRester()
     dt = datetime.utcnow()
     if args.reset:
         lpad.reset(password='', require_password=False)
-    compounds = ["mp-149", "mp-715262", "mp-573697"] #Si, MgO, CsCl
-    custom_compounds = {"wf_elastic_constant":"mp-117",# Sn
-                        "wf_piezoelectric_constant":"mp-938"} # GeTe
-    structures = [mpr.get_structure_by_material_id(c) for c in compounds]
-    # Default
+    
+    # Structures for standard workflow
+    compounds = ["Si", "CsCl"]
+    structs = [PymatgenTest.get_structure(c) for c in compounds]
+    structs.append(Structure.from_spacegroup("Fm-3m", Lattice.cubic(4.204), ["Ni","O"],
+                                             [[0, 0, 0], [0.5, 0.5, 0.5]]))
+
+    # Compounds for specific workflows, if not specified uses Si
+    custom_compounds = {"wf_elastic_constant":PymatgenTest.get_structure("Sn"),
+                        "wf_piezoelectric_constant":PymatgenTest.get_structure("SrTiO3")}
+
+    # Add default workflows
     d = yaml.load(default_yaml)
-    wfs = [get_wf_from_spec_dict(s, d) for s in structures]
-    # Presets
+    wfs = [get_wf_from_spec_dict(s, d) for s in structs]
+    # Add preset workflows
     for name, wf_func in core.__dict__.iteritems():
         if callable(wf_func) and name[:2]=="wf":
             if name in custom_compounds:
-                custom_structure = mpr.get_structure_by_material_id(custom_compounds[name])
-                wfs.append(wf_func(custom_structure))
+                wfs.append(wf_func(custom_compounds[name]))
             else:
-                wfs.append(wf_func(structures[0]))
+                wfs.append(wf_func(structs[0]))
     wfs = [add_tags(wf, "test set {}".format(dt)) for wf in wfs]
     for wf in wfs:
         add_to_lpad(wf, write_namefile=False)
