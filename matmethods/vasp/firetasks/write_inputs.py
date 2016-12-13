@@ -196,11 +196,12 @@ class WriteVaspHSEBSFromPrev(FireTaskBase):
     """
 
     required_params = ["prev_calc_dir"]
-    optional_params = ["mode", "reciprocal_density"]
+    optional_params = ["mode", "reciprocal_density", "kpoints_line_density"]
 
     def run_task(self, fw_spec):
-        vis = MPHSEBSSet.from_prev_calc(self["prev_calc_dir"], mode=self.get("mode", "gap"),
+        vis = MPHSEBSSet.from_prev_calc(self["prev_calc_dir"], mode=self.get("mode", "Uniform"),
                                         reciprocal_density=self.get("reciprocal_density", 50),
+                                        kpoints_line_density=self.get("kpoints_line_density", 10),
                                         copy_chgcar=False)
         vis.write_input(".")
 
