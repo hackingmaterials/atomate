@@ -199,7 +199,7 @@ class WriteVaspHSEBSFromPrev(FireTaskBase):
     optional_params = ["mode", "reciprocal_density"]
 
     def run_task(self, fw_spec):
-        vis = MPHSEBSSet.from_prev_calc(self["prev_calc_dir"], mode=self.get("mode", "Uniform"),
+        vis = MPHSEBSSet.from_prev_calc(self["prev_calc_dir"], mode=self.get("mode", "gap"),
                                         reciprocal_density=self.get("reciprocal_density", 50),
                                         copy_chgcar=False)
         vis.write_input(".")
