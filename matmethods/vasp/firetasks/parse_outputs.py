@@ -156,6 +156,8 @@ class BoltztrapToDBTask(FireTaskBase):
         if not self.get("hall_doping"):
             del d["hall_doping"]
 
+        d["scissor"] = bta.intrans["scissor"]
+
         # add the structure
         bandstructure_dir = os.getcwd()
         v, o = get_vasprun_outcar(bandstructure_dir, parse_eigen=False,

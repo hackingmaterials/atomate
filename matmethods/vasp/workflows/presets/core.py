@@ -49,12 +49,17 @@ def wf_bandstructure(structure, c=None):
     return wf
 
 
-def wf_bandstructure_plus_hse(structure, c=None):
+def wf_bandstructure_plus_hse(structure, gap_only=True, c=None):
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
 
-    wf = get_wf(structure, "bandstructure_hsegap.yaml",
+    if gap_only:
+        wf_src_name = "bandstructure_hsegap.yaml"
+    else:
+        wf_src_name = "bandstructure_hse.yaml"
+
+    wf = get_wf(structure, wf_src_name,
                 vis=MPRelaxSet(structure, force_gamma=True),
                 common_params={"vasp_cmd": vasp_cmd,
                                "db_file": db_file})
