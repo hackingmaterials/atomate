@@ -139,7 +139,7 @@ def add_trackers(original_wf, tracked_files=None, nlines=25):
         tracked_files (list) : list of files to be tracked
         nlines (int): number of lines at the end of files to be tracked
     """
-    if tracked_files == None:
+    if tracked_files is None:
         tracked_files = ["OUTCAR", "OSZICAR"]
     trackers = [Tracker(f, nlines=nlines, allow_zipped=True) for f in tracked_files]
     wf_dict = original_wf.to_dict()
@@ -186,7 +186,7 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
     """
 
     wf_dict = original_wf.to_dict()
-    if structure == None:
+    if structure is None:
         try:
             sid = get_fws_and_tasks(original_wf, fw_name_constraint="structure optimization",
                                     task_name_constraint="RunVasp")[0][0]
@@ -315,7 +315,7 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
     """
 
     wf_dict = original_wf.to_dict()
-    if structure == None:
+    if structure is None:
         try:
             sid = get_fws_and_tasks(original_wf, fw_name_constraint="structure optimization",
                                     task_name_constraint="RunVasp")[0][0]
