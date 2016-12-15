@@ -177,7 +177,7 @@ class RunBoltztrap(FireTaskBase):
         (none)
 
     Optional params:
-        scissor: (float) scissor band gap amount in eV
+        scissor: (float) scissor band gap amount in eV (i.e. new gap == scissor)
         tmax: (float) max temperature to evaluate (default = 1300K)
         tgrid: (float) temperature interval (default = 50K)
         doping: ([float]) doping levels you want to compute
