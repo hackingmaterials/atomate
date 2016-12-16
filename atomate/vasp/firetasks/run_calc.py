@@ -177,24 +177,26 @@ class RunBoltztrap(FireTaskBase):
         (none)
 
     Optional params:
-        scissor: (float) scissor band gap amount in eV
+        scissor: (float) scissor band gap amount in eV (i.e. new gap == scissor)
         tmax: (float) max temperature to evaluate (default = 1300K)
         tgrid: (float) temperature interval (default = 50K)
         doping: ([float]) doping levels you want to compute
+        soc: (bool) whether the band structure is calculated with spin-orbit coupling or not
     """
 
-    optional_params = ["scissor", "tmax", "tgrid", "doping"]
+    optional_params = ["scissor", "tmax", "tgrid", "doping", "soc"]
 
     def run_task(self, fw_spec):
         scissor = self.get("scissor", 0.0)
         tmax = self.get("tmax", 1300)
         tgrid = self.get("tgrid", 50)
         doping = self.get("doping", None)
+        soc = self.get("soc", False)
 
         vasprun, outcar = get_vasprun_outcar(".", parse_dos=True, parse_eigen=True)
         bs = vasprun.get_band_structure()
         nelect = outcar.nelect
-        runner = BoltztrapRunner(bs, nelect, scissor=scissor, doping=doping, tmax=tmax, tgrid=tgrid)
+        runner = BoltztrapRunner(bs, nelect, scissor=scissor, doping=doping, tmax=tmax, tgrid=tgrid, soc=soc)
         runner.run(path_dir=os.getcwd())
 
 
