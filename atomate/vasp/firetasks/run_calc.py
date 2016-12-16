@@ -21,7 +21,7 @@ from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, Mesh
     UnconvergedErrorHandler, MaxForceErrorHandler, PotimErrorHandler, FrozenJobErrorHandler, \
     NonConvergingErrorHandler, PositiveEnergyErrorHandler, WalltimeHandler
 from custodian.vasp.jobs import VaspJob
-from custodian.vasp.validators import VasprunXMLValidator
+from custodian.vasp.validators import VasprunXMLValidator, VaspFilesValidator
 
 from fireworks import explicit_serialize, FireTaskBase
 
@@ -159,7 +159,7 @@ class RunVaspCustodian(FireTaskBase):
         if self.get("wall_time"):
             handlers.append(WalltimeHandler(wall_time=self["wall_time"]))
 
-        validators = [VasprunXMLValidator()]
+        validators = [VasprunXMLValidator(), VaspFilesValidator()]
 
         c = Custodian(handlers, jobs, validators=validators, max_errors=max_errors,
                       scratch_dir=scratch_dir, gzipped_output=gzip_output)
