@@ -8,12 +8,12 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 
 if __name__ == "__main__":
     setup(
-        name='MatMethods',
+        name='atomate',
         version='0.3',
-        description='MatMethods has implementations of FireWorks workflows for '
+        description='atomate has implementations of FireWorks workflows for '
                     'Materials Science',
         long_description=open(os.path.join(module_dir, 'README.rst')).read(),
-        url='https://github.com/hackingmaterials/MatMethods',
+        url='https://github.com/hackingmaterials/atomate',
         author='Anubhav Jain, Kiran Mathew',
         author_email='anubhavster@gmail.com, kmathew@lbl.gov',
         license='modified BSD',

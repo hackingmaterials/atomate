@@ -1,4 +1,4 @@
-matmethods.lammps package
+atomate.lammps package
 =========================
 
 Subpackages
@@ -6,13 +6,25 @@ Subpackages
 
 .. toctree::
 
-    matmethods.lammps.firetasks
-    matmethods.lammps.workflows
+    atomate.lammps.firetasks
+    atomate.lammps.workflows
+
+Submodules
+----------
+
+atomate.lammps.database module
+---------------------------------
+
+.. automodule:: atomate.lammps.database
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------
 
-.. automodule:: matmethods.lammps
+.. automodule:: atomate.lammps
     :members:
     :undoc-members:
     :show-inheritance:

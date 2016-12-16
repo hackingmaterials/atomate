@@ -1,29 +1,29 @@
-matmethods.lammps.firetasks package
+atomate.lammps.firetasks package
 ===================================
 
 Submodules
 ----------
 
-matmethods.lammps.firetasks.parse_outputs module
+atomate.lammps.firetasks.parse_outputs module
 ------------------------------------------------
 
-.. automodule:: matmethods.lammps.firetasks.parse_outputs
+.. automodule:: atomate.lammps.firetasks.parse_outputs
     :members:
     :undoc-members:
     :show-inheritance:
 
-matmethods.lammps.firetasks.run_calc module
+atomate.lammps.firetasks.run_calc module
 -------------------------------------------
 
-.. automodule:: matmethods.lammps.firetasks.run_calc
+.. automodule:: atomate.lammps.firetasks.run_calc
     :members:
     :undoc-members:
     :show-inheritance:
 
-matmethods.lammps.firetasks.write_inputs module
+atomate.lammps.firetasks.write_inputs module
 -----------------------------------------------
 
-.. automodule:: matmethods.lammps.firetasks.write_inputs
+.. automodule:: atomate.lammps.firetasks.write_inputs
     :members:
     :undoc-members:
     :show-inheritance:
@@ -32,7 +32,7 @@ matmethods.lammps.firetasks.write_inputs module
 Module contents
 ---------------
 
-.. automodule:: matmethods.lammps.firetasks
+.. automodule:: atomate.lammps.firetasks
     :members:
     :undoc-members:
     :show-inheritance:

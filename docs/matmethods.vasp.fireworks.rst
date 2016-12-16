@@ -1,13 +1,13 @@
-matmethods.vasp.fireworks package
+atomate.vasp.fireworks package
 =================================
 
 Submodules
 ----------
 
-matmethods.vasp.fireworks.core module
+atomate.vasp.fireworks.core module
 -------------------------------------
 
-.. automodule:: matmethods.vasp.fireworks.core
+.. automodule:: atomate.vasp.fireworks.core
     :members:
     :undoc-members:
     :show-inheritance:
@@ -16,7 +16,7 @@ matmethods.vasp.fireworks.core module
 Module contents
 ---------------
 
-.. automodule:: matmethods.vasp.fireworks
+.. automodule:: atomate.vasp.fireworks
     :members:
     :undoc-members:
     :show-inheritance:

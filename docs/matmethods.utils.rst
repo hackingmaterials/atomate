@@ -1,4 +1,4 @@
-matmethods.utils package
+atomate.utils package
 ========================
 
 Subpackages
@@ -6,31 +6,31 @@ Subpackages
 
 .. toctree::
 
-    matmethods.utils.tests
+    atomate.utils.tests
 
 Submodules
 ----------
 
-matmethods.utils.fileio module
+atomate.utils.database module
+--------------------------------
+
+.. automodule:: atomate.utils.database
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+atomate.utils.fileio module
 ------------------------------
 
-.. automodule:: matmethods.utils.fileio
+.. automodule:: atomate.utils.fileio
     :members:
     :undoc-members:
     :show-inheritance:
 
-matmethods.utils.loaders module
--------------------------------
-
-.. automodule:: matmethods.utils.loaders
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-matmethods.utils.utils module
+atomate.utils.utils module
 -----------------------------
 
-.. automodule:: matmethods.utils.utils
+.. automodule:: atomate.utils.utils
     :members:
     :undoc-members:
     :show-inheritance:
@@ -39,7 +39,7 @@ matmethods.utils.utils module
 Module contents
 ---------------
 
-.. automodule:: matmethods.utils
+.. automodule:: atomate.utils
     :members:
     :undoc-members:
     :show-inheritance:

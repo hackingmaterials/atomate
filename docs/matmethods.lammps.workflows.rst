@@ -1,21 +1,21 @@
-matmethods.lammps.workflows package
+atomate.lammps.workflows package
 ===================================
 
 Submodules
 ----------
 
-matmethods.lammps.workflows.core module
+atomate.lammps.workflows.core module
 ---------------------------------------
 
-.. automodule:: matmethods.lammps.workflows.core
+.. automodule:: atomate.lammps.workflows.core
     :members:
     :undoc-members:
     :show-inheritance:
 
-matmethods.lammps.workflows.presets module
+atomate.lammps.workflows.presets module
 ------------------------------------------
 
-.. automodule:: matmethods.lammps.workflows.presets
+.. automodule:: atomate.lammps.workflows.presets
     :members:
     :undoc-members:
     :show-inheritance:
@@ -24,7 +24,7 @@ matmethods.lammps.workflows.presets module
 Module contents
 ---------------
 
-.. automodule:: matmethods.lammps.workflows
+.. automodule:: atomate.lammps.workflows
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,13 +1,13 @@
-MatMethods.vasp.workflows.automatic package
+atomate.vasp.workflows.automatic package
 ===========================================
 
 Submodules
 ----------
 
-MatMethods.vasp.workflows.automatic.standard module
+atomate.vasp.workflows.automatic.standard module
 ---------------------------------------------------
 
-.. automodule:: MatMethods.vasp.workflows.automatic.standard
+.. automodule:: atomate.vasp.workflows.automatic.standard
     :members:
     :undoc-members:
     :show-inheritance:
@@ -16,7 +16,7 @@ MatMethods.vasp.workflows.automatic.standard module
 Module contents
 ---------------
 
-.. automodule:: MatMethods.vasp.workflows.automatic
+.. automodule:: atomate.vasp.workflows.automatic
     :members:
     :undoc-members:
     :show-inheritance:

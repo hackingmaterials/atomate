@@ -1,4 +1,4 @@
-matmethods.common.firetasks package
+atomate.common.firetasks package
 ===================================
 
 Subpackages
@@ -6,23 +6,23 @@ Subpackages
 
 .. toctree::
 
-    matmethods.common.firetasks.tests
+    atomate.common.firetasks.tests
 
 Submodules
 ----------
 
-matmethods.common.firetasks.glue_tasks module
+atomate.common.firetasks.glue_tasks module
 ---------------------------------------------
 
-.. automodule:: matmethods.common.firetasks.glue_tasks
+.. automodule:: atomate.common.firetasks.glue_tasks
     :members:
     :undoc-members:
     :show-inheritance:
 
-matmethods.common.firetasks.parse_outputs module
+atomate.common.firetasks.parse_outputs module
 ------------------------------------------------
 
-.. automodule:: matmethods.common.firetasks.parse_outputs
+.. automodule:: atomate.common.firetasks.parse_outputs
     :members:
     :undoc-members:
     :show-inheritance:
@@ -31,7 +31,7 @@ matmethods.common.firetasks.parse_outputs module
 Module contents
 ---------------
 
-.. automodule:: matmethods.common.firetasks
+.. automodule:: atomate.common.firetasks
     :members:
     :undoc-members:
     :show-inheritance:

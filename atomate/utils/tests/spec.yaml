@@ -1,0 +1,17 @@
+fireworks:
+- fw: atomate.vasp.fireworks.core.OptimizeFW
+- fw: atomate.vasp.fireworks.core.StaticFW
+  params:
+    parents: 0
+- fw: atomate.vasp.fireworks.core.NonSCFFW
+  params:
+    parents: 1
+    mode: uniform
+- fw: atomate.vasp.fireworks.core.NonSCFFW
+  params:
+    parents: 1
+    mode: line
+common_params:
+  db_file: db.json
+  vasp_cmd: /opt/vasp
+name: band structure

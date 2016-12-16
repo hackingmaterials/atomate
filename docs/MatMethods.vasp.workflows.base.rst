@@ -1,21 +1,61 @@
-matmethods.vasp.workflows.base package
+atomate.vasp.workflows.base package
 ======================================
 
 Submodules
 ----------
 
-matmethods.vasp.workflows.base.core module
-------------------------------------------
+atomate.vasp.workflows.base.bulk_modulus module
+--------------------------------------------------
 
-.. automodule:: matmethods.vasp.workflows.base.core
+.. automodule:: atomate.vasp.workflows.base.bulk_modulus
     :members:
     :undoc-members:
     :show-inheritance:
 
-matmethods.vasp.workflows.base.elastic module
+atomate.vasp.workflows.base.core module
+------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.base.core
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+atomate.vasp.workflows.base.deformations module
+--------------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.base.deformations
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+atomate.vasp.workflows.base.elastic module
 ---------------------------------------------
 
-.. automodule:: matmethods.vasp.workflows.base.elastic
+.. automodule:: atomate.vasp.workflows.base.elastic
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+atomate.vasp.workflows.base.gibbs module
+-------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.base.gibbs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+atomate.vasp.workflows.base.raman module
+-------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.base.raman
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+atomate.vasp.workflows.base.thermal_expansion module
+-------------------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.base.thermal_expansion
     :members:
     :undoc-members:
     :show-inheritance:
@@ -24,7 +64,7 @@ matmethods.vasp.workflows.base.elastic module
 Module contents
 ---------------
 
-.. automodule:: matmethods.vasp.workflows.base
+.. automodule:: atomate.vasp.workflows.base
     :members:
     :undoc-members:
     :show-inheritance:

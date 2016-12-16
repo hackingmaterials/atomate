@@ -1,4 +1,4 @@
-matmethods.common package
+atomate.common package
 =========================
 
 Subpackages
@@ -6,12 +6,12 @@ Subpackages
 
 .. toctree::
 
-    matmethods.common.firetasks
+    atomate.common.firetasks
 
 Module contents
 ---------------
 
-.. automodule:: matmethods.common
+.. automodule:: atomate.common
     :members:
     :undoc-members:
     :show-inheritance:

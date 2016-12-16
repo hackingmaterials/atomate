@@ -1,53 +1,53 @@
-matmethods.vasp.tests package
+atomate.vasp.tests package
 =============================
 
 Submodules
 ----------
 
-matmethods.vasp.tests.test_copy module
+atomate.vasp.tests.test_copy module
 --------------------------------------
 
-.. automodule:: matmethods.vasp.tests.test_copy
+.. automodule:: atomate.vasp.tests.test_copy
     :members:
     :undoc-members:
     :show-inheritance:
 
-matmethods.vasp.tests.test_drones module
+atomate.vasp.tests.test_drones module
 ----------------------------------------
 
-.. automodule:: matmethods.vasp.tests.test_drones
+.. automodule:: atomate.vasp.tests.test_drones
     :members:
     :undoc-members:
     :show-inheritance:
 
-matmethods.vasp.tests.test_setup module
+atomate.vasp.tests.test_setup module
 ---------------------------------------
 
-.. automodule:: matmethods.vasp.tests.test_setup
+.. automodule:: atomate.vasp.tests.test_setup
     :members:
     :undoc-members:
     :show-inheritance:
 
-matmethods.vasp.tests.test_vasp_powerups module
+atomate.vasp.tests.test_vasp_powerups module
 -----------------------------------------------
 
-.. automodule:: matmethods.vasp.tests.test_vasp_powerups
+.. automodule:: atomate.vasp.tests.test_vasp_powerups
     :members:
     :undoc-members:
     :show-inheritance:
 
-matmethods.vasp.tests.test_vasp_workflows module
+atomate.vasp.tests.test_vasp_workflows module
 ------------------------------------------------
 
-.. automodule:: matmethods.vasp.tests.test_vasp_workflows
+.. automodule:: atomate.vasp.tests.test_vasp_workflows
     :members:
     :undoc-members:
     :show-inheritance:
 
-matmethods.vasp.tests.test_write_vasp module
+atomate.vasp.tests.test_write_vasp module
 --------------------------------------------
 
-.. automodule:: matmethods.vasp.tests.test_write_vasp
+.. automodule:: atomate.vasp.tests.test_write_vasp
     :members:
     :undoc-members:
     :show-inheritance:
@@ -56,7 +56,7 @@ matmethods.vasp.tests.test_write_vasp module
 Module contents
 ---------------
 
-.. automodule:: matmethods.vasp.tests
+.. automodule:: atomate.vasp.tests
     :members:
     :undoc-members:
     :show-inheritance:

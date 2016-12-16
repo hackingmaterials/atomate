@@ -1,7 +1,0 @@
-{
-    "aliases": {}, 
-    "collection": "tasks",
-    "database": "matmethods_unittest", 
-    "host": "localhost", 
-    "port": 27017
-}

@@ -1,4 +1,4 @@
-matmethods.vasp package
+atomate.vasp package
 =======================
 
 Subpackages
@@ -6,51 +6,67 @@ Subpackages
 
 .. toctree::
 
-    matmethods.vasp.builders
-    matmethods.vasp.firetasks
-    matmethods.vasp.fireworks
-    matmethods.vasp.tests
-    matmethods.vasp.workflows
+    atomate.vasp.builders
+    atomate.vasp.firetasks
+    atomate.vasp.fireworks
+    atomate.vasp.tests
+    atomate.vasp.workflows
 
 Submodules
 ----------
 
-matmethods.vasp.database module
--------------------------------
-
-.. automodule:: matmethods.vasp.database
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-matmethods.vasp.drones module
+atomate.vasp.config module
 -----------------------------
 
-.. automodule:: matmethods.vasp.drones
+.. automodule:: atomate.vasp.config
     :members:
     :undoc-members:
     :show-inheritance:
 
-matmethods.vasp.submission_filter module
+atomate.vasp.database module
+-------------------------------
+
+.. automodule:: atomate.vasp.database
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+atomate.vasp.drones module
+-----------------------------
+
+.. automodule:: atomate.vasp.drones
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+atomate.vasp.powerups module
+-------------------------------
+
+.. automodule:: atomate.vasp.powerups
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+atomate.vasp.submission_filter module
 ----------------------------------------
 
-.. automodule:: matmethods.vasp.submission_filter
+.. automodule:: atomate.vasp.submission_filter
     :members:
     :undoc-members:
     :show-inheritance:
 
-matmethods.vasp.vasp_config module
+atomate.vasp.vasp_config module
 ----------------------------------
 
-.. automodule:: matmethods.vasp.vasp_config
+.. automodule:: atomate.vasp.vasp_config
     :members:
     :undoc-members:
     :show-inheritance:
 
-matmethods.vasp.vasp_powerups module
+atomate.vasp.vasp_powerups module
 ------------------------------------
 
-.. automodule:: matmethods.vasp.vasp_powerups
+.. automodule:: atomate.vasp.vasp_powerups
     :members:
     :undoc-members:
     :show-inheritance:
@@ -59,7 +75,7 @@ matmethods.vasp.vasp_powerups module
 Module contents
 ---------------
 
-.. automodule:: matmethods.vasp
+.. automodule:: atomate.vasp
     :members:
     :undoc-members:
     :show-inheritance:

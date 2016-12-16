@@ -1,13 +1,13 @@
-matmethods.common.firetasks.tests package
+atomate.common.firetasks.tests package
 =========================================
 
 Submodules
 ----------
 
-matmethods.common.firetasks.tests.test_glue_tasks module
+atomate.common.firetasks.tests.test_glue_tasks module
 --------------------------------------------------------
 
-.. automodule:: matmethods.common.firetasks.tests.test_glue_tasks
+.. automodule:: atomate.common.firetasks.tests.test_glue_tasks
     :members:
     :undoc-members:
     :show-inheritance:
@@ -16,7 +16,7 @@ matmethods.common.firetasks.tests.test_glue_tasks module
 Module contents
 ---------------
 
-.. automodule:: matmethods.common.firetasks.tests
+.. automodule:: atomate.common.firetasks.tests
     :members:
     :undoc-members:
     :show-inheritance:

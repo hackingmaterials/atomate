@@ -1,7 +1,7 @@
-matmethods
+atomate
 ==========
 
 .. toctree::
    :maxdepth: 4
 
-   matmethods
+   atomate

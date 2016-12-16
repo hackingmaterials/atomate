@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# Copyright (c) MatMethods Development Team.
+# Copyright (c) atomate Development Team.
 
 from __future__ import division, unicode_literals, print_function
 
@@ -13,22 +13,22 @@ import yaml
 from datetime import datetime
 
 from fireworks import LaunchPad
-from matmethods import get_wf_from_spec_dict
-from matmethods.vasp.powerups import add_namefile, add_tags
-from matmethods.vasp.workflows.presets import core
+from atomate import get_wf_from_spec_dict
+from atomate.vasp.powerups import add_namefile, add_tags
+from atomate.vasp.workflows.presets import core
 from pymatgen import Structure, Lattice
 from pymatgen.util.testing import PymatgenTest
 
 default_yaml = """fireworks:
-- fw: matmethods.vasp.fireworks.core.OptimizeFW
-- fw: matmethods.vasp.fireworks.core.StaticFW
+- fw: atomate.vasp.fireworks.core.OptimizeFW
+- fw: atomate.vasp.fireworks.core.StaticFW
   params:
     parents: 0
-- fw: matmethods.vasp.fireworks.core.NonSCFFW
+- fw: atomate.vasp.fireworks.core.NonSCFFW
   params:
     parents: 1
     mode: uniform
-- fw: matmethods.vasp.fireworks.core.NonSCFFW
+- fw: atomate.vasp.fireworks.core.NonSCFFW
   params:
     parents: 1
     mode: line
@@ -57,7 +57,7 @@ def _get_wf(args, structure):
         spec_path = args.spec_file
         if args.library:
             if args.library.lower() == "vasp":
-                spec_path = os.path.join(module_dir, "..", "matmethods",
+                spec_path = os.path.join(module_dir, "..", "atomate",
                                          "vasp", "workflows", "base",
                                          "library", spec_path)
             else:
@@ -68,7 +68,7 @@ def _get_wf(args, structure):
     elif args.preset:
         if args.library:
             if args.library.lower() == "vasp":
-                modname = "matmethods.vasp.workflows.presets.core"
+                modname = "atomate.vasp.workflows.presets.core"
                 funcname = args.preset
             else:
                 modname, funcname = args.preset.rsplit(".", 1)
@@ -155,7 +155,7 @@ if __name__ == "__main__":
     padd = subparsers.add_parser("add", help="Add workflows.")
     padd.add_argument("-l", "--library", dest="library", type=str,
                       help="If this option is set, the path to the spec file"
-                           "is taken with respect to the MatMethods base library."
+                           "is taken with respect to the atomate base library."
                            "Use 'vasp' for the VASP library of workflows")
     padd.add_argument("-s", "--spec",
                       dest="spec_file", type=str,

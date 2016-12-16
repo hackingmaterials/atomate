@@ -1,37 +1,37 @@
-matmethods.vasp.firetasks package
+atomate.vasp.firetasks package
 =================================
 
 Submodules
 ----------
 
-matmethods.vasp.firetasks.glue_tasks module
+atomate.vasp.firetasks.glue_tasks module
 -------------------------------------------
 
-.. automodule:: matmethods.vasp.firetasks.glue_tasks
+.. automodule:: atomate.vasp.firetasks.glue_tasks
     :members:
     :undoc-members:
     :show-inheritance:
 
-matmethods.vasp.firetasks.parse_outputs module
+atomate.vasp.firetasks.parse_outputs module
 ----------------------------------------------
 
-.. automodule:: matmethods.vasp.firetasks.parse_outputs
+.. automodule:: atomate.vasp.firetasks.parse_outputs
     :members:
     :undoc-members:
     :show-inheritance:
 
-matmethods.vasp.firetasks.run_calc module
+atomate.vasp.firetasks.run_calc module
 -----------------------------------------
 
-.. automodule:: matmethods.vasp.firetasks.run_calc
+.. automodule:: atomate.vasp.firetasks.run_calc
     :members:
     :undoc-members:
     :show-inheritance:
 
-matmethods.vasp.firetasks.write_inputs module
+atomate.vasp.firetasks.write_inputs module
 ---------------------------------------------
 
-.. automodule:: matmethods.vasp.firetasks.write_inputs
+.. automodule:: atomate.vasp.firetasks.write_inputs
     :members:
     :undoc-members:
     :show-inheritance:
@@ -40,7 +40,7 @@ matmethods.vasp.firetasks.write_inputs module
 Module contents
 ---------------
 
-.. automodule:: matmethods.vasp.firetasks
+.. automodule:: atomate.vasp.firetasks
     :members:
     :undoc-members:
     :show-inheritance:

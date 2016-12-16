@@ -1,13 +1,13 @@
-MatMethods.vasp.examples package
+atomate.vasp.examples package
 ================================
 
 Submodules
 ----------
 
-MatMethods.vasp.examples.add_vasp_wfs_to_db module
+atomate.vasp.examples.add_vasp_wfs_to_db module
 --------------------------------------------------
 
-.. automodule:: MatMethods.vasp.examples.add_vasp_wfs_to_db
+.. automodule:: atomate.vasp.examples.add_vasp_wfs_to_db
     :members:
     :undoc-members:
     :show-inheritance:
@@ -16,7 +16,7 @@ MatMethods.vasp.examples.add_vasp_wfs_to_db module
 Module contents
 ---------------
 
-.. automodule:: MatMethods.vasp.examples
+.. automodule:: atomate.vasp.examples
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,4 +1,4 @@
-matmethods package
+atomate package
 ==================
 
 Subpackages
@@ -6,15 +6,17 @@ Subpackages
 
 .. toctree::
 
-    matmethods.common
-    matmethods.lammps
-    matmethods.utils
-    matmethods.vasp
+    atomate.common
+    atomate.feff
+    atomate.lammps
+    atomate.tools
+    atomate.utils
+    atomate.vasp
 
 Module contents
 ---------------
 
-.. automodule:: matmethods
+.. automodule:: atomate
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,5 +1,5 @@
 ====================
-MatMethods Changelog
+atomate Changelog
 ====================
 
 **v0.3**

@@ -1,21 +1,21 @@
-matmethods.utils.tests package
+atomate.utils.tests package
 ==============================
 
 Submodules
 ----------
 
-matmethods.utils.tests.test_loaders module
+atomate.utils.tests.test_loaders module
 ------------------------------------------
 
-.. automodule:: matmethods.utils.tests.test_loaders
+.. automodule:: atomate.utils.tests.test_loaders
     :members:
     :undoc-members:
     :show-inheritance:
 
-matmethods.utils.tests.test_utils module
+atomate.utils.tests.test_utils module
 ----------------------------------------
 
-.. automodule:: matmethods.utils.tests.test_utils
+.. automodule:: atomate.utils.tests.test_utils
     :members:
     :undoc-members:
     :show-inheritance:
@@ -24,7 +24,7 @@ matmethods.utils.tests.test_utils module
 Module contents
 ---------------
 
-.. automodule:: matmethods.utils.tests
+.. automodule:: atomate.utils.tests
     :members:
     :undoc-members:
     :show-inheritance:
