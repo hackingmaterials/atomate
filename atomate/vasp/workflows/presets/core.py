@@ -199,9 +199,8 @@ def wf_elastic_constant(structure, c=None):
                                  norm_deformations=norm_deformations,
                                  shear_deformations=shear_deformations,
                                  db_file=db_file, user_kpoints_settings=user_kpoints_settings)
-
-    wf = add_modify_incar(wf, modify_incar_params={"incar_update":
-                                                   {"ENCUT": 700, "EDIFF": 1e-6}})
+    mip = {"incar_update":{"ENCUT": 700, "EDIFF": 1e-6, "LAECHG":False}}
+    wf = add_modify_incar(wf, modify_incar_params=mip)
 
     wf = add_common_powerups(wf, c)
 
