@@ -338,20 +338,22 @@ class MDFW(Firework):
 
 class BoltztrapFW(Firework):
     def __init__(self, structure, name="boltztrap", db_file=None,
-                 parents=None, **kwargs):
+                 parents=None, scissor=0.0, soc=False, **kwargs):
         """
         Run Boltztrap
 
         Args:
-            structure: (Structure) - only used for setting name of FW
-            name: (str) name of this FW
+            structure (Structure): - only used for setting name of FW
+            name (str): name of this FW
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            scissor (float): if scissor > 0, apply scissor on the band structure so that new band gap = scissor (in eV)
+            soc (bool): whether the band structure is calculated with spin-orbit coupling
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
 
         t = []
         t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
-        t.append(RunBoltztrap())
+        t.append(RunBoltztrap(scissor=scissor, soc=soc))
         t.append(BoltztrapToDBTask(db_file=db_file))
         t.append(PassCalcLocs(name=name))
         super(BoltztrapFW, self).__init__(t, parents=parents, name="{}-{}".format(
