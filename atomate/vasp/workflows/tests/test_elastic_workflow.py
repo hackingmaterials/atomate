@@ -131,7 +131,11 @@ class TestElasticWorkflow(unittest.TestCase):
         self.wf = self._simulate_vasprun(self.wf)
 
         self.assertEqual(len(self.wf.fws), 8)
-
+        # check vasp parameters for ionic relaxation
+        defo_vis = [fw.spec["_tasks"][2]['vasp_input_set'] 
+                    for fw in self.wf.fws if "deform" in fw.name]
+        assert all([vis['user_incar_settings']['NSW']==99 for vis in defo_vis])
+        assert all([vis['user_incar_settings']['IBRION']==2 for vis in defo_vis])
         self.lp.add_wf(self.wf)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
