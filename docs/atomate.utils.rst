@@ -1,5 +1,5 @@
 atomate.utils package
-========================
+=====================
 
 Subpackages
 -----------
@@ -12,7 +12,7 @@ Submodules
 ----------
 
 atomate.utils.database module
---------------------------------
+-----------------------------
 
 .. automodule:: atomate.utils.database
     :members:
@@ -20,7 +20,7 @@ atomate.utils.database module
     :show-inheritance:
 
 atomate.utils.fileio module
-------------------------------
+---------------------------
 
 .. automodule:: atomate.utils.fileio
     :members:
@@ -28,7 +28,7 @@ atomate.utils.fileio module
     :show-inheritance:
 
 atomate.utils.utils module
------------------------------
+--------------------------
 
 .. automodule:: atomate.utils.utils
     :members:

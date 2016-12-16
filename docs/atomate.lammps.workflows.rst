@@ -1,11 +1,11 @@
 atomate.lammps.workflows package
-===================================
+================================
 
 Submodules
 ----------
 
 atomate.lammps.workflows.core module
----------------------------------------
+------------------------------------
 
 .. automodule:: atomate.lammps.workflows.core
     :members:
@@ -13,7 +13,7 @@ atomate.lammps.workflows.core module
     :show-inheritance:
 
 atomate.lammps.workflows.presets module
-------------------------------------------
+---------------------------------------
 
 .. automodule:: atomate.lammps.workflows.presets
     :members:

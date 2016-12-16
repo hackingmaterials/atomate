@@ -1,11 +1,11 @@
 atomate.vasp.tests package
-=============================
+==========================
 
 Submodules
 ----------
 
 atomate.vasp.tests.test_copy module
---------------------------------------
+-----------------------------------
 
 .. automodule:: atomate.vasp.tests.test_copy
     :members:
@@ -13,7 +13,7 @@ atomate.vasp.tests.test_copy module
     :show-inheritance:
 
 atomate.vasp.tests.test_drones module
-----------------------------------------
+-------------------------------------
 
 .. automodule:: atomate.vasp.tests.test_drones
     :members:
@@ -21,7 +21,7 @@ atomate.vasp.tests.test_drones module
     :show-inheritance:
 
 atomate.vasp.tests.test_setup module
----------------------------------------
+------------------------------------
 
 .. automodule:: atomate.vasp.tests.test_setup
     :members:
@@ -29,7 +29,7 @@ atomate.vasp.tests.test_setup module
     :show-inheritance:
 
 atomate.vasp.tests.test_vasp_powerups module
------------------------------------------------
+--------------------------------------------
 
 .. automodule:: atomate.vasp.tests.test_vasp_powerups
     :members:
@@ -37,7 +37,7 @@ atomate.vasp.tests.test_vasp_powerups module
     :show-inheritance:
 
 atomate.vasp.tests.test_vasp_workflows module
-------------------------------------------------
+---------------------------------------------
 
 .. automodule:: atomate.vasp.tests.test_vasp_workflows
     :members:
@@ -45,7 +45,7 @@ atomate.vasp.tests.test_vasp_workflows module
     :show-inheritance:
 
 atomate.vasp.tests.test_write_vasp module
---------------------------------------------
+-----------------------------------------
 
 .. automodule:: atomate.vasp.tests.test_write_vasp
     :members:

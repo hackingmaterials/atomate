@@ -1,5 +1,5 @@
 atomate.vasp package
-=======================
+====================
 
 Subpackages
 -----------
@@ -16,7 +16,7 @@ Submodules
 ----------
 
 atomate.vasp.config module
------------------------------
+--------------------------
 
 .. automodule:: atomate.vasp.config
     :members:
@@ -24,7 +24,7 @@ atomate.vasp.config module
     :show-inheritance:
 
 atomate.vasp.database module
--------------------------------
+----------------------------
 
 .. automodule:: atomate.vasp.database
     :members:
@@ -32,7 +32,7 @@ atomate.vasp.database module
     :show-inheritance:
 
 atomate.vasp.drones module
------------------------------
+--------------------------
 
 .. automodule:: atomate.vasp.drones
     :members:
@@ -40,7 +40,7 @@ atomate.vasp.drones module
     :show-inheritance:
 
 atomate.vasp.powerups module
--------------------------------
+----------------------------
 
 .. automodule:: atomate.vasp.powerups
     :members:
@@ -48,7 +48,7 @@ atomate.vasp.powerups module
     :show-inheritance:
 
 atomate.vasp.submission_filter module
-----------------------------------------
+-------------------------------------
 
 .. automodule:: atomate.vasp.submission_filter
     :members:
@@ -56,7 +56,7 @@ atomate.vasp.submission_filter module
     :show-inheritance:
 
 atomate.vasp.vasp_config module
-----------------------------------
+-------------------------------
 
 .. automodule:: atomate.vasp.vasp_config
     :members:
@@ -64,7 +64,7 @@ atomate.vasp.vasp_config module
     :show-inheritance:
 
 atomate.vasp.vasp_powerups module
-------------------------------------
+---------------------------------
 
 .. automodule:: atomate.vasp.vasp_powerups
     :members:

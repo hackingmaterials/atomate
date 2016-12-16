@@ -1,5 +1,5 @@
 atomate
-==========
+=======
 
 .. toctree::
    :maxdepth: 4

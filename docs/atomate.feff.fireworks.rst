@@ -1,11 +1,11 @@
 atomate.feff.fireworks package
-=================================
+==============================
 
 Submodules
 ----------
 
 atomate.feff.fireworks.core module
--------------------------------------
+----------------------------------
 
 .. automodule:: atomate.feff.fireworks.core
     :members:

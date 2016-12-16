@@ -1,11 +1,11 @@
 atomate.feff.workflows package
-=================================
+==============================
 
 Submodules
 ----------
 
 atomate.feff.workflows.eels module
--------------------------------------
+----------------------------------
 
 .. automodule:: atomate.feff.workflows.eels
     :members:
@@ -13,7 +13,7 @@ atomate.feff.workflows.eels module
     :show-inheritance:
 
 atomate.feff.workflows.xas module
-------------------------------------
+---------------------------------
 
 .. automodule:: atomate.feff.workflows.xas
     :members:

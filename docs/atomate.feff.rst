@@ -1,5 +1,5 @@
 atomate.feff package
-=======================
+====================
 
 Subpackages
 -----------
@@ -14,7 +14,7 @@ Submodules
 ----------
 
 atomate.feff.database module
--------------------------------
+----------------------------
 
 .. automodule:: atomate.feff.database
     :members:
@@ -22,7 +22,7 @@ atomate.feff.database module
     :show-inheritance:
 
 atomate.feff.utils module
-----------------------------
+-------------------------
 
 .. automodule:: atomate.feff.utils
     :members:

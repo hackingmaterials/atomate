@@ -1,11 +1,11 @@
 atomate.vasp.builders package
-================================
+=============================
 
 Submodules
 ----------
 
 atomate.vasp.builders.base module
-------------------------------------
+---------------------------------
 
 .. automodule:: atomate.vasp.builders.base
     :members:
@@ -13,7 +13,7 @@ atomate.vasp.builders.base module
     :show-inheritance:
 
 atomate.vasp.builders.boltztrap_materials module
----------------------------------------------------
+------------------------------------------------
 
 .. automodule:: atomate.vasp.builders.boltztrap_materials
     :members:
@@ -21,7 +21,7 @@ atomate.vasp.builders.boltztrap_materials module
     :show-inheritance:
 
 atomate.vasp.builders.example_build module
----------------------------------------------
+------------------------------------------
 
 .. automodule:: atomate.vasp.builders.example_build
     :members:
@@ -29,7 +29,7 @@ atomate.vasp.builders.example_build module
     :show-inheritance:
 
 atomate.vasp.builders.file_materials module
-----------------------------------------------
+-------------------------------------------
 
 .. automodule:: atomate.vasp.builders.file_materials
     :members:
@@ -37,7 +37,7 @@ atomate.vasp.builders.file_materials module
     :show-inheritance:
 
 atomate.vasp.builders.fix_tasks module
------------------------------------------
+--------------------------------------
 
 .. automodule:: atomate.vasp.builders.fix_tasks
     :members:
@@ -45,7 +45,7 @@ atomate.vasp.builders.fix_tasks module
     :show-inheritance:
 
 atomate.vasp.builders.materials_ehull module
------------------------------------------------
+--------------------------------------------
 
 .. automodule:: atomate.vasp.builders.materials_ehull
     :members:
@@ -53,7 +53,7 @@ atomate.vasp.builders.materials_ehull module
     :show-inheritance:
 
 atomate.vasp.builders.tags_collector module
-----------------------------------------------
+-------------------------------------------
 
 .. automodule:: atomate.vasp.builders.tags_collector
     :members:
@@ -61,7 +61,7 @@ atomate.vasp.builders.tags_collector module
     :show-inheritance:
 
 atomate.vasp.builders.tasks_materials module
------------------------------------------------
+--------------------------------------------
 
 .. automodule:: atomate.vasp.builders.tasks_materials
     :members:

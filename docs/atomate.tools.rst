@@ -1,5 +1,5 @@
 atomate.tools package
-========================
+=====================
 
 Subpackages
 -----------
@@ -12,7 +12,7 @@ Submodules
 ----------
 
 atomate.tools.analysis module
---------------------------------
+-----------------------------
 
 .. automodule:: atomate.tools.analysis
     :members:

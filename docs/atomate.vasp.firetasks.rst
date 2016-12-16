@@ -1,11 +1,11 @@
 atomate.vasp.firetasks package
-=================================
+==============================
 
 Submodules
 ----------
 
 atomate.vasp.firetasks.glue_tasks module
--------------------------------------------
+----------------------------------------
 
 .. automodule:: atomate.vasp.firetasks.glue_tasks
     :members:
@@ -13,7 +13,7 @@ atomate.vasp.firetasks.glue_tasks module
     :show-inheritance:
 
 atomate.vasp.firetasks.parse_outputs module
-----------------------------------------------
+-------------------------------------------
 
 .. automodule:: atomate.vasp.firetasks.parse_outputs
     :members:
@@ -21,7 +21,7 @@ atomate.vasp.firetasks.parse_outputs module
     :show-inheritance:
 
 atomate.vasp.firetasks.run_calc module
------------------------------------------
+--------------------------------------
 
 .. automodule:: atomate.vasp.firetasks.run_calc
     :members:
@@ -29,7 +29,7 @@ atomate.vasp.firetasks.run_calc module
     :show-inheritance:
 
 atomate.vasp.firetasks.write_inputs module
----------------------------------------------
+------------------------------------------
 
 .. automodule:: atomate.vasp.firetasks.write_inputs
     :members:

@@ -1,11 +1,11 @@
 atomate.common.firetasks.tests package
-=========================================
+======================================
 
 Submodules
 ----------
 
 atomate.common.firetasks.tests.test_glue_tasks module
---------------------------------------------------------
+-----------------------------------------------------
 
 .. automodule:: atomate.common.firetasks.tests.test_glue_tasks
     :members:

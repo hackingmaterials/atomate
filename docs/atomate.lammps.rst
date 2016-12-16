@@ -1,5 +1,5 @@
 atomate.lammps package
-=========================
+======================
 
 Subpackages
 -----------
@@ -13,7 +13,7 @@ Submodules
 ----------
 
 atomate.lammps.database module
----------------------------------
+------------------------------
 
 .. automodule:: atomate.lammps.database
     :members:

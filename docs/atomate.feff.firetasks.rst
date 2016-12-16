@@ -1,11 +1,11 @@
 atomate.feff.firetasks package
-=================================
+==============================
 
 Submodules
 ----------
 
 atomate.feff.firetasks.parse_outputs module
-----------------------------------------------
+-------------------------------------------
 
 .. automodule:: atomate.feff.firetasks.parse_outputs
     :members:
@@ -13,7 +13,7 @@ atomate.feff.firetasks.parse_outputs module
     :show-inheritance:
 
 atomate.feff.firetasks.run_calc module
------------------------------------------
+--------------------------------------
 
 .. automodule:: atomate.feff.firetasks.run_calc
     :members:
@@ -21,7 +21,7 @@ atomate.feff.firetasks.run_calc module
     :show-inheritance:
 
 atomate.feff.firetasks.write_inputs module
----------------------------------------------
+------------------------------------------
 
 .. automodule:: atomate.feff.firetasks.write_inputs
     :members:

@@ -1,11 +1,11 @@
 atomate.vasp.workflows.presets package
-=========================================
+======================================
 
 Submodules
 ----------
 
 atomate.vasp.workflows.presets.core module
----------------------------------------------
+------------------------------------------
 
 .. automodule:: atomate.vasp.workflows.presets.core
     :members:

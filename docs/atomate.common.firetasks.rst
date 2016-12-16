@@ -1,5 +1,5 @@
 atomate.common.firetasks package
-===================================
+================================
 
 Subpackages
 -----------
@@ -12,7 +12,7 @@ Submodules
 ----------
 
 atomate.common.firetasks.glue_tasks module
----------------------------------------------
+------------------------------------------
 
 .. automodule:: atomate.common.firetasks.glue_tasks
     :members:
@@ -20,7 +20,7 @@ atomate.common.firetasks.glue_tasks module
     :show-inheritance:
 
 atomate.common.firetasks.parse_outputs module
-------------------------------------------------
+---------------------------------------------
 
 .. automodule:: atomate.common.firetasks.parse_outputs
     :members:

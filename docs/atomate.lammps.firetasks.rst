@@ -1,11 +1,11 @@
 atomate.lammps.firetasks package
-===================================
+================================
 
 Submodules
 ----------
 
 atomate.lammps.firetasks.parse_outputs module
-------------------------------------------------
+---------------------------------------------
 
 .. automodule:: atomate.lammps.firetasks.parse_outputs
     :members:
@@ -13,7 +13,7 @@ atomate.lammps.firetasks.parse_outputs module
     :show-inheritance:
 
 atomate.lammps.firetasks.run_calc module
--------------------------------------------
+----------------------------------------
 
 .. automodule:: atomate.lammps.firetasks.run_calc
     :members:
@@ -21,7 +21,7 @@ atomate.lammps.firetasks.run_calc module
     :show-inheritance:
 
 atomate.lammps.firetasks.write_inputs module
------------------------------------------------
+--------------------------------------------
 
 .. automodule:: atomate.lammps.firetasks.write_inputs
     :members:

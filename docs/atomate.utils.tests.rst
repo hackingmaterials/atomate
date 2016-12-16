@@ -1,11 +1,11 @@
 atomate.utils.tests package
-==============================
+===========================
 
 Submodules
 ----------
 
 atomate.utils.tests.test_loaders module
-------------------------------------------
+---------------------------------------
 
 .. automodule:: atomate.utils.tests.test_loaders
     :members:
@@ -13,7 +13,7 @@ atomate.utils.tests.test_loaders module
     :show-inheritance:
 
 atomate.utils.tests.test_utils module
-----------------------------------------
+-------------------------------------
 
 .. automodule:: atomate.utils.tests.test_utils
     :members:
