@@ -58,10 +58,8 @@ class VaspToDbTask(FireTaskBase):
         defuse_unsuccessful (bool): Defuses children fireworks if VASP run state
             is not "successful"; i.e. both electronic and ionic convergence are reached.
             Defaults to True.
-        check_all_files (bool): whether to check for existence of all the files that VASP
-            normally creat upon running. Defaults to True.
     """
-    optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode", "check_all_files",
+    optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
                        "additional_fields", "db_file", "fw_spec_fields", "defuse_unsuccessful"]
 
     def run_task(self, fw_spec):
@@ -74,14 +72,6 @@ class VaspToDbTask(FireTaskBase):
 
         # parse the VASP directory
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
-
-        if "check_all_files" in self and not self["check_all_files"]:
-            pass
-        else:
-            for vfile in ["EIGENVAL","CHG","CHGCAR","CONTCAR","DOSCAR","OSZICAR","OUTCAR","PCDAT","WAVECAR"]:
-                if not os.path.exists(os.path.join(calc_dir, vfile)):
-                    raise IOError("Did VASP start? {} is missing; if that is ok rerun with check_all_files=False"\
-                                  .format(vfile))
 
         # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
