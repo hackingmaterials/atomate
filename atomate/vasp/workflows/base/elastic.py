@@ -7,6 +7,7 @@ This module defines the elastic workflow
 """
 
 from pymatgen.analysis.elasticity.strain import Deformation
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen import Structure
 
 from fireworks import Firework, Workflow
@@ -23,7 +24,7 @@ logger = get_logger(__name__)
 
 def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", norm_deformations=None,
                             shear_deformations=None, additional_deformations=None, db_file=None,
-                            user_kpoints_settings=None, add_analysis_task=True):
+                            user_kpoints_settings=None, add_analysis_task=True, conventional=True):
     """
     Returns a workflow to calculate elastic constants.
 
@@ -50,7 +51,9 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
     Returns:
         Workflow
     """
-
+    # Convert to conventional
+    if conventional:
+        structure = SpacegroupAnalyzer(structure).get_conventional_standard_structure()
     # Generate deformations
     deformations = []
 
