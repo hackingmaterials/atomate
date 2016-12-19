@@ -60,7 +60,7 @@ div.footer a {
 }
  
 div.related {
-    background-color: #558ed5;
+    background-color: #ffc000;
     line-height: 32px;
     color: #fff;
     text-shadow: 0px 1px 0 #444;
@@ -132,7 +132,7 @@ div.sphinxsidebar input[type=text]{
 /* -- body styles ----------------------------------------------------------- */
  
 a {
-    color: #558ed5;
+    color: #ffc000;
     text-decoration: none;
 }
  
@@ -146,7 +146,7 @@ div.body h4,
 div.body h5,
 div.body h6 {
     font-family: "Gill Sans", sans-serif;
-    background-color: #558ed5;
+    background-color: #ffc000;
     font-weight: normal;
     color: #fff;
     margin: 30px 0px 10px 0px;
@@ -155,11 +155,11 @@ div.body h6 {
 }
  
 div.body h1 { border-top: 20px solid white; margin-top: 0; font-size: 200%; }
-div.body h2 { font-size: 150%; color: #558ed5; font-family: Georgia, serif}
+div.body h2 { font-size: 150%; color: #ffc000; font-family: Georgia, serif}
 div.body h3 { font-size: 110%; color: #446; font-family: Georgia, serif}
-div.body h4 { font-size: 110%; background-color: #558ed5; }
-div.body h5 { font-size: 100%; background-color: #558ed5; }
-div.body h6 { font-size: 100%; background-color: #558ed5; }
+div.body h4 { font-size: 110%; background-color: #ffc000; }
+div.body h5 { font-size: 100%; background-color: #ffc000; }
+div.body h6 { font-size: 100%; background-color: #ffc000; }
  
 a.headerlink {
     color: #fff;
@@ -169,7 +169,7 @@ a.headerlink {
 }
  
 a.headerlink:hover {
-    background-color: #558ed5;
+    background-color: #ffc000;
     color: white;
 }
  
