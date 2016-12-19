@@ -1,6 +1,6 @@
 .. title:: atomate (Materials Science Workflows)
 
-.. image:: _static/atomate_logo_small.jpg
+.. image:: _static/atomate_logo_small.png
    :alt: atomate logo
 
 .. pull-quote:: | "Civilization advances by extending the number of important operations which we can perform without thinking about them."
