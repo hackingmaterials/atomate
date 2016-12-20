@@ -158,16 +158,12 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
                                     parents=fws[0],
                                     vasp_input_set = vis_slab)
                       )
-            import pdb; pdb.set_trace()
             # Generate adsorbate configurations and add fws to workflow
-<<<<<<< HEAD
-=======
             if use_bulk_coordination:
                 asf = AdsorbateSiteFinder.from_bulk_and_miller(structure, slab.miller_index,
                                                                selective_dynamics=True)
             else:
                 asf = AdsorbateSiteFinder(slab, selective_dynamics=True)
->>>>>>> 70ec9360af57d9605a33dfd7d534abcc56c9dcac
             for molecule in adsorbate_config[mi_string]:
                 structures = asf.generate_adsorption_structures(molecule, repeat=[2, 2, 1])
                 for struct in structures:
