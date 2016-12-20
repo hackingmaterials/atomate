@@ -22,7 +22,7 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", deformations=None,
+def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_cmd="vasp",
                              db_file=None, user_kpoints_settings=None, t_step=10, t_min=0, t_max=1000,
                              mesh=(20, 20, 20), eos="vinet", qha_type="debye_model", pressure=0.0):
     """
@@ -31,9 +31,9 @@ def get_wf_gibbs_free_energy(structure, vasp_input_set=None, vasp_cmd="vasp", de
 
     Args:
         structure (Structure): input structure.
+        deformations (list): list of deformation matrices(list of lists).
         vasp_input_set (VaspInputSet)
         vasp_cmd (str): vasp command to run.
-        deformations (list): list of deformation matrices(list of lists).
         db_file (str): path to the db file.
         user_kpoints_settings (dict): example: {"grid_density": 7000}
         t_step (float): temperature step (in K)

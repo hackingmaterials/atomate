@@ -22,16 +22,16 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_bulk_modulus(structure, vasp_input_set=None, vasp_cmd="vasp", deformations=None,
-                        db_file=None, user_kpoints_settings=None, eos="vinet"):
+def get_wf_bulk_modulus(structure, deformations, vasp_input_set=None, vasp_cmd="vasp", db_file=None,
+                        user_kpoints_settings=None, eos="vinet"):
     """
     Returns the workflow that computes the bulk modulus by fitting to the given equation of state.
 
     Args:
         structure (Structure): input structure.
+        deformations (list): list of deformation matrices(list of lists).
         vasp_input_set (VaspInputSet)
         vasp_cmd (str): vasp command to run.
-        deformations (list): list of deformation matrices(list of lists).
         db_file (str): path to the db file.
         user_kpoints_settings (dict): example: {"grid_density": 7000}
         eos (str): equation of state used for fitting the energies and the volumes.

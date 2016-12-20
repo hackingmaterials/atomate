@@ -8,6 +8,7 @@ This module defines tasks for writing vasp input sets for various types of vasp 
 
 import os
 from six.moves import range
+from importlib import import_module
 
 import numpy as np
 
@@ -306,7 +307,7 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
         for t in self["transformations"]:
             for m in ["advanced_transformations", "defect_transformations",
                       "site_transformations", "standard_transformations"]:
-                mod = __import__("pymatgen.transformations." + m, globals(), locals(), [t], -1)
+                mod = import_module("pymatgen.{}.{}".format(t, m))
                 try:
                     t_cls = getattr(mod, t)
                 except AttributeError:

@@ -32,7 +32,7 @@ class MMDb(six.with_metaclass(ABCMeta)):
         self.password = password
         self.port = int(port)
         try:
-            self.connection = MongoClient(self.host, self.port, j=True)
+            self.connection = MongoClient(self.host, self.port)
             self.db = self.connection[self.db_name]
         except:
             logger.error("Mongodb connection failed")

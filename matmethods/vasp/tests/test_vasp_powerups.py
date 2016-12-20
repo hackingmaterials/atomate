@@ -7,7 +7,7 @@ import unittest
 
 from fireworks import Firework, ScriptTask, Workflow
 
-from matmethods.vasp.vasp_powerups import add_priority, use_custodian, add_trackers, \
+from matmethods.vasp.powerups import add_priority, use_custodian, add_trackers, \
     add_modify_incar, add_small_gap_multiply, use_scratch_dir, remove_custodian, \
     add_tags
 from matmethods.vasp.workflows.base.core import get_wf
