@@ -87,31 +87,11 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
                           vasp_cmd=vasp_cmd, db_file=db_file))
 
     max_index = max([int(i) for i in ''.join(adsorbate_config.keys())])
-<<<<<<< HEAD
-    if use_bulk_coordination:
-        # TODO: fix this
-        pass
-        """
-        slabs = generate_decorated_slabs(structure, max_index=max_index, 
-                                         min_slab_size=min_slab_size,
-                                         min_vacuum_size=min_vacuum_size, 
-                                         max_normal_search=max_normal_search,
-                                         center_slab=center_slab)
-        """
-    else:
-        slabs = generate_all_slabs(structure, max_index=max_index,
-                                   min_slab_size=min_slab_size,
-                                   min_vacuum_size=min_vacuum_size, 
-                                   max_normal_search=max_normal_search,
-                                   center_slab=center_slab)
-
-=======
     slabs = generate_all_slabs(structure, max_index=max_index,
                                min_slab_size=min_slab_size,
                                min_vacuum_size=min_vacuum_size, 
                                max_normal_search=max_normal_search,
                                center_slab=center_slab)
->>>>>>> 70ec9360af57d9605a33dfd7d534abcc56c9dcac
     mi_strings = [''.join([str(i) for i in slab.miller_index])
                   for slab in slabs]
     for key in adsorbate_config.keys():
