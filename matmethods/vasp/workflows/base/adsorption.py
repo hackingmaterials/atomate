@@ -17,10 +17,9 @@ from fireworks.utilities.fw_utilities import explicit_serialize
 
 from matmethods.utils.utils import env_chk, get_logger
 from matmethods.vasp.database import MMDb
-from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW
+from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW, StaticFW
 
-from pymatgen.analysis.adsorption import generate_decorated_slabs,\
-        AdsorbateSiteFinder
+from pymatgen.analysis.adsorption import AdsorbateSiteFinder
 from pymatgen.core.surface import generate_all_slabs
 from pymatgen.transformations.advanced_transformations import SlabTransformation
 from pymatgen.transformations.standard_transformations import SupercellTransformation
@@ -125,7 +124,7 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
                                             "AMIX_MAG":0.4,
                                             "BMIX":0.0001,
                                             "BMIX_MAG":0.0001,
-                                            "POTIM":0.25,
+                                            "POTIM":0.3,
                                             "EDIFFG":-0.05}
 
     if not v.incar.get("LDAU", None):
@@ -137,11 +136,15 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
 
     max_index = max([int(i) for i in ''.join(adsorbate_config.keys())])
     if use_bulk_coordination:
+        # TODO: fix this
+        pass
+        """
         slabs = generate_decorated_slabs(structure, max_index=max_index, 
                                          min_slab_size=min_slab_size,
                                          min_vacuum_size=min_vacuum_size, 
                                          max_normal_search=max_normal_search,
                                          center_slab=center_slab)
+        """
     else:
         slabs = generate_all_slabs(structure, max_index=max_index,
                                    min_slab_size=min_slab_size,
@@ -180,18 +183,23 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
             fw_name = "{}_{} slab optimization".format(
                 slab.composition.reduced_formula, mi_string)
             vis_slab = MVLSlabSet(slab, user_incar_settings=slab_incar_params)
+            # This is a bit of a hack to avoid problems with poscar/contcar conversion
+            slab.add_site_property("velocities", [[0., 0., 0.]]*slab.num_sites)
+            asf = AdsorbateSiteFinder(slab, selective_dynamics=True)
             fws.append(TransmuterFW(name=fw_name,
                                     structure = structure,
-                                    transformations = ["SlabTransformation"],
-                                    transformation_params=[slab_trans_params],
+                                    transformations = ["SlabTransformation", 
+                                                       "AddSitePropertyTransformation"],
+                                    transformation_params=[slab_trans_params,
+                                                           {"site_properties":asf.slab.site_properties}],
                                     copy_vasp_outputs=True,
                                     db_file=db_file,
                                     vasp_cmd=vasp_cmd,
                                     parents=fws[0],
                                     vasp_input_set = vis_slab)
                       )
+            import pdb; pdb.set_trace()
             # Generate adsorbate configurations and add fws to workflow
-            asf = AdsorbateSiteFinder(slab, selective_dynamics=True)
             for molecule in adsorbate_config[mi_string]:
                 structures = asf.generate_adsorption_structures(molecule, repeat=[2, 2, 1])
                 for struct in structures:
@@ -227,7 +235,7 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
     wfname = "{}:{}".format(structure.composition.reduced_formula, "Adsorbate calculations")
     return Workflow(fws, name=wfname)
 
-def get_wf_molecules(molecules, vasp_input_sets=None,
+def get_wf_molecules(molecules, vasp_input_sets=None, vibrations=False,
                      min_vacuum_size=15.0, vasp_cmd="vasp",
                      db_file=None):
     """
@@ -255,16 +263,30 @@ def get_wf_molecules(molecules, vasp_input_sets=None,
                              molecule.cart_coords, coords_are_cartesian=True)
         m_struct.translate_sites(list(range(len(m_struct))),
                                  np.array([0.5]*3) - np.average(m_struct.frac_coords,axis=0))
-        v = vis or MPRelaxSet(m_struct, user_incar_settings={"ISMEAR":0, 
-                                                             "IBRION":2, 
-                                                             "ISIF":0,
-                                                             "EDIFF":1e-6,
-                                                             "EDIFFG":-0.01,
-                                                             "POTIM":0.1},
-                              user_kpoints_settings = {"grid_density":1}) #TODO think about this
-        # There should also be a method to calculate hessian
-        fws.append(OptimizeFW(structure=m_struct, vasp_input_set=v,
-                              vasp_cmd=vasp_cmd, db_file=db_file))
+        user_incar_settings = {"ENCUT":400, # concurrent with MVLSlabSet
+                               "ISMEAR":0,
+                               "IBRION":2,
+                               "ISIF":0,
+                               "EDIFF":1e-6,
+                               "EDIFFG":-0.01,
+                               "POTIM":0.02}
+        v = vis or MPRelaxSet(m_struct, user_incar_settings=user_incar_settings,
+                              user_kpoints_settings = {"grid_density":1}) 
+        # Use StaticFW to avoid double relaxation
+        fws.append(StaticFW(structure=m_struct, vasp_input_set=v,
+                            vasp_cmd=vasp_cmd, db_file=db_file))
+        if vibrations:
+            # Turn off symmetry because it screws up automatic k-points
+            user_incar_settings.update({"IBRION":5, "ISYM":0})
+            v = MPRelaxSet(m_struct, user_incar_settings=user_incar_settings,
+                              user_kpoints_settings = {"grid_density":1})
+            # This is a bit of a hack.  Seems static fireworks don't cleanly allow
+            # for custom incar parameters.
+            fw = TransmuterFW(structure=structure, vasp_input_set=v,
+                              copy_vasp_outputs=True, parents=fws[-1],
+                              vasp_cmd=vasp_cmd, db_file=db_file)
+            fws.append(fw)
+
     wfname = "{}".format("Molecule calculations")
     return Workflow(fws, name=wfname)
 
