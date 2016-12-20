@@ -196,7 +196,8 @@ class LepsFW(Firework):
         else:
             t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
 
-        t.extend([PassCalcLocs(name=name), VaspToDbTask(db_file=db_file, additional_fields={"task_label": name})])
+        t.extend([PassCalcLocs(name=name),
+                  VaspToDbTask(db_file=db_file, additional_fields={"task_label": name})])
         
         super(LepsFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)
@@ -282,13 +283,13 @@ class TransmuterFW(Firework):
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
-                              additional_fields={"task_label": name,
-                                                 "transmuter":{"transformations":transformations,
-                                                               "transformation_params":transformation_params}
-                                                }))
-        super(TransmuterFW, self).__init__(t, parents=parents,
-                                           name="{}-{}".format(structure.composition.reduced_formula, name),
-                                           **kwargs)
+                              additional_fields={
+                                  "task_label": name,
+                                  "transmuter": {"transformations": transformations,
+                                                 "transformation_params": transformation_params}
+                              }))
+        super(TransmuterFW, self).__init__(t, parents=parents, name="{}-{}".format(
+            structure.composition.reduced_formula, name), **kwargs)
 
 
 class MDFW(Firework):
@@ -325,7 +326,8 @@ class MDFW(Firework):
         t = []
         if parents:
             if copy_vasp_outputs:
-                t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"], contcar_to_poscar=True))
+                t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
+                                         contcar_to_poscar=True))
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                   handler_group="md", wall_time=wall_time))
@@ -333,27 +335,28 @@ class MDFW(Firework):
         t.append(VaspToDbTask(db_file=db_file,
                               additional_fields={"task_label": name}, defuse_unsuccessful=False))
         super(MDFW, self).__init__(t, parents=parents,
-                                   name="{}-{}".format(structure.composition.reduced_formula, name), **kwargs)
+                                   name="{}-{}".format(structure.composition.reduced_formula, name),
+                                   **kwargs)
 
 class BoltztrapFW(Firework):
-    def __init__(self, structure, name="boltztrap", db_file=None,
-                 parents=None, scissor=0.0, soc=False, **kwargs):
+    def __init__(self, structure, name="boltztrap", db_file=None, parents=None, scissor=0.0,
+                 soc=False, **kwargs):
         """
         Run Boltztrap
 
         Args:
             structure (Structure): - only used for setting name of FW
             name (str): name of this FW
+            db_file (str): path to the db file
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
-            scissor (float): if scissor > 0, apply scissor on the band structure so that new band gap = scissor (in eV)
+            scissor (float): if scissor > 0, apply scissor on the band structure so that new
+                band gap = scissor (in eV)
             soc (bool): whether the band structure is calculated with spin-orbit coupling
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-
-        t = []
-        t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
-        t.append(RunBoltztrap(scissor=scissor, soc=soc))
-        t.append(BoltztrapToDBTask(db_file=db_file))
-        t.append(PassCalcLocs(name=name))
+        t = [CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True),
+             RunBoltztrap(scissor=scissor, soc=soc),
+             BoltztrapToDBTask(db_file=db_file),
+             PassCalcLocs(name=name)]
         super(BoltztrapFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)

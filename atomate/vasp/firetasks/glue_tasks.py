@@ -195,23 +195,18 @@ class CheckBandgap(FireTaskBase):
             relax_paths = sorted(glob.glob(vr_path + ".relax*"), reverse=True)
             if relax_paths:
                 if len(relax_paths) > 9:
-                    raise ValueError(
-                        "CheckBandgap doesn't properly handle >9 relaxations!")
+                    raise ValueError("CheckBandgap doesn't properly handle >9 relaxations!")
                 vr_path = relax_paths[0]
-
 
         print("Checking the gap of file: {}".format(vr_path))
         vr = Vasprun(vr_path)
         gap = vr.get_band_structure().get_band_gap()["energy"]
         stored_data = {"band_gap": gap}
-        print("The gap is: {}. Min gap: {}. Max gap: {}".format(gap,
-                                                                min_gap,
-                                                                max_gap))
+        print("The gap is: {}. Min gap: {}. Max gap: {}".format(gap, min_gap, max_gap))
 
         if min_gap and gap < min_gap or max_gap and gap > max_gap:
             print("Defusing based on band gap!")
-            return FWAction(stored_data=stored_data, exit=True,
-                            defuse_workflow=True)
+            return FWAction(stored_data=stored_data, exit=True, defuse_workflow=True)
 
         print("Gap OK...")
         return FWAction(stored_data=stored_data)
