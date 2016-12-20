@@ -1,0 +1,13 @@
+# demonstration/example of how to use the TransmuterFW
+fireworks:
+- fw: atomate.vasp.fireworks.core.OptimizeFW
+- fw: atomate.vasp.fireworks.core.TransmuterFW
+  params:
+    parents: 0
+    transformations:
+    - SupercellTransformation
+    - PerturbStructureTransformation
+    transformation_params:
+    - "scaling_matrix": [[2, 0, 0], [0, 2, 0], [0, 0, 2]]
+    - "amplitude": 0.05
+
