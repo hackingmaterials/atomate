@@ -10,6 +10,7 @@ This module defines the database classes.
 
 import zlib
 import json
+from bson import ObjectId
 
 from pymatgen.electronic_structure.bandstructure import BandStructure, BandStructureSymmLine
 
@@ -63,7 +64,7 @@ class MMVaspDb(MMDb):
                                           ("completed_at", DESCENDING)],
                                          background=background)
 
-    def insert_gridfs(self, d, collection="fs", compress=True):
+    def insert_gridfs(self, d, collection="fs", compress=True, oid=None):
         """
         Insert the given document into GridFS.
 
@@ -71,14 +72,16 @@ class MMVaspDb(MMDb):
             d (dict): the document
             collection (string): the GridFS collection name
             compress (bool): Whether to compress the data or not
+            oid (ObjectId()): the _id of the file; if specified, it must not already exist in GridFS
 
         Returns:
             file id, the type of compression used.
         """
+        oid = oid or ObjectId()
         if compress:
             d = zlib.compress(d.encode(), compress)
         fs = gridfs.GridFS(self.db, collection)
-        fs_id = fs.put(d)
+        fs_id = fs.put(d, id=oid)
         return fs_id, "zlib"
 
     def get_band_structure(self, task_id, line_mode=False):
