@@ -97,7 +97,7 @@ class RunVaspCustodian(FireTaskBase):
         scratch_dir: (str) - if specified, uses this directory as the root
             scratch dir. Supports env_chk.
         gzip_output: (bool) - gzip output (default=T)
-        max_errors: (int) - maximum # of errors to fix before giving up (default=2)
+        max_errors: (int) - maximum # of errors to fix before giving up (default=5)
         ediffg: (float) shortcut for setting EDIFFG in special custodian jobs
         auto_npar: (bool) - use auto_npar (default=F). Recommended set to T
             for single-node jobs only. Supports env_chk.
