@@ -8,7 +8,7 @@ This module defines tasks that support running FEFF.
 
 import subprocess
 
-from fireworks import explicit_serialize, FireTaskBase
+from fireworks import explicit_serialize, FiretaskBase
 
 from atomate.utils.utils import env_chk, get_logger
 
@@ -19,7 +19,7 @@ logger = get_logger(__name__)
 
 
 @explicit_serialize
-class RunFeffDirect(FireTaskBase):
+class RunFeffDirect(FiretaskBase):
     """
     Run FEFF directly (no custodian).
     Supports env_chk.

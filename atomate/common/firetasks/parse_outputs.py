@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import json
 import os
 
-from fireworks import explicit_serialize, FireTaskBase, FWAction
+from fireworks import explicit_serialize, FiretaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from atomate.utils.utils import get_calc_loc, env_chk
 from atomate.vasp.firetasks.parse_outputs import logger
@@ -14,7 +14,7 @@ __author__ = 'Shyam Dwaraknath <shyamd@lbl.gov>, Anubhav Jain <ajain@lbl.gov>'
 
 
 @explicit_serialize
-class ToDbTask(FireTaskBase):
+class ToDbTask(FiretaskBase):
     """
     General task to enter data from a calculation into the database.
     Can use any drone to parse the current directory into the DB file to insert.

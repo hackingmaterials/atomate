@@ -6,7 +6,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 This module defines tasks for writing FEFF input sets.
 """
 
-from fireworks import FireTaskBase, explicit_serialize
+from fireworks import FiretaskBase, explicit_serialize
 
 from atomate.utils.utils import load_class
 
@@ -16,7 +16,7 @@ __email__ = 'kmathew@lbl.gov'
 
 
 @explicit_serialize
-class WriteFeffFromIOSet(FireTaskBase):
+class WriteFeffFromIOSet(FiretaskBase):
     """
     Generate FEFF input(feff.inp) from the given inputset object or inputset name
 

@@ -4,14 +4,14 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os
 
-from fireworks import explicit_serialize, FireTaskBase, FWAction
+from fireworks import explicit_serialize, FiretaskBase, FWAction
 from atomate.utils.utils import env_chk
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 
 @explicit_serialize
-class PassCalcLocs(FireTaskBase):
+class PassCalcLocs(FiretaskBase):
     """
     Passes the calc_locs key. Should be called in the same FireWork as a
     the calculation. This passes information about where the current run is located

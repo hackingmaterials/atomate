@@ -6,7 +6,7 @@ from __future__ import division, print_function, unicode_literals, \
 import unittest
 from collections import defaultdict
 
-from fireworks import FireTaskBase, Firework, Workflow, explicit_serialize, FWAction
+from fireworks import FiretaskBase, Firework, Workflow, explicit_serialize, FWAction
 
 from atomate.utils.utils import env_chk, get_logger, get_mongolike, append_fw_wf, remove_leaf_fws
 
@@ -16,14 +16,14 @@ logger = get_logger(__name__)
 
 
 @explicit_serialize
-class Task1(FireTaskBase):
+class Task1(FiretaskBase):
     def run_task(self, fw_spec):
         print("task1",fw_spec)
         return FWAction(stored_data={"color": "red"})
 
 
 @explicit_serialize
-class Task2(FireTaskBase):
+class Task2(FiretaskBase):
     def run_task(self, fw_spec):
         print("task2",fw_spec)
         return FWAction(stored_data={"color": "yellow"})

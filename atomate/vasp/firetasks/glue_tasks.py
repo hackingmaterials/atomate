@@ -24,7 +24,7 @@ from pymatgen import MPRester
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.analysis.elasticity import reverse_voigt_map
 
-from fireworks import explicit_serialize, FireTaskBase, FWAction
+from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 from atomate.utils.utils import get_calc_loc, env_chk
 from atomate.utils.fileio import FileClient
@@ -34,7 +34,7 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 
 @explicit_serialize
-class CopyVaspOutputs(FireTaskBase):
+class CopyVaspOutputs(FiretaskBase):
     """
     Copy files from a previous VASP run directory to the current directory.
     By default, copies 'INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR',
@@ -132,7 +132,7 @@ class CopyVaspOutputs(FireTaskBase):
 
 
 @explicit_serialize
-class CheckStability(FireTaskBase):
+class CheckStability(FiretaskBase):
     """
     Checks the stability of the entry against the Materials Project database.
     If the stability is less than the cutoff (default is 0.1 eV/atom), then
@@ -167,7 +167,7 @@ class CheckStability(FireTaskBase):
 
 
 @explicit_serialize
-class CheckBandgap(FireTaskBase):
+class CheckBandgap(FiretaskBase):
     """
     Checks the band gap of an entry. If band gap is >min_gap or <max_gap, then
     the task will return a FWAction that will defuse all remaining tasks.
@@ -213,7 +213,7 @@ class CheckBandgap(FireTaskBase):
 
 
 @explicit_serialize
-class PassStressStrainData(FireTaskBase):
+class PassStressStrainData(FiretaskBase):
     """
     Passes the stress and deformation for an elastic deformation calculation
 
@@ -242,7 +242,7 @@ class PassStressStrainData(FireTaskBase):
 
 
 @explicit_serialize
-class PassEpsilonTask(FireTaskBase):
+class PassEpsilonTask(FiretaskBase):
     """
     Pass the epsilon(dielectric constant) corresponding to the given normal mode and displacement.
 
@@ -269,7 +269,7 @@ class PassEpsilonTask(FireTaskBase):
 
 
 @explicit_serialize
-class PassNormalmodesTask(FireTaskBase):
+class PassNormalmodesTask(FiretaskBase):
     """
     Extract and pass the normal mode eigenvalues and vectors.
 

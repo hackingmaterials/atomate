@@ -12,7 +12,7 @@ import numpy as np
 
 from monty.json import MontyEncoder
 
-from fireworks import FireTaskBase, FWAction, explicit_serialize
+from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
 from atomate.utils.utils import env_chk, get_calc_loc, get_meta_from_structure
@@ -35,7 +35,7 @@ logger = get_logger(__name__)
 
 
 @explicit_serialize
-class VaspToDbTask(FireTaskBase):
+class VaspToDbTask(FiretaskBase):
     """
     Enter a VASP run into the database. Uses current directory unless you
     specify calc_dir or calc_loc.
@@ -130,7 +130,7 @@ class VaspToDbTask(FireTaskBase):
 
 
 @explicit_serialize
-class BoltztrapToDBTask(FireTaskBase):
+class BoltztrapToDBTask(FiretaskBase):
     """
     Enter a Boltztrap run into the database.
 
@@ -194,7 +194,7 @@ class BoltztrapToDBTask(FireTaskBase):
 
 
 @explicit_serialize
-class ElasticTensorToDbTask(FireTaskBase):
+class ElasticTensorToDbTask(FiretaskBase):
     """
     Analyzes the stress/strain data of an elastic workflow to produce
     an elastic tensor and various other quantities.
@@ -257,7 +257,7 @@ class ElasticTensorToDbTask(FireTaskBase):
 
 
 @explicit_serialize
-class RamanSusceptibilityTensorToDbTask(FireTaskBase):
+class RamanSusceptibilityTensorToDbTask(FiretaskBase):
     """
     Raman susceptibility tensor for each mode = Finite difference derivative of the dielectric
         tensor wrt the displacement along that mode.
@@ -329,7 +329,7 @@ class RamanSusceptibilityTensorToDbTask(FireTaskBase):
 
 
 @explicit_serialize
-class GibbsFreeEnergyTask(FireTaskBase):
+class GibbsFreeEnergyTask(FiretaskBase):
     """
     Compute the quasi-harmonic gibbs free energy. There are 2 options available for the
     quasi-harmonic approximation (set via 'qha_type' parameter):
@@ -420,7 +420,7 @@ class GibbsFreeEnergyTask(FireTaskBase):
 
 
 @explicit_serialize
-class FitEquationOfStateTask(FireTaskBase):
+class FitEquationOfStateTask(FiretaskBase):
     """
     Retrieve the energy and volume data and fit it to the given equation of state. The summary dict
     is written to 'bulk_modulus.json' file.
@@ -474,7 +474,7 @@ class FitEquationOfStateTask(FireTaskBase):
 
 
 @explicit_serialize
-class ThermalExpansionCoeffTask(FireTaskBase):
+class ThermalExpansionCoeffTask(FiretaskBase):
     """
     Compute the quasi-harmonic thermal expansion coefficient using phonopy.
 

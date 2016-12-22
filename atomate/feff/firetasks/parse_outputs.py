@@ -10,7 +10,7 @@ import numpy as np
 
 from pymatgen.io.feff.inputs import Tags, Atoms
 
-from fireworks import FireTaskBase, FWAction, explicit_serialize
+from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
 from atomate.utils.utils import env_chk, get_calc_loc
@@ -24,7 +24,7 @@ logger = get_logger(__name__)
 
 
 @explicit_serialize
-class SpectrumToDbTask(FireTaskBase):
+class SpectrumToDbTask(FiretaskBase):
     """
     Parse the output of absorption/core-loss spectrum calculations(xmu.dat, eels.dat) and insert it
     into the database.
