@@ -21,7 +21,7 @@ if __name__ == "__main__":
         package_data={},
         zip_safe=False,
         install_requires=['FireWorks>=1.3.8', 'pymatgen>=4.5.4',
-                          'custodian>=1.0.1', 'pymatgen-db>=0.5.1',
+                          'custodian>=1.0.4', 'pymatgen-db>=0.5.1',
                           'monty>=0.9.5', 'tqdm>=4.7.4', 'six'],
         extras_require={'rtransfer': ['paramiko>=1.15.0'],
                         'plotting': ['matplotlib>=1.5.2'],
