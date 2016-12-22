@@ -39,8 +39,8 @@ def get_wf_point_defects(structure, defect_transformations, defect_transformatio
         defect_transformations_params (list(dict)): list of paramter dictionaries for each defect
             deformation specified in defect_transformations.
             Example: for defect_transformations =  ["VacancyTransformation"],
-             defect_transformations_params = [{"supercell_dim":[2,2,2], "species"=None,
-                                               "valences"=None, "radii"=None}]
+             defect_transformations_params = [{"supercell_dim":[2,2,2], "species":None,
+                                               "valences":None, "radii":None}]
         name (str): some appropriate name for the transmuter fireworks.
         vasp_input_set (DictVaspInputSet): vasp input set for relaxation.
         lepsilon (bool): whether or not compute static dielectric constant/normal modes
@@ -53,7 +53,8 @@ def get_wf_point_defects(structure, defect_transformations, defect_transformatio
     Returns:
         Workflow
     """
-    charge_states = charge_states or []
+    # if not given, just do the neutral system calculations
+    charge_states = charge_states or [0]
 
     # input set for relaxation
     vis_relax = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
@@ -75,14 +76,14 @@ def get_wf_point_defects(structure, defect_transformations, defect_transformatio
     for i, dt in enumerate(defect_transformations):
         scell = defect_transformations_params[i]["supercell_dim"]
         ncells = scell[0] * scell[1] * scell[2]
-        nelect = nelect_input * defect_transformations_params[i] * ncells
+        nelect = nelect_input * ncells
         for cs in charge_states:
             uis_static["NELECT"] = nelect+cs
             vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
                                      user_kpoints_settings=user_kpoints_settings,
                                      user_incar_settings=uis_static)
-            fw = TransmuterFW(name="{} {} {}".format(tag, name, dt), structure=structure,
-                              transformations=[dt],
+            fw = TransmuterFW(name="{}_{}_defect:{}_charge:{}".format(tag, name, dt, cs),
+                              structure=structure, transformations=[dt],
                               transformation_params=[defect_transformations_params[i]],
                               vasp_input_set=vis_static, copy_vasp_outputs=True, parents=fws[0],
                               vasp_cmd=vasp_cmd, db_file=db_file)
