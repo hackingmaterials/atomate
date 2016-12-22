@@ -9,7 +9,7 @@ This module defines the point defects workflow: structure optimization followed 
 from fireworks import Workflow
 
 from atomate.utils.utils import get_logger
-from atomate.vasp.fireworks.core import OptimizeFW, TransmuterFW
+from atomate.vasp.fireworks.core import OptimizeFW, TransmuterFW, StaticFW
 
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
 
@@ -67,28 +67,47 @@ def get_wf_point_defects(structure, defect_transformations, defect_transformatio
     fws = [OptimizeFW(structure=structure, vasp_input_set=vis_relax, vasp_cmd=vasp_cmd,
                       db_file=db_file, name="{} structure optimization".format(tag))]
 
-    # user input for the static inputset
+    # Static firework: copy previous outputs and do a static run on the defect-free system
     uis_static = {"ISTART": 1}
-    nelect_input = MPStaticSet(structure).nelect
+    uis_static_relax_ions = {"ISTART": 1, "IBRION": 2, "NSW": 100}
+    vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
+                             user_kpoints_settings=user_kpoints_settings,
+                             user_incar_settings=uis_static_relax_ions)
+    nelect_input = vis_static.nelect
+    fws.append(StaticFW(structure, vasp_input_set=vis_static, vasp_cmd=vasp_cmd,
+                        db_file=db_file, name="{} static calculation".format(tag),
+                        copy_vasp_outputs=True, parents=fws[0]))
 
     # Apply each defect transformation and run static calculations for each charge state
-    # ==> n_fireworks = n_defect_transformations * n_charge_states
+    # ==> n_fireworks = n_defect_transformations * n_charge_states + n_defect_transformations
     for i, dt in enumerate(defect_transformations):
+        # Transmuter firework: copy previous outputs, create supercell with the defect(neutral) and
+        # relax the ions
+        vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
+                                 user_kpoints_settings=user_kpoints_settings,
+                                 user_incar_settings=uis_static_relax_ions)
+        fw_neutral_defect = TransmuterFW(name="{}_{}_{}".format(tag, name, dt),  structure=structure,
+                                transformations=[dt],
+                                transformation_params=[defect_transformations_params[i]],
+                                vasp_input_set=vis_static, copy_vasp_outputs=True, parents=fws[1],
+                                vasp_cmd=vasp_cmd, db_file=db_file)
+        fws.append(fw_neutral_defect)
+
+        # compute the nelect for the supercell
         scell = defect_transformations_params[i]["supercell_dim"]
         ncells = scell[0] * scell[1] * scell[2]
         nelect = nelect_input * ncells
+
         for cs in charge_states:
             uis_static["NELECT"] = nelect+cs
             vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
                                      user_kpoints_settings=user_kpoints_settings,
                                      user_incar_settings=uis_static)
-            fw = TransmuterFW(name="{}_{}_defect:{}_charge:{}".format(tag, name, dt, cs),
-                              structure=structure, transformations=[dt],
-                              transformation_params=[defect_transformations_params[i]],
-                              vasp_input_set=vis_static, copy_vasp_outputs=True, parents=fws[0],
-                              vasp_cmd=vasp_cmd, db_file=db_file)
-
-            fws.append(fw)
+            # Static firework: copy outputs from neutral defect calculation and do a static
+            # calculation for the given charge state
+            fws.append(StaticFW(structure, vasp_input_set=vis_static, vasp_cmd=vasp_cmd,
+                                db_file=db_file, parents=fw_neutral_defect,
+                                name="{} {} {} static calculation".format(tag, dt, cs)))
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, name)
 
