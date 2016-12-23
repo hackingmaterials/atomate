@@ -27,8 +27,9 @@ def get_wf_point_defects(structure, defect_transformations, defect_transformatio
 
     Firework 1 : structural relaxation
 
-    Firework 2 - n_defect_transformations * n_charge_states: Apply the defect transforamtions and
-                                    run static calculation for each charge state.
+    Firework 2 : static
+
+    Firework 3 - : Apply the defect transformations and run static calculation for each charge state.
 
 
     Args:
@@ -52,6 +53,8 @@ def get_wf_point_defects(structure, defect_transformations, defect_transformatio
 
     Returns:
         Workflow
+
+    TODO: insert task to compute average electrostatic potential and pass it along
     """
     # if not given, just do the neutral system calculations
     charge_states = charge_states or [0]
