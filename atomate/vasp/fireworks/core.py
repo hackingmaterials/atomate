@@ -154,7 +154,8 @@ class NonSCFFW(Firework):
 
 class LepsFW(Firework):
     def __init__(self, structure, name="static dielectric", vasp_cmd="vasp", copy_vasp_outputs=True,
-                 db_file=None, parents=None, phonon=False, mode=None, displacement=None, **kwargs):
+                 db_file=None, parents=None, phonon=False, mode=None, displacement=None,
+                 user_incar_settings={}, **kwargs):
         """
         Standard static calculation Firework for dielectric constants using DFPT.
 
@@ -172,15 +173,18 @@ class LepsFW(Firework):
                 dielectric constant in the Raman tensor workflow.
             mode (int): normal mode index.
             displacement (float): displacement along the normal mode in Angstroms.
+            user_incar_settings (dict): Parameters in INCAR to override
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         t = []
         if parents:
             if copy_vasp_outputs:
                 t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"], contcar_to_poscar=True))
-                t.append(WriteVaspStaticFromPrev(prev_calc_dir=".", lepsilon=True))
+                t.append(WriteVaspStaticFromPrev(prev_calc_dir=".", lepsilon=True,
+                other_params={'user_incar_settings': user_incar_settings}))
         else:
-            vasp_input_set = MPStaticSet(structure, lepsilon=True)
+            vasp_input_set = MPStaticSet(structure, lepsilon=True,
+                                         user_incar_settings = user_incar_settings)
             t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
 
         if phonon:
@@ -198,7 +202,7 @@ class LepsFW(Firework):
 
         t.extend([PassCalcLocs(name=name),
                   VaspToDbTask(db_file=db_file, additional_fields={"task_label": name})])
-        
+
         super(LepsFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)
 
@@ -248,7 +252,7 @@ class TransmuterFW(Firework):
         Args:
             structure (Structure): Input structure.
             transformations (list): list of names of transformation classes as defined in
-                the modules in pymatgen.transformations. 
+                the modules in pymatgen.transformations.
                 eg:  transformations=['DeformStructureTransformation', 'SupercellTransformation']
             transformation_params (list): list of dicts where each dict specify the input parameters to
                 instantiate the transformation class in the transformations list.
@@ -279,7 +283,7 @@ class TransmuterFW(Firework):
                                                    transformation_params=transformation_params,
                                                    vasp_input_set=vasp_input_set,
                                                    override_default_vasp_params=override_default_vasp_params))
-        
+
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
