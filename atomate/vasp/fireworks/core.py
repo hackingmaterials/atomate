@@ -41,7 +41,7 @@ class OptimizeFW(Firework):
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         override_default_vasp_params = override_default_vasp_params or {}
-        vasp_input_set = vasp_input_set or MPRelaxSet(structure, force_gamma=True, **override_default_vasp_params)
+        vasp_input_set = vasp_input_set or MPRelaxSet(structure, **override_default_vasp_params)
 
         t = []
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
