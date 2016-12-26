@@ -13,4 +13,5 @@ fireworks:
       "EDIFF": 1e-10
       "SIGMA": 0.1
       "LASPH": True
+      "LAECHG": False
     parents: 0
