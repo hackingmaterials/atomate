@@ -1,0 +1,16 @@
+# Structure optimize + static dielectric constant
+fireworks:
+- fw: atomate.vasp.fireworks.core.OptimizeFW
+  params:
+    ediffg: -0.01
+- fw: atomate.vasp.fireworks.core.LepsFW
+  params:
+    name: "static piezoelectric"
+    user_incar_settings:
+      "ENCUT": 900
+      "ADDGRID": True
+      "LREAL": False
+      "EDIFF": 1e-10
+      "SIGMA": 0.1
+      "LASPH": True
+    parents: 0
