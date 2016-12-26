@@ -44,4 +44,4 @@ nosetests.xml
 .idea/*
 
 # scratch files
-matmethods/vasp/tests/scratch/*
+atomate/vasp/tests/scratch/*

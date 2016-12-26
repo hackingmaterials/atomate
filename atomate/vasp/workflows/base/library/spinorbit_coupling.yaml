@@ -1,0 +1,12 @@
+# Structure optimize, then run with spin-orbit coupling
+fireworks:
+- fw: atomate.vasp.fireworks.core.OptimizeFW
+- fw: atomate.vasp.fireworks.core.StaticFW
+  params:
+    parents: 0
+- fw: atomate.vasp.fireworks.core.SOCFW
+  params:
+    parents: 1
+    saxis: [0, 0, 1]
+    magmom: null
+    vasp_cmd: >>vasp_ncl<<

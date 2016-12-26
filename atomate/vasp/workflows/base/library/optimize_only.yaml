@@ -1,0 +1,3 @@
+# Optimize the structure (only)
+fireworks:
+- fw: atomate.vasp.fireworks.core.OptimizeFW

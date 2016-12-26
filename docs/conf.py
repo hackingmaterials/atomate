@@ -14,7 +14,7 @@
 import os
 import sys
 
-from matmethods import __version__
+from atomate import __version__
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -47,7 +47,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'MatMethods'
+project = u'atomate'
 copyright = u'2015, Anubhav Jain'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -233,9 +233,9 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    ('index', 'MatMethods', u'MatMethods Documentation',
+    ('index', 'atomate', u'atomate Documentation',
      u'Anubhav Jain',
-     'MatMethods has implementations of FireWorks workflows for Materials Science',
+     'atomate has implementations of FireWorks workflows for Materials Science',
      'Miscellaneous'),
 ]
 
@@ -252,7 +252,7 @@ texinfo_documents = [
 # -- Options for Epub output ---------------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u'MatMethods'
+epub_title = u'atomate'
 epub_author = u'Anubhav Jain'
 epub_publisher = u'Anubhav Jain'
 epub_copyright = u'2015, Anubhav Jain'
