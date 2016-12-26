@@ -10,7 +10,7 @@ fireworks:
       "ENCUT": 900
       "ADDGRID": True
       "LREAL": False
-      "EDIFF": 1e-10
+      "EDIFF": 1e-8
       "SIGMA": 0.1
       "LASPH": True
       "LAECHG": False
