@@ -20,7 +20,8 @@ from atomate.vasp.firetasks.write_inputs import *
 
 class OptimizeFW(Firework):
     def __init__(self, structure, name="structure optimization", vasp_input_set=None, vasp_cmd="vasp",
-                 override_default_vasp_params=None, ediffg=None, db_file=None, parents=None, **kwargs):
+                 override_default_vasp_params=None, ediffg=None, db_file=None,
+                 force_gamma=True, parents=None, **kwargs):
         """
         Standard structure optimization Firework.
 
@@ -36,12 +37,13 @@ class OptimizeFW(Firework):
             vasp_cmd (str): Command to run vasp.
             ediffg (float): Shortcut to set ediffg in certain jobs
             db_file (str): Path to file specifying db credentials.
+            force_gamma (bool): Force gamma centered kpoint generation
             parents (Firework): Parents of this particular Firework.
                 FW or list of FWS.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         override_default_vasp_params = override_default_vasp_params or {}
-        vasp_input_set = vasp_input_set or MPRelaxSet(structure, **override_default_vasp_params)
+        vasp_input_set = vasp_input_set or MPRelaxSet(structure, force_gamma=force_gamma,  **override_default_vasp_params)
 
         t = []
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
