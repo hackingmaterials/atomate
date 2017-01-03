@@ -19,8 +19,7 @@ from atomate.vasp.firetasks.write_inputs import *
 
 
 class OptimizeFW(Firework):
-    def __init__(self, structure, name="structure optimization",
-     vasp_input_set=None, vasp_cmd="vasp",
+    def __init__(self, structure, name="structure optimization", vasp_input_set=None, vasp_cmd="vasp",
                  override_default_vasp_params=None, ediffg=None,
                  job_type="double_relaxation_run", db_file=None, parents=None, **kwargs):
         """
