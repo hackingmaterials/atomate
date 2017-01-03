@@ -19,9 +19,10 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_point_defects(structure, defect_transformations, defect_transformations_params, charge_states=None,
-                         name="point_defects", vasp_input_set=None, lepsilon=False, vasp_cmd="vasp",
-                         db_file=None, user_kpoints_settings=None, tag=""):
+def get_wf_point_defects(structure, defect_transformations, defect_transformations_params,
+                         charge_states=None, name="point_defects", vasp_input_set=None,
+                         lepsilon=False, vasp_cmd="vasp", db_file=None, user_kpoints_settings=None,
+                         tag=""):
     """
     Returns a point defects workflow.
 
@@ -34,10 +35,10 @@ def get_wf_point_defects(structure, defect_transformations, defect_transformatio
 
     Args:
         structure (Structure): input structure to be optimized and run
-        defect_transformations ([str]): list of defect tranforamtionc lass names as defined in
+        defect_transformations ([str]): list of defect transformation class names as defined in
             pymatgen.transforamtions.defect_transformations.py.
             Example: ["VacancyTransformation", "InterstitialTransformation"]
-        defect_transformations_params (list(dict)): list of paramter dictionaries for each defect
+        defect_transformations_params (list(dict)): list of parameter dictionaries for each defect
             deformation specified in defect_transformations.
             Example: for defect_transformations =  ["VacancyTransformation"],
              defect_transformations_params = [{"supercell_dim":[2,2,2], "species":None,
