@@ -206,7 +206,8 @@ class RunVaspCustodian(FiretaskBase):
 
         c = Custodian(handlers, jobs, validators=validators, max_errors=max_errors,
                       scratch_dir=scratch_dir, gzipped_output=gzip_output,
-                      terminate_func=terminate_func, terminate_on_nonzero_returncode=terminate_on_nonzero_returncode)
+                      terminate_func=terminate_func,
+                      terminate_on_nonzero_returncode=terminate_on_nonzero_returncode)
 
         c.run()
 
