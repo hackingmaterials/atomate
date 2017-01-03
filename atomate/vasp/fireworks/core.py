@@ -22,7 +22,7 @@ class OptimizeFW(Firework):
     def __init__(self, structure, name="structure optimization",
      vasp_input_set=None, vasp_cmd="vasp",
                  override_default_vasp_params=None, ediffg=None,
-                 custodian_job_type="double_relaxation_run", db_file=None, parents=None, **kwargs):
+                 job_type="double_relaxation_run", db_file=None, parents=None, **kwargs):
         """
         Standard structure optimization Firework.
 
@@ -47,7 +47,7 @@ class OptimizeFW(Firework):
 
         t = []
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
-        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, job_type=custodian_job_type,
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, job_type=job_type,
                                   max_force_threshold=0.25, ediffg=ediffg, auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": name}))
