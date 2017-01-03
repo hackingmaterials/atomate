@@ -10,6 +10,8 @@ import shutil
 import shlex
 import subprocess
 import os
+import re
+import logging
 import six
 
 from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
@@ -76,6 +78,39 @@ class RunVaspCustodianFromObjects(FiretaskBase):
         c.run()
 
 
+class ScancelJobStepTerminator:
+    """
+    A tool to cancel a job step in a SLURM srun job using scancel command.
+    """
+
+    def __init__(self, stderr_filename):
+        """
+        Args:
+            stderr_filename: The file name of the stderr for srun job step.
+        """
+        self.stderr_filename = stderr_filename
+
+    def cancel_job_step(self):
+        step_id = self.parse_srun_step_number()
+        scancel_cmd = shlex.split("scancel --signal=KILL {}".format(step_id))
+        logging.info("Terminate the job step using {}".format(' '.join(scancel_cmd)))
+        subprocess.Popen(scancel_cmd)
+
+    def parse_srun_step_number(self):
+        step_pat_text = r"srun: launching (?P<step_id>\d+[.]\d+) on host \w+, \d+ tasks:"
+        step_pat = re.compile(step_pat_text)
+        step_id = None
+        with open(self.stderr_filename) as f:
+            err_text = f.readlines()
+        for line in err_text:
+            m = step_pat.search(line)
+            if m is not None:
+                step_id = m.group("step_id")
+        if step_id is None:
+            raise ValueError("Can't find SRUN job step number in STDERR file")
+        return step_id
+
+
 @explicit_serialize
 class RunVaspCustodian(FiretaskBase):
     """
@@ -124,6 +159,14 @@ class RunVaspCustodian(FiretaskBase):
             }
 
         vasp_cmd = env_chk(self["vasp_cmd"], fw_spec)
+        stderr_file = "std_err.txt"
+        if vasp_cmd[0] == "srun":
+            scancel_terminator = ScancelJobStepTerminator(stderr_file)
+            terminate_func = scancel_terminator.cancel_job_step
+            terminate_on_nonzero_returncode = False
+        else:
+            terminate_func = None
+            terminate_on_nonzero_returncode = True
         if isinstance(vasp_cmd, six.string_types):
             vasp_cmd = os.path.expandvars(vasp_cmd)
             vasp_cmd = shlex.split(vasp_cmd)
@@ -162,7 +205,8 @@ class RunVaspCustodian(FiretaskBase):
         validators = [VasprunXMLValidator(), VaspFilesValidator()]
 
         c = Custodian(handlers, jobs, validators=validators, max_errors=max_errors,
-                      scratch_dir=scratch_dir, gzipped_output=gzip_output)
+                      scratch_dir=scratch_dir, gzipped_output=gzip_output,
+                      terminate_func=terminate_func, terminate_on_nonzero_returncode=terminate_on_nonzero_returncode)
 
         c.run()
 
