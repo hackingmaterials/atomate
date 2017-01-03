@@ -43,6 +43,8 @@ def get_wf_point_defects(structure, defect_transformations, defect_transformatio
             Example: for defect_transformations =  ["VacancyTransformation"],
              defect_transformations_params = [{"supercell_dim":[2,2,2], "species":None,
                                                "valences":None, "radii":None}]
+        charge_states (list): list of floats indicating the extra number of electrons to be added
+            to the system(updates NELECT).
         name (str): some appropriate name for the transmuter fireworks.
         vasp_input_set (DictVaspInputSet): vasp input set for relaxation.
         lepsilon (bool): whether or not compute static dielectric constant/normal modes
