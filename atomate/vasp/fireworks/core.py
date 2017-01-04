@@ -43,6 +43,7 @@ class OptimizeFW(Firework):
         """
         override_default_vasp_params = override_default_vasp_params or {}
         vasp_input_set = vasp_input_set or MPRelaxSet(structure, force_gamma=True, **override_default_vasp_params)
+        job_type = job_type
 
         t = []
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
