@@ -411,17 +411,15 @@ def add_additional_fields_to_taskdocs(original_wf, update_dict=None):
     return Workflow.from_dict(wf_dict)
 
 
-def add_tags(original_wf, tags_list, task_name_constraints='ToD'):
+def add_tags(original_wf, tags_list):
     """
     Adds tags to all Fireworks in the Workflow, WF metadata,
-    as well as additional_fields for specific tasks specified by task_name_constraints
-    to track them later (e.g. all fireworks and vasp tasks related to a research project)
+     as well as additional_fields for the VaspDrone to track them later
+     (e.g. all fireworks and vasp tasks related to a research project)
 
     Args:
         original_wf (Workflow)
-        tags_list ([string]): list of tags parameters
-        task_name_constraints (string): default is 'ToD'; e.g. in VaspToDbTask, BoltztrapToDBTask, ElasticTensorToDbTask
-
+        tags_list: list of tags parameters (list of strings)
     """
     wf_dict = original_wf.to_dict()
 
@@ -439,7 +437,7 @@ def add_tags(original_wf, tags_list, task_name_constraints='ToD'):
             wf_dict["fws"][idx_fw]["spec"]["tags"] = tags_list
 
     # Drone
-    for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint=task_name_constraints):
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="VaspToDbTask"):
         if "tags" in wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["additional_fields"]:
             wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["additional_fields"]["tags"].extend(tags_list)
         else:
