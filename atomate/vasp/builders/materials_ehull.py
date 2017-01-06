@@ -53,7 +53,7 @@ class MaterialsEhullBuilder(AbstractBuilder):
                                            {"$set": {"stability": self.mpr.get_stability([my_entry])[0]}})
 
                 for el, elx in my_entry.composition.items():
-                    entries = self.mpr.get_entries(el.symbol)
+                    entries = self.mpr.get_entries(el.symbol, compatible_only=True)
                     min_e = min(entries, key=lambda x: x.energy_per_atom).energy_per_atom
                     energy -= elx * min_e
                 self._materials.update_one({"material_id": m["material_id"]},
