@@ -221,8 +221,8 @@ def tag_fws(original_wf, tag, fw_name_constraint=None, task_name_constraint=None
     Args:
         original_wf (Workflow):
         tag (string): user-defined tag to be added under fw.spec._fworker (e.g. "large memory", "big", etc)
-        fw_name_constraint (string): name of the fireworks to be tagged (all if None is passed)
-        task_name_constraint (string): name of the firetasks to be tagged (e.g. None or 'RunVasP')
+        fw_name_constraint (string): name of the Fireworks to be tagged (all if None is passed)
+        task_name_constraint (string): name of the Firetasks to be tagged (e.g. None or 'RunVasp')
 
     Returns:
         modified workflow with tagged Fireworkers
