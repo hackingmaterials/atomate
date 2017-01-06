@@ -343,22 +343,21 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
 
     return Workflow.from_dict(wf_dict)
 
-def tag_fws(original_wf, tag, fw_name_constraint=None, task_name_constraint=None):
+def tag_fws(original_wf, tag, fw_name_constraint=None):
     """
-    Tags Fireworker(s) of a Workflow; e.g. it can be used to run large-memory jobs on a separate queue.
+    Tags VASP Fworker(s) of a Workflow; e.g. it can be used to run large-memory jobs on a separate queue
 
     Args:
         original_wf (Workflow):
         tag (string): user-defined tag to be added under fw.spec._fworker (e.g. "large memory", "big", etc)
-        fw_name_constraint (string): name of the fireworks to be tagged (all if None is passed)
-        task_name_constraint (string): name of the firetasks to be tagged (e.g. None or "RunVasP")
+        fw_name_constraint (string): name of the fireworks to be modified (all if None is passed)
 
     Returns:
-        modified workflow with tagged Fireworkers
+        modified workflow with tagged Fworkers
     """
     wf_dict = original_wf.to_dict()
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
-                                           task_name_constraint=task_name_constraint):
+                                           task_name_constraint="RunVasp"):
         wf_dict["fws"][idx_fw]["spec"]["_fworker"] = tag
 
     return Workflow.from_dict(wf_dict)
