@@ -2,6 +2,23 @@
 atomate Changelog
 ====================
 
+**v0.4.1**
+* more fixes for elastic workflow (J. Montoya)
+* more validation for VASP runs (A. Faghaninia)
+* more flexible ObjectId insertion (A. Faghaninia)
+* misc doc updates
+
+**v0.4**
+* rename of "MatMethods" to atomate(!)
+* bulk modulus workflow and equation of state (K. Matthew)
+* add features to Gibbs workflows (K. Matthew)
+* elastic workflow updates (J. Montoya, K. Matthew)
+* Spin orbit coupling (A. Faghaninia)
+* HSE line-mode band structure workflow (A. Faghaninia)
+* Feff workflows (K. Matthew)
+* bug fixes (K. Matthew)
+* much code refactoring, cleanup, and many minor improvements (K. Matthew, A. Jain, J. Montoya, S.P. Ong, B. Bocklund, A. Faghaninia)
+
 **v0.3**
 
 * Raman workflow (K. Mathew)

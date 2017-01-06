@@ -6,9 +6,10 @@ atomate development is led by the Hacking Materials research group led by Anubha
 
 Major contributions are provided by:
 
-* The Materials Virtual Lab research group of Prof. Shyue Ping Ong at UC San Diego.
+* Alireza Faghaninia in the Hacking Materials group.
 * Kiran Mathew, Shyam Dwaraknath, Joey Montoya, and Murat Aykol through the research group of Prof. Kristin Persson at UC Berkeley.
+* The Materials Virtual Lab research group of Prof. Shyue Ping Ong at UC San Diego.
 
 Minor contributions are provided by:
 
-* Alireza Faghaninia
+* Brandon Bocklund at Penn State.
