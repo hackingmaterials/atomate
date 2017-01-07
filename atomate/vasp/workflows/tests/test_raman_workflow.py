@@ -34,10 +34,10 @@ VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this c
 class TestRamanWorkflow(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if not SETTINGS.get("VASP_PSP_DIR"):
-            SETTINGS["VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "reference_files")
+        if not SETTINGS.get("PMG_VASP_PSP_DIR"):
+            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "reference_files")
             print('This system is not set up to run VASP jobs. '
-                  'Please set VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
+                  'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
         cls.struct_si = PymatgenTest.get_structure("Si")
         cls.scratch_dir = os.path.join(module_dir, "scratch")
