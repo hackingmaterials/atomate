@@ -45,6 +45,3 @@ nosetests.xml
 
 # scratch files
 atomate/vasp/tests/scratch/*
-
-# User task fw and wf.
-user/*
