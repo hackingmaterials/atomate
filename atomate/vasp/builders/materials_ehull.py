@@ -52,6 +52,13 @@ class MaterialsEhullBuilder(AbstractBuilder):
                 self._materials.update_one({"material_id": m["material_id"]},
                                            {"$set": {"stability": self.mpr.get_stability([my_entry])[0]}})
 
+                for el, elx in my_entry.composition.items():
+                    entries = self.mpr.get_entries(el.symbol, compatible_only=True)
+                    min_e = min(entries, key=lambda x: x.energy_per_atom).energy_per_atom
+                    energy -= elx * min_e
+                self._materials.update_one({"material_id": m["material_id"]},
+                                           {"$set": {"thermo.formation_energy_per_atom": energy / structure.num_sites}})
+
                 mpids = self.mpr.find_structure(structure)
                 self._materials.update_one({"material_id": m["material_id"]}, {"$set": {"mpids": mpids}})
 

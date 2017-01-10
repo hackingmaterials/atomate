@@ -32,7 +32,7 @@ Although atomate itself should be pip-installable, the actual process to get an 
 Testing the VASP functionality
 ==============================
 
-In order to use the VASP functionality, make sure you set up VASP_PSP_DIR variable (see pymatgen docs). Also, make sure you have MongoDB running in order to execute all the tests.
+In order to use the VASP functionality, make sure you set up PMG_VASP_PSP_DIR variable (see pymatgen docs). Also, make sure you have MongoDB running in order to execute all the tests.
 
 To test the VASP functionality, first run the unit tests in ``atomate.vasp.tests``. These unit tests are designed to run without installing VASP. Some of them start with a VASP workflow but apply the ``use_fake_vasp`` method to replace calling the VASP executable with a "Faker" that verifies basic properties of the inputs and copies pre-stored output files to the current directory, thus simulating the execution of VASP. Anyway this will help make sure your installation is in good shape.
 
@@ -97,7 +97,7 @@ Preliminaries
 Set some environment variables
 ------------------------------
 
-1. Make sure your ``VASP_PSP_DIR`` environment variable is set to point to your VASP pseudopotential directories (this is a pymatgen thing). Probably you want to put this in your ``.bash_profile`` (or equivalent, e.g., ``.bashrc.ext`` at NERSC) and never have to worry about this again. Otherwise, you will need to do this each and every time.
+1. Make sure your ``PMG_VASP_PSP_DIR`` environment variable is set to point to your VASP pseudopotential directories (this is a pymatgen thing). Probably you want to put this in your ``.bash_profile`` (or equivalent, e.g., ``.bashrc.ext`` at NERSC) and never have to worry about this again. Otherwise, you will need to do this each and every time.
 
 Install some codes
 ------------------
