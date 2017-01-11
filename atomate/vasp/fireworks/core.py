@@ -20,7 +20,8 @@ from atomate.vasp.firetasks.write_inputs import *
 
 class OptimizeFW(Firework):
     def __init__(self, structure, name="structure optimization", vasp_input_set=None, vasp_cmd="vasp",
-                 override_default_vasp_params=None, ediffg=None, db_file=None, parents=None, **kwargs):
+                 override_default_vasp_params=None, ediffg=None,
+                 job_type="double_relaxation_run", db_file=None, parents=None, **kwargs):
         """
         Standard structure optimization Firework.
 
@@ -42,10 +43,11 @@ class OptimizeFW(Firework):
         """
         override_default_vasp_params = override_default_vasp_params or {}
         vasp_input_set = vasp_input_set or MPRelaxSet(structure, force_gamma=True, **override_default_vasp_params)
+        job_type = job_type
 
         t = []
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
-        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, job_type="double_relaxation_run",
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, job_type=job_type,
                                   max_force_threshold=0.25, ediffg=ediffg, auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": name}))
@@ -198,7 +200,7 @@ class LepsFW(Firework):
 
         t.extend([PassCalcLocs(name=name),
                   VaspToDbTask(db_file=db_file, additional_fields={"task_label": name})])
-        
+
         super(LepsFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)
 
@@ -248,7 +250,7 @@ class TransmuterFW(Firework):
         Args:
             structure (Structure): Input structure.
             transformations (list): list of names of transformation classes as defined in
-                the modules in pymatgen.transformations. 
+                the modules in pymatgen.transformations.
                 eg:  transformations=['DeformStructureTransformation', 'SupercellTransformation']
             transformation_params (list): list of dicts where each dict specify the input parameters to
                 instantiate the transformation class in the transformations list.
@@ -279,7 +281,7 @@ class TransmuterFW(Firework):
                                                    transformation_params=transformation_params,
                                                    vasp_input_set=vasp_input_set,
                                                    override_default_vasp_params=override_default_vasp_params))
-        
+
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
