@@ -51,8 +51,7 @@ class RunVaspDirect(FiretaskBase):
         vasp_cmd = env_chk(self["vasp_cmd"], fw_spec)
         logger.info("Running VASP using exe: {}".format(vasp_cmd))
         return_code = subprocess.call(vasp_cmd, shell=True)
-        logger.info(
-            "VASP finished running with returncode: {}".format(return_code))
+        logger.info("VASP finished running with returncode: {}".format(return_code))
 
 
 @explicit_serialize
