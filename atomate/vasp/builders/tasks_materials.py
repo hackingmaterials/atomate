@@ -27,7 +27,7 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 class TasksMaterialsBuilder(AbstractBuilder):
     def __init__(self, materials_write, counter_write, tasks_read, tasks_prefix="t", materials_prefix="m",
-                 excluded_tasks=None):
+                 query=None):
         """
         Create a materials collection from a tasks collection.
 
@@ -35,7 +35,7 @@ class TasksMaterialsBuilder(AbstractBuilder):
             materials_write (pymongo.collection): mongodb collection for materials (write access needed)
             counter_write (pymongo.collection): mongodb collection for counter (write access needed)
             tasks_read (pymongo.collection): mongodb collection for tasks (suggest read-only for safety)
-            excluded_tasks (dict): a query on tasks_read for the tasks to be excluded from the materials collection
+            query (dict): a pymongo query on tasks_read for which tasks to include in the builder
         """
         x = loadfn(os.path.join(module_dir, "tasks_materials_settings.yaml"))
         self.supported_task_labels = x['supported_task_labels']
@@ -55,7 +55,7 @@ class TasksMaterialsBuilder(AbstractBuilder):
 
         self._t_prefix = tasks_prefix
         self._m_prefix = materials_prefix
-        self.excluded_tasks = excluded_tasks
+        self.query = query
 
     def tid_str(self, task_id):
         # converts int material_id to string
@@ -76,17 +76,18 @@ class TasksMaterialsBuilder(AbstractBuilder):
         for m in self._materials.find({}, {"_tasksbuilder.all_task_ids": 1}):
             previous_task_ids.extend(m["_tasksbuilder"]["all_task_ids"])
 
-        excluded_task_ids = []
-        if self.excluded_tasks:
-            for task in self._tasks.find(self.excluded_tasks):
-                excluded_task_ids.append("{}-{}".format(self._t_prefix, task["task_id"]))
+        q = {}
+        q["state"] == "successful"
+        q["task_label"] = {"$in": self.supported_task_labels}
 
-        all_task_ids = [self.tid_str(t["task_id"])
-                        for t in self._tasks.find({"state": "successful",
-                                                   "task_label": {"$in": self.supported_task_labels}},
-                                                  {"task_id": 1})]
-        task_ids = [t_id for t_id in all_task_ids if t_id not in previous_task_ids and t_id not in excluded_task_ids]
+        if self.query:
+            for k in q:
+                if k in self.query:
+                    raise ValueError("User query parameter cannot contain key: {}".format(k))
+            q.update(self.query)
 
+        all_task_ids = [self.tid_str(t["task_id"]) for t in self._tasks.find(q, {"task_id": 1})]
+        task_ids = [t_id for t_id in all_task_ids if t_id not in previous_task_ids]
 
         print("There are {} new task_ids to process.".format(len(task_ids)))
 
