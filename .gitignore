@@ -43,5 +43,7 @@ nosetests.xml
 # Pycharm
 .idea/*
 
+.eggs/*
+
 # scratch files
 atomate/vasp/tests/scratch/*
