@@ -129,6 +129,7 @@ class VaspToDbTask(FiretaskBase):
                         defuse_children=defuse_children)
 
 
+# TODO: rename to BoltztrapToDb task (capitalization), keep old name backwards-compatible
 @explicit_serialize
 class BoltztrapToDBTask(FiretaskBase):
     """
