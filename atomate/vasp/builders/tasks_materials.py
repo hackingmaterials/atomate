@@ -77,7 +77,7 @@ class TasksMaterialsBuilder(AbstractBuilder):
             previous_task_ids.extend(m["_tasksbuilder"]["all_task_ids"])
 
         q = {}
-        q["state"] == "successful"
+        q["state"] = "successful"
         q["task_label"] = {"$in": self.supported_task_labels}
 
         if self.query:
