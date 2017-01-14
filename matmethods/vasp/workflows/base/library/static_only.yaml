@@ -1,3 +1,0 @@
-# A static run (only)
-fireworks:
-- fw: matmethods.vasp.fireworks.core.StaticFW

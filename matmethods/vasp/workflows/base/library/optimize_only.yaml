@@ -1,3 +1,0 @@
-# Optimize the structure (only)
-fireworks:
-- fw: matmethods.vasp.fireworks.core.OptimizeFW

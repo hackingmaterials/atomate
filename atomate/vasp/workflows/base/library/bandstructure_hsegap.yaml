@@ -1,0 +1,19 @@
+# A typical band structure with a quick hybrid (HSE) gap estimation
+fireworks:
+- fw: atomate.vasp.fireworks.core.OptimizeFW
+- fw: atomate.vasp.fireworks.core.StaticFW
+  params:
+    parents: 0
+- fw: atomate.vasp.fireworks.core.NonSCFFW
+  params:
+    parents: 1
+    mode: uniform
+- fw: atomate.vasp.fireworks.core.NonSCFFW
+  params:
+    parents: 1
+    mode: line
+- fw: atomate.vasp.fireworks.core.HSEBSFW
+  params:
+    parents: 3
+    mode: gap
+    kpoints_line_density: 10

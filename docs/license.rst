@@ -2,9 +2,9 @@
 License
 =======
 
-MatMethods is developed under a BSD-style License (an open-source license), reproduced below::
+atomate is developed under a BSD-style License (an open-source license), reproduced below::
 
-    MatMethods Copyright (c) 2015, The Regents of the University of
+    atomate Copyright (c) 2015, The Regents of the University of
     California, through Lawrence Berkeley National Laboratory (subject
     to receipt of any required approvals from the U.S. Dept. of Energy).
     All rights reserved.

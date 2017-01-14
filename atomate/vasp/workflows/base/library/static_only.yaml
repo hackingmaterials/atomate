@@ -1,0 +1,3 @@
+# A static run (only)
+fireworks:
+- fw: atomate.vasp.fireworks.core.StaticFW

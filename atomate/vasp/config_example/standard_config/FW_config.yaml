@@ -1,0 +1,5 @@
+ADD_USER_PACKAGES: 
+  - atomate.vasp.firetasks
+CONFIG_FILE_DIR: <<PATH_TO_CONFIG_DIR>>
+ECHO_TEST: <<ECHO_STR or delete this line>>
+QUEUE_UPDATE_INTERVAL: 5
