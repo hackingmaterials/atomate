@@ -29,6 +29,9 @@ class TestVaspPowerups(unittest.TestCase):
         cls.bs_wf = get_wf(struct_si,
                            "bandstructure.yaml",
                            vis=vis, common_params={"vasp_cmd": "test_VASP"})
+        cls.bsboltz_wf = get_wf(struct_si,
+                           "bandstructure_boltztrap.yaml",
+                           vis=vis)
 
     def _copy_wf(self, wf):
         return Workflow.from_dict(wf.to_dict())
@@ -125,15 +128,31 @@ class TestVaspPowerups(unittest.TestCase):
 
         self.assertEqual(my_wf.metadata["tags"], ["a", "b", "c"])
         for fw in my_wf.fws:
-            print(fw.spec["tags"])
             self.assertEqual(fw.spec["tags"], ["b", "c"])
             for t in fw.tasks:
                 if 'VaspToDbTask' in str(t):
                     self.assertEqual(t["additional_fields"]["tags"], ["b", "c"])
                     found += 1
-
         self.assertEqual(found, 4)
 
+        my_wf = self._copy_wf(self.bsboltz_wf)
+        my_wf = add_tags(my_wf, ["foo", "bar"])
+
+        v_found = 0
+        b_found = 0
+
+        self.assertEqual(my_wf.metadata["tags"], ["foo", "bar"])
+        for fw in my_wf.fws:
+            self.assertEqual(fw.spec["tags"], ["foo", "bar"])
+            for t in fw.tasks:
+                if 'BoltztrapToDBTask' in str(t):
+                    self.assertEqual(t["additional_fields"]["tags"], ["foo", "bar"])
+                    b_found += 1
+                if 'VaspToDbTask' in str(t):
+                    self.assertEqual(t["additional_fields"]["tags"], ["foo", "bar"])
+                    v_found += 1
+        self.assertEqual(b_found, 1)
+        self.assertEqual(v_found, 4)
 
 if __name__ == "__main__":
     unittest.main()

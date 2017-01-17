@@ -129,6 +129,7 @@ class VaspToDbTask(FiretaskBase):
                         defuse_children=defuse_children)
 
 
+# TODO: rename to BoltztrapToDb task (capitalization), keep old name backwards-compatible
 @explicit_serialize
 class BoltztrapToDBTask(FiretaskBase):
     """
@@ -138,14 +139,21 @@ class BoltztrapToDBTask(FiretaskBase):
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
         hall_doping (bool): set True to retain hall_doping in dict
+        additional_fields (dict): fields added to the document such as user-defined tags or name, ids, etc
     """
 
-    optional_params = ["db_file", "hall_doping"]
+    optional_params = ["db_file", "hall_doping", "additional_fields"]
 
     def run_task(self, fw_spec):
+        additional_fields = self.get("additional_fields", {})
+        # pass the additional_fields first to avoid overriding BoltztrapAnalyzer items
+        d = additional_fields.copy()
+
         btrap_dir = os.path.join(os.getcwd(), "boltztrap")
         bta = BoltztrapAnalyzer.from_files(btrap_dir)
-        d = bta.as_dict()
+        for key in bta.as_dict():
+            d[key] = bta.as_dict()[key]
+
         d["boltztrap_dir"] = btrap_dir
 
         # trim the output
@@ -156,6 +164,7 @@ class BoltztrapToDBTask(FiretaskBase):
             del d["hall_doping"]
 
         d["scissor"] = bta.intrans["scissor"]
+
 
         # add the structure
         bandstructure_dir = os.getcwd()
