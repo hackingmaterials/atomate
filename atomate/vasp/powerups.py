@@ -436,12 +436,13 @@ def add_tags(original_wf, tags_list):
         else:
             wf_dict["fws"][idx_fw]["spec"]["tags"] = tags_list
 
-    # Drone
-    for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="VaspToDbTask"):
-        if "tags" in wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["additional_fields"]:
-            wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["additional_fields"]["tags"].extend(tags_list)
-        else:
-            wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["additional_fields"]["tags"] = tags_list
+    # DB insertion tasks
+    for constraint in ["VaspToDbTask", "BoltztrapToDBTask"]:
+        for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint=constraint):
+            if "tags" in wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["additional_fields"]:
+                wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["additional_fields"]["tags"].extend(tags_list)
+            else:
+                wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["additional_fields"]["tags"] = tags_list
 
     return Workflow.from_dict(wf_dict)
 

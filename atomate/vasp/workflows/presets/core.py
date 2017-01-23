@@ -169,16 +169,14 @@ def wf_dielectric_constant(structure, c=None):
 def wf_piezoelectric_constant(structure, c=None):
 
     c = c or {}
-    wf = wf_dielectric_constant(structure, c)
+    vasp_cmd = c.get("VASP_CMD", VASP_CMD)
+    db_file = c.get("DB_FILE", DB_FILE)
 
-    wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 1000,
-                                                                    "ADDGRID": True,
-                                                                    "LREAL": False,
-                                                                    "EDIFF": 1e-7}
-                                                   },
-                          fw_name_constraint="static dielectric")
-    for fw in wf.fws:
-        fw.name = fw.name.replace("dielectric", "piezoelectric")
+    wf = get_wf(structure, "piezoelectric_constant.yaml",
+                common_params={"vasp_cmd": vasp_cmd,
+                               "db_file": db_file})
+
+    wf = add_common_powerups(wf, c)
 
     if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
         wf = add_wf_metadata(wf, structure)
