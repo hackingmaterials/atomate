@@ -192,11 +192,13 @@ def wf_elastic_constant(structure, c=None):
     user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
     norm_deformations = c.get("norm_deformations", [-0.01, -0.005, 0.005, 0.01])
     shear_deformations = c.get("shear_deformations", [-0.06, -0.03, 0.03, 0.06])
+    optimize_first = c.get("optimize_first", True)
 
     wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd,
                                  norm_deformations=norm_deformations,
                                  shear_deformations=shear_deformations,
-                                 db_file=db_file, user_kpoints_settings=user_kpoints_settings)
+                                 db_file=db_file, user_kpoints_settings=user_kpoints_settings,
+                                 optimize_first=optimize_first)
     mip = {"incar_update":{"ENCUT": 700, "EDIFF": 1e-6, "LAECHG":False}}
     wf = add_modify_incar(wf, modify_incar_params=mip)
 

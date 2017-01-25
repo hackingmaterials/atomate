@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 
 def get_wf_deformations(structure, deformations, name="deformation", vasp_input_set=None,
                         lepsilon=False, vasp_cmd="vasp", db_file=None, user_kpoints_settings=None,
-                        pass_stress_strain=False, tag="", relax_deformed=False):
+                        pass_stress_strain=False, tag="", relax_deformed=False, optimize_first=True):
     """
     Returns a structure deformation workflow.
 
@@ -64,10 +64,12 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
     vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
                              user_kpoints_settings=user_kpoints_settings,
                              user_incar_settings=uis_static)
-
-    # Structure optimization firework
-    fws = [OptimizeFW(structure=structure, vasp_input_set=vis_relax, vasp_cmd=vasp_cmd,
-                      db_file=db_file, name="{} structure optimization".format(tag))]
+    fws, parents = [], []
+    if optimize_first:
+        # Structure optimization firework
+        fws = [OptimizeFW(structure=structure, vasp_input_set=vis_relax, vasp_cmd=vasp_cmd,
+                          db_file=db_file, name="{} structure optimization".format(tag))]
+        parents = fws[0]
 
     # Deformation fireworks with the task to extract and pass stress-strain appended to it.
     for n, deformation in enumerate(deformations):
