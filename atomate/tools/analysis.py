@@ -9,6 +9,7 @@ import numpy as np
 from scipy.optimize import minimize
 from scipy.integrate import quadrature
 from scipy.constants import physical_constants
+from scipy.misc import derivative
 
 from pymatgen.analysis.eos import EOS
 
@@ -57,8 +58,8 @@ class QuasiharmonicDebyeApprox(object):
         self.optimum_volumes = []  # in Ang^3
         # fit E and V and get the bulk modulus(used to compute the debye temperature)
         self.eos = EOS(eos)
-        eos_fit = self.eos.fit(volumes, energies)
-        self.bulk_modulus = eos_fit.b0_GPa  # in GPa
+        self.ev_eos_fit = self.eos.fit(volumes, energies)
+        self.bulk_modulus = self.ev_eos_fit.b0_GPa  # in GPa
         self.optimize_gibbs_free_energy()
 
     def optimize_gibbs_free_energy(self):
@@ -180,6 +181,9 @@ class QuasiharmonicDebyeApprox(object):
     def gruneisen_parameter(self, temperature, volume):
         """
         Eq(31) in doi.org/10.1016/j.comphy.2003.12.001
+        Eq(7) in MA Blanc0 ef al.lJoumal of Molecular Structure (Theochem) 368 (1996) 245-255
+        Also se J.-P. Poirier, Introduction to the Physics of the Earth’s Interior, 2nd ed.
+            (Cambridge University Press, Cambridge, 2000) Eq(3.53)
 
         Args:
             temperature (float): temperature in K
@@ -188,7 +192,11 @@ class QuasiharmonicDebyeApprox(object):
         Returns:
             float: unitless
         """
-        return self.gpa_to_ev_ang * volume * self.pressure / self.vibrational_internal_energy(temperature, volume)
+        # first derivative of energy at 0K wrt volume evaluated at the given volume
+        p0 = derivative(self.ev_eos_fit.func, volume, dx=1e-6,
+                        args=tuple(tuple(self.ev_eos_fit.eos_params.tolist())))  # in eV/Ang^3
+        p0 = p0 / self.gpa_to_ev_ang  # in GPa
+        return self.gpa_to_ev_ang * volume * (self.pressure + p0) / self.vibrational_internal_energy(temperature, volume)
 
     def thermal_conductivity(self, temperature, volume):
         """
