@@ -365,7 +365,7 @@ class GibbsFreeEnergyTask(FiretaskBase):
     """
 
     required_params = ["tag", "db_file"]
-    optional_params = ["qha_type", "t_min", "t_step", "t_max", "mesh", "eos", "pressure"]
+    optional_params = ["qha_type", "t_min", "t_step", "t_max", "mesh", "eos", "pressure", "poisson"]
 
     def run_task(self, fw_spec):
 
@@ -378,6 +378,7 @@ class GibbsFreeEnergyTask(FiretaskBase):
         eos = self.get("eos", "vinet")
         qha_type = self.get("qha_type", "debye_model")
         pressure = self.get("pressure", 0.0)
+        poisson = self.get("poisson", 0.25)
         gibbs_summary_dict = {}
 
         mmdb = MMVaspDb.from_db_file(db_file, admin=True)
@@ -403,14 +404,14 @@ class GibbsFreeEnergyTask(FiretaskBase):
         if qha_type not in ["debye_model"]:
             gibbs_summary_dict["force_constants"] = force_constants
 
-        G, T = None, None
-        # use debye model
+        # use quasi-harmonic debye approximation
         if qha_type in ["debye_model"]:
 
-            from atomate.tools.analysis import get_debye_model_gibbs
+            from atomate.tools.analysis import QuasiharmonicDebyeApprox
 
-            G, T = get_debye_model_gibbs(energies, volumes, structure, t_min, t_step, t_max, eos,
-                                         pressure)
+            qhda = QuasiharmonicDebyeApprox(energies, volumes, structure, t_min, t_step, t_max, eos,
+                                            pressure=pressure, poisson=poisson)
+            gibbs_summary_dict.update(qhda.get_summary_dict())
 
         # use the phonopy interface
         else:
@@ -419,9 +420,8 @@ class GibbsFreeEnergyTask(FiretaskBase):
 
             G, T = get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_step,
                                      t_max, mesh, eos, pressure)
-
-        gibbs_summary_dict["G"] = G
-        gibbs_summary_dict["T"] = T
+            gibbs_summary_dict["gibbs_free_energy"] = G
+            gibbs_summary_dict["temperatures"] = T
 
         with open("gibbs.json", "w") as f:
             f.write(json.dumps(gibbs_summary_dict, default=DATETIME_HANDLER))
