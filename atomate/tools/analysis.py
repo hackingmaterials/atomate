@@ -3,9 +3,12 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 from collections import  defaultdict
+
 import numpy as np
+
 from scipy.optimize import minimize
 from scipy.integrate import quadrature
+from scipy.constants import physical_constants
 
 from pymatgen.analysis.eos import EOS
 
@@ -13,14 +16,15 @@ __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 
 
-class DebyeModelQHA(object):
+class QuasiharmonicDebyeApprox(object):
     """
-    Compute QHA gibbs free energy using the debye model. See the paper:
-    http://doi.org/10.1016/j.comphy.2003.12.001
+    Implements the quasiharmonic Debye approximation as described in papers:
+    http://doi.org/10.1016/j.comphy.2003.12.001 (2004) and
+    http://doi.org/10.1103/PhysRevB.90.174107 (2014)
 
     Args:
-        energies (list):
-        volumes (list):
+        energies (list): list of DFT energies in eV
+        volumes (list): list of volumes in Ang^3
         structure (Structure):
         t_min (float): min temperature
         t_step (float): temperature step
@@ -29,6 +33,7 @@ class DebyeModelQHA(object):
             options supported by pymatgen: "quadratic", "murnaghan", "birch", "birch_murnaghan",
             "pourier_tarantola", "vinet", "deltafactor"
         pressure (float): in GPa, optional.
+        poisson (float): poisson ratio.
     """
     def __init__(self, energies, volumes, structure, t_min, t_step, t_max, eos, pressure=0,
                  poisson=0.25):
@@ -43,19 +48,22 @@ class DebyeModelQHA(object):
         self.poisson = poisson
         self.mass = sum([e.atomic_mass for e in self.structure.species])
         self.natoms = self.structure.composition.num_atoms
-        self.gibbs_free_energy = []
-        self.temperatures = []
-        self.optimum_volumes = []
+        self.avg_mass = physical_constants["atomic mass constant"][0] * self.mass / self.natoms  # kg
+        self.kb = physical_constants["Boltzmann constant in eV/K"][0]
+        self.hbar = physical_constants["Planck constant over 2 pi in eV s"][0]
+        self.gibbs_free_energy = []  # optimized values, eV
+        self.temperatures = []  # list of temperatures for which the optimized values are available, K
+        self.optimum_volumes = []  # in Ang^3
         # fit E and V and get the bulk modulus(used to compute the debye temperature)
-        eos = EOS(eos)
-        eos_fit = eos.fit(volumes, energies)
+        self.eos = EOS(eos)
+        eos_fit = self.eos.fit(volumes, energies)
         self.bulk_modulus = eos_fit.b0_GPa  # in GPa
-        self.compute_gibbs_free_energy()
+        self.optimize_gibbs_free_energy()
 
-    def compute_gibbs_free_energy(self):
+    def optimize_gibbs_free_energy(self):
         """
-        Evaluate the gibbs free energy as a function of V, T and P i.e G(V, T, P) and
-        minimize G(V, T, P) wrt V for each T.
+        Evaluate the gibbs free energy as a function of V, T and P i.e G(V, T, P),
+        minimize G(V, T, P) wrt V for each T and store the optimum values.
 
         Note: The data points for which the equation of state fitting fails are skipped.
         """
@@ -63,7 +71,7 @@ class DebyeModelQHA(object):
                                    np.ceil((self.temperature_max-self.temperature_min)/self.temperature_step)+1)
         for t in temperatures:
             try:
-                G_opt, V_opt = self.minimizer(t)
+                G_opt, V_opt = self.optimizer(t)
             except:
                 print("EOS fitting failed, so skipping this data point")
                 continue
@@ -71,7 +79,7 @@ class DebyeModelQHA(object):
             self.temperatures.append(t)
             self.optimum_volumes.append(V_opt)
 
-    def minimizer(self, temperature):
+    def optimizer(self, temperature):
         """
         Evaluate G(V, T, P) at the given temperature(and pressure) and minimize it wrt V.
 
@@ -84,10 +92,9 @@ class DebyeModelQHA(object):
             temperature (float): temperature in K
 
         Returns:
-            float, float: G_opt(V_opt, T, P) and V_opt.
+            float, float: G_opt(V_opt, T, P) in eV and V_opt in Ang^3.
         """
         G_V = []  # G for each volume
-
         # G = E(V) + PV + A_vib(V, T)
         for i, v in enumerate(self.volumes):
             G_V.append(self.energies[i] +
@@ -114,16 +121,15 @@ class DebyeModelQHA(object):
             volume (float)
 
         Returns:
-            float: vibrational free energy
+            float: vibrational free energy in eV
         """
         y = self.debye_temperature(volume) / temperature
-        return 8.617332 * 1e-5 * self.natoms * temperature * (9. / 8. * y +
-                                                              3 * np.log(1 - np.exp(-y))
-                                                              - self.debye_integral(y))
+        return self.kb * self.natoms * temperature * (9. / 8. * y + 3 * np.log(1 - np.exp(-y))
+                                                      - self.debye_integral(y))
 
     def vibrational_internal_energy(self, temperature, volume):
         """
-        Vibrational Helmholtz free energy, A_vib(V, T).
+        Vibrational internal energy, U_vib(V, T).
         Eq(4) in doi.org/10.1016/j.comphy.2003.12.001
 
         Args:
@@ -131,11 +137,10 @@ class DebyeModelQHA(object):
             volume (float): in Ang^3
 
         Returns:
-            float: vibrational free energy
+            float: vibrational internal energy in eV
         """
         y = self.debye_temperature(volume) / temperature
-        return 8.617332 * 1e-5 * self.natoms * temperature * (9. / 8. * y +
-                                                              3 * self.debye_integral(y))
+        return self.kb * self.natoms * temperature * (9. / 8. * y + 3 * self.debye_integral(y))
 
     def debye_temperature(self, volume):
         """
@@ -146,13 +151,12 @@ class DebyeModelQHA(object):
             volume (float): in Ang^3
 
         Returns:
-            debye temperature (in SI units)
+            float: debye temperature in K
          """
-        avg_mass = 1.6605e-27 * self.mass / self.natoms
         term1 = (2. / 3. * (1. + self.poisson) / (1. - 2. * self.poisson)) ** (1.5)
         term2 = (1. / 3. * (1. + self.poisson) / (1. - self.poisson)) ** (1.5)
         f = (3. / (2. * term1 + term2)) ** (1. / 3.)
-        return 2.9772e-11 * (volume / self.natoms) ** (-1. / 6.) * f * np.sqrt(self.bulk_modulus/avg_mass)
+        return 2.9772e-11 * (volume / self.natoms) ** (-1. / 6.) * f * np.sqrt(self.bulk_modulus/self.avg_mass)
 
     def debye_integral(self, y):
         """
@@ -162,7 +166,7 @@ class DebyeModelQHA(object):
             y (float): debye temperature/T, upper limit
 
         Returns:
-            float
+            float: unitless
         """
         # floating point limit is reached around y=155, so values beyond that are set to the
         # limiting value(T-->0, y --> \infty) of 6.4939394 (from wolfram alpha).
@@ -173,12 +177,41 @@ class DebyeModelQHA(object):
             return 6.493939 * factor
 
     def gruneisen_parameter(self, temperature, volume):
-        return volume * self.pressure / self.vibrational_internal_energy(temperature,volume)
+        """
+        Eq(31) in doi.org/10.1016/j.comphy.2003.12.001
+
+        Args:
+            temperature (float): temperature in K
+            volume (float): in Ang^3
+
+        Returns:
+            float: unitless
+        """
+        gpa_to_ev_ang = 1./160.21766208  # 1 GPa in ev/Ang^3
+        return gpa_to_ev_ang * volume * self.pressure / self.vibrational_internal_energy(temperature, volume)
 
     def thermal_conductivity(self, temperature, volume):
-        pass
+        """
+        Eq(17) in 10.1103/PhysRevB.90.174107
 
-    def summary_dict(self):
+        Args:
+            temperature (float): temperature in K
+            volume (float): in Ang^3
+
+        Returns:
+            float: W/K/m
+        """
+        gamma = self.gruneisen_parameter(temperature, volume)
+        theta_d = self.debye_temperature(volume)  # K
+        theta_a = theta_d * self.natoms**(-1./3.)  # K
+        prefactor = (0.849 * 3 * 4**(1./3.)) / (20. * np.pi**3)
+        prefactor = prefactor * (self.kb/self.hbar)**3 * self.avg_mass  # kg/K^3/s^3
+        kappa = prefactor / (gamma**2 - 0.514 * gamma + 0.228)
+        # kg/K/s^3 * Ang = (kg m/s^2)/(Ks)*1e-10 = N/(Ks)*1e-10 = Nm/(Kms)*1e-10 = W/K/m*1e-10
+        kappa = kappa * theta_a**2 * volume**(1./3.) * 1e-10
+        return kappa
+
+    def get_summary_dict(self):
         d = defaultdict(list)
         d["gibbs_free_energy"] = self.gibbs_free_energy
         d["temperatures"] = self.temperatures
