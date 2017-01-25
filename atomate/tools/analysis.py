@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 from collections import  defaultdict
 import numpy as np
+from scipy.optimize import minimize
 from scipy.integrate import quadrature
 
 from pymatgen.analysis.eos import EOS
@@ -45,21 +46,22 @@ class DebyeModelQHA(object):
         self.gibbs_free_energy = []
         self.temperatures = []
         self.optimum_volumes = []
-        # fit E and V, get the bulk modulus
+        # fit E and V and get the bulk modulus(used to compute the debye temperature)
         eos = EOS(eos)
         eos_fit = eos.fit(volumes, energies)
         self.bulk_modulus = eos_fit.b0_GPa  # in GPa
+        self.compute_gibbs_free_energy()
 
     def compute_gibbs_free_energy(self):
         """
-        Evaluate the gibbs free energy as a function of V,T and P i.e G(V, T, P) and
-        minimize G(V, T, P) wrt V.
+        Evaluate the gibbs free energy as a function of V, T and P i.e G(V, T, P) and
+        minimize G(V, T, P) wrt V for each T.
 
         Note: The data points for which the equation of state fitting fails are skipped.
         """
-        temp = np.linspace(self.temperature_min, self.temperature_max,
-                           np.ceil((self.temperature_max-self.temperature_min)/self.temperature_step)+1)
-        for t in temp:
+        temperatures = np.linspace(self.temperature_min,  self.temperature_max,
+                                   np.ceil((self.temperature_max-self.temperature_min)/self.temperature_step)+1)
+        for t in temperatures:
             try:
                 G_opt, V_opt = self.minimizer(t)
             except:
@@ -71,32 +73,36 @@ class DebyeModelQHA(object):
 
     def minimizer(self, temperature):
         """
-        1. Use the debye temperature to compute the  vibrational free energy.
-        2. Compute the gibbs free energy as a function of volume, temperature and pressure.
-        3. A second fit is preformed to get the functional form of gibbs free energy:(G, V, T, P).
-        4. Finally G(V, P, T) is minimized with respect to V and the optimum value of G evaluated
-            at V_opt, G_opt(V_opt, T, P) and V_opt are returned.
+        Evaluate G(V, T, P) at the given temperature(and pressure) and minimize it wrt V.
+
+        1. Compute the  vibrational helmholtz free energy, A_vib.
+        2. Compute the gibbs free energy as a function of volume, temperature and pressure, G(V,T,P).
+        3. Preform an equation of state fit to get the functional form of gibbs free energy:G(V, T, P).
+        4. Finally G(V, P, T) is minimized with respect to V.
 
         Args:
             temperature (float): temperature in K
 
         Returns:
-            float, float: gibbs free energy at the given temperature and pressure minimized wrt
-                volume.
+            float, float: G_opt(V_opt, T, P) and V_opt.
         """
         G_V = []  # G for each volume
 
-        # G = E + PV + A_vib
+        # G = E(V) + PV + A_vib(V, T)
         for i, v in enumerate(self.volumes):
             G_V.append(self.energies[i] +
                        self.pressure * v +
                        self.vibrational_free_energy(temperature, v))
 
-        # fit G(V, T, P)
-        eos_fit_2 = self.eos.fit(self.volumes, G_V)
-        params = eos_fit_2.eos_params.tolist()
-        # G_opt(V_opt, T, P), V_opt
-        return params[0], params[-1]
+        # fit equation of state, G(V, T, P)
+        eos_fit = self.eos.fit(self.volumes, G_V)
+        params = tuple(eos_fit.eos_params.tolist())  # E0(ref energy), B0, B1, V0(ref volume)
+        # minimize the fit eos wrt volume
+        # Note: the ref energy and the ref volume(E0 and V0) not necessarily the same as
+        # minimum energy and min volume.
+        min_wrt_vol = minimize(eos_fit.func, min(eos_fit.volumes), params)
+        # G_opt=G(V_opt, T, P), V_opt
+        return min_wrt_vol.fun, min_wrt_vol.x[0]
 
     def vibrational_free_energy(self, temperature, volume):
         """
@@ -111,7 +117,8 @@ class DebyeModelQHA(object):
             float: vibrational free energy
         """
         y = self.debye_temperature(volume) / temperature
-        return 8.617332 * 1e-5 * self.natoms * temperature * (9. / 8. * y + 3 * np.log(1 - np.exp(-y))
+        return 8.617332 * 1e-5 * self.natoms * temperature * (9. / 8. * y +
+                                                              3 * np.log(1 - np.exp(-y))
                                                               - self.debye_integral(y))
 
     def vibrational_internal_energy(self, temperature, volume):
@@ -121,25 +128,22 @@ class DebyeModelQHA(object):
 
         Args:
             temperature (float): temperature in K
-            volume (float)
+            volume (float): in Ang^3
 
         Returns:
             float: vibrational free energy
         """
         y = self.debye_temperature(volume) / temperature
-        return 8.617332 * 1e-5 * self.natoms * temperature * (9. / 8. * y + 3 * self.debye_integral(y))
+        return 8.617332 * 1e-5 * self.natoms * temperature * (9. / 8. * y +
+                                                              3 * self.debye_integral(y))
 
     def debye_temperature(self, volume):
         """
-        Calculates the debye temperature. Eq(6) in doi.org/10.1016/j.comphy.2003.12.001
-        Thanks to Joey.
+        Calculates the debye temperature.
+        Eq(6) in doi.org/10.1016/j.comphy.2003.12.001. Thanks to Joey.
 
         Args:
-            volume (float)
-            mass (float): total mass
-            natoms (int): number of atoms
-            B (float): bulk modulus
-            poisson (float): poisson ratio
+            volume (float): in Ang^3
 
         Returns:
             debye temperature (in SI units)
@@ -155,8 +159,7 @@ class DebyeModelQHA(object):
         Debye integral. Eq(5) in  doi.org/10.1016/j.comphy.2003.12.001
 
         Args:
-            y (float): debye temperature/T
-            integrator: function from scipy.integrate
+            y (float): debye temperature/T, upper limit
 
         Returns:
             float
