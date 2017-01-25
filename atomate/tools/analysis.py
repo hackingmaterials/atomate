@@ -51,6 +51,7 @@ class QuasiharmonicDebyeApprox(object):
         self.avg_mass = physical_constants["atomic mass constant"][0] * self.mass / self.natoms  # kg
         self.kb = physical_constants["Boltzmann constant in eV/K"][0]
         self.hbar = physical_constants["Planck constant over 2 pi in eV s"][0]
+        self.gpa_to_ev_ang = 1./160.21766208  # 1 GPa in ev/Ang^3
         self.gibbs_free_energy = []  # optimized values, eV
         self.temperatures = []  # list of temperatures for which the optimized values are available, K
         self.optimum_volumes = []  # in Ang^3
@@ -98,7 +99,7 @@ class QuasiharmonicDebyeApprox(object):
         # G = E(V) + PV + A_vib(V, T)
         for i, v in enumerate(self.volumes):
             G_V.append(self.energies[i] +
-                       self.pressure * v +
+                       self.pressure * v * self.gpa_to_ev_ang +
                        self.vibrational_free_energy(temperature, v))
 
         # fit equation of state, G(V, T, P)
@@ -187,8 +188,7 @@ class QuasiharmonicDebyeApprox(object):
         Returns:
             float: unitless
         """
-        gpa_to_ev_ang = 1./160.21766208  # 1 GPa in ev/Ang^3
-        return gpa_to_ev_ang * volume * self.pressure / self.vibrational_internal_energy(temperature, volume)
+        return self.gpa_to_ev_ang * volume * self.pressure / self.vibrational_internal_energy(temperature, volume)
 
     def thermal_conductivity(self, temperature, volume):
         """
@@ -213,6 +213,11 @@ class QuasiharmonicDebyeApprox(object):
 
     def get_summary_dict(self):
         d = defaultdict(list)
+        d["pressure"] = self.pressure
+        d["poisson"] = self.poisson
+        d["mass"] = self.mass
+        d["natoms"] = int(self.natoms)
+        d["bulk_modulus"] = self.bulk_modulus
         d["gibbs_free_energy"] = self.gibbs_free_energy
         d["temperatures"] = self.temperatures
         d["optimum_volumes"] = self.optimum_volumes
