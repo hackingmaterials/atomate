@@ -2,7 +2,7 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-from collections import  defaultdict
+from collections import defaultdict
 
 import numpy as np
 
@@ -209,7 +209,7 @@ class QuasiharmonicDebyeApprox(object):
             volume (float): in Ang^3
 
         Returns:
-            float: W/K/m
+            float: thermal conductivity in W/K/m
         """
         gamma = self.gruneisen_parameter(temperature, volume)
         theta_d = self.debye_temperature(volume)  # K
@@ -222,6 +222,9 @@ class QuasiharmonicDebyeApprox(object):
         return kappa
 
     def get_summary_dict(self):
+        """
+        Returns a dict with a summary of the computed properties.
+        """
         d = defaultdict(list)
         d["pressure"] = self.pressure
         d["poisson"] = self.poisson
