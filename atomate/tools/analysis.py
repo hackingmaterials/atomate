@@ -36,8 +36,8 @@ class QuasiharmonicDebyeApprox(object):
         pressure (float): in GPa, optional.
         poisson (float): poisson ratio.
     """
-    def __init__(self, energies, volumes, structure, t_min, t_step, t_max, eos, pressure=0,
-                 poisson=0.25):
+    def __init__(self, energies, volumes, structure, t_min=300.0, t_step=100, t_max=300.0, eos="vinet",
+                 pressure=0.0, poisson=0.25):
         self.energies = energies
         self.volumes = volumes
         self.structure = structure
@@ -57,6 +57,7 @@ class QuasiharmonicDebyeApprox(object):
         self.temperatures = []  # list of temperatures for which the optimized values are available, K
         self.optimum_volumes = []  # in Ang^3
         # fit E and V and get the bulk modulus(used to compute the debye temperature)
+        print("Fitting E and V")
         self.eos = EOS(eos)
         self.ev_eos_fit = self.eos.fit(volumes, energies)
         self.bulk_modulus = self.ev_eos_fit.b0_GPa  # in GPa
@@ -71,6 +72,7 @@ class QuasiharmonicDebyeApprox(object):
         """
         temperatures = np.linspace(self.temperature_min,  self.temperature_max,
                                    np.ceil((self.temperature_max-self.temperature_min)/self.temperature_step)+1)
+        print("Fitting G and V for each T")
         for t in temperatures:
             try:
                 G_opt, V_opt = self.optimizer(t)
