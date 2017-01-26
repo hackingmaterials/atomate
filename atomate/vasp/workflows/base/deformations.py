@@ -79,7 +79,7 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
         fw = TransmuterFW(name="{} {} {}".format(tag, name, n), structure=structure,
                           transformations=['DeformStructureTransformation'],
                           transformation_params=[{"deformation": deformation.tolist()}],
-                          vasp_input_set=vis_static, copy_vasp_outputs=True, parents=fws[0],
+                          vasp_input_set=vis_static, copy_vasp_outputs=True, parents=parents,
                           vasp_cmd=vasp_cmd, db_file=db_file)
         if pass_stress_strain:
             fw.spec['_tasks'].append(PassStressStrainData(deformation=deformation.tolist()).to_dict())
