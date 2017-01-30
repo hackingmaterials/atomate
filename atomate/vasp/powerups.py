@@ -169,6 +169,7 @@ def add_modify_incar(original_wf, modify_incar_params=None, fw_name_constraint=N
         wf_dict["fws"][idx_fw]["spec"]["_tasks"].insert(idx_t, ModifyIncar(**modify_incar_params).to_dict())
     return Workflow.from_dict(wf_dict)
 
+
 def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None, fw_name_constraint=None):
     """
     Takes a regular workflow and transforms its VASP fireworkers that are specified with
@@ -214,6 +215,7 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
 
     return Workflow.from_dict(wf_dict)
 
+
 def tag_fws(original_wf, tag, fw_name_constraint=None, task_name_constraint=None):
     """
     Tags Fireworker(s) of a Workflow; e.g. it can be used to run large-memory jobs on a separate queue.
@@ -233,6 +235,7 @@ def tag_fws(original_wf, tag, fw_name_constraint=None, task_name_constraint=None
         wf_dict["fws"][idx_fw]["spec"]["_fworker"] = tag
 
     return Workflow.from_dict(wf_dict)
+
 
 def add_wf_metadata(original_wf, structure):
     """
@@ -299,6 +302,7 @@ def add_modify_incar_envchk(original_wf, fw_name_constraint=None):
     """
     return add_modify_incar(original_wf, {"incar_update": ">>incar_update<<"}, fw_name_constraint=fw_name_constraint)
 
+
 def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None, fw_name_constraint=None):
     """
     Takes a regular workflow and transforms its VASP fireworkers that are specified with
@@ -344,6 +348,7 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
 
     return Workflow.from_dict(wf_dict)
 
+
 def tag_fws(original_wf, tag, fw_name_constraint=None):
     """
     Tags VASP Fworker(s) of a Workflow; e.g. it can be used to run large-memory jobs on a separate queue
@@ -363,6 +368,7 @@ def tag_fws(original_wf, tag, fw_name_constraint=None):
         wf_dict["fws"][idx_fw]["spec"]["_fworker"] = tag
 
     return Workflow.from_dict(wf_dict)
+
 
 def add_small_gap_multiply(original_wf, gap_cutoff, density_multiplier, fw_name_constraint=None):
     """
