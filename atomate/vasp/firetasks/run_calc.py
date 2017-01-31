@@ -23,7 +23,7 @@ from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, Mesh
 from custodian.vasp.jobs import VaspJob
 from custodian.vasp.validators import VasprunXMLValidator, VaspFilesValidator
 
-from fireworks import explicit_serialize, FireTaskBase
+from fireworks import explicit_serialize, FiretaskBase
 
 from atomate.utils.utils import env_chk, get_logger
 
@@ -34,7 +34,7 @@ logger = get_logger(__name__)
 
 
 @explicit_serialize
-class RunVaspDirect(FireTaskBase):
+class RunVaspDirect(FiretaskBase):
     """
     Run VASP directly (no custodian).
 
@@ -53,7 +53,7 @@ class RunVaspDirect(FireTaskBase):
 
 
 @explicit_serialize
-class RunVaspCustodianFromObjects(FireTaskBase):
+class RunVaspCustodianFromObjects(FiretaskBase):
     """
     Run VASP using custodian in a generic manner using built-in custodian
     objects
@@ -77,7 +77,7 @@ class RunVaspCustodianFromObjects(FireTaskBase):
 
 
 @explicit_serialize
-class RunVaspCustodian(FireTaskBase):
+class RunVaspCustodian(FiretaskBase):
     """
     Run VASP using custodian "on rails", i.e. in a simple way that supports
     most common options.
@@ -97,7 +97,7 @@ class RunVaspCustodian(FireTaskBase):
         scratch_dir: (str) - if specified, uses this directory as the root
             scratch dir. Supports env_chk.
         gzip_output: (bool) - gzip output (default=T)
-        max_errors: (int) - maximum # of errors to fix before giving up (default=2)
+        max_errors: (int) - maximum # of errors to fix before giving up (default=5)
         ediffg: (float) shortcut for setting EDIFFG in special custodian jobs
         auto_npar: (bool) - use auto_npar (default=F). Recommended set to T
             for single-node jobs only. Supports env_chk.
@@ -168,7 +168,7 @@ class RunVaspCustodian(FireTaskBase):
 
 
 @explicit_serialize
-class RunBoltztrap(FireTaskBase):
+class RunBoltztrap(FiretaskBase):
     """
     Run Boltztrap directly. Requires vasprun.xml and OUTCAR to be
     in current dir.
@@ -201,7 +201,7 @@ class RunBoltztrap(FireTaskBase):
 
 
 @explicit_serialize
-class RunVaspFake(FireTaskBase):
+class RunVaspFake(FiretaskBase):
     """
      Vasp Emulator
 

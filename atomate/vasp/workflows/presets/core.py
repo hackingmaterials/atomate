@@ -169,16 +169,14 @@ def wf_dielectric_constant(structure, c=None):
 def wf_piezoelectric_constant(structure, c=None):
 
     c = c or {}
-    wf = wf_dielectric_constant(structure, c)
+    vasp_cmd = c.get("VASP_CMD", VASP_CMD)
+    db_file = c.get("DB_FILE", DB_FILE)
 
-    wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 1000,
-                                                                    "ADDGRID": True,
-                                                                    "LREAL": False,
-                                                                    "EDIFF": 1e-7}
-                                                   },
-                          fw_name_constraint="static dielectric")
-    for fw in wf.fws:
-        fw.name = fw.name.replace("dielectric", "piezoelectric")
+    wf = get_wf(structure, "piezoelectric_constant.yaml",
+                common_params={"vasp_cmd": vasp_cmd,
+                               "db_file": db_file})
+
+    wf = add_common_powerups(wf, c)
 
     if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
         wf = add_wf_metadata(wf, structure)
@@ -194,11 +192,13 @@ def wf_elastic_constant(structure, c=None):
     user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
     norm_deformations = c.get("norm_deformations", [-0.01, -0.005, 0.005, 0.01])
     shear_deformations = c.get("shear_deformations", [-0.06, -0.03, 0.03, 0.06])
+    optimize_structure = c.get("optimize_structure", True)
 
     wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd,
                                  norm_deformations=norm_deformations,
                                  shear_deformations=shear_deformations,
-                                 db_file=db_file, user_kpoints_settings=user_kpoints_settings)
+                                 db_file=db_file, user_kpoints_settings=user_kpoints_settings,
+                                 optimize_structure=optimize_structure)
     mip = {"incar_update":{"ENCUT": 700, "EDIFF": 1e-6, "LAECHG":False}}
     wf = add_modify_incar(wf, modify_incar_params=mip)
 

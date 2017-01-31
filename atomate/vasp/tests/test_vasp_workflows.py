@@ -42,10 +42,10 @@ class TestVaspWorkflows(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # TODO: update this for the latest pymatgen...
-        if not SETTINGS.get("VASP_PSP_DIR"):
-            SETTINGS["VASP_PSP_DIR"] = os.path.join(module_dir, "reference_files")
+        if not SETTINGS.get("PMG_VASP_PSP_DIR"):
+            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "reference_files")
             print('This system is not set up to run VASP jobs. '
-                  'Please set VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
+                  'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
         cls.struct_si = PymatgenTest.get_structure("Si")
 

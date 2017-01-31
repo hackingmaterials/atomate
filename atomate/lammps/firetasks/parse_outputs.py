@@ -12,7 +12,7 @@ import os
 
 from datetime import datetime
 
-from fireworks import FireTaskBase, FWAction
+from fireworks import FiretaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.utilities.fw_utilities import explicit_serialize
 
@@ -29,7 +29,7 @@ logger = get_logger(__name__)
 
 
 @explicit_serialize
-class LammpsToDBTask(FireTaskBase):
+class LammpsToDBTask(FiretaskBase):
     """
     Enter a LAMMPS run into the database.
 

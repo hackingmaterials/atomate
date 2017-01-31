@@ -12,7 +12,7 @@ from importlib import import_module
 
 import numpy as np
 
-from fireworks import FireTaskBase, explicit_serialize
+from fireworks import FiretaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
 
 from pymatgen.core.structure import Structure
@@ -28,7 +28,7 @@ __email__ = 'ajain@lbl.gov'
 
 
 @explicit_serialize
-class WriteVaspFromIOSet(FireTaskBase):
+class WriteVaspFromIOSet(FiretaskBase):
     """
     Create VASP input files using implementations of pymatgen's
     AbstractVaspInputSet. An input set can be provided as an object or as a
@@ -66,7 +66,7 @@ class WriteVaspFromIOSet(FireTaskBase):
 
 
 @explicit_serialize
-class WriteVaspFromPMGObjects(FireTaskBase):
+class WriteVaspFromPMGObjects(FiretaskBase):
     """
     Write VASP files using pymatgen objects.
 
@@ -94,7 +94,7 @@ class WriteVaspFromPMGObjects(FireTaskBase):
 
 
 @explicit_serialize
-class ModifyIncar(FireTaskBase):
+class ModifyIncar(FiretaskBase):
     """
     Modify an INCAR file.
 
@@ -140,7 +140,7 @@ class ModifyIncar(FireTaskBase):
 
 
 @explicit_serialize
-class WriteVaspStaticFromPrev(FireTaskBase):
+class WriteVaspStaticFromPrev(FiretaskBase):
     """
     Writes input files for a static run. Assumes that output files from a
     relaxation job can be accessed. Also allows lepsilon calcs.
@@ -182,7 +182,7 @@ class WriteVaspStaticFromPrev(FireTaskBase):
 
 
 @explicit_serialize
-class WriteVaspHSEBSFromPrev(FireTaskBase):
+class WriteVaspHSEBSFromPrev(FiretaskBase):
     """
     Writes input files for HSE Gap run. Assumes that output files from a
     an NSCF job (for getting VBM/CBM) can be accessed.
@@ -207,7 +207,7 @@ class WriteVaspHSEBSFromPrev(FireTaskBase):
 
 
 @explicit_serialize
-class WriteVaspNSCFFromPrev(FireTaskBase):
+class WriteVaspNSCFFromPrev(FiretaskBase):
     """
     Writes input files for an NSCF static run. Assumes that output files from an
     scf job can be accessed. There are many options, e.g. uniform mode,
@@ -245,7 +245,7 @@ class WriteVaspNSCFFromPrev(FireTaskBase):
 
 
 @explicit_serialize
-class WriteVaspSOCFromPrev(FireTaskBase):
+class WriteVaspSOCFromPrev(FiretaskBase):
     """
     Writes input files for a spinorbit coupling calculation.
 
@@ -279,7 +279,7 @@ class WriteVaspSOCFromPrev(FireTaskBase):
 
 
 @explicit_serialize
-class WriteTransmutedStructureIOSet(FireTaskBase):
+class WriteTransmutedStructureIOSet(FiretaskBase):
     """
     Apply the provided transformations to the input structure and write the
     input set for that structure. Reads structure from POSCAR if no structure provided
@@ -330,7 +330,7 @@ class WriteTransmutedStructureIOSet(FireTaskBase):
 
 
 @explicit_serialize
-class WriteNormalmodeDisplacedPoscar(FireTaskBase):
+class WriteNormalmodeDisplacedPoscar(FiretaskBase):
     """
     Displace the structure from the previous calculation along the provided normal mode by the
     given amount and write the corresponding Poscar file.

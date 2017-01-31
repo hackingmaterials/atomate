@@ -9,7 +9,7 @@ This module defines firetasks for running lammps
 import subprocess
 
 from pymatgen.io.lammps.utils import PackmolRunner
-from fireworks import explicit_serialize, FireTaskBase
+from fireworks import explicit_serialize, FiretaskBase
 
 
 __author__ = 'Kiran Mathew'
@@ -17,7 +17,7 @@ __email__ = "kmathew@lbl.gov"
 
 
 @explicit_serialize
-class RunPackmol(FireTaskBase):
+class RunPackmol(FiretaskBase):
     """
     Run packmol.
 
@@ -47,7 +47,7 @@ class RunPackmol(FireTaskBase):
 
 
 @explicit_serialize
-class RunLammpsDirect(FireTaskBase):
+class RunLammpsDirect(FiretaskBase):
     """
     Run LAMMPS directly (no custodian).
 
@@ -65,5 +65,5 @@ class RunLammpsDirect(FireTaskBase):
 
 
 @explicit_serialize
-class RunLammpsCustodian(FireTaskBase):
+class RunLammpsCustodian(FiretaskBase):
     pass
