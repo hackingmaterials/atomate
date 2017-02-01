@@ -279,15 +279,17 @@ def remove_leaf_fws(orig_wf):
         Workflow : the new updated workflow.
     """
     wf_dict = orig_wf.as_dict()
-    all_parents = []
+    remove_fw_idxs = []
     for i, f in enumerate(orig_wf.as_dict()["fws"]):
         if f["fw_id"] in orig_wf.leaf_fw_ids:
             parents = orig_wf.links.parent_links[int(f["fw_id"])]
-            all_parents.extend(parents)
             del wf_dict["links"][str(f["fw_id"])]
-            del wf_dict["fws"][i]
+            remove_fw_idxs.append(i)
             for p in parents:
                 wf_dict["links"][str(p)] = []
+    # remove the fws from the wflow
+    for i in sorted(remove_fw_idxs, reverse=True):
+        del wf_dict["fws"][i]
     new_wf = Workflow.from_dict(wf_dict)
     return update_wf(new_wf)
 
