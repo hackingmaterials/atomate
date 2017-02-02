@@ -10,7 +10,7 @@ from atomate.utils.utils import get_meta_from_structure, get_fws_and_tasks, upda
 from atomate.vasp.firetasks.glue_tasks import CheckStability, CheckBandgap
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspDirect, RunVaspFake
 from atomate.vasp.firetasks.write_inputs import ModifyIncar
-from atomate.vasp.config import ADD_NAMEFILE, SCRATCH_DIR, ADD_MODIFY_INCAR
+from atomate.vasp.config import ADD_NAMEFILE, SCRATCH_DIR, ADD_MODIFY_INCAR, GAMMA_VASP_CMD
 
 from pymatgen import Structure
 
@@ -467,4 +467,20 @@ def add_common_powerups(wf, c):
     if c.get("ADD_MODIFY_INCAR", ADD_MODIFY_INCAR):
         wf = add_modify_incar(wf)
 
+    if c.get("GAMMA_VASP_CMD", GAMMA_VASP_CMD):
+        wf = use_gamma_vasp((wf),c.get("GAMMA_VASP_CMD", GAMMA_VASP_CMD))
+
     return wf
+
+
+def use_gamma_vasp(original_wf, gamma_vasp_cmd):
+    """
+    For all RunVaspCustodian tasks, add the desired scratch dir.
+
+    :param original_wf:
+    :param gamma_vasp_cmd: sets gamma_vasp_cmd. Supports env_chk
+    """
+    wf_dict = original_wf.to_dict()
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="RunVaspCustodian"):
+        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["gamma_vasp_cmd"] = gamma_vasp_cmd
+    return Workflow.from_dict(wf_dict)

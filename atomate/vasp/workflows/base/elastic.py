@@ -24,7 +24,8 @@ logger = get_logger(__name__)
 
 def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", norm_deformations=None,
                             shear_deformations=None, additional_deformations=None, db_file=None,
-                            user_kpoints_settings=None, add_analysis_task=True, conventional=True):
+                            user_kpoints_settings=None, add_analysis_task=True, conventional=True,
+                            optimize_structure=True):
     """
     Returns a workflow to calculate elastic constants.
 
@@ -76,7 +77,7 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
                                      lepsilon=False, vasp_cmd=vasp_cmd, db_file=db_file,
                                      user_kpoints_settings=user_kpoints_settings,
                                      pass_stress_strain=True, name="deformation",
-                                     relax_deformed=True, tag="elastic")
+                                     relax_deformed=True, tag="elastic", optimize_structure=optimize_structure)
 
     if add_analysis_task:
         fw_analysis = Firework(ElasticTensorToDbTask(structure=structure, db_file=db_file),
