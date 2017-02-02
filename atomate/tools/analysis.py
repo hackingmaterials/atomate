@@ -35,6 +35,8 @@ class QuasiharmonicDebyeApprox(object):
             "pourier_tarantola", "vinet", "deltafactor"
         pressure (float): in GPa, optional.
         poisson (float): poisson ratio.
+        use_mie_gruneisen (bool): whether or not to use the mie-gruneisen formulation to compute
+            the gruneisen parameter. The default is slater-gamma formulation.
     """
     def __init__(self, energies, volumes, structure, t_min=300.0, t_step=100, t_max=300.0,
                  eos="vinet", pressure=0.0, poisson=0.25, use_mie_gruneisen=False):
@@ -163,7 +165,8 @@ class QuasiharmonicDebyeApprox(object):
         f = (3. / (2. * term1 + term2)) ** (1. / 3.)
         return 2.9772e-11 * (volume / self.natoms) ** (-1. / 6.) * f * np.sqrt(self.bulk_modulus/self.avg_mass)
 
-    def debye_integral(self, y):
+    @staticmethod
+    def debye_integral(y):
         """
         Debye integral. Eq(5) in  doi.org/10.1016/j.comphy.2003.12.001
 
