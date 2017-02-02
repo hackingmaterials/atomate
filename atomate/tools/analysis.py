@@ -36,8 +36,8 @@ class QuasiharmonicDebyeApprox(object):
         pressure (float): in GPa, optional.
         poisson (float): poisson ratio.
     """
-    def __init__(self, energies, volumes, structure, t_min=300.0, t_step=100, t_max=300.0, eos="vinet",
-                 pressure=0.0, poisson=0.25):
+    def __init__(self, energies, volumes, structure, t_min=300.0, t_step=100, t_max=300.0,
+                 eos="vinet", pressure=0.0, poisson=0.25, use_mie_gruneisen=False):
         self.energies = energies
         self.volumes = volumes
         self.structure = structure
@@ -47,6 +47,7 @@ class QuasiharmonicDebyeApprox(object):
         self.eos = eos
         self.pressure = pressure
         self.poisson = poisson
+        self.use_mie_gruneisen = use_mie_gruneisen
         self.mass = sum([e.atomic_mass for e in self.structure.species])
         self.natoms = self.structure.composition.num_atoms
         self.avg_mass = physical_constants["atomic mass constant"][0] * self.mass / self.natoms  # kg
@@ -182,10 +183,16 @@ class QuasiharmonicDebyeApprox(object):
 
     def gruneisen_parameter(self, temperature, volume):
         """
-        Eq(31) in doi.org/10.1016/j.comphy.2003.12.001
-        Eq(7) in MA Blanc0 ef al.lJoumal of Molecular Structure (Theochem) 368 (1996) 245-255
-        Also se J.-P. Poirier, Introduction to the Physics of the Earth’s Interior, 2nd ed.
-            (Cambridge University Press, Cambridge, 2000) Eq(3.53)
+        Slater-gamma formulation(the default):
+            gruneisen paramter = - d log(theta)/ d log(V)
+                               = - ( 1/6 + 0.5 d log(B)/ d log(V) )
+                               = - (1/6 + 0.5 V/B dB/dV), where dB/dV = d^2E/dV^2 + V * d^3E/dV^3
+
+        Mie-gruneisen formulation:
+            Eq(31) in doi.org/10.1016/j.comphy.2003.12.001
+            Eq(7) in MA Blanc0 ef al.lJoumal of Molecular Structure (Theochem) 368 (1996) 245-255
+            Also se J.-P. Poirier, Introduction to the Physics of the Earth’s Interior, 2nd ed.
+                (Cambridge University Press, Cambridge, 2000) Eq(3.53)
 
         Args:
             temperature (float): temperature in K
@@ -194,11 +201,24 @@ class QuasiharmonicDebyeApprox(object):
         Returns:
             float: unitless
         """
-        # first derivative of energy at 0K wrt volume evaluated at the given volume
-        p0 = derivative(self.ev_eos_fit.func, volume, dx=1e-6,
-                        args=tuple(tuple(self.ev_eos_fit.eos_params.tolist())))  # in eV/Ang^3
-        p0 = p0 / self.gpa_to_ev_ang  # in GPa
-        return self.gpa_to_ev_ang * volume * (self.pressure + p0) / self.vibrational_internal_energy(temperature, volume)
+        # Mie-gruneisen formulation
+        if self.use_mie_gruneisen:
+            # first derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^3
+            p0 = derivative(self.ev_eos_fit.func, volume, dx=1e-3,
+                            args=tuple(tuple(self.ev_eos_fit.eos_params.tolist())))
+            return (self.gpa_to_ev_ang * volume * (self.pressure + p0 / self.gpa_to_ev_ang) /
+                    self.vibrational_internal_energy(temperature, volume))
+
+        # Slater-gamma formulation
+        # second derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^6
+        d2EdV2 = derivative(self.ev_eos_fit.func, volume, dx=1e-3, n=2,
+                            args=tuple(tuple(self.ev_eos_fit.eos_params.tolist())), order=5)
+        # third derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^9
+        d3EdV3 = derivative(self.ev_eos_fit.func, volume, dx=1e-3, n=3,
+                            args=tuple(tuple(self.ev_eos_fit.eos_params.tolist())), order=7)
+        # first derivative of bulk modulus wrt volume, eV/Ang^6
+        dBdV = d2EdV2 + d3EdV3 * volume
+        return -(1./6. + 0.5 * volume * dBdV / self.ev_eos_fit.b0)
 
     def thermal_conductivity(self, temperature, volume):
         """
