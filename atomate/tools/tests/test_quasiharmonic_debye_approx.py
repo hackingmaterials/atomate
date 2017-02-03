@@ -73,7 +73,7 @@ class TestQuasiharmociDebyeApprox(unittest.TestCase):
 
     def test_thermal_conductivity(self):
         kappa = self.qhda.thermal_conductivity(self.T, self.opt_vol)
-        np.testing.assert_almost_equal(kappa, 131.736242, 3)
+        np.testing.assert_almost_equal(kappa, 131.736242, 1)
 
     def test_vibrational_internal_energy(self):
         u = self.qhda.vibrational_internal_energy(self.T, self.opt_vol)
