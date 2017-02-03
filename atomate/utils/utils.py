@@ -330,7 +330,7 @@ def remove_fws(orig_wf, leaf_nodes=True):
         if leaf_nodes:
             parents = orig_wf.links.parent_links[int(fid)]
             for p in parents:
-                wf_dict["links"][str(p)] = []
+                wf_dict["links"][str(p)].remove(fid)
 
     # update the list of fireworks.
     wf_dict["fws"] = [f for f in fws if f["fw_id"] not in fw_ids]
