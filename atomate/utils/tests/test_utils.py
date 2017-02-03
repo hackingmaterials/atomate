@@ -8,7 +8,8 @@ from collections import defaultdict
 
 from fireworks import FiretaskBase, Firework, Workflow, explicit_serialize, FWAction
 
-from atomate.utils.utils import env_chk, get_logger, get_mongolike, append_fw_wf, remove_leaf_fws
+from atomate.utils.utils import env_chk, get_logger, get_mongolike, append_fw_wf, remove_leaf_fws, \
+    remove_root_fws
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -76,7 +77,7 @@ class UtilsTests(unittest.TestCase):
         for i in leaf_ids:
             self.assertEqual(wflow.links[i], [new_lead_ids[0]])
 
-    def test_remove_fw(self):
+    def test_remove_leaf_fws(self):
         fw4 = Firework(Task1(), parents=[self.fw2, self.fw3])
         fws = [self.fw1, self.fw2, self.fw3, fw4]
         wflow = Workflow(fws)
@@ -87,3 +88,15 @@ class UtilsTests(unittest.TestCase):
         new_wf = remove_leaf_fws(wflow)
         new_leaf_ids = new_wf.leaf_fw_ids
         self.assertEqual(new_leaf_ids, parents)
+
+    def test_remove_root_fws(self):
+        fw4 = Firework(Task1(), parents=[self.fw2, self.fw3])
+        fws = [self.fw1, self.fw2, self.fw3, fw4]
+        wflow = Workflow(fws)
+        root_ids = wflow.root_fw_ids
+        children = []
+        for i in root_ids:
+            children.extend(wflow.links[i])
+        new_wf = remove_root_fws(wflow)
+        new_root_ids = new_wf.root_fw_ids
+        self.assertEqual(sorted(new_root_ids), sorted(children))
