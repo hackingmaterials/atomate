@@ -379,7 +379,7 @@ class GibbsFreeEnergyToDbTask(FiretaskBase):
         qha_type = self.get("qha_type", "debye_model")
         pressure = self.get("pressure", 0.0)
         poisson = self.get("poisson", 0.25)
-        gibbs_summary_dict = {}
+        gibbs_summary_dict = {"qha_type":qha_type}
 
         mmdb = MMVaspDb.from_db_file(db_file, admin=True)
         # get the optimized structure
@@ -389,7 +389,7 @@ class GibbsFreeEnergyToDbTask(FiretaskBase):
         gibbs_summary_dict["formula_pretty"] = d["formula_pretty"]
         gibbs_summary_dict["composition_reduced"] = d["composition_reduced"]
         gibbs_summary_dict["composition_unit_cell"] = d["composition_unit_cell"]
-        gibbs_summary_dict["nsites"] = d["nsites"]
+        gibbs_summary_dict["natoms"] = d["nsites"]
         # get the data(energy, volume, force constant) from the deformation runs
         docs = mmdb.collection.find({"task_label": {"$regex": "{} gibbs*".format(tag)},
                                      "formula_pretty": structure.composition.reduced_formula})
