@@ -389,6 +389,7 @@ class GibbsFreeEnergyToDbTask(FiretaskBase):
         gibbs_summary_dict["formula_pretty"] = d["formula_pretty"]
         gibbs_summary_dict["composition_reduced"] = d["composition_reduced"]
         gibbs_summary_dict["composition_unit_cell"] = d["composition_unit_cell"]
+        gibbs_summary_dict["nsites"] = d["nsites"]
         # get the data(energy, volume, force constant) from the deformation runs
         docs = mmdb.collection.find({"task_label": {"$regex": "{} gibbs*".format(tag)},
                                      "formula_pretty": structure.composition.reduced_formula})
