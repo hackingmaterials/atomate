@@ -253,7 +253,7 @@ def wf_gibbs_free_energy(structure, c=None):
     user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
 
     # 11 deformed structures
-    deformations = c.get("deformations", [(np.identity(3)*(1+x)**(1.0/3.0).tolist()
+    deformations = c.get("deformations", [(np.identity(3)*(1+x)**(1.0/3.0)).tolist()
                                           for x in np.linspace(-0.1, 0.1, 11)])
 
     eos = c.get("eos", "vinet")
