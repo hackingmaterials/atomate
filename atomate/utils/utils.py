@@ -6,6 +6,7 @@ import logging
 import os
 import sys
 import six
+from copy import deepcopy
 
 from fireworks import Workflow, Firework
 
@@ -322,25 +323,27 @@ def remove_fws(orig_wf, fw_ids):
     Returns:
         Workflow : the new updated workflow.
     """
-    wf_dict = orig_wf.as_dict()
+    # not working with the copies causes spurious behavior
+    wf_dict = deepcopy(orig_wf.as_dict())
+    orig_parent_links = deepcopy(orig_wf.links.parent_links)
     fws = wf_dict["fws"]
 
-    # update the links dict: remove fw_ids and link their parents to their children(if they dont
+    # update the links dict: remove fw_ids and link their parents to their children(if they don't
     # have any other parents).
     for fid in fw_ids:
-        del wf_dict["links"][str(fid)]
+        children = wf_dict["links"].pop(str(fid))
         # root node --> no parents
         try:
-            parents = orig_wf.links.parent_links[int(fid)]
+            parents = orig_parent_links[int(fid)]
         except KeyError:
             parents = []
-        children = orig_wf.links[int(fid)]
+        # remove the firework from their parent links and re-link their parents to the children.
         for p in parents:
             wf_dict["links"][str(p)].remove(fid)
             # adopt the children
             for c in children:
                 # adopt only if the child doesn't have any other parents.
-                if len(orig_wf.links.parent_links[int(c)]) == 1:
+                if len(orig_parent_links[int(c)]) == 1:
                     wf_dict["links"][str(p)].append(c)
 
     # update the list of fireworks.
