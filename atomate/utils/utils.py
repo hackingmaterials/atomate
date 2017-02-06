@@ -312,7 +312,8 @@ def remove_root_fws(orig_wf):
 def remove_fws(orig_wf, fw_ids):
     """
     Remove the fireworks corresponding to the input firework ids and update the workflow i.e the
-    parents of the removed fireworks become the parents of the orphaned fireworks.
+    parents of the removed fireworks become the parents of the children fireworks(only if the
+    children dont have any other parents).
 
     Args:
         orig_wf (Workflow): The original workflow object.
@@ -324,7 +325,8 @@ def remove_fws(orig_wf, fw_ids):
     wf_dict = orig_wf.as_dict()
     fws = wf_dict["fws"]
 
-    # remove fw_ids from the links dict and link their parents to their children.
+    # update the links dict: remove fw_ids and link their parents to their children(if they dont
+    # have any other parents).
     for fid in fw_ids:
         del wf_dict["links"][str(fid)]
         # root node --> no parents
@@ -335,7 +337,11 @@ def remove_fws(orig_wf, fw_ids):
         children = orig_wf.links[int(fid)]
         for p in parents:
             wf_dict["links"][str(p)].remove(fid)
-            wf_dict["links"][str(p)].extend(children)
+            # adopt the children
+            for c in children:
+                # adopt only if the child doesn't have any other parents.
+                if len(orig_wf.links.parent_links[int(c)]) == 1:
+                    wf_dict["links"][str(p)].append(c)
 
     # update the list of fireworks.
     wf_dict["fws"] = [f for f in fws if f["fw_id"] not in fw_ids]
