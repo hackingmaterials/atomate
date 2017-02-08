@@ -276,7 +276,7 @@ def wf_gibbs_free_energy(structure, c=None):
     if qha_type is not "debye_model":
         # increase accuracy of forces for phonon calculations
         wf = add_modify_incar(wf, modify_incar_params={"incar_udpate": {"LREAL":False, "ADDGRID": True}})
-        wf = add_modify_incar(wf, modify_incar_params={"incar_udpate": {"NSW":1}}, fw_name_constraint:'deformation')
+        wf = add_modify_incar(wf, modify_incar_params={"incar_udpate": {"NSW":1}}, fw_name_constraint='deformation')
 
     wf = add_common_powerups(wf, c)
 
