@@ -215,30 +215,34 @@ class CheckBandgap(FiretaskBase):
 @explicit_serialize
 class PassStressStrainData(FiretaskBase):
     """
-    Passes the stress and deformation for an elastic deformation calculation
+    Passes the stress and deformation for an elastic deformation calculation.
+    Requires a "number" such that when a deformation is regenerated when
+    rerunning a workflow, only that defo will be reset in the passing
 
     Required params:
-        deformation: the deformation gradient used in the elastic analysis.
+        number (int): deformation number (i. e. in list of deformations in wf)
+        deformation (3x3 array-like): the deformation gradient used in the elastic analysis.
     """
 
-    required_params = ["deformation"]
+    required_params = ["number", "deformation"]
 
     def run_task(self, fw_spec):
         v, _ = get_vasprun_outcar(self.get("calc_dir", "."), parse_dos=False, parse_eigen=False)
         stress = v.ionic_steps[-1]['stress']
         defo = self['deformation']
-        d_ind = np.nonzero(defo - np.eye(3))
-        delta = Decimal((defo - np.eye(3))[d_ind][0])
-        # Shorthand is d_X_V, X is voigt index, V is value
-        dtype = "_".join(["d", str(reverse_voigt_map[d_ind][0]),
-                          "{:.0e}".format(delta)])
         strain = Strain.from_deformation(defo)
-        defo_dict = {'deformation_matrix': defo,
-                     'strain': strain.tolist(),
-                     'stress': stress}
+        defo_dict = {'deformation_matrix': defo, 'strain': strain.tolist(),
+                     'stress': stress, 'independent': None}
+        d_ind = np.nonzero(defo - np.eye(3))
+        if len(d_ind) == 1:
+            delta = Decimal((defo - np.eye(3))[d_ind][0])
+            # Shorthand is d_X_V, X is voigt index, V is value
+            dtype = "_".join(["d", str(reverse_voigt_map[d_ind][0]),
+                          "{:.0e}".format(delta)])
+            defo_dict['independent'] = dtype
 
         return FWAction(mod_spec=[{'_set': {
-            'deformation_tasks->{}'.format(dtype): defo_dict}}])
+            'deformation_tasks->{}'.format(self['number']): defo_dict}}])
 
 
 @explicit_serialize
