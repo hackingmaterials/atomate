@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import json
 import os
+import itertools
 from collections import defaultdict
 
 from datetime import datetime
@@ -227,10 +228,12 @@ class ElasticTensorToDbTask(FiretaskBase):
              "optimized_structure": opt_struct.as_dict()}
         if fw_spec.get("tags", None):
             d["tags"] = fw_spec["tags"]
-        dtypes = fw_spec["deformation_tasks"].keys()
-        defos = [fw_spec["deformation_tasks"][dtype]["deformation_matrix"]
-                 for dtype in dtypes]
-        stresses = [fw_spec["deformation_tasks"][dtype]["stress"] for dtype in dtypes]
+        defo_dicts = fw_spec["deformation_tasks"].values()
+        defo_dicts = [d for d in defo_dicts if d['independent']]
+
+        dtypes = [d['independent'] for d in defo_dicts]
+        defos = [d["deformation_matrix"] for d in defo_dicts]
+        stresses = [d["stress"] for d in defo_dicts]
         stress_dict = {IndependentStrain(defo) : Stress(stress) for defo, stress in zip(defos, stresses)}
 
         logger.info("ANALYZING STRESS/STRAIN DATA")
@@ -260,6 +263,65 @@ class ElasticTensorToDbTask(FiretaskBase):
         else:
             db = MMVaspDb.from_db_file(db_file, admin=True)
             db.collection = db.db["elasticity"]
+            db.collection.insert_one(d)
+            logger.info("ELASTIC ANALYSIS COMPLETE")
+        return FWAction()
+
+
+@explicit_serialize
+class ToecToDbTask(FiretaskBase):
+    """
+    Analyzes the stress/strain data of an elastic workflow to produce
+    an elastic tensor and various other quantities.
+    """
+
+    required_params = ['structure']
+    optional_params = ['db_file', 'collection']
+
+    def run_task(self, fw_spec):
+
+        # Get optimized structure
+        # TODO: will this find the correct path if the workflow is rerun from the start?
+        optimize_loc = fw_spec["calc_locs"][0]["path"]
+        logger.info("PARSING INITIAL OPTIMIZATION DIRECTORY: {}".format(optimize_loc))
+        drone = VaspDrone()
+        optimize_doc = drone.assimilate(optimize_loc)
+        opt_struct = Structure.from_dict(optimize_doc["calcs_reversed"][0]["output"]["structure"])
+        doc = {"analysis": {}, "deformation_tasks": fw_spec["deformation_tasks"],
+               "initial_structure": self['structure'].as_dict(),
+               "optimized_structure": opt_struct.as_dict()}
+        defo_dicts = fw_spec["deformation_tasks"].values()
+        doc['stresses'] = [-0.1*d['stress'] for d in defo_dicts]
+        doc['strains'] = [Deformation(d['deformation_matrix']).green_lagrange_strain
+                          for d in defo_dicts]
+        doc['pk_stresses'] = [stress.piola_kirchoff_2(strain.deformation_matrix) 
+                              for stress, strain in zip(doc['stresses'], doc['strains'])]
+        doc['eq_stress'] = -0.1*Stress(optimize_doc["calcs_reversed"][0]["output"]["ionic_steps"][-1]["stress"])   
+        c2, c3 = toec_fit(doc["strains"], doc["pk_stresses"], 
+                          output=None, eq_stress = doc["eq_stress"])
+        doc["C2_raw"] = c2
+        doc["C3_raw"] = c3
+        doc["C2_fit"] = TensorBase.from_voigt(c2).fit_to_structure(struct).voigt
+        doc["C3_fit"] = TensorBase.from_voigt(c3).fit_to_structure(struct).voigt
+        indices_2 = list(itertools.combinations_with_replacement(range(6), r=2))
+        indices_3 = list(itertools.combinations_with_replacement(range(6), r=3))
+        c2_idx = ["c_"+"".join([str(i) for i in np.array(idx)+1])+" = "+str(np.array(c2)[idx]) for idx in indices_2]
+        c3_idx = ["c_"+"".join([str(i) for i in np.array(idx)+1])+" = "+str(np.array(c3)[idx]) for idx in indices_3]
+        c3_idx_sym = ["c_"+"".join([str(i) for i in np.array(idx)+1])+" = "+str(np.array(doc['C3_fit'])[idx]) for idx in indices_3]
+        doc["C2_index_format"] = c2_idx
+        doc["C3_index_format"] = c3_idx
+        doc["C3_index_format_sym"] = c3_idx_sym
+        doc["pretty_formula"] = opt_struct.formula
+        doc["state"] = "successful"
+
+        # Save analysis results in json or db
+        db_file = env_chk(self.get('db_file'), fw_spec)
+        if not db_file:
+            with open("elasticity.json", "w") as f:
+                f.write(json.dumps(d, default=DATETIME_HANDLER))
+        else:
+            db = MMVaspDb.from_db_file(db_file, admin=True)
+            db.collection = db.db[self.get("collection", "elasticity")]
             db.collection.insert_one(d)
             logger.info("ELASTIC ANALYSIS COMPLETE")
         return FWAction()
