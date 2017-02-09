@@ -16,6 +16,8 @@ from atomate.utils.utils import get_logger, append_fw_wf
 from atomate.vasp.workflows.base.deformations import get_wf_deformations
 from atomate.vasp.firetasks.parse_outputs import ElasticTensorToDbTask
 
+import itertools
+
 __author__ = 'Shyam Dwaraknath, Joseph Montoya'
 __email__ = 'shyamd@lbl.gov, montoyjh@lbl.gov'
 
@@ -89,8 +91,66 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
     return wf_elastic
 
 
+def get_wf_toec(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=None, 
+                max_strain=0.05, stencil_res=7, indices=None, user_kpoints_settings=None, 
+                conventional=True, optimize_structure=True):
+    """
+    Returns a workflow to calculate third-order elastic constants.
+
+    Args:
+        structure (Structure): input structure to be optimized and run. 
+        vasp_input_set (DictVaspInputSet): vasp input set.
+        vasp_cmd (str): command to run.
+        db_file (str): path to file containing the database credentials.
+        user_kpoints_settings (dict): example: {"grid_density": 7000}
+        max_strain (float): maximum strain
+        stencil_res (int): resolution on stencil to calculate second derivatives
+        indices (list): list of indices e. g. [(1), (2), (3, 4)] to use for 
+            strain states in deformed structures
+        conventional (bool): flag to indicate whether to convert input structure 
+            to conventional standard structure
+        optimize_structure (bool): flag to indicate whether input structure
+            should be optimized
+
+    Returns:
+        Workflow
+    """
+    # Convert to conventional
+    if conventional:
+        structure = SpacegroupAnalyzer(structure).get_conventional_standard_structure()
+    # Generate deformations
+    default_ind = [(i) for i in range(6)] + [(0, i) for i in range(1, 5)] \
+            + [(1,2), (3,4), (3,5), (4,5)]
+    indices = indicies or default_ind
+    strain_states = np.zeros(6, len(ind))
+    for n, index in enumerate(indices):
+        strain_states[n][index] = 1
+    strain_states[:, 3:] *= 2
+    stencil = np.linspace(-max_strain, max_strain, stencil_res)
+    stencil = stencil[np.nonzero(stencil)]
+    deformations = [Strain.from_voigt(strain).deformation_gradient
+                    for strain in itertools.product(stencil, strain_states)]
+
+    wf_toec = get_wf_deformations(structure, deformations, vasp_input_set=vasp_input_set,
+                                  lepsilon=False, vasp_cmd=vasp_cmd, db_file=db_file,
+                                  user_kpoints_settings=user_kpoints_settings,
+                                  pass_stress_strain=True, name="deformation",
+                                  relax_deformed=True, tag="elastic",
+                                  optimize_structure=optimize_structure)
+
+    if add_analysis_task:
+        fw_analysis = Firework(ToecToDbTask(structure=structure, db_file=db_file),
+                               name="Analyze Elastic Data for TOEC",
+                               spec={"_allow_fizzled_parents": True})
+        append_fw_wf(wf_elastic, fw_analysis)
+
+    wf_elastic.name = "{}:{}".format(structure.composition.reduced_formula, "elastic constants")
+
+    return wf_elastic
+
 if __name__ == "__main__":
     from pymatgen.util.testing import PymatgenTest
 
     structure = PymatgenTest.get_structure("Si")
-    wf = get_wf_elastic_constant(structure)
+    #wf = get_wf_elastic_constant(structure)
+    wf = get_wf_toec(structure)
