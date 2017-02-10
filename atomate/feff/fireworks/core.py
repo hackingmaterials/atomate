@@ -10,7 +10,7 @@ sequences of FEFF calculations.
 from fireworks import Firework
 
 from atomate.utils.utils import load_class
-from atomate.feff.firetasks.write_inputs import WriteFeffFromIOSet
+from atomate.feff.firetasks.write_inputs import WriteFeffFromIOSet, WriteEXAFSPaths
 from atomate.feff.firetasks.run_calc import RunFeffDirect
 from atomate.feff.firetasks.parse_outputs import SpectrumToDbTask
 
@@ -107,3 +107,43 @@ class EELSFW(Firework):
 
         super(EELSFW, self).__init__(t, parents=parents, name="{}-{}".
                                      format(structure.composition.reduced_formula, name), **kwargs)
+
+
+class EXAFSPathsFW(Firework):
+    def __init__(self, absorbing_atom, structure, spectrum_type, paths, edge="K", radius=10.0,
+                 name="EXAFS Paths", feff_input_set=None, feff_cmd="feff", degeneracies=None,
+                 override_default_feff_params=None, parents=None, **kwargs):
+        """
+        Write the input set for FEFF-XAS spectroscopy, run feff and insert the absorption
+        coefficient to the database(or dump to a json file if db_file=None).
+
+        Args:
+            absorbing_atom (str): absorbing atom symbol
+            structure (Structure): input structure
+            spectrum_type (str): "EXAFS" or "XANES"
+            edge (str): absorption edge
+            radius (float): cluster radius in angstroms
+            name (str)
+            feff_input_set (FeffDictSet)
+            feff_cmd (str): path to the feff binary
+            override_default_feff_params (dict): override feff tag settings.
+            db_file (str): path to the db file.
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            metadata (dict): meta data
+            **kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+        override_default_feff_params = override_default_feff_params or {}
+        override_default_feff_params.update({"CONTROL": "0 0 0 0 1 1", "PRINT": "0 0 0 1 0 3"})
+
+        if not feff_input_set:
+            fis_cls = load_class("pymatgen.io.feff.sets", "MP{}Set".format(spectrum_type))
+            feff_input_set = fis_cls(absorbing_atom, structure, edge=edge, radius=radius,
+                                     **override_default_feff_params)
+
+        t = [WriteFeffFromIOSet(absorbing_atom=absorbing_atom, structure=structure, radius=radius,
+                                feff_input_set=feff_input_set),
+             WriteEXAFSPaths(feff_input_set=feff_input_set, paths=paths, degeneracies=degeneracies),
+             RunFeffDirect(feff_cmd=feff_cmd)]
+
+        super(EXAFSPathsFW, self).__init__(t, parents=parents, name="{}-{}".format(
+            structure.composition.reduced_formula, name), **kwargs)

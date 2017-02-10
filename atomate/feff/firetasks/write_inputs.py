@@ -10,6 +10,8 @@ from fireworks import FiretaskBase, explicit_serialize
 
 from atomate.utils.utils import load_class
 
+from pymatgen.io.feff.inputs import Paths
+
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -43,3 +45,25 @@ class WriteFeffFromIOSet(FiretaskBase):
                           **self.get("other_params", {}))
 
         fis.write_input(".")
+
+
+@explicit_serialize
+class WriteEXAFSPaths(FiretaskBase):
+    """
+    Generate FEFF input(feff.inp) from the given inputset object or inputset name
+
+    Required_params:
+        absorbing_atom (str): absorbing atom symbol
+        structure (Structure): input structure
+
+    Optional_params:
+        radius (float): cluster radius in angstroms
+        other_params (dict)
+    """
+    required_params = ["feff_input_set", "paths"]
+    optional_params = ["degeneracies"]
+
+    def run_task(self, fw_spec):
+        atoms = self['feff_input_set'].atoms
+        paths = Paths(atoms, self["paths"], degeneracies=self.get("degeneracies", []))
+        paths.write_file()
