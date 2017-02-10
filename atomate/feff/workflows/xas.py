@@ -100,7 +100,8 @@ def get_wf_exafs_paths(absorbing_atom, structure, paths, degeneracies=None, spec
     """
     wflow = get_wf_xas(absorbing_atom, structure, spectrum_type, edge, radius,
                        feff_input_set, feff_cmd, db_file, metadata, user_tag_settings, use_primitive)
-    paths_fw = EXAFSPathsFW(absorbing_atom, structure, spectrum_type, paths,
-                            feff_input_set=feff_input_set, feff_cmd=feff_cmd,
-                            degeneracies=degeneracies)
-    return append_fw_wf(wflow, paths_fw)
+    paths_fw = EXAFSPathsFW(absorbing_atom, structure, spectrum_type, paths, edge=edge,
+                            radius=radius, name="EXAFS Paths", feff_input_set=feff_input_set,
+                            feff_cmd=feff_cmd, degeneracies=degeneracies)
+    append_fw_wf(wflow, paths_fw)
+    return wflow

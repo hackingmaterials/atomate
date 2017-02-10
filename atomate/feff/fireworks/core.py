@@ -133,7 +133,8 @@ class EXAFSPathsFW(Firework):
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
         override_default_feff_params = override_default_feff_params or {}
-        override_default_feff_params.update({"CONTROL": "0 0 0 0 1 1", "PRINT": "0 0 0 1 0 3"})
+        override_default_feff_params.update({"user_tag_settings": {"CONTROL": "0 0 0 0 1 1",
+                                                                   "PRINT": "0 0 0 1 0 3"}})
 
         if not feff_input_set:
             fis_cls = load_class("pymatgen.io.feff.sets", "MP{}Set".format(spectrum_type))
