@@ -10,6 +10,7 @@ sequences of FEFF calculations.
 from fireworks import Firework
 
 from atomate.utils.utils import load_class
+from atomate.common.firetasks.glue_tasks import PassCalcLocs, CopyAllFiles
 from atomate.feff.firetasks.write_inputs import WriteFeffFromIOSet, WriteEXAFSPaths
 from atomate.feff.firetasks.run_calc import RunFeffDirect
 from atomate.feff.firetasks.parse_outputs import SpectrumToDbTask
@@ -51,9 +52,8 @@ class XASFW(Firework):
 
         t = [WriteFeffFromIOSet(absorbing_atom=absorbing_atom, structure=structure, radius=radius,
                                 feff_input_set=feff_input_set),
-
              RunFeffDirect(feff_cmd=feff_cmd),
-
+             PassCalcLocs(name=name),
              SpectrumToDbTask(absorbing_atom=absorbing_atom, structure=structure,
                               db_file=db_file, spectrum_type=spectrum_type, edge=edge,
                               output_file="xmu.dat", metadata=metadata)]
@@ -98,9 +98,8 @@ class EELSFW(Firework):
 
         t = [WriteFeffFromIOSet(absorbing_atom=absorbing_atom, structure=structure, radius=radius,
                                 feff_input_set=feff_input_set),
-
              RunFeffDirect(feff_cmd=feff_cmd),
-
+             PassCalcLocs(name=name),
              SpectrumToDbTask(absorbing_atom=absorbing_atom, structure=structure,
                               db_file=db_file, spectrum_type=spectrum_type, edge=edge,
                               output_file="eels.dat", metadata=metadata)]
@@ -141,7 +140,8 @@ class EXAFSPathsFW(Firework):
             feff_input_set = fis_cls(absorbing_atom, structure, edge=edge, radius=radius,
                                      **override_default_feff_params)
 
-        t = [WriteFeffFromIOSet(absorbing_atom=absorbing_atom, structure=structure, radius=radius,
+        t = [CopyAllFiles(calc_loc=True),
+             WriteFeffFromIOSet(absorbing_atom=absorbing_atom, structure=structure, radius=radius,
                                 feff_input_set=feff_input_set),
              WriteEXAFSPaths(feff_input_set=feff_input_set, paths=paths, degeneracies=degeneracies),
              RunFeffDirect(feff_cmd=feff_cmd)]
