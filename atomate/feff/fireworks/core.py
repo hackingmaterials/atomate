@@ -10,7 +10,8 @@ sequences of FEFF calculations.
 from fireworks import Firework
 
 from atomate.utils.utils import load_class
-from atomate.common.firetasks.glue_tasks import PassCalcLocs, CopyAllFiles
+from atomate.common.firetasks.glue_tasks import PassCalcLocs
+from atomate.feff.firetasks.glue_tasks import CopyFeffOutputs
 from atomate.feff.firetasks.write_inputs import WriteFeffFromIOSet, WriteEXAFSPaths
 from atomate.feff.firetasks.run_calc import RunFeffDirect
 from atomate.feff.firetasks.parse_outputs import SpectrumToDbTask
@@ -140,7 +141,7 @@ class EXAFSPathsFW(Firework):
             feff_input_set = fis_cls(absorbing_atom, structure, edge=edge, radius=radius,
                                      **override_default_feff_params)
 
-        t = [CopyAllFiles(calc_loc=True),
+        t = [CopyFeffOutputs(calc_loc=True),
              WriteFeffFromIOSet(absorbing_atom=absorbing_atom, structure=structure, radius=radius,
                                 feff_input_set=feff_input_set),
              WriteEXAFSPaths(feff_input_set=feff_input_set, paths=paths, degeneracies=degeneracies),
