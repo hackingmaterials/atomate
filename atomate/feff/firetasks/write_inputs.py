@@ -50,15 +50,14 @@ class WriteFeffFromIOSet(FiretaskBase):
 @explicit_serialize
 class WriteEXAFSPaths(FiretaskBase):
     """
-    Generate FEFF input(feff.inp) from the given inputset object or inputset name
+    Write the scattering paths to paths.dat file.
 
     Required_params:
-        absorbing_atom (str): absorbing atom symbol
-        structure (Structure): input structure
+        feff_input_set (FeffDictSet)
+        paths (list): list of paths. path = list of site indices.
 
     Optional_params:
-        radius (float): cluster radius in angstroms
-        other_params (dict)
+        degeneracies (list): list of path degeneracies.
     """
     required_params = ["feff_input_set", "paths"]
     optional_params = ["degeneracies"]

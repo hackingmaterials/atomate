@@ -112,22 +112,26 @@ class EELSFW(Firework):
 class EXAFSPathsFW(Firework):
     def __init__(self, absorbing_atom, structure, paths, degeneracies=None, edge="K", radius=10.0,
                  name="EXAFS Paths", feff_input_set=None, feff_cmd="feff",
-                 override_default_feff_params=None, parents=None, **kwargs):
+                 override_default_feff_params=None, parents=None, filepad_file=None, labels=None,
+                 metadata=None, **kwargs):
         """
-        Write the input set for FEFF-XAS spectroscopy, run feff and insert the absorption
-        coefficient to the database(or dump to a json file if db_file=None).
+        Write the input set for FEFF-EXAFS spectroscopy with customized scattering paths, run feff,
+        and insert the scattering amplitude output files(feffNNNN.dat files) to filepad.
 
         Args:
             absorbing_atom (str): absorbing atom symbol
             structure (Structure): input structure
+            paths (list): list of paths. A path = list of site indices that defines the path legs.
+            degeneracies (list): degeneracy of each path.
             edge (str): absorption edge
             radius (float): cluster radius in angstroms
             name (str)
             feff_input_set (FeffDictSet)
             feff_cmd (str): path to the feff binary
             override_default_feff_params (dict): override feff tag settings.
-            db_file (str): path to the db file.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            filepad_file (str): path to the filepad config file.
+            labels (list): list of label used to tag the files inserted into filepad.
             metadata (dict): meta data
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
@@ -145,7 +149,7 @@ class EXAFSPathsFW(Firework):
                                 feff_input_set=feff_input_set),
              WriteEXAFSPaths(feff_input_set=feff_input_set, paths=paths, degeneracies=degeneracies),
              RunFeffDirect(feff_cmd=feff_cmd),
-             AddPathsToFilepadTask()]
+             AddPathsToFilepadTask(filepad_file=filepad_file, labels=labels, metadata=metadata)]
 
         super(EXAFSPathsFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)

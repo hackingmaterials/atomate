@@ -72,17 +72,20 @@ def get_wf_xas(absorbing_atom, structure, spectrum_type="XANES", edge="K", radiu
     return Workflow(fws, name=wfname, metadata=metadata)
 
 
-def get_wf_exafs_paths(absorbing_atom, structure, paths, degeneracies=None,
-                       edge="K", radius=10.0, feff_input_set=None, feff_cmd="feff", db_file=None,
-                       metadata=None, user_tag_settings=None, use_primitive=False):
+def get_wf_exafs_paths(absorbing_atom, structure, paths, degeneracies=None, edge="K", radius=10.0,
+                       feff_input_set=None, feff_cmd="feff", db_file=None, metadata=None,
+                       user_tag_settings=None, use_primitive=False):
     """
-    Returns FEFF XANES/EXAFS spectroscopy workflow.
+    Returns FEFF EXAFS spectroscopy workflow that generates the scattering amplitudes for the given
+    list of scattering paths.
 
     Args:
         absorbing_atom (str/int): absorbing atom symbol or site index. If the symbol is given,
              then the returned workflow will have fireworks for each absorbing site with the
              same symbol.
         structure (Structure): input structure
+        paths (list): list of paths. path = list of site indices.
+        degeneracies (list): list of path degeneracies.
         edge (str): absorption edge. Example: K, L1, L2, L3
         radius (float): cluster radius in angstroms. Ignored for K space calculations
         feff_input_set (FeffDictSet): the input set for the FEFF run
@@ -97,10 +100,11 @@ def get_wf_exafs_paths(absorbing_atom, structure, paths, degeneracies=None,
     Returns:
         Workflow
     """
-    wflow = get_wf_xas(absorbing_atom, structure, "EXAFS", edge, radius,
-                       feff_input_set, feff_cmd, db_file, metadata, user_tag_settings, use_primitive)
+    wflow = get_wf_xas(absorbing_atom, structure, "EXAFS", edge, radius, feff_input_set, feff_cmd,
+                       db_file, metadata, user_tag_settings, use_primitive)
     paths_fw = EXAFSPathsFW(absorbing_atom, structure, paths, degeneracies=degeneracies, edge=edge,
                             radius=radius, name="EXAFS Paths", feff_input_set=feff_input_set,
                             feff_cmd=feff_cmd)
+    # append the scattering paths firework to the regular EXAFS workflow.
     append_fw_wf(wflow, paths_fw)
     return wflow

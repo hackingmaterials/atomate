@@ -93,7 +93,13 @@ class SpectrumToDbTask(FiretaskBase):
 @explicit_serialize
 class AddPathsToFilepadTask(FiretaskBase):
     """
-    Add feffNNN.dat files to gridfs using filepad.
+    Insert the scattering amplitude outputs(all feffNNNN.dat files) to gridfs using filepad.
+
+    Optional_params:
+        labels (list): list of labels to tag the inserted files. Useful for querying later.
+        filepad_file (str): path to the filepad connection settings file.
+        compress (bool): wether or not to compress the file contents before insertion.
+        metadata (dict): metadata.
     """
 
     optional_params = ["labels", "filepad_file", "compress", "metadata"]
