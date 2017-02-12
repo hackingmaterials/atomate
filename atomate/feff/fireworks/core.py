@@ -110,8 +110,8 @@ class EELSFW(Firework):
 
 
 class EXAFSPathsFW(Firework):
-    def __init__(self, absorbing_atom, structure, spectrum_type, paths, edge="K", radius=10.0,
-                 name="EXAFS Paths", feff_input_set=None, feff_cmd="feff", degeneracies=None,
+    def __init__(self, absorbing_atom, structure, paths, degeneracies=None, edge="K", radius=10.0,
+                 name="EXAFS Paths", feff_input_set=None, feff_cmd="feff",
                  override_default_feff_params=None, parents=None, **kwargs):
         """
         Write the input set for FEFF-XAS spectroscopy, run feff and insert the absorption
@@ -120,7 +120,6 @@ class EXAFSPathsFW(Firework):
         Args:
             absorbing_atom (str): absorbing atom symbol
             structure (Structure): input structure
-            spectrum_type (str): "EXAFS" or "XANES"
             edge (str): absorption edge
             radius (float): cluster radius in angstroms
             name (str)
@@ -137,7 +136,7 @@ class EXAFSPathsFW(Firework):
                                                                    "PRINT": "0 0 0 1 0 3"}})
 
         if not feff_input_set:
-            fis_cls = load_class("pymatgen.io.feff.sets", "MP{}Set".format(spectrum_type))
+            fis_cls = load_class("pymatgen.io.feff.sets", "MP{}Set".format("EXAFS"))
             feff_input_set = fis_cls(absorbing_atom, structure, edge=edge, radius=radius,
                                      **override_default_feff_params)
 

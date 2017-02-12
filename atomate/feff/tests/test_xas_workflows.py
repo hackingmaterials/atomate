@@ -20,7 +20,6 @@ from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.feff.workflows.xas import get_wf_xas
 
-
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 

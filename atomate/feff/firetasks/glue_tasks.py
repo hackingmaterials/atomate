@@ -4,9 +4,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os
 
+from fireworks import explicit_serialize, FiretaskBase
+
 from atomate.utils.fileio import FileClient
 from atomate.utils.utils import get_calc_loc
-from fireworks import explicit_serialize, FiretaskBase
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
