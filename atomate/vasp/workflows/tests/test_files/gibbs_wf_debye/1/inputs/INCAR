@@ -1,0 +1,17 @@
+ADDGRID = True
+ALGO = Fast
+EDIFF = 1e-06
+ENCUT = 600
+IBRION = 2
+ICHARG = 1
+ISIF = 3
+ISMEAR = -5
+ISPIN = 2
+LORBIT = 11
+LREAL = False
+LWAVE = False
+MAGMOM = 64*0.6
+NELM = 100
+NSW = 99
+PREC = Accurate
+SIGMA = 0.05
