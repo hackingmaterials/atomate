@@ -14,7 +14,7 @@ from atomate.common.firetasks.glue_tasks import PassCalcLocs
 from atomate.feff.firetasks.glue_tasks import CopyFeffOutputs
 from atomate.feff.firetasks.write_inputs import WriteFeffFromIOSet, WriteEXAFSPaths
 from atomate.feff.firetasks.run_calc import RunFeffDirect
-from atomate.feff.firetasks.parse_outputs import SpectrumToDbTask
+from atomate.feff.firetasks.parse_outputs import SpectrumToDbTask, AddPathsToFilepadTask
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -145,7 +145,8 @@ class EXAFSPathsFW(Firework):
              WriteFeffFromIOSet(absorbing_atom=absorbing_atom, structure=structure, radius=radius,
                                 feff_input_set=feff_input_set),
              WriteEXAFSPaths(feff_input_set=feff_input_set, paths=paths, degeneracies=degeneracies),
-             RunFeffDirect(feff_cmd=feff_cmd)]
+             RunFeffDirect(feff_cmd=feff_cmd),
+             AddPathsToFilepadTask()]
 
         super(EXAFSPathsFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)

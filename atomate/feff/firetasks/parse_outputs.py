@@ -5,6 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import json
 import os
 from datetime import datetime
+from glob import glob
 
 import numpy as np
 
@@ -12,6 +13,7 @@ from pymatgen.io.feff.inputs import Tags, Atoms
 
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
+from fireworks.user_objects.firetasks.filepad_tasks import get_fpad
 
 from atomate.utils.utils import env_chk, get_calc_loc
 from atomate.utils.utils import get_logger
@@ -86,3 +88,21 @@ class SpectrumToDbTask(FiretaskBase):
         logger.info("Finished parsing the spectrum")
 
         return FWAction(stored_data={"task_id": doc.get("task_id", None)})
+
+
+@explicit_serialize
+class AddPathsToFilepadTask(FiretaskBase):
+    """
+    Add feffNNN.dat files to gridfs using filepad.
+    """
+
+    optional_params = ["labels", "filepad_file", "compress", "metadata"]
+
+    def run_task(self, fw_spec):
+        paths = glob("feff????.dat")
+        fpad = get_fpad(self.get("filepad_file", None))
+        labels = self.get("labels", None)
+        for i, p in enumerate(paths):
+            l = labels[i] if labels is not None else None
+            fpad.add_file(p, label=l, metadata=self.get("metadata", None),
+                          compress=self.get("compress", True))
