@@ -252,7 +252,6 @@ class QuasiharmonicDebyeApprox(object):
         d["pressure"] = self.pressure
         d["poisson"] = self.poisson
         d["mass"] = self.mass
-        d["natoms"] = int(self.natoms)
         d["bulk_modulus"] = self.bulk_modulus
         d["gibbs_free_energy"] = self.gibbs_free_energy
         d["temperatures"] = self.temperatures
