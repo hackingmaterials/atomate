@@ -25,7 +25,7 @@ __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-db_dir = os.path.join(module_dir, "..", "..", "common", "reference_files", "db_connections")
+db_dir = os.path.join(module_dir, "..", "..", "..", "common", "reference_files", "db_connections")
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 FEFF_CMD = None  # "feff"
 
@@ -33,7 +33,8 @@ FEFF_CMD = None  # "feff"
 class TestEELSWorkflow(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.structure = Structure.from_file(os.path.join(module_dir, "reference_files", "Co2O2.cif"))
+        cls.structure = Structure.from_file(os.path.join(module_dir, "..", "..", "test_files",
+                                                         "Co2O2.cif"))
         cls.user_tag_settings = {"RPATH": -1,
                                  "SCF": "7 0 30 0.2 3",
                                  "FMS": "9 0",
@@ -62,7 +63,7 @@ class TestEELSWorkflow(unittest.TestCase):
 
     def test_eels_wflow_abatom_by_idx(self):
         # for the sake of test just copy xmu to eels
-        feff_bin = "cp  ../../reference_files/xmu.dat eels.dat"
+        feff_bin = "cp  ../../../../test_files/xmu.dat eels.dat"
         wf = get_wf_eels(self.absorbing_atom, self.structure, spectrum_type="ELNES",
                         edge="L1", user_tag_settings=self.user_tag_settings, use_primitive=False,
                          feff_cmd=feff_bin, db_file=">>db_file<<")
