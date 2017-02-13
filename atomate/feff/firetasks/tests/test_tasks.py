@@ -9,12 +9,7 @@ from glob import glob
 
 from pymatgen import Structure
 from pymatgen.io.feff.sets import MPEXAFSSet
-# remove this for pymatgen > 4.6.1
-try:
-    from pymatgen.io.feff.inputs import Paths
-    feff_paths_absent = False
-except:
-    feff_paths_absent = True
+from pymatgen.io.feff.inputs import Paths
 
 from atomate.feff.firetasks.glue_tasks import CopyFeffOutputs
 from atomate.feff.firetasks.write_inputs import WriteEXAFSPaths
@@ -44,7 +39,6 @@ class TestTasks(unittest.TestCase):
         files = glob("*")
         self.assertEqual(sorted(ans), sorted(files))
 
-    @unittest.skipIf(feff_paths_absent, "FEFF scattering paths class not in your pymatgen.")
     def test_write_paths_task(self):
         exafs = MPEXAFSSet(0, self.struct, edge='K', radius=10)
         t = WriteEXAFSPaths(feff_input_set=exafs, paths=[[249 , 0], [85, 0]])
