@@ -10,7 +10,6 @@ from fireworks import FiretaskBase, explicit_serialize
 
 from atomate.utils.utils import load_class
 
-
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 
@@ -43,3 +42,27 @@ class WriteFeffFromIOSet(FiretaskBase):
                           **self.get("other_params", {}))
 
         fis.write_input(".")
+
+
+@explicit_serialize
+class WriteEXAFSPaths(FiretaskBase):
+    """
+    Write the scattering paths to paths.dat file.
+
+    Required_params:
+        feff_input_set (FeffDictSet)
+        paths (list): list of paths. path = list of site indices.
+
+    Optional_params:
+        degeneracies (list): list of path degeneracies.
+    """
+    required_params = ["feff_input_set", "paths"]
+    optional_params = ["degeneracies"]
+
+    def run_task(self, fw_spec):
+
+        from pymatgen.io.feff.inputs import Paths
+
+        atoms = self['feff_input_set'].atoms
+        paths = Paths(atoms, self["paths"], degeneracies=self.get("degeneracies", []))
+        paths.write_file()

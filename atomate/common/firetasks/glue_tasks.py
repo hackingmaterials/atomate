@@ -4,10 +4,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os
 
-from fireworks import explicit_serialize, FiretaskBase, FWAction
 from atomate.utils.utils import env_chk
+from fireworks import explicit_serialize, FiretaskBase, FWAction
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = 'Anubhav Jain'
+__email__ = 'ajain@lbl.gov'
 
 
 @explicit_serialize
