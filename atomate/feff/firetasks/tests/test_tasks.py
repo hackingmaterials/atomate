@@ -11,12 +11,8 @@ from pymatgen import Structure
 from pymatgen.io.feff.inputs import Paths
 from pymatgen.io.feff.sets import MPEXAFSSet
 
-from fireworks.core.launchpad import LaunchPad
-
-from atomate.feff.workflows.xas import get_wf_exafs_paths
 from atomate.feff.firetasks.glue_tasks import CopyFeffOutputs
 from atomate.feff.firetasks.write_inputs import WriteEXAFSPaths
-from atomate.feff.fireworks.core import EXAFSPathsFW
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
