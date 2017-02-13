@@ -10,9 +10,6 @@ from fireworks import FiretaskBase, explicit_serialize
 
 from atomate.utils.utils import load_class
 
-from pymatgen.io.feff.inputs import Paths
-
-
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 
@@ -63,6 +60,9 @@ class WriteEXAFSPaths(FiretaskBase):
     optional_params = ["degeneracies"]
 
     def run_task(self, fw_spec):
+
+        from pymatgen.io.feff.inputs import Paths
+
         atoms = self['feff_input_set'].atoms
         paths = Paths(atoms, self["paths"], degeneracies=self.get("degeneracies", []))
         paths.write_file()
