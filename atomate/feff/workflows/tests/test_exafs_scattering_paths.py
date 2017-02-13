@@ -29,11 +29,15 @@ class TestEXAFSPaths(unittest.TestCase):
         os.chdir(self.scratch_dir)
         wflow = get_wf_exafs_paths(0, self.struct, [[249, 0], [85, 0]], feff_cmd="feff",  db_file=None)
         self.wf_dict = wflow.as_dict()
+        self.fw1_dict = self.wf_dict["fws"][0]
+        self.fw2_dict = self.wf_dict["fws"][1]        
+        if self.wf_dict["fws"][0]['name'] not in ['FeO-EXAFS-K-0']:
+            self.fw1_dict, self.fw2_dict = self.fw2_dict, self.fw1_dict        
 
     def test_wflow_composition(self):
         self.assertEqual(len(self.wf_dict["fws"]), 2)
-        ans = ['FeO-EXAFS-K-0', 'FeO-EXAFS Paths']
-        self.assertEqual(ans, [ft["name"] for ft in self.wf_dict["fws"]])
+        ans = sorted(['FeO-EXAFS-K-0', 'FeO-EXAFS Paths'])
+        self.assertEqual(ans, sorted([ft["name"] for ft in self.wf_dict["fws"]]))
 
     def test_feff_input_sets(self):
         ans_fis_fw1 = {'@class': 'MPEXAFSSet',
@@ -52,14 +56,14 @@ class TestEXAFSPaths(unittest.TestCase):
                        'radius': 10.0,
                        'user_tag_settings': {'CONTROL': '0 0 0 0 1 1', 'PRINT': '0 0 0 1 0 3'},
                        'structure': self.struct.as_dict()}
-        fis_fw1 = self.wf_dict["fws"][0]["spec"]['_tasks'][0]['feff_input_set']
-        fis_fw2 = self.wf_dict["fws"][1]["spec"]['_tasks'][1]['feff_input_set']
+        fis_fw1 = self.fw1_dict["spec"]['_tasks'][0]['feff_input_set']
+        fis_fw2 = self.fw2_dict["spec"]['_tasks'][1]['feff_input_set']
         self.assertDictEqual(fis_fw1, ans_fis_fw1)
         self.assertDictEqual(fis_fw2, ans_fis_fw2)
 
     def test_paths(self):
         paths = [[249, 0], [85, 0]]
-        self.assertEqual(paths, self.wf_dict["fws"][1]["spec"]['_tasks'][2]['paths'])
+        self.assertEqual(paths, self.fw2_dict["spec"]['_tasks'][2]['paths'])
 
     def tearDown(self):
         shutil.rmtree(self.scratch_dir)
