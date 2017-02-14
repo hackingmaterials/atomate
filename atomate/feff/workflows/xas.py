@@ -77,7 +77,8 @@ def get_wf_exafs_paths(absorbing_atom, structure, paths, degeneracies=None, edge
                        user_tag_settings=None, use_primitive=False, labels=None, filepad_file=None):
     """
     Returns FEFF EXAFS spectroscopy workflow that generates the scattering amplitudes for the given
-    list of scattering paths.
+    list of scattering paths. The scattering amplitude output files(feffNNNN.dat files) are
+    inserted to filepad(see fireworks.utilities.filepad.py) on completion.
 
     Args:
         absorbing_atom (str/int): absorbing atom symbol or site index. If the symbol is given,
@@ -96,7 +97,8 @@ def get_wf_exafs_paths(absorbing_atom, structure, paths, degeneracies=None, edge
         use_primitive (bool): convert the structure to primitive form. This helps to
             reduce the number of fireworks in the workflow if the absorbing atom is
             specified by its atomic symbol.
-        labels ([str]): list of labels for the scattering amplitudes inserted into filepad.
+        labels ([str]): list of labels for the scattering amplitudes file contents inserted into
+            filepad. Useful for fetching the data from filepad later.
         filepad_file (str): path to filepad connection settings file.
 
     Returns:
