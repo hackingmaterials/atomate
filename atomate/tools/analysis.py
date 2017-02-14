@@ -12,6 +12,7 @@ from scipy.constants import physical_constants
 from scipy.misc import derivative
 
 from pymatgen.analysis.eos import EOS
+from pymatgen.core.units import FloatWithUnit
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -221,7 +222,8 @@ class QuasiharmonicDebyeApprox(object):
                             args=tuple(tuple(self.ev_eos_fit.eos_params.tolist())), order=7)
         # first derivative of bulk modulus wrt volume, eV/Ang^6
         dBdV = d2EdV2 + d3EdV3 * volume
-        return -(1./6. + 0.5 * volume * dBdV / self.ev_eos_fit.b0)
+        return -(1./6. + 0.5 * volume * dBdV /
+                 FloatWithUnit(self.ev_eos_fit.b0_GPa, "GPa").to( "eV ang^-3"))
 
     def thermal_conductivity(self, temperature, volume):
         """
