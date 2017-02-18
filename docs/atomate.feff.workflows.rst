@@ -1,6 +1,13 @@
 atomate.feff.workflows package
 ==============================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    atomate.feff.workflows.tests
+
 Submodules
 ----------
 
