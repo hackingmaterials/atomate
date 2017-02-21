@@ -190,10 +190,13 @@ def wf_elastic_constant(structure, c=None):
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
     user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
+    optimize_structure = c.get("optimize_structure", True)
     norm_deformations = c.get("norm_deformations", [-0.01, -0.005, 0.005, 0.01])
     shear_deformations = c.get("shear_deformations", [-0.06, -0.03, 0.03, 0.06])
-    optimize_structure = c.get("optimize_structure", True)
-
+    quick_calculation = c.get("quick_calculation", False)
+    if quick_calculation:
+        norm_deformations = c.get("norm_deformations", [0.01])
+        shear_deformations = c.get("shear_deformations", [0.03])
     wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd,
                                  norm_deformations=norm_deformations,
                                  shear_deformations=shear_deformations,
