@@ -197,6 +197,8 @@ def wf_elastic_constant(structure, c=None):
     if quick_calculation:
         norm_deformations = c.get("norm_deformations", [0.01])
         shear_deformations = c.get("shear_deformations", [0.03])
+
+    
     wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd,
                                  norm_deformations=norm_deformations,
                                  shear_deformations=shear_deformations,
