@@ -216,7 +216,7 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
     return Workflow.from_dict(wf_dict)
 
 
-def set_spec_fworker(original_wf, fw_queuename, fw_name_constraint=None, task_name_constraint=None):
+def set_fworker(original_wf, fw_queuename, fw_name_constraint=None, task_name_constraint=None):
     """
     set _fworker spec of Fireworker(s) of a Workflow.
         It can be used to specify a queue; e.g. run large-memory jobs on a separate queue.
