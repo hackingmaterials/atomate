@@ -216,14 +216,14 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
     return Workflow.from_dict(wf_dict)
 
 
-def set_fworker(original_wf, fw_queuename, fw_name_constraint=None, task_name_constraint=None):
+def set_fworker(original_wf, fworker_name, fw_name_constraint=None, task_name_constraint=None):
     """
     set _fworker spec of Fireworker(s) of a Workflow.
         It can be used to specify a queue; e.g. run large-memory jobs on a separate queue.
 
     Args:
         original_wf (Workflow):
-        fw_queuename (str): user-defined tag to be added under fw.spec._fworker (e.g. "large memory", "big", etc)
+        fworker_name (str): user-defined tag to be added under fw.spec._fworker (e.g. "large memory", "big", etc)
         fw_name_constraint (str): name of the Fireworks to be tagged (all if None is passed)
         task_name_constraint (str): name of the Firetasks to be tagged (e.g. None or 'RunVasp')
 
@@ -233,7 +233,7 @@ def set_fworker(original_wf, fw_queuename, fw_name_constraint=None, task_name_co
     wf_dict = original_wf.to_dict()
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint=task_name_constraint):
-        wf_dict["fws"][idx_fw]["spec"]["_fworker"] = fw_queuename
+        wf_dict["fws"][idx_fw]["spec"]["_fworker"] = fworker_name
 
     return Workflow.from_dict(wf_dict)
 
