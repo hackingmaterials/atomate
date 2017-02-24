@@ -15,9 +15,9 @@ from fireworks import FireTaskBase, Firework, FWAction, Workflow
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.utilities.fw_utilities import explicit_serialize
 
-from matmethods.utils.utils import env_chk, get_logger
-from matmethods.vasp.database import MMDb
-from matmethods.vasp.fireworks.core import OptimizeFW, TransmuterFW, StaticFW
+from atomate.utils.utils import env_chk, get_logger
+from atomate.vasp.database import MMDb
+from atomate.vasp.fireworks.core import OptimizeFW, TransmuterFW, StaticFW
 
 from pymatgen.analysis.adsorption import AdsorbateSiteFinder
 from pymatgen.core.surface import generate_all_slabs
@@ -135,12 +135,11 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
             for molecule in adsorbate_config[mi_string]:
                 structures = asf.generate_adsorption_structures(molecule, repeat=[2, 2, 1],
                                                                 find_args=find_ads_params)
-                for struct in structures:
+                for n, struct in enumerate(structures):
                     # Sort structure because InsertSites sorts the structure
                     struct = struct.get_sorted_structure()
-                    ads_fw_name = "{}-{}_{} adsorbate optimization".format(
-                        molecule.composition.formula,
-                        structure.composition.reduced_formula, mi_string)
+                    ads_fw_name = "{}-{}_{} adsorbate optimization {}".format(
+                        molecule.composition.formula, structure.composition.reduced_formula, mi_string, n)
                     # Add velocities to avoid problems with poscar/contcar conversion
                     struct.add_site_property("velocities", [[0., 0., 0.]]*struct.num_sites)
                     trans_ads = ["SlabTransformation", "SupercellTransformation", 
@@ -171,7 +170,7 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
 
 def get_wf_adsorption_from_slab(slab, molecules, vasp_input_set=None, vasp_cmd="vasp", db_file=None, 
                                 auto_dipole=True, slab_incar_params=None, ads_incar_params=None, 
-                                optimize_slab=False, find_ads_params={}):
+                                optimize_slab=False, find_ads_params={}, name=""):
     """
     This workflow function generates a workflow starting from a slab, rather than a bulk structure.
     It's intended use is for workflows that begin from optimized slabs or that begin from previous
@@ -183,6 +182,10 @@ def get_wf_adsorption_from_slab(slab, molecules, vasp_input_set=None, vasp_cmd="
     """
     slab_incar_params = slab_incar_params or default_sip
     ads_incar_params = ads_incar_params or default_aip
+    if not name:
+        name = slab.composition.reduced_formula
+        if hasattr(slab, miller_index) and not name:
+            name += "_"+"".join([str(i) for i in slab.miller_index])
     if auto_dipole:
         weights = np.array([site.species_and_occu.weight for site in slab])
         dipole_center = np.sum(weights*np.transpose(slab.frac_coords), axis=1)
@@ -194,12 +197,14 @@ def get_wf_adsorption_from_slab(slab, molecules, vasp_input_set=None, vasp_cmd="
         ads_incar_params.update(dipole_dict)
     vis_slab = MVLSlabSet(slab, user_incar_settings=slab_incar_params)
     if optimize_slab:
-        fws.append(OptimizeFW(structure=slab, vasp_input_set=v, vasp_cmd=vasp_cmd, db_file=db_file))
+        slab_fw_name = "{} slab optimization".format(name)
+        fws.append(OptimizeFW(structure=slab, vasp_input_set=v, vasp_cmd=vasp_cmd, db_file=db_file, name=slab_fw_name))
     for molecule in molecules:
         adsorption_structures = AdsorbateSiteFinder(slab).generate_adsorption_structures(molecule, find_args=find_ads_params)
-        for struct in adsorption_structures:
-            fws.append(OptimizeFW(structure=slab, vasp_input_set=v, vasp_cmd=vasp_cmd, db_file=db_file))
-    wfname = "{}:{}".format(structure.composition.reduced_formula, "Adsorbate calculations")
+        for n, struct in enumerate(adsorption_structures):
+            ads_fw_name = "{}-{} adsorbate optimization {}".format(molecule.composition.reduced_formula, name, n)
+            fws.append(OptimizeFW(structure=slab, vasp_input_set=v, vasp_cmd=vasp_cmd, db_file=db_file, name=ads_fw_name))
+    wfname = "{}:{}".format(name, "Adsorbate calculations")
     return Workflow(fws, name=wfname)
 
 
@@ -230,13 +235,8 @@ def get_wf_molecules(molecules, vasp_input_sets=None, vibrations=False,
                              molecule.cart_coords, coords_are_cartesian=True)
         m_struct.translate_sites(list(range(len(m_struct))),
                                  np.array([0.5]*3) - np.average(m_struct.frac_coords,axis=0))
-        user_incar_settings = {"ENCUT":400, # concurrent with MVLSlabSet
-                               "ISMEAR":0,
-                               "IBRION":2,
-                               "ISIF":0,
-                               "EDIFF":1e-6,
-                               "EDIFFG":-0.01,
-                               "POTIM":0.02}
+        user_incar_settings = {"ENCUT":400, "ISMEAR":0, "IBRION":2, "ISIF":0,
+                               "EDIFF":1e-6, "EDIFFG":-0.01, "POTIM":0.02} # concurrent with MVLSlabSet
         v = vis or MPRelaxSet(m_struct, user_incar_settings=user_incar_settings,
                               user_kpoints_settings = {"grid_density":1}) 
         # Use StaticFW to avoid double relaxation
@@ -259,8 +259,6 @@ def get_wf_molecules(molecules, vasp_input_sets=None, vibrations=False,
 
 
 if __name__ == "__main__":
-    import matplotlib
-    matplotlib.use("Agg")
     from fireworks import LaunchPad
     lpad = LaunchPad.auto_load()
     from pymatgen.util.testing import PymatgenTest
@@ -279,5 +277,8 @@ if __name__ == "__main__":
     fw_names = [fw.name for fw in wf1.fws]
     fw_names2 = [fw.name for fw in wf2.fws]
     fw_names3 = [fw.name for fw in wf3.fws]
+    from pymatgen import Structure, Lattice
+    ir = Structure.from_spacegroup("Fm-3m", Lattice.cubic(3.875728), ['Ir'], [[0, 0, 0]])
+    wf1 = get_wf_adsorption(ir, {"100":[h]})
     import pdb; pdb.set_trace()
     #wf2 = get_wf_molecules([co])
