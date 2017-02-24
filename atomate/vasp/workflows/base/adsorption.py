@@ -256,29 +256,3 @@ def get_wf_molecules(molecules, vasp_input_sets=None, vibrations=False,
 
     wfname = "{}".format("Molecule calculations")
     return Workflow(fws, name=wfname)
-
-
-if __name__ == "__main__":
-    from fireworks import LaunchPad
-    lpad = LaunchPad.auto_load()
-    from pymatgen.util.testing import PymatgenTest
-    from pymatgen import Molecule, MPRester
-    mpr = MPRester()
-    pd = mpr.get_structures("mp-2")[0]
-    co = mpr.get_structures("mp-54")[0]
-    fe = mpr.get_structures("mp-13")[0]
-    h = Molecule("H", [[0, 0, 0]])
-    adsorbate_config = {k:[h] for k in ["111", "100", "110"]}
-    structure = PymatgenTest.get_structure("Si")
-    wf1 = get_wf_adsorption(pd, adsorbate_config)
-    wf2 = get_wf_adsorption(co, {"001":[h]})
-    wf3 = get_wf_adsorption(fe, {"100":[h],
-                                 "110":[h]})
-    fw_names = [fw.name for fw in wf1.fws]
-    fw_names2 = [fw.name for fw in wf2.fws]
-    fw_names3 = [fw.name for fw in wf3.fws]
-    from pymatgen import Structure, Lattice
-    ir = Structure.from_spacegroup("Fm-3m", Lattice.cubic(3.875728), ['Ir'], [[0, 0, 0]])
-    wf1 = get_wf_adsorption(ir, {"100":[h]})
-    import pdb; pdb.set_trace()
-    #wf2 = get_wf_molecules([co])
