@@ -32,7 +32,7 @@ DEBUG_MODE = False  # If true, retains the database and output dirs at the end o
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
 
-class TestElasticWorkflow(unittest.TestCase):
+class TestAdsorptionWorkflow(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         if not SETTINGS.get("PMG_VASP_PSP_DIR"):
@@ -43,7 +43,8 @@ class TestElasticWorkflow(unittest.TestCase):
         cls.struct_ir = Structure.from_spacegroup("Fm-3m", Lattice.cubic(3.875728), ["Ir"], [[0, 0, 0]])
         cls.scratch_dir = os.path.join(module_dir, "scratch")
         cls.ads_config = {"100": [Molecule("H", [[0, 0, 0]])]}
-        cls.wf_1 = get_wf_adsorption(cls.struct_ir, cls.ads_config)
+        cls.wf_1 = get_wf_adsorption(cls.struct_ir, cls.ads_config, 
+                                     db_file=os.path.join(db_dir, "db.json"))
 
     def setUp(self):
         if os.path.exists(self.scratch_dir):
@@ -71,9 +72,9 @@ class TestElasticWorkflow(unittest.TestCase):
         reference_dir = os.path.abspath(os.path.join(ref_dir, "adsorbate_wf"))
         ir_ref_dirs = {"Ir-structure optimization": os.path.join(reference_dir, "1"),
                        "Ir-Ir_100 slab optimization": os.path.join(reference_dir, "2"),
-                       "Ir-H1-Ir_100 adsorbate optimization 1": os.path.join(reference_dir, "3"),
-                       "Ir-H1-Ir_100 adsorbate optimization 2": os.path.join(reference_dir, "4"),
-                       "Ir-H1-Ir_100 adsorbate optimization 3": os.path.join(reference_dir, "5")}
+                       "Ir-H1-Ir_100 adsorbate optimization 0": os.path.join(reference_dir, "3"),
+                       "Ir-H1-Ir_100 adsorbate optimization 1": os.path.join(reference_dir, "4"),
+                       "Ir-H1-Ir_100 adsorbate optimization 2": os.path.join(reference_dir, "5")}
         return use_fake_vasp(wf, ir_ref_dirs, params_to_check=["ENCUT", "ISIF", "IBRION"])
 
     def _get_task_database(self):
@@ -93,43 +94,30 @@ class TestElasticWorkflow(unittest.TestCase):
             return db[coll_name]
 
     def _check_run(self, d, mode):
-        if mode not in ["Ir-H1-Ir_100 adsorbate optimization 1"]:
+        if mode not in ["H1-Ir_100 adsorbate optimization 1"]:
             raise ValueError("Invalid mode!")
 
         if "adsorbate" in mode:
-            self.assertEqual(d["formula_pretty"], "HIr24")
-            self.assertEqual(d["state"], "successful")
+            self.assertEqual(d["formula_pretty"], "HIr16")
         # Check relaxation of adsorbate
         # Check slab calculations
         # Check structure optimization
 
     def test_wf(self):
-        self.wf1 = self._simulate_vasprun(self.wf1)
+        self.wf_1 = self._simulate_vasprun(self.wf_1)
 
-        self.assertEqual(len(self.wf.fws), 5)
+        self.assertEqual(len(self.wf_1.fws), 5)
         # check vasp parameters for ionic relaxation
-        defo_vis = [fw.spec["_tasks"][2]['vasp_input_set'] 
-                    for fw in self.wf.fws if "adsorbate" in fw.name]
+        defo_vis = [fw.spec["_tasks"][1]['vasp_input_set'] 
+                    for fw in self.wf_1.fws if "adsorbate" in fw.name]
         assert all([vis['user_incar_settings']['EDIFFG']==-0.05 for vis in defo_vis])
         assert all([vis['user_incar_settings']['ISIF']==0 for vis in defo_vis])
-        self.lp.add_wf(self.wf)
+        self.lp.add_wf(self.wf_1)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
         # check relaxation
-        d = self._get_task_collection().find_one({"task_label": "Ir-H1-Ir_100 adsorbate optimization 1"})
-        self._check_run(d, mode="Ir-H1-Ir_100 adsorbate optimization 1")
-        """
-        # check two of the deformation calculations
-        d = self._get_task_collection().find_one({"task_label": "elastic deformation 0"})
-        self._check_run(d, mode="elastic deformation 0")
-        
-        d = self._get_task_collection().find_one({"task_label": "elastic deformation 3"})
-        self._check_run(d, mode="elastic deformation 3")
-
-        # check the final results
-        d = self._get_task_collection(coll_name="elasticity").find_one()
-        self._check_run(d, mode="elastic analysis")
-        """
+        d = self._get_task_collection().find_one({"task_label": "H1-Ir_100 adsorbate optimization 1"})
+        self._check_run(d, mode="H1-Ir_100 adsorbate optimization 1")
 
 
 if __name__ == "__main__":

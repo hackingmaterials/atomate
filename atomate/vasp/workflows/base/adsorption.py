@@ -85,8 +85,8 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
         slab_incar_params.update({"LDAU":False})
     fws = []
     if optimize_bulk:
-        fws.append(OptimizeFW(structure=structure, vasp_input_set=v,
-                              vasp_cmd=vasp_cmd, db_file=db_file))
+        fws.append(OptimizeFW(structure=structure, vasp_input_set=v, vasp_cmd=vasp_cmd, db_file=db_file,
+                              name="{}-structure optimization".format(structure.composition.reduced_formula)))
 
     max_index = max([int(i) for i in ''.join(adsorbate_config.keys())])
     slabs = generate_all_slabs(structure, **slab_gen_params)
