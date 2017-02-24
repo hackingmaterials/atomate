@@ -33,14 +33,21 @@ __email__ = 'montoyjh@lbl.gov'
 
 logger = get_logger(__name__)
 
+# Default parameters for slabs (sip) and adsorbates (aip)
+default_sip = {"ISIF":0, "EDIFFG":-0.05}
+default_aip = {"ISIF":0, "AMIX":0.1, "AMIX_MAG":0.4, "BMIX":0.0001,
+               "BMIX_MAG":0.0001, "POTIM":0.3, "EDIFFG":-0.05}
+default_slab_gen_params = {"max_index":1, "min_slab_size":7.0, "min_vacuum_size":20.0, 
+                           "center_slab":True, "max_normal_search": None}
+
+
 def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
-                      min_slab_size=7.0, min_vacuum_size=20.0, center_slab=True,
-                      max_normal_search=None, vasp_cmd="vasp", db_file=None, 
-                      conventional=True, slab_incar_params=None, 
+                      slab_gen_params=None, vasp_cmd="vasp", db_file=None, 
+                      conventional=True, slab_incar_params=None,
                       ads_incar_params=None, auto_dipole=True,
-                      use_bulk_coordination=False):
+                      use_bulk_coordination=False, optimize_slab=True,
+                      optimize_bulk=True, find_ads_params={}):
     #TODO: add more details to docstring
-    #TODO: this could use a general refactoring in the context of new ASF
     """
     Returns a workflow to calculate adsorption structures and surfaces.
 
@@ -69,29 +76,20 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
         structure = sga.get_conventional_standard_structure()
     v = vasp_input_set or MVLSlabSet(structure, bulk=True)
     # Default VASP parameters for slabs and adsorbates,
-    # may want to put this in a preset workflow
-    slab_incar_params = slab_incar_params or {"ISIF":0}
-    ads_incar_params = ads_incar_params or {"ISIF":0,
-                                            "AMIX":0.1,
-                                            "AMIX_MAG":0.4,
-                                            "BMIX":0.0001,
-                                            "BMIX_MAG":0.0001,
-                                            "POTIM":0.3,
-                                            "EDIFFG":-0.05}
-
+    # may put this in a preset workflow eventually
+    slab_incar_params = slab_incar_params or default_sip
+    ads_incar_params = ads_incar_params or default_aip
+    slab_gen_params = slab_gen_params or default_slab_gen_params
     if not v.incar.get("LDAU", None):
         ads_incar_params.update({"LDAU":False})
         slab_incar_params.update({"LDAU":False})
     fws = []
-    fws.append(OptimizeFW(structure=structure, vasp_input_set=v,
-                          vasp_cmd=vasp_cmd, db_file=db_file))
+    if optimize_bulk:
+        fws.append(OptimizeFW(structure=structure, vasp_input_set=v,
+                              vasp_cmd=vasp_cmd, db_file=db_file))
 
     max_index = max([int(i) for i in ''.join(adsorbate_config.keys())])
-    slabs = generate_all_slabs(structure, max_index=max_index,
-                               min_slab_size=min_slab_size,
-                               min_vacuum_size=min_vacuum_size, 
-                               max_normal_search=max_normal_search,
-                               center_slab=center_slab)
+    slabs = generate_all_slabs(structure, **slab_gen_params)
     mi_strings = [''.join([str(i) for i in slab.miller_index])
                   for slab in slabs]
     for key in adsorbate_config.keys():
@@ -104,40 +102,30 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
         if mi_string in adsorbate_config.keys():
             # Add the slab optimize firework
             if auto_dipole:
-                weights = [site.species_and_occu.weight for site in slab]
-                dipol_center = [0, 0, 0.5]
-                #np.average(slab.frac_coords, axis = 1).tolist()
+                weights = np.array([site.species_and_occu.weight for site in slab])
+                dipole_center = np.sum(weights*np.transpose(slab.frac_coords), axis=1)
+                dipole_center /= np.sum(weights)
                 dipole_dict = {"LDIPOL":"True",
                                "IDIPOL": 3,
-                               "DIPOL": dipol_center}
+                               "DIPOL": dipole_center}
                 slab_incar_params.update(dipole_dict)
                 ads_incar_params.update(dipole_dict)
-            slab_trans_params = {"miller_index":slab.miller_index,
-                           "min_slab_size":min_slab_size,
-                           "min_vacuum_size":min_vacuum_size,
-                           "shift":slab.shift,
-                           "center_slab":True,
-                           "max_normal_search":max_normal_search}
+
+            slab_trans_params = {"miller_index":slab.miller_index, "shift":slab.shift}
+            slab_trans_params.update(slab_gen_params)
+            slab_trans_params.pop("max_index")
             slab_trans = SlabTransformation(**slab_trans_params)
-            # TODO: name these more intelligently
             fw_name = "{}_{} slab optimization".format(
                 slab.composition.reduced_formula, mi_string)
             vis_slab = MVLSlabSet(slab, user_incar_settings=slab_incar_params)
-            # This is a bit of a hack to avoid problems with poscar/contcar conversion
+            # This is necessary to avoid problems with poscar/contcar conversion
             slab.add_site_property("velocities", [[0., 0., 0.]]*slab.num_sites)
             asf = AdsorbateSiteFinder(slab, selective_dynamics=True)
-            fws.append(TransmuterFW(name=fw_name,
-                                    structure = structure,
-                                    transformations = ["SlabTransformation", 
-                                                       "AddSitePropertyTransformation"],
-                                    transformation_params=[slab_trans_params,
-                                                           {"site_properties":asf.slab.site_properties}],
-                                    copy_vasp_outputs=True,
-                                    db_file=db_file,
-                                    vasp_cmd=vasp_cmd,
-                                    parents=fws[0],
-                                    vasp_input_set = vis_slab)
-                      )
+            if optimize_slab:
+                fws.append(TransmuterFW(name=fw_name, structure = structure, db_file=db_file, vasp_cmd=vasp_cmd, 
+                                        transformations = ["SlabTransformation", "AddSitePropertyTransformation"],
+                                        transformation_params=[slab_trans_params, {"site_properties":asf.slab.site_properties}],
+                                        copy_vasp_outputs=True, parents=fws[0], vasp_input_set = vis_slab))
             # Generate adsorbate configurations and add fws to workflow
             if use_bulk_coordination:
                 asf = AdsorbateSiteFinder.from_bulk_and_miller(structure, slab.miller_index,
@@ -145,7 +133,8 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
             else:
                 asf = AdsorbateSiteFinder(slab, selective_dynamics=True)
             for molecule in adsorbate_config[mi_string]:
-                structures = asf.generate_adsorption_structures(molecule, repeat=[2, 2, 1])
+                structures = asf.generate_adsorption_structures(molecule, repeat=[2, 2, 1],
+                                                                find_args=find_ads_params)
                 for struct in structures:
                     # Sort structure because InsertSites sorts the structure
                     struct = struct.get_sorted_structure()
@@ -179,6 +168,40 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None,
                                             vasp_input_set = vis_ads))
     wfname = "{}:{}".format(structure.composition.reduced_formula, "Adsorbate calculations")
     return Workflow(fws, name=wfname)
+
+def get_wf_adsorption_from_slab(slab, molecules, vasp_input_set=None, vasp_cmd="vasp", db_file=None, 
+                                auto_dipole=True, slab_incar_params=None, ads_incar_params=None, 
+                                optimize_slab=False, find_ads_params={}):
+    """
+    This workflow function generates a workflow starting from a slab, rather than a bulk structure.
+    It's intended use is for workflows that begin from optimized slabs or that begin from previous
+    calculations that have already optimized structures.
+
+    Args:
+        slab (Slab or structure):
+        molecule (Molecule):
+    """
+    slab_incar_params = slab_incar_params or default_sip
+    ads_incar_params = ads_incar_params or default_aip
+    if auto_dipole:
+        weights = np.array([site.species_and_occu.weight for site in slab])
+        dipole_center = np.sum(weights*np.transpose(slab.frac_coords), axis=1)
+        dipole_center /= np.sum(weights)
+        dipole_dict = {"LDIPOL":"True",
+                       "IDIPOL": 3,
+                       "DIPOL": dipole_center}
+        slab_incar_params.update(dipole_dict)
+        ads_incar_params.update(dipole_dict)
+    vis_slab = MVLSlabSet(slab, user_incar_settings=slab_incar_params)
+    if optimize_slab:
+        fws.append(OptimizeFW(structure=slab, vasp_input_set=v, vasp_cmd=vasp_cmd, db_file=db_file))
+    for molecule in molecules:
+        adsorption_structures = AdsorbateSiteFinder(slab).generate_adsorption_structures(molecule, find_args=find_ads_params)
+        for struct in adsorption_structures:
+            fws.append(OptimizeFW(structure=slab, vasp_input_set=v, vasp_cmd=vasp_cmd, db_file=db_file))
+    wfname = "{}:{}".format(structure.composition.reduced_formula, "Adsorbate calculations")
+    return Workflow(fws, name=wfname)
+
 
 def get_wf_molecules(molecules, vasp_input_sets=None, vibrations=False,
                      min_vacuum_size=15.0, vasp_cmd="vasp",
@@ -223,7 +246,7 @@ def get_wf_molecules(molecules, vasp_input_sets=None, vibrations=False,
             # Turn off symmetry because it screws up automatic k-points
             user_incar_settings.update({"IBRION":5, "ISYM":0})
             v = MPRelaxSet(m_struct, user_incar_settings=user_incar_settings,
-                              user_kpoints_settings = {"grid_density":1})
+                           user_kpoints_settings = {"grid_density":1})
             # This is a bit of a hack.  Seems static fireworks don't cleanly allow
             # for custom incar parameters.
             fw = TransmuterFW(structure=structure, vasp_input_set=v,
@@ -236,6 +259,8 @@ def get_wf_molecules(molecules, vasp_input_sets=None, vibrations=False,
 
 
 if __name__ == "__main__":
+    import matplotlib
+    matplotlib.use("Agg")
     from fireworks import LaunchPad
     lpad = LaunchPad.auto_load()
     from pymatgen.util.testing import PymatgenTest
