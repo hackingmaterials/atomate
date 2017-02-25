@@ -245,7 +245,7 @@ class SOCFW(Firework):
 class TransmuterFW(Firework):
     def __init__(self, structure, transformations, transformation_params=None,
                  vasp_input_set=None, name="structure transmuter", vasp_cmd="vasp",
-                 copy_vasp_outputs=True, db_file=None, parents=None, override_default_vasp_params=None,
+                 copy_vasp_outputs=True, db_file=None, parents=None, override_default_vasp_params={},
                  **kwargs):
         """
         Apply the transformations to the input structure, write the input set corresponding
