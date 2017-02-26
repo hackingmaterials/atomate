@@ -157,7 +157,7 @@ class NonSCFFW(Firework):
 class LepsFW(Firework):
     def __init__(self, structure, name="static dielectric", vasp_cmd="vasp", copy_vasp_outputs=True,
                  db_file=None, parents=None, phonon=False, mode=None, displacement=None,
-                 user_incar_settings={}, **kwargs):
+                 user_incar_settings=None, **kwargs):
         """
         Standard static calculation Firework for dielectric constants using DFPT.
 
@@ -178,6 +178,7 @@ class LepsFW(Firework):
             user_incar_settings (dict): Parameters in INCAR to override
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
+        user_incar_settings = user_incar_settings or {}
         t = []
         if parents:
             if copy_vasp_outputs:
@@ -245,7 +246,7 @@ class SOCFW(Firework):
 class TransmuterFW(Firework):
     def __init__(self, structure, transformations, transformation_params=None,
                  vasp_input_set=None, name="structure transmuter", vasp_cmd="vasp",
-                 copy_vasp_outputs=True, db_file=None, parents=None, override_default_vasp_params=None,
+                 copy_vasp_outputs=True, db_file=None, parents=None, override_default_vasp_params={},
                  **kwargs):
         """
         Apply the transformations to the input structure, write the input set corresponding
