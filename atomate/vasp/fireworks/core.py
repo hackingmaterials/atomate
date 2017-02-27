@@ -157,7 +157,7 @@ class NonSCFFW(Firework):
 class LepsFW(Firework):
     def __init__(self, structure, name="static dielectric", vasp_cmd="vasp", copy_vasp_outputs=True,
                  db_file=None, parents=None, phonon=False, mode=None, displacement=None,
-                 user_incar_settings={}, **kwargs):
+                 user_incar_settings=None, **kwargs):
         """
         Standard static calculation Firework for dielectric constants using DFPT.
 
@@ -178,6 +178,7 @@ class LepsFW(Firework):
             user_incar_settings (dict): Parameters in INCAR to override
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
+        user_incar_settings = user_incar_settings or {}
         t = []
         if parents:
             if copy_vasp_outputs:

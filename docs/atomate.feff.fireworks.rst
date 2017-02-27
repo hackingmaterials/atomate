@@ -1,6 +1,13 @@
 atomate.feff.fireworks package
 ==============================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    atomate.feff.fireworks.tests
+
 Submodules
 ----------
 

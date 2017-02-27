@@ -6,6 +6,7 @@ import logging
 import os
 import sys
 import six
+from copy import deepcopy
 
 from fireworks import Workflow, Firework
 
@@ -268,30 +269,6 @@ def append_fw_wf(orig_wf, fw_wf):
     orig_wf.append_wf(new_wf, orig_wf.leaf_fw_ids)
 
 
-def remove_leaf_fws(orig_wf):
-    """
-    Remove the end nodes(last fireworks) from the given workflow.
-
-    Args:
-        orig_wf (Workflow): The original workflow object.
-
-    Returns:
-        Workflow : the new updated workflow.
-    """
-    wf_dict = orig_wf.as_dict()
-    all_parents = []
-    for i, f in enumerate(orig_wf.as_dict()["fws"]):
-        if f["fw_id"] in orig_wf.leaf_fw_ids:
-            parents = orig_wf.links.parent_links[int(f["fw_id"])]
-            all_parents.extend(parents)
-            del wf_dict["links"][str(f["fw_id"])]
-            del wf_dict["fws"][i]
-            for p in parents:
-                wf_dict["links"][str(p)] = []
-    new_wf = Workflow.from_dict(wf_dict)
-    return update_wf(new_wf)
-
-
 def load_class(modulepath, classname):
     """
     Load and return the class from the given module.
@@ -305,3 +282,73 @@ def load_class(modulepath, classname):
     """
     module = __import__(modulepath, globals(), locals(), [classname], 0)
     return getattr(module, classname)
+
+
+def remove_leaf_fws(orig_wf):
+    """
+    Remove the end nodes(last fireworks) from the given workflow.
+
+    Args:
+        orig_wf (Workflow): The original workflow object.
+
+    Returns:
+        Workflow : the new updated workflow.
+    """
+    return remove_fws(orig_wf, orig_wf.leaf_fw_ids)
+
+
+def remove_root_fws(orig_wf):
+    """
+    Remove the root nodes from the given workflow.
+
+    Args:
+        orig_wf (Workflow): The original workflow object.
+
+    Returns:
+        Workflow : the new updated workflow.
+    """
+    return remove_fws(orig_wf, orig_wf.root_fw_ids)
+
+
+def remove_fws(orig_wf, fw_ids):
+    """
+    Remove the fireworks corresponding to the input firework ids and update the workflow i.e the
+    parents of the removed fireworks become the parents of the children fireworks(only if the
+    children dont have any other parents).
+
+    Args:
+        orig_wf (Workflow): The original workflow object.
+        fw_ids (list): list of fw ids to remove.
+
+    Returns:
+        Workflow : the new updated workflow.
+    """
+    # not working with the copies causes spurious behavior
+    wf_dict = deepcopy(orig_wf.as_dict())
+    orig_parent_links = deepcopy(orig_wf.links.parent_links)
+    fws = wf_dict["fws"]
+
+    # update the links dict: remove fw_ids and link their parents to their children(if they don't
+    # have any other parents).
+    for fid in fw_ids:
+        children = wf_dict["links"].pop(str(fid))
+        # root node --> no parents
+        try:
+            parents = orig_parent_links[int(fid)]
+        except KeyError:
+            parents = []
+        # remove the firework from their parent links and re-link their parents to the children.
+        for p in parents:
+            wf_dict["links"][str(p)].remove(fid)
+            # adopt the children
+            for c in children:
+                # adopt only if the child doesn't have any other parents.
+                if len(orig_parent_links[int(c)]) == 1:
+                    wf_dict["links"][str(p)].append(c)
+
+    # update the list of fireworks.
+    wf_dict["fws"] = [f for f in fws if f["fw_id"] not in fw_ids]
+
+    new_wf = Workflow.from_dict(wf_dict)
+
+    return update_wf(new_wf)

@@ -18,33 +18,33 @@ from fireworks.core.fworker import FWorker
 from fireworks.core.launchpad import LaunchPad
 from fireworks.core.rocket_launcher import rapidfire
 
-from atomate.feff.workflows.xas import get_wf_xas
+from atomate.feff.workflows.eels import get_wf_eels
 
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-db_dir = os.path.join(module_dir, "..", "..", "common", "reference_files", "db_connections")
+db_dir = os.path.join(module_dir, "..", "..", "..", "common", "reference_files", "db_connections")
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 FEFF_CMD = None  # "feff"
 
 
-class TestXASWorkflow(unittest.TestCase):
+class TestEELSWorkflow(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        # CoO
-        cls.structure = Structure.from_file(os.path.join(module_dir, "reference_files", "Co2O2.cif"))
-        #PymatgenTest.get_mp_structure("mp-715460")
+        cls.structure = Structure.from_file(os.path.join(module_dir, "..", "..", "test_files",
+                                                         "Co2O2.cif"))
         cls.user_tag_settings = {"RPATH": -1,
                                  "SCF": "7 0 30 0.2 3",
                                  "FMS": "9 0",
                                  "LDOS": "-30.0 30.0 0.1",
-                                 "RECIPROCAL": "",
-                                 "EDGE": "K"}
+                                 "RECIPROCAL":"",
+                                 "EDGE": "L1",
+                                 "COREHOLE": "RPA"}
         # 3rd site
         cls.absorbing_atom = 2
-        cls.edge = "K"
+        cls.edge = "L1"
         cls.nkpts = 1000
         cls.scratch_dir = os.path.join(module_dir, "scratch")
 
@@ -61,51 +61,47 @@ class TestXASWorkflow(unittest.TestCase):
                 'Cannot connect to MongoDB! Is the database server running? '
                 'Are the credentials correct?')
 
-    def test_xas_wflow_abatom_by_idx(self):
-        if not FEFF_CMD:
-            # fake run
-            feff_bin = "cp  ../../reference_files/xmu.dat ."
-        else:
-            feff_bin = FEFF_CMD
-
-        wf = get_wf_xas(self.absorbing_atom, self.structure, spectrum_type="XANES", edge="K",
-                        feff_cmd=feff_bin, db_file=">>db_file<<", use_primitive=False,
-                        user_tag_settings=self.user_tag_settings)
+    def test_eels_wflow_abatom_by_idx(self):
+        # for the sake of test just copy xmu to eels
+        feff_bin = "cp  ../../../../test_files/xmu.dat eels.dat"
+        wf = get_wf_eels(self.absorbing_atom, self.structure, spectrum_type="ELNES",
+                        edge="L1", user_tag_settings=self.user_tag_settings, use_primitive=False,
+                         feff_cmd=feff_bin, db_file=">>db_file<<")
         self.assertEqual(len(wf.as_dict()["fws"]), 1)
 
         self.lp.add_wf(wf)
         # run
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
-        d = self._get_task_collection().find_one({"spectrum_type": "XANES"})
+        d = self._get_task_collection().find_one({"spectrum_type": "ELNES"})
         self._check_run(d)
 
-    def test_xas_wflow_abatom_by_symbol(self):
-        wf_prim = get_wf_xas("O", self.structure, spectrum_type="XANES", edge="K",
-                             use_primitive=True, user_tag_settings=self.user_tag_settings)
-        wf = get_wf_xas("O", self.structure, spectrum_type="XANES", edge="K",
-                        use_primitive=False, user_tag_settings=self.user_tag_settings)
+    def test_eels_wflow_abatom_by_symbol(self):
+        wf_prim =get_wf_eels("O", self.structure, spectrum_type="ELNES",
+                        edge="L1", user_tag_settings=self.user_tag_settings, use_primitive=True)
+        wf = get_wf_eels("O", self.structure, spectrum_type="ELNES",
+                        edge="L1", user_tag_settings=self.user_tag_settings, use_primitive=False)
         self.assertEqual(len(wf_prim.as_dict()["fws"]), 1)
         self.assertEqual(len(wf.as_dict()["fws"]), 2)
 
-    def test_xanes_vs_exafs(self):
-        wf_xanes = get_wf_xas(self.absorbing_atom, self.structure, spectrum_type="XANES", edge="K",
-                              user_tag_settings=self.user_tag_settings)
-        wf_exafs = get_wf_xas(self.absorbing_atom, self.structure, spectrum_type="EXAFS", edge="K")
+    def test_elnes_vs_exelfs(self):
+        wf_elnes = get_wf_eels(self.absorbing_atom, self.structure, spectrum_type="ELNES",
+                        edge="L1", user_tag_settings=self.user_tag_settings, use_primitive=True)
+        wf_exelfs = get_wf_eels(self.absorbing_atom, self.structure, spectrum_type="EXELFS",
+                        edge="L1", user_tag_settings=self.user_tag_settings, use_primitive=True)
 
-        self.assertEqual(wf_xanes.as_dict()["fws"][0]["spec"]['_tasks'][0]['feff_input_set']['@class'],
-                         'MPXANESSet')
-        self.assertEqual(wf_exafs.as_dict()["fws"][0]["spec"]['_tasks'][0]['feff_input_set']['@class'],
-                         'MPEXAFSSet')
+        self.assertEqual(wf_elnes.as_dict()["fws"][0]["spec"]['_tasks'][0]['feff_input_set']['@class'],
+                         'MPELNESSet')
+        self.assertEqual(wf_exelfs.as_dict()["fws"][0]["spec"]['_tasks'][0]['feff_input_set']['@class'],
+                         'MPEXELFSSet')
 
     def _check_run(self, d):
         run_dir = d["dir_name"]
+        #ref_feff_inp = os.path.join(module_dir, "reference_files", "feff_eels.inp")
         self.assertEqual(d["edge"], self.edge)
         self.assertEqual(d["absorbing_atom"], self.absorbing_atom)
         tags = Tags.from_file(os.path.join(run_dir, "feff.inp"))
         self.assertEqual(d["input_parameters"], tags.as_dict())
-        xmu = np.loadtxt((os.path.join(run_dir, "xmu.dat")))
-        self.assertEqual(d["spectrum"], xmu.tolist())
 
     def _get_task_database(self):
         with open(os.path.join(db_dir, "db.json")) as f:
