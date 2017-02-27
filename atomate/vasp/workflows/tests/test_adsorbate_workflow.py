@@ -21,8 +21,6 @@ from pymatgen import SETTINGS, Structure, Molecule, Lattice
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
-from matplotlib import patches
-
 __author__ = 'Kiran Mathew, Joseph Montoya'
 __email__ = 'montoyjh@lbl.gov'
 
