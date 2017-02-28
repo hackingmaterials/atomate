@@ -27,11 +27,11 @@ __email__ = 'montoyjh@lbl.gov'
 logger = get_logger(__name__)
 
 # Default parameters for slabs (sip) and adsorbates (aip)
-default_sip = {"ISIF":0, "EDIFFG":-0.05}
-default_aip = {"ISIF":0, "AMIX":0.1, "AMIX_MAG":0.4, "BMIX":0.0001,
-               "BMIX_MAG":0.0001, "POTIM":0.3, "EDIFFG":-0.05}
-default_slab_gen_params = {"max_index":1, "min_slab_size":7.0, "min_vacuum_size":20.0, 
-                           "center_slab":True, "max_normal_search": None}
+default_sip = {"ISIF": 0, "EDIFFG": -0.05}
+default_aip = {"ISIF": 0, "AMIX": 0.1, "AMIX_MAG": 0.4, "BMIX": 0.0001,
+               "BMIX_MAG": 0.0001, "POTIM": 0.3, "EDIFFG": -0.05}
+default_slab_gen_params = {"max_index": 1, "min_slab_size": 7.0, "min_vacuum_size": 20.0,
+                           "center_slab": True, "max_normal_search": None}
 
 
 def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None, slab_gen_params=None,
@@ -106,7 +106,7 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None, slab_gen
                 weights = np.array([site.species_and_occu.weight for site in slab])
                 dipole_center = np.sum(weights*np.transpose(slab.frac_coords), axis=1)
                 dipole_center /= np.sum(weights)
-                dipole_dict = {"LDIPOL":"True",
+                dipole_dict = {"LDIPOL": "True",
                                "IDIPOL": 3,
                                "DIPOL": dipole_center}
                 slab_incar_params.update(dipole_dict)
