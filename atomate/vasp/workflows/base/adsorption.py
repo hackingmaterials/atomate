@@ -175,6 +175,7 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None, slab_gen
     wfname = "{}:{}".format(structure.composition.reduced_formula, "Adsorbate calculations")
     return Workflow(fws, name=wfname)
 
+
 def get_wf_adsorption_from_slab(slab, molecules, vasp_input_set=None, vasp_cmd="vasp", db_file=None, 
                                 auto_dipole=True, slab_incar_params=None, ads_incar_params=None, 
                                 optimize_slab=False, find_ads_params={}, name=""):
@@ -185,42 +186,53 @@ def get_wf_adsorption_from_slab(slab, molecules, vasp_input_set=None, vasp_cmd="
 
     Args:
         slab (Slab or structure):
-        molecule (Molecule):
+        molecules (Molecule):
+        vasp_input_set
+        vasp_cmd
+        db_file
+        auto_dipole
+        slab_incar_params
+        ads_incar_params
+        optimize_slab
+        find_ads_params
+        name
     """
     slab_incar_params = slab_incar_params or default_sip
     ads_incar_params = ads_incar_params or default_aip
     if not name:
         name = slab.composition.reduced_formula
-        if hasattr(slab, miller_index) and not name:
+        if hasattr(slab, 'miller_index') and not name:
             name += "_"+"".join([str(i) for i in slab.miller_index])
     if auto_dipole:
         weights = np.array([site.species_and_occu.weight for site in slab])
         dipole_center = np.sum(weights*np.transpose(slab.frac_coords), axis=1)
         dipole_center /= np.sum(weights)
-        dipole_dict = {"LDIPOL":"True",
+        dipole_dict = {"LDIPOL": "True",
                        "IDIPOL": 3,
                        "DIPOL": dipole_center}
         slab_incar_params.update(dipole_dict)
         ads_incar_params.update(dipole_dict)
-    vis_slab = MVLSlabSet(slab, user_incar_settings=slab_incar_params)
+
+    fws = []
     if optimize_slab:
         slab_fw_name = "{} slab optimization".format(name)
-        fws.append(OptimizeFW(structure=slab, vasp_input_set=v, vasp_cmd=vasp_cmd, db_file=db_file,
-                              name=slab_fw_name))
+        fws.append(OptimizeFW(structure=slab, vasp_input_set=vasp_input_set, vasp_cmd=vasp_cmd,
+                              db_file=db_file, name=slab_fw_name))
+
     for molecule in molecules:
         adsorption_structures = AdsorbateSiteFinder(slab).generate_adsorption_structures(
             molecule, find_args=find_ads_params)
         for n, struct in enumerate(adsorption_structures):
             ads_fw_name = "{}-{} adsorbate optimization {}".format(
                 molecule.composition.reduced_formula, name, n)
-            fws.append(OptimizeFW(structure=slab, vasp_input_set=v, vasp_cmd=vasp_cmd,
+            fws.append(OptimizeFW(structure=slab, vasp_input_set=vasp_input_set, vasp_cmd=vasp_cmd,
                                   db_file=db_file, name=ads_fw_name))
     wfname = "{}:{}".format(name, "Adsorbate calculations")
     return Workflow(fws, name=wfname)
 
 
 def get_wf_molecules(molecules, vasp_input_sets=None, vibrations=False, min_vacuum_size=15.0,
-                     vasp_cmd="vasp",db_file=None):
+                     vasp_cmd="vasp", db_file=None):
     """
     Returns a workflow to calculate molecular energies as references for the
     surface workflow.
@@ -232,6 +244,8 @@ def get_wf_molecules(molecules, vasp_input_sets=None, vibrations=False, min_vacu
     Args:
         molecules (list of molecules): input structure to be optimized and run
         vasp_input_set (DictVaspInputSet): vasp input set.
+        vibrations
+        min_vacuum_size
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
 
@@ -245,21 +259,22 @@ def get_wf_molecules(molecules, vasp_input_sets=None, vibrations=False, min_vacu
                              molecule.cart_coords, coords_are_cartesian=True)
         m_struct.translate_sites(list(range(len(m_struct))),
                                  np.array([0.5]*3) - np.average(m_struct.frac_coords,axis=0))
-        user_incar_settings = {"ENCUT":400, "ISMEAR":0, "IBRION":2, "ISIF":0,
-                               "EDIFF":1e-6, "EDIFFG":-0.01, "POTIM":0.02} # concurrent with MVLSlabSet
+        # concurrent with MVLSlabSet
+        user_incar_settings = {"ENCUT": 400, "ISMEAR": 0, "IBRION": 2, "ISIF": 0,
+                               "EDIFF": 1e-6, "EDIFFG": -0.01, "POTIM": 0.02}
         v = vis or MPRelaxSet(m_struct, user_incar_settings=user_incar_settings,
-                              user_kpoints_settings = {"grid_density":1}) 
+                              user_kpoints_settings={"grid_density":1})
         # Use StaticFW to avoid double relaxation
         fws.append(StaticFW(structure=m_struct, vasp_input_set=v,
                             vasp_cmd=vasp_cmd, db_file=db_file))
         if vibrations:
             # Turn off symmetry because it screws up automatic k-points
-            user_incar_settings.update({"IBRION":5, "ISYM":0})
+            user_incar_settings.update({"IBRION": 5, "ISYM": 0})
             v = MPRelaxSet(m_struct, user_incar_settings=user_incar_settings,
-                           user_kpoints_settings = {"grid_density":1})
+                           user_kpoints_settings={"grid_density": 1})
             # This is a bit of a hack.  Seems static fireworks don't cleanly allow
             # for custom incar parameters.
-            fw = TransmuterFW(structure=structure, vasp_input_set=v,
+            fw = TransmuterFW(structure=m_struct, vasp_input_set=v,
                               copy_vasp_outputs=True, parents=fws[-1],
                               vasp_cmd=vasp_cmd, db_file=db_file)
             fws.append(fw)
