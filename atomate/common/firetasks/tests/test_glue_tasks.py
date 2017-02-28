@@ -40,6 +40,7 @@ class TestPassCalcLocs(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.scratch_dir)
+        os.chdir(module_dir)
         self.lp.reset("", require_password=False)
 
     def test_passcalclocs(self):

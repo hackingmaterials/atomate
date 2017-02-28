@@ -73,6 +73,7 @@ class TestVaspWorkflows(unittest.TestCase):
             for coll in db.collection_names():
                 if coll != "system.indexes":
                     db[coll].drop()
+            os.chdir(module_dir)
 
     def _get_task_database(self):
         with open(os.path.join(db_dir, "db.json")) as f:

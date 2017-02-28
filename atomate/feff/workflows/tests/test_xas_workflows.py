@@ -129,6 +129,7 @@ class TestXASWorkflow(unittest.TestCase):
             for coll in db.collection_names():
                 if coll != "system.indexes":
                     db[coll].drop()
+            os.chdir(module_dir)
 
 
 if __name__ == "__main__":

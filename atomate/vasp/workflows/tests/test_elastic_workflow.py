@@ -69,6 +69,7 @@ class TestElasticWorkflow(unittest.TestCase):
             for coll in db.collection_names():
                 if coll != "system.indexes":
                     db[coll].drop()
+            os.chdir(module_dir)
 
     def _simulate_vasprun(self, wf):
         reference_dir = os.path.abspath(os.path.join(ref_dir, "elastic_wf"))
