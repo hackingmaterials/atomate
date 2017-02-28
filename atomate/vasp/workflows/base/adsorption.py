@@ -8,7 +8,7 @@ This module defines a workflow for adsorption on surfaces
 
 import numpy as np
 
-from fireworks import FireTaskBase, Firework, FWAction, Workflow
+from fireworks import Workflow
 
 from atomate.utils.utils import get_logger
 from atomate.vasp.fireworks.core import OptimizeFW, TransmuterFW, StaticFW
@@ -18,7 +18,7 @@ from pymatgen.core.surface import generate_all_slabs
 from pymatgen.transformations.advanced_transformations import SlabTransformation
 from pymatgen.transformations.standard_transformations import SupercellTransformation
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.io.vasp.sets import MVLSlabSet, MPRelaxSet, DictSet
+from pymatgen.io.vasp.sets import MVLSlabSet, MPRelaxSet
 from pymatgen import Structure, Lattice
 
 __author__ = 'Joseph Montoya'
@@ -131,9 +131,9 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None, slab_gen
                                                          "AddSitePropertyTransformation"],
                                         transformation_params=[
                                             slab_trans_params,
-                                            {"site_properties":asf.slab.site_properties}],
+                                            {"site_properties": asf.slab.site_properties}],
                                         copy_vasp_outputs=True, parents=fws[0],
-                                        vasp_input_set = vis_slab))
+                                        vasp_input_set=vis_slab))
             # Generate adsorbate configurations and add fws to workflow
             if use_bulk_coordination:
                 asf = AdsorbateSiteFinder.from_bulk_and_miller(structure, slab.miller_index,
