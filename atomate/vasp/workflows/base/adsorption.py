@@ -37,7 +37,7 @@ default_slab_gen_params = {"max_index": 1, "min_slab_size": 7.0, "min_vacuum_siz
 def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None, slab_gen_params=None,
                       vasp_cmd="vasp", db_file=None, conventional=True, slab_incar_params=None,
                       ads_incar_params=None, auto_dipole=True, use_bulk_coordination=False,
-                      optimize_slab=True, optimize_bulk=True, find_ads_params={}):
+                      optimize_slab=True, optimize_bulk=True, find_ads_params=None):
     #TODO: add more details to docstring
     """
     Returns a workflow to calculate adsorption structures and surfaces.
@@ -71,6 +71,7 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None, slab_gen
     Returns:
         Workflow
     """
+    find_ads_params = find_ads_params or {}
     if conventional:
         sga = SpacegroupAnalyzer(structure)
         structure = sga.get_conventional_standard_structure()
@@ -81,8 +82,9 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None, slab_gen
     ads_incar_params = ads_incar_params or default_aip
     slab_gen_params = slab_gen_params or default_slab_gen_params
     if not v.incar.get("LDAU", None):
-        ads_incar_params.update({"LDAU":False})
-        slab_incar_params.update({"LDAU":False})
+        ads_incar_params.update({"LDAU": False})
+        slab_incar_params.update({"LDAU": False})
+
     fws = []
     if optimize_bulk:
         fws.append(OptimizeFW(structure=structure, vasp_input_set=v, vasp_cmd=vasp_cmd,
@@ -123,7 +125,7 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None, slab_gen
             slab.add_site_property("velocities", [[0., 0., 0.]]*slab.num_sites)
             asf = AdsorbateSiteFinder(slab, selective_dynamics=True)
             if optimize_slab:
-                fws.append(TransmuterFW(name=fw_name, structure = structure, db_file=db_file,
+                fws.append(TransmuterFW(name=fw_name, structure=structure, db_file=db_file,
                                         vasp_cmd=vasp_cmd,
                                         transformations=["SlabTransformation",
                                                          "AddSitePropertyTransformation"],
@@ -178,7 +180,7 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None, slab_gen
 
 def get_wf_adsorption_from_slab(slab, molecules, vasp_input_set=None, vasp_cmd="vasp", db_file=None, 
                                 auto_dipole=True, slab_incar_params=None, ads_incar_params=None, 
-                                optimize_slab=False, find_ads_params={}, name=""):
+                                optimize_slab=False, find_ads_params=None, name=""):
     """
     This workflow function generates a workflow starting from a slab, rather than a bulk structure.
     It's intended use is for workflows that begin from optimized slabs or that begin from previous
@@ -197,6 +199,7 @@ def get_wf_adsorption_from_slab(slab, molecules, vasp_input_set=None, vasp_cmd="
         find_ads_params
         name
     """
+    find_ads_params = find_ads_params or {}
     slab_incar_params = slab_incar_params or default_sip
     ads_incar_params = ads_incar_params or default_aip
     if not name:
@@ -243,7 +246,7 @@ def get_wf_molecules(molecules, vasp_input_sets=None, vibrations=False, min_vacu
                  database insertion.
     Args:
         molecules (list of molecules): input structure to be optimized and run
-        vasp_input_set (DictVaspInputSet): vasp input set.
+        vasp_input_sets (DictVaspInputSet): vasp input set.
         vibrations
         min_vacuum_size
         vasp_cmd (str): command to run
@@ -253,17 +256,17 @@ def get_wf_molecules(molecules, vasp_input_sets=None, vibrations=False, min_vacu
         Workflow
     """
     fws = []
-    vasp_input_sets = vasp_input_sets or [None for m in molecules]
+    vasp_input_sets = vasp_input_sets or [None for _ in molecules]
     for molecule, vis in zip(molecules, vasp_input_sets):
         m_struct = Structure(Lattice.cubic(min_vacuum_size), molecule.species_and_occu,
                              molecule.cart_coords, coords_are_cartesian=True)
         m_struct.translate_sites(list(range(len(m_struct))),
-                                 np.array([0.5]*3) - np.average(m_struct.frac_coords,axis=0))
+                                 np.array([0.5]*3) - np.average(m_struct.frac_coords, axis=0))
         # concurrent with MVLSlabSet
         user_incar_settings = {"ENCUT": 400, "ISMEAR": 0, "IBRION": 2, "ISIF": 0,
                                "EDIFF": 1e-6, "EDIFFG": -0.01, "POTIM": 0.02}
         v = vis or MPRelaxSet(m_struct, user_incar_settings=user_incar_settings,
-                              user_kpoints_settings={"grid_density":1})
+                              user_kpoints_settings={"grid_density": 1})
         # Use StaticFW to avoid double relaxation
         fws.append(StaticFW(structure=m_struct, vasp_input_set=v,
                             vasp_cmd=vasp_cmd, db_file=db_file))
