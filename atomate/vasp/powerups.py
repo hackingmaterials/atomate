@@ -305,52 +305,6 @@ def add_modify_incar_envchk(original_wf, fw_name_constraint=None):
     return add_modify_incar(original_wf, {"incar_update": ">>incar_update<<"}, fw_name_constraint=fw_name_constraint)
 
 
-def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None, fw_name_constraint=None):
-    """
-    Takes a regular workflow and transforms its VASP fireworkers that are specified with
-    fw_name_constraints to non-collinear calculations taking spin orbit coupling into account.
-
-    Args:
-        original_wf (Workflow)
-        nbands (int): number of bands selected by the user (for now)
-        structure (Structure)
-        modify_incar_params ({}): a dictionary containing the setting for modyfining the INCAR (e.g. {"ICHARG": 11})
-        fw_name_constraint (string): name of the fireworks to be modified (all if None is passed)
-
-    Returns:
-        modified Workflow with SOC
-    """
-
-    wf_dict = original_wf.to_dict()
-    if structure is None:
-        try:
-            sid = get_fws_and_tasks(original_wf, fw_name_constraint="structure optimization",
-                                    task_name_constraint="RunVasp")[0][0]
-            structure = Structure.from_dict(wf_dict["fws"][sid]["spec"]["_tasks"][1]["vasp_input_set"]["structure"])
-        except:
-            raise ValueError("For this workflow, the structure must be provided as an input")
-    magmom = ""
-    for i in structure:
-        magmom += "0 0 0.6 "
-    # TODO: add saxis as an input parameter with default being (0 0 1)
-    modify_incar_params = modify_incar_params or {"incar_update": {"LSORBIT": "T", "NBANDS": nbands, "MAGMOM": magmom,
-                                                    "ISPIN": 1, "LMAXMIX": 4, "ISYM": 0}}
-
-    for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
-                                           task_name_constraint="RunVasp"):
-        if "nscf" in wf_dict["fws"][idx_fw]["name"]:
-            wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"] = ">>vasp_ncl<<"
-            wf_dict["fws"][idx_fw]["spec"]["_tasks"].insert(idx_t, ModifyIncar(**modify_incar_params).to_dict())
-
-        wf_dict["fws"][idx_fw]["name"] += " soc"
-
-    for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
-                                           task_name_constraint="RunBoltztrap"):
-        wf_dict["fws"][idx_fw]["name"] += " soc"
-
-    return Workflow.from_dict(wf_dict)
-
-
 def add_small_gap_multiply(original_wf, gap_cutoff, density_multiplier, fw_name_constraint=None):
     """
     In all FWs with specified name constraints, add a 'small_gap_multiply' parameter that
