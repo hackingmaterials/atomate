@@ -7,7 +7,8 @@ import os
 from atomate import get_wf_from_spec_dict
 from monty.serialization import loadfn
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>, Shyue Ping Ong <ongsp@eng.ucsd.edu>, Kiran Mathew <kmathew@lbl.gov>'
+__author__ = 'Anubhav Jain, Shyue Ping Ong, Kiran Mathew'
+__email__ = 'ajain@lbl.gov, ongsp@eng.ucsd.edu, kmathew@lbl.gov'
 
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
