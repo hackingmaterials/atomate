@@ -218,12 +218,13 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
 
 def set_fworker(original_wf, fworker_name, fw_name_constraint=None, task_name_constraint=None):
     """
-    set _fworker spec of Fireworker(s) of a Workflow.
-        It can be used to specify a queue; e.g. run large-memory jobs on a separate queue.
+    set _fworker spec of Fireworker(s) of a Workflow. It can be used to specify a queue;
+    e.g. run large-memory jobs on a separate queue.
 
     Args:
         original_wf (Workflow):
-        fworker_name (str): user-defined tag to be added under fw.spec._fworker (e.g. "large memory", "big", etc)
+        fworker_name (str): user-defined tag to be added under fw.spec._fworker
+            e.g. "large memory", "big", etc
         fw_name_constraint (str): name of the Fireworks to be tagged (all if None is passed)
         task_name_constraint (str): name of the Firetasks to be tagged (e.g. None or 'RunVasp')
 
@@ -357,10 +358,11 @@ def add_small_gap_multiply(original_wf, gap_cutoff, density_multiplier, fw_name_
     Note that this powerup only works on FireWorks with the appropriate WriteVasp* tasks that
     accept the small_gap_multiply argument...
 
-    :param original_wf:
-    :param gap_cutoff:
-    :param density_multiplier:
-    :param fw_name_constraint:
+    Args:
+        original_wf (Workflow)
+        gap_cutoff
+        density_multiplier:
+        fw_name_constraint:
     """
     wf_dict = original_wf.to_dict()
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
@@ -373,8 +375,8 @@ def use_scratch_dir(original_wf, scratch_dir):
     """
     For all RunVaspCustodian tasks, add the desired scratch dir.
 
-    :param original_wf:
-    :param scratch_dir: The scratch dir to use. Supports env_chk
+    original_wf (Workflow)
+    scratch_dir (path): Path to the scratch dir to use. Supports env_chk
     """
     wf_dict = original_wf.to_dict()
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="RunVaspCustodian"):
@@ -463,8 +465,9 @@ def use_gamma_vasp(original_wf, gamma_vasp_cmd):
     """
     For all RunVaspCustodian tasks, add the desired scratch dir.
 
-    :param original_wf:
-    :param gamma_vasp_cmd: sets gamma_vasp_cmd. Supports env_chk
+    Args:
+        original_wf (Workflow)
+        gamma_vasp_cmd (str): path to gamma_vasp_cmd. Supports env_chk
     """
     wf_dict = original_wf.to_dict()
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="RunVaspCustodian"):
