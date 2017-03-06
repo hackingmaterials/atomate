@@ -14,7 +14,7 @@ import numpy as np
 from monty.json import MontyEncoder
 
 from fireworks import FiretaskBase, FWAction, explicit_serialize
-from fireworks.utilities.fw_serializers import DATETIME_HANDLER
+from fireworks.utilities.fw_serializers import DATETIME_HANDLER, recursive_dict
 
 from atomate.utils.utils import env_chk, get_calc_loc, get_meta_from_structure
 from atomate.utils.utils import get_logger
@@ -22,8 +22,8 @@ from atomate.vasp.database import MMVaspDb
 from atomate.vasp.drones import VaspDrone
 
 from pymatgen import Structure
-from pymatgen.analysis.elasticity.elastic import ElasticTensor
-from pymatgen.analysis.elasticity.strain import IndependentStrain
+from pymatgen.analysis.elasticity import ElasticTensor, IndependentStrain, \
+        Stress, Deformation, toec_fit
 from pymatgen.analysis.elasticity.stress import Stress
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar
@@ -291,27 +291,30 @@ class ToecToDbTask(FiretaskBase):
                "initial_structure": self['structure'].as_dict(),
                "optimized_structure": opt_struct.as_dict()}
         defo_dicts = fw_spec["deformation_tasks"].values()
-        doc['stresses'] = [-0.1*d['stress'] for d in defo_dicts]
+        doc['stresses'] = [-0.1*Stress(d['stress']) for d in defo_dicts]
         doc['strains'] = [Deformation(d['deformation_matrix']).green_lagrange_strain
                           for d in defo_dicts]
         doc['pk_stresses'] = [stress.piola_kirchoff_2(strain.deformation_matrix) 
                               for stress, strain in zip(doc['stresses'], doc['strains'])]
-        doc['eq_stress'] = -0.1*Stress(optimize_doc["calcs_reversed"][0]["output"]["ionic_steps"][-1]["stress"])   
-        c2, c3 = toec_fit(doc["strains"], doc["pk_stresses"], 
-                          output=None, eq_stress = doc["eq_stress"])
-        doc["C2_raw"] = c2
-        doc["C3_raw"] = c3
-        doc["C2_fit"] = TensorBase.from_voigt(c2).fit_to_structure(struct).voigt
-        doc["C3_fit"] = TensorBase.from_voigt(c3).fit_to_structure(struct).voigt
+        doc['eq_stress'] = -0.1*Stress(optimize_doc["calcs_reversed"][0]\
+                                       ["output"]["ionic_steps"][-1]["stress"])   
+        c2, c3 = toec_fit(doc["strains"], doc["pk_stresses"], eq_stress = doc["eq_stress"])
+        doc["C2_raw"] = c2.voigt.tolist()
+        doc["C3_raw"] = c3.voigt.tolist()
+        doc["C2_fit"] = c2.fit_to_structure(opt_struct).voigt
+        doc["C3_fit"] = c3.fit_to_structure(opt_struct).voigt
         indices_2 = list(itertools.combinations_with_replacement(range(6), r=2))
         indices_3 = list(itertools.combinations_with_replacement(range(6), r=3))
-        c2_idx = ["c_"+"".join([str(i) for i in np.array(idx)+1])+" = "+str(np.array(c2)[idx]) for idx in indices_2]
-        c3_idx = ["c_"+"".join([str(i) for i in np.array(idx)+1])+" = "+str(np.array(c3)[idx]) for idx in indices_3]
-        c3_idx_sym = ["c_"+"".join([str(i) for i in np.array(idx)+1])+" = "+str(np.array(doc['C3_fit'])[idx]) for idx in indices_3]
+        c2_idx = ["c_"+"".join([str(i) for i in np.array(idx)+1])\
+                  +" = "+str(np.array(c2.voigt)[idx]) for idx in indices_2]
+        c3_idx = ["c_"+"".join([str(i) for i in np.array(idx)+1])\
+                  +" = "+str(np.array(c3.voigt)[idx]) for idx in indices_3]
+        c3_idx_sym = ["c_"+"".join([str(i) for i in np.array(idx)+1])\
+                      +" = "+str(np.array(doc['C3_fit'])[idx]) for idx in indices_3]
         doc["C2_index_format"] = c2_idx
         doc["C3_index_format"] = c3_idx
         doc["C3_index_format_sym"] = c3_idx_sym
-        doc["pretty_formula"] = opt_struct.formula
+        doc["pretty_formula"] = opt_struct.composition.reduced_formula
         doc["state"] = "successful"
 
         # Save analysis results in json or db
@@ -321,8 +324,8 @@ class ToecToDbTask(FiretaskBase):
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
         else:
             db = MMVaspDb.from_db_file(db_file, admin=True)
-            db.collection = db.db[self.get("collection", "elasticity")]
-            db.collection.insert_one(d)
+            db.collection = db.db[self.get("collection", "toec_elasticity")]
+            db.collection.insert_one(recursive_dict(doc))
             logger.info("ELASTIC ANALYSIS COMPLETE")
         return FWAction()
 
