@@ -1,8 +1,23 @@
 atomate.feff.firetasks package
 ==============================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    atomate.feff.firetasks.tests
+
 Submodules
 ----------
+
+atomate.feff.firetasks.glue_tasks module
+----------------------------------------
+
+.. automodule:: atomate.feff.firetasks.glue_tasks
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 atomate.feff.firetasks.parse_outputs module
 -------------------------------------------

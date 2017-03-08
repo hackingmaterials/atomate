@@ -2,6 +2,20 @@
 atomate Changelog
 ====================
 
+**v0.4.3**
+
+* Add Gibbs energy w/volume (K. Mathew)
+* Draft EXAFS workflow (K. Matthew)
+* Add slater-gamma formulation to compute the Gruneisen parameter (K. Matthew)
+* gamma vasp powerup (S. Dwaraknath)
+* More options for elasticity WF (J. Dagdalen)
+* Add StdErrorHandler to handlers (A. Jain)
+* Auto-detect and remove line_mode parameter in MMVaspDB (A. Jain)
+* added unit tests
+* misc cleanup, refactoring, and doc udpates
+* misc bugfixes
+
+
 **v0.4.2**
 
 .. caution:: The ``tags_fws`` powerup now has different default parameters!

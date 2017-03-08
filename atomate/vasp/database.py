@@ -81,20 +81,22 @@ class MMVaspDb(MMDb):
         if compress:
             d = zlib.compress(d.encode(), compress)
         fs = gridfs.GridFS(self.db, collection)
-        fs_id = fs.put(d, id=oid)
+        fs_id = fs.put(d, _id=oid)
         return fs_id, "zlib"
 
-    def get_band_structure(self, task_id, line_mode=False):
+    def get_band_structure(self, task_id):
         m_task = self.collection.find_one({"task_id": task_id},
                                           {"calcs_reversed": 1})
         fs_id = m_task['calcs_reversed'][0]['bandstructure_fs_id']
         fs = gridfs.GridFS(self.db, 'bandstructure_fs')
         bs_json = zlib.decompress(fs.get(fs_id).read())
         bs_dict = json.loads(bs_json)
-        if line_mode:
+        if bs_dict["@class"] == "BandStructure":
+            return BandStructure.from_dict(bs_dict)
+        elif bs_dict["@class"] == "BandStructureSymmLine":
             return BandStructureSymmLine.from_dict(bs_dict)
         else:
-            return BandStructure.from_dict(bs_dict)
+            raise ValueError("Unknown class for band structure! {}".format(bs_dict["@class"]))
 
     def get_dos(self, task_id):
         m_task = self.collection.find_one({"task_id": task_id},

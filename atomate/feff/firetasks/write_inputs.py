@@ -6,10 +6,11 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 This module defines tasks for writing FEFF input sets.
 """
 
+from pymatgen.io.feff.inputs import Paths
+        
 from fireworks import FiretaskBase, explicit_serialize
 
 from atomate.utils.utils import load_class
-
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -43,3 +44,24 @@ class WriteFeffFromIOSet(FiretaskBase):
                           **self.get("other_params", {}))
 
         fis.write_input(".")
+
+
+@explicit_serialize
+class WriteEXAFSPaths(FiretaskBase):
+    """
+    Write the scattering paths to paths.dat file.
+
+    Required_params:
+        feff_input_set (FeffDictSet)
+        paths (list): list of paths. path = list of site indices.
+
+    Optional_params:
+        degeneracies (list): list of path degeneracies.
+    """
+    required_params = ["feff_input_set", "paths"]
+    optional_params = ["degeneracies"]
+
+    def run_task(self, fw_spec):
+        atoms = self['feff_input_set'].atoms
+        paths = Paths(atoms, self["paths"], degeneracies=self.get("degeneracies", []))
+        paths.write_file()
