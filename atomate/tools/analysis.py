@@ -115,7 +115,7 @@ class QuasiharmonicDebyeApprox(object):
         # minimize the fit eos wrt volume
         # Note: the ref energy and the ref volume(E0 and V0) not necessarily the same as
         # minimum energy and min volume.
-        min_wrt_vol = minimize(eos_fit.func, min(eos_fit.volumes), params)
+        min_wrt_vol = minimize(eos_fit.func, min(eos_fit.volumes))
         # G_opt=G(V_opt, T, P), V_opt
         return min_wrt_vol.fun, min_wrt_vol.x[0]
 
@@ -208,18 +208,15 @@ class QuasiharmonicDebyeApprox(object):
         # Mie-gruneisen formulation
         if self.use_mie_gruneisen:
             # first derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^3
-            p0 = derivative(self.ev_eos_fit.func, volume, dx=1e-3,
-                            args=tuple(tuple(self.ev_eos_fit.eos_params.tolist())))
+            p0 = derivative(self.ev_eos_fit.func, volume, dx=1e-3)
             return (self.gpa_to_ev_ang * volume * (self.pressure + p0 / self.gpa_to_ev_ang) /
                     self.vibrational_internal_energy(temperature, volume))
 
         # Slater-gamma formulation
         # second derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^6
-        d2EdV2 = derivative(self.ev_eos_fit.func, volume, dx=1e-3, n=2,
-                            args=tuple(tuple(self.ev_eos_fit.eos_params.tolist())), order=5)
+        d2EdV2 = derivative(self.ev_eos_fit.func, volume, dx=1e-3, n=2, order=5)
         # third derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^9
-        d3EdV3 = derivative(self.ev_eos_fit.func, volume, dx=1e-3, n=3,
-                            args=tuple(tuple(self.ev_eos_fit.eos_params.tolist())), order=7)
+        d3EdV3 = derivative(self.ev_eos_fit.func, volume, dx=1e-3, n=3, order=7)
         # first derivative of bulk modulus wrt volume, eV/Ang^6
         dBdV = d2EdV2 + d3EdV3 * volume
         return -(1./6. + 0.5 * volume * dBdV /
