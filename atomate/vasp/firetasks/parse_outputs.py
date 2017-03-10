@@ -451,33 +451,39 @@ class FitEquationOfStateTask(FiretaskBase):
 
         tag = self["tag"]
         db_file = env_chk(self.get("db_file"), fw_spec)
-        summary_dict = {"eos": self["eos"]}
+        eos_dict = {"eos": self["eos"]}
 
         mmdb = MMVaspDb.from_db_file(db_file, admin=True)
         # get the optimized structure
         d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
-        summary_dict["structure"] = structure.as_dict()
 
         # get the data(energy, volume, force constant) from the deformation runs
         docs = mmdb.collection.find({"task_label": {"$regex": "{} bulk_modulus*".format(tag)},
                                      "formula_pretty": structure.composition.reduced_formula})
         energies = []
         volumes = []
-        for d in docs:
-            s = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
-            energies.append(d["calcs_reversed"][-1]["output"]['energy'])
+        for doc in docs:
+            s = Structure.from_dict(doc["calcs_reversed"][-1]["output"]['structure'])
+            energies.append(doc["calcs_reversed"][-1]["output"]['energy'])
             volumes.append(s.volume)
-        summary_dict["energies"] = energies
-        summary_dict["volumes"] = volumes
+
+        eos_dict["energies"] = energies
+        eos_dict["volumes"] = volumes
 
         # fit the equation of state
         eos = EOS(self["eos"])
         eos_fit = eos.fit(volumes, energies)
-        summary_dict["results"] = dict(eos_fit.results)
+        eos_dict["results"] = dict(eos_fit.results)
+        d["eos"] = eos_dict
+        d["bulk_modulus"] = eos_fit.b0_GPa
+        if fw_spec.get("tags", None):
+            d["tags"] = fw_spec["tags"]
 
-        with open("bulk_modulus.json", "w") as f:
-            f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
+        #TODO: add a test for this.
+        # insert to db
+        mmdb.collection = mmdb.db["eos"]
+        mmdb.collection.insert_one(d)
 
         logger.info("BULK MODULUS CALCULATION COMPLETE")
 
