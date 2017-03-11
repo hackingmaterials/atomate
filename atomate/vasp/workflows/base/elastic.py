@@ -26,8 +26,8 @@ logger = get_logger(__name__)
 
 def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", norm_deformations=None,
                             shear_deformations=None, additional_deformations=None, db_file=None,
-                            user_kpoints_settings=None, add_analysis_task=True, conventional=True,
-                            optimize_structure=True):
+                            user_kpoints_settings=None, conventional=True, optimize_structure=True,
+                            symmetry_reduction=False):
     """
     Returns a workflow to calculate elastic constants.
 
@@ -75,16 +75,14 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
     if not deformations:
         raise ValueError("deformations list empty")
 
-    wf_elastic = get_wf_deformations(structure, deformations, vasp_input_set=vasp_input_set,
-                                     lepsilon=False, vasp_cmd=vasp_cmd, db_file=db_file,
-                                     user_kpoints_settings=user_kpoints_settings,
-                                     pass_stress_strain=True, name="deformation",
-                                     relax_deformed=True, tag="elastic", optimize_structure=optimize_structure)
+    wf_elastic = get_wf_deformations(structure, deformations, vasp_input_set=vasp_input_set, lepsilon=False, 
+                                     vasp_cmd=vasp_cmd, db_file=db_file, user_kpoints_settings=user_kpoints_settings,
+                                     pass_stress_strain=True, name="deformation", relax_deformed=True, tag="elastic", 
+                                     symmetry_reduction=symmetry_reduction, optimize_structure=optimize_structure)
 
-    if add_analysis_task:
-        fw_analysis = Firework(ElasticTensorToDbTask(structure=structure, db_file=db_file),
-                               name="Analyze Elastic Data", spec={"_allow_fizzled_parents": True})
-        append_fw_wf(wf_elastic, fw_analysis)
+    fw_analysis = Firework(ElasticTensorToDbTask(structure=structure, db_file=db_file),
+                           name="Analyze Elastic Data", spec={"_allow_fizzled_parents": True})
+    append_fw_wf(wf_elastic, fw_analysis)
 
     wf_elastic.name = "{}:{}".format(structure.composition.reduced_formula, "elastic constants")
 
