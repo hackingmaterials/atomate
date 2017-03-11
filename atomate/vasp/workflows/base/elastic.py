@@ -16,7 +16,7 @@ from fireworks import Firework, Workflow
 
 from atomate.utils.utils import get_logger, append_fw_wf
 from atomate.vasp.workflows.base.deformations import get_wf_deformations
-from atomate.vasp.firetasks.parse_outputs import ElasticTensorToDbTask, ToecToDbTask
+from atomate.vasp.firetasks.parse_outputs import ElasticTensorToDbTask
 
 __author__ = 'Shyam Dwaraknath, Joseph Montoya'
 __email__ = 'shyamd@lbl.gov, montoyjh@lbl.gov'
@@ -24,10 +24,9 @@ __email__ = 'shyamd@lbl.gov, montoyjh@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", norm_deformations=None,
-                            shear_deformations=None, additional_deformations=None, db_file=None,
-                            user_kpoints_settings=None, conventional=True, optimize_structure=True,
-                            symmetry_reduction=False):
+def get_wf_elastic_constant(structure, norm_deformations=None, shear_deformations=None, 
+                            additional_deformations=None, db_file=None, conventional=True, 
+                            toec=False, **kwargs):
     """
     Returns a workflow to calculate elastic constants.
 
@@ -45,11 +44,9 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
         norm_deformations (list): list of values to for normal deformations.
         shear_deformations (list): list of values to for shear deformations.
         additional_deformations (list of 3x3 array-likes): list of additional deformations.
-        vasp_input_set (DictVaspInputSet): vasp input set.
-        vasp_cmd (str): command to run.
         db_file (str): path to file containing the database credentials.
-        user_kpoints_settings (dict): example: {"grid_density": 7000}
-        add_analysis_task (bool): boolean indicating whether to add analysis
+        toec (bool): whether to include TOEC analysis
+        kwargs (keyword arguments): additional kwargs to be passed to get_wf_deformations
 
     Returns:
         Workflow
@@ -75,12 +72,10 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
     if not deformations:
         raise ValueError("deformations list empty")
 
-    wf_elastic = get_wf_deformations(structure, deformations, vasp_input_set=vasp_input_set, lepsilon=False, 
-                                     vasp_cmd=vasp_cmd, db_file=db_file, user_kpoints_settings=user_kpoints_settings,
-                                     pass_stress_strain=True, name="deformation", relax_deformed=True, tag="elastic", 
-                                     symmetry_reduction=symmetry_reduction, optimize_structure=optimize_structure)
+    wf_elastic = get_wf_deformations(structure, deformations, pass_stress_strain=True, 
+            name="deformation", relax_deformed=True, tag="elastic", **kwargs)
 
-    fw_analysis = Firework(ElasticTensorToDbTask(structure=structure, db_file=db_file),
+    fw_analysis = Firework(ElasticTensorToDbTask(structure=structure, db_file=db_file, toec=toec),
                            name="Analyze Elastic Data", spec={"_allow_fizzled_parents": True})
     append_fw_wf(wf_elastic, fw_analysis)
 
@@ -89,33 +84,23 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
     return wf_elastic
 
 
-def get_wf_toec(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=None, 
-                max_strain=0.05, stencil_res=7, indices=None, user_kpoints_settings=None, 
-                conventional=True, optimize_structure=True, add_analysis_task=True):
+def get_wf_toec(structure, max_strain=0.05, stencil_res=7, indices=None, **kwargs):
     """
     Returns a workflow to calculate third-order elastic constants.
 
     Args:
         structure (Structure): input structure to be optimized and run. 
-        vasp_input_set (DictVaspInputSet): vasp input set.
-        vasp_cmd (str): command to run.
-        db_file (str): path to file containing the database credentials.
-        user_kpoints_settings (dict): example: {"grid_density": 7000}
         max_strain (float): maximum strain
         stencil_res (int): resolution on stencil to calculate second derivatives
         indices (list): list of indices e. g. [(1), (2), (3, 4)] to use for 
             strain states in deformed structures
-        conventional (bool): flag to indicate whether to convert input structure 
-            to conventional standard structure
-        optimize_structure (bool): flag to indicate whether input structure
-            should be optimized
-
+        **kwargs (keyword arguments): kwargs to be passed to get_wf_elastic
     Returns:
         Workflow
     """
-    # Convert to conventional
-    if conventional:
-        structure = SpacegroupAnalyzer(structure).get_conventional_standard_structure()
+    if stencil_res % 2 != 1 or stencil_res < 5:
+        raise ValueError("Stencil resolution for TOECs must be an odd integer greater than 5")
+
     # Generate deformations
     default_ind = [(i) for i in range(6)] + [(0, i) for i in range(1, 5)] \
             + [(1,2), (3,4), (3,5), (4,5)]
@@ -129,19 +114,9 @@ def get_wf_toec(structure, vasp_input_set=None, vasp_cmd="vasp", db_file=None,
     deformations = [Strain.from_voigt(v*ss).deformation_matrix
                     for v, ss in itertools.product(stencil, strain_states)]
 
-    wf_toec = get_wf_deformations(structure, deformations, vasp_input_set=vasp_input_set,
-                                  lepsilon=False, vasp_cmd=vasp_cmd, db_file=db_file,
-                                  user_kpoints_settings=user_kpoints_settings,
-                                  pass_stress_strain=True, name="deformation",
-                                  relax_deformed=True, tag="elastic",
-                                  optimize_structure=optimize_structure)
-
-    if add_analysis_task:
-        fw_analysis = Firework(ToecToDbTask(structure=structure, db_file=db_file),
-                               name="Analyze Elastic Data for TOEC",
-                               spec={"_allow_fizzled_parents": True})
-        append_fw_wf(wf_toec, fw_analysis)
-
+    wf_toec = get_wf_elastic_constant(structure, norm_deformations=[], shear_deformations=[],
+                                      additional_deformations=deformations, toec=True, **kwargs)
+ 
     wf_toec.name = "{}:{}".format(structure.composition.reduced_formula, "third-order elastic constants")
 
     return wf_toec
@@ -152,7 +127,10 @@ if __name__ == "__main__":
     structure = PymatgenTest.get_structure("Si")
     #wf = get_wf_elastic_constant(structure)
     try:
-        wf = get_wf_toec(structure)
+        wf = get_wf_elastic_constant(structure, norm_deformations=[0.01], 
+                shear_deformations=[0.03], symmetry_reduction=True)
+        from monty.serialization import dumpfn
+        dumpfn(wf.to_dict(), "wf.json")
     except:
         import sys, pdb, traceback
         type, value, tb = sys.exc_info()

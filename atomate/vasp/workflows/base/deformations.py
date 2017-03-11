@@ -13,6 +13,7 @@ from atomate.vasp.firetasks.glue_tasks import PassStressStrainData
 from atomate.vasp.fireworks.core import OptimizeFW, TransmuterFW
 
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
+from pymatgen.analysis.elasticity import symmetry_reduce
 
 __author__ = 'Kiran Mathew'
 __credits__ = 'Joseph Montoya'
@@ -23,7 +24,8 @@ logger = get_logger(__name__)
 
 def get_wf_deformations(structure, deformations, name="deformation", vasp_input_set=None,
                         lepsilon=False, vasp_cmd="vasp", db_file=None, user_kpoints_settings=None,
-                        pass_stress_strain=False, tag="", relax_deformed=False, optimize_structure=True):
+                        pass_stress_strain=False, tag="", relax_deformed=False, optimize_structure=True,
+                        symmetry_reduction=False):
     """
     Returns a structure deformation workflow.
 
@@ -74,6 +76,13 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
                              user_kpoints_settings=user_kpoints_settings,
                              user_incar_settings=uis_static)
 
+    # Do symmetry reduction and get corresponding symmops if specified
+    if symmetry_reduction:
+        deformations = symmetry_reduce(deformations, structure)
+        symmops = deformations.values()
+    else:
+        symmops = [None]*len(deformations)
+
     # Deformation fireworks with the task to extract and pass stress-strain appended to it.
     for n, deformation in enumerate(deformations):
         fw = TransmuterFW(name="{} {} {}".format(tag, name, n), structure=structure,
@@ -83,9 +92,26 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
                           vasp_cmd=vasp_cmd, db_file=db_file)
         if pass_stress_strain:
             fw.spec['_tasks'].append(
-                PassStressStrainData(number=n, deformation=deformation.tolist()).to_dict())
+                PassStressStrainData(number=n, deformation=deformation.tolist(), 
+                    symmops=symmops[n]).to_dict())
         fws.append(fw)
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, name)
 
     return Workflow(fws, name=wfname)
+
+
+import numpy as np
+from pymatgen.analysis.elasticity import Strain
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+import itertools
+
+if __name__=="__main__":
+    from pymatgen import Structure, Lattice
+    strains = np.eye(6)*0.01
+    strains = [Strain.from_voigt(strain) for strain in strains]
+    cu = Structure.from_spacegroup("Fm-3m", Lattice.cubic(2.9), ["Cu"], [[0, 0, 0]])
+    result = symmetry_reduce(strains, cu)
+    wf = get_wf_deformations(cu, deformations=[s.deformation_matrix for s in strains],
+            symmetry_reduction=True)
+
