@@ -223,24 +223,28 @@ class ElasticTensorToDbTask(FiretaskBase):
         optimize_doc = drone.assimilate(optimize_loc)
         opt_struct = Structure.from_dict(optimize_doc["calcs_reversed"][0]["output"]["structure"])
 
-        d = {"analysis": {}, "deformation_tasks": fw_spec["deformation_tasks"],
-             "initial_structure": self['structure'].as_dict(),
-             "optimized_structure": opt_struct.as_dict()}
+        d = {"deformation_tasks": fw_spec["deformation_tasks"], 
+             "optimized_structure": opt_struct.as_dict(), 
+             "initial_structure": self['structure'].as_dict(), "analysis": {},
+             "formula_pretty":opt_struct.composition.reduced_formula}
         if fw_spec.get("tags", None):
             d["tags"] = fw_spec["tags"]
         defo_dicts = fw_spec["deformation_tasks"].values()
-        defo_dicts = [d for d in defo_dicts if d['independent']]
-
-        dtypes = [d['independent'] for d in defo_dicts]
-        defos = [d["deformation_matrix"] for d in defo_dicts]
-        stresses = [d["stress"] for d in defo_dicts]
-        stress_dict = {IndependentStrain(defo) : Stress(stress) for defo, stress in zip(defos, stresses)}
+        stresses, strains = [], []
+        for d in defo_dicts:
+            stresses.append(Stress(d["stress"]))
+            strains.append(Strain(d["strain"]))
+            # Add derived stresses and strains if symmops is present
+            for symmop in d.get("symmops", []):
+                stresses.append(Stress(d["stress"]).transform(symmop))
+                strains.append(Strain(d["strain"]).transform(symmop))
+            stresses = [-0.1*s for s in stresses]
+            strains = [-0.1*s for s in strains]
 
         logger.info("ANALYZING STRESS/STRAIN DATA")
-        # DETERMINE IF WE HAVE 6 "UNIQUE" deformations
-        if len(set([de[:3] for de in dtypes])) == 6:
+        if numpy.linalg.matrix_rank(stress_strain_data) == 6:
             # Perform Elastic tensor fitting and analysis
-            result = ElasticTensor.from_stress_dict(stress_dict)
+            result = ElasticTensor.from_stress_strain_list(stress_dict)
             d["elastic_tensor"] = result.voigt.tolist()
             kg_average = result.kg_average
             d.update({"K_Voigt": kg_average[0], "G_Voigt": kg_average[1],
@@ -251,9 +255,33 @@ class ElasticTensorToDbTask(FiretaskBase):
             d["homogeneous_poisson"] = result.homogeneous_poisson
 
         else:
-            raise ValueError("Fewer than 6 unique deformations")
+            raise ValueError("Data matrix rank is less than 6")
 
         d["state"] = "successful"
+
+        if toec_fit:
+            d['pk_stresses'] = [stress.piola_kirchoff_2(strain.deformation_matrix) 
+                                  for stress, strain in zip(d['stresses'], d['strains'])]
+            d['eq_stress'] = -0.1*Stress(optimize_d["calcs_reversed"][0]\
+                                           ["output"]["ionic_steps"][-1]["stress"])
+            toec = {}
+            c2, c3 = toec_fit(d["strains"], d["pk_stresses"], eq_stress = d["eq_stress"])
+            toec["C2_raw"] = c2.voigt.tolist()
+            toec["C3_raw"] = c3.voigt.tolist()
+            toec["C2_fit"] = c2.fit_to_structure(opt_struct).voigt
+            toec["C3_fit"] = c3.fit_to_structure(opt_struct).voigt
+            indices_2 = list(itertools.combinations_with_replacement(range(6), r=2))
+            indices_3 = list(itertools.combinations_with_replacement(range(6), r=3))
+            c2_idx = ["c_"+"".join([str(i) for i in np.array(idx)+1])\
+                      +" = "+str(np.array(c2.voigt)[idx]) for idx in indices_2]
+            c3_idx = ["c_"+"".join([str(i) for i in np.array(idx)+1])\
+                      +" = "+str(np.array(c3.voigt)[idx]) for idx in indices_3]
+            c3_idx_sym = ["c_"+"".join([str(i) for i in np.array(idx)+1])\
+                          +" = "+str(np.array(d['C3_fit'])[idx]) for idx in indices_3]
+            toec["C2_index_format"] = c2_idx
+            toec["C3_index_format"] = c3_idx
+            toec["C3_index_format_sym"] = c3_idx_sym
+            d["toec"] = toec
 
         # Save analysis results in json or db
         db_file = env_chk(self.get('db_file'), fw_spec)
@@ -266,69 +294,6 @@ class ElasticTensorToDbTask(FiretaskBase):
             db.collection.insert_one(d)
             logger.info("ELASTIC ANALYSIS COMPLETE")
         return FWAction()
-
-
-@explicit_serialize
-class ToecToDbTask(FiretaskBase):
-    """
-    Analyzes the stress/strain data of an elastic workflow to produce
-    an elastic tensor and various other quantities.
-    """
-
-    required_params = ['structure']
-    optional_params = ['db_file', 'collection']
-
-    def run_task(self, fw_spec):
-
-        # Get optimized structure
-        # TODO: will this find the correct path if the workflow is rerun from the start?
-        optimize_loc = fw_spec["calc_locs"][0]["path"]
-        logger.info("PARSING INITIAL OPTIMIZATION DIRECTORY: {}".format(optimize_loc))
-        drone = VaspDrone()
-        optimize_doc = drone.assimilate(optimize_loc)
-        opt_struct = Structure.from_dict(optimize_doc["calcs_reversed"][0]["output"]["structure"])
-        doc = {"analysis": {}, "deformation_tasks": fw_spec["deformation_tasks"],
-               "initial_structure": self['structure'].as_dict(),
-               "optimized_structure": opt_struct.as_dict()}
-        defo_dicts = fw_spec["deformation_tasks"].values()
-        doc['stresses'] = [-0.1*Stress(d['stress']) for d in defo_dicts]
-        doc['strains'] = [Deformation(d['deformation_matrix']).green_lagrange_strain
-                          for d in defo_dicts]
-        doc['pk_stresses'] = [stress.piola_kirchoff_2(strain.deformation_matrix) 
-                              for stress, strain in zip(doc['stresses'], doc['strains'])]
-        doc['eq_stress'] = -0.1*Stress(optimize_doc["calcs_reversed"][0]\
-                                       ["output"]["ionic_steps"][-1]["stress"])   
-        c2, c3 = toec_fit(doc["strains"], doc["pk_stresses"], eq_stress = doc["eq_stress"])
-        doc["C2_raw"] = c2.voigt.tolist()
-        doc["C3_raw"] = c3.voigt.tolist()
-        doc["C2_fit"] = c2.fit_to_structure(opt_struct).voigt
-        doc["C3_fit"] = c3.fit_to_structure(opt_struct).voigt
-        indices_2 = list(itertools.combinations_with_replacement(range(6), r=2))
-        indices_3 = list(itertools.combinations_with_replacement(range(6), r=3))
-        c2_idx = ["c_"+"".join([str(i) for i in np.array(idx)+1])\
-                  +" = "+str(np.array(c2.voigt)[idx]) for idx in indices_2]
-        c3_idx = ["c_"+"".join([str(i) for i in np.array(idx)+1])\
-                  +" = "+str(np.array(c3.voigt)[idx]) for idx in indices_3]
-        c3_idx_sym = ["c_"+"".join([str(i) for i in np.array(idx)+1])\
-                      +" = "+str(np.array(doc['C3_fit'])[idx]) for idx in indices_3]
-        doc["C2_index_format"] = c2_idx
-        doc["C3_index_format"] = c3_idx
-        doc["C3_index_format_sym"] = c3_idx_sym
-        doc["pretty_formula"] = opt_struct.composition.reduced_formula
-        doc["state"] = "successful"
-
-        # Save analysis results in json or db
-        db_file = env_chk(self.get('db_file'), fw_spec)
-        if not db_file:
-            with open("elasticity.json", "w") as f:
-                f.write(json.dumps(d, default=DATETIME_HANDLER))
-        else:
-            db = MMVaspDb.from_db_file(db_file, admin=True)
-            db.collection = db.db[self.get("collection", "toec_elasticity")]
-            db.collection.insert_one(recursive_dict(doc))
-            logger.info("ELASTIC ANALYSIS COMPLETE")
-        return FWAction()
-
 
 @explicit_serialize
 class RamanSusceptibilityTensorToDbTask(FiretaskBase):

@@ -225,6 +225,7 @@ class PassStressStrainData(FiretaskBase):
     """
 
     required_params = ["number", "deformation"]
+    optional_params = ["symmops"]
 
     def run_task(self, fw_spec):
         v, _ = get_vasprun_outcar(self.get("calc_dir", "."), parse_dos=False, parse_eigen=False)
@@ -233,13 +234,8 @@ class PassStressStrainData(FiretaskBase):
         strain = Strain.from_deformation(defo)
         defo_dict = {'deformation_matrix': defo, 'strain': strain.tolist(),
                      'stress': stress, 'independent': None}
-        d_ind = np.nonzero(defo - np.eye(3))
-        if len(d_ind) == 1:
-            delta = Decimal((defo - np.eye(3))[d_ind][0])
-            # Shorthand is d_X_V, X is voigt index, V is value
-            dtype = "_".join(["d", str(reverse_voigt_map[d_ind][0]),
-                          "{:.0e}".format(delta)])
-            defo_dict['independent'] = dtype
+        if symmops:
+            defo_dict['symmops'] = symmops
 
         return FWAction(mod_spec=[{'_set': {
             'deformation_tasks->{}'.format(self['number']): defo_dict}}])
