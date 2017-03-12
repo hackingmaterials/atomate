@@ -24,8 +24,8 @@ __email__ = 'shyamd@lbl.gov, montoyjh@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_elastic_constant(structure, norm_deformations=None, shear_deformations=None, 
-                            additional_deformations=None, db_file=None, conventional=True, 
+def get_wf_elastic_constant(structure, norm_strains=None, shear_strains=None, 
+                            additional_strains=None, db_file=None, conventional=True, 
                             toec=False, **kwargs):
     """
     Returns a workflow to calculate elastic constants.
@@ -41,9 +41,9 @@ def get_wf_elastic_constant(structure, norm_deformations=None, shear_deformation
 
     Args:
         structure (Structure): input structure to be optimized and run.
-        norm_deformations (list): list of values to for normal deformations.
-        shear_deformations (list): list of values to for shear deformations.
-        additional_deformations (list of 3x3 array-likes): list of additional deformations.
+        norm_strains (list of floats): list of values to for normal deformations.
+        shear_strains (list of floats): list of values to for shear deformations.
+        additional_strains (list of 3x3 array-likes): list of additional deformations.
         db_file (str): path to file containing the database credentials.
         toec (bool): whether to include TOEC analysis
         kwargs (keyword arguments): additional kwargs to be passed to get_wf_deformations
@@ -51,27 +51,31 @@ def get_wf_elastic_constant(structure, norm_deformations=None, shear_deformation
     Returns:
         Workflow
     """
-    # Convert to conventional
+    # Convert to conventional if specified
     if conventional:
         structure = SpacegroupAnalyzer(structure).get_conventional_standard_structure()
-    # Generate deformations
-    deformations = []
 
-    if norm_deformations is not None:
-        deformations.extend([Deformation.from_index_amount(ind, amount)
-                             for ind in [(0, 0), (1, 1), (2, 2)]
-                             for amount in norm_deformations])
-    if shear_deformations is not None:
-        deformations.extend([Deformation.from_index_amount(ind, amount)
-                             for ind in [(0, 1), (0, 2), (1, 2)]
-                             for amount in shear_deformations])
+    # Generate strains from normal and shear values provided
+    vstrains = []
+    if norm_strains is not None:
+        for norm_strain, ind in itertools.product(norm_strains, range(3)):
+            vstrain = np.zeros(6)
+            vstrain[ind] = norm_strain
+            vstrains.append(vstrain)
+    if shear_strains is not None:
+        for shear_strain, ind in itertools.product(shear_strains, range(3,6)):
+            vstrain = np.zeros(6)
+            vstrain[ind] = shear_strain
+            vstrains.append(vstrain)
 
-    if additional_deformations:
-        deformations.extend([Deformation(defo_mat) for defo_mat in additional_deformations])
+    if additional_strains:
+        vstrains.extend([Strain(strain_mat).voigt for strain_mat in additional_strains])
 
-    if not deformations:
-        raise ValueError("deformations list empty")
+    if not vstrains or np.linalg.matrix_rank(np.array(vstrains)) < 6:
+        raise ValueError("Strain list is insufficient to fit an elastic tensor")
 
+    strains = [Strain.from_voigt(vs) for vs in vstrains]
+    deformations = [s.deformation_matrix for s in strains]
     wf_elastic = get_wf_deformations(structure, deformations, pass_stress_strain=True, 
             name="deformation", relax_deformed=True, tag="elastic", **kwargs)
 
@@ -111,11 +115,10 @@ def get_wf_toec(structure, max_strain=0.05, stencil_res=7, indices=None, **kwarg
     strain_states[:, 3:] *= 2
     stencil = np.linspace(-max_strain, max_strain, stencil_res)
     stencil = stencil[np.nonzero(stencil)]
-    deformations = [Strain.from_voigt(v*ss).deformation_matrix
-                    for v, ss in itertools.product(stencil, strain_states)]
+    strains = [Strain.from_voigt(v*ss) for v, ss in itertools.product(stencil, strain_states)]
 
-    wf_toec = get_wf_elastic_constant(structure, norm_deformations=[], shear_deformations=[],
-                                      additional_deformations=deformations, toec=True, **kwargs)
+    wf_toec = get_wf_elastic_constant(structure, norm_strains=[], shear_strains=[],
+                                      additional_strains=strains, toec=True, **kwargs)
  
     wf_toec.name = "{}:{}".format(structure.composition.reduced_formula, "third-order elastic constants")
 
@@ -129,8 +132,6 @@ if __name__ == "__main__":
     try:
         wf = get_wf_elastic_constant(structure, norm_deformations=[0.01], 
                 shear_deformations=[0.03], symmetry_reduction=True)
-        from monty.serialization import dumpfn
-        dumpfn(wf.to_dict(), "wf.json")
     except:
         import sys, pdb, traceback
         type, value, tb = sys.exc_info()

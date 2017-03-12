@@ -234,8 +234,8 @@ class PassStressStrainData(FiretaskBase):
         strain = Strain.from_deformation(defo)
         defo_dict = {'deformation_matrix': defo, 'strain': strain.tolist(),
                      'stress': stress, 'independent': None}
-        if symmops:
-            defo_dict['symmops'] = symmops
+        if self['symmops']:
+            defo_dict['symmops'] = self['symmops']
 
         return FWAction(mod_spec=[{'_set': {
             'deformation_tasks->{}'.format(self['number']): defo_dict}}])

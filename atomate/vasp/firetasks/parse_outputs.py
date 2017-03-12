@@ -22,9 +22,8 @@ from atomate.vasp.database import MMVaspDb
 from atomate.vasp.drones import VaspDrone
 
 from pymatgen import Structure
-from pymatgen.analysis.elasticity import ElasticTensor, IndependentStrain, \
-        Stress, Deformation, toec_fit
-from pymatgen.analysis.elasticity.stress import Stress
+from pymatgen.analysis.elasticity import ElasticTensor, \
+        Stress, Deformation, toec_fit, Strain
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -211,7 +210,7 @@ class ElasticTensorToDbTask(FiretaskBase):
     """
 
     required_params = ['structure']
-    optional_params = ['db_file']
+    optional_params = ['db_file', "toec"]
 
     def run_task(self, fw_spec):
 
@@ -231,20 +230,20 @@ class ElasticTensorToDbTask(FiretaskBase):
             d["tags"] = fw_spec["tags"]
         defo_dicts = fw_spec["deformation_tasks"].values()
         stresses, strains = [], []
-        for d in defo_dicts:
-            stresses.append(Stress(d["stress"]))
-            strains.append(Strain(d["strain"]))
+        for defo_dict in defo_dicts:
+            stresses.append(Stress(defo_dict["stress"]))
+            strains.append(Strain(defo_dict["strain"]))
             # Add derived stresses and strains if symmops is present
-            for symmop in d.get("symmops", []):
-                stresses.append(Stress(d["stress"]).transform(symmop))
-                strains.append(Strain(d["strain"]).transform(symmop))
-            stresses = [-0.1*s for s in stresses]
-            strains = [-0.1*s for s in strains]
+            for symmop in defo_dict.get("symmops", []):
+                stresses.append(Stress(defo_dict["stress"]).transform(symmop))
+                strains.append(Strain(defo_dict["strain"]).transform(symmop))
+        stresses = [-0.1*s for s in stresses]
 
         logger.info("ANALYZING STRESS/STRAIN DATA")
-        if numpy.linalg.matrix_rank(stress_strain_data) == 6:
+        vstrains = np.array([s.voigt for s in strains])
+        if np.linalg.matrix_rank(np.array(vstrains)) == 6:
             # Perform Elastic tensor fitting and analysis
-            result = ElasticTensor.from_stress_strain_list(stress_dict)
+            result = ElasticTensor.from_strain_stress_list(strains, stresses)
             d["elastic_tensor"] = result.voigt.tolist()
             kg_average = result.kg_average
             d.update({"K_Voigt": kg_average[0], "G_Voigt": kg_average[1],
@@ -259,13 +258,14 @@ class ElasticTensorToDbTask(FiretaskBase):
 
         d["state"] = "successful"
 
-        if toec_fit:
-            d['pk_stresses'] = [stress.piola_kirchoff_2(strain.deformation_matrix) 
-                                  for stress, strain in zip(d['stresses'], d['strains'])]
-            d['eq_stress'] = -0.1*Stress(optimize_d["calcs_reversed"][0]\
-                                           ["output"]["ionic_steps"][-1]["stress"])
+        if self["toec"]:
             toec = {}
-            c2, c3 = toec_fit(d["strains"], d["pk_stresses"], eq_stress = d["eq_stress"])
+            toec['stresses'], toec['strains'] = stresses, strains
+            toec['pk_stresses'] = [stress.piola_kirchoff_2(strain.deformation_matrix) 
+                                  for stress, strain in zip(stresses, strains)]
+            toec['eq_stress'] = -0.1*Stress(optimize_doc["calcs_reversed"][0]\
+                                           ["output"]["ionic_steps"][-1]["stress"])
+            c2, c3 = toec_fit(strains, toec["pk_stresses"], eq_stress = toec["eq_stress"])
             toec["C2_raw"] = c2.voigt.tolist()
             toec["C3_raw"] = c3.voigt.tolist()
             toec["C2_fit"] = c2.fit_to_structure(opt_struct).voigt
@@ -277,12 +277,13 @@ class ElasticTensorToDbTask(FiretaskBase):
             c3_idx = ["c_"+"".join([str(i) for i in np.array(idx)+1])\
                       +" = "+str(np.array(c3.voigt)[idx]) for idx in indices_3]
             c3_idx_sym = ["c_"+"".join([str(i) for i in np.array(idx)+1])\
-                          +" = "+str(np.array(d['C3_fit'])[idx]) for idx in indices_3]
+                          +" = "+str(np.array(toec['C3_fit'])[idx]) for idx in indices_3]
             toec["C2_index_format"] = c2_idx
             toec["C3_index_format"] = c3_idx
             toec["C3_index_format_sym"] = c3_idx_sym
             d["toec"] = toec
-
+        d["formula_pretty"] = opt_struct.composition.reduced_formula
+        d = recursive_dict(d)
         # Save analysis results in json or db
         db_file = env_chk(self.get('db_file'), fw_spec)
         if not db_file:
