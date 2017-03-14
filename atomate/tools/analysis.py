@@ -114,12 +114,6 @@ class QuasiharmonicDebyeApprox(object):
 
         # fit equation of state, G(V, T, P)
         eos_fit = self.eos.fit(self.volumes, G_V)
-        if self.eos_name in ["deltafactor", "numerical_eos"]:
-            func = np.poly1d(eos_fit.eos_params)
-            params = tuple(eos_fit.eos_params)
-        else:
-            func = eos_fit.func
-            params = tuple(eos_fit.eos_params.tolist())  # E0(ref energy), B0, B1, V0(ref volume)
         # minimize the fit eos wrt volume
         # Note: the ref energy and the ref volume(E0 and V0) not necessarily the same as
         # minimum energy and min volume.
@@ -128,10 +122,7 @@ class QuasiharmonicDebyeApprox(object):
         e_min = min(energies_list)
         e_min_idx = energies_list.index(e_min)
         volume_guess = volumes_list[e_min_idx]
-        if self.eos_name in ["deltafactor", "numerical_eos"]:
-            min_wrt_vol = minimize(func, volume_guess)
-        else:
-            min_wrt_vol = minimize(func, volume_guess, params)
+        min_wrt_vol = minimize(eos_fit.func, volume_guess)
         # G_opt=G(V_opt, T, P), V_opt
         return min_wrt_vol.fun, min_wrt_vol.x[0]
 
@@ -221,19 +212,10 @@ class QuasiharmonicDebyeApprox(object):
         Returns:
             float: unitless
         """
-        if self.eos_name in ["deltafactor", "numerical_eos"]:
-            func = np.poly1d(self.ev_eos_fit.eos_params)
-            dEdV = np.polyder(func)(volume)
-            d2EdV2 = np.polyder(func, 2)(volume)
-            d3EdV3 = np.polyder(func, 3)(volume)
-        else:
-            func = self.ev_eos_fit.func
-            eos_params = tuple(self.ev_eos_fit.eos_params.tolist())
-            dEdV = derivative(func, volume, dx=1e-3, args=eos_params)
-            # second derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^6
-            d2EdV2 = derivative(func, volume, dx=1e-3, n=2, args=eos_params, order=5)
-            # third derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^9
-            d3EdV3 = derivative(func, volume, dx=1e-3, n=3, args=eos_params, order=7)
+        func = self.ev_eos_fit.func
+        dEdV = derivative(func, volume, dx=1e-3)
+        # second derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^6
+        d2EdV2 = derivative(func, volume, dx=1e-3, n=2, order=5)
         # Mie-gruneisen formulation
         if self.use_mie_gruneisen:
             # first derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^3
@@ -242,6 +224,8 @@ class QuasiharmonicDebyeApprox(object):
                     self.vibrational_internal_energy(temperature, volume))
 
         # Slater-gamma formulation
+        # third derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^9
+        d3EdV3 = derivative(func, volume, dx=1e-3, n=3, order=7)        
         # first derivative of bulk modulus wrt volume, eV/Ang^6
         dBdV = d2EdV2 + d3EdV3 * volume
         return -(1./6. + 0.5 * volume * dBdV /
