@@ -20,8 +20,9 @@ from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
 from pymatgen.io.vasp import Incar, Poscar
 from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, MPHSEBSSet
+from pymatgen_diffusion.neb.io import MVLCINEBSet
 
-from atomate.utils.utils import env_chk, load_class
+from atomate.utils.utils import env_chk, load_class, get_logger
 
 __author__ = 'Anubhav Jain, Shyue Ping Ong, Kiran Mathew'
 __email__ = 'ajain@lbl.gov'
@@ -356,3 +357,122 @@ class WriteNormalmodeDisplacedPoscar(FiretaskBase):
 
         # write the modified structure to poscar
         structure.to(fmt="poscar", filename="POSCAR")
+
+
+@explicit_serialize
+class WriteNEBFromImages(FiretaskBase):  # TODO: not support vis change? should be good I think
+    """
+    Generate CI-NEB input sets using given image structures.
+
+    Required parameters:
+        # vasp_input_set (AbstractVaspInputSet): full VaspInputSet object user_incar_settings
+        #     and structures should be included. Required if neb_label is not provided.
+        neb_label (str): name of firework, used to find structures when vasp_input_set is None.
+            "1", "2", etc. MVLCINEBSet will used if no vasp_input_set provided.
+    Optional parameters:
+        user_incar_settings (dict): Additional INCAR settings.
+            # This will be ignored if vasp_input_set is provided.
+    """
+    required_params = ["neb_label"]
+    optional_params = ["user_incar_settings"]
+
+    def run_task(self, fw_spec):
+        user_incar_settings = self.get("user_incar_settings", {})
+        neb_label = self.get("neb_label")
+        assert neb_label.isdigit() and int(neb_label) >= 1
+        images = fw_spec["neb"][int(neb_label)-1]
+        try:
+            images = [Structure.from_dict(i) for i in images]
+        except:
+            images = images
+        vis = MVLCINEBSet(images, user_incar_settings=user_incar_settings)
+        vis.write_input(".")
+
+
+@explicit_serialize
+class WriteNEBFromEndpoints(FiretaskBase):
+    """
+    Generate CI-NEB input sets using endpoint structures.
+    MVLCINEBSet is the only vasp_input_set supported now.
+
+    The number of images:
+        1) search in "user_incar_settings";
+        2) otherwise, calculate using "image_dist".
+    Required parameters:
+        endpoints ([Structures]): endpoints list.
+        user_incar_settings (dict): additional INCAR settings.
+
+    Optional parameters:
+        output_dir (str): output directory.
+        sort_tol (float): Distance tolerance (in Angstrom) used to match the atomic indices between
+            start and end structures. If it is set 0, then no sorting will be performed.
+        image_dist (float): distance in Angstrom, used in calculating number of images.
+                            Default 0.7 Angstrom.
+        interp_method (str): method to do image interpolation from two endpoints.
+                            Choose from ["linear"], default "linear"
+    """
+    required_params = ["endpoints", "user_incar_settings"]
+    optional_params = ["output_dir", "sort_tol", "image_dist", "interp_method"]
+
+    def run_task(self, fw_spec):
+        user_incar_settings = self["user_incar_settings"]
+        interp_method = self.get("interp_method", "linear")
+
+        # Get number of images.
+        nimages = user_incar_settings.get("IMAGES", self._get_nimages())
+        if interp_method == "linear":  # TODO: Add IDPP
+            images = self._get_images_by_linear_interp(nimages=nimages)
+            images_dic_list = [i.as_dict() for i in images]
+        else:
+            raise ValueError("Unknown interpolation method!")
+
+        # vis = MVLCINEBSet(structures=images, user_incar_settings=user_incar_settings)
+
+        write = WriteNEBFromImages(neb_label='1', user_incar_settings=user_incar_settings)
+        fw_spec["neb"] = [images_dic_list]
+        write.run_task(fw_spec=fw_spec)
+
+    def _get_nimages(self):
+        """
+        Calculate the number of images using "image_dist", which can be
+        overwritten in a optional_params list.
+
+        Returns:
+            nimages (int): number of images.
+        """
+        ep0 = self["endpoints"][0]
+        ep1 = self["endpoints"][1]
+        image_dist = self.get("image_dist") or 0.7
+
+        # Check endpoints consistence.
+        assert ep0.atomic_numbers == ep1.atomic_numbers, "Endpoints are inconsistent!"
+
+        # Assume dilute diffusion
+        max_dist = 0
+        for s_0, s_1 in zip(ep0, ep1):
+            site_dist = ep0.lattice.get_distance_and_image(s_0.frac_coords, s_1.frac_coords)[0]
+            if site_dist > max_dist:
+                max_dist = site_dist
+
+        # Number of images must more than one.
+        nimages = int(max_dist / image_dist) or 1
+
+        return nimages
+
+    def _get_images_by_linear_interp(self, nimages):
+        logger = get_logger(__name__)
+        ep0 = self["endpoints"][0]
+        ep1 = self["endpoints"][1]
+        sort_tol = self.get("sort_tol", 0.0)
+
+        try:
+            images = ep0.interpolate(ep1, nimages=nimages + 1, autosort_tol=sort_tol)
+        except Exception as e:
+            if "Unable to reliably match structures " in str(e):
+                logger.warn("Auto sorting is turned off because it is unable to match the "
+                            "end-point structures!")
+                images = ep0.interpolate(ep1, nimages=nimages + 1, autosort_tol=0)
+            else:
+                raise e
+
+        return images
