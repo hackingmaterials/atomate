@@ -252,9 +252,9 @@ def wf_gibbs_free_energy(structure, c=None):
     db_file = c.get("db_file", DB_FILE)
     user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
 
-    # 21 deformed structures
-    deformations = c.get("deformations", [(np.identity(3)*(1+x)).tolist()
-                                          for x in np.linspace(-0.1, 0.1, 21)])
+    # 11 deformed structures
+    deformations = c.get("deformations", [(np.identity(3)*(1+x)**(1.0/3.0)).tolist()
+                                          for x in np.linspace(-0.1, 0.1, 11)])
 
     eos = c.get("eos", "vinet")
     qha_type = c.get("qha_type", "debye_model")
@@ -262,7 +262,7 @@ def wf_gibbs_free_energy(structure, c=None):
     # min and max temp in K, default setting is to compute the properties at 300K only
     t_min = c.get("t_min", 300.0)
     t_max = c.get("t_max", 300.0)
-    t_step = c.get("t_step", 100.0)
+    t_step = c.get("t_step", 10.0)
 
     pressure = c.get("pressure", 0.0)
     poisson = c.get("poisson", 0.25)
@@ -273,6 +273,10 @@ def wf_gibbs_free_energy(structure, c=None):
                                   t_min=t_min, t_max=t_max, t_step=t_step)
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 600, "EDIFF": 1e-6}})
+    if qha_type is not "debye_model":
+        # increase accuracy of forces for phonon calculations
+        wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"LREAL":False, "ADDGRID": True}})
+        wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"NSW":1}}, fw_name_constraint='deformation')
 
     wf = add_common_powerups(wf, c)
 

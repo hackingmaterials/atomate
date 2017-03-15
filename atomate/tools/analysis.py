@@ -251,7 +251,6 @@ class QuasiharmonicDebyeApprox(object):
         d["pressure"] = self.pressure
         d["poisson"] = self.poisson
         d["mass"] = self.mass
-        d["natoms"] = int(self.natoms)
         d["bulk_modulus"] = self.bulk_modulus
         d["gibbs_free_energy"] = self.gibbs_free_energy
         d["temperatures"] = self.temperatures
@@ -340,7 +339,7 @@ def get_phonopy_qha(energies, volumes, force_constants, structure, t_min, t_step
     for f in force_constants:
         phonon.set_force_constants(-np.array(f))
         phonon.set_mesh(list(mesh))
-        phonon.set_thermal_properties(t_step=t_step, t_min=t_min, t_max=t_max)
+        phonon.set_thermal_properties(t_step=t_step, t_min=t_min, t_max=t_max+4*t_step)
         t, g, e, c = phonon.get_thermal_properties()
         temperatures.append(t)
         free_energy.append(g)

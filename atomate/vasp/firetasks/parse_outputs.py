@@ -338,14 +338,14 @@ class RamanSusceptibilityTensorToDbTask(FiretaskBase):
 
 
 @explicit_serialize
-class GibbsFreeEnergyTask(FiretaskBase):
+class GibbsFreeEnergyToDbTask(FiretaskBase):
     """
     Compute the quasi-harmonic gibbs free energy. There are 2 options available for the
     quasi-harmonic approximation (set via 'qha_type' parameter):
     1. use the phonopy package quasi-harmonic approximation interface or
     2. use the debye model.
     Note: Instead of relying on fw_spec, this task gets the required data directly from the
-    tasks collection for processing. The summary dict is written to 'gibbs.json' file.
+    tasks collection for processing.
 
     required_params:
         tag (str): unique tag appended to the task labels in other fireworks so that all the
@@ -379,14 +379,17 @@ class GibbsFreeEnergyTask(FiretaskBase):
         qha_type = self.get("qha_type", "debye_model")
         pressure = self.get("pressure", 0.0)
         poisson = self.get("poisson", 0.25)
-        gibbs_summary_dict = {}
+        gibbs_summary_dict = {"qha_type":qha_type}
 
         mmdb = MMVaspDb.from_db_file(db_file, admin=True)
         # get the optimized structure
         d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
         gibbs_summary_dict["structure"] = structure.as_dict()
-
+        gibbs_summary_dict["formula_pretty"] = d["formula_pretty"]
+        gibbs_summary_dict["composition_reduced"] = d["composition_reduced"]
+        gibbs_summary_dict["composition_unit_cell"] = d["composition_unit_cell"]
+        gibbs_summary_dict["nsites"] = d["nsites"]
         # get the data(energy, volume, force constant) from the deformation runs
         docs = mmdb.collection.find({"task_label": {"$regex": "{} gibbs*".format(tag)},
                                      "formula_pretty": structure.composition.reduced_formula})
@@ -423,8 +426,10 @@ class GibbsFreeEnergyTask(FiretaskBase):
             gibbs_summary_dict["gibbs_free_energy"] = G
             gibbs_summary_dict["temperatures"] = T
 
-        with open("gibbs.json", "w") as f:
-            f.write(json.dumps(gibbs_summary_dict, default=DATETIME_HANDLER))
+        # store the results, doesn't check for db_file because this workflow requires a db with results
+        # could be changed later if the results are taken from the FW spec
+        mmdb.collection = mmdb.db["gibbs"]
+        mmdb.collection.insert_one(gibbs_summary_dict)
         logger.info("GIBBS FREE ENERGY CALCULATION COMPLETE")
 
 
