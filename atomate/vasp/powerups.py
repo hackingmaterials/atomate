@@ -109,7 +109,7 @@ def use_fake_vasp(original_wf, ref_dirs, params_to_check=None):
                         wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
                             RunVaspFake(ref_dir=ref_dirs[job_type],
                                         params_to_check=params_to_check).to_dict()
-                    if "RunVaspCustodian" in str(t) and t["job_type"] == "neb":
+                    if "RunVaspCustodian" in str(t) and t.get("job_type") == "neb":
                         wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
                             RunNEBVaspFake(ref_dir=ref_dirs[job_type],
                                            params_to_check=params_to_check).to_dict()
