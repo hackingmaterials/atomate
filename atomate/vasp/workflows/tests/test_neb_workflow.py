@@ -44,8 +44,6 @@ class TestNudgedElasticBandWorkflow(unittest.TestCase):
         if not SETTINGS.get("PMG_VASP_PSP_DIR"):
             SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests",
                                                         "reference_files")
-            SETTINGS["VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests",
-                                                    "reference_files")
             print('This system is not set up to run VASP jobs. '
                   'Please set PMG_VASP_PSP_DIR variable in '
                   'your ~/.pmgrc.yaml file.')
