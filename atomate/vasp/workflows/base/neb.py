@@ -151,7 +151,7 @@ def _get_incar(mode, user_incar_settings=None):
 
 
 def get_wf_neb_from_structure(structure, path_sites, user_incar_settings,
-                              is_optimized=True, wf_name=None, spec=None):
+                              is_optimized=True, wf_name=None, spec=None, cust_args=None):
     """
     Get a CI-NEB workflow from given perfect structures.
     Workflow: (Init relax) -- Endpoints relax -- NEB_1 -- NEB_2 - ... - NEB_r
@@ -165,6 +165,7 @@ def get_wf_neb_from_structure(structure, path_sites, user_incar_settings,
                 initial relaxation before generating endpoints.
         wf_name (str): some appropriate name for the workflow.
         spec (dict): user setting spec settings to overwrite spec_orig.
+        cust_args (dict): Other kwargs that are passed to RunVaspCustodian.
 
     Returns:
         Workflow
@@ -178,6 +179,7 @@ def get_wf_neb_from_structure(structure, path_sites, user_incar_settings,
     uis_ep = _get_incar(mode, user_incar_settings)[1]
     uis_neb = _get_incar(mode, user_incar_settings)[2]
     neb_round = len(uis_neb)
+    cust_args = cust_args or {}
 
     # Get relaxation fireworks.
     if is_optimized:  # Start from endpoints
@@ -196,14 +198,14 @@ def get_wf_neb_from_structure(structure, path_sites, user_incar_settings,
         for n in range(neb_round):
             fw = NEBFW(spec=spec, neb_label=str(n + 1), from_images=False,
                        user_incar_settings=uis_neb[n], vasp_cmd=vasp_cmd,
-                       gamma_vasp_cmd=gamma_vasp_cmd, cust_args={})
+                       gamma_vasp_cmd=gamma_vasp_cmd, cust_args=cust_args)
             neb_fws.append(fw)
 
         # Get relax fireworks
         rlx_fws = [NEBRelaxationFW(spec=spec, label=i, vasp_input_set=None,
                                    user_incar_settings=uis_ep, vasp_cmd=vasp_cmd,
                                    gamma_vasp_cmd=gamma_vasp_cmd,
-                                   cust_args={}) for i in ["ep0", "ep1"]]
+                                   cust_args=cust_args) for i in ["ep0", "ep1"]]
 
         links = {rlx_fws[0]: [neb_fws[0]],
                  rlx_fws[1]: [neb_fws[0]]}
@@ -218,7 +220,7 @@ def get_wf_neb_from_structure(structure, path_sites, user_incar_settings,
         for n in range(neb_round):
             fw = NEBFW(spec=spec, neb_label=str(n + 1), from_images=False,
                        user_incar_settings=uis_neb[n], vasp_cmd=vasp_cmd,
-                       gamma_vasp_cmd=gamma_vasp_cmd, cust_args={})
+                       gamma_vasp_cmd=gamma_vasp_cmd, cust_args=cust_args)
             neb_fws.append(fw)
 
         rlx_fws = [NEBRelaxationFW(spec=spec, label=label, vasp_input_set=None,
@@ -238,8 +240,8 @@ def get_wf_neb_from_structure(structure, path_sites, user_incar_settings,
     return workflow
 
 
-def get_wf_neb_from_endpoints(user_incar_settings, parent, endpoints=None,
-                              is_optimized=True, wf_name=None, additional_spec=None):
+def get_wf_neb_from_endpoints(user_incar_settings, parent, endpoints=None, is_optimized=True,
+                              wf_name=None, additional_spec=None, cust_args=None):
     """
     Get a CI-NEB workflow from given endpoints.
     Workflow: (Endpoints relax -- ) NEB_1 -- NEB_2 - ... - NEB_r
@@ -254,10 +256,12 @@ def get_wf_neb_from_endpoints(user_incar_settings, parent, endpoints=None,
                             run endpoints relaxation before NEB.
         wf_name (str): some appropriate name for the workflow.
         additional_spec (dict): user setting spec settings to overwrite spec_orig.
+        cust_args (dict): Other kwargs that are passed to RunVaspCustodian.
 
     Returns:
         Workflow
     """
+    cust_args = cust_args or {}
     if endpoints is not None:
         for e in endpoints:
             assert isinstance(e, Structure)
@@ -281,7 +285,7 @@ def get_wf_neb_from_endpoints(user_incar_settings, parent, endpoints=None,
     for n in range(neb_round):
         fw = NEBFW(spec=spec, neb_label=str(n + 1), from_images=False,
                    user_incar_settings=uis_neb[n], vasp_cmd=vasp_cmd,
-                   gamma_vasp_cmd=gamma_vasp_cmd, cust_args={})
+                   gamma_vasp_cmd=gamma_vasp_cmd, cust_args=cust_args)
         neb_fws.append(fw)
 
     workflow = Workflow(neb_fws, name=wf_name)
@@ -291,7 +295,7 @@ def get_wf_neb_from_endpoints(user_incar_settings, parent, endpoints=None,
         ep_fws = [NEBRelaxationFW(spec=spec, label=i, vasp_input_set=None,
                                   user_incar_settings=uis_ep, vasp_cmd=vasp_cmd,
                                   gamma_vasp_cmd=gamma_vasp_cmd,
-                                  cust_args={}) for i in ["ep0", "ep1"]]
+                                  cust_args=cust_args) for i in ["ep0", "ep1"]]
         # Create Firework links.
         fws = ep_fws + neb_fws
         links = {ep_fws[0]: [neb_fws[0]], ep_fws[1]: [neb_fws[0]]}

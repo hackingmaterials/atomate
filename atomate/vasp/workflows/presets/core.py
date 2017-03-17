@@ -405,6 +405,7 @@ def wf_nudged_elastic_band(structures, parent, c=None):
     is_optimized = c.get("is_optimized", False)  # default
     wf_name = spec.get("wf_name")  # default
     path_sites = spec.get("path_sites", [])  # default
+    cust_args = spec.get("cust_args", {})
 
     # Default
     if "fireworks" not in c:
@@ -448,13 +449,14 @@ def wf_nudged_elastic_band(structures, parent, c=None):
     if mode in [1, 2]:
         wf = get_wf_neb_from_structure(structure=structures[0], path_sites=path_sites,
                                        is_optimized=is_optimized, wf_name=wf_name,
-                                       spec=spec, user_incar_settings=user_incar_settings)
+                                       spec=spec, user_incar_settings=user_incar_settings,
+                                       cust_args=cust_args)
     elif mode in [3, 4]:
         wf = get_wf_neb_from_endpoints(parent=structures[0], endpoints=structures,
                                        is_optimized=is_optimized, wf_name=wf_name,
-                                       additional_spec=spec,
+                                       additional_spec=spec, cust_args=cust_args,
                                        user_incar_settings=user_incar_settings)
     else:  # mode == 5
         wf = get_wf_neb_from_images(parent, user_incar_settings, images=structures,
-                                    wf_name=wf_name, spec=spec)
+                                    wf_name=wf_name, spec=spec, cust_args=cust_args)
     return wf

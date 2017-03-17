@@ -436,7 +436,6 @@ class NEBFW(Firework):
     Task 4) Update structure to spec
     """
 
-    # TODO: These tags are not used.... maybe in spec
     def __init__(self, spec, neb_label, from_images=True, user_incar_settings=None,
                  sort_tol=None, dimages=None, interp_method="IDPP",
                  vasp_cmd=">>vasp_cmd<<", gamma_vasp_cmd=">>gamma_vasp_cmd<<",
@@ -484,7 +483,7 @@ class NEBFW(Firework):
         # Task 2: Run NEB using Custodian
         run_neb_task = RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=gamma_vasp_cmd,
                                         handler_group="no_handler",
-                                        gzip_output=False,  # must be false, # TODO: fix custodian
+                                        gzip_output=False,  # must be false
                                         job_type="neb", **cust_args)
 
         # Task 3, 4: Transfer and PassCalLocs

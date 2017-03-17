@@ -150,7 +150,8 @@ class RunVaspCustodian(FiretaskBase):
         elif job_type == "neb":
             jobs = [VaspNEBJob(vasp_cmd, output_file="neb_vasp.out", stderr_file="neb_std_err.txt",
                                suffix="", final=False, auto_npar=self.get("auto_npar", False),
-                               half_kpts=True, auto_gamma=True, auto_continue=False,
+                               half_kpts=self.get("half_kpts", True), auto_continue=False,
+                               auto_gamma=self.get("auto_gamma", True),
                                gamma_vasp_cmd=gamma_vasp_cmd)]
         else:
             raise ValueError("Unsupported job type: {}".format(job_type))
