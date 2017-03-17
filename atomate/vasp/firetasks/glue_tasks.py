@@ -16,13 +16,11 @@ from previous run directory oto the current one.
 import gzip
 import os
 import re
-import shutil
 from decimal import Decimal
 
 import numpy as np
 
 from pymatgen import MPRester
-from pymatgen.core import Structure
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.analysis.elasticity import reverse_voigt_map
 
@@ -30,7 +28,6 @@ from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 from atomate.utils.utils import get_calc_loc, env_chk
 from atomate.utils.fileio import FileClient
-from pymatgen_diffusion.neb.io import get_endpoint_dist
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
@@ -295,77 +292,3 @@ class PassNormalmodesTask(FiretaskBase):
                                "eigenvecs": normalmode_eigenvecs.tolist(),
                                "norms": normalmode_norms.tolist()}
         return FWAction(mod_spec=[{'_set': {'normalmodes': normalmode_dict}}])
-
-
-@explicit_serialize
-class TransferNEBTask(FiretaskBase):
-    """
-    This class transfers CI-NEB outputs from current directory to destination directory. "label" is
-    used to determine the type of calculation and hence the final path. The corresponding structure
-    will be updated in fw_spec before files transferring.
-
-    Required params:
-        label (str): Type of calculation outputs being transferred, choose from "ini", "ep0", "ep1",
-            "neb1" , "neb2" and etc.
-    Optional params:
-        image_dist (float): Interval distance to determine image numbers, in Angstrom.
-    """
-    required_params = ["label"]
-    optional_params = ["image_dist"]
-
-    def run_task(self, fw_spec):
-        label = self["label"]
-        assert label in ["ini", "ep0", "ep1"] or "neb" in label, "Unknown label!"
-
-        image_dist = float(self.get("image_dist", 0.7))  # Angstrom
-        wf_name = fw_spec["wf_name"]
-        src_dir = os.path.abspath(".")
-        dest_dir = os.path.join(fw_spec["dest_dir"], wf_name, label)
-        shutil.copytree(src_dir, dest_dir)
-
-        # Update fw_spec based on the type of calculations.
-        if "neb" in label:
-            # All result images.
-            subs = glob.glob("[0-2][0-9]")
-            nimages = len(subs)
-            concar_list = ["{:02}/CONTCAR".format(i) for i in range(nimages)[1: -1]]
-            images = [Structure.from_file(contcar) for contcar in concar_list]
-
-            # End images.
-            images.insert(0, Structure.from_file("00/POSCAR"))
-            images.append(Structure.from_file("{:02}/POSCAR".format(nimages - 1)))
-            images = [s.as_dict() for s in images]
-            neb = fw_spec.get("neb")
-            neb.append(images)
-            update_spec = {"neb": neb}
-
-        elif "ep" in label:
-            # Update relaxed endpoint structures
-            endpoints = fw_spec.get("eps", [{}, {}])
-            ep_index = int(label[-1])
-            file = glob.glob("CONTCAR*")[0]
-            ep_0 = Structure.from_file(file, False)  # one ep
-            try:
-                ep_1 = Structure.from_dict(endpoints[int(1-ep_index)])  # another ep
-            except:
-                ep_1 = endpoints[int(1-ep_index)]
-            endpoints[int(ep_index)] = ep_0.as_dict()
-
-            # Update endpoints --> get image number accordingly
-            max_dist = max(get_endpoint_dist(ep_0, ep_1))
-            nimages = round(max_dist / image_dist) or 1
-            update_spec = ({"eps": endpoints, "_queueadapter": {"nnodes": nimages}})
-
-        else:  # label == "ini"
-            f = glob.glob("CONTCAR*")[0]
-            s = Structure.from_file(f, False)
-            update_spec = {"ini": s.as_dict()}
-
-        # Clear current directory.
-        for d in os.listdir(src_dir):
-            try:
-                os.remove(os.path.join(src_dir, d))
-            except:
-                pass
-
-        return FWAction(update_spec=update_spec)
