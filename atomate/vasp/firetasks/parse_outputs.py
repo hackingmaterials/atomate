@@ -407,7 +407,7 @@ class GibbsFreeEnergyTask(FiretaskBase):
         # use quasi-harmonic debye approximation
         if qha_type in ["debye_model"]:
 
-            from atomate.tools.analysis import QuasiharmonicDebyeApprox
+            from pymatgen.analysis.quasiharmonic import QuasiharmonicDebyeApprox
 
             qhda = QuasiharmonicDebyeApprox(energies, volumes, structure, t_min, t_step, t_max, eos,
                                             pressure=pressure, poisson=poisson)
