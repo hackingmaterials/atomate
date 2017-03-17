@@ -215,14 +215,14 @@ class QuasiharmonicDebyeApprox(object):
         if isinstance(self.eos, PolynomialEOS):
             p = np.poly1d(self.eos.eos_params)
             dEdV = np.polyder(p, 1)(volume)
+            # second derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^6
             d2EdV2 = np.polyder(p, 2)(volume)
+            # third derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^9
             d3EdV3 = np.polyder(p, 3)(volume)
         else:
             func = self.ev_eos_fit.func
             dEdV = derivative(func, volume, dx=1e-3)
-            # second derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^6
             d2EdV2 = derivative(func, volume, dx=1e-3, n=2, order=5)
-            # third derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^9
             d3EdV3 = derivative(func, volume, dx=1e-3, n=3, order=7)
 
         # Mie-gruneisen formulation
