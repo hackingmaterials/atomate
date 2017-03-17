@@ -7,10 +7,7 @@ fireworks:
   user_incar_settings:
     ISIF: 3
     LDAU: False
-- fw: atomate.vasp.fireworks.core.NEBRelaxationFW  # Two endpoints settings are the same
-  user_incar_settings:
-    EDIFF: 5e-5
-    EDIFFG: -0.05
+# Two endpoints settings are the same
 - fw: atomate.vasp.fireworks.core.NEBRelaxationFW
   user_incar_settings:
     EDIFF: 5e-5
@@ -35,15 +32,10 @@ is_optimized: False
 # These can update spec_orig in neb.py
 common_params:
   wf_name: LiO2_test
-  vasp_cmd: world
-  gamma_vasp_cmd: world_gam
+  idpp_species: Li
   mpi_command:
     command: echo
     np_tag: hello
   ppn: 24
   path_sites: [0, 1]
-  db_file: ">>db_file<<"
   dest_dir: null
-  _category: atomate_neb
-  _queueadapter:
-    nnodes: 1  # This is subject to change
