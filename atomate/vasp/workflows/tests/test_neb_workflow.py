@@ -55,7 +55,6 @@ class TestNudgedElasticBandWorkflow(unittest.TestCase):
         ep0, ep1 = get_endpoints_from_index(ini, [0, 1])
         neb_dir = [os.path.join(module_dir, "test_files", "neb_wf", "4", "inputs", "{:02}",
                                 "POSCAR").format(i) for i in range(5)]
-        cls.parent = parent
         cls.structures = [Structure.from_file(n) for n in neb_dir]
         cls.scratch_dir = os.path.join(module_dir, "scratch")
 
@@ -87,19 +86,19 @@ class TestNudgedElasticBandWorkflow(unittest.TestCase):
         cls.config_3["common_params"]["wf_name"] = "NEB_test_3"
 
         cls.config_4 = copy.deepcopy(cls.config_3)
-        del cls.config_4["fireworks"][0: 2]
+        del cls.config_4["fireworks"][0]
         cls.config_4["is_optimized"] = True
         cls.config_4["common_params"]["wf_name"] = "NEB_test_4"
 
         cls.config_5 = copy.deepcopy(cls.config)
-        del cls.config_5["fireworks"][0: 3]
+        del cls.config_5["fireworks"][0: 2]
         cls.config_5["common_params"]["wf_name"] = "NEB_test_5"
 
-        cls.wf_1 = wf_nudged_elastic_band(ini, cls.config_1)
-        cls.wf_2 = wf_nudged_elastic_band(ini, cls.config_2)
-        cls.wf_3 = wf_nudged_elastic_band([ep0, ep1], cls.config_3, cls.parent)
-        cls.wf_4 = wf_nudged_elastic_band([ep0, ep1], cls.config_4, cls.parent)
-        cls.wf_5 = wf_nudged_elastic_band(cls.structures, cls.config_5, cls.structures[0])
+        cls.wf_1 = wf_nudged_elastic_band(ini, parent, cls.config_1)
+        cls.wf_2 = wf_nudged_elastic_band(ini, parent, cls.config_2)
+        cls.wf_3 = wf_nudged_elastic_band([ep0, ep1], parent, cls.config_3)
+        cls.wf_4 = wf_nudged_elastic_band([ep0, ep1], parent, cls.config_4)
+        cls.wf_5 = wf_nudged_elastic_band(cls.structures, parent, cls.config_5)
 
     def setUp(self):
         """
@@ -138,8 +137,8 @@ class TestNudgedElasticBandWorkflow(unittest.TestCase):
 
         return use_fake_vasp(wf, neb_ref_dirs, params_to_check=["ENCUT"])
 
-    def test_get_mpi_command(self):
-        """test _get_mpi_command() function"""
+    def test_get_command(self):
+        """test _get_command() function"""
         # TODO
         pass
 
@@ -161,5 +160,3 @@ class TestNudgedElasticBandWorkflow(unittest.TestCase):
 
 if __name__ == "__main__":
     t = TestNudgedElasticBandWorkflow()
-    t.test_wf()
-    t.tearDown()

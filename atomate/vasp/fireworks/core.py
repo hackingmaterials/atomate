@@ -14,10 +14,12 @@ from pymatgen_diffusion.neb.io import MVLCINEBEndPointSet
 
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, PassEpsilonTask, \
-    PassNormalmodesTask, TransferNEBTask
+    PassNormalmodesTask
+from atomate.vasp.firetasks.neb_tasks import TransferNEBTask
 from atomate.vasp.firetasks.parse_outputs import VaspToDbTask, BoltztrapToDBTask
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunBoltztrap
 from atomate.vasp.firetasks.write_inputs import *
+from atomate.vasp.firetasks.neb_tasks import WriteNEBFromImages, WriteNEBFromEndpoints
 
 
 class OptimizeFW(Firework):
@@ -389,7 +391,7 @@ class NEBRelaxationFW(Firework):
         """
         Args:
             spec (dict): Specification of the job to run.
-            label (str): "ini" (parent), "ep0" or "ep1", st_label will be used in PassCalcLocs name.
+            label (str): "init" (parent), "ep0" or "ep1", st_label will be used in PassCalcLocs name.
             vasp_input_set (VaspInputSet): Input set to use.
             user_incar_settings (dict): Additional INCAR settings.
             vasp_cmd (str): Command to run vasp.
@@ -399,9 +401,9 @@ class NEBRelaxationFW(Firework):
         """
         # Get structure from spec
         cust_args = cust_args or {}
-        assert label in ["ini", "ep0", "ep1"]
-        if label == "ini":
-            structure_dict = spec["ini"]
+        assert label in ["init", "ep0", "ep1"]
+        if label == "init":
+            structure_dict = spec["init"]
         else:  # label in ["ep0", "ep1"]
             index = int(label[-1])
             structure_dict = spec["eps"][index]
@@ -411,7 +413,7 @@ class NEBRelaxationFW(Firework):
         if vasp_input_set is None:
             incar = user_incar_settings or {}
             vasp_input_set = MITRelaxSet(structure, user_incar_settings=incar) \
-                if label == 'ini' \
+                if label == 'init' \
                 else MVLCINEBEndPointSet(structure, user_incar_settings=incar)
 
         write_ep_task = WriteVaspFromIOSet(structure=structure, output_dir=".",
@@ -436,7 +438,7 @@ class NEBFW(Firework):
 
     # TODO: These tags are not used.... maybe in spec
     def __init__(self, spec, neb_label, from_images=True, user_incar_settings=None,
-                 sort_tol=None, image_dist=None, interp_method="linear",
+                 sort_tol=None, dimages=None, interp_method="IDPP",
                  vasp_cmd=">>vasp_cmd<<", gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                  cust_args=None, **kwargs):
         """
@@ -448,10 +450,10 @@ class NEBFW(Firework):
             user_incar_settings (dict): Additional INCAR settings.
             sort_tol (float): Distance tolerance (in Angstrom) used to match the atomic indices
                 between start and end structures. If it is set 0, then no sorting will be performed.
-            image_dist (float): distance in Angstrom, used in calculating number of images.
+            dimages (float): distance in Angstrom, used in calculating number of images.
                 Default 0.7 Angstrom.
             interp_method (str): method to do image interpolation from two endpoints.
-                Choose from ["linear"], default "linear".
+                Choose from ["IDPP", "linear"], default "IDPP".
             vasp_cmd (str): Command to run vasp using mpi program.
             gamma_vasp_cmd (str): Command to run vasp gamma.
             cust_args (dict): Other kwargs that are passed to RunVaspCustodian.
@@ -475,9 +477,9 @@ class NEBFW(Firework):
             except:
                 encpoints = structures_dict
             write_neb_task = WriteNEBFromEndpoints(endpoints=encpoints,
-                               user_incar_settings=user_incar_settings,
-                               output_dir=output_dir, sort_tol=sort_tol,
-                               image_dist=image_dist, interp_method=interp_method)
+                                                   user_incar_settings=user_incar_settings,
+                                                   output_dir=output_dir, sort_tol=sort_tol,
+                                                   dimages=dimages, interp_method=interp_method)
 
         # Task 2: Run NEB using Custodian
         run_neb_task = RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=gamma_vasp_cmd,

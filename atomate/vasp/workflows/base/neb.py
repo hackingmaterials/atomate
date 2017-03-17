@@ -13,7 +13,6 @@ from pymatgen_diffusion.neb.io import get_endpoints_from_index
 from fireworks.core.firework import Workflow
 
 from atomate.vasp.fireworks.core import NEBFW, NEBRelaxationFW
-from atomate.vasp.firetasks.glue_tasks import TransferNEBTask
 from atomate.utils.utils import get_logger
 
 __author__ = "Hanmei Tang, Iek-Heng Chu"
@@ -24,21 +23,22 @@ spec_orig = {"wf_name": "CINEB",
              "vasp_cmd": ">>vasp_cmd<<",
              "gamma_vasp_cmd": ">>gamma_vasp_cmd<<",
              "mpi_command": {"command": "mpirun", "np_tag": "-np"},
-             "ppn": "24",
+             "ppn": "24",  # todo : delete
              "db_file": ">>db_file<<",
              "_category": "",
+             "idpp_species": None,
              "_queueadapter": {"nnodes": 1},
              "source_dir": os.getcwd(),
              "dest_dir": os.getcwd(),
              "structure": None,
              "path_sites": [],
-             "ini": {},
+             "init": {},
              "eps": [{}, {}],
              "neb": [[{}]]
              }
 
 
-def _update_spec_from_inputs(spec=None, wf_name=None, structure=None, ini=None, path_sites=None,
+def _update_spec_from_inputs(spec=None, wf_name=None, structure=None, init=None, path_sites=None,
                              endpoints=None, images=None):
     """
     Update spec according to inputs. spec pass complete structure information.
@@ -48,7 +48,7 @@ def _update_spec_from_inputs(spec=None, wf_name=None, structure=None, ini=None, 
         wf_name (str): a descriptive name.
         structure (dict): perfect cell structure.
         path_sites ([int, int]): Indicating pathway site indexes.
-        ini (dict): perfect cell supercell structure.
+        init (dict): perfect cell supercell structure.
         endpoints ([dict]): list of endpoint structures.
         images ([s0_dict, s1_dict, ...]): list of image_dict, including the two endpoints.
     """
@@ -60,14 +60,14 @@ def _update_spec_from_inputs(spec=None, wf_name=None, structure=None, ini=None, 
         assert isinstance(structure, dict)
         s["structure"] = structure
 
-    if ini is not None:
-        assert isinstance(ini, dict)
-        s["ini"] = ini
+    if init is not None:
+        assert isinstance(init, dict)
+        s["init"] = init
 
     if path_sites is not None:
         assert isinstance(path_sites, list) and len(path_sites) == 2, "path_sites should be a list!"
         s["path_sites"] = path_sites
-        st = structure or ini
+        st = structure or init
         if st is not None:
             ep0, ep1 = get_endpoints_from_index(Structure.from_dict(st), path_sites)
             endpoints = [ep0.as_dict(), ep1.as_dict()]
@@ -93,8 +93,7 @@ def _update_spec_from_inputs(spec=None, wf_name=None, structure=None, ini=None, 
     return s
 
 
-# TODO: Enable setting using >>my_vasp_cmd<<
-def _get_mpi_command(spec, vasp):
+def _get_command(spec, vasp):
     """
     A convenience method to get neb command using mpi program:
     E.g.: 'mpirun -np 48 vasp'
@@ -122,21 +121,21 @@ def _get_mpi_command(spec, vasp):
 
 def _get_incar(mode, user_incar_settings=None):
     """
-    Get user_incar_settings for every step (ini, endpoints and NEB).
+    Get user_incar_settings for every step (init, endpoints and NEB).
     Args:
         mode (str): choose from "parent", "endpoints", "NEB"
             "parent": [parent_dict, endpoints_dict, neb_dict1, neb_dict2, ...]
             "endpoints": [endpoints_dict, neb_dict1, neb_dict2, ...]
             "NEB": [neb_dict1, neb_dict2, ...]
-        user_incar_settings (dict): list of dict to be parsed.
+        user_incar_settings ([dict]): list of dict to be parsed.
     Returns:
         user_incar_settings (dict):
-            (uis_ini, uis_ep, uis_neb), in which uis_ini and uis_ep are dict and uis_neb is a
+            (uis_init, uis_ep, uis_neb), in which uis_init and uis_ep are dict and uis_neb is a
             list of dict.
     """
     # Validate input type
     assert mode in ["parent", "endpoints", "NEB"]
-    assert isinstance(user_incar_settings, dict)
+    assert isinstance(user_incar_settings, dict)  # todo:
     if mode == "parent":
         assert len(user_incar_settings) >= 3
     elif mode == "endpoints":
@@ -144,11 +143,11 @@ def _get_incar(mode, user_incar_settings=None):
     else:  # mode == "NEB"
         assert len(user_incar_settings) >= 1
 
-    uis_ini = user_incar_settings.get("parent", {})
+    uis_init = user_incar_settings.get("parent", {})
     uis_ep = user_incar_settings.get("endpoints", {})
     uis_neb = user_incar_settings["NEB"]
 
-    return uis_ini, uis_ep, uis_neb
+    return uis_init, uis_ep, uis_neb
 
 
 def get_wf_neb_from_structure(structure, path_sites, user_incar_settings,
@@ -175,7 +174,7 @@ def get_wf_neb_from_structure(structure, path_sites, user_incar_settings,
 
     # Get INCARs
     mode = "endpoints" if is_optimized else "parent"
-    uis_ini = _get_incar(mode, user_incar_settings)[0]
+    uis_init = _get_incar(mode, user_incar_settings)[0]  # todo: user_incar_settings should be a list
     uis_ep = _get_incar(mode, user_incar_settings)[1]
     uis_neb = _get_incar(mode, user_incar_settings)[2]
     neb_round = len(uis_neb)
@@ -189,8 +188,8 @@ def get_wf_neb_from_structure(structure, path_sites, user_incar_settings,
                                         endpoints=endpoints_dict)
 
         # Get mpi vasp command
-        vasp_cmd = _get_mpi_command(spec, "std")
-        gamma_vasp_cmd = _get_mpi_command(spec, "gam")
+        vasp_cmd = _get_command(spec, "std")
+        gamma_vasp_cmd = _get_command(spec, "gam")
 
         # Get neb fireworks.
         neb_fws = []
@@ -210,9 +209,9 @@ def get_wf_neb_from_structure(structure, path_sites, user_incar_settings,
                  rlx_fws[1]: [neb_fws[0]]}
     else:  # Start from perfect structure
         spec = _update_spec_from_inputs(spec, structure=structure.as_dict(), wf_name=wf_name,
-                                        ini=structure.as_dict(), path_sites=path_sites)
-        vasp_cmd = _get_mpi_command(spec, "std")
-        gamma_vasp_cmd = _get_mpi_command(spec, "gam")
+                                        init=structure.as_dict(), path_sites=path_sites)
+        vasp_cmd = _get_command(spec, "std")
+        gamma_vasp_cmd = _get_command(spec, "gam")
 
         # Get neb fireworks.
         neb_fws = []
@@ -224,7 +223,7 @@ def get_wf_neb_from_structure(structure, path_sites, user_incar_settings,
 
         rlx_fws = [NEBRelaxationFW(spec=spec, label=label, vasp_input_set=None,
                                    user_incar_settings=incar)
-                   for label, incar in zip(["ini", "ep0", "ep1"], [uis_ini, uis_ep, uis_ep])]
+                   for label, incar in zip(["init", "ep0", "ep1"], [uis_init, uis_ep, uis_ep])]
 
         links = {rlx_fws[0]: [rlx_fws[1], rlx_fws[2]],
                  rlx_fws[1]: [neb_fws[0]],
@@ -239,7 +238,7 @@ def get_wf_neb_from_structure(structure, path_sites, user_incar_settings,
     return workflow
 
 
-def get_wf_neb_from_endpoints(user_incar_settings, endpoints=None,
+def get_wf_neb_from_endpoints(user_incar_settings, parent, endpoints=None,
                               is_optimized=True, wf_name=None, additional_spec=None):
     """
     Get a CI-NEB workflow from given endpoints.
@@ -249,6 +248,7 @@ def get_wf_neb_from_endpoints(user_incar_settings, endpoints=None,
 
     Args:
         user_incar_settings([dict]): Additional user_incar_settings corresponded with fw
+        parent (Structure): parent structure.
         endpoints (list[Structure]): The image structures, if None then read from spec.
         is_optimized (bool): True implies the provided endpoint structures are optimized, otherwise
                             run endpoints relaxation before NEB.
@@ -265,7 +265,6 @@ def get_wf_neb_from_endpoints(user_incar_settings, endpoints=None,
     else:
         endpoints_dict = [additional_spec["ep0"], additional_spec["ep1"]]
 
-    formula = endpoints[0].composition.reduced_formula
     wf_name = wf_name or datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')
 
     mode = "NEB" if is_optimized else "endpoints"
@@ -273,9 +272,10 @@ def get_wf_neb_from_endpoints(user_incar_settings, endpoints=None,
     uis_neb = _get_incar(mode, user_incar_settings)[2]
     neb_round = len(uis_neb)
 
-    spec = _update_spec_from_inputs(additional_spec, endpoints=endpoints_dict)
-    vasp_cmd = _get_mpi_command(spec, "std")
-    gamma_vasp_cmd = _get_mpi_command(spec, "gam")
+    spec = _update_spec_from_inputs(additional_spec, structure=parent.as_dict(),
+                                    endpoints=endpoints_dict)
+    vasp_cmd = _get_command(spec, "std")
+    gamma_vasp_cmd = _get_command(spec, "gam")
 
     neb_fws = []
     for n in range(neb_round):
@@ -332,8 +332,8 @@ def get_wf_neb_from_images(parent, user_incar_settings, images, wf_name=None, sp
                                     images=images_dict, wf_name=wf_name)
     uis_neb = _get_incar("NEB", user_incar_settings)[2]
     neb_round = len(uis_neb)
-    vasp_cmd = _get_mpi_command(spec, "std")
-    gamma_vasp_cmd = _get_mpi_command(spec, "gam")
+    vasp_cmd = _get_command(spec, "std")
+    gamma_vasp_cmd = _get_command(spec, "gam")
 
     fws = []
     for n in range(neb_round):

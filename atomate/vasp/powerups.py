@@ -8,8 +8,8 @@ from fireworks.utilities.fw_utilities import get_slug
 
 from atomate.utils.utils import get_meta_from_structure, get_fws_and_tasks, update_wf
 from atomate.vasp.firetasks.glue_tasks import CheckStability, CheckBandgap
-from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspDirect, RunVaspFake, \
-    RunNEBVaspFake
+from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspDirect, RunVaspFake
+from atomate.vasp.firetasks.neb_tasks import RunNEBVaspFake
 from atomate.vasp.firetasks.write_inputs import ModifyIncar
 from atomate.vasp.config import ADD_NAMEFILE, SCRATCH_DIR, ADD_MODIFY_INCAR, GAMMA_VASP_CMD
 
