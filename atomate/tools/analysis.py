@@ -11,7 +11,7 @@ from scipy.integrate import quadrature
 from scipy.constants import physical_constants
 from scipy.misc import derivative
 
-from pymatgen.analysis.eos import EOS
+from pymatgen.analysis.eos import EOS, PolynomialEOS
 from pymatgen.core.units import FloatWithUnit
 
 __author__ = 'Kiran Mathew'
@@ -118,7 +118,7 @@ class QuasiharmonicDebyeApprox(object):
         # Note: the ref energy and the ref volume(E0 and V0) not necessarily the same as
         # minimum energy and min volume.
         energies_list = eos_fit.energies.tolist()
-        volumes_list =  eos_fit.volumes.tolist()
+        volumes_list = eos_fit.volumes.tolist()
         e_min = min(energies_list)
         e_min_idx = energies_list.index(e_min)
         volume_guess = volumes_list[e_min_idx]
@@ -212,10 +212,19 @@ class QuasiharmonicDebyeApprox(object):
         Returns:
             float: unitless
         """
-        func = self.ev_eos_fit.func
-        dEdV = derivative(func, volume, dx=1e-3)
-        # second derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^6
-        d2EdV2 = derivative(func, volume, dx=1e-3, n=2, order=5)
+        if isinstance(self.eos, PolynomialEOS):
+            p = np.poly1d(self.eos.eos_params)
+            dEdV = np.polyder(p, 1)(volume)
+            d2EdV2 = np.polyder(p, 2)(volume)
+            d3EdV3 = np.polyder(p, 3)(volume)
+        else:
+            func = self.ev_eos_fit.func
+            dEdV = derivative(func, volume, dx=1e-3)
+            # second derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^6
+            d2EdV2 = derivative(func, volume, dx=1e-3, n=2, order=5)
+            # third derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^9
+            d3EdV3 = derivative(func, volume, dx=1e-3, n=3, order=7)
+
         # Mie-gruneisen formulation
         if self.use_mie_gruneisen:
             # first derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^3
@@ -224,12 +233,10 @@ class QuasiharmonicDebyeApprox(object):
                     self.vibrational_internal_energy(temperature, volume))
 
         # Slater-gamma formulation
-        # third derivative of energy at 0K wrt volume evaluated at the given volume, in eV/Ang^9
-        d3EdV3 = derivative(func, volume, dx=1e-3, n=3, order=7)        
         # first derivative of bulk modulus wrt volume, eV/Ang^6
         dBdV = d2EdV2 + d3EdV3 * volume
         return -(1./6. + 0.5 * volume * dBdV /
-                 FloatWithUnit(self.ev_eos_fit.b0_GPa, "GPa").to( "eV ang^-3"))
+                 FloatWithUnit(self.ev_eos_fit.b0_GPa, "GPa").to("eV ang^-3"))
 
     def thermal_conductivity(self, temperature, volume):
         """
