@@ -355,108 +355,80 @@ def wf_nudged_elastic_band(structures, parent, c=None):
     """
     Nudged elastic band workflow from the given structures and config dict.
 
-    'is_optimized' = config, otherwise False
-    'neb_round' = config, otherwise 1
+    'is_optimized' default False
+    'neb_round' default 1
+
+    Notes:
+        Different length of Structure list and "is_optimized" are used to determine the workflow:
+        1 structure    # The parent structure & two endpoint indexes provided; need relaxation.
+                       # The parent structure & two endpoint indexes provided; no need to relax.
+        2 structures   # Two endpoints provided; need to relax two endpoints.
+                       # Two relaxed endpoints provided; no need to relax two endpoints.
+        >=3 structures # All images including two endpoints are provided.
 
     Args:
-        structures (Structure / [Structure]): input structures
-        parent (Structure): parent structure.
+        structures ([Structure]):
+            1) The parent structure
+            2) Two endpoint structures
+            3) All images and endpoints
+        parent (Structure): parent structure used to get two endpoints.
         c (dict): workflow config dict, basic format:
-                      {"fireworks": [], "is_optimized": False, "common_params": {}}
+            {"fireworks": [],  "common_params": {}, "additional_ep_params": {},
+             "additional_neb_params": {}}
     Returns:
         Workflow
     """
-    def get_incar(mode):
-        """Get user_incar_settings for fireworks."""
-        uis_init, uis_ep, uis_neb = {}, {}, [{}] * neb_round
-
-        if mode == 1:
-            uis_init = c["fireworks"][0].get("user_incar_settings", {})
-            uis_ep = c["fireworks"][1].get("user_incar_settings", {})
-            for i in range(neb_round):
-                try:
-                    uis_neb[i] = c["fireworks"][2 + i]["user_incar_settings"]
-                except:
-                    uis_neb[i] = {}
-        elif mode in [2, 3]:
-            uis_ep = c["fireworks"][0].get("user_incar_settings", {})
-            for i in range(neb_round):
-                try:
-                    uis_neb[i] = c["fireworks"][1 + i]["user_incar_settings"]
-                except:
-                    uis_neb[i] = {}
-        else:
-            for i in range(neb_round):
-                try:
-                    uis_neb[i] = c["fireworks"][i]["user_incar_settings"]
-                except:
-                    uis_neb[i] = {}
-        return uis_init, uis_ep, uis_neb
-
-    # Structure --> [Structure]
-    if isinstance(structures, Structure):
-        structures = [structures]
     if not(isinstance(structures, list) and len(structures) > 0):
         raise ValueError("structures must be a list of Structure!")
 
     # config initialization
     c = c or {}
-    spec = c.get("common_params", {})  # default
-    is_optimized = c.get("is_optimized", False)  # default
-    wf_name = spec.get("wf_name")  # default
-    path_sites = spec.get("path_sites", [])  # default
-    cust_args = spec.get("cust_args", {})
+    spec = c.get("common_params", {})
+    is_optimized = spec.get("is_optimized", False)
+    site_indices = spec.get("site_indices")
+    mode = len(structures) if len(structures) < 3 else 3
 
-    # Default
-    if "fireworks" not in c:
+    if c == {}:  # Default config without yaml provided
         neb_round = 1
-        if len(structures) == 1:
-            mode = 2 if is_optimized else 1
-        elif len(structures) == 2:
-            mode = 4 if is_optimized else 3
-        else:
-            mode = 5
-    # construct wf using config file
-    else:
+
+    else:  # Check config yaml file
         fw_list = [f['fw'] for f in c.get("fireworks")]
-        neb_round = fw_list.count("atomate.vasp.fireworks.core.NEBFW")
-        assert neb_round > 0, "No NEB fireworks in config file!"
-        # Get mode number
+        neb_round = len([f for f in fw_list if "NEBFW" in f])
         if len(structures) == 1:
-            if not is_optimized and len(fw_list) - neb_round == 2:
-                mode = 1
-            elif is_optimized and len(fw_list) - neb_round == 1:
-                mode = 2
+            mode = 1
+            if is_optimized:
+                assert len(fw_list) == neb_round + 1
             else:
-                raise ValueError("structure conflict with config file settings!")
+                assert len(fw_list) == neb_round + 2
         elif len(structures) == 2:
-            assert isinstance(parent, Structure), "Parent structure is not provided!"
-            if not is_optimized and len(fw_list) - neb_round == 1:
-                mode = 3
-            elif is_optimized and len(fw_list) - neb_round == 0:
-                mode = 4
+            mode = 2
+            if is_optimized:
+                assert len(fw_list) == neb_round
             else:
-                raise ValueError("structure conflict with config file settings!")
+                len(fw_list) == neb_round + 1
         else:  # len(structures) >= 3
-            assert isinstance(parent, Structure), "Parent structure is not provided!"
-            mode = 5
+            mode = 3
 
-    uis_init, uis_ep, uis_neb = get_incar(mode)
+    # Get user_incar_settings, user_kpoints_settings & additional_cust_args
+    user_incar_settings = [{}] * (neb_round + 2)
+    user_kpoints_settings = [{}] * (neb_round + 2)
+    additional_cust_args = [{}] * (neb_round + 2)
+    for i in range(1, len(c["fireworks"])+1):
+        user_incar_settings[-i] = c["fireworks"][-i].get("user_incar_settings", {})
+        user_kpoints_settings[-i] = c["fireworks"][-i].get("user_kpoints_settings", {})
+        additional_cust_args[-i] = c["fireworks"][-i].get("additional_cust_args", {})
 
-    user_incar_settings = {"parent": uis_init, "endpoints": uis_ep, "NEB": uis_neb}
-
+    kwargs = {"user_incar_settings": user_incar_settings,
+              "user_kpoints_settings": user_kpoints_settings,
+              "additional_cust_args": additional_cust_args}
     # Assign workflow using mode
-    if mode in [1, 2]:
-        wf = get_wf_neb_from_structure(structure=structures[0], path_sites=path_sites,
-                                       is_optimized=is_optimized, wf_name=wf_name,
-                                       spec=spec, user_incar_settings=user_incar_settings,
-                                       cust_args=cust_args)
-    elif mode in [3, 4]:
-        wf = get_wf_neb_from_endpoints(parent=structures[0], endpoints=structures,
-                                       is_optimized=is_optimized, wf_name=wf_name,
-                                       additional_spec=spec, cust_args=cust_args,
-                                       user_incar_settings=user_incar_settings)
-    else:  # mode == 5
-        wf = get_wf_neb_from_images(parent, user_incar_settings, images=structures,
-                                    wf_name=wf_name, spec=spec, cust_args=cust_args)
+    if mode == 1:
+        wf = get_wf_neb_from_structure(structure=structures[0], site_indices=site_indices,
+                                       additional_spec=spec, **kwargs)
+    elif mode == 2:
+        wf = get_wf_neb_from_endpoints(parent=parent, endpoints=structures,
+                                       additional_spec=spec, **kwargs)
+    else:  # mode == 3
+        wf = get_wf_neb_from_images(parent=parent, images=structures,
+                                    additional_spec=spec, **kwargs)
     return wf

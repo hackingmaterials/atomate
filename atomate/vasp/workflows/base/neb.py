@@ -2,246 +2,162 @@
 # coding: utf-8
 
 """
-This module defines the Climbing Image Nudged Elastic Band (CI-NEB) workflow.
+This module defines the Nudged Elastic Band (NEB) workflow.
 """
 
-import os
 from datetime import datetime
 
 from pymatgen.core import Structure
 from pymatgen_diffusion.neb.io import get_endpoints_from_index
 from fireworks.core.firework import Workflow
-
 from atomate.vasp.fireworks.core import NEBFW, NEBRelaxationFW
-from atomate.utils.utils import get_logger
 
 __author__ = "Hanmei Tang, Iek-Heng Chu"
 __email__ = 'hat003@eng.ucsd.edu, ihchu@eng.ucsd.edu'
 
-logger = get_logger(__name__)
-spec_orig = {"wf_name": "CINEB",
-             "vasp_cmd": ">>vasp_cmd<<",
-             "gamma_vasp_cmd": ">>gamma_vasp_cmd<<",
-             "mpi_command": {"command": "mpirun", "np_tag": "-np"},
-             "ppn": "24",  # todo : delete
-             "db_file": ">>db_file<<",
-             "_category": "",
-             "idpp_species": None,
-             "_queueadapter": {"nnodes": 1},
-             "source_dir": os.getcwd(),
-             "dest_dir": os.getcwd(),
-             "structure": None,
-             "path_sites": [],
-             "init": {},
-             "eps": [{}, {}],
-             "neb": [[{}]]
-             }
 
-
-def _update_spec_from_inputs(spec=None, wf_name=None, structure=None, init=None, path_sites=None,
-                             endpoints=None, images=None):
+def _update_spec(additional_spec):
     """
-    Update spec according to inputs. spec pass complete structure information.
-
+    Update spec to overwrite default settings.
     Args:
-        spec(dict): original spec.
-        wf_name (str): a descriptive name.
-        structure (dict): perfect cell structure.
-        path_sites ([int, int]): Indicating pathway site indexes.
-        init (dict): perfect cell supercell structure.
-        endpoints ([dict]): list of endpoint structures.
-        images ([s0_dict, s1_dict, ...]): list of image_dict, including the two endpoints.
-    """
-    spec = spec or {}
-    s = spec_orig.copy()
-    s.update(spec)
-
-    if structure is not None:
-        assert isinstance(structure, dict)
-        s["structure"] = structure
-
-    if init is not None:
-        assert isinstance(init, dict)
-        s["init"] = init
-
-    if path_sites is not None:
-        assert isinstance(path_sites, list) and len(path_sites) == 2, "path_sites should be a list!"
-        s["path_sites"] = path_sites
-        st = structure or init
-        if st is not None:
-            ep0, ep1 = get_endpoints_from_index(Structure.from_dict(st), path_sites)
-            endpoints = [ep0.as_dict(), ep1.as_dict()]
-            s["eps"] = endpoints
-
-    if endpoints is not None:
-        assert len(endpoints) == 2
-        for e in endpoints:
-            assert isinstance(e, dict)
-        s["eps"] = endpoints
-
-    if images is not None:
-        assert isinstance(images, list) and len(images) >= 3
-        for i in images:
-            assert isinstance(i, dict)
-        s["neb"] = [images]
-        n_images = len(images) - 2
-        s["_queueadapter"].update({"nnodes": str(n_images)})
-
-    if wf_name is not None:
-        s["wf_name"] = wf_name
-
-    return s
-
-
-def _get_command(spec, vasp):
-    """
-    A convenience method to get neb command using mpi program:
-    E.g.: 'mpirun -np 48 vasp'
-
-    Args:
-        spec (dict): fw_spec
-        vasp (str): choose from ["std", "gam"].
-
+        additional_spec (dict): user spec settings.
+            "is_optimized" (bool): True denotes the provided structures are optimized.
+                Otherwise run relaxation for given structures. Default False.
+            "interpolation_type" (str): Method to do image interpolation from two endpoints.
+                Default "IDPP", otherwise "linear".
+            "idpp_species" (str): Species used in IDPP interpolation method.
+            "sort_tol" (float): Distance tolerance (in Angstrom) used to match the atomic indices
+                between start and end structures. If it is set 0, then no sorting will be performed.
+            "d_img" (float): Distance between images, in Angstrom. If "IMAGES" is not provided in
+                user_incar_settings, this will be used to calculate the number of images.
+                Default 0.7 Angstrom.
+            "wf_name" (str): An appropriate and unique name for the workflow.
+                The workflow result will be transferred to ">>run_dest_root<</wf_name".
     Returns:
-        mpi command (str).
+        spec dict
     """
-    assert vasp in ["std", "gam"]
-    exe = spec["vasp_cmd"] if vasp == "std" else spec["gamma_vasp_cmd"]
-
-    nnodes = spec["_queueadapter"]["nnodes"]
-    ppn = spec["ppn"]
-    ncpu = int(nnodes) * int(ppn)
-
-    mpi_cmd = spec["mpi_command"]["command"]
-    np_tag = spec["mpi_command"]["np_tag"]
-    full_mpi_command = "{} {} {} {}".format(mpi_cmd, np_tag, ncpu, exe)
-
-    return full_mpi_command
+    additional_spec = additional_spec or {}
+    default_spec = {"is_optimized": False,
+                    "interpolation_type": "IDPP",
+                    "idpp_species": None,
+                    "sort_tol": 0,
+                    "d_img": 0.7,
+                    "wf_name": datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')}
+    default_spec.update(additional_spec)
+    return default_spec
 
 
-def _get_incar(mode, user_incar_settings=None):
+def get_wf_neb_from_structure(structure, site_indices, user_incar_settings=None,
+                              additional_spec=None, user_kpoints_settings=None,
+                              additional_cust_args=None):
     """
-    Get user_incar_settings for every step (init, endpoints and NEB).
+    Get the CI-NEB workflow using a parent structure.
+    Workflow: (parent relax) -- Endpoints relax -- NEB_1 -- NEB_2 - ... - NEB_r
+              parent not optimized: parent--ep--neb(r)
+              parent is optimized: ep--neb(r)
     Args:
-        mode (str): choose from "parent", "endpoints", "NEB"
-            "parent": [parent_dict, endpoints_dict, neb_dict1, neb_dict2, ...]
-            "endpoints": [endpoints_dict, neb_dict1, neb_dict2, ...]
-            "NEB": [neb_dict1, neb_dict2, ...]
-        user_incar_settings ([dict]): list of dict to be parsed.
-    Returns:
-        user_incar_settings (dict):
-            (uis_init, uis_ep, uis_neb), in which uis_init and uis_ep are dict and uis_neb is a
-            list of dict.
-    """
-    # Validate input type
-    assert mode in ["parent", "endpoints", "NEB"]
-    assert isinstance(user_incar_settings, dict)  # todo:
-    if mode == "parent":
-        assert len(user_incar_settings) >= 3
-    elif mode == "endpoints":
-        assert len(user_incar_settings) >= 2
-    else:  # mode == "NEB"
-        assert len(user_incar_settings) >= 1
-
-    uis_init = user_incar_settings.get("parent", {})
-    uis_ep = user_incar_settings.get("endpoints", {})
-    uis_neb = user_incar_settings["NEB"]
-
-    return uis_init, uis_ep, uis_neb
-
-
-def get_wf_neb_from_structure(structure, path_sites, user_incar_settings,
-                              is_optimized=True, wf_name=None, spec=None, cust_args=None):
-    """
-    Get a CI-NEB workflow from given perfect structures.
-    Workflow: (Init relax) -- Endpoints relax -- NEB_1 -- NEB_2 - ... - NEB_r
-              mode 1: rlx--ep--neb(r)
-              mode 2: ep--neb(r)
-    Args:
-        structure (Structure): The perfect structure.
-        path_sites (list[int]): The two vacancy site indices.
-        user_incar_settings([dict]): Additional user_incar_settings corresponded with fw
-        is_optimized (bool): True implies the provided structure is optimized, otherwise run
-                initial relaxation before generating endpoints.
-        wf_name (str): some appropriate name for the workflow.
-        spec (dict): user setting spec settings to overwrite spec_orig.
-        cust_args (dict): Other kwargs that are passed to RunVaspCustodian.
-
+        structure (Structure): The parent structure.
+        site_indices (list): The two vacancy site indices.
+        user_incar_settings([dict]): Additional user_incar_settings.
+            Always arranged as: "parent", "ep_relax", "neb1", "neb2" etc., which contains at least
+            three items. The first dict is for parent structure relaxation, the second dict is for
+            endpoints relaxation, and the rest are for NEB calculations. For example, [{}, {},
+            {"IOPT": 7}, {"IOPT": 1}]. Besides, user_incar_settings is used to determine how many
+            NEB rounds will be, default [{}, {}, {}].
+        additional_spec (dict): user spec settings to overwrite default_spec.
+        user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at at least
+            three items. The structure is the same with user_incar_settings. For example, [{}, {},
+            {"grid_density": 100}] for the workflow from the parent structure relaxation, then the
+            endpoint relaxation followed by one-round NEB simulation. Default value depends on
+            chosen VaspInputSet.
+        additional_cust_args ([dict]): Optional parameters for RunVaspCustodian, same structure with
+            user_incar_settings and user_kpoints_settings.
     Returns:
         Workflow
     """
-    # Get names
-    wf_name = wf_name or datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')
+    spec = _update_spec(additional_spec)
+    site_indices = spec["site_indices"]
+    is_optimized = spec["is_optimized"]
+    wf_name = spec["wf_name"]
 
-    # Get INCARs
-    mode = "endpoints" if is_optimized else "parent"
-    uis_init = _get_incar(mode, user_incar_settings)[0]  # todo: user_incar_settings should be a list
-    uis_ep = _get_incar(mode, user_incar_settings)[1]
-    uis_neb = _get_incar(mode, user_incar_settings)[2]
-    neb_round = len(uis_neb)
-    cust_args = cust_args or {}
+    ep0, ep1 = get_endpoints_from_index(structure, site_indices)
+    spec["parent"] = structure.as_dict()
+    spec["eps"] = [ep0.as_dict(), ep1.as_dict()]
 
-    # Get relaxation fireworks.
+    # Assume one round NEB if user_incar_settings not provided.
+    user_incar_settings = user_incar_settings or [{}, {}, {}]
+    neb_round = len(user_incar_settings[2:])
+    user_kpoints_settings = user_kpoints_settings or [{}] * (neb_round + 2)
+    additional_cust_args = additional_cust_args or [{}] * (neb_round + 2)
+    for incar in user_incar_settings[2:]:
+        if incar.get("IMAGES"):
+            # If "incar_images" shows up, the number of images is pre-defined
+            spec["incar_images"] = incar["IMAGES"]
+            break
+
     if is_optimized:  # Start from endpoints
-        endpoints = get_endpoints_from_index(structure, path_sites)
+        endpoints = get_endpoints_from_index(structure, site_indices)
         endpoints_dict = [e.as_dict() for e in endpoints]
-        spec = _update_spec_from_inputs(spec, structure=structure.as_dict(),
-                                        path_sites=path_sites, wf_name=wf_name,
-                                        endpoints=endpoints_dict)
-
-        # Get mpi vasp command
-        vasp_cmd = _get_command(spec, "std")
-        gamma_vasp_cmd = _get_command(spec, "gam")
+        spec["eps"] = endpoints_dict
+        neb_fws, rlx_fws = [], []
 
         # Get neb fireworks.
-        neb_fws = []
         for n in range(neb_round):
             fw = NEBFW(spec=spec, neb_label=str(n + 1), from_images=False,
-                       user_incar_settings=uis_neb[n], vasp_cmd=vasp_cmd,
-                       gamma_vasp_cmd=gamma_vasp_cmd, cust_args=cust_args)
+                       user_incar_settings=user_incar_settings[n + 2],
+                       user_kpoints_settings=user_kpoints_settings[n + 2],
+                       additional_cust_args=additional_cust_args[n + 2])
             neb_fws.append(fw)
-
         # Get relax fireworks
-        rlx_fws = [NEBRelaxationFW(spec=spec, label=i, vasp_input_set=None,
-                                   user_incar_settings=uis_ep, vasp_cmd=vasp_cmd,
-                                   gamma_vasp_cmd=gamma_vasp_cmd,
-                                   cust_args=cust_args) for i in ["ep0", "ep1"]]
+        for label in ["ep0", "ep1"]:
+            fw = NEBRelaxationFW(spec=spec, label=label,
+                                 user_incar_settings=user_incar_settings[1],
+                                 user_kpoints_settings=user_kpoints_settings[1],
+                                 additional_cust_args=additional_cust_args[1])
+            rlx_fws.append(fw)
+        # Build fireworks link
+        links = {rlx_fws[0]: [neb_fws[0]], rlx_fws[1]: [neb_fws[0]]}
 
-        links = {rlx_fws[0]: [neb_fws[0]],
-                 rlx_fws[1]: [neb_fws[0]]}
     else:  # Start from perfect structure
-        spec = _update_spec_from_inputs(spec, structure=structure.as_dict(), wf_name=wf_name,
-                                        init=structure.as_dict(), path_sites=path_sites)
-        vasp_cmd = _get_command(spec, "std")
-        gamma_vasp_cmd = _get_command(spec, "gam")
+        spec["parent"] = structure.as_dict()
+        neb_fws, rlx_fws = [], []
 
         # Get neb fireworks.
-        neb_fws = []
         for n in range(neb_round):
             fw = NEBFW(spec=spec, neb_label=str(n + 1), from_images=False,
-                       user_incar_settings=uis_neb[n], vasp_cmd=vasp_cmd,
-                       gamma_vasp_cmd=gamma_vasp_cmd, cust_args=cust_args)
+                       user_incar_settings=user_incar_settings[n + 2],
+                       user_kpoints_settings=user_kpoints_settings[n + 2],
+                       additional_cust_args=additional_cust_args[n + 2])
             neb_fws.append(fw)
+        # Get relaxation fireworks.
+        rlx_fws.append(NEBRelaxationFW(spec=spec, label="parent",
+                                       user_incar_settings=user_incar_settings[0],
+                                       user_kpoints_settings=user_kpoints_settings[0],
+                                       additional_cust_args=additional_cust_args[0]))
 
-        rlx_fws = [NEBRelaxationFW(spec=spec, label=label, vasp_input_set=None,
-                                   user_incar_settings=incar)
-                   for label, incar in zip(["init", "ep0", "ep1"], [uis_init, uis_ep, uis_ep])]
+        for i, label in enumerate(["ep0", "ep1"]):
+            fw = NEBRelaxationFW(spec=spec, label=label,
+                                 user_incar_settings=user_incar_settings[1],
+                                 user_kpoints_settings=user_kpoints_settings[1],
+                                 additional_cust_args=additional_cust_args[1])
+            rlx_fws.append(fw)
 
+        # Build fireworks link
         links = {rlx_fws[0]: [rlx_fws[1], rlx_fws[2]],
                  rlx_fws[1]: [neb_fws[0]],
                  rlx_fws[2]: [neb_fws[0]]}
 
-    # Append Firework links.
+    # Put all fireworks together with link
     fws = rlx_fws + neb_fws
-    if neb_round > 1:
+    if neb_round >= 2:
         for r in range(1, neb_round):
             links[neb_fws[r - 1]] = [neb_fws[r]]
     workflow = Workflow(fws, links_dict=links, name=wf_name)
     return workflow
 
 
-def get_wf_neb_from_endpoints(user_incar_settings, parent, endpoints=None, is_optimized=True,
-                              wf_name=None, additional_spec=None, cust_args=None):
+def get_wf_neb_from_endpoints(parent, endpoints, user_incar_settings=None, additional_spec=None,
+                              user_kpoints_settings=None, additional_cust_args=None):
     """
     Get a CI-NEB workflow from given endpoints.
     Workflow: (Endpoints relax -- ) NEB_1 -- NEB_2 - ... - NEB_r
@@ -249,107 +165,127 @@ def get_wf_neb_from_endpoints(user_incar_settings, parent, endpoints=None, is_op
               endpoints are optimized: neb(r)
 
     Args:
-        user_incar_settings([dict]): Additional user_incar_settings corresponded with fw
         parent (Structure): parent structure.
-        endpoints (list[Structure]): The image structures, if None then read from spec.
-        is_optimized (bool): True implies the provided endpoint structures are optimized, otherwise
-                            run endpoints relaxation before NEB.
-        wf_name (str): some appropriate name for the workflow.
-        additional_spec (dict): user setting spec settings to overwrite spec_orig.
-        cust_args (dict): Other kwargs that are passed to RunVaspCustodian.
-
+        endpoints (list[Structure]): The endpoint structures.
+        user_incar_settings([dict]): Additional user_incar_settings.
+            Always arranged as: "parent", "ep_relax", "neb1", "neb2" etc., which contains at least
+            three items. The first dict is for parent structure relaxation, the second dict is for
+            endpoints relaxation, and the rest are for NEB calculations. For example, [{}, {},
+            {"IOPT": 7}, {"IOPT": 1}]. Besides, user_incar_settings is used to determine how many
+            NEB rounds will be, default [{}, {}, {}].
+        additional_spec (dict): user spec settings to overwrite default_spec.
+        user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at at least
+            three items. The structure is the same with user_incar_settings. For example, [{}, {},
+            {"grid_density": 100}] for the workflow from the parent structure relaxation, then the
+            endpoint relaxation followed by one-round NEB simulation. Default value depends on
+            chosen VaspInputSet.
+        additional_cust_args ([dict]): Optional parameters for RunVaspCustodian, same structure with
+            user_incar_settings and user_kpoints_settings.
     Returns:
         Workflow
     """
-    cust_args = cust_args or {}
-    if endpoints is not None:
-        for e in endpoints:
-            assert isinstance(e, Structure)
-        endpoints_dict = [s.as_dict() for s in endpoints]
-    else:
-        endpoints_dict = [additional_spec["ep0"], additional_spec["ep1"]]
+    spec = _update_spec(additional_spec)
+    spec["parent"] = parent.as_dict()
+    spec["eps"] = [s.as_dict() for s in endpoints]
 
-    wf_name = wf_name or datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')
+    wf_name = spec["wf_name"]
+    is_optimized = spec["is_optimized"]
 
-    mode = "NEB" if is_optimized else "endpoints"
-    uis_ep = _get_incar(mode, user_incar_settings)[1]
-    uis_neb = _get_incar(mode, user_incar_settings)[2]
-    neb_round = len(uis_neb)
-
-    spec = _update_spec_from_inputs(additional_spec, structure=parent.as_dict(),
-                                    endpoints=endpoints_dict)
-    vasp_cmd = _get_command(spec, "std")
-    gamma_vasp_cmd = _get_command(spec, "gam")
+    # Assume one round NEB if user_incar_settings not provided.
+    user_incar_settings = user_incar_settings or [{}, {}, {}]
+    neb_round = len(user_incar_settings[2:])
+    user_kpoints_settings = user_kpoints_settings or [{}] * (neb_round + 2)
+    additional_cust_args = additional_cust_args or [{}] * (neb_round + 2)
+    for incar in user_incar_settings[2:]:
+        if incar.get("IMAGES"):
+            # If "incar_images" shows up, the number of images is pre-defined
+            spec["incar_images"] = incar["IMAGES"]
+            break
 
     neb_fws = []
     for n in range(neb_round):
         fw = NEBFW(spec=spec, neb_label=str(n + 1), from_images=False,
-                   user_incar_settings=uis_neb[n], vasp_cmd=vasp_cmd,
-                   gamma_vasp_cmd=gamma_vasp_cmd, cust_args=cust_args)
+                   user_incar_settings=user_incar_settings[n + 2],
+                   user_kpoints_settings=user_kpoints_settings[n + 2],
+                   additional_cust_args=additional_cust_args[n + 2])
         neb_fws.append(fw)
 
     workflow = Workflow(neb_fws, name=wf_name)
 
     # Add endpoints relaxation if structures not optimized.
     if not is_optimized:
-        ep_fws = [NEBRelaxationFW(spec=spec, label=i, vasp_input_set=None,
-                                  user_incar_settings=uis_ep, vasp_cmd=vasp_cmd,
-                                  gamma_vasp_cmd=gamma_vasp_cmd,
-                                  cust_args=cust_args) for i in ["ep0", "ep1"]]
-        # Create Firework links.
+        ep_fws = []
+        for i in ["ep0", "ep1"]:
+            fw = NEBRelaxationFW(spec=spec, label=i, user_incar_settings=user_incar_settings[1],
+                                 user_kpoints_settings=user_kpoints_settings[1],
+                                 additional_cust_args=additional_cust_args[1])
+            ep_fws.append(fw)
+
+        # Build fireworks link
         fws = ep_fws + neb_fws
         links = {ep_fws[0]: [neb_fws[0]], ep_fws[1]: [neb_fws[0]]}
-        if neb_round > 1:
-            for r in range(1, neb_round):
-                links[neb_fws[r - 1]] = [neb_fws[r]]
+        for r in range(1, neb_round):
+            links[neb_fws[r - 1]] = [neb_fws[r]]
 
         workflow = Workflow(fws, links_dict=links, name=wf_name)
 
     return workflow
 
 
-def get_wf_neb_from_images(parent, user_incar_settings, images, wf_name=None, spec=None,
-                           cust_args=None):
+def get_wf_neb_from_images(parent, images, user_incar_settings, additional_spec=None,
+                           user_kpoints_settings=None, additional_cust_args=None):
     """
     Get a CI-NEB workflow from given images.
     Workflow: NEB_1 -- NEB_2 - ... - NEB_n
 
     Args:
         parent (Structure): parent structure.
-        user_incar_settings([dict]): Additional user_incar_settings.
-            For example, [{"EDIFFG": -0.05}, {"EDIFFG": -0.02}] for the NEB starting with a rough
-            convergence criteria, followed by a strict one.
         images ([Structure]): All images and two endpoints.
-        wf_name (str): some appropriate name for the workflow, used to set destination directory.
-        spec (dict): user setting spec settings to overwrite default spec dict.
-        cust_args (dict): Other kwargs that are passed to RunVaspCustodian.
+        user_incar_settings([dict]): Additional user_incar_settings.
+            Always arranged as: "parent", "ep_relax", "neb1", "neb2" etc., which contains at least
+            three items. The first dict is for parent structure relaxation, the second dict is for
+            endpoints relaxation, and the rest are for NEB calculations. For example, [{}, {},
+            {"IOPT": 7}, {"IOPT": 1}]. Besides, user_incar_settings is used to determine how many
+            NEB rounds will be, default [{}, {}, {}].
+        additional_spec (dict): user spec settings to overwrite default_spec.
+        user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at at least
+            three items. The structure is the same with user_incar_settings. For example, [{}, {},
+            {"grid_density": 100}] for the workflow from the parent structure relaxation, then the
+            endpoint relaxation followed by one-round NEB simulation. Default value depends on
+            chosen VaspInputSet.
+        additional_cust_args ([dict]): Optional parameters for RunVaspCustodian, same structure with
+            user_incar_settings and user_kpoints_settings.
 
     Returns:
         Workflow
     """
-    for i in [parent] + images:
-        assert isinstance(i, Structure)
-    wf_name = wf_name or parent.composition.reduced_formula
+    spec = _update_spec(additional_spec)
+    spec["parent"] = parent.as_dict()
+    assert isinstance(images, list) and len(images) >= 3
+    spec["neb"] = [[s.as_dict() for s in images]]
+    spec["_queueadapter"] = {"nnodes": str(len(images) - 2), "nodes": str(len(images) - 2)}
+    wf_name = spec["wf_name"]
 
-    images_dict = [s.as_dict() for s in images]
-    spec = _update_spec_from_inputs(spec=spec, structure=parent.as_dict(),
-                                    images=images_dict, wf_name=wf_name)
-    uis_neb = _get_incar("NEB", user_incar_settings)[2]
-    neb_round = len(uis_neb)
-    vasp_cmd = _get_command(spec, "std")
-    gamma_vasp_cmd = _get_command(spec, "gam")
+    # Assume one round NEB if user_incar_settings not provided.
+    user_incar_settings = user_incar_settings or [{}, {}, {}]
+    neb_round = len(user_incar_settings[2:])
+    user_kpoints_settings = user_kpoints_settings or [{}] * (neb_round + 2)
+    additional_cust_args = additional_cust_args or [{}] * (neb_round + 2)
 
     fws = []
+    # Get neb fireworks.
     for n in range(neb_round):
         fw = NEBFW(spec=spec, neb_label=str(n + 1), from_images=True,
-                   user_incar_settings=uis_neb[n], vasp_cmd=vasp_cmd,
-                   gamma_vasp_cmd=gamma_vasp_cmd, cust_args=cust_args or {})
+                   user_incar_settings=user_incar_settings[n + 2],
+                   user_kpoints_settings=user_kpoints_settings[n + 2],
+                   additional_cust_args=additional_cust_args[n + 2])
         fws.append(fw)
 
+    # Build fireworks link
     links_dict = {}
     if neb_round >= 2:
-        for i in range(neb_round-1):
-            links_dict[fws[i]] = [fws[i+1]]
+        for i in range(neb_round - 1):
+            links_dict[fws[i]] = [fws[i + 1]]
     workflow = Workflow(fws, name=wf_name, links_dict=links_dict)
 
     return workflow

@@ -148,10 +148,19 @@ class RunVaspCustodian(FiretaskBase):
             jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar, ediffg=self.get("ediffg"),
                                         max_steps=5, half_kpts_first_relax=False)
         elif job_type == "neb":
-            jobs = [VaspNEBJob(vasp_cmd, output_file="neb_vasp.out", stderr_file="neb_std_err.txt",
-                               suffix="", final=False, auto_npar=self.get("auto_npar", False),
-                               half_kpts=self.get("half_kpts", True), auto_continue=False,
-                               auto_gamma=self.get("auto_gamma", True),
+            nnodes = int(fw_spec["_queueadapter"]["nnodes"])
+            # Index the tag "-n" or "-np"
+            index = [i for i, s in enumerate(vasp_cmd) if '-n' in s]
+            ppn = int(vasp_cmd[index[0] + 1])
+            vasp_cmd[index[0] + 1] = str(nnodes * ppn)
+
+            # Do the same for gamma_vasp_cmd
+            if gamma_vasp_cmd:
+                index = [i for i, s in enumerate(gamma_vasp_cmd) if '-n' in s]
+                ppn = int(gamma_vasp_cmd[index[0] + 1])
+                gamma_vasp_cmd[index[0] + 1] = str(nnodes * ppn)
+
+            jobs = [VaspNEBJob(vasp_cmd, final=False, auto_npar=auto_npar,
                                gamma_vasp_cmd=gamma_vasp_cmd)]
         else:
             raise ValueError("Unsupported job type: {}".format(job_type))
@@ -168,7 +177,7 @@ class RunVaspCustodian(FiretaskBase):
         validators = [VasprunXMLValidator(), VaspFilesValidator()]
         if job_type == "neb":
             # CINEB vasprun.xml sometimes incomplete, file structure different
-            validators = []  # TODO: modify custodian validator
+            validators = []
 
         c = Custodian(handlers, jobs, validators=validators, max_errors=max_errors,
                       scratch_dir=scratch_dir, gzipped_output=gzip_output)

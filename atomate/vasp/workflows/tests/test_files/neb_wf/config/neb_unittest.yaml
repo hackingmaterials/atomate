@@ -1,41 +1,48 @@
 # A testing CI-NEB calculation
-# Run a fake vasp command instead of "mpirun -np $NCPUS vasp"
-# Instead 'echo hello 24 world' as a Fake Vasp command
-
 fireworks:
+
 - fw: atomate.vasp.fireworks.core.NEBRelaxationFW
   user_incar_settings:
-    ISIF: 3
+    EDIFF: 1e-5
+    EDIFFG: -0.02
     LDAU: False
-# Two endpoints settings are the same
+    NSW: 200
+
 - fw: atomate.vasp.fireworks.core.NEBRelaxationFW
   user_incar_settings:
-    EDIFF: 5e-5
-    EDIFFG: -0.05
+    EDIFF: 1e-5
+    EDIFFG: -0.02
+    NSW: 500
+
 - fw: atomate.vasp.fireworks.core.NEBFW
   user_incar_settings:
     IMAGES: 3
     EDIFFG: -0.05
-    IOPT: 3
-    ISIF: 2
-    LDAU: False
+    IOPT: 7
+  user_kpoints_settings:
+    grid_density: 100
+  additional_cust_args:
+    auto_npar: False
+    gzip_output: False
+
 - fw: atomate.vasp.fireworks.core.NEBFW
   user_incar_settings:
     IMAGES: 3
     EDIFFG: -0.03
+    EDIFFG: -0.03
     IOPT: 1
-    ISIF: 2
-    LDAU: False
+  user_kpoints_settings:
+    grid_density: 100
+  additional_cust_args:
+    auto_npar: False
+    gzip_output: False
 
-is_optimized: False
-
-# These can update spec_orig in neb.py
 common_params:
-  wf_name: LiO2_test
-  idpp_species: Li
-  mpi_command:
-    command: echo
-    np_tag: hello
-  ppn: 24
-  path_sites: [0, 1]
-  dest_dir: null
+  _category: ""
+  wf_name: Unittest
+  is_optimized: False
+  idpp_species: "Li"
+  site_indices: [0, 1]
+  interpolation_type: "IDPP"
+  sort_tol: 0
+  d_img: 0.7

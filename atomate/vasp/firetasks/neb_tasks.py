@@ -27,27 +27,28 @@ __email__ = 'hat003@eng.ucsd.edu, ihchu@eng.ucsd.edu'
 @explicit_serialize
 class TransferNEBTask(FiretaskBase):
     """
-    This class transfers CI-NEB outputs from current directory to destination directory. "label" is
-    used to determine the type of calculation and hence the final path. The corresponding structure
+    This class transfers NEB outputs from current directory to destination directory. "label" is
+    used to determine the step of calculation and hence the final path. The corresponding structure
     will be updated in fw_spec before files transferring.
 
     Required params:
-        label (str): Type of calculation outputs being transferred, choose from "init", "ep0",
-            "ep1", "neb1" , "neb2" and etc.
+        label (str): Type of calculation outputs being transferred, choose from "parent", "ep0",
+            "ep1", "neb1", "neb2" and etc..
     Optional params:
-        d_img (float): Interval distance to determine image numbers, in Angstrom.
+        d_img (float): Distance between neighbouring images, used to determine the number of images
+            if "IMAGES" not provided in user_incar_settings, in Angstrom.
     """
     required_params = ["label"]
     optional_params = ["d_img"]
 
     def run_task(self, fw_spec):
         label = self["label"]
-        assert label in ["init", "ep0", "ep1"] or "neb" in label, "Unknown label!"
+        assert label in ["parent", "ep0", "ep1"] or "neb" in label, "Unknown label!"
 
         d_img = float(self.get("d_img", 0.7))  # Angstrom
         wf_name = fw_spec["wf_name"]
         src_dir = os.path.abspath(".")
-        dest_dir = os.path.join(fw_spec["dest_dir"], wf_name, label)
+        dest_dir = os.path.join(fw_spec["_fw_env"]["run_dest_root"], wf_name, label)
         shutil.copytree(src_dir, dest_dir)
 
         # Update fw_spec based on the type of calculations.
@@ -79,21 +80,27 @@ class TransferNEBTask(FiretaskBase):
             endpoints[int(ep_index)] = ep_0.as_dict()
 
             # Update endpoints --> get image number accordingly
-            max_dist = max(get_endpoint_dist(ep_0, ep_1))
-            nimages = round(max_dist / d_img) or 1
-            update_spec = ({"eps": endpoints, "_queueadapter": {"nnodes": nimages}})
-
-        else:  # label == "init"
+            if fw_spec.get("has_images"):
+                # If "incar_images" shows up, the number of images is pre-defined
+                update_spec = {"eps": endpoints,
+                               "_queueadapter": {"nnodes": fw_spec["incar_images"],
+                                                 "nodes": fw_spec["incar_images"]}}
+            else:
+                max_dist = max(get_endpoint_dist(ep_0, ep_1))
+                nimages = round(max_dist / d_img) or 1
+                update_spec = {"eps": endpoints, "_queueadapter": {"nnodes": int(nimages),
+                                                                   "nodes": int(nimages)}}
+        else:  # label == "parent"
             f = glob.glob("CONTCAR*")[0]
             s = Structure.from_file(f, False)
-            update_spec = {"init": s.as_dict()}
+            update_spec = {"parent": s.as_dict()}
 
         # Clear current directory.
         for d in os.listdir(src_dir):
             try:
                 os.remove(os.path.join(src_dir, d))
             except:
-                pass
+                shutil.rmtree(os.path.join(src_dir, d))
 
         return FWAction(update_spec=update_spec)
 
@@ -101,7 +108,7 @@ class TransferNEBTask(FiretaskBase):
 @explicit_serialize
 class RunNEBVaspFake(FiretaskBase):
     """
-     Vasp Emulator for CI-NEB, which has a different file arrangement. Similar to RunVaspFake class.
+     Vasp Emulator for NEB, which has a different file arrangement. Similar to RunVaspFake class.
 
      Required params:
          ref_dir (string): Path to reference vasp run directory with input files in the folder named
@@ -212,19 +219,21 @@ class RunNEBVaspFake(FiretaskBase):
 @explicit_serialize
 class WriteNEBFromImages(FiretaskBase):
     """
-    Generate CI-NEB input sets using given image structures.
+    Generate CI-NEB input sets using given images and endpoints structures. The structures
+    correspond to structures nested in subfolders ("00", "01", "02", etc.)
 
     Required parameters:
-        neb_label (str): name of firework, used to find structures when vasp_input_set is None.
-            "1", "2", etc. MVLCINEBSet will used if no vasp_input_set provided.
+        neb_label (str): "1", "2", etc., labels the running sequence of NEB
     Optional parameters:
         user_incar_settings (dict): Additional INCAR settings.
+        user_kpoints_settings (dict): Additional KPOINTS settings.
     """
     required_params = ["neb_label"]
-    optional_params = ["user_incar_settings"]
+    optional_params = ["user_incar_settings", "user_kpoints_settings"]
 
     def run_task(self, fw_spec):
         user_incar_settings = self.get("user_incar_settings", {})
+        user_kpoints_settings = self.get("user_kpoints_settings", {})
         neb_label = self.get("neb_label")
         assert neb_label.isdigit() and int(neb_label) >= 1
         images = fw_spec["neb"][int(neb_label) - 1]
@@ -232,53 +241,58 @@ class WriteNEBFromImages(FiretaskBase):
             images = [Structure.from_dict(i) for i in images]
         except:
             images = images
-        vis = MVLCINEBSet(images, user_incar_settings=user_incar_settings)
+        vis = MVLCINEBSet(images, user_incar_settings=user_incar_settings,
+                          user_kpoints_settings=user_kpoints_settings)
         vis.write_input(".")
 
 
 @explicit_serialize
 class WriteNEBFromEndpoints(FiretaskBase):
     """
-    Generate CI-NEB input sets using endpoint structures.
+    Generate NEB input sets using endpoint structures, default writes CI-NEB input.
     MVLCINEBSet is the only vasp_input_set supported now.
 
     The number of images:
         1) search in "user_incar_settings";
-        2) otherwise, calculate using "d_img".
+        2) otherwise, calculated using "d_img".
     Required parameters:
-        endpoints ([Structures]): endpoints list.
+        endpoints ([Structures]): endpoints list, the sequence doesn't matter.
         user_incar_settings (dict): additional INCAR settings.
 
     Optional parameters:
-        output_dir (str): output directory.
+        user_kpoints_settings (dict): additional KPOINTS settings.
+        output_dir (str): output directory, default ".".
         sort_tol (float): Distance tolerance (in Angstrom) used to match the atomic indices between
             start and end structures. If it is set 0, then no sorting will be performed.
-        d_img (float): distance in Angstrom, used in calculating number of images.
-                            Default 0.7 Angstrom.
-        interp_method (str): method to do image interpolation from two endpoints.
+        d_img (float): distance in Angstrom, used in calculating number of images. Default 0.7
+            Angstrom.
+        interpolation_type (str): method to do image interpolation from two endpoints.
                             Choose from ["IDPP", "linear"], default "IDPP"
     """
     required_params = ["endpoints", "user_incar_settings"]
-    optional_params = ["output_dir", "sort_tol", "d_img", "interp_method"]
+    optional_params = ["user_kpoints_settings", "output_dir", "sort_tol", "d_img",
+                       "interpolation_type"]
 
     def run_task(self, fw_spec):
         user_incar_settings = self["user_incar_settings"]
-        interp_method = self.get("interp_method", "IDPP")
+        interpolation_type = self.get("interpolation_type", "IDPP")
         idpp_species = fw_spec.get("idpp_species")
+        user_kpoints_settings = self.get("user_kpoints_settings")
 
         # Get number of images.
         nimages = user_incar_settings.get("IMAGES", self._get_nimages())
-        if interp_method == "IDPP":
+        if interpolation_type == "IDPP":
             obj = IDPPSolver.from_endpoints(self["endpoints"], nimages=nimages)
             images = obj.run(species=idpp_species)
             images_dic_list = [image.as_dict() for image in images]
-        elif interp_method == "linear":
+        elif interpolation_type == "linear":
             images = self._get_images_by_linear_interp(nimages=nimages)
             images_dic_list = [i.as_dict() for i in images]
         else:
             raise ValueError("Unknown interpolation method!")
 
-        write = WriteNEBFromImages(neb_label='1', user_incar_settings=user_incar_settings)
+        write = WriteNEBFromImages(neb_label='1', user_incar_settings=user_incar_settings,
+                                   user_kpoints_settings=user_kpoints_settings)
         fw_spec["neb"] = [images_dic_list]
         write.run_task(fw_spec=fw_spec)
 
