@@ -9,6 +9,7 @@ from fireworks.utilities.fw_utilities import get_slug
 from atomate.utils.utils import get_meta_from_structure, get_fws_and_tasks, update_wf
 from atomate.vasp.firetasks.glue_tasks import CheckStability, CheckBandgap
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspDirect, RunVaspFake
+from atomate.vasp.firetasks.neb_tasks import RunNEBVaspFake
 from atomate.vasp.firetasks.write_inputs import ModifyIncar
 from atomate.vasp.config import ADD_NAMEFILE, SCRATCH_DIR, ADD_MODIFY_INCAR, GAMMA_VASP_CMD
 
@@ -106,7 +107,13 @@ def use_fake_vasp(original_wf, ref_dirs, params_to_check=None):
                 for idx_t, t in enumerate(fw.tasks):
                     if "RunVasp" in str(t):
                         wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
-                            RunVaspFake(ref_dir=ref_dirs[job_type], params_to_check=params_to_check).to_dict()
+                            RunVaspFake(ref_dir=ref_dirs[job_type],
+                                        params_to_check=params_to_check).to_dict()
+                    if "RunVaspCustodian" in str(t) and t.get("job_type") == "neb":
+                        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
+                            RunNEBVaspFake(ref_dir=ref_dirs[job_type],
+                                           params_to_check=params_to_check).to_dict()
+
     return Workflow.from_dict(wf_dict)
 
 

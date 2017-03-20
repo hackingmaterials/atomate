@@ -5,6 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import numpy as np
 
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
+from pymatgen.core import Structure
 
 from atomate.vasp.config import SMALLGAP_KPOINT_MULTIPLY, STABILITY_CHECK, VASP_CMD, \
     DB_FILE, ADD_WF_METADATA
@@ -16,6 +17,8 @@ from atomate.vasp.workflows.base.raman import get_wf_raman_spectra
 from atomate.vasp.workflows.base.gibbs import get_wf_gibbs_free_energy
 from atomate.vasp.workflows.base.bulk_modulus import get_wf_bulk_modulus
 from atomate.vasp.workflows.base.thermal_expansion import get_wf_thermal_expansion
+from atomate.vasp.workflows.base.neb import get_wf_neb_from_endpoints, \
+    get_wf_neb_from_structure, get_wf_neb_from_images
 
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
@@ -345,4 +348,87 @@ def wf_thermal_expansion(structure, c=None):
     if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
         wf = add_wf_metadata(wf, structure)
 
+    return wf
+
+
+def wf_nudged_elastic_band(structures, parent, c=None):
+    """
+    Nudged elastic band workflow from the given structures and config dict.
+
+    'is_optimized' default False
+    'neb_round' default 1
+
+    Notes:
+        Different length of Structure list and "is_optimized" are used to determine the workflow:
+        1 structure    # The parent structure & two endpoint indexes provided; need relaxation.
+                       # The parent structure & two endpoint indexes provided; no need to relax.
+        2 structures   # Two endpoints provided; need to relax two endpoints.
+                       # Two relaxed endpoints provided; no need to relax two endpoints.
+        >=3 structures # All images including two endpoints are provided.
+
+    Args:
+        structures ([Structure]):
+            1) The parent structure
+            2) Two endpoint structures
+            3) All images and endpoints
+        parent (Structure): parent structure used to get two endpoints.
+        c (dict): workflow config dict, basic format:
+            {"fireworks": [],  "common_params": {}, "additional_ep_params": {},
+             "additional_neb_params": {}}
+    Returns:
+        Workflow
+    """
+    if not(isinstance(structures, list) and len(structures) > 0):
+        raise ValueError("structures must be a list of Structure!")
+
+    # config initialization
+    c = c or {}
+    spec = c.get("common_params", {})
+    is_optimized = spec.get("is_optimized", False)
+    site_indices = spec.get("site_indices")
+    mode = len(structures) if len(structures) < 3 else 3
+
+    if c == {}:  # Default config without yaml provided
+        neb_round = 1
+
+    else:  # Check config yaml file
+        fw_list = [f['fw'] for f in c.get("fireworks")]
+        neb_round = len([f for f in fw_list if "NEBFW" in f])
+        if len(structures) == 1:
+            mode = 1
+            if is_optimized:
+                assert len(fw_list) == neb_round + 1
+            else:
+                assert len(fw_list) == neb_round + 2
+        elif len(structures) == 2:
+            mode = 2
+            if is_optimized:
+                assert len(fw_list) == neb_round
+            else:
+                len(fw_list) == neb_round + 1
+        else:  # len(structures) >= 3
+            mode = 3
+
+    # Get user_incar_settings, user_kpoints_settings & additional_cust_args
+    user_incar_settings = [{}] * (neb_round + 2)
+    user_kpoints_settings = [{}] * (neb_round + 2)
+    additional_cust_args = [{}] * (neb_round + 2)
+    for i in range(1, len(c["fireworks"])+1):
+        user_incar_settings[-i] = c["fireworks"][-i].get("user_incar_settings", {})
+        user_kpoints_settings[-i] = c["fireworks"][-i].get("user_kpoints_settings", {})
+        additional_cust_args[-i] = c["fireworks"][-i].get("additional_cust_args", {})
+
+    kwargs = {"user_incar_settings": user_incar_settings,
+              "user_kpoints_settings": user_kpoints_settings,
+              "additional_cust_args": additional_cust_args}
+    # Assign workflow using mode
+    if mode == 1:
+        wf = get_wf_neb_from_structure(structure=structures[0], site_indices=site_indices,
+                                       additional_spec=spec, **kwargs)
+    elif mode == 2:
+        wf = get_wf_neb_from_endpoints(parent=parent, endpoints=structures,
+                                       additional_spec=spec, **kwargs)
+    else:  # mode == 3
+        wf = get_wf_neb_from_images(parent=parent, images=structures,
+                                    additional_spec=spec, **kwargs)
     return wf
