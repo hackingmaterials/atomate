@@ -47,7 +47,7 @@ def get_wf_bulk_modulus(structure, deformations, vasp_input_set=None, vasp_cmd="
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
     wf_bulk_modulus = get_wf_deformations(structure, deformations, name="bulk_modulus deformation",
                                           vasp_input_set=vasp_input_set, lepsilon=False,
-                                          vasp_cmd=vasp_cmd, db_file=db_file,
+                                          vasp_cmd=vasp_cmd, db_file=db_file, relax_deformed=True,
                                           user_kpoints_settings=user_kpoints_settings, tag=tag)
 
     fw_analysis = Firework(FitEquationOfStateTask(tag=tag, db_file=db_file, eos=eos),
