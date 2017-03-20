@@ -20,7 +20,7 @@ from custodian import Custodian
 from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, MeshSymmetryErrorHandler, \
     UnconvergedErrorHandler, MaxForceErrorHandler, PotimErrorHandler, FrozenJobErrorHandler, \
     NonConvergingErrorHandler, PositiveEnergyErrorHandler, WalltimeHandler, StdErrHandler
-from custodian.vasp.jobs import VaspJob
+from custodian.vasp.jobs import VaspJob, VaspNEBJob
 from custodian.vasp.validators import VasprunXMLValidator, VaspFilesValidator
 
 from fireworks import explicit_serialize, FiretaskBase
@@ -147,6 +147,21 @@ class RunVaspCustodian(FiretaskBase):
         elif job_type == "full_opt_run":
             jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar, ediffg=self.get("ediffg"),
                                         max_steps=5, half_kpts_first_relax=False)
+        elif job_type == "neb":
+            nnodes = int(fw_spec["_queueadapter"]["nnodes"])
+            # Index the tag "-n" or "-np"
+            index = [i for i, s in enumerate(vasp_cmd) if '-n' in s]
+            ppn = int(vasp_cmd[index[0] + 1])
+            vasp_cmd[index[0] + 1] = str(nnodes * ppn)
+
+            # Do the same for gamma_vasp_cmd
+            if gamma_vasp_cmd:
+                index = [i for i, s in enumerate(gamma_vasp_cmd) if '-n' in s]
+                ppn = int(gamma_vasp_cmd[index[0] + 1])
+                gamma_vasp_cmd[index[0] + 1] = str(nnodes * ppn)
+
+            jobs = [VaspNEBJob(vasp_cmd, final=False, auto_npar=auto_npar,
+                               gamma_vasp_cmd=gamma_vasp_cmd)]
         else:
             raise ValueError("Unsupported job type: {}".format(job_type))
 
@@ -160,6 +175,9 @@ class RunVaspCustodian(FiretaskBase):
             handlers.append(WalltimeHandler(wall_time=self["wall_time"]))
 
         validators = [VasprunXMLValidator(), VaspFilesValidator()]
+        if job_type == "neb":
+            # CINEB vasprun.xml sometimes incomplete, file structure different
+            validators = []
 
         c = Custodian(handlers, jobs, validators=validators, max_errors=max_errors,
                       scratch_dir=scratch_dir, gzipped_output=gzip_output)
@@ -206,8 +224,8 @@ class RunVaspFake(FiretaskBase):
      Vasp Emulator
 
      Required params:
-         ref_dir (string): Path to reference vasp run directory with input files
-            in the folder named 'inputs' and output files in the folder named 'outputs'.
+         ref_dir (string): Path to reference vasp run directory with input files in the folder
+            named 'inputs' and output files in the folder named 'outputs'.
 
      Optional params:
          params_to_check (list): optional list of incar parameters to check.
@@ -224,30 +242,30 @@ class RunVaspFake(FiretaskBase):
         user_incar = Incar.from_file(os.path.join(os.getcwd(), "INCAR"))
         ref_incar = Incar.from_file(os.path.join(self["ref_dir"], "inputs", "INCAR"))
 
-        # perform some BASIC tests
+        # Carry out some BASIC tests.
 
-        # check INCAR
+        # Check INCAR
         params_to_check = self.get("params_to_check", [])
         defaults = {"ISPIN": 1, "ISMEAR": 1, "SIGMA": 0.2}
         for p in params_to_check:
             if user_incar.get(p, defaults.get(p)) != ref_incar.get(p, defaults.get(p)):
                 raise ValueError("INCAR value of {} is inconsistent!".format(p))
 
-        # check KPOINTS
+        # Check KPOINTS
         user_kpoints = Kpoints.from_file(os.path.join(os.getcwd(), "KPOINTS"))
         ref_kpoints = Kpoints.from_file(os.path.join(self["ref_dir"], "inputs", "KPOINTS"))
         if user_kpoints.style != ref_kpoints.style or user_kpoints.num_kpts != ref_kpoints.num_kpts:
             raise ValueError("KPOINT files are inconsistent! Paths are:\n{}\n{}".format(
                 os.getcwd(), os.path.join(self["ref_dir"], "inputs")))
 
-        # check POSCAR
+        # Check POSCAR
         user_poscar = Poscar.from_file(os.path.join(os.getcwd(), "POSCAR"))
         ref_poscar = Poscar.from_file(os.path.join(self["ref_dir"], "inputs", "POSCAR"))
         if user_poscar.natoms != ref_poscar.natoms or user_poscar.site_symbols != ref_poscar.site_symbols:
             raise ValueError("POSCAR files are inconsistent! Paths are:\n{}\n{}".format(
                 os.getcwd(), os.path.join(self["ref_dir"], "inputs")))
 
-        # check POTCAR
+        # Check POTCAR
         user_potcar = Potcar.from_file(os.path.join(os.getcwd(), "POTCAR"))
         ref_potcar = Potcar.from_file(os.path.join(self["ref_dir"], "inputs", "POTCAR"))
         if user_potcar.symbols != ref_potcar.symbols:

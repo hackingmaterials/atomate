@@ -280,6 +280,7 @@ def get_wf_molecules(molecules, vasp_input_sets=None, vibrations=False, min_vacu
             fw = TransmuterFW(structure=m_struct, vasp_input_set=v,
                               copy_vasp_outputs=True, parents=fws[-1],
                               vasp_cmd=vasp_cmd, db_file=db_file)
+
             fws.append(fw)
 
     wfname = "{}".format("Molecule calculations")
