@@ -395,6 +395,7 @@ def wf_nudged_elastic_band(structures, parent, c=None):
         fw_list = [f['fw'] for f in c.get("fireworks")]
         neb_round = len([f for f in fw_list if "NEBFW" in f])
         if len(structures) == 1:
+            assert "site_indices" in spec, "Site indices not provided in config!"
             if is_optimized:
                 assert len(fw_list) == neb_round + 1
             else:
@@ -404,9 +405,6 @@ def wf_nudged_elastic_band(structures, parent, c=None):
                 assert len(fw_list) == neb_round
             else:
                 len(fw_list) == neb_round + 1
-
-    if len(structures) == 1:
-        assert site_indices in c, "Site indices not provided in config!"
 
     # Get user_incar_settings, user_kpoints_settings & additional_cust_args
     user_incar_settings = [{}] * (neb_round + 2)
