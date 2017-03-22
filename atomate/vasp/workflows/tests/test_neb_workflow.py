@@ -95,6 +95,9 @@ class TestNudgedElasticBandWorkflow(unittest.TestCase):
         cls.wf_4 = wf_nudged_elastic_band([ep0, ep1], parent, cls.config_4)
         cls.wf_5 = wf_nudged_elastic_band(cls.structures, parent, cls.config_5)
 
+        # Workflow without the config file
+        cls.wf_6 = wf_nudged_elastic_band(cls.structures, parent)
+
     def setUp(self):
         """
         Basic check for scratch directory and launchpad configurations.
@@ -138,12 +141,14 @@ class TestNudgedElasticBandWorkflow(unittest.TestCase):
         self.wf_3 = self._simulate_vasprun(self.wf_3)
         self.wf_4 = self._simulate_vasprun(self.wf_4)
         self.wf_5 = self._simulate_vasprun(self.wf_5)
+        self.wf_6 = self._simulate_vasprun(self.wf_6)
 
         self.lp.add_wf(self.wf_1)
         self.lp.add_wf(self.wf_2)
         self.lp.add_wf(self.wf_3)
         self.lp.add_wf(self.wf_4)
         self.lp.add_wf(self.wf_5)
+        self.lp.add_wf(self.wf_6)
 
         # Use scratch directory as destination directory for testing
         rapidfire(self.lp, fworker=FWorker(env={"run_dest_root": self.scratch_dir}))

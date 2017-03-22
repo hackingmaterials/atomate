@@ -374,7 +374,8 @@ def wf_nudged_elastic_band(structures, parent, c=None):
         parent (Structure): parent structure used to get two endpoints.
         c (dict): workflow config dict, basic format:
             {"fireworks": [],  "common_params": {}, "additional_ep_params": {},
-             "additional_neb_params": {}}
+             "additional_neb_params": {}}. When the length of structures is 1, "site_indices" key
+             must be included in c.
     Returns:
         Workflow
     """
@@ -386,49 +387,48 @@ def wf_nudged_elastic_band(structures, parent, c=None):
     spec = c.get("common_params", {})
     is_optimized = spec.get("is_optimized", False)
     site_indices = spec.get("site_indices")
-    mode = len(structures) if len(structures) < 3 else 3
 
-    if c == {}:  # Default config without yaml provided
+    if not c.get("fireworks"):  # Default config without yaml provided
         neb_round = 1
 
     else:  # Check config yaml file
         fw_list = [f['fw'] for f in c.get("fireworks")]
         neb_round = len([f for f in fw_list if "NEBFW" in f])
         if len(structures) == 1:
-            mode = 1
             if is_optimized:
                 assert len(fw_list) == neb_round + 1
             else:
                 assert len(fw_list) == neb_round + 2
         elif len(structures) == 2:
-            mode = 2
             if is_optimized:
                 assert len(fw_list) == neb_round
             else:
                 len(fw_list) == neb_round + 1
-        else:  # len(structures) >= 3
-            mode = 3
+
+    if len(structures) == 1:
+        assert site_indices in c, "Site indices not provided in config!"
 
     # Get user_incar_settings, user_kpoints_settings & additional_cust_args
     user_incar_settings = [{}] * (neb_round + 2)
     user_kpoints_settings = [{}] * (neb_round + 2)
     additional_cust_args = [{}] * (neb_round + 2)
-    for i in range(1, len(c["fireworks"])+1):
-        user_incar_settings[-i] = c["fireworks"][-i].get("user_incar_settings", {})
-        user_kpoints_settings[-i] = c["fireworks"][-i].get("user_kpoints_settings", {})
-        additional_cust_args[-i] = c["fireworks"][-i].get("additional_cust_args", {})
+    if "fireworks" in c:
+        for i in range(1, len(c["fireworks"])+1):
+            user_incar_settings[-i] = c["fireworks"][-i].get("user_incar_settings", {})
+            user_kpoints_settings[-i] = c["fireworks"][-i].get("user_kpoints_settings", {})
+            additional_cust_args[-i] = c["fireworks"][-i].get("additional_cust_args", {})
 
     kwargs = {"user_incar_settings": user_incar_settings,
               "user_kpoints_settings": user_kpoints_settings,
               "additional_cust_args": additional_cust_args}
-    # Assign workflow using mode
-    if mode == 1:
+    # Assign workflow using the number of given structures
+    if len(structures) == 1:
         wf = get_wf_neb_from_structure(structure=structures[0], site_indices=site_indices,
                                        additional_spec=spec, **kwargs)
-    elif mode == 2:
+    elif len(structures) == 2:
         wf = get_wf_neb_from_endpoints(parent=parent, endpoints=structures,
                                        additional_spec=spec, **kwargs)
-    else:  # mode == 3
+    else:  # len(structures) >= 3
         wf = get_wf_neb_from_images(parent=parent, images=structures,
                                     additional_spec=spec, **kwargs)
     return wf
