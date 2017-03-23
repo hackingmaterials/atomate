@@ -24,8 +24,7 @@ __author__ = "Hanmei Tang, Iek-Heng Chu"
 __email__ = 'hat003@eng.ucsd.edu, ihchu@eng.ucsd.edu'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-db_dir = os.path.join(os.environ["HOME"], ".fireworks")
-#db_dir = os.path.join(module_dir, "..", "..", "..", "common", "reference_files", "db_connections")
+db_dir = os.path.join(module_dir, "..", "..", "..", "common", "reference_files", "db_connections")
 ref_dir = os.path.join(module_dir, "test_files")
 
 DEBUG_MODE = False
