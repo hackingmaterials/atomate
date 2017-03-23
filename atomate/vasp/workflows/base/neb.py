@@ -19,23 +19,30 @@ __email__ = 'hat003@eng.ucsd.edu, ihchu@eng.ucsd.edu'
 def _update_spec(additional_spec):
     """
     Update spec to overwrite default settings.
+
     Args:
         additional_spec (dict): user spec settings.
-            "is_optimized" (bool): True denotes the provided structures are optimized.
-                Otherwise run relaxation for given structures. Default False.
-            "interpolation_type" (str): Method to do image interpolation from two endpoints.
-                Default "IDPP", otherwise "linear".
-            "idpp_species" (str): Species used in IDPP interpolation method.
+            "is_optimized" (bool): It True, the given structures are assumed to be optimized.
+                            Otherwise relaxation will be applied to the given structures.
+                            Default is False.
+            "interpolation_type" (str): Approach to generate images between the two endpoints.
+                            Default approach is "IDPP" (image dependent pair potential approach),
+                            otherwise "linear" (conventional linear interpolation approach).
+            "idpp_species" (str): Species used in IDPP method.
             "sort_tol" (float): Distance tolerance (in Angstrom) used to match the atomic indices
-                between start and end structures. If it is set 0, then no sorting will be performed.
-            "d_img" (float): Distance between images, in Angstrom. If "IMAGES" is not provided in
-                user_incar_settings, this will be used to calculate the number of images.
-                Default 0.7 Angstrom.
-            "wf_name" (str): An appropriate and unique name for the workflow.
-                The workflow result will be transferred to ">>run_dest_root<</wf_name".
+                            between start and end structures. If it is set 0, no sorting will be
+                            performed.
+            "d_img" (float): Distance between two adjacent images, in Angstrom. If "IMAGES" is
+                            not provided in user_incar_settings, this will be used to compute the
+                            number of images. Default is 0.7 Angstrom.
+            "wf_name" (str): An appropriate and unique name for the workflow. The workflow result
+                            will be transferred to ">>run_dest_root<</wf_name".
+
     Returns:
         spec dict
+
     """
+
     additional_spec = additional_spec or {}
     default_spec = {"is_optimized": False,
                     "interpolation_type": "IDPP",
@@ -47,41 +54,48 @@ def _update_spec(additional_spec):
     return default_spec
 
 
-def get_wf_neb_from_structure(structure, site_indices, user_incar_settings=None,
-                              additional_spec=None, user_kpoints_settings=None,
-                              additional_cust_args=None):
+def get_wf_neb_from_structure(structure, user_incar_settings=None, additional_spec=None,
+                              user_kpoints_settings=None, additional_cust_args=None):
     """
-    Get the CI-NEB workflow using a parent structure.
-    Workflow: (parent relax) -- Endpoints relax -- NEB_1 -- NEB_2 - ... - NEB_r
-              parent not optimized: parent--ep--neb(r)
-              parent is optimized: ep--neb(r)
+    Obtain the CI-NEB workflow staring with a parent structure. This works only under the single
+    vacancy diffusion mechanism.
+
+    Workflow: (parent relaxation) --> Endpoints relaxation --> NEB_1 --> NEB_2 --> ... --> NEB_r
+              (i) If parent is not relaxed: then parent relaxation--ep--neb(r)
+                    (r rounds of NEB)
+              (ii) If parent is relaxed: ep--neb(r) (r rounds of NEB)
     Args:
         structure (Structure): The parent structure.
-        site_indices (list): The two vacancy site indices.
-        user_incar_settings([dict]): Additional user_incar_settings.
-            Always arranged as: "parent", "ep_relax", "neb1", "neb2" etc., which contains at least
-            three items. The first dict is for parent structure relaxation, the second dict is for
-            endpoints relaxation, and the rest are for NEB calculations. For example, [{}, {},
-            {"IOPT": 7}, {"IOPT": 1}]. Besides, user_incar_settings is used to determine how many
-            NEB rounds will be, default [{}, {}, {}].
-        additional_spec (dict): user spec settings to overwrite default_spec.
-        user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at at least
-            three items. The structure is the same with user_incar_settings. For example, [{}, {},
-            {"grid_density": 100}] for the workflow from the parent structure relaxation, then the
-            endpoint relaxation followed by one-round NEB simulation. Default value depends on
-            chosen VaspInputSet.
-        additional_cust_args ([dict]): Optional parameters for RunVaspCustodian, same structure with
-            user_incar_settings and user_kpoints_settings.
+        user_incar_settings([dict]): Additional user_incar_settings. Note that the order of the
+                    list is set as: "parent", "ep_relax", "neb1", "neb2" etc., which contains
+                    at least three elements. The first dict is for parent structure relaxation,
+                    the second dict is for endpoints relaxation, and the rest are for NEB
+                    calculations. For example, [{}, {}, {"IOPT": 7}, {"IOPT": 1}]. Besides,
+                    user_incar_settings is used to determine how many NEB rounds will be. Default
+                    is [{}, {}, {}].
+        additional_spec (dict): User spec settings to overwrite default_spec.
+        user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at at
+                    least three elements, which is similar to user_incar_settings. For example,
+                    [{}, {}, {"grid_density": 100}] for the workflow from the parent structure
+                    relaxation, then the endpoint relaxation followed by one-round NEB simulation.
+                    Default values depend on the selected VaspInputSet.
+        additional_cust_args ([dict]): Optional parameters for RunVaspCustodian, same structure
+                    with user_incar_settings and user_kpoints_settings.
+
     Returns:
         Workflow
+
     """
+
     spec = _update_spec(additional_spec)
     site_indices = spec["site_indices"]
     is_optimized = spec["is_optimized"]
     wf_name = spec["wf_name"]
 
-    ep0, ep1 = get_endpoints_from_index(structure, site_indices)
+    # Default settings for "parent" and "eps". If is_optimized is False, spec["eps"] will
+    # be updated after parent relaxation.
     spec["parent"] = structure.as_dict()
+    ep0, ep1 = get_endpoints_from_index(structure, site_indices)
     spec["eps"] = [ep0.as_dict(), ep1.as_dict()]
 
     # Assume one round NEB if user_incar_settings not provided.
@@ -96,9 +110,6 @@ def get_wf_neb_from_structure(structure, site_indices, user_incar_settings=None,
             break
 
     if is_optimized:  # Start from endpoints
-        endpoints = get_endpoints_from_index(structure, site_indices)
-        endpoints_dict = [e.as_dict() for e in endpoints]
-        spec["eps"] = endpoints_dict
         neb_fws, rlx_fws = [], []
 
         # Get neb fireworks.
@@ -119,7 +130,6 @@ def get_wf_neb_from_structure(structure, site_indices, user_incar_settings=None,
         links = {rlx_fws[0]: [neb_fws[0]], rlx_fws[1]: [neb_fws[0]]}
 
     else:  # Start from perfect structure
-        spec["parent"] = structure.as_dict()
         neb_fws, rlx_fws = [], []
 
         # Get neb fireworks.
@@ -167,23 +177,27 @@ def get_wf_neb_from_endpoints(parent, endpoints, user_incar_settings=None, addit
     Args:
         parent (Structure): parent structure.
         endpoints (list[Structure]): The endpoint structures.
-        user_incar_settings([dict]): Additional user_incar_settings.
-            Always arranged as: "parent", "ep_relax", "neb1", "neb2" etc., which contains at least
-            three items. The first dict is for parent structure relaxation, the second dict is for
-            endpoints relaxation, and the rest are for NEB calculations. For example, [{}, {},
-            {"IOPT": 7}, {"IOPT": 1}]. Besides, user_incar_settings is used to determine how many
-            NEB rounds will be, default [{}, {}, {}].
-        additional_spec (dict): user spec settings to overwrite default_spec.
-        user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at at least
-            three items. The structure is the same with user_incar_settings. For example, [{}, {},
-            {"grid_density": 100}] for the workflow from the parent structure relaxation, then the
-            endpoint relaxation followed by one-round NEB simulation. Default value depends on
-            chosen VaspInputSet.
-        additional_cust_args ([dict]): Optional parameters for RunVaspCustodian, same structure with
-            user_incar_settings and user_kpoints_settings.
+        user_incar_settings([dict]): Additional user_incar_settings. Note that the order of the
+                    list is set as: "parent", "ep_relax", "neb1", "neb2" etc., which contains
+                    at least three elements. The first dict is for parent structure relaxation,
+                    the second dict is for endpoints relaxation, and the rest are for NEB
+                    calculations. For example, [{}, {}, {"IOPT": 7}, {"IOPT": 1}]. Besides,
+                    user_incar_settings is used to determine how many NEB rounds will be. Default
+                    is [{}, {}, {}].
+        additional_spec (dict): User spec settings to overwrite default_spec.
+        user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at at
+                    least three elements, which is similar to user_incar_settings. For example,
+                    [{}, {}, {"grid_density": 100}] for the workflow from the parent structure
+                    relaxation, then the endpoint relaxation followed by one-round NEB simulation.
+                    Default values depend on the selected VaspInputSet.
+        additional_cust_args ([dict]): Optional parameters for RunVaspCustodian, same structure
+                    with user_incar_settings and user_kpoints_settings.
+
     Returns:
         Workflow
+
     """
+
     spec = _update_spec(additional_spec)
     spec["parent"] = parent.as_dict()
     spec["eps"] = [s.as_dict() for s in endpoints]
@@ -198,7 +212,7 @@ def get_wf_neb_from_endpoints(parent, endpoints, user_incar_settings=None, addit
     additional_cust_args = additional_cust_args or [{}] * (neb_round + 2)
     for incar in user_incar_settings[2:]:
         if incar.get("IMAGES"):
-            # If "incar_images" shows up, the number of images is pre-defined
+            # If "incar_images" appears, the number of images is pre-defined.
             spec["incar_images"] = incar["IMAGES"]
             break
 
@@ -241,24 +255,27 @@ def get_wf_neb_from_images(parent, images, user_incar_settings, additional_spec=
     Args:
         parent (Structure): parent structure.
         images ([Structure]): All images and two endpoints.
-        user_incar_settings([dict]): Additional user_incar_settings.
-            Always arranged as: "parent", "ep_relax", "neb1", "neb2" etc., which contains at least
-            three items. The first dict is for parent structure relaxation, the second dict is for
-            endpoints relaxation, and the rest are for NEB calculations. For example, [{}, {},
-            {"IOPT": 7}, {"IOPT": 1}]. Besides, user_incar_settings is used to determine how many
-            NEB rounds will be, default [{}, {}, {}].
-        additional_spec (dict): user spec settings to overwrite default_spec.
-        user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at at least
-            three items. The structure is the same with user_incar_settings. For example, [{}, {},
-            {"grid_density": 100}] for the workflow from the parent structure relaxation, then the
-            endpoint relaxation followed by one-round NEB simulation. Default value depends on
-            chosen VaspInputSet.
-        additional_cust_args ([dict]): Optional parameters for RunVaspCustodian, same structure with
-            user_incar_settings and user_kpoints_settings.
+        user_incar_settings([dict]): Additional user_incar_settings. Note that the order of the
+                    list is set as: "parent", "ep_relax", "neb1", "neb2" etc., which contains
+                    at least three elements. The first dict is for parent structure relaxation,
+                    the second dict is for endpoints relaxation, and the rest are for NEB
+                    calculations. For example, [{}, {}, {"IOPT": 7}, {"IOPT": 1}]. Besides,
+                    user_incar_settings is used to determine how many NEB rounds will be. Default
+                    is [{}, {}, {}].
+        additional_spec (dict): User spec settings to overwrite default_spec.
+        user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at at
+                    least three elements, which is similar to user_incar_settings. For example,
+                    [{}, {}, {"grid_density": 100}] for the workflow from the parent structure
+                    relaxation, then the endpoint relaxation followed by one-round NEB simulation.
+                    Default values depend on the selected VaspInputSet.
+        additional_cust_args ([dict]): Optional parameters for RunVaspCustodian, same structure
+                    with user_incar_settings and user_kpoints_settings.
 
     Returns:
         Workflow
+
     """
+
     spec = _update_spec(additional_spec)
     spec["parent"] = parent.as_dict()
     assert isinstance(images, list) and len(images) >= 3

@@ -15,7 +15,7 @@ from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
 from fireworks.core.firework import FiretaskBase, FWAction
 from fireworks.utilities.fw_utilities import explicit_serialize
 from pymatgen_diffusion.neb.io import get_endpoint_dist
-from pymatgen_diffusion.neb.io import MVLCINEBSet
+from pymatgen_diffusion.neb.io import MVLCINEBSet, get_endpoints_from_index
 from pymatgen_diffusion.neb.pathfinder import IDPPSolver
 
 from atomate.utils.utils import get_logger
@@ -93,7 +93,9 @@ class TransferNEBTask(FiretaskBase):
         else:  # label == "parent"
             f = glob.glob("CONTCAR*")[0]
             s = Structure.from_file(f, False)
-            update_spec = {"parent": s.as_dict()}
+            ep0, ep1 = get_endpoints_from_index(s, fw_spec["site_indices"])
+
+            update_spec = {"parent": s.as_dict(), "eps": [ep0.as_dict(), ep1.as_dict()]}
 
         # Clear current directory.
         for d in os.listdir(src_dir):
@@ -289,7 +291,8 @@ class WriteNEBFromEndpoints(FiretaskBase):
             images = self._get_images_by_linear_interp(nimages=nimages)
             images_dic_list = [i.as_dict() for i in images]
         else:
-            raise ValueError("Unknown interpolation method!")
+            raise ValueError("The interpolation method must either "
+                             "be 'linear' or 'IDPP'!")
 
         write = WriteNEBFromImages(neb_label='1', user_incar_settings=user_incar_settings,
                                    user_kpoints_settings=user_kpoints_settings)

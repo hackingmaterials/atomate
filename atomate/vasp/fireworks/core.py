@@ -411,6 +411,7 @@ class NEBRelaxationFW(Firework):
             additional_cust_args (dict): Other kwargs that are passed to RunVaspCustodian.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
+
         # Get structure from spec
         assert label in ["parent", "ep0", "ep1"]
         if label == "parent":
@@ -426,10 +427,12 @@ class NEBRelaxationFW(Firework):
 
         # Task 1: Write input sets
         if label == 'parent':
-            vasp_input_set = MITRelaxSet(structure, user_incar_settings=user_incar_settings,
+            vasp_input_set = MITRelaxSet(structure,
+                                         user_incar_settings=user_incar_settings,
                                          user_kpoints_settings=user_kpoints_settings)
         else:  # label == "ep0" or "ep1"
-            vasp_input_set = MVLCINEBEndPointSet(structure, user_incar_settings=user_incar_settings,
+            vasp_input_set = MVLCINEBEndPointSet(structure,
+                                                 user_incar_settings=user_incar_settings,
                                                  user_kpoints_settings=user_kpoints_settings)
 
         write_ep_task = WriteVaspFromIOSet(structure=structure, output_dir=".",
@@ -465,8 +468,8 @@ class NEBFW(Firework):
         Args:
             spec (dict): Specification of the job to run.
             neb_label (str): "1", "2"..., label neb run.
-            from_images (bool): Set True to initialize from image structures, False starting from
-                relaxed endpoint structures.
+            from_images (bool): Set True to initialize from image structures, False starting
+                        from relaxed endpoint structures.
             user_incar_settings (dict): Additional INCAR settings.
             user_kpoints_settings (dict): Additional KPOINTS settings.
             additional_cust_args (dict): Other kwargs that are passed to RunVaspCustodian.
@@ -491,11 +494,11 @@ class NEBFW(Firework):
         else:  # from endpoints
             structures_dict = spec.get("eps")
             try:
-                encpoints = [Structure.from_dict(s) for s in structures_dict]
+                endpoints = [Structure.from_dict(s) for s in structures_dict]
             except:
-                encpoints = structures_dict
+                endpoints = structures_dict
 
-            write_neb_task = WriteNEBFromEndpoints(endpoints=encpoints,
+            write_neb_task = WriteNEBFromEndpoints(endpoints=endpoints,
                                                    user_incar_settings=user_incar_settings,
                                                    user_kpoints_settings=user_kpoints_settings,
                                                    output_dir=".", sort_tol=sort_tol, d_img=d_img,
