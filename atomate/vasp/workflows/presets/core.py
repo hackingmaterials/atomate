@@ -374,8 +374,9 @@ def wf_nudged_elastic_band(structures, parent, c=None):
         parent (Structure): parent structure used to get two endpoints.
         c (dict): workflow config dict, basic format:
             {"fireworks": [],  "common_params": {}, "additional_ep_params": {},
-             "additional_neb_params": {}}. When the length of structures is 1,
-             "site_indices" key must be included in c.
+             "additional_neb_params": {}}. When the length of structures is 1, "site_indices" key
+             must be included in c. Note that "fireworks" is a list corresponding to the order of
+             execution.
     Returns:
         Workflow
     """
