@@ -65,7 +65,8 @@ class TransferNEBTask(FiretaskBase):
             images = [s.as_dict() for s in images]
             neb = fw_spec.get("neb")
             neb.append(images)
-            update_spec = {"neb": neb}
+            update_spec = {"neb": neb, "_queueadapter": {"nnodes": str(len(images)-2),
+                                                         "nodes": str(len(images)-2)}}
 
         elif "ep" in label:
             # Update relaxed endpoint structures
@@ -80,7 +81,7 @@ class TransferNEBTask(FiretaskBase):
             endpoints[int(ep_index)] = ep_0.as_dict()
 
             # Update endpoints --> get image number accordingly
-            if fw_spec.get("has_images"):
+            if fw_spec.get("incar_images"):
                 # If "incar_images" shows up, the number of images is pre-defined
                 update_spec = {"eps": endpoints,
                                "_queueadapter": {"nnodes": fw_spec["incar_images"],

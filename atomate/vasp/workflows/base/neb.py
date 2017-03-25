@@ -214,6 +214,8 @@ def get_wf_neb_from_endpoints(parent, endpoints, user_incar_settings=None, addit
         if incar.get("IMAGES"):
             # If "incar_images" appears, the number of images is pre-defined.
             spec["incar_images"] = incar["IMAGES"]
+            if is_optimized:
+                spec["_queueadapter"] = {"nnodes": incar["IMAGES"], "nodes": incar["IMAGES"]}
             break
 
     neb_fws = []
