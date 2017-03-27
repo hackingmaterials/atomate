@@ -33,7 +33,7 @@ db_dir = os.path.join(module_dir, "..", "..", "..", "common", "reference_files",
 ref_dir = os.path.join(module_dir, "test_files")
 
 DEBUG_MODE = False
-LAUNCHPAD_RESET = False
+LAUNCHPAD_RESET = True
 
 
 @unittest.skipIf(not pmgd, "pymatgen-diffusion not installed, so skipping...")
