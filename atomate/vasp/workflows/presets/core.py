@@ -285,11 +285,12 @@ def wf_gibbs_free_energy(structure, c=None):
 
     pressure = c.get("pressure", 0.0)
     poisson = c.get("poisson", 0.25)
+    metadata = c.get("metadata", None)
 
     wf = get_wf_gibbs_free_energy(structure, user_kpoints_settings=user_kpoints_settings,
                                   deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file,
                                   eos=eos, qha_type=qha_type, pressure=pressure, poisson=poisson,
-                                  t_min=t_min, t_max=t_max, t_step=t_step)
+                                  t_min=t_min, t_max=t_max, t_step=t_step, metadata=metadata)
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 600, "EDIFF": 1e-6, "LAECHG": False}})
 
