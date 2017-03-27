@@ -12,8 +12,6 @@ from fireworks import Firework
 from pymatgen import Structure
 from pymatgen.io.vasp.sets import MPRelaxSet, MITMDSet, MITRelaxSet, MPStaticSet, MPSOCSet
 
-from pymatgen_diffusion.neb.io import MVLCINEBEndPointSet
-
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, PassEpsilonTask, PassNormalmodesTask
 from atomate.vasp.firetasks.neb_tasks import TransferNEBTask
@@ -432,6 +430,8 @@ class NEBRelaxationFW(Firework):
             vasp_input_set = MITRelaxSet(structure, user_incar_settings=user_incar_settings,
                                          user_kpoints_settings=user_kpoints_settings)
         else:  # label == "ep0" or "ep1"
+            from pymatgen_diffusion.neb.io import MVLCINEBEndPointSet
+
             vasp_input_set = MVLCINEBEndPointSet(structure, user_incar_settings=user_incar_settings,
                                                  user_kpoints_settings=user_kpoints_settings)
 
