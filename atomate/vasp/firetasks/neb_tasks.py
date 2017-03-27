@@ -12,8 +12,10 @@ import shutil
 
 from pymatgen.core import Structure
 from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
+
 from fireworks.core.firework import FiretaskBase, FWAction
 from fireworks.utilities.fw_utilities import explicit_serialize
+
 from pymatgen_diffusion.neb.io import get_endpoint_dist
 from pymatgen_diffusion.neb.io import MVLCINEBSet
 from pymatgen_diffusion.neb.pathfinder import IDPPSolver

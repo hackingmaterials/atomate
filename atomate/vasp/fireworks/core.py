@@ -9,7 +9,9 @@ sequences of VASP calculations.
 
 from fireworks import Firework
 
-from pymatgen.io.vasp.sets import MPRelaxSet, MITMDSet, MITRelaxSet
+from pymatgen import Structure
+from pymatgen.io.vasp.sets import MPRelaxSet, MITMDSet, MITRelaxSet, MPStaticSet, MPSOCSet
+
 from pymatgen_diffusion.neb.io import MVLCINEBEndPointSet
 
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
