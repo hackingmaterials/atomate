@@ -5,10 +5,9 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import numpy as np
 
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
-from pymatgen.core import Structure
 
-from atomate.vasp.config import SMALLGAP_KPOINT_MULTIPLY, STABILITY_CHECK, VASP_CMD, \
-    DB_FILE, ADD_WF_METADATA
+from atomate.vasp.config import SMALLGAP_KPOINT_MULTIPLY, STABILITY_CHECK, VASP_CMD, DB_FILE, \
+    ADD_WF_METADATA
 from atomate.vasp.powerups import add_small_gap_multiply, add_stability_check, add_modify_incar, \
     add_wf_metadata, add_common_powerups
 from atomate.vasp.workflows.base.core import get_wf
@@ -17,8 +16,8 @@ from atomate.vasp.workflows.base.raman import get_wf_raman_spectra
 from atomate.vasp.workflows.base.gibbs import get_wf_gibbs_free_energy
 from atomate.vasp.workflows.base.bulk_modulus import get_wf_bulk_modulus
 from atomate.vasp.workflows.base.thermal_expansion import get_wf_thermal_expansion
-from atomate.vasp.workflows.base.neb import get_wf_neb_from_endpoints, \
-    get_wf_neb_from_structure, get_wf_neb_from_images
+from atomate.vasp.workflows.base.neb import get_wf_neb_from_endpoints, get_wf_neb_from_structure, \
+    get_wf_neb_from_images
 
 
 __author__ = 'Anubhav Jain, Kiran Mathew'

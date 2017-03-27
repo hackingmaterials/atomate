@@ -6,11 +6,15 @@ This module defines the Nudged Elastic Band (NEB) workflow.
 """
 
 from datetime import datetime
+from monty.dev import requires
 
-from pymatgen_diffusion.neb.io import get_endpoints_from_index
+try:
+    from pymatgen_diffusion.neb.io import get_endpoints_from_index
+    pmgd = True
+except ImportError:
+    pmgd = False
 
 from fireworks.core.firework import Workflow
-
 from atomate.vasp.fireworks.core import NEBFW, NEBRelaxationFW
 
 __author__ = "Hanmei Tang, Iek-Heng Chu"
@@ -48,6 +52,7 @@ def _update_spec(additional_spec):
     return default_spec
 
 
+@requires(pmgd, "NEB workflow requires the package pymatgen-diffusion")
 def get_wf_neb_from_structure(structure, site_indices, user_incar_settings=None,
                               additional_spec=None, user_kpoints_settings=None,
                               additional_cust_args=None):
@@ -157,6 +162,7 @@ def get_wf_neb_from_structure(structure, site_indices, user_incar_settings=None,
     return workflow
 
 
+@requires(pmgd, "NEB workflow requires the package pymatgen-diffusion")
 def get_wf_neb_from_endpoints(parent, endpoints, user_incar_settings=None, additional_spec=None,
                               user_kpoints_settings=None, additional_cust_args=None):
     """
@@ -233,6 +239,7 @@ def get_wf_neb_from_endpoints(parent, endpoints, user_incar_settings=None, addit
     return workflow
 
 
+@requires(pmgd, "NEB workflow requires the package pymatgen-diffusion")
 def get_wf_neb_from_images(parent, images, user_incar_settings, additional_spec=None,
                            user_kpoints_settings=None, additional_cust_args=None):
     """
