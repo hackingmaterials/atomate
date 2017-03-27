@@ -362,10 +362,13 @@ class GibbsFreeEnergyTask(FiretaskBase):
         eos (str): equation of state used for fitting the energies and the volumes.
             options supported by phonopy: "vinet", "murnaghan", "birch_murnaghan".
         pressure (float): in GPa, optional.
+        metadata (dict): meta data
+
     """
 
     required_params = ["tag", "db_file"]
-    optional_params = ["qha_type", "t_min", "t_step", "t_max", "mesh", "eos", "pressure", "poisson"]
+    optional_params = ["qha_type", "t_min", "t_step", "t_max", "mesh", "eos", "pressure", "poisson",
+                       "metadata"]
 
     def run_task(self, fw_spec):
 
@@ -379,6 +382,7 @@ class GibbsFreeEnergyTask(FiretaskBase):
         qha_type = self.get("qha_type", "debye_model")
         pressure = self.get("pressure", 0.0)
         poisson = self.get("poisson", 0.25)
+        metadata = self.get("metadata", {})
         gibbs_summary_dict = {}
 
         mmdb = MMVaspDb.from_db_file(db_file, admin=True)
@@ -431,6 +435,8 @@ class GibbsFreeEnergyTask(FiretaskBase):
             logger.warn("QUASI-HARMONIC ANALYSIS FAILED")
             gibbs_summary_dict["success"] = False
             gibbs_summary_dict["traceback"] = traceback.format_exc()
+
+        gibbs_summary_dict["metadata"] = metadata
 
         if not db_file:
             dump_file = "gibbs.json"
