@@ -436,6 +436,7 @@ class GibbsFreeEnergyTask(FiretaskBase):
             gibbs_summary_dict["success"] = False
             gibbs_summary_dict["traceback"] = traceback.format_exc()
 
+        metadata.update({"task_label_tag": tag})
         gibbs_summary_dict["metadata"] = metadata
         gibbs_summary_dict["created_at"] = datetime.utcnow()
 
