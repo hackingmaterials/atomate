@@ -414,11 +414,7 @@ class NEBRelaxationFW(Firework):
 
         # Get structure from spec
         assert label in ["parent", "ep0", "ep1"]
-        if label == "parent":
-            structure_dict = spec["parent"]
-        else:  # label in ["ep0", "ep1"]
-            index = int(label[-1])
-            structure_dict = spec["eps"][index]
+        structure_dict = spec[label]
         structure = Structure.from_dict(structure_dict)
 
         user_incar_settings = user_incar_settings or {}
@@ -492,14 +488,7 @@ class NEBFW(Firework):
                                                 user_kpoints_settings=user_kpoints_settings)
 
         else:  # from endpoints
-            structures_dict = spec.get("eps")
-            try:
-                endpoints = [Structure.from_dict(s) for s in structures_dict]
-            except:
-                endpoints = structures_dict
-
-            write_neb_task = WriteNEBFromEndpoints(endpoints=endpoints,
-                                                   user_incar_settings=user_incar_settings,
+            write_neb_task = WriteNEBFromEndpoints(user_incar_settings=user_incar_settings,
                                                    user_kpoints_settings=user_kpoints_settings,
                                                    output_dir=".", sort_tol=sort_tol, d_img=d_img,
                                                    interpolation_type=interpolation_type)

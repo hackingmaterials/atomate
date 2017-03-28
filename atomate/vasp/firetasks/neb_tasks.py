@@ -53,50 +53,49 @@ class TransferNEBTask(FiretaskBase):
 
         # Update fw_spec based on the type of calculations.
         if "neb" in label:
-            # All result images.
+            # Update all relaxed images.
             subs = glob.glob("[0-2][0-9]")
             nimages = len(subs)
             concar_list = ["{:02}/CONTCAR".format(i) for i in range(nimages)[1: -1]]
             images = [Structure.from_file(contcar) for contcar in concar_list]
 
-            # End images.
+            # Update the two ending "images".
             images.insert(0, Structure.from_file("00/POSCAR"))
             images.append(Structure.from_file("{:02}/POSCAR".format(nimages - 1)))
             images = [s.as_dict() for s in images]
             neb = fw_spec.get("neb")
             neb.append(images)
-            update_spec = {"neb": neb, "_queueadapter": {"nnodes": str(len(images)-2),
-                                                         "nodes": str(len(images)-2)}}
+            update_spec = {"neb": neb, "_queueadapter": {"nnodes": str(len(images) - 2),
+                                                         "nodes": str(len(images) - 2)}}
 
-        elif "ep" in label:
-            # Update relaxed endpoint structures
-            endpoints = fw_spec.get("eps", [{}, {}])
-            ep_index = int(label[-1])
+        elif label in ["ep0", "ep1"]:
+            # Update relaxed endpoint structures.
             file = glob.glob("CONTCAR*")[0]
-            ep_0 = Structure.from_file(file, False)  # one ep
-            try:
-                ep_1 = Structure.from_dict(endpoints[int(1 - ep_index)])  # another ep
-            except:
-                ep_1 = endpoints[int(1 - ep_index)]
-            endpoints[int(ep_index)] = ep_0.as_dict()
+            ep = Structure.from_file(file, False)  # One endpoint
 
-            # Update endpoints --> get image number accordingly
-            if fw_spec.get("incar_images"):
-                # If "incar_images" shows up, the number of images is pre-defined
-                update_spec = {"eps": endpoints,
+            if fw_spec.get("incar_images"):  # "incar_images": pre-defined image number.
+                update_spec = {label: ep.as_dict(),
                                "_queueadapter": {"nnodes": fw_spec["incar_images"],
                                                  "nodes": fw_spec["incar_images"]}}
             else:
-                max_dist = max(get_endpoint_dist(ep_0, ep_1))
+                # Calculate number of images if "IMAGES" tag is not provided.
+                index = int(label[-1])
+                ep_1_dict = fw_spec.get("ep{}".format(1 - index))  # Another endpoint
+                try:
+                    ep_1 = Structure.from_dict(ep_1_dict)
+                except:
+                    ep_1 = ep_1_dict
+
+                max_dist = max(get_endpoint_dist(ep, ep_1))
                 nimages = round(max_dist / d_img) or 1
-                update_spec = {"eps": endpoints, "_queueadapter": {"nnodes": int(nimages),
-                                                                   "nodes": int(nimages)}}
+                update_spec = {label: ep, "_queueadapter": {"nnodes": int(nimages),
+                                                            "nodes": int(nimages)}}
         else:  # label == "parent"
             f = glob.glob("CONTCAR*")[0]
             s = Structure.from_file(f, False)
             ep0, ep1 = get_endpoints_from_index(s, fw_spec["site_indices"])
 
-            update_spec = {"parent": s.as_dict(), "eps": [ep0.as_dict(), ep1.as_dict()]}
+            update_spec = {"parent": s.as_dict(), "ep0": ep0.as_dict(), "ep1": ep1.as_dict()}
 
         # Clear current directory.
         for d in os.listdir(src_dir):
@@ -259,12 +258,10 @@ class WriteNEBFromEndpoints(FiretaskBase):
         1) search in "user_incar_settings";
         2) otherwise, calculated using "d_img".
     Required parameters:
-        endpoints ([Structures]): endpoints list, the sequence doesn't matter.
         user_incar_settings (dict): additional INCAR settings.
 
     Optional parameters:
         user_kpoints_settings (dict): additional KPOINTS settings.
-        output_dir (str): output directory, default ".".
         sort_tol (float): Distance tolerance (in Angstrom) used to match the atomic indices between
             start and end structures. If it is set 0, then no sorting will be performed.
         d_img (float): distance in Angstrom, used in calculating number of images. Default 0.7
@@ -272,8 +269,8 @@ class WriteNEBFromEndpoints(FiretaskBase):
         interpolation_type (str): method to do image interpolation from two endpoints.
                             Choose from ["IDPP", "linear"], default "IDPP"
     """
-    required_params = ["endpoints", "user_incar_settings"]
-    optional_params = ["user_kpoints_settings", "output_dir", "sort_tol", "d_img",
+    required_params = ["user_incar_settings"]
+    optional_params = ["user_kpoints_settings", "sort_tol", "d_img",
                        "interpolation_type"]
 
     def run_task(self, fw_spec):
@@ -281,26 +278,31 @@ class WriteNEBFromEndpoints(FiretaskBase):
         interpolation_type = self.get("interpolation_type", "IDPP")
         idpp_species = fw_spec.get("idpp_species")
         user_kpoints_settings = self.get("user_kpoints_settings")
+        try:
+            ep0 = Structure.from_dict(fw_spec["ep0"])
+            ep1 = Structure.from_dict(fw_spec["ep1"])
+        except:
+            ep0 = fw_spec["ep0"]
+            ep1 = fw_spec["ep1"]
 
         # Get number of images.
-        nimages = user_incar_settings.get("IMAGES", self._get_nimages())
+        nimages = user_incar_settings.get("IMAGES", self._get_nimages(ep0, ep1))
         if interpolation_type == "IDPP":
-            obj = IDPPSolver.from_endpoints(self["endpoints"], nimages=nimages)
+            obj = IDPPSolver.from_endpoints([ep0, ep1], nimages=nimages)
             images = obj.run(species=idpp_species)
             images_dic_list = [image.as_dict() for image in images]
         elif interpolation_type == "linear":
-            images = self._get_images_by_linear_interp(nimages=nimages)
+            images = self._get_images_by_linear_interp(nimages, ep0, ep1)
             images_dic_list = [i.as_dict() for i in images]
         else:
-            raise ValueError("The interpolation method must either "
-                             "be 'linear' or 'IDPP'!")
+            raise ValueError("The interpolation method must either be 'linear' or 'IDPP'!")
 
         write = WriteNEBFromImages(neb_label='1', user_incar_settings=user_incar_settings,
                                    user_kpoints_settings=user_kpoints_settings)
         fw_spec["neb"] = [images_dic_list]
         write.run_task(fw_spec=fw_spec)
 
-    def _get_nimages(self):
+    def _get_nimages(self, ep0, ep1):
         """
         Calculate the number of images using "d_img", which can be
         overwritten in a optional_params list.
@@ -308,12 +310,9 @@ class WriteNEBFromEndpoints(FiretaskBase):
         Returns:
             nimages (int): number of images.
         """
-        ep0 = self["endpoints"][0]
-        ep1 = self["endpoints"][1]
-        d_img = self.get("d_img") or 0.7
-
         # Check endpoints consistence.
         assert ep0.atomic_numbers == ep1.atomic_numbers, "Endpoints are inconsistent!"
+        d_img = self.get("d_img") or 0.7
 
         # Assume dilute diffusion
         max_dist = 0
@@ -323,14 +322,12 @@ class WriteNEBFromEndpoints(FiretaskBase):
                 max_dist = site_dist
 
         # Number of images must more than one.
-        nimages = int(max_dist / d_img) or 1
+        nimages = round(max_dist / d_img) or 1
 
         return nimages
 
-    def _get_images_by_linear_interp(self, nimages):
+    def _get_images_by_linear_interp(self, nimages, ep0, ep1):
         logger = get_logger(__name__)
-        ep0 = self["endpoints"][0]
-        ep1 = self["endpoints"][1]
         sort_tol = self.get("sort_tol", 0.0)
 
         try:

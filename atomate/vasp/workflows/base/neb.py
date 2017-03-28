@@ -91,12 +91,11 @@ def get_wf_neb_from_structure(structure, user_incar_settings=None, additional_sp
     site_indices = spec["site_indices"]
     is_optimized = spec["is_optimized"]
     wf_name = spec["wf_name"]
-
-    # Default settings for "parent" and "eps". If is_optimized is False, spec["eps"] will
-    # be updated after parent relaxation.
+    endpoints = get_endpoints_from_index(structure, site_indices)
+    # Default settings for "parent", "ep0" and "ep1". If is_optimized is False, spec["ep0"] and
+    # spec["ep1"] will be updated after parent relaxation.
     spec["parent"] = structure.as_dict()
-    ep0, ep1 = get_endpoints_from_index(structure, site_indices)
-    spec["eps"] = [ep0.as_dict(), ep1.as_dict()]
+    spec["ep0"], spec["ep1"] = endpoints[0].as_dict(), endpoints[1].as_dict()
 
     # Assume one round NEB if user_incar_settings not provided.
     user_incar_settings = user_incar_settings or [{}, {}, {}]
@@ -129,7 +128,7 @@ def get_wf_neb_from_structure(structure, user_incar_settings=None, additional_sp
         # Build fireworks link
         links = {rlx_fws[0]: [neb_fws[0]], rlx_fws[1]: [neb_fws[0]]}
 
-    else:  # Start from perfect structure
+    else:  # Start from parent structure
         neb_fws, rlx_fws = [], []
 
         # Get neb fireworks.
@@ -200,7 +199,8 @@ def get_wf_neb_from_endpoints(parent, endpoints, user_incar_settings=None, addit
 
     spec = _update_spec(additional_spec)
     spec["parent"] = parent.as_dict()
-    spec["eps"] = [s.as_dict() for s in endpoints]
+    spec["ep0"] = endpoints[0].as_dict()
+    spec["ep1"] = endpoints[1].as_dict()
 
     wf_name = spec["wf_name"]
     is_optimized = spec["is_optimized"]
