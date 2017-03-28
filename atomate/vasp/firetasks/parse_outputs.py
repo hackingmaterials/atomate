@@ -437,6 +437,7 @@ class GibbsFreeEnergyTask(FiretaskBase):
             gibbs_summary_dict["traceback"] = traceback.format_exc()
 
         gibbs_summary_dict["metadata"] = metadata
+        gibbs_summary_dict["created_at"] = datetime.utcnow()
 
         if not db_file:
             dump_file = "gibbs.json"
