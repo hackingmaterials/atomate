@@ -15,12 +15,6 @@ from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
 
 from fireworks.core.firework import FiretaskBase, FWAction
 from fireworks.utilities.fw_utilities import explicit_serialize
-<<<<<<< HEAD
-from pymatgen_diffusion.neb.io import get_endpoint_dist
-from pymatgen_diffusion.neb.io import MVLCINEBSet, get_endpoints_from_index
-from pymatgen_diffusion.neb.pathfinder import IDPPSolver
-=======
->>>>>>> master
 
 from atomate.utils.utils import get_logger
 
@@ -47,7 +41,7 @@ class TransferNEBTask(FiretaskBase):
 
     def run_task(self, fw_spec):
 
-        from pymatgen_diffusion.neb.io import get_endpoint_dist
+        from pymatgen_diffusion.neb.io import get_endpoint_dist, get_endpoints_from_index
 
         label = self["label"]
         assert label in ["parent", "ep0", "ep1"] or "neb" in label, "Unknown label!"
@@ -300,7 +294,7 @@ class WriteNEBFromEndpoints(FiretaskBase):
         if interpolation_type == "IDPP":
             from pymatgen_diffusion.neb.pathfinder import IDPPSolver
 
-            obj = IDPPSolver.from_endpoints(self["endpoints"], nimages=nimages)
+            obj = IDPPSolver.from_endpoints([ep0, ep1], nimages=nimages)
             images = obj.run(species=idpp_species)
             images_dic_list = [image.as_dict() for image in images]
         elif interpolation_type == "linear":
