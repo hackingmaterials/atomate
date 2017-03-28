@@ -362,10 +362,13 @@ class GibbsFreeEnergyTask(FiretaskBase):
         eos (str): equation of state used for fitting the energies and the volumes.
             options supported by phonopy: "vinet", "murnaghan", "birch_murnaghan".
         pressure (float): in GPa, optional.
+        metadata (dict): meta data
+
     """
 
     required_params = ["tag", "db_file"]
-    optional_params = ["qha_type", "t_min", "t_step", "t_max", "mesh", "eos", "pressure", "poisson"]
+    optional_params = ["qha_type", "t_min", "t_step", "t_max", "mesh", "eos", "pressure", "poisson",
+                       "metadata"]
 
     def run_task(self, fw_spec):
 
@@ -379,6 +382,7 @@ class GibbsFreeEnergyTask(FiretaskBase):
         qha_type = self.get("qha_type", "debye_model")
         pressure = self.get("pressure", 0.0)
         poisson = self.get("poisson", 0.25)
+        metadata = self.get("metadata", {})
         gibbs_summary_dict = {}
 
         mmdb = MMVaspDb.from_db_file(db_file, admin=True)
@@ -404,27 +408,45 @@ class GibbsFreeEnergyTask(FiretaskBase):
         if qha_type not in ["debye_model"]:
             gibbs_summary_dict["force_constants"] = force_constants
 
-        # use quasi-harmonic debye approximation
-        if qha_type in ["debye_model"]:
+        # whether the quasi-harmonic analysis failed or not
+        gibbs_summary_dict["success"] = True
+        try:
+            # use quasi-harmonic debye approximation
+            if qha_type in ["debye_model"]:
 
-            from atomate.tools.analysis import QuasiharmonicDebyeApprox
+                from pymatgen.analysis.quasiharmonic import QuasiharmonicDebyeApprox
 
-            qhda = QuasiharmonicDebyeApprox(energies, volumes, structure, t_min, t_step, t_max, eos,
-                                            pressure=pressure, poisson=poisson)
-            gibbs_summary_dict.update(qhda.get_summary_dict())
+                qhda = QuasiharmonicDebyeApprox(energies, volumes, structure, t_min, t_step, t_max, eos,
+                                                pressure=pressure, poisson=poisson)
+                gibbs_summary_dict.update(qhda.get_summary_dict())
 
-        # use the phonopy interface
+            # use the phonopy interface
+            else:
+
+                from atomate.tools.analysis import get_phonopy_gibbs
+
+                G, T = get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_step,
+                                         t_max, mesh, eos, pressure)
+                gibbs_summary_dict["gibbs_free_energy"] = G
+                gibbs_summary_dict["temperatures"] = T
+        # quasi-harmonic analysis failed, set the flag to false
+        except:
+            import traceback
+            logger.warn("QUASI-HARMONIC ANALYSIS FAILED")
+            gibbs_summary_dict["success"] = False
+            gibbs_summary_dict["traceback"] = traceback.format_exc()
+
+        gibbs_summary_dict["metadata"] = metadata
+
+        if not db_file:
+            dump_file = "gibbs.json"
+            logger.info("Dumping the analysis summary to {}".format(dump_file))
+            with open(dump_file, "w") as f:
+                f.write(json.dumps(gibbs_summary_dict, default=DATETIME_HANDLER))
         else:
+            coll = mmdb.db["gibbs_tasks"]
+            coll.insert_one(gibbs_summary_dict)
 
-            from atomate.tools.analysis import get_phonopy_gibbs
-
-            G, T = get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_step,
-                                     t_max, mesh, eos, pressure)
-            gibbs_summary_dict["gibbs_free_energy"] = G
-            gibbs_summary_dict["temperatures"] = T
-
-        with open("gibbs.json", "w") as f:
-            f.write(json.dumps(gibbs_summary_dict, default=DATETIME_HANDLER))
         logger.info("GIBBS FREE ENERGY CALCULATION COMPLETE")
 
 

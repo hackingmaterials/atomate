@@ -7,9 +7,10 @@ This module defines the Nudged Elastic Band (NEB) workflow.
 
 from datetime import datetime
 
-from pymatgen.core import Structure
 from pymatgen_diffusion.neb.io import get_endpoints_from_index
+
 from fireworks.core.firework import Workflow
+
 from atomate.vasp.fireworks.core import NEBFW, NEBRelaxationFW
 
 __author__ = "Hanmei Tang, Iek-Heng Chu"

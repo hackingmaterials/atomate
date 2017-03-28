@@ -9,16 +9,17 @@ sequences of VASP calculations.
 
 from fireworks import Firework
 
-from pymatgen.io.vasp.sets import MPRelaxSet, MITMDSet, MITRelaxSet
-from pymatgen_diffusion.neb.io import MVLCINEBEndPointSet
+from pymatgen import Structure
+from pymatgen.io.vasp.sets import MPRelaxSet, MITMDSet, MITRelaxSet, MPStaticSet, MPSOCSet
 
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
-from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, PassEpsilonTask, \
-    PassNormalmodesTask
+from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, PassEpsilonTask, PassNormalmodesTask
 from atomate.vasp.firetasks.neb_tasks import TransferNEBTask
 from atomate.vasp.firetasks.parse_outputs import VaspToDbTask, BoltztrapToDBTask
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunBoltztrap
-from atomate.vasp.firetasks.write_inputs import *
+from atomate.vasp.firetasks.write_inputs import WriteNormalmodeDisplacedPoscar, \
+    WriteTransmutedStructureIOSet, WriteVaspFromIOSet, WriteVaspHSEBSFromPrev, \
+    WriteVaspNSCFFromPrev, WriteVaspSOCFromPrev, WriteVaspStaticFromPrev
 from atomate.vasp.firetasks.neb_tasks import WriteNEBFromImages, WriteNEBFromEndpoints
 
 
@@ -427,8 +428,9 @@ class NEBRelaxationFW(Firework):
                                          user_incar_settings=user_incar_settings,
                                          user_kpoints_settings=user_kpoints_settings)
         else:  # label == "ep0" or "ep1"
-            vasp_input_set = MVLCINEBEndPointSet(structure,
-                                                 user_incar_settings=user_incar_settings,
+            from pymatgen_diffusion.neb.io import MVLCINEBEndPointSet
+
+            vasp_input_set = MVLCINEBEndPointSet(structure, user_incar_settings=user_incar_settings,
                                                  user_kpoints_settings=user_kpoints_settings)
 
         write_ep_task = WriteVaspFromIOSet(structure=structure, output_dir=".",

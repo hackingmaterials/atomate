@@ -18,7 +18,12 @@ from atomate.vasp.workflows.presets.core import wf_nudged_elastic_band
 from pymatgen import SETTINGS
 from pymatgen.core import Structure
 from pymatgen.util.testing import PymatgenTest
-from pymatgen_diffusion.neb.io import get_endpoints_from_index
+
+try:
+    from pymatgen_diffusion.neb.io import get_endpoints_from_index
+    pmgd = True
+except ImportError:
+    pmgd = False
 
 __author__ = "Hanmei Tang, Iek-Heng Chu"
 __email__ = 'hat003@eng.ucsd.edu, ihchu@eng.ucsd.edu'
@@ -31,6 +36,7 @@ DEBUG_MODE = False
 LAUNCHPAD_RESET = True
 
 
+@unittest.skipIf(not pmgd, "pymatgen-diffusion not installed, so skipping...")
 class TestNudgedElasticBandWorkflow(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

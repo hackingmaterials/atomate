@@ -5,10 +5,9 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import numpy as np
 
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
-from pymatgen.core import Structure
 
-from atomate.vasp.config import SMALLGAP_KPOINT_MULTIPLY, STABILITY_CHECK, VASP_CMD, \
-    DB_FILE, ADD_WF_METADATA
+from atomate.vasp.config import SMALLGAP_KPOINT_MULTIPLY, STABILITY_CHECK, VASP_CMD, DB_FILE, \
+    ADD_WF_METADATA
 from atomate.vasp.powerups import add_small_gap_multiply, add_stability_check, add_modify_incar, \
     add_wf_metadata, add_common_powerups
 from atomate.vasp.workflows.base.core import get_wf
@@ -17,8 +16,8 @@ from atomate.vasp.workflows.base.raman import get_wf_raman_spectra
 from atomate.vasp.workflows.base.gibbs import get_wf_gibbs_free_energy
 from atomate.vasp.workflows.base.bulk_modulus import get_wf_bulk_modulus
 from atomate.vasp.workflows.base.thermal_expansion import get_wf_thermal_expansion
-from atomate.vasp.workflows.base.neb import get_wf_neb_from_endpoints, \
-    get_wf_neb_from_structure, get_wf_neb_from_images
+from atomate.vasp.workflows.base.neb import get_wf_neb_from_endpoints, get_wf_neb_from_structure, \
+    get_wf_neb_from_images
 
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
@@ -169,6 +168,23 @@ def wf_dielectric_constant(structure, c=None):
     return wf
 
 
+def wf_dielectric_constant_no_opt(structure, c=None):
+
+    c = c or {}
+    vasp_cmd = c.get("VASP_CMD", VASP_CMD)
+    db_file = c.get("DB_FILE", DB_FILE)
+
+    wf = get_wf(structure, "dielectric_constant_no_opt.yaml",
+                common_params={"vasp_cmd": vasp_cmd,
+                               "db_file": db_file})
+
+    wf = add_common_powerups(wf, c)
+
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
+    return wf
+
 def wf_piezoelectric_constant(structure, c=None):
 
     c = c or {}
@@ -269,13 +285,14 @@ def wf_gibbs_free_energy(structure, c=None):
 
     pressure = c.get("pressure", 0.0)
     poisson = c.get("poisson", 0.25)
+    metadata = c.get("metadata", None)
 
     wf = get_wf_gibbs_free_energy(structure, user_kpoints_settings=user_kpoints_settings,
                                   deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file,
                                   eos=eos, qha_type=qha_type, pressure=pressure, poisson=poisson,
-                                  t_min=t_min, t_max=t_max, t_step=t_step)
+                                  t_min=t_min, t_max=t_max, t_step=t_step, metadata=metadata)
 
-    wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 600, "EDIFF": 1e-6}})
+    wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 600, "EDIFF": 1e-6, "LAECHG": False}})
 
     wf = add_common_powerups(wf, c)
 

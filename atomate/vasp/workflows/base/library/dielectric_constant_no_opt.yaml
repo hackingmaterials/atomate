@@ -1,0 +1,3 @@
+# static dielectric constant
+fireworks:
+- fw: atomate.vasp.fireworks.core.LepsFW

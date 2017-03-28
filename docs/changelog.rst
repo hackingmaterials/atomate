@@ -2,6 +2,13 @@
 atomate Changelog
 ====================
 
+**v0.4.4**
+
+* NEB workflow (H. Tang)
+* adsorption workflow (J. Montoya)
+* improvements to Gibbs workflow (K. Mathew)
+* misc bugfixes, improvements (A. Faghaninia, A. Jain)
+
 **v0.4.3**
 
 * Add Gibbs energy w/volume (K. Mathew)

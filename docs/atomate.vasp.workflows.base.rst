@@ -4,6 +4,14 @@ atomate.vasp.workflows.base package
 Submodules
 ----------
 
+atomate.vasp.workflows.base.adsorption module
+---------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.base.adsorption
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 atomate.vasp.workflows.base.bulk_modulus module
 -----------------------------------------------
 
@@ -40,6 +48,14 @@ atomate.vasp.workflows.base.gibbs module
 ----------------------------------------
 
 .. automodule:: atomate.vasp.workflows.base.gibbs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+atomate.vasp.workflows.base.neb module
+--------------------------------------
+
+.. automodule:: atomate.vasp.workflows.base.neb
     :members:
     :undoc-members:
     :show-inheritance:
