@@ -290,7 +290,9 @@ Want to see something added or changed? There are many ways to make that a reali
 
 The list of contributors to atomate can be found :doc:`here </contributors>`.
 
-atomate is currently in an alpha release. Although atomate is open source, currently no support is provided for atomate other than for those who are contributing to its development.
+atomate is currently in an alpha release. Although atomate is open source, currently no support is provided for atomate other than for those who are contributing to its development. There is an `atomate Google Group`_ dedicated for discussion and support related to development
+
+.. _atomate Google Group: https://groups.google.com/forum/#!forum/atomate
 
 =========
 Changelog
