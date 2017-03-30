@@ -76,11 +76,8 @@ class TestBulkModulusWorkflow(unittest.TestCase):
 
 
     def _simulate_vasprun(self, wf):
-        # si_ref_dirs = {"{} {}".format("bulk_modulus deformation", str(i-2)): os.path.join(reference_dir, str(i))
-        #                for i in range(2,len(self.wf.fws))}
         si_ref_dirs = {"bulk_modulus deformation 0": os.path.join(reference_dir, str(2)),
-                       "bulk_modulus deformation 4": os.path.join(reference_dir, str(6)),
-                       }
+                       "bulk_modulus deformation 4": os.path.join(reference_dir, str(6))}
 
         # for the first time use_fake_vasp is called to create the json files.
         for i in self.pre_run_deformations:
