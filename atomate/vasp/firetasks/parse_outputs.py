@@ -23,7 +23,7 @@ from atomate.vasp.drones import VaspDrone
 
 from pymatgen import Structure
 from pymatgen.analysis.elasticity import ElasticTensor, \
-        Stress, Deformation, toec_fit, Strain
+        Stress, Deformation, central_diff_fit, Strain
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -210,7 +210,7 @@ class ElasticTensorToDbTask(FiretaskBase):
     """
 
     required_params = ['structure']
-    optional_params = ['db_file', "toec"]
+    optional_params = ['db_file', "order"]
 
     def run_task(self, fw_spec):
 
@@ -258,14 +258,15 @@ class ElasticTensorToDbTask(FiretaskBase):
 
         d["state"] = "successful"
 
-        if self["toec"]:
+        if self["order"] > 2:
             toec = {}
             toec['stresses'], toec['strains'] = stresses, strains
             toec['pk_stresses'] = [stress.piola_kirchoff_2(strain.deformation_matrix) 
                                   for stress, strain in zip(stresses, strains)]
             toec['eq_stress'] = -0.1*Stress(optimize_doc["calcs_reversed"][0]\
                                            ["output"]["ionic_steps"][-1]["stress"])
-            c2, c3 = toec_fit(strains, toec["pk_stresses"], eq_stress = toec["eq_stress"])
+            c2, c3 = central_diff_fit(strains, toec["pk_stresses"], eq_stress = toec["eq_stress"],
+                                      order=order)
             toec["C2_raw"] = c2.voigt.tolist()
             toec["C3_raw"] = c3.voigt.tolist()
             toec["C2_fit"] = c2.fit_to_structure(opt_struct).voigt
