@@ -22,8 +22,8 @@ from atomate.vasp.database import MMVaspDb
 from atomate.vasp.drones import VaspDrone
 
 from pymatgen import Structure
-from pymatgen.analysis.elasticity import ElasticTensor, \
-        Stress, Deformation, central_diff_fit, Strain
+from pymatgen.analysis.elasticity import ElasticTensorExpansion, \
+        Stress, Deformation, Strain, ElasticTensor, get_strain_state_dict
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -213,7 +213,6 @@ class ElasticTensorToDbTask(FiretaskBase):
     optional_params = ['db_file', "order"]
 
     def run_task(self, fw_spec):
-
         # Get optimized structure
         # TODO: will this find the correct path if the workflow is rerun from the start?
         optimize_loc = fw_spec["calc_locs"][0]["path"]
@@ -221,11 +220,13 @@ class ElasticTensorToDbTask(FiretaskBase):
         drone = VaspDrone()
         optimize_doc = drone.assimilate(optimize_loc)
         opt_struct = Structure.from_dict(optimize_doc["calcs_reversed"][0]["output"]["structure"])
-
         d = {"deformation_tasks": fw_spec["deformation_tasks"], 
              "optimized_structure": opt_struct.as_dict(), 
              "initial_structure": self['structure'].as_dict(), "analysis": {},
              "formula_pretty":opt_struct.composition.reduced_formula}
+        d['eq_stress'] = -0.1*Stress(optimize_doc["calcs_reversed"][0]\
+                                     ["output"]["ionic_steps"][-1]["stress"])
+
         if fw_spec.get("tags", None):
             d["tags"] = fw_spec["tags"]
         defo_dicts = fw_spec["deformation_tasks"].values()
@@ -241,48 +242,43 @@ class ElasticTensorToDbTask(FiretaskBase):
 
         logger.info("ANALYZING STRESS/STRAIN DATA")
         vstrains = np.array([s.voigt for s in strains])
+        # Direct pseudoinverse fitting
         if np.linalg.matrix_rank(np.array(vstrains)) == 6:
             # Perform Elastic tensor fitting and analysis
-            result = ElasticTensor.from_strain_stress_list(strains, stresses)
-            d["elastic_tensor"] = result.voigt.tolist()
-            kg_average = result.kg_average
-            d.update({"K_Voigt": kg_average[0], "G_Voigt": kg_average[1],
-                      "K_Reuss": kg_average[2], "G_Reuss": kg_average[3],
-                      "K_Voigt_Reuss_Hill": kg_average[4],
-                      "G_Voigt_Reuss_Hill": kg_average[5]})
-            d["universal_anisotropy"] = result.universal_anisotropy
-            d["homogeneous_poisson"] = result.homogeneous_poisson
-
+            result = ElasticTensor.from_pseudoinverse(strains, stresses)
+            pinv_fit = {"elastic_tensor":result.voigt.tolist(),
+                        "prop_dict":result.property_dict,
+                        "structure_prop_dict":result.get_structure_property_dict(opt_struct)}
+            d["pseudoinverse_fit"] = pinv_fit
         else:
             raise ValueError("Data matrix rank is less than 6")
-
-        d["state"] = "successful"
-
-        if self["order"] > 2:
-            toec = {}
-            toec['stresses'], toec['strains'] = stresses, strains
-            toec['pk_stresses'] = [stress.piola_kirchoff_2(strain.deformation_matrix) 
-                                  for stress, strain in zip(stresses, strains)]
-            toec['eq_stress'] = -0.1*Stress(optimize_doc["calcs_reversed"][0]\
-                                           ["output"]["ionic_steps"][-1]["stress"])
-            c2, c3 = central_diff_fit(strains, toec["pk_stresses"], eq_stress = toec["eq_stress"],
-                                      order=order)
-            toec["C2_raw"] = c2.voigt.tolist()
-            toec["C3_raw"] = c3.voigt.tolist()
-            toec["C2_fit"] = c2.fit_to_structure(opt_struct).voigt
-            toec["C3_fit"] = c3.fit_to_structure(opt_struct).voigt
-            indices_2 = list(itertools.combinations_with_replacement(range(6), r=2))
-            indices_3 = list(itertools.combinations_with_replacement(range(6), r=3))
-            c2_idx = ["c_"+"".join([str(i) for i in np.array(idx)+1])\
-                      +" = "+str(np.array(c2.voigt)[idx]) for idx in indices_2]
-            c3_idx = ["c_"+"".join([str(i) for i in np.array(idx)+1])\
-                      +" = "+str(np.array(c3.voigt)[idx]) for idx in indices_3]
-            c3_idx_sym = ["c_"+"".join([str(i) for i in np.array(idx)+1])\
-                          +" = "+str(np.array(toec['C3_fit'])[idx]) for idx in indices_3]
-            toec["C2_index_format"] = c2_idx
-            toec["C3_index_format"] = c3_idx
-            toec["C3_index_format_sym"] = c3_idx_sym
-            d["toec"] = toec
+        ind_strain_states = list(get_strain_state_dict(strains, stresses).keys())
+        if set([tuple(s) for s in np.eye(6)]) <= set(ind_strain_states):
+            result = ElasticTensor.from_independent_strains(strains, stresses,
+                                                            eq_stress=d["eq_stress"])
+            poly_fit = {"elastic_tensor":result.voigt.tolist(),
+                        "prop_dict":result.property_dict,
+                        "structure_prop_dict":result.get_structure_property_dict(opt_struct)}
+            d["linear_fit"] = poly_fit
+        order = self.get("order", 2)
+        if order > 2:
+            hoec = {}
+            hoec['stresses'], hoec['strains'] = stresses, strains
+            hoec['pk_stresses'] = [stress.piola_kirchoff_2(strain.deformation_matrix) 
+                                   for stress, strain in zip(stresses, strains)]
+            exp = ElasticTensorExpansion.from_diff_fit(strains, stresses, 
+                                                       eq_stress = d["eq_stress"], 
+                                                       order=order)
+            expfit = exp.fit_to_structure(opt_struct)
+            hoec["C_raw"] = [c for c in exp.voigt]
+            hoec["C_fit"] = [c for c in expfit.voigt]
+            idx_format = {}
+            for o in range(2, order+1):
+                indices = list(itertools.combinations_with_replacement(range(6), r=o))
+                # Produces a list of strings, c_ijkl = NUMBER for all distinct combinations
+                idx_format[o] = ['c_' + ''.join([str(i) for i in np.array(idx) + 1])\
+                                 + ' = ' + str(expfit[o-2].voigt[idx]) for idx in indices]
+            d["diff_fit"] = hoec
         d["formula_pretty"] = opt_struct.composition.reduced_formula
         d = recursive_dict(d)
         # Save analysis results in json or db
