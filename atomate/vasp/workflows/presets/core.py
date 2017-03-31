@@ -190,15 +190,12 @@ def wf_elastic_constant(structure, c=None):
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
     user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
-    norm_deformations = c.get("norm_deformations", [-0.01, -0.005, 0.005, 0.01])
-    shear_deformations = c.get("shear_deformations", [-0.06, -0.03, 0.03, 0.06])
+    stencils = c.get("stencils", None)
     optimize_structure = c.get("optimize_structure", True)
-
-    wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd,
-                                 norm_deformations=norm_deformations,
-                                 shear_deformations=shear_deformations,
+    sym_red = c.get("symmetry_reduction", False)
+    wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd, symmetry_reduction=sym_red,
                                  db_file=db_file, user_kpoints_settings=user_kpoints_settings,
-                                 optimize_structure=optimize_structure)
+                                 optimize_structure=optimize_structure, stencils=stencils)
     mip = {"incar_update":{"ENCUT": 700, "EDIFF": 1e-6, "LAECHG":False}}
     wf = add_modify_incar(wf, modify_incar_params=mip)
 
@@ -208,6 +205,12 @@ def wf_elastic_constant(structure, c=None):
         wf = add_wf_metadata(wf, structure)
 
     return wf
+
+def wf_elastic_constant_minimal(structure, c=None):
+
+    c_new = {"symmetry_reduction":True, "stencils":[0.01]}
+    c_new.update(c or {})
+    return wf_elastic_constant(structure, c_new)
 
 
 def wf_raman_spectra(structure, c=None):

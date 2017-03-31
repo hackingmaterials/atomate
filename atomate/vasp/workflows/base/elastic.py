@@ -64,7 +64,6 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None,
         stencils = [stencils]*len(strain_states)
     for state, stencil in zip(strain_states, stencils):
         strains.extend([Strain.from_voigt(s*np.array(state)) for s in stencil])
-    import pdb; pdb.set_trace()
 
     # Remove zero strains
     strains = [strain for strain in strains if not (abs(strain) < 1e-10).all()]
