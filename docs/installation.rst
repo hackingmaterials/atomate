@@ -1,4 +1,5 @@
 .. title:: Installing atomate
+.. _installation tutorial:
 
 ==================
 Installing atomate
@@ -9,7 +10,7 @@ Introduction
 
 This guide will get you up and running in an environment for running high-throughput workflows with atomate. atomate is built on pymatgen, custodian, and FireWorks libraries to run materials science workflows. Briefly, pymatgen_ is used for creating input and analyzing output of materials science codes, custodian_ runs VASP and performs error checking/handling and checkpointing, and FireWorks_ enables designing, managing and executing workflows. Details about how atomate is designed, how these different pieces interact, and how to run and write your own workflows will be covered in later tutorials. For now, these topics will be covered here in enough depth to get you set up and to help you know where to troubleshoot if you are having problems.
 
-It is assumed that you are comfortable with basic Linux shell commands and navigation. `Linux Journey`_ and `Linux Command`_ breifly cover enough to get you started. It will also be helpful if you are familiar with Python, but it is not strictly required for installation. `The Hitchhiker's Guide to Python`_ is a great jumping off point that can direct you to many resources for beginning to advanced Pythonistas and is available in multiple lanaguages.
+It is assumed that you are comfortable with basic Linux shell commands and navigation. `Linux Journey`_ and `Linux Command`_ breifly cover enough to get you started. It will also be helpful if you are familiar with Python, but it is not strictly required for installation.
 
 .. _pymatgen: http://pymatgen.org
 .. _custodian: https://materialsproject.github.io/custodian/
@@ -27,8 +28,8 @@ Completing everything on this checklist should result in a fully functioning env
 1. Prerequisites_
 #. `Create a Python environment`_
 #. `Install Python packages`_
-#. `Configure pymatgen`_
 #. `Configure FireWorks`_
+#. `Configure pymatgen`_
 #. `Run a test workflow`_
 
 
