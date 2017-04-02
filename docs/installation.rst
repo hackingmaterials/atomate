@@ -6,7 +6,7 @@ Installing atomate
 ==================
 
 Introduction
-------------
+============
 
 This guide will get you up and running in an environment for running high-throughput workflows with atomate. atomate is built on pymatgen, custodian, and FireWorks libraries to run materials science workflows. Briefly, pymatgen_ is used for creating input and analyzing output of materials science codes, custodian_ runs VASP and performs error checking/handling and checkpointing, and FireWorks_ enables designing, managing and executing workflows. Details about how atomate is designed, how these different pieces interact, and how to run and write your own workflows will be covered in later tutorials. For now, these topics will be covered here in enough depth to get you set up and to help you know where to troubleshoot if you are having problems.
 
@@ -21,7 +21,7 @@ It is assumed that you are comfortable with basic Linux shell commands and navig
 
 
 Installation checklist
-----------------------
+======================
 
 Completing everything on this checklist should result in a fully functioning environment. Each item will be covered in depth, but this can be used to keep track of the big picture and help reinstall on other systems.
 
@@ -34,7 +34,7 @@ Completing everything on this checklist should result in a fully functioning env
 
 
 Automated installer
--------------------
+===================
 
 The `Phases Research Lab at Penn State`_ has developed an `automated installer`_ to install atomate with minimal user interaction. The installer simply scripts all of the actions given in this installation guide after the user configures their database (see the `Configure FireWorks`_ section). There are a select few preset systems that are handled automatically (include TACC's Stampede, NERSC's Edison and Cori) and otherwise all of the relevant settings can be tweaked in one script and installed. For instructions on the use of the `automated installer`_, see the README. **Disclaimer**: this installer comes with no guarantees or warranty and the authors are not responsible for any problems caused (see the LICENSE). If you run into problems caused by the installer, please open an issue on GitHub.
 
@@ -52,7 +52,7 @@ Before you install, you need to make sure that you have access to run the codes 
 
 
 VASP
-----
+====
 
 To get access to VASP on supercomputing resources typically requires that you are added to a user group on the system you work on after your license is verified. You will also need access to the psuedopotentials. For convenience, you should copy these to the same directory you will be installating atomate. The directory structure might look like:
 
@@ -82,7 +82,7 @@ To get access to VASP on supercomputing resources typically requires that you ar
 
 
 MongoDB
--------
+=======
 
 MongoDB_ is a well known NoSQL database that stores each database entry as a document, which is represented in the JSON format (the formatting is similar to a dictionary in Python). Each calculation step you run, e.g. a static calculation or a relaxation has a MongoDB document describing the details of how to run that calculation. Each of those calculations will also likely produce a MongoDB entry containing the full results of your calculation. You can use one database to manage both of these tasks, but it is recommended to use two separate databases.
 
@@ -199,7 +199,7 @@ With the Python codes set up, FireWorks needs to be configured to communicate wi
 
 
 my_fworker.yaml
----------------
+===============
 
 In FireWorks' distributed `server-worker model`_, each computing resource where you run jobs is a FireWorker (Worker). ``my_fworker.yaml`` controls the environment and settings unique to the cluster, such as the VASP executable. If this is the only cluster you plan on using just one Worker for all of your calculations a minimal setup for the ``my_fworker.yaml`` file is
 
@@ -215,7 +215,7 @@ In FireWorks' distributed `server-worker model`_, each computing resource where 
 Where the name is arbitrary and is useful for keeping track of which Worker is running your jobs. ``db.json`` is the database where calculation results from this Worker will be stored. We will create it shortly. The ``vasp_cmd`` is the command that you would use to run VASP with parallelization (``srun``, ``ibrun``, ``mpirun``, ...). If you don't know which of these to use or which VASP executable is correct, check with the documentation for computing resource you are running on or try to find them interactively by checking the output of ``which srun``, ``which vasp_std``, etc. . If you later want to set up multiple Workers on the same or different machines, you can find information about controlling which Worker can run which job by using the ``name`` field above, or the ``category`` or ``query`` fields that we did not define. For more information on configuring multiple Workers, see the `FireWorks documentation for controlling Workers`_.
 
 my_qadapter.yaml
-----------------
+================
 
 To run your VASP jobs at scale across one or more nodes, you usually submit your jobs through a queue system on the computing resources. FireWorks handles communicating with some of the common queue systems automatically. As usual, only the basic configuration options will be discussed. If you will use atomate as in this tutorial, this basic configuration is sufficient. A minimal ``my_qadapter.yaml`` file for SLURM machines might look like
 
@@ -249,7 +249,7 @@ The ``_fw_name: CommonAdapter`` means that the queue is one of the built in queu
 .. _FireWorks documentation for writing queue adapters: https://pythonhosted.org/FireWorks/qadapter_programming.html?highlight=qadapter
 
 my_launchpad.yaml
------------------
+=================
 
 We've seen how to set up Workers in FireWorks' `server-worker model`_, but now the server must be set up. The LaunchPad is where all of the FireWorks and Workflows are stored. Each Worker can query this database for the status of FireWorks and pull down FireWorks to reserve them in the queue and run them. A ``my_launchpad.yaml`` file with fairly verbose logging is below:
 
@@ -274,7 +274,7 @@ Here's what you'll need to fill out:
 
 
 db.json
--------
+=======
 
 The ``db.json`` file tells FireWorks where to put the results from your workflows. This can be the same, but would ideally be different than the database you are using for your LaunchPad so you can maintain them separately. The ``db.json`` file requires you to enter the basic database information as well as what to call the main collection that results are kept in (e.g. ``tasks``) and the authentication information for an admin user and a read only user on the database. The same kind of information is filled out in the ``db.json``, but it is nice to have two users: an admin and a read only user. In general, the data you will enter are very similar to ``my_launchpad.yaml``, except in JSON rather than YAML. Mind that valid JSON requires double quotes around each of the string entries and that all of the entries should be strings except the value of "port", which should be an integer.
 
@@ -295,7 +295,7 @@ The ``db.json`` file tells FireWorks where to put the results from your workflow
 The collection can be any name you want, leaving it as ``"tasks"`` will result in a collection being created called ``tasks`` in your database for calculation results.
 
 FW_config.yaml
---------------
+==============
 
 The ``FW_CONFIG.yaml`` file controls different FireWorks settings. For a more complete reference to the FireWorks parameters you can control see the `FireWorks documentation for modifying the FW config`_. Here you simply need to accomplish telling FireWorks
 
@@ -311,7 +311,7 @@ Create a file called ``FW_CONFIG.yaml`` in ``<<INSTALL_DIR>>/config`` with the f
     CONFIG_FILE_DIR: <<INSTALL_DIR>>/config
 
 Finishing up
-------------
+============
 
 The directory structure of ``<<INSTALL_DIR>>/codes`` should now look like
 
@@ -442,10 +442,10 @@ Troubleshooting
 ===============
 
 FAQ:
-----
+====
 
 Q: I can't connect to my LaunchPad database
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------
 
 :A: Make sure the right LaunchPad file is getting selected
 
@@ -473,13 +473,13 @@ Q: I can't connect to my LaunchPad database
 
 
 Q: My job fizzled!
-~~~~~~~~~~~~~~~~~~
+------------------
 
 :A: Check the ``*_structure_optimization.out`` and ``*_structure_optimization.error`` in the launch directory for any errors. Also check the ``FW.json`` to check for a Python traceback.
 
 
 Q: I made a mistake, how do I cancel my job?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------------
 
 :A: One drawback of using the reservation mode is that you have to cancel your job in two places: the queue and the LaunchPad. To cancel the job in the queue, use whatever command you usually would (e.g. ``scancel`` or ``qdel``). To cancel or rerun the FireWork, run
 
