@@ -6,6 +6,10 @@
 .. pull-quote:: | "Civilization advances by extending the number of important operations which we can perform without thinking about them."
                 |    - Alfred North Whitehead
 
+=======
+atomate
+=======
+
 Theory and computations are powerful tools for understanding and designing materials, but conventional
 software for performing these computations are still difficult to use, understand, and automate.
 atomate makes it possible to perform complex materials science computations using
@@ -121,35 +125,45 @@ Cori. Reduce NCORE if you want to try to increase speed at the risk of having
 lower memory available per orbital.
 
 ====
-FAQS
+Help
 ====
 
-1. **What do I actually need to do to get a job running?**
+FAQ:
+====
 
-First, you need to install and configure atomate (see the :ref:`installation tutorial <installation tutorial>`) for your computing center of interest. Next you need to get some workflows. The easiest way is to throw a pymatgen Structure object into one of the prebuilt workflow functions in ``atomate/vasp/workflows/presets``. Et voilá! You have a workflow object. Next you need to put the workflow into your LaunchPad using the add_wf method in FireWorks. Finally, you need to run the workflow using FireWorks, e.g. using rlaunch, qlaunch or any of the other FireWorks tools.
-Basically, the goal of atomate is to help you get some workflows. e.g., you have a structure and you know you want the dielectric constant - atomate will help you get a workflow to accomplish that. All the details of running workflows, managing them, etc. is handled by FireWorks. Note that there is also an ``mmwf`` script that is intended to help you in putting a Workflow in the LaunchPad, but if you don't really understand what it's doing, it's probably best to ignore this for now.
+Q:What do I actually need to do to get a job running?
+-----------------------------------------------------
 
-2. **How do I know what workflows are available?**
+:A: First, you need to install and configure atomate (see the :ref:`installation tutorial <installation tutorial>`) for your computing center of interest. Next you need to get some workflows. The easiest way is to throw a pymatgen Structure object into one of the prebuilt workflow functions in ``atomate/vasp/workflows/presets``. Et voilá! You have a workflow object. Next you need to put the workflow into your LaunchPad using the add_wf method in FireWorks. Finally, you need to run the workflow using FireWorks, e.g. using rlaunch, qlaunch or any of the other FireWorks tools.
 
-Browse the library folder in ``atomate/vasp/workflows/base`` for the raw workflows. Browse ``atomate/vasp/workflows/presets`` for preset workflows (just give a Structure, get back a workflow)
+    Basically, the goal of atomate is to help you get some workflows. e.g., you have a structure and you know you want the dielectric constant - atomate will help you get a workflow to accomplish that. All the details of running workflows, managing them, etc. is handled by FireWorks. Note that there is also an ``mmwf`` script that is intended to help you in putting a Workflow in the LaunchPad, but if you don't really understand what it's doing, it's probably best to ignore this for now.
 
-3. **I have a workflow that is almost what I want, but I want to tune some settings. How?**
+Q: How do I know what workflows are available?
+----------------------------------------------
 
-Workflows are composed of Fireworks which are in turn composed of FireTasks. First look at code of the actual Fireworks that your workflow is referring to. Does the Firework contain a parameter for the setting that you want? If so, you can modify the workflow YAML file to set that parameter. If you are sure your Firework does not have the parameter you want, look at the FireTasks inside the Firework. Do those have a parameter for the setting that you want? If yes, the best option is to probably compose the Workflow in Python rather than YAML. It is generally *very* easy to do this. If you don't see the option anywhere, you will need to code it inside the FireTask/Firework.
+:A: Browse the library folder in ``atomate/vasp/workflows/base`` for the raw workflows. Browse ``atomate/vasp/workflows/presets`` for preset workflows (just give a Structure, get back a workflow)
 
-4. **How do I create a brand new workflow?**
+Q: I have a workflow that is almost what I want, but I want to tune some settings. How?
+---------------------------------------------------------------------------------------
 
-If you just want to rearrange, add, or delete Fireworks in one of the existing workflows, simply create a new YAML file that contains the sequence of steps you want.
+:A: Workflows are composed of Fireworks which are in turn composed of FireTasks. First look at code of the actual Fireworks that your workflow is referring to. Does the Firework contain a parameter for the setting that you want? If so, you can modify the workflow YAML file to set that parameter. If you are sure your Firework does not have the parameter you want, look at the FireTasks inside the Firework. Do those have a parameter for the setting that you want? If yes, the best option is to probably compose the Workflow in Python rather than YAML. It is generally *very* easy to do this. If you don't see the option anywhere, you will need to code it inside the FireTask/Firework.
 
-If the Fireworks that are currently implemented in atomate do not contain the function you want, you will need to write a new Firework (and maybe new FireTasks) and connect them into a workflow. Maybe try referring to how some of the existing workflows are constructed to learn how to do this.
+Q: How do I create a brand new workflow?
+-------------------------------------
 
-4. **Are there any unit tests to make sure atomate is giving me sensible answers?**
+:A: If you just want to rearrange, add, or delete Fireworks in one of the existing workflows, simply create a new YAML file that contains the sequence of steps you want.
 
-We are working on it...
+    If the Fireworks that are currently implemented in atomate do not contain the function you want, you will need to write a new Firework (and maybe new FireTasks) and connect them into a workflow. Maybe try referring to how some of the existing workflows are constructed to learn how to do this.
 
-5. **Is there a command line tool?**
+Q: Are there any unit tests to make sure atomate is giving me sensible answers?
+----------------------------------------------------------------------------
 
-The ``atwf`` tool is there but somewhat under development. If you know what you are doing it is probably helpful, if you don't know what you are doing then using this tool probably will not lead to your success in running a workflow.
+:A: We are working on it...
+
+Q: Is there a command line tool?
+-----------------------------
+
+:A: The ``atwf`` tool is there but somewhat under development. If you know what you are doing it is probably helpful, if you don't know what you are doing then using this tool probably will not lead to your success in running a workflow.
 
 =================
 Citing atomate
@@ -185,7 +199,7 @@ Want to see something added or changed? There are many ways to make that a reali
 
 The list of contributors to atomate can be found :doc:`here </contributors>`.
 
-atomate is currently in an alpha release. Although atomate is open source, currently no support is provided for atomate other than for those who are contributing to its development. There is an `atomate Google Group`_ dedicated for discussion and support related to development
+atomate is currently in an alpha release. Although atomate is open source, currently no support is provided for atomate other than for those who are contributing to its development. There is an `atomate Google Group`_ dedicated to discussion and support related to development
 
 .. _atomate Google Group: https://groups.google.com/forum/#!forum/atomate
 
