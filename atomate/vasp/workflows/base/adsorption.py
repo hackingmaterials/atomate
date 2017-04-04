@@ -37,7 +37,7 @@ default_slab_gen_params = {"max_index": 1, "min_slab_size": 7.0, "min_vacuum_siz
 def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None, slab_gen_params=None,
                       vasp_cmd="vasp", db_file=None, conventional=True, slab_incar_params=None,
                       ads_incar_params=None, auto_dipole=True, use_bulk_coordination=False,
-                      optimize_slab=True, optimize_bulk=True, find_ads_params=None):
+                      optimize_slab=True, optimize_bulk=True, find_ads_params=None, repeat=7.0):
     #TODO: add more details to docstring
     """
     Returns a workflow to calculate adsorption structures and surfaces.
@@ -141,7 +141,7 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None, slab_gen
             else:
                 asf = AdsorbateSiteFinder(slab, selective_dynamics=True)
             for molecule in adsorbate_config[mi_string]:
-                structures = asf.generate_adsorption_structures(molecule, repeat=[2, 2, 1],
+                structures = asf.generate_adsorption_structures(molecule, repeat=repeat,
                                                                 find_args=find_ads_params)
                 for n, struct in enumerate(structures):
                     # Sort structure because InsertSites sorts the structure
@@ -180,7 +180,7 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None, slab_gen
 
 def get_wf_adsorption_from_slab(slab, molecules, vasp_input_set=None, vasp_cmd="vasp", db_file=None, 
                                 auto_dipole=True, slab_incar_params=None, ads_incar_params=None, 
-                                optimize_slab=False, find_ads_params=None, name=""):
+                                optimize_slab=False, name="", ads_structures_params={}):
     """
     This workflow function generates a workflow starting from a slab, rather than a bulk structure.
     It's intended use is for workflows that begin from optimized slabs or that begin from previous
@@ -199,7 +199,6 @@ def get_wf_adsorption_from_slab(slab, molecules, vasp_input_set=None, vasp_cmd="
         find_ads_params
         name
     """
-    find_ads_params = find_ads_params or {}
     slab_incar_params = slab_incar_params or default_sip
     ads_incar_params = ads_incar_params or default_aip
     if not name:
@@ -210,26 +209,26 @@ def get_wf_adsorption_from_slab(slab, molecules, vasp_input_set=None, vasp_cmd="
         weights = np.array([site.species_and_occu.weight for site in slab])
         dipole_center = np.sum(weights*np.transpose(slab.frac_coords), axis=1)
         dipole_center /= np.sum(weights)
-        dipole_dict = {"LDIPOL": "True",
-                       "IDIPOL": 3,
-                       "DIPOL": dipole_center}
+        dipole_dict = {"LDIPOL": "True", "IDIPOL": 3, "DIPOL": dipole_center}
         slab_incar_params.update(dipole_dict)
         ads_incar_params.update(dipole_dict)
 
+    vis_slab = MVLSlabSet(slab, user_incar_settings=slab_incar_params)
     fws = []
     if optimize_slab:
         slab_fw_name = "{} slab optimization".format(name)
-        fws.append(OptimizeFW(structure=slab, vasp_input_set=vasp_input_set, vasp_cmd=vasp_cmd,
-                              db_file=db_file, name=slab_fw_name))
+        fws.append(StaticFW(structure=slab, vasp_input_set=vis_slab, vasp_cmd=vasp_cmd,
+                            db_file=db_file, name=slab_fw_name))
 
     for molecule in molecules:
         adsorption_structures = AdsorbateSiteFinder(slab).generate_adsorption_structures(
-            molecule, find_args=find_ads_params)
+            molecule, **ads_structures_params)
         for n, struct in enumerate(adsorption_structures):
+            vis_ads = MVLSlabSet(struct, user_incar_settings=ads_incar_params)
             ads_fw_name = "{}-{} adsorbate optimization {}".format(
-                molecule.composition.reduced_formula, name, n)
-            fws.append(OptimizeFW(structure=slab, vasp_input_set=vasp_input_set, vasp_cmd=vasp_cmd,
-                                  db_file=db_file, name=ads_fw_name))
+                molecule.composition.formula, name, n)
+            fws.append(StaticFW(structure=struct, vasp_input_set=vis_ads, vasp_cmd=vasp_cmd,
+                                db_file=db_file, name=ads_fw_name))
     wfname = "{}:{}".format(name, "Adsorbate calculations")
     return Workflow(fws, name=wfname)
 
