@@ -99,8 +99,7 @@ class TestAdsorptionWorkflow(unittest.TestCase):
             raise ValueError("Invalid mode!")
 
         if "adsorbate" in mode:
-            self.assertTrue("H" in d["formula_pretty"])
-            self.assertTrue("Ir" in d["formula_pretty"])
+            self.assertEqual(d["formula_reduced_abc"], "H1 Ir16")
         # Check relaxation of adsorbate
         # Check slab calculations
         # Check structure optimization
