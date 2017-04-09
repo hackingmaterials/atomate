@@ -8,21 +8,22 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 
 if __name__ == "__main__":
     setup(
-        name='MatMethods',
-        version='0.3',
-        description='MatMethods has implementations of FireWorks workflows for '
+        name='atomate',
+        version='0.4.4',
+        description='atomate has implementations of FireWorks workflows for '
                     'Materials Science',
         long_description=open(os.path.join(module_dir, 'README.rst')).read(),
-        url='https://github.com/hackingmaterials/MatMethods',
+        url='https://github.com/hackingmaterials/atomate',
         author='Anubhav Jain, Kiran Mathew',
         author_email='anubhavster@gmail.com, kmathew@lbl.gov',
         license='modified BSD',
         packages=find_packages(),
         package_data={},
         zip_safe=False,
-        install_requires=['FireWorks>=1.3.6', 'pymatgen>=4.3.0',
-                          'custodian>=1.0.1', 'pymatgen-db>=0.5.1',
-                          'monty>=0.9.0', 'tqdm>=4.7.4', 'six'],
+        install_requires=['FireWorks>=1.4.0', 'pymatgen>=4.7.1',
+                          'custodian>=1.1.0', 'pymatgen-db>=0.5.1',
+                          'monty>=0.9.5', 'tqdm>=4.7.4', 'six',
+                          'pymatgen-diffusion>=0.3.0'],
         extras_require={'rtransfer': ['paramiko>=1.15.0'],
                         'plotting': ['matplotlib>=1.5.2'],
                         'phonons': ['phonopy>=1.10.8']},

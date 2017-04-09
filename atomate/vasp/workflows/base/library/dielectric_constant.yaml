@@ -1,0 +1,8 @@
+# Structure optimize + static dielectric constant
+fireworks:
+- fw: atomate.vasp.fireworks.core.OptimizeFW
+  params:
+    ediffg: -0.05
+- fw: atomate.vasp.fireworks.core.LepsFW
+  params:
+    parents: 0

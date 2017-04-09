@@ -1,0 +1,10 @@
+host: localhost
+logdir: null
+name: atomate_unittest
+password: null
+port: 27017
+ssl_ca_file: null
+strm_lvl: INFO
+user_indices: []
+username: null
+wf_user_indices: []
