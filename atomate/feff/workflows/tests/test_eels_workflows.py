@@ -27,7 +27,6 @@ __email__ = 'kmathew@lbl.gov'
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
-FEFF_CMD = None  # "feff"
 
 
 class TestEELSWorkflow(unittest.TestCase):
