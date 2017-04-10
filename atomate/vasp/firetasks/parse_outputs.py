@@ -239,13 +239,7 @@ class ElasticTensorToDbTask(FiretaskBase):
             # Perform Elastic tensor fitting and analysis
             result = ElasticTensor.from_stress_dict(stress_dict)
             d["elastic_tensor"] = result.voigt.tolist()
-            kg_average = result.kg_average
-            d.update({"K_Voigt": kg_average[0], "G_Voigt": kg_average[1],
-                      "K_Reuss": kg_average[2], "G_Reuss": kg_average[3],
-                      "K_Voigt_Reuss_Hill": kg_average[4],
-                      "G_Voigt_Reuss_Hill": kg_average[5]})
-            d["universal_anisotropy"] = result.universal_anisotropy
-            d["homogeneous_poisson"] = result.homogeneous_poisson
+            d.update(result.property_dict)
 
         else:
             raise ValueError("Fewer than 6 unique deformations")
