@@ -74,7 +74,7 @@ class TestEELSWorkflow(unittest.TestCase):
         # run
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
-        d = self._get_task_collection().find_one({"spectrum_type": "ELNES"})
+        d = TestEELSWorkflow._get_task_collection().find_one({"spectrum_type": "ELNES"})
         self._check_run(d)
 
     def test_eels_wflow_abatom_by_symbol(self):
@@ -104,7 +104,7 @@ class TestEELSWorkflow(unittest.TestCase):
         self.assertEqual(d["input_parameters"], tags.as_dict())
 
     @staticmethod
-    def _get_task_database(self):
+    def _get_task_database():
         # TODO: @computron - there must be some monty method that does this -@computron
         with open(os.path.join(db_dir, "db.json")) as f:
             creds = json.loads(f.read())
@@ -115,17 +115,17 @@ class TestEELSWorkflow(unittest.TestCase):
             return db
 
     @staticmethod
-    def _get_task_collection(self):
+    def _get_task_collection():
         with open(os.path.join(db_dir, "db.json")) as f:
             creds = json.loads(f.read())
-            db = self._get_task_database()
+            db = TestEELSWorkflow._get_task_database()
             return db[creds["collection"]]
 
     def tearDown(self):
         if not DEBUG_MODE:
             shutil.rmtree(self.scratch_dir)
             self.lp.reset("", require_password=False)
-            db = self._get_task_database()
+            db = TestEELSWorkflow._get_task_database()
             for coll in db.collection_names():
                 if coll != "system.indexes":
                     db[coll].drop()
