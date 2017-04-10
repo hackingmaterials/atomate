@@ -126,7 +126,7 @@ class TestElasticWorkflow(unittest.TestCase):
             c_ij = np.array(d['elastic_tensor'])
             np.testing.assert_allclose([c_ij[0, 0], c_ij[0, 1], c_ij[3, 3]],
                                        [146.68, 50.817, 74.706], rtol=1e-2)
-            self.assertAlmostEqual(d['K_Voigt'], 83, places=0)
+            self.assertAlmostEqual(d['k_voigt'], 83, places=0)
 
     def test_wf(self):
         self.wf = self._simulate_vasprun(self.wf)
