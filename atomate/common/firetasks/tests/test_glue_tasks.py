@@ -13,8 +13,7 @@ from atomate.utils.utils import get_calc_loc
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-db_dir = os.path.join(module_dir, "..", "..", "reference_files",
-                      "db_connections")
+db_dir = os.path.join(module_dir, "..", "..", "test_files")
 
 
 class TestPassCalcLocs(unittest.TestCase):
