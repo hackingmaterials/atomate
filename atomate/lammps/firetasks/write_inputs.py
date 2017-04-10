@@ -3,7 +3,8 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
-This module defines firetasks for writing LAMMPS input files(data file and the control parameters file)
+This module defines firetasks for writing LAMMPS input files (data file and the control 
+parameters file)
 """
 
 from fireworks import FiretaskBase, explicit_serialize
@@ -12,6 +13,9 @@ from fireworks import FiretaskBase, explicit_serialize
 __author__ = 'Kiran Mathew'
 __email__ = "kmathew@lbl.gov"
 
+# TODO: @matk86 - why is it sometimes "DictXInput" (X=Lammps) and other times "XDictSet"
+# (X=FEFF)? Can you make these consistent both in (i) where the word "Dict" is and (ii) Input
+# vs Set? Also update the parameter name below when done. -@computron
 
 @explicit_serialize
 class WritelammpsInputFromDictInput(FiretaskBase):
