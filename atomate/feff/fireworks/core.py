@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 """
-Defines standardized Fireworks that can be chained easily to perform various
+Defines standardized Fireworks that can be chained into Workflows to perform various
 sequences of FEFF calculations.
 """
 
@@ -19,6 +19,10 @@ from atomate.feff.firetasks.parse_outputs import SpectrumToDbTask, AddPathsToFil
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 
+# TODO: @matk86 The "spectrum_type" and "feff_input_set" params can be combined. Maybe just one parameter:
+# - if it's "EXAFS" or "XANES", load the correct inputset automagically
+# - if it's some other string like "pymatgen.io.feff.....", split the string and use load_class
+# - it it's an actual class, use that. -@computron
 
 class XASFW(Firework):
     def __init__(self, absorbing_atom, structure, spectrum_type, edge="K", radius=10.0,
@@ -26,8 +30,8 @@ class XASFW(Firework):
                  override_default_feff_params=None, db_file=None, parents=None, metadata=None,
                  **kwargs):
         """
-        Write the input set for FEFF-XAS spectroscopy, run feff and insert the absorption
-        coefficient to the database(or dump to a json file if db_file=None).
+        Write the input set for FEFF-XAS spectroscopy, run FEFF and insert the absorption
+        coefficient to the database (or dump to a json file if db_file=None).
 
         Args:
             absorbing_atom (str): absorbing atom symbol
@@ -62,6 +66,9 @@ class XASFW(Firework):
         super(XASFW, self).__init__(t, parents=parents, name="{}-{}".
                                     format(structure.composition.reduced_formula, name), **kwargs)
 
+
+# TODO: @matk86 - many params are not in the documented args -@computron
+# TODO: @matk86 - see also my prev comment about feff_input_set and spectrum_type
 
 class EELSFW(Firework):
     def __init__(self, absorbing_atom, structure, spectrum_type, edge="K", radius=10.,
@@ -108,6 +115,7 @@ class EELSFW(Firework):
         super(EELSFW, self).__init__(t, parents=parents, name="{}-{}".
                                      format(structure.composition.reduced_formula, name), **kwargs)
 
+# TODO: @matk86 - see also my prev comment about feff_input_set and spectrum_type
 
 class EXAFSPathsFW(Firework):
     def __init__(self, absorbing_atom, structure, paths, degeneracies=None, edge="K", radius=10.0,
