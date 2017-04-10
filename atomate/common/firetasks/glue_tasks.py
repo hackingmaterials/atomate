@@ -14,16 +14,17 @@ __email__ = 'ajain@lbl.gov'
 @explicit_serialize
 class PassCalcLocs(FiretaskBase):
     """
-    Passes the calc_locs key. Should be called in the same FireWork as a
-    the calculation. This passes information about where the current run is located
-    for the next FireWork.
+    Passes information about where the current run is located
+    for the next FireWork. This is achieved by passing a key to
+    the fw_spec called "calc_locs" with this information.
 
     Required params:
-        name: descriptive name for this calculation file/dir
+        name (str): descriptive name for this calculation file/dir
 
     Optional params:
-        filesystem: name of filesystem. Supports env_chk. defaults to None
-        path: The path to the directory containing the calculation. defaults to
+        filesystem (str or custom user format): name of filesystem. Supports env_chk. 
+            defaults to None
+        path (str): The path to the directory containing the calculation. defaults to
             current working directory.
     """
 
