@@ -80,7 +80,7 @@ class SpectrumToDbTask(FiretaskBase):
         if not db_file:
             with open("feff_task.json", "w") as f:
                 f.write(json.dumps(doc, default=DATETIME_HANDLER))
-        # db insertion
+
         else:
             db = MMFeffDb.from_db_file(db_file, admin=True)
             db.insert(doc)
