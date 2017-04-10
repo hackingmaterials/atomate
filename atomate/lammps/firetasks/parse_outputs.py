@@ -27,6 +27,10 @@ __email__ = "kmathew@lbl.gov"
 
 logger = get_logger(__name__)
 
+# TODO: @matk86 - for your consideration. You can implement as a Drone and simply use ToDbTask (in
+# atomate.common) to do the processing instead of a special LammpsToDBTask. Advantage is that the
+# parsing code is then in pymatgen where more people could use and modify it. -@computron
+
 
 @explicit_serialize
 class LammpsToDBTask(FiretaskBase):
@@ -73,7 +77,8 @@ class LammpsToDBTask(FiretaskBase):
         else:
             dump_file = lammps_input.config_dict["dump"].split()[4]
         is_forcefield = hasattr(lammps_input.lammps_data, "bonds_data")
-        lammpsrun = LammpsRun(lammps_input.data_filename, dump_file, log_file, is_forcefield=is_forcefield)
+        lammpsrun = LammpsRun(lammps_input.data_filename, dump_file, log_file,
+                              is_forcefield=is_forcefield)
         d["natoms"] = lammpsrun.natoms
         d["nmols"] = lammpsrun.nmols
         d["box_lengths"] = lammpsrun.box_lengths
