@@ -3,7 +3,7 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
-This module defines tasks that support running FEFF.
+This module defines tasks to run FEFF.
 """
 
 import subprocess
@@ -21,11 +21,10 @@ logger = get_logger(__name__)
 @explicit_serialize
 class RunFeffDirect(FiretaskBase):
     """
-    Run FEFF directly (no custodian).
-    Supports env_chk.
+    Run FEFF.
 
     Required params:
-        feff_cmd (str): the name of the full executable for running FEFF.
+        feff_cmd (str): the name of the full executable for running FEFF (supports env_chk)
     """
 
     required_params = ["feff_cmd"]
