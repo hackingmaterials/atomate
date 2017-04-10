@@ -15,6 +15,13 @@ from atomate.utils.utils import load_class
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 
+# TODO: @matk86 - can you change the format of feff_input_set when a String? Rather than just
+# the class name, require the entire path. e.g. "pymatgen.io.feff.sets.MPXANESSet" and put this
+# as an example in the parameter documentation for feff_input_set. Thus the code would look like:
+# modname, classname = feff_input_set.strip().rsplit(".", 1)
+# cls_ = load_class(modname, classname)
+# Also update the tests and any workflows, etc.
+# This is the convention for other tasks (e.g. ToDbTask) and will avoid confusion. -@computron
 
 @explicit_serialize
 class WriteFeffFromIOSet(FiretaskBase):
