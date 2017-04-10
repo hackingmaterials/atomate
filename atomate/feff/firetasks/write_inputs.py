@@ -31,7 +31,7 @@ class WriteFeffFromIOSet(FiretaskBase):
     Required_params:
         absorbing_atom (str): absorbing atom symbol
         structure (Structure): input structure
-        feff_input_set (str or AbstractFeffInputSet subclass): The inputset for setting params
+        feff_input_set (str or FeffDictSet subclass): The inputset for setting params
 
     Optional_params:
         radius (float): cluster radius in angstroms
@@ -60,7 +60,7 @@ class WriteEXAFSPaths(FiretaskBase):
     Write the scattering paths to paths.dat file.
 
     Required_params:
-        feff_input_set: (AbstractFeffInputSet subclass)
+        feff_input_set: (FeffDictSet subclass)
         paths (list): list of paths. A path = list of site indices.
 
     Optional_params:
