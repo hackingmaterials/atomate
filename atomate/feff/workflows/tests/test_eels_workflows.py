@@ -49,6 +49,8 @@ class TestEELSWorkflow(unittest.TestCase):
         cls.scratch_dir = os.path.join(module_dir, "scratch")
 
     def setUp(self):
+        # TODO: @computron: A lot of this boilerplate code is re-used a lot. Generalize w/params
+        # for scratch dir loc, launchpad=T/F, etc. Same for teardown including db. -@computron
         if os.path.exists(self.scratch_dir):
             shutil.rmtree(self.scratch_dir)
         os.makedirs(self.scratch_dir)
@@ -90,20 +92,21 @@ class TestEELSWorkflow(unittest.TestCase):
         wf_exelfs = get_wf_eels(self.absorbing_atom, self.structure, spectrum_type="EXELFS",
                         edge="L1", user_tag_settings=self.user_tag_settings, use_primitive=True)
 
-        self.assertEqual(wf_elnes.as_dict()["fws"][0]["spec"]['_tasks'][0]['feff_input_set']['@class'],
-                         'MPELNESSet')
-        self.assertEqual(wf_exelfs.as_dict()["fws"][0]["spec"]['_tasks'][0]['feff_input_set']['@class'],
-                         'MPEXELFSSet')
+        self.assertEqual(wf_elnes.as_dict()["fws"][0]["spec"]['_tasks'][0]['feff_input_set'][
+                             '@class'], 'MPELNESSet')
+        self.assertEqual(wf_exelfs.as_dict()["fws"][0]["spec"]['_tasks'][0]['feff_input_set'][
+                             '@class'], 'MPEXELFSSet')
 
     def _check_run(self, d):
         run_dir = d["dir_name"]
-        #ref_feff_inp = os.path.join(module_dir, "reference_files", "feff_eels.inp")
         self.assertEqual(d["edge"], self.edge)
         self.assertEqual(d["absorbing_atom"], self.absorbing_atom)
         tags = Tags.from_file(os.path.join(run_dir, "feff.inp"))
         self.assertEqual(d["input_parameters"], tags.as_dict())
 
+    @staticmethod
     def _get_task_database(self):
+        # TODO: @computron - there must be some monty method that does this -@computron
         with open(os.path.join(db_dir, "db.json")) as f:
             creds = json.loads(f.read())
             conn = MongoClient(creds["host"], creds["port"])
@@ -112,6 +115,7 @@ class TestEELSWorkflow(unittest.TestCase):
                 db.authenticate(creds["admin_user"], creds["admin_password"])
             return db
 
+    @staticmethod
     def _get_task_collection(self):
         with open(os.path.join(db_dir, "db.json")) as f:
             creds = json.loads(f.read())
