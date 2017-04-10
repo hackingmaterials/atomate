@@ -7,12 +7,12 @@ import os
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
-from atomate.utils.utils import get_calc_loc, env_chk
-from atomate.vasp.firetasks.parse_outputs import logger
+from atomate.utils.utils import get_calc_loc, env_chk, get_logger
 
 __author__ = 'Shyam Dwaraknath <shyamd@lbl.gov>, Anubhav Jain <ajain@lbl.gov>'
 
-# TODO: @shyamd: Why does this use the logger from VASP's package? -@computron
+logger = get_logger(__name__)
+
 # TODO: @shyamd: There are no tests? e.g. I changed the mmdb specification based on thinking
 #   through how this *should* work since there were no tests. -@computron
 
