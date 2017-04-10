@@ -14,7 +14,7 @@ __email__ = 'ajain@lbl.gov'
 @explicit_serialize
 class PassCalcLocs(FiretaskBase):
     """
-    Passes information about where the current run is located
+    Passes information about where the current calculation is located
     for the next FireWork. This is achieved by passing a key to
     the fw_spec called "calc_locs" with this information.
 
