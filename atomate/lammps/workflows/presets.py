@@ -16,6 +16,10 @@ from atomate.lammps.workflows.core import get_wf
 __author__ = 'Kiran Mathew'
 __email__ = "kmathew@lbl.gov"
 
+# TODO: @matk86 - is there any workflow or firework taking into account Packmol?  -@computron
+# TODO: @mat86 - these wouldn't qualify as "preset" workflows. They go more in core.py. Presets
+# should generally **only** require a structure as a parameter with config dict as optional param.
+# -@computron
 
 def wf_from_input_template(input_template_file, lammps_data, data_filename, user_settings,
                            is_forcefield=False, input_filename="lammps.inp", lammps_bin="lammps",
@@ -42,7 +46,8 @@ def wf_from_input_template(input_template_file, lammps_data, data_filename, user
 
     """
     wf_name = "LAMMPS Wflow from input template {}".format(input_template_file)
-    lammps_dict_input = DictLammpsInput.from_file(wf_name, input_template_file, lammps_data=lammps_data,
+    lammps_dict_input = DictLammpsInput.from_file(wf_name, input_template_file,
+                                                  lammps_data=lammps_data,
                                                   data_filename=data_filename,
                                                   user_lammps_settings=user_settings,
                                                   is_forcefield=is_forcefield)
@@ -50,19 +55,18 @@ def wf_from_input_template(input_template_file, lammps_data, data_filename, user
                   db_file=db_file, dry_run=dry_run)
 
 
-def nvt_wf(lammps_data, input_filename = "nvt.inp", data_filename="in.data", user_lammps_settings={},
-           is_forcefield=False, lammps_bin="lammps", db_file=None, dry_run=False):
+def nvt_wf(lammps_data, input_filename = "nvt.inp", data_filename="in.data",
+           user_lammps_settings={}, is_forcefield=False, lammps_bin="lammps", db_file=None,
+           dry_run=False):
     """
-    Returns NVT workflow:
-        Firework: [write lammps input task, run direct task]
+    Returns NVT workflow (single Firework: [write lammps input task, run direct task])
 
     Args:
         lammps_data (string/LammpsData/LammpsForceFieldData): path to the data file
             or an appropriate object.
         input_filename (string): input file name
         data_filename (string): data file name
-        user_lammps_settings (dict): used to override the default input file
-            paramter settings
+        user_lammps_settings (dict): used to override the default input file parameter settings
         is_forcefield (bool): whether or not the data file has forcefiled info.
         lammps_bin (string): path to the lammps binary
         db_file (string): path to the db file
@@ -71,6 +75,7 @@ def nvt_wf(lammps_data, input_filename = "nvt.inp", data_filename="in.data", use
     """
     wf_name = "LAMMPS NVT"
     lammps_dict_input = NVTLammpsInput(lammps_data=lammps_data, data_filename=data_filename,
-                                       user_lammps_settings=user_lammps_settings, is_forcefield=is_forcefield)
+                                       user_lammps_settings=user_lammps_settings,
+                                       is_forcefield=is_forcefield)
     return get_wf(wf_name, lammps_dict_input, input_filename=input_filename, lammps_bin=lammps_bin,
                   db_file=db_file, dry_run=dry_run)
