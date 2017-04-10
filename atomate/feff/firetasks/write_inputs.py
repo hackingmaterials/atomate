@@ -19,25 +19,26 @@ __email__ = 'kmathew@lbl.gov'
 @explicit_serialize
 class WriteFeffFromIOSet(FiretaskBase):
     """
-    Generate FEFF input(feff.inp) from the given inputset object or inputset name
+    Generate FEFF input (feff.inp) from the given InputSet object or InputSet name
 
     Required_params:
         absorbing_atom (str): absorbing atom symbol
         structure (Structure): input structure
+        feff_input_set (str or AbstractFeffInputSet subclass): The inputset for setting params
 
     Optional_params:
         radius (float): cluster radius in angstroms
-        other_params (dict)
+        other_params (dict): **kwargs to pass into the desired InputSet if using str feff_input_set
     """
     required_params = ["absorbing_atom", "structure", "feff_input_set"]
     optional_params = ["radius", "other_params"]
 
     def run_task(self, fw_spec):
-        # if a full object is provided.
+        # if a full FeffInputSet object is provided:
         if hasattr(self['feff_input_set'], 'write_input'):
             fis = self['feff_input_set']
 
-        # if inputset String + parameters was provided
+        # else if inputset String + parameters was provided
         else:
             fis_cls = load_class("pymatgen.io.feff.sets", self["feff_input_set"])
             fis = fis_cls(self["absorbing_atom"], self["structure"], self.get("radius", 10.0),
@@ -52,8 +53,8 @@ class WriteEXAFSPaths(FiretaskBase):
     Write the scattering paths to paths.dat file.
 
     Required_params:
-        feff_input_set (FeffDictSet)
-        paths (list): list of paths. path = list of site indices.
+        feff_input_set: (AbstractFeffInputSet subclass)
+        paths (list): list of paths. A path = list of site indices.
 
     Optional_params:
         degeneracies (list): list of path degeneracies.
