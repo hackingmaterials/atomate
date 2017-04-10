@@ -23,7 +23,9 @@ class MMFeffDb(MMDb):
         super(MMFeffDb, self).__init__(host, port, database, collection, user, password)
 
     def build_indexes(self, indexes=None, background=True):
+        # TODO: @matk86 - would suggest adding a couple of indexes -@computron
         pass
 
     def reset(self):
+        # TODO: @matk86 - shouldn't this be implemented? Seems simple? -@computron
         pass
