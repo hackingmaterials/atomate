@@ -7,7 +7,7 @@ import os
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
-from atomate.utils.utils import get_calc_loc, env_chk, get_logger
+from atomate.utils.utils import get_calc_loc, env_chk, get_logger, load_class
 
 __author__ = 'Shyam Dwaraknath <shyamd@lbl.gov>, Anubhav Jain <ajain@lbl.gov>'
 
@@ -62,8 +62,7 @@ class ToDbTask(FiretaskBase):
         else:
             mmdb_str = self["mmdb"]
             modname, classname = mmdb_str.strip().rsplit(".", 1)
-            mod = __import__(modname, globals(), locals(), [classname], 0)
-            cls_ = getattr(mod, classname)
+            cls_ = load_class(modname, classname)
             db = cls_.from_db_file(db_file)
 
             # insert the task document
