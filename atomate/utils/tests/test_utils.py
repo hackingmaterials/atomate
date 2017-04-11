@@ -8,8 +8,7 @@ from collections import defaultdict
 
 from fireworks import FiretaskBase, Firework, Workflow, explicit_serialize, FWAction
 
-from atomate.utils.utils import env_chk, get_logger, get_mongolike, append_fw_wf, remove_leaf_fws, \
-    remove_root_fws
+from atomate.utils.utils import env_chk, get_logger, get_mongolike, append_fw_wf, remove_fws
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -85,7 +84,7 @@ class UtilsTests(unittest.TestCase):
         parents = []
         for i in leaf_ids:
             parents.extend(wflow.links.parent_links[i])
-        new_wf = remove_leaf_fws(wflow)
+        new_wf = remove_fws(wflow, wflow.leaf_fw_ids)
         new_leaf_ids = new_wf.leaf_fw_ids
         self.assertEqual(new_leaf_ids, parents)
 
@@ -97,6 +96,6 @@ class UtilsTests(unittest.TestCase):
         children = []
         for i in root_ids:
             children.extend(wflow.links[i])
-        new_wf = remove_root_fws(wflow)
+        new_wf = remove_fws(wflow, wflow.root_fw_ids)
         new_root_ids = new_wf.root_fw_ids
         self.assertEqual(sorted(new_root_ids), sorted(children))
