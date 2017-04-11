@@ -4,6 +4,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os
 
+import six
+
 from atomate.utils.utils import env_chk
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
@@ -47,7 +49,7 @@ def get_calc_loc(target_name, calc_locs):
 
     There are three modes:
         - If you set target_name to a String, search for most recent calc_loc
-            with matching name
+            with matching nameget_
         - Otherwise, return most recent calc_loc overall
 
     Args:
