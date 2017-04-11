@@ -13,6 +13,8 @@ __email__ = 'kmathew@lbl.gov'
 # 3. Why is this named "analysis.py" instead of "phonopy_analysis.py"?
 # - @computron
 
+# TODO: @matk86 - unit tests?
+
 def get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_step, t_max, mesh,
                       eos, pressure=0):
     """
