@@ -279,7 +279,7 @@ def load_class(modulepath, classname):
 def remove_fws(orig_wf, fw_ids):
     """
     Remove the fireworks corresponding to the input firework ids and update the workflow i.e the
-    parents of the removed fireworks become the parents of the children fireworks(only if the
+    parents of the removed fireworks become the parents of the children fireworks (only if the
     children dont have any other parents).
 
     Args:
@@ -294,7 +294,7 @@ def remove_fws(orig_wf, fw_ids):
     orig_parent_links = deepcopy(orig_wf.links.parent_links)
     fws = wf_dict["fws"]
 
-    # update the links dict: remove fw_ids and link their parents to their children(if they don't
+    # update the links dict: remove fw_ids and link their parents to their children (if they don't
     # have any other parents).
     for fid in fw_ids:
         children = wf_dict["links"].pop(str(fid))
