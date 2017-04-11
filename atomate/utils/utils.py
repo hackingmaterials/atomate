@@ -108,7 +108,8 @@ def get_meta_from_structure(structure):
 
 def get_fws_and_tasks(workflow, fw_name_constraint=None, task_name_constraint=None):
     """
-    Helper method: given a workflow, returns back the fw_ids and task_ids that match constraints
+    Helper method: given a workflow, returns back the fw_ids and task_ids that match name 
+    constraints. Used in developing multiple powerups.
 
     Args:
         workflow (Workflow): Workflow
@@ -127,6 +128,8 @@ def get_fws_and_tasks(workflow, fw_name_constraint=None, task_name_constraint=No
     return fws_and_tasks
 
 
+# TODO: @computron - move this somewhere else, maybe dedicated serialization package - @computron
+# TODO: @computron - also review this code for clarity - @computron
 def get_wf_from_spec_dict(structure, wfspec):
     """
     Load a WF from a structure and a spec dict. This allows simple
@@ -219,6 +222,9 @@ def get_wf_from_spec_dict(structure, wfspec):
     return Workflow(fws, name=wfname)
 
 
+# TODO: @computron - not sure who added this, but it is pretty inelegant and unintuitive. Has to do
+# with mixing dict versions and object versions of objects in writing powerups. Consider nuking it
+# and replacing with less lazy(?) implementations of powerups instead of this ugliness. -@computron
 def update_wf(wf):
     """
     Simple helper to ensure that the powerup updates to the workflow dict has taken effect.
@@ -236,7 +242,9 @@ def update_wf(wf):
     """
     return Workflow.from_dict(wf.as_dict())
 
-
+# TODO: @matk86 - please remove this pointless method. Write tighter code rather than this silly
+# "auto-converting without thinking about it" mess. Even if you wanted to do this auto-conversion,
+# just modify Workflow.append_wf() in FireWorks rather than add this thing. -@computron
 def append_fw_wf(orig_wf, fw_wf):
     """
     Add the given firework or workflow to the end of the provided workflow. If there are multiple
