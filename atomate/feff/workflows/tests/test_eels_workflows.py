@@ -105,7 +105,7 @@ class TestEELSWorkflow(unittest.TestCase):
 
     @staticmethod
     def _get_task_database():
-        # TODO: @matk86 - there must be some monty method that does this -@computron
+        # TODO: @matk86 - there must be some pymatgen-db method that does this -@computron
         with open(os.path.join(db_dir, "db.json")) as f:
             creds = json.loads(f.read())
             conn = MongoClient(creds["host"], creds["port"])
@@ -116,7 +116,7 @@ class TestEELSWorkflow(unittest.TestCase):
 
     @staticmethod
     def _get_task_collection():
-        # TODO: @matk86 - this also seems pretty unnecessary, check monty -@computron
+        # TODO: @matk86 - this also seems pretty unnecessary, check pymatgen-db -@computron
         with open(os.path.join(db_dir, "db.json")) as f:
             creds = json.loads(f.read())
             db = TestEELSWorkflow._get_task_database()

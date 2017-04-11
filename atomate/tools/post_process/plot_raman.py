@@ -11,6 +11,8 @@ import numpy as np
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 
+# TODO: @matk86 - why is this in atomate instead of pymatgen or some other package?
+# Even if not in pymatgen, why not in the vasp package of atomate? -@computron
 
 def raman_intensity(R):
     """
