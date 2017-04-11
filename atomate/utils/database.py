@@ -3,7 +3,7 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
-This module defines the database classes.
+This module defines a base class for derived database classes that store calculation data.
 """
 
 import datetime
@@ -116,4 +116,5 @@ class MMDb(six.with_metaclass(ABCMeta)):
             user = creds.get("readonly_user")
             password = creds.get("readonly_password")
 
-        return cls(creds["host"], int(creds["port"]), creds["database"], creds["collection"], user, password)
+        return cls(creds["host"], int(creds["port"]), creds["database"], creds["collection"],
+                   user, password)

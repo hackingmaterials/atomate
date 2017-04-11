@@ -17,7 +17,7 @@ __email__ = 'kmathew@lbl.gov'
 
 class FileClient(object):
     """
-    A client that allows performing many file operations while being agnostic
+    A client for performing many file operations while being agnostic
     of whether those operations are happening locally or via SSH
     """
 
