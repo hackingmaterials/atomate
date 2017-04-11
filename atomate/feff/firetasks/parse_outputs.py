@@ -15,7 +15,8 @@ from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.user_objects.firetasks.filepad_tasks import get_fpad
 
-from atomate.utils.utils import env_chk, get_calc_loc
+from atomate.utils.utils import env_chk
+from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import get_logger
 from atomate.feff.database import MMFeffDb
 

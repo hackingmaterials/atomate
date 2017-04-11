@@ -7,7 +7,7 @@ import os
 from fireworks import explicit_serialize, FiretaskBase
 
 from atomate.utils.fileio import FileClient
-from atomate.utils.utils import get_calc_loc
+from atomate.common.firetasks.glue_tasks import get_calc_loc
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'

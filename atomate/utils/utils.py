@@ -5,13 +5,12 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import logging
 import os
 import sys
-import six
 from copy import deepcopy
 
+import six
+
 from fireworks import Workflow, Firework
-
 from monty.json import MontyDecoder
-
 from pymatgen import Composition
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
@@ -54,34 +53,6 @@ def env_chk(val, fw_spec, strict=True, default=None):
             return fw_spec['_fw_env'][val[2:-2]]
         return fw_spec.get('_fw_env', {}).get(val[2:-2], default)
     return val
-
-
-def get_calc_loc(target_name, calc_locs):
-    """
-    This is a helper method that helps you pick out a certain calculation
-    from an array of calc_locs.
-
-    There are three modes:
-        - If you set target_name to a String, search for most recent calc_loc
-            with matching name
-        - Otherwise, return most recent calc_loc overall
-
-    Args:
-        target_name: (bool or str) If str, will search for calc_loc with
-            matching name, else use most recent calc_loc
-        calc_locs: (dict) The dictionary of all calc_locs
-
-    Returns:
-        (dict) dict with subkeys path, filesystem, and name
-    """
-
-    if isinstance(target_name, six.string_types):
-        for doc in reversed(calc_locs):
-            if doc["name"] == target_name:
-                return doc
-        raise ValueError("Could not find the target_name: {}".format(target_name))
-    else:
-        return calc_locs[-1]
 
 
 def get_mongolike(d, key):

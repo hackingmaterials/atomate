@@ -4,6 +4,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os
 
+from six import __init__
+
 from atomate.utils.utils import env_chk
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
@@ -38,3 +40,31 @@ class PassCalcLocs(FiretaskBase):
                           "path": self.get("path", os.getcwd())})
 
         return FWAction(mod_spec=[{'_push_all': {'calc_locs': calc_locs}}])
+
+
+def get_calc_loc(target_name, calc_locs):
+    """
+    This is a helper method that helps you pick out a certain calculation
+    from an array of calc_locs.
+
+    There are three modes:
+        - If you set target_name to a String, search for most recent calc_loc
+            with matching name
+        - Otherwise, return most recent calc_loc overall
+
+    Args:
+        target_name: (bool or str) If str, will search for calc_loc with
+            matching name, else use most recent calc_loc
+        calc_locs: (dict) The dictionary of all calc_locs
+
+    Returns:
+        (dict) dict with subkeys path, filesystem, and name
+    """
+
+    if isinstance(target_name, six.string_types):
+        for doc in reversed(calc_locs):
+            if doc["name"] == target_name:
+                return doc
+        raise ValueError("Could not find the target_name: {}".format(target_name))
+    else:
+        return calc_locs[-1]

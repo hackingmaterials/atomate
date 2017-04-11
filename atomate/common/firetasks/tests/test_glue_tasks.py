@@ -7,8 +7,7 @@ import unittest
 from fireworks import LaunchPad
 from fireworks.core.firework import Firework, Workflow
 from fireworks.core.rocket_launcher import rapidfire
-from atomate.common.firetasks.glue_tasks import PassCalcLocs
-from atomate.utils.utils import get_calc_loc
+from atomate.common.firetasks.glue_tasks import PassCalcLocs, get_calc_loc
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
