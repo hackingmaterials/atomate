@@ -271,8 +271,8 @@ def load_class(modulepath, classname):
     Returns:
         class
     """
-    module = __import__(modulepath, globals(), locals(), [classname], 0)
-    return getattr(module, classname)
+    mod = __import__(modulepath, globals(), locals(), [classname], 0)
+    return getattr(mod, classname)
 
 
 def remove_leaf_fws(orig_wf):
