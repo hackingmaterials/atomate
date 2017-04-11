@@ -67,15 +67,10 @@ def get_phonopy_qha(energies, volumes, force_constants, structure, t_min, t_step
     Returns:
         PhonopyQHA
     """
-    try:
-        from phonopy import Phonopy
-        from phonopy.structure.atoms import Atoms as PhonopyAtoms
-        from phonopy import PhonopyQHA
-        from phonopy.units import EVAngstromToGPa
-    except ImportError:
-        import sys
-        print("Install phonopy. Exiting.")
-        sys.exit()
+    from phonopy import Phonopy
+    from phonopy.structure.atoms import Atoms as PhonopyAtoms
+    from phonopy import PhonopyQHA
+    from phonopy.units import EVAngstromToGPa
 
     phon_atoms = PhonopyAtoms(symbols=[str(s.specie) for s in structure],
                               scaled_positions=structure.frac_coords,

@@ -38,12 +38,8 @@ def get_collection(db_file):
 
 
 def get_phonopy(structure):
-    try:
-        from phonopy import Phonopy
-        from phonopy.structure.atoms import Atoms as PhonopyAtoms
-    except ImportError:
-        print("Install phonopy. Exiting.")
-        sys.exit()
+    from phonopy import Phonopy
+    from phonopy.structure.atoms import Atoms as PhonopyAtoms
 
     phon_atoms = PhonopyAtoms(symbols=[str(s.specie) for s in structure],
                               scaled_positions=structure.frac_coords)
@@ -73,11 +69,7 @@ def get_gibbs(structure, db_file, eos="vinet", t_step=10, t_min=0, t_max=1000, m
     # The physical units of V and T are \AA^3 and K, respectively.
     # The unit of eV for Helmholtz and Gibbs energies,
     # J/K/mol for C_V and entropy, GPa for for bulk modulus and pressure are used.
-    try:
-        from phonopy import PhonopyQHA
-    except ImportError:
-        print("Install phonopy. Exiting.")
-        sys.exit()
+    from phonopy import PhonopyQHA
 
     phonon = get_phonopy(structure)
     energies, volumes, force_constants = get_data(db_file, query={
