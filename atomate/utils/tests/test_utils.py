@@ -18,14 +18,14 @@ logger = get_logger(__name__)
 @explicit_serialize
 class Task1(FiretaskBase):
     def run_task(self, fw_spec):
-        print("task1",fw_spec)
+        print("task1", fw_spec)
         return FWAction(stored_data={"color": "red"})
 
 
 @explicit_serialize
 class Task2(FiretaskBase):
     def run_task(self, fw_spec):
-        print("task2",fw_spec)
+        print("task2", fw_spec)
         return FWAction(stored_data={"color": "yellow"})
 
 
@@ -66,6 +66,7 @@ class UtilsTests(unittest.TestCase):
         self.assertEqual(get_mongolike(d, "a.0.b"), 1)
         self.assertEqual(get_mongolike(d, "a.1.c.d"), 2)
 
+    # TODO: @matk86 - remove this once removing append_fw_wf() method -@computron
     def test_append_fw(self):
         fw_new = Firework(Task1())
         fws = [self.fw1, self.fw2, self.fw3]
@@ -76,6 +77,7 @@ class UtilsTests(unittest.TestCase):
         for i in leaf_ids:
             self.assertEqual(wflow.links[i], [new_lead_ids[0]])
 
+    # TODO: @matk86 - move this test to FireWorks after moving remove_fws() there
     def test_remove_leaf_fws(self):
         fw4 = Firework(Task1(), parents=[self.fw2, self.fw3])
         fws = [self.fw1, self.fw2, self.fw3, fw4]
@@ -88,6 +90,7 @@ class UtilsTests(unittest.TestCase):
         new_leaf_ids = new_wf.leaf_fw_ids
         self.assertEqual(new_leaf_ids, parents)
 
+    # TODO: @matk86 - move this test to FireWorks after moving remove_fws() there
     def test_remove_root_fws(self):
         fw4 = Firework(Task1(), parents=[self.fw2, self.fw3])
         fws = [self.fw1, self.fw2, self.fw3, fw4]

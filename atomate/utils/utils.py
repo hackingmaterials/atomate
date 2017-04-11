@@ -275,7 +275,7 @@ def load_class(modulepath, classname):
     return getattr(mod, classname)
 
 
-# TODO: @matk86 - any reason not to put this in FireWorks instead? w/unit test. -@computron
+# TODO: @matk86 - put this in FireWorks instead? w/ already existing unit tests. -@computron
 def remove_fws(orig_wf, fw_ids):
     """
     Remove the fireworks corresponding to the input firework ids and update the workflow i.e the
