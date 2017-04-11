@@ -25,16 +25,18 @@ def env_chk(val, fw_spec, strict=True, default=None):
 
     env_chk() works using the principles of the FWorker env in FireWorks.
 
-    This helper method translates string values that look like this:
+    This helper method translates string "val" that looks like this:
     ">>ENV_KEY<<"
     to the contents of:
     fw_spec["_fw_env"][ENV_KEY]
+    
+    Otherwise, the string "val" is interpreted literally and passed-through as is.
 
     The fw_spec["_fw_env"] is in turn set by the FWorker. For more details,
     see: https://pythonhosted.org/FireWorks/worker_tutorial.html
 
     Since the fw_env can be set differently for each FireWorker, one can
-    use this method to translate a single value into multiple possibilities,
+    use this method to translate a single "val" into multiple possibilities,
     thus achieving different behavior on different machines.
 
     Args:
@@ -56,10 +58,20 @@ def env_chk(val, fw_spec, strict=True, default=None):
 
 
 def get_mongolike(d, key):
+    """
+    Grab a dict value using dot-notation like "a.b.c" from dict {"a":{"b":{"c": 3}}}
+    Args:
+        d (dict): the dictionary to search
+        key (str): the key we want to grab with dot notation, e.g., "a.b.c" 
+
+    Returns:
+        value from desired dict (whatever is stored at the desired key)
+
+    """
     if "." in key:
         i, j = key.split(".", 1)
         try:
-            i = int(i)
+            i = int(i)  # for searching array data
         except:
             pass
         return get_mongolike(d[i], j)
