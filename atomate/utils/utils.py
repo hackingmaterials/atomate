@@ -274,7 +274,8 @@ def load_class(modulepath, classname):
     mod = __import__(modulepath, globals(), locals(), [classname], 0)
     return getattr(mod, classname)
 
-
+# TODO: @matk86 - You don't need a separate function for this.
+# It is one line of easily readable code. -@computron
 def remove_leaf_fws(orig_wf):
     """
     Remove the end nodes(last fireworks) from the given workflow.
@@ -287,7 +288,8 @@ def remove_leaf_fws(orig_wf):
     """
     return remove_fws(orig_wf, orig_wf.leaf_fw_ids)
 
-
+# TODO: @matk86 - You don't need a separate function for this.
+# It is one line of easily readable code. -@computron
 def remove_root_fws(orig_wf):
     """
     Remove the root nodes from the given workflow.
@@ -300,7 +302,7 @@ def remove_root_fws(orig_wf):
     """
     return remove_fws(orig_wf, orig_wf.root_fw_ids)
 
-
+# TODO: @matk86 - any reason not to put this in FireWorks instead? w/unit test. -@computron
 def remove_fws(orig_wf, fw_ids):
     """
     Remove the fireworks corresponding to the input firework ids and update the workflow i.e the
