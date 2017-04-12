@@ -17,7 +17,7 @@ __email__ = 'kmathew@lbl.gov'
 # generalize this and put it in a common location, e.g. atomate.common.firetasks.glue_tasks?
 # Ideally specific CopyXTasks could subclass the base class with defaults or simply use the base
 # class as-is.
-# -@computron
+# -computron
 
 @explicit_serialize
 class CopyFeffOutputs(FiretaskBase):

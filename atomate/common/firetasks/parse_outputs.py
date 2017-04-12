@@ -15,7 +15,7 @@ __author__ = 'Shyam Dwaraknath <shyamd@lbl.gov>, Anubhav Jain <ajain@lbl.gov>'
 logger = get_logger(__name__)
 
 # TODO: @shyamd: There are no tests? e.g. I changed the mmdb specification based on thinking
-#   through how this *should* work since there were no tests. -@computron
+#   through how this *should* work since there were no tests. -computron
 
 @explicit_serialize
 class ToDbTask(FiretaskBase):

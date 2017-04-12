@@ -16,10 +16,10 @@ from atomate.lammps.workflows.core import get_wf
 __author__ = 'Kiran Mathew'
 __email__ = "kmathew@lbl.gov"
 
-# TODO: @matk86 - is there any workflow or firework taking into account Packmol?  -@computron
+# TODO: @matk86 - is there any workflow or firework taking into account Packmol?  -computron
 # TODO: @mat86 - these wouldn't qualify as "preset" workflows. They go more in core.py. Presets
 # should generally **only** require a structure as a parameter with config dict as optional param.
-# -@computron
+# -computron
 
 def wf_from_input_template(input_template_file, lammps_data, data_filename, user_settings,
                            is_forcefield=False, input_filename="lammps.inp", lammps_bin="lammps",

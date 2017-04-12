@@ -15,7 +15,7 @@ __email__ = "kmathew@lbl.gov"
 
 # TODO: @matk86 - why is it sometimes "DictXInput" (X=Lammps) and other times "XDictSet"
 # (X=FEFF)? Can you make these consistent both in (i) where the word "Dict" is and (ii) Input
-# vs Set? Also update the parameter name below when done. -@computron
+# vs Set? Also update the parameter name below when done. -computron
 
 @explicit_serialize
 class WritelammpsInputFromDictInput(FiretaskBase):

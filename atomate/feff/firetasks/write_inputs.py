@@ -21,7 +21,7 @@ __email__ = 'kmathew@lbl.gov'
 # modname, classname = feff_input_set.strip().rsplit(".", 1)
 # cls_ = load_class(modname, classname)
 # Also update the tests and any workflows, etc.
-# This is the convention for other tasks (e.g. ToDbTask) and will avoid confusion. -@computron
+# This is the convention for other tasks (e.g. ToDbTask) and will avoid confusion. -computron
 
 @explicit_serialize
 class WriteFeffFromIOSet(FiretaskBase):

@@ -1,6 +1,6 @@
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
-# TODO: @computron should be able to load from YAML -@computron
+# TODO: @computron should be able to load from YAML -computron
 
 ADD_NAMEFILE = True
 SCRATCH_DIR = ">>scratch_dir<<"

@@ -66,7 +66,7 @@ class UtilsTests(unittest.TestCase):
         self.assertEqual(get_mongolike(d, "a.0.b"), 1)
         self.assertEqual(get_mongolike(d, "a.1.c.d"), 2)
 
-    # TODO: @matk86 - remove this once removing append_fw_wf() method -@computron
+    # TODO: @matk86 - remove this once removing append_fw_wf() method -computron
     def test_append_fw(self):
         fw_new = Firework(Task1())
         fws = [self.fw1, self.fw2, self.fw3]

@@ -16,7 +16,7 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 # TODO: @matk86 - The "MM" prefix presumable meant "MatMethods".
-# Since it is now atomate we should refactor the name. -@computron
+# Since it is now atomate we should refactor the name. -computron
 class MMLammpsDb(MMDb):
 
     def __init__(self, host="localhost", port=27017, database="lammps", collection="tasks",
@@ -24,9 +24,9 @@ class MMLammpsDb(MMDb):
         super(MMLammpsDb, self).__init__(host, port, database, collection, user, password)
 
     def build_indexes(self, indexes=None, background=True):
-        # TODO: @matk86 - would suggest adding a couple of indexes -@computron
+        # TODO: @matk86 - would suggest adding a couple of indexes -computron
         pass
 
     def reset(self):
-        # TODO: @matk86 - shouldn't this be implemented? Seems simple? -@computron
+        # TODO: @matk86 - shouldn't this be implemented? Seems simple? -computron
         pass

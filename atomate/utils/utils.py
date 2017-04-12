@@ -224,7 +224,7 @@ def get_wf_from_spec_dict(structure, wfspec):
 
 # TODO: @computron - not sure who added this, but it is pretty inelegant and unintuitive. Has to do
 # with mixing dict versions and object versions of objects in writing powerups. Consider nuking it
-# and replacing with less lazy(?) implementations of powerups instead of this ugliness. -@computron
+# and replacing with less lazy(?) implementations of powerups instead of this ugliness. -computron
 def update_wf(wf):
     """
     Simple helper to ensure that the powerup updates to the workflow dict has taken effect.
@@ -244,7 +244,7 @@ def update_wf(wf):
 
 # TODO: @matk86 - please remove this pointless method. Write tighter code rather than this silly
 # "auto-converting without thinking about it" mess. Even if you wanted to do this auto-conversion,
-# just modify Workflow.append_wf() in FireWorks rather than add this thing. -@computron
+# just modify Workflow.append_wf() in FireWorks rather than add this thing. -computron
 def append_fw_wf(orig_wf, fw_wf):
     """
     Add the given firework or workflow to the end of the provided workflow. If there are multiple
@@ -275,7 +275,7 @@ def load_class(modulepath, classname):
     return getattr(mod, classname)
 
 
-# TODO: @matk86 - put this in FireWorks instead? w/ already existing unit tests. -@computron
+# TODO: @matk86 - put this in FireWorks instead? w/ already existing unit tests. -computron
 def remove_fws(orig_wf, fw_ids):
     """
     Remove the fireworks corresponding to the input firework ids and update the workflow i.e the

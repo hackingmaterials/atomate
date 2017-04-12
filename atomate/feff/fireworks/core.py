@@ -22,7 +22,7 @@ __email__ = 'kmathew@lbl.gov'
 # TODO: @matk86 The "spectrum_type" and "feff_input_set" params can be combined. Maybe just one parameter:
 # - if it's "EXAFS" or "XANES", load the correct inputset automagically
 # - if it's some other string like "pymatgen.io.feff.....", split the string and use load_class
-# - it it's an actual class, use that. -@computron
+# - it it's an actual class, use that. -computron
 
 class XASFW(Firework):
     def __init__(self, absorbing_atom, structure, spectrum_type, edge="K", radius=10.0,
@@ -67,7 +67,7 @@ class XASFW(Firework):
                                     format(structure.composition.reduced_formula, name), **kwargs)
 
 
-# TODO: @matk86 - many params are not in the documented args -@computron
+# TODO: @matk86 - many params are not in the documented args -computron
 # TODO: @matk86 - see also my prev comment about feff_input_set and spectrum_type
 
 class EELSFW(Firework):

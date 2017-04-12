@@ -23,7 +23,7 @@ def get_all_absorbing_atoms(absorbing_atom, structure):
     # TODO: @matk86 - I'd delete this method and replace with:
     # ab_atoms = [absorbing_atom] if isinstance (absorbing_atom, int) else structure.indices_from_symbol(absorbing_atom)
     # inside the code of wherever it is called. Having a separate method and a separate module
-    # (util.py) for just this simple thing makes things complicated. -@computron
+    # (util.py) for just this simple thing makes things complicated. -computron
 
     if isinstance(absorbing_atom, string_types):
         ab_atoms = structure.indices_from_symbol(absorbing_atom)

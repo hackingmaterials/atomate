@@ -8,7 +8,7 @@ from pymatgen.util.testing import PymatgenTest
 
 from monty.serialization import loadfn
 
-# TODO: @computron - move this test if you also move the loader code -@computron
+# TODO: @computron - move this test if you also move the loader code -computron
 
 
 class FuncTest(PymatgenTest):

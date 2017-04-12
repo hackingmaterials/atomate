@@ -23,7 +23,7 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 # TODO: @matk86 - The "MM" prefix presumable meant "MatMethods".
-# Since it is now atomate we should refactor the name. -@computron
+# Since it is now atomate we should refactor the name. -computron
 class MMDb(six.with_metaclass(ABCMeta)):
 
     def __init__(self, host, port, database, collection, user, password):

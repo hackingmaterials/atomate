@@ -7,7 +7,7 @@ This module defines FEFF EELS(ELNES/EXELFS) spectroscopy workflows.
 """
 
 # TODO: @matk86 - do we really need 2 different modules for eels and xas? Maybe just put it all
-# in core.py or something. This will also be consistent w/other modules -@computron
+# in core.py or something. This will also be consistent w/other modules -computron
 
 
 from fireworks import Workflow

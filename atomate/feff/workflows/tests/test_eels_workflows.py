@@ -49,7 +49,7 @@ class TestEELSWorkflow(unittest.TestCase):
 
     def setUp(self):
         # TODO: @computron: A lot of this boilerplate code is re-used a lot. Generalize w/params
-        # for scratch dir loc, launchpad=T/F, etc. Same for teardown including db. -@computron
+        # for scratch dir loc, launchpad=T/F, etc. Same for teardown including db. -computron
         if os.path.exists(self.scratch_dir):
             shutil.rmtree(self.scratch_dir)
         os.makedirs(self.scratch_dir)
@@ -105,7 +105,7 @@ class TestEELSWorkflow(unittest.TestCase):
 
     @staticmethod
     def _get_task_database():
-        # TODO: @matk86 - there must be some pymatgen-db method that does this -@computron
+        # TODO: @matk86 - there must be some pymatgen-db method that does this -computron
         with open(os.path.join(db_dir, "db.json")) as f:
             creds = json.loads(f.read())
             conn = MongoClient(creds["host"], creds["port"])
@@ -116,7 +116,7 @@ class TestEELSWorkflow(unittest.TestCase):
 
     @staticmethod
     def _get_task_collection():
-        # TODO: @matk86 - this also seems pretty unnecessary, check pymatgen-db -@computron
+        # TODO: @matk86 - this also seems pretty unnecessary, check pymatgen-db -computron
         with open(os.path.join(db_dir, "db.json")) as f:
             creds = json.loads(f.read())
             db = TestEELSWorkflow._get_task_database()
