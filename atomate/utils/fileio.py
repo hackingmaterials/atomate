@@ -50,6 +50,7 @@ class FileClient(object):
         Args:
             username (str):
             host (str):
+            
             private_key (str):  path to private key file
 
         Returns:
