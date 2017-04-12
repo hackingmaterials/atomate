@@ -19,7 +19,7 @@ from fireworks.utilities.fw_utilities import explicit_serialize
 from atomate.utils.utils import get_logger
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk
-from atomate.lammps.database import MMLammpsDb
+from atomate.lammps.database import LammpsCalcDb
 from pymatgen.io.lammps.output import LammpsRun
 
 
@@ -95,7 +95,7 @@ class LammpsToDBTask(FiretaskBase):
             with open("task.json", "w") as f:
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
         else:
-            mmdb = MMLammpsDb.from_db_file(db_file)
+            mmdb = LammpsCalcDb.from_db_file(db_file)
             # insert the task document
             t_id = mmdb.insert(d)
             logger.info("Finished parsing with task_id: {}".format(t_id))
