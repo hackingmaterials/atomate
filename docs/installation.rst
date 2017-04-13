@@ -17,7 +17,6 @@ It is assumed that you are comfortable with basic Linux shell commands and navig
 .. _FireWorks: https://pythonhosted.org/FireWorks/
 .. _Linux Command: http://linuxcommand.org/lc3_learning_the_shell.php
 .. _Linux Journey: https://linuxjourney.com/lesson/the-shell
-.. _The Hitchhiker's Guide to Python: http://python-guide-pt-br.readthedocs.io/en/latest/
 
 
 Installation checklist
