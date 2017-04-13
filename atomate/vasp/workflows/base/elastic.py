@@ -18,6 +18,9 @@ from atomate.utils.utils import get_logger, append_fw_wf
 from atomate.vasp.workflows.base.deformations import get_wf_deformations
 from atomate.vasp.firetasks.parse_outputs import ElasticTensorToDbTask
 
+# HACK
+from atomate.vasp.powerups import add_common_powerups, add_modify_incar
+
 __author__ = 'Shyam Dwaraknath, Joseph Montoya'
 __email__ = 'shyamd@lbl.gov, montoyjh@lbl.gov'
 
@@ -98,6 +101,54 @@ def get_default_strain_states(order=2):
         np.put(strain_states[n], i, 1)
     strain_states[:, 3:] *= 2
     return strain_states.tolist()
+
+
+def get_legacy_elastic_wf(structure, vasp_input_set=None, vasp_cmd=">>vasp_cmd<<", norm_deformations=None,
+                            shear_deformations=None, additional_deformations=None, db_file=">>db_file<<",
+                            user_kpoints_settings=None, add_analysis_task=True, conventional=True,
+                            optimize_structure=True, symmetry_reduction=True, c=None):
+    # Convert to conventional
+    if conventional:
+        structure = SpacegroupAnalyzer(structure).get_conventional_standard_structure()
+    # Generate deformations
+    user_kpoints_settings = user_kpoints_settings or {"grid_density": 7000}
+    norm_deformations = norm_deformations or [0.005] #[-0.01, -0.005, 0.005, 0.01]
+    shear_deformations = shear_deformations or [0.03] #[-0.06, -0.03, 0.03, 0.06]
+    deformations = []
+
+    if norm_deformations is not None:
+        deformations.extend([Deformation.from_index_amount(ind, amount)
+                             for ind in [(0, 0), (1, 1), (2, 2)]
+                             for amount in norm_deformations])
+    if shear_deformations is not None:
+        deformations.extend([Deformation.from_index_amount(ind, amount)
+                             for ind in [(0, 1), (0, 2), (1, 2)]
+                             for amount in shear_deformations])
+
+    if additional_deformations:
+        deformations.extend([Deformation(defo_mat) for defo_mat in additional_deformations])
+
+    if not deformations:
+        raise ValueError("deformations list empty")
+
+    wf_elastic = get_wf_deformations(structure, deformations, vasp_input_set=vasp_input_set,
+                                     lepsilon=False, vasp_cmd=vasp_cmd, db_file=db_file,
+                                     user_kpoints_settings=user_kpoints_settings,
+                                     pass_stress_strain=True, name="deformation",
+                                     relax_deformed=True, tag="elastic",
+                                     optimize_structure=optimize_structure, symmetry_reduction=symmetry_reduction)
+
+    if add_analysis_task:
+        fw_analysis = Firework(ElasticTensorToDbTask(structure=structure, db_file=db_file),
+                               name="Analyze Elastic Data", spec={"_allow_fizzled_parents": True})
+        append_fw_wf(wf_elastic, fw_analysis)
+
+    wf_elastic.name = "{}:{}".format(structure.composition.reduced_formula, "elastic constants")
+    wf_elastic = add_modify_incar(wf_elastic, modify_incar_params = {"incar_update":{"ENCUT":700, "EDIFF":1e-6, "LAECHG":False}})
+    wf_elastic = add_common_powerups(wf_elastic, c)
+
+    return wf_elastic
+
 
 if __name__ == "__main__":
     from pymatgen.util.testing import PymatgenTest
