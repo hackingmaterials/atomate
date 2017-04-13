@@ -7,11 +7,17 @@ import os
 from fireworks import explicit_serialize, FiretaskBase
 
 from atomate.utils.fileio import FileClient
-from atomate.utils.utils import get_calc_loc
+from atomate.common.firetasks.glue_tasks import get_calc_loc
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 
+# TODO: @matk86 this has nothing to do with FEFF, apart from certain default files to exclude. It
+# also has functionalities that might be useful to other CopyXOutputs style tasks. Can you
+# generalize this and put it in a common location, e.g. atomate.common.firetasks.glue_tasks?
+# Ideally specific CopyXTasks could subclass the base class with defaults or simply use the base
+# class as-is.
+# -computron
 
 @explicit_serialize
 class CopyFeffOutputs(FiretaskBase):

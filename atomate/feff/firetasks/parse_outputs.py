@@ -15,9 +15,10 @@ from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.user_objects.firetasks.filepad_tasks import get_fpad
 
-from atomate.utils.utils import env_chk, get_calc_loc
+from atomate.utils.utils import env_chk
+from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import get_logger
-from atomate.feff.database import MMFeffDb
+from atomate.feff.database import FeffCalcDb
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -80,9 +81,9 @@ class SpectrumToDbTask(FiretaskBase):
         if not db_file:
             with open("feff_task.json", "w") as f:
                 f.write(json.dumps(doc, default=DATETIME_HANDLER))
-        # db insertion
+
         else:
-            db = MMFeffDb.from_db_file(db_file, admin=True)
+            db = FeffCalcDb.from_db_file(db_file, admin=True)
             db.insert(doc)
 
         logger.info("Finished parsing the spectrum")
