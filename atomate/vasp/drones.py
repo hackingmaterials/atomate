@@ -44,7 +44,7 @@ class VaspDrone(AbstractDrone):
     Please refer to matgendb.creator.VaspToDbTaskDrone documentation.
     """
 
-    __version__ = 0.2
+    __version__ = 0.2  # note: the version is inserted into the task doc
 
     # Schema def of important keys and sub-keys; used in validation
     schema = {
@@ -156,8 +156,9 @@ class VaspDrone(AbstractDrone):
                                    for taskname, filename in vasprun_files.items()]
             outcar_data = [self.process_outcar(dir_name, filename)
                            for taskname, filename in outcar_files.items()]
-            run_stats = {}
+
             # set run_stats and calcs_reversed.x.output.outcar
+            run_stats = {}
             for i, d_calc in enumerate(d["calcs_reversed"]):
                 run_stats[d_calc["task"]["name"]] = outcar_data[i].pop("run_stats")
                 if d_calc.get("output"):
@@ -173,8 +174,11 @@ class VaspDrone(AbstractDrone):
             except:
                 logger.error("Bad run stats for {}.".format(fullpath))
             d["run_stats"] = run_stats
-            # reverse the calculations data order
+
+            # reverse the calculations data order so newest calc is first
             d["calcs_reversed"].reverse()
+
+            # set root keys based on initial and final calcs
             d_calc_initial = d["calcs_reversed"][-1]
             d_calc_final = d["calcs_reversed"][0]
             d["chemsys"] = "-".join(sorted(d_calc_final["elements"]))
@@ -184,14 +188,16 @@ class VaspDrone(AbstractDrone):
             for root_key in ["completed_at", "nsites", "composition_unit_cell",
                              "composition_reduced", "formula_pretty", "elements", "nelements"]:
                 d[root_key] = d_calc_final[root_key]
-            # set other root keys
+
             self.set_input_data(d_calc_initial, d)
             self.set_output_data(d_calc_final, d)
             self.set_state(d_calc_final, d)
+
             self.set_analysis(d)
             d["last_updated"] = datetime.datetime.today()
             return d
-        except Exception as ex:
+
+        except Exception:
             import traceback
             logger.error(traceback.format_exc())
             logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
