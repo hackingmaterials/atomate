@@ -17,7 +17,7 @@ from pymatgen.electronic_structure.bandstructure import BandStructure, BandStruc
 import gridfs
 from pymongo import ASCENDING, DESCENDING
 
-from atomate.utils.database import MMDb
+from atomate.utils.database import CalcDb
 from atomate.utils.utils import get_logger
 
 __author__ = 'Kiran Mathew'
@@ -27,14 +27,14 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
-class MMVaspDb(MMDb):
+class VaspCalcDb(CalcDb):
     """
     Class to help manage database insertions of Vasp drones
     """
 
     def __init__(self, host="localhost", port=27017, database="vasp", collection="tasks", user=None,
                  password=None):
-        super(MMVaspDb, self).__init__(host, port, database, collection, user, password)
+        super(VaspCalcDb, self).__init__(host, port, database, collection, user, password)
 
     def build_indexes(self, indexes=None, background=True):
         """
@@ -121,6 +121,6 @@ class MMVaspDb(MMDb):
         self.build_indexes()
 
 
-class MMBoltztrapDb(MMDb):
+class BoltztrapCalcDb(CalcDb):
     # TODO: add Boltztrap management here
     pass

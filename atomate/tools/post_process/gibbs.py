@@ -13,6 +13,13 @@ from pymatgen import Structure
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"
 
+# TODO: @matk86 - I am not sure exactly what this is, but the organization is incorrect here.
+# Perhaps in vasp package of atomate? Or pymatgen? -computron
+
+
+# TODO: @matk86 - please remove these get_db() and get_connection() style methods everywhere.
+# They are either already there in pymatgen-db or you can create a single function in common
+# utils of atomate. But pretty sure the former. -computron
 
 def get_db(db_file):
     """
@@ -38,12 +45,8 @@ def get_collection(db_file):
 
 
 def get_phonopy(structure):
-    try:
-        from phonopy import Phonopy
-        from phonopy.structure.atoms import Atoms as PhonopyAtoms
-    except ImportError:
-        print("Install phonopy. Exiting.")
-        sys.exit()
+    from phonopy import Phonopy
+    from phonopy.structure.atoms import Atoms as PhonopyAtoms
 
     phon_atoms = PhonopyAtoms(symbols=[str(s.specie) for s in structure],
                               scaled_positions=structure.frac_coords)
@@ -73,11 +76,7 @@ def get_gibbs(structure, db_file, eos="vinet", t_step=10, t_min=0, t_max=1000, m
     # The physical units of V and T are \AA^3 and K, respectively.
     # The unit of eV for Helmholtz and Gibbs energies,
     # J/K/mol for C_V and entropy, GPa for for bulk modulus and pressure are used.
-    try:
-        from phonopy import PhonopyQHA
-    except ImportError:
-        print("Install phonopy. Exiting.")
-        sys.exit()
+    from phonopy import PhonopyQHA
 
     phonon = get_phonopy(structure)
     energies, volumes, force_constants = get_data(db_file, query={
@@ -118,7 +117,7 @@ def get_gibbs(structure, db_file, eos="vinet", t_step=10, t_min=0, t_max=1000, m
     else:
         return T, G
 
-
+# TODO: @matk86 please cleanup, e.g. into an actual unit test -computron
 if __name__ == "__main__":
     import os
     from pymatgen.util.testing import PymatgenTest

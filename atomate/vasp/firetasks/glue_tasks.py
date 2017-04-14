@@ -27,7 +27,8 @@ from pymatgen.core.structure import Structure
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
-from atomate.utils.utils import get_calc_loc, env_chk
+from atomate.utils.utils import env_chk
+from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.fileio import FileClient
 from atomate.common.firetasks.glue_tasks import GrabFilesFromCalcLoc
 

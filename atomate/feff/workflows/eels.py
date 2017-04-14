@@ -6,6 +6,10 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 This module defines FEFF EELS(ELNES/EXELFS) spectroscopy workflows.
 """
 
+# TODO: @matk86 - do we really need 2 different modules for eels and xas? Maybe just put it all
+# in core.py or something. This will also be consistent w/other modules -computron
+
+
 from fireworks import Workflow
 
 from atomate.utils.utils import get_logger

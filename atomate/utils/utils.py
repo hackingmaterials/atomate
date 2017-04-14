@@ -5,13 +5,12 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import logging
 import os
 import sys
-import six
 from copy import deepcopy
 
+import six
+
 from fireworks import Workflow, Firework
-
 from monty.json import MontyDecoder
-
 from pymatgen import Composition
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
@@ -26,16 +25,18 @@ def env_chk(val, fw_spec, strict=True, default=None):
 
     env_chk() works using the principles of the FWorker env in FireWorks.
 
-    This helper method translates string values that look like this:
+    This helper method translates string "val" that looks like this:
     ">>ENV_KEY<<"
     to the contents of:
     fw_spec["_fw_env"][ENV_KEY]
+    
+    Otherwise, the string "val" is interpreted literally and passed-through as is.
 
     The fw_spec["_fw_env"] is in turn set by the FWorker. For more details,
     see: https://pythonhosted.org/FireWorks/worker_tutorial.html
 
     Since the fw_env can be set differently for each FireWorker, one can
-    use this method to translate a single value into multiple possibilities,
+    use this method to translate a single "val" into multiple possibilities,
     thus achieving different behavior on different machines.
 
     Args:
@@ -56,39 +57,21 @@ def env_chk(val, fw_spec, strict=True, default=None):
     return val
 
 
-def get_calc_loc(target_name, calc_locs):
+def get_mongolike(d, key):
     """
-    This is a helper method that helps you pick out a certain calculation
-    from an array of calc_locs.
-
-    There are three modes:
-        - If you set target_name to a String, search for most recent calc_loc
-            with matching name
-        - Otherwise, return most recent calc_loc overall
-
+    Grab a dict value using dot-notation like "a.b.c" from dict {"a":{"b":{"c": 3}}}
     Args:
-        target_name: (bool or str) If str, will search for calc_loc with
-            matching name, else use most recent calc_loc
-        calc_locs: (dict) The dictionary of all calc_locs
+        d (dict): the dictionary to search
+        key (str): the key we want to grab with dot notation, e.g., "a.b.c" 
 
     Returns:
-        (dict) dict with subkeys path, filesystem, and name
+        value from desired dict (whatever is stored at the desired key)
+
     """
-
-    if isinstance(target_name, six.string_types):
-        for doc in reversed(calc_locs):
-            if doc["name"] == target_name:
-                return doc
-        raise ValueError("Could not find the target_name: {}".format(target_name))
-    else:
-        return calc_locs[-1]
-
-
-def get_mongolike(d, key):
     if "." in key:
         i, j = key.split(".", 1)
         try:
-            i = int(i)
+            i = int(i)  # for searching array data
         except:
             pass
         return get_mongolike(d[i], j)
@@ -125,7 +108,8 @@ def get_meta_from_structure(structure):
 
 def get_fws_and_tasks(workflow, fw_name_constraint=None, task_name_constraint=None):
     """
-    Helper method: given a workflow, returns back the fw_ids and task_ids that match constraints
+    Helper method: given a workflow, returns back the fw_ids and task_ids that match name 
+    constraints. Used in developing multiple powerups.
 
     Args:
         workflow (Workflow): Workflow
@@ -144,6 +128,8 @@ def get_fws_and_tasks(workflow, fw_name_constraint=None, task_name_constraint=No
     return fws_and_tasks
 
 
+# TODO: @computron - move this somewhere else, maybe dedicated serialization package - @computron
+# TODO: @computron - also review this code for clarity - @computron
 def get_wf_from_spec_dict(structure, wfspec):
     """
     Load a WF from a structure and a spec dict. This allows simple
@@ -236,6 +222,9 @@ def get_wf_from_spec_dict(structure, wfspec):
     return Workflow(fws, name=wfname)
 
 
+# TODO: @computron - not sure who added this, but it is pretty inelegant and unintuitive. Has to do
+# with mixing dict versions and object versions of objects in writing powerups. Consider nuking it
+# and replacing with less lazy(?) implementations of powerups instead of this ugliness. -computron
 def update_wf(wf):
     """
     Simple helper to ensure that the powerup updates to the workflow dict has taken effect.
@@ -253,7 +242,9 @@ def update_wf(wf):
     """
     return Workflow.from_dict(wf.as_dict())
 
-
+# TODO: @matk86 - please remove this pointless method. Write tighter code rather than this silly
+# "auto-converting without thinking about it" mess. Even if you wanted to do this auto-conversion,
+# just modify Workflow.append_wf() in FireWorks rather than add this thing. -computron
 def append_fw_wf(orig_wf, fw_wf):
     """
     Add the given firework or workflow to the end of the provided workflow. If there are multiple
@@ -280,40 +271,15 @@ def load_class(modulepath, classname):
     Returns:
         class
     """
-    module = __import__(modulepath, globals(), locals(), [classname], 0)
-    return getattr(module, classname)
+    mod = __import__(modulepath, globals(), locals(), [classname], 0)
+    return getattr(mod, classname)
 
 
-def remove_leaf_fws(orig_wf):
-    """
-    Remove the end nodes(last fireworks) from the given workflow.
-
-    Args:
-        orig_wf (Workflow): The original workflow object.
-
-    Returns:
-        Workflow : the new updated workflow.
-    """
-    return remove_fws(orig_wf, orig_wf.leaf_fw_ids)
-
-
-def remove_root_fws(orig_wf):
-    """
-    Remove the root nodes from the given workflow.
-
-    Args:
-        orig_wf (Workflow): The original workflow object.
-
-    Returns:
-        Workflow : the new updated workflow.
-    """
-    return remove_fws(orig_wf, orig_wf.root_fw_ids)
-
-
+# TODO: @matk86 - put this in FireWorks instead? w/ already existing unit tests. -computron
 def remove_fws(orig_wf, fw_ids):
     """
     Remove the fireworks corresponding to the input firework ids and update the workflow i.e the
-    parents of the removed fireworks become the parents of the children fireworks(only if the
+    parents of the removed fireworks become the parents of the children fireworks (only if the
     children dont have any other parents).
 
     Args:
@@ -328,7 +294,7 @@ def remove_fws(orig_wf, fw_ids):
     orig_parent_links = deepcopy(orig_wf.links.parent_links)
     fws = wf_dict["fws"]
 
-    # update the links dict: remove fw_ids and link their parents to their children(if they don't
+    # update the links dict: remove fw_ids and link their parents to their children (if they don't
     # have any other parents).
     for fid in fw_ids:
         children = wf_dict["links"].pop(str(fid))
