@@ -78,7 +78,7 @@ class VaspDrone(AbstractDrone):
         self.compress_dos = compress_dos
         self.additional_fields = additional_fields or {}
         self.use_full_uri = use_full_uri
-        self.runs = runs or ["relax1", "relax2"]  # TODO: make this auto-detected
+        self.runs = runs or ["relax" + str(i+1) for i in range(9)]  # can't auto-detect: path unknown
         self.bandstructure_mode = bandstructure_mode
         self.compress_bs = compress_bs
 
@@ -110,7 +110,7 @@ class VaspDrone(AbstractDrone):
         """
         Find the files that match the pattern in the given path and
         return them in an ordered dictionary. The searched for files are
-        filtered by the run types defined in self.runs. e.g. ["relax1", "relax2"].
+        filtered by the run types defined in self.runs. e.g. ["relax1", "relax2", ...].
         Only 2 schemes of the file filtering is enabled: searching for run types
         in the list of files and in the filenames. Modify this method if more
         sophisticated filtering scheme is needed.
@@ -448,10 +448,10 @@ class VaspDrone(AbstractDrone):
 
         1. There can be only one vasp run in each directory. Nested directories
            are fine.
-        2. Directories designated "relax1", "relax2" are considered to be 2
-           parts of an aflow style run.
-        3. Directories containing vasp output with ".relax1" and ".relax2" are
-           also considered as 2 parts of an aflow style run.
+        2. Directories designated "relax1"..."relax9" are considered to be
+           parts of a multiple-optimization run.
+        3. Directories containing vasp output with ".relax1"...".relax9" are
+           also considered as parts of a multiple-optimization run.
         """
         (parent, subdirs, files) = path
         if set(self.runs).intersection(subdirs):
