@@ -148,6 +148,7 @@ class VaspDrone(AbstractDrone):
         Adapted from matgendb.creator.generate_doc
         """
         try:
+            # basic properties, incl. calcs_reversed and run_stats
             fullpath = os.path.abspath(dir_name)
             d = {k: v for k, v in self.additional_fields.items()}
             d["schema"] = {"code": "atomate", "version": VaspDrone.__version__}
@@ -156,8 +157,6 @@ class VaspDrone(AbstractDrone):
                                    for taskname, filename in vasprun_files.items()]
             outcar_data = [Outcar(os.path.join(dir_name, filename)).as_dict()
                            for taskname, filename in outcar_files.items()]
-
-            # set run_stats and calcs_reversed.x.output.outcar
             run_stats = {}
             for i, d_calc in enumerate(d["calcs_reversed"]):
                 run_stats[d_calc["task"]["name"]] = outcar_data[i].pop("run_stats")
@@ -178,7 +177,7 @@ class VaspDrone(AbstractDrone):
             # reverse the calculations data order so newest calc is first
             d["calcs_reversed"].reverse()
 
-            # set root keys based on initial and final calcs
+            # set root formula/composition keys based on initial and final calcs
             d_calc_init = d["calcs_reversed"][-1]
             d_calc_final = d["calcs_reversed"][0]
             d["chemsys"] = "-".join(sorted(d_calc_final["elements"]))
@@ -189,7 +188,7 @@ class VaspDrone(AbstractDrone):
                              "composition_reduced", "formula_pretty", "elements", "nelements"]:
                 d[root_key] = d_calc_final[root_key]
 
-            # store the input key
+            # store the input key based on initial calc
             # store any overrides to the exchange correlation functional
             xc = d_calc_init["input"]["incar"].get("GGA")
             if xc:
@@ -210,7 +209,7 @@ class VaspDrone(AbstractDrone):
                           "incar": d_calc_init["input"]["incar"]
                           }
 
-            # store the output key
+            # store the output key based on final calc
             d["output"] = {
                 "structure": d_calc_final["output"]["structure"],
                 "density": d_calc_final.pop("density"),
@@ -252,7 +251,7 @@ class VaspDrone(AbstractDrone):
             import traceback
             logger.error(traceback.format_exc())
             logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
-            return None
+            return None  # TODO: @matk86: Why does this return None instead of throwing the error? -computron
 
     def process_vasprun(self, dir_name, taskname, filename):
         """
