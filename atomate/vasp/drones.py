@@ -37,8 +37,6 @@ __version__ = "0.1.0"
 
 logger = get_logger(__name__)
 
-# TODO: this code could use some cleanup ...
-
 
 class VaspDrone(AbstractDrone):
     """
@@ -48,7 +46,7 @@ class VaspDrone(AbstractDrone):
 
     __version__ = 0.2
 
-    # Schema def of important keys and sub-keys
+    # Schema def of important keys and sub-keys; used in validation
     schema = {
         "root": {
             "schema", "dir_name", "chemsys", "composition_reduced",
@@ -86,19 +84,8 @@ class VaspDrone(AbstractDrone):
 
     def assimilate(self, path):
         """
-        Parses vasp runs(vasprun.xml file) and insert the result into the db.
-
-        Args:
-            path (str): Path to the directory containing vasprun.xml file
-
-        Returns:
-            tuple of (task_id, task_doc dict)
-        """
-        return self.get_task_doc(path)
-
-    def get_task_doc(self, path):
-        """
         Adapted from matgendb.creator
+        Parses vasp runs(vasprun.xml file) and insert the result into the db.
         Get the entire task doc from the vasprum.xml and the OUTCAR files in the path.
         Also adds some post-processed info.
 
@@ -106,7 +93,7 @@ class VaspDrone(AbstractDrone):
             path (str): Path to the directory containing vasprun.xml and OUTCAR files
 
         Returns:
-            The dictionary to be inserted into the db
+            (dict): a task dictionary
         """
         logger.info("Getting task doc for base dir :{}".format(path))
         vasprun_files = self.filter_files(path, file_pattern="vasprun.xml")
