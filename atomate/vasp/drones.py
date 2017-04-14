@@ -216,7 +216,16 @@ class VaspDrone(AbstractDrone):
                 "density": d_calc_final.pop("density"),
                 "energy": d_calc_final["output"]["energy"],
                 "energy_per_atom": d_calc_final["output"]["energy_per_atom"]}
-            d["output"].update(self.get_basic_processed_data(d))
+
+            calc = d["calcs_reversed"][0]
+            gap = calc["output"]["bandgap"]
+            cbm = calc["output"]["cbm"]
+            vbm = calc["output"]["vbm"]
+            is_direct = calc["output"]["is_gap_direct"]
+            is_metal = calc["output"]["is_metal"]
+            d["output"].update({"bandgap": gap, "cbm": cbm, "vbm": vbm,
+                                "is_gap_direct": is_direct, "is_metal": is_metal})
+
             sg = SpacegroupAnalyzer(Structure.from_dict(d_calc_final["output"]["structure"]), 0.1)
             if not sg.get_symmetry_dataset():
                 sg = SpacegroupAnalyzer(Structure.from_dict(d_calc_final["output"]["structure"]),
@@ -235,7 +244,7 @@ class VaspDrone(AbstractDrone):
             d["state"] = "successful" if d_calc["has_vasp_completed"] else "unsuccessful"
 
             self.set_analysis(d)
-            
+
             d["last_updated"] = datetime.datetime.today()
             return d
 
@@ -322,8 +331,12 @@ class VaspDrone(AbstractDrone):
         percent_delta_vol = delta_vol / initial_vol
         warning_msgs = []
         error_msgs = []
+
+        # delta volume checks
         if abs(percent_delta_vol) > volume_change_threshold:
             warning_msgs.append("Volume change > {}%".format(volume_change_threshold * 100))
+
+        # max force and valid structure checks
         max_force = None
         calc = d["calcs_reversed"][0]
         if d["state"] == "successful" and calc["input"]["parameters"].get("NSW", 0) > 0:
@@ -332,31 +345,17 @@ class VaspDrone(AbstractDrone):
             if max_force > max_force_threshold:
                 error_msgs.append("Final max force exceeds {} eV".format(max_force_threshold))
                 d["state"] = "error"
+
             s = Structure.from_dict(d["output"]["structure"])
             if not s.is_valid():
                 error_msgs.append("Bad structure (atoms are too close!)")
                 d["state"] = "error"
+
         d["analysis"] = {"delta_volume": delta_vol,
                          "delta_volume_percent": percent_delta_vol,
                          "max_force": max_force,
                          "warnings": warning_msgs,
                          "errors": error_msgs}
-
-    def get_basic_processed_data(self, d):
-        """
-        return processed data such as vbm, cbm, gap etc.
-        """
-        calc = d["calcs_reversed"][0]
-        gap = calc["output"]["bandgap"]
-        cbm = calc["output"]["cbm"]
-        vbm = calc["output"]["vbm"]
-        is_direct = calc["output"]["is_gap_direct"]
-        is_metal = calc["output"]["is_metal"]
-        return {"bandgap": gap,
-                "cbm": cbm,
-                "vbm": vbm,
-                "is_gap_direct": is_direct,
-                "is_metal": is_metal}
 
     def post_process(self, dir_name, d):
         """
