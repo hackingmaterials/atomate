@@ -154,7 +154,7 @@ class VaspDrone(AbstractDrone):
             d["dir_name"] = fullpath
             d["calcs_reversed"] = [self.process_vasprun(dir_name, taskname, filename)
                                    for taskname, filename in vasprun_files.items()]
-            outcar_data = [self.process_outcar(dir_name, filename)
+            outcar_data = [Outcar(os.path.join(dir_name, filename)).as_dict()
                            for taskname, filename in outcar_files.items()]
 
             # set run_stats and calcs_reversed.x.output.outcar
@@ -267,12 +267,6 @@ class VaspDrone(AbstractDrone):
             d["output"]["normalmode_eigenvals"] = vrun.normalmode_eigenvals.tolist()
             d["output"]["normalmode_eigenvecs"] = vrun.normalmode_eigenvecs.tolist()
         return d
-
-    def process_outcar(self, dir_name, filename):
-        """
-        Process the outcar file
-        """
-        return Outcar(os.path.join(dir_name, filename)).as_dict()
 
     def set_input_data(self, d_calc, d):
         """
