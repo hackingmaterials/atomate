@@ -69,7 +69,7 @@ class OptimizeFW(Firework):
 
 class StaticFW(Firework):
     def __init__(self, structure, name="static", vasp_input_set=None, vasp_cmd="vasp",
-                 copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
+                 prev_calc_loc=True, db_file=None, parents=None, **kwargs):
         """
         Standard static calculation Firework.
 
@@ -79,7 +79,9 @@ class StaticFW(Firework):
             vasp_input_set (VaspInputSet): input set to use (for jobs w/no parents)
                 Defaults to MPStaticSet() if None.
             vasp_cmd (str): Command to run vasp.
-            copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
+            prev_calc_loc (bool or str): If true (default), copies outputs from previous calc. If 
+                a str value, grabs a previous calculation output by name. If False/None, will create
+                new static calculation using the provided structure.
             db_file (str): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
@@ -87,8 +89,8 @@ class StaticFW(Firework):
         t = []
 
         if parents:
-            if copy_vasp_outputs:
-                t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
+            if prev_calc_loc:
+                t.append(CopyVaspOutputs(calc_loc=prev_calc_loc, contcar_to_poscar=True))
             t.append(WriteVaspStaticFromPrev(prev_calc_dir='.'))
         else:
             vasp_input_set = vasp_input_set or MPStaticSet(structure)

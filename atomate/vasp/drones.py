@@ -37,8 +37,6 @@ __version__ = "0.1.0"
 
 logger = get_logger(__name__)
 
-# TODO: this code could use some cleanup ...
-
 
 class VaspDrone(AbstractDrone):
     """
@@ -46,9 +44,9 @@ class VaspDrone(AbstractDrone):
     Please refer to matgendb.creator.VaspToDbTaskDrone documentation.
     """
 
-    __version__ = 0.2
+    __version__ = 0.2  # note: the version is inserted into the task doc
 
-    # Schema def of important keys and sub-keys
+    # Schema def of important keys and sub-keys; used in validation
     schema = {
         "root": {
             "schema", "dir_name", "chemsys", "composition_reduced",
@@ -80,25 +78,14 @@ class VaspDrone(AbstractDrone):
         self.compress_dos = compress_dos
         self.additional_fields = additional_fields or {}
         self.use_full_uri = use_full_uri
-        self.runs = runs or ["relax1", "relax2"]  # TODO: make this auto-detected
+        self.runs = runs or ["relax" + str(i+1) for i in range(9)]  # can't auto-detect: path unknown
         self.bandstructure_mode = bandstructure_mode
         self.compress_bs = compress_bs
 
     def assimilate(self, path):
         """
-        Parses vasp runs(vasprun.xml file) and insert the result into the db.
-
-        Args:
-            path (str): Path to the directory containing vasprun.xml file
-
-        Returns:
-            tuple of (task_id, task_doc dict)
-        """
-        return self.get_task_doc(path)
-
-    def get_task_doc(self, path):
-        """
         Adapted from matgendb.creator
+        Parses vasp runs(vasprun.xml file) and insert the result into the db.
         Get the entire task doc from the vasprum.xml and the OUTCAR files in the path.
         Also adds some post-processed info.
 
@@ -106,7 +93,7 @@ class VaspDrone(AbstractDrone):
             path (str): Path to the directory containing vasprun.xml and OUTCAR files
 
         Returns:
-            The dictionary to be inserted into the db
+            (dict): a task dictionary
         """
         logger.info("Getting task doc for base dir :{}".format(path))
         vasprun_files = self.filter_files(path, file_pattern="vasprun.xml")
@@ -123,7 +110,7 @@ class VaspDrone(AbstractDrone):
         """
         Find the files that match the pattern in the given path and
         return them in an ordered dictionary. The searched for files are
-        filtered by the run types defined in self.runs. e.g. ["relax1", "relax2"].
+        filtered by the run types defined in self.runs. e.g. ["relax1", "relax2", ...].
         Only 2 schemes of the file filtering is enabled: searching for run types
         in the list of files and in the filenames. Modify this method if more
         sophisticated filtering scheme is needed.
@@ -167,10 +154,11 @@ class VaspDrone(AbstractDrone):
             d["dir_name"] = fullpath
             d["calcs_reversed"] = [self.process_vasprun(dir_name, taskname, filename)
                                    for taskname, filename in vasprun_files.items()]
-            outcar_data = [self.process_outcar(dir_name, filename)
+            outcar_data = [Outcar(os.path.join(dir_name, filename)).as_dict()
                            for taskname, filename in outcar_files.items()]
-            run_stats = {}
+
             # set run_stats and calcs_reversed.x.output.outcar
+            run_stats = {}
             for i, d_calc in enumerate(d["calcs_reversed"]):
                 run_stats[d_calc["task"]["name"]] = outcar_data[i].pop("run_stats")
                 if d_calc.get("output"):
@@ -186,8 +174,11 @@ class VaspDrone(AbstractDrone):
             except:
                 logger.error("Bad run stats for {}.".format(fullpath))
             d["run_stats"] = run_stats
-            # reverse the calculations data order
+
+            # reverse the calculations data order so newest calc is first
             d["calcs_reversed"].reverse()
+
+            # set root keys based on initial and final calcs
             d_calc_initial = d["calcs_reversed"][-1]
             d_calc_final = d["calcs_reversed"][0]
             d["chemsys"] = "-".join(sorted(d_calc_final["elements"]))
@@ -197,14 +188,16 @@ class VaspDrone(AbstractDrone):
             for root_key in ["completed_at", "nsites", "composition_unit_cell",
                              "composition_reduced", "formula_pretty", "elements", "nelements"]:
                 d[root_key] = d_calc_final[root_key]
-            # set other root keys
+
             self.set_input_data(d_calc_initial, d)
             self.set_output_data(d_calc_final, d)
             self.set_state(d_calc_final, d)
+
             self.set_analysis(d)
             d["last_updated"] = datetime.datetime.today()
             return d
-        except Exception as ex:
+
+        except Exception:
             import traceback
             logger.error(traceback.format_exc())
             logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
@@ -223,6 +216,8 @@ class VaspDrone(AbstractDrone):
             vrun = Vasprun(vasprun_file)
 
         d = vrun.as_dict()
+
+        # rename formula keys
         for k, v in {"formula_pretty": "pretty_formula",
                      "composition_reduced": "reduced_cell_formula",
                      "composition_unit_cell": "unit_cell_formula"}.items():
@@ -238,6 +233,7 @@ class VaspDrone(AbstractDrone):
         d["dir_name"] = os.path.abspath(dir_name)
         d["completed_at"] = str(datetime.datetime.fromtimestamp(os.path.getmtime(vasprun_file)))
         d["density"] = vrun.final_structure.density
+
         # replace 'crystal' with 'structure'
         d["input"]["structure"] = d["input"].pop("crystal")
         d["output"]["structure"] = d["output"].pop("crystal")
@@ -264,18 +260,13 @@ class VaspDrone(AbstractDrone):
         d["output"]["is_gap_direct"] = bs_gap["direct"]
         d["output"]["is_metal"] = bs.is_metal()
         d["task"] = {"type": taskname, "name": taskname}
-        # phonon-dfpt
+
         if hasattr(vrun, "force_constants"):
+            # phonon-dfpt
             d["output"]["force_constants"] = vrun.force_constants.tolist()
             d["output"]["normalmode_eigenvals"] = vrun.normalmode_eigenvals.tolist()
             d["output"]["normalmode_eigenvecs"] = vrun.normalmode_eigenvecs.tolist()
         return d
-
-    def process_outcar(self, dir_name, filename):
-        """
-        Process the outcar file
-        """
-        return Outcar(os.path.join(dir_name, filename)).as_dict()
 
     def set_input_data(self, d_calc, d):
         """
@@ -457,10 +448,22 @@ class VaspDrone(AbstractDrone):
 
     def get_valid_paths(self, path):
         """
-        Required by the AbstractDrone.
-        Update this and use it to further filter the files to be assimilated.
+        There are some restrictions on the valid directory structures:
+
+        1. There can be only one vasp run in each directory. Nested directories
+           are fine.
+        2. Directories designated "relax1"..."relax9" are considered to be
+           parts of a multiple-optimization run.
+        3. Directories containing vasp output with ".relax1"...".relax9" are
+           also considered as parts of a multiple-optimization run.
         """
-        pass
+        (parent, subdirs, files) = path
+        if set(self.runs).intersection(subdirs):
+            return [parent]
+        if not any([parent.endswith(os.sep + r) for r in self.runs]) and \
+                len(glob.glob(os.path.join(parent, "vasprun.xml*"))) > 0:
+            return [parent]
+        return []
 
     def as_dict(self):
         init_args = {
