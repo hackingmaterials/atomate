@@ -318,7 +318,8 @@ class VaspDrone(AbstractDrone):
             d["output"]["normalmode_eigenvecs"] = vrun.normalmode_eigenvecs.tolist()
         return d
 
-    def set_analysis(self, d, max_force_threshold=0.5, volume_change_threshold=0.2):
+    @staticmethod
+    def set_analysis(d, max_force_threshold=0.5, volume_change_threshold=0.2):
         """
         Adapted from matgendb.creator
 
