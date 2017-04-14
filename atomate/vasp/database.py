@@ -121,6 +121,4 @@ class VaspCalcDb(CalcDb):
         self.build_indexes()
 
 
-class BoltztrapCalcDb(CalcDb):
-    # TODO: add Boltztrap management here
-    pass
+# TODO: @albalu, @matk86, @computron - add BoltztrapCalcDB management here -computron, matk86
