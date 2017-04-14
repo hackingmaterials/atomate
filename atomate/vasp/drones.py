@@ -216,6 +216,8 @@ class VaspDrone(AbstractDrone):
             vrun = Vasprun(vasprun_file)
 
         d = vrun.as_dict()
+
+        # rename formula keys
         for k, v in {"formula_pretty": "pretty_formula",
                      "composition_reduced": "reduced_cell_formula",
                      "composition_unit_cell": "unit_cell_formula"}.items():
@@ -231,6 +233,7 @@ class VaspDrone(AbstractDrone):
         d["dir_name"] = os.path.abspath(dir_name)
         d["completed_at"] = str(datetime.datetime.fromtimestamp(os.path.getmtime(vasprun_file)))
         d["density"] = vrun.final_structure.density
+
         # replace 'crystal' with 'structure'
         d["input"]["structure"] = d["input"].pop("crystal")
         d["output"]["structure"] = d["output"].pop("crystal")
@@ -257,8 +260,9 @@ class VaspDrone(AbstractDrone):
         d["output"]["is_gap_direct"] = bs_gap["direct"]
         d["output"]["is_metal"] = bs.is_metal()
         d["task"] = {"type": taskname, "name": taskname}
-        # phonon-dfpt
+
         if hasattr(vrun, "force_constants"):
+            # phonon-dfpt
             d["output"]["force_constants"] = vrun.force_constants.tolist()
             d["output"]["normalmode_eigenvals"] = vrun.normalmode_eigenvals.tolist()
             d["output"]["normalmode_eigenvecs"] = vrun.normalmode_eigenvecs.tolist()
