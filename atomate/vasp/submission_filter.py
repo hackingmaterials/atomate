@@ -17,7 +17,7 @@ class SubmissionFilter(AbstractStructureFilter):
     def __init__(self, is_valid=True, potcar_exists=True, max_natoms=200, is_ordered=True,
                  not_in_MP=True, MAPI_KEY=None, require_bandstructure=False):
         """
-        Initialize a submission filter for checking that structures are valid.
+        Initialize a submission filter for checking that structures are valid for calculations.
         
         Args:
             is_valid (bool): If true, checks structure validity
