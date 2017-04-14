@@ -179,7 +179,7 @@ class VaspDrone(AbstractDrone):
             d["calcs_reversed"].reverse()
 
             # set root keys based on initial and final calcs
-            d_calc_initial = d["calcs_reversed"][-1]
+            d_calc_init = d["calcs_reversed"][-1]
             d_calc_final = d["calcs_reversed"][0]
             d["chemsys"] = "-".join(sorted(d_calc_final["elements"]))
             comp = Composition(d_calc_final["composition_unit_cell"])
@@ -189,11 +189,53 @@ class VaspDrone(AbstractDrone):
                              "composition_reduced", "formula_pretty", "elements", "nelements"]:
                 d[root_key] = d_calc_final[root_key]
 
-            self.set_input_data(d_calc_initial, d)
-            self.set_output_data(d_calc_final, d)
-            self.set_state(d_calc_final, d)
+            # store the input key
+            # store any overrides to the exchange correlation functional
+            xc = d_calc_init["input"]["incar"].get("GGA")
+            if xc:
+                xc = xc.upper()
+            p = d_calc_init["input"]["potcar_type"][0].split("_")
+            pot_type = p[0]
+            functional = "lda" if len(pot_type) == 1 else "_".join(p[1:])
+            d["input"] = {"structure": d_calc_init["input"]["structure"],
+                          "is_hubbard": d_calc_init.pop("is_hubbard"),
+                          "hubbards": d_calc_init.pop("hubbards"),
+                          "is_lasph": d_calc_init["input"]["incar"].get("LASPH", False),
+                          "potcar_spec": d_calc_init["input"].get("potcar_spec"),
+                          "xc_override": xc,
+                          "pseudo_potential": {"functional": functional.lower(),
+                                               "pot_type": pot_type.lower(),
+                                               "labels": d_calc_init["input"]["potcar"]},
+                          "parameters": d_calc_init["input"]["parameters"],
+                          "incar": d_calc_init["input"]["incar"]
+                          }
+
+            # store the output key
+            d["output"] = {
+                "structure": d_calc_final["output"]["structure"],
+                "density": d_calc_final.pop("density"),
+                "energy": d_calc_final["output"]["energy"],
+                "energy_per_atom": d_calc_final["output"]["energy_per_atom"]}
+            d["output"].update(self.get_basic_processed_data(d))
+            sg = SpacegroupAnalyzer(Structure.from_dict(d_calc_final["output"]["structure"]), 0.1)
+            if not sg.get_symmetry_dataset():
+                sg = SpacegroupAnalyzer(Structure.from_dict(d_calc_final["output"]["structure"]),
+                                        1e-3, 1)
+            d["output"]["spacegroup"] = {
+                "source": "spglib",
+                "symbol": sg.get_space_group_symbol(),
+                "number": sg.get_space_group_number(),
+                "point_group": sg.get_point_group_symbol(),
+                "crystal_system": sg.get_crystal_system(),
+                "hall": sg.get_hall()}
+            if d["input"]["parameters"].get("LEPSILON"):
+                for k in ['epsilon_static', 'epsilon_static_wolfe', 'epsilon_ionic']:
+                    d["output"][k] = d_calc_final["output"][k]
+
+            d["state"] = "successful" if d_calc["has_vasp_completed"] else "unsuccessful"
 
             self.set_analysis(d)
+            
             d["last_updated"] = datetime.datetime.today()
             return d
 
@@ -267,60 +309,6 @@ class VaspDrone(AbstractDrone):
             d["output"]["normalmode_eigenvals"] = vrun.normalmode_eigenvals.tolist()
             d["output"]["normalmode_eigenvecs"] = vrun.normalmode_eigenvecs.tolist()
         return d
-
-    def set_input_data(self, d_calc, d):
-        """
-        set the 'input' key
-        """
-        # store any overrides to the exchange correlation functional
-        xc = d_calc["input"]["incar"].get("GGA")
-        if xc:
-            xc = xc.upper()
-        p = d_calc["input"]["potcar_type"][0].split("_")
-        pot_type = p[0]
-        functional = "lda" if len(pot_type) == 1 else "_".join(p[1:])
-        d["input"] = {"structure": d_calc["input"]["structure"],
-                      "is_hubbard": d_calc.pop("is_hubbard"),
-                      "hubbards": d_calc.pop("hubbards"),
-                      "is_lasph": d_calc["input"]["incar"].get("LASPH", False),
-                      "potcar_spec": d_calc["input"].get("potcar_spec"),
-                      "xc_override": xc,
-                      "pseudo_potential": {"functional": functional.lower(),
-                                           "pot_type": pot_type.lower(),
-                                           "labels": d_calc["input"]["potcar"]},
-                      "parameters": d_calc["input"]["parameters"],
-                      "incar": d_calc["input"]["incar"]
-                      }
-
-    def set_output_data(self, d_calc, d):
-        """
-        set the 'output' key
-        """
-        d["output"] = {
-            "structure": d_calc["output"]["structure"],
-            "density": d_calc.pop("density"),
-            "energy": d_calc["output"]["energy"],
-            "energy_per_atom": d_calc["output"]["energy_per_atom"]}
-        d["output"].update(self.get_basic_processed_data(d))
-        sg = SpacegroupAnalyzer(Structure.from_dict(d_calc["output"]["structure"]), 0.1)
-        if not sg.get_symmetry_dataset():
-            sg = SpacegroupAnalyzer(Structure.from_dict(d_calc["output"]["structure"]), 1e-3, 1)
-        d["output"]["spacegroup"] = {
-            "source": "spglib",
-            "symbol": sg.get_space_group_symbol(),
-            "number": sg.get_space_group_number(),
-            "point_group": sg.get_point_group_symbol(),
-            "crystal_system": sg.get_crystal_system(),
-            "hall": sg.get_hall()}
-        if d["input"]["parameters"].get("LEPSILON"):
-            for k in ['epsilon_static', 'epsilon_static_wolfe', 'epsilon_ionic']:
-                d["output"][k] = d_calc["output"][k]
-
-    def set_state(self, d_calc, d):
-        """
-        set the 'state' key
-        """
-        d["state"] = "successful" if d_calc["has_vasp_completed"] else "unsuccessful"
 
     def set_analysis(self, d, max_force_threshold=0.5, volume_change_threshold=0.2):
         """
