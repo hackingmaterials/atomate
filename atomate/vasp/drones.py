@@ -457,10 +457,22 @@ class VaspDrone(AbstractDrone):
 
     def get_valid_paths(self, path):
         """
-        Required by the AbstractDrone.
-        Update this and use it to further filter the files to be assimilated.
+        There are some restrictions on the valid directory structures:
+
+        1. There can be only one vasp run in each directory. Nested directories
+           are fine.
+        2. Directories designated "relax1", "relax2" are considered to be 2
+           parts of an aflow style run.
+        3. Directories containing vasp output with ".relax1" and ".relax2" are
+           also considered as 2 parts of an aflow style run.
         """
-        pass
+        (parent, subdirs, files) = path
+        if set(self.runs).intersection(subdirs):
+            return [parent]
+        if not any([parent.endswith(os.sep + r) for r in self.runs]) and \
+                len(glob.glob(os.path.join(parent, "vasprun.xml*"))) > 0:
+            return [parent]
+        return []
 
     def as_dict(self):
         init_args = {
