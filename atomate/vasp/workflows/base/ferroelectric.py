@@ -16,9 +16,11 @@ from fireworks import FiretaskBase, Firework, FWAction, Workflow
 from atomate.utils.utils import env_chk, get_logger
 
 from pymatgen import Structure
+from pymatgen.io.vasp.sets import MPStaticSet
 
 from atomate.vasp.fireworks.core import LcalcpolFW, OptimizeFW
 from atomate.vasp.fireworks.core import HSEBSFW
+from atomate.vasp.firetasks.parse_outputs import PolarizationToDbTask
 
 __author__ = 'Tess Smidt'
 __email__ = 'tsmidt@berkeley.edu'
@@ -26,25 +28,35 @@ __email__ = 'tsmidt@berkeley.edu'
 logger = get_logger(__name__)
 
 
-def get_wf_ferroelectric(polar_structure,nonpolar_structure, vasp_cmd="vasp", db_file=None,
+def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", db_file=None,
                          vasp_input_set_polar=None, vasp_input_set_nonpolar=None,
                          relax=False, vasp_relax_input_set_polar=None, vasp_relax_input_set_nonpolar=None,
-                         nimages = 5, hse = False, task_prefix = "",from_prev_settings=None):
+                         nimages = 5, hse = False,from_prev_settings=None, add_analysis_task=False):
     """
     Returns a workflow to calculate the spontaneous polarization of polar_structure using
     a nonpolar reference phase structure and linear interpolations between the polar and
     nonpolar structure.
 
+    The nonpolar and polar structures must be in the same space group setting and atoms ordered
+    such that a linear interpolation can be performed to create intermediate structures along
+    the distortion.
+
+    For example, to calculate the polarization of orthorhombic BaTiO3 (space group 38) using
+    the cubic structure (space group 221) as the nonpolar reference phase, we must transform
+    the cubic to the orthorhombic setting. This can be accomplished using Bilbao Crystallographic
+    Server's Structure Relations tool. (http://www.cryst.ehu.es/cryst/rel.html)
+
     Args:
         polar_structure (Structure): polar structure of candidate ferroelectric
-        nonpolar_structure (Structure): nonpolar structure of candidate ferroelectric
-        vasp_input_set_polar (DictVaspInputSet): vasp polar input set.
-        vasp_input_set_nonpolar (DictVaspInputSet): vasp nonpolar input set.
-        vasp_relax_input_set_polar (DictVaspInputSet): vasp polar input set.
-        vasp_relax_input_set_nonpolar (DictVaspInputSet): vasp nonpolar input set.
+        nonpolar_structure (Structure): nonpolar reference structure in polar setting
+        vasp_input_set_polar (DictVaspInputSet): VASP polar input set. Defaults to MPStaticSet.
+        vasp_input_set_nonpolar (DictVaspInputSet): VASP nonpolar input set. Defaults to MPStaticSet.
+        vasp_relax_input_set_polar (DictVaspInputSet): VASP polar input set. Defaults to MPRelaxSet.
+        vasp_relax_input_set_nonpolar (DictVaspInputSet): VASP nonpolar input set. Defaults to MPRelaxSet.
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
         nimages: Number of interpolations calculated between polar and nonpolar structures.
+            For example, nimages = 10 will calculate 8 interpolated structures. 8 + polar + nonpolar = 10.
 
     Returns:
 
@@ -52,73 +64,74 @@ def get_wf_ferroelectric(polar_structure,nonpolar_structure, vasp_cmd="vasp", db
     wf = []
 
     if relax:
-        polar_relax = OptimizeFW(polar_structure,name="{t}polar_relaxation".format(t=task_prefix),
+        polar_relax = OptimizeFW(polar_structure,name="polar_relaxation",
                                  vasp_cmd=vasp_cmd, db_file=db_file, vasp_input_set=vasp_relax_input_set_polar)
-        nonpolar_relax = OptimizeFW(nonpolar_structure, name="{t}nonpolar_relaxation".format(t=task_prefix),
+        nonpolar_relax = OptimizeFW(nonpolar_structure, name="nonpolar_relaxation",
                                     vasp_cmd=vasp_cmd, db_file=db_file, vasp_input_set=vasp_relax_input_set_nonpolar)
         wf.append(polar_relax)
         wf.append(nonpolar_relax)
         parents_polar = polar_relax
         parents_nonpolar = nonpolar_relax
-        write_from_prev = True
-        calc_loc_polar = "{t}polar_relaxation".format(t=task_prefix)
-        calc_loc_nonpolar = "{t}nonpolar_relaxation".format(t=task_prefix)
     else:
         parents_polar = None
         parents_nonpolar = None
-        write_from_prev = False
-        calc_loc_polar = True
-        calc_loc_nonpolar = True
 
-    # First run polarization calculation on polar structure. Defuse children fireworks if metallic.
+    # Run polarization calculation on polar structure.
+    # Defuse workflow if polar structure is metallic.
     polar = LcalcpolFW(polar_structure,
-                       name="{t}polar_polarization".format(t=task_prefix),
-                       static_name="{t}polar_static".format(t=task_prefix),
+                       name="polar_polarization",
+                       static_name="polar_static",
                        parents=parents_polar,
                        vasp_cmd=vasp_cmd,db_file=db_file,
                        vasp_input_set=vasp_input_set_polar,
-                       write_from_prev=write_from_prev,
-                       defuse_children=True,calc_loc=calc_loc_polar,from_prev_settings=from_prev_settings)
+                       defuse_children=True,from_prev_settings=from_prev_settings)
 
 
-    # Then run polarization calculation on nonpolarstructure structure.
+    # Run polarization calculation on nonpolar structure.
+    # Defuse workflow if nonpolar structure is metallic.
     nonpolar = LcalcpolFW(nonpolar_structure,
-                          name="{t}nonpolar_polarization".format(t=task_prefix),
-                          static_name="{t}nonpolar_static".format(t=task_prefix),
+                          name="nonpolar_polarization",
+                          static_name="nonpolar_static",
                           parents=parents_nonpolar,
                           vasp_cmd=vasp_cmd,db_file=db_file,
                           vasp_input_set=vasp_input_set_nonpolar,
-                          write_from_prev=write_from_prev,defuse_children=True,
-                          calc_loc=calc_loc_nonpolar,from_prev_settings=from_prev_settings)
+                          defuse_children=True)
 
     # Interpolation polarization
     interpolation = []
-    # this is to start from one increment after polar and end prior to nonpolar
-    # the Structure.interpolate method adds an additional image for the nonpolar endpoint
+    # Interpolations start from one increment after polar and end prior to nonpolar.
+    # The Structure.interpolate method adds an additional image for the nonpolar endpoint.
+    # Defuse children fireworks if metallic.
     for i in range(1,nimages):
+        # nonpolar_structure is being used as a dummy structure.
+        # The structure will be replaced by the interpolated structure generated by
+        # StaticInterpolatedFW.
+        # Defuse workflow if interpolated structure is metallic.
         interpolation.append(
             LcalcpolFW(nonpolar_structure,
-                       name="{t}interpolation_{i}_polarization".format(i=i,t=task_prefix),
-                       static_name="{t}interpolation_{i}_static".format(i=i,t=task_prefix),
+                       name="interpolation_{i}_polarization",
+                       static_name="interpolation_{i}_static",
                        vasp_cmd=vasp_cmd, db_file=db_file,
-                       vasp_input_set=vasp_input_set_polar,
-                       write_from_prev=False, interpolate=True,
-                       start="{t}polar_static".format(t=task_prefix),
-                       end="{t}nonpolar_static".format(t=task_prefix),
-                       nimages=nimages,this_image=i, parents=[polar,nonpolar],
-                       from_prev_settings=from_prev_settings))
+                       vasp_input_set=vasp_input_set_polar, interpolate=True,
+                       start="polar_static",
+                       end="nonpolar_static",
+                       nimages=nimages,this_image=i, parents=[polar,nonpolar]))
 
     wf.append(polar)
     wf.append(nonpolar)
     wf += interpolation
 
     # Add FireTask that uses Polarization object to store spontaneous polarization information
+    if add_analysis_task:
+        fw_analysis = Firework(PolarizationToDbTask(db_file = db_file, name="polarization_post_processing"),
+                               parents=interpolation)
+        wf.append(fw_analysis)
 
-    # Delete?
+    # Run HSE band gap calculation
     if hse:
         # Run HSE calculation at band gap for polar calculation if polar structure is not metallic
-        hse = HSEBSFW(polar_structure,polar,name="{t}polar_hse_gap".format(t=task_prefix),vasp_cmd=vasp_cmd,
-                      db_file=db_file,calc_loc="{t}polar_polarization".format(t=task_prefix))
+        hse = HSEBSFW(polar_structure, polar, name="polar_hse_gap", vasp_cmd=vasp_cmd,
+                      db_file=db_file, calc_loc="polar_polarization")
         wf.append(hse)
 
     return Workflow(wf)

@@ -102,12 +102,10 @@ class StaticFW(Firework):
 
 
 class StaticInterpolateFW(Firework):
-    def __init__(self, structure, name="static", vasp_input_set=None,
-                 vasp_cmd="vasp", copy_vasp_outputs=True, write_from_prev=True, db_file=None,
-                 parents=None, calc_loc=True, start=None, end=None, this_image=None,
-                 nimages=None, from_prev_settings=None, autosort_tol=0, **kwargs):
+    def __init__(self, start, end, name="static", vasp_input_set=None, vasp_cmd="vasp", db_file=None,
+                 parents=None, this_image=None, nimages=None, autosort_tol=0, **kwargs):
         """
-        Standard static calculation Firework that interpolates structure from two previous calculations.
+        Standard static calculation Firework that interpolates structures from two previous calculations.
 
         Args:
             structure (Structure): Input structure.
@@ -122,18 +120,16 @@ class StaticInterpolateFW(Firework):
         """
         t = []
 
-        if write_from_prev:
-            if copy_vasp_outputs:
-                t.append(
-                    CopyVaspOutputs(calc_loc=calc_loc, contcar_to_poscar=True))
-            if from_prev_settings == None:
-                from_prev_settings = {}
-            t.append(WriteVaspStaticFromPrev(prev_calc_dir='.', **from_prev_settings))
-        else:
-            vasp_input_set = vasp_input_set or MPStaticSet(structure)
-            t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
+        # Get interpolated POSCAR
         t.append(GetInterpolatedPOSCAR(start=start, end=end, this_image=this_image, nimages=nimages,
                                        autosort_tol=autosort_tol))
+        # Read in POSCAR to use as structure for VASP set generation
+        structure = Structure.from_file('POSCAR')
+        # Replace structure with interpolated structure
+        if vasp_input_set:
+            vasp_input_set.structure = structure
+        vasp_input_set = vasp_input_set or MPStaticSet(structure)
+        t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
 
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
@@ -269,9 +265,9 @@ class LepsFW(Firework):
 
 class LcalcpolFW(Firework):
     def __init__(self, structure, name="static dipole moment", static_name="static", vasp_cmd="vasp",
-                 copy_vasp_outputs=False, vasp_input_set=None, db_file=None, parents=None, calc_loc = True,
-                 gap_threshold=0.010, defuse_children=False, exit_firework=True,interpolate=False,
-                 start=None, end=None, this_image=0, nimages=5, write_from_prev=False, from_prev_settings=None, **kwargs):
+                 vasp_input_set=None, db_file=None, parents=None,
+                 gap_threshold=0.010, interpolate=False, start=None, end=None, this_image=0, nimages=5,
+                 from_prev_settings=None, **kwargs):
         """
         Standard static calculation Firework for dipole moment. The calculation will not calculate the polarization
         if the band gap of the SCF calculation is metallic (have a band gap less than the gap_threshold).
@@ -279,7 +275,7 @@ class LcalcpolFW(Firework):
         The SCF calculation can be provided as a previous run or can be computed within this Firework.
 
         Args:
-            structure (Structure): Input structure.
+            structure (Structure): Input structure. For an interpolation, this is a dummy structure.
             name (str): Name for the polarization FireWork.
             static_name (str): Name for the SCF run to be used in PassCalcLoc if copy_vasp_outputs != True.
             vasp_cmd (str): Command to run vasp.
@@ -302,41 +298,37 @@ class LcalcpolFW(Firework):
 
         t = []
 
-        if copy_vasp_outputs:
-            t.append(CopyVaspOutputs(calc_loc=calc_loc,
-                                     additional_files=["CHGCAR","WAVECAR"],
-                                     contcar_to_poscar=True))
-
-            # Exit Firework if bandgap is less than gap_threshold
-            t.append(CheckBandgap(min_gap = gap_threshold))
-            # t.append(BandGapCut(gt=gap_threshold, exit_firework=exit_firework, defuse_children=defuse_children))
+        # Ensure that LWAVE is set to true
+        vasp_input_settings = {'user_incar_settings': {'LWAVE': True}}
+        if vasp_input_set == None:
+            vasp_input_set = MPStaticSet(structure, **vasp_input_settings)
         else:
-            # Run a static calculation prior to polarization calculation.
-            if interpolate:
-                static = StaticInterpolateFW(structure, name=static_name, vasp_input_set=vasp_input_set,
-                                  vasp_cmd=vasp_cmd, write_from_prev=write_from_prev, db_file=db_file,
-                                  parents=parents, calc_loc=calc_loc, start=start, end=end, this_image=this_image,
-                                  nimages=nimages, from_prev_settings=from_prev_settings, **kwargs)
-            else:
-                static = StaticFW(structure, name = static_name, vasp_input_set = vasp_input_set,
-                                  vasp_cmd = vasp_cmd, write_from_prev=write_from_prev, db_file = db_file,
-                                  parents = parents, calc_loc = calc_loc, from_prev_settings=from_prev_settings, ** kwargs)
-            t.extend(static.tasks)
+            vasp_input_set.user_incar_settings.setdefault('LWAVE',True)
 
-            # Exit Firework if bandgap is less than gap_threshold
-            t.append(CheckBandgap(min_gap=gap_threshold))
-            # t.append(BandGapCut(gt=gap_threshold, exit_firework=exit_firework, defuse_children=defuse_children))
 
-            # Create new directory and move to that directory to perform polarization calculation
-            t.append(CreateFolder(folder_name="polarization",change_to=True))
+        if interpolate:
+            static = StaticInterpolateFW(start, end, name=static_name, vasp_input_set=vasp_input_set,
+                                         vasp_cmd=vasp_cmd, db_file=db_file, parents=parents, this_image=this_image,
+                                         nimages=nimages, **kwargs)
+        else:
+            vasp_input_set = MPStaticSet(structure, **vasp_input_settings)
+            static = StaticFW(structure, name = static_name, vasp_input_set = vasp_input_set,
+                              vasp_cmd = vasp_cmd, db_file = db_file,
+                              parents = parents, ** kwargs)
+        t.extend(static.tasks)
 
-            # Copy VASP Outputs from static calculation
-            t.append(CopyVaspOutputs(calc_loc=static_name,
-                                     additional_files=["CHGCAR", "WAVECAR"],
-                                     contcar_to_poscar=True))
+        # Defuse workflow if bandgap is less than gap_threshold.
+        t.append(CheckBandgap(min_gap=gap_threshold))
+
+        # Create new directory and move to that directory to perform polarization calculation
+        t.append(CreateFolder(folder_name="polarization",change_to=True))
+
+        # Copy VASP Outputs from static calculation
+        t.append(CopyVaspOutputs(calc_loc=static_name,
+                                 additional_files=["CHGCAR", "WAVECAR"],
+                                 contcar_to_poscar=True))
 
         t.extend([
-            # Need to fix this for case of previous Static run (copy_vasp_outputs=True)
             WriteVaspStaticFromPrev(prev_calc_dir=".",other_params={'lcalcpol':True}),
             RunVaspCustodian(vasp_cmd=vasp_cmd),
             PassCalcLocs(name=name),
