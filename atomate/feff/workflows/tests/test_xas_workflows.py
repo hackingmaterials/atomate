@@ -24,7 +24,7 @@ __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-db_dir = os.path.join(module_dir, "..", "..", "..", "common", "reference_files", "db_connections")
+db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 FEFF_CMD = None  # "feff"
 
@@ -129,6 +129,7 @@ class TestXASWorkflow(unittest.TestCase):
             for coll in db.collection_names():
                 if coll != "system.indexes":
                     db[coll].drop()
+            os.chdir(module_dir)
 
 
 if __name__ == "__main__":

@@ -24,8 +24,13 @@ logger = get_logger(__name__)
 
 def get_wf_deformations(structure, deformations, name="deformation", vasp_input_set=None,
                         lepsilon=False, vasp_cmd="vasp", db_file=None, user_kpoints_settings=None,
+<<<<<<< HEAD
                         pass_stress_strain=False, tag="", relax_deformed=False, optimize_structure=True,
                         symmetry_reduction=False):
+=======
+                        pass_stress_strain=False, tag="", relax_deformed=False,
+                        optimize_structure=True, metadata=None):
+>>>>>>> master
     """
     Returns a structure deformation workflow.
 
@@ -46,6 +51,7 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
         pass_stress_strain (bool): if True, stress and strain will be parsed and passed on.
         tag (str): some unique string that will be appended to the names of the fireworks so that
             the data from those tagged fireworks can be queried later during the analysis.
+        metadata (dict): meta data
 
     Returns:
         Workflow
@@ -98,20 +104,4 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, name)
 
-    return Workflow(fws, name=wfname)
-
-
-import numpy as np
-from pymatgen.analysis.elasticity import Strain
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-import itertools
-
-if __name__=="__main__":
-    from pymatgen import Structure, Lattice
-    strains = np.eye(6)*0.01
-    strains = [Strain.from_voigt(strain) for strain in strains]
-    cu = Structure.from_spacegroup("Fm-3m", Lattice.cubic(2.9), ["Cu"], [[0, 0, 0]])
-    result = symmetry_reduce(strains, cu)
-    wf = get_wf_deformations(cu, deformations=[s.deformation_matrix for s in strains],
-            symmetry_reduction=True)
-
+    return Workflow(fws, name=wfname, metadata=metadata)

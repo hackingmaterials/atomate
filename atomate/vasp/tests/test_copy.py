@@ -37,6 +37,7 @@ class TestCopyVaspOutputs(unittest.TestCase):
     def tearDown(self):
         if not DEBUG_MODE:
             shutil.rmtree(scratch_dir)
+            os.chdir(module_dir)
 
     def test_unittestsetup(self):
         files = ["INCAR", "KPOINTS", "POTCAR", "POSCAR", "CONTCAR", "OUTCAR"]

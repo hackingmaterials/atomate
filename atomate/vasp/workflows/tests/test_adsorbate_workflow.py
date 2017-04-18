@@ -25,7 +25,7 @@ __author__ = 'Kiran Mathew, Joseph Montoya'
 __email__ = 'montoyjh@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-db_dir = os.path.join(module_dir, "..", "..", "..", "common", "reference_files", "db_connections")
+db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 ref_dir = os.path.join(module_dir, "test_files")
 
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
@@ -67,6 +67,7 @@ class TestAdsorptionWorkflow(unittest.TestCase):
             for coll in db.collection_names():
                 if coll != "system.indexes":
                     db[coll].drop()
+            os.chdir(module_dir)
 
     def _simulate_vasprun(self, wf):
         reference_dir = os.path.abspath(os.path.join(ref_dir, "adsorbate_wf"))
@@ -98,7 +99,7 @@ class TestAdsorptionWorkflow(unittest.TestCase):
             raise ValueError("Invalid mode!")
 
         if "adsorbate" in mode:
-            self.assertEqual(d["formula_pretty"], "HIr16")
+            self.assertEqual(d["formula_reduced_abc"], "H1 Ir16")
         # Check relaxation of adsorbate
         # Check slab calculations
         # Check structure optimization

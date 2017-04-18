@@ -10,7 +10,6 @@ import numpy as np
 
 from pymatgen.analysis.elasticity.strain import Deformation, Strain
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen import Structure
 
 from fireworks import Firework, Workflow
 
@@ -136,7 +135,8 @@ def get_legacy_elastic_wf(structure, vasp_input_set=None, vasp_cmd=">>vasp_cmd<<
                                      user_kpoints_settings=user_kpoints_settings,
                                      pass_stress_strain=True, name="deformation",
                                      relax_deformed=True, tag="elastic",
-                                     optimize_structure=optimize_structure, symmetry_reduction=symmetry_reduction)
+                                     optimize_structure=optimize_structure, 
+                                     symmetry_reduction=symmetry_reduction)
 
     if add_analysis_task:
         fw_analysis = Firework(ElasticTensorToDbTask(structure=structure, db_file=db_file),

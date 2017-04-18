@@ -26,7 +26,7 @@ __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-db_dir = os.path.join(module_dir, "..", "..", "common", "reference_files", "db_connections")
+db_dir = os.path.join(module_dir, "..", "..", "common", "test_files")
 reference_dir = os.path.join(module_dir, "reference_files")
 
 ref_dirs_si = {"structure optimization": os.path.join(reference_dir, "Si_structure_optimization"),
@@ -73,6 +73,7 @@ class TestVaspWorkflows(unittest.TestCase):
             for coll in db.collection_names():
                 if coll != "system.indexes":
                     db[coll].drop()
+            os.chdir(module_dir)
 
     def _get_task_database(self):
         with open(os.path.join(db_dir, "db.json")) as f:

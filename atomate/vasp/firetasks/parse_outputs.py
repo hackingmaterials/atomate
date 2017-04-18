@@ -16,9 +16,10 @@ from monty.json import MontyEncoder
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER, recursive_dict
 
-from atomate.utils.utils import env_chk, get_calc_loc, get_meta_from_structure
+from atomate.utils.utils import env_chk, get_meta_from_structure
+from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import get_logger
-from atomate.vasp.database import MMVaspDb
+from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.drones import VaspDrone
 
 from pymatgen import Structure
@@ -91,7 +92,7 @@ class VaspToDbTask(FiretaskBase):
             with open("task.json", "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
-            mmdb = MMVaspDb.from_db_file(db_file, admin=True)
+            mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
             # insert dos into GridFS
             if self.get("parse_dos") and "calcs_reversed" in task_doc:
@@ -191,7 +192,7 @@ class BoltztrapToDBTask(FiretaskBase):
             with open(os.path.join(btrap_dir, "boltztrap.json"), "w") as f:
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
         else:
-            mmdb = MMVaspDb.from_db_file(db_file, admin=True)
+            mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
             # dos gets inserted into GridFS
             dos = json.dumps(d["dos"], cls=MontyEncoder)
@@ -250,6 +251,7 @@ class ElasticTensorToDbTask(FiretaskBase):
                         "prop_dict":result.property_dict,
                         "structure_prop_dict":result.get_structure_property_dict(opt_struct)}
             d["pseudoinverse_fit"] = pinv_fit
+
         else:
             raise ValueError("Data matrix rank is less than 6")
         ind_strain_states = list(get_strain_state_dict(strains, stresses).keys())
@@ -287,7 +289,7 @@ class ElasticTensorToDbTask(FiretaskBase):
             with open("elasticity.json", "w") as f:
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
         else:
-            db = MMVaspDb.from_db_file(db_file, admin=True)
+            db = VaspCalcDb.from_db_file(db_file, admin=True)
             db.collection = db.db["elasticity"]
             db.collection.insert_one(d)
             logger.info("ELASTIC ANALYSIS COMPLETE")
@@ -356,7 +358,7 @@ class RamanSusceptibilityTensorToDbTask(FiretaskBase):
             with open("raman.json", "w") as f:
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
         else:
-            db = MMVaspDb.from_db_file(db_file, admin=True)
+            db = VaspCalcDb.from_db_file(db_file, admin=True)
             db.collection = db.db["raman"]
             db.collection.insert_one(d)
             logger.info("RAMAN TENSOR CALCULATION COMPLETE")
@@ -390,10 +392,13 @@ class GibbsFreeEnergyTask(FiretaskBase):
         eos (str): equation of state used for fitting the energies and the volumes.
             options supported by phonopy: "vinet", "murnaghan", "birch_murnaghan".
         pressure (float): in GPa, optional.
+        metadata (dict): meta data
+
     """
 
     required_params = ["tag", "db_file"]
-    optional_params = ["qha_type", "t_min", "t_step", "t_max", "mesh", "eos", "pressure", "poisson"]
+    optional_params = ["qha_type", "t_min", "t_step", "t_max", "mesh", "eos", "pressure", "poisson",
+                       "metadata"]
 
     def run_task(self, fw_spec):
 
@@ -407,9 +412,10 @@ class GibbsFreeEnergyTask(FiretaskBase):
         qha_type = self.get("qha_type", "debye_model")
         pressure = self.get("pressure", 0.0)
         poisson = self.get("poisson", 0.25)
+        metadata = self.get("metadata", {})
         gibbs_summary_dict = {}
 
-        mmdb = MMVaspDb.from_db_file(db_file, admin=True)
+        mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         # get the optimized structure
         d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
@@ -432,27 +438,45 @@ class GibbsFreeEnergyTask(FiretaskBase):
         if qha_type not in ["debye_model"]:
             gibbs_summary_dict["force_constants"] = force_constants
 
-        # use quasi-harmonic debye approximation
-        if qha_type in ["debye_model"]:
+        # whether the quasi-harmonic analysis failed or not
+        gibbs_summary_dict["success"] = True
+        try:
+            # use quasi-harmonic debye approximation
+            if qha_type in ["debye_model"]:
 
-            from atomate.tools.analysis import QuasiharmonicDebyeApprox
+                from pymatgen.analysis.quasiharmonic import QuasiharmonicDebyeApprox
 
-            qhda = QuasiharmonicDebyeApprox(energies, volumes, structure, t_min, t_step, t_max, eos,
-                                            pressure=pressure, poisson=poisson)
-            gibbs_summary_dict.update(qhda.get_summary_dict())
+                qhda = QuasiharmonicDebyeApprox(energies, volumes, structure, t_min, t_step, t_max, eos,
+                                                pressure=pressure, poisson=poisson)
+                gibbs_summary_dict.update(qhda.get_summary_dict())
 
-        # use the phonopy interface
+            # use the phonopy interface
+            else:
+
+                from atomate.tools.analysis import get_phonopy_gibbs
+
+                G, T = get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_step,
+                                         t_max, mesh, eos, pressure)
+                gibbs_summary_dict["gibbs_free_energy"] = G
+                gibbs_summary_dict["temperatures"] = T
+        # quasi-harmonic analysis failed, set the flag to false
+        except:
+            import traceback
+            logger.warn("QUASI-HARMONIC ANALYSIS FAILED")
+            gibbs_summary_dict["success"] = False
+            gibbs_summary_dict["traceback"] = traceback.format_exc()
+
+        gibbs_summary_dict["metadata"] = metadata
+
+        if not db_file:
+            dump_file = "gibbs.json"
+            logger.info("Dumping the analysis summary to {}".format(dump_file))
+            with open(dump_file, "w") as f:
+                f.write(json.dumps(gibbs_summary_dict, default=DATETIME_HANDLER))
         else:
+            coll = mmdb.db["gibbs_tasks"]
+            coll.insert_one(gibbs_summary_dict)
 
-            from atomate.tools.analysis import get_phonopy_gibbs
-
-            G, T = get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_step,
-                                     t_max, mesh, eos, pressure)
-            gibbs_summary_dict["gibbs_free_energy"] = G
-            gibbs_summary_dict["temperatures"] = T
-
-        with open("gibbs.json", "w") as f:
-            f.write(json.dumps(gibbs_summary_dict, default=DATETIME_HANDLER))
         logger.info("GIBBS FREE ENERGY CALCULATION COMPLETE")
 
 
@@ -481,7 +505,7 @@ class FitEquationOfStateTask(FiretaskBase):
         db_file = env_chk(self.get("db_file"), fw_spec)
         summary_dict = {"eos": self["eos"]}
 
-        mmdb = MMVaspDb.from_db_file(db_file, admin=True)
+        mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         # get the optimized structure
         d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
@@ -547,7 +571,7 @@ class ThermalExpansionCoeffTask(FiretaskBase):
         pressure = self.get("pressure", 0.0)
         summary_dict = {}
 
-        mmdb = MMVaspDb.from_db_file(db_file, admin=True)
+        mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         # get the optimized structure
         d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])

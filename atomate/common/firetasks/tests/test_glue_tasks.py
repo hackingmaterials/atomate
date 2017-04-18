@@ -7,14 +7,12 @@ import unittest
 from fireworks import LaunchPad
 from fireworks.core.firework import Firework, Workflow
 from fireworks.core.rocket_launcher import rapidfire
-from atomate.common.firetasks.glue_tasks import PassCalcLocs
-from atomate.utils.utils import get_calc_loc
+from atomate.common.firetasks.glue_tasks import PassCalcLocs, get_calc_loc
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-db_dir = os.path.join(module_dir, "..", "..", "reference_files",
-                      "db_connections")
+db_dir = os.path.join(module_dir, "..", "..", "test_files")
 
 
 class TestPassCalcLocs(unittest.TestCase):
@@ -40,6 +38,7 @@ class TestPassCalcLocs(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.scratch_dir)
+        os.chdir(module_dir)
         self.lp.reset("", require_password=False)
 
     def test_passcalclocs(self):

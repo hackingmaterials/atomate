@@ -25,9 +25,8 @@ __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-db_dir = os.path.join(module_dir, "..", "..", "..", "common", "reference_files", "db_connections")
+db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
-FEFF_CMD = None  # "feff"
 
 
 class TestEELSWorkflow(unittest.TestCase):
@@ -49,6 +48,8 @@ class TestEELSWorkflow(unittest.TestCase):
         cls.scratch_dir = os.path.join(module_dir, "scratch")
 
     def setUp(self):
+        # TODO: @computron: A lot of this boilerplate code is re-used a lot. Generalize w/params
+        # for scratch dir loc, launchpad=T/F, etc. Same for teardown including db. -computron
         if os.path.exists(self.scratch_dir):
             shutil.rmtree(self.scratch_dir)
         os.makedirs(self.scratch_dir)
@@ -73,7 +74,7 @@ class TestEELSWorkflow(unittest.TestCase):
         # run
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
-        d = self._get_task_collection().find_one({"spectrum_type": "ELNES"})
+        d = TestEELSWorkflow._get_task_collection().find_one({"spectrum_type": "ELNES"})
         self._check_run(d)
 
     def test_eels_wflow_abatom_by_symbol(self):
@@ -90,20 +91,21 @@ class TestEELSWorkflow(unittest.TestCase):
         wf_exelfs = get_wf_eels(self.absorbing_atom, self.structure, spectrum_type="EXELFS",
                         edge="L1", user_tag_settings=self.user_tag_settings, use_primitive=True)
 
-        self.assertEqual(wf_elnes.as_dict()["fws"][0]["spec"]['_tasks'][0]['feff_input_set']['@class'],
-                         'MPELNESSet')
-        self.assertEqual(wf_exelfs.as_dict()["fws"][0]["spec"]['_tasks'][0]['feff_input_set']['@class'],
-                         'MPEXELFSSet')
+        self.assertEqual(wf_elnes.as_dict()["fws"][0]["spec"]['_tasks'][0]['feff_input_set'][
+                             '@class'], 'MPELNESSet')
+        self.assertEqual(wf_exelfs.as_dict()["fws"][0]["spec"]['_tasks'][0]['feff_input_set'][
+                             '@class'], 'MPEXELFSSet')
 
     def _check_run(self, d):
         run_dir = d["dir_name"]
-        #ref_feff_inp = os.path.join(module_dir, "reference_files", "feff_eels.inp")
         self.assertEqual(d["edge"], self.edge)
         self.assertEqual(d["absorbing_atom"], self.absorbing_atom)
         tags = Tags.from_file(os.path.join(run_dir, "feff.inp"))
         self.assertEqual(d["input_parameters"], tags.as_dict())
 
-    def _get_task_database(self):
+    @staticmethod
+    def _get_task_database():
+        # TODO: @matk86 - there must be some pymatgen-db method that does this -computron
         with open(os.path.join(db_dir, "db.json")) as f:
             creds = json.loads(f.read())
             conn = MongoClient(creds["host"], creds["port"])
@@ -112,20 +114,23 @@ class TestEELSWorkflow(unittest.TestCase):
                 db.authenticate(creds["admin_user"], creds["admin_password"])
             return db
 
-    def _get_task_collection(self):
+    @staticmethod
+    def _get_task_collection():
+        # TODO: @matk86 - this also seems pretty unnecessary, check pymatgen-db -computron
         with open(os.path.join(db_dir, "db.json")) as f:
             creds = json.loads(f.read())
-            db = self._get_task_database()
+            db = TestEELSWorkflow._get_task_database()
             return db[creds["collection"]]
 
     def tearDown(self):
         if not DEBUG_MODE:
             shutil.rmtree(self.scratch_dir)
             self.lp.reset("", require_password=False)
-            db = self._get_task_database()
+            db = TestEELSWorkflow._get_task_database()
             for coll in db.collection_names():
                 if coll != "system.indexes":
                     db[coll].drop()
+            os.chdir(module_dir)
 
 
 if __name__ == "__main__":
