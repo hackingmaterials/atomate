@@ -194,10 +194,11 @@ def wf_elastic_constant(structure, c=None):
     optimize_structure = c.get("optimize_structure", True)
     sym_red = c.get("symmetry_reduction", False)
     conv = c.get("conventional", True)
+    order = c.get("order", 2)
     wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd, symmetry_reduction=sym_red,
                                  db_file=db_file, user_kpoints_settings=user_kpoints_settings,
                                  optimize_structure=optimize_structure, stencils=stencils,
-                                 conventional=conv)
+                                 conventional=conv, order=order)
     mip = {"incar_update":{"ENCUT": 700, "EDIFF": 1e-6, "LAECHG":False}}
     wf = add_modify_incar(wf, modify_incar_params=mip)
 

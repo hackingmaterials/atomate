@@ -62,7 +62,7 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None,
     if strain_states is None:
         strain_states = get_default_strain_states(order)
     if stencils is None:
-       stencils = [np.linspace(-0.01, 0.01, 5)]*len(strain_states)
+        stencils = [np.linspace(-0.01, 0.01, 5 + (order-2)*2)]*len(strain_states)
     if np.array(stencils).ndim == 1:
         stencils = [stencils]*len(strain_states)
     for state, stencil in zip(strain_states, stencils):
