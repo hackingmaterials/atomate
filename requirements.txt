@@ -1,5 +1,5 @@
 FireWorks==1.4.2
-pymatgen==4.7.3
+pymatgen==4.7.4
 pymatgen-db==0.6.5
 pymatgen_diffusion==0.3.0
 custodian==1.1.0
