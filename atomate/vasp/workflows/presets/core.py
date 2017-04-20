@@ -430,7 +430,7 @@ def wf_nudged_elastic_band(structures, parent, c=None):
 
     # Get user_incar_settings, user_kpoints_settings & additional_cust_args
     user_incar_settings = [{}] * (neb_round + 2)
-    user_kpoints_settings = [{}] * (neb_round + 2)
+    user_kpoints_settings = [{"grid_density": 1000}] * (neb_round + 2)
     additional_cust_args = [{}] * (neb_round + 2)
 
     if "fireworks" in c:

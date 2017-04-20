@@ -41,7 +41,7 @@ common_params:
   _category: ""
   wf_name: Unittest
   is_optimized: False
-  idpp_species: "Li"
+  idpp_species: ["Li"]
   site_indices: [0, 1]
   interpolation_type: "IDPP"
   sort_tol: 0

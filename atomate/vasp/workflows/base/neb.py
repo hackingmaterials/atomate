@@ -29,7 +29,7 @@ def _update_spec(additional_spec):
             "interpolation_type" (str): The approach to generate images between the two endpoints.
                             Default approach is "IDPP" (image dependent pair potential approach),
                             otherwise "linear" (conventional linear interpolation approach).
-            "idpp_species" (str): Species used in IDPP method.
+            "idpp_species" ([str]): Species used in IDPP method.
             "sort_tol" (float): Distance tolerance (in Angstrom) used to match the atomic indices
                             between start and end structures. If it is set 0, no sorting will be
                             performed.

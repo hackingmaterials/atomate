@@ -53,6 +53,7 @@ class TestNudgedElasticBandWorkflow(unittest.TestCase):
 
         # Structures used for test:
         parent = PymatgenTest.get_structure("Li2O")
+        parent.remove_oxidation_states()
         parent.make_supercell(2)
         ep0, ep1 = get_endpoints_from_index(parent, [0, 1])
         neb_dir = [os.path.join(module_dir, "test_files", "neb_wf", "4", "inputs", "{:02}",

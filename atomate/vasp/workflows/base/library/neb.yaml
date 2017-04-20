@@ -59,7 +59,7 @@ common_params:
   wf_name: lio2_neb_workflow
   is_optimized: False  # for calcluation from ep and parent
   # additional_ep_params:
-  idpp_species: "Li"
+  idpp_species: ["Li"]  # List of string
   site_indices: [0, 1]
   interpolation_type: "IDPP"
   # Distance tolerance (in Angstrom) used to match the atomic indices between
