@@ -26,7 +26,8 @@ from pymatgen.analysis.elasticity import reverse_voigt_map
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
-from atomate.utils.utils import get_calc_loc, env_chk
+from atomate.utils.utils import env_chk
+from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.fileio import FileClient
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
