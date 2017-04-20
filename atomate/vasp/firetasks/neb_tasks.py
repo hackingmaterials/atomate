@@ -68,6 +68,9 @@ class TransferNEBTask(FiretaskBase):
             neb.append(images)
             update_spec = {"neb": neb, "_queueadapter": {"nnodes": str(len(images) - 2),
                                                          "nodes": str(len(images) - 2)}}
+            # Use neb walltime if it is in fw_spec
+            if fw_spec["neb_walltime"] is not None:
+                update_spec["_queueadapter"].update({"walltime": fw_spec.get("neb_walltime")})
 
         elif label in ["ep0", "ep1"]:
             # Update relaxed endpoint structures.
@@ -91,6 +94,10 @@ class TransferNEBTask(FiretaskBase):
                 nimages = round(max_dist / d_img) or 1
                 update_spec = {label: ep, "_queueadapter": {"nnodes": int(nimages),
                                                             "nodes": int(nimages)}}
+            # Use neb walltime if it is in fw_spec
+            if fw_spec["neb_walltime"] is not None:
+                update_spec["_queueadapter"].update({"walltime": fw_spec.get("neb_walltime")})
+
         else:  # label == "parent"
             f = glob.glob("CONTCAR*")[0]
             s = Structure.from_file(f, False)

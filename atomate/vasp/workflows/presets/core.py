@@ -410,8 +410,7 @@ def wf_nudged_elastic_band(structures, parent, c=None):
         neb_round = len([f for f in fw_list if "NEBFW" in f])
 
         if neb_round < 1:
-            raise ValueError("At least one NEB Fireworks (NEBFW) is needed in the "
-                             "config dict!")
+            raise ValueError("At least one NEB Fireworks (NEBFW) is needed in the config dict!")
 
         if len(structures) == 1:
             assert "site_indices" in spec, "Site indices not provided in config dict!"
@@ -437,7 +436,8 @@ def wf_nudged_elastic_band(structures, parent, c=None):
     if "fireworks" in c:
         for i in range(1, len(c["fireworks"])+1):
             user_incar_settings[-i] = c["fireworks"][-i].get("user_incar_settings", {})
-            user_kpoints_settings[-i] = c["fireworks"][-i].get("user_kpoints_settings", {})
+            user_kpoints_settings[-i] = c["fireworks"][-i].get("user_kpoints_settings",
+                                                               {"grid_density": 1000})
             additional_cust_args[-i] = c["fireworks"][-i].get("additional_cust_args", {})
 
     kwargs = {"user_incar_settings": user_incar_settings,

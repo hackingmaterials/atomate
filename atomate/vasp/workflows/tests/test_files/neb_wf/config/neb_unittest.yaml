@@ -46,3 +46,4 @@ common_params:
   interpolation_type: "IDPP"
   sort_tol: 0
   d_img: 0.7
+  neb_walltime: "10:00:00"

@@ -23,21 +23,24 @@ def _update_spec(additional_spec):
 
     Args:
         additional_spec (dict): user spec settings.
-            "is_optimized" (bool): It True, the given structures are assumed to be optimized.
+            "is_optimized" (bool): If True, the given structures are assumed to be optimized.
                             Otherwise relaxation will be applied to the given structures.
                             Default is False.
-            "interpolation_type" (str): Approach to generate images between the two endpoints.
+            "interpolation_type" (str): The approach to generate images between the two endpoints.
                             Default approach is "IDPP" (image dependent pair potential approach),
                             otherwise "linear" (conventional linear interpolation approach).
             "idpp_species" (str): Species used in IDPP method.
             "sort_tol" (float): Distance tolerance (in Angstrom) used to match the atomic indices
                             between start and end structures. If it is set 0, no sorting will be
                             performed.
-            "d_img" (float): Distance between two adjacent images, in Angstrom. If "IMAGES" is
+            "d_img" (float): The distance between two adjacent images, in Angstrom. If "IMAGES" is
                             not provided in user_incar_settings, this will be used to compute the
                             number of images. Default is 0.7 Angstrom.
             "wf_name" (str): An appropriate and unique name for the workflow. The workflow result
                             will be transferred to ">>run_dest_root<</wf_name".
+            "neb_walltime (str)": Additional time limit setting for NEB calculations. For example,
+                            {"neb_walltime": "10:00:00"} sets 10 hours walltime for all NEB
+                            calculations. Default is None, which uses fireworks configuration.
 
     Returns:
         spec dict
@@ -50,7 +53,8 @@ def _update_spec(additional_spec):
                     "idpp_species": None,
                     "sort_tol": 0,
                     "d_img": 0.7,
-                    "wf_name": datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')}
+                    "wf_name": datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f'),
+                    "neb_walltime": None}
     default_spec.update(additional_spec)
     return default_spec
 
@@ -101,7 +105,7 @@ def get_wf_neb_from_structure(structure, user_incar_settings=None, additional_sp
     # Assume one round NEB if user_incar_settings not provided.
     user_incar_settings = user_incar_settings or [{}, {}, {}]
     neb_round = len(user_incar_settings[2:])
-    user_kpoints_settings = user_kpoints_settings or [{}] * (neb_round + 2)
+    user_kpoints_settings = user_kpoints_settings or [{"grid_density": 1000}] * (neb_round + 2)
     additional_cust_args = additional_cust_args or [{}] * (neb_round + 2)
     for incar in user_incar_settings[2:]:
         if incar.get("IMAGES"):
@@ -209,7 +213,7 @@ def get_wf_neb_from_endpoints(parent, endpoints, user_incar_settings=None, addit
     # Assume one round NEB if user_incar_settings not provided.
     user_incar_settings = user_incar_settings or [{}, {}, {}]
     neb_round = len(user_incar_settings[2:])
-    user_kpoints_settings = user_kpoints_settings or [{}] * (neb_round + 2)
+    user_kpoints_settings = user_kpoints_settings or [{"grid_density": 1000}] * (neb_round + 2)
     additional_cust_args = additional_cust_args or [{}] * (neb_round + 2)
     for incar in user_incar_settings[2:]:
         if incar.get("IMAGES"):
@@ -284,12 +288,14 @@ def get_wf_neb_from_images(parent, images, user_incar_settings, additional_spec=
     assert isinstance(images, list) and len(images) >= 3
     spec["neb"] = [[s.as_dict() for s in images]]
     spec["_queueadapter"] = {"nnodes": str(len(images) - 2), "nodes": str(len(images) - 2)}
+    if spec["neb_walltime"] is not None:
+        spec["_queueadapter"].update({"walltime": spec.get("neb_walltime")})
     wf_name = spec["wf_name"]
 
     # Assume one round NEB if user_incar_settings not provided.
     user_incar_settings = user_incar_settings or [{}, {}, {}]
     neb_round = len(user_incar_settings[2:])
-    user_kpoints_settings = user_kpoints_settings or [{}] * (neb_round + 2)
+    user_kpoints_settings = user_kpoints_settings or [{"grid_density": 1000}] * (neb_round + 2)
     additional_cust_args = additional_cust_args or [{}] * (neb_round + 2)
 
     fws = []

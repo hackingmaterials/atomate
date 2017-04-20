@@ -67,3 +67,4 @@ common_params:
   sort_tol: 0
   # Distance in Angstrom, used in calculating number of images.
   d_img: 0.7
+  neb_walltime: "10:00:00"  # set NEB walltime to 10 hours
