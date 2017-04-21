@@ -38,9 +38,10 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 class CopyVaspOutputs(FiretaskBase):
     """
     Copy files from a previous VASP run directory to the current directory.
-    By default, copies 'INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR',
-    and 'vasprun.xml'. Additional files, e.g. 'CHGCAR', can also be specified.
-    Automatically handles files that have a ".gz" extension (copies and unzips).
+    By default, copies 'INCAR', 'POSCAR' (default: via 'CONTCAR'), 'KPOINTS', 
+    'POTCAR', 'OUTCAR', and 'vasprun.xml'. Additional files, e.g. 'CHGCAR', 
+    can also be specified. Automatically handles files that have a ".gz" 
+    extension (copies and unzips).
 
     Note that you must specify either "calc_loc" or "calc_dir" to indicate
     the directory containing the previous VASP run.
