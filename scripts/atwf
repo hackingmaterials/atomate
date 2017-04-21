@@ -146,7 +146,7 @@ def verify_test_suite(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="mmwf is a convenient script to add workflows using a "
+        description="atwf is a convenient script to add workflows using a "
                     "simple YAML spec.",
         epilog="Author: Shyue Ping Ong")
 
