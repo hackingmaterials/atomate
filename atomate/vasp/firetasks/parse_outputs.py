@@ -448,8 +448,9 @@ class GibbsFreeEnergyTask(FiretaskBase):
 @explicit_serialize
 class FitEquationOfStateTask(FiretaskBase):
     """
-    Retrieve the energy and volume data and fit it to the given equation of state. The summary dict
-    is written to 'bulk_modulus.json' file.
+    Retrieve the energy and volume data and fit it to the given equation of state.
+    The equation of states (eos) dict is either inserted to "eos" collection (if to_db==True)
+    or is written to 'bulk_modulus.json' file.
 
     required_params:
         tag (str): unique tag appended to the task labels in other fireworks so that all the
@@ -458,9 +459,13 @@ class FitEquationOfStateTask(FiretaskBase):
         eos (str): equation of state used for fitting the energies and the volumes.
             options supported by pymatgen: "quadratic", "murnaghan", "birch", "birch_murnaghan",
             "pourier_tarantola", "vinet", "deltafactor"
+
+    optional_params:
+        to_db (bool): if True, the data will be inserted to "eos" collection; otherwise, dumped to a .json file.
     """
 
     required_params = ["tag", "db_file", "eos"]
+    optional_params = ["to_db"]
 
     def run_task(self, fw_spec):
 
@@ -468,13 +473,18 @@ class FitEquationOfStateTask(FiretaskBase):
 
         tag = self["tag"]
         db_file = env_chk(self.get("db_file"), fw_spec)
-        summary_dict = {"eos": self["eos"]}
+        to_db = self.get("to_db", True)
+        eos_dict = {"eos": self["eos"]}
+
+        # collect and store task_id of all related tasks to make unique and permanent links with "tasks" collection
+        all_task_ids = []
 
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         # get the optimized structure
         d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
+        all_task_ids.append(d["task_id"])
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
-        summary_dict["structure"] = structure.as_dict()
+        eos_dict["structure"] = structure.as_dict()
 
         # get the data(energy, volume, force constant) from the deformation runs
         docs = mmdb.collection.find({"task_label": {"$regex": "{} bulk_modulus*".format(tag)},
@@ -485,16 +495,27 @@ class FitEquationOfStateTask(FiretaskBase):
             s = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
             energies.append(d["calcs_reversed"][-1]["output"]['energy'])
             volumes.append(s.volume)
-        summary_dict["energies"] = energies
-        summary_dict["volumes"] = volumes
+            all_task_ids.append(d["task_id"])
+        eos_dict["energies"] = energies
+        eos_dict["volumes"] = volumes
+        eos_dict["all_task_ids"] = all_task_ids
 
         # fit the equation of state
         eos = EOS(self["eos"])
         eos_fit = eos.fit(volumes, energies)
-        summary_dict["results"] = dict(eos_fit.results)
+        eos_dict["bulk_modulus"] = eos_fit.b0_GPa
+        if fw_spec.get("tags", None):
+            eos_dict["tags"] = fw_spec["tags"]
+        eos_dict["eos_params"] = dict(eos_fit.results)
 
-        with open("bulk_modulus.json", "w") as f:
-            f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
+        eos_dict["created_at"] = datetime.utcnow()
+
+        if to_db:
+            mmdb.collection = mmdb.db["eos"]
+            mmdb.collection.insert_one(eos_dict)
+        else:
+            with open("bulk_modulus.json", "w") as f:
+                f.write(json.dumps(eos_dict, default=DATETIME_HANDLER))
 
         logger.info("BULK MODULUS CALCULATION COMPLETE")
 

@@ -302,12 +302,16 @@ def wf_gibbs_free_energy(structure, c=None):
     return wf
 
 
-def wf_bulk_modulus(structure, c=None):
+def wf_bulk_modulus(structure, strain_max=0.05, nsteps=6, c=None):
     """
     Bulk modulus workflow from the given structure and config dict.
 
     Args:
         structure (Structure): input structure
+        strain_max (float): maximum compression and expansion strain symmetrically applied to all lattice constants
+            recommended value <= 0.1
+        nsteps (int): the number of deformation calculations with strains between -strain_max and +strain_max
+            recommended value: 2k where k >= 3
         c (dict): workflow config dict
 
     Returns:
@@ -319,7 +323,7 @@ def wf_bulk_modulus(structure, c=None):
     db_file = c.get("db_file", DB_FILE)
     user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
     deformations = c.get("deformations", [(np.identity(3)*(1+x)).tolist()
-                                          for x in np.linspace(-0.1, 0.1, 10)])
+                                          for x in np.linspace(-strain_max, strain_max, nsteps)])
 
     wf = get_wf_bulk_modulus(structure, eos=eos, user_kpoints_settings=user_kpoints_settings,
                              deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file)
@@ -330,7 +334,6 @@ def wf_bulk_modulus(structure, c=None):
 
     if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
         wf = add_wf_metadata(wf, structure)
-
     return wf
 
 
