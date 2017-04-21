@@ -95,7 +95,7 @@ Once you have access to your databases, make an admin user in your FireWorks dat
 
 .. warning::
 
-    You should make random passwords that are unique only to these databases because they will be **stored in plain text**!
+    **Passwords will be stored in plain text!** You should make random passwords that are unique only to these databases.
 
 
 .. _MongoDB: https://docs.mongodb.com/manual/
@@ -280,7 +280,7 @@ The ``db.json`` file tells FireWorks where to put the results from your workflow
 .. code-block:: json
 
     {
-        "host": "`<<HOSTNAME>>",
+        "host": "<<HOSTNAME>>",
         "port": <<PORT>>,
         "database": "<<DB_NAME>>",
         "collection": "tasks",
@@ -377,17 +377,17 @@ If you'd like to use a non-default functional in all of your calculations, you c
 Run a test workflow
 ===================
 
-To make sure that everything is set up correctly an in place, we'll finally run a simple test workflow. In general, two ways to create workflows is using atomate's command line utility ``mmwf`` or by creating workflows in Python. More discussion on constructing and running workflows can be found in the `running workflows tutorial`_ and details on writing new workflows can be found in the `writing workflows guide`_. For now, we will use ``mmwf`` to construct a workflow. Ideally you set up an API key in the `Configure pymatgen`_ section, otherwise you will need to provide a POSCAR for the structure you want to run. If you have an API key configured, you can run the following to run a structure optimization on Si
+To make sure that everything is set up correctly an in place, we'll finally run a simple test workflow. In general, two ways to create workflows is using atomate's command line utility ``atwf`` or by creating workflows in Python. More discussion on constructing and running workflows can be found in the `running workflows tutorial`_ and details on writing new workflows can be found in the `writing workflows guide`_. For now, we will use ``atwf`` to construct a workflow. Ideally you set up an API key in the `Configure pymatgen`_ section, otherwise you will need to provide a POSCAR for the structure you want to run. If you have an API key configured, you can run the following to run a structure optimization on Si
 
 .. code-block:: bash
 
-    mmwf add -l vasp -s optimize_only.yaml -m mp-149
+    atwf add -l vasp -s optimize_only.yaml -m mp-149
 
 Alternatively, if you did not set up your API key or want to use a custom POSCAR instead the following command will accomplish the same
 
 .. code-block:: bash
 
-    mmwf add -l vasp -s optimize_only.yaml POSCAR
+    atwf add -l vasp -s optimize_only.yaml POSCAR
 
 These commands added workflows for running a single structure optimization FireWork to your LaunchPad. You can verify that by using FireWorks' ``lpad`` utility:
 
@@ -418,7 +418,7 @@ If all went well, you can check that the FireWork is in the queue by using the c
 
 .. code-block:: bash
 
-    mmdb query -c <<INSTALL_DIR>>/config/db.json --props task_id formula_pretty output.energy_per_atom
+    mgdb query -c <<INSTALL_DIR>>/config/db.json --props task_id formula_pretty output.energy_per_atom
 
 This time, ``<<INSTALL_DIR>>`` can be relative. You should have seen the energy per atom you calculated for Si.
 
