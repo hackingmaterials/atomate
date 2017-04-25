@@ -52,13 +52,12 @@ def remove_custodian(original_wf, fw_name_constraint=None):
         fw_name_constraint (str): Only apply changes to FWs where fw_name
             contains this substring.
     """
-    wf_dict = original_wf.to_dict()
     vasp_fws_and_tasks = get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp")
     for idx_fw, idx_t in vasp_fws_and_tasks:
-        vasp_cmd = wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"]
-        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = RunVaspDirect(vasp_cmd=vasp_cmd).to_dict()
-    return Workflow.from_dict(wf_dict)
+        vasp_cmd = original_wf.fws[idx_fw].spec["_tasks"][idx_t]["vasp_cmd"]
+        original_wf.fws[idx_fw].spec["_tasks"][idx_t] = RunVaspDirect(vasp_cmd=vasp_cmd).to_dict()
+    return original_wf
 
 
 def use_custodian(original_wf, fw_name_constraint=None, custodian_params=None):
@@ -82,9 +81,10 @@ def use_custodian(original_wf, fw_name_constraint=None, custodian_params=None):
                                            task_name_constraint="RunVasp")
     for idx_fw, idx_t in vasp_fws_and_tasks:
         if "vasp_cmd" not in custodian_params:
-            custodian_params["vasp_cmd"] = wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"]
-        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = RunVaspCustodian(**custodian_params).to_dict()
-    return Workflow.from_dict(wf_dict)
+            custodian_params["vasp_cmd"] = original_wf.fws[idx_fw].spec["_tasks"][idx_t]["vasp_cmd"]
+        original_wf.fws[idx_fw].spec["_tasks"][idx_t] = \
+            RunVaspCustodian(**custodian_params).to_dict()
+    return original_wf
 
 
 def use_fake_vasp(original_wf, ref_dirs, params_to_check=None):
@@ -99,22 +99,22 @@ def use_fake_vasp(original_wf, ref_dirs, params_to_check=None):
         params_to_check (list): optional list of incar parameters to check.
     """
     if not params_to_check:
-        params_to_check = ["ISPIN", "ENCUT", "ISMEAR", "SIGMA", "IBRION", "LORBIT", "NBANDS", "LMAXMIX"]
-    wf_dict = original_wf.to_dict()
+        params_to_check = ["ISPIN", "ENCUT", "ISMEAR", "SIGMA", "IBRION", "LORBIT",
+                           "NBANDS", "LMAXMIX"]
     for idx_fw, fw in enumerate(original_wf.fws):
         for job_type in ref_dirs.keys():
             if job_type in fw.name:
                 for idx_t, t in enumerate(fw.tasks):
                     if "RunVasp" in str(t):
-                        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
+                        original_wf.fws[idx_fw].spec["_tasks"][idx_t] = \
                             RunVaspFake(ref_dir=ref_dirs[job_type],
                                         params_to_check=params_to_check).to_dict()
                     if "RunVaspCustodian" in str(t) and t.get("job_type") == "neb":
-                        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = \
+                        original_wf.fws[idx_fw].spec["_tasks"][idx_t] = \
                             RunNEBVaspFake(ref_dir=ref_dirs[job_type],
                                            params_to_check=params_to_check).to_dict()
 
-    return Workflow.from_dict(wf_dict)
+    return original_wf
 
 
 def add_namefile(original_wf, use_slug=True):
@@ -127,14 +127,13 @@ def add_namefile(original_wf, use_slug=True):
         original_wf (Workflow)
         use_slug (bool): whether to replace whitespace-type chars with a slug
     """
-    wf_dict = original_wf.to_dict()
-    for idx, fw in enumerate(wf_dict["fws"]):
+    for idx, fw in enumerate(original_wf.fws):
         fname = "FW--{}".format(fw["name"])
         if use_slug:
             fname = get_slug(fname)
-        wf_dict["fws"][idx]["spec"]["_tasks"].insert(0, FileWriteTask(
+        original_wf.fws[idx].spec["_tasks"].insert(0, FileWriteTask(
             files_to_write=[{"filename": fname, "contents": ""}]).to_dict())
-    return Workflow.from_dict(wf_dict)
+    return original_wf
 
 
 def add_trackers(original_wf, tracked_files=None, nlines=25):
