@@ -313,20 +313,21 @@ def add_small_gap_multiply(original_wf, gap_cutoff, density_multiplier, fw_name_
     """
     In all FWs with specified name constraints, add a 'small_gap_multiply' parameter that
     multiplies the k-mesh density of compounds with gap < gap_cutoff by density multiplier.
+    Useful for increasing the k-point mesh for metallic or small gap systems.
     Note that this powerup only works on FireWorks with the appropriate WriteVasp* tasks that
     accept the small_gap_multiply argument...
 
     Args:
         original_wf (Workflow)
-        gap_cutoff
-        density_multiplier:
-        fw_name_constraint:
+        gap_cutoff (float): Only multiply k-points for materials with gap < gap_cutoff (eV)
+        density_multiplier (float): Multiply k-point density by this amount
+        fw_name_constraint (str): Only apply changes to FWs where fw_name contains this substring.
     """
-    wf_dict = original_wf.to_dict()
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="WriteVasp"):
-        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["small_gap_multiply"] = [gap_cutoff, density_multiplier]
-    return Workflow.from_dict(wf_dict)
+        original_wf.fws[idx_fw].spec["_tasks"][idx_t]["small_gap_multiply"] = \
+            [gap_cutoff, density_multiplier]
+    return original_wf
 
 
 def use_scratch_dir(original_wf, scratch_dir):
@@ -336,10 +337,9 @@ def use_scratch_dir(original_wf, scratch_dir):
     original_wf (Workflow)
     scratch_dir (path): Path to the scratch dir to use. Supports env_chk
     """
-    wf_dict = original_wf.to_dict()
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="RunVaspCustodian"):
-        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["scratch_dir"] = scratch_dir
-    return Workflow.from_dict(wf_dict)
+        original_wf.fws[idx_fw].spec["_tasks"][idx_t]["scratch_dir"] = scratch_dir
+    return original_wf
 
 
 def add_additional_fields_to_taskdocs(original_wf, update_dict=None):
@@ -351,10 +351,9 @@ def add_additional_fields_to_taskdocs(original_wf, update_dict=None):
         original_wf (Workflow)
         update_dict (Dict): dictionary to add additional_fields
     """
-    wf_dict = original_wf.to_dict()
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="VaspToDbTask"):
-        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["additional_fields"].update(update_dict)
-    return Workflow.from_dict(wf_dict)
+        original_wf.fws[idx_fw].spec["_tasks"][idx_t]["additional_fields"].update(update_dict)
+    return original_wf
 
 
 def add_tags(original_wf, tags_list):
@@ -367,30 +366,31 @@ def add_tags(original_wf, tags_list):
         original_wf (Workflow)
         tags_list: list of tags parameters (list of strings)
     """
-    wf_dict = original_wf.to_dict()
 
     # WF metadata
-    if "tags" in wf_dict["metadata"]:
-        wf_dict["metadata"]["tags"].extend(tags_list)
+    if "tags" in original_wf.metadata:
+        original_wf.metadata["tags"].extend(tags_list)
     else:
-        wf_dict["metadata"]["tags"] = tags_list
+        original_wf.metadata["tags"] = tags_list
 
     # FW metadata
     for idx_fw in range(len(original_wf.fws)):
-        if "tags" in wf_dict["fws"][idx_fw]["spec"]:
-            wf_dict["fws"][idx_fw]["spec"]["tags"].extend(tags_list)
+        if "tags" in original_wf.fws[idx_fw].spec:
+            original_wf.fws[idx_fw].spec["tags"].extend(tags_list)
         else:
-            wf_dict["fws"][idx_fw]["spec"]["tags"] = tags_list
+            original_wf.fws[idx_fw].spec["tags"] = tags_list
 
     # DB insertion tasks
     for constraint in ["VaspToDbTask", "BoltztrapToDBTask"]:
         for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint=constraint):
-            if "tags" in wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["additional_fields"]:
-                wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["additional_fields"]["tags"].extend(tags_list)
+            if "tags" in original_wf.fws[idx_fw].spec["_tasks"][idx_t]["additional_fields"]:
+                original_wf.fws[idx_fw].spec["_tasks"][idx_t]["additional_fields"][
+                    "tags"].extend(tags_list)
             else:
-                wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["additional_fields"]["tags"] = tags_list
+                original_wf.fws[idx_fw].spec["_tasks"][idx_t]["additional_fields"][
+                    "tags"] = tags_list
 
-    return Workflow.from_dict(wf_dict)
+    return original_wf
 
 
 def add_common_powerups(wf, c):
@@ -427,7 +427,6 @@ def use_gamma_vasp(original_wf, gamma_vasp_cmd):
         original_wf (Workflow)
         gamma_vasp_cmd (str): path to gamma_vasp_cmd. Supports env_chk
     """
-    wf_dict = original_wf.to_dict()
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="RunVaspCustodian"):
-        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["gamma_vasp_cmd"] = gamma_vasp_cmd
-    return Workflow.from_dict(wf_dict)
+        original_wf.fws[idx_fw].spec["_tasks"][idx_t]["gamma_vasp_cmd"] = gamma_vasp_cmd
+    return original_wf
