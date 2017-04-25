@@ -148,13 +148,12 @@ def add_trackers(original_wf, tracked_files=None, nlines=25):
     if tracked_files is None:
         tracked_files = ["OUTCAR", "OSZICAR"]
     trackers = [Tracker(f, nlines=nlines, allow_zipped=True) for f in tracked_files]
-    wf_dict = original_wf.to_dict()
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="RunVasp"):
-        if "_trackers" in wf_dict["fws"][idx_fw]["spec"]:
-            wf_dict["fws"][idx_fw]["spec"]["_trackers"].extend(trackers)
+        if "_trackers" in original_wf.fws[idx_fw].spec:
+            original_wf.fws[idx_fw].spec["_trackers"].extend(trackers)
         else:
-            wf_dict["fws"][idx_fw]["spec"]["_trackers"] = trackers
-    return Workflow.from_dict(wf_dict)
+            original_wf.fws[idx_fw].spec["_trackers"] = trackers
+    return original_wf
 
 
 def add_modify_incar(original_wf, modify_incar_params=None, fw_name_constraint=None):
@@ -169,11 +168,10 @@ def add_modify_incar(original_wf, modify_incar_params=None, fw_name_constraint=N
 
     """
     modify_incar_params = modify_incar_params or {"incar_update": ">>incar_update<<"}
-    wf_dict = original_wf.to_dict()
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp"):
-        wf_dict["fws"][idx_fw]["spec"]["_tasks"].insert(idx_t, ModifyIncar(**modify_incar_params).to_dict())
-    return Workflow.from_dict(wf_dict)
+        original_wf.fws[idx_fw].spec["_tasks"].insert(idx_t, ModifyIncar(**modify_incar_params).to_dict())
+    return original_wf
 
 
 def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None, fw_name_constraint=None):
