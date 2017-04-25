@@ -39,7 +39,7 @@ def add_priority(original_wf, root_priority, child_priority=None):
             fw.spec["_priority"] = root_priority
         else:
             fw.spec["_priority"] = child_priority
-    return update_wf(original_wf)
+    return original_wf
 
 
 def remove_custodian(original_wf, fw_name_constraint=None):
