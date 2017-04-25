@@ -52,12 +52,13 @@ def remove_custodian(original_wf, fw_name_constraint=None):
         fw_name_constraint (str): Only apply changes to FWs where fw_name
             contains this substring.
     """
+    wf_dict = original_wf.to_dict()
     vasp_fws_and_tasks = get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp")
     for idx_fw, idx_t in vasp_fws_and_tasks:
-        vasp_cmd = original_wf.fws[idx_fw].spec["_tasks"][idx_t]["vasp_cmd"]
-        original_wf.fws[idx_fw].spec["_tasks"][idx_t] = RunVaspDirect(vasp_cmd=vasp_cmd).to_dict()
-    return original_wf
+        vasp_cmd = wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"]
+        wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t] = RunVaspDirect(vasp_cmd=vasp_cmd).to_dict()
+    return Workflow.from_dict(wf_dict)
 
 
 def use_custodian(original_wf, fw_name_constraint=None, custodian_params=None):
