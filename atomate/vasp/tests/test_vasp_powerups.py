@@ -9,7 +9,7 @@ from fireworks import Firework, ScriptTask, Workflow
 
 from atomate.vasp.powerups import add_priority, use_custodian, add_trackers, \
     add_modify_incar, add_small_gap_multiply, use_scratch_dir, remove_custodian, \
-    add_tags
+    add_tags, add_wf_metadata
 from atomate.vasp.workflows.base.core import get_wf
 
 from pymatgen.io.vasp.sets import MPRelaxSet
@@ -153,6 +153,13 @@ class TestVaspPowerups(unittest.TestCase):
                     v_found += 1
         self.assertEqual(b_found, 1)
         self.assertEqual(v_found, 4)
+
+    def test_add_wf_metadata(self):
+        my_wf = self._copy_wf(self.bs_wf)
+        my_wf = add_wf_metadata(my_wf, PymatgenTest.get_structure("Si"))
+        self.assertEqual(my_wf.metadata["nelements"], 1)
+        self.assertEqual(my_wf.metadata["formula"], "Si2")
+
 
 if __name__ == "__main__":
     unittest.main()

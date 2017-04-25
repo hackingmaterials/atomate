@@ -258,7 +258,7 @@ def add_wf_metadata(original_wf, structure):
     """
     original_wf.metadata["structure"] = structure.as_dict()
     original_wf.metadata.update(get_meta_from_structure(structure))
-    return update_wf(original_wf)
+    return original_wf
 
 
 def add_stability_check(original_wf, check_stability_params=None, fw_name_constraint=None):
