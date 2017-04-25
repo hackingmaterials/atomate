@@ -24,13 +24,8 @@ logger = get_logger(__name__)
 
 def get_wf_deformations(structure, deformations, name="deformation", vasp_input_set=None,
                         lepsilon=False, vasp_cmd="vasp", db_file=None, user_kpoints_settings=None,
-<<<<<<< HEAD
                         pass_stress_strain=False, tag="", relax_deformed=False, optimize_structure=True,
-                        symmetry_reduction=False):
-=======
-                        pass_stress_strain=False, tag="", relax_deformed=False,
-                        optimize_structure=True, metadata=None):
->>>>>>> master
+                        symmetry_reduction=False, metadata=None):
     """
     Returns a structure deformation workflow.
 
