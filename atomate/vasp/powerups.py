@@ -263,7 +263,7 @@ def add_wf_metadata(original_wf, structure):
 
 def add_stability_check(original_wf, check_stability_params=None, fw_name_constraint=None):
     """
-    Every FireWork that runs VASP has a CheckStability task afterward. This
+    Every FireWork that enters into the Db has a CheckStability task afterward. This
     allows defusing jobs that are not stable. In practice, you might want
     to set the fw_name_constraint so that the stability is only checked at the
     beginning of the workflow
@@ -275,28 +275,25 @@ def add_stability_check(original_wf, check_stability_params=None, fw_name_constr
     """
     check_stability_params = check_stability_params or {}
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
-                                           task_name_constraint="DbTask"):
-        original_wf.fws[idx_fw].spec["_tasks"].append(CheckStability(**check_stability_params).to_dict())
-    return update_wf(original_wf)
+                                           task_name_constraint="VaspToDbTask"):
+        original_wf.fws[idx_fw].spec["_tasks"].append(CheckStability(**check_stability_params))
+    return original_wf
 
 
 def add_bandgap_check(original_wf, check_bandgap_params=None, fw_name_constraint=None):
     """
-    Every FireWork that runs VASP has a CheckStability task afterward. This
-    allows defusing jobs that are not stable. In practice, you might want
-    to set the fw_name_constraint so that the stability is only checked at the
-    beginning of the workflow
+    Every FireWork that enters into the Db has a band gap check afterwards, e.g. min_gap and max_gap
 
     Args:
         original_wf (Workflow)
-        check_bandgap_params (dict): a **kwargs** style dict of params
+        check_bandgap_params (dict): a **kwargs** style dict of params, e.g. min_gap or max_gap
         fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this substring.
     """
     check_bandgap_params = check_bandgap_params or {}
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
-                                           task_name_constraint="DbTask"):
-        original_wf.fws[idx_fw].spec["_tasks"].append(CheckBandgap(**check_bandgap_params).to_dict())
-    return update_wf(original_wf)
+                                           task_name_constraint="VaspToDbTask"):
+        original_wf.fws[idx_fw].spec["_tasks"].append(CheckBandgap(**check_bandgap_params))
+    return original_wf
 
 
 def add_modify_incar_envchk(original_wf, fw_name_constraint=None):
@@ -308,7 +305,8 @@ def add_modify_incar_envchk(original_wf, fw_name_constraint=None):
         original_wf (Workflow)
         fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this substring.
     """
-    return add_modify_incar(original_wf, {"incar_update": ">>incar_update<<"}, fw_name_constraint=fw_name_constraint)
+    return add_modify_incar(original_wf, {"incar_update": ">>incar_update<<"},
+                            fw_name_constraint=fw_name_constraint)
 
 
 def add_small_gap_multiply(original_wf, gap_cutoff, density_multiplier, fw_name_constraint=None):
