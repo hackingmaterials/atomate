@@ -190,34 +190,37 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
         modified Workflow with SOC
     """
 
-    wf_dict = original_wf.to_dict()
     if structure is None:
         try:
             sid = get_fws_and_tasks(original_wf, fw_name_constraint="structure optimization",
                                     task_name_constraint="RunVasp")[0][0]
-            structure = Structure.from_dict(wf_dict["fws"][sid]["spec"]["_tasks"][1]["vasp_input_set"]["structure"])
+            structure = Structure.from_dict(original_wf.fws[sid].spec["_tasks"][1][
+                                                "vasp_input_set"]["structure"])
         except:
-            raise ValueError("For this workflow, the structure must be provided as an input")
+            raise ValueError("modify_to_soc powerup requires the structure in vasp_input_set")
+
     magmom = ""
-    for i in structure:
+    for _ in structure:
         magmom += "0 0 0.6 "
     #TODO: add saxis as an input parameter with default being (0 0 1)
-    modify_incar_params = modify_incar_params or {"incar_update": {"LSORBIT": "T", "NBANDS": nbands, "MAGMOM": magmom,
-                                                    "ISPIN": 1, "LMAXMIX": 4, "ISYM": 0}}
+    modify_incar_params = modify_incar_params or {"incar_update": {"LSORBIT": "T", "NBANDS":
+        nbands, "MAGMOM": magmom, "ISPIN": 1, "LMAXMIX": 4, "ISYM": 0}}
 
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp"):
-        if "structure" not in wf_dict["fws"][idx_fw]["name"] and "static" not in wf_dict["fws"][idx_fw]["name"]:
-            wf_dict["fws"][idx_fw]["spec"]["_tasks"][idx_t]["vasp_cmd"] = ">>vasp_ncl<<"
-            wf_dict["fws"][idx_fw]["spec"]["_tasks"].insert(idx_t, ModifyIncar(**modify_incar_params).to_dict())
+        if "structure" not in original_wf.fws[idx_fw].name and "static" not in \
+                original_wf.fws[idx_fw].name:
+            original_wf.fws[idx_fw].spec["_tasks"][idx_t]["vasp_cmd"] = ">>vasp_ncl<<"
+            original_wf.fws[idx_fw].spec["_tasks"].insert(
+                idx_t, ModifyIncar(**modify_incar_params).to_dict())
 
-        wf_dict["fws"][idx_fw]["name"] += " soc"
+        original_wf.fws[idx_fw].name += " soc"
 
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunBoltztrap"):
-        wf_dict["fws"][idx_fw]["name"] += " soc"
+        original_wf.fws[idx_fw].name += " soc"
 
-    return Workflow.from_dict(wf_dict)
+    return original_wf
 
 
 def set_fworker(original_wf, fworker_name, fw_name_constraint=None, task_name_constraint=None):
@@ -235,12 +238,11 @@ def set_fworker(original_wf, fworker_name, fw_name_constraint=None, task_name_co
     Returns:
         modified workflow with specified Fireworkers tagged
     """
-    wf_dict = original_wf.to_dict()
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint=task_name_constraint):
-        wf_dict["fws"][idx_fw]["spec"]["_fworker"] = fworker_name
+        original_wf.fws[idx_fw].spec["_fworker"] = fworker_name
 
-    return Workflow.from_dict(wf_dict)
+    return original_wf
 
 
 def add_wf_metadata(original_wf, structure):
