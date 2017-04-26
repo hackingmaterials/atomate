@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os
 
-from atomate import get_wf_from_spec_dict
+from atomate.utils.utils import get_wf_from_spec_dict
 from monty.serialization import loadfn
 
 __author__ = 'Anubhav Jain, Shyue Ping Ong, Kiran Mathew'

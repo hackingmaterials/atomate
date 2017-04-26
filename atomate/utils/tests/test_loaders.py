@@ -2,8 +2,9 @@ from __future__ import absolute_import
 
 import unittest
 
-from atomate import get_wf_from_spec_dict
 import os
+
+from atomate.utils.utils import get_wf_from_spec_dict
 from pymatgen.util.testing import PymatgenTest
 
 from monty.serialization import loadfn
