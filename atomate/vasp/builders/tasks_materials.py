@@ -94,10 +94,10 @@ class TasksMaterialsBuilder(AbstractBuilder):
 
             except:
                 import traceback
-                logger.error("<---")
-                logger.error("There was an error processing task_id: {}".format(t_id))
-                logger.error(traceback.format_exc())
-                logger.error("--->")
+                logger.exception("<---")
+                logger.exception("There was an error processing task_id: {}".format(t_id))
+                logger.exception(traceback.format_exc())
+                logger.exception("--->")
 
         logger.info("TasksMaterialsBuilder finished processing.")
 

@@ -77,10 +77,10 @@ class MaterialsEhullBuilder(AbstractBuilder):
 
             except:
                 import traceback
-                logger.error("<---")
-                logger.error("There was an error processing material_id: {}".format(m))
-                logger.error(traceback.format_exc())
-                logger.error("--->")
+                logger.exception("<---")
+                logger.exception("There was an error processing material_id: {}".format(m))
+                logger.exception(traceback.format_exc())
+                logger.exception("--->")
 
         logger.info("MaterialsEhullBuilder finished processing.")
 

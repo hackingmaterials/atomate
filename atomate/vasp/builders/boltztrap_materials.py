@@ -57,10 +57,10 @@ class BoltztrapMaterialsBuilder(AbstractBuilder):
                 self._update_material(m_id, doc)
             except:
                 import traceback
-                logger.error("<---")
-                logger.error("There was an error processing task_id: {}".format(o_id))
-                logger.error(traceback.format_exc())
-                logger.error("--->")
+                logger.exception("<---")
+                logger.exception("There was an error processing task_id: {}".format(o_id))
+                logger.exception(traceback.format_exc())
+                logger.exception("--->")
 
         logger.info("BoltztrapMaterialsBuilder finished processing.")
 

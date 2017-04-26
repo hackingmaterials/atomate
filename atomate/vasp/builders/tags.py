@@ -52,10 +52,10 @@ class TagsBuilder(AbstractBuilder):
                                                {"$set": {"tags": list(set(all_tags))}})
             except:
                 import traceback
-                logger.error("<---")
-                logger.error("There was an error processing material_id: {}, task_id: {}".format(m["material_id"], taskid))
-                logger.error(traceback.format_exc())
-                logger.error("--->")
+                logger.exception("<---")
+                logger.exception("There was an error processing material_id: {}, task_id: {}".format(m["material_id"], taskid))
+                logger.exception(traceback.format_exc())
+                logger.exception("--->")
         logger.info("TagsBuilder finished processing.")
 
     def reset(self):
