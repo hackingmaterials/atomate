@@ -2,9 +2,12 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from atomate.utils.utils import get_logger
 from matgendb.util import get_database
 
 from atomate.vasp.builders.base import AbstractBuilder
+
+logger = get_logger(__name__)
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -20,17 +23,14 @@ class FixTasksBuilder(AbstractBuilder):
         self._tasks = tasks_write
 
     def run(self):
-        # change string spacegroup numbers to integer
+        # change spacegroup numbers from string to integer where needed
+        logger.info("FixTasksBuilder started.")
         for t in self._tasks.find({"output.spacegroup.number": {"$type": 2}}, {"task_id": 1, "output": 1}):
-            print("Fixing string spacegroup, tid: {}".format(t["task_id"]))
-            try:
-                sg = int(t["output"]["spacegroup"]["number"])
-                self._tasks.update_one({"task_id": t["task_id"]},
-                                       {"$set": {"output.spacegroup.number": sg}})
-            except:
-                import traceback
-                traceback.print_exc()
-        print("FixTasksBuilder finished.")
+            logger.info("Fixing string spacegroup, tid: {}".format(t["task_id"]))
+            sg = int(t["output"]["spacegroup"]["number"])
+            self._tasks.update_one({"task_id": t["task_id"]},
+                                   {"$set": {"output.spacegroup.number": sg}})
+        logger.info("FixTasksBuilder finished.")
 
     def reset(self):
         pass
@@ -47,3 +47,4 @@ class FixTasksBuilder(AbstractBuilder):
         """
         db_write = get_database(db_file, admin=True)
         return cls(db_write[t], **kwargs)
+    
