@@ -109,10 +109,10 @@ class TestAdsorptionWorkflow(unittest.TestCase):
 
         self.assertEqual(len(self.wf_1.fws), 5)
         # check vasp parameters for ionic relaxation
-        defo_vis = [fw.spec["_tasks"][1]['vasp_input_set'] 
+        defo_vis = [fw.tasks[1]['vasp_input_set']
                     for fw in self.wf_1.fws if "adsorbate" in fw.name]
-        assert all([vis['user_incar_settings']['EDIFFG']==-0.05 for vis in defo_vis])
-        assert all([vis['user_incar_settings']['ISIF']==0 for vis in defo_vis])
+        assert all([vis.user_incar_settings['EDIFFG']==-0.05 for vis in defo_vis])
+        assert all([vis.user_incar_settings['ISIF']==0 for vis in defo_vis])
         self.lp.add_wf(self.wf_1)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 

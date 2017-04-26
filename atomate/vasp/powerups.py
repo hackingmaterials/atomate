@@ -55,8 +55,8 @@ def remove_custodian(original_wf, fw_name_constraint=None):
     vasp_fws_and_tasks = get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp")
     for idx_fw, idx_t in vasp_fws_and_tasks:
-        vasp_cmd = original_wf.fws[idx_fw].spec["_tasks"][idx_t]["vasp_cmd"]
-        original_wf.fws[idx_fw].spec["_tasks"][idx_t] = RunVaspDirect(vasp_cmd=vasp_cmd).to_dict()
+        vasp_cmd = original_wf.fws[idx_fw].tasks[idx_t]["vasp_cmd"]
+        original_wf.fws[idx_fw].tasks[idx_t] = RunVaspDirect(vasp_cmd=vasp_cmd)
     return original_wf
 
 
@@ -76,14 +76,13 @@ def use_custodian(original_wf, fw_name_constraint=None, custodian_params=None):
             a "scratch_dir" or "handler_group".
     """
     custodian_params = custodian_params if custodian_params else {}
-    wf_dict = original_wf.to_dict()
     vasp_fws_and_tasks = get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp")
     for idx_fw, idx_t in vasp_fws_and_tasks:
         if "vasp_cmd" not in custodian_params:
-            custodian_params["vasp_cmd"] = original_wf.fws[idx_fw].spec["_tasks"][idx_t]["vasp_cmd"]
-        original_wf.fws[idx_fw].spec["_tasks"][idx_t] = \
-            RunVaspCustodian(**custodian_params).to_dict()
+            custodian_params["vasp_cmd"] = original_wf.fws[idx_fw].tasks[idx_t]["vasp_cmd"]
+        original_wf.fws[idx_fw].tasks[idx_t] = \
+            RunVaspCustodian(**custodian_params)
     return original_wf
 
 
@@ -106,13 +105,13 @@ def use_fake_vasp(original_wf, ref_dirs, params_to_check=None):
             if job_type in fw.name:
                 for idx_t, t in enumerate(fw.tasks):
                     if "RunVasp" in str(t):
-                        original_wf.fws[idx_fw].spec["_tasks"][idx_t] = \
+                        original_wf.fws[idx_fw].tasks[idx_t] = \
                             RunVaspFake(ref_dir=ref_dirs[job_type],
-                                        params_to_check=params_to_check).to_dict()
+                                        params_to_check=params_to_check)
                     if "RunVaspCustodian" in str(t) and t.get("job_type") == "neb":
-                        original_wf.fws[idx_fw].spec["_tasks"][idx_t] = \
+                        original_wf.fws[idx_fw].tasks[idx_t] = \
                             RunNEBVaspFake(ref_dir=ref_dirs[job_type],
-                                           params_to_check=params_to_check).to_dict()
+                                           params_to_check=params_to_check)
 
     return original_wf
 
@@ -131,8 +130,8 @@ def add_namefile(original_wf, use_slug=True):
         fname = "FW--{}".format(fw.name)
         if use_slug:
             fname = get_slug(fname)
-        original_wf.fws[idx].spec["_tasks"].insert(0, FileWriteTask(
-            files_to_write=[{"filename": fname, "contents": ""}]).to_dict())
+        original_wf.fws[idx].tasks.insert(0, FileWriteTask(
+            files_to_write=[{"filename": fname, "contents": ""}]))
     return original_wf
 
 
@@ -170,7 +169,7 @@ def add_modify_incar(original_wf, modify_incar_params=None, fw_name_constraint=N
     modify_incar_params = modify_incar_params or {"incar_update": ">>incar_update<<"}
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp"):
-        original_wf.fws[idx_fw].spec["_tasks"].insert(idx_t, ModifyIncar(**modify_incar_params).to_dict())
+        original_wf.fws[idx_fw].tasks.insert(idx_t, ModifyIncar(**modify_incar_params))
     return original_wf
 
 
@@ -194,7 +193,7 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
         try:
             sid = get_fws_and_tasks(original_wf, fw_name_constraint="structure optimization",
                                     task_name_constraint="RunVasp")[0][0]
-            structure = Structure.from_dict(original_wf.fws[sid].spec["_tasks"][1][
+            structure = Structure.from_dict(original_wf.fws[sid].tasks[1][
                                                 "vasp_input_set"]["structure"])
         except:
             raise ValueError("modify_to_soc powerup requires the structure in vasp_input_set")
@@ -210,9 +209,9 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
                                            task_name_constraint="RunVasp"):
         if "structure" not in original_wf.fws[idx_fw].name and "static" not in \
                 original_wf.fws[idx_fw].name:
-            original_wf.fws[idx_fw].spec["_tasks"][idx_t]["vasp_cmd"] = ">>vasp_ncl<<"
-            original_wf.fws[idx_fw].spec["_tasks"].insert(
-                idx_t, ModifyIncar(**modify_incar_params).to_dict())
+            original_wf.fws[idx_fw].tasks[idx_t]["vasp_cmd"] = ">>vasp_ncl<<"
+            original_wf.fws[idx_fw].tasks.insert(
+                idx_t, ModifyIncar(**modify_incar_params))
 
         original_wf.fws[idx_fw].name += " soc"
 
@@ -276,7 +275,7 @@ def add_stability_check(original_wf, check_stability_params=None, fw_name_constr
     check_stability_params = check_stability_params or {}
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="VaspToDbTask"):
-        original_wf.fws[idx_fw].spec["_tasks"].append(CheckStability(**check_stability_params))
+        original_wf.fws[idx_fw].tasks.append(CheckStability(**check_stability_params))
     return original_wf
 
 
@@ -292,7 +291,7 @@ def add_bandgap_check(original_wf, check_bandgap_params=None, fw_name_constraint
     check_bandgap_params = check_bandgap_params or {}
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="VaspToDbTask"):
-        original_wf.fws[idx_fw].spec["_tasks"].append(CheckBandgap(**check_bandgap_params))
+        original_wf.fws[idx_fw].tasks.append(CheckBandgap(**check_bandgap_params))
     return original_wf
 
 
@@ -325,7 +324,7 @@ def add_small_gap_multiply(original_wf, gap_cutoff, density_multiplier, fw_name_
     """
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="WriteVasp"):
-        original_wf.fws[idx_fw].spec["_tasks"][idx_t]["small_gap_multiply"] = \
+        original_wf.fws[idx_fw].tasks[idx_t]["small_gap_multiply"] = \
             [gap_cutoff, density_multiplier]
     return original_wf
 
@@ -338,7 +337,7 @@ def use_scratch_dir(original_wf, scratch_dir):
     scratch_dir (path): Path to the scratch dir to use. Supports env_chk
     """
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="RunVaspCustodian"):
-        original_wf.fws[idx_fw].spec["_tasks"][idx_t]["scratch_dir"] = scratch_dir
+        original_wf.fws[idx_fw].tasks[idx_t]["scratch_dir"] = scratch_dir
     return original_wf
 
 
@@ -352,7 +351,7 @@ def add_additional_fields_to_taskdocs(original_wf, update_dict=None):
         update_dict (Dict): dictionary to add additional_fields
     """
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="VaspToDbTask"):
-        original_wf.fws[idx_fw].spec["_tasks"][idx_t]["additional_fields"].update(update_dict)
+        original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"].update(update_dict)
     return original_wf
 
 
@@ -383,11 +382,11 @@ def add_tags(original_wf, tags_list):
     # DB insertion tasks
     for constraint in ["VaspToDbTask", "BoltztrapToDBTask"]:
         for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint=constraint):
-            if "tags" in original_wf.fws[idx_fw].spec["_tasks"][idx_t]["additional_fields"]:
-                original_wf.fws[idx_fw].spec["_tasks"][idx_t]["additional_fields"][
+            if "tags" in original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"]:
+                original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"][
                     "tags"].extend(tags_list)
             else:
-                original_wf.fws[idx_fw].spec["_tasks"][idx_t]["additional_fields"][
+                original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"][
                     "tags"] = tags_list
 
     return original_wf
@@ -428,5 +427,5 @@ def use_gamma_vasp(original_wf, gamma_vasp_cmd):
         gamma_vasp_cmd (str): path to gamma_vasp_cmd. Supports env_chk
     """
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="RunVaspCustodian"):
-        original_wf.fws[idx_fw].spec["_tasks"][idx_t]["gamma_vasp_cmd"] = gamma_vasp_cmd
+        original_wf.fws[idx_fw].tasks[idx_t]["gamma_vasp_cmd"] = gamma_vasp_cmd
     return original_wf
