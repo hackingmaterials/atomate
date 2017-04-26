@@ -4,42 +4,37 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from tqdm import tqdm
 
+from atomate.utils.utils import get_logger
+from atomate.vasp.builders import TasksMaterialsBuilder
 from matgendb.util import get_database
 
 from atomate.vasp.builders.base import AbstractBuilder
 
+logger = get_logger(__name__)
 
-__author__ = 'Alireza Faghanina <albalu@lbl.gov>'
+__author__ = 'Alireza Faghanina <albalu@lbl.gov>, Anubhav Jain <ajain@lbl.gov>'
 
 class TagsBuilder(AbstractBuilder):
-    def __init__(self, materials_write, tasks_read, update_all=False):
+    def __init__(self, materials_write, tasks_read):
         """
-        Starting with an existing materials collection, adds tags from all tasks (if any)
-        in the tasks collection.
+        Starting with an existing materials collection, searches all its component tasks for 
+        the "tags" and key in the tasks collection and copies them to the materials collection.
+        Thus, the "tags" for a material will be the union of all the tags for its component tasks.
 
         Args:
             materials_write (pymongo.collection): materials collection with write access.
-            update_all (bool): if true, updates all docs. If false, only updates docs w/o a stability key.
             tasks_read (pymongo.collection): read-only(for safety) tasks collection.
 
         """
         self._materials = materials_write
-        self.update_all = update_all
         self._tasks = tasks_read
 
     def run(self):
-        print("TagsBuilder starting...")
+        logger.info("TagsBuilder starting...")
         self._build_indexes()
 
-        # An incorrect incremental update feature:
-        # q = {"tags": {"$exists": True}}
-        # if not self.update_all:
-        #     q["tags"] = {"$exists": False}
-
-        # The incremental update feature is now disabled until I figure out a good/correct way to implement it (AF)
+        # TODO: Build incrementally, taking into account which *tasks* have already been processed
         q = {}
-
-        # TODO: the logic for the query is incorrect. To build incrementally, you need to keep track of which *tasks* have been processed already, and only update materials for which new tasks are available. Just because a materials has tags already in it, doesn't mean that it doesn't require more tags. Or, simply remove the incremental feature for now to prevent incorrect behavior.
         mats = [m for m in self._materials.find(q, {"_tasksbuilder.all_task_ids": 1, "tags": 1,
                                                     "material_id": 1})]
         pbar = tqdm(mats)
@@ -47,19 +42,21 @@ class TagsBuilder(AbstractBuilder):
             pbar.set_description("Processing materials_id: {}".format(m['material_id']))
             all_tags = []
             try:
-                intid_list = [int(taskid.split("-")[1]) for taskid in m["_tasksbuilder"]["all_task_ids"]]
-                tasks = self._tasks.find({"task_id": {"$in": intid_list}, "tags": {"$exists": True}},{"tags": 1})
+                intid_list = [TasksMaterialsBuilder.tid_to_int(tid) for tid in
+                              m["_tasksbuilder"]["all_task_ids"]]
+                tasks = self._tasks.find({"task_id": {"$in": intid_list},
+                                          "tags": {"$exists": True}}, {"tags": 1})
                 for task in tasks:
                     all_tags.extend(task["tags"])
                 self._materials.update_one({"material_id": m["material_id"]},
                                                {"$set": {"tags": list(set(all_tags))}})
             except:
                 import traceback
-                print("<---")
-                print("There was an error processing material_id: {}, task_id: {}".format(m["material_id"], taskid))
-                traceback.print_exc()
-                print("--->")
-        print("TagsBuilder finished processing.")
+                logger.error("<---")
+                logger.error("There was an error processing material_id: {}, task_id: {}".format(m["material_id"], taskid))
+                logger.error(traceback.format_exc())
+                logger.error("--->")
+        logger.info("TagsBuilder finished processing.")
 
     def reset(self):
         self._materials.update_many({}, {"$unset": {"tags": 1}})

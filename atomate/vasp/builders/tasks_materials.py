@@ -249,9 +249,10 @@ class TasksMaterialsBuilder(AbstractBuilder):
         # converts int task_id to string
         return "{}-{}".format(self._t_prefix, task_id)
 
-    def tid_to_int(self, task_id):
+    @staticmethod
+    def tid_to_int(task_id):
         # converts string task_id to int
-        return int(task_id.replace(self._t_prefix+"-", ""))
+        return int(task_id.split("-")[1])
 
     def mid_to_str(self, material_id):
         # converts int material_id to string
