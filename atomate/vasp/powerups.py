@@ -128,7 +128,7 @@ def add_namefile(original_wf, use_slug=True):
         use_slug (bool): whether to replace whitespace-type chars with a slug
     """
     for idx, fw in enumerate(original_wf.fws):
-        fname = "FW--{}".format(fw["name"])
+        fname = "FW--{}".format(fw.name)
         if use_slug:
             fname = get_slug(fname)
         original_wf.fws[idx].spec["_tasks"].insert(0, FileWriteTask(
