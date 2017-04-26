@@ -59,8 +59,10 @@ class TagsBuilder(AbstractBuilder):
         logger.info("TagsBuilder finished processing.")
 
     def reset(self):
+        logger.info("Resetting TagsBuilder")
         self._materials.update_many({}, {"$unset": {"tags": 1}})
         self._build_indexes()
+        logger.info("Finished resetting TagsBuilder")
 
     def _build_indexes(self):
         self._materials.create_index("tags")

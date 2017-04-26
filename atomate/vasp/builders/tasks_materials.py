@@ -102,10 +102,12 @@ class TasksMaterialsBuilder(AbstractBuilder):
         logger.info("TasksMaterialsBuilder finished processing.")
 
     def reset(self):
+        logger.info("Resetting TasksMaterialsBuilder")
         self._materials.delete_many({})
         self._counter.delete_one({"_id": "materialid"})
         self._counter.insert_one({"_id": "materialid", "c": 0})
         self._build_indexes()
+        logger.info("Finished resetting TasksMaterialsBuilder")
 
     def tid_to_str(self, task_id):
         # converts int task_id to string

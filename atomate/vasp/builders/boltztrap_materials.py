@@ -65,9 +65,11 @@ class BoltztrapMaterialsBuilder(AbstractBuilder):
         logger.info("BoltztrapMaterialsBuilder finished processing.")
 
     def reset(self):
+        logger.info("Resetting BoltztrapMaterialsBuilder")
         self._materials.update_many({}, {"$unset": {"_boltztrapbuilder": 1,
                                                     "transport": 1}})
         self._build_indexes()
+        logger.info("Finished resetting BoltztrapMaterialsBuilder")
 
     def _match_material(self, doc, ltol=0.2, stol=0.3, angle_tol=5):
         """

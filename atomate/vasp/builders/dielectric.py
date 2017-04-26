@@ -50,12 +50,14 @@ class DielectricBuilder:
         logger.info("EpsilonBuilder finished processing.")
 
     def reset(self):
+        logger.info("Resetting EpsilonBuilder")
         keys = ["dielectric.epsilon_ionic_avg",
                 "dielectric.epsilon_static_avg",
                 "dielectric.has_neg_eps",
                 "relaxation_energy"]
 
         self._materials.update({}, {"$unset": {k: "" for k in keys}})
+        logger.info("Finished resetting EpsilonBuilder")
 
     @staticmethod
     def from_file(db_file, m="materials", **kwargs):

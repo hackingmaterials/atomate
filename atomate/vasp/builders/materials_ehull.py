@@ -85,8 +85,10 @@ class MaterialsEhullBuilder(AbstractBuilder):
         logger.info("MaterialsEhullBuilder finished processing.")
 
     def reset(self):
+        logger.info("Resetting MaterialsEhullBuilder")
         self._materials.update_many({}, {"$unset": {"stability": 1}})
         self._build_indexes()
+        logger.info("Finished resetting MaterialsEhullBuilder")
 
     def _build_indexes(self):
         self._materials.create_index("stability.e_above_hull")
