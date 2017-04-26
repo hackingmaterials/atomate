@@ -156,6 +156,9 @@ class TasksMaterialsBuilder(AbstractBuilder):
 
         Args:
             taskdoc (dict): a JSON-like task document
+            ltol (float): StructureMatcher tuning parameter 
+            stol (float): StructureMatcher tuning parameter 
+            angle_tol (float): StructureMatcher tuning parameter
 
         Returns:
             (int) matching material_id or None
