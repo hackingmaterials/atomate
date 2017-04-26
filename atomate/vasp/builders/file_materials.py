@@ -4,10 +4,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from tqdm import tqdm
 
+from atomate.utils.utils import get_logger
 from matgendb.util import get_database
 from pymatgen import Composition
 
 from atomate.vasp.builders.base import AbstractBuilder
+logger = get_logger(__name__)
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -17,14 +19,14 @@ class FileMaterialsBuilder(AbstractBuilder):
         """
         Updates the database using a data file. Format of file must be:
         <material_id or formula>, <property>, <value>
-        for which <property> is the materials key to update.
 
-        Comment lines should start with '#'.
+        Comment lines should *start* with '#'.
 
         Args:
             materials_write: mongodb collection for materials (write access needed)
             data_file (str): path to data file
-            **kwargs: **kwargs for csv reader
+            delimiter (str): delimiter for file parsing
+            header_lines (int): number of header lines to skip in data file
         """
         self._materials = materials_write
         self._data_file = data_file
@@ -32,10 +34,10 @@ class FileMaterialsBuilder(AbstractBuilder):
         self.header_lines = header_lines
 
     def run(self):
-        print("Starting FileMaterials Builder.")
+        logger.info("Starting FileMaterials Builder.")
         with open(self._data_file, 'rt') as f:
             line_no = 0
-            lines = [line for line in f]  # only good for small files
+            lines = [line for line in f]  # only good for smaller files
             pbar = tqdm(lines)
             for line in pbar:
                 line = line.strip()
@@ -57,16 +59,12 @@ class FileMaterialsBuilder(AbstractBuilder):
                         except:
                             pass
 
-                        x = self._materials.update({search_key: search_val}, {"$set": {key: val}})
+                        self._materials.update({search_key: search_val}, {"$set": {key: val}})
 
-                        # TODO: make this check optional
-                        #if x["n"] == 0:
-                        #    raise ValueError("Could not find entry with {}={}".format(search_key, search_val))
-
-        print("FileMaterials Builder finished processing")
+        logger.info("FileMaterials Builder finished processing")
 
     def reset(self):
-        pass
+        logger.warn("Cannot reset FileMaterials Builder!")
 
     @classmethod
     def from_file(cls, db_file, data_file=None, m="materials", **kwargs):

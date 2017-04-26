@@ -107,6 +107,48 @@ class TasksMaterialsBuilder(AbstractBuilder):
         self._counter.insert_one({"_id": "materialid", "c": 0})
         self._build_indexes()
 
+    def tid_to_str(self, task_id):
+        # converts int task_id to string
+        return "{}-{}".format(self._t_prefix, task_id)
+
+    @staticmethod
+    def tid_to_int(task_id):
+        # converts string task_id to int
+        return int(task_id.split("-")[1])
+
+    def mid_to_str(self, material_id):
+        # converts int material_id to string
+        return "{}-{}".format(self._m_prefix, material_id)
+
+    @classmethod
+    def from_file(cls, db_file, m="materials", c="counter", t="tasks", **kwargs):
+        """
+        Get a TaskMaterialsBuilder using only a db file.
+
+        Args:
+            db_file (str): path to db file
+            m (str): name of "materials" collection
+            c (str): name of "counter" collection
+            t (str): name of "tasks" collection
+            **kwargs: other params to put into TasksMaterialsBuilder
+        """
+        db_write = get_database(db_file, admin=True)
+        try:
+            db_read = get_database(db_file, admin=False)
+            db_read.collection_names()  # throw error if auth failed
+        except:
+            logger.warn("Warning: could not get read-only database; using write creds")
+            db_read = get_database(db_file, admin=True)
+        return cls(db_write[m], db_write[c], db_read[t], **kwargs)
+
+    def _build_indexes(self):
+        """
+        Create indexes for faster searching
+        """
+        self._materials.create_index("material_id", unique=True)
+        for index in self.indexes:
+            self._materials.create_index(index)
+
     def _match_material(self, taskdoc, ltol=0.2, stol=0.3, angle_tol=5):
         """
         Returns the material_id that has the same structure as this task as
@@ -132,7 +174,8 @@ class TasksMaterialsBuilder(AbstractBuilder):
             q = {"formula_reduced_abc": formula, "sg_number": sgnum}
 
         for m in self._materials.find(q, {"parent_structure": 1, "structure": 1, "material_id": 1}):
-            s_dict = m["parent_structure"]["structure"] if "parent_structure" in m else m["structure"]
+            s_dict = m["parent_structure"]["structure"] if "parent_structure" in m else m[
+                "structure"]
             m_struct = Structure.from_dict(s_dict)
             sm = StructureMatcher(ltol=ltol, stol=stol, angle_tol=angle_tol,
                                   primitive_cell=True, scale=True,
@@ -164,7 +207,8 @@ class TasksMaterialsBuilder(AbstractBuilder):
         doc["material_id"] = self.mid_to_str(self._counter.
                                              find_one_and_update({"_id": "materialid"},
                                                                  {"$inc": {"c": 1}},
-                                                                 return_document=ReturnDocument.AFTER)["c"])
+                                                                 return_document=ReturnDocument.AFTER)[
+                                                 "c"])
 
         for x in ["formula_anonymous", "formula_pretty", "formula_reduced_abc",
                   "elements", "nelements", "chemsys"]:
@@ -244,45 +288,3 @@ class TasksMaterialsBuilder(AbstractBuilder):
 
         self._materials.update_one({"material_id": m_id},
                                    {"$push": {"_tasksbuilder.all_task_ids": self.tid_to_str(taskdoc["task_id"])}})
-
-    def tid_to_str(self, task_id):
-        # converts int task_id to string
-        return "{}-{}".format(self._t_prefix, task_id)
-
-    @staticmethod
-    def tid_to_int(task_id):
-        # converts string task_id to int
-        return int(task_id.split("-")[1])
-
-    def mid_to_str(self, material_id):
-        # converts int material_id to string
-        return "{}-{}".format(self._m_prefix, material_id)
-
-    @classmethod
-    def from_file(cls, db_file, m="materials", c="counter", t="tasks", **kwargs):
-        """
-        Get a TaskMaterialsBuilder using only a db file.
-
-        Args:
-            db_file (str): path to db file
-            m (str): name of "materials" collection
-            c (str): name of "counter" collection
-            t (str): name of "tasks" collection
-            **kwargs: other params to put into TasksMaterialsBuilder
-        """
-        db_write = get_database(db_file, admin=True)
-        try:
-            db_read = get_database(db_file, admin=False)
-            db_read.collection_names()  # throw error if auth failed
-        except:
-            logger.warn("Warning: could not get read-only database; using write creds")
-            db_read = get_database(db_file, admin=True)
-        return cls(db_write[m], db_write[c], db_read[t], **kwargs)
-
-    def _build_indexes(self):
-        """
-        Create indexes for faster searching
-        """
-        self._materials.create_index("material_id", unique=True)
-        for index in self.indexes:
-            self._materials.create_index(index)
