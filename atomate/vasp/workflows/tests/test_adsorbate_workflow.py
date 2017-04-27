@@ -25,7 +25,7 @@ __author__ = 'Kiran Mathew, Joseph Montoya'
 __email__ = 'montoyjh@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-db_dir = os.path.join(module_dir, "..", "..", "..", "common", "reference_files", "db_connections")
+db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 ref_dir = os.path.join(module_dir, "test_files")
 
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
@@ -99,7 +99,7 @@ class TestAdsorptionWorkflow(unittest.TestCase):
             raise ValueError("Invalid mode!")
 
         if "adsorbate" in mode:
-            self.assertEqual(d["formula_pretty"], "HIr16")
+            self.assertEqual(d["formula_reduced_abc"], "H1 Ir16")
         # Check relaxation of adsorbate
         # Check slab calculations
         # Check structure optimization
@@ -109,10 +109,10 @@ class TestAdsorptionWorkflow(unittest.TestCase):
 
         self.assertEqual(len(self.wf_1.fws), 5)
         # check vasp parameters for ionic relaxation
-        defo_vis = [fw.spec["_tasks"][1]['vasp_input_set'] 
+        defo_vis = [fw.tasks[1]['vasp_input_set']
                     for fw in self.wf_1.fws if "adsorbate" in fw.name]
-        assert all([vis['user_incar_settings']['EDIFFG']==-0.05 for vis in defo_vis])
-        assert all([vis['user_incar_settings']['ISIF']==0 for vis in defo_vis])
+        assert all([vis.user_incar_settings['EDIFFG']==-0.05 for vis in defo_vis])
+        assert all([vis.user_incar_settings['ISIF']==0 for vis in defo_vis])
         self.lp.add_wf(self.wf_1)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 

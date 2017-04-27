@@ -23,7 +23,8 @@ logger = get_logger(__name__)
 
 def get_wf_deformations(structure, deformations, name="deformation", vasp_input_set=None,
                         lepsilon=False, vasp_cmd="vasp", db_file=None, user_kpoints_settings=None,
-                        pass_stress_strain=False, tag="", relax_deformed=False, optimize_structure=True):
+                        pass_stress_strain=False, tag="", relax_deformed=False,
+                        optimize_structure=True, metadata=None):
     """
     Returns a structure deformation workflow.
 
@@ -44,6 +45,7 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
         pass_stress_strain (bool): if True, stress and strain will be parsed and passed on.
         tag (str): some unique string that will be appended to the names of the fireworks so that
             the data from those tagged fireworks can be queried later during the analysis.
+        metadata (dict): meta data
 
     Returns:
         Workflow
@@ -82,9 +84,9 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
                           vasp_input_set=vis_static, copy_vasp_outputs=True, parents=parents,
                           vasp_cmd=vasp_cmd, db_file=db_file)
         if pass_stress_strain:
-            fw.spec['_tasks'].append(PassStressStrainData(deformation=deformation.tolist()).to_dict())
+            fw.tasks.append(PassStressStrainData(deformation=deformation.tolist()))
         fws.append(fw)
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, name)
 
-    return Workflow(fws, name=wfname)
+    return Workflow(fws, name=wfname, metadata=metadata)

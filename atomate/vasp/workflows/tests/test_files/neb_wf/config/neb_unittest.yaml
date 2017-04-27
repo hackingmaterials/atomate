@@ -1,0 +1,49 @@
+# A testing CI-NEB calculation
+fireworks:
+
+- fw: atomate.vasp.fireworks.core.NEBRelaxationFW
+  user_incar_settings:
+    EDIFF: 1e-5
+    EDIFFG: -0.02
+    LDAU: False
+    NSW: 200
+
+- fw: atomate.vasp.fireworks.core.NEBRelaxationFW
+  user_incar_settings:
+    EDIFF: 1e-5
+    EDIFFG: -0.02
+    NSW: 500
+
+- fw: atomate.vasp.fireworks.core.NEBFW
+  user_incar_settings:
+    IMAGES: 3
+    EDIFFG: -0.05
+    IOPT: 7
+  user_kpoints_settings:
+    grid_density: 100
+  additional_cust_args:
+    auto_npar: False
+    gzip_output: False
+
+- fw: atomate.vasp.fireworks.core.NEBFW
+  user_incar_settings:
+    IMAGES: 3
+    EDIFFG: -0.03
+    EDIFFG: -0.03
+    IOPT: 1
+  user_kpoints_settings:
+    grid_density: 100
+  additional_cust_args:
+    auto_npar: False
+    gzip_output: False
+
+common_params:
+  _category: ""
+  wf_name: Unittest
+  is_optimized: False
+  idpp_species: ["Li"]
+  site_indices: [0, 1]
+  interpolation_type: "IDPP"
+  sort_tol: 0
+  d_img: 0.7
+  neb_walltime: "10:00:00"

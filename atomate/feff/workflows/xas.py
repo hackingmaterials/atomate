@@ -69,7 +69,7 @@ def get_wf_xas(absorbing_atom, structure, spectrum_type="XANES", edge="K", radiu
     wfname = "{}:{}:{} edge".format(structure.composition.reduced_formula,
                                     "{} spectroscopy".format(spectrum_type), edge)
 
-    return Workflow(fws, name=wfname, metadata=metadata)
+    return Workflow(fws, name=wfname, metadata=wf_metadata)
 
 
 def get_wf_exafs_paths(absorbing_atom, structure, paths, degeneracies=None, edge="K", radius=10.0,

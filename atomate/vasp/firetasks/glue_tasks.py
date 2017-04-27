@@ -26,7 +26,8 @@ from pymatgen.analysis.elasticity import reverse_voigt_map
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
-from atomate.utils.utils import get_calc_loc, env_chk
+from atomate.utils.utils import env_chk
+from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.fileio import FileClient
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
@@ -37,9 +38,10 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 class CopyVaspOutputs(FiretaskBase):
     """
     Copy files from a previous VASP run directory to the current directory.
-    By default, copies 'INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR',
-    and 'vasprun.xml'. Additional files, e.g. 'CHGCAR', can also be specified.
-    Automatically handles files that have a ".gz" extension (copies and unzips).
+    By default, copies 'INCAR', 'POSCAR' (default: via 'CONTCAR'), 'KPOINTS', 
+    'POTCAR', 'OUTCAR', and 'vasprun.xml'. Additional files, e.g. 'CHGCAR', 
+    can also be specified. Automatically handles files that have a ".gz" 
+    extension (copies and unzips).
 
     Note that you must specify either "calc_loc" or "calc_dir" to indicate
     the directory containing the previous VASP run.

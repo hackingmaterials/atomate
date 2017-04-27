@@ -6,6 +6,10 @@
 .. pull-quote:: | "Civilization advances by extending the number of important operations which we can perform without thinking about them."
                 |    - Alfred North Whitehead
 
+=======
+atomate
+=======
+
 Theory and computations are powerful tools for understanding and designing materials, but conventional
 software for performing these computations are still difficult to use, understand, and automate.
 atomate makes it possible to perform complex materials science computations using
@@ -26,7 +30,20 @@ Note: that atomate is currently built to work with the **VASP** electronic struc
 Installation
 ============
 
-Although atomate itself should be pip-installable, the actual process to get an infrastructure to run VASP at supercomputers might be a bit more involved (not difficult, just more steps). See "Detailed Installation Notes" at the end of this document for some notes on how to do this.
+Although atomate itself should be pip-installable, the actual process to get an infrastructure to run VASP at supercomputers might be a bit more involved (not difficult, just more steps). A detailed :ref:`installation guide <installation tutorial>` will walk you through the setup.
+
+If you've installed before and need a quick reference on what to do, the general steps are:
+
+1. Set up pseudopotentials and MongoDB database(s)
+#. Create a Python environment
+#. Install the atomate Python packages
+#. Configure FireWorks
+#. Configure pymatgen
+
+An experimental installer to bootstrap your environment with minimal configuration can be found in the `PhasesResearchLab/install-atomate GitHub repo`_. Several preset systems are available including Edison, Cori, and Stampede, but the installer can also be used more generally with some configuration.
+
+.. _PhasesResearchLab/install-atomate GitHub repo: https://github.com/PhasesResearchLab/install-atomate
+
 
 ==============================
 Testing the VASP functionality
@@ -77,126 +94,8 @@ Note that another planned "powerup" is to endow Workflows with duplicate checkin
 
 See the ``vasp_powerups.py`` file for examples.
 
-===========================
-Detailed Installation Notes
-===========================
-
-Here are some notes on how to get atomate up and running in a production system at your supercomputing center. These notes are geared towards the NERSC supercomputing center. You'll need to fill in details and adapt accordingly for other centers.
-
-A. Things you need to do once
-=============================
-
-Here are some things you will likely only need to do once (per machine) as an "initial install".
-
-Preliminaries
--------------
-
-1. Make sure you can access to a MongoDB installation from the compute nodes. i.e. you can either start and stop a Mongo server yourself or have credentials to a Mongo server that's always available. Also confirm there are no firewalls from your compute node to your Mongo server. If you are able to get through the FireWorks tutorials on running jobs through a queue, then this step is probably OK. If you are unsure, I recommend actually trying that first before going through all the atomate stuff.
-2. Make sure you have access to the VASP executable and pseudopotential files. If you cannot run VASP manually, you cannot do it through this infrastructure. I recommend making sure you know how to run VASP manually on your supercomputer before embarking on this installation.
-
-Set some environment variables
-------------------------------
-
-1. Make sure your ``PMG_VASP_PSP_DIR`` environment variable is set to point to your VASP pseudopotential directories (this is a pymatgen thing). Probably you want to put this in your ``.bash_profile`` (or equivalent, e.g., ``.bashrc.ext`` at NERSC) and never have to worry about this again. Otherwise, you will need to do this each and every time.
-
-Install some codes
-------------------
-
-1. Load any modules that are needed to do a Python installation.
-
-#. Create a directory in a spot on disk that has relatively fast access from compute nodes. Your Python codes and config files will go here. We will call this place ``<<INSTALL_DIR>>``.
-
-#. It's probably best to make this directory a virtual environment, in case you want to have multiple environments later (for different projects, perhaps for different machines, etc). This will also help in avoiding permissions problems with installing Python codes. So create a virtualenv in the ``<<INSTALL_DIR>>`` using the ``virtualenv`` command. If you know what you are doing, you can probably make things work without virtualenv.
-
-#. Activate your virtualenv, e.g. ``source <<INSTALL_DIR>>/bin/activate``. Now you are ready to install codes.
-
-#. I would suggest making a subdirectory for codes, e.g. ``<<INSTALL_DIR>>/codes`` and then moving to that directory for the remainder.
-
-#. Technically, you just need the atomate code which will contain all the dependencies, and you might be able to get by using the ``pip`` install. What I do is actually install the full source of the atomate code and all of its important dependencies inside ``<<INSTALL_DIR>>/codes``. This includes a ``git clone`` followed by a ``python setup.py develop`` for the following codes:
-
-   - fireworks - ``git clone https://www.github.com/materialsproject/fireworks.git``
-   - pymatgen - ``git clone https://www.github.com/materialsproject/pymatgen.git``
-   - pymatgen-db - ``git clone https://www.github.com/materialsproject/pymatgen-db.git``
-   - custodian - ``git clone https://www.github.com/materialsproject/custodian.git``
-   - atomate (from hackingmaterials org) - ``git clone https://www.github.com/hackingmaterials/atomate.git``
-
-#. If all the installation seemed to go smoothly, you are all set! You can try running some unit tests in the code to help confirm things. Note that some of the unit tests in some of the codes will require a MongoDB server.
-
-Configure a bunch of things
----------------------------
-
-In addition to having the code installed, you will need to configure a bunch of settings for running at your computing cluster. This includes setting up your queue adapter and submission script template, providing credentials to your databases, and setting locations of loggers and miscellaneous items.
-
-1. Copy the contents of ``/atomate/vasp/config_example/standard_config`` to ``<<INSTALL_DIR>>/config``. We can work off these files to begin with rather than creating the files from scratch.
-
-There is a lot to configure, so let's tackle the files one by one. We will start simple and get more complex.
-
-Note that all variables enclosed in ``<<>>``, e.g. ``<<HOSTNAME>>``, must be modified by the user.
-
-**my_launchpad.yaml**
-
-As you should know, this file contains the configuration for the FireWorks database (LaunchPad). Make sure to set:
-
-* ``<<HOSTNAME>>`` - the host of your FWS db server
-* ``<<PORT_NUM>>`` - the port of your FWS db server
-* ``<<DB_NAME>>`` - whatever you want to call your database. If you are not feeling creative, call it ``vasp_calcs``.
-* ``<<ADMIN_USERNAME>>`` and ``<<ADMIN_PASSWORD>>`` - the (write) credentials to access your DB. Delete these lines if you do not have password protection in your DB.
-* ``<<LOG_DIR>>`` - you can leave this to ``null``. If you want logging, put a directory name str here.
-* The other settings, I've left to defaults. Feel free to modify them if you know what you are doing.
-
-You can test whether your connection is running by running ``lpad -l my_launchpad.yaml reset``. This will reset and initialize your FireWorks database. Note that you might see some strange message about ``<<ECHO_STR>>``. We will fix that configuration later - feel free to ignore it for now.
-
-**db.json**
-
-This file contains credentials needed by the pymatgen-db code to insert the results of your VASP calculations. The easiest solution is to use the same database as your FireWorks database, but just use a different collection name. Or, you could use separate databases for FireWorks and VASP results. It is up to you.
-
-For all settings, set to the same as the FireWorks database (``my_launchpad.yaml``) if you're keeping things simple. Or, use the settings for your dedicated database for VASP outputs. Note that since this is a JSON file, you need to use valid JSON conventions. e.g., wrap String values in quotes.
-
-Once you've set up the credentials this file should be good to go.
-
-**FW_config.yaml**
-
-This file contains your global FireWorks settings. Later on (not now), you will set an environment variable called ``FW_CONFIG_FILE`` that points to this file. This file subsequently gives the directory name of where to find the other FWS-related files (my_launchpad.yaml, my_fworker.yaml, and my_qadapter.yaml). Anyway, in terms of setting up this file, set:
-
-* ``<<PATH_TO_CONFIG_DIR>>`` - this is the **full** name of the directory containing the files ``my_launchpad.yaml``, ``my_fworker.yaml``, and ``my_qadapter.yaml``. The easiest way to set this variable is to navigate to ``<<INSTALL_DIR/config>>``, type ``pwd``, and paste the result into this variable.
-* ``<<ECHO_TEST>>`` - the simplest thing is to delete this line. If you want, put an identifying string here. Whatever you put will be echoed back whenever you issue a FireWorks command. It is sometimes helpful if you are working with multiple databases and prefer a reminder of which database you are working with.
-
-**my_fworker.yaml**
-
-This file is both simple and complicated. The basic setup is simple. But, setting the ``env`` variable properly requires knowing about the details of the workflows you are going to run. Make sure you understand the ``env_chk`` framework (described elsewhere in the docs) to really know what is going on here.
-
-* ``<<name>>`` - set to any name that describes this Worker. e.g. ``Generic NERSC``.
-* ``<<env.db_file>>`` - many of the workflows implemented in atomate use the ``env_chk`` framework to get the path to the tasks database file from here. This allows setting different database files on different systems. Anyway, you want to put the **full** path of ``<<INSTALL_DIR>>/config/db.json``.
-* ``<<env.vasp_cmd>>`` - many of the workflows implemented in atomate use the ``env_chk`` framework to get the actual command needed to run VASP because this command differs on different systems and cannot be hard-coded in the workflow itself. So put your full VASP command, e.g. ``mpirun -n 16 vasp`` here.
-* ``<<env.scratch_dir>>`` - temporary place where to run VASP calculations using custodian framework. If set to the ``null`` it will simply use the current working directory without using a scratch_dir.
-
-Note that all of these values might depend on the specific system you are running on. The point of the ``my_fworker.yaml`` is precisely to allow for different settings on different
-systems. By having a different ``my_fworker.yaml`` file for each intended systems, you can tailor the execution of workflows across systems. This procedure is straightforward but is not covered here. You can set up a second config file, and point your ``FW_CONFIG_FILE`` environment variable to that second config file in order to use different settings (e.g., different ``my_fworker.yaml``).
-
-**my_qadapter.yaml**
-
-This file controls the format of your queue submission script and the commands to submit jobs to the queue (e.g., ``qsub`` versus ``sbatch``). I will not go over how to set this file here. Please refer to the FWS tutorials for that. Note that ``<<CONFIG_DIR>>`` should point to the **full** path of ``<<INSTALL_DIR>>/config``. One further note on this file is that the default uses ``singleshot`` in "reservation" (``-r``) mode. If you want to pack multiple Fireworks into a queue submission you might try turning off reservation mode, and using ``rapidfire`` mode with the appropriate options.
-
-That's it! You've finished basic configuration!
-
-B. Things you need to do each time you log in (or just once if you put it in your .bash_profile)
-================================================================================================
-
-In order to run jobs, you must:
-
-1. Load modules for any important libraries (e.g., Python / VASP)
-#. Activate your virtualenv (``source <<INSTALL_DIR>>/bin/activate``).
-#. set your ``FW_CONFIG_FILE`` env variable to point to ``FW_config.yaml`` (``export FW_CONFIG_FILE=<<INSTALL_DIR>>/config/FW_config.yaml``).
-
-You can put all of these things inside your ``.bash_profile`` or equivalent in order to make them automatic when you log into the cluster. It is up to you.
-
-C. Running some jobs
-====================
-
-Ok, you are now ready to test running some jobs! Note that the testing procedure was recently changed and is under development. For now, try getting a workflow from the the ``vasp/workflows/preset`` package in which you can just give a Structure and get back a workflow. Then add that workflow to your LaunchPad and then use FireWorks to launch it in the manner of your desire.
-
-D. Tuning performance on different machines
-===========================================
+Tuning performance on different machines
+========================================
 
 VASP has certain INCAR parameters like NCORE, NPAR, KPAR, etc. that can be tuned
 based on your machine. Since the ``ModifyIncar`` firetask supports
@@ -226,35 +125,45 @@ Cori. Reduce NCORE if you want to try to increase speed at the risk of having
 lower memory available per orbital.
 
 ====
-FAQS
+Help
 ====
 
-1. **What do I actually need to do to get a job running?**
+FAQ:
+====
 
-First, you need to install and configure atomate (see the installation notes above) for your computing center of interest. Next you need to get some workflows. The easiest way is to throw a pymatgen Structure object into one of the prebuilt workflow functions in ``atomate/vasp/workflows/presets``. Et voilá! You have a workflow object. Next you need to put the workflow into your LaunchPad using the add_wf method in FireWorks. Finally, you need to run the workflow using FireWorks, e.g. using rlaunch, qlaunch or any of the other FireWorks tools.
-Basically, the goal of atomate is to help you get some workflows. e.g., you have a structure and you know you want the dielectric constant - atomate will help you get a workflow to accomplish that. All the details of running workflows, managing them, etc. is handled by FireWorks. Note that there is also an ``mmwf`` script that is intended to help you in putting a Workflow in the LaunchPad, but if you don't really understand what it's doing, it's probably best to ignore this for now.
+Q:What do I actually need to do to get a job running?
+-----------------------------------------------------
 
-2. **How do I know what workflows are available?**
+:A: First, you need to install and configure atomate (see the :ref:`installation tutorial <installation tutorial>`) for your computing center of interest. Next you need to get some workflows. The easiest way is to throw a pymatgen Structure object into one of the prebuilt workflow functions in ``atomate/vasp/workflows/presets``. Et voilá! You have a workflow object. Next you need to put the workflow into your LaunchPad using the add_wf method in FireWorks. Finally, you need to run the workflow using FireWorks, e.g. using rlaunch, qlaunch or any of the other FireWorks tools.
 
-Browse the library folder in ``atomate/vasp/workflows/base`` for the raw workflows. Browse ``atomate/vasp/workflows/presets`` for preset workflows (just give a Structure, get back a workflow)
+    Basically, the goal of atomate is to help you get some workflows. e.g., you have a structure and you know you want the dielectric constant - atomate will help you get a workflow to accomplish that. All the details of running workflows, managing them, etc. is handled by FireWorks. Note that there is also an ``mmwf`` script that is intended to help you in putting a Workflow in the LaunchPad, but if you don't really understand what it's doing, it's probably best to ignore this for now.
 
-3. **I have a workflow that is almost what I want, but I want to tune some settings. How?**
+Q: How do I know what workflows are available?
+----------------------------------------------
 
-Workflows are composed of Fireworks which are in turn composed of FireTasks. First look at code of the actual Fireworks that your workflow is referring to. Does the Firework contain a parameter for the setting that you want? If so, you can modify the workflow YAML file to set that parameter. If you are sure your Firework does not have the parameter you want, look at the FireTasks inside the Firework. Do those have a parameter for the setting that you want? If yes, the best option is to probably compose the Workflow in Python rather than YAML. It is generally *very* easy to do this. If you don't see the option anywhere, you will need to code it inside the FireTask/Firework.
+:A: Browse the library folder in ``atomate/vasp/workflows/base`` for the raw workflows. Browse ``atomate/vasp/workflows/presets`` for preset workflows (just give a Structure, get back a workflow)
 
-4. **How do I create a brand new workflow?**
+Q: I have a workflow that is almost what I want, but I want to tune some settings. How?
+---------------------------------------------------------------------------------------
 
-If you just want to rearrange, add, or delete Fireworks in one of the existing workflows, simply create a new YAML file that contains the sequence of steps you want.
+:A: Workflows are composed of Fireworks which are in turn composed of FireTasks. First look at code of the actual Fireworks that your workflow is referring to. Does the Firework contain a parameter for the setting that you want? If so, you can modify the workflow YAML file to set that parameter. If you are sure your Firework does not have the parameter you want, look at the FireTasks inside the Firework. Do those have a parameter for the setting that you want? If yes, the best option is to probably compose the Workflow in Python rather than YAML. It is generally *very* easy to do this. If you don't see the option anywhere, you will need to code it inside the FireTask/Firework.
 
-If the Fireworks that are currently implemented in atomate do not contain the function you want, you will need to write a new Firework (and maybe new FireTasks) and connect them into a workflow. Maybe try referring to how some of the existing workflows are constructed to learn how to do this.
+Q: How do I create a brand new workflow?
+-------------------------------------
 
-4. **Are there any unit tests to make sure atomate is giving me sensible answers?**
+:A: If you just want to rearrange, add, or delete Fireworks in one of the existing workflows, simply create a new YAML file that contains the sequence of steps you want.
 
-We are working on it...
+    If the Fireworks that are currently implemented in atomate do not contain the function you want, you will need to write a new Firework (and maybe new FireTasks) and connect them into a workflow. Maybe try referring to how some of the existing workflows are constructed to learn how to do this.
 
-5. **Is there a command line tool?**
+Q: Are there any unit tests to make sure atomate is giving me sensible answers?
+----------------------------------------------------------------------------
 
-The ``mmwf`` tool is there but somewhat under development. If you know what you are doing it is probably helpful, if you don't know what you are doing then using this tool probably will not lead to your success in running a workflow.
+:A: We are working on it...
+
+Q: Is there a command line tool?
+-----------------------------
+
+:A: The ``atwf`` tool is there but somewhat under development. If you know what you are doing it is probably helpful, if you don't know what you are doing then using this tool probably will not lead to your success in running a workflow.
 
 =================
 Citing atomate
@@ -290,7 +199,9 @@ Want to see something added or changed? There are many ways to make that a reali
 
 The list of contributors to atomate can be found :doc:`here </contributors>`.
 
-atomate is currently in an alpha release. Although atomate is open source, currently no support is provided for atomate other than for those who are contributing to its development.
+atomate is currently in an alpha release. Although atomate is open source, currently no support is provided for atomate other than for those who are contributing to its development. There is an `atomate Google Group`_ dedicated to discussion and support related to development
+
+.. _atomate Google Group: https://groups.google.com/forum/#!forum/atomate
 
 =========
 Changelog
@@ -299,6 +210,7 @@ Changelog
 .. toctree::
    :maxdepth: 1
 
+   installation
    changelog
 
 =======

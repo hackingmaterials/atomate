@@ -1,0 +1,70 @@
+# A standard CI-NEB calculation
+# Comment the item to use the default settings.
+# Note that "fireworks" is a list corresponding to the order of execution.
+fireworks:
+# Relaxation for parent structure
+- fw: atomate.vasp.fireworks.core.NEBRelaxationFW
+  user_incar_settings:
+    EDIFF: 1e-5
+    EDIFFG: -0.02
+    LDAU: False
+    NPAR: 4
+    NSW: 200
+  user_kpoints_settings:
+    grid_density: 100
+  additional_cust_args:
+    auto_npar: False
+    gzip_output: False
+
+# Two endpoints relaxations
+- fw: atomate.vasp.fireworks.core.NEBRelaxationFW
+  user_incar_settings:
+    EDIFF: 1e-5
+    EDIFFG: -0.02
+    NPAR: 4
+    NSW: 500
+  user_kpoints_settings:
+    grid_density: 100
+  additional_cust_args:
+    auto_npar: False
+    gzip_output: False
+
+# First round NEB (coarse)
+- fw: atomate.vasp.fireworks.core.NEBFW
+  user_incar_settings:
+    EDIFFG: -0.05
+    IOPT: 7
+    NPAR: 4
+  user_kpoints_settings:
+    grid_density: 100
+  additional_cust_args:
+    auto_npar: False
+    gzip_output: False
+
+# Second round NEB (fine)
+- fw: atomate.vasp.fireworks.core.NEBFW
+  user_incar_settings:
+    EDIFFG: -0.03
+    EDIFFG: -0.03
+    IOPT: 1
+  user_kpoints_settings:
+    grid_density: 100
+  additional_cust_args:
+    auto_npar: False
+    gzip_output: False
+
+# These will update spec_default in neb.py
+common_params:
+  _category: ""
+  wf_name: lio2_neb_workflow
+  is_optimized: False  # for calcluation from ep and parent
+  # additional_ep_params:
+  idpp_species: ["Li"]  # List of string
+  site_indices: [0, 1]
+  interpolation_type: "IDPP"
+  # Distance tolerance (in Angstrom) used to match the atomic indices between
+  # start and end structures. If it is set 0, then no sorting will be performed.
+  sort_tol: 0
+  # Distance in Angstrom, used in calculating number of images.
+  d_img: 0.7
+  neb_walltime: "10:00:00"  # set NEB walltime to 10 hours

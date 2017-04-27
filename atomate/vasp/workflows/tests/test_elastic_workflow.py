@@ -25,7 +25,7 @@ __author__ = 'Kiran Mathew, Joseph Montoya'
 __email__ = 'montoyjh@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-db_dir = os.path.join(module_dir, "..", "..", "..", "common", "reference_files", "db_connections")
+db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 ref_dir = os.path.join(module_dir, "test_files")
 
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
@@ -126,17 +126,17 @@ class TestElasticWorkflow(unittest.TestCase):
             c_ij = np.array(d['elastic_tensor'])
             np.testing.assert_allclose([c_ij[0, 0], c_ij[0, 1], c_ij[3, 3]],
                                        [146.68, 50.817, 74.706], rtol=1e-2)
-            self.assertAlmostEqual(d['K_Voigt'], 83, places=0)
+            self.assertAlmostEqual(d['k_voigt'], 83, places=0)
 
     def test_wf(self):
         self.wf = self._simulate_vasprun(self.wf)
 
         self.assertEqual(len(self.wf.fws), 8)
         # check vasp parameters for ionic relaxation
-        defo_vis = [fw.spec["_tasks"][2]['vasp_input_set'] 
+        defo_vis = [fw.tasks[2]['vasp_input_set']
                     for fw in self.wf.fws if "deform" in fw.name]
-        assert all([vis['user_incar_settings']['NSW']==99 for vis in defo_vis])
-        assert all([vis['user_incar_settings']['IBRION']==2 for vis in defo_vis])
+        assert all([vis.user_incar_settings['NSW'] == 99 for vis in defo_vis])
+        assert all([vis.user_incar_settings['IBRION'] == 2 for vis in defo_vis])
         self.lp.add_wf(self.wf)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 

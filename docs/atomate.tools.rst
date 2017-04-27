@@ -7,7 +7,6 @@ Subpackages
 .. toctree::
 
     atomate.tools.post_process
-    atomate.tools.tests
 
 Submodules
 ----------
