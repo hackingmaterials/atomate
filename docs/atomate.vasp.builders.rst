@@ -20,10 +20,10 @@ atomate.vasp.builders.boltztrap_materials module
     :undoc-members:
     :show-inheritance:
 
-atomate.vasp.builders.example_build module
-------------------------------------------
+atomate.vasp.builders.dielectric module
+---------------------------------------
 
-.. automodule:: atomate.vasp.builders.example_build
+.. automodule:: atomate.vasp.builders.dielectric
     :members:
     :undoc-members:
     :show-inheritance:
@@ -52,10 +52,10 @@ atomate.vasp.builders.materials_ehull module
     :undoc-members:
     :show-inheritance:
 
-atomate.vasp.builders.tags_collector module
--------------------------------------------
+atomate.vasp.builders.tags module
+---------------------------------
 
-.. automodule:: atomate.vasp.builders.tags_collector
+.. automodule:: atomate.vasp.builders.tags
     :members:
     :undoc-members:
     :show-inheritance:

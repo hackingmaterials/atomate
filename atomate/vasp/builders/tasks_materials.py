@@ -94,7 +94,7 @@ class TasksMaterialsBuilder(AbstractBuilder):
 
             except:
                 import traceback
-                logger.exception("<---")
+                hlogger.exception("<---")
                 logger.exception("There was an error processing task_id: {}".format(t_id))
                 logger.exception(traceback.format_exc())
                 logger.exception("--->")
