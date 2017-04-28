@@ -451,6 +451,8 @@ class GibbsFreeEnergyTask(FiretaskBase):
             gibbs_dict["success"] = False
             gibbs_dict["traceback"] = traceback.format_exc()
 
+        # TODO: @matk86: add a list of task_ids that were used to construct the analysis to DB?
+        # -computron
         if not db_file:
             dump_file = "gibbs.json"
             logger.info("Dumping the analysis summary to {}".format(dump_file))
@@ -465,20 +467,22 @@ class GibbsFreeEnergyTask(FiretaskBase):
         if not gibbs_dict["success"]:
             return FWAction(defuse_children=True)
 
-
+# TODO: @computron: review method of data passing with the workflow authors. -computron
 @explicit_serialize
 class FitEquationOfStateTask(FiretaskBase):
     """
     Retrieve the energy and volume data and fit it to the given equation of state. The summary dict
     is written to 'bulk_modulus.json' file.
 
-    required_params:
+    Required parameters:
         tag (str): unique tag appended to the task labels in other fireworks so that all the
             required data can be queried directly from the database.
         db_file (str): path to the db file
+        
+    Optional parameters:
         eos (str): equation of state used for fitting the energies and the volumes.
             options supported by pymatgen: "quadratic", "murnaghan", "birch", "birch_murnaghan",
-            "pourier_tarantola", "vinet", "deltafactor"
+            "pourier_tarantola", "vinet", "deltafactor". Default: "vinet"
     """
 
     required_params = ["tag", "db_file", "eos"]
@@ -487,9 +491,11 @@ class FitEquationOfStateTask(FiretaskBase):
 
         from pymatgen.analysis.eos import EOS
 
+        eos = self.get("eos", "vinet")
+
         tag = self["tag"]
         db_file = env_chk(self.get("db_file"), fw_spec)
-        summary_dict = {"eos": self["eos"]}
+        summary_dict = {"eos": eos}
 
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         # get the optimized structure
@@ -510,16 +516,19 @@ class FitEquationOfStateTask(FiretaskBase):
         summary_dict["volumes"] = volumes
 
         # fit the equation of state
-        eos = EOS(self["eos"])
+        eos = EOS(eos)
         eos_fit = eos.fit(volumes, energies)
         summary_dict["results"] = dict(eos_fit.results)
 
         with open("bulk_modulus.json", "w") as f:
             f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
 
+        # TODO: @matk86 - there needs to be a way to insert this into a database! And also
+        # a builder to put it into materials collection... -computron
         logger.info("Bulk modulus calculation complete.")
 
 
+# TODO: @computron: review method of data passing with the workflow authors. -computron
 @explicit_serialize
 class ThermalExpansionCoeffTask(FiretaskBase):
     """
@@ -536,7 +545,7 @@ class ThermalExpansionCoeffTask(FiretaskBase):
         t_max (float): max temperature
         mesh (list/tuple): reciprocal space density
         eos (str): equation of state used for fitting the energies and the volumes.
-            options supported by phonopy: "vinet", "murnaghan", "birch_murnaghan".
+            options supported by phonopy: "vinet" (default), "murnaghan", "birch_murnaghan".
         pressure (float): in GPa, optional.
     """
 
@@ -587,4 +596,6 @@ class ThermalExpansionCoeffTask(FiretaskBase):
         with open("thermal_expansion.json", "w") as f:
             f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
 
+        # TODO: @matk86 - there needs to be a way to insert this into a database! And also
+        # a builder to put it into materials collection... -computron
         logger.info("Thermal expansion coefficient calculation complete.")
