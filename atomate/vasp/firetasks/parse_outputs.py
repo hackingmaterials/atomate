@@ -272,7 +272,9 @@ class RamanSusceptibilityTensorToDbTask(FiretaskBase):
     """
     Raman susceptibility tensor for each mode = Finite difference derivative of the dielectric
         tensor wrt the displacement along that mode.
-    See: 10.1103/PhysRevB.73.104304
+    See: 10.1103/PhysRevB.73.104304.
+    The frequencies are in the units of cm^-1. To convert the frequency to THz: multiply by 0.1884.
+
 
     optional_params:
         db_file (str): path to the db file
@@ -285,8 +287,7 @@ class RamanSusceptibilityTensorToDbTask(FiretaskBase):
         nm_eigenvals = np.array(fw_spec["normalmodes"]["eigenvals"])
         structure = fw_spec["normalmodes"]["structure"]
         masses = np.array([site.specie.data['Atomic mass'] for site in structure])
-        # the eigenvectors read from vasprun.xml are not divided by sqrt(M_i)
-        nm_norms = nm_norms / np.sqrt(masses)
+        nm_norms = nm_norms / np.sqrt(masses) # eigenvectors in vasprun.xml are not divided by sqrt(M_i)
 
         # To get the actual eigenvals, the values read from vasprun.xml must be multiplied by -1.
         # frequency_i = sqrt(-e_i)
@@ -298,11 +299,10 @@ class RamanSusceptibilityTensorToDbTask(FiretaskBase):
              "normalmodes": {"eigenvals": fw_spec["normalmodes"]["eigenvals"],
                              "eigenvecs": fw_spec["normalmodes"]["eigenvecs"]
                              },
-             "frequencies": nm_frequencies.tolist()
-             }
+             "frequencies": nm_frequencies.tolist()}
 
-        mode_disps = fw_spec["raman_epsilon"].keys()
         # store the displacement & epsilon for each mode in a dictionary
+        mode_disps = fw_spec["raman_epsilon"].keys()
         modes_eps_dict = defaultdict(list)
         for md in mode_disps:
             modes_eps_dict[fw_spec["raman_epsilon"][md]["mode"]].append(
@@ -334,8 +334,6 @@ class RamanSusceptibilityTensorToDbTask(FiretaskBase):
             db.collection = db.db["raman"]
             db.collection.insert_one(d)
             logger.info("Raman tensor calculation complete.")
-        logger.info("The frequencies are in the units of cm^-1")
-        logger.info("To convert the frequency to THz: multiply by 0.1884")
         return FWAction()
 
 
