@@ -149,25 +149,25 @@ Q: I have a workflow that is almost what I want, but I want to tune some setting
 :A: Workflows are composed of Fireworks which are in turn composed of FireTasks. First look at code of the actual Fireworks that your workflow is referring to. Does the Firework contain a parameter for the setting that you want? If so, you can modify the workflow YAML file to set that parameter. If you are sure your Firework does not have the parameter you want, look at the FireTasks inside the Firework. Do those have a parameter for the setting that you want? If yes, the best option is to probably compose the Workflow in Python rather than YAML. It is generally *very* easy to do this. If you don't see the option anywhere, you will need to code it inside the FireTask/Firework.
 
 Q: How do I create a brand new workflow?
--------------------------------------
+----------------------------------------
 
 :A: If you just want to rearrange, add, or delete Fireworks in one of the existing workflows, simply create a new YAML file that contains the sequence of steps you want.
 
     If the Fireworks that are currently implemented in atomate do not contain the function you want, you will need to write a new Firework (and maybe new FireTasks) and connect them into a workflow. Maybe try referring to how some of the existing workflows are constructed to learn how to do this.
 
 Q: Are there any unit tests to make sure atomate is giving me sensible answers?
-----------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 :A: We are working on it...
 
 Q: Is there a command line tool?
------------------------------
+--------------------------------
 
 :A: The ``atwf`` tool is there but somewhat under development. If you know what you are doing it is probably helpful, if you don't know what you are doing then using this tool probably will not lead to your success in running a workflow.
 
-=================
+==============
 Citing atomate
-=================
+==============
 
 We will write and publish a paper on atomate at a later point. For now, you can cite the following two works::
 
@@ -207,11 +207,7 @@ atomate is currently in an alpha release. Although atomate is open source, curre
 Changelog
 =========
 
-.. toctree::
-   :maxdepth: 1
-
-   installation
-   changelog
+:doc:`Changelog </changelog>`
 
 =======
 License
