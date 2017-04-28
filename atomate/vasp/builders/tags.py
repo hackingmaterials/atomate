@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from tqdm import tqdm
 
 from atomate.utils.utils import get_logger
-from atomate.vasp.builders import TasksMaterialsBuilder
+from atomate.vasp.builders.tasks_materials import TasksMaterialsBuilder
 from matgendb.util import get_database
 
 from atomate.vasp.builders.base import AbstractBuilder
@@ -53,7 +53,7 @@ class TagsBuilder(AbstractBuilder):
             except:
                 import traceback
                 logger.exception("<---")
-                logger.exception("There was an error processing material_id: {}, task_id: {}".format(m["material_id"], taskid))
+                logger.exception("There was an error processing material_id: {}".format(m["material_id"]))
                 logger.exception(traceback.format_exc())
                 logger.exception("--->")
         logger.info("TagsBuilder finished processing.")
