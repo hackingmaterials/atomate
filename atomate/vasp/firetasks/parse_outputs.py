@@ -219,7 +219,7 @@ class ElasticTensorToDbTask(FiretaskBase):
         # Get optimized structure
         # TODO: will this find the correct path if the workflow is rerun from the start?
         optimize_loc = fw_spec["calc_locs"][0]["path"]
-        logger.info("PARSING INITIAL OPTIMIZATION DIRECTORY: {}".format(optimize_loc))
+        logger.info("Parsing initial optimization directory: {}".format(optimize_loc))
         drone = VaspDrone()
         optimize_doc = drone.assimilate(optimize_loc)
         opt_struct = Structure.from_dict(optimize_doc["calcs_reversed"][0]["output"]["structure"])
@@ -235,8 +235,8 @@ class ElasticTensorToDbTask(FiretaskBase):
         stresses = [fw_spec["deformation_tasks"][dtype]["stress"] for dtype in dtypes]
         stress_dict = {IndependentStrain(defo) : Stress(stress) for defo, stress in zip(defos, stresses)}
 
-        logger.info("ANALYZING STRESS/STRAIN DATA")
-        # DETERMINE IF WE HAVE 6 "UNIQUE" deformations
+        logger.info("Analyzing stress/strain data")
+        # Determine if we have 6 unique deformations
         if len(set([de[:3] for de in dtypes])) == 6:
             # Perform Elastic tensor fitting and analysis
             result = ElasticTensor.from_stress_dict(stress_dict)
@@ -257,7 +257,7 @@ class ElasticTensorToDbTask(FiretaskBase):
             db = VaspCalcDb.from_db_file(db_file, admin=True)
             db.collection = db.db["elasticity"]
             db.collection.insert_one(d)
-            logger.info("ELASTIC ANALYSIS COMPLETE")
+            logger.info("Elastic analysis complete.")
         return FWAction()
 
 
@@ -327,7 +327,7 @@ class RamanSusceptibilityTensorToDbTask(FiretaskBase):
             db = VaspCalcDb.from_db_file(db_file, admin=True)
             db.collection = db.db["raman"]
             db.collection.insert_one(d)
-            logger.info("RAMAN TENSOR CALCULATION COMPLETE")
+            logger.info("Raman tensor calculation complete.")
         logger.info("The frequencies are in the units of cm^-1")
         logger.info("To convert the frequency to THz: multiply by 0.1884")
         return FWAction()
@@ -428,7 +428,7 @@ class GibbsFreeEnergyTask(FiretaskBase):
         # quasi-harmonic analysis failed, set the flag to false
         except:
             import traceback
-            logger.warn("QUASI-HARMONIC ANALYSIS FAILED")
+            logger.warn("Quasi-harmonic analysis failed!")
             gibbs_summary_dict["success"] = False
             gibbs_summary_dict["traceback"] = traceback.format_exc()
 
@@ -443,7 +443,7 @@ class GibbsFreeEnergyTask(FiretaskBase):
             coll = mmdb.db["gibbs_tasks"]
             coll.insert_one(gibbs_summary_dict)
 
-        logger.info("GIBBS FREE ENERGY CALCULATION COMPLETE")
+        logger.info("Gibbs free energy calculation complete.")
 
 
 @explicit_serialize
@@ -497,7 +497,7 @@ class FitEquationOfStateTask(FiretaskBase):
         with open("bulk_modulus.json", "w") as f:
             f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
 
-        logger.info("BULK MODULUS CALCULATION COMPLETE")
+        logger.info("Bulk modulus calculation complete.")
 
 
 @explicit_serialize
@@ -567,4 +567,4 @@ class ThermalExpansionCoeffTask(FiretaskBase):
         with open("thermal_expansion.json", "w") as f:
             f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
 
-        logger.info("THERMAL EXPANSION COEFF CALCULATION COMPLETE")
+        logger.info("Thermal expansion coefficient calculation complete.")
