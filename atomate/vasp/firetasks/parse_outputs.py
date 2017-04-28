@@ -35,6 +35,9 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov'
 logger = get_logger(__name__)
 
 
+# TODO: @computron: re-name most of these, retaining backwards compatibility (easy). Don't need Task
+# at the end of everything. # -computron
+
 @explicit_serialize
 class VaspToDbTask(FiretaskBase):
     """
@@ -267,6 +270,7 @@ class ElasticTensorToDbTask(FiretaskBase):
         return FWAction()
 
 
+#TODO: @computron: shorten name, retaining backwards compatibility (easy) -computron
 @explicit_serialize
 class RamanSusceptibilityTensorToDbTask(FiretaskBase):
     """
@@ -337,6 +341,12 @@ class RamanSusceptibilityTensorToDbTask(FiretaskBase):
         return FWAction()
 
 
+# TODO: @computron: more consistent name, retaining backwards compatibility (easy) -computron
+# TODO: @computron: this requires a "tasks" collection to proceed. Merits of changing to FW passing
+# method? -computron
+# TODO: @computron: even if you use the db-centric method, embed information in tags rather than
+# task_label? This workflow likely requires review with its authors. -computron
+
 @explicit_serialize
 class GibbsFreeEnergyTask(FiretaskBase):
     """
@@ -372,8 +382,9 @@ class GibbsFreeEnergyTask(FiretaskBase):
 
     def run_task(self, fw_spec):
 
+        gibbs_dict = {}
+
         tag = self["tag"]
-        db_file = env_chk(self.get("db_file"), fw_spec)
         t_step = self.get("t_step", 10)
         t_min = self.get("t_min", 0)
         t_max = self.get("t_max", 1000)
@@ -382,18 +393,21 @@ class GibbsFreeEnergyTask(FiretaskBase):
         qha_type = self.get("qha_type", "debye_model")
         pressure = self.get("pressure", 0.0)
         poisson = self.get("poisson", 0.25)
-        metadata = self.get("metadata", {})
-        gibbs_summary_dict = {}
+        gibbs_dict["metadata"] = self.get("metadata", {})
 
+
+        db_file = env_chk(self.get("db_file"), fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         # get the optimized structure
-        d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
+        d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)},
+                                     {"calcs_reversed": 1})
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
-        gibbs_summary_dict["structure"] = structure.as_dict()
+        gibbs_dict["structure"] = structure.as_dict()
 
         # get the data(energy, volume, force constant) from the deformation runs
         docs = mmdb.collection.find({"task_label": {"$regex": "{} gibbs*".format(tag)},
-                                     "formula_pretty": structure.composition.reduced_formula})
+                                     "formula_pretty": structure.composition.reduced_formula},
+                                    {"calcs_reversed": 1})
         energies = []
         volumes = []
         force_constants = []
@@ -403,51 +417,53 @@ class GibbsFreeEnergyTask(FiretaskBase):
             if qha_type not in ["debye_model"]:
                 force_constants.append(d["calcs_reversed"][-1]["output"]['force_constants'])
             volumes.append(s.volume)
-        gibbs_summary_dict["energies"] = energies
-        gibbs_summary_dict["volumes"] = volumes
+        gibbs_dict["energies"] = energies
+        gibbs_dict["volumes"] = volumes
         if qha_type not in ["debye_model"]:
-            gibbs_summary_dict["force_constants"] = force_constants
+            gibbs_dict["force_constants"] = force_constants
 
-        # whether the quasi-harmonic analysis failed or not
-        gibbs_summary_dict["success"] = True
         try:
             # use quasi-harmonic debye approximation
             if qha_type in ["debye_model"]:
 
                 from pymatgen.analysis.quasiharmonic import QuasiharmonicDebyeApprox
 
-                qhda = QuasiharmonicDebyeApprox(energies, volumes, structure, t_min, t_step, t_max, eos,
-                                                pressure=pressure, poisson=poisson)
-                gibbs_summary_dict.update(qhda.get_summary_dict())
+                qhda = QuasiharmonicDebyeApprox(energies, volumes, structure, t_min, t_step, t_max,
+                                                eos, pressure=pressure, poisson=poisson)
+                gibbs_dict.update(qhda.get_summary_dict())
+                gibbs_dict["success"] = True
 
             # use the phonopy interface
             else:
 
                 from atomate.tools.analysis import get_phonopy_gibbs
 
-                G, T = get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_step,
-                                         t_max, mesh, eos, pressure)
-                gibbs_summary_dict["gibbs_free_energy"] = G
-                gibbs_summary_dict["temperatures"] = T
+                G, T = get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min,
+                                         t_step, t_max, mesh, eos, pressure)
+                gibbs_dict["gibbs_free_energy"] = G
+                gibbs_dict["temperatures"] = T
+                gibbs_dict["success"] = True
+
         # quasi-harmonic analysis failed, set the flag to false
         except:
             import traceback
             logger.warn("Quasi-harmonic analysis failed!")
-            gibbs_summary_dict["success"] = False
-            gibbs_summary_dict["traceback"] = traceback.format_exc()
-
-        gibbs_summary_dict["metadata"] = metadata
+            gibbs_dict["success"] = False
+            gibbs_dict["traceback"] = traceback.format_exc()
 
         if not db_file:
             dump_file = "gibbs.json"
             logger.info("Dumping the analysis summary to {}".format(dump_file))
             with open(dump_file, "w") as f:
-                f.write(json.dumps(gibbs_summary_dict, default=DATETIME_HANDLER))
+                f.write(json.dumps(gibbs_dict, default=DATETIME_HANDLER))
         else:
             coll = mmdb.db["gibbs_tasks"]
-            coll.insert_one(gibbs_summary_dict)
+            coll.insert_one(gibbs_dict)
 
         logger.info("Gibbs free energy calculation complete.")
+
+        if not gibbs_dict["success"]:
+            return FWAction(defuse_children=True)
 
 
 @explicit_serialize
