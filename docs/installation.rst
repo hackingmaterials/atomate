@@ -31,7 +31,8 @@ Installation checklist
 Completing everything on this checklist should result in a fully functioning environment. Each item will be covered in depth, but this can be used to keep track of the big picture and help reinstall on other systems.
 
 1. Prerequisites_
-#. `Create a Python environment`_
+#. `Create a directory scaffold for atomate`_
+#. `_Create a Python virtual environment`_
 #. `Install Python packages`_
 #. `Configure FireWorks`_
 #. `Configure pymatgen`_
@@ -121,63 +122,70 @@ You might choose to have *two* separate databases - one for the workflows and an
   * set up an ssh tunnel to forward connections from allowed machines (the tunnel must be kept alive at all times you are running workflows)
   * use `FireWorks offline mode`_, which is a workable solution but makes the system more difficult to use and limits some features of FireWorks.
 
-.. warning::
-
-    **Passwords will be stored in plain text!** You should make random passwords that are unique only to these databases.
-
 
 .. _MongoDB: https://docs.mongodb.com/manual/
 .. _mLab: https://mlab.com
 .. _FireWorks offline mode: https://pythonhosted.org/FireWorks/offline_tutorial.html
 
 
-.. _Create a Python environment:
+.. _Create a directory scaffold for atomate:
 
-===========================
-Create a Python environment
-===========================
+=======================================
+Create a directory scaffold for atomate
+=======================================
 
-.. note::
-
- It's highly recommended that you organize your installation of the atomate and the other Python codes using a virtual environment. Ultimately, whether you want to use a virtual environment is optional and you don't have to use one if you know what you are doing. Virtual environments allow you to keep an installation of Python and all of the installed packages separate from the installation on the system. Some of the main benefits are
-
- * Different Python projects that have conflicting packages can coexist on the same machine.
- * Different versions of Python can exist on the same machine and be managed more easily (e.g. Python 2 and Python 3).
- * You have full rights and control over the environment. If it breaks, you can just delete the folder containing the environment and recreate it. On computing resources, you usually do not have access to manage the system installation and if something breaks, it can be hard to fix.
-
-The easiest way to get a Python virtual environment is to use the ``virtualenv`` tool. Most Python distributions come with ``virtualenv``, but some clusters are moving towards using Anaconda_, which is a popular distribution of Python designed for scientific computing. If the compute resource you want to access is using Anaconda, you will follow the same general steps, but create your environment with ``conda create``. See the `documentation for the conda command line tool here`_. To set up your virtual environment
-
+Installing atomate includes installation of codes, configuration files, and various binaries and libraries. Thus, it is useful to create a directory structure to hold all these items.
 
 1. Log in to the compute cluster and make sure the Python module you want to use is loaded and added to your rc file (e.g. ``~/.bashrc`` or ``~/.bashrc.ext`` at NERSC)
 
 #. Create a directory in a spot on disk that has relatively fast access from compute nodes. Your Python codes and config files will go here. We will call this place ``<<INSTALL_DIR>>``. A good name might simply be ``atomate``.
 
-#. Go to your install directory and create a virtual environment there. A good name might be ``atomate_env``. The command to create the environment would be ``virtualenv atomate_env``, which creates a folder ``atomate_env`` in the directory you are in.
-
-    You can ``ls`` this directory and see that you have the following structure
-
-    ::
-
-        atomate_env/
-        ├── bin
-        ├── include
-        ├── lib
-        ├── lib64
-        └── pip-selfcheck.json
-
-    If you look in the ``bin`` directory, you will see several programs, such as activate, pip, and Python itself. ``lib`` will be where all of your installed packages will be kept, etc. Again, if anything goes wrong in installing Python codes, you can just nuke the virtual environment directory and start again.
-
-#. Activate your environment by running ``source <<INSTALL_DIR>>/atomate_env/activate``. This makes it so when you use the command ``python`` the version of ``python`` that you use will be the one in the  ``bin`` directory. You can read the activation script if you are interested. It's just does a little magic to adjust your path to point towards the ``bin`` and other directories you created.
-
-#. Now you should scaffold the rest of your ``<<INSTALL_DIR>>`` for the things we are going to do next. Create a directories named ``codes``, ``logs``, and ``config`` so your directory structure looks like:
+#. Now you should scaffold the rest of your ``<<INSTALL_DIR>>`` for the things we are going to do next. Create a directories named ``atomate_env``, ``codes``, ``logs``, and ``config`` so your directory structure looks like:
 
     ::
 
         atomate
-        ├── atomate_env
         ├── codes
         ├── config
         └── logs
+
+
+.. _Create a Python virtual environment:
+
+===================================
+Create a Python virtual environment
+===================================
+
+We highly recommended that you organize your installation of the atomate and the other Python codes using a virtual environment (e.g. ``virtualenv`` or similar tool such as anaconda. Ultimately, whether you want to use a virtual environment is optional and you don't have to use one if you know what you are doing. Virtual environments allow you to keep an installation of Python and all of the installed packages separate from the installation on the system. Some of the main benefits are:
+
+
+ * Different Python projects that have conflicting packages can coexist on the same machine.
+ * Different versions of Python can exist on the same machine and be managed more easily (e.g. Python 2 and Python 3).
+ * You have full rights and control over the environment. If it breaks, you can just delete the folder containing the environment and recreate it. On computing resources, this solves permissions issues with installing and modifying packages.
+
+The easiest way to get a Python virtual environment is to use the ``virtualenv`` tool. Most Python distributions come with ``virtualenv``, but some clusters are moving towards using Anaconda_, which is a popular distribution of Python designed for scientific computing. If the compute resource you want to access is using Anaconda, you will follow the same general steps, but create your environment with ``conda create``. See the `documentation for the conda command line tool here`_. To set up your virtual environment:
+
+
+#. Go to your install directory (``<<INSTALL_DIR>>``) and create a virtual environment there. A good name might be ``atomate_env``. The command to create the environment would be ``virtualenv atomate_env``, which creates a folder ``atomate_env`` in the directory you are in.
+
+#. You can ``ls`` this directory and see that you have the following structure:
+
+    ::
+
+        atomate
+        ├──atomate_env/
+           ├── bin
+           ├── include
+           ├── lib
+           ├── lib64
+           └── pip-selfcheck.json
+        ├── codes
+        ├── config
+        └── logs
+
+#. If you look in the ``bin`` directory, you will see several programs, such as activate, pip, and Python itself. ``lib`` will be where all of your installed packages will be kept, etc. Again, if anything goes wrong in installing Python codes, you can just nuke the virtual environment directory and start again.
+
+#. Activate your environment by running ``source <<INSTALL_DIR>>/atomate_env/activate``. This makes it so when you use the command ``python`` the version of ``python`` that you use will be the one in the  ``bin`` directory. You can read the activation script if you are interested. It's just does a little magic to adjust your path to point towards the ``bin`` and other directories you created.
 
 .. _Anaconda: https://www.continuum.io
 .. _documentation for the conda command line tool here: https://conda.io/docs/using/envs.html
@@ -224,6 +232,9 @@ With the Python codes set up, FireWorks needs to be configured to communicate wi
 
 .. note:: All of the paths here must be *absolute paths*. For example, the absolute path that refers to ``<<INSTALL_DIR>>`` might be ``/global/homes/u/username/atomate`` which corresponds to the relative directory ``~/atomate``.
 
+.. warning::
+
+    **Passwords will be stored in plain text!** You should make random passwords that are unique only to these databases.
 
 my_fworker.yaml
 ===============
