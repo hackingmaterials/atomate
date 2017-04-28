@@ -224,11 +224,17 @@ class ElasticTensorToDbTask(FiretaskBase):
         optimize_doc = drone.assimilate(optimize_loc)
         opt_struct = Structure.from_dict(optimize_doc["calcs_reversed"][0]["output"]["structure"])
 
-        d = {"analysis": {}, "deformation_tasks": fw_spec["deformation_tasks"],
+        d = {"analysis": {},
+             "deformation_tasks": fw_spec["deformation_tasks"],
              "initial_structure": self['structure'].as_dict(),
              "optimized_structure": opt_struct.as_dict()}
+
+        # TODO: @montoyjh: does the below have anything to do with elastic tensor? If not, try
+        # the more general fw_spec_field approach in the VaspToDbTask rather than hard-coding the
+        # tags insertion here. -computron
         if fw_spec.get("tags", None):
             d["tags"] = fw_spec["tags"]
+
         dtypes = fw_spec["deformation_tasks"].keys()
         defos = [fw_spec["deformation_tasks"][dtype]["deformation_matrix"]
                  for dtype in dtypes]
@@ -237,7 +243,7 @@ class ElasticTensorToDbTask(FiretaskBase):
 
         logger.info("Analyzing stress/strain data")
         # Determine if we have 6 unique deformations
-        if len(set([de[:3] for de in dtypes])) == 6:
+        if len(set([de[:3] for de in dtypes])) == 6:  # TODO: @montoyjh: what if it's a cubic system? don't need 6. -computron
             # Perform Elastic tensor fitting and analysis
             result = ElasticTensor.from_stress_dict(stress_dict)
             d["elastic_tensor"] = result.voigt.tolist()
