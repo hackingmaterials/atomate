@@ -8,9 +8,15 @@ Installing atomate
 Introduction
 ============
 
-This guide will get you up and running in an environment for running high-throughput workflows with atomate. atomate is built on pymatgen, custodian, and FireWorks libraries to run materials science workflows. Briefly, pymatgen_ is used for creating input and analyzing output of materials science codes, custodian_ runs VASP and performs error checking/handling and checkpointing, and FireWorks_ enables designing, managing and executing workflows. Details about how atomate is designed, how these different pieces interact, and how to run and write your own workflows will be covered in later tutorials. For now, these topics will be covered here in enough depth to get you set up and to help you know where to troubleshoot if you are having problems.
+This guide will get you up and running in an environment for running high-throughput workflows with atomate. atomate is built on pymatgen, custodian, and FireWorks libraries to run materials science workflows. Briefly:
 
-It is assumed that you are comfortable with basic Linux shell commands and navigation. `Linux Journey`_ and `Linux Command`_ breifly cover enough to get you started. It will also be helpful if you are familiar with Python, but it is not strictly required for installation.
+* pymatgen_ is used for creating input and analyzing output of materials science codes
+* custodian_ runs VASP and performs error checking/handling and checkpointing
+* FireWorks_ enables designing, managing and executing workflows.
+
+Details about how atomate is designed, how these different pieces interact, and how to run and write your own workflows will be covered in later tutorials as well as an academic publication on atoate. For now, these topics will be covered here in enough depth to get you set up and to help you know where to troubleshoot if you are having problems.
+
+It is assumed that you are comfortable with basic Linux shell commands and navigation. If not, `Linux Journey`_ and `Linux Command`_ breifly cover enough to get you started. It will also be helpful if you are familiar with Python, but it is not strictly required for installation.
 
 .. _pymatgen: http://pymatgen.org
 .. _custodian: https://materialsproject.github.io/custodian/
@@ -47,13 +53,13 @@ The `Phases Research Lab at Penn State`_ has developed an `automated installer`_
 Prerequisites
 =============
 
-Before you install, you need to make sure that you have access to run the codes on your worker computer, that you can connect to a MongoDB database.
+Before you install, you need to make sure that your "worker" computer that will execute workflows can (i) run the base simulation packages (e.g., VASP, LAMMPs, FEFF, etc) and (ii) connect to a MongoDB database.
 
 
 VASP
 ====
 
-To get access to VASP on supercomputing resources typically requires that you are added to a user group on the system you work on after your license is verified. You will also need access to the psuedopotentials. For convenience, you should copy these to the same directory you will be installating atomate. The directory structure might look like:
+To get access to VASP on supercomputing resources typically requires that you are added to a user group on the system you work on after your license is verified. You will also need access to the psuedopotentials. For convenience, you might copy these to the same directory you will be installating atomate, but this is not required. Regardless of its location, the directory structure should look like:
 
 ::
 
@@ -80,18 +86,40 @@ To get access to VASP on supercomputing resources typically requires that you ar
         └── ...
 
 
+
+
+.. TODO: @bocklund what is "elements" in the tree above
+
 MongoDB
 =======
 
-MongoDB_ is a well known NoSQL database that stores each database entry as a document, which is represented in the JSON format (the formatting is similar to a dictionary in Python). Each calculation step you run, e.g. a static calculation or a relaxation has a MongoDB document describing the details of how to run that calculation. Each of those calculations will also likely produce a MongoDB entry containing the full results of your calculation. You can use one database to manage both of these tasks, but it is recommended to use two separate databases.
+MongoDB_ is a NoSQL database that stores each database entry as a document, which is represented in the JSON format (the formatting is similar to a dictionary in Python). Atomate uses MongoDB to:
 
-The MongoDB server software itself is free and can be hosted on different devices. Some supercomputing resources offer MongoDB hosting, which is recommended. Because MongoDB is a popular database for web applications, many companies exist that provide databases as a service. Typically companies offering MongoDB databases as a service are geared towards low-storage, high-uptime and high-bandwidth solutions that large-scale web applications require and also include management, support, and backup services. mLab_ offers free 500 MB databases with no support or backup services, which you can use to get started. MongoDB servers can also be self-hosted, but this not recommended unless you know what you are doing.
+* store the workflows that you want to run as well as their state details (through FireWorks - required)
+* to parse output files and create database of calculation results (strongly recommended, but technically optional)
+
+MongoDB must be running and available to accept connections whenever you are running workflows. Thus, it is strongly recommended that you have a server to run MongoDB or (simpler) use a hosting service. Your options are:
+* use a commercial service to host your MongoDB instance. These are typically the easiest to use and offer high quality service but require payment for larger databases. mLab_ offers free 500 MB databases with payment required for larger databases or support/backup. The free service is certainly enough to get started for small to medium size projects.
+* contact your supercomputing center to see if the offer MongoDB hosting (e.g., NERSC has this)
+* self-host a MongoDB server
+
+If you are just starting, we suggest the first (with a free plan) or second option (if available to you).
+
+Next, create a new database and set up two new username/password combinations:
+- an admin user
+- a read-only user
+
+You might choose to have *two* separate databases - one for the workflows and another for the results. We suggest that new users keep both sets of results in a single database and only consider using two databases if they run into specific problems.
+
+ Hang on to your credentials - we will configure FireWorks to connect to them in step 5.
 
 .. warning::
 
-    One catch here is that some computing resources have firewalls blocking connections. If this is the case, you may have to ask for exceptions for your databases, set up ssh tunneling, use `FireWorks offline mode`_, or find another solution.
+    The computers that perform the calculations must have access to your MongoDB server. Some computing resources have firewalls blocking connections. Note that this is not a problem for most computing centers that allow such connections (particularly from MOM-style nodes, e.g. at NERSC, SDSC, etc.), but some of the more security-sensitive centers (e.g., LLNL, PNNL) will run into issues. If you run into connection issues later in this tutorial, some options are:
 
-Once you have access to your databases, make an admin user in your FireWorks database and an admin and a read only user in your results database. Hang on to your credentials and we will configure FireWorks to connect to them in step 5.
+  * contact your computing center to review their security policy to allow connections from your MongoDB server (best resolution)
+  * set up an ssh tunnel to forward connections from allowed machines (the tunnel must be kept alive at all times you are running workflows)
+  * use `FireWorks offline mode`_, which is a workable solution but makes the system more difficult to use and limits some features of FireWorks.
 
 .. warning::
 
