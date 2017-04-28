@@ -128,11 +128,13 @@ class VaspToDbTask(FiretaskBase):
                         defuse_children=defuse_children)
 
 
-# TODO: rename to BoltztrapToDb task (capitalization), keep old name backwards-compatible
+# TODO: rename to BoltztrapToDb task (capitalization), keep old name backwards-compatible (easy)
 @explicit_serialize
 class BoltztrapToDBTask(FiretaskBase):
     """
-    Enter a Boltztrap run into the database.
+    Enter a BoltzTraP run into the database. Note that this assumes you are in a current dir
+    that has the uniform band structure data with a sub-directory called "boltztrap" containing
+    the BoltzTraP information.
 
     Optional params:
         db_file (str): path to file containing the database credentials.
@@ -145,15 +147,16 @@ class BoltztrapToDBTask(FiretaskBase):
 
     def run_task(self, fw_spec):
         additional_fields = self.get("additional_fields", {})
+
         # pass the additional_fields first to avoid overriding BoltztrapAnalyzer items
         d = additional_fields.copy()
 
         btrap_dir = os.path.join(os.getcwd(), "boltztrap")
-        bta = BoltztrapAnalyzer.from_files(btrap_dir)
-        for key in bta.as_dict():
-            d[key] = bta.as_dict()[key]
-
         d["boltztrap_dir"] = btrap_dir
+
+        bta = BoltztrapAnalyzer.from_files(btrap_dir)
+        d.update(bta.as_dict())
+        d["scissor"] = bta.intrans["scissor"]
 
         # trim the output
         for x in ['cond', 'seebeck', 'kappa', 'hall', 'mu_steps', 'mu_doping', 'carrier_conc']:
@@ -162,16 +165,14 @@ class BoltztrapToDBTask(FiretaskBase):
         if not self.get("hall_doping"):
             del d["hall_doping"]
 
-        d["scissor"] = bta.intrans["scissor"]
-
+        bandstructure_dir = os.getcwd()
+        d["bandstructure_dir"] = bandstructure_dir
 
         # add the structure
-        bandstructure_dir = os.getcwd()
         v, o = get_vasprun_outcar(bandstructure_dir, parse_eigen=False, parse_dos=False)
         structure = v.final_structure
         d["structure"] = structure.as_dict()
         d.update(get_meta_from_structure(structure))
-        d["bandstructure_dir"] = bandstructure_dir
 
         # add the spacegroup
         sg = SpacegroupAnalyzer(Structure.from_dict(d["structure"]), 0.1)
@@ -187,6 +188,7 @@ class BoltztrapToDBTask(FiretaskBase):
         db_file = env_chk(self.get('db_file'), fw_spec)
 
         if not db_file:
+            del d["dos"]
             with open(os.path.join(btrap_dir, "boltztrap.json"), "w") as f:
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
         else:
@@ -194,7 +196,8 @@ class BoltztrapToDBTask(FiretaskBase):
 
             # dos gets inserted into GridFS
             dos = json.dumps(d["dos"], cls=MontyEncoder)
-            fsid, compression = mmdb.insert_gridfs(dos, collection="dos_boltztrap_fs", compress=True)
+            fsid, compression = mmdb.insert_gridfs(dos, collection="dos_boltztrap_fs",
+                                                   compress=True)
             d["dos_boltztrap_fs_id"] = fsid
             del d["dos"]
 
