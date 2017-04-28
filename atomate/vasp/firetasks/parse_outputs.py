@@ -52,17 +52,18 @@ class VaspToDbTask(FiretaskBase):
             Set to "line" for line mode. If not set, band structure will not
             be parsed.
         additional_fields (dict): dict of additional fields to add
-        fw_spec_field (str): if set, will update the task doc with the contents
-            of this key in the fw_spec.
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
+        fw_spec_field (str): if set, will update the task doc with the contents
+            of this key in the fw_spec.
         defuse_unsuccessful (bool): Defuses children fireworks if VASP run state
             is not "successful"; i.e. both electronic and ionic convergence are reached.
             Defaults to True.
     """
     optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
-                       "additional_fields", "db_file", "fw_spec_fields", "defuse_unsuccessful"]
+                       "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful"]
 
+    # TODO: make it so that bandstructure_mode is just T/F with auto-detect of uniform/line
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
         calc_dir = os.getcwd()
@@ -73,8 +74,6 @@ class VaspToDbTask(FiretaskBase):
 
         # parse the VASP directory
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
-        # get the database connection
-        db_file = env_chk(self.get('db_file'), fw_spec)
 
         drone = VaspDrone(additional_fields=self.get("additional_fields"),
                           parse_dos=self.get("parse_dos", False), compress_dos=1,
@@ -83,11 +82,14 @@ class VaspToDbTask(FiretaskBase):
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)
 
-        # Check for additional fields to add in the fw_spec
+        # Check for additional keys to set based on the fw_spec
         if self.get("fw_spec_field"):
             task_doc.update(fw_spec[self.get("fw_spec_field")])
+        # get the database connection
 
-        # db insertion
+        # db insertion or taskdoc dump
+        db_file = env_chk(self.get('db_file'), fw_spec)
+
         if not db_file:
             with open("task.json", "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
@@ -96,25 +98,21 @@ class VaspToDbTask(FiretaskBase):
 
             # insert dos into GridFS
             if self.get("parse_dos") and "calcs_reversed" in task_doc:
-                for idx, x in enumerate(task_doc["calcs_reversed"]):
-                    if "dos" in task_doc["calcs_reversed"][idx]:
-                        if idx == 0:  # only store most recent DOS
-                            dos = json.dumps(task_doc["calcs_reversed"][idx]["dos"], cls=MontyEncoder)
-                            gfs_id, compression_type = mmdb.insert_gridfs(dos, "dos_fs")
-                            task_doc["calcs_reversed"][idx]["dos_compression"] = compression_type
-                            task_doc["calcs_reversed"][idx]["dos_fs_id"] = gfs_id
-                        del task_doc["calcs_reversed"][idx]["dos"]
+                if "dos" in task_doc["calcs_reversed"][0]:  # only store idx=0 DOS
+                    dos = json.dumps(task_doc["calcs_reversed"][0]["dos"], cls=MontyEncoder)
+                    gfs_id, compression_type = mmdb.insert_gridfs(dos, "dos_fs")
+                    task_doc["calcs_reversed"][0]["dos_compression"] = compression_type
+                    task_doc["calcs_reversed"][0]["dos_fs_id"] = gfs_id
+                    del task_doc["calcs_reversed"][0]["dos"]
 
             # insert band structure into GridFS
             if self.get("bandstructure_mode") and "calcs_reversed" in task_doc:
-                for idx, x in enumerate(task_doc["calcs_reversed"]):
-                    if "bandstructure" in task_doc["calcs_reversed"][idx]:
-                        if idx == 0:  # only store most recent band structure
-                            bs = json.dumps(task_doc["calcs_reversed"][idx]["bandstructure"], cls=MontyEncoder)
-                            gfs_id, compression_type = mmdb.insert_gridfs(bs, "bandstructure_fs")
-                            task_doc["calcs_reversed"][idx]["bandstructure_compression"] = compression_type
-                            task_doc["calcs_reversed"][idx]["bandstructure_fs_id"] = gfs_id
-                        del task_doc["calcs_reversed"][idx]["bandstructure"]
+                if "bandstructure" in task_doc["calcs_reversed"][0]:  # only store idx=0 BS
+                    bs = json.dumps(task_doc["calcs_reversed"][0]["bandstructure"], cls=MontyEncoder)
+                    gfs_id, compression_type = mmdb.insert_gridfs(bs, "bandstructure_fs")
+                    task_doc["calcs_reversed"][0]["bandstructure_compression"] = compression_type
+                    task_doc["calcs_reversed"][0]["bandstructure_fs_id"] = gfs_id
+                    del task_doc["calcs_reversed"][0]["bandstructure"]
 
             # insert the task document
             t_id = mmdb.insert(task_doc)
