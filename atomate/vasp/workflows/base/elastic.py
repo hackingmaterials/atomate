@@ -76,7 +76,7 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None,
 
     deformations = [s.deformation_matrix for s in strains]
     wf_elastic = get_wf_deformations(structure, deformations, pass_stress_strain=True, 
-            name="deformation", relax_deformed=True, tag="elastic", **kwargs)
+            name="deformation", relax_deformed=True, tag="elastic", db_file=db_file, **kwargs)
 
     fw_analysis = Firework(ElasticTensorToDbTask(structure=structure, db_file=db_file, order=order),
                            name="Analyze Elastic Data", spec={"_allow_fizzled_parents": True})
