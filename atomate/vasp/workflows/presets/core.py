@@ -208,21 +208,24 @@ def wf_elastic_constant(structure, c=None):
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
-    user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
+    order = c.get("order", 2)
+    if order > 2:
+        mip = {"incar_update":{"ENCUT": 600, "EDIFF": 1e-10, "LAECHG":False,
+                               "ADDGRID":True, "LREAL":False}}
+        user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density":40000})
+    else:
+        mip = {"incar_update":{"ENCUT": 700, "EDIFF": 1e-6, "LAECHG":False}}
+        user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
     stencils = c.get("stencils", None)
     optimize_structure = c.get("optimize_structure", True)
     sym_red = c.get("symmetry_reduction", False)
     conv = c.get("conventional", True)
-    order = c.get("order", 2)
     wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd, symmetry_reduction=sym_red,
                                  db_file=db_file, user_kpoints_settings=user_kpoints_settings,
                                  optimize_structure=optimize_structure, stencils=stencils,
                                  conventional=conv, order=order)
-    mip = {"incar_update":{"ENCUT": 700, "EDIFF": 1e-6, "LAECHG":False}}
     wf = add_modify_incar(wf, modify_incar_params=mip)
-
     wf = add_common_powerups(wf, c)
-
     if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
         wf = add_wf_metadata(wf, structure)
 
