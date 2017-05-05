@@ -15,20 +15,20 @@ from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_fake_vasp
-from atomate.vasp.workflows.presets.core import wf_elastic_constant
+from atomate.vasp.workflows.base.ferroelectric import get_wf_ferroelectric, get_wf_id
 
 from pymatgen import SETTINGS
-from pymatgen.util.testing import PymatgenTest
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 __author__ = 'Tess Smidt'
 __email__ = 'blondegeek@gmail.com'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-db_dir = os.path.join(module_dir, "..", "..", "..", "common", "reference_files", "db_connections")
+db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 ref_dir = os.path.join(module_dir, "test_files")
 
-DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
+from pymatgen.core.structure import Structure
+
+DEBUG_MODE = True  # If true, retains the database and output dirs at the end of the test
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
 class TestFerroelectricWorkflow(unittest.TestCase):
@@ -39,13 +39,20 @@ class TestFerroelectricWorkflow(unittest.TestCase):
             print('This system is not set up to run VASP jobs. '
                   'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
-        # cls.struct_si = SpacegroupAnalyzer(
-        #     PymatgenTest.get_structure("Si")).get_conventional_standard_structure()
-        # cls.scratch_dir = os.path.join(module_dir, "scratch")
-        # cls.elastic_config = {"norm_deformations": [0.01],
-        #                       "shear_deformations": [0.03],
-        #                       "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"}
-        # cls.wf = wf_elastic_constant(cls.struct_si, cls.elastic_config)
+        cls.bto_polar = Structure.from_file(ref_dir+"/ferroelectric_wf/"+"BTO_polar_POSCAR")
+        cls.bto_nonpolar = Structure.from_file(ref_dir+"/ferroelectric_wf/"+"BTO_nonpolar_POSCAR")
+
+        cls.wfid = "wfid_" + get_wf_id()
+
+        cls.ferroelectric_config = {'vasp_cmd': '>>vasp_cmd<<',
+                                    'db_file': '>>db_file<<',
+                                    'nimages': 9,
+                                    'relax' : True,
+                                    'wfid': cls.wfid,
+                                    'add_analysis_task': True}
+        cls.wf = get_wf_ferroelectric(cls.bto_polar, cls.bto_nonpolar, **cls.ferroelectric_config)
+
+        cls.scratch_dir = os.path.join(module_dir, "scratch")
 
     def setUp(self):
         if os.path.exists(self.scratch_dir):
@@ -72,15 +79,33 @@ class TestFerroelectricWorkflow(unittest.TestCase):
 
     def _simulate_vasprun(self, wf):
         pass
-        # reference_dir = os.path.abspath(os.path.join(ref_dir, "elastic_wf"))
-        # si_ref_dirs = {"structure optimization": os.path.join(reference_dir, "1"),
-        #                "elastic deformation 0": os.path.join(reference_dir, "7"),
-        #                "elastic deformation 1": os.path.join(reference_dir, "6"),
-        #                "elastic deformation 2": os.path.join(reference_dir, "5"),
-        #                "elastic deformation 3": os.path.join(reference_dir, "4"),
-        #                "elastic deformation 4": os.path.join(reference_dir, "3"),
-        #                "elastic deformation 5": os.path.join(reference_dir, "2")}
-        # return use_fake_vasp(wf, si_ref_dirs, params_to_check=["ENCUT"])
+        reference_dir = os.path.abspath(os.path.join(ref_dir, "ferroelectric_wf"))
+        bto_ref_dirs = {"polar_relaxation": os.path.join(reference_dir, "polar_relaxation"),
+                        "polar_static": os.path.join(reference_dir, "polar_static"),
+                        "polar_polarization": os.path.join(reference_dir, "polar_polarization"),
+                        "nonpolar_relaxation": os.path.join(reference_dir, "nonpolar_relaxation"),
+                        "nonpolar_static": os.path.join(reference_dir, "nonpolar_static"),
+                        "nonpolar_polarization": os.path.join(reference_dir, "nonpolar_polarization"),
+                        "interpolation_1_static": os.path.join(reference_dir, "interpolation_1_static"),
+                        "interpolation_2_static": os.path.join(reference_dir, "interpolation_2_static"),
+                        "interpolation_3_static": os.path.join(reference_dir, "interpolation_3_static"),
+                        "interpolation_4_static": os.path.join(reference_dir, "interpolation_4_static"),
+                        "interpolation_5_static": os.path.join(reference_dir, "interpolation_5_static"),
+                        "interpolation_6_static": os.path.join(reference_dir, "interpolation_6_static"),
+                        "interpolation_7_static": os.path.join(reference_dir, "interpolation_7_static"),
+                        "interpolation_8_static": os.path.join(reference_dir, "interpolation_8_static"),
+                        "interpolation_1_polarization": os.path.join(reference_dir, "interpolation_1_polarization"),
+                        "interpolation_2_polarization": os.path.join(reference_dir, "interpolation_2_polarization"),
+                        "interpolation_3_polarization": os.path.join(reference_dir, "interpolation_3_polarization"),
+                        "interpolation_4_polarization": os.path.join(reference_dir, "interpolation_4_polarization"),
+                        "interpolation_5_polarization": os.path.join(reference_dir, "interpolation_5_polarization"),
+                        "interpolation_6_polarization": os.path.join(reference_dir, "interpolation_6_polarization"),
+                        "interpolation_7_polarization": os.path.join(reference_dir, "interpolation_7_polarization"),
+                        "interpolation_8_polarization": os.path.join(reference_dir, "interpolation_8_polarization"),
+                        "polarization_analysis": os.path.join(reference_dir, "polarization_analysis")}
+        # Add test with for analysis?
+        # Which params_to_check?
+        return use_fake_vasp(wf, bto_ref_dirs, params_to_check=["ENCUT"])
 
     def _get_task_database(self):
         with open(os.path.join(db_dir, "db.json")) as f:
@@ -99,63 +124,57 @@ class TestFerroelectricWorkflow(unittest.TestCase):
             return db[coll_name]
 
     def _check_run(self, d, mode):
-        pass
-        # if mode not in ["structure optimization", "elastic deformation 0",
-        #                 "elastic deformation 3", "elastic analysis"]:
-        #     raise ValueError("Invalid mode!")
-        #
-        # if mode not in ["elastic analysis"]:
-        #     self.assertEqual(d["formula_pretty"], "Si")
-        #     self.assertEqual(d["formula_anonymous"], "A")
-        #     self.assertEqual(d["nelements"], 1)
-        #     self.assertEqual(d["state"], "successful")
-        #
-        # if mode in ["structure optimization"]:
-        #     self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["a"], 5.469, 2)
-        #     self.assertAlmostEqual(d["output"]["energy_per_atom"], -5.425, 2)
-        #
-        # elif mode in ["elastic deformation 0"]:
-        #     stress = np.diag([-14.741, -5.107, -5.107])
-        #     np.testing.assert_allclose(stress,
-        #                                d["calcs_reversed"][0]["output"]["ionic_steps"][-1]["stress"], rtol=1e-2)
-        #
-        # elif mode in ["elastic deformation 3"]:
-        #     stress = d["calcs_reversed"][0]["output"]["ionic_steps"][-1]["stress"]
-        #     self.assertAlmostEqual(stress[0][1], -22.4, places=1)
-        #
-        # elif mode in ["elastic analysis"]:
-        #     c_ij = np.array(d['elastic_tensor'])
-        #     np.testing.assert_allclose([c_ij[0, 0], c_ij[0, 1], c_ij[3, 3]],
-        #                                [146.68, 50.817, 74.706], rtol=1e-2)
-        #     self.assertAlmostEqual(d['K_Voigt'], 83, places=0)
+
+        # Check polar and nonpolar relaxations
+        if mode is 'polar_relaxation':
+            self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["c"], 4.21574, 2)
+
+        if mode is 'nonpolar_relaxation':
+            self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["a"], 4.0330, 2)
+
+        if '_polarization' in mode:
+
+            # Check that Outcar has p_ion, p_elec, zval_dict
+            assert d["calcs_reversed"][0]["output"]["outcar"].get("p_ion", None) is not None
+            assert d["calcs_reversed"][0]["output"]["outcar"].get("p_elec", None) is not None
+            assert d["calcs_reversed"][0]["output"]["outcar"].get("zval_dict", None) is not None
+
+        # Check analysis step.
+        if mode is "polarization_post_processing":
+            self.assertAlmostEqual(d['polarization_change_norm'], 46.288752795325244)
 
     def test_wf(self):
-        pass
-        # self.wf = self._simulate_vasprun(self.wf)
-        #
-        # self.assertEqual(len(self.wf.fws), 8)
-        # # check vasp parameters for ionic relaxation
-        # defo_vis = [fw.spec["_tasks"][2]['vasp_input_set']
-        #             for fw in self.wf.fws if "deform" in fw.name]
-        # assert all([vis['user_incar_settings']['NSW'] == 99 for vis in defo_vis])
-        # assert all([vis['user_incar_settings']['IBRION'] == 2 for vis in defo_vis])
-        # self.lp.add_wf(self.wf)
-        # rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
-        #
-        # # check relaxation
-        # d = self._get_task_collection().find_one({"task_label": "elastic structure optimization"})
-        # self._check_run(d, mode="structure optimization")
-        # # check two of the deformation calculations
-        # d = self._get_task_collection().find_one({"task_label": "elastic deformation 0"})
-        # self._check_run(d, mode="elastic deformation 0")
-        #
-        # d = self._get_task_collection().find_one({"task_label": "elastic deformation 3"})
-        # self._check_run(d, mode="elastic deformation 3")
-        #
-        # # check the final results
-        # d = self._get_task_collection(coll_name="elasticity").find_one()
-        # self._check_run(d, mode="elastic analysis")
 
+        self.wf = self._simulate_vasprun(self.wf)
+
+        # 2*relax + 10*polarization +1*polarization_analysis = 13
+        self.assertEqual(len(self.wf.fws), 13)
+
+        # check VASP parameters on polarization calculation for interpolated structures
+        interpolated_polarization_vis = [fw.spec["_tasks"][8]['other_params']['lcalcpol']
+            for fw in self.wf.fws if "polarization" in fw.name and "interpolation" in fw.name]
+
+        assert all(interpolated_polarization_vis)
+
+        self.lp.add_wf(self.wf)
+        rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
+
+        # Check polar relaxation
+        d = self._get_task_collection().find_one({"task_label": "polar_relaxation"})
+        self._check_run(d, "polar_relaxation")
+
+        # Check nonpolar relaxation
+        d = self._get_task_collection().find_one({"task_label": "nonpolar_relaxation"})
+        self._check_run(d, "nonpolar_relaxation")
+
+        # Check polarization calculations
+        D = self._get_task_collection().find({"task_label": {"$regex": ".*polarization"}})
+        for d in D:
+            self._check_run(d, d["task_label"])
+
+        coll = self._get_task_collection("polarization_tasks")
+        d = coll.find_one()
+        self._check_run(d,"polarization_post_processing")
 
 if __name__ == "__main__":
     unittest.main()

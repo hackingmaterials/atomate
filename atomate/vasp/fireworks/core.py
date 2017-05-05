@@ -104,7 +104,7 @@ class StaticFW(Firework):
 
 
 class StaticInterpolateFW(Firework):
-    def __init__(self, start, end, name="static", vasp_input_set=None, vasp_cmd="vasp", db_file=None,
+    def __init__(self, structure, start, end, name="static", vasp_input_set=None, vasp_cmd="vasp", db_file=None,
                  parents=None, this_image=None, nimages=None, autosort_tol=0, **kwargs):
         """
         Standard static calculation Firework that interpolates structures from two previous calculations.
@@ -122,20 +122,27 @@ class StaticInterpolateFW(Firework):
         """
         t = []
 
-        # Get interpolated POSCAR
-        t.append(GetInterpolatedPOSCAR(start=start, end=end, this_image=this_image, nimages=nimages,
-                                       autosort_tol=autosort_tol))
-        # Read in POSCAR to use as structure for VASP set generation
-        structure = Structure.from_file('POSCAR')
+        # # Get interpolated POSCAR
+        # t.append(GetInterpolatedPOSCAR(start=start, end=end, this_image=this_image, nimages=nimages,
+        #                                autosort_tol=autosort_tol))
+        # # Read in POSCAR to use as structure for VASP set generation
+        # structure = Structure.from_file('POSCAR')
         # Replace structure with interpolated structure
-        if vasp_input_set:
-            vasp_input_set.structure = structure
+        # if vasp_input_set:
+        #     vasp_input_set.structure = structure
+        # vasp_input_set = vasp_input_set or MPStaticSet(structure)
+
         vasp_input_set = vasp_input_set or MPStaticSet(structure)
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
+
+        # Have to write POSCAR after writing IO set
+        t.append(GetInterpolatedPOSCAR(start=start, end=end, this_image=this_image, nimages=nimages,
+                                       autosort_tol=autosort_tol))
 
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": name}))
+
         super(StaticInterpolateFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)
 
@@ -309,7 +316,7 @@ class LcalcpolFW(Firework):
 
 
         if interpolate:
-            static = StaticInterpolateFW(start, end, name=static_name, vasp_input_set=vasp_input_set,
+            static = StaticInterpolateFW(structure, start, end, name=static_name, vasp_input_set=vasp_input_set,
                                          vasp_cmd=vasp_cmd, db_file=db_file, parents=parents, this_image=this_image,
                                          nimages=nimages, **kwargs)
         else:

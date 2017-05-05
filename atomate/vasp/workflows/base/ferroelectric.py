@@ -21,17 +21,27 @@ from pymatgen.io.vasp.sets import MPStaticSet
 from atomate.vasp.fireworks.core import LcalcpolFW, OptimizeFW
 from atomate.vasp.fireworks.core import HSEBSFW
 from atomate.vasp.firetasks.parse_outputs import PolarizationToDbTask
+from atomate.vasp.powerups import add_tags
+
+from time import time
+from random import randint
+
 
 __author__ = 'Tess Smidt'
 __email__ = 'tsmidt@berkeley.edu'
 
 logger = get_logger(__name__)
 
+def get_wf_id():
+    ts = "{:.4f}".format(time())
+    ts += str(randint(0,9999)).zfill(4)
+    return ts
 
 def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", db_file=None,
                          vasp_input_set_polar=None, vasp_input_set_nonpolar=None,
                          relax=False, vasp_relax_input_set_polar=None, vasp_relax_input_set_nonpolar=None,
-                         nimages = 5, hse = False,from_prev_settings=None, add_analysis_task=False):
+                         nimages = 9, hse = False,from_prev_settings=None, add_analysis_task=False, wfid=None,
+                         tags=None):
     """
     Returns a workflow to calculate the spontaneous polarization of polar_structure using
     a nonpolar reference phase structure and linear interpolations between the polar and
@@ -55,13 +65,21 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
         vasp_relax_input_set_nonpolar (DictVaspInputSet): VASP nonpolar input set. Defaults to MPRelaxSet.
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
-        nimages: Number of interpolations calculated between polar and nonpolar structures.
-            For example, nimages = 10 will calculate 8 interpolated structures. 8 + polar + nonpolar = 10.
+        nimages: Number of interpolations calculated from polar to nonpolar structures, including the nonpolar.
+            For example, nimages = 9 will calculate 8 interpolated structures. 8 interpolations + nonpolar = 9.
+        add_analysis_task: Analyze polarization and energy trends as part of workflow. Default False.
+        wfid (string): Unique worfklow id starting with "wfid_". If None this is atomatically generated (recommended).
+        tags (list of strings): Additional tags to add such as identifiers for structures.
 
     Returns:
 
     """
     wf = []
+
+    if wfid is None:
+        wfid = 'wfid_' + get_wf_id()
+    if tags is None:
+        tags = []
 
     if relax:
         polar_relax = OptimizeFW(polar_structure,name="polar_relaxation",
@@ -84,7 +102,7 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
                        parents=parents_polar,
                        vasp_cmd=vasp_cmd,db_file=db_file,
                        vasp_input_set=vasp_input_set_polar,
-                       defuse_children=True,from_prev_settings=from_prev_settings)
+                       from_prev_settings=from_prev_settings)
 
 
     # Run polarization calculation on nonpolar structure.
@@ -94,8 +112,7 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
                           static_name="nonpolar_static",
                           parents=parents_nonpolar,
                           vasp_cmd=vasp_cmd,db_file=db_file,
-                          vasp_input_set=vasp_input_set_nonpolar,
-                          defuse_children=True)
+                          vasp_input_set=vasp_input_set_nonpolar)
 
     # Interpolation polarization
     interpolation = []
@@ -108,9 +125,9 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
         # StaticInterpolatedFW.
         # Defuse workflow if interpolated structure is metallic.
         interpolation.append(
-            LcalcpolFW(nonpolar_structure,
-                       name="interpolation_{i}_polarization",
-                       static_name="interpolation_{i}_static",
+            LcalcpolFW(polar_structure,
+                       name="interpolation_{}_polarization".format(str(i)),
+                       static_name="interpolation_{}_static".format(str(i)),
                        vasp_cmd=vasp_cmd, db_file=db_file,
                        vasp_input_set=vasp_input_set_polar, interpolate=True,
                        start="polar_static",
@@ -123,8 +140,8 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
 
     # Add FireTask that uses Polarization object to store spontaneous polarization information
     if add_analysis_task:
-        fw_analysis = Firework(PolarizationToDbTask(db_file = db_file, name="polarization_post_processing"),
-                               parents=interpolation)
+        fw_analysis = Firework(PolarizationToDbTask(db_file=db_file, name="polarization_post_processing"),
+                               parents=interpolation, name="polarization_post_processing")
         wf.append(fw_analysis)
 
     # Run HSE band gap calculation
@@ -134,4 +151,9 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
                       db_file=db_file, calc_loc="polar_polarization")
         wf.append(hse)
 
-    return Workflow(wf)
+    # Create Workflow task and add tags to workflow
+    workflow = Workflow(wf)
+    workflow = add_tags(workflow,[wfid]+tags)
+
+    return workflow
+

@@ -271,10 +271,10 @@ class PolarizationToDbTask(FiretaskBase):
 
     def run_task(self, fw_spec):
         import re
-        from pymatgen.analysis.ferroelectricity.polarization import Polarization, get_total_ionic_dipole, \
-            create_zval_dict_from_pseudo_dict, EnergyTrend
+        from pymatgen.analysis.ferroelectricity.polarization import Polarization, get_total_ionic_dipole, EnergyTrend
 
         wfid = filter(lambda x: 'wfid' in x, fw_spec['tags']).pop()
+        db_file = env_chk(self.get("db_file"), fw_spec)
         vaspdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
         # ferroelectric workflow groups calculations by generated wfid tag
@@ -284,10 +284,9 @@ class PolarizationToDbTask(FiretaskBase):
         outcars = []
         structure_dicts = []
         sort_weight = []
-        pseudo_types = []
-        pseudos = []
         energies_per_atom = []
         energies = []
+        zval_dicts = []
 
         for p in polarization_tasks:
             # Grad data from each polarization task
@@ -297,18 +296,15 @@ class PolarizationToDbTask(FiretaskBase):
             s = c['input']['structure']
             e_a = c['output']['energy_per_atom']
             e = c['output']['energy']
-            pseudo = c['input']['potcar']
-            pseudo_type = c['input']['potcar_type']
 
             energies_per_atom.append(e_a)
             energies.append(e)
-            pseudo_types.append(pseudo_type)
-            pseudos.append(pseudo)
             tasks.append(t)
             outcars.append(o)
             structure_dicts.append(s)
+            zval_dicts.append(o['zval_dict'])
 
-            # Add weigth for sorting
+            # Add weight for sorting
             # Want polarization calculations in order of nonpolar to polar for Polarization object
             if 'nonpolar_polarization' in t:
                 sort_weight.append(0)
@@ -332,17 +328,8 @@ class PolarizationToDbTask(FiretaskBase):
 
         structures = [Structure.from_dict(s) for s in structure_dicts]
 
-        # Make pseudopotential dictionary from info from database for calculation
-        # of ionic polarization.
-        pseudo = pseudos.pop()
-        # Grab element name from pseudopotential name
-        # Match [A-Z][a-z]* at the beginning of the string
-        r = r'^[A-Z][a-z]*'
-        get_element = lambda x: re.findall(r, x)[0]
-        elements = map(get_element, pseudo)
-        z = zip(elements, pseudo)
-        species_potcar_dict = {x: y for x, y in z}
-        zval_dict = create_zval_dict_from_pseudo_dict(species_potcar_dict)
+        # If LCALCPOL = True then Outcar will parse and store the pseudopotential zvals.
+        zval_dict = zval_dicts.pop()
 
         # Assumes that we want to calculate the ionic contribution to the dipole moment.
         # VASP's ionic contribution is sometimes strange.
@@ -352,7 +339,7 @@ class PolarizationToDbTask(FiretaskBase):
 
         polarization = Polarization(p_elecs, p_ions, structures)
 
-        p_change = polarization.get_polarization_change()
+        p_change = polarization.get_polarization_change().A1.tolist()
         p_norm = polarization.get_polarization_change_norm()
         polarization_max_spline_jumps = polarization.max_spline_jumps()
         same_branch = polarization.get_same_branch_polarization_data(convert_to_muC_per_cm2=True)
