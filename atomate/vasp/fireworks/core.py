@@ -110,7 +110,8 @@ class StaticInterpolateFW(Firework):
         Standard static calculation Firework that interpolates structures from two previous calculations.
 
         Args:
-            structure (Structure): Input structure.
+            structure (Structure): Input structure used to generate vasp_input_set.
+                This is not the structure that is calculated.
             name (str): Name for the Firework.
             vasp_input_set (VaspInputSet): input set to use (for jobs w/no parents)
                 Defaults to MPStaticSet() if None.
@@ -122,6 +123,8 @@ class StaticInterpolateFW(Firework):
         """
         t = []
 
+        # It would be best if the MPStaticSet is generated from the interpolated POSCAR
+        # This is a sketch of code that doesn't work but shows the general idea of what is wanted:
         # # Get interpolated POSCAR
         # t.append(GetInterpolatedPOSCAR(start=start, end=end, this_image=this_image, nimages=nimages,
         #                                autosort_tol=autosort_tol))

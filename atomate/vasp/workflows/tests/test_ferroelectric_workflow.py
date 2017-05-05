@@ -28,7 +28,7 @@ ref_dir = os.path.join(module_dir, "test_files")
 
 from pymatgen.core.structure import Structure
 
-DEBUG_MODE = True  # If true, retains the database and output dirs at the end of the test
+DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
 class TestFerroelectricWorkflow(unittest.TestCase):
@@ -127,11 +127,19 @@ class TestFerroelectricWorkflow(unittest.TestCase):
 
         # Check polar and nonpolar relaxations
         if mode is 'polar_relaxation':
-            self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["c"], 4.21574, 2)
+            self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["c"], 4.2157, 2)
 
         if mode is 'nonpolar_relaxation':
-            self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["a"], 4.0330, 2)
+            self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["c"], 4.0330, 2)
 
+        # Check interpolated structures
+        if mode is 'interpolation_1_polarization':
+            self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["c"], 4.1954, 2)
+
+        if mode is 'interpolation_5_polarization':
+            self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["c"], 4.1142, 2)
+
+        # Check that Outcar has needed keys for polarization analysis.
         if '_polarization' in mode:
 
             # Check that Outcar has p_ion, p_elec, zval_dict
@@ -172,6 +180,7 @@ class TestFerroelectricWorkflow(unittest.TestCase):
         for d in D:
             self._check_run(d, d["task_label"])
 
+        # Check recovered change in polarization
         coll = self._get_task_collection("polarization_tasks")
         d = coll.find_one()
         self._check_run(d,"polarization_post_processing")
