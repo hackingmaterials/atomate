@@ -68,7 +68,7 @@ class RunVaspCustodian(FiretaskBase):
 
     Optional params:
         job_type: (str) - choose from "normal" (default), "double_relaxation_run" (two consecutive 
-            jobs), and "full_opt_run"
+            jobs), "full_opt_run" (multiple optimizations), and "neb"
         handler_group: (str) - group of handlers to use. See handler_groups dict in the code for 
             the groups and complete list of handlers in each group.
         max_force_threshold: (float) - if >0, adds MaxForceErrorHandler. Not recommended for 
@@ -93,11 +93,12 @@ class RunVaspCustodian(FiretaskBase):
 
         handler_groups = {
             "default": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
-                        NonConvergingErrorHandler(),PotimErrorHandler(), PositiveEnergyErrorHandler(),
-                        FrozenJobErrorHandler(), StdErrHandler()],
+                        NonConvergingErrorHandler(),PotimErrorHandler(),
+                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(), StdErrHandler()],
             "strict": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
-                       NonConvergingErrorHandler(),PotimErrorHandler(), PositiveEnergyErrorHandler(),
-                       FrozenJobErrorHandler(), AliasingErrorHandler(), StdErrHandler()],
+                       NonConvergingErrorHandler(),PotimErrorHandler(),
+                       PositiveEnergyErrorHandler(), FrozenJobErrorHandler(),
+                       StdErrHandler(), AliasingErrorHandler()],
             "md": [VaspErrorHandler(), NonConvergingErrorHandler()],
             "no_handler": []
             }
@@ -122,13 +123,32 @@ class RunVaspCustodian(FiretaskBase):
         if job_type == "normal":
             jobs = [VaspJob(vasp_cmd, auto_npar=auto_npar, gamma_vasp_cmd=gamma_vasp_cmd)]
         elif job_type == "double_relaxation_run":
-            jobs = VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar, ediffg=self.get("ediffg"),
+            jobs = VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar,
+                                                 ediffg=self.get("ediffg"),
                                                  half_kpts_first_relax=False)
         elif job_type == "full_opt_run":
-            jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar, ediffg=self.get("ediffg"),
-                                        max_steps=5, half_kpts_first_relax=False)
+            jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar,
+                                        ediffg=self.get("ediffg"),
+                                        max_steps=9, half_kpts_first_relax=False)
         elif job_type == "neb":
+            # TODO: @shyuep @HanmeiTang This means that NEB can only be run (i) in reservation mode
+            # and (ii) when the queueadapter parameter is overridden and (iii) the queue adapter
+            # has a convention for nnodes (with that name). Can't the number of nodes be made a
+            # parameter that the user sets differently? e.g., fw_spec["neb_nnodes"] must be set
+            # when setting job_type=NEB? Then someone can use this feature in non-reservation
+            # mode and without this complication. -computron
             nnodes = int(fw_spec["_queueadapter"]["nnodes"])
+
+            # TODO: @shyuep @HanmeiTang - I am not sure what the code below is doing. It looks like
+            # it is trying to override the number of processors. But I tried running the code
+            # below after setting "vasp_cmd = 'mpirun -n 16 vasp'" and the code fails.
+            # (i) Is this expecting an array vasp_cmd rather than String? If so, that's opposite to
+            # the rest of this task's convention and documentation
+            # (ii) can we get rid of this hacking in the first place? e.g., allowing the user to
+            # separately set the NEB_VASP_CMD as an env_variable and not rewriting the command
+            # inside this.
+            # -computron
+
             # Index the tag "-n" or "-np"
             index = [i for i, s in enumerate(vasp_cmd) if '-n' in s]
             ppn = int(vasp_cmd[index[0] + 1])
@@ -154,10 +174,10 @@ class RunVaspCustodian(FiretaskBase):
         if self.get("wall_time"):
             handlers.append(WalltimeHandler(wall_time=self["wall_time"]))
 
-        validators = [VasprunXMLValidator(), VaspFilesValidator()]
         if job_type == "neb":
-            # CINEB vasprun.xml sometimes incomplete, file structure different
-            validators = []
+            validators = []  # CINEB vasprun.xml sometimes incomplete, file structure different
+        else:
+            validators = [VasprunXMLValidator(), VaspFilesValidator()]
 
         c = Custodian(handlers, jobs, validators=validators, max_errors=max_errors,
                       scratch_dir=scratch_dir, gzipped_output=gzip_output)
