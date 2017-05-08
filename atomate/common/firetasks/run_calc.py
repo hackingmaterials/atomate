@@ -1,5 +1,30 @@
+import subprocess
+
+from atomate.utils.utils import env_chk, get_logger
 from custodian import Custodian
 from fireworks import explicit_serialize, FiretaskBase
+
+__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+
+logger = get_logger(__name__)
+
+
+@explicit_serialize
+class RunCommand(FiretaskBase):
+    """
+    Execute a command directly (no custodian).
+
+    Required params:
+        cmd (str): the name of the full executable to run. Supports env_chk.
+    """
+
+    required_params = ["cmd"]
+
+    def run_task(self, fw_spec):
+        cmd = env_chk(self["cmd"], fw_spec)
+        logger.info("Running command: {}".format(cmd))
+        return_code = subprocess.call(cmd, shell=True)
+        logger.info("Command {} finished running with returncode: {}".format(cmd, return_code))
 
 
 @explicit_serialize
