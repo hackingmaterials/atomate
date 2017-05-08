@@ -278,8 +278,7 @@ class LepsFW(Firework):
 class LcalcpolFW(Firework):
     def __init__(self, structure, name="static dipole moment", static_name="static", vasp_cmd="vasp",
                  vasp_input_set=None, db_file=None, parents=None,
-                 gap_threshold=0.010, interpolate=False, start=None, end=None, this_image=0, nimages=5,
-                 from_prev_settings=None, **kwargs):
+                 gap_threshold=0.010, interpolate=False, start=None, end=None, this_image=0, nimages=5, **kwargs):
         """
         Standard static calculation Firework for dipole moment. The calculation will not calculate the polarization
         if the band gap of the SCF calculation is metallic (have a band gap less than the gap_threshold).

@@ -40,7 +40,7 @@ def get_wf_id():
 def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", db_file=None,
                          vasp_input_set_polar=None, vasp_input_set_nonpolar=None,
                          relax=False, vasp_relax_input_set_polar=None, vasp_relax_input_set_nonpolar=None,
-                         nimages = 9, hse = False,from_prev_settings=None, add_analysis_task=False, wfid=None,
+                         nimages = 9, hse = False, add_analysis_task=False, wfid=None,
                          tags=None):
     """
     Returns a workflow to calculate the spontaneous polarization of polar_structure using
@@ -101,8 +101,7 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
                        static_name="polar_static",
                        parents=parents_polar,
                        vasp_cmd=vasp_cmd,db_file=db_file,
-                       vasp_input_set=vasp_input_set_polar,
-                       from_prev_settings=from_prev_settings)
+                       vasp_input_set=vasp_input_set_polar)
 
 
     # Run polarization calculation on nonpolar structure.
