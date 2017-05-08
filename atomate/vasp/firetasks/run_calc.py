@@ -8,7 +8,6 @@ This module defines tasks that support running vasp in various ways.
 
 import shutil
 import shlex
-import subprocess
 import os
 import six
 
@@ -35,44 +34,22 @@ logger = get_logger(__name__)
 
 
 @explicit_serialize
-class RunVaspDirect(FiretaskBase):
-    """
-    Run VASP directly (no custodian).
-
-    Required params:
-        vasp_cmd (str): the name of the full executable for running VASP.
-            Supports env_chk.
-    """
-
-    required_params = ["vasp_cmd"]
-
-    def run_task(self, fw_spec):
-        vasp_cmd = env_chk(self["vasp_cmd"], fw_spec)
-        logger.info("Running VASP using exe: {}".format(vasp_cmd))
-        return_code = subprocess.call(vasp_cmd, shell=True)
-        logger.info("VASP finished running with returncode: {}".format(return_code))
-
-
-@explicit_serialize
 class RunVaspCustodian(FiretaskBase):
     """
-    Run VASP using custodian "on rails", i.e. in a simple way that supports
-    most common options.
+    Run VASP using custodian "on rails", i.e. in a simple way that supports most common options.
 
     Required params:
-        vasp_cmd (str): the name of the full executable for running VASP.
-            Supports env_chk.
+        vasp_cmd (str): the name of the full executable for running VASP. Supports env_chk.
 
     Optional params:
-        job_type: (str) - choose from "normal" (default),
-            "double_relaxation_run" (two consecutive jobs), and "full_opt_run"
-        handler_group: (str) - group of handlers to use. See handler_groups
-            dict in the code for the groups and complete list of handlers in
-            each group.
-        max_force_threshold: (float) - if >0, adds MaxForceErrorHandler.
-            Not recommended for nscf runs.
-        scratch_dir: (str) - if specified, uses this directory as the root
-            scratch dir. Supports env_chk.
+        job_type: (str) - choose from "normal" (default), "double_relaxation_run" (two consecutive 
+            jobs), and "full_opt_run"
+        handler_group: (str) - group of handlers to use. See handler_groups dict in the code for 
+            the groups and complete list of handlers in each group.
+        max_force_threshold: (float) - if >0, adds MaxForceErrorHandler. Not recommended for 
+            nscf runs.
+        scratch_dir: (str) - if specified, uses this directory as the root scratch dir. 
+            Supports env_chk.
         gzip_output: (bool) - gzip output (default=T)
         max_errors: (int) - maximum # of errors to fix before giving up (default=5)
         ediffg: (float) shortcut for setting EDIFFG in special custodian jobs
@@ -101,6 +78,7 @@ class RunVaspCustodian(FiretaskBase):
             }
 
         vasp_cmd = env_chk(self["vasp_cmd"], fw_spec)
+
         if isinstance(vasp_cmd, six.string_types):
             vasp_cmd = os.path.expandvars(vasp_cmd)
             vasp_cmd = shlex.split(vasp_cmd)

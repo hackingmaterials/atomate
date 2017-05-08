@@ -40,10 +40,9 @@ def env_chk(val, fw_spec, strict=True, default=None):
     thus achieving different behavior on different machines.
 
     Args:
-        val: any value, with ">><<" notation reserved for special env lookup
-            values
+        val: any value, with ">><<" notation reserved for special env lookup values
         fw_spec: (dict) fw_spec where one can find the _fw_env keys
-        strict (bool): if True, errors if env value cannot be found
+        strict (bool): if True, errors if env format (>><<) specified but cannot be found in fw_spec
         default: if val is None or env cannot be found in non-strict mode,
                  return default
     """

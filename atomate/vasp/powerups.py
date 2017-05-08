@@ -8,7 +8,8 @@ from fireworks.utilities.fw_utilities import get_slug
 
 from atomate.utils.utils import get_meta_from_structure, get_fws_and_tasks
 from atomate.vasp.firetasks.glue_tasks import CheckStability, CheckBandgap
-from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspDirect, RunVaspFake
+from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspFake
+from atomate.common.firetasks.run_calc import RunCommand
 from atomate.vasp.firetasks.neb_tasks import RunNEBVaspFake
 from atomate.vasp.firetasks.write_inputs import ModifyIncar
 from atomate.vasp.config import ADD_NAMEFILE, SCRATCH_DIR, ADD_MODIFY_INCAR, GAMMA_VASP_CMD
@@ -56,7 +57,7 @@ def remove_custodian(original_wf, fw_name_constraint=None):
                                            task_name_constraint="RunVasp")
     for idx_fw, idx_t in vasp_fws_and_tasks:
         vasp_cmd = original_wf.fws[idx_fw].tasks[idx_t]["vasp_cmd"]
-        original_wf.fws[idx_fw].tasks[idx_t] = RunVaspDirect(vasp_cmd=vasp_cmd)
+        original_wf.fws[idx_fw].tasks[idx_t] = RunCommand(vasp_cmd=vasp_cmd)
     return original_wf
 
 
