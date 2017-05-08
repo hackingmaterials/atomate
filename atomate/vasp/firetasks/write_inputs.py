@@ -137,14 +137,13 @@ class WriteVaspStaticFromPrev(FiretaskBase):
     """
     Writes input files for a static run. Assumes that output files from a previous 
     (e.g., optimization) run can be accessed in current dir or prev_calc_dir. Also allows 
-    lepsilon calcs.
+    lepsilon (dielectric constant) calcs.
 
     Required params:
         (none)
 
     Optional params:
-        prev_calc_dir: (str) location of previous job
-        (documentation for all optional params can be found in
+        (documentation for all other optional params can be found in
         MPStaticSet)
     """
 
@@ -152,26 +151,27 @@ class WriteVaspStaticFromPrev(FiretaskBase):
                        "sym_prec", "international_monoclinic", "lepsilon", "other_params"]
 
     def run_task(self, fw_spec):
-        prev_calc_dir = self.get("prev_calc_dir", ".")
         lepsilon = self.get("lepsilon")
 
-        default_reciprocal_density = 100 if not lepsilon else 200
+        default_reciprocal_density = 200 if lepsilon else 100  # more k-points for dielectric calc.
         other_params = self.get("other_params", {})
+        user_incar_settings = other_params.get("user_incar_settings", {})
 
         # for lepsilon runs, set EDIFF to 1E-5 unless user says otherwise
-        user_incar_settings = self.get("other_params", {}).get("user_incar_settings", {})
-
-        if lepsilon and "EDIFF" not in user_incar_settings and "EDIFF_PER_ATOM" not in user_incar_settings:
+        if lepsilon and "EDIFF" not in user_incar_settings and \
+                        "EDIFF_PER_ATOM" not in user_incar_settings:
             if "user_incar_settings" not in other_params:
                 other_params["user_incar_settings"] = {}
             other_params["user_incar_settings"]["EDIFF"] = 1E-5
 
-        vis = MPStaticSet.from_prev_calc(prev_calc_dir=prev_calc_dir,
-                                         reciprocal_density=self.get("reciprocal_density", default_reciprocal_density),
+        vis = MPStaticSet.from_prev_calc(prev_calc_dir=self.get("prev_calc_dir", "."),
+                                         reciprocal_density=self.get("reciprocal_density",
+                                                                     default_reciprocal_density),
                                          small_gap_multiply=self.get("small_gap_multiply", None),
                                          standardize=self.get("standardize", False),
                                          sym_prec=self.get("sym_prec", 0.1),
-                                         international_monoclinic=self.get("international_monoclinic", True),
+                                         international_monoclinic=self.get(
+                                             "international_monoclinic", True),
                                          lepsilon=lepsilon, **other_params)
         vis.write_input(".")
 
@@ -179,22 +179,25 @@ class WriteVaspStaticFromPrev(FiretaskBase):
 @explicit_serialize
 class WriteVaspHSEBSFromPrev(FiretaskBase):
     """
-    Writes input files for HSE Gap run. Assumes that output files from a
-    an NSCF job (for getting VBM/CBM) can be accessed.
+    Writes input files for HSE band structure run. Assumes that output files from a
+    a previous job can be accessed. Since HSE always re-optimizes the charge density (no nSCF mode),
+    the previous job is used to get the location of VBM/CBM for mode="gap" (otherwise just used to
+    get the structure / starting charge density).
 
     Required params:
-        prev_calc_dir
+        (none)
 
     Optional params:
-        (documentation for all optional params can be found in
+        (documentation for all other optional params can be found in
         MPHSEBSSet)
     """
 
-    required_params = ["prev_calc_dir"]
-    optional_params = ["mode", "reciprocal_density", "kpoints_line_density"]
+    required_params = []
+    optional_params = ["prev_calc_dir", "mode", "reciprocal_density", "kpoints_line_density"]
 
     def run_task(self, fw_spec):
-        vis = MPHSEBSSet.from_prev_calc(self["prev_calc_dir"], mode=self.get("mode", "Uniform"),
+        vis = MPHSEBSSet.from_prev_calc(self.get("prev_calc_dir", "."),
+                                        mode=self.get("mode", "Uniform"),
                                         reciprocal_density=self.get("reciprocal_density", 50),
                                         kpoints_line_density=self.get("kpoints_line_density", 10),
                                         copy_chgcar=False)
@@ -216,14 +219,14 @@ class WriteVaspNSCFFromPrev(FiretaskBase):
         NonSCFVaspInputSet)
     """
 
-    required_params = ["prev_calc_dir"]
-    optional_params = ["copy_chgcar", "nbands_factor", "reciprocal_density", "kpoints_line_density",
-                       "small_gap_multiply", "standardize", "sym_prec", "international_monoclinic",
-                       "mode", "nedos", "optics", "other_params"]
+    required_params = []
+    optional_params = ["prev_calc_dir", "copy_chgcar", "nbands_factor", "reciprocal_density",
+                       "kpoints_line_density", "small_gap_multiply", "standardize", "sym_prec",
+                       "international_monoclinic", "mode", "nedos", "optics", "other_params"]
 
     def run_task(self, fw_spec):
         vis = MPNonSCFSet.from_prev_calc(
-            prev_calc_dir=self["prev_calc_dir"],
+            prev_calc_dir=self.get("prev_calc_dir", "."),
             copy_chgcar=self.get("copy_chgcar", False),
             nbands_factor=self.get("nbands_factor", 1.2),
             reciprocal_density=self.get("reciprocal_density", 100),
@@ -252,14 +255,18 @@ class WriteVaspSOCFromPrev(FiretaskBase):
     Optional params:
         (none)
     """
-    required_params = ["prev_calc_dir", "magmom", "saxis"]
+    required_params = ["magmom", "saxis"]
 
     optional_params = ["copy_chgcar", "nbands_factor", "reciprocal_density", "small_gap_multiply",
                        "standardize", "sym_prec", "international_monoclinic", "other_params"]
 
     def run_task(self, fw_spec):
+        # TODO: @albalu - can saxis have a default value e.g. [001] and be an optional parameter?
+        # -computron
+        # TODO: @albalu - can magmom be auto-parsed from the previous calc? -computron
+
         vis = MPSOCSet.from_prev_calc(
-            prev_calc_dir=self["prev_calc_dir"],
+            prev_calc_dir=self.get("prev_calc_dir", "."),
             magmom=self["magmom"],
             saxis=self["saxis"],
             copy_chgcar=self.get("copy_chgcar", False),
