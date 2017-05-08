@@ -17,9 +17,10 @@ from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.electronic_structure.boltztrap import BoltztrapRunner
 
 from custodian import Custodian
-from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, MeshSymmetryErrorHandler, \
-    UnconvergedErrorHandler, MaxForceErrorHandler, PotimErrorHandler, FrozenJobErrorHandler, \
-    NonConvergingErrorHandler, PositiveEnergyErrorHandler, WalltimeHandler, StdErrHandler
+from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, \
+    MeshSymmetryErrorHandler, UnconvergedErrorHandler, MaxForceErrorHandler, PotimErrorHandler, \
+    FrozenJobErrorHandler, NonConvergingErrorHandler, PositiveEnergyErrorHandler, \
+    WalltimeHandler, StdErrHandler
 from custodian.vasp.jobs import VaspJob, VaspNEBJob
 from custodian.vasp.validators import VasprunXMLValidator, VaspFilesValidator
 
@@ -40,7 +41,7 @@ class RunVaspDirect(FiretaskBase):
 
     Required params:
         vasp_cmd (str): the name of the full executable for running VASP.
-        Supports env_chk.
+            Supports env_chk.
     """
 
     required_params = ["vasp_cmd"]
@@ -50,30 +51,6 @@ class RunVaspDirect(FiretaskBase):
         logger.info("Running VASP using exe: {}".format(vasp_cmd))
         return_code = subprocess.call(vasp_cmd, shell=True)
         logger.info("VASP finished running with returncode: {}".format(return_code))
-
-
-@explicit_serialize
-class RunVaspCustodianFromObjects(FiretaskBase):
-    """
-    Run VASP using custodian in a generic manner using built-in custodian
-    objects
-
-    Required params:
-        jobs: ([Job]) - a list of custodian jobs to run
-        handlers: ([ErrorHandler]) - a list of error handlers
-
-    Optional params:
-        validators: ([Validator]) - a list of Validators
-        custodian_params ({}) - dict of all other custodian parameters
-    """
-
-    required_params = ["jobs", "handlers"]
-    optional_params = ["validators", "custodian_params"]
-
-    def run_task(self, fw_spec):
-        c = Custodian(self["handlers"], self["jobs"], self.get("validators"),
-                      **self.get("custodian_params", {}))
-        c.run()
 
 
 @explicit_serialize
