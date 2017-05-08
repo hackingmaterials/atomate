@@ -82,9 +82,9 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
         tags = []
 
     if relax:
-        polar_relax = OptimizeFW(polar_structure,name="polar_relaxation",
+        polar_relax = OptimizeFW(polar_structure,name="_polar_relaxation",
                                  vasp_cmd=vasp_cmd, db_file=db_file, vasp_input_set=vasp_relax_input_set_polar)
-        nonpolar_relax = OptimizeFW(nonpolar_structure, name="nonpolar_relaxation",
+        nonpolar_relax = OptimizeFW(nonpolar_structure, name="_nonpolar_relaxation",
                                     vasp_cmd=vasp_cmd, db_file=db_file, vasp_input_set=vasp_relax_input_set_nonpolar)
         wf.append(polar_relax)
         wf.append(nonpolar_relax)
@@ -97,8 +97,8 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
     # Run polarization calculation on polar structure.
     # Defuse workflow if polar structure is metallic.
     polar = LcalcpolFW(polar_structure,
-                       name="polar_polarization",
-                       static_name="polar_static",
+                       name="_polar_polarization",
+                       static_name="_polar_static",
                        parents=parents_polar,
                        vasp_cmd=vasp_cmd,db_file=db_file,
                        vasp_input_set=vasp_input_set_polar)
@@ -107,8 +107,8 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
     # Run polarization calculation on nonpolar structure.
     # Defuse workflow if nonpolar structure is metallic.
     nonpolar = LcalcpolFW(nonpolar_structure,
-                          name="nonpolar_polarization",
-                          static_name="nonpolar_static",
+                          name="_nonpolar_polarization",
+                          static_name="_nonpolar_static",
                           parents=parents_nonpolar,
                           vasp_cmd=vasp_cmd,db_file=db_file,
                           vasp_input_set=vasp_input_set_nonpolar)
@@ -125,12 +125,12 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
         # Defuse workflow if interpolated structure is metallic.
         interpolation.append(
             LcalcpolFW(polar_structure,
-                       name="interpolation_{}_polarization".format(str(i)),
-                       static_name="interpolation_{}_static".format(str(i)),
+                       name="_interpolation_{}_polarization".format(str(i)),
+                       static_name="_interpolation_{}_static".format(str(i)),
                        vasp_cmd=vasp_cmd, db_file=db_file,
                        vasp_input_set=vasp_input_set_polar, interpolate=True,
-                       start="polar_static",
-                       end="nonpolar_static",
+                       start="_polar_static",
+                       end="_nonpolar_static",
                        nimages=nimages,this_image=i, parents=[polar,nonpolar]))
 
     wf.append(polar)
@@ -139,15 +139,15 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
 
     # Add FireTask that uses Polarization object to store spontaneous polarization information
     if add_analysis_task:
-        fw_analysis = Firework(PolarizationToDbTask(db_file=db_file, name="polarization_post_processing"),
-                               parents=interpolation, name="polarization_post_processing")
+        fw_analysis = Firework(PolarizationToDbTask(db_file=db_file, name="_polarization_post_processing"),
+                               parents=interpolation, name="_polarization_post_processing")
         wf.append(fw_analysis)
 
     # Run HSE band gap calculation
     if hse:
         # Run HSE calculation at band gap for polar calculation if polar structure is not metallic
-        hse = HSEBSFW(polar_structure, polar, name="polar_hse_gap", vasp_cmd=vasp_cmd,
-                      db_file=db_file, calc_loc="polar_polarization")
+        hse = HSEBSFW(polar_structure, polar, name="_polar_hse_gap", vasp_cmd=vasp_cmd,
+                      db_file=db_file, calc_loc="_polar_polarization")
         wf.append(hse)
 
     # Create Workflow task and add tags to workflow

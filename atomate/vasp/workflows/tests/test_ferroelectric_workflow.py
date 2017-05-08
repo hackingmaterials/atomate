@@ -16,6 +16,7 @@ from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_fake_vasp
 from atomate.vasp.workflows.base.ferroelectric import get_wf_ferroelectric, get_wf_id
+from atomate.vasp.firetasks.parse_outputs import PolarizationToDbTask
 
 from pymatgen import SETTINGS
 
@@ -46,10 +47,11 @@ class TestFerroelectricWorkflow(unittest.TestCase):
 
         cls.ferroelectric_config = {'vasp_cmd': '>>vasp_cmd<<',
                                     'db_file': '>>db_file<<',
-                                    'nimages': 9,
+                                    'nimages': 2,
                                     'relax' : True,
                                     'wfid': cls.wfid,
-                                    'add_analysis_task': True}
+                                    'add_analysis_task': False}
+
         cls.wf = get_wf_ferroelectric(cls.bto_polar, cls.bto_nonpolar, **cls.ferroelectric_config)
 
         cls.scratch_dir = os.path.join(module_dir, "scratch")
@@ -80,29 +82,14 @@ class TestFerroelectricWorkflow(unittest.TestCase):
     def _simulate_vasprun(self, wf):
         pass
         reference_dir = os.path.abspath(os.path.join(ref_dir, "ferroelectric_wf"))
-        bto_ref_dirs = {"polar_relaxation": os.path.join(reference_dir, "polar_relaxation"),
-                        "polar_static": os.path.join(reference_dir, "polar_static"),
-                        "polar_polarization": os.path.join(reference_dir, "polar_polarization"),
-                        "nonpolar_relaxation": os.path.join(reference_dir, "nonpolar_relaxation"),
-                        "nonpolar_static": os.path.join(reference_dir, "nonpolar_static"),
-                        "nonpolar_polarization": os.path.join(reference_dir, "nonpolar_polarization"),
-                        "interpolation_1_static": os.path.join(reference_dir, "interpolation_1_static"),
-                        "interpolation_2_static": os.path.join(reference_dir, "interpolation_2_static"),
-                        "interpolation_3_static": os.path.join(reference_dir, "interpolation_3_static"),
-                        "interpolation_4_static": os.path.join(reference_dir, "interpolation_4_static"),
-                        "interpolation_5_static": os.path.join(reference_dir, "interpolation_5_static"),
-                        "interpolation_6_static": os.path.join(reference_dir, "interpolation_6_static"),
-                        "interpolation_7_static": os.path.join(reference_dir, "interpolation_7_static"),
-                        "interpolation_8_static": os.path.join(reference_dir, "interpolation_8_static"),
-                        "interpolation_1_polarization": os.path.join(reference_dir, "interpolation_1_polarization"),
-                        "interpolation_2_polarization": os.path.join(reference_dir, "interpolation_2_polarization"),
-                        "interpolation_3_polarization": os.path.join(reference_dir, "interpolation_3_polarization"),
-                        "interpolation_4_polarization": os.path.join(reference_dir, "interpolation_4_polarization"),
-                        "interpolation_5_polarization": os.path.join(reference_dir, "interpolation_5_polarization"),
-                        "interpolation_6_polarization": os.path.join(reference_dir, "interpolation_6_polarization"),
-                        "interpolation_7_polarization": os.path.join(reference_dir, "interpolation_7_polarization"),
-                        "interpolation_8_polarization": os.path.join(reference_dir, "interpolation_8_polarization"),
-                        "polarization_analysis": os.path.join(reference_dir, "polarization_analysis")}
+        bto_ref_dirs = {"_polar_relaxation": os.path.join(reference_dir, "polar_relaxation"),
+                        "_polar_static": os.path.join(reference_dir, "polar_static"),
+                        "_polar_polarization": os.path.join(reference_dir, "polar_polarization"),
+                        "_nonpolar_relaxation": os.path.join(reference_dir, "nonpolar_relaxation"),
+                        "_nonpolar_static": os.path.join(reference_dir, "nonpolar_static"),
+                        "_nonpolar_polarization": os.path.join(reference_dir, "nonpolar_polarization"),
+                        "_interpolation_1_static": os.path.join(reference_dir, "interpolation_1_static"),
+                        "_interpolation_1_polarization": os.path.join(reference_dir, "interpolation_1_polarization")}
         # Add test with for analysis?
         # Which params_to_check?
         return use_fake_vasp(wf, bto_ref_dirs, params_to_check=["ENCUT"])
@@ -126,37 +113,33 @@ class TestFerroelectricWorkflow(unittest.TestCase):
     def _check_run(self, d, mode):
 
         # Check polar and nonpolar relaxations
-        if mode is 'polar_relaxation':
+        if mode == '_polar_relaxation':
             self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["c"], 4.2157, 2)
 
-        if mode is 'nonpolar_relaxation':
-            self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["c"], 4.0330, 2)
+        if mode == '_nonpolar_relaxation':
+            self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["c"], 4.0350, 2)
 
-        # Check interpolated structures
-        if mode is 'interpolation_1_polarization':
-            self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["c"], 4.1954, 2)
-
-        if mode is 'interpolation_5_polarization':
-            self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["c"], 4.1142, 2)
+        # Check interpolated structure
+        if mode == '_interpolation_1_polarization':
+            self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["c"], 4.1345, 2)
 
         # Check that Outcar has needed keys for polarization analysis.
-        if '_polarization' in mode:
-
+        if '_polarization' in mode and 'processing' not in mode:
             # Check that Outcar has p_ion, p_elec, zval_dict
             assert d["calcs_reversed"][0]["output"]["outcar"].get("p_ion", None) is not None
             assert d["calcs_reversed"][0]["output"]["outcar"].get("p_elec", None) is not None
             assert d["calcs_reversed"][0]["output"]["outcar"].get("zval_dict", None) is not None
 
         # Check analysis step.
-        if mode is "polarization_post_processing":
+        if mode == "_polarization_post_processing":
             self.assertAlmostEqual(d['polarization_change_norm'], 46.288752795325244)
 
     def test_wf(self):
 
         self.wf = self._simulate_vasprun(self.wf)
 
-        # 2*relax + 10*polarization +1*polarization_analysis = 13
-        self.assertEqual(len(self.wf.fws), 13)
+        # 2*relax + 3*polarization = 5
+        self.assertEqual(len(self.wf.fws), 5)
 
         # check VASP parameters on polarization calculation for interpolated structures
         interpolated_polarization_vis = [fw.spec["_tasks"][8]['other_params']['lcalcpol']
@@ -168,22 +151,45 @@ class TestFerroelectricWorkflow(unittest.TestCase):
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
         # Check polar relaxation
-        d = self._get_task_collection().find_one({"task_label": "polar_relaxation"})
-        self._check_run(d, "polar_relaxation")
+        d = self._get_task_collection().find_one({"task_label": "_polar_relaxation"})
+        self._check_run(d, "_polar_relaxation")
 
         # Check nonpolar relaxation
-        d = self._get_task_collection().find_one({"task_label": "nonpolar_relaxation"})
-        self._check_run(d, "nonpolar_relaxation")
+        d = self._get_task_collection().find_one({"task_label": "_nonpolar_relaxation"})
+        self._check_run(d, "_nonpolar_relaxation")
 
         # Check polarization calculations
         D = self._get_task_collection().find({"task_label": {"$regex": ".*polarization"}})
         for d in D:
             self._check_run(d, d["task_label"])
 
+        # Test analysis
+
+        # Delete task db and load bson file with tasks
+        db = self._get_task_collection()
+        db.delete_many({})
+
+        reference_dir = os.path.abspath(os.path.join(ref_dir, "ferroelectric_wf"))
+
+        import bson
+        with open(os.path.join(reference_dir, "polarization/atomate_unittest/tasks.bson")) as f:
+            coll_raw = f.read()
+
+        coll = bson.decode_all(coll_raw)
+
+        for c in coll:
+            db.insert(c)
+
+        new_fw_spec = {'_fw_env': {"db_file": os.path.join(db_dir, "db.json")},
+                       'tags':['wfid_1494203093.06934658']}
+
+        analysis = PolarizationToDbTask(db_file='>>db_file<<', name="_polarization_post_processing")
+        analysis.run_task(new_fw_spec)
+
         # Check recovered change in polarization
         coll = self._get_task_collection("polarization_tasks")
         d = coll.find_one()
-        self._check_run(d,"polarization_post_processing")
+        self._check_run(d,"_polarization_post_processing")
 
 if __name__ == "__main__":
     unittest.main()
