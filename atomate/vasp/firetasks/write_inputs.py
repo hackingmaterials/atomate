@@ -30,24 +30,20 @@ __email__ = 'ajain@lbl.gov'
 @explicit_serialize
 class WriteVaspFromIOSet(FiretaskBase):
     """
-    Create VASP input files using implementations of pymatgen's
-    AbstractVaspInputSet. An input set can be provided as an object or as a
-    String/parameter combo.
+    Create VASP input files using implementations of pymatgen's AbstractVaspInputSet. An input set 
+    can be provided as an object or as a String/parameter combo.
 
     Required params:
         structure (Structure): structure
-        vasp_input_set (AbstractVaspInputSet or str): Either a VaspInputSet
-            object or a string name for the VASP input set (e.g.,
-            "MPRelaxSet").
+        vasp_input_set (AbstractVaspInputSet or str): Either a VaspInputSet object or a string 
+            name for the VASP input set (e.g., "MPRelaxSet").
 
     Optional params:
-        vasp_input_params (dict): When using a string name for VASP input set,
-            use this as a dict to specify kwargs for instantiating the input
-            set parameters. For example, if you want to change the
-            user_incar_settings, you should provide:
-            {"user_incar_settings": ...}.
-            This setting is ignored if you provide the full object
-            representation of a VaspInputSet rather than a String.
+        vasp_input_params (dict): When using a string name for VASP input set, use this as a dict 
+            to specify kwargs for instantiating the input set parameters. For example, if you want 
+            to change the user_incar_settings, you should provide: {"user_incar_settings": ...}. 
+            This setting is ignored if you provide the full object representation of a VaspInputSet 
+            rather than a String.
     """
 
     required_params = ["structure", "vasp_input_set"]
@@ -71,7 +67,7 @@ class WriteVaspFromPMGObjects(FiretaskBase):
     Write VASP files using pymatgen objects.
 
     Required params:
-        (none)
+        (none) - although non-functional unless you set one or more optional params
 
     Optional params:
         incar (Incar): pymatgen Incar object
@@ -116,11 +112,9 @@ class ModifyIncar(FiretaskBase):
 
     def run_task(self, fw_spec):
 
-        # load INCAR
         incar_name = self.get("input_filename", "INCAR")
         incar = Incar.from_file(incar_name)
 
-        # process FireWork env values via env_chk
         incar_update = env_chk(self.get('incar_update'), fw_spec)
         incar_multiply = env_chk(self.get('incar_multiply'), fw_spec)
         incar_dictmod = env_chk(self.get('incar_dictmod'), fw_spec)
@@ -135,29 +129,30 @@ class ModifyIncar(FiretaskBase):
         if incar_dictmod:
             apply_mod(incar_dictmod, incar)
 
-        # write INCAR
         incar.write_file(self.get("output_filename", "INCAR"))
 
 
 @explicit_serialize
 class WriteVaspStaticFromPrev(FiretaskBase):
     """
-    Writes input files for a static run. Assumes that output files from a
-    relaxation job can be accessed. Also allows lepsilon calcs.
+    Writes input files for a static run. Assumes that output files from a previous 
+    (e.g., optimization) run can be accessed in current dir or prev_calc_dir. Also allows 
+    lepsilon calcs.
 
     Required params:
         (none)
 
     Optional params:
+        prev_calc_dir: (str) location of previous job
         (documentation for all optional params can be found in
         MPStaticSet)
     """
 
-    required_params = ["prev_calc_dir"]
-    optional_params = ["reciprocal_density", "small_gap_multiply", "standardize", "sym_prec",
-                       "international_monoclinic", "lepsilon", "other_params"]
+    optional_params = ["prev_calc_dir", "reciprocal_density", "small_gap_multiply", "standardize",
+                       "sym_prec", "international_monoclinic", "lepsilon", "other_params"]
 
     def run_task(self, fw_spec):
+        prev_calc_dir = self.get("prev_calc_dir", ".")
         lepsilon = self.get("lepsilon")
 
         default_reciprocal_density = 100 if not lepsilon else 200

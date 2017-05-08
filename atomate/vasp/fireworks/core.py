@@ -88,7 +88,7 @@ class StaticFW(Firework):
         if parents:
             if prev_calc_loc:
                 t.append(CopyVaspOutputs(calc_loc=prev_calc_loc, contcar_to_poscar=True))
-            t.append(WriteVaspStaticFromPrev(prev_calc_dir='.'))
+            t.append(WriteVaspStaticFromPrev())
         else:
             vasp_input_set = vasp_input_set or MPStaticSet(structure)
             t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
@@ -197,7 +197,7 @@ class LepsFW(Firework):
             if copy_vasp_outputs:
                 t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
                                          contcar_to_poscar=True))
-                t.append(WriteVaspStaticFromPrev(prev_calc_dir=".", lepsilon=True,
+                t.append(WriteVaspStaticFromPrev(lepsilon=True,
                                                  other_params={
                                                      'user_incar_settings': user_incar_settings}))
         else:
