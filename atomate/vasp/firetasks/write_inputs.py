@@ -311,13 +311,12 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
             for m in ["advanced_transformations", "defect_transformations",
                       "site_transformations", "standard_transformations"]:
                 mod = import_module("pymatgen.transformations.{}".format(m))
-                try:
-                    t_cls = getattr(mod, t)
-                except AttributeError:
-                    continue
+                t_cls = getattr(mod, t)
                 t_obj = t_cls(**transformation_params.pop(0))
                 transformations.append(t_obj)
 
+        # TODO: @matk86 - should prev_calc_dir use CONTCAR instead of POSCAR? Note that if
+        # current dir, maybe it is POSCAR indeed best ... -computron
         structure = self['structure'] if 'prev_calc_dir' not in self else \
                 Poscar.from_file(os.path.join(self['prev_calc_dir'], 'POSCAR')).structure
         ts = TransformedStructure(structure)
@@ -335,7 +334,8 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
 class WriteNormalmodeDisplacedPoscar(FiretaskBase):
     """
     Displace the structure from the previous calculation along the provided normal mode by the
-    given amount and write the corresponding Poscar file.
+    given amount and write the corresponding Poscar file. The fw_spec must contain a "normalmodes"
+    key with "eigenvecs" and "norms" sub-key that is likely produced by a previous calc.
 
     Required params:
         mode (int): normal mode index
@@ -352,6 +352,9 @@ class WriteNormalmodeDisplacedPoscar(FiretaskBase):
         nm_norms = np.array(fw_spec["normalmodes"]["norms"])
 
         # displace the sites along the given normal mode
+        # TODO: @matk86 (or whomever wrote this line of code) - Can you clarify this line of code?
+        # Likely only the author can understand it unless someone spends an hour staring at it.
+        # Succintness is helpful when it aids clarity but not when it obfuscates. -computron
         nm_displacement = nm_eigenvecs[mode, :, :] * disp / nm_norms[mode, :, np.newaxis]
         for i, vec in enumerate(nm_displacement):
             structure.translate_sites(i, vec, frac_coords=False)
