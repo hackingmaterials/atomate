@@ -215,7 +215,7 @@ class RunBoltztrap(FiretaskBase):
         nelect = outcar.nelect
         runner = BoltztrapRunner(bs, nelect, scissor=scissor, doping=doping, tmax=tmax,
                                  tgrid=tgrid, soc=soc)
-        
+
         runner.run(path_dir=os.getcwd())
 
 
@@ -230,9 +230,14 @@ class RunVaspFake(FiretaskBase):
 
      Optional params:
          params_to_check (list): optional list of incar parameters to check.
+         check_incar (bool): whether to confirm the INCAR params (default: True)
+         check_kpoints (bool): whether to confirm the KPOINTS params (default: True)
+         check_poscar (bool): whether to confirm the POSCAR params (default: True)
+         check_potcar (bool): whether to confirm the POTCAR params (default: True)
      """
     required_params = ["ref_dir"]
-    optional_params = ["params_to_check"]
+    optional_params = ["params_to_check", "check_incar", "check_kpoints",
+                       "check_poscar", "check_potcar"]
 
     def run_task(self, fw_spec):
         self._verify_inputs()
@@ -241,37 +246,44 @@ class RunVaspFake(FiretaskBase):
 
     def _verify_inputs(self):
         user_incar = Incar.from_file(os.path.join(os.getcwd(), "INCAR"))
-        ref_incar = Incar.from_file(os.path.join(self["ref_dir"], "inputs", "INCAR"))
 
         # Carry out some BASIC tests.
 
         # Check INCAR
-        params_to_check = self.get("params_to_check", [])
-        defaults = {"ISPIN": 1, "ISMEAR": 1, "SIGMA": 0.2}
-        for p in params_to_check:
-            if user_incar.get(p, defaults.get(p)) != ref_incar.get(p, defaults.get(p)):
-                raise ValueError("INCAR value of {} is inconsistent!".format(p))
+        if self.get("check_incar", True):
+            ref_incar = Incar.from_file(os.path.join(self["ref_dir"], "inputs", "INCAR"))
+            params_to_check = self.get("params_to_check", [])
+            defaults = {"ISPIN": 1, "ISMEAR": 1, "SIGMA": 0.2}
+            for p in params_to_check:
+                if user_incar.get(p, defaults.get(p)) != ref_incar.get(p, defaults.get(p)):
+                    raise ValueError("INCAR value of {} is inconsistent!".format(p))
 
         # Check KPOINTS
-        user_kpoints = Kpoints.from_file(os.path.join(os.getcwd(), "KPOINTS"))
-        ref_kpoints = Kpoints.from_file(os.path.join(self["ref_dir"], "inputs", "KPOINTS"))
-        if user_kpoints.style != ref_kpoints.style or user_kpoints.num_kpts != ref_kpoints.num_kpts:
-            raise ValueError("KPOINT files are inconsistent! Paths are:\n{}\n{}".format(
-                os.getcwd(), os.path.join(self["ref_dir"], "inputs")))
+        if self.get("check_kpoints", True):
+            user_kpoints = Kpoints.from_file(os.path.join(os.getcwd(), "KPOINTS"))
+            ref_kpoints = Kpoints.from_file(os.path.join(self["ref_dir"], "inputs", "KPOINTS"))
+            if user_kpoints.style != ref_kpoints.style or \
+                            user_kpoints.num_kpts != ref_kpoints.num_kpts:
+                raise ValueError("KPOINT files are inconsistent! Paths are:\n{}\n{}".format(
+                    os.getcwd(), os.path.join(self["ref_dir"], "inputs")))
 
         # Check POSCAR
-        user_poscar = Poscar.from_file(os.path.join(os.getcwd(), "POSCAR"))
-        ref_poscar = Poscar.from_file(os.path.join(self["ref_dir"], "inputs", "POSCAR"))
-        if user_poscar.natoms != ref_poscar.natoms or user_poscar.site_symbols != ref_poscar.site_symbols:
-            raise ValueError("POSCAR files are inconsistent! Paths are:\n{}\n{}".format(
-                os.getcwd(), os.path.join(self["ref_dir"], "inputs")))
+        if self.get("check_poscar", True):
+            user_poscar = Poscar.from_file(os.path.join(os.getcwd(), "POSCAR"))
+            ref_poscar = Poscar.from_file(os.path.join(self["ref_dir"], "inputs", "POSCAR"))
+            if user_poscar.natoms != ref_poscar.natoms or user_poscar.site_symbols != \
+                    ref_poscar.site_symbols:
+                raise ValueError("POSCAR files are inconsistent! Paths are:\n{}\n{}".format(
+                    os.getcwd(), os.path.join(self["ref_dir"], "inputs")))
 
         # Check POTCAR
-        user_potcar = Potcar.from_file(os.path.join(os.getcwd(), "POTCAR"))
-        ref_potcar = Potcar.from_file(os.path.join(self["ref_dir"], "inputs", "POTCAR"))
-        if user_potcar.symbols != ref_potcar.symbols:
-            raise ValueError("POTCAR files are inconsistent! Paths are:\n{}\n{}".format(
-                os.getcwd(), os.path.join(self["ref_dir"], "inputs")))
+        if self.get("check_potcar", True):
+            user_potcar = Potcar.from_file(os.path.join(os.getcwd(), "POTCAR"))
+            ref_potcar = Potcar.from_file(os.path.join(self["ref_dir"], "inputs", "POTCAR"))
+            if user_potcar.symbols != ref_potcar.symbols:
+                raise ValueError("POTCAR files are inconsistent! Paths are:\n{}\n{}".format(
+                    os.getcwd(), os.path.join(self["ref_dir"], "inputs")))
+
         logger.info("RunVaspFake: verified inputs successfully")
 
     def _clear_inputs(self):
@@ -281,6 +293,7 @@ class RunVaspFake(FiretaskBase):
                 os.remove(p)
 
     def _generate_outputs(self):
+        # pretend to have run VASP by copying pre-generated outputs from reference dir to cur dir
         output_dir = os.path.join(self["ref_dir"], "outputs")
         for file_name in os.listdir(output_dir):
             full_file_name = os.path.join(output_dir, file_name)
