@@ -188,8 +188,7 @@ class RunVaspCustodian(FiretaskBase):
 @explicit_serialize
 class RunBoltztrap(FiretaskBase):
     """
-    Run Boltztrap directly. Requires vasprun.xml and OUTCAR to be
-    in current dir.
+    Run Boltztrap directly. Requires vasprun.xml and OUTCAR to be in current dir.
 
     Required params:
         (none)
@@ -214,7 +213,9 @@ class RunBoltztrap(FiretaskBase):
         vasprun, outcar = get_vasprun_outcar(".", parse_dos=True, parse_eigen=True)
         bs = vasprun.get_band_structure()
         nelect = outcar.nelect
-        runner = BoltztrapRunner(bs, nelect, scissor=scissor, doping=doping, tmax=tmax, tgrid=tgrid, soc=soc)
+        runner = BoltztrapRunner(bs, nelect, scissor=scissor, doping=doping, tmax=tmax,
+                                 tgrid=tgrid, soc=soc)
+        
         runner.run(path_dir=os.getcwd())
 
 
