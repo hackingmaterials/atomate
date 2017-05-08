@@ -166,7 +166,7 @@ class WriteVaspStaticFromPrev(FiretaskBase):
                 other_params["user_incar_settings"] = {}
             other_params["user_incar_settings"]["EDIFF"] = 1E-5
 
-        vis = MPStaticSet.from_prev_calc(prev_calc_dir=self["prev_calc_dir"],
+        vis = MPStaticSet.from_prev_calc(prev_calc_dir=prev_calc_dir,
                                          reciprocal_density=self.get("reciprocal_density", default_reciprocal_density),
                                          small_gap_multiply=self.get("small_gap_multiply", None),
                                          standardize=self.get("standardize", False),
