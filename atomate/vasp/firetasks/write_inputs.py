@@ -197,7 +197,7 @@ class WriteVaspHSEBSFromPrev(FiretaskBase):
 
     def run_task(self, fw_spec):
         vis = MPHSEBSSet.from_prev_calc(self.get("prev_calc_dir", "."),
-                                        mode=self.get("mode", "Uniform"),
+                                        mode=self.get("mode", "uniform"),
                                         reciprocal_density=self.get("reciprocal_density", 50),
                                         kpoints_line_density=self.get("kpoints_line_density", 10),
                                         copy_chgcar=False)

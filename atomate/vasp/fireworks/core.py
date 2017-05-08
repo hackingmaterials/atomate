@@ -68,10 +68,12 @@ class StaticFW(Firework):
     def __init__(self, structure, name="static", vasp_input_set=None, vasp_cmd="vasp",
                  prev_calc_loc=True, db_file=None, parents=None, **kwargs):
         """
-        Standard static calculation Firework.
+        Standard static calculation Firework - either from a previous location or from a structure.
 
         Args:
-            structure (Structure): Input structure.
+            structure (Structure): Input structure. Note that for prev_calc_loc jobs, the structure 
+                is only used to set the name of the FW and any structure with the same composition 
+                can be used.
             name (str): Name for the Firework.
             vasp_input_set (VaspInputSet): input set to use (for jobs w/no parents)
                 Defaults to MPStaticSet() if None.
@@ -83,6 +85,11 @@ class StaticFW(Firework):
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
+
+        # TODO: @computron - I really don't like how you need to set the structure even for
+        # prev_calc_loc jobs. Sometimes it makes appending new FWs to an existing workflow
+        # difficult. Maybe think about how to remove this need? -computron
+
         t = []
 
         if parents:
@@ -108,18 +115,18 @@ class HSEBSFW(Firework):
         calculation that gives VBM/CBM info or the high-symmetry kpoints.
 
         Args:
-            structure (Structure): Input structure.
+            structure (Structure): Input structure - used only to set the name of the FW.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
             mode (string): options:
                 "line" to get a full band structure along symmetry lines or
+                "uniform" for uniform mesh band structure or
                 "gap" to get the energy at the CBM and VBM
             name (str): Name for the Firework.
             vasp_cmd (str): Command to run vasp.
             db_file (str): Path to file specifying db credentials.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        if name == None:
-            name = "{} {}".format("hse", mode)
+        name = name if name else "{} {}".format("hse", mode)
 
         t = []
         t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
@@ -139,9 +146,9 @@ class NonSCFFW(Firework):
         uniform and line modes.
 
         Args:
-            structure (Structure): Input structure.
+            structure (Structure): Input structure - used only to set the name of the FW.
             name (str): Name for the Firework.
-            mode (str): uniform or line mode.
+            mode (str): "uniform" or "line" mode.
             vasp_cmd (str): Command to run vasp.
             copy_vasp_outputs (bool): Whether to copy outputs from previous
                 run. Defaults to True.
@@ -159,10 +166,12 @@ class NonSCFFW(Firework):
                 WriteVaspNSCFFromPrev(prev_calc_dir=".", mode="uniform", reciprocal_density=1000))
         else:
             t.append(WriteVaspNSCFFromPrev(prev_calc_dir=".", mode="line", reciprocal_density=20))
+
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file, additional_fields={"task_label": name + " " + mode},
                               parse_dos=(mode == "uniform"), bandstructure_mode=mode))
+
         super(NonSCFFW, self).__init__(t, parents=parents, name="%s-%s %s" % (
             structure.composition.reduced_formula, name, mode), **kwargs)
 
@@ -175,7 +184,8 @@ class LepsFW(Firework):
         Standard static calculation Firework for dielectric constants using DFPT.
 
         Args:
-            structure (Structure): Input structure.
+            structure (Structure): Input structure. If copy_vasp_outputs, used only to set the 
+                name of the FW.
             name (str): Name for the Firework.
             vasp_cmd (str): Command to run vasp.
             copy_vasp_outputs (bool): Whether to copy outputs from previous
@@ -193,13 +203,13 @@ class LepsFW(Firework):
         """
         user_incar_settings = user_incar_settings or {}
         t = []
-        if parents:
-            if copy_vasp_outputs:
-                t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
-                                         contcar_to_poscar=True))
-                t.append(WriteVaspStaticFromPrev(lepsilon=True,
-                                                 other_params={
-                                                     'user_incar_settings': user_incar_settings}))
+
+        if copy_vasp_outputs:
+            t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
+                                     contcar_to_poscar=True))
+            t.append(WriteVaspStaticFromPrev(lepsilon=True,
+                                             other_params={
+                                                 'user_incar_settings': user_incar_settings}))
         else:
             vasp_input_set = MPStaticSet(structure, lepsilon=True,
                                          user_incar_settings=user_incar_settings)
@@ -207,9 +217,26 @@ class LepsFW(Firework):
 
         if phonon:
             if mode is None and displacement is None:
+                # TODO: @matk86 - I really don't understand the point of setting phonon=True w/o
+                # the mode or displacement. It seems to simply be running a regular static run and
+                # doing nothing else than changing the name of the Firework and perhaps passing
+                # normal modes data (but it's unclear how that data is generated. Why would anyone
+                # want to do this? -computron
                 name = "{} {}".format("phonon", name)
+
+                # TODO: @matk86 - not sure why this line is here. I understand you are trying to
+                # keep the code short but the logic is very confusing. The RunVaspCustodian is
+                # common to all 3 situations (phonon=F, phonon=T/mode=F, phonon=T/mode=T) yet is
+                # duplicated in each place. Instead, for better clarity construct the Firework
+                # sequentially (write inputs, run vasp, parse output data, pass output data) and
+                # add if/else for phonons where it is needed. Any name overrides can go near the
+                # top of the Firework. -computron
                 t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
             else:
+                # TODO: @matk86 - Why is this second calculation being tacked on to the first one?
+                # It looks like it will overwrite INCAR/CHGCAR/etc of the first calculation and
+                # thus completely remove access to the original output files. Shouldn't this be a
+                # new Firework rather than a second calculation in the same Firework? -computron
                 name = "raman_{}_{} {}".format(str(mode), str(displacement), name)
                 t.extend([WriteNormalmodeDisplacedPoscar(mode=mode, displacement=displacement),
                           RunVaspCustodian(vasp_cmd=vasp_cmd),
