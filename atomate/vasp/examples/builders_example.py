@@ -21,3 +21,5 @@ if __name__ == "__main__":
     TasksMaterialsBuilder.from_file(DB_FILE).run()
     MaterialsEhullBuilder.from_file(DB_FILE, mapi_key=MAPI_KEY).run()
     BoltztrapMaterialsBuilder.from_file(DB_FILE).run()
+    # add more Builders as desired using the same format...
+    # use .reset() method of a Builder to start over
