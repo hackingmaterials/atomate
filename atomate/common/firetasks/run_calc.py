@@ -2,7 +2,6 @@ import os
 import subprocess
 
 from atomate.utils.utils import env_chk, get_logger
-from atomate.vasp.firetasks.run_calc import logger
 from custodian import Custodian
 from fireworks import explicit_serialize, FiretaskBase
 
