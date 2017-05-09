@@ -344,7 +344,7 @@ class TransmuterFW(Firework):
 
 
 class MDFW(Firework):
-    def __init__(self, structure, start_temp, end_temp, nsteps, name="molecular dynamics run",
+    def __init__(self, structure, start_temp, end_temp, nsteps, name="molecular dynamics",
                  vasp_input_set=None, vasp_cmd="vasp", override_default_vasp_params=None,
                  wall_time=19200, db_file=None, parents=None, copy_vasp_outputs=True, **kwargs):
         """
@@ -364,7 +364,7 @@ class MDFW(Firework):
                 MITMDSet. This allows one to easily override some
                 settings, e.g., user_incar_settings, etc. Particular to MD,
                 one can control time_step and all other settings of the input set.
-            wall_time (int): Total wall time in seconds.
+            wall_time (int): Total wall time in seconds before writing STOPCAR.
             copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
             db_file (string): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
@@ -376,10 +376,10 @@ class MDFW(Firework):
                                                     nsteps=nsteps, **override_default_vasp_params)
 
         t = []
-        if parents:
-            if copy_vasp_outputs:
-                t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
-                                         contcar_to_poscar=True))
+        if copy_vasp_outputs:
+            t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
+                                     contcar_to_poscar=True))
+
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                   handler_group="md", wall_time=wall_time))
@@ -395,7 +395,8 @@ class BoltztrapFW(Firework):
     def __init__(self, structure, name="boltztrap", db_file=None, parents=None, scissor=0.0,
                  soc=False, additional_fields=None, **kwargs):
         """
-        Run Boltztrap
+        Run Boltztrap (which includes writing bolztrap input files and parsing outputs). Assumes 
+        you have a previous FW with the calc_locs passed into the current FW.
 
         Args:
             structure (Structure): - only used for setting name of FW
