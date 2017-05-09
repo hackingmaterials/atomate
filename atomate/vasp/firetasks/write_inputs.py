@@ -284,7 +284,9 @@ class WriteVaspSOCFromPrev(FiretaskBase):
 class WriteTransmutedStructureIOSet(FiretaskBase):
     """
     Apply the provided transformations to the input structure and write the
-    input set for that structure. Reads structure from POSCAR if no structure provided
+    input set for that structure. Reads structure from POSCAR if no structure provided. Note that 
+    if a transformation yields many structures from one, only the last structure in the list is 
+    used.
 
     Required params:
         structure (Structure): input structure

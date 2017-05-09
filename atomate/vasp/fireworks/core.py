@@ -253,13 +253,14 @@ class LepsFW(Firework):
 
 
 class SOCFW(Firework):
-    def __init__(self, structure, magmom, name="spinorbit coupling", saxis=(0, 0, 1),
+    def __init__(self, structure, magmom, name="spin-orbit coupling", saxis=(0, 0, 1),
                  vasp_cmd="vasp_ncl", copy_vasp_outputs=True, db_file=None, parents=None, **kwargs):
         """
         Firework for spin orbit coupling calculation.
 
         Args:
-            structure (Structure): Input structure.
+            structure (Structure): Input structure. If copy_vasp_outputs, used only to set the 
+                name of the FW.
             name (str): Name for the Firework.
             vasp_cmd (str): Command to run vasp.
             copy_vasp_outputs (bool): Whether to copy outputs from previous
@@ -271,14 +272,14 @@ class SOCFW(Firework):
         """
         t = []
 
-        if parents:
-            if copy_vasp_outputs:
-                t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
-                                         contcar_to_poscar=True))
+        if copy_vasp_outputs:
+            t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
+                                     contcar_to_poscar=True))
             t.append(WriteVaspSOCFromPrev(prev_calc_dir=".", magmom=magmom, saxis=saxis))
         else:
             vasp_input_set = MPSOCSet(structure)
             t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
+
         t.extend([RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"),
                   PassCalcLocs(name=name),
                   VaspToDbTask(db_file=db_file, additional_fields={"task_label": name})])
@@ -294,15 +295,16 @@ class TransmuterFW(Firework):
                  **kwargs):
         """
         Apply the transformations to the input structure, write the input set corresponding
-        to the transformed structure and run vasp on them.
+        to the transformed structure, and run vasp on them.  Note that if a transformation yields 
+        many structures from one, only the last structure in the list is used.
 
         Args:
             structure (Structure): Input structure.
             transformations (list): list of names of transformation classes as defined in
                 the modules in pymatgen.transformations.
                 eg:  transformations=['DeformStructureTransformation', 'SupercellTransformation']
-            transformation_params (list): list of dicts where each dict specify the input parameters to
-                instantiate the transformation class in the transformations list.
+            transformation_params (list): list of dicts where each dict specify the input 
+                parameters to instantiate the transformation class in the transformations list.
             vasp_input_set (VaspInputSet): VASP input set, used to write the input set for the
                 transmuted structure.
             name (string): Name for the Firework.
@@ -318,22 +320,16 @@ class TransmuterFW(Firework):
         vasp_input_set = vasp_input_set or MPStaticSet(structure, force_gamma=True,
                                                        **override_default_vasp_params)
 
-        if parents:
-            if copy_vasp_outputs:
-                t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
-            t.append(
-                WriteTransmutedStructureIOSet(structure=structure, transformations=transformations,
-                                              transformation_params=transformation_params,
-                                              vasp_input_set=vasp_input_set,
-                                              override_default_vasp_params=override_default_vasp_params,
-                                              prev_calc_dir="."))
-        else:
-            t.append(
-                WriteTransmutedStructureIOSet(structure=structure, transformations=transformations,
-                                              transformation_params=transformation_params,
-                                              vasp_input_set=vasp_input_set,
-                                              override_default_vasp_params=override_default_vasp_params))
+        if copy_vasp_outputs:
+            t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
 
+        prev_calc_dir = "." if copy_vasp_outputs else None
+        t.append(
+            WriteTransmutedStructureIOSet(structure=structure, transformations=transformations,
+                                          transformation_params=transformation_params,
+                                          vasp_input_set=vasp_input_set,
+                                          override_default_vasp_params=override_default_vasp_params,
+                                          prev_calc_dir=prev_calc_dir))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDbTask(db_file=db_file,
@@ -342,6 +338,7 @@ class TransmuterFW(Firework):
                                   "transmuter": {"transformations": transformations,
                                                  "transformation_params": transformation_params}
                               }))
+
         super(TransmuterFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)
 
