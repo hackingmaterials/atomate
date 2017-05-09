@@ -51,7 +51,19 @@ class TestToDbTask(unittest.TestCase):
         self.lp.reset("", require_password=False)
         #self.lp.db.tasks.drop()
 
+    def test_ToDbTask(self):
+        fw1 = Firework([ToDbTask(drone="atomate.common.firetasks.tests.test_parse_outputs.testDrone",
+                                 mmdb="",
+                                 db_file="db.json",
+                                 calc_dir=db_dir)], name="fw1")
 
+        wf = Workflow([fw1])
+        self.lp.add_wf(wf)
+        rapidfire(self.lp)
+
+        task1 = self.lp.db.tasks.find_one({"task_id":1})
+        self.assertEqual(task1['task_id'],1)
+        self.assertEqual(task1['Drone'],'Test Drone')
 
 if __name__ == "__main__":
     unittest.main()
