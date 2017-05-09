@@ -218,7 +218,7 @@ def get_wf_from_spec_dict(structure, wfspec):
     wfname = "{}:{}".format(structure.composition.reduced_formula, wfspec["name"]) if \
         wfspec.get("name") else structure.composition.reduced_formula
 
-    return Workflow(fws, name=wfname)
+    return Workflow(fws, name=wfname, metadata=wfspec.get("metadata"))
 
 
 # TODO: @matk86 - please remove this pointless method. Write tighter code rather than this silly

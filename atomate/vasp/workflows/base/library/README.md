@@ -54,5 +54,8 @@ In the above example, we have:
 * the third and fourth Fireworks (NonSCFUniformFW and NonSCFLineFW) will run after the StaticFW is
 complete. Note these two Fireworks can run in parallel.
 
+One can also specify a "metadata" key as a YAML dict/hash that will initialize workflow metadata
+(not shown).
+
 Finally, `name` is used to set the Workflow name
 (structure formula + name) which can be helpful in record keeping.
