@@ -14,7 +14,7 @@ __email__ = 'ajain@lbl.gov, ongsp@eng.ucsd.edu, kmathew@lbl.gov'
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 
-def get_wf(structure, wf_filename, params=None, common_params=None, vis=None):
+def get_wf(structure, wf_filename, params=None, common_params=None, vis=None, wf_metadata=None):
     """
     Get a workflow given a structure and a name of file from the workflow library.
     
@@ -30,6 +30,7 @@ def get_wf(structure, wf_filename, params=None, common_params=None, vis=None):
             that is same length as # of fws in the workflow
         common_params: (dict) set common params
         vis: (VaspInputSet) A VaspInputSet to use for the first FW
+        wf_metadata: (dict) workflow metadata
 
     Returns:
         A Workflow
@@ -54,5 +55,9 @@ def get_wf(structure, wf_filename, params=None, common_params=None, vis=None):
         if "params" not in d["fireworks"][0]:
             d["fireworks"][0]["params"] = {}
         d["fireworks"][0]["params"]["vasp_input_set"] = vis.as_dict()
+
+    if wf_metadata:
+        d["metadata"] = d.get("metadata", {})
+        d["metadata"].update(wf_metadata)
 
     return get_wf_from_spec_dict(structure, d)

@@ -155,6 +155,8 @@ def get_wf_from_spec_dict(structure, wfspec):
               db_file: db.json
               $vasp_cmd: $HOME/opt/vasp
             name: bandstructure
+            metadata:
+                tag: testing_workflow
             ```
 
             The `fireworks` key is a list of Fireworks; it is expected that

@@ -27,6 +27,8 @@ common_params:
   db_file: db.json
   $vasp_cmd: $HOME/opt/vasp
 name: bandstructure
+metadata:
+  tag: testing_workflow
 
 The `fireworks` key is a list of Fireworks; it is expected that all such
 Fireworks (when you dig into the Python code) have "structure" as the
@@ -51,11 +53,11 @@ logical workflow.
 In the above example, we have:
 * the first Firework (OptimizeFW) will run before anything else
 * the second Firework (StaticFW) will run after the OptimizeFW is complete
-* the third and fourth Fireworks (NonSCFUniformFW and NonSCFLineFW) will run after the StaticFW is
-complete. Note these two Fireworks can run in parallel.
+* the third and fourth Fireworks (NonSCFUniformFW and NonSCFLineFW) will
+run after the StaticFW is complete. Note these two Fireworks can run in parallel.
 
-One can also specify a "metadata" key as a YAML dict/hash that will initialize workflow metadata
-(not shown).
+Next, `name` is used to set the Workflow name (structure formula +
+name) which can be helpful in record keeping.
 
-Finally, `name` is used to set the Workflow name
-(structure formula + name) which can be helpful in record keeping.
+Finally, one can specify a `metadata` key as a YAML dict/hash that will
+initialize workflow metadata - this is purely optional and for bookkeeping.
