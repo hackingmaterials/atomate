@@ -1,3 +1,18 @@
+# This file configures the behavior of the TasksMaterialsBuilder
+
+# the types of tasks that are considered for building the materials collection
+supported_task_labels:
+  - "structure optimization"
+  - "static"
+  - "nscf uniform"
+  - "nscf line"
+  - "hse gap"
+  - "static dielectric"
+
+# Each entry in property settings includes:
+# (i) a list of materials properties that are affected
+# (ii) where those properties are located in the tasks (tasks_key) and materials (materials_key) collections
+# (iii) quality scores that define which kinds of task labels give better accuracy for those properties
 property_settings:
   - properties:
       - bandgap
@@ -54,18 +69,12 @@ property_settings:
     quality_scores:
       "hse gap": 1
 
+# These properties get copied to the root of the materials document for easier access
 properties_root:
   - bandgap
   - energy_per_atom
 
-supported_task_labels:
-  - "structure optimization"
-  - "static"
-  - "nscf uniform"
-  - "nscf line"
-  - "hse gap"
-  - "static dielectric"
-
+# database indexes on materials collection for faster query
 indexes:
   - "_tasksbuilder.all_task_ids"
   - "bandstructure.bandgap"

@@ -1,5 +1,6 @@
 # A standard CI-NEB calculation
 # Comment the item to use the default settings.
+# Note that "fireworks" is a list corresponding to the order of execution.
 fireworks:
 # Relaxation for parent structure
 - fw: atomate.vasp.fireworks.core.NEBRelaxationFW
@@ -58,7 +59,7 @@ common_params:
   wf_name: lio2_neb_workflow
   is_optimized: False  # for calcluation from ep and parent
   # additional_ep_params:
-  idpp_species: "Li"
+  idpp_species: ["Li"]  # List of string
   site_indices: [0, 1]
   interpolation_type: "IDPP"
   # Distance tolerance (in Angstrom) used to match the atomic indices between
@@ -66,3 +67,4 @@ common_params:
   sort_tol: 0
   # Distance in Angstrom, used in calculating number of images.
   d_img: 0.7
+  neb_walltime: "10:00:00"  # set NEB walltime to 10 hours

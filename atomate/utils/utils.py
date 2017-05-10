@@ -40,10 +40,9 @@ def env_chk(val, fw_spec, strict=True, default=None):
     thus achieving different behavior on different machines.
 
     Args:
-        val: any value, with ">><<" notation reserved for special env lookup
-            values
+        val: any value, with ">><<" notation reserved for special env lookup values
         fw_spec: (dict) fw_spec where one can find the _fw_env keys
-        strict (bool): if True, errors if env value cannot be found
+        strict (bool): if True, errors if env format (>><<) specified but cannot be found in fw_spec
         default: if val is None or env cannot be found in non-strict mode,
                  return default
     """
@@ -156,6 +155,8 @@ def get_wf_from_spec_dict(structure, wfspec):
               db_file: db.json
               $vasp_cmd: $HOME/opt/vasp
             name: bandstructure
+            metadata:
+                tag: testing_workflow
             ```
 
             The `fireworks` key is a list of Fireworks; it is expected that
@@ -219,28 +220,8 @@ def get_wf_from_spec_dict(structure, wfspec):
     wfname = "{}:{}".format(structure.composition.reduced_formula, wfspec["name"]) if \
         wfspec.get("name") else structure.composition.reduced_formula
 
-    return Workflow(fws, name=wfname)
+    return Workflow(fws, name=wfname, metadata=wfspec.get("metadata"))
 
-
-# TODO: @computron - not sure who added this, but it is pretty inelegant and unintuitive. Has to do
-# with mixing dict versions and object versions of objects in writing powerups. Consider nuking it
-# and replacing with less lazy(?) implementations of powerups instead of this ugliness. -computron
-def update_wf(wf):
-    """
-    Simple helper to ensure that the powerup updates to the workflow dict has taken effect.
-    This is needed  because all the powerups that modify workflow do so on the dict representation
-    of the workflow(or mix thereof eg: add tasks as dict to the fireworks spec etc) and for
-    inspection the powerups rely on a mix of object and dict representations of workflow object(
-    along with the constituent fireworks and firetasks) that are not in one to one correspondence
-    with the updated dict representation.
-
-    Args:
-        wf (Workflow)
-
-    Returns:
-        Workflow
-    """
-    return Workflow.from_dict(wf.as_dict())
 
 # TODO: @matk86 - please remove this pointless method. Write tighter code rather than this silly
 # "auto-converting without thinking about it" mess. Even if you wanted to do this auto-conversion,
@@ -317,4 +298,4 @@ def remove_fws(orig_wf, fw_ids):
 
     new_wf = Workflow.from_dict(wf_dict)
 
-    return update_wf(new_wf)
+    return new_wf

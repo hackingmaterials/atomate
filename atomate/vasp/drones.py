@@ -37,8 +37,6 @@ __version__ = "0.1.0"
 
 logger = get_logger(__name__)
 
-# TODO: this code could use some cleanup ...
-
 
 class VaspDrone(AbstractDrone):
     """
@@ -46,9 +44,9 @@ class VaspDrone(AbstractDrone):
     Please refer to matgendb.creator.VaspToDbTaskDrone documentation.
     """
 
-    __version__ = 0.2
+    __version__ = 0.2  # note: the version is inserted into the task doc
 
-    # Schema def of important keys and sub-keys
+    # Schema def of important keys and sub-keys; used in validation
     schema = {
         "root": {
             "schema", "dir_name", "chemsys", "composition_reduced",
@@ -80,25 +78,14 @@ class VaspDrone(AbstractDrone):
         self.compress_dos = compress_dos
         self.additional_fields = additional_fields or {}
         self.use_full_uri = use_full_uri
-        self.runs = runs or ["relax1", "relax2"]  # TODO: make this auto-detected
+        self.runs = runs or ["relax" + str(i+1) for i in range(9)]  # can't auto-detect: path unknown
         self.bandstructure_mode = bandstructure_mode
         self.compress_bs = compress_bs
 
     def assimilate(self, path):
         """
-        Parses vasp runs(vasprun.xml file) and insert the result into the db.
-
-        Args:
-            path (str): Path to the directory containing vasprun.xml file
-
-        Returns:
-            tuple of (task_id, task_doc dict)
-        """
-        return self.get_task_doc(path)
-
-    def get_task_doc(self, path):
-        """
         Adapted from matgendb.creator
+        Parses vasp runs(vasprun.xml file) and insert the result into the db.
         Get the entire task doc from the vasprum.xml and the OUTCAR files in the path.
         Also adds some post-processed info.
 
@@ -106,7 +93,7 @@ class VaspDrone(AbstractDrone):
             path (str): Path to the directory containing vasprun.xml and OUTCAR files
 
         Returns:
-            The dictionary to be inserted into the db
+            (dict): a task dictionary
         """
         logger.info("Getting task doc for base dir :{}".format(path))
         vasprun_files = self.filter_files(path, file_pattern="vasprun.xml")
@@ -116,14 +103,14 @@ class VaspDrone(AbstractDrone):
             self.post_process(path, d)
         else:
             raise ValueError("No VASP files found!")
-        self.check_keys(d)
+        self.validate_doc(d)
         return d
 
     def filter_files(self, path, file_pattern="vasprun.xml"):
         """
         Find the files that match the pattern in the given path and
         return them in an ordered dictionary. The searched for files are
-        filtered by the run types defined in self.runs. e.g. ["relax1", "relax2"].
+        filtered by the run types defined in self.runs. e.g. ["relax1", "relax2", ...].
         Only 2 schemes of the file filtering is enabled: searching for run types
         in the list of files and in the filenames. Modify this method if more
         sophisticated filtering scheme is needed.
@@ -161,16 +148,16 @@ class VaspDrone(AbstractDrone):
         Adapted from matgendb.creator.generate_doc
         """
         try:
+            # basic properties, incl. calcs_reversed and run_stats
             fullpath = os.path.abspath(dir_name)
             d = {k: v for k, v in self.additional_fields.items()}
             d["schema"] = {"code": "atomate", "version": VaspDrone.__version__}
             d["dir_name"] = fullpath
             d["calcs_reversed"] = [self.process_vasprun(dir_name, taskname, filename)
                                    for taskname, filename in vasprun_files.items()]
-            outcar_data = [self.process_outcar(dir_name, filename)
+            outcar_data = [Outcar(os.path.join(dir_name, filename)).as_dict()
                            for taskname, filename in outcar_files.items()]
             run_stats = {}
-            # set run_stats and calcs_reversed.x.output.outcar
             for i, d_calc in enumerate(d["calcs_reversed"]):
                 run_stats[d_calc["task"]["name"]] = outcar_data[i].pop("run_stats")
                 if d_calc.get("output"):
@@ -186,9 +173,12 @@ class VaspDrone(AbstractDrone):
             except:
                 logger.error("Bad run stats for {}.".format(fullpath))
             d["run_stats"] = run_stats
-            # reverse the calculations data order
+
+            # reverse the calculations data order so newest calc is first
             d["calcs_reversed"].reverse()
-            d_calc_initial = d["calcs_reversed"][-1]
+
+            # set root formula/composition keys based on initial and final calcs
+            d_calc_init = d["calcs_reversed"][-1]
             d_calc_final = d["calcs_reversed"][0]
             d["chemsys"] = "-".join(sorted(d_calc_final["elements"]))
             comp = Composition(d_calc_final["composition_unit_cell"])
@@ -197,18 +187,71 @@ class VaspDrone(AbstractDrone):
             for root_key in ["completed_at", "nsites", "composition_unit_cell",
                              "composition_reduced", "formula_pretty", "elements", "nelements"]:
                 d[root_key] = d_calc_final[root_key]
-            # set other root keys
-            self.set_input_data(d_calc_initial, d)
-            self.set_output_data(d_calc_final, d)
-            self.set_state(d_calc_final, d)
+
+            # store the input key based on initial calc
+            # store any overrides to the exchange correlation functional
+            xc = d_calc_init["input"]["incar"].get("GGA")
+            if xc:
+                xc = xc.upper()
+            p = d_calc_init["input"]["potcar_type"][0].split("_")
+            pot_type = p[0]
+            functional = "lda" if len(pot_type) == 1 else "_".join(p[1:])
+            d["input"] = {"structure": d_calc_init["input"]["structure"],
+                          "is_hubbard": d_calc_init.pop("is_hubbard"),
+                          "hubbards": d_calc_init.pop("hubbards"),
+                          "is_lasph": d_calc_init["input"]["incar"].get("LASPH", False),
+                          "potcar_spec": d_calc_init["input"].get("potcar_spec"),
+                          "xc_override": xc,
+                          "pseudo_potential": {"functional": functional.lower(),
+                                               "pot_type": pot_type.lower(),
+                                               "labels": d_calc_init["input"]["potcar"]},
+                          "parameters": d_calc_init["input"]["parameters"],
+                          "incar": d_calc_init["input"]["incar"]
+                          }
+
+            # store the output key based on final calc
+            d["output"] = {
+                "structure": d_calc_final["output"]["structure"],
+                "density": d_calc_final.pop("density"),
+                "energy": d_calc_final["output"]["energy"],
+                "energy_per_atom": d_calc_final["output"]["energy_per_atom"]}
+
+            calc = d["calcs_reversed"][0]
+            gap = calc["output"]["bandgap"]
+            cbm = calc["output"]["cbm"]
+            vbm = calc["output"]["vbm"]
+            is_direct = calc["output"]["is_gap_direct"]
+            is_metal = calc["output"]["is_metal"]
+            d["output"].update({"bandgap": gap, "cbm": cbm, "vbm": vbm,
+                                "is_gap_direct": is_direct, "is_metal": is_metal})
+
+            sg = SpacegroupAnalyzer(Structure.from_dict(d_calc_final["output"]["structure"]), 0.1)
+            if not sg.get_symmetry_dataset():
+                sg = SpacegroupAnalyzer(Structure.from_dict(d_calc_final["output"]["structure"]),
+                                        1e-3, 1)
+            d["output"]["spacegroup"] = {
+                "source": "spglib",
+                "symbol": sg.get_space_group_symbol(),
+                "number": sg.get_space_group_number(),
+                "point_group": sg.get_point_group_symbol(),
+                "crystal_system": sg.get_crystal_system(),
+                "hall": sg.get_hall()}
+            if d["input"]["parameters"].get("LEPSILON"):
+                for k in ['epsilon_static', 'epsilon_static_wolfe', 'epsilon_ionic']:
+                    d["output"][k] = d_calc_final["output"][k]
+
+            d["state"] = "successful" if d_calc["has_vasp_completed"] else "unsuccessful"
+
             self.set_analysis(d)
+
             d["last_updated"] = datetime.datetime.today()
             return d
-        except Exception as ex:
+
+        except Exception:
             import traceback
             logger.error(traceback.format_exc())
             logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
-            return None
+            return None  # TODO: @matk86: Why does this return None instead of throwing the error? -computron
 
     def process_vasprun(self, dir_name, taskname, filename):
         """
@@ -223,6 +266,8 @@ class VaspDrone(AbstractDrone):
             vrun = Vasprun(vasprun_file)
 
         d = vrun.as_dict()
+
+        # rename formula keys
         for k, v in {"formula_pretty": "pretty_formula",
                      "composition_reduced": "reduced_cell_formula",
                      "composition_unit_cell": "unit_cell_formula"}.items():
@@ -238,6 +283,7 @@ class VaspDrone(AbstractDrone):
         d["dir_name"] = os.path.abspath(dir_name)
         d["completed_at"] = str(datetime.datetime.fromtimestamp(os.path.getmtime(vasprun_file)))
         d["density"] = vrun.final_structure.density
+
         # replace 'crystal' with 'structure'
         d["input"]["structure"] = d["input"].pop("crystal")
         d["output"]["structure"] = d["output"].pop("crystal")
@@ -264,74 +310,16 @@ class VaspDrone(AbstractDrone):
         d["output"]["is_gap_direct"] = bs_gap["direct"]
         d["output"]["is_metal"] = bs.is_metal()
         d["task"] = {"type": taskname, "name": taskname}
-        # phonon-dfpt
+
         if hasattr(vrun, "force_constants"):
+            # phonon-dfpt
             d["output"]["force_constants"] = vrun.force_constants.tolist()
             d["output"]["normalmode_eigenvals"] = vrun.normalmode_eigenvals.tolist()
             d["output"]["normalmode_eigenvecs"] = vrun.normalmode_eigenvecs.tolist()
         return d
 
-    def process_outcar(self, dir_name, filename):
-        """
-        Process the outcar file
-        """
-        return Outcar(os.path.join(dir_name, filename)).as_dict()
-
-    def set_input_data(self, d_calc, d):
-        """
-        set the 'input' key
-        """
-        # store any overrides to the exchange correlation functional
-        xc = d_calc["input"]["incar"].get("GGA")
-        if xc:
-            xc = xc.upper()
-        p = d_calc["input"]["potcar_type"][0].split("_")
-        pot_type = p[0]
-        functional = "lda" if len(pot_type) == 1 else "_".join(p[1:])
-        d["input"] = {"structure": d_calc["input"]["structure"],
-                      "is_hubbard": d_calc.pop("is_hubbard"),
-                      "hubbards": d_calc.pop("hubbards"),
-                      "is_lasph": d_calc["input"]["incar"].get("LASPH", False),
-                      "potcar_spec": d_calc["input"].get("potcar_spec"),
-                      "xc_override": xc,
-                      "pseudo_potential": {"functional": functional.lower(),
-                                           "pot_type": pot_type.lower(),
-                                           "labels": d_calc["input"]["potcar"]},
-                      "parameters": d_calc["input"]["parameters"],
-                      "incar": d_calc["input"]["incar"]
-                      }
-
-    def set_output_data(self, d_calc, d):
-        """
-        set the 'output' key
-        """
-        d["output"] = {
-            "structure": d_calc["output"]["structure"],
-            "density": d_calc.pop("density"),
-            "energy": d_calc["output"]["energy"],
-            "energy_per_atom": d_calc["output"]["energy_per_atom"]}
-        d["output"].update(self.get_basic_processed_data(d))
-        sg = SpacegroupAnalyzer(Structure.from_dict(d_calc["output"]["structure"]), 0.1)
-        if not sg.get_symmetry_dataset():
-            sg = SpacegroupAnalyzer(Structure.from_dict(d_calc["output"]["structure"]), 1e-3, 1)
-        d["output"]["spacegroup"] = {
-            "source": "spglib",
-            "symbol": sg.get_space_group_symbol(),
-            "number": sg.get_space_group_number(),
-            "point_group": sg.get_point_group_symbol(),
-            "crystal_system": sg.get_crystal_system(),
-            "hall": sg.get_hall()}
-        if d["input"]["parameters"].get("LEPSILON"):
-            for k in ['epsilon_static', 'epsilon_static_wolfe', 'epsilon_ionic']:
-                d["output"][k] = d_calc["output"][k]
-
-    def set_state(self, d_calc, d):
-        """
-        set the 'state' key
-        """
-        d["state"] = "successful" if d_calc["has_vasp_completed"] else "unsuccessful"
-
-    def set_analysis(self, d, max_force_threshold=0.5, volume_change_threshold=0.2):
+    @staticmethod
+    def set_analysis(d, max_force_threshold=0.5, volume_change_threshold=0.2):
         """
         Adapted from matgendb.creator
 
@@ -343,8 +331,12 @@ class VaspDrone(AbstractDrone):
         percent_delta_vol = delta_vol / initial_vol
         warning_msgs = []
         error_msgs = []
+
+        # delta volume checks
         if abs(percent_delta_vol) > volume_change_threshold:
             warning_msgs.append("Volume change > {}%".format(volume_change_threshold * 100))
+
+        # max force and valid structure checks
         max_force = None
         calc = d["calcs_reversed"][0]
         if d["state"] == "successful" and calc["input"]["parameters"].get("NSW", 0) > 0:
@@ -353,36 +345,22 @@ class VaspDrone(AbstractDrone):
             if max_force > max_force_threshold:
                 error_msgs.append("Final max force exceeds {} eV".format(max_force_threshold))
                 d["state"] = "error"
+
             s = Structure.from_dict(d["output"]["structure"])
             if not s.is_valid():
                 error_msgs.append("Bad structure (atoms are too close!)")
                 d["state"] = "error"
+
         d["analysis"] = {"delta_volume": delta_vol,
                          "delta_volume_percent": percent_delta_vol,
                          "max_force": max_force,
                          "warnings": warning_msgs,
                          "errors": error_msgs}
 
-    def get_basic_processed_data(self, d):
-        """
-        return processed data such as vbm, cbm, gap etc.
-        """
-        calc = d["calcs_reversed"][0]
-        gap = calc["output"]["bandgap"]
-        cbm = calc["output"]["cbm"]
-        vbm = calc["output"]["vbm"]
-        is_direct = calc["output"]["is_gap_direct"]
-        is_metal = calc["output"]["is_metal"]
-        return {"bandgap": gap,
-                "cbm": cbm,
-                "vbm": vbm,
-                "is_gap_direct": is_direct,
-                "is_metal": is_metal}
-
     def post_process(self, dir_name, d):
         """
-        Simple post-processing for various files other than the vasprun.xml and OUTCAR.
-        Looks for files: Transformations.json and custodian.json. Modify this if other
+        Post-processing for various files other than the vasprun.xml and OUTCAR.
+        Looks for files: transformations.json and custodian.json. Modify this if other
         output files need to be processed.
 
         Args:
@@ -393,11 +371,9 @@ class VaspDrone(AbstractDrone):
         """
         logger.info("Post-processing dir:{}".format(dir_name))
         fullpath = os.path.abspath(dir_name)
-        # VASP input generated by pymatgen's alchemy has a
-        # transformations.json file that keeps track of the origin of a
-        # particular structure. This is extremely useful for tracing back a
-        # result. If such a file is found, it is inserted into the task doc
-        # as d["transformations"]
+        # VASP input generated by pymatgen's alchemy has a transformations.json file that tracks
+        # the origin of a particular structure. If such a file is found, it is inserted into the
+        # task doc as d["transformations"]
         transformations = {}
         filenames = glob.glob(os.path.join(fullpath, "transformations.json*"))
         if len(filenames) >= 1:
@@ -426,6 +402,7 @@ class VaspDrone(AbstractDrone):
             if not other_parameters:  # if dict is now empty remove it
                 transformations.pop("other_parameters")
         d["transformations"] = transformations
+
         # Calculations done using custodian has a custodian.json,
         # which tracks the jobs performed and any errors detected and fixed.
         # This is useful for tracking what has actually be done to get a
@@ -442,11 +419,14 @@ class VaspDrone(AbstractDrone):
             d["tags"] = new_tags
         logger.info("Post-processed " + fullpath)
 
-    def check_keys(self, d):
+    def validate_doc(self, d):
         """
         Sanity check.
         Make sure all the important keys are set
         """
+        # TODO: @matk86 - I like the validation but I think no one will notice a failed
+        # validation tests which removes the usefulness of this. Any ideas to make people
+        # notice if the validation fails? -computron
         for k, v in self.schema.items():
             if k == "calcs_reversed":
                 diff = v.difference(set(d.get(k, d)[0].keys()))
@@ -457,10 +437,22 @@ class VaspDrone(AbstractDrone):
 
     def get_valid_paths(self, path):
         """
-        Required by the AbstractDrone.
-        Update this and use it to further filter the files to be assimilated.
+        There are some restrictions on the valid directory structures:
+
+        1. There can be only one vasp run in each directory. Nested directories
+           are fine.
+        2. Directories designated "relax1"..."relax9" are considered to be
+           parts of a multiple-optimization run.
+        3. Directories containing vasp output with ".relax1"...".relax9" are
+           also considered as parts of a multiple-optimization run.
         """
-        pass
+        (parent, subdirs, files) = path
+        if set(self.runs).intersection(subdirs):
+            return [parent]
+        if not any([parent.endswith(os.sep + r) for r in self.runs]) and \
+                len(glob.glob(os.path.join(parent, "vasprun.xml*"))) > 0:
+            return [parent]
+        return []
 
     def as_dict(self):
         init_args = {
