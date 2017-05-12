@@ -20,11 +20,11 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.relax = os.path.join(module_dir, "reference_files", "Si_structure_optimization",
+        cls.relax = os.path.join(module_dir, "..", "test_files", "Si_structure_optimization",
                                  "outputs")
-        cls.relax2 = os.path.join(module_dir, "reference_files", "Si_structure_optimization_relax2",
+        cls.relax2 = os.path.join(module_dir, "..", "test_files", "Si_structure_optimization_relax2",
                                  "outputs")
-        cls.Al = os.path.join(module_dir, "reference_files", "Al")
+        cls.Al = os.path.join(module_dir, "..", "test_files", "Al")
 
     def test_assimilate(self):
         drone = VaspDrone()

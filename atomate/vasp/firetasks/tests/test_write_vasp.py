@@ -24,25 +24,25 @@ class TestWriteVasp(PymatgenTest):
     @classmethod
     def setUpClass(cls):
         if not SETTINGS.get("PMG_VASP_PSP_DIR"):
-            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "reference_files")
+            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "test_files")
             print('This system is not set up to run VASP jobs. '
                   'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
         cls.struct_si = PymatgenTest.get_structure("Si")
 
         cls.ref_incar = Incar.from_file(
-            os.path.join(module_dir, "reference_files", "setup_test", "INCAR"))
+            os.path.join(module_dir, "..", "..", "test_files", "setup_test", "INCAR"))
         cls.ref_poscar = Poscar.from_file(
-            os.path.join(module_dir, "reference_files", "setup_test",
+            os.path.join(module_dir, "..", "..", "test_files", "setup_test",
                          "POSCAR"))
         cls.ref_potcar = Potcar.from_file(
-            os.path.join(module_dir, "reference_files", "setup_test",
+            os.path.join(module_dir, "..", "..", "test_files", "setup_test",
                          "POTCAR"))
         cls.ref_kpoints = Kpoints.from_file(
-            os.path.join(module_dir, "reference_files", "setup_test",
+            os.path.join(module_dir, "..", "..", "test_files", "setup_test",
                          "KPOINTS"))
         cls.ref_incar_preserve = Incar.from_file(os.path.join(module_dir,
-                                                              "reference_files",
+                                                              "..", "..", "test_files",
                                                               "preserve_incar",
                                                               "INCAR"))
 
