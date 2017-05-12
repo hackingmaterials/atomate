@@ -59,10 +59,9 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
         try:
             from phonopy import Phonopy
         except ImportError:
-            logger.warn("'phonopy' package NOT installed. Required for the final analysis step."
-                        "The debye model for the quasi harmonic approximation will be used.")
-            qha_type = "debye_model"
-            lepsilon = False
+            raise ValueError("'phonopy' package is NOT installed but is required for the final "
+                             "analysis step; you can alternatively switch to the qha_type to "
+                             "'debye_model' which does not require 'phonopy'.")
 
     tag = datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')
 

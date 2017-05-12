@@ -54,6 +54,7 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
     # Convert to conventional
     if conventional:
         structure = SpacegroupAnalyzer(structure).get_conventional_standard_structure()
+
     # Generate deformations
     deformations = []
 
