@@ -22,6 +22,7 @@ __author__ = "Hanmei Tang, Iek-Heng Chu"
 __email__ = 'hat003@eng.ucsd.edu, ihchu@eng.ucsd.edu'
 
 
+# TODO: @shyuep: Please do a code review at this module before I look at this. -computron
 @explicit_serialize
 class TransferNEBTask(FiretaskBase):
     """

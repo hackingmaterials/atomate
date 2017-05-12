@@ -16,7 +16,7 @@ from atomate.vasp.fireworks.core import NEBFW, NEBRelaxationFW
 __author__ = "Hanmei Tang, Iek-Heng Chu"
 __email__ = 'hat003@eng.ucsd.edu, ihchu@eng.ucsd.edu'
 
-
+# TODO: @shyuep: Please do a code review at this module before I look at this. -computron
 def _update_spec(additional_spec):
     """
     Update spec to overwrite default settings.
