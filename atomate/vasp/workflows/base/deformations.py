@@ -92,8 +92,8 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
                           vasp_input_set=vis_static, copy_vasp_outputs=True, parents=parents,
                           vasp_cmd=vasp_cmd, db_file=db_file)
         if pass_stress_strain:
-            fw.tasks.append(PassStressStrainData(number=n, symmops=symmops[n]).to_dict(),
-                                                 deformation=deformation.tolist())
+            fw.tasks.append(PassStressStrainData(number=n, symmops=symmops[n],
+                                                 deformation=deformation.tolist()))
         fws.append(fw)
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, name)
