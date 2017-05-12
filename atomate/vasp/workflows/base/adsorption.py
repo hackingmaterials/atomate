@@ -35,7 +35,7 @@ default_slab_gen_params = {"max_index": 1, "min_slab_size": 7.0, "min_vacuum_siz
 
 
 # TODO: @montoyjh - please fix the docstring -computron
-# TODO: @montoyjh - this code is a huge mess. Please clean up and I'll review again. -computron
+# TODO: @montoyjh - this code is a huge mess. Please clean up, let me know when finished, and I'll review again. -computron
 
 def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None, slab_gen_params=None,
                       vasp_cmd="vasp", db_file=None, conventional=True, slab_incar_params=None,
@@ -216,6 +216,11 @@ def get_wf_adsorption_from_slab(slab, molecules, vasp_input_set=None, vasp_cmd="
         name = slab.composition.reduced_formula
         if hasattr(slab, 'miller_index') and not name:
             name += "_"+"".join([str(i) for i in slab.miller_index])
+    # TODO: @montoyjh - looks to repeat code from the previous workflow (get_wf_adsorption). Not
+    # sure there is much "unique" code in this one. You could for example have the previous
+    # workflow call this workflow and append the workflow from this one to the previous one. Then
+    # get_wf_adsorption should also be much shorter. i.e., for each slab get_wf_adsorption, get the
+    # wf from this class and append that WFlow. -computron
     if auto_dipole:
         weights = np.array([site.species_and_occu.weight for site in slab])
         dipole_center = np.sum(weights*np.transpose(slab.frac_coords), axis=1)
@@ -243,6 +248,8 @@ def get_wf_adsorption_from_slab(slab, molecules, vasp_input_set=None, vasp_cmd="
     wfname = "{}:{}".format(name, "Adsorbate calculations")
     return Workflow(fws, name=wfname)
 
+# TODO: @montoyjh - I imagine a common thing to do is to compute the molecule separately, the
+# slab separately, then molecule + slab together. Is there a single Wflow to do all that? -computron
 
 def get_wf_molecules(molecules, vasp_input_sets=None, vibrations=False, min_vacuum_size=15.0,
                      vasp_cmd="vasp", db_file=None):
@@ -277,6 +284,8 @@ def get_wf_molecules(molecules, vasp_input_sets=None, vibrations=False, min_vacu
                                "EDIFF": 1e-6, "EDIFFG": -0.01, "POTIM": 0.02}
         v = vis or MPRelaxSet(m_struct, user_incar_settings=user_incar_settings,
                               user_kpoints_settings={"grid_density": 1})
+        # TODO: are you just trying to avoid double relaxation? You can still use OptimizeFW, just
+        # change the job_type parameter... -computron
         # Use StaticFW to avoid double relaxation
         fws.append(StaticFW(structure=m_struct, vasp_input_set=v,
                             vasp_cmd=vasp_cmd, db_file=db_file))
@@ -285,6 +294,7 @@ def get_wf_molecules(molecules, vasp_input_sets=None, vibrations=False, min_vacu
             user_incar_settings.update({"IBRION": 5, "ISYM": 0})
             v = MPRelaxSet(m_struct, user_incar_settings=user_incar_settings,
                            user_kpoints_settings={"grid_density": 1})
+            # TODO: why not just modify the static FW to allow for custom incar params? -computron
             # This is a bit of a hack.  Seems static fireworks don't cleanly allow
             # for custom incar parameters.
             fw = TransmuterFW(structure=m_struct, vasp_input_set=v,
