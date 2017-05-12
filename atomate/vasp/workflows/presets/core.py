@@ -210,8 +210,8 @@ def wf_elastic_constant(structure, c=None):
     db_file = c.get("DB_FILE", DB_FILE)
     order = c.get("order", 2)
     if order > 2:
-        mip = {"incar_update":{"ENCUT": 600, "EDIFF": 1e-10, "LAECHG":False,
-                               "ADDGRID":True, "LREAL":False}}
+        mip = {"incar_update":{"ENCUT": 800, "EDIFF": 1e-10, "LAECHG":False, "EDIFFG":-0.001,
+                               "ADDGRID":True, "LREAL":False, "ISYM":0}}
         user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density":40000})
     else:
         mip = {"incar_update":{"ENCUT": 700, "EDIFF": 1e-6, "LAECHG":False}}
