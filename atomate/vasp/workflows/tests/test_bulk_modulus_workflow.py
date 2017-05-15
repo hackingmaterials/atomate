@@ -101,14 +101,8 @@ class TestBulkModulusWorkflow(unittest.TestCase):
                 no_vasp_ref_dirs["bulk_modulus deformation {}".format(i-2)] = os.path.join(reference_dir, str(i))
 
         fake_vasp_ref_dirs["structure optimization"] =  os.path.join(reference_dir, "1")
-
-        print("here")
-        print(no_vasp_ref_dirs)
-        print
-        print(fake_vasp_ref_dirs)
-
-        wf_copy = use_no_vasp(wf, no_vasp_ref_dirs)
-        return use_fake_vasp(wf_copy, fake_vasp_ref_dirs, params_to_check=["ENCUT"])
+        new_wf = use_no_vasp(wf, no_vasp_ref_dirs)
+        return use_fake_vasp(new_wf, fake_vasp_ref_dirs, params_to_check=["ENCUT"])
 
 
 
