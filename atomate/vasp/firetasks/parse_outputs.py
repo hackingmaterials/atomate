@@ -568,7 +568,6 @@ class FitEquationOfStateTask(FiretaskBase):
         if fw_spec.get("tags", None):
             summary_dict["tags"] = fw_spec["tags"]
         summary_dict["eos_params"] = dict(eos_fit.results)
-        summary_dict["created_at"] = datetime.utcnow()
 
         if to_db:
             mmdb.collection = mmdb.db["eos"]
