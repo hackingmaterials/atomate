@@ -186,6 +186,9 @@ class TestVaspWorkflows(unittest.TestCase):
             d = json.load(f)
             self._check_run(d, mode="structure optimization")
 
+        wf = self.lp.get_wf_by_fw_id(1)
+        self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
+
     def test_single_Vasp_dbinsertion(self):
         # add the workflow
         structure = self.struct_si
@@ -205,6 +208,9 @@ class TestVaspWorkflows(unittest.TestCase):
 
         d = self._get_task_collection().find_one()
         self._check_run(d, mode="structure optimization")
+
+        wf = self.lp.get_wf_by_fw_id(1)
+        self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
 
     def test_bandstructure_Vasp(self):
         # add the workflow
@@ -244,6 +250,9 @@ class TestVaspWorkflows(unittest.TestCase):
         d = self._get_task_collection().find_one({"task_label": "nscf line"}, sort=[("_id", DESCENDING)])
         self._check_run(d, mode="nscf line")
 
+        wf = self.lp.get_wf_by_fw_id(1)
+        self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
+
     def test_bandgap_check_Vasp(self):
         # add the workflow
         structure = self.struct_si
@@ -274,6 +283,9 @@ class TestVaspWorkflows(unittest.TestCase):
             {"name": "Si-static"}, {"state": 1})["state"],
                          "DEFUSED")
 
+        wf = self.lp.get_wf_by_fw_id(1)
+        self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
+
     def test_trackers(self):
         # add the workflow
         structure = self.struct_si
@@ -295,6 +307,9 @@ class TestVaspWorkflows(unittest.TestCase):
         for x in self.lp.get_tracker_data(1):
             for t in x["trackers"]:
                 self.assertGreater(len(t.content.split("\n")), 20)
+
+        wf = self.lp.get_wf_by_fw_id(1)
+        self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
 
 
 if __name__ == "__main__":

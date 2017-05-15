@@ -159,6 +159,9 @@ class TestRamanWorkflow(unittest.TestCase):
         d = self._get_task_collection(coll_name="raman").find_one()
         self._check_run(d, mode="raman analysis")
 
+        wf = self.lp.get_wf_by_fw_id(1)
+        self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -120,6 +120,9 @@ class TestAdsorptionWorkflow(unittest.TestCase):
         d = self._get_task_collection().find_one({"task_label": "H1-Ir_100 adsorbate optimization 1"})
         self._check_run(d, mode="H1-Ir_100 adsorbate optimization 1")
 
+        wf = self.lp.get_wf_by_fw_id(1)
+        self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
+
 
 if __name__ == "__main__":
     unittest.main()

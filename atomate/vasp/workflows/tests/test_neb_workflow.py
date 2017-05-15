@@ -160,6 +160,9 @@ class TestNudgedElasticBandWorkflow(unittest.TestCase):
         # Use scratch directory as destination directory for testing
         rapidfire(self.lp, fworker=FWorker(env={"run_dest_root": self.scratch_dir}))
 
+        wf = self.lp.get_wf_by_fw_id(1)
+        self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
+
 
 if __name__ == "__main__":
     t = TestNudgedElasticBandWorkflow()
