@@ -567,7 +567,7 @@ class FitEquationOfStateTask(FiretaskBase):
         summary_dict["bulk_modulus"] = eos_fit.b0_GPa
         if fw_spec.get("tags", None):
             summary_dict["tags"] = fw_spec["tags"]
-        summary_dict["eos_params"] = dict(eos_fit.results)
+        summary_dict["results"] = dict(eos_fit.results)
 
         if to_db:
             mmdb.collection = mmdb.db["eos"]
