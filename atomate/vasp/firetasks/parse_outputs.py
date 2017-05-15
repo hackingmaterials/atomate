@@ -506,6 +506,7 @@ class FitEquationOfStateTask(FiretaskBase):
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         # get the optimized structure
         d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
+        all_task_ids.append(d["task_id"])
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
         eos_dict["structure"] = structure.as_dict()
 
@@ -518,6 +519,7 @@ class FitEquationOfStateTask(FiretaskBase):
             s = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
             energies.append(d["calcs_reversed"][-1]["output"]['energy'])
             volumes.append(s.volume)
+            all_task_ids.append(d["task_id"])
         eos_dict["energies"] = energies
         eos_dict["volumes"] = volumes
         eos_dict["all_task_ids"] = all_task_ids
