@@ -5,8 +5,6 @@ import os
 import unittest
 import shutil
 
-from unittest2 import SkipTest
-
 from fireworks import LaunchPad, Firework, Workflow
 from fireworks.core.rocket_launcher import rapidfire
 from pymatgen.apps.borg.hive import AbstractDrone
@@ -58,7 +56,7 @@ class TestToDbTask(unittest.TestCase):
         self.lp.db.counter.drop()
 
     def test_ToDbTask(self):
-        raise SkipTest("Shyam - please fix this test.")
+        raise unittest.SkipTest("Shyam - please fix this test.")
         d = TestDrone()
 
         fw1 = Firework([ToDbTask(drone=d,
