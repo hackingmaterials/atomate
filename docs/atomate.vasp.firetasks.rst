@@ -1,6 +1,13 @@
 atomate.vasp.firetasks package
 ==============================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    atomate.vasp.firetasks.tests
+
 Submodules
 ----------
 

@@ -2,6 +2,15 @@
 atomate Changelog
 ====================
 
+**v0.4.5**
+
+* *extensive* code review, code cleanup, and improved code docs - with some minor name refactoring
+* new builders: dielectric, structureanalysis (currently gives dimensionality of structure)
+* rewrite powerups as in-place with cleaner syntax
+* improved installation tutorial (B. Bocklund)
+* improve/fix/reorganize some unit tests
+* bug fixes (A. Jain, H. Tang, K. Mathew, B. Bocklund)
+
 **v0.4.4**
 
 * NEB workflow (H. Tang)
