@@ -1,4 +1,4 @@
-pymatgen generated KPOINTS with grid density = 619 / atom
+pymatgen 4.7.6+ generated KPOINTS with grid density = 619.431852869 / atom
 0
 Gamma
-8 8 8
+6 6 6
