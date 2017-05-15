@@ -19,7 +19,9 @@ db_dir = os.path.join(module_dir, "..", "..", "test_files")
 class TestDrone(AbstractDrone):
 
     def assimilate(self, path):
-        return {"Drone": "Test Drone"}
+        return {"drone": "Test Drone",
+                "dir_name": "/test",
+                'state': "successful"}
 
     def get_valid_paths(self, path):
         return path
@@ -50,15 +52,16 @@ class TestToDbTask(unittest.TestCase):
         shutil.rmtree(self.scratch_dir)
         os.chdir(module_dir)
         self.lp.reset("", require_password=False)
-        #self.lp.db.tasks.drop()
+        self.lp.db.tasks.drop()
+        self.lp.db.counter.drop()
 
     def test_ToDbTask(self):
-        # TODO: @shyamd Not sure how this test passed before? -computron
-        raise unittest.SkipTest(
-            'Shyam: please revise this test. The ToDbTask requires an actual drone=Drone not drone=str?')
-        fw1 = Firework([ToDbTask(drone="atomate.common.firetasks.tests.test_parse_outputs.testDrone",
-                                 mmdb="",
-                                 db_file="db.json",
+
+        d = TestDrone()
+
+        fw1 = Firework([ToDbTask(drone=d,
+                                 mmdb="atomate.vasp.database.VaspCalcDb",
+                                 db_file=os.path.join(db_dir, "db.json"),
                                  calc_dir=db_dir)], name="fw1")
 
         wf = Workflow([fw1])
@@ -67,7 +70,8 @@ class TestToDbTask(unittest.TestCase):
 
         task1 = self.lp.db.tasks.find_one({"task_id":1})
         self.assertEqual(task1['task_id'],1)
-        self.assertEqual(task1['Drone'],'Test Drone')
+        self.assertEqual(task1['dir_name'],"/test" )
+        self.assertEqual(task1['drone'],'Test Drone')
 
 if __name__ == "__main__":
     unittest.main()
