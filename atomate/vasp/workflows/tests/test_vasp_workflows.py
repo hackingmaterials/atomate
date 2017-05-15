@@ -283,9 +283,6 @@ class TestVaspWorkflows(unittest.TestCase):
             {"name": "Si-static"}, {"state": 1})["state"],
                          "DEFUSED")
 
-        wf = self.lp.get_wf_by_fw_id(1)
-        self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
-
     def test_trackers(self):
         # add the workflow
         structure = self.struct_si
