@@ -26,8 +26,8 @@ __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-db_dir = os.path.join(module_dir, "..", "..", "common", "test_files")
-reference_dir = os.path.join(module_dir, "reference_files")
+db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
+reference_dir = os.path.join(module_dir, "..", "..", "test_files")
 
 ref_dirs_si = {"structure optimization": os.path.join(reference_dir, "Si_structure_optimization"),
              "static": os.path.join(reference_dir, "Si_static"),
@@ -43,7 +43,7 @@ class TestVaspWorkflows(unittest.TestCase):
     def setUpClass(cls):
         # TODO: update this for the latest pymatgen...
         if not SETTINGS.get("PMG_VASP_PSP_DIR"):
-            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "reference_files")
+            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "test_files")
             print('This system is not set up to run VASP jobs. '
                   'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
@@ -186,6 +186,9 @@ class TestVaspWorkflows(unittest.TestCase):
             d = json.load(f)
             self._check_run(d, mode="structure optimization")
 
+        wf = self.lp.get_wf_by_fw_id(1)
+        self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
+
     def test_single_Vasp_dbinsertion(self):
         # add the workflow
         structure = self.struct_si
@@ -205,6 +208,9 @@ class TestVaspWorkflows(unittest.TestCase):
 
         d = self._get_task_collection().find_one()
         self._check_run(d, mode="structure optimization")
+
+        wf = self.lp.get_wf_by_fw_id(1)
+        self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
 
     def test_bandstructure_Vasp(self):
         # add the workflow
@@ -243,6 +249,9 @@ class TestVaspWorkflows(unittest.TestCase):
         # make sure the uniform run ran OK
         d = self._get_task_collection().find_one({"task_label": "nscf line"}, sort=[("_id", DESCENDING)])
         self._check_run(d, mode="nscf line")
+
+        wf = self.lp.get_wf_by_fw_id(1)
+        self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
 
     def test_bandgap_check_Vasp(self):
         # add the workflow
@@ -295,6 +304,9 @@ class TestVaspWorkflows(unittest.TestCase):
         for x in self.lp.get_tracker_data(1):
             for t in x["trackers"]:
                 self.assertGreater(len(t.content.split("\n")), 20)
+
+        wf = self.lp.get_wf_by_fw_id(1)
+        self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
 
 
 if __name__ == "__main__":

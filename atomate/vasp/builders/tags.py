@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from tqdm import tqdm
 
 from atomate.utils.utils import get_logger
-from atomate.vasp.builders import TasksMaterialsBuilder
+from atomate.vasp.builders.tasks_materials import TasksMaterialsBuilder
 from matgendb.util import get_database
 
 from atomate.vasp.builders.base import AbstractBuilder
@@ -33,7 +33,7 @@ class TagsBuilder(AbstractBuilder):
         logger.info("TagsBuilder starting...")
         self._build_indexes()
 
-        # TODO: Build incrementally, taking into account which *tasks* have already been processed
+        # TODO: @albalu Build incrementally, taking into account which *tasks* have already been processed -computron
         q = {}
         mats = [m for m in self._materials.find(q, {"_tasksbuilder.all_task_ids": 1, "tags": 1,
                                                     "material_id": 1})]
@@ -53,7 +53,7 @@ class TagsBuilder(AbstractBuilder):
             except:
                 import traceback
                 logger.exception("<---")
-                logger.exception("There was an error processing material_id: {}, task_id: {}".format(m["material_id"], taskid))
+                logger.exception("There was an error processing material_id: {}".format(m["material_id"]))
                 logger.exception(traceback.format_exc())
                 logger.exception("--->")
         logger.info("TagsBuilder finished processing.")

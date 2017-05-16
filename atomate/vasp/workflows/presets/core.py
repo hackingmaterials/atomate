@@ -24,7 +24,8 @@ __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 
-# TODO: config dict stuff could be clearer
+# TODO: @computron: Clarify the config dict -computron
+# TODO: @computron: Allow default config dict to be loaded from file -computron
 
 def wf_bandstructure(structure, c=None):
     c = c or {}
@@ -87,7 +88,7 @@ def wf_bandstructure_plus_boltztrap(structure, c=None):
     db_file = c.get("DB_FILE", DB_FILE)
 
     params = []
-    for x in range(4):
+    for x in range(4):  # everything but BoltzTrap task
         params.append({"vasp_cmd": vasp_cmd, "db_file": db_file})
     params.append({"db_file": db_file})
 
@@ -185,6 +186,7 @@ def wf_dielectric_constant_no_opt(structure, c=None):
 
     return wf
 
+
 def wf_piezoelectric_constant(structure, c=None):
 
     c = c or {}
@@ -208,6 +210,11 @@ def wf_elastic_constant(structure, c=None):
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
+    # TODO: @kmathew - this is abuse of the config settings. The config settings should just be
+    # high-level things (executive stuff, metadata options) and global (e.g.,
+    # user_kpoints_settings.grid_density is not a global parameter). Note that they are also
+    # typically capitalized. If the user really wants to tune a workflow (e.g. k-mesh) they should
+    # not use the preset workflows which are about trusting the defaults. -computron
     user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
     norm_deformations = c.get("norm_deformations", [-0.01, -0.005, 0.005, 0.01])
     shear_deformations = c.get("shear_deformations", [-0.06, -0.03, 0.03, 0.06])
@@ -218,8 +225,9 @@ def wf_elastic_constant(structure, c=None):
                                  shear_deformations=shear_deformations,
                                  db_file=db_file, user_kpoints_settings=user_kpoints_settings,
                                  optimize_structure=optimize_structure)
-    mip = {"incar_update":{"ENCUT": 700, "EDIFF": 1e-6, "LAECHG":False}}
-    wf = add_modify_incar(wf, modify_incar_params=mip)
+    wf = add_modify_incar(wf, modify_incar_params={"incar_update":{"ENCUT": 700,
+                                                                   "EDIFF": 1e-6,
+                                                                   "LAECHG":False}})
 
     wf = add_common_powerups(wf, c)
 
@@ -242,6 +250,7 @@ def wf_raman_spectra(structure, c=None):
     """
 
     c = c or {}
+    # TODO: @kmathew - See my previous comment about config dict params  -computron
     wf = get_wf_raman_spectra(structure, modes=c.get("modes", None), step_size=c.get("step_size", 0.005),
                               vasp_cmd=c.get("vasp_cmd", "vasp"), db_file=c.get("db_file", None))
 
@@ -267,8 +276,10 @@ def wf_gibbs_free_energy(structure, c=None):
     """
     c = c or {}
 
-    vasp_cmd = c.get("vasp_cmd", VASP_CMD)
-    db_file = c.get("db_file", DB_FILE)
+    vasp_cmd = c.get("VASP_CMD", VASP_CMD)
+    db_file = c.get("DB_FILE", DB_FILE)
+
+    # TODO: @kmathew - See my previous comment about config dict params  -computron
     user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
 
     # 21 deformed structures
@@ -277,6 +288,9 @@ def wf_gibbs_free_energy(structure, c=None):
 
     eos = c.get("eos", "vinet")
     qha_type = c.get("qha_type", "debye_model")
+
+    # TODO: @kmathew - See my previous comment about config dict params. Some of these might
+    # reasonably be in the config dict, e.g. GIBBS.T_MIN, GIBBS.TMAX  -computron
 
     # min and max temp in K, default setting is to compute the properties at 300K only
     t_min = c.get("t_min", 300.0)
@@ -313,10 +327,14 @@ def wf_bulk_modulus(structure, c=None):
     Returns:
         Workflow
     """
+
+    # TODO: @kmathew - See my previous comment about config dict params.
+    # TODO: @kmathew - see also CAPITALIZATION of config_dict params. I fixed some but
+    # left some for you. -computron
     c = c or {}
     eos = c.get("eos", "vinet")
-    vasp_cmd = c.get("vasp_cmd", VASP_CMD)
-    db_file = c.get("db_file", DB_FILE)
+    vasp_cmd = c.get("VASP_CMD", VASP_CMD)
+    db_file = c.get("DB_FILE", DB_FILE)
     user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
     deformations = c.get("deformations", [(np.identity(3)*(1+x)).tolist()
                                           for x in np.linspace(-0.1, 0.1, 10)])
@@ -346,6 +364,9 @@ def wf_thermal_expansion(structure, c=None):
         Workflow
     """
     c = c or {}
+    # TODO: @kmathew - See my previous comment about config dict params.
+    # TODO: @kmathew - see also CAPITALIZATION of config_dict params. I fixed some but
+    # left some for you. -computron
     eos = c.get("eos", "vinet")
     vasp_cmd = c.get("vasp_cmd", VASP_CMD)
     db_file = c.get("db_file", DB_FILE)
@@ -402,8 +423,17 @@ def wf_nudged_elastic_band(structures, parent, c=None):
 
     # config initialization
     c = c or {}
+    # TODO: @shyuep - config dict params are typically capitalized and intended to be global
+    # params unless namespaced. e.g. NEB.COMMON_PARAMS if it's only settings for NEB
+    # workflows. -computron
     spec = c.get("common_params", {})
     is_optimized = spec.get("is_optimized", False)
+
+    # TODO: @shyuep: the whole point of preset workflows is that they are supposed to be simple.
+    # e.g., give a structure or a list of structures, and forget about the rest. Here it looks like
+    # one needs to construct some kind of complicated configuration dictionary. Pretty sure no one
+    # apart from the people in your group have any idea how to use these functions or set up this
+    # config dict (which should not be necessary in the first place). -computron
 
     if c.get("fireworks"):  # Check config dict file
         fw_list = [f['fw'] for f in c.get("fireworks")]
@@ -433,6 +463,7 @@ def wf_nudged_elastic_band(structures, parent, c=None):
     user_kpoints_settings = [{"grid_density": 1000}] * (neb_round + 2)
     additional_cust_args = [{}] * (neb_round + 2)
 
+    # TODO: @shyuep - I have no idea what's going on here -computron
     if "fireworks" in c:
         for i in range(1, len(c["fireworks"])+1):
             user_incar_settings[-i] = c["fireworks"][-i].get("user_incar_settings", {})

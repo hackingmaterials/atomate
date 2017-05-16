@@ -34,6 +34,9 @@ default_slab_gen_params = {"max_index": 1, "min_slab_size": 7.0, "min_vacuum_siz
                            "center_slab": True, "max_normal_search": None}
 
 
+# TODO: @montoyjh - please fix the docstring -computron
+# TODO: @montoyjh - this code is a huge mess. Please clean up, let me know when finished, and I'll review again. -computron
+
 def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None, slab_gen_params=None,
                       vasp_cmd="vasp", db_file=None, conventional=True, slab_incar_params=None,
                       ads_incar_params=None, auto_dipole=True, use_bulk_coordination=False,
@@ -91,7 +94,7 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None, slab_gen
                               db_file=db_file, name="{}-structure optimization".format(
                 structure.composition.reduced_formula)))
 
-    max_index = max([int(i) for i in ''.join(adsorbate_config.keys())])
+    max_index = max([int(i) for i in ''.join(adsorbate_config.keys())])  # TODO: @montoyjh - is this used anywhere? -computron
     slabs = generate_all_slabs(structure, **slab_gen_params)
     mi_strings = [''.join([str(i) for i in slab.miller_index])
                   for slab in slabs]
@@ -117,14 +120,13 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None, slab_gen
             slab_trans_params = {"miller_index":slab.miller_index, "shift":slab.shift}
             slab_trans_params.update(slab_gen_params)
             slab_trans_params.pop("max_index")
-            slab_trans = SlabTransformation(**slab_trans_params)
-            fw_name = "{}_{} slab optimization".format(
-                slab.composition.reduced_formula, mi_string)
-            vis_slab = MVLSlabSet(slab, user_incar_settings=slab_incar_params)
-            # This is necessary to avoid problems with poscar/contcar conversion
-            slab.add_site_property("velocities", [[0., 0., 0.]]*slab.num_sites)
-            asf = AdsorbateSiteFinder(slab, selective_dynamics=True)
+            slab_trans = SlabTransformation(**slab_trans_params)  # TODO: @montoyjh - is this used anywhere? -computron
+
+            slab.add_site_property("velocities", [[0., 0., 0.]]*slab.num_sites)  #  prevents problems with poscar/contcar conversion
+            asf = AdsorbateSiteFinder(slab, selective_dynamics=True)  # TODO: @montoyjh - is this used anywhere? it's seemingly overridden below -computron
             if optimize_slab:
+                fw_name = "{}_{} slab optimization".format(slab.composition.reduced_formula,
+                                                           mi_string)
                 fws.append(TransmuterFW(name=fw_name, structure=structure, db_file=db_file,
                                         vasp_cmd=vasp_cmd,
                                         transformations=["SlabTransformation",
@@ -133,24 +135,32 @@ def get_wf_adsorption(structure, adsorbate_config, vasp_input_set=None, slab_gen
                                             slab_trans_params,
                                             {"site_properties": asf.slab.site_properties}],
                                         copy_vasp_outputs=True, parents=fws[0],
-                                        vasp_input_set=vis_slab))
-            # Generate adsorbate configurations and add fws to workflow
+                                        vasp_input_set=MVLSlabSet(slab, user_incar_settings=slab_incar_params)))
+
             if use_bulk_coordination:
                 asf = AdsorbateSiteFinder.from_bulk_and_miller(structure, slab.miller_index,
                                                                selective_dynamics=True)
             else:
                 asf = AdsorbateSiteFinder(slab, selective_dynamics=True)
+
+            # Generate adsorbate configurations and add fws to workflow
             for molecule in adsorbate_config[mi_string]:
                 structures = asf.generate_adsorption_structures(molecule, repeat=repeat,
                                                                 find_args=find_ads_params)
                 for n, struct in enumerate(structures):
                     # Sort structure because InsertSites sorts the structure
                     struct = struct.get_sorted_structure()
+
+                    # TODO: @montoyjh - here is one reason the code is a mess. You define
+                    # add_fw_name here but it's not needed until 10 lines down. Plus, you interrupt
+                    # the flow of an actual code block regarding the variable "struct" to add this
+                    # needless interjection. I cleaned up some of this but there is much more to
+                    # go. Define things at the place they are needed -computron
                     ads_fw_name = "{}-{}_{} adsorbate optimization {}".format(
                         molecule.composition.formula, structure.composition.reduced_formula,
                         mi_string, n)
-                    # Add velocities to avoid problems with poscar/contcar conversion
-                    struct.add_site_property("velocities", [[0., 0., 0.]]*struct.num_sites)
+
+                    struct.add_site_property("velocities", [[0., 0., 0.]]*struct.num_sites)  # prevents problems with poscar/contcar conversion
                     trans_ads = ["SlabTransformation", "SupercellTransformation",
                                  "InsertSitesTransformation", "AddSitePropertyTransformation"]
                     trans_supercell = SupercellTransformation.from_scaling_factors(
@@ -205,6 +215,11 @@ def get_wf_adsorption_from_slab(slab, molecules, vasp_input_set=None, vasp_cmd="
         name = slab.composition.reduced_formula
         if hasattr(slab, 'miller_index') and not name:
             name += "_"+"".join([str(i) for i in slab.miller_index])
+    # TODO: @montoyjh - looks to repeat code from the previous workflow (get_wf_adsorption). Not
+    # sure there is much "unique" code in this one. You could for example have the previous
+    # workflow call this workflow and append the workflow from this one to the previous one. Then
+    # get_wf_adsorption should also be much shorter. i.e., for each slab get_wf_adsorption, get the
+    # wf from this class and append that WFlow. -computron
     if auto_dipole:
         weights = np.array([site.species_and_occu.weight for site in slab])
         dipole_center = np.sum(weights*np.transpose(slab.frac_coords), axis=1)
@@ -232,6 +247,8 @@ def get_wf_adsorption_from_slab(slab, molecules, vasp_input_set=None, vasp_cmd="
     wfname = "{}:{}".format(name, "Adsorbate calculations")
     return Workflow(fws, name=wfname)
 
+# TODO: @montoyjh - I imagine a common thing to do is to compute the molecule separately, the
+# slab separately, then molecule + slab together. Is there a single Wflow to do all that? -computron
 
 def get_wf_molecules(molecules, vasp_input_sets=None, vibrations=False, min_vacuum_size=15.0,
                      vasp_cmd="vasp", db_file=None):
@@ -266,6 +283,8 @@ def get_wf_molecules(molecules, vasp_input_sets=None, vibrations=False, min_vacu
                                "EDIFF": 1e-6, "EDIFFG": -0.01, "POTIM": 0.02}
         v = vis or MPRelaxSet(m_struct, user_incar_settings=user_incar_settings,
                               user_kpoints_settings={"grid_density": 1})
+        # TODO: are you just trying to avoid double relaxation? You can still use OptimizeFW, just
+        # change the job_type parameter... -computron
         # Use StaticFW to avoid double relaxation
         fws.append(StaticFW(structure=m_struct, vasp_input_set=v,
                             vasp_cmd=vasp_cmd, db_file=db_file))
@@ -274,6 +293,7 @@ def get_wf_molecules(molecules, vasp_input_sets=None, vibrations=False, min_vacu
             user_incar_settings.update({"IBRION": 5, "ISYM": 0})
             v = MPRelaxSet(m_struct, user_incar_settings=user_incar_settings,
                            user_kpoints_settings={"grid_density": 1})
+            # TODO: why not just modify the static FW to allow for custom incar params? -computron
             # This is a bit of a hack.  Seems static fireworks don't cleanly allow
             # for custom incar parameters.
             fw = TransmuterFW(structure=m_struct, vasp_input_set=v,
