@@ -535,4 +535,4 @@ class NEBFW(Firework):
         tasks = [write_neb_task, run_neb_task, TransferNEBTask(label=label),
                  PassCalcLocs(name=label)]
 
-        super(NEBFW, self).__init__(tasks, spec=spec, name=label, **kwargs)    
+        super(NEBFW, self).__init__(tasks, spec=spec, name=label, **kwargs)
