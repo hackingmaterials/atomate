@@ -24,7 +24,7 @@ __author__ = 'Joseph Montoya'
 __email__ = 'montoyjh@lbl.gov'
 
 
-def get_fw_slab(slab, bulk_structure=None, slab_gen_params={}, db_file=None,
+def get_slab_fw(slab, bulk_structure=None, slab_gen_params={}, db_file=None,
                 vasp_input_set=None, parents=None, vasp_cmd="vasp", name=""):
     """
     Function to generate a a slab firework.  Returns a TransmuterFW
