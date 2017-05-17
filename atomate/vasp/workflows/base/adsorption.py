@@ -52,7 +52,7 @@ def get_fw_slab(slab, bulk_structure=None, slab_gen_params={}, db_file=None,
     # just create an optimize FW with the slab
     if bulk_structure:
         if not isinstance(slab, Slab):
-            raise ValueError("structure input to SlabFW requires slab to be a slab object!")
+            raise ValueError("structure input to get_slab_fw requires slab to be a slab object!")
         slab_trans_params = {"miller_index": slab.miller_index, "shift":slab.shift}
         slab_trans_params.update(slab_gen_params)
 
@@ -111,16 +111,16 @@ def get_wf_surface(slabs, molecules=[], bulk_structure=None, slab_gen_params=Non
         name = slab.composition.reduced_formula
         if getattr(slab, "miller_index", None):
             name += "_{}".format(slab.miller_index)
-        fws.append(SlabFW(slab, bulk_structure, slab_gen_params, db_file=db_file, 
-                          vasp_cmd=vasp_cmd, parents=parents, name=name+" slab optimization"))
+        fws.append(get_slab_fw(slab, bulk_structure, slab_gen_params, db_file=db_file, 
+            vasp_cmd=vasp_cmd, parents=parents, name=name+" slab optimization"))
         for molecule in molecules:
             ads_slabs = AdsorbateSiteFinder(slab).generate_adsorption_structures(
                     molecule, **ads_structures_params)
             for n, ads_slab in enumerate(ads_slabs):
                 ads_name = "{}-{} adsorbate optimization {}".format(
                         molecule.composition.formula, name, n)
-                fws.append(SlabFW(ads_slab, bulk_structure, slab_gen_params, db_file=db_file, 
-                                  vasp_cmd=vasp_cmd, parents=parents, name=ads_name))
+                fws.append(get_slab_fw(ads_slab, bulk_structure, slab_gen_params, db_file=db_file, 
+                    vasp_cmd=vasp_cmd, parents=parents, name=ads_name))
     if add_molecules_in_box:
         for molecule in molecules:
             # molecule in box
