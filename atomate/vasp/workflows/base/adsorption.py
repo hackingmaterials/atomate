@@ -80,7 +80,7 @@ def SlabFW(slab, bulk_structure=None, slab_gen_params={}, db_file=None,
 
 
 def get_wf_surface(slabs, molecules=[], bulk_structure=None, slab_gen_params=None,
-                   vasp_cmd="vasp", db_file=None, auto_dipole=False, ads_structures_params={},
+                   vasp_cmd="vasp", db_file=None, ads_structures_params={},
                    add_molecules_in_box=False):
     """
     slabs (list of Slabs or Structures): slabs to calculate
@@ -132,7 +132,7 @@ def get_wf_surface(slabs, molecules=[], bulk_structure=None, slab_gen_params=Non
     return Workflow(fws, name="")
 
 
-def get_wf_surface_all_slabs(bulk_structure, molecules, max_index=1, slab_gen_params=None):
+def get_wf_surface_all_slabs(bulk_structure, molecules, max_index=1, slab_gen_params=None, **kwargs):
     """
     Convenience constructor that allows a user to construct a workflow
     that finds all adsorption configurations (or slabs) for a given
@@ -145,15 +145,5 @@ def get_wf_surface_all_slabs(bulk_structure, molecules, max_index=1, slab_gen_pa
         slab_gen_params (dict): dictionary of kwargs for generate_all_slabs
     """
     sgp = slab_gen_params or {"min_slab_size": 7.0, "min_vacuum_size": 20.0}
-    slabs = generate_all_slabs(bulk_structure, max_index=max_index, **slab_gen_params)
-    return get_wf_surface(slabs, molecules, bulk_structure, sgp)
-
-
-if __name__ == "__main__":
-    struct_ir = Structure.from_spacegroup("Fm-3m", Lattice.cubic(3.875728), ["Ir"], [[0, 0, 0]])
-    sgp = {"max_index": 1, "min_slab_size": 7.0, "min_vacuum_size": 20.0}
-    slabs = generate_all_slabs(struct_ir, **sgp)
-    slabs = [slab for slab in slabs if slab.miller_index==(1, 0, 0)]
-    sgp.pop("max_index")
-    wf = get_wf_surface(slabs, [Molecule("H", [[0, 0, 0]])], struct_ir, sgp)
-    wf = get_wf_surface_all_slabs(struct_ir, [Molecule("H", [[0, 0, 0]])])
+    slabs = generate_all_slabs(bulk_structure, max_index=max_index, **sgp)
+    return get_wf_surface(slabs, molecules, bulk_structure, sgp, **kwargs)
