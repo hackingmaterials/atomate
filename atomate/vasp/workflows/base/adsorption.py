@@ -24,10 +24,13 @@ __author__ = 'Joseph Montoya'
 __email__ = 'montoyjh@lbl.gov'
 
 
-def SlabFW(slab, bulk_structure=None, slab_gen_params={}, db_file=None,
-           vasp_input_set=None, parents=None, vasp_cmd="vasp", name=""):
+def get_fw_slab(slab, bulk_structure=None, slab_gen_params={}, db_file=None,
+                vasp_input_set=None, parents=None, vasp_cmd="vasp", name=""):
     """
-    Constructor for a slab firework
+    Function to generate a a slab firework.  Returns a TransmuterFW
+    if bulk_structure is specified, constructing the necessary 
+    transformations from the slab and slab generator parameters,
+    or an OptimizeFW if only a slab is specified.
 
     slab (Slab or Structure): structure or slab corresponding 
         to the slab to be calculated
