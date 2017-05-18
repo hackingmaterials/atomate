@@ -131,40 +131,32 @@ class VaspToDbTask(FiretaskBase):
                         defuse_children=defuse_children)
 
 
-    @explicit_serialize
-    class JsonToDbTask(FiretaskBase):
-        """
-        Insert the task_doc.json with minimal change into the tasks database.
-        task_doc.json is assumed to be the result of a successful vasp run.
+@explicit_serialize
+class JsonToDbTask(FiretaskBase):
+    """
+    Insert the task.json with minimal change into the tasks database.
+    task.json is assumed to be the result of a successful vasp run.
+    Note that the task_id of task.json must not be duplicated in tasks collection.
 
-        see VaspToDbTask documentation for required and optional parameters
-        """
-        required_params = ["calc_dir"]
-        optional_params = ["db_file"]
+    see VaspToDbTask documentation for required and optional parameters
+    """
+    optional_params = ["db_file", "calc_dir"]
 
-        def run_task(self, fw_spec):
+    def run_task(self, fw_spec):
 
-            ref_file = "task_doc.json"
-            self.check_json(ref_file)
-            with open(os.path.join(self["calc_dir"], ref_file), "r") as fp:
-                task_doc = json.load(fp)
+        ref_file = "task.json"
+        calc_dir = self.get("calc_dir", os.getcwd())
+        with open(os.path.join(calc_dir, ref_file), "r") as fp:
+            task_doc = json.load(fp)
 
-            # suggested: to ensure no conflict with fresh task_ids generated in other manners
-            # task_doc["task_id"] = -task_doc["task_id"]
+        db_file = env_chk(self.get('db_file'), fw_spec)
+        if not db_file:
+            with open("task.json", "w") as f:
+                f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
+        else:
+            mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
+            mmdb.insert(task_doc)
 
-            db_file = env_chk(self.get('db_file'), fw_spec)
-            if not db_file:
-                with open("task.json", "w") as f:
-                    f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
-            else:
-                mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-                mmdb.insert(task_doc)
-
-        def check_json(self, ref_file):
-            if os.path.exists(os.path.join(self["calc_dir"], ref_file)):
-                return True
-            else:
-                raise ValueError("{} is not present hence RunVasp task cannot be skipped!".format(ref_file))
 
 
 # TODO: rename to BoltztrapToDb task (capitalization), keep old name backwards-compatible (easy)
