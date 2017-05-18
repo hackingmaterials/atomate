@@ -68,7 +68,7 @@ def get_wf_raman_spectra(structure, modes=None, step_size=0.005, vasp_cmd="vasp"
     fws.extend(fws_nm_disp)
 
     # Compute the Raman susceptibility tensor
-    fw_analysis = Firework(RamanSusceptibilityTensorToDbTask(db_file=db_file), parents=fws_nm_disp,
+    fw_analysis = Firework(RamanSusceptibilityTensorToDbTask(db_file=db_file), parents=fws[:],
                            name="{}-{}".format(structure.composition.reduced_formula, "raman analysis"))
     fws.append(fw_analysis)
 
