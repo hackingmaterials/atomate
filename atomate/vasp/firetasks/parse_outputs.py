@@ -530,14 +530,12 @@ class FitEquationOfStateTask(FiretaskBase):
         from pymatgen.analysis.eos import EOS
 
         eos = self.get("eos", "vinet")
-
         tag = self["tag"]
         db_file = env_chk(self.get("db_file"), fw_spec)
         summary_dict = {"eos": eos}
-
         to_db = self.get("to_db", True)
 
-        # collect and store task_id of all related tasks to make unique and permanent links with "tasks" collection
+        # collect and store task_id of all related tasks to make unique links with "tasks" collection
         all_task_ids = []
 
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
@@ -569,6 +567,7 @@ class FitEquationOfStateTask(FiretaskBase):
             summary_dict["tags"] = fw_spec["tags"]
         summary_dict["results"] = dict(eos_fit.results)
 
+        # db_file itself is required but the user can choose to pass the results to db or not
         if to_db:
             mmdb.collection = mmdb.db["eos"]
             mmdb.collection.insert_one(summary_dict)
@@ -576,8 +575,7 @@ class FitEquationOfStateTask(FiretaskBase):
             with open("bulk_modulus.json", "w") as f:
                 f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
 
-        # TODO: @matk86 - there needs to be a way to insert this into a database! And also
-        # a builder to put it into materials collection... -computron
+        # TODO: @matk86 - there needs to be a builder to put it into materials collection... -computron
         logger.info("Bulk modulus calculation complete.")
 
 
