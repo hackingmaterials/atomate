@@ -215,6 +215,50 @@ class CheckBandgap(FiretaskBase):
 
 # TODO: @computron - rename to PassStressStrain in backwards-compatible way (easy) -computron
 @explicit_serialize
+class PassVasprunResult(FiretaskBase):
+    """
+    Passes resultant property from 
+
+    Required params:
+        data_dict : the deformation gradient used in the elastic analysis.
+        
+    Optional params:
+        calc_dir (str): path to dir that contains VASP output files.
+        set_key (str): key to pass to mod_spec _set dictmod command
+        parse_function (str): 
+    """
+
+    required_params = ["data_dict"]
+    optional_params = ["calc_dir", "set_key", "parse_class", "parse_kwargs"]
+
+    def run_task(self, fw_spec):
+        data_dict = self.get("data_dict")
+        calc_dir = self.get("calc_dir", ".")
+        with monty.os.cd(calc_dir):
+            parse_kwargs = self.get("parse_kwargs", {"filename": "vasprun.xml", 
+                "parse_dos": False, "parse_eigen": False})
+            pc_string = self.get("parse_class", "pymatgen.io.vasp.sets.Vasprun")
+            parse_class = load_class(*pc_string.rsplit(".", 1))
+            result_dict = parse_class(**parse_kwargs).as_dict()
+        for k, v in data_dict.iteritems():
+            if isinstance(six.string_types, v) and v[:2] == ">>":
+                intfmt = re.compile("^[\-]?[0-9]*")
+                keychain = [int(s) if intfmt.match(v) else v for v in v.split('.')]
+                new_val = reduce(operator.getitem, keychain, result_dict)
+                data_dict.update({k: new_val})
+        return FWAction(mod_spec=[{'_set': {
+            set_key: result}}])
+
+        defo_dict = {'deformation_matrix': defo,
+                     'strain': strain.tolist(),
+                     'stress': ">>ionic_steps.-1.stress"}
+
+def get_vrun_data(rdict):
+    assert key[:2] == ">>", "key must begin with >> characters"
+    vd = v.as_dict()
+    
+# TODO: @computron - rename to PassStressStrain in backwards-compatible way (easy) -computron
+@explicit_serialize
 class PassStressStrainData(FiretaskBase):
     """
     Passes the stress and deformation for an elastic deformation calculation
