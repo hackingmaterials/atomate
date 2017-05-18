@@ -220,6 +220,16 @@ class RunBoltztrap(FiretaskBase):
 
 
 @explicit_serialize
+class RunNoVasp(FiretaskBase):
+    """
+    Do NOT run vasp. Do nothing.
+    """
+
+    def run_task(self, fw_spec):
+        pass
+
+
+@explicit_serialize
 class RunVaspFake(FiretaskBase):
     """
      Vasp Emulator
