@@ -90,7 +90,7 @@ def use_custodian(original_wf, fw_name_constraint=None, custodian_params=None):
 def use_no_vasp(original_wf, ref_dirs):
     """
     Instead of running VASP, does nothing and pass task documents from
-        task_doc.json files in ref_dirs to task database.
+        task.json files in ref_dirs to task database.
 
     Args:
         original_wf (Workflow)
