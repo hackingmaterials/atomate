@@ -45,8 +45,8 @@ class TestBulkModulusWorkflow(unittest.TestCase):
     note for the developer of the test:
     This tests can be run in two modes if not VASP_CMD:
     1. first all inputs and outputs of all deformations are present in which case
-        in each folder a trimmed version of task_doc.json will be generated so that
-    2. once task_doc.json is present, VaspRun can be skipped where task_doc.json is
+        in each folder a trimmed version of task.json will be generated so that
+    2. once task.json is present, VaspRun can be skipped where task.json is
         available and their "inputs" and "outputs" folders can be removed
     """
     @classmethod
@@ -168,9 +168,10 @@ class TestBulkModulusWorkflow(unittest.TestCase):
 
 
     def setup_task_docs(self):
+        self.task_file = "task.json"
         for i in range(2, ndeformations+2):
-            if os.path.exists(os.path.join(reference_dir, str(i), "task_doc.json")):
-                with open(os.path.join(reference_dir, str(i), "task_doc.json")) as fp:
+            if os.path.exists(os.path.join(reference_dir, str(i), self.task_file)):
+                with open(os.path.join(reference_dir, str(i), self.task_file)) as fp:
                     d = json.load(fp)
                     new_fw = self.lp.fireworks.find_one(
                         {"name": {"$regex": "bulk_modulus deformation {}".format(i - 2)}})
@@ -179,20 +180,20 @@ class TestBulkModulusWorkflow(unittest.TestCase):
                     d["task_label"] = new_fw["name"]
                     d["task_id"] += i + 1000000  # to avoid duplicate task_id
 
-                with open(os.path.join(reference_dir, str(i), "task_doc.json"), 'w') as fp:
+                with open(os.path.join(reference_dir, str(i), "task.json"), 'w') as fp:
                     json.dump(d, fp, sort_keys=True, indent=4, ensure_ascii=False, cls=MontyEncoder)
 
             else:
-                warnings.warn("task_doc.json is not present in {}".format(
-                    os.path.join(reference_dir, str(i), "task_doc.json")))
+                warnings.warn("{} is not present in {}".format(self.task_file,
+                    os.path.join(reference_dir, str(i), self.task_file)))
 
 
 
     def write_task_docs(self):
-        # this step needs to be run once: once task_doc.json is present, remove the inputs/outputs folders
+        # this step needs to be run once: once task.json is present, remove the inputs/outputs folders
         for i in range(2, ndeformations + 2):
-            # not to unnecessarily override available task_doc.json
-            if not os.path.exists(os.path.join(reference_dir, str(i), "task_doc.json")):
+            # not to unnecessarily override available task.json
+            if not os.path.exists(os.path.join(reference_dir, str(i), "task.json")):
                 d = self._get_task_collection().find_one(
                     {"task_label": {"$regex": "bulk_modulus deformation {}".format(i-2)}})
                 rm_props = ["bandstructure", "input"]
@@ -202,7 +203,7 @@ class TestBulkModulusWorkflow(unittest.TestCase):
                             del (d["calcs_reversed"][icalc][prop])
                         except:
                             pass
-                with open(os.path.join(reference_dir, str(i), "task_doc.json"), 'w') as fp:
+                with open(os.path.join(reference_dir, str(i), "task.json"), 'w') as fp:
                     json.dump(d, fp, sort_keys=True, indent=4, ensure_ascii=False, cls=MontyEncoder)
 
 
