@@ -23,7 +23,7 @@ from atomate.vasp.drones import VaspDrone
 
 from pymatgen import Structure
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
-from pymatgen.analysis.elasticity.strain import IndependentStrain
+from pymatgen.analysis.elasticity.strain import IndependentStrain, Strain
 from pymatgen.analysis.elasticity.stress import Stress
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar
@@ -226,7 +226,6 @@ class ElasticTensorToDbTask(FiretaskBase):
         drone = VaspDrone()
         optimize_doc = drone.assimilate(optimize_loc)
         opt_struct = Structure.from_dict(optimize_doc["calcs_reversed"][0]["output"]["structure"])
-
         d = {"analysis": {},
              "deformation_tasks": fw_spec["deformation_tasks"],
              "initial_structure": self['structure'].as_dict(),
@@ -238,15 +237,16 @@ class ElasticTensorToDbTask(FiretaskBase):
         if fw_spec.get("tags", None):
             d["tags"] = fw_spec["tags"]
 
-        dtypes = fw_spec["deformation_tasks"].keys()
-        defos = [fw_spec["deformation_tasks"][dtype]["deformation_matrix"]
-                 for dtype in dtypes]
-        stresses = [fw_spec["deformation_tasks"][dtype]["stress"] for dtype in dtypes]
+
+        results = fw_spec["deformation_tasks"].values()
+        defos = [r["deformation_matrix"] for r in results]
+        stresses = [r["stress"] for r in results]
+        strains = np.array([Strain(r["strain"]).voigt for r in results])
         stress_dict = {IndependentStrain(defo) : Stress(stress) for defo, stress in zip(defos, stresses)}
 
         logger.info("Analyzing stress/strain data")
         # Determine if we have 6 unique deformations
-        if len(set([de[:3] for de in dtypes])) == 6:  # TODO: @montoyjh: what if it's a cubic system? don't need 6. -computron
+        if np.linalg.matrix_rank(strains) == 6:  # TODO: @montoyjh: what if it's a cubic system? don't need 6. -computron
             # Perform Elastic tensor fitting and analysis
             result = ElasticTensor.from_stress_dict(stress_dict)
             d["elastic_tensor"] = result.voigt.tolist()
@@ -287,12 +287,12 @@ class RamanSusceptibilityTensorToDbTask(FiretaskBase):
     optional_params = ["db_file"]
 
     def run_task(self, fw_spec):
-        nm_norms = np.array(fw_spec["normalmodes"]["norms"])
+        nm_eigenvecs = np.array(fw_spec["normalmodes"]["eigenvecs"])
         nm_eigenvals = np.array(fw_spec["normalmodes"]["eigenvals"])
+        nm_norms = np.linalg.norm(nm_eigenvecs, axis=2)
         structure = fw_spec["normalmodes"]["structure"]
         masses = np.array([site.specie.data['Atomic mass'] for site in structure])
         nm_norms = nm_norms / np.sqrt(masses)  # eigenvectors in vasprun.xml are not divided by sqrt(M_i)
-
         # To get the actual eigenvals, the values read from vasprun.xml must be multiplied by -1.
         # frequency_i = sqrt(-e_i)
         # To convert the frequency to THZ: multiply sqrt(-e_i) by 15.633
