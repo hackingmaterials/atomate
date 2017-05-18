@@ -184,9 +184,9 @@ class TestBulkModulusWorkflow(unittest.TestCase):
                 with open(os.path.join(reference_dir, str(i), "task.json"), 'w') as fp:
                     json.dump(d, fp, sort_keys=True, indent=4, ensure_ascii=False, cls=MontyEncoder)
 
-            else:
-                warnings.warn("{} is not present in {}".format(self.task_file,
-                    os.path.join(reference_dir, str(i), self.task_file)))
+            elif not os.path.exists(os.path.join(reference_dir, str(i), "inputs")):
+                raise IOError("neither {} nor {} are present in {}".format("inputs",
+                    self.task_file, os.path.join(reference_dir, str(i), self.task_file)))
 
 
 
