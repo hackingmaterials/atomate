@@ -15,10 +15,12 @@ flow of the workflow, e.g. tasks to check stability or the gap is within a certa
 
 import gzip
 import os
-import re
+import six
+import operator
 from decimal import Decimal
 
 import numpy as np
+import monty
 
 from pymatgen import MPRester
 from pymatgen.io.vasp.sets import get_vasprun_outcar
@@ -26,8 +28,8 @@ from pymatgen.analysis.elasticity import reverse_voigt_map
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
-from atomate.utils.utils import env_chk, get_logger
-from atomate.common.firetasks.glue_tasks import get_calc_loc
+from atomate.utils.utils import env_chk, get_logger, load_class
+from atomate.common.firetasks.glue_tasks import get_calc_loc, PassResult
 from atomate.utils.fileio import FileClient
 
 logger = get_logger(__name__)
@@ -213,84 +215,79 @@ class CheckBandgap(FiretaskBase):
         return FWAction(stored_data=stored_data)
 
 
-# TODO: @computron - rename to PassStressStrain in backwards-compatible way (easy) -computron
 @explicit_serialize
-class PassVasprunResult(FiretaskBase):
+class PassVaspResult(FiretaskBase):
     """
-    Passes resultant property from 
+    Passes properties and corresponding user-specified data resulting
+    from a vasp run from to child fireworks.  Uses a string syntax
+    similar to Mongo-style queries to designate values of output
+    file dictionaries to retrieve.  For example, one could specify
+    a task to pass the stress from the current calculation using:
+    
+    PassVasprunResult(pass_dict={'stress': ">>ionic_steps.-1.stress"})
 
     Required params:
-        data_dict : the deformation gradient used in the elastic analysis.
+        pass_dict (dict): dictionary designating keys and values to pass
+            to child fireworks.  If value is a string beginning with '>>',
+            the firework will search the parsed VASP output dictionary
+            for the designated property by following the sequence of keys
+            separated with periods, e. g. ">>ionic_steps.-1.stress" is used
+            to designate the stress from the last ionic_step. If the value
+            is not a string or does not begin with ">>", it is passed as is.
         
     Optional params:
-        calc_dir (str): path to dir that contains VASP output files.
-        set_key (str): key to pass to mod_spec _set dictmod command
-        parse_function (str): 
+        calc_dir (str): path to dir that contains VASP output files, defaults
+            to '.', e. g. current directory
+        mod_spec_cmd (str): command to issue for mod_spec, e. g. "_set" or "_push",
+            defaults to "_set"
+        mod_spec_key (str): key to pass to mod_spec _set dictmod command, defaults
+            to "prev_calc_result"
+        parse_class (str): class with which to parse the output, defaults
+            to Vasprun
+        parse_class_kwargs (str): dict of kwargs for the parse class,
+            defaults to {"filename": "vasprun.xml", "parse_dos": False, 
+            "parse_eigen": False}
+
     """
 
-    required_params = ["data_dict"]
-    optional_params = ["calc_dir", "set_key", "parse_class", "parse_kwargs"]
+    required_params = ["pass_dict"]
+    optional_params = ["calc_dir", "mod_spec_cmd", "mod_spec_key", 
+                       "parse_class", "parse_class_kwargs"]
 
     def run_task(self, fw_spec):
-        data_dict = self.get("data_dict")
+        pass_dict = self.get("pass_dict")
         calc_dir = self.get("calc_dir", ".")
+        mod_spec_key = self.get("mod_spec_key", "prev_calc_result")
+        mod_spec_cmd = self.get("mod_spec_cmd", "_set")
         with monty.os.cd(calc_dir):
-            parse_kwargs = self.get("parse_kwargs", {"filename": "vasprun.xml", 
+            parse_kwargs = self.get("parse_kwargs", {"filename": "vasprun.xml.gz", 
                 "parse_dos": False, "parse_eigen": False})
             pc_string = self.get("parse_class", "pymatgen.io.vasp.sets.Vasprun")
             parse_class = load_class(*pc_string.rsplit(".", 1))
             result_dict = parse_class(**parse_kwargs).as_dict()
-        for k, v in data_dict.iteritems():
-            if isinstance(six.string_types, v) and v[:2] == ">>":
-                intfmt = re.compile("^[\-]?[0-9]*")
-                keychain = [int(s) if intfmt.match(v) else v for v in v.split('.')]
+
+        intfmt = re.compile("[-+]?\d+$")
+        for k, v in pass_dict.iteritems():
+            if isinstance(v, six.string_types) and v[:2] == ">>":
+                # convert integer like strings to ints
+                keychain = [int(v) if intfmt.match(v) else v for v in v[2:].split('.')]
                 new_val = reduce(operator.getitem, keychain, result_dict)
-                data_dict.update({k: new_val})
-        return FWAction(mod_spec=[{'_set': {
-            set_key: result}}])
+                pass_dict.update({k: new_val})
+        return FWAction(mod_spec=[{mod_spec_cmd: {mod_spec_key: pass_dict}}])
 
-        defo_dict = {'deformation_matrix': defo,
-                     'strain': strain.tolist(),
-                     'stress': ">>ionic_steps.-1.stress"}
 
-def get_vrun_data(rdict):
-    assert key[:2] == ">>", "key must begin with >> characters"
-    vd = v.as_dict()
-    
-# TODO: @computron - rename to PassStressStrain in backwards-compatible way (easy) -computron
-@explicit_serialize
-class PassStressStrainData(FiretaskBase):
+def pass_vasp_result(pass_dict, calc_dir='.', filename="vasprun.xml.gz", 
+        parse_eigen=False, parse_dos=False, **kwargs):
     """
-    Passes the stress and deformation for an elastic deformation calculation
-
-    Required params:
-        deformation: the deformation gradient used in the elastic analysis.
-        
-    Optional params:
-        calc_dir (str): path to dir that contains VASP output files.
+    function that gets a PassResult firework corresponding to output
+    from a Vasprun.  Covers most use cases in which user needs to
+    pass results from a vasp run to child FWs (e. g. analysis FWs)
     """
+    parse_kwargs = {"filename": filename, "parse_eigen": parse_eigen, "parse_dos":parse_dos}
+    return PassResult(pass_dict=pass_dict, calc_dir=calc_dir, parse_kwargs=parse_kwargs,
+            parse_class="pymatgen.io.vasp.outputs.Vasprun", **kwargs)
 
-    required_params = ["deformation"]
-    optional_params = ["calc_dir"]
 
-    def run_task(self, fw_spec):
-        v, _ = get_vasprun_outcar(self.get("calc_dir", "."), parse_dos=False, parse_eigen=False)
-        stress = v.ionic_steps[-1]['stress']
-        defo = self['deformation']
-        d_ind = np.nonzero(defo - np.eye(3))
-        delta = Decimal((defo - np.eye(3))[d_ind][0])
-        # Shorthand is d_X_V, X is voigt index, V is value
-        # TODO: @montoyjh - it is really unclear what is being passed. What is dtype?
-        # Maybe an example of dtype, defo_dict would help? -computron
-        dtype = "_".join(["d", str(reverse_voigt_map[d_ind][0]),
-                          "{:.0e}".format(delta)])
-        strain = Strain.from_deformation(defo)
-        defo_dict = {'deformation_matrix': defo,
-                     'strain': strain.tolist(),
-                     'stress': stress}
-
-        return FWAction(mod_spec=[{'_set': {
-            'deformation_tasks->{}'.format(dtype): defo_dict}}])
 
 
 # TODO: @computron - rename to PassEpsilon in backwards-compatible way (easy) -computron
