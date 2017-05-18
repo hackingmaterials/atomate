@@ -566,6 +566,7 @@ class FitEquationOfStateTask(FiretaskBase):
         if fw_spec.get("tags", None):
             summary_dict["tags"] = fw_spec["tags"]
         summary_dict["results"] = dict(eos_fit.results)
+        summary_dict["created_at"] = datetime.utcnow()
 
         # db_file itself is required but the user can choose to pass the results to db or not
         if to_db:
