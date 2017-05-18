@@ -215,16 +215,14 @@ class CheckBandgap(FiretaskBase):
         return FWAction(stored_data=stored_data)
 
 
-@explicit_serialize
-class PassVaspResult(FiretaskBase):
+def pass_vasp_result(pass_dict, calc_dir='.', filename="vasprun.xml.gz", 
+        parse_eigen=False, parse_dos=False, **kwargs):
     """
-    Passes properties and corresponding user-specified data resulting
-    from a vasp run from to child fireworks.  Uses a string syntax
-    similar to Mongo-style queries to designate values of output
-    file dictionaries to retrieve.  For example, one could specify
-    a task to pass the stress from the current calculation using:
-    
-    PassVasprunResult(pass_dict={'stress': ">>ionic_steps.-1.stress"})
+    function that gets a PassResult firework corresponding to output
+    from a Vasprun.  Covers most use cases in which user needs to
+    pass results from a vasp run to child FWs (e. g. analysis FWs)
+        
+    pass_vasp_result(pass_dict={'stress': ">>ionic_steps.-1.stress"})
 
     Required params:
         pass_dict (dict): dictionary designating keys and values to pass
@@ -233,119 +231,24 @@ class PassVaspResult(FiretaskBase):
             for the designated property by following the sequence of keys
             separated with periods, e. g. ">>ionic_steps.-1.stress" is used
             to designate the stress from the last ionic_step. If the value
-            is not a string or does not begin with ">>", it is passed as is.
-        
+            is not a string or does not begin with ">>" or "a>>" (for an
+            object attribute, rather than nested key of .as_dict() conversion),
+            it is passed as is.
+
     Optional params:
         calc_dir (str): path to dir that contains VASP output files, defaults
             to '.', e. g. current directory
-        mod_spec_cmd (str): command to issue for mod_spec, e. g. "_set" or "_push",
-            defaults to "_set"
-        mod_spec_key (str): key to pass to mod_spec _set dictmod command, defaults
-            to "prev_calc_result"
-        parse_class (str): class with which to parse the output, defaults
-            to Vasprun
-        parse_class_kwargs (str): dict of kwargs for the parse class,
-            defaults to {"filename": "vasprun.xml", "parse_dos": False, 
-            "parse_eigen": False}
-
+        filename (str): filename for vasp xml file to parse, defaults to
+            "vasprun.xml.gz"
+        parse_eigen (bool): flag on whether or not to parse eigenvalues,
+            defaults to false
+        parse_eigen (bool): flag on whether or not to parse dos,
+            defaults to false
+        **kwargs (keyword args): other keyword arguments passed to PassResult
+            e.g. mod_spec_key or mod_spec_cmd
+        
     """
 
-    required_params = ["pass_dict"]
-    optional_params = ["calc_dir", "mod_spec_cmd", "mod_spec_key", 
-                       "parse_class", "parse_class_kwargs"]
-
-    def run_task(self, fw_spec):
-        pass_dict = self.get("pass_dict")
-        calc_dir = self.get("calc_dir", ".")
-        mod_spec_key = self.get("mod_spec_key", "prev_calc_result")
-        mod_spec_cmd = self.get("mod_spec_cmd", "_set")
-        with monty.os.cd(calc_dir):
-            parse_kwargs = self.get("parse_kwargs", {"filename": "vasprun.xml.gz", 
-                "parse_dos": False, "parse_eigen": False})
-            pc_string = self.get("parse_class", "pymatgen.io.vasp.sets.Vasprun")
-            parse_class = load_class(*pc_string.rsplit(".", 1))
-            result_dict = parse_class(**parse_kwargs).as_dict()
-
-        intfmt = re.compile("[-+]?\d+$")
-        for k, v in pass_dict.iteritems():
-            if isinstance(v, six.string_types) and v[:2] == ">>":
-                # convert integer like strings to ints
-                keychain = [int(v) if intfmt.match(v) else v for v in v[2:].split('.')]
-                new_val = reduce(operator.getitem, keychain, result_dict)
-                pass_dict.update({k: new_val})
-        return FWAction(mod_spec=[{mod_spec_cmd: {mod_spec_key: pass_dict}}])
-
-
-def pass_vasp_result(pass_dict, calc_dir='.', filename="vasprun.xml.gz", 
-        parse_eigen=False, parse_dos=False, **kwargs):
-    """
-    function that gets a PassResult firework corresponding to output
-    from a Vasprun.  Covers most use cases in which user needs to
-    pass results from a vasp run to child FWs (e. g. analysis FWs)
-    """
     parse_kwargs = {"filename": filename, "parse_eigen": parse_eigen, "parse_dos":parse_dos}
     return PassResult(pass_dict=pass_dict, calc_dir=calc_dir, parse_kwargs=parse_kwargs,
             parse_class="pymatgen.io.vasp.outputs.Vasprun", **kwargs)
-
-
-
-
-# TODO: @computron - rename to PassEpsilon in backwards-compatible way (easy) -computron
-@explicit_serialize
-class PassEpsilonTask(FiretaskBase):
-    """
-    Pass the epsilon(dielectric constant) corresponding to the given normal mode and displacement.
-
-    Required params:
-        mode (int): normal mode index
-        displacement (float): displacement along the normal mode in Angstroms
-    """
-
-    required_params = ["mode", "displacement"]
-
-    def run_task(self, fw_spec):
-        vrun, _ = get_vasprun_outcar(self.get("calc_dir", "."), parse_dos=False, parse_eigen=True)
-        epsilon_static = vrun.epsilon_static
-        epsilon_dict = {"mode": self["mode"],
-                        "displacement": self["displacement"],
-                        "epsilon": epsilon_static}
-        # TODO: @matk86 - document the format of what is being passed better, esp with
-        # all the replacements going on -computron
-        return FWAction(mod_spec=[{
-            '_set': {
-                'raman_epsilon->{}_{}'.format(
-                    str(self["mode"]),
-                    str(self["displacement"]).replace("-", "m").replace(".", "d")): epsilon_dict
-            }
-        }])
-
-
-# TODO: @computron - rename to PassNormalModes in backwards-compatible way (easy) -computron
-@explicit_serialize
-class PassNormalmodesTask(FiretaskBase):
-    """
-    Extract and pass the normal mode eigenvalues and vectors.
-
-    Optional_params:
-        calc_dir (str): path to the calculation directory
-    """
-
-    optional_params = ["calc_dir"]
-
-    def run_task(self, fw_spec):
-        # TODO: @matk86 - document the format of what is being passed better. Help someone new
-        # understand the context of this Firetask -computron
-
-        normalmode_dict = fw_spec.get("normalmodes", None)
-        if not normalmode_dict:
-            vrun, _ = get_vasprun_outcar(self.get("calc_dir", "."),
-                                         parse_dos=False, parse_eigen=True)
-            structure = vrun.final_structure.copy()
-            normalmode_eigenvals = vrun.normalmode_eigenvals
-            normalmode_eigenvecs = vrun.normalmode_eigenvecs
-            normalmode_norms = np.linalg.norm(normalmode_eigenvecs, axis=2)
-            normalmode_dict = {"structure": structure,
-                               "eigenvals": normalmode_eigenvals.tolist(),
-                               "eigenvecs": normalmode_eigenvecs.tolist(),
-                               "norms": normalmode_norms.tolist()}
-        return FWAction(mod_spec=[{'_set': {'normalmodes': normalmode_dict}}])
