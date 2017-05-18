@@ -28,9 +28,9 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 reference_dir = os.path.join(module_dir, "..", "..", "test_files", "bulk_modulus_wf")
 
-DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
+DEBUG_MODE = False  # If True, retains the database and output dirs at the end of the test
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
-_write_task_docs = False # developer option: defaults to False, need to be True only once
+_write_task_docs = False # Test developer option: defaults to False, need to be True only once
 
 struct_si = PymatgenTest.get_structure("Si")
 ndeformations = 6
@@ -177,7 +177,7 @@ class TestBulkModulusWorkflow(unittest.TestCase):
                     new_fw = self.lp.fireworks.find_one(
                         {"name": {"$regex": "bulk_modulus deformation {}".format(i - 2)}})
 
-                    # the fw tags are important in pulling tasks in the last FW
+                    # the fw tag (inluded in "name") is important in pulling tasks in the last FW in wf_bulk_modulus
                     d["task_label"] = new_fw["name"]
                     d["task_id"] += i + 1000000  # to avoid duplicate task_id
 
@@ -186,7 +186,7 @@ class TestBulkModulusWorkflow(unittest.TestCase):
 
             elif not os.path.exists(os.path.join(reference_dir, str(i), "inputs")):
                 raise IOError("neither {} nor {} are present in {}".format("inputs",
-                    self.task_file, os.path.join(reference_dir, str(i), self.task_file)))
+                    self.task_file, os.path.join(reference_dir, str(i))))
 
 
 
