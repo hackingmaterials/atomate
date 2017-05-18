@@ -563,6 +563,8 @@ class FitEquationOfStateTask(FiretaskBase):
         eos = EOS(eos)
         eos_fit = eos.fit(volumes, energies)
         summary_dict["bulk_modulus"] = eos_fit.b0_GPa
+
+        # TODO: find a better way for passing tags of the entire workflow to db - albalu
         if fw_spec.get("tags", None):
             summary_dict["tags"] = fw_spec["tags"]
         summary_dict["results"] = dict(eos_fit.results)
