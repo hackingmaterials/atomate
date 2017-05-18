@@ -9,7 +9,7 @@ This module defines the deformation workflow: structure optimization followed by
 from fireworks import Workflow
 
 from atomate.utils.utils import get_logger
-from atomate.vasp.firetasks.glue_tasks import PassStressStrainData
+from atomate.vasp.firetasks.glue_tasks import pass_vasp_result
 from atomate.vasp.fireworks.core import OptimizeFW, TransmuterFW
 
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
@@ -93,7 +93,11 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
                           vasp_input_set=vis_static, copy_vasp_outputs=True, parents=parents,
                           vasp_cmd=vasp_cmd, db_file=db_file)
         if pass_stress_strain:
-            fw.tasks.append(PassStressStrainData(deformation=deformation.tolist()))
+            pass_dict = {'strain': deformation.green_lagrange_strain.tolist(),
+                         'stress': '>>output.ionic_steps.-1.stress',
+                         'deformation_matrix': deformation.tolist()}
+            fw.tasks.append(pass_vasp_result(pass_dict=pass_dict,
+                mod_spec_key="deformation_tasks->{}".format(n)))
         fws.append(fw)
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, name)
