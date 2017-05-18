@@ -33,6 +33,16 @@ class TestToDbTask(unittest.TestCase):
     def setUpClass(cls):
         cls.scratch_dir = os.path.join(module_dir, "scratch")
 
+    def clear_dbs(self):
+        """
+        Properly clear the Fireworks and Tasks DBs
+        """
+        db = self.lp.db
+        for coll in db.collection_names():
+            if coll != "system.indexes":
+                db[coll].drop()
+
+
     def setUp(self):
         if os.path.exists(self.scratch_dir):
             shutil.rmtree(self.scratch_dir)
@@ -41,8 +51,8 @@ class TestToDbTask(unittest.TestCase):
         try:
             self.lp = LaunchPad.from_file(
                 os.path.join(db_dir, "my_launchpad.yaml"))
+            self.clear_dbs()
             self.lp.reset("", require_password=False)
-
         except:
             raise unittest.SkipTest(
                 'Cannot connect to MongoDB! Is the database server running? '
@@ -51,12 +61,9 @@ class TestToDbTask(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.scratch_dir)
         os.chdir(module_dir)
-        self.lp.reset("", require_password=False)
-        self.lp.db.tasks.drop()
-        self.lp.db.counter.drop()
+        self.clear_dbs()
 
     def test_ToDbTask(self):
-        raise unittest.SkipTest("Shyam - please fix this test.")
         d = TestDrone()
 
         fw1 = Firework([ToDbTask(drone=d,
