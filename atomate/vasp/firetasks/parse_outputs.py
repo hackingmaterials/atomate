@@ -514,16 +514,16 @@ class FitEquationOfStateTask(FiretaskBase):
         tag (str): unique tag appended to the task labels in other fireworks so that all the
             required data can be queried directly from the database.
         db_file (str): path to the db file
-        eos (str): equation of state used for fitting the energies and the volumes.
-            options supported by pymatgen: "quadratic", "murnaghan", "birch", "birch_murnaghan",
-            "pourier_tarantola", "vinet", "deltafactor". Default: "vinet"
 
     Optional parameters:
         to_db (bool): if True, the data will be inserted to "eos" collection; otherwise, dumped to a .json file.
+        eos (str): equation of state used for fitting the energies and the volumes.
+            options supported by pymatgen: "quadratic", "murnaghan", "birch", "birch_murnaghan",
+            "pourier_tarantola", "vinet", "deltafactor". Default: "vinet"
     """
 
-    required_params = ["tag", "db_file", "eos"]
-    optional_params = ["to_db"]
+    required_params = ["tag", "db_file"]
+    optional_params = ["to_db", "eos"]
 
     def run_task(self, fw_spec):
 
