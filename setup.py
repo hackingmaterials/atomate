@@ -9,7 +9,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 if __name__ == "__main__":
     setup(
         name='atomate',
-        version='0.4.2',
+        version='0.4.5',
         description='atomate has implementations of FireWorks workflows for '
                     'Materials Science',
         long_description=open(os.path.join(module_dir, 'README.rst')).read(),
@@ -20,9 +20,10 @@ if __name__ == "__main__":
         packages=find_packages(),
         package_data={},
         zip_safe=False,
-        install_requires=['FireWorks>=1.4.0', 'pymatgen>=4.5.7',
-                          'custodian>=1.0.4', 'pymatgen-db>=0.5.1',
-                          'monty>=0.9.5', 'tqdm>=4.7.4', 'six'],
+        install_requires=['FireWorks>=1.4.0', 'pymatgen>=4.7.1',
+                          'custodian>=1.1.0', 'pymatgen-db>=0.5.1',
+                          'monty>=0.9.5', 'tqdm>=4.7.4', 'six',
+                          'pymatgen-diffusion>=0.3.0'],
         extras_require={'rtransfer': ['paramiko>=1.15.0'],
                         'plotting': ['matplotlib>=1.5.2'],
                         'phonons': ['phonopy>=1.10.8']},

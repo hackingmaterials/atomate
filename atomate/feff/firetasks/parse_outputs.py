@@ -5,6 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import json
 import os
 from datetime import datetime
+from glob import glob
 
 import numpy as np
 
@@ -12,10 +13,12 @@ from pymatgen.io.feff.inputs import Tags, Atoms
 
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
+from fireworks.user_objects.firetasks.filepad_tasks import get_fpad
 
-from atomate.utils.utils import env_chk, get_calc_loc
+from atomate.utils.utils import env_chk
+from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import get_logger
-from atomate.feff.database import MMFeffDb
+from atomate.feff.database import FeffCalcDb
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -78,11 +81,35 @@ class SpectrumToDbTask(FiretaskBase):
         if not db_file:
             with open("feff_task.json", "w") as f:
                 f.write(json.dumps(doc, default=DATETIME_HANDLER))
-        # db insertion
+
         else:
-            db = MMFeffDb.from_db_file(db_file, admin=True)
+            db = FeffCalcDb.from_db_file(db_file, admin=True)
             db.insert(doc)
 
         logger.info("Finished parsing the spectrum")
 
         return FWAction(stored_data={"task_id": doc.get("task_id", None)})
+
+
+@explicit_serialize
+class AddPathsToFilepadTask(FiretaskBase):
+    """
+    Insert the scattering amplitude outputs(all feffNNNN.dat files) to gridfs using filepad.
+
+    Optional_params:
+        labels (list): list of labels to tag the inserted files. Useful for querying later.
+        filepad_file (str): path to the filepad connection settings file.
+        compress (bool): wether or not to compress the file contents before insertion.
+        metadata (dict): metadata.
+    """
+
+    optional_params = ["labels", "filepad_file", "compress", "metadata"]
+
+    def run_task(self, fw_spec):
+        paths = glob("feff????.dat")
+        fpad = get_fpad(self.get("filepad_file", None))
+        labels = self.get("labels", None)
+        for i, p in enumerate(paths):
+            l = labels[i] if labels is not None else None
+            fpad.add_file(p, label=l, metadata=self.get("metadata", None),
+                          compress=self.get("compress", True))

@@ -11,11 +11,23 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>, Kiran Mathew <kmathew@lbl.gov>'
 
 
 class SubmissionFilter(AbstractStructureFilter):
-
-    NO_POTCARS = ['Po', 'At', 'Rn', 'Fr', 'Ra', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr']
+    NO_POTCARS = ['Po', 'At', 'Rn', 'Fr', 'Ra', 'Am', 'Cm', 'Bk',
+                  'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr']
 
     def __init__(self, is_valid=True, potcar_exists=True, max_natoms=200, is_ordered=True,
                  not_in_MP=True, MAPI_KEY=None, require_bandstructure=False):
+        """
+        Initialize a submission filter for checking that structures are valid for calculations.
+        
+        Args:
+            is_valid (bool): If true, checks structure validity
+            potcar_exists (bool): If true, ensures all elements have VASP PAW_PBE POTCAR 
+            max_natoms (int): If not None, ensures structure has <=max_natoms atoms 
+            is_ordered (bool): If true, ensures structure is ordered 
+            not_in_MP (bool): If true, ensures structure not in MP 
+            MAPI_KEY (str): For MP checks, your MAPI key if not previously set as config var 
+            require_bandstructure (bool): For MP checks, require a band structure calc 
+        """
         self.is_valid = is_valid
         self.potcar_exists = potcar_exists
         self.max_natoms = max_natoms
@@ -65,5 +77,6 @@ class SubmissionFilter(AbstractStructureFilter):
 
     @classmethod
     def from_dict(cls, d):
-        decoded = {k: MontyDecoder().process_decoded(v) for k, v in d.items() if not k.startswith("@")}
+        decoded = {k: MontyDecoder().process_decoded(v) for k, v in d.items() if
+                   not k.startswith("@")}
         return cls(**decoded)

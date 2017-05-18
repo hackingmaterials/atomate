@@ -12,6 +12,14 @@ atomate.common.firetasks.tests.test_glue_tasks module
     :undoc-members:
     :show-inheritance:
 
+atomate.common.firetasks.tests.test_parse_outputs module
+--------------------------------------------------------
+
+.. automodule:: atomate.common.firetasks.tests.test_parse_outputs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

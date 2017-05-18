@@ -24,7 +24,8 @@ logger = get_logger(__name__)
 
 def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_cmd="vasp",
                              db_file=None, user_kpoints_settings=None, t_step=10, t_min=0, t_max=1000,
-                             mesh=(20, 20, 20), eos="vinet", qha_type="debye_model", pressure=0.0):
+                             mesh=(20, 20, 20), eos="vinet", qha_type="debye_model", pressure=0.0,
+                             poisson=0.25, metadata=None):
     """
     Returns quasi-harmonic gibbs free energy workflow.
     Note: phonopy package is required for the final analysis step if qha_type="phonopy"
@@ -46,6 +47,8 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
         qha_type(str): quasi-harmonic approximation type: "debye_model" or "phonopy",
             default is "debye_model"
         pressure (float): in GPa
+        poisson (float): poisson ratio
+        metadata (dict): meta data
 
     Returns:
         Workflow
@@ -56,22 +59,24 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
         try:
             from phonopy import Phonopy
         except ImportError:
-            logger.warn("'phonopy' package NOT installed. Required for the final analysis step."
-                        "The debye model for the quasi harmonic approximation will be used.")
-            qha_type = "debye_model"
-            lepsilon = False
+            raise RuntimeError("'phonopy' package is NOT installed but is required for the final "
+                             "analysis step; you can alternatively switch to the qha_type to "
+                             "'debye_model' which does not require 'phonopy'.")
 
+    # TODO: @kmathew - see my various other comments about auto-generated tag and UUID. -computron
     tag = datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
     wf_gibbs = get_wf_deformations(structure, deformations, name="gibbs deformation",
                                    vasp_input_set=vasp_input_set, lepsilon=lepsilon, vasp_cmd=vasp_cmd,
                                    db_file=db_file, user_kpoints_settings=user_kpoints_settings,
-                                   tag=tag)
+                                   tag=tag, metadata=metadata)
 
+    # TODO: @kmathew - better to stick to lowercase FW names ('gibbs free energy'). That is the
+    # convention for most FWs and switching back and forth is confusing to remember. -computron
     fw_analysis = Firework(GibbsFreeEnergyTask(tag=tag, db_file=db_file, t_step=t_step, t_min=t_min,
                                                t_max=t_max, mesh=mesh, eos=eos, qha_type=qha_type,
-                                               pressure=pressure),
+                                               pressure=pressure, poisson=poisson, metadata=metadata),
                            name="Gibbs Free Energy")
 
     append_fw_wf(wf_gibbs, fw_analysis)

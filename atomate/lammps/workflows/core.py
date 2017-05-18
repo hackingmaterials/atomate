@@ -19,6 +19,11 @@ __author__ = 'Kiran Mathew'
 __email__ = "kmathew@lbl.gov"
 
 
+# TODO: @matk86 - It is better if you can have a Fireworks module that includes packmol and
+# lammps Fireworks. I understand the firework definitions are simple, but it will be easier for
+# people to find the Fireworks there since it will be a familiar subpackage structure.
+# It should be an easy mod and shouldn't get in the way much. -computron
+
 def get_wf(job_name, lammps_dict_input, input_filename="lammps.inp", lammps_bin="lammps",
            db_file=None, dry_run=False):
     """

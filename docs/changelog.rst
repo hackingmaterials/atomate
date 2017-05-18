@@ -2,6 +2,36 @@
 atomate Changelog
 ====================
 
+**v0.4.5**
+
+* *extensive* code review, code cleanup, and improved code docs - with some minor name refactoring
+* new builders: dielectric, structureanalysis (currently gives dimensionality of structure)
+* rewrite powerups as in-place with cleaner syntax
+* improved installation tutorial (B. Bocklund)
+* improve/fix/reorganize some unit tests
+* bug fixes (A. Jain, H. Tang, K. Mathew, B. Bocklund)
+
+**v0.4.4**
+
+* NEB workflow (H. Tang)
+* adsorption workflow (J. Montoya)
+* improvements to Gibbs workflow (K. Mathew)
+* misc bugfixes, improvements (A. Faghaninia, A. Jain)
+
+**v0.4.3**
+
+* Add Gibbs energy w/volume (K. Mathew)
+* Draft EXAFS workflow (K. Matthew)
+* Add slater-gamma formulation to compute the Gruneisen parameter (K. Matthew)
+* gamma vasp powerup (S. Dwaraknath)
+* More options for elasticity WF (J. Dagdalen)
+* Add StdErrorHandler to handlers (A. Jain)
+* Auto-detect and remove line_mode parameter in MMVaspDB (A. Jain)
+* added unit tests
+* misc cleanup, refactoring, and doc udpates
+* misc bugfixes
+
+
 **v0.4.2**
 
 .. caution:: The ``tags_fws`` powerup now has different default parameters!

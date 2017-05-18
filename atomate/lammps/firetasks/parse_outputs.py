@@ -16,9 +16,10 @@ from fireworks import FiretaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.utilities.fw_utilities import explicit_serialize
 
-from atomate.utils.utils import get_logger, get_calc_loc
+from atomate.utils.utils import get_logger
+from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk
-from atomate.lammps.database import MMLammpsDb
+from atomate.lammps.database import LammpsCalcDb
 from pymatgen.io.lammps.output import LammpsRun
 
 
@@ -26,6 +27,10 @@ __author__ = 'Kiran Mathew'
 __email__ = "kmathew@lbl.gov"
 
 logger = get_logger(__name__)
+
+# TODO: @matk86 - for your consideration. You can implement as a Drone and simply use ToDbTask (in
+# atomate.common) to do the processing instead of a special LammpsToDBTask. Advantage is that the
+# parsing code is then in pymatgen where more people could use and modify it. -computron
 
 
 @explicit_serialize
@@ -73,7 +78,8 @@ class LammpsToDBTask(FiretaskBase):
         else:
             dump_file = lammps_input.config_dict["dump"].split()[4]
         is_forcefield = hasattr(lammps_input.lammps_data, "bonds_data")
-        lammpsrun = LammpsRun(lammps_input.data_filename, dump_file, log_file, is_forcefield=is_forcefield)
+        lammpsrun = LammpsRun(lammps_input.data_filename, dump_file, log_file,
+                              is_forcefield=is_forcefield)
         d["natoms"] = lammpsrun.natoms
         d["nmols"] = lammpsrun.nmols
         d["box_lengths"] = lammpsrun.box_lengths
@@ -89,7 +95,7 @@ class LammpsToDBTask(FiretaskBase):
             with open("task.json", "w") as f:
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
         else:
-            mmdb = MMLammpsDb.from_db_file(db_file)
+            mmdb = LammpsCalcDb.from_db_file(db_file)
             # insert the task document
             t_id = mmdb.insert(d)
             logger.info("Finished parsing with task_id: {}".format(t_id))

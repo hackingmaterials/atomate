@@ -8,19 +8,20 @@ This module defines tasks that support running vasp in various ways.
 
 import shutil
 import shlex
-import subprocess
 import os
 import six
+import subprocess
 
 from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.electronic_structure.boltztrap import BoltztrapRunner
 
 from custodian import Custodian
-from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, MeshSymmetryErrorHandler, \
-    UnconvergedErrorHandler, MaxForceErrorHandler, PotimErrorHandler, FrozenJobErrorHandler, \
-    NonConvergingErrorHandler, PositiveEnergyErrorHandler, WalltimeHandler
-from custodian.vasp.jobs import VaspJob
+from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, \
+    MeshSymmetryErrorHandler, UnconvergedErrorHandler, MaxForceErrorHandler, PotimErrorHandler, \
+    FrozenJobErrorHandler, NonConvergingErrorHandler, PositiveEnergyErrorHandler, \
+    WalltimeHandler, StdErrHandler
+from custodian.vasp.jobs import VaspJob, VaspNEBJob
 from custodian.vasp.validators import VasprunXMLValidator, VaspFilesValidator
 
 from fireworks import explicit_serialize, FiretaskBase
@@ -36,66 +37,44 @@ logger = get_logger(__name__)
 @explicit_serialize
 class RunVaspDirect(FiretaskBase):
     """
-    Run VASP directly (no custodian).
+    Execute a command directly (no custodian).
 
     Required params:
-        vasp_cmd (str): the name of the full executable for running VASP.
-        Supports env_chk.
+        cmd (str): the name of the full executable to run. Supports env_chk.
+    Optional params:
+        expand_vars (str): Set to true to expand variable names in the cmd.
     """
 
     required_params = ["vasp_cmd"]
+    optional_params = ["expand_vars"]
 
     def run_task(self, fw_spec):
-        vasp_cmd = env_chk(self["vasp_cmd"], fw_spec)
-        logger.info("Running VASP using exe: {}".format(vasp_cmd))
-        return_code = subprocess.call(vasp_cmd, shell=True)
-        logger.info("VASP finished running with returncode: {}".format(return_code))
+        cmd = env_chk(self["vasp_cmd"], fw_spec)
+        if self.get("expand_vars", False):
+            cmd = os.path.expandvars(cmd)
 
-
-@explicit_serialize
-class RunVaspCustodianFromObjects(FiretaskBase):
-    """
-    Run VASP using custodian in a generic manner using built-in custodian
-    objects
-
-    Required params:
-        jobs: ([Job]) - a list of custodian jobs to run
-        handlers: ([ErrorHandler]) - a list of error handlers
-
-    Optional params:
-        validators: ([Validator]) - a list of Validators
-        custodian_params ({}) - dict of all other custodian parameters
-    """
-
-    required_params = ["jobs", "handlers"]
-    optional_params = ["validators", "custodian_params"]
-
-    def run_task(self, fw_spec):
-        c = Custodian(self["handlers"], self["jobs"], self.get("validators"),
-                      **self.get("custodian_params", {}))
-        c.run()
+        logger.info("Running command: {}".format(cmd))
+        return_code = subprocess.call(cmd, shell=True)
+        logger.info("Command {} finished running with returncode: {}".format(cmd, return_code))
 
 
 @explicit_serialize
 class RunVaspCustodian(FiretaskBase):
     """
-    Run VASP using custodian "on rails", i.e. in a simple way that supports
-    most common options.
+    Run VASP using custodian "on rails", i.e. in a simple way that supports most common options.
 
     Required params:
-        vasp_cmd (str): the name of the full executable for running VASP.
-            Supports env_chk.
+        vasp_cmd (str): the name of the full executable for running VASP. Supports env_chk.
 
     Optional params:
-        job_type: (str) - choose from "normal" (default),
-            "double_relaxation_run" (two consecutive jobs), and "full_opt_run"
-        handler_group: (str) - group of handlers to use. See handler_groups
-            dict in the code for the groups and complete list of handlers in
-            each group.
-        max_force_threshold: (float) - if >0, adds MaxForceErrorHandler.
-            Not recommended for nscf runs.
-        scratch_dir: (str) - if specified, uses this directory as the root
-            scratch dir. Supports env_chk.
+        job_type: (str) - choose from "normal" (default), "double_relaxation_run" (two consecutive 
+            jobs), "full_opt_run" (multiple optimizations), and "neb"
+        handler_group: (str) - group of handlers to use. See handler_groups dict in the code for 
+            the groups and complete list of handlers in each group.
+        max_force_threshold: (float) - if >0, adds MaxForceErrorHandler. Not recommended for 
+            nscf runs.
+        scratch_dir: (str) - if specified, uses this directory as the root scratch dir. 
+            Supports env_chk.
         gzip_output: (bool) - gzip output (default=T)
         max_errors: (int) - maximum # of errors to fix before giving up (default=5)
         ediffg: (float) shortcut for setting EDIFFG in special custodian jobs
@@ -114,16 +93,18 @@ class RunVaspCustodian(FiretaskBase):
 
         handler_groups = {
             "default": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
-                        NonConvergingErrorHandler(),PotimErrorHandler(), PositiveEnergyErrorHandler(),
-                        FrozenJobErrorHandler()],
+                        NonConvergingErrorHandler(),PotimErrorHandler(),
+                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(), StdErrHandler()],
             "strict": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
-                       NonConvergingErrorHandler(),PotimErrorHandler(), PositiveEnergyErrorHandler(),
-                       FrozenJobErrorHandler(), AliasingErrorHandler()],
+                       NonConvergingErrorHandler(),PotimErrorHandler(),
+                       PositiveEnergyErrorHandler(), FrozenJobErrorHandler(),
+                       StdErrHandler(), AliasingErrorHandler()],
             "md": [VaspErrorHandler(), NonConvergingErrorHandler()],
             "no_handler": []
             }
 
         vasp_cmd = env_chk(self["vasp_cmd"], fw_spec)
+
         if isinstance(vasp_cmd, six.string_types):
             vasp_cmd = os.path.expandvars(vasp_cmd)
             vasp_cmd = shlex.split(vasp_cmd)
@@ -142,11 +123,45 @@ class RunVaspCustodian(FiretaskBase):
         if job_type == "normal":
             jobs = [VaspJob(vasp_cmd, auto_npar=auto_npar, gamma_vasp_cmd=gamma_vasp_cmd)]
         elif job_type == "double_relaxation_run":
-            jobs = VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar, ediffg=self.get("ediffg"),
+            jobs = VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar,
+                                                 ediffg=self.get("ediffg"),
                                                  half_kpts_first_relax=False)
         elif job_type == "full_opt_run":
-            jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar, ediffg=self.get("ediffg"),
-                                        max_steps=5, half_kpts_first_relax=False)
+            jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar,
+                                        ediffg=self.get("ediffg"),
+                                        max_steps=9, half_kpts_first_relax=False)
+        elif job_type == "neb":
+            # TODO: @shyuep @HanmeiTang This means that NEB can only be run (i) in reservation mode
+            # and (ii) when the queueadapter parameter is overridden and (iii) the queue adapter
+            # has a convention for nnodes (with that name). Can't the number of nodes be made a
+            # parameter that the user sets differently? e.g., fw_spec["neb_nnodes"] must be set
+            # when setting job_type=NEB? Then someone can use this feature in non-reservation
+            # mode and without this complication. -computron
+            nnodes = int(fw_spec["_queueadapter"]["nnodes"])
+
+            # TODO: @shyuep @HanmeiTang - I am not sure what the code below is doing. It looks like
+            # it is trying to override the number of processors. But I tried running the code
+            # below after setting "vasp_cmd = 'mpirun -n 16 vasp'" and the code fails.
+            # (i) Is this expecting an array vasp_cmd rather than String? If so, that's opposite to
+            # the rest of this task's convention and documentation
+            # (ii) can we get rid of this hacking in the first place? e.g., allowing the user to
+            # separately set the NEB_VASP_CMD as an env_variable and not rewriting the command
+            # inside this.
+            # -computron
+
+            # Index the tag "-n" or "-np"
+            index = [i for i, s in enumerate(vasp_cmd) if '-n' in s]
+            ppn = int(vasp_cmd[index[0] + 1])
+            vasp_cmd[index[0] + 1] = str(nnodes * ppn)
+
+            # Do the same for gamma_vasp_cmd
+            if gamma_vasp_cmd:
+                index = [i for i, s in enumerate(gamma_vasp_cmd) if '-n' in s]
+                ppn = int(gamma_vasp_cmd[index[0] + 1])
+                gamma_vasp_cmd[index[0] + 1] = str(nnodes * ppn)
+
+            jobs = [VaspNEBJob(vasp_cmd, final=False, auto_npar=auto_npar,
+                               gamma_vasp_cmd=gamma_vasp_cmd)]
         else:
             raise ValueError("Unsupported job type: {}".format(job_type))
 
@@ -159,7 +174,10 @@ class RunVaspCustodian(FiretaskBase):
         if self.get("wall_time"):
             handlers.append(WalltimeHandler(wall_time=self["wall_time"]))
 
-        validators = [VasprunXMLValidator(), VaspFilesValidator()]
+        if job_type == "neb":
+            validators = []  # CINEB vasprun.xml sometimes incomplete, file structure different
+        else:
+            validators = [VasprunXMLValidator(), VaspFilesValidator()]
 
         c = Custodian(handlers, jobs, validators=validators, max_errors=max_errors,
                       scratch_dir=scratch_dir, gzipped_output=gzip_output)
@@ -170,8 +188,7 @@ class RunVaspCustodian(FiretaskBase):
 @explicit_serialize
 class RunBoltztrap(FiretaskBase):
     """
-    Run Boltztrap directly. Requires vasprun.xml and OUTCAR to be
-    in current dir.
+    Run Boltztrap directly. Requires vasprun.xml and OUTCAR to be in current dir.
 
     Required params:
         (none)
@@ -196,7 +213,9 @@ class RunBoltztrap(FiretaskBase):
         vasprun, outcar = get_vasprun_outcar(".", parse_dos=True, parse_eigen=True)
         bs = vasprun.get_band_structure()
         nelect = outcar.nelect
-        runner = BoltztrapRunner(bs, nelect, scissor=scissor, doping=doping, tmax=tmax, tgrid=tgrid, soc=soc)
+        runner = BoltztrapRunner(bs, nelect, scissor=scissor, doping=doping, tmax=tmax,
+                                 tgrid=tgrid, soc=soc)
+
         runner.run(path_dir=os.getcwd())
 
 
@@ -206,14 +225,19 @@ class RunVaspFake(FiretaskBase):
      Vasp Emulator
 
      Required params:
-         ref_dir (string): Path to reference vasp run directory with input files
-            in the folder named 'inputs' and output files in the folder named 'outputs'.
+         ref_dir (string): Path to reference vasp run directory with input files in the folder
+            named 'inputs' and output files in the folder named 'outputs'.
 
      Optional params:
          params_to_check (list): optional list of incar parameters to check.
+         check_incar (bool): whether to confirm the INCAR params (default: True)
+         check_kpoints (bool): whether to confirm the KPOINTS params (default: True)
+         check_poscar (bool): whether to confirm the POSCAR params (default: True)
+         check_potcar (bool): whether to confirm the POTCAR params (default: True)
      """
     required_params = ["ref_dir"]
-    optional_params = ["params_to_check"]
+    optional_params = ["params_to_check", "check_incar", "check_kpoints",
+                       "check_poscar", "check_potcar"]
 
     def run_task(self, fw_spec):
         self._verify_inputs()
@@ -222,37 +246,44 @@ class RunVaspFake(FiretaskBase):
 
     def _verify_inputs(self):
         user_incar = Incar.from_file(os.path.join(os.getcwd(), "INCAR"))
-        ref_incar = Incar.from_file(os.path.join(self["ref_dir"], "inputs", "INCAR"))
 
-        # perform some BASIC tests
+        # Carry out some BASIC tests.
 
-        # check INCAR
-        params_to_check = self.get("params_to_check", [])
-        defaults = {"ISPIN": 1, "ISMEAR": 1, "SIGMA": 0.2}
-        for p in params_to_check:
-            if user_incar.get(p, defaults.get(p)) != ref_incar.get(p, defaults.get(p)):
-                raise ValueError("INCAR value of {} is inconsistent!".format(p))
+        # Check INCAR
+        if self.get("check_incar", True):
+            ref_incar = Incar.from_file(os.path.join(self["ref_dir"], "inputs", "INCAR"))
+            params_to_check = self.get("params_to_check", [])
+            defaults = {"ISPIN": 1, "ISMEAR": 1, "SIGMA": 0.2}
+            for p in params_to_check:
+                if user_incar.get(p, defaults.get(p)) != ref_incar.get(p, defaults.get(p)):
+                    raise ValueError("INCAR value of {} is inconsistent!".format(p))
 
-        # check KPOINTS
-        user_kpoints = Kpoints.from_file(os.path.join(os.getcwd(), "KPOINTS"))
-        ref_kpoints = Kpoints.from_file(os.path.join(self["ref_dir"], "inputs", "KPOINTS"))
-        if user_kpoints.style != ref_kpoints.style or user_kpoints.num_kpts != ref_kpoints.num_kpts:
-            raise ValueError("KPOINT files are inconsistent! Paths are:\n{}\n{}".format(
-                os.getcwd(), os.path.join(self["ref_dir"], "inputs")))
+        # Check KPOINTS
+        if self.get("check_kpoints", True):
+            user_kpoints = Kpoints.from_file(os.path.join(os.getcwd(), "KPOINTS"))
+            ref_kpoints = Kpoints.from_file(os.path.join(self["ref_dir"], "inputs", "KPOINTS"))
+            if user_kpoints.style != ref_kpoints.style or \
+                            user_kpoints.num_kpts != ref_kpoints.num_kpts:
+                raise ValueError("KPOINT files are inconsistent! Paths are:\n{}\n{}".format(
+                    os.getcwd(), os.path.join(self["ref_dir"], "inputs")))
 
-        # check POSCAR
-        user_poscar = Poscar.from_file(os.path.join(os.getcwd(), "POSCAR"))
-        ref_poscar = Poscar.from_file(os.path.join(self["ref_dir"], "inputs", "POSCAR"))
-        if user_poscar.natoms != ref_poscar.natoms or user_poscar.site_symbols != ref_poscar.site_symbols:
-            raise ValueError("POSCAR files are inconsistent! Paths are:\n{}\n{}".format(
-                os.getcwd(), os.path.join(self["ref_dir"], "inputs")))
+        # Check POSCAR
+        if self.get("check_poscar", True):
+            user_poscar = Poscar.from_file(os.path.join(os.getcwd(), "POSCAR"))
+            ref_poscar = Poscar.from_file(os.path.join(self["ref_dir"], "inputs", "POSCAR"))
+            if user_poscar.natoms != ref_poscar.natoms or user_poscar.site_symbols != \
+                    ref_poscar.site_symbols:
+                raise ValueError("POSCAR files are inconsistent! Paths are:\n{}\n{}".format(
+                    os.getcwd(), os.path.join(self["ref_dir"], "inputs")))
 
-        # check POTCAR
-        user_potcar = Potcar.from_file(os.path.join(os.getcwd(), "POTCAR"))
-        ref_potcar = Potcar.from_file(os.path.join(self["ref_dir"], "inputs", "POTCAR"))
-        if user_potcar.symbols != ref_potcar.symbols:
-            raise ValueError("POTCAR files are inconsistent! Paths are:\n{}\n{}".format(
-                os.getcwd(), os.path.join(self["ref_dir"], "inputs")))
+        # Check POTCAR
+        if self.get("check_potcar", True):
+            user_potcar = Potcar.from_file(os.path.join(os.getcwd(), "POTCAR"))
+            ref_potcar = Potcar.from_file(os.path.join(self["ref_dir"], "inputs", "POTCAR"))
+            if user_potcar.symbols != ref_potcar.symbols:
+                raise ValueError("POTCAR files are inconsistent! Paths are:\n{}\n{}".format(
+                    os.getcwd(), os.path.join(self["ref_dir"], "inputs")))
+
         logger.info("RunVaspFake: verified inputs successfully")
 
     def _clear_inputs(self):
@@ -262,6 +293,7 @@ class RunVaspFake(FiretaskBase):
                 os.remove(p)
 
     def _generate_outputs(self):
+        # pretend to have run VASP by copying pre-generated outputs from reference dir to cur dir
         output_dir = os.path.join(self["ref_dir"], "outputs")
         for file_name in os.listdir(output_dir):
             full_file_name = os.path.join(output_dir, file_name)

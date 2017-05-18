@@ -7,25 +7,27 @@ import os
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
-from atomate.utils.utils import get_calc_loc, env_chk
-from atomate.vasp.firetasks.parse_outputs import logger
+from atomate.utils.utils import env_chk, get_logger, load_class
+from atomate.common.firetasks.glue_tasks import get_calc_loc
 
 __author__ = 'Shyam Dwaraknath <shyamd@lbl.gov>, Anubhav Jain <ajain@lbl.gov>'
+
+logger = get_logger(__name__)
 
 
 @explicit_serialize
 class ToDbTask(FiretaskBase):
     """
-    General task to enter data from a calculation into the database.
-    Can use any drone to parse the current directory into the DB file to insert.
+    General task to parse output data via a Drone and either (i) write to JSON file or
+    (ii) insert into a database.
 
     Required params:
         drone (AbstractDrone): Drone to convert the data to dict
-        mmdb (MMDb): MMDb object
 
     Optional params:
         db_file (str): path to file containing the database credentials. Supports env_chk.
-            Default: write data to JSON file (None).
+            Default is None, which will write data to JSON file.
+        mmdb (MMDb) (str): If db_file, sets the type of MMDb, e.g. "atomate.vasp.database.MMVaspDb"
         calc_dir (str): path to dir (on current filesystem) that contains calculation output files.
             Default: use current working directory.
         calc_loc (str OR bool): if True will set most recent calc_loc. If str search for the most
@@ -34,8 +36,8 @@ class ToDbTask(FiretaskBase):
         additional_fields (dict): dict of additional fields to add
     """
 
-    required_params = ["drone", "mmdb"]
-    optional_params = ["db_file", "calc_dir", "calc_loc", "additional_fields", "options"]
+    required_params = ["drone"]
+    optional_params = ["mmdb", "db_file", "calc_dir", "calc_loc", "additional_fields", "options"]
 
     def run_task(self, fw_spec):
         # get the directory that contains the dir to parse
@@ -57,8 +59,11 @@ class ToDbTask(FiretaskBase):
             with open("task.json", "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
-            mmdb = self["mmdb"]
-            db = mmdb.__class__.from_db_file(db_file)
+            mmdb_str = self["mmdb"]
+            modname, classname = mmdb_str.strip().rsplit(".", 1)
+            cls_ = load_class(modname, classname)
+            db = cls_.from_db_file(db_file)
+
             # insert the task document
             t_id = db.insert(task_doc)
             logger.info("Finished parsing with task_id: {}".format(t_id))
