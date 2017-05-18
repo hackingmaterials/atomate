@@ -96,7 +96,8 @@ class TestBulkModulusWorkflow(unittest.TestCase):
         fake_vasp_ref_dirs = {}
         for i in range(2, ndeformations+2):
             if os.path.exists(os.path.join(reference_dir, str(i), "inputs")):
-                fake_vasp_ref_dirs["bulk_modulus deformation {}".format(i-2)] = os.path.join(reference_dir, str(i))
+                if not VASP_CMD:
+                    fake_vasp_ref_dirs["bulk_modulus deformation {}".format(i-2)] = os.path.join(reference_dir, str(i))
             else:
                 no_vasp_ref_dirs["bulk_modulus deformation {}".format(i-2)] = os.path.join(reference_dir, str(i))
 
@@ -209,9 +210,7 @@ class TestBulkModulusWorkflow(unittest.TestCase):
 
 
     def test_wf(self):
-        if not VASP_CMD:
-            self.wf = self._simulate_vasprun(self.wf)
-        # self.wf = self._skip_vasprun(self.wf)
+        self.wf = self._simulate_vasprun(self.wf)
         self.assertEqual(len(self.wf.fws), ndeformations+2)
 
         defo_vis = [fw.tasks[2]['vasp_input_set'] for fw in self.wf.fws if "deform" in fw.name]
