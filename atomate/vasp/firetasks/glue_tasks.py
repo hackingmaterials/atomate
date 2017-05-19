@@ -17,6 +17,7 @@ import gzip
 import os
 import six
 import operator
+import re
 from decimal import Decimal
 
 import numpy as np
