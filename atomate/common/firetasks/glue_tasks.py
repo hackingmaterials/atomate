@@ -8,6 +8,7 @@ import six
 import re
 import monty
 import operator
+from functools import reduce
 
 from atomate.utils.utils import env_chk, load_class
 from fireworks import explicit_serialize, FiretaskBase, FWAction
