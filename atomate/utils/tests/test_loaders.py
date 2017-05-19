@@ -2,8 +2,9 @@ from __future__ import absolute_import
 
 import unittest
 
-from atomate import get_wf_from_spec_dict
 import os
+
+from atomate.utils.utils import get_wf_from_spec_dict
 from pymatgen.util.testing import PymatgenTest
 
 from monty.serialization import loadfn
@@ -21,7 +22,7 @@ class FuncTest(PymatgenTest):
         wf = get_wf_from_spec_dict(self.structure, d)
         self.assertEqual(len(wf.fws), 4)
         for f in wf.fws:
-            self.assertEqual(f.spec['_tasks'][-1]["db_file"], "db.json")
+            self.assertEqual(f.tasks[-1]["db_file"], "db.json")
 
         self.assertEqual(sorted([len(v) for v in wf.links.values()]),
                          [0, 0, 1, 2])

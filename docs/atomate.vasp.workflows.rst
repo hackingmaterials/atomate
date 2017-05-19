@@ -8,6 +8,7 @@ Subpackages
 
     atomate.vasp.workflows.base
     atomate.vasp.workflows.presets
+    atomate.vasp.workflows.tests
 
 Module contents
 ---------------

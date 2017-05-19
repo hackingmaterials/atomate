@@ -30,7 +30,7 @@ __email__ = 'hat003@eng.ucsd.edu, ihchu@eng.ucsd.edu'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
-ref_dir = os.path.join(module_dir, "test_files")
+ref_dir = os.path.join(module_dir, "..", "..", "test_files")
 
 DEBUG_MODE = False
 LAUNCHPAD_RESET = True
@@ -46,22 +46,23 @@ class TestNudgedElasticBandWorkflow(unittest.TestCase):
         """
         if not SETTINGS.get("PMG_VASP_PSP_DIR"):
             SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests",
-                                                        "reference_files")
+                                                        "..", "..", "test_files")
             print('This system is not set up to run VASP jobs. '
                   'Please set PMG_VASP_PSP_DIR variable in '
                   'your ~/.pmgrc.yaml file.')
 
         # Structures used for test:
         parent = PymatgenTest.get_structure("Li2O")
+        parent.remove_oxidation_states()
         parent.make_supercell(2)
         ep0, ep1 = get_endpoints_from_index(parent, [0, 1])
-        neb_dir = [os.path.join(module_dir, "test_files", "neb_wf", "4", "inputs", "{:02}",
+        neb_dir = [os.path.join(module_dir, "..", "..", "test_files", "neb_wf", "4", "inputs", "{:02}",
                                 "POSCAR").format(i) for i in range(5)]
         cls.structures = [Structure.from_file(n) for n in neb_dir]
         cls.scratch_dir = os.path.join(module_dir, "scratch")
 
         # Run fake vasp
-        test_yaml = "./test_files/neb_wf/config/neb_unittest.yaml"
+        test_yaml = "../../test_files/neb_wf/config/neb_unittest.yaml"
         with open(test_yaml, 'r') as stream:
             cls.config = yaml.load(stream)
             # Use scratch directory as destination directory for testing
@@ -100,6 +101,9 @@ class TestNudgedElasticBandWorkflow(unittest.TestCase):
         cls.wf_3 = wf_nudged_elastic_band([ep0, ep1], parent, cls.config_3)
         cls.wf_4 = wf_nudged_elastic_band([ep0, ep1], parent, cls.config_4)
         cls.wf_5 = wf_nudged_elastic_band(cls.structures, parent, cls.config_5)
+
+        # Workflow without the config file
+        cls.wf_6 = wf_nudged_elastic_band(cls.structures, parent)
 
     def setUp(self):
         """
@@ -144,15 +148,20 @@ class TestNudgedElasticBandWorkflow(unittest.TestCase):
         self.wf_3 = self._simulate_vasprun(self.wf_3)
         self.wf_4 = self._simulate_vasprun(self.wf_4)
         self.wf_5 = self._simulate_vasprun(self.wf_5)
+        self.wf_6 = self._simulate_vasprun(self.wf_6)
 
         self.lp.add_wf(self.wf_1)
         self.lp.add_wf(self.wf_2)
         self.lp.add_wf(self.wf_3)
         self.lp.add_wf(self.wf_4)
         self.lp.add_wf(self.wf_5)
+        self.lp.add_wf(self.wf_6)
 
         # Use scratch directory as destination directory for testing
         rapidfire(self.lp, fworker=FWorker(env={"run_dest_root": self.scratch_dir}))
+
+        wf = self.lp.get_wf_by_fw_id(1)
+        self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
 
 
 if __name__ == "__main__":

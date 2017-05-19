@@ -59,11 +59,11 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
         try:
             from phonopy import Phonopy
         except ImportError:
-            logger.warn("'phonopy' package NOT installed. Required for the final analysis step."
-                        "The debye model for the quasi harmonic approximation will be used.")
-            qha_type = "debye_model"
-            lepsilon = False
+            raise RuntimeError("'phonopy' package is NOT installed but is required for the final "
+                             "analysis step; you can alternatively switch to the qha_type to "
+                             "'debye_model' which does not require 'phonopy'.")
 
+    # TODO: @kmathew - see my various other comments about auto-generated tag and UUID. -computron
     tag = datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
@@ -72,6 +72,8 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
                                    db_file=db_file, user_kpoints_settings=user_kpoints_settings,
                                    tag=tag, metadata=metadata)
 
+    # TODO: @kmathew - better to stick to lowercase FW names ('gibbs free energy'). That is the
+    # convention for most FWs and switching back and forth is confusing to remember. -computron
     fw_analysis = Firework(GibbsFreeEnergyTask(tag=tag, db_file=db_file, t_step=t_step, t_min=t_min,
                                                t_max=t_max, mesh=mesh, eos=eos, qha_type=qha_type,
                                                pressure=pressure, poisson=poisson, metadata=metadata),

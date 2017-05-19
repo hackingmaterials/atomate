@@ -30,13 +30,13 @@ class TestSetup(unittest.TestCase):
         cls.struct_si = IStructure(lattice, ["Si"] * 2, coords)
 
         cls.ref_incar = Incar.from_file(
-            os.path.join(module_dir, "reference_files", "setup_test", "INCAR"))
+            os.path.join(module_dir, "..", "test_files", "setup_test", "INCAR"))
         cls.ref_poscar = Poscar.from_file(
-            os.path.join(module_dir, "reference_files", "setup_test", "POSCAR"))
+            os.path.join(module_dir, "..", "test_files", "setup_test", "POSCAR"))
         cls.ref_potcar = Potcar.from_file(
-            os.path.join(module_dir, "reference_files", "setup_test", "POTCAR"))
+            os.path.join(module_dir, "..", "test_files", "setup_test", "POTCAR"))
         cls.ref_kpoints = Kpoints.from_file(
-            os.path.join(module_dir, "reference_files", "setup_test", "KPOINTS"))
+            os.path.join(module_dir, "..", "test_files", "setup_test", "KPOINTS"))
 
     def setUp(self):
         os.chdir(module_dir)

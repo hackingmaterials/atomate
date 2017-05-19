@@ -26,7 +26,7 @@ __email__ = 'montoyjh@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
-ref_dir = os.path.join(module_dir, "test_files")
+ref_dir = os.path.join(module_dir, "..", "..", "test_files")
 
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
@@ -36,7 +36,7 @@ class TestElasticWorkflow(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         if not SETTINGS.get("PMG_VASP_PSP_DIR"):
-            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "reference_files")
+            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "..", "..", "test_files")
             print('This system is not set up to run VASP jobs. '
                   'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
@@ -133,10 +133,10 @@ class TestElasticWorkflow(unittest.TestCase):
 
         self.assertEqual(len(self.wf.fws), 8)
         # check vasp parameters for ionic relaxation
-        defo_vis = [fw.spec["_tasks"][2]['vasp_input_set'] 
+        defo_vis = [fw.tasks[2]['vasp_input_set']
                     for fw in self.wf.fws if "deform" in fw.name]
-        assert all([vis['user_incar_settings']['NSW']==99 for vis in defo_vis])
-        assert all([vis['user_incar_settings']['IBRION']==2 for vis in defo_vis])
+        assert all([vis.user_incar_settings['NSW'] == 99 for vis in defo_vis])
+        assert all([vis.user_incar_settings['IBRION'] == 2 for vis in defo_vis])
         self.lp.add_wf(self.wf)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
@@ -153,6 +153,10 @@ class TestElasticWorkflow(unittest.TestCase):
         # check the final results
         d = self._get_task_collection(coll_name="elasticity").find_one()
         self._check_run(d, mode="elastic analysis")
+
+        wf = self.lp.get_wf_by_fw_id(1)
+        self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
+
 
 
 if __name__ == "__main__":

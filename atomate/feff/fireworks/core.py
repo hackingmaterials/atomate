@@ -67,7 +67,6 @@ class XASFW(Firework):
                                     format(structure.composition.reduced_formula, name), **kwargs)
 
 
-# TODO: @matk86 - many params are not in the documented args -computron
 # TODO: @matk86 - see also my prev comment about feff_input_set and spectrum_type
 
 class EELSFW(Firework):
@@ -87,6 +86,11 @@ class EELSFW(Firework):
             edge (str): absorption edge
             radius (float): cluster radius in angstroms
             name (str)
+            beam_energy (float): Incident beam energy in keV
+            beam_direction (list): Incident beam direction. If None, the cross section will be averaged.
+            collection_angle (float): Detector collection angle in mrad.
+            convergence_angle (float): Beam convergence angle in mrad.
+            user_eels_settings (dict): override default EELS config. See MPELNESSet.yaml for supported keys.
             feff_input_set (FeffDictSet)
             feff_cmd (str): path to the feff binary
             override_default_feff_params (dict): override feff tag settings.
