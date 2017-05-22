@@ -14,8 +14,9 @@ from pymongo import MongoClient
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
-from atomate.vasp.powerups import use_fake_vasp
+from atomate.vasp.powerups import use_fake_vasp, add_modify_incar
 from atomate.vasp.workflows.presets.core import wf_elastic_constant
+from atomate.vasp.workflows.base.elastic import get_wf_elastic_constant
 
 from pymatgen import SETTINGS
 from pymatgen.util.testing import PymatgenTest
@@ -47,6 +48,10 @@ class TestElasticWorkflow(unittest.TestCase):
                               "shear_deformations":[0.03],
                               "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"}
         cls.wf = wf_elastic_constant(cls.struct_si, cls.elastic_config)
+        cls.wf_noopt = get_wf_elastic_constant(cls.struct_si, norm_deformations=[0.01], 
+                shear_deformations=[0.03], optimize_structure=False)
+        mip = {"incar_update": {"ENCUT": 700}}
+        cls.wf_noopt = add_modify_incar(cls.wf_noopt, modify_incar_params=mip)
 
     def setUp(self):
         if os.path.exists(self.scratch_dir):
@@ -130,6 +135,7 @@ class TestElasticWorkflow(unittest.TestCase):
 
     def test_wf(self):
         self.wf = self._simulate_vasprun(self.wf)
+        self.wf_noopt = self._simulate_vasprun(self.wf_noopt)
 
         self.assertEqual(len(self.wf.fws), 8)
         # check vasp parameters for ionic relaxation
@@ -138,6 +144,7 @@ class TestElasticWorkflow(unittest.TestCase):
         assert all([vis.user_incar_settings['NSW'] == 99 for vis in defo_vis])
         assert all([vis.user_incar_settings['IBRION'] == 2 for vis in defo_vis])
         self.lp.add_wf(self.wf)
+        self.lp.add_wf(self.wf_noopt)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
         # check relaxation
