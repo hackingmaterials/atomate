@@ -218,18 +218,19 @@ class ElasticTensorToDbTask(FiretaskBase):
     optional_params = ['db_file']
 
     def run_task(self, fw_spec):
-
-        # Get optimized structure
-        # TODO: will this find the correct path if the workflow is rerun from the start?
-        optimize_loc = fw_spec["calc_locs"][0]["path"]
-        logger.info("Parsing initial optimization directory: {}".format(optimize_loc))
-        drone = VaspDrone()
-        optimize_doc = drone.assimilate(optimize_loc)
-        opt_struct = Structure.from_dict(optimize_doc["calcs_reversed"][0]["output"]["structure"])
         d = {"analysis": {},
              "deformation_tasks": fw_spec["deformation_tasks"],
-             "initial_structure": self['structure'].as_dict(),
-             "optimized_structure": opt_struct.as_dict()}
+             "initial_structure": self['structure'].as_dict()}
+
+        # Get optimized structure
+        calc_locs_opt = [cl for cl in fw_spec['calc_locs'] if 'optimize' in cl['name']]
+        if calc_locs_opt:
+            optimize_loc = calc_locs_opt[-1]['path']
+            logger.info("Parsing initial optimization directory: {}".format(optimize_loc))
+            drone = VaspDrone()
+            optimize_doc = drone.assimilate(optimize_loc)
+            opt_struct = Structure.from_dict(optimize_doc["calcs_reversed"][0]["output"]["structure"])
+            d.update({"optimized_structure": opt_struct.as_dict()})
 
         # TODO: @montoyjh: does the below have anything to do with elastic tensor? If not, try
         # the more general fw_spec_field approach in the VaspToDbTask rather than hard-coding the
