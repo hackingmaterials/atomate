@@ -10,7 +10,7 @@ import monty
 import operator
 from functools import reduce
 
-from atomate.utils.utils import env_chk, load_class
+from atomate.utils.utils import env_chk, load_class, recursive_get_result
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 __author__ = 'Anubhav Jain'
@@ -125,34 +125,3 @@ class PassResult(FiretaskBase):
         mod_spec_key = self.get("mod_spec_key", "prev_calc_result")
         mod_spec_cmd = self.get("mod_spec_cmd", "_set")
         return FWAction(mod_spec=[{mod_spec_cmd: {mod_spec_key: pass_dict}}])
-
-
-intfmt = re.compile("[-+]?\d+$")
-def recursive_get_result(d, result):
-    """
-    Helper function for PassResult that gets designated
-    keys or values of d (i. e. those that start with "d>>"
-    or "a>>") from the corresponding entry in result_dict, 
-    similar to FireWorks recursive_deserialize
-
-    Note that the plain ">>" notation will get a key from
-    the result.as_dict() object and may use MongoDB
-    dot notation, while "a>>" will get an attribute 
-    of the object
-    """
-    if isinstance(d, six.string_types) and d[:2] == ">>":
-        # convert integer like strings to ints
-        keychain = [int(w) if intfmt.match(w) else w for w in d[2:].split('.')]
-        return reduce(operator.getitem, keychain, result.as_dict())
-
-    elif isinstance(d, six.string_types) and d[:3] == "a>>":
-        return getattr(result, d[3:])
-    
-    elif isinstance(d, dict):
-        return {k: recursive_get_result(v, result) for k, v in d.items()}
-    
-    elif isinstance(d, (list, tuple)):
-        return [recursive_get_result(i, result) for i in d] 
-    
-    else:
-        return d

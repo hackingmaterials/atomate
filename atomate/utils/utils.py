@@ -77,6 +77,36 @@ def get_mongolike(d, key):
     return d[key]
 
 
+def recursive_get_result(d, result):
+    """
+    Function that gets designated keys or values of d 
+    (i. e. those that start with "d>>" or "a>>") from 
+    the corresponding entry in result_dict, similar to 
+    FireWorks recursive_deserialize.
+
+    Note that the plain ">>" notation will get a key from
+    the result.as_dict() object and may use MongoDB
+    dot notation, while "a>>" will get an attribute
+    of the object.
+    """
+    if isinstance(d, six.string_types) and d[:2] == ">>":
+        if not isinstance(result, dict):
+            result = result.as_dict()
+        return get_mongolike(result, d[2:])
+
+    elif isinstance(d, six.string_types) and d[:3] == "a>>":
+        return getattr(result, d[3:])
+    
+    elif isinstance(d, dict):
+        return {k: recursive_get_result(v, result) for k, v in d.items()}
+    
+    elif isinstance(d, (list, tuple)):
+        return [recursive_get_result(i, result) for i in d] 
+    
+    else:
+        return d
+
+
 def get_logger(name, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(message)s',
                stream=sys.stdout):
     logger = logging.getLogger(name)
