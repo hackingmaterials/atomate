@@ -179,7 +179,7 @@ class RunNEBVaspFake(FiretaskBase):
         ref_kpoints = Kpoints.from_file(os.path.join(self.ref_dir_input, "KPOINTS"))
         if user_kpoints.style != ref_kpoints.style or user_kpoints.num_kpts != ref_kpoints.num_kpts:
             raise ValueError("KPOINT files are inconsistent! "
-                             "Paths are:\n{}\n{}".format(self.user_dir, self.ref_dir_input))
+                             "Paths are:\n{}\n{} with kpts = {} {}".format(self.user_dir, self.ref_dir_input, user_kpoints, ref_kpoints))
 
         # Check POTCAR
         user_potcar = Potcar.from_file(os.path.join(self.user_dir, "POTCAR"))
