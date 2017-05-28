@@ -2,27 +2,33 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-"""
-NEB workflow firetasks.
-"""
-
 import os
 import glob
 import shutil
 
 from pymatgen.core import Structure
 from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
+from pymatgen_diffusion.neb.io import MVLCINEBSet, get_endpoint_dist, get_endpoints_from_index
 
 from fireworks.core.firework import FiretaskBase, FWAction
 from fireworks.utilities.fw_utilities import explicit_serialize
 
 from atomate.utils.utils import get_logger
 
+"""
+NEB workflow firetasks.
+"""
+
 __author__ = "Hanmei Tang, Iek-Heng Chu"
 __email__ = 'hat003@eng.ucsd.edu, ihchu@eng.ucsd.edu'
 
 
-# TODO: @shyuep: Please do a code review at this module before I look at this. -computron
+VASP_NEB_OUTPUT_FILES = {'INCAR', 'KPOINTS', 'POTCAR', 'vasprun.xml'}
+VASP_NEB_OUTPUT_SUB_FILES = {'CHG', 'CHGCAR', 'CONTCAR', 'DOSCAR', 'EIGENVAL',
+                             'IBZKPT', 'PCDAT', 'POSCAR', 'PROCAR', 'OSZICAR',
+                             'OUTCAR', 'REPORT', 'WAVECAR', 'XDATCAR'}
+
+
 @explicit_serialize
 class TransferNEBTask(FiretaskBase):
     """
@@ -42,8 +48,6 @@ class TransferNEBTask(FiretaskBase):
 
     def run_task(self, fw_spec):
 
-        from pymatgen_diffusion.neb.io import get_endpoint_dist, get_endpoints_from_index
-
         label = self["label"]
         assert label in ["parent", "ep0", "ep1"] or "neb" in label, "Unknown label!"
 
@@ -58,7 +62,7 @@ class TransferNEBTask(FiretaskBase):
             # Update all relaxed images.
             subs = glob.glob("[0-2][0-9]")
             nimages = len(subs)
-            concar_list = ["{:02}/CONTCAR".format(i) for i in range(nimages)[1: -1]]
+            concar_list = ["{:02}/CONTCAR".format(i) for i in range(nimages)[1:-1]]
             images = [Structure.from_file(contcar) for contcar in concar_list]
 
             # Update the two ending "images".
@@ -139,10 +143,7 @@ class RunNEBVaspFake(FiretaskBase):
 
     def _get_params(self):
         """Define some convenient variables."""
-        self.VASP_NEB_OUTPUT_FILES = ['INCAR', 'KPOINTS', 'POTCAR', 'vasprun.xml']
-        self.VASP_NEB_OUTPUT_SUB_FILES = ['CHG', 'CHGCAR', 'CONTCAR', 'DOSCAR', 'EIGENVAL',
-                                          'IBZKPT', 'PCDAT', 'POSCAR', 'PROCAR', 'OSZICAR',
-                                          'OUTCAR', 'REPORT', 'WAVECAR', 'XDATCAR']
+
         self.user_dir = os.getcwd()
         self.ref_dir_input = os.path.join(self["ref_dir"], "inputs")
         self.ref_dir_output = os.path.join(self["ref_dir"], "outputs")
@@ -199,14 +200,14 @@ class RunNEBVaspFake(FiretaskBase):
     def _clear_inputs(self):
         """Remove all input files from user NEB directory."""
         # Clear neb directory
-        for x in self.VASP_NEB_OUTPUT_FILES:
+        for x in VASP_NEB_OUTPUT_FILES:
             p = os.path.join(os.getcwd(), x)
             if os.path.exists(p):
                 os.remove(p)
 
         # Clear neb sub-directory
         for d in self.user_sdir:
-            for x in self.VASP_NEB_OUTPUT_SUB_FILES:
+            for x in VASP_NEB_OUTPUT_SUB_FILES:
                 p = os.path.join(d, x)
                 if os.path.exists(p):
                     os.remove(p)
@@ -243,9 +244,6 @@ class WriteNEBFromImages(FiretaskBase):
     optional_params = ["user_incar_settings", "user_kpoints_settings"]
 
     def run_task(self, fw_spec):
-
-        from pymatgen_diffusion.neb.io import MVLCINEBSet
-
         user_incar_settings = self.get("user_incar_settings", {})
         user_kpoints_settings = self.get("user_kpoints_settings", {})
         neb_label = self.get("neb_label")
