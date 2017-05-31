@@ -14,7 +14,7 @@ from pymongo import MongoClient
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
-from atomate.vasp.powerups import use_fake_vasp
+from atomate.vasp.powerups import use_fake_vasp, add_modify_incar
 from atomate.vasp.workflows.base.elastic import get_wf_elastic_constant
 
 from pymatgen import SETTINGS
@@ -26,7 +26,7 @@ __email__ = 'montoyjh@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
-ref_dir = os.path.join(module_dir, "test_files")
+ref_dir = os.path.join(module_dir, "..", "..", "test_files")
 
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
@@ -36,7 +36,7 @@ class TestElasticWorkflow(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         if not SETTINGS.get("PMG_VASP_PSP_DIR"):
-            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "reference_files")
+            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "..", "..", "test_files")
             print('This system is not set up to run VASP jobs. '
                   'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
@@ -44,6 +44,10 @@ class TestElasticWorkflow(unittest.TestCase):
         cls.scratch_dir = os.path.join(module_dir, "scratch")
         cls.wf = get_wf_elastic_constant(cls.struct_si, vasp_cmd=">>vasp_cmd<<", 
                                          db_file=">>db_file<<", stencils=[[0.01]]*3 + [[0.03]]*3)
+        cls.wf_noopt = get_wf_elastic_constant(cls.struct_si, vasp_cmd=">>vasp_cmd<<", 
+                db_file=">>db_file<<", stencils=[[0.01]]*3 + [[0.03]]*3, optimize_structure=False)
+        mip = {"incar_update": {"ENCUT": 700}}
+        cls.wf_noopt = add_modify_incar(cls.wf_noopt, modify_incar_params=mip)
 
     def setUp(self):
         if os.path.exists(self.scratch_dir):
@@ -127,6 +131,7 @@ class TestElasticWorkflow(unittest.TestCase):
 
     def test_wf(self):
         self.wf = self._simulate_vasprun(self.wf)
+        self.wf_noopt = self._simulate_vasprun(self.wf_noopt)
 
         self.assertEqual(len(self.wf.fws), 8)
         # check vasp parameters for ionic relaxation
@@ -135,6 +140,7 @@ class TestElasticWorkflow(unittest.TestCase):
         assert all([vis.user_incar_settings['NSW'] == 99 for vis in defo_vis])
         assert all([vis.user_incar_settings['IBRION'] == 2 for vis in defo_vis])
         self.lp.add_wf(self.wf)
+        self.lp.add_wf(self.wf_noopt)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
         # check relaxation
@@ -150,6 +156,10 @@ class TestElasticWorkflow(unittest.TestCase):
         # check the final results
         d = self._get_task_collection(coll_name="elasticity").find_one()
         self._check_run(d, mode="elastic analysis")
+
+        wf = self.lp.get_wf_by_fw_id(1)
+        self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
+
 
 
 if __name__ == "__main__":

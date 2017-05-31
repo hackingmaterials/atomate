@@ -36,6 +36,14 @@ atomate.vasp.workflows.tests.test_raman_workflow module
     :undoc-members:
     :show-inheritance:
 
+atomate.vasp.workflows.tests.test_vasp_workflows module
+-------------------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.tests.test_vasp_workflows
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

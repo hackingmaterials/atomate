@@ -110,6 +110,7 @@ def get_legacy_elastic_wf(structure, vasp_input_set=None, vasp_cmd=">>vasp_cmd<<
     # Convert to conventional
     if conventional:
         structure = SpacegroupAnalyzer(structure).get_conventional_standard_structure()
+
     # Generate deformations
     user_kpoints_settings = user_kpoints_settings or {"grid_density": 7000}
     norm_deformations = norm_deformations or [0.005] #[-0.01, -0.005, 0.005, 0.01]

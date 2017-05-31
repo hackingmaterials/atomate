@@ -323,10 +323,10 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
                 found = True
             if not found:
                 raise ValueError("Could not find transformation: {}".format(t))
-
+        
         # TODO: @matk86 - should prev_calc_dir use CONTCAR instead of POSCAR? Note that if
         # current dir, maybe it is POSCAR indeed best ... -computron
-        structure = self['structure'] if 'prev_calc_dir' not in self else \
+        structure = self['structure'] if not self.get('prev_calc_dir', None) else \
                 Poscar.from_file(os.path.join(self['prev_calc_dir'], 'POSCAR')).structure
         ts = TransformedStructure(structure)
         transmuter = StandardTransmuter([ts], transformations)

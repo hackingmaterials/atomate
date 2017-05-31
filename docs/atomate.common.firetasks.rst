@@ -27,6 +27,14 @@ atomate.common.firetasks.parse_outputs module
     :undoc-members:
     :show-inheritance:
 
+atomate.common.firetasks.run_calc module
+----------------------------------------
+
+.. automodule:: atomate.common.firetasks.run_calc
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

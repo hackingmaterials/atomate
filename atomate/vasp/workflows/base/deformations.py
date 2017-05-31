@@ -22,6 +22,7 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
+# TODO: @kmathew - add missing docstring (e.g., optimize_structure, relax_deformed..)
 def get_wf_deformations(structure, deformations, name="deformation", vasp_input_set=None,
                         lepsilon=False, vasp_cmd="vasp", db_file=None, user_kpoints_settings=None,
                         pass_stress_strain=False, tag="", relax_deformed=False, optimize_structure=True,
@@ -30,7 +31,6 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
     Returns a structure deformation workflow.
 
     Firework 1 : structural relaxation
-
     Firework 2 - len(deformations): Deform the optimized structure and run static calculations.
 
 
@@ -54,7 +54,15 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
         Workflow
     """
 
+    # TODO: @kmathew - why not use UUID to generate a unique tag for the user
+    # if they don't feel like inventing one themselves? -computron
     fws, parents = [], []
+
+    # TODO: @kmathew - I don't see the need for this option. Better if a user can just take an
+    # OptimizeStructure workflow and chain it before this one? It's better if the workflows can
+    # concentrate on what they are doing best, and encourage the user to chain things together. You
+    # could create a preset workflow that chains it for the user, but I don't see a need to do it
+    # here. Maybe I'm wrong though? -computron
 
     # input set for relaxation
     vis_relax = vasp_input_set or MPRelaxSet(structure, force_gamma=True, 
@@ -70,6 +78,7 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
         uis_static["IBRION"] = 2
         uis_static["NSW"] = 99
 
+    # TODO: @kmathew - see my previous comment about chaining workflows -computron
     # static input set
     vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
                              user_kpoints_settings=user_kpoints_settings,
@@ -93,9 +102,14 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
         fw = TransmuterFW(name="{} {} {}".format(tag, name, n), structure=structure,
                           transformations=['DeformStructureTransformation'],
                           transformation_params=[{"deformation": deformation.tolist()}],
+<<<<<<< HEAD
                           vasp_input_set=vis_static, copy_vasp_outputs=True, parents=parents,
                           vasp_cmd=vasp_cmd, db_file=db_file, override_default_vasp_params=override)
 
+=======
+                          vasp_input_set=vis_static, copy_vasp_outputs=optimize_structure, 
+                          parents=parents, vasp_cmd=vasp_cmd, db_file=db_file)
+>>>>>>> master
         if pass_stress_strain:
             fw.tasks.append(PassStressStrainData(number=n, symmops=symmops[n],
                                                  deformation=deformation.tolist()))

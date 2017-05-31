@@ -26,7 +26,7 @@ DEBUG_MODE = False  # If true, retains the database and output dirs at the end o
 LAMMPS_CMD = None  # "lmp_serial"
 
 
-class TestVaspWorkflows(unittest.TestCase):
+class TestLammpsWorkflows(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.scratch_dir = os.path.join(module_dir, "scratch")

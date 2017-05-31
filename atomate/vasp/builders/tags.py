@@ -33,7 +33,7 @@ class TagsBuilder(AbstractBuilder):
         logger.info("TagsBuilder starting...")
         self._build_indexes()
 
-        # TODO: Build incrementally, taking into account which *tasks* have already been processed
+        # TODO: @albalu Build incrementally, taking into account which *tasks* have already been processed -computron
         q = {}
         mats = [m for m in self._materials.find(q, {"_tasksbuilder.all_task_ids": 1, "tags": 1,
                                                     "material_id": 1})]

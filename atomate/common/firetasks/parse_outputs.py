@@ -14,6 +14,7 @@ __author__ = 'Shyam Dwaraknath <shyamd@lbl.gov>, Anubhav Jain <ajain@lbl.gov>'
 
 logger = get_logger(__name__)
 
+
 @explicit_serialize
 class ToDbTask(FiretaskBase):
     """

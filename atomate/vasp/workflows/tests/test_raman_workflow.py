@@ -25,7 +25,7 @@ __email__ = 'kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
-ref_dir = os.path.join(module_dir, "test_files")
+ref_dir = os.path.join(module_dir, "..", "..", "test_files")
 
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
@@ -35,7 +35,7 @@ class TestRamanWorkflow(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         if not SETTINGS.get("PMG_VASP_PSP_DIR"):
-            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "reference_files")
+            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "..", "..", "test_files")
             print('This system is not set up to run VASP jobs. '
                   'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
@@ -158,6 +158,9 @@ class TestRamanWorkflow(unittest.TestCase):
         # check the final results
         d = self._get_task_collection(coll_name="raman").find_one()
         self._check_run(d, mode="raman analysis")
+
+        wf = self.lp.get_wf_by_fw_id(1)
+        self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
 
 
 if __name__ == "__main__":

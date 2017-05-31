@@ -44,6 +44,14 @@ atomate.vasp.builders.fix_tasks module
     :undoc-members:
     :show-inheritance:
 
+atomate.vasp.builders.materials_descriptor module
+-------------------------------------------------
+
+.. automodule:: atomate.vasp.builders.materials_descriptor
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 atomate.vasp.builders.materials_ehull module
 --------------------------------------------
 
