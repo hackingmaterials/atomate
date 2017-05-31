@@ -25,7 +25,7 @@ logger = get_logger(__name__)
 def get_wf_deformations(structure, deformations, name="deformation", vasp_input_set=None,
                         lepsilon=False, vasp_cmd="vasp", db_file=None, user_kpoints_settings=None,
                         pass_stress_strain=False, tag="", relax_deformed=False, optimize_structure=True,
-                        symmetry_reduction=False, metadata=None):
+                        symmetry_reduction=False, metadata=None, pass_kpoints=False):
     """
     Returns a structure deformation workflow.
 
@@ -47,25 +47,23 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
         tag (str): some unique string that will be appended to the names of the fireworks so that
             the data from those tagged fireworks can be queried later during the analysis.
         metadata (dict): meta data
+        pass_kpoints (bool): if True, will ensure that deformations keep the same k-point mesh
+            as the optimization firework
 
     Returns:
         Workflow
     """
 
     fws, parents = [], []
-    if optimize_structure:
-        # input set for relaxation
-        vis_relax = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
-        if user_kpoints_settings:
-            v = vis_relax.as_dict()
-            v.update({"user_kpoints_settings": user_kpoints_settings})
-            vis_relax = vis_relax.__class__.from_dict(v)
 
+    # input set for relaxation
+    vis_relax = vasp_input_set or MPRelaxSet(structure, force_gamma=True, 
+                                             user_kpoints_settings=user_kpoints_settings)
+    if optimize_structure:
         # Structure optimization firework
         fws = [OptimizeFW(structure=structure, vasp_input_set=vis_relax, vasp_cmd=vasp_cmd,
                           db_file=db_file, name="{} structure optimization".format(tag))]
         parents = fws[0]
-
 
     uis_static = {"ISIF": 2, "ISTART":1}
     if relax_deformed:
@@ -76,6 +74,12 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
     vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
                              user_kpoints_settings=user_kpoints_settings,
                              user_incar_settings=uis_static)
+
+    # ensure TransmuterFWs have same kpoints as undeformed structure if specified
+    override = {}
+    if pass_kpoints:
+        kpoints = vis_relax.kpoints
+        override.update({"kpoints": vis_relax.kpoints.as_dict()})
 
     # Do symmetry reduction and get corresponding symmops if specified
     if symmetry_reduction:
@@ -90,7 +94,8 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
                           transformations=['DeformStructureTransformation'],
                           transformation_params=[{"deformation": deformation.tolist()}],
                           vasp_input_set=vis_static, copy_vasp_outputs=True, parents=parents,
-                          vasp_cmd=vasp_cmd, db_file=db_file)
+                          vasp_cmd=vasp_cmd, db_file=db_file, override_default_vasp_params=override)
+
         if pass_stress_strain:
             fw.tasks.append(PassStressStrainData(number=n, symmops=symmops[n],
                                                  deformation=deformation.tolist()))

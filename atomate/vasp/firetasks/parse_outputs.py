@@ -276,7 +276,7 @@ class ElasticTensorToDbTask(FiretaskBase):
             hoec['stresses'], hoec['strains'] = stresses, strains
             hoec['pk_stresses'] = [stress.piola_kirchoff_2(strain.deformation_matrix) 
                                    for stress, strain in zip(stresses, strains)]
-            exp = ElasticTensorExpansion.from_diff_fit(strains, stresses, 
+            exp = ElasticTensorExpansion.from_diff_fit(strains, hoec['pk_stresses'],
                                                        eq_stress = d["eq_stress"], 
                                                        order=order)
             expfit = exp.fit_to_structure(opt_struct)

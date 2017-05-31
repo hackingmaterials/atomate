@@ -15,7 +15,7 @@ from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_fake_vasp
-from atomate.vasp.workflows.presets.core import wf_elastic_constant
+from atomate.vasp.workflows.base.elastic import get_wf_elastic_constant
 
 from pymatgen import SETTINGS
 from pymatgen.util.testing import PymatgenTest
@@ -40,13 +40,10 @@ class TestElasticWorkflow(unittest.TestCase):
             print('This system is not set up to run VASP jobs. '
                   'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
-        cls.struct_si = SpacegroupAnalyzer(
-                PymatgenTest.get_structure("Si")).get_conventional_standard_structure()
+        cls.struct_si = PymatgenTest.get_structure("Si")
         cls.scratch_dir = os.path.join(module_dir, "scratch")
-        cls.elastic_config = {"norm_deformations":[0.01],
-                              "shear_deformations":[0.03],
-                              "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"}
-        cls.wf = wf_elastic_constant(cls.struct_si, cls.elastic_config)
+        cls.wf = get_wf_elastic_constant(cls.struct_si, vasp_cmd=">>vasp_cmd<<", 
+                                         db_file=">>db_file<<", stencils=[[0.01]]*3 + [[0.03]]*3)
 
     def setUp(self):
         if os.path.exists(self.scratch_dir):
@@ -133,7 +130,7 @@ class TestElasticWorkflow(unittest.TestCase):
 
         self.assertEqual(len(self.wf.fws), 8)
         # check vasp parameters for ionic relaxation
-        defo_vis = [fw.tasks[2]['vasp_input_set']
+        defo_vis = [fw.tasks[1]['vasp_input_set']
                     for fw in self.wf.fws if "deform" in fw.name]
         assert all([vis.user_incar_settings['NSW'] == 99 for vis in defo_vis])
         assert all([vis.user_incar_settings['IBRION'] == 2 for vis in defo_vis])

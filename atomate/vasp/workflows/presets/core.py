@@ -213,10 +213,11 @@ def wf_elastic_constant(structure, c=None):
         mip = {"incar_update":{"ENCUT": 800, "EDIFF": 1e-10, "LAECHG":False, "EDIFFG":-0.001,
                                "ADDGRID":True, "LREAL":False, "ISYM":0}}
         user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density":40000})
+        stencils = np.linspace(-0.05, 0.05, 7)
     else:
         mip = {"incar_update":{"ENCUT": 700, "EDIFF": 1e-6, "LAECHG":False}}
         user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
-    stencils = c.get("stencils", None)
+        stencils = None # use default
     optimize_structure = c.get("optimize_structure", True)
     sym_red = c.get("symmetry_reduction", False)
     conv = c.get("conventional", True)
