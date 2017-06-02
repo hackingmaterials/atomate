@@ -13,7 +13,7 @@ import yaml
 from datetime import datetime
 
 from fireworks import LaunchPad
-from atomate import get_wf_from_spec_dict
+from atomate.utils.utils import get_wf_from_spec_dict
 from atomate.vasp.powerups import add_namefile, add_tags
 from atomate.vasp.workflows.presets import core
 from pymatgen import Structure, Lattice, MPRester
