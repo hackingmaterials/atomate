@@ -88,6 +88,16 @@ def recursive_get_result(d, result):
     the result.as_dict() object and may use MongoDB
     dot notation, while "a>>" will get an attribute
     of the object.
+
+    Examples:
+
+    Getting a dict key from a VaspRun instance:
+        recursive_get_result({"stress":">>output.ionic_steps.-1.stress"}, vasprun)
+        --> {"stress":[[0.2, 0, 0], [0, 0.3, 0], [0, 0, 0.3]]}
+
+    Getting an **attribute** from a vasprun:
+        recursive_get_result({"epsilon":"a>>epsilon_static", vasprun}
+        --> {"epsilon":-3.4}
     """
     if isinstance(d, six.string_types) and d[:2] == ">>":
         if not isinstance(result, dict):
