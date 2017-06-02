@@ -8,7 +8,7 @@ from collections import defaultdict
 
 from fireworks import FiretaskBase, Firework, Workflow, explicit_serialize, FWAction
 
-from atomate.utils.utils import env_chk, get_logger, get_mongolike, append_fw_wf, remove_fws
+from atomate.utils.utils import env_chk, get_logger, get_mongolike, remove_fws
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -66,16 +66,6 @@ class UtilsTests(unittest.TestCase):
         self.assertEqual(get_mongolike(d, "a.0.b"), 1)
         self.assertEqual(get_mongolike(d, "a.1.c.d"), 2)
 
-    # TODO: @matk86 - remove this once removing append_fw_wf() method -computron
-    def test_append_fw(self):
-        fw_new = Firework(Task1())
-        fws = [self.fw1, self.fw2, self.fw3]
-        wflow = Workflow(fws)
-        leaf_ids = wflow.leaf_fw_ids
-        append_fw_wf(wflow, fw_new)
-        new_lead_ids = wflow.leaf_fw_ids
-        for i in leaf_ids:
-            self.assertEqual(wflow.links[i], [new_lead_ids[0]])
 
     # TODO: @matk86 - move this test to FireWorks after moving remove_fws() there
     def test_remove_leaf_fws(self):

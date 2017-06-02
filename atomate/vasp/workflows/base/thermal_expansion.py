@@ -12,7 +12,7 @@ from fireworks import Firework, Workflow
 
 from pymatgen.analysis.elasticity.strain import Deformation
 
-from atomate.utils.utils import get_logger, append_fw_wf
+from atomate.utils.utils import get_logger
 from atomate.vasp.firetasks.parse_outputs import ThermalExpansionCoeffTask
 from atomate.vasp.workflows.base.deformations import get_wf_deformations
 
@@ -67,7 +67,7 @@ def get_wf_thermal_expansion(structure, deformations, vasp_input_set=None, vasp_
                                                      pressure=pressure),
                            name="Thermal expansion")
 
-    append_fw_wf(wf_alpha, fw_analysis)
+    wf_alpha.append_wf(Workflow.from_Firework(fw_analysis), wf_alpha.leaf_fw_ids)
 
     wf_alpha.name = "{}:{}".format(structure.composition.reduced_formula, "thermal expansion")
 

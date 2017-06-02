@@ -8,7 +8,7 @@ This module defines FEFF XAS(XANES/EXAFS) workflows.
 
 from fireworks import Workflow
 
-from atomate.utils.utils import get_logger, append_fw_wf
+from atomate.utils.utils import get_logger
 from atomate.feff.fireworks.core import XASFW, EXAFSPathsFW
 from atomate.feff.utils import get_all_absorbing_atoms
 
@@ -111,5 +111,6 @@ def get_wf_exafs_paths(absorbing_atom, structure, paths, degeneracies=None, edge
                             radius=radius, name="EXAFS Paths", feff_input_set=feff_input_set,
                             feff_cmd=feff_cmd, labels=labels, filepad_file=filepad_file)
     # append the scattering paths firework to the regular EXAFS workflow.
-    append_fw_wf(wflow, paths_fw)
+    paths_wf = Workflow.from_Firework(paths_fw)
+    wflow.append_wf(paths_wf, wflow.leaf_fw_ids)
     return wflow

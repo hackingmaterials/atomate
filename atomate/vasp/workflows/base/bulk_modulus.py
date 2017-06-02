@@ -12,7 +12,7 @@ from fireworks import Firework, Workflow
 
 from pymatgen.analysis.elasticity.strain import Deformation
 
-from atomate.utils.utils import get_logger, append_fw_wf
+from atomate.utils.utils import get_logger
 from atomate.vasp.firetasks.parse_outputs import FitEquationOfStateTask
 from atomate.vasp.workflows.base.deformations import get_wf_deformations
 
@@ -59,7 +59,7 @@ def get_wf_bulk_modulus(structure, deformations, vasp_input_set=None, vasp_cmd="
     fw_analysis = Firework(FitEquationOfStateTask(tag=tag, db_file=db_file, eos=eos),
                            name="fit equation of state")
 
-    append_fw_wf(wf_bulk_modulus, fw_analysis)
+    wf_bulk_modulus.append_wf(Workflow.from_Firework(fw_analysis), wf_bulk_modulus.leaf_fw_ids)
 
     wf_bulk_modulus.name = "{}:{}".format(structure.composition.reduced_formula, "Bulk modulus")
 

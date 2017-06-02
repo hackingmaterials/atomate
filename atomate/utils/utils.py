@@ -223,24 +223,6 @@ def get_wf_from_spec_dict(structure, wfspec):
     return Workflow(fws, name=wfname, metadata=wfspec.get("metadata"))
 
 
-# TODO: @matk86 - please remove this pointless method. Write tighter code rather than this silly
-# "auto-converting without thinking about it" mess. Even if you wanted to do this auto-conversion,
-# just modify Workflow.append_wf() in FireWorks rather than add this thing. -computron
-def append_fw_wf(orig_wf, fw_wf):
-    """
-    Add the given firework or workflow to the end of the provided workflow. If there are multiple
-    leaf nodes the newly added firework/workflow will depend on all of them.
-
-    Args:
-        orig_wf (Workflow): The original workflow object.
-        fw_wf (Firework/Workflow): The firework or workflow object to be appended to orig_wf.
-    """
-    new_wf = fw_wf
-    if isinstance(fw_wf, Firework):
-        new_wf = Workflow.from_Firework(new_wf)
-    orig_wf.append_wf(new_wf, orig_wf.leaf_fw_ids)
-
-
 def load_class(modulepath, classname):
     """
     Load and return the class from the given module.
