@@ -207,7 +207,13 @@ atomate is currently in an alpha release. Although atomate is open source, curre
 Changelog
 =========
 
-:doc:`Changelog </changelog>`
+.. toctree::
+   :maxdepth: 1
+
+   installation
+   running_workflows
+   creating_workflows
+   changelog
 
 =======
 License
