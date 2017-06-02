@@ -13,24 +13,21 @@ from fireworks import FiretaskBase, explicit_serialize
 __author__ = 'Kiran Mathew'
 __email__ = "kmathew@lbl.gov"
 
-# TODO: @matk86 - why is it sometimes "DictXInput" (X=Lammps) and other times "XDictSet"
-# (X=FEFF)? Can you make these consistent both in (i) where the word "Dict" is and (ii) Input
-# vs Set? Also update the parameter name below when done. -computron
 
 @explicit_serialize
-class WritelammpsInputFromDictInput(FiretaskBase):
+class WriteLammpsFromIOSet(FiretaskBase):
     """
     Writes LAMMPS Input files(data file and the control parameters file) from DictLammpsInput.
 
     required_params:
-        lammps_dict_input (DictLammpsInput)
+        lammps_input_set (DictLammpsInput)
         input_file (string): name of the file to which the input params will be written
 
     optional_params:
         data_file (string): if specified the data file will be renamed
     """
 
-    required_params = ["lammps_dict_input", "input_file"]
+    required_params = ["lammps_input_set", "input_file"]
     optional_params = ["data_file"]
 
     def run_task(self, fw_spec):
