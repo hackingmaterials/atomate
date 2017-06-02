@@ -67,14 +67,16 @@ def get_mongolike(d, key):
         value from desired dict (whatever is stored at the desired key)
 
     """
+    lead_key = key.split(".", 1)[0]
+    try:
+        lead_key = int(lead_key)  # for searching array data
+    except:
+        pass
+
     if "." in key:
-        i, j = key.split(".", 1)
-        try:
-            i = int(i)  # for searching array data
-        except:
-            pass
-        return get_mongolike(d[i], j)
-    return d[key]
+        remainder = key.split(".", 1)[1]
+        return get_mongolike(d[lead_key], remainder)
+    return d[lead_key]
 
 
 def recursive_get_result(d, result):
@@ -100,7 +102,7 @@ def recursive_get_result(d, result):
         --> {"epsilon":-3.4}
     """
     if isinstance(d, six.string_types) and d[:2] == ">>":
-        if not isinstance(result, dict):
+        if hasattr(result, "as_dict"):
             result = result.as_dict()
         return get_mongolike(result, d[2:])
 
