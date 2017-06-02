@@ -14,7 +14,6 @@ from fireworks import Workflow
 
 from atomate.utils.utils import get_logger
 from atomate.feff.fireworks.core import EELSFW
-from atomate.feff.utils import get_all_absorbing_atoms
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -58,7 +57,7 @@ def get_wf_eels(absorbing_atom, structure=None, spectrum_type="ELNES", edge="K",
         structure = structure.get_primitive_structure()
 
     # get the absorbing atom site index/indices
-    ab_atom_indices = get_all_absorbing_atoms(absorbing_atom, structure)
+    ab_atom_indices = [absorbing_atom] if isinstance(absorbing_atom, int) else structure.indices_from_symbol(absorbing_atom)
 
     override_default_feff_params = {"user_tag_settings": user_tag_settings}
 
