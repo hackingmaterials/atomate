@@ -180,3 +180,12 @@ class EXAFSPathsFW(Firework):
 
         super(EXAFSPathsFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)
+
+
+def get_feff_input_set_obj(feff_input_set, *args, **kwargs):
+    if isinstance(feff_input_set, string_types):
+        modname, classname = feff_input_set.strip().rsplit(".", 1)
+        fis_cls = load_class(modname, classname)
+        return fis_cls(*args, **kwargs)
+    else:
+        return feff_input_set

@@ -63,7 +63,7 @@ def get_wf_xas(absorbing_atom, structure, feff_input_set="XANES", edge="K", radi
             feff_input_set = "pymatgen.io.feff.sets.{}".format(classname)
     else:
         classname = feff_input_set.__class__.__name__
-        
+
     spectrum_type = classname[2:-3]
 
     # add firework for each absorbing atom site index
