@@ -88,10 +88,6 @@ To get access to VASP on supercomputing resources typically requires that you ar
         └── ...
 
 
-
-
-.. TODO: @bocklund what is "elements" in the tree above
-
 =======
 MongoDB
 =======
@@ -469,7 +465,7 @@ See the following pages for more information on the topics we covered here:
 
 * For submitting jobs to the queue in reservation mode see the `FireWorks advanced queue submission tutorial`_
 * For using pymatgen-db to query your database see the `pymatgen-db documentation`_
-* To see how to run and customize the existing Workflows and FireWorks try the :ref:`running workflows tutorial`_
+* To see how to run and customize the existing Workflows and FireWorks try the :ref:`running workflows tutorial`
 
 .. _FireWorks advanced queue submission tutorial: https://pythonhosted.org/FireWorks/queue_tutorial_pt2.html
 .. _pymatgen-db documentation: https://materialsproject.github.io/pymatgen-db/
