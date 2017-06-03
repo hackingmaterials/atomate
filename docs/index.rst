@@ -207,7 +207,7 @@ atomate is currently in an alpha release. Although atomate is open source, curre
 Changelog
 =========
 
-:doc:`Changelog </changelog>`
+:doc:`changelog`
 
 =======
 License
@@ -218,6 +218,19 @@ atomate is released under a modified BSD license; the full text can be found :do
 ===========================
 Comprehensive Documentation
 ===========================
+
+Installation and other introductory documentation follow this page
+
+.. toctree::
+    :maxdepth: 2
+
+    installation
+    running_workflows
+    creating_workflows
+    changelog
+    contributors
+    license
+    workflow_yaml_reference
 
 Some comprehensive documentation is listed below (only for the brave!)
 

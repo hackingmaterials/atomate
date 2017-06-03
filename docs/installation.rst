@@ -25,6 +25,12 @@ It is assumed that you are comfortable with basic Linux shell commands and navig
 .. _Linux Journey: https://linuxjourney.com/lesson/the-shell
 
 
+Objectives
+==========
+
+* Install and configure atomate on a supercomputing cluster
+* Validate the installation with a test workflow
+
 Installation checklist
 ======================
 
@@ -75,22 +81,14 @@ To get access to VASP on supercomputing resources typically requires that you ar
     │   ├── POTCAR.Ac_s.gz
     │   ├── POTCAR.Ag.gz
     │   └── ...
-    ├── POT_LDA_PAW
-    │   ├── POTCAR.Ac.gz
-    │   ├── POTCAR.Ac_s.gz
-    │   ├── POTCAR.Ag.gz
-    │   └── ...
-    └── elements
+    └── POT_LDA_PAW
+        ├── POTCAR.Ac.gz
+        ├── POTCAR.Ac_s.gz
         ├── POTCAR.Ag.gz
-        ├── POTCAR.Al.gz
-        ├── POTCAR.Al_h.gz
         └── ...
 
 
-
-
-.. TODO: @bocklund what is "elements" in the tree above
-
+=======
 MongoDB
 =======
 
@@ -416,7 +414,7 @@ If you are planning to run VASP, the last configuration step is to configure pym
 Run a test workflow
 ===================
 
-To make sure that everything is set up correctly an in place, we'll finally run a simple test workflow. In general, two ways to create workflows is using atomate's command line utility ``atwf`` or by creating workflows in Python. More discussion on constructing and running workflows can be found in the `running workflows tutorial`_ and details on writing new workflows can be found in the `writing workflows guide`_. For now, we will use ``atwf`` to construct a workflow. Ideally you set up an API key in the `Configure pymatgen`_ section, otherwise you will need to provide a POSCAR for the structure you want to run. If you have an API key configured, you can run the following to run a structure optimization on Si
+To make sure that everything is set up correctly an in place, we'll finally run a simple test workflow. In general, two ways to create workflows is using atomate's command line utility ``atwf`` or by creating workflows in Python. More discussion on constructing and running workflows can be found in the :ref:`running workflows tutorial` and details on making custom workflows can be found in the :ref:`creating workflows`. For now, we will use ``atwf`` to construct a workflow. Ideally you set up an API key in the `Configure pymatgen`_ section, otherwise you will need to provide a POSCAR for the structure you want to run. If you have an API key configured, you can run the following to run a structure optimization on Si
 
 .. code-block:: bash
 
@@ -467,13 +465,10 @@ See the following pages for more information on the topics we covered here:
 
 * For submitting jobs to the queue in reservation mode see the `FireWorks advanced queue submission tutorial`_
 * For using pymatgen-db to query your database see the `pymatgen-db documentation`_
-* To see how to run and customize the existing Workflows and FireWorks try the `running workflows tutorial`_
-* If the existing Workflows cannot be tailored to your liking, the `writing workflows guide`_ discusses how to make new workflows
+* To see how to run and customize the existing Workflows and FireWorks try the :ref:`running workflows tutorial`
 
 .. _FireWorks advanced queue submission tutorial: https://pythonhosted.org/FireWorks/queue_tutorial_pt2.html
 .. _pymatgen-db documentation: https://materialsproject.github.io/pymatgen-db/
-.. _running workflows tutorial: running_workflows
-.. _writing workflows guide: writing_workflows
 
 ===============
 Troubleshooting
