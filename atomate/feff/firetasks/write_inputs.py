@@ -15,13 +15,6 @@ from atomate.utils.utils import load_class
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 
-# TODO: @matk86 - can you change the format of feff_input_set when a String? Rather than just
-# the class name, require the entire path. e.g. "pymatgen.io.feff.sets.MPXANESSet" and put this
-# as an example in the parameter documentation for feff_input_set. Thus the code would look like:
-# modname, classname = feff_input_set.strip().rsplit(".", 1)
-# cls_ = load_class(modname, classname)
-# Also update the tests and any workflows, etc.
-# This is the convention for other tasks (e.g. ToDbTask) and will avoid confusion. -computron
 
 @explicit_serialize
 class WriteFeffFromIOSet(FiretaskBase):
@@ -31,7 +24,8 @@ class WriteFeffFromIOSet(FiretaskBase):
     Required_params:
         absorbing_atom (str): absorbing atom symbol
         structure (Structure): input structure
-        feff_input_set (str or FeffDictSet subclass): The inputset for setting params
+        feff_input_set (str or FeffDictSet subclass): The inputset for setting params. If string then
+            the entire path to the class must be provide e.g. "pymatgen.io.feff.sets.MPXANESSet"
 
     Optional_params:
         radius (float): cluster radius in angstroms
@@ -41,17 +35,14 @@ class WriteFeffFromIOSet(FiretaskBase):
     optional_params = ["radius", "other_params"]
 
     def run_task(self, fw_spec):
-        # if a full FeffInputSet object is provided:
-        if hasattr(self['feff_input_set'], 'write_input'):
-            fis = self['feff_input_set']
-
-        # else if inputset String + parameters was provided
-        else:
-            fis_cls = load_class("pymatgen.io.feff.sets", self["feff_input_set"])
-            fis = fis_cls(self["absorbing_atom"], self["structure"], self.get("radius", 10.0),
-                          **self.get("other_params", {}))
-
-        fis.write_input(".")
+        feff_input_set = self["feff_input_set"]
+        # if not a full FeffInputSet object (inputset String + parameters )
+        if not hasattr(feff_input_set, 'write_input'):
+            modname, classname = feff_input_set.strip().rsplit(".", 1)
+            fis_cls = load_class(modname, classname)
+            feff_input_set = fis_cls(self["absorbing_atom"], self["structure"],
+                                     self.get("radius", 10.0), **self.get("other_params", {}))
+        feff_input_set.write_input(".")
 
 
 @explicit_serialize

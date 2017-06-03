@@ -41,7 +41,7 @@ class TestTasks(unittest.TestCase):
 
     def test_write_paths_task(self):
         exafs = MPEXAFSSet(0, self.struct, edge='K', radius=10)
-        t = WriteEXAFSPaths(feff_input_set=exafs, paths=[[249 , 0], [85, 0]])
+        t = WriteEXAFSPaths(feff_input_set=exafs, paths=[[249, 0], [85, 0]])
         paths = Paths(exafs.atoms, [[249, 0], [85, 0]])
         paths.write_file("paths_ans.dat")
         t.run_task({})
