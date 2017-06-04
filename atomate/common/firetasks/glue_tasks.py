@@ -11,6 +11,8 @@ import operator
 from functools import reduce
 
 from atomate.utils.utils import env_chk, load_class, recursive_get_result
+from atomate.utils.fileio import FileClient
+
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 __author__ = 'Anubhav Jain'
@@ -125,3 +127,35 @@ class PassResult(FiretaskBase):
         mod_spec_key = self.get("mod_spec_key", "prev_calc_result")
         mod_spec_cmd = self.get("mod_spec_cmd", "_set")
         return FWAction(mod_spec=[{mod_spec_cmd: {mod_spec_key: pass_dict}}])
+
+
+@explicit_serialize
+class CopyFiles(FiretaskBase):
+    """
+    """
+
+    optional_params = ["from_dir", "to_dir", "filesystem", "exclude_files"]
+
+    def setup(self, from_dir, to_dir=None, filesystem=None, files_to_copy=None, exclude_files=None, calc_loc=None):
+        calc_loc = calc_loc or {}
+        from_dir = from_dir or calc_loc.get("path", None)
+        filesystem = filesystem or calc_loc.get("filesystem", None)
+        if from_dir is None:
+            raise ValueError("Must specify from_dir!")
+        self.fileclient = FileClient(filesystem=filesystem)
+        self.from_dir = self.fileclient.abspath(from_dir)
+        self.to_dir = to_dir or os.getcwd()
+        exclude_files = exclude_files or []
+        self.files_to_copy = files_to_copy or [f for f in self.fileclient.listdir(self.from_dir) if f not in exclude_files]
+
+    def copy(self):
+        for f in self.files_to_copy:
+            prev_path_full = os.path.join(self.from_dir, f)
+            dest_path = os.path.join(self.to_dir, f)
+            self.fileclient.copy(prev_path_full, dest_path)
+
+    def run_task(self, fw_spec):
+        self.setup(self.get("from_dir", None), to_dir=self.get("to_dir", None),
+                   filesystem=self.get("filesystem", None),
+                   exclude_files=self.get("exclude_files", []))
+        self.copy()

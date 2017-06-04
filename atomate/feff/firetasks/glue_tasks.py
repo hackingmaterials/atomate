@@ -7,7 +7,7 @@ import os
 from fireworks import explicit_serialize, FiretaskBase
 
 from atomate.utils.fileio import FileClient
-from atomate.common.firetasks.glue_tasks import get_calc_loc
+from atomate.common.firetasks.glue_tasks import get_calc_loc, CopyFiles
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -20,7 +20,7 @@ __email__ = 'kmathew@lbl.gov'
 # -computron
 
 @explicit_serialize
-class CopyFeffOutputs(FiretaskBase):
+class CopyFeffOutputs(CopyFiles):
     """
     Copy files from a previous run directory to the current directory.
     Note: must specify either "calc_loc" or "calc_dir" to indicate the directory
@@ -38,24 +38,9 @@ class CopyFeffOutputs(FiretaskBase):
 
     def run_task(self, fw_spec):
 
+        calc_loc = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"]) if self.get("calc_loc") else {}
         exclude_files = self.get("exclude_files", ["feff.inp", "xmu.dat"])
 
-        if self.get("calc_dir"):
-            calc_dir = self["calc_dir"]
-            filesystem = None
-        elif self.get("calc_loc"):
-            calc_loc = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])
-            calc_dir = calc_loc["path"]
-            filesystem = calc_loc["filesystem"]
-        else:
-            raise ValueError("Must specify either calc_dir or calc_loc!")
-
-        fileclient = FileClient(filesystem=filesystem)
-        calc_dir = fileclient.abspath(calc_dir)
-
-        files_to_copy = [f for f in fileclient.listdir(calc_dir) if f not in exclude_files]
-
-        for f in files_to_copy:
-            prev_path_full = os.path.join(calc_dir, f)
-            dest_path = os.path.join(os.getcwd(), f)
-            fileclient.copy(prev_path_full, dest_path)
+        self.setup(self.get("calc_dir", None), filesystem=self.get("filesystem", None), exclude_files=exclude_files,
+                   calc_loc=calc_loc)
+        self.copy()
