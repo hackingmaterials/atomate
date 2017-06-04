@@ -5,8 +5,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os
 
 import six
+import re
+import monty
+import operator
+from functools import reduce
 
-from atomate.utils.utils import env_chk
+from atomate.utils.utils import env_chk, load_class, recursive_get_result
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 __author__ = 'Anubhav Jain'
@@ -68,3 +72,56 @@ def get_calc_loc(target_name, calc_locs):
         raise ValueError("Could not find the target_name: {}".format(target_name))
     else:
         return calc_locs[-1]
+
+
+@explicit_serialize
+class PassResult(FiretaskBase):
+    """
+    Passes properties and corresponding user-specified data resulting
+    from a run from parent to child fireworks.  Uses a string syntax
+    similar to Mongo-style queries to designate values of output
+    file dictionaries to retrieve.  For example, one could specify
+    a task to pass the stress from the current calculation using:
+    
+    PassResult(pass_dict={'stress': ">>ionic_steps.-1.stress"})
+
+    Required params:
+        pass_dict (dict): dictionary designating keys and values to pass
+            to child fireworks.  If value is a string beginning with '>>',
+            the firework will search the parsed VASP output dictionary
+            for the designated property by following the sequence of keys
+            separated with periods, e. g. ">>ionic_steps.-1.stress" is used
+            to designate the stress from the last ionic_step. If the value
+            is not a string or does not begin with ">>", it is passed as is.
+        parse_class (str): string representation of complete path to a class 
+            with which to parse the output, e. g. pymatgen.io.vasp.Vasprun
+            or pymatgen.io.feff.LDos.from_file, class must be MSONable
+        parse_kwargs (str): dict of kwargs for the parse class,
+            e. g. {"filename": "vasprun.xml", "parse_dos": False, 
+            "parse_eigen": False}
+
+    Optional params:
+        calc_dir (str): path to dir that contains VASP output files, defaults
+            to '.', e. g. current directory
+        mod_spec_cmd (str): command to issue for mod_spec, e. g. "_set" or "_push",
+            defaults to "_set"
+        mod_spec_key (str): key to pass to mod_spec _set dictmod command, defaults
+            to "prev_calc_result"
+    """
+
+    required_params = ["pass_dict", "parse_class", "parse_kwargs"]
+    optional_params = ["calc_dir", "mod_spec_cmd", "mod_spec_key"]
+                       
+    def run_task(self, fw_spec):
+        pass_dict = self.get("pass_dict")
+        parse_kwargs = self.get("parse_kwargs")
+        pc_string = self.get("parse_class")
+        parse_class = load_class(*pc_string.rsplit(".", 1))
+        calc_dir = self.get("calc_dir", ".")
+        with monty.os.cd(calc_dir):
+            result = parse_class(**parse_kwargs)
+
+        pass_dict = recursive_get_result(pass_dict, result)
+        mod_spec_key = self.get("mod_spec_key", "prev_calc_result")
+        mod_spec_cmd = self.get("mod_spec_cmd", "_set")
+        return FWAction(mod_spec=[{mod_spec_cmd: {mod_spec_key: pass_dict}}])

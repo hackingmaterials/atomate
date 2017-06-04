@@ -337,7 +337,7 @@ def wf_bulk_modulus(structure, c=None):
     db_file = c.get("DB_FILE", DB_FILE)
     user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
     deformations = c.get("deformations", [(np.identity(3)*(1+x)).tolist()
-                                          for x in np.linspace(-0.1, 0.1, 10)])
+                                          for x in np.linspace(-0.05, 0.05, 6)])
 
     wf = get_wf_bulk_modulus(structure, eos=eos, user_kpoints_settings=user_kpoints_settings,
                              deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file)

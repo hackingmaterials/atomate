@@ -13,7 +13,7 @@ from pymatgen import Structure
 from pymatgen.io.vasp.sets import MPRelaxSet, MITMDSet, MITRelaxSet, MPStaticSet, MPSOCSet
 
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
-from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, PassEpsilonTask, PassNormalmodesTask
+from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, pass_vasp_result
 from atomate.vasp.firetasks.neb_tasks import TransferNEBTask
 from atomate.vasp.firetasks.parse_outputs import VaspToDbTask, BoltztrapToDBTask
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunBoltztrap
@@ -232,16 +232,23 @@ class LepsFW(Firework):
                 # add if/else for phonons where it is needed. Any name overrides can go near the
                 # top of the Firework. -computron
                 t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
+                t.append(pass_vasp_result({"structure": "a>>final_structure",
+                                           "eigenvals": "a>>normalmode_eigenvals",
+                                           "eigenvecs": "a>>normalmode_eigenvecs"}, parse_eigen=True,
+                                           mod_spec_key="normalmodes"))
             else:
                 # TODO: @matk86 - Why is this second calculation being tacked on to the first one?
                 # It looks like it will overwrite INCAR/CHGCAR/etc of the first calculation and
                 # thus completely remove access to the original output files. Shouldn't this be a
                 # new Firework rather than a second calculation in the same Firework? -computron
                 name = "raman_{}_{} {}".format(str(mode), str(displacement), name)
+                key = "{}_{}".format(mode, displacement).replace('-', 'm').replace('.', 'd')
+                pass_fw = pass_vasp_result(pass_dict={"mode": mode, "displacement": displacement,
+                                                      "epsilon": "a>>epsilon_static"},
+                                           mod_spec_key="raman_epsilon->" + key,
+                                           parse_eigen=True)
                 t.extend([WriteNormalmodeDisplacedPoscar(mode=mode, displacement=displacement),
-                          RunVaspCustodian(vasp_cmd=vasp_cmd),
-                          PassEpsilonTask(mode=mode, displacement=displacement)])
-            t.append(PassNormalmodesTask())
+                          RunVaspCustodian(vasp_cmd=vasp_cmd), pass_fw])
         else:
             t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
 

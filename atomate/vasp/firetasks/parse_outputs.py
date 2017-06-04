@@ -19,7 +19,7 @@ from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from pymatgen import Structure
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
-from pymatgen.analysis.elasticity.strain import IndependentStrain
+from pymatgen.analysis.elasticity.strain import IndependentStrain, Strain
 from pymatgen.analysis.elasticity.stress import Stress
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar
@@ -127,6 +127,38 @@ class VaspToDbTask(FiretaskBase):
                         defuse_children=defuse_children)
 
 
+@explicit_serialize
+class JsonToDbTask(FiretaskBase):
+    """
+    Insert the a JSON file (default: task.json) directly into the tasks database.
+    Note that if the JSON file contains a "task_id" key, that task_id must not already be present
+    in the tasks collection.
+
+    Optional params:
+        json_filename (str): name of the JSON file to insert (default: "task.json")
+        db_file (str): path to file containing the database credentials. Supports env_chk.
+        calc_dir (str): path to dir (on current filesystem) that contains VASP output files.
+            Default: use current working directory.
+    """
+    optional_params = ["json_filename", "db_file", "calc_dir"]
+
+    def run_task(self, fw_spec):
+
+        ref_file = self.get("json_filename", "task.json")
+        calc_dir = self.get("calc_dir", os.getcwd())
+        with open(os.path.join(calc_dir, ref_file), "r") as fp:
+            task_doc = json.load(fp)
+
+        db_file = env_chk(self.get('db_file'), fw_spec)
+        if not db_file:
+            with open("task.json", "w") as f:
+                f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
+        else:
+            mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
+            mmdb.insert(task_doc)
+
+
+
 # TODO: rename to BoltztrapToDb task (capitalization), keep old name backwards-compatible (easy)
 @explicit_serialize
 class BoltztrapToDBTask(FiretaskBase):
@@ -214,7 +246,6 @@ class ElasticTensorToDbTask(FiretaskBase):
     optional_params = ['db_file']
 
     def run_task(self, fw_spec):
-        
         d = {"analysis": {},
              "deformation_tasks": fw_spec["deformation_tasks"],
              "initial_structure": self['structure'].as_dict()}
@@ -235,15 +266,16 @@ class ElasticTensorToDbTask(FiretaskBase):
         if fw_spec.get("tags", None):
             d["tags"] = fw_spec["tags"]
 
-        dtypes = fw_spec["deformation_tasks"].keys()
-        defos = [fw_spec["deformation_tasks"][dtype]["deformation_matrix"]
-                 for dtype in dtypes]
-        stresses = [fw_spec["deformation_tasks"][dtype]["stress"] for dtype in dtypes]
+
+        results = fw_spec["deformation_tasks"].values()
+        defos = [r["deformation_matrix"] for r in results]
+        stresses = [r["stress"] for r in results]
+        strains = np.array([Strain(r["strain"]).voigt for r in results])
         stress_dict = {IndependentStrain(defo) : Stress(stress) for defo, stress in zip(defos, stresses)}
 
         logger.info("Analyzing stress/strain data")
         # Determine if we have 6 unique deformations
-        if len(set([de[:3] for de in dtypes])) == 6:  # TODO: @montoyjh: what if it's a cubic system? don't need 6. -computron
+        if np.linalg.matrix_rank(strains) == 6:  # TODO: @montoyjh: what if it's a cubic system? don't need 6. -computron
             # Perform Elastic tensor fitting and analysis
             result = ElasticTensor.from_stress_dict(stress_dict)
             d["elastic_tensor"] = result.voigt.tolist()
@@ -284,12 +316,12 @@ class RamanSusceptibilityTensorToDbTask(FiretaskBase):
     optional_params = ["db_file"]
 
     def run_task(self, fw_spec):
-        nm_norms = np.array(fw_spec["normalmodes"]["norms"])
+        nm_eigenvecs = np.array(fw_spec["normalmodes"]["eigenvecs"])
         nm_eigenvals = np.array(fw_spec["normalmodes"]["eigenvals"])
+        nm_norms = np.linalg.norm(nm_eigenvecs, axis=2)
         structure = fw_spec["normalmodes"]["structure"]
         masses = np.array([site.specie.data['Atomic mass'] for site in structure])
         nm_norms = nm_norms / np.sqrt(masses)  # eigenvectors in vasprun.xml are not divided by sqrt(M_i)
-
         # To get the actual eigenvals, the values read from vasprun.xml must be multiplied by -1.
         # frequency_i = sqrt(-e_i)
         # To convert the frequency to THZ: multiply sqrt(-e_i) by 15.633
@@ -479,28 +511,34 @@ class FitEquationOfStateTask(FiretaskBase):
         tag (str): unique tag appended to the task labels in other fireworks so that all the
             required data can be queried directly from the database.
         db_file (str): path to the db file
-        
+
     Optional parameters:
+        to_db (bool): if True, the data will be inserted to "eos" collection; otherwise, dumped to a .json file.
         eos (str): equation of state used for fitting the energies and the volumes.
             options supported by pymatgen: "quadratic", "murnaghan", "birch", "birch_murnaghan",
             "pourier_tarantola", "vinet", "deltafactor". Default: "vinet"
     """
 
-    required_params = ["tag", "db_file", "eos"]
+    required_params = ["tag", "db_file"]
+    optional_params = ["to_db", "eos"]
 
     def run_task(self, fw_spec):
 
         from pymatgen.analysis.eos import EOS
 
         eos = self.get("eos", "vinet")
-
         tag = self["tag"]
         db_file = env_chk(self.get("db_file"), fw_spec)
         summary_dict = {"eos": eos}
+        to_db = self.get("to_db", True)
+
+        # collect and store task_id of all related tasks to make unique links with "tasks" collection
+        all_task_ids = []
 
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         # get the optimized structure
         d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
+        all_task_ids.append(d["task_id"])
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
         summary_dict["structure"] = structure.as_dict()
 
@@ -513,19 +551,31 @@ class FitEquationOfStateTask(FiretaskBase):
             s = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
             energies.append(d["calcs_reversed"][-1]["output"]['energy'])
             volumes.append(s.volume)
+            all_task_ids.append(d["task_id"])
         summary_dict["energies"] = energies
         summary_dict["volumes"] = volumes
+        summary_dict["all_task_ids"] = all_task_ids
 
         # fit the equation of state
         eos = EOS(eos)
         eos_fit = eos.fit(volumes, energies)
+        summary_dict["bulk_modulus"] = eos_fit.b0_GPa
+
+        # TODO: find a better way for passing tags of the entire workflow to db - albalu
+        if fw_spec.get("tags", None):
+            summary_dict["tags"] = fw_spec["tags"]
         summary_dict["results"] = dict(eos_fit.results)
+        summary_dict["created_at"] = datetime.utcnow()
 
-        with open("bulk_modulus.json", "w") as f:
-            f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
+        # db_file itself is required but the user can choose to pass the results to db or not
+        if to_db:
+            mmdb.collection = mmdb.db["eos"]
+            mmdb.collection.insert_one(summary_dict)
+        else:
+            with open("bulk_modulus.json", "w") as f:
+                f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
 
-        # TODO: @matk86 - there needs to be a way to insert this into a database! And also
-        # a builder to put it into materials collection... -computron
+        # TODO: @matk86 - there needs to be a builder to put it into materials collection... -computron
         logger.info("Bulk modulus calculation complete.")
 
 

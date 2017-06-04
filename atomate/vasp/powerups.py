@@ -8,9 +8,10 @@ from fireworks.utilities.fw_utilities import get_slug
 
 from atomate.utils.utils import get_meta_from_structure, get_fws_and_tasks
 from atomate.vasp.firetasks.glue_tasks import CheckStability, CheckBandgap
-from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspFake, RunVaspDirect
+from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspFake, RunVaspDirect, RunNoVasp
 from atomate.vasp.firetasks.neb_tasks import RunNEBVaspFake
 from atomate.vasp.firetasks.write_inputs import ModifyIncar
+from atomate.vasp.firetasks.parse_outputs import JsonToDbTask
 from atomate.vasp.config import ADD_NAMEFILE, SCRATCH_DIR, ADD_MODIFY_INCAR, GAMMA_VASP_CMD
 
 from pymatgen import Structure
@@ -83,6 +84,28 @@ def use_custodian(original_wf, fw_name_constraint=None, custodian_params=None):
             custodian_params["vasp_cmd"] = original_wf.fws[idx_fw].tasks[idx_t]["vasp_cmd"]
         original_wf.fws[idx_fw].tasks[idx_t] = \
             RunVaspCustodian(**custodian_params)
+    return original_wf
+
+
+def use_no_vasp(original_wf, ref_dirs):
+    """
+    Instead of running VASP, does nothing and pass task documents from
+        task.json files in ref_dirs to task database.
+
+    Args:
+        original_wf (Workflow)
+        ref_dirs(dict): key=firework name, value=path to the reference vasp calculation directory
+    """
+    for idx_fw, fw in enumerate(original_wf.fws):
+        for job_type in ref_dirs.keys():
+            if job_type in fw.name:
+                for idx_t, t in enumerate(fw.tasks):
+                    if "RunVasp" in str(t):
+                        original_wf.fws[idx_fw].tasks[idx_t] = RunNoVasp(ref_dir=ref_dirs[job_type])
+                    if "VaspToDb" in str(t):
+                        original_wf.fws[idx_fw].tasks[idx_t] = \
+                            JsonToDbTask(db_file=t.get("db_file", None),
+                                         calc_dir=ref_dirs[job_type])
     return original_wf
 
 
