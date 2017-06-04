@@ -2,6 +2,8 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
+from six import string_types
+
 """
 This module defines tasks for writing FEFF input sets.
 """
@@ -35,13 +37,9 @@ class WriteFeffFromIOSet(FiretaskBase):
     optional_params = ["radius", "other_params"]
 
     def run_task(self, fw_spec):
-        feff_input_set = self["feff_input_set"]
-        # if not a full FeffInputSet object (inputset String + parameters )
-        if not hasattr(feff_input_set, 'write_input'):
-            modname, classname = feff_input_set.strip().rsplit(".", 1)
-            fis_cls = load_class(modname, classname)
-            feff_input_set = fis_cls(self["absorbing_atom"], self["structure"],
-                                     self.get("radius", 10.0), **self.get("other_params", {}))
+        feff_input_set = get_feff_input_set_obj(self["feff_input_set"], self["absorbing_atom"],
+                                                self["structure"], self.get("radius", 10.0),
+                                                **self.get("other_params", {}))
         feff_input_set.write_input(".")
 
 
@@ -64,3 +62,13 @@ class WriteEXAFSPaths(FiretaskBase):
         atoms = self['feff_input_set'].atoms
         paths = Paths(atoms, self["paths"], degeneracies=self.get("degeneracies", []))
         paths.write_file()
+
+
+def get_feff_input_set_obj(fis, *args, **kwargs):
+    if isinstance(fis, string_types):
+        fis_ = "pymatgen.io.feff.sets.MP{}Set".format(fis) if "pymatgen" in fis else fis
+        modname, classname = fis_.strip().rsplit(".", 1)
+        fis_cls = load_class(modname, classname)
+        return fis_cls(*args, **kwargs)
+    else:
+        return fis

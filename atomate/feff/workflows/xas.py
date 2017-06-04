@@ -6,12 +6,11 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 This module defines FEFF XAS(XANES/EXAFS) workflows.
 """
 
-from six import string_types
-
 from fireworks import Workflow
 
 from atomate.utils.utils import get_logger
 from atomate.feff.fireworks.core import XASFW, EXAFSPathsFW
+from atomate.feff.firetasks.write_inputs import get_feff_input_set_obj
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -19,8 +18,8 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_xas(absorbing_atom, structure, feff_input_set="XANES", edge="K", radius=10.0,
-               feff_cmd="feff", db_file=None, metadata=None,
+def get_wf_xas(absorbing_atom, structure, feff_input_set="pymatgen.io.feff.sets.MPXANESSet",
+               edge="K", radius=10.0, feff_cmd="feff", db_file=None, metadata=None,
                user_tag_settings=None, use_primitive=False):
     """
     Returns FEFF XANES/EXAFS spectroscopy workflow.
@@ -55,16 +54,7 @@ def get_wf_xas(absorbing_atom, structure, feff_input_set="XANES", edge="K", radi
 
     override_default_feff_params = {"user_tag_settings": user_tag_settings}
 
-    if isinstance(feff_input_set, string_types):
-        if "pymatgen" in feff_input_set:
-            _, classname = feff_input_set.strip().rsplit(".", 1)
-        else:
-            classname = "MP{}Set".format(feff_input_set)
-            feff_input_set = "pymatgen.io.feff.sets.{}".format(classname)
-    else:
-        classname = feff_input_set.__class__.__name__
-
-    spectrum_type = classname[2:-3]
+    spectrum_type = get_feff_input_set_obj(feff_input_set).__class__.__name__[2:-3]
 
     # add firework for each absorbing atom site index
     fws = []
@@ -86,8 +76,9 @@ def get_wf_xas(absorbing_atom, structure, feff_input_set="XANES", edge="K", radi
 
 
 def get_wf_exafs_paths(absorbing_atom, structure, paths, degeneracies=None, edge="K", radius=10.0,
-                       feff_input_set=None, feff_cmd="feff", db_file=None, metadata=None,
-                       user_tag_settings=None, use_primitive=False, labels=None, filepad_file=None):
+                       feff_input_set="pymatgen.io.feff.sets.MPEXAFSSet", feff_cmd="feff",
+                       db_file=None, metadata=None, user_tag_settings=None, use_primitive=False,
+                       labels=None, filepad_file=None):
     """
     Returns FEFF EXAFS spectroscopy workflow that generates the scattering amplitudes for the given
     list of scattering paths. The scattering amplitude output files(feffNNNN.dat files) are
@@ -102,7 +93,9 @@ def get_wf_exafs_paths(absorbing_atom, structure, paths, degeneracies=None, edge
         degeneracies (list): list of path degeneracies.
         edge (str): absorption edge. Example: K, L1, L2, L3
         radius (float): cluster radius in angstroms. Ignored for K space calculations
-        feff_input_set (FeffDictSet): the input set for the FEFF run
+        feff_input_set (str or FeffDictSet subclass): The inputset for setting params. If string
+                then either the entire path to the class must be provided
+                e.g. "pymatgen.io.feff.sets.MPEXAFSSet"
         feff_cmd (str): path to the feff binary
         db_file (str):  path to the db file.
         metadata (dict): meta data
@@ -118,7 +111,6 @@ def get_wf_exafs_paths(absorbing_atom, structure, paths, degeneracies=None, edge
         Workflow
     """
     labels = labels or []
-    feff_input_set = feff_input_set or "pymatgen.io.feff.sets.MPEXAFSSet"
     wflow = get_wf_xas(absorbing_atom, structure, feff_input_set, edge, radius, feff_cmd,
                        db_file, metadata, user_tag_settings, use_primitive)
     paths_fw = EXAFSPathsFW(absorbing_atom, structure, paths, degeneracies=degeneracies, edge=edge,
