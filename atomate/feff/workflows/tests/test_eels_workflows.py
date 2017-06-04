@@ -18,8 +18,7 @@ from fireworks.core.fworker import FWorker
 from fireworks.core.launchpad import LaunchPad
 from fireworks.core.rocket_launcher import rapidfire
 
-from atomate.feff.workflows.eels import get_wf_eels
-
+from atomate.feff.workflows.core import get_wf_eels
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
