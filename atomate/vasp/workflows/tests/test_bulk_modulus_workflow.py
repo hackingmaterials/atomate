@@ -240,3 +240,6 @@ class TestBulkModulusWorkflow(unittest.TestCase):
         # check the final results
         d = self._get_task_collection(coll_name="eos").find_one()
         self._check_run(d, mode="fit equation of state")
+
+if __name__ == "__main__":
+    unittest.main()

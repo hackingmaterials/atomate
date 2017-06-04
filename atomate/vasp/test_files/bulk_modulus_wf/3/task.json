@@ -2,7 +2,7 @@
     "_id": {
         "@class": "ObjectId", 
         "@module": "bson.objectid", 
-        "oid": "591a2a89ccd43b706cc9743b"
+        "oid": "591a2a87ccd43b706cc973d1"
     }, 
     "analysis": {
         "delta_volume": 0.0, 
@@ -13,14 +13,14 @@
     }, 
     "calcs_reversed": [
         {
-            "completed_at": "2017-05-15 15:24:08", 
+            "completed_at": "2017-05-15 15:24:07", 
             "composition_reduced": {
                 "Si": 1.0
             }, 
             "composition_unit_cell": {
                 "Si": 2.0
             }, 
-            "dir_name": "/Users/alirezafaghaninia/Documents/forks/atomate/atomate/vasp/workflows/tests/scratch/launcher_2017-05-15-22-24-08-381940", 
+            "dir_name": "/Users/alirezafaghaninia/Documents/forks/atomate/atomate/vasp/workflows/tests/scratch/launcher_2017-05-15-22-24-06-736436", 
             "elements": [
                 "Si"
             ], 
@@ -31,166 +31,166 @@
             "nelements": 1, 
             "nsites": 2, 
             "output": {
-                "bandgap": 0.6795999999999998, 
-                "cbm": 5.9727, 
-                "efermi": 5.34195546, 
-                "energy": -10.85385015, 
-                "energy_per_atom": -5.426925075, 
+                "bandgap": 0.4706999999999999, 
+                "cbm": 7.0039, 
+                "efermi": 6.61273241, 
+                "energy": -10.76230054, 
+                "energy_per_atom": -5.38115027, 
                 "epsilon_ionic": [], 
                 "epsilon_static": [], 
                 "epsilon_static_wolfe": [], 
                 "ionic_steps": [
                     {
                         "e_0_energy": 0.0, 
-                        "e_fr_energy": -10.85385015, 
-                        "e_wo_entrp": -10.85385015, 
+                        "e_fr_energy": -10.76230054, 
+                        "e_wo_entrp": -10.76230054, 
                         "electronic_steps": [
                             {
-                                "XCdc": -19.22820599, 
-                                "alphaZ": 3.08239613, 
+                                "XCdc": -18.76622346, 
+                                "alphaZ": 3.47966373, 
                                 "atom": 206.6145138, 
-                                "bandstr": 6.0480435, 
-                                "e_0_energy": -4.50251794, 
-                                "e_fr_energy": -4.50251794, 
-                                "e_wo_entrp": -4.50251794, 
+                                "bandstr": 12.35839887, 
+                                "e_0_energy": -4.78574651, 
+                                "e_fr_energy": -4.78574651, 
+                                "e_wo_entrp": -4.78574651, 
                                 "eentropy": 0.0, 
-                                "ewald": -224.72668468, 
-                                "hartreedc": -11.85303127, 
+                                "ewald": -233.99374782, 
+                                "hartreedc": -10.03880219, 
                                 "pawaedc": -30.8856358, 
                                 "pawpsdc": 66.44608635
                             }, 
                             {
-                                "e_0_energy": -10.81748158, 
-                                "e_fr_energy": -10.81748158, 
-                                "e_wo_entrp": -10.81748158
+                                "e_0_energy": -10.79504129, 
+                                "e_fr_energy": -10.79504129, 
+                                "e_wo_entrp": -10.79504129
                             }, 
                             {
-                                "e_0_energy": -10.82798106, 
-                                "e_fr_energy": -10.82798106, 
-                                "e_wo_entrp": -10.82798106
+                                "e_0_energy": -10.80365845, 
+                                "e_fr_energy": -10.80365845, 
+                                "e_wo_entrp": -10.80365845
                             }, 
                             {
-                                "e_0_energy": -10.82799003, 
-                                "e_fr_energy": -10.82799003, 
-                                "e_wo_entrp": -10.82799003
+                                "e_0_energy": -10.80366489, 
+                                "e_fr_energy": -10.80366489, 
+                                "e_wo_entrp": -10.80366489
                             }, 
                             {
-                                "e_0_energy": -10.82799003, 
-                                "e_fr_energy": -10.82799003, 
-                                "e_wo_entrp": -10.82799003
+                                "e_0_energy": -10.80366489, 
+                                "e_fr_energy": -10.80366489, 
+                                "e_wo_entrp": -10.80366489
                             }, 
                             {
-                                "e_0_energy": -10.88978522, 
-                                "e_fr_energy": -10.88978522, 
-                                "e_wo_entrp": -10.88978522
+                                "e_0_energy": -10.81560661, 
+                                "e_fr_energy": -10.81560661, 
+                                "e_wo_entrp": -10.81560661
                             }, 
                             {
-                                "e_0_energy": -10.83809054, 
-                                "e_fr_energy": -10.83809054, 
-                                "e_wo_entrp": -10.83809054
+                                "e_0_energy": -10.73950772, 
+                                "e_fr_energy": -10.73950772, 
+                                "e_wo_entrp": -10.73950772
                             }, 
                             {
-                                "e_0_energy": -10.85414218, 
-                                "e_fr_energy": -10.85414218, 
-                                "e_wo_entrp": -10.85414218
+                                "e_0_energy": -10.76248592, 
+                                "e_fr_energy": -10.76248592, 
+                                "e_wo_entrp": -10.76248592
                             }, 
                             {
-                                "e_0_energy": -10.8538016, 
-                                "e_fr_energy": -10.8538016, 
-                                "e_wo_entrp": -10.8538016
+                                "e_0_energy": -10.76251061, 
+                                "e_fr_energy": -10.76251061, 
+                                "e_wo_entrp": -10.76251061
                             }, 
                             {
-                                "e_0_energy": -10.85383552, 
-                                "e_fr_energy": -10.85383552, 
-                                "e_wo_entrp": -10.85383552
+                                "e_0_energy": -10.7622869, 
+                                "e_fr_energy": -10.7622869, 
+                                "e_wo_entrp": -10.7622869
                             }, 
                             {
-                                "e_0_energy": -10.85384513, 
-                                "e_fr_energy": -10.85384513, 
-                                "e_wo_entrp": -10.85384513
+                                "e_0_energy": -10.76229751, 
+                                "e_fr_energy": -10.76229751, 
+                                "e_wo_entrp": -10.76229751
                             }, 
                             {
-                                "e_0_energy": -10.85384889, 
-                                "e_fr_energy": -10.85384889, 
-                                "e_wo_entrp": -10.85384889
+                                "e_0_energy": -10.76229929, 
+                                "e_fr_energy": -10.76229929, 
+                                "e_wo_entrp": -10.76229929
                             }, 
                             {
-                                "e_0_energy": -10.85385007, 
-                                "e_fr_energy": -10.85385007, 
-                                "e_wo_entrp": -10.85385007
+                                "e_0_energy": -10.7623005, 
+                                "e_fr_energy": -10.7623005, 
+                                "e_wo_entrp": -10.7623005
                             }, 
                             {
-                                "XCdc": -18.67583327, 
-                                "alphaZ": 3.08239613, 
+                                "XCdc": -18.13433605, 
+                                "alphaZ": 3.47966373, 
                                 "atom": 206.6145138, 
-                                "bandstr": 3.08559466, 
-                                "e_0_energy": -10.85385015, 
-                                "e_fr_energy": -10.85385015, 
-                                "e_wo_entrp": -10.85385015, 
+                                "bandstr": 10.1863089, 
+                                "e_0_energy": -10.76230054, 
+                                "e_fr_energy": -10.76230054, 
+                                "e_wo_entrp": -10.76230054, 
                                 "eentropy": 0.0, 
-                                "ewald": -224.72668468, 
-                                "hartreedc": -15.61354703, 
-                                "pawaedc": -37.78828882, 
-                                "pawpsdc": 73.16799904
+                                "ewald": -233.99374782, 
+                                "hartreedc": -14.18930187, 
+                                "pawaedc": -41.95799263, 
+                                "pawpsdc": 77.23259139
                             }
                         ], 
                         "forces": [
                             [
-                                0.0, 
-                                0.0, 
-                                0.0
-                            ], 
-                            [
                                 -0.0, 
                                 -0.0, 
                                 -0.0
+                            ], 
+                            [
+                                0.0, 
+                                0.0, 
+                                0.0
                             ]
                         ], 
                         "stress": [
                             [
-                                -24.69745154, 
-                                2.58e-06, 
-                                -7.3e-06
+                                98.04760946, 
+                                -0.0, 
+                                1.509e-05
                             ], 
                             [
-                                2.58e-06, 
-                                -24.69743989, 
-                                -5.16e-06
+                                -0.0, 
+                                98.04761894, 
+                                1.067e-05
                             ], 
                             [
-                                -7.3e-06, 
-                                -5.16e-06, 
-                                -24.69743562
+                                1.509e-05, 
+                                1.067e-05, 
+                                98.04756639
                             ]
                         ], 
                         "structure": {
                             "@class": "Structure", 
                             "@module": "pymatgen.core.structure", 
                             "lattice": {
-                                "a": 3.9051454444558145, 
-                                "alpha": 59.99998927631802, 
-                                "b": 3.905144734042773, 
-                                "beta": 59.99999529409227, 
-                                "c": 3.905144, 
-                                "gamma": 59.99999573557786, 
+                                "a": 3.750485867898318, 
+                                "alpha": 59.999999900660704, 
+                                "b": 3.750485988737193, 
+                                "beta": 59.999998834847375, 
+                                "c": 3.750485, 
+                                "gamma": 60.00000028904489, 
                                 "matrix": [
                                     [
-                                        3.381955, 
+                                        3.248016, 
                                         -0.0, 
-                                        1.952573
+                                        1.875243
                                     ], 
                                     [
-                                        1.127318, 
-                                        3.188537, 
-                                        1.952573
+                                        1.082672, 
+                                        3.062259, 
+                                        1.875243
                                     ], 
                                     [
                                         0.0, 
                                         0.0, 
-                                        3.905144
+                                        3.750485
                                     ]
                                 ], 
-                                "volume": 42.11107599997125
+                                "volume": 37.303322294660646
                             }, 
                             "sites": [
                                 {
@@ -207,9 +207,9 @@
                                         }
                                     ], 
                                     "xyz": [
-                                        3.945613875, 
-                                        2.789969875, 
-                                        6.83400375
+                                        3.789352, 
+                                        2.679476625, 
+                                        6.563349625
                                     ]
                                 }, 
                                 {
@@ -226,9 +226,9 @@
                                         }
                                     ], 
                                     "xyz": [
-                                        0.563659125, 
-                                        0.398567125, 
-                                        0.97628625
+                                        0.541336, 
+                                        0.382782375, 
+                                        0.937621375
                                     ]
                                 }
                             ]
@@ -243,18 +243,18 @@
                     "charge": [
                         {
                             "d": 0.0, 
-                            "p": 0.911, 
-                            "s": 0.753, 
-                            "tot": 1.664
+                            "p": 0.996, 
+                            "s": 0.754, 
+                            "tot": 1.75
                         }, 
                         {
                             "d": 0.0, 
-                            "p": 0.911, 
-                            "s": 0.753, 
-                            "tot": 1.664
+                            "p": 0.996, 
+                            "s": 0.754, 
+                            "tot": 1.75
                         }
                     ], 
-                    "efermi": 5.342, 
+                    "efermi": 6.6127, 
                     "is_stopped": false, 
                     "magnetization": [
                         {
@@ -271,36 +271,36 @@
                         }
                     ], 
                     "nelect": 8.0, 
-                    "total_magnetization": -2.95e-05
+                    "total_magnetization": -3.2e-05
                 }, 
                 "structure": {
                     "@class": "Structure", 
                     "@module": "pymatgen.core.structure", 
                     "lattice": {
-                        "a": 3.9051454444558145, 
-                        "alpha": 59.99998927631802, 
-                        "b": 3.905144734042773, 
-                        "beta": 59.99999529409227, 
-                        "c": 3.905144, 
-                        "gamma": 59.99999573557786, 
+                        "a": 3.750485867898318, 
+                        "alpha": 59.999999900660704, 
+                        "b": 3.750485988737193, 
+                        "beta": 59.999998834847375, 
+                        "c": 3.750485, 
+                        "gamma": 60.00000028904489, 
                         "matrix": [
                             [
-                                3.381955, 
+                                3.248016, 
                                 -0.0, 
-                                1.952573
+                                1.875243
                             ], 
                             [
-                                1.127318, 
-                                3.188537, 
-                                1.952573
+                                1.082672, 
+                                3.062259, 
+                                1.875243
                             ], 
                             [
                                 0.0, 
                                 0.0, 
-                                3.905144
+                                3.750485
                             ]
                         ], 
-                        "volume": 42.11107599997125
+                        "volume": 37.303322294660646
                     }, 
                     "sites": [
                         {
@@ -317,9 +317,9 @@
                                 }
                             ], 
                             "xyz": [
-                                3.945613875, 
-                                2.789969875, 
-                                6.83400375
+                                3.789352, 
+                                2.679476625, 
+                                6.563349625
                             ]
                         }, 
                         {
@@ -336,14 +336,14 @@
                                 }
                             ], 
                             "xyz": [
-                                0.563659125, 
-                                0.398567125, 
-                                0.97628625
+                                0.541336, 
+                                0.382782375, 
+                                0.937621375
                             ]
                         }
                     ]
                 }, 
-                "vbm": 5.2931
+                "vbm": 6.5332
             }, 
             "run_type": "GGA", 
             "task": {
@@ -354,14 +354,14 @@
         }
     ], 
     "chemsys": "Si", 
-    "completed_at": "2017-05-15 15:24:08", 
+    "completed_at": "2017-05-15 15:24:07", 
     "composition_reduced": {
         "Si": 1.0
     }, 
     "composition_unit_cell": {
         "Si": 2.0
     }, 
-    "dir_name": "241.196.128.198.in-addr.dhcp.lbnl.us:/Users/alirezafaghaninia/Documents/forks/atomate/atomate/vasp/workflows/tests/scratch/launcher_2017-05-15-22-24-08-381940", 
+    "dir_name": "241.196.128.198.in-addr.dhcp.lbnl.us:/Users/alirezafaghaninia/Documents/forks/atomate/atomate/vasp/workflows/tests/scratch/launcher_2017-05-15-22-24-06-736436", 
     "elements": [
         "Si"
     ], 
@@ -576,7 +576,7 @@
             "MIXFIRST": false, 
             "MIXPRE": 1, 
             "MODEL_ALPHA": 1.0, 
-            "MODEL_EPS0": 12.6333228, 
+            "MODEL_EPS0": 11.19099669, 
             "MODEL_GW": 0, 
             "MREMOVE": 5, 
             "NATURALO": 0, 
@@ -594,12 +594,12 @@
             "NELMHF": 1, 
             "NELMIN": 2, 
             "NFREE": 1, 
-            "NGX": 32, 
-            "NGXF": 64, 
-            "NGY": 32, 
-            "NGYF": 64, 
-            "NGZ": 32, 
-            "NGZF": 64, 
+            "NGX": 30, 
+            "NGXF": 60, 
+            "NGY": 30, 
+            "NGYF": 60, 
+            "NGZ": 30, 
+            "NGZF": 60, 
             "NKREDLFX": 1, 
             "NKREDLFY": 1, 
             "NKREDLFZ": 1, 
@@ -708,30 +708,30 @@
             "@class": "Structure", 
             "@module": "pymatgen.core.structure", 
             "lattice": {
-                "a": 3.9051454444558145, 
-                "alpha": 59.99998927631802, 
-                "b": 3.905144734042773, 
-                "beta": 59.99999529409227, 
-                "c": 3.905144, 
-                "gamma": 59.99999573557786, 
+                "a": 3.750485867898318, 
+                "alpha": 59.999999900660704, 
+                "b": 3.750485988737193, 
+                "beta": 59.999998834847375, 
+                "c": 3.750485, 
+                "gamma": 60.00000028904489, 
                 "matrix": [
                     [
-                        3.381955, 
+                        3.248016, 
                         -0.0, 
-                        1.952573
+                        1.875243
                     ], 
                     [
-                        1.127318, 
-                        3.188537, 
-                        1.952573
+                        1.082672, 
+                        3.062259, 
+                        1.875243
                     ], 
                     [
                         0.0, 
                         0.0, 
-                        3.905144
+                        3.750485
                     ]
                 ], 
-                "volume": 42.11107599997125
+                "volume": 37.303322294660646
             }, 
             "sites": [
                 {
@@ -748,9 +748,9 @@
                         }
                     ], 
                     "xyz": [
-                        3.945613875, 
-                        2.789969875, 
-                        6.83400375
+                        3.789352, 
+                        2.679476625, 
+                        6.563349625
                     ]
                 }, 
                 {
@@ -767,9 +767,9 @@
                         }
                     ], 
                     "xyz": [
-                        0.563659125, 
-                        0.398567125, 
-                        0.97628625
+                        0.541336, 
+                        0.382782375, 
+                        0.937621375
                     ]
                 }
             ]
@@ -779,16 +779,16 @@
     "last_updated": {
         "@class": "datetime", 
         "@module": "datetime", 
-        "string": "2017-05-15 15:24:09.141000"
+        "string": "2017-05-15 15:24:07.492000"
     }, 
     "nelements": 1, 
     "nsites": 2, 
     "output": {
-        "bandgap": 0.6795999999999998, 
-        "cbm": 5.9727, 
-        "density": 2.2149550017649435, 
-        "energy": -10.85385015, 
-        "energy_per_atom": -5.426925075, 
+        "bandgap": 0.4706999999999999, 
+        "cbm": 7.0039, 
+        "density": 2.500424430807082, 
+        "energy": -10.76230054, 
+        "energy_per_atom": -5.38115027, 
         "is_gap_direct": false, 
         "is_metal": false, 
         "spacegroup": {
@@ -803,30 +803,30 @@
             "@class": "Structure", 
             "@module": "pymatgen.core.structure", 
             "lattice": {
-                "a": 3.9051454444558145, 
-                "alpha": 59.99998927631802, 
-                "b": 3.905144734042773, 
-                "beta": 59.99999529409227, 
-                "c": 3.905144, 
-                "gamma": 59.99999573557786, 
+                "a": 3.750485867898318, 
+                "alpha": 59.999999900660704, 
+                "b": 3.750485988737193, 
+                "beta": 59.999998834847375, 
+                "c": 3.750485, 
+                "gamma": 60.00000028904489, 
                 "matrix": [
                     [
-                        3.381955, 
+                        3.248016, 
                         -0.0, 
-                        1.952573
+                        1.875243
                     ], 
                     [
-                        1.127318, 
-                        3.188537, 
-                        1.952573
+                        1.082672, 
+                        3.062259, 
+                        1.875243
                     ], 
                     [
                         0.0, 
                         0.0, 
-                        3.905144
+                        3.750485
                     ]
                 ], 
-                "volume": 42.11107599997125
+                "volume": 37.303322294660646
             }, 
             "sites": [
                 {
@@ -843,9 +843,9 @@
                         }
                     ], 
                     "xyz": [
-                        3.945613875, 
-                        2.789969875, 
-                        6.83400375
+                        3.789352, 
+                        2.679476625, 
+                        6.563349625
                     ]
                 }, 
                 {
@@ -862,29 +862,29 @@
                         }
                     ], 
                     "xyz": [
-                        0.563659125, 
-                        0.398567125, 
-                        0.97628625
+                        0.541336, 
+                        0.382782375, 
+                        0.937621375
                     ]
                 }
             ]
         }, 
-        "vbm": 5.2931
+        "vbm": 6.5332
     }, 
     "run_stats": {
         "overall": {
-            "Elapsed time (sec)": 143.732, 
-            "System time (sec)": 0.364, 
-            "Total CPU time used (sec)": 141.492, 
-            "User time (sec)": 141.128
+            "Elapsed time (sec)": 146.452, 
+            "System time (sec)": 0.356, 
+            "Total CPU time used (sec)": 143.916, 
+            "User time (sec)": 143.56
         }, 
         "standard": {
             "Average memory used (kb)": 0.0, 
-            "Elapsed time (sec)": 143.732, 
-            "Maximum memory used (kb)": 47024.0, 
-            "System time (sec)": 0.364, 
-            "Total CPU time used (sec)": 141.492, 
-            "User time (sec)": 141.128, 
+            "Elapsed time (sec)": 146.452, 
+            "Maximum memory used (kb)": 42612.0, 
+            "System time (sec)": 0.356, 
+            "Total CPU time used (sec)": 143.916, 
+            "User time (sec)": 143.56, 
             "cores": "32"
         }
     }, 
@@ -893,27 +893,27 @@
         "version": 0.2
     }, 
     "state": "successful", 
-    "task_id": 5000030, 
-    "task_label": "Si-2017-05-15-22-29-07-902587 bulk_modulus deformation 3", 
+    "task_id": 8000027, 
+    "task_label": "Si-2017-06-04-16-39-23-037556 bulk_modulus deformation 1", 
     "transformations": {}, 
     "transmuter": {
         "transformation_params": [
             {
                 "deformation": [
                     [
-                        1.01, 
+                        0.97, 
                         0.0, 
                         0.0
                     ], 
                     [
                         0.0, 
-                        1.01, 
+                        0.97, 
                         0.0
                     ], 
                     [
                         0.0, 
                         0.0, 
-                        1.01
+                        0.97
                     ]
                 ]
             }
