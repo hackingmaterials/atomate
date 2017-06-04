@@ -131,6 +131,34 @@ class VaspToDbTask(FiretaskBase):
                         defuse_children=defuse_children)
 
 
+@explicit_serialize
+class JsonToDbTask(FiretaskBase):
+    """
+    Insert the task.json with minimal change into the tasks database.
+    task.json is assumed to be the result of a successful vasp run.
+    Note that the task_id of task.json must not be duplicated in tasks collection.
+
+    see VaspToDbTask documentation for required and optional parameters
+    """
+    optional_params = ["db_file", "calc_dir"]
+
+    def run_task(self, fw_spec):
+
+        ref_file = "task.json"
+        calc_dir = self.get("calc_dir", os.getcwd())
+        with open(os.path.join(calc_dir, ref_file), "r") as fp:
+            task_doc = json.load(fp)
+
+        db_file = env_chk(self.get('db_file'), fw_spec)
+        if not db_file:
+            with open("task.json", "w") as f:
+                f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
+        else:
+            mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
+            mmdb.insert(task_doc)
+
+
+
 # TODO: rename to BoltztrapToDb task (capitalization), keep old name backwards-compatible (easy)
 @explicit_serialize
 class BoltztrapToDBTask(FiretaskBase):
@@ -479,28 +507,34 @@ class FitEquationOfStateTask(FiretaskBase):
         tag (str): unique tag appended to the task labels in other fireworks so that all the
             required data can be queried directly from the database.
         db_file (str): path to the db file
-        
+
     Optional parameters:
+        to_db (bool): if True, the data will be inserted to "eos" collection; otherwise, dumped to a .json file.
         eos (str): equation of state used for fitting the energies and the volumes.
             options supported by pymatgen: "quadratic", "murnaghan", "birch", "birch_murnaghan",
             "pourier_tarantola", "vinet", "deltafactor". Default: "vinet"
     """
 
-    required_params = ["tag", "db_file", "eos"]
+    required_params = ["tag", "db_file"]
+    optional_params = ["to_db", "eos"]
 
     def run_task(self, fw_spec):
 
         from pymatgen.analysis.eos import EOS
 
         eos = self.get("eos", "vinet")
-
         tag = self["tag"]
         db_file = env_chk(self.get("db_file"), fw_spec)
         summary_dict = {"eos": eos}
+        to_db = self.get("to_db", True)
+
+        # collect and store task_id of all related tasks to make unique links with "tasks" collection
+        all_task_ids = []
 
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         # get the optimized structure
         d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
+        all_task_ids.append(d["task_id"])
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
         summary_dict["structure"] = structure.as_dict()
 
@@ -513,19 +547,31 @@ class FitEquationOfStateTask(FiretaskBase):
             s = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
             energies.append(d["calcs_reversed"][-1]["output"]['energy'])
             volumes.append(s.volume)
+            all_task_ids.append(d["task_id"])
         summary_dict["energies"] = energies
         summary_dict["volumes"] = volumes
+        summary_dict["all_task_ids"] = all_task_ids
 
         # fit the equation of state
         eos = EOS(eos)
         eos_fit = eos.fit(volumes, energies)
+        summary_dict["bulk_modulus"] = eos_fit.b0_GPa
+
+        # TODO: find a better way for passing tags of the entire workflow to db - albalu
+        if fw_spec.get("tags", None):
+            summary_dict["tags"] = fw_spec["tags"]
         summary_dict["results"] = dict(eos_fit.results)
+        summary_dict["created_at"] = datetime.utcnow()
 
-        with open("bulk_modulus.json", "w") as f:
-            f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
+        # db_file itself is required but the user can choose to pass the results to db or not
+        if to_db:
+            mmdb.collection = mmdb.db["eos"]
+            mmdb.collection.insert_one(summary_dict)
+        else:
+            with open("bulk_modulus.json", "w") as f:
+                f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
 
-        # TODO: @matk86 - there needs to be a way to insert this into a database! And also
-        # a builder to put it into materials collection... -computron
+        # TODO: @matk86 - there needs to be a builder to put it into materials collection... -computron
         logger.info("Bulk modulus calculation complete.")
 
 
