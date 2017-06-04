@@ -15,10 +15,13 @@ flow of the workflow, e.g. tasks to check stability or the gap is within a certa
 
 import gzip
 import os
+import six
+import operator
 import re
 from decimal import Decimal
 
 import numpy as np
+import monty
 
 from pymatgen import MPRester
 from pymatgen.io.vasp.sets import get_vasprun_outcar
@@ -26,8 +29,8 @@ from pymatgen.analysis.elasticity import reverse_voigt_map
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
-from atomate.utils.utils import env_chk, get_logger
-from atomate.common.firetasks.glue_tasks import get_calc_loc
+from atomate.utils.utils import env_chk, get_logger, load_class
+from atomate.common.firetasks.glue_tasks import get_calc_loc, PassResult
 from atomate.utils.fileio import FileClient
 
 logger = get_logger(__name__)
@@ -213,98 +216,40 @@ class CheckBandgap(FiretaskBase):
         return FWAction(stored_data=stored_data)
 
 
-# TODO: @computron - rename to PassStressStrain in backwards-compatible way (easy) -computron
-@explicit_serialize
-class PassStressStrainData(FiretaskBase):
+def pass_vasp_result(pass_dict, calc_dir='.', filename="vasprun.xml.gz", 
+        parse_eigen=False, parse_dos=False, **kwargs):
     """
-    Passes the stress and deformation for an elastic deformation calculation
-
-    Required params:
-        deformation: the deformation gradient used in the elastic analysis.
+    function that gets a PassResult firework corresponding to output
+    from a Vasprun.  Covers most use cases in which user needs to
+    pass results from a vasp run to child FWs (e. g. analysis FWs)
         
-    Optional params:
-        calc_dir (str): path to dir that contains VASP output files.
-    """
-
-    required_params = ["deformation"]
-    optional_params = ["calc_dir"]
-
-    def run_task(self, fw_spec):
-        v, _ = get_vasprun_outcar(self.get("calc_dir", "."), parse_dos=False, parse_eigen=False)
-        stress = v.ionic_steps[-1]['stress']
-        defo = self['deformation']
-        d_ind = np.nonzero(defo - np.eye(3))
-        delta = Decimal((defo - np.eye(3))[d_ind][0])
-        # Shorthand is d_X_V, X is voigt index, V is value
-        # TODO: @montoyjh - it is really unclear what is being passed. What is dtype?
-        # Maybe an example of dtype, defo_dict would help? -computron
-        dtype = "_".join(["d", str(reverse_voigt_map[d_ind][0]),
-                          "{:.0e}".format(delta)])
-        strain = Strain.from_deformation(defo)
-        defo_dict = {'deformation_matrix': defo,
-                     'strain': strain.tolist(),
-                     'stress': stress}
-
-        return FWAction(mod_spec=[{'_set': {
-            'deformation_tasks->{}'.format(dtype): defo_dict}}])
-
-
-# TODO: @computron - rename to PassEpsilon in backwards-compatible way (easy) -computron
-@explicit_serialize
-class PassEpsilonTask(FiretaskBase):
-    """
-    Pass the epsilon(dielectric constant) corresponding to the given normal mode and displacement.
+    pass_vasp_result(pass_dict={'stress': ">>ionic_steps.-1.stress"})
 
     Required params:
-        mode (int): normal mode index
-        displacement (float): displacement along the normal mode in Angstroms
+        pass_dict (dict): dictionary designating keys and values to pass
+            to child fireworks.  If value is a string beginning with '>>',
+            the firework will search the parsed VASP output dictionary
+            for the designated property by following the sequence of keys
+            separated with periods, e. g. ">>ionic_steps.-1.stress" is used
+            to designate the stress from the last ionic_step. If the value
+            is not a string or does not begin with ">>" or "a>>" (for an
+            object attribute, rather than nested key of .as_dict() conversion),
+            it is passed as is.
+
+    Optional params:
+        calc_dir (str): path to dir that contains VASP output files, defaults
+            to '.', e. g. current directory
+        filename (str): filename for vasp xml file to parse, defaults to
+            "vasprun.xml.gz"
+        parse_eigen (bool): flag on whether or not to parse eigenvalues,
+            defaults to false
+        parse_eigen (bool): flag on whether or not to parse dos,
+            defaults to false
+        **kwargs (keyword args): other keyword arguments passed to PassResult
+            e.g. mod_spec_key or mod_spec_cmd
+        
     """
 
-    required_params = ["mode", "displacement"]
-
-    def run_task(self, fw_spec):
-        vrun, _ = get_vasprun_outcar(self.get("calc_dir", "."), parse_dos=False, parse_eigen=True)
-        epsilon_static = vrun.epsilon_static
-        epsilon_dict = {"mode": self["mode"],
-                        "displacement": self["displacement"],
-                        "epsilon": epsilon_static}
-        # TODO: @matk86 - document the format of what is being passed better, esp with
-        # all the replacements going on -computron
-        return FWAction(mod_spec=[{
-            '_set': {
-                'raman_epsilon->{}_{}'.format(
-                    str(self["mode"]),
-                    str(self["displacement"]).replace("-", "m").replace(".", "d")): epsilon_dict
-            }
-        }])
-
-
-# TODO: @computron - rename to PassNormalModes in backwards-compatible way (easy) -computron
-@explicit_serialize
-class PassNormalmodesTask(FiretaskBase):
-    """
-    Extract and pass the normal mode eigenvalues and vectors.
-
-    Optional_params:
-        calc_dir (str): path to the calculation directory
-    """
-
-    optional_params = ["calc_dir"]
-
-    def run_task(self, fw_spec):
-        # TODO: @matk86 - document the format of what is being passed better. Help someone new
-        # understand the context of this Firetask -computron
-
-        normalmode_dict = fw_spec.get("normalmodes", None)
-        if not normalmode_dict:
-            vrun, _ = get_vasprun_outcar(self.get("calc_dir", "."),
-                                         parse_dos=False, parse_eigen=True)
-            structure = vrun.final_structure.copy()
-            normalmode_eigenvals = vrun.normalmode_eigenvals
-            normalmode_eigenvecs = vrun.normalmode_eigenvecs
-            normalmode_norms = np.linalg.norm(normalmode_eigenvecs, axis=2)
-            normalmode_dict = {"structure": structure,
-                               "eigenvals": normalmode_eigenvals.tolist(),
-                               "eigenvecs": normalmode_eigenvecs.tolist(),
-                               "norms": normalmode_norms.tolist()}
-        return FWAction(mod_spec=[{'_set': {'normalmodes': normalmode_dict}}])
+    parse_kwargs = {"filename": filename, "parse_eigen": parse_eigen, "parse_dos":parse_dos}
+    return PassResult(pass_dict=pass_dict, calc_dir=calc_dir, parse_kwargs=parse_kwargs,
+            parse_class="pymatgen.io.vasp.outputs.Vasprun", **kwargs)
