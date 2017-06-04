@@ -134,17 +134,21 @@ class VaspToDbTask(FiretaskBase):
 @explicit_serialize
 class JsonToDbTask(FiretaskBase):
     """
-    Insert the task.json with minimal change into the tasks database.
-    task.json is assumed to be the result of a successful vasp run.
-    Note that the task_id of task.json must not be duplicated in tasks collection.
+    Insert the a JSON file (default: task.json) directly into the tasks database.
+    Note that if the JSON file contains a "task_id" key, that task_id must not already be present
+    in the tasks collection.
 
-    see VaspToDbTask documentation for required and optional parameters
+    Optional params:
+        json_filename (str): name of the JSON file to insert (default: "task.json")
+        db_file (str): path to file containing the database credentials. Supports env_chk.
+        calc_dir (str): path to dir (on current filesystem) that contains VASP output files.
+            Default: use current working directory.
     """
-    optional_params = ["db_file", "calc_dir"]
+    optional_params = ["json_filename", "db_file", "calc_dir"]
 
     def run_task(self, fw_spec):
 
-        ref_file = "task.json"
+        ref_file = self.get("json_filename", "task.json")
         calc_dir = self.get("calc_dir", os.getcwd())
         with open(os.path.join(calc_dir, ref_file), "r") as fp:
             task_doc = json.load(fp)

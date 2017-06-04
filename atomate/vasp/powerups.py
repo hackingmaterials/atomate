@@ -104,7 +104,8 @@ def use_no_vasp(original_wf, ref_dirs):
                         original_wf.fws[idx_fw].tasks[idx_t] = RunNoVasp(ref_dir=ref_dirs[job_type])
                     if "VaspToDb" in str(t):
                         original_wf.fws[idx_fw].tasks[idx_t] = \
-                            JsonToDbTask(calc_dir=ref_dirs[job_type], db_file=t.get("db_file", None))
+                            JsonToDbTask(db_file=t.get("db_file", None),
+                                         calc_dir=ref_dirs[job_type])
     return original_wf
 
 
