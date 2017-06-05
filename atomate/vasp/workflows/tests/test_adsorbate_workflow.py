@@ -61,7 +61,7 @@ class TestAdsorptionWorkflow(AtomateTest):
         if not DEBUG_MODE:
             shutil.rmtree(self.scratch_dir)
             self.lp.reset("", require_password=False)
-            db = self._get_task_database()
+            db = self.get_task_database()
             for coll in db.collection_names():
                 if coll != "system.indexes":
                     db[coll].drop()
@@ -99,7 +99,7 @@ class TestAdsorptionWorkflow(AtomateTest):
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
         # check relaxation
-        d = self._get_task_collection().find_one({"task_label": "H1-Ir_(1, 0, 0) adsorbate optimization 1"})
+        d = self.get_task_collection().find_one({"task_label": "H1-Ir_(1, 0, 0) adsorbate optimization 1"})
         self._check_run(d, mode="H1-Ir_(1, 0, 0) adsorbate optimization 1")
 
         wf = self.lp.get_wf_by_fw_id(1)

@@ -2,14 +2,11 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-import json
 import os
 import shutil
 import unittest
 
 import numpy as np
-
-from pymongo import MongoClient
 
 from pymatgen import Structure
 from pymatgen.io.feff.inputs import Tags
@@ -19,6 +16,7 @@ from fireworks.core.launchpad import LaunchPad
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.feff.workflows.core import get_wf_xas
+from atomate.utils.testing import AtomateTest
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -29,7 +27,7 @@ DEBUG_MODE = False  # If true, retains the database and output dirs at the end o
 FEFF_CMD = None  # "feff"
 
 
-class TestXASWorkflow(unittest.TestCase):
+class TestXASWorkflow(AtomateTest):
     @classmethod
     def setUpClass(cls):
         # CoO
@@ -47,19 +45,6 @@ class TestXASWorkflow(unittest.TestCase):
         cls.nkpts = 1000
         cls.scratch_dir = os.path.join(module_dir, "scratch")
 
-    def setUp(self):
-        if os.path.exists(self.scratch_dir):
-            shutil.rmtree(self.scratch_dir)
-        os.makedirs(self.scratch_dir)
-        os.chdir(self.scratch_dir)
-        try:
-            self.lp = LaunchPad.from_file(os.path.join(db_dir, "my_launchpad.yaml"))
-            self.lp.reset("", require_password=False)
-        except:
-            raise unittest.SkipTest(
-                'Cannot connect to MongoDB! Is the database server running? '
-                'Are the credentials correct?')
-
     def test_xas_wflow_abatom_by_idx(self):
         if not FEFF_CMD:
             # fake run
@@ -76,7 +61,7 @@ class TestXASWorkflow(unittest.TestCase):
         # run
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
-        d = self._get_task_collection().find_one({"spectrum_type": "XANES"})
+        d = self.get_task_collection().find_one({"spectrum_type": "XANES"})
         self._check_run(d)
 
     def test_xas_wflow_abatom_by_symbol(self):
@@ -105,31 +90,6 @@ class TestXASWorkflow(unittest.TestCase):
         self.assertEqual(d["input_parameters"], tags.as_dict())
         xmu = np.loadtxt((os.path.join(run_dir, "xmu.dat")))
         self.assertEqual(d["spectrum"], xmu.tolist())
-
-    def _get_task_database(self):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            conn = MongoClient(creds["host"], creds["port"])
-            db = conn[creds["database"]]
-            if "admin_user" in creds:
-                db.authenticate(creds["admin_user"], creds["admin_password"])
-            return db
-
-    def _get_task_collection(self):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            db = self._get_task_database()
-            return db[creds["collection"]]
-
-    def tearDown(self):
-        if not DEBUG_MODE:
-            shutil.rmtree(self.scratch_dir)
-            self.lp.reset("", require_password=False)
-            db = self._get_task_database()
-            for coll in db.collection_names():
-                if coll != "system.indexes":
-                    db[coll].drop()
-            os.chdir(module_dir)
 
 
 if __name__ == "__main__":

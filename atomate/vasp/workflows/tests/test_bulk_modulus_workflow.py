@@ -60,28 +60,6 @@ class TestBulkModulusWorkflow(AtomateTest):
 
         cls.wf = wf_bulk_modulus(struct_si, cls.wf_config)
 
-    def setUp(self):
-        if os.path.exists(self.scratch_dir):
-            shutil.rmtree(self.scratch_dir)
-        os.makedirs(self.scratch_dir)
-        os.chdir(self.scratch_dir)
-        try:
-            self.lp = LaunchPad.from_file(os.path.join(db_dir, "my_launchpad.yaml"))
-            self.lp.reset("", require_password=False)
-        except:
-            raise unittest.SkipTest(
-                'Cannot connect to MongoDB! Is the database server running? '
-                'Are the credentials correct?')
-
-    def tearDown(self):
-        if not DEBUG_MODE:
-            shutil.rmtree(self.scratch_dir)
-            self.lp.reset("", require_password=False)
-            db = self._get_task_database()
-            for coll in db.collection_names():
-                if coll != "system.indexes":
-                    db[coll].drop()
-
     def _simulate_vasprun(self, wf):
         no_vasp_ref_dirs = {}
         fake_vasp_ref_dirs = {}
@@ -160,7 +138,7 @@ class TestBulkModulusWorkflow(AtomateTest):
         for i in range(2, ndeformations + 2):
             # not to unnecessarily override available task.json
             if not os.path.exists(os.path.join(reference_dir, str(i), "task.json")):
-                d = self._get_task_collection().find_one(
+                d = self.get_task_collection().find_one(
                     {"task_label": {"$regex": "bulk_modulus deformation {}".format(i-2)}})
                 rm_props = ["bandstructure", "input"]
                 for icalc in range(len(d["calcs_reversed"])):
@@ -190,18 +168,18 @@ class TestBulkModulusWorkflow(AtomateTest):
             self.write_task_docs()
 
         # check relaxation
-        d = self._get_task_collection().find_one({"task_label": {"$regex": "structure optimization"}})
+        d = self.get_task_collection().find_one({"task_label": {"$regex": "structure optimization"}})
         self._check_run(d, mode="structure optimization")
 
         # check two of the deformation calculations
-        d = self._get_task_collection().find_one({"task_label": {"$regex": "bulk_modulus deformation 0"}})
+        d = self.get_task_collection().find_one({"task_label": {"$regex": "bulk_modulus deformation 0"}})
         self._check_run(d, mode="bulk_modulus deformation 0")
 
-        d = self._get_task_collection().find_one({"task_label": {"$regex": "bulk_modulus deformation 4"}})
+        d = self.get_task_collection().find_one({"task_label": {"$regex": "bulk_modulus deformation 4"}})
         self._check_run(d, mode="bulk_modulus deformation 4")
 
         # check the final results
-        d = self._get_task_collection(coll_name="eos").find_one()
+        d = self.get_task_collection(coll_name="eos").find_one()
         self._check_run(d, mode="fit equation of state")
 
 

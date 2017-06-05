@@ -39,6 +39,7 @@ LAUNCHPAD_RESET = True
 
 @unittest.skipIf(not pmgd, "pymatgen-diffusion not installed, so skipping...")
 class TestNudgedElasticBandWorkflow(AtomateTest):
+
     @classmethod
     def setUpClass(cls):
         """

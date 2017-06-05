@@ -35,6 +35,7 @@ VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this c
 
 
 class TestElasticWorkflow(AtomateTest):
+
     @classmethod
     def setUpClass(cls):
         if not SETTINGS.get("PMG_VASP_PSP_DIR"):
@@ -53,29 +54,6 @@ class TestElasticWorkflow(AtomateTest):
                 shear_deformations=[0.03], optimize_structure=False)
         mip = {"incar_update": {"ENCUT": 700}}
         cls.wf_noopt = add_modify_incar(cls.wf_noopt, modify_incar_params=mip)
-
-    def setUp(self):
-        if os.path.exists(self.scratch_dir):
-            shutil.rmtree(self.scratch_dir)
-        os.makedirs(self.scratch_dir)
-        os.chdir(self.scratch_dir)
-        try:
-            self.lp = LaunchPad.from_file(os.path.join(db_dir, "my_launchpad.yaml"))
-            self.lp.reset("", require_password=False)
-        except:
-            raise unittest.SkipTest(
-                'Cannot connect to MongoDB! Is the database server running? '
-                'Are the credentials correct?')
-
-    def tearDown(self):
-        if not DEBUG_MODE:
-            shutil.rmtree(self.scratch_dir)
-            self.lp.reset("", require_password=False)
-            db = self._get_task_database()
-            for coll in db.collection_names():
-                if coll != "system.indexes":
-                    db[coll].drop()
-            os.chdir(module_dir)
 
     def _simulate_vasprun(self, wf):
         reference_dir = os.path.abspath(os.path.join(ref_dir, "elastic_wf"))
@@ -133,17 +111,17 @@ class TestElasticWorkflow(AtomateTest):
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
         # check relaxation
-        d = self._get_task_collection().find_one({"task_label": "elastic structure optimization"})
+        d = self.get_task_collection().find_one({"task_label": "elastic structure optimization"})
         self._check_run(d, mode="structure optimization")
         # check two of the deformation calculations
-        d = self._get_task_collection().find_one({"task_label": "elastic deformation 0"})
+        d = self.get_task_collection().find_one({"task_label": "elastic deformation 0"})
         self._check_run(d, mode="elastic deformation 0")
         
-        d = self._get_task_collection().find_one({"task_label": "elastic deformation 3"})
+        d = self.get_task_collection().find_one({"task_label": "elastic deformation 3"})
         self._check_run(d, mode="elastic deformation 3")
 
         # check the final results
-        d = self._get_task_collection(coll_name="elasticity").find_one()
+        d = self.get_task_collection(coll_name="elasticity").find_one()
         self._check_run(d, mode="elastic analysis")
 
         wf = self.lp.get_wf_by_fw_id(1)
