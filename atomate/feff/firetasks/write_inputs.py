@@ -73,7 +73,13 @@ def get_feff_input_set_obj(fis, *args, **kwargs):
         fis (str or FeffDictSet subclass): The inputset for setting params. If string then
             the entire path to the class or the spectrum type must be provided
             e.g. "pymatgen.io.feff.sets.MPXANESSet" or "XANES"
+        args (tuple): feff input set args
+        kwargs (dict): feff input set kwargs
+
+    Returns:
+        FeffDictSet object
     """
+    # e.g. "pymatgen.io.feff.sets.MPXANESSet" or "XANES"
     if isinstance(fis, string_types):
         fis_ = "pymatgen.io.feff.sets.MP{}Set".format(fis) if "pymatgen" not in fis else fis
         modname, classname = fis_.strip().rsplit(".", 1)
