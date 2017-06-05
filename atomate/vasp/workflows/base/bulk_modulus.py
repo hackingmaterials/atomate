@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 This module defines the bulk modulus workflow.
 """
 
-from datetime import datetime
+from uuid import uuid4
 
 from fireworks import Firework, Workflow
 
@@ -42,13 +42,7 @@ def get_wf_bulk_modulus(structure, deformations, vasp_input_set=None, vasp_cmd="
         Workflow
     """
 
-    # TODO: @kmathew - can you add something to this tag that makes it clear it is a necessary part
-    # of the wf_bulk_modulus rather than just random date tag? e.g. "wf_bulk_modulus group:
-    # >>DATE<<" -computron
-
-    # TODO: @kmathew - consider using UUID to clarify that this is a hash: e.g.,
-    # uuid.uuid4(). Just feels cleaner than using the string of date -computron
-    tag = datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')
+    tag = "wf_bulk_modulus group: >>{}<<".format(str(uuid4()))
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
     wf_bulk_modulus = get_wf_deformations(structure, deformations, name="bulk_modulus deformation",

@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 This module defines the gibbs free energy workflow.
 """
 
-from datetime import datetime
+from uuid import uuid4
 
 from fireworks import Firework, Workflow
 
@@ -63,8 +63,7 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
                              "analysis step; you can alternatively switch to the qha_type to "
                              "'debye_model' which does not require 'phonopy'.")
 
-    # TODO: @kmathew - see my various other comments about auto-generated tag and UUID. -computron
-    tag = datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')
+    tag = "gibbs group: >>{}<<".format(str(uuid4()))
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
     wf_gibbs = get_wf_deformations(structure, deformations, name="gibbs deformation",
