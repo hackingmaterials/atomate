@@ -67,7 +67,7 @@ class TestXASWorkflow(unittest.TestCase):
         else:
             feff_bin = FEFF_CMD
 
-        wf = get_wf_xas(self.absorbing_atom, self.structure, spectrum_type="XANES", edge="K",
+        wf = get_wf_xas(self.absorbing_atom, self.structure, feff_input_set="XANES", edge="K",
                         feff_cmd=feff_bin, db_file=">>db_file<<", use_primitive=False,
                         user_tag_settings=self.user_tag_settings)
         self.assertEqual(len(wf.as_dict()["fws"]), 1)
@@ -80,17 +80,17 @@ class TestXASWorkflow(unittest.TestCase):
         self._check_run(d)
 
     def test_xas_wflow_abatom_by_symbol(self):
-        wf_prim = get_wf_xas("O", self.structure, spectrum_type="XANES", edge="K",
+        wf_prim = get_wf_xas("O", self.structure, feff_input_set="XANES", edge="K",
                              use_primitive=True, user_tag_settings=self.user_tag_settings)
-        wf = get_wf_xas("O", self.structure, spectrum_type="XANES", edge="K",
+        wf = get_wf_xas("O", self.structure, feff_input_set="XANES", edge="K",
                         use_primitive=False, user_tag_settings=self.user_tag_settings)
         self.assertEqual(len(wf_prim.as_dict()["fws"]), 1)
         self.assertEqual(len(wf.as_dict()["fws"]), 2)
 
     def test_xanes_vs_exafs(self):
-        wf_xanes = get_wf_xas(self.absorbing_atom, self.structure, spectrum_type="XANES", edge="K",
+        wf_xanes = get_wf_xas(self.absorbing_atom, self.structure, feff_input_set="XANES", edge="K",
                               user_tag_settings=self.user_tag_settings)
-        wf_exafs = get_wf_xas(self.absorbing_atom, self.structure, spectrum_type="EXAFS", edge="K")
+        wf_exafs = get_wf_xas(self.absorbing_atom, self.structure, feff_input_set="EXAFS", edge="K")
 
         self.assertEqual(wf_xanes.as_dict()["fws"][0]["spec"]['_tasks'][0]['feff_input_set']['@class'],
                          'MPXANESSet')

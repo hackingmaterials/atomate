@@ -75,7 +75,7 @@ def get_feff_input_set_obj(fis, *args, **kwargs):
             e.g. "pymatgen.io.feff.sets.MPXANESSet" or "XANES"
     """
     if isinstance(fis, string_types):
-        fis_ = "pymatgen.io.feff.sets.MP{}Set".format(fis) if "pymatgen" in fis else fis
+        fis_ = "pymatgen.io.feff.sets.MP{}Set".format(fis) if "pymatgen" not in fis else fis
         modname, classname = fis_.strip().rsplit(".", 1)
         fis_cls = load_class(modname, classname)
         return fis_cls(*args, **kwargs)
