@@ -14,8 +14,7 @@ from pymatgen.io.lammps.data import LammpsForceFieldData
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
-from atomate.lammps.workflows.presets import wf_from_input_template
-
+from atomate.lammps.workflows.core import wf_from_input_template
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'

@@ -31,5 +31,5 @@ class WriteLammpsFromIOSet(FiretaskBase):
     optional_params = ["data_file"]
 
     def run_task(self, fw_spec):
-        lammps_input = self["lammps_dict_input"]
+        lammps_input = self["lammps_input_set"]
         lammps_input.write_input(self["input_file"], data_filename=self.get("data_file", None))
