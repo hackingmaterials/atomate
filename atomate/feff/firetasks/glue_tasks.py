@@ -42,5 +42,5 @@ class CopyFeffOutputs(CopyFiles):
         exclude_files = self.get("exclude_files", ["feff.inp", "xmu.dat"])
 
         self.setup(self.get("calc_dir", None), filesystem=self.get("filesystem", None), exclude_files=exclude_files,
-                   calc_loc=calc_loc)
+                   from_path_dict=calc_loc)
         self.copy()

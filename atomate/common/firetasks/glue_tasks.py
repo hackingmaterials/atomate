@@ -136,10 +136,10 @@ class CopyFiles(FiretaskBase):
 
     optional_params = ["from_dir", "to_dir", "filesystem", "exclude_files"]
 
-    def setup(self, from_dir, to_dir=None, filesystem=None, files_to_copy=None, exclude_files=None, calc_loc=None):
-        calc_loc = calc_loc or {}
-        from_dir = from_dir or calc_loc.get("path", None)
-        filesystem = filesystem or calc_loc.get("filesystem", None)
+    def setup(self, from_dir, to_dir=None, filesystem=None, files_to_copy=None, exclude_files=None, from_path_dict=None):
+        from_path_dict = from_path_dict or {}
+        from_dir = from_dir or from_path_dict.get("path", None)
+        filesystem = filesystem or from_path_dict.get("filesystem", None)
         if from_dir is None:
             raise ValueError("Must specify from_dir!")
         self.fileclient = FileClient(filesystem=filesystem)

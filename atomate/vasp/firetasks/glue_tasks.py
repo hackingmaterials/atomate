@@ -30,7 +30,7 @@ from pymatgen.analysis.elasticity import reverse_voigt_map
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 from atomate.utils.utils import env_chk, get_logger, load_class
-from atomate.common.firetasks.glue_tasks import get_calc_loc, PassResult
+from atomate.common.firetasks.glue_tasks import get_calc_loc, PassResult, CopyFiles
 from atomate.utils.fileio import FileClient
 
 logger = get_logger(__name__)
@@ -40,7 +40,7 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 
 @explicit_serialize
-class CopyVaspOutputs(FiretaskBase):
+class CopyVaspOutputs(CopyFiles):
     """
     Copy files from a previous VASP run directory to the current directory.
     By default, copies 'INCAR', 'POSCAR' (default: via 'CONTCAR'), 'KPOINTS', 
@@ -66,47 +66,41 @@ class CopyVaspOutputs(FiretaskBase):
             POSCAR (original POSCAR is not copied).
     """
 
-    optional_params = ["calc_loc", "calc_dir", "filesystem", "additional_files",
-                       "contcar_to_poscar"]
+    optional_params = ["calc_loc", "calc_dir", "filesystem", "additional_files", "contcar_to_poscar"]
 
     def run_task(self, fw_spec):
-        if self.get("calc_dir"):  # direct setting of calc dir - no calc_locs or filesystem!
-            calc_dir = self["calc_dir"]
-            filesystem = None
-        elif self.get("calc_loc"):  # search for calc dir and filesystem within calc_locs
-            calc_loc = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])
-            calc_dir = calc_loc["path"]
-            filesystem = calc_loc["filesystem"]
-        else:
-            raise ValueError("Must specify either calc_dir or calc_loc!")
 
-        fileclient = FileClient(filesystem=filesystem)
-        calc_dir = fileclient.abspath(calc_dir)
-        contcar_to_poscar = self.get("contcar_to_poscar", True)
-
-        all_files = fileclient.listdir(calc_dir)
+        calc_loc = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"]) if self.get("calc_loc") else {}
 
         # determine what files need to be copied
-        if "$ALL" in self.get("additional_files", []):
-            files_to_copy = all_files
-        else:
+        files_to_copy = None
+        if not "$ALL" in self.get("additional_files", []):
             files_to_copy = ['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR', 'vasprun.xml']
-
             if self.get("additional_files"):
                 files_to_copy.extend(self["additional_files"])
 
+        # decide between poscar and contcar
+        contcar_to_poscar = self.get("contcar_to_poscar", True)
         if contcar_to_poscar and "CONTCAR" not in files_to_copy:
             files_to_copy.append("CONTCAR")
             files_to_copy = [f for f in files_to_copy if f != 'POSCAR']  # remove POSCAR
 
+        # setup the copy
+        self.setup(self.get("calc_dir", None), filesystem=self.get("filesystem", None),
+                   files_to_copy=files_to_copy, from_path_dict=calc_loc)
+        # do the copying
+        self.copy()
+
+    def copy(self):
+        all_files = self.fileclient.listdir(self.from_dir)
         # start file copy
-        for f in files_to_copy:
-            prev_path_full = os.path.join(calc_dir, f)
-            dest_fname = 'POSCAR' if f == 'CONTCAR' and contcar_to_poscar else f
-            dest_path = os.path.join(os.getcwd(), dest_fname)
+        for f in self.files_to_copy:
+            prev_path_full = os.path.join(self.from_dir, f)
+            dest_fname = 'POSCAR' if f == 'CONTCAR' else f
+            dest_path = os.path.join(self.to_dir, dest_fname)
 
             relax_ext = ""
-            relax_paths = sorted(fileclient.glob(prev_path_full+".relax*"))
+            relax_paths = sorted(self.fileclient.glob(prev_path_full+".relax*"))
             if relax_paths:
                 if len(relax_paths) > 9:
                     raise ValueError("CopyVaspOutputs doesn't properly handle >9 relaxations!")
@@ -124,7 +118,7 @@ class CopyVaspOutputs(FiretaskBase):
                 raise ValueError("Cannot find file: {}".format(f))
 
             # copy the file (minus the relaxation extension)
-            fileclient.copy(prev_path_full + relax_ext + gz_ext, dest_path + gz_ext)
+            self.fileclient.copy(prev_path_full + relax_ext + gz_ext, dest_path + gz_ext)
 
             # unzip the .gz if needed
             if gz_ext in ['.gz', ".GZ"]:
