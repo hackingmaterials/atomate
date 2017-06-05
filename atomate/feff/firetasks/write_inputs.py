@@ -26,8 +26,9 @@ class WriteFeffFromIOSet(FiretaskBase):
     Required_params:
         absorbing_atom (str): absorbing atom symbol
         structure (Structure): input structure
-        feff_input_set (str or FeffDictSet subclass): The inputset for setting params. If string then
-            the entire path to the class must be provide e.g. "pymatgen.io.feff.sets.MPXANESSet"
+        feff_input_set (str or FeffDictSet subclass): The inputset for setting params. If string
+            then either the entire path to the class or the spectrum type must be provided
+            e.g. "pymatgen.io.feff.sets.MPXANESSet" or "XANES"
 
     Optional_params:
         radius (float): cluster radius in angstroms
@@ -65,6 +66,14 @@ class WriteEXAFSPaths(FiretaskBase):
 
 
 def get_feff_input_set_obj(fis, *args, **kwargs):
+    """
+    returns feff input set object.
+
+    Args:
+        fis (str or FeffDictSet subclass): The inputset for setting params. If string then
+            the entire path to the class or the spectrum type must be provided
+            e.g. "pymatgen.io.feff.sets.MPXANESSet" or "XANES"
+    """
     if isinstance(fis, string_types):
         fis_ = "pymatgen.io.feff.sets.MP{}Set".format(fis) if "pymatgen" in fis else fis
         modname, classname = fis_.strip().rsplit(".", 1)

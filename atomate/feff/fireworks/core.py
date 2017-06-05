@@ -31,7 +31,7 @@ class XASFW(Firework):
             absorbing_atom (str): absorbing atom symbol
             structure (Structure): input structure
             feff_input_set (str or FeffDictSet subclass): The inputset for setting params. If string
-                then the entire path to the class or spectrum type must be provided
+                then either the entire path to the class or spectrum type must be provided
                 e.g. "pymatgen.io.feff.sets.MPXANESSet" or "XANES"
             edge (str): absorption edge
             radius (float): cluster radius in angstroms

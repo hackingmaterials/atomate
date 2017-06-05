@@ -7,8 +7,6 @@ import os
 import shutil
 import unittest
 
-import numpy as np
-
 from pymongo import MongoClient
 
 from pymatgen import Structure
@@ -105,6 +103,7 @@ class TestEELSWorkflow(unittest.TestCase):
     @staticmethod
     def _get_task_database():
         # TODO: @matk86 - there must be some pymatgen-db method that does this -computron
+        # pymatgen-db fails on accessing db without authentication
         with open(os.path.join(db_dir, "db.json")) as f:
             creds = json.loads(f.read())
             conn = MongoClient(creds["host"], creds["port"])

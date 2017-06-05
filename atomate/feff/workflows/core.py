@@ -28,11 +28,10 @@ def get_wf_xas(absorbing_atom, structure, feff_input_set="pymatgen.io.feff.sets.
         absorbing_atom (str/int): absorbing atom symbol or site index. If the symbol is given,
              then the returned workflow will have fireworks for each absorbing site with the
              same symbol.
+        structure (Structure): input structure
         feff_input_set (str or FeffDictSet subclass): The inputset for setting params. If string
                 then either the entire path to the class or spectrum type must be provided
                 e.g. "pymatgen.io.feff.sets.MPXANESSet" or "XANES"
-        structure (Structure): input structure
-        spectrum_type (str): XANES or EXAFS
         edge (str): absorption edge. Example: K, L1, L2, L3
         radius (float): cluster radius in angstroms. Ignored for K space calculations
         feff_cmd (str): path to the feff binary
@@ -94,7 +93,7 @@ def get_wf_exafs_paths(absorbing_atom, structure, paths, degeneracies=None, edge
         edge (str): absorption edge. Example: K, L1, L2, L3
         radius (float): cluster radius in angstroms. Ignored for K space calculations
         feff_input_set (str or FeffDictSet subclass): The inputset for setting params. If string
-                then either the entire path to the class must be provided
+                then the entire path to the class must be provided
                 e.g. "pymatgen.io.feff.sets.MPEXAFSSet"
         feff_cmd (str): path to the feff binary
         db_file (str):  path to the db file.
@@ -122,10 +121,10 @@ def get_wf_exafs_paths(absorbing_atom, structure, paths, degeneracies=None, edge
     return wflow
 
 
-def get_wf_eels(absorbing_atom, structure=None, spectrum_type="ELNES", edge="K", radius=10.,
-                beam_energy=100, beam_direction=None, collection_angle=1, convergence_angle=1,
-                user_eels_settings=None, user_tag_settings=None, feff_cmd="feff", db_file=None,
-                metadata=None, use_primitive=False, feff_input_set=None):
+def get_wf_eels(absorbing_atom, structure=None, feff_input_set="pymatgen.io.feff.sets.MPELNESSet",
+                edge="K", radius=10., beam_energy=100, beam_direction=None, collection_angle=1,
+                convergence_angle=1, user_eels_settings=None, user_tag_settings=None, feff_cmd="feff",
+                db_file=None, metadata=None, use_primitive=False):
     """
     Returns FEFF ELNES/EXELFS spectroscopy workflow.
 
@@ -133,7 +132,9 @@ def get_wf_eels(absorbing_atom, structure=None, spectrum_type="ELNES", edge="K",
         absorbing_atom (str): absorbing atom symbol
         structure (Structure): input structure. If None and mp_id is provided, the corresponding
             structure will be fetched from the Materials Project db.
-        spectrum_type (str): ELNES or EXELFS
+        feff_input_set (str or FeffDictSet subclass): The inputset for setting params. If string
+                then either the entire path to the class or spectrum type must be provided
+                e.g. "pymatgen.io.feff.sets.MPELNESSet" or "ELNES"
         edge (str): absorption edge. K, L1, L2, L3
         radius (float): cluster radius in angstroms. Ignored for reciprocal space calculations
         beam_energy (float): the incident beam energy in keV
@@ -149,7 +150,6 @@ def get_wf_eels(absorbing_atom, structure=None, spectrum_type="ELNES", edge="K",
         use_primitive (bool): convert the structure to primitive form. This helps to
             reduce the number of fireworks in the workflow if the absorbing atoms is
             specified by its atomic symbol.
-        feff_input_set (FeffDictSet)
 
     Returns:
         Workflow
@@ -161,6 +161,8 @@ def get_wf_eels(absorbing_atom, structure=None, spectrum_type="ELNES", edge="K",
     ab_atom_indices = [absorbing_atom] if isinstance(absorbing_atom, int) else structure.indices_from_symbol(absorbing_atom)
 
     override_default_feff_params = {"user_tag_settings": user_tag_settings}
+
+    spectrum_type = get_feff_input_set_obj(feff_input_set).__class__.__name__[2:-3]
 
     # add firework for each absorbing atom site index
     fws = []
