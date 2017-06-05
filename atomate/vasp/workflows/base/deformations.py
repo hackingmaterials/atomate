@@ -51,8 +51,6 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
         Workflow
     """
 
-    # TODO: @kmathew - why not use UUID to generate a unique tag for the user
-    # if they don't feel like inventing one themselves? -computron
     fws, parents = [], []
 
     # TODO: @kmathew - I don't see the need for this option. Better if a user can just take an
