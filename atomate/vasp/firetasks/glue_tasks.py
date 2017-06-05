@@ -15,23 +15,15 @@ flow of the workflow, e.g. tasks to check stability or the gap is within a certa
 
 import gzip
 import os
-import six
-import operator
 import re
-from decimal import Decimal
-
-import numpy as np
-import monty
 
 from pymatgen import MPRester
 from pymatgen.io.vasp.sets import get_vasprun_outcar
-from pymatgen.analysis.elasticity import reverse_voigt_map
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
-from atomate.utils.utils import env_chk, get_logger, load_class
+from atomate.utils.utils import env_chk, get_logger
 from atomate.common.firetasks.glue_tasks import get_calc_loc, PassResult, CopyFiles
-from atomate.utils.fileio import FileClient
 
 logger = get_logger(__name__)
 

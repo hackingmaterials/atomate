@@ -5,10 +5,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os
 
 import six
-import re
 import monty
-import operator
-from functools import reduce
 
 from atomate.utils.utils import env_chk, load_class, recursive_get_result
 from atomate.utils.fileio import FileClient
