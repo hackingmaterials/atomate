@@ -2,20 +2,18 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-import json
 import os
 import shutil
 import unittest
 
 import numpy as np
 
-from pymongo import MongoClient
-
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_fake_vasp
 from atomate.vasp.workflows.presets.core import wf_raman_spectra
+from atomate.utils.testing import AtomateTest
 
 from pymatgen import SETTINGS
 from pymatgen.util.testing import PymatgenTest
@@ -31,7 +29,7 @@ DEBUG_MODE = False  # If true, retains the database and output dirs at the end o
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
 
-class TestRamanWorkflow(unittest.TestCase):
+class TestRamanWorkflow(AtomateTest):
     @classmethod
     def setUpClass(cls):
         if not SETTINGS.get("PMG_VASP_PSP_DIR"):
@@ -77,22 +75,6 @@ class TestRamanWorkflow(unittest.TestCase):
                        "raman_1_-0.005 static dielectric": os.path.join(reference_dir, "4"),
                        "raman_1_0.005 static dielectric": os.path.join(reference_dir, "3")}
         return use_fake_vasp(wf, si_ref_dirs, params_to_check=["ENCUT"])
-
-    def _get_task_database(self):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            conn = MongoClient(creds["host"], creds["port"])
-            db = conn[creds["database"]]
-            if "admin_user" in creds:
-                db.authenticate(creds["admin_user"], creds["admin_password"])
-            return db
-
-    def _get_task_collection(self, coll_name=None):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            db = self._get_task_database()
-            coll_name = coll_name or creds["collection"]
-            return db[coll_name]
 
     def _check_run(self, d, mode):
         if mode not in ["structure optimization", "phonon static dielectric",

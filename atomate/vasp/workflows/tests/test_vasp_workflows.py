@@ -17,6 +17,7 @@ from fireworks.core.rocket_launcher import rapidfire
 from atomate.vasp.powerups import use_custodian, add_namefile, use_fake_vasp, add_trackers, \
     add_bandgap_check
 from atomate.vasp.workflows.base.core import get_wf
+from atomate.utils.testing import AtomateTest
 
 from pymatgen import SETTINGS
 from pymatgen.io.vasp.sets import MPRelaxSet
@@ -38,7 +39,7 @@ DEBUG_MODE = False  # If true, retains the database and output dirs at the end o
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
 
-class TestVaspWorkflows(unittest.TestCase):
+class TestVaspWorkflows(AtomateTest):
     @classmethod
     def setUpClass(cls):
         # TODO: update this for the latest pymatgen...
@@ -74,21 +75,6 @@ class TestVaspWorkflows(unittest.TestCase):
                 if coll != "system.indexes":
                     db[coll].drop()
             os.chdir(module_dir)
-
-    def _get_task_database(self):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            conn = MongoClient(creds["host"], creds["port"])
-            db = conn[creds["database"]]
-            if "admin_user" in creds:
-                db.authenticate(creds["admin_user"], creds["admin_password"])
-            return db
-
-    def _get_task_collection(self):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            db = self._get_task_database()
-            return db[creds["collection"]]
 
     def _check_run(self, d, mode):
         if mode not in ["structure optimization", "static", "nscf uniform", "nscf line"]:

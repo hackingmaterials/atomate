@@ -14,6 +14,7 @@ from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_fake_vasp
 from atomate.vasp.workflows.presets.core import wf_nudged_elastic_band
+from atomate.utils.testing import AtomateTest
 
 from pymatgen import SETTINGS
 from pymatgen.core import Structure
@@ -37,7 +38,7 @@ LAUNCHPAD_RESET = True
 
 
 @unittest.skipIf(not pmgd, "pymatgen-diffusion not installed, so skipping...")
-class TestNudgedElasticBandWorkflow(unittest.TestCase):
+class TestNudgedElasticBandWorkflow(AtomateTest):
     @classmethod
     def setUpClass(cls):
         """

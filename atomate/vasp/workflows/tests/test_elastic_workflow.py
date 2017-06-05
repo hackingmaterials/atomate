@@ -17,6 +17,7 @@ from fireworks.core.rocket_launcher import rapidfire
 from atomate.vasp.powerups import use_fake_vasp, add_modify_incar
 from atomate.vasp.workflows.presets.core import wf_elastic_constant
 from atomate.vasp.workflows.base.elastic import get_wf_elastic_constant
+from atomate.utils.testing import AtomateTest
 
 from pymatgen import SETTINGS
 from pymatgen.util.testing import PymatgenTest
@@ -33,7 +34,7 @@ DEBUG_MODE = False  # If true, retains the database and output dirs at the end o
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
 
-class TestElasticWorkflow(unittest.TestCase):
+class TestElasticWorkflow(AtomateTest):
     @classmethod
     def setUpClass(cls):
         if not SETTINGS.get("PMG_VASP_PSP_DIR"):
@@ -86,22 +87,6 @@ class TestElasticWorkflow(unittest.TestCase):
                        "elastic deformation 4": os.path.join(reference_dir, "3"),
                        "elastic deformation 5": os.path.join(reference_dir, "2")}
         return use_fake_vasp(wf, si_ref_dirs, params_to_check=["ENCUT"])
-
-    def _get_task_database(self):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            conn = MongoClient(creds["host"], creds["port"])
-            db = conn[creds["database"]]
-            if "admin_user" in creds:
-                db.authenticate(creds["admin_user"], creds["admin_password"])
-            return db
-
-    def _get_task_collection(self, coll_name=None):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            db = self._get_task_database()
-            coll_name = coll_name or creds["collection"]
-            return db[coll_name]
 
     def _check_run(self, d, mode):
         if mode not in ["structure optimization", "elastic deformation 0",
@@ -163,7 +148,6 @@ class TestElasticWorkflow(unittest.TestCase):
 
         wf = self.lp.get_wf_by_fw_id(1)
         self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
-
 
 
 if __name__ == "__main__":

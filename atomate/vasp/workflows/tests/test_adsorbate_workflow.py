@@ -2,24 +2,18 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-import json
 import os
 import shutil
 import unittest
-
-import numpy as np
-
-from pymongo import MongoClient
 
 from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_fake_vasp
 from atomate.vasp.workflows.base.adsorption import get_wf_surface
+from atomate.utils.testing import AtomateTest
 
 from pymatgen import SETTINGS, Structure, Molecule, Lattice
-from pymatgen.util.testing import PymatgenTest
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.core.surface import generate_all_slabs
 
 __author__ = 'Kiran Mathew, Joseph Montoya'
@@ -33,7 +27,7 @@ DEBUG_MODE = False  # If true, retains the database and output dirs at the end o
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
 
-class TestAdsorptionWorkflow(unittest.TestCase):
+class TestAdsorptionWorkflow(AtomateTest):
     @classmethod
     def setUpClass(cls):
         if not SETTINGS.get("PMG_VASP_PSP_DIR"):
@@ -81,22 +75,6 @@ class TestAdsorptionWorkflow(unittest.TestCase):
                        "Ir-H1-Ir_(1, 0, 0) adsorbate optimization 1": os.path.join(reference_dir, "4"),
                        "Ir-H1-Ir_(1, 0, 0) adsorbate optimization 2": os.path.join(reference_dir, "5")}
         return use_fake_vasp(wf, ir_ref_dirs, params_to_check=["ENCUT", "ISIF", "IBRION"])
-
-    def _get_task_database(self):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            conn = MongoClient(creds["host"], creds["port"])
-            db = conn[creds["database"]]
-            if "admin_user" in creds:
-                db.authenticate(creds["admin_user"], creds["admin_password"])
-            return db
-
-    def _get_task_collection(self, coll_name=None):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            db = self._get_task_database()
-            coll_name = coll_name or creds["collection"]
-            return db[coll_name]
 
     def _check_run(self, d, mode):
         if mode not in ["H1-Ir_(1, 0, 0) adsorbate optimization 1"]:

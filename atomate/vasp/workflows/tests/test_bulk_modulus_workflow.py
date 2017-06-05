@@ -6,18 +6,16 @@ import json
 import os
 import shutil
 import unittest
-import warnings
 
 import numpy as np
 from monty.json import MontyEncoder
 
-from pymongo import MongoClient
-
-from fireworks import LaunchPad, FWorker, Workflow
+from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_fake_vasp, use_no_vasp
 from atomate.vasp.workflows.presets.core import wf_bulk_modulus
+from atomate.utils.testing import AtomateTest
 
 from pymatgen import SETTINGS, Structure
 from pymatgen.util.testing import PymatgenTest
@@ -37,7 +35,7 @@ ndeformations = 6
 deformations = [(np.identity(3)*(1+x)).tolist() for x in np.linspace(-0.05, 0.05, ndeformations)]
 
 
-class TestBulkModulusWorkflow(unittest.TestCase):
+class TestBulkModulusWorkflow(AtomateTest):
     """This test will either actually run VASP (if VASP_CMD is set) or artificially pass on outputs
     (if not VASP_CMD) and test the whole bulk modulus workflow and its implementation and outputs
     for an example calculation for silicon.
@@ -62,9 +60,6 @@ class TestBulkModulusWorkflow(unittest.TestCase):
 
         cls.wf = wf_bulk_modulus(struct_si, cls.wf_config)
 
-
-
-
     def setUp(self):
         if os.path.exists(self.scratch_dir):
             shutil.rmtree(self.scratch_dir)
@@ -78,8 +73,6 @@ class TestBulkModulusWorkflow(unittest.TestCase):
                 'Cannot connect to MongoDB! Is the database server running? '
                 'Are the credentials correct?')
 
-
-
     def tearDown(self):
         if not DEBUG_MODE:
             shutil.rmtree(self.scratch_dir)
@@ -88,8 +81,6 @@ class TestBulkModulusWorkflow(unittest.TestCase):
             for coll in db.collection_names():
                 if coll != "system.indexes":
                     db[coll].drop()
-
-
 
     def _simulate_vasprun(self, wf):
         no_vasp_ref_dirs = {}
@@ -104,28 +95,6 @@ class TestBulkModulusWorkflow(unittest.TestCase):
         fake_vasp_ref_dirs["structure optimization"] =  os.path.join(reference_dir, "1")
         new_wf = use_no_vasp(wf, no_vasp_ref_dirs)
         return use_fake_vasp(new_wf, fake_vasp_ref_dirs, params_to_check=["ENCUT"])
-
-
-
-    def _get_task_database(self):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            conn = MongoClient(creds["host"], creds["port"])
-            db = conn[creds["database"]]
-            if "admin_user" in creds:
-                db.authenticate(creds["admin_user"], creds["admin_password"])
-            return db
-
-
-
-    def _get_task_collection(self, coll_name=None):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            db = self._get_task_database()
-            coll_name = coll_name or creds["collection"]
-            return db[coll_name]
-
-
 
     def _check_run(self, d, mode):
         if mode not in ["structure optimization", "bulk_modulus deformation 0",
@@ -166,8 +135,6 @@ class TestBulkModulusWorkflow(unittest.TestCase):
             s = SpacegroupAnalyzer(Structure.from_dict(d["structure"])).get_conventional_standard_structure()
             self.assertAlmostEqual(s.lattice.c, 5.468, places=3)
 
-
-
     def setup_task_docs(self):
         self.task_file = "task.json"
         for i in range(2, ndeformations+2):
@@ -188,8 +155,6 @@ class TestBulkModulusWorkflow(unittest.TestCase):
                 raise IOError("neither {} nor {} are present in {}".format("inputs",
                     self.task_file, os.path.join(reference_dir, str(i))))
 
-
-
     def write_task_docs(self):
         # this step needs to be run once: once task.json is present, remove the inputs/outputs folders
         for i in range(2, ndeformations + 2):
@@ -206,8 +171,6 @@ class TestBulkModulusWorkflow(unittest.TestCase):
                             pass
                 with open(os.path.join(reference_dir, str(i), "task.json"), 'w') as fp:
                     json.dump(d, fp, sort_keys=True, indent=4, ensure_ascii=False, cls=MontyEncoder)
-
-
 
     def test_wf(self):
         self.wf = self._simulate_vasprun(self.wf)
@@ -240,6 +203,7 @@ class TestBulkModulusWorkflow(unittest.TestCase):
         # check the final results
         d = self._get_task_collection(coll_name="eos").find_one()
         self._check_run(d, mode="fit equation of state")
+
 
 if __name__ == "__main__":
     unittest.main()
