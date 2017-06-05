@@ -251,7 +251,7 @@ class VaspDrone(AbstractDrone):
             import traceback
             logger.error(traceback.format_exc())
             logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
-            return None  # TODO: @matk86: Why does this return None instead of throwing the error? -computron
+            raise
 
     def process_vasprun(self, dir_name, taskname, filename):
         """

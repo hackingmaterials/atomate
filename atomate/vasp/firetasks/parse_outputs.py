@@ -5,22 +5,18 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import json
 import os
 from collections import defaultdict
-
 from datetime import datetime
 
 import numpy as np
-
 from monty.json import MontyEncoder
 
-from fireworks import FiretaskBase, FWAction, explicit_serialize
-from fireworks.utilities.fw_serializers import DATETIME_HANDLER
-
-from atomate.utils.utils import env_chk, get_meta_from_structure
 from atomate.common.firetasks.glue_tasks import get_calc_loc
+from atomate.utils.utils import env_chk, get_meta_from_structure
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.drones import VaspDrone
-
+from fireworks import FiretaskBase, FWAction, explicit_serialize
+from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from pymatgen import Structure
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
 from pymatgen.analysis.elasticity.strain import IndependentStrain, Strain
@@ -469,7 +465,7 @@ class GibbsFreeEnergyTask(FiretaskBase):
             # use the phonopy interface
             else:
 
-                from atomate.tools.analysis import get_phonopy_gibbs
+                from atomate.vasp.analysis.phonopy import get_phonopy_gibbs
 
                 G, T = get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min,
                                          t_step, t_max, mesh, eos, pressure)
@@ -480,9 +476,13 @@ class GibbsFreeEnergyTask(FiretaskBase):
         # quasi-harmonic analysis failed, set the flag to false
         except:
             import traceback
+
             logger.warn("Quasi-harmonic analysis failed!")
             gibbs_dict["success"] = False
             gibbs_dict["traceback"] = traceback.format_exc()
+            metadata.update({"task_label_tag": tag})
+            gibbs_dict["metadata"] = metadata
+            gibbs_dict["created_at"] = datetime.utcnow()
 
         # TODO: @matk86: add a list of task_ids that were used to construct the analysis to DB?
         # -computron
@@ -605,7 +605,7 @@ class ThermalExpansionCoeffTask(FiretaskBase):
 
     def run_task(self, fw_spec):
 
-        from atomate.tools.analysis import get_phonopy_thermal_expansion
+        from atomate.vasp.analysis.phonopy import get_phonopy_thermal_expansion
 
         tag = self["tag"]
         db_file = env_chk(self.get("db_file"), fw_spec)

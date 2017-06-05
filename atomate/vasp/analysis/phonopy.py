@@ -7,12 +7,6 @@ import numpy as np
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 
-# TODO: @matk86 - I have multiple questions about this:
-# 1. Why is this not in pymatgen?
-# 2. Even if not in pymatgen, why isn't this part of the "VASP" module of atomate
-# 3. Why is this named "analysis.py" instead of "phonopy_analysis.py"?
-# - @computron
-
 # TODO: @matk86 - unit tests?
 
 def get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_step, t_max, mesh,

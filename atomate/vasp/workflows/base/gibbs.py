@@ -6,13 +6,13 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 This module defines the gibbs free energy workflow.
 """
 
-from datetime import datetime
+from uuid import uuid4
 
 from fireworks import Firework, Workflow
 
 from pymatgen.analysis.elasticity.strain import Deformation
 
-from atomate.utils.utils import get_logger, append_fw_wf
+from atomate.utils.utils import get_logger
 from atomate.vasp.firetasks.parse_outputs import GibbsFreeEnergyTask
 from atomate.vasp.workflows.base.deformations import get_wf_deformations
 
@@ -63,8 +63,7 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
                              "analysis step; you can alternatively switch to the qha_type to "
                              "'debye_model' which does not require 'phonopy'.")
 
-    # TODO: @kmathew - see my various other comments about auto-generated tag and UUID. -computron
-    tag = datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')
+    tag = "gibbs group: >>{}<<".format(str(uuid4()))
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
     wf_gibbs = get_wf_deformations(structure, deformations, name="gibbs deformation",
@@ -79,7 +78,7 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
                                                pressure=pressure, poisson=poisson, metadata=metadata),
                            name="Gibbs Free Energy")
 
-    append_fw_wf(wf_gibbs, fw_analysis)
+    wf_gibbs.append_wf(Workflow.from_Firework(fw_analysis), wf_gibbs.leaf_fw_ids)
 
     wf_gibbs.name = "{}:{}".format(structure.composition.reduced_formula, "gibbs free energy")
 

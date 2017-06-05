@@ -7,8 +7,6 @@ import os
 import shutil
 import unittest
 
-import numpy as np
-
 from pymongo import MongoClient
 
 from pymatgen import Structure
@@ -18,8 +16,7 @@ from fireworks.core.fworker import FWorker
 from fireworks.core.launchpad import LaunchPad
 from fireworks.core.rocket_launcher import rapidfire
 
-from atomate.feff.workflows.eels import get_wf_eels
-
+from atomate.feff.workflows.core import get_wf_eels
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -65,7 +62,7 @@ class TestEELSWorkflow(unittest.TestCase):
     def test_eels_wflow_abatom_by_idx(self):
         # for the sake of test just copy xmu to eels
         feff_bin = "cp  ../../../../test_files/xmu.dat eels.dat"
-        wf = get_wf_eels(self.absorbing_atom, self.structure, spectrum_type="ELNES",
+        wf = get_wf_eels(self.absorbing_atom, self.structure, feff_input_set="ELNES",
                         edge="L1", user_tag_settings=self.user_tag_settings, use_primitive=False,
                          feff_cmd=feff_bin, db_file=">>db_file<<")
         self.assertEqual(len(wf.as_dict()["fws"]), 1)
@@ -78,17 +75,17 @@ class TestEELSWorkflow(unittest.TestCase):
         self._check_run(d)
 
     def test_eels_wflow_abatom_by_symbol(self):
-        wf_prim =get_wf_eels("O", self.structure, spectrum_type="ELNES",
+        wf_prim =get_wf_eels("O", self.structure, feff_input_set="ELNES",
                         edge="L1", user_tag_settings=self.user_tag_settings, use_primitive=True)
-        wf = get_wf_eels("O", self.structure, spectrum_type="ELNES",
+        wf = get_wf_eels("O", self.structure, feff_input_set="ELNES",
                         edge="L1", user_tag_settings=self.user_tag_settings, use_primitive=False)
         self.assertEqual(len(wf_prim.as_dict()["fws"]), 1)
         self.assertEqual(len(wf.as_dict()["fws"]), 2)
 
     def test_elnes_vs_exelfs(self):
-        wf_elnes = get_wf_eels(self.absorbing_atom, self.structure, spectrum_type="ELNES",
+        wf_elnes = get_wf_eels(self.absorbing_atom, self.structure, feff_input_set="ELNES",
                         edge="L1", user_tag_settings=self.user_tag_settings, use_primitive=True)
-        wf_exelfs = get_wf_eels(self.absorbing_atom, self.structure, spectrum_type="EXELFS",
+        wf_exelfs = get_wf_eels(self.absorbing_atom, self.structure, feff_input_set="EXELFS",
                         edge="L1", user_tag_settings=self.user_tag_settings, use_primitive=True)
 
         self.assertEqual(wf_elnes.as_dict()["fws"][0]["spec"]['_tasks'][0]['feff_input_set'][
@@ -106,6 +103,7 @@ class TestEELSWorkflow(unittest.TestCase):
     @staticmethod
     def _get_task_database():
         # TODO: @matk86 - there must be some pymatgen-db method that does this -computron
+        # pymatgen-db fails on accessing db without authentication
         with open(os.path.join(db_dir, "db.json")) as f:
             creds = json.loads(f.read())
             conn = MongoClient(creds["host"], creds["port"])

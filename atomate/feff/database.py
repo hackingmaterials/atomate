@@ -18,14 +18,15 @@ logger = get_logger(__name__)
 
 class FeffCalcDb(CalcDb):
 
-    def __init__(self, host="localhost", port=27017, database="feff", collection="tasks",
-                 user=None, password=None):
+    def __init__(self, host="localhost", port=27017, database="feff", collection="tasks", user=None,
+                 password=None):
         super(FeffCalcDb, self).__init__(host, port, database, collection, user, password)
 
     def build_indexes(self, indexes=None, background=True):
-        # TODO: @matk86 - would suggest adding a couple of indexes -computron
-        pass
+        _indexes = indexes if indexes else ["structure.formula"]
+        for i in _indexes:
+            self.collection.create_index(i, background=background)
 
     def reset(self):
-        # TODO: @matk86 - shouldn't this be implemented? Seems simple? -computron
-        pass
+        self.collection.delete_many({})
+        self.build_indexes()

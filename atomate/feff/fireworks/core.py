@@ -9,26 +9,20 @@ sequences of FEFF calculations.
 
 from fireworks import Firework
 
-from atomate.utils.utils import load_class
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
 from atomate.feff.firetasks.glue_tasks import CopyFeffOutputs
-from atomate.feff.firetasks.write_inputs import WriteFeffFromIOSet, WriteEXAFSPaths
+from atomate.feff.firetasks.write_inputs import WriteFeffFromIOSet, WriteEXAFSPaths, get_feff_input_set_obj
 from atomate.feff.firetasks.run_calc import RunFeffDirect
 from atomate.feff.firetasks.parse_outputs import SpectrumToDbTask, AddPathsToFilepadTask
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 
-# TODO: @matk86 The "spectrum_type" and "feff_input_set" params can be combined. Maybe just one parameter:
-# - if it's "EXAFS" or "XANES", load the correct inputset automagically
-# - if it's some other string like "pymatgen.io.feff.....", split the string and use load_class
-# - it it's an actual class, use that. -computron
 
 class XASFW(Firework):
-    def __init__(self, absorbing_atom, structure, spectrum_type, edge="K", radius=10.0,
-                 name="XAS spectroscopy", feff_input_set=None, feff_cmd="feff",
-                 override_default_feff_params=None, db_file=None, parents=None, metadata=None,
-                 **kwargs):
+    def __init__(self, absorbing_atom, structure, feff_input_set="XANES", edge="K", radius=10.0,
+                 name="XAS spectroscopy", feff_cmd="feff", override_default_feff_params=None,
+                 db_file=None, parents=None, metadata=None, **kwargs):
         """
         Write the input set for FEFF-XAS spectroscopy, run FEFF and insert the absorption
         coefficient to the database (or dump to a json file if db_file=None).
@@ -36,11 +30,12 @@ class XASFW(Firework):
         Args:
             absorbing_atom (str): absorbing atom symbol
             structure (Structure): input structure
-            spectrum_type (str): "EXAFS" or "XANES"
+            feff_input_set (str or FeffDictSet subclass): The inputset for setting params. If string
+                then either the entire path to the class or spectrum type must be provided
+                e.g. "pymatgen.io.feff.sets.MPXANESSet" or "XANES"
             edge (str): absorption edge
             radius (float): cluster radius in angstroms
             name (str)
-            feff_input_set (FeffDictSet)
             feff_cmd (str): path to the feff binary
             override_default_feff_params (dict): override feff tag settings.
             db_file (str): path to the db file.
@@ -50,10 +45,9 @@ class XASFW(Firework):
         """
         override_default_feff_params = override_default_feff_params or {}
 
-        if not feff_input_set:
-            fis_cls = load_class("pymatgen.io.feff.sets", "MP{}Set".format(spectrum_type))
-            feff_input_set = fis_cls(absorbing_atom, structure, edge=edge, radius=radius,
-                                     **override_default_feff_params)
+        feff_input_set = get_feff_input_set_obj(feff_input_set, absorbing_atom, structure, edge=edge,
+                                                radius=radius, **override_default_feff_params)
+        spectrum_type = feff_input_set.__class__.__name__[2:-3]
 
         t = [WriteFeffFromIOSet(absorbing_atom=absorbing_atom, structure=structure, radius=radius,
                                 feff_input_set=feff_input_set),
@@ -67,12 +61,10 @@ class XASFW(Firework):
                                     format(structure.composition.reduced_formula, name), **kwargs)
 
 
-# TODO: @matk86 - see also my prev comment about feff_input_set and spectrum_type
-
 class EELSFW(Firework):
-    def __init__(self, absorbing_atom, structure, spectrum_type, edge="K", radius=10.,
+    def __init__(self, absorbing_atom, structure, feff_input_set="ELNES", edge="K", radius=10.,
                  name="EELS spectroscopy", beam_energy=100, beam_direction=None, collection_angle=1,
-                 convergence_angle=1, user_eels_settings=None, feff_input_set=None, feff_cmd="feff",
+                 convergence_angle=1, user_eels_settings=None, feff_cmd="feff",
                  override_default_feff_params=None, db_file=None, parents=None, metadata=None,
                  **kwargs):
         """
@@ -82,7 +74,9 @@ class EELSFW(Firework):
         Args:
             absorbing_atom (str): absorbing atom symbol
             structure (Structure): input structure
-            spectrum_type (str): "ELNES" or "EXELFS"
+            feff_input_set (str or FeffDictSet subclass): The inputset for setting params. If string
+                then the entire path to the class or the spectrum type must be provide
+                e.g. "pymatgen.io.feff.sets.MPELNESSet" or "ELNES"
             edge (str): absorption edge
             radius (float): cluster radius in angstroms
             name (str)
@@ -91,7 +85,6 @@ class EELSFW(Firework):
             collection_angle (float): Detector collection angle in mrad.
             convergence_angle (float): Beam convergence angle in mrad.
             user_eels_settings (dict): override default EELS config. See MPELNESSet.yaml for supported keys.
-            feff_input_set (FeffDictSet)
             feff_cmd (str): path to the feff binary
             override_default_feff_params (dict): override feff tag settings.
             db_file (str): path to the db file.
@@ -101,12 +94,11 @@ class EELSFW(Firework):
         """
         override_default_feff_params = override_default_feff_params or {}
 
-        if not feff_input_set:
-            fis_cls = load_class("pymatgen.io.feff.sets", "MP{}Set".format(spectrum_type))
-            feff_input_set = fis_cls(absorbing_atom, structure, edge, radius, beam_energy,
-                                     beam_direction, collection_angle, convergence_angle,
-                                     user_eels_settings=user_eels_settings,
-                                     **override_default_feff_params)
+        feff_input_set = get_feff_input_set_obj(feff_input_set, absorbing_atom, structure, edge,
+                                                radius, beam_energy, beam_direction, collection_angle,
+                                                convergence_angle, user_eels_settings=user_eels_settings,
+                                                **override_default_feff_params)
+        spectrum_type = feff_input_set.__class__.__name__[2:-3]
 
         t = [WriteFeffFromIOSet(absorbing_atom=absorbing_atom, structure=structure, radius=radius,
                                 feff_input_set=feff_input_set),
@@ -119,11 +111,10 @@ class EELSFW(Firework):
         super(EELSFW, self).__init__(t, parents=parents, name="{}-{}".
                                      format(structure.composition.reduced_formula, name), **kwargs)
 
-# TODO: @matk86 - see also my prev comment about feff_input_set and spectrum_type
 
 class EXAFSPathsFW(Firework):
     def __init__(self, absorbing_atom, structure, paths, degeneracies=None, edge="K", radius=10.0,
-                 name="EXAFS Paths", feff_input_set=None, feff_cmd="feff",
+                 name="EXAFS Paths", feff_input_set="pymatgen.io.feff.sets.MPEXAFSSet", feff_cmd="feff",
                  override_default_feff_params=None, parents=None, filepad_file=None, labels=None,
                  metadata=None, **kwargs):
         """
@@ -151,10 +142,8 @@ class EXAFSPathsFW(Firework):
         override_default_feff_params.update({"user_tag_settings": {"CONTROL": "0 0 0 0 1 1",
                                                                    "PRINT": "0 0 0 1 0 3"}})
 
-        if not feff_input_set:
-            fis_cls = load_class("pymatgen.io.feff.sets", "MP{}Set".format("EXAFS"))
-            feff_input_set = fis_cls(absorbing_atom, structure, edge=edge, radius=radius,
-                                     **override_default_feff_params)
+        feff_input_set = get_feff_input_set_obj(feff_input_set, absorbing_atom, structure, edge=edge,
+                                                radius=radius, **override_default_feff_params)
 
         t = [CopyFeffOutputs(calc_loc=True),
              WriteFeffFromIOSet(absorbing_atom=absorbing_atom, structure=structure, radius=radius,

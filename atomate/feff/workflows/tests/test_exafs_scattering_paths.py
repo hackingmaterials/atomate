@@ -8,7 +8,7 @@ import unittest
 
 from pymatgen import Structure
 
-from atomate.feff.workflows.xas import get_wf_exafs_paths
+from atomate.feff.workflows.core import get_wf_exafs_paths
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
