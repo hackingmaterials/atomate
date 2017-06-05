@@ -78,12 +78,12 @@ class CopyVaspOutputs(CopyFiles):
             files_to_copy = [f for f in files_to_copy if f != 'POSCAR']  # remove POSCAR
 
         # setup the copy
-        self.setup(self.get("calc_dir", None), filesystem=self.get("filesystem", None),
-                   files_to_copy=files_to_copy, from_path_dict=calc_loc)
+        self.setup_copy(self.get("calc_dir", None), filesystem=self.get("filesystem", None),
+                        files_to_copy=files_to_copy, from_path_dict=calc_loc)
         # do the copying
-        self.copy()
+        self.copy_files()
 
-    def copy(self):
+    def copy_files(self):
         all_files = self.fileclient.listdir(self.from_dir)
         # start file copy
         for f in self.files_to_copy:

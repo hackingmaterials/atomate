@@ -133,7 +133,7 @@ class CopyFiles(FiretaskBase):
 
     optional_params = ["from_dir", "to_dir", "filesystem", "exclude_files"]
 
-    def setup(self, from_dir, to_dir=None, filesystem=None, files_to_copy=None, exclude_files=None, from_path_dict=None):
+    def setup_copy(self, from_dir, to_dir=None, filesystem=None, files_to_copy=None, exclude_files=None, from_path_dict=None):
         from_path_dict = from_path_dict or {}
         from_dir = from_dir or from_path_dict.get("path", None)
         filesystem = filesystem or from_path_dict.get("filesystem", None)
@@ -145,14 +145,14 @@ class CopyFiles(FiretaskBase):
         exclude_files = exclude_files or []
         self.files_to_copy = files_to_copy or [f for f in self.fileclient.listdir(self.from_dir) if f not in exclude_files]
 
-    def copy(self):
+    def copy_files(self):
         for f in self.files_to_copy:
             prev_path_full = os.path.join(self.from_dir, f)
             dest_path = os.path.join(self.to_dir, f)
             self.fileclient.copy(prev_path_full, dest_path)
 
     def run_task(self, fw_spec):
-        self.setup(self.get("from_dir", None), to_dir=self.get("to_dir", None),
-                   filesystem=self.get("filesystem", None),
-                   exclude_files=self.get("exclude_files", []))
-        self.copy()
+        self.setup_copy(self.get("from_dir", None), to_dir=self.get("to_dir", None),
+                        filesystem=self.get("filesystem", None),
+                        exclude_files=self.get("exclude_files", []))
+        self.copy_files()
