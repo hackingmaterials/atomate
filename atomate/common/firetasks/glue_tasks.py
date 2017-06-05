@@ -126,14 +126,37 @@ class PassResult(FiretaskBase):
         return FWAction(mod_spec=[{mod_spec_cmd: {mod_spec_key: pass_dict}}])
 
 
+#TODO: not sure this is the best to do this, will mull over it and do the recatoring later - matk
 @explicit_serialize
 class CopyFiles(FiretaskBase):
     """
+    Task to copy the given list of files from the given directory to the destination directory.
+    To customize override the setup_copy and copy_files methods.
+
+    Optional params:
+        from_dir (str): path to the directory containing the files to be copied.
+        to_dir (str): path to the destination directory
+        filesystem (str)
+        files_to_copy (list): list of file names.
+        exclude_files (list): list of file names to be excluded.
     """
 
-    optional_params = ["from_dir", "to_dir", "filesystem", "exclude_files"]
+    optional_params = ["from_dir", "to_dir", "filesystem", "files_to_copy", "exclude_files"]
 
-    def setup_copy(self, from_dir, to_dir=None, filesystem=None, files_to_copy=None, exclude_files=None, from_path_dict=None):
+    def setup_copy(self, from_dir, to_dir=None, filesystem=None, files_to_copy=None, exclude_files=None,
+                   from_path_dict=None):
+        """
+        setup the copy i.e setup the from directory, filesystem, destination directory etc.
+
+        Args:
+            from_dir (str)
+            to_dir (str)
+            filesystem (str)
+            files_to_copy (list): if None all the files in the from_dir will be copied
+            exclude_files (list)
+            from_path_dict (dict): dict specification of the path. If specified must contain atleast
+                the key "path" that specifies the path to the from_dir.
+        """
         from_path_dict = from_path_dict or {}
         from_dir = from_dir or from_path_dict.get("path", None)
         filesystem = filesystem or from_path_dict.get("filesystem", None)
@@ -146,6 +169,9 @@ class CopyFiles(FiretaskBase):
         self.files_to_copy = files_to_copy or [f for f in self.fileclient.listdir(self.from_dir) if f not in exclude_files]
 
     def copy_files(self):
+        """
+        Defines the copy operation. Override this to customize copying.
+        """
         for f in self.files_to_copy:
             prev_path_full = os.path.join(self.from_dir, f)
             dest_path = os.path.join(self.to_dir, f)
@@ -154,5 +180,6 @@ class CopyFiles(FiretaskBase):
     def run_task(self, fw_spec):
         self.setup_copy(self.get("from_dir", None), to_dir=self.get("to_dir", None),
                         filesystem=self.get("filesystem", None),
+                        files_to_copy=self.get("files_to_copy", None),
                         exclude_files=self.get("exclude_files", []))
         self.copy_files()
