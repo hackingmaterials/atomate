@@ -300,7 +300,9 @@ In order to be able to act on and modify the initial structure as it changes thr
 Conclusion
 ==========
 
-Understanding this guide has enabled you to create arbitrarily complex atomate workflows with any combination of Firetasks and Fireworks. If any of this was unclear, please leave us feedback on the `atomate Google Group`_! To see all of the different pieces you can control with Python, go to the :ref:`API documentation <modindex>`. Many customization options and features of interest are not in atomate alone, but in `FireWorks`_, `pymatgen`_, and `custodian`_. Most of all, mastering FireWorks will enable you to get the most out of you workflows.
+Understanding this guide has enabled you to create arbitrarily complex atomate workflows with any combination of Firetasks and Fireworks, but not everything was able to be covered in detail with examples. See the :ref:`customizing workflows` documentation for specific examples for customizing workflows that you can adapt to your needs.
+
+If any of this was unclear, please leave us feedback on the `atomate Google Group`_! To see all of the different pieces you can control with Python, go to the :ref:`API documentation <modindex>`. Many customization options and features of interest are not in atomate alone, but in `FireWorks`_, `pymatgen`_, and `custodian`_. Most of all, mastering FireWorks will enable you to get the most out of you workflows.
 
 As you progress, you may find that certain calculations require special analyses or you may want to contribute back to atomate by writing workflows for an unsupported software. For this, you'll have to write your own Firetasks and Fireworks to integrate into Workflows. A guide for writing these workflows and the lower level techniques and machinery
 

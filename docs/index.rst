@@ -227,6 +227,7 @@ Installation and other introductory documentation follow this page
     installation
     running_workflows
     creating_workflows
+    customizing_workflows
     changelog
     contributors
     license
