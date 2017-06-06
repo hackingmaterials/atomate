@@ -6,16 +6,18 @@ from __future__ import division, unicode_literals, print_function
 
 import argparse
 import os
-
 import sys
-from monty.serialization import loadfn
 import yaml
 from datetime import datetime
 
+from monty.serialization import loadfn
+
 from fireworks import LaunchPad
+
 from atomate.utils.utils import get_wf_from_spec_dict
 from atomate.vasp.powerups import add_namefile, add_tags
 from atomate.vasp.workflows.presets import core
+
 from pymatgen import Structure, Lattice, MPRester
 from pymatgen.util.testing import PymatgenTest
 
@@ -38,6 +40,7 @@ common_params:
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 lpad = LaunchPad.auto_load()
+
 
 def add_to_lpad(workflow, write_namefile=False):
     """
@@ -91,6 +94,7 @@ def add_wf(args):
         wf = _get_wf(args, s)
         add_to_lpad(wf, write_namefile=False)
 
+
 def submit_test_suite(args):
     """
     Creates a test suite of workflows and adds it to the LaunchPad
@@ -123,6 +127,7 @@ def submit_test_suite(args):
     wfs = [add_tags(wf, "test set {}".format(dt)) for wf in wfs]
     for wf in wfs:
         add_to_lpad(wf, write_namefile=False)
+
 
 def verify_test_suite(args):
     tags = lpad.fireworks.distinct("spec.tags", {"spec.tags":{"$regex":"test set"}})
