@@ -30,17 +30,17 @@ VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this c
 
 class TestRamanWorkflow(AtomateTest):
 
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
+        super(TestRamanWorkflow, self).setUp()
         if not SETTINGS.get("PMG_VASP_PSP_DIR"):
             SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "..", "..", "test_files")
             print('This system is not set up to run VASP jobs. '
                   'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
-        cls.struct_si = PymatgenTest.get_structure("Si")
-        cls.raman_config = {"modes": [0, 1], "step_size": 0.005,
+        self.struct_si = PymatgenTest.get_structure("Si")
+        self.raman_config = {"modes": [0, 1], "step_size": 0.005,
                             "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"}
-        cls.wf = wf_raman_spectra(cls.struct_si, cls.raman_config)
+        self.wf = wf_raman_spectra(self.struct_si, self.raman_config)
 
     def _simulate_vasprun(self, wf):
         reference_dir = os.path.abspath(os.path.join(ref_dir, "raman_wf"))

@@ -47,18 +47,17 @@ class TestBulkModulusWorkflow(AtomateTest):
     2. once task.json is present, VaspRun can be skipped where task.json is
         available and their "inputs" and "outputs" folders can be removed
     """
-    @classmethod
-    def setUpClass(cls):
+
+    def setUp(self):
+        super(TestBulkModulusWorkflow, self).setUp()
         if not SETTINGS.get("PMG_VASP_PSP_DIR"):
             SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "reference_files")
             print('This system is not set up to run VASP jobs. '
                   'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
-        cls.scratch_dir = os.path.join(module_dir, "scratch")
-        cls.wf_config = {"deformations": deformations,
+        self.wf_config = {"deformations": deformations,
                             "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"}
-
-        cls.wf = wf_bulk_modulus(struct_si, cls.wf_config)
+        self.wf = wf_bulk_modulus(struct_si, self.wf_config)
 
     def _simulate_vasprun(self, wf):
         no_vasp_ref_dirs = {}
@@ -70,7 +69,7 @@ class TestBulkModulusWorkflow(AtomateTest):
             else:
                 no_vasp_ref_dirs["bulk_modulus deformation {}".format(i-2)] = os.path.join(reference_dir, str(i))
 
-        fake_vasp_ref_dirs["structure optimization"] =  os.path.join(reference_dir, "1")
+        fake_vasp_ref_dirs["structure optimization"] = os.path.join(reference_dir, "1")
         new_wf = use_no_vasp(wf, no_vasp_ref_dirs)
         return use_fake_vasp(new_wf, fake_vasp_ref_dirs, params_to_check=["ENCUT"])
 
