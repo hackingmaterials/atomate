@@ -12,6 +12,8 @@ from pymongo import MongoClient
 
 from fireworks import LaunchPad
 
+from pymatgen import SETTINGS
+
 __author__ = 'Kiran Mathew'
 __credits__ = 'Anubhav Jain'
 __email__ = 'kmathew@lbl.gov'
@@ -30,6 +32,11 @@ class AtomateTest(unittest.TestCase):
         Create scratch directory(removes the old one if there is one) and change to it.
         Also initialize launchpad.
         """
+        if not SETTINGS.get("PMG_VASP_PSP_DIR"):
+            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.abspath(os.path.join(MODULE_DIR, "..", "vasp", "test_files"))
+            print('This system is not set up to run VASP jobs. '
+                  'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
+
         self.scratch_dir = os.path.join(MODULE_DIR, "scratch")
         if os.path.exists(self.scratch_dir):
             shutil.rmtree(self.scratch_dir)

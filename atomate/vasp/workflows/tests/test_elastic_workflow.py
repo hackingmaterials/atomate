@@ -15,7 +15,6 @@ from atomate.vasp.workflows.presets.core import wf_elastic_constant
 from atomate.vasp.workflows.base.elastic import get_wf_elastic_constant
 from atomate.utils.testing import AtomateTest
 
-from pymatgen import SETTINGS
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
@@ -34,11 +33,6 @@ class TestElasticWorkflow(AtomateTest):
 
     def setUp(self):
         super(TestElasticWorkflow, self).setUp()
-        if not SETTINGS.get("PMG_VASP_PSP_DIR"):
-            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "..", "..", "test_files")
-            print('This system is not set up to run VASP jobs. '
-                  'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
-
         self.struct_si = SpacegroupAnalyzer(
                 PymatgenTest.get_structure("Si")).get_conventional_standard_structure()
         self.elastic_config = {"norm_deformations":[0.01],

@@ -3,17 +3,16 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
-import shutil
 import unittest
 
-from fireworks import LaunchPad, FWorker
+from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_fake_vasp
 from atomate.vasp.workflows.base.adsorption import get_wf_surface
 from atomate.utils.testing import AtomateTest
 
-from pymatgen import SETTINGS, Structure, Molecule, Lattice
+from pymatgen import Structure, Molecule, Lattice
 from pymatgen.core.surface import generate_all_slabs
 
 __author__ = 'Kiran Mathew, Joseph Montoya'
@@ -31,10 +30,6 @@ class TestAdsorptionWorkflow(AtomateTest):
 
     def setUp(self):
         super(TestAdsorptionWorkflow, self).setUp()
-        if not SETTINGS.get("PMG_VASP_PSP_DIR"):
-            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "..", "..", "test_files")
-            print('This system is not set up to run VASP jobs. '
-                  'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
         self.struct_ir = Structure.from_spacegroup("Fm-3m", Lattice.cubic(3.875728), ["Ir"], [[0, 0, 0]])
         sgp = {"max_index": 1, "min_slab_size": 7.0, "min_vacuum_size": 20.0}

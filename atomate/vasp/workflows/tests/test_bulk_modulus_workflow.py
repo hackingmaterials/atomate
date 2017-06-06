@@ -16,7 +16,7 @@ from atomate.vasp.powerups import use_fake_vasp, use_no_vasp
 from atomate.vasp.workflows.presets.core import wf_bulk_modulus
 from atomate.utils.testing import AtomateTest
 
-from pymatgen import SETTINGS, Structure
+from pymatgen import Structure
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
@@ -45,12 +45,6 @@ class TestBulkModulusWorkflow(AtomateTest):
 
     def setUp(self):
         super(TestBulkModulusWorkflow, self).setUp()
-        
-        if not SETTINGS.get("PMG_VASP_PSP_DIR"):
-            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "reference_files")
-            print('This system is not set up to run VASP jobs. '
-                  'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
-
         self.struct_si = PymatgenTest.get_structure("Si")
         self.ndeformations = 6
         self.deformations = [(np.identity(3) * (1 + x)).tolist() for x in

@@ -14,7 +14,6 @@ from atomate.vasp.powerups import use_fake_vasp
 from atomate.vasp.workflows.presets.core import wf_raman_spectra
 from atomate.utils.testing import AtomateTest
 
-from pymatgen import SETTINGS
 from pymatgen.util.testing import PymatgenTest
 
 __author__ = 'Kiran Mathew'
@@ -32,11 +31,6 @@ class TestRamanWorkflow(AtomateTest):
 
     def setUp(self):
         super(TestRamanWorkflow, self).setUp()
-        if not SETTINGS.get("PMG_VASP_PSP_DIR"):
-            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "..", "..", "test_files")
-            print('This system is not set up to run VASP jobs. '
-                  'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
-
         self.struct_si = PymatgenTest.get_structure("Si")
         self.raman_config = {"modes": [0, 1], "step_size": 0.005,
                             "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"}
