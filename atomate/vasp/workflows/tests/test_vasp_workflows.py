@@ -4,14 +4,13 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import json
 import os
-import shutil
 import unittest
 import zlib
 
 import gridfs
-from pymongo import MongoClient, DESCENDING
+from pymongo import DESCENDING
 
-from fireworks import LaunchPad, FWorker
+from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_custodian, add_namefile, use_fake_vasp, add_trackers, \

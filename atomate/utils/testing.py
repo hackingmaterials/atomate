@@ -22,7 +22,6 @@ VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this c
 class AtomateTest(unittest.TestCase):
 
     def setUp(self):
-        #self.module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
         self.scratch_dir = os.path.join(MODULE_DIR, "scratch")
         if os.path.exists(self.scratch_dir):
             shutil.rmtree(self.scratch_dir)
@@ -35,6 +34,9 @@ class AtomateTest(unittest.TestCase):
             raise unittest.SkipTest('Cannot connect to MongoDB! Is the database server running? '
                                     'Are the credentials correct?')
 
+    # Note: the functions in matgendb.util, get_database and get_collection require db authentication
+    # but the db.json config file used for atomate testing purpose doesnt require db authentication.
+    # Hence the following 2 methods.
     def get_task_database(self):
         with open(os.path.join(DB_DIR, "db.json")) as f:
             creds = json.loads(f.read())

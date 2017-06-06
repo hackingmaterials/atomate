@@ -2,16 +2,12 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-import json
 import os
-import shutil
 import unittest
 
 import numpy as np
 
-from pymongo import MongoClient
-
-from fireworks import LaunchPad, FWorker
+from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_fake_vasp, add_modify_incar

@@ -3,14 +3,12 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
-import shutil
 import unittest
 
 from pymatgen import Structure
 from pymatgen.io.feff.inputs import Tags
 
 from fireworks.core.fworker import FWorker
-from fireworks.core.launchpad import LaunchPad
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.feff.workflows.core import get_wf_eels
