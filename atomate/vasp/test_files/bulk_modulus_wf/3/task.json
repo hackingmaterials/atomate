@@ -1,9 +1,4 @@
 {
-    "_id": {
-        "@class": "ObjectId",
-        "@module": "bson.objectid",
-        "oid": "591a2a87ccd43b706cc973d1"
-    },
     "analysis": {
         "delta_volume": 0.0,
         "delta_volume_percent": 0.0,
@@ -893,8 +888,8 @@
         "version": 0.2
     },
     "state": "successful",
-    "task_id": 16000051,
-    "task_label": "Si-wf_bulk_modulus group: >>ee1db61c-ba65-45a6-92cf-46ce28f8dec2<< bulk_modulus deformation 1",
+    "task_id": 18000057,
+    "task_label": "Si-wf_bulk_modulus group: >>3b79027a-7021-44b3-9ba7-79afc4e559e5<< bulk_modulus deformation 1",
     "transformations": {},
     "transmuter": {
         "transformation_params": [

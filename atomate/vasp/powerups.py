@@ -27,8 +27,7 @@ def add_priority(original_wf, root_priority, child_priority=None):
     Args:
         original_wf (Workflow): original WF
         root_priority (int): priority of first (root) job(s)
-        child_priority(int): priority of all child jobs. Defaults to
-                            root_priority
+        child_priority(int): priority of all child jobs. Defaults to root_priority
 
     Returns:
        (Workflow) priority-decorated workflow
@@ -45,13 +44,11 @@ def add_priority(original_wf, root_priority, child_priority=None):
 
 def remove_custodian(original_wf, fw_name_constraint=None):
     """
-    Replaces all tasks with "RunVasp*" (e.g. RunVaspCustodian) to be
-    RunVaspDirect.
+    Replaces all tasks with "RunVasp*" (e.g. RunVaspCustodian) to be RunVaspDirect.
 
     Args:
         original_wf (Workflow): original workflow
-        fw_name_constraint (str): Only apply changes to FWs where fw_name
-            contains this substring.
+        fw_name_constraint (str): Only apply changes to FWs where fw_name contains this substring.
     """
     vasp_fws_and_tasks = get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp")
@@ -63,9 +60,9 @@ def remove_custodian(original_wf, fw_name_constraint=None):
 
 def use_custodian(original_wf, fw_name_constraint=None, custodian_params=None):
     """
-    Replaces all tasks with "RunVasp*" (e.g. RunVaspDirect) to be
-    RunVaspCustodian. Thus, this powerup adds error correction into VASP
-    runs if not originally present and/or modifies the correction behavior.
+    Replaces all tasks with "RunVasp*" (e.g. RunVaspDirect) to be RunVaspCustodian. Thus, this
+    powerup adds error correction into VASP runs if not originally present and/or modifies
+    the correction behavior.
 
     Args:
         original_wf (Workflow): original workflow
@@ -89,12 +86,15 @@ def use_custodian(original_wf, fw_name_constraint=None, custodian_params=None):
 
 def use_no_vasp(original_wf, ref_dirs):
     """
-    Instead of running VASP, does nothing and pass task documents from
-        task.json files in ref_dirs to task database.
+    Instead of running VASP, does nothing and pass task documents from task.json files in ref_dirs
+    to task database.
 
     Args:
         original_wf (Workflow)
         ref_dirs(dict): key=firework name, value=path to the reference vasp calculation directory
+
+    Returns:
+        Workflow
     """
     for idx_fw, fw in enumerate(original_wf.fws):
         for job_type in ref_dirs.keys():
@@ -103,22 +103,23 @@ def use_no_vasp(original_wf, ref_dirs):
                     if "RunVasp" in str(t):
                         original_wf.fws[idx_fw].tasks[idx_t] = RunNoVasp(ref_dir=ref_dirs[job_type])
                     if "VaspToDb" in str(t):
-                        original_wf.fws[idx_fw].tasks[idx_t] = \
-                            JsonToDbTask(db_file=t.get("db_file", None),
-                                         calc_dir=ref_dirs[job_type])
+                        original_wf.fws[idx_fw].tasks[idx_t] = JsonToDbTask(db_file=t.get("db_file", None),
+                                                                            calc_dir=ref_dirs[job_type])
     return original_wf
 
 
 def use_fake_vasp(original_wf, ref_dirs, params_to_check=None):
     """
-    Replaces all tasks with "RunVasp" (e.g. RunVaspDirect) to be
-    RunVaspFake. Thus, we do not actually run VASP but copy
-    pre-determined inputs and outputs.
+    Replaces all tasks with "RunVasp" (e.g. RunVaspDirect) to be RunVaspFake. Thus, we do not
+    actually run VASP but copy pre-determined inputs and outputs.
 
     Args:
         original_wf (Workflow)
         ref_dirs (dict): key=firework name, value=path to the reference vasp calculation directory
         params_to_check (list): optional list of incar parameters to check.
+
+    Returns:
+        Workflow
     """
     if not params_to_check:
         params_to_check = ["ISPIN", "ENCUT", "ISMEAR", "SIGMA", "IBRION", "LORBIT",

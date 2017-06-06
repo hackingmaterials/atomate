@@ -90,7 +90,6 @@ class TestBulkModulusWorkflow(AtomateTest):
             self.relaxed_struct_si = d["calcs_reversed"][0]["output"]["structure"]
 
         elif mode in ["bulk_modulus deformation 0"]:
-
             for i, l in enumerate(["a", "b", "c"]):
                 self.assertAlmostEqual(d["input"]["structure"]["lattice"][l],
                 self.relaxed_struct_si["lattice"][l]* (deformations[0][i][i]), 2)
@@ -121,7 +120,8 @@ class TestBulkModulusWorkflow(AtomateTest):
                     new_fw = self.lp.fireworks.find_one(
                         {"name": {"$regex": "bulk_modulus deformation {}".format(i - 2)}})
 
-                    # the fw tag (inluded in "name") is important in pulling tasks in the last FW in wf_bulk_modulus
+                    # the fw tag (inluded in "name") is important in pulling tasks in the last FW
+                    # in wf_bulk_modulus
                     d["task_label"] = new_fw["name"]
                     d["task_id"] += i + 1000000  # to avoid duplicate task_id
 
@@ -129,8 +129,8 @@ class TestBulkModulusWorkflow(AtomateTest):
                     json.dump(d, fp, sort_keys=True, indent=4, ensure_ascii=False, cls=MontyEncoder)
 
             elif not os.path.exists(os.path.join(reference_dir, str(i), "inputs")):
-                raise IOError("neither {} nor {} are present in {}".format("inputs",
-                    self.task_file, os.path.join(reference_dir, str(i))))
+                raise IOError("neither {} nor {} are present in {}".format(
+                    "inputs", self.task_file, os.path.join(reference_dir, str(i))))
 
     def write_task_docs(self):
         # this step needs to be run once: once task.json is present, remove the inputs/outputs folders
