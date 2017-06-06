@@ -5,9 +5,9 @@ python:
   - "3.6"  
 install:
   - sudo apt-get update
-  # copied from conda documentation
-  # We do this conditionally because it saves us some downloading if the
-  # version is the same.
+  # The following copied from conda documentation.
+  # This is done conditionally because it saves some downloading
+  # if the version is the same.
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
       wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
     else
@@ -20,12 +20,12 @@ install:
   - conda update -q conda
   # Useful for debugging any issues with conda
   - conda info -a
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
-  - source activate test-environment
+  - conda create -q -n atomate-test-env python=$TRAVIS_PYTHON_VERSION
+  - source activate atomate-test-env
   - pip install -r requirements.txt
   - pip install -r requirements-optional.txt    
 before_script:
-  - source activate test-environment
+  - source activate atomate-test-env
   - python setup.py develop
 script:
   - nosetests -v atomate --nocapture --with-coverage
@@ -35,5 +35,7 @@ notifications:
   email:
     recipients:
       - kmathew@lbl.gov
+      - ajain@lbl.gov
+      - ongsp@ucsd.edu      
     on_success: change
     on_failure: always
