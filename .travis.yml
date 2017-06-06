@@ -1,0 +1,23 @@
+language: python
+services: mongodb
+python:
+  - "2.7"
+  - "3.5"
+install:
+  - pip install -r requirements.txt
+  - pip install coverage
+  - pip install python-coveralls
+before_script:
+  - python setup.py develop
+script:
+  - nosetests --nocapture --with-coverage
+after_success:
+  - coveralls
+notifications:
+  email:
+    recipients:
+      - ajain@lbl.gov
+      - kmathew@lbl.gov
+      - ongsp@ucsd.edu
+    on_success: change
+    on_failure: always
