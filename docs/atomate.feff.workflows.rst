@@ -11,18 +11,10 @@ Subpackages
 Submodules
 ----------
 
-atomate.feff.workflows.eels module
+atomate.feff.workflows.core module
 ----------------------------------
 
-.. automodule:: atomate.feff.workflows.eels
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-atomate.feff.workflows.xas module
----------------------------------
-
-.. automodule:: atomate.feff.workflows.xas
+.. automodule:: atomate.feff.workflows.core
     :members:
     :undoc-members:
     :show-inheritance:

@@ -9,7 +9,6 @@ Subpackages
     atomate.common
     atomate.feff
     atomate.lammps
-    atomate.tools
     atomate.utils
     atomate.vasp
 
