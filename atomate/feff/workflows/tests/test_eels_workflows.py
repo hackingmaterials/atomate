@@ -25,11 +25,12 @@ DEBUG_MODE = False  # If true, retains the database and output dirs at the end o
 
 
 class TestEELSWorkflow(AtomateTest):
-    @classmethod
-    def setUpClass(cls):
-        cls.structure = Structure.from_file(os.path.join(module_dir, "..", "..", "test_files",
-                                                         "Co2O2.cif"))
-        cls.user_tag_settings = {"RPATH": -1,
+
+    def setUp(self):
+        super(TestEELSWorkflow, self).setUp()
+        self.structure = Structure.from_file(os.path.join(module_dir, "..", "..", "test_files",
+                                                          "Co2O2.cif"))
+        self.user_tag_settings = {"RPATH": -1,
                                  "SCF": "7 0 30 0.2 3",
                                  "FMS": "9 0",
                                  "LDOS": "-30.0 30.0 0.1",
@@ -37,14 +38,14 @@ class TestEELSWorkflow(AtomateTest):
                                  "EDGE": "L1",
                                  "COREHOLE": "RPA"}
         # 3rd site
-        cls.absorbing_atom = 2
-        cls.edge = "L1"
-        cls.nkpts = 1000
-        cls.scratch_dir = os.path.join(module_dir, "scratch")
+        self.absorbing_atom = 2
+        self.edge = "L1"
+        self.nkpts = 1000
 
     def test_eels_wflow_abatom_by_idx(self):
         # for the sake of test just copy xmu to eels
-        feff_bin = "cp  ../../../../test_files/xmu.dat eels.dat"
+        xmu_file_path = os.path.abspath(os.path.join(module_dir, "../../test_files/xmu.dat"))
+        feff_bin = "cp {} eels.dat".format(xmu_file_path)
         wf = get_wf_eels(self.absorbing_atom, self.structure, feff_input_set="ELNES",
                         edge="L1", user_tag_settings=self.user_tag_settings, use_primitive=False,
                          feff_cmd=feff_bin, db_file=">>db_file<<")
@@ -54,7 +55,7 @@ class TestEELSWorkflow(AtomateTest):
         # run
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
-        d = TestEELSWorkflow.get_task_collection().find_one({"spectrum_type": "ELNES"})
+        d = self.get_task_collection().find_one({"spectrum_type": "ELNES"})
         self._check_run(d)
 
     def test_eels_wflow_abatom_by_symbol(self):

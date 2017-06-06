@@ -22,8 +22,8 @@ VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this c
 class AtomateTest(unittest.TestCase):
 
     def setUp(self):
-        self.module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-        self.scratch_dir = os.path.join(self.module_dir, "scratch")
+        #self.module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+        self.scratch_dir = os.path.join(MODULE_DIR, "scratch")
         if os.path.exists(self.scratch_dir):
             shutil.rmtree(self.scratch_dir)
         os.makedirs(self.scratch_dir)
@@ -59,4 +59,4 @@ class AtomateTest(unittest.TestCase):
             for coll in db.collection_names():
                 if coll != "system.indexes":
                     db[coll].drop()
-            os.chdir(self.module_dir)
+            os.chdir(MODULE_DIR)

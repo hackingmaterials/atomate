@@ -23,32 +23,34 @@ __email__ = 'kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
+
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 FEFF_CMD = None  # "feff"
 
 
 class TestXASWorkflow(AtomateTest):
-    @classmethod
-    def setUpClass(cls):
+
+    def setUp(self):
+        super(TestXASWorkflow, self).setUp()
         # CoO
-        cls.structure = Structure.from_file(os.path.join(module_dir, "..", "..", "test_files", "Co2O2.cif"))
+        self.structure = Structure.from_file(os.path.join(module_dir, "..", "..", "test_files", "Co2O2.cif"))
         #PymatgenTest.get_mp_structure("mp-715460")
-        cls.user_tag_settings = {"RPATH": -1,
+        self.user_tag_settings = {"RPATH": -1,
                                  "SCF": "7 0 30 0.2 3",
                                  "FMS": "9 0",
                                  "LDOS": "-30.0 30.0 0.1",
                                  "RECIPROCAL": "",
                                  "EDGE": "K"}
         # 3rd site
-        cls.absorbing_atom = 2
-        cls.edge = "K"
-        cls.nkpts = 1000
-        cls.scratch_dir = os.path.join(module_dir, "scratch")
+        self.absorbing_atom = 2
+        self.edge = "K"
+        self.nkpts = 1000
 
     def test_xas_wflow_abatom_by_idx(self):
         if not FEFF_CMD:
             # fake run
-            feff_bin = "cp  ../../../../test_files/xmu.dat ."
+            xmu_file_path = os.path.abspath(os.path.join(module_dir, "../../test_files/xmu.dat"))
+            feff_bin = "cp {} .".format(xmu_file_path)
         else:
             feff_bin = FEFF_CMD
 
