@@ -22,14 +22,14 @@ install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
   - pip install -r requirements.txt
-  - pip install -q coverage
-  - pip install -q python-coveralls
+  - pip install coverage
+  - pip install python-coveralls
 before_script:
   - python setup.py develop
 script:
-  - nosetests -v --nocapture --with-coverage
-after_success:
-  - coveralls
+  - nosetests -v atomate #--nocapture --with-coverage
+#after_success:
+#  - coveralls
 notifications:
   email:
     recipients:
