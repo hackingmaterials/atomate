@@ -3,7 +3,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
-import shutil
 import unittest
 
 from pymatgen import Structure
@@ -20,13 +19,8 @@ db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 class TestEXAFSPaths(unittest.TestCase):
 
     def setUp(self):
-        self.struct = Structure.from_file(os.path.join(module_dir, "..", "..", "test_files",
-                                                       "feo_781777.json"))
-        self.scratch_dir = os.path.join(module_dir, "scratch")
-        if os.path.exists(self.scratch_dir):
-            shutil.rmtree(self.scratch_dir)
-        os.makedirs(self.scratch_dir)
-        os.chdir(self.scratch_dir)
+        super(TestEXAFSPaths, self).setUp()
+        self.struct = Structure.from_file(os.path.join(module_dir, "..", "..", "test_files", "feo_781777.json"))
         wflow = get_wf_exafs_paths(0, self.struct, [[249, 0], [85, 0]], feff_cmd="feff",  db_file=None)
         self.wf_dict = wflow.as_dict()
         self.fw1_dict = self.wf_dict["fws"][0]
@@ -64,9 +58,6 @@ class TestEXAFSPaths(unittest.TestCase):
     def test_paths(self):
         paths = [[249, 0], [85, 0]]
         self.assertEqual(paths, self.fw2_dict["spec"]['_tasks'][2]['paths'])
-
-    def tearDown(self):
-        shutil.rmtree(self.scratch_dir)
 
 
 if __name__ == "__main__":

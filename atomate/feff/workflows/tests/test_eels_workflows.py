@@ -2,21 +2,17 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-import json
 import os
-import shutil
 import unittest
-
-from pymongo import MongoClient
 
 from pymatgen import Structure
 from pymatgen.io.feff.inputs import Tags
 
 from fireworks.core.fworker import FWorker
-from fireworks.core.launchpad import LaunchPad
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.feff.workflows.core import get_wf_eels
+from atomate.utils.testing import AtomateTest
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
@@ -26,12 +22,13 @@ db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 
 
-class TestEELSWorkflow(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.structure = Structure.from_file(os.path.join(module_dir, "..", "..", "test_files",
-                                                         "Co2O2.cif"))
-        cls.user_tag_settings = {"RPATH": -1,
+class TestEELSWorkflow(AtomateTest):
+
+    def setUp(self):
+        super(TestEELSWorkflow, self).setUp()
+        self.structure = Structure.from_file(os.path.join(module_dir, "..", "..", "test_files",
+                                                          "Co2O2.cif"))
+        self.user_tag_settings = {"RPATH": -1,
                                  "SCF": "7 0 30 0.2 3",
                                  "FMS": "9 0",
                                  "LDOS": "-30.0 30.0 0.1",
@@ -39,29 +36,14 @@ class TestEELSWorkflow(unittest.TestCase):
                                  "EDGE": "L1",
                                  "COREHOLE": "RPA"}
         # 3rd site
-        cls.absorbing_atom = 2
-        cls.edge = "L1"
-        cls.nkpts = 1000
-        cls.scratch_dir = os.path.join(module_dir, "scratch")
-
-    def setUp(self):
-        # TODO: @computron: A lot of this boilerplate code is re-used a lot. Generalize w/params
-        # for scratch dir loc, launchpad=T/F, etc. Same for teardown including db. -computron
-        if os.path.exists(self.scratch_dir):
-            shutil.rmtree(self.scratch_dir)
-        os.makedirs(self.scratch_dir)
-        os.chdir(self.scratch_dir)
-        try:
-            self.lp = LaunchPad.from_file(os.path.join(db_dir, "my_launchpad.yaml"))
-            self.lp.reset("", require_password=False)
-        except:
-            raise unittest.SkipTest(
-                'Cannot connect to MongoDB! Is the database server running? '
-                'Are the credentials correct?')
+        self.absorbing_atom = 2
+        self.edge = "L1"
+        self.nkpts = 1000
 
     def test_eels_wflow_abatom_by_idx(self):
         # for the sake of test just copy xmu to eels
-        feff_bin = "cp  ../../../../test_files/xmu.dat eels.dat"
+        xmu_file_path = os.path.abspath(os.path.join(module_dir, "../../test_files/xmu.dat"))
+        feff_bin = "cp {} eels.dat".format(xmu_file_path)
         wf = get_wf_eels(self.absorbing_atom, self.structure, feff_input_set="ELNES",
                         edge="L1", user_tag_settings=self.user_tag_settings, use_primitive=False,
                          feff_cmd=feff_bin, db_file=">>db_file<<")
@@ -71,7 +53,7 @@ class TestEELSWorkflow(unittest.TestCase):
         # run
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
-        d = TestEELSWorkflow._get_task_collection().find_one({"spectrum_type": "ELNES"})
+        d = self.get_task_collection().find_one({"spectrum_type": "ELNES"})
         self._check_run(d)
 
     def test_eels_wflow_abatom_by_symbol(self):
@@ -99,36 +81,6 @@ class TestEELSWorkflow(unittest.TestCase):
         self.assertEqual(d["absorbing_atom"], self.absorbing_atom)
         tags = Tags.from_file(os.path.join(run_dir, "feff.inp"))
         self.assertEqual(d["input_parameters"], tags.as_dict())
-
-    @staticmethod
-    def _get_task_database():
-        # TODO: @matk86 - there must be some pymatgen-db method that does this -computron
-        # pymatgen-db fails on accessing db without authentication
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            conn = MongoClient(creds["host"], creds["port"])
-            db = conn[creds["database"]]
-            if "admin_user" in creds:
-                db.authenticate(creds["admin_user"], creds["admin_password"])
-            return db
-
-    @staticmethod
-    def _get_task_collection():
-        # TODO: @matk86 - this also seems pretty unnecessary, check pymatgen-db -computron
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            db = TestEELSWorkflow._get_task_database()
-            return db[creds["collection"]]
-
-    def tearDown(self):
-        if not DEBUG_MODE:
-            shutil.rmtree(self.scratch_dir)
-            self.lp.reset("", require_password=False)
-            db = TestEELSWorkflow._get_task_database()
-            for coll in db.collection_names():
-                if coll != "system.indexes":
-                    db[coll].drop()
-            os.chdir(module_dir)
 
 
 if __name__ == "__main__":

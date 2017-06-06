@@ -76,10 +76,7 @@ class TestWriteVasp(PymatgenTest):
                 self.ref_incar_preserve)
 
     def test_ioset_explicit(self):
-        ft = WriteVaspFromIOSet(dict(structure=self.struct_si,
-                                     vasp_input_set=
-                                     MPRelaxSet(self.struct_si,
-                                                force_gamma=True)))
+        ft = WriteVaspFromIOSet(dict(structure=self.struct_si, vasp_input_set=MPRelaxSet(self.struct_si, force_gamma=True)))
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
         self._verify_files()

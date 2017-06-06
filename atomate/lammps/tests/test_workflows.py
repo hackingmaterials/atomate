@@ -15,35 +15,25 @@ from fireworks import LaunchPad, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.lammps.workflows.core import wf_from_input_template
+from atomate.utils.testing import AtomateTest
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "common", "test_files")
+
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 LAMMPS_CMD = None  # "lmp_serial"
 
 
-class TestLammpsWorkflows(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.scratch_dir = os.path.join(module_dir, "scratch")
-        cls.data_file = os.path.join(module_dir, "test_files/lammps_data.dat")
-        cls.input_template = os.path.join(module_dir, "test_files/NPT.json")
+class TestLammpsWorkflows(AtomateTest):
 
     def setUp(self):
-        if os.path.exists(self.scratch_dir):
-            shutil.rmtree(self.scratch_dir)
-        os.makedirs(self.scratch_dir)
-        os.chdir(self.scratch_dir)
-        try:
-            self.lp = LaunchPad.from_file(os.path.join(db_dir, "my_launchpad.yaml"))
-            self.lp.reset("", require_password=False)
-        except:
-            raise unittest.SkipTest(
-                'Cannot connect to MongoDB! Is the database server running? '
-                'Are the credentials correct?')
+        super(TestLammpsWorkflows, self).setUp()
+        self.data_file = os.path.join(module_dir, "test_files/lammps_data.dat")
+        self.input_template = os.path.join(module_dir, "test_files/NPT.json")
+        self.reference_files_path = os.path.abspath(os.path.join(module_dir, "reference_files"))
 
     def test_lammps_wflow(self):
         lammps_data = LammpsForceFieldData.from_file(self.data_file)
@@ -75,50 +65,28 @@ class TestLammpsWorkflows(unittest.TestCase):
 
         if not LAMMPS_CMD:
             # fake run
-            lammps_bin = "cp  ../../reference_files/peo.* ."
+            lammps_bin = "cp  {}/peo.* .".format(self.reference_files_path)
             dry_run = True
         else:
             lammps_bin = LAMMPS_CMD
             dry_run = False
         wf = wf_from_input_template(self.input_template, lammps_data, "npt.data", user_settings,
-                                    is_forcefield=True, input_filename="lammps.inp", lammps_bin=lammps_bin,
-                                    db_file=">>db_file<<", dry_run=dry_run)
+                                    is_forcefield=True, input_filename="lammps.inp",
+                                    lammps_bin=lammps_bin, db_file=">>db_file<<", dry_run=dry_run)
         self.lp.add_wf(wf)
         # run
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
-        d = self._get_task_collection().find_one()
+        d = self.get_task_collection().find_one()
         self._check_run(d)
 
     def _check_run(self, d):
         if not LAMMPS_CMD:
-            self.assertTrue(filecmp.cmp(os.path.join(d["dir_name"], "peo.log"), "../reference_files/peo.log"))
-            self.assertTrue(filecmp.cmp(os.path.join(d["dir_name"], "peo.dump"), "../reference_files/peo.dump"))
-            self.assertTrue(filecmp.cmp(os.path.join(d["dir_name"], "peo.dcd"), "../reference_files/peo.dcd"))
-
-    def _get_task_database(self):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            conn = MongoClient(creds["host"], creds["port"])
-            db = conn[creds["database"]]
-            if "admin_user" in creds:
-                db.authenticate(creds["admin_user"], creds["admin_password"])
-            return db
-
-    def _get_task_collection(self):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            db = self._get_task_database()
-            return db[creds["collection"]]
-
-    def tearDown(self):
-        if not DEBUG_MODE:
-            shutil.rmtree(self.scratch_dir)
-            self.lp.reset("", require_password=False)
-            db = self._get_task_database()
-            for coll in db.collection_names():
-                if coll != "system.indexes":
-                    db[coll].drop()
-            os.chdir(module_dir)
+            self.assertTrue(filecmp.cmp(os.path.join(d["dir_name"], "peo.log"),
+                                        "{}/peo.log".format(self.reference_files_path)))
+            self.assertTrue(filecmp.cmp(os.path.join(d["dir_name"], "peo.dump"),
+                                        "{}/peo.dump".format(self.reference_files_path)))
+            self.assertTrue(filecmp.cmp(os.path.join(d["dir_name"], "peo.dcd"),
+                                        "{}/peo.dcd".format(self.reference_files_path)))
 
 
 if __name__ == "__main__":
