@@ -21,14 +21,6 @@ atomate.feff.database module
     :undoc-members:
     :show-inheritance:
 
-atomate.feff.utils module
--------------------------
-
-.. automodule:: atomate.feff.utils
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 
 Module contents
 ---------------

@@ -121,7 +121,7 @@ To use a different functional, for instance in a optimization calculation, you c
     my_custom_input_set = MPRelaxSet(struct, potcar_functional='LDA')
 
     # create the workflow
-    my_wf = get_optimize_wf(struct)
+    my_wf = get_optimize_wf(struct, vasp_input_set=my_custom_input_set)
 
 For the supported options, see the VASP documentation and `pymatgen's vasp sets`_ documentation. PBE (default), LDA, PW91, LDA_US were supported at the time of writing.
 
@@ -146,7 +146,7 @@ KPOINTS settings can also be similarly customized using the above example. You c
     my_custom_input_set = MPRelaxSet(struct, force_gamma=True, {"grid_density": 10} )
 
     # create the workflow
-    my_wf = get_optimize_wf(struct)
+    my_wf = get_optimize_wf(struct, vasp_input_set=my_custom_input_set)
 
 If you need more control, create the ``Kpoints`` object directly with pymatgen. It is flexible and only a brief example will be shown. See the `full Kpoints documentation`_ for more
 
@@ -181,7 +181,7 @@ If you need more control, create the ``Kpoints`` object directly with pymatgen. 
     print(my_custom_input_set.kpoints)
 
     # create the workflow
-    my_wf = get_optimize_wf(struct)
+    my_wf = get_optimize_wf(struct, vasp_input_set=my_custom_input_set)
 
 
 .. _full Kpoints documentation: http://pymatgen.org/pymatgen.io.vasp.inputs.html#pymatgen.io.vasp.inputs.Kpoints
@@ -201,21 +201,21 @@ Which POTCAR file you want to use is controlled by the input set as well. The ea
 
 .. code-block:: python
 
-from pymatgen.io.vasp.sets import MPRelaxSet
-from pymatgen import Structure
+    from pymatgen.io.vasp.sets import MPRelaxSet
+    from pymatgen import Structure
 
-# load your structure, e.g. from a POSCAR
-struct = Structure.from_file('POSCAR')
+    # load your structure, e.g. from a POSCAR
+    struct = Structure.from_file('POSCAR')
 
-# create a custom input set
-my_custom_input_set = MPRelaxSet(struct)
-print('Config dict example: {}\n'.format(my_custom_input_set.config_dict))
-print('Before change: {}'.format(my_custom_input_set.config_dict['POTCAR']['Mg']))
-my_custom_input_set.config_dict['POTCAR']['Mg'] = 'Mg'
-print('After change: {}'.format(my_custom_input_set.config_dict['POTCAR']['Mg']))
+    # create a custom input set
+    my_custom_input_set = MPRelaxSet(struct)
+    print('Config dict example: {}\n'.format(my_custom_input_set.config_dict))
+    print('Before change: {}'.format(my_custom_input_set.config_dict['POTCAR']['Mg']))
+    my_custom_input_set.config_dict['POTCAR']['Mg'] = 'Mg'
+    print('After change: {}'.format(my_custom_input_set.config_dict['POTCAR']['Mg']))
 
-# create the workflow
-my_wf = get_optimize_wf(struct)
+    # create the workflow
+    my_wf = get_optimize_wf(struct, vasp_input_set=my_custom_input_set)
 
 .. warning:: Make sure not to try a nested dictionary update (e.g. ``my_custom_input_set.config_dict.update({'POTCAR': {'Mg': 'Mg'}})`` )! It will wipe out all of the other ``POTCAR`` entries in the dict.
 

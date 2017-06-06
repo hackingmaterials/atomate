@@ -1,13 +1,13 @@
-atomate.lammps.workflows package
-================================
+atomate.vasp.analysis package
+=============================
 
 Submodules
 ----------
 
-atomate.lammps.workflows.core module
+atomate.vasp.analysis.phonopy module
 ------------------------------------
 
-.. automodule:: atomate.lammps.workflows.core
+.. automodule:: atomate.vasp.analysis.phonopy
     :members:
     :undoc-members:
     :show-inheritance:
@@ -16,7 +16,7 @@ atomate.lammps.workflows.core module
 Module contents
 ---------------
 
-.. automodule:: atomate.lammps.workflows
+.. automodule:: atomate.vasp.analysis
     :members:
     :undoc-members:
     :show-inheritance:
