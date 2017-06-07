@@ -32,8 +32,8 @@ class TestRamanWorkflow(AtomateTest):
     def setUp(self):
         super(TestRamanWorkflow, self).setUp()
         self.struct_si = PymatgenTest.get_structure("Si")
-        self.raman_config = {"modes": [0, 1], "step_size": 0.005,
-                            "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"}
+        self.raman_config = {"MODES": [0, 1], "STEP_SIZE": 0.005,
+                            "VASP_CMD": ">>vasp_cmd<<", "DB_FILE": ">>db_file<<"}
         self.wf = wf_raman_spectra(self.struct_si, self.raman_config)
 
     def _simulate_vasprun(self, wf):
@@ -90,7 +90,7 @@ class TestRamanWorkflow(AtomateTest):
     def test_wf(self):
         self.wf = self._simulate_vasprun(self.wf)
 
-        self.assertEqual(len(self.wf.fws), len(self.raman_config["modes"]) * 2 + 3)
+        self.assertEqual(len(self.wf.fws), len(self.raman_config["MODES"]) * 2 + 3)
 
         self.lp.add_wf(self.wf)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))

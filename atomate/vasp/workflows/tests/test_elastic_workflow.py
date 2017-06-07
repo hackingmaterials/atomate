@@ -33,14 +33,15 @@ class TestElasticWorkflow(AtomateTest):
 
     def setUp(self):
         super(TestElasticWorkflow, self).setUp()
-        self.struct_si = SpacegroupAnalyzer(
-                PymatgenTest.get_structure("Si")).get_conventional_standard_structure()
-        self.elastic_config = {"norm_deformations":[0.01],
-                              "shear_deformations":[0.03],
-                              "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"}
+        self.struct_si = SpacegroupAnalyzer(PymatgenTest.get_structure("Si")).get_conventional_standard_structure()
+        self.elastic_config = {"NORM_DEFORMATIONS":[0.01],
+                               "SHEAR_DEFORMATIONS":[0.03],
+                               "VASP_CMD": ">>vasp_cmd<<",
+                               "DB_FILE": ">>db_file<<"}
         self.wf = wf_elastic_constant(self.struct_si, self.elastic_config)
         self.wf_noopt = get_wf_elastic_constant(self.struct_si, norm_deformations=[0.01],
-                shear_deformations=[0.03], optimize_structure=False)
+                                                shear_deformations=[0.03],
+                                                optimize_structure=False)
         mip = {"incar_update": {"ENCUT": 700}}
         self.wf_noopt = add_modify_incar(self.wf_noopt, modify_incar_params=mip)
 
