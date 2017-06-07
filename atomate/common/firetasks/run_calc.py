@@ -1,9 +1,15 @@
+# coding: utf-8
+
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import os
 import subprocess
 
-from atomate.utils.utils import env_chk, get_logger
 from custodian import Custodian
+
 from fireworks import explicit_serialize, FiretaskBase
+
+from atomate.utils.utils import env_chk, get_logger
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -56,5 +62,3 @@ class RunCustodianFromObjects(FiretaskBase):
         c = Custodian(self["handlers"], self["jobs"], self.get("validators"),
                       **self.get("custodian_params", {}))
         c.run()
-
-

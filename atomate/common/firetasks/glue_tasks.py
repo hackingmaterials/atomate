@@ -7,10 +7,10 @@ import os
 import six
 import monty
 
+from fireworks import explicit_serialize, FiretaskBase, FWAction
+
 from atomate.utils.utils import env_chk, load_class, recursive_get_result
 from atomate.utils.fileio import FileClient
-
-from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'

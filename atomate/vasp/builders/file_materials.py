@@ -4,11 +4,13 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from tqdm import tqdm
 
-from atomate.utils.utils import get_logger
 from matgendb.util import get_database
+
 from pymatgen import Composition
 
 from atomate.vasp.builders.base import AbstractBuilder
+from atomate.utils.utils import get_logger
+
 logger = get_logger(__name__)
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'

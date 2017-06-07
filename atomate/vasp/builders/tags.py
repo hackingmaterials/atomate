@@ -4,15 +4,16 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from tqdm import tqdm
 
-from atomate.utils.utils import get_logger
-from atomate.vasp.builders.tasks_materials import TasksMaterialsBuilder
 from matgendb.util import get_database
 
+from atomate.utils.utils import get_logger
+from atomate.vasp.builders.tasks_materials import TasksMaterialsBuilder
 from atomate.vasp.builders.base import AbstractBuilder
 
 logger = get_logger(__name__)
 
 __author__ = 'Alireza Faghanina <albalu@lbl.gov>, Anubhav Jain <ajain@lbl.gov>'
+
 
 class TagsBuilder(AbstractBuilder):
     def __init__(self, materials_write, tasks_read):
@@ -49,7 +50,7 @@ class TagsBuilder(AbstractBuilder):
                 for task in tasks:
                     all_tags.extend(task["tags"])
                 self._materials.update_one({"material_id": m["material_id"]},
-                                               {"$set": {"tags": list(set(all_tags))}})
+                                           {"$set": {"tags": list(set(all_tags))}})
             except:
                 import traceback
                 logger.exception("<---")
