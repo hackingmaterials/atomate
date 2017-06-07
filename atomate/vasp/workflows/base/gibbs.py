@@ -13,7 +13,7 @@ from fireworks import Firework, Workflow
 from pymatgen.analysis.elasticity.strain import Deformation
 
 from atomate.utils.utils import get_logger
-from atomate.vasp.firetasks.parse_outputs import GibbsFreeEnergyTask
+from atomate.vasp.firetasks.parse_outputs import GibbsAnalysisToDb
 from atomate.vasp.workflows.base.deformations import get_wf_deformations
 
 __author__ = 'Kiran Mathew'
@@ -73,9 +73,9 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
 
     # TODO: @kmathew - better to stick to lowercase FW names ('gibbs free energy'). That is the
     # convention for most FWs and switching back and forth is confusing to remember. -computron
-    fw_analysis = Firework(GibbsFreeEnergyTask(tag=tag, db_file=db_file, t_step=t_step, t_min=t_min,
-                                               t_max=t_max, mesh=mesh, eos=eos, qha_type=qha_type,
-                                               pressure=pressure, poisson=poisson, metadata=metadata),
+    fw_analysis = Firework(GibbsAnalysisToDb(tag=tag, db_file=db_file, t_step=t_step, t_min=t_min,
+                                             t_max=t_max, mesh=mesh, eos=eos, qha_type=qha_type,
+                                             pressure=pressure, poisson=poisson, metadata=metadata),
                            name="Gibbs Free Energy")
 
     wf_gibbs.append_wf(Workflow.from_Firework(fw_analysis), wf_gibbs.leaf_fw_ids)
