@@ -219,12 +219,13 @@ class ElasticTensorToDbTask(FiretaskBase):
 
     def run_task(self, fw_spec):
         
+        ref_struct = self['structure']
         d = {"analysis": {},
              "deformation_tasks": fw_spec["deformation_tasks"],
              "initial_structure": self['structure'].as_dict()}
 
         # Get optimized structure
-        calc_locs_opt = [cl for cl in fw_spec['calc_locs'] if 'optimize' in cl['name']]
+        calc_locs_opt = [cl for cl in fw_spec['calc_locs'] if 'optimiz' in cl['name']]
         if calc_locs_opt:
             optimize_loc = calc_locs_opt[-1]['path']
             logger.info("Parsing initial optimization directory: {}".format(optimize_loc))
@@ -232,13 +233,15 @@ class ElasticTensorToDbTask(FiretaskBase):
             optimize_doc = drone.assimilate(optimize_loc)
             opt_struct = Structure.from_dict(optimize_doc["calcs_reversed"][0]["output"]["structure"])
             d.update({"optimized_structure": opt_struct.as_dict()})
+            ref_struct = opt_struct
             d['eq_stress'] = -0.1*Stress(optimize_doc["calcs_reversed"][0]\
                                          ["output"]["ionic_steps"][-1]["stress"])
+        else:
+            d['eq_stress'] = None
 
         # TODO: @montoyjh: does the below have anything to do with elastic tensor? If not, try
         # the more general fw_spec_field approach in the VaspToDbTask rather than hard-coding the
         # tags insertion here. -computron
-
         if fw_spec.get("tags", None):
             d["tags"] = fw_spec["tags"]
         defo_dicts = fw_spec["deformation_tasks"].values()
@@ -261,7 +264,7 @@ class ElasticTensorToDbTask(FiretaskBase):
             result = ElasticTensor.from_pseudoinverse(strains, stresses)
             pinv_fit = {"elastic_tensor":result.voigt.tolist(),
                         "prop_dict":result.property_dict,
-                        "structure_prop_dict":result.get_structure_property_dict(opt_struct)}
+                        "structure_prop_dict":result.get_structure_property_dict(ref_struct)}
             d["pseudoinverse_fit"] = pinv_fit
 
         else:
@@ -272,7 +275,7 @@ class ElasticTensorToDbTask(FiretaskBase):
                                                             eq_stress=d["eq_stress"])
             poly_fit = {"elastic_tensor":result.voigt.tolist(),
                         "prop_dict":result.property_dict,
-                        "structure_prop_dict":result.get_structure_property_dict(opt_struct)}
+                        "structure_prop_dict":result.get_structure_property_dict(ref_struct)}
             d["linear_fit"] = poly_fit
         order = self.get("order", 2)
         if order > 2:
@@ -283,7 +286,7 @@ class ElasticTensorToDbTask(FiretaskBase):
             exp = ElasticTensorExpansion.from_diff_fit(strains, hoec['pk_stresses'],
                                                        eq_stress = d["eq_stress"], 
                                                        order=order)
-            expfit = exp.fit_to_structure(opt_struct)
+            expfit = exp.fit_to_structure(ref_struct)
             hoec["C_raw"] = [c for c in exp.voigt]
             hoec["C_fit"] = [c for c in expfit.voigt]
             idx_format = {}
@@ -293,7 +296,7 @@ class ElasticTensorToDbTask(FiretaskBase):
                 idx_format[o] = ['c_' + ''.join([str(i) for i in np.array(idx) + 1])\
                                  + ' = ' + str(expfit[o-2].voigt[idx]) for idx in indices]
             d["diff_fit"] = hoec
-        d["formula_pretty"] = opt_struct.composition.reduced_formula
+        d["formula_pretty"] = ref_struct.composition.reduced_formula
         d = recursive_dict(d)
         # Save analysis results in json or db
         db_file = env_chk(self.get('db_file'), fw_spec)

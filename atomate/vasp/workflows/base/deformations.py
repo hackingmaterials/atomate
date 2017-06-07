@@ -65,30 +65,30 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
     # here. Maybe I'm wrong though? -computron
 
     # input set for relaxation
-    vis_relax = vasp_input_set or MPRelaxSet(structure, force_gamma=True, 
-                                             user_kpoints_settings=user_kpoints_settings)
+    vis_relax = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
     if optimize_structure:
         # Structure optimization firework
         fws = [OptimizeFW(structure=structure, vasp_input_set=vis_relax, vasp_cmd=vasp_cmd,
                           db_file=db_file, name="{} structure optimization".format(tag))]
         parents = fws[0]
 
-    uis_static = {"ISIF": 2, "ISTART":1}
+    uis_static = vis_relax.user_incar_settings or {}
+    uis_static = uis_static.copy()
+    uis_static.update({"ISIF": 2, "ISTART":1})
     if relax_deformed:
-        uis_static["IBRION"] = 2
-        uis_static["NSW"] = 99
+        uis_static.update({"IBRION": 2, "NSW": 99})
 
+    # ensure TransmuterFWs have same kpoints as undeformed structure if specified
+    if pass_kpoints:
+        uks_static = {"kpoints_object":vis_relax.kpoints} 
+    else:
+        uks_static = vis_relax.user_kpoints_settings
+    
     # TODO: @kmathew - see my previous comment about chaining workflows -computron
     # static input set
     vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
-                             user_kpoints_settings=user_kpoints_settings,
+                             user_kpoints_settings=uks_static,
                              user_incar_settings=uis_static)
-
-    # ensure TransmuterFWs have same kpoints as undeformed structure if specified
-    override = {}
-    if pass_kpoints:
-        kpoints = vis_relax.kpoints
-        override.update({"kpoints": vis_relax.kpoints.as_dict()})
 
     # Do symmetry reduction and get corresponding symmops if specified
     if symmetry_reduction:
@@ -102,14 +102,9 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
         fw = TransmuterFW(name="{} {} {}".format(tag, name, n), structure=structure,
                           transformations=['DeformStructureTransformation'],
                           transformation_params=[{"deformation": deformation.tolist()}],
-<<<<<<< HEAD
-                          vasp_input_set=vis_static, copy_vasp_outputs=True, parents=parents,
-                          vasp_cmd=vasp_cmd, db_file=db_file, override_default_vasp_params=override)
-
-=======
-                          vasp_input_set=vis_static, copy_vasp_outputs=optimize_structure, 
+                          vasp_input_set=vis_static, copy_vasp_outputs=optimize_structure,
                           parents=parents, vasp_cmd=vasp_cmd, db_file=db_file)
->>>>>>> master
+
         if pass_stress_strain:
             fw.tasks.append(PassStressStrainData(number=n, symmops=symmops[n],
                                                  deformation=deformation.tolist()))

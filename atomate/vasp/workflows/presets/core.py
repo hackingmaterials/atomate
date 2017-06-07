@@ -5,6 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import numpy as np
 
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from atomate.vasp.config import SMALLGAP_KPOINT_MULTIPLY, STABILITY_CHECK, VASP_CMD, DB_FILE, \
     ADD_WF_METADATA
@@ -206,7 +207,7 @@ def wf_piezoelectric_constant(structure, c=None):
 
 
 def wf_elastic_constant(structure, c=None):
-
+    structure = SpacegroupAnalyzer(structure).get_conventional_standard_structure()
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
@@ -218,23 +219,24 @@ def wf_elastic_constant(structure, c=None):
 
     order = c.get("order", 2)
     if order > 2:
-        mip = {"incar_update":{"ENCUT": 800, "EDIFF": 1e-10, "LAECHG":False, "EDIFFG":-0.001,
-                               "ADDGRID":True, "LREAL":False, "ISYM":0}}
-        user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density":40000})
-        stencils = np.linspace(-0.05, 0.05, 7)
+        vis = MPRelaxSet(structure, user_incar_settings={
+            "ENCUT": 700, "EDIFF": 1e-10, "LAECHG":False, "EDIFFG":-0.001, "ADDGRID":True, 
+            "LREAL":False, "ISYM":0}, user_kpoints_settings = {"length": 100})
+        stencils = np.linspace(-0.075, 0.075, 7)
     else:
-        mip = {"incar_update":{"ENCUT": 700, "EDIFF": 1e-6, "LAECHG":False}}
-        user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
+        vis = MPRelaxSet(structure, user_incar_settings={
+            "incar_update":{"ENCUT": 700, "EDIFF": 1e-6, "LAECHG":False}},
+            user_kpoints_settings = {"grid_density": 7000})
         stencils = None # use default
 
     optimize_structure = c.get("optimize_structure", True)
     sym_red = c.get("symmetry_reduction", False)
-    conv = c.get("conventional", True)
+    # conv = c.get("conventional", True)
     wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd, symmetry_reduction=sym_red,
-                                 db_file=db_file, user_kpoints_settings=user_kpoints_settings,
-                                 optimize_structure=optimize_structure, stencils=stencils,
-                                 conventional=conv, order=order)
-    wf = add_modify_incar(wf, modify_incar_params=mip)
+                                 db_file=db_file, vasp_input_set=vis, stencils=stencils,
+                                 optimize_structure=optimize_structure, conventional=True, 
+                                 order=order)
+    #wf = add_modify_incar(wf, modify_incar_params=mip)
     wf = add_common_powerups(wf, c)
     if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
         wf = add_wf_metadata(wf, structure)

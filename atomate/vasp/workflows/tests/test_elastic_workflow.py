@@ -20,6 +20,7 @@ from atomate.vasp.workflows.base.elastic import get_wf_elastic_constant
 from pymatgen import SETTINGS
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from pymatgen.io.vasp.sets import MPRelaxSet
 
 __author__ = 'Kiran Mathew, Joseph Montoya'
 __email__ = 'montoyjh@lbl.gov'
@@ -42,12 +43,12 @@ class TestElasticWorkflow(unittest.TestCase):
 
         cls.struct_si = PymatgenTest.get_structure("Si")
         cls.scratch_dir = os.path.join(module_dir, "scratch")
-        cls.wf = get_wf_elastic_constant(cls.struct_si, vasp_cmd=">>vasp_cmd<<", 
-                                         db_file=">>db_file<<", stencils=[[0.01]]*3 + [[0.03]]*3)
-        cls.wf_noopt = get_wf_elastic_constant(cls.struct_si, vasp_cmd=">>vasp_cmd<<", 
-                db_file=">>db_file<<", stencils=[[0.01]]*3 + [[0.03]]*3, optimize_structure=False)
-        mip = {"incar_update": {"ENCUT": 700}}
-        cls.wf_noopt = add_modify_incar(cls.wf_noopt, modify_incar_params=mip)
+        vis = MPRelaxSet(cls.struct_si, user_incar_settings={"ENCUT": 700},
+                         user_kpoints_settings={"grid_density": 7000})
+        cls.wf = get_wf_elastic_constant(cls.struct_si, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<", 
+                                         stencils=[[0.01]]*3 + [[0.03]]*3, vasp_input_set=vis)
+        cls.wf_noopt = get_wf_elastic_constant(cls.struct_si, vasp_cmd=">>vasp_cmd<<", vasp_input_set=vis,
+               db_file=">>db_file<<", stencils=[[0.01]]*3 + [[0.03]]*3, optimize_structure=False)
 
     def setUp(self):
         if os.path.exists(self.scratch_dir):
