@@ -201,12 +201,12 @@ def wf_elastic_constant(structure, c=None):
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
+    # @montoyj - any comments?
+    norm_deformations = c.get("NORM_DEFORMATIONS", [-0.01, -0.005, 0.005, 0.01])
+    shear_deformations = c.get("SHEAR_DEFORMATIONS", [-0.06, -0.03, 0.03, 0.06])
+    optimize_structure = c.get("OPTIMIZE_STRUCTURE", True)
 
     user_kpoints_settings = {"grid_density": 7000}
-    norm_deformations = [-0.01, -0.005, 0.005, 0.01]
-    shear_deformations = [-0.06, -0.03, 0.03, 0.06]
-    # not sure about this -matk, will leave it to @montoyj
-    optimize_structure = c.get("optimize_structure", True)
 
     wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd,
                                  norm_deformations=norm_deformations,
@@ -216,7 +216,7 @@ def wf_elastic_constant(structure, c=None):
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 700,
                                                                     "EDIFF": 1e-6,
-                                                                    "LAECHG":False}})
+                                                                    "LAECHG": False}})
 
     wf = add_common_powerups(wf, c)
 
