@@ -50,8 +50,7 @@ def get_wf_bulk_modulus(structure, deformations, vasp_input_set=None, vasp_cmd="
                                           vasp_cmd=vasp_cmd, db_file=db_file, relax_deformed=True,
                                           user_kpoints_settings=user_kpoints_settings, tag=tag)
 
-    fw_analysis = Firework(FitEOSToDb(tag=tag, db_file=db_file, eos=eos),
-                           name="fit equation of state")
+    fw_analysis = Firework(FitEOSToDb(tag=tag, db_file=db_file, eos=eos), name="fit equation of state")
 
     wf_bulk_modulus.append_wf(Workflow.from_Firework(fw_analysis), wf_bulk_modulus.leaf_fw_ids)
 

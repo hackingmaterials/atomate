@@ -60,8 +60,8 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
             from phonopy import Phonopy
         except ImportError:
             raise RuntimeError("'phonopy' package is NOT installed but is required for the final "
-                             "analysis step; you can alternatively switch to the qha_type to "
-                             "'debye_model' which does not require 'phonopy'.")
+                               "analysis step; you can alternatively switch to the qha_type to "
+                               "'debye_model' which does not require 'phonopy'.")
 
     tag = "gibbs group: >>{}<<".format(str(uuid4()))
 

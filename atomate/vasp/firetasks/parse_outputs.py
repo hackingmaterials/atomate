@@ -8,15 +8,12 @@ from collections import defaultdict
 from datetime import datetime
 
 import numpy as np
+
 from monty.json import MontyEncoder
 
-from atomate.common.firetasks.glue_tasks import get_calc_loc
-from atomate.utils.utils import env_chk, get_meta_from_structure
-from atomate.utils.utils import get_logger
-from atomate.vasp.database import VaspCalcDb
-from atomate.vasp.drones import VaspDrone
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
+
 from pymatgen import Structure
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
 from pymatgen.analysis.elasticity.strain import IndependentStrain, Strain
@@ -24,6 +21,12 @@ from pymatgen.analysis.elasticity.stress import Stress
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+
+from atomate.common.firetasks.glue_tasks import get_calc_loc
+from atomate.utils.utils import env_chk, get_meta_from_structure
+from atomate.utils.utils import get_logger
+from atomate.vasp.database import VaspCalcDb
+from atomate.vasp.drones import VaspDrone
 
 __author__ = 'Anubhav Jain, Kiran Mathew, Shyam Dwaraknath'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov'

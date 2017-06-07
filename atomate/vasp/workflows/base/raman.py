@@ -8,11 +8,11 @@ This module defines the workflow to compute the Raman susceptibility tensor.
 
 from fireworks import Firework, Workflow
 
+from pymatgen.io.vasp.sets import MPRelaxSet
+
 from atomate.utils.utils import get_logger
 from atomate.vasp.fireworks.core import OptimizeFW, LepsFW
 from atomate.vasp.firetasks.parse_outputs import RamanTensorToDb
-
-from pymatgen.io.vasp.sets import MPRelaxSet
 
 __author__ = 'Kiran Mathew'
 __email__ = 'kmathew@lbl.gov'

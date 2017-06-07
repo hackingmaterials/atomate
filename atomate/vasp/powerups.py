@@ -6,6 +6,8 @@ from fireworks import Workflow, FileWriteTask
 from fireworks.core.firework import Tracker
 from fireworks.utilities.fw_utilities import get_slug
 
+from pymatgen import Structure
+
 from atomate.utils.utils import get_meta_from_structure, get_fws_and_tasks
 from atomate.vasp.firetasks.glue_tasks import CheckStability, CheckBandgap
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspFake, RunVaspDirect, RunNoVasp
@@ -13,8 +15,6 @@ from atomate.vasp.firetasks.neb_tasks import RunNEBVaspFake
 from atomate.vasp.firetasks.write_inputs import ModifyIncar
 from atomate.vasp.firetasks.parse_outputs import JsonToDb
 from atomate.vasp.config import ADD_NAMEFILE, SCRATCH_DIR, ADD_MODIFY_INCAR, GAMMA_VASP_CMD
-
-from pymatgen import Structure
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
@@ -30,7 +30,7 @@ def add_priority(original_wf, root_priority, child_priority=None):
         child_priority(int): priority of all child jobs. Defaults to root_priority
 
     Returns:
-       (Workflow) priority-decorated workflow
+       Workflow: priority-decorated workflow
     """
     child_priority = child_priority or root_priority
     root_fw_ids = original_wf.root_fw_ids
@@ -49,6 +49,9 @@ def remove_custodian(original_wf, fw_name_constraint=None):
     Args:
         original_wf (Workflow): original workflow
         fw_name_constraint (str): Only apply changes to FWs where fw_name contains this substring.
+
+    Returns:
+       Workflow
     """
     vasp_fws_and_tasks = get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp")
@@ -72,6 +75,9 @@ def use_custodian(original_wf, fw_name_constraint=None, custodian_params=None):
             handler_group for different runs.
         custodian_params (dict): A dict of parameters for RunVaspCustodian. e.g., use it to set
             a "scratch_dir" or "handler_group".
+
+    Returns:
+       Workflow
     """
     custodian_params = custodian_params if custodian_params else {}
     vasp_fws_and_tasks = get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
@@ -149,6 +155,9 @@ def add_namefile(original_wf, use_slug=True):
     Args:
         original_wf (Workflow)
         use_slug (bool): whether to replace whitespace-type chars with a slug
+
+    Returns:
+       Workflow
     """
     for idx, fw in enumerate(original_wf.fws):
         fname = "FW--{}".format(fw.name)
@@ -167,6 +176,9 @@ def add_trackers(original_wf, tracked_files=None, nlines=25):
         original_wf (Workflow)
         tracked_files (list) : list of files to be tracked
         nlines (int): number of lines at the end of files to be tracked
+
+    Returns:
+       Workflow
     """
     if tracked_files is None:
         tracked_files = ["OUTCAR", "OSZICAR"]
@@ -189,6 +201,8 @@ def add_modify_incar(original_wf, modify_incar_params=None, fw_name_constraint=N
         modify_incar_params (dict) - dict of parameters for ModifyIncar.
         fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this substring.
 
+    Returns:
+       Workflow
     """
     modify_incar_params = modify_incar_params or {"incar_update": ">>incar_update<<"}
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
@@ -210,15 +224,14 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
         fw_name_constraint (string): name of the fireworks to be modified (all if None is passed)
 
     Returns:
-        modified Workflow with SOC
+        Workflow: modified with SOC
     """
 
     if structure is None:
         try:
             sid = get_fws_and_tasks(original_wf, fw_name_constraint="structure optimization",
                                     task_name_constraint="RunVasp")[0][0]
-            structure = Structure.from_dict(original_wf.fws[sid].tasks[1][
-                                                "vasp_input_set"]["structure"])
+            structure = Structure.from_dict(original_wf.fws[sid].tasks[1]["vasp_input_set"]["structure"])
         except:
             raise ValueError("modify_to_soc powerup requires the structure in vasp_input_set")
 
@@ -231,11 +244,9 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
 
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp"):
-        if "structure" not in original_wf.fws[idx_fw].name and "static" not in \
-                original_wf.fws[idx_fw].name:
+        if "structure" not in original_wf.fws[idx_fw].name and "static" not in original_wf.fws[idx_fw].name:
             original_wf.fws[idx_fw].tasks[idx_t]["vasp_cmd"] = ">>vasp_ncl<<"
-            original_wf.fws[idx_fw].tasks.insert(
-                idx_t, ModifyIncar(**modify_incar_params))
+            original_wf.fws[idx_fw].tasks.insert(idx_t, ModifyIncar(**modify_incar_params))
 
         original_wf.fws[idx_fw].name += " soc"
 
@@ -259,12 +270,11 @@ def set_fworker(original_wf, fworker_name, fw_name_constraint=None, task_name_co
         task_name_constraint (str): name of the Firetasks to be tagged (e.g. None or 'RunVasp')
 
     Returns:
-        modified workflow with specified Fireworkers tagged
+        Workflow: modified workflow with specified Fireworkers tagged
     """
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint=task_name_constraint):
         original_wf.fws[idx_fw].spec["_fworker"] = fworker_name
-
     return original_wf
 
 
@@ -277,7 +287,7 @@ def add_wf_metadata(original_wf, structure):
         structure: (Structure) the structure being run by this workflow
 
     Returns:
-
+        Workflow
     """
     original_wf.metadata["structure"] = structure.as_dict()
     original_wf.metadata.update(get_meta_from_structure(structure))
@@ -295,6 +305,9 @@ def add_stability_check(original_wf, check_stability_params=None, fw_name_constr
         original_wf (Workflow)
         check_stability_params (dict): a **kwargs** style dict of params
         fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this substring.
+
+    Returns:
+       Workflow
     """
     check_stability_params = check_stability_params or {}
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
@@ -311,6 +324,9 @@ def add_bandgap_check(original_wf, check_bandgap_params=None, fw_name_constraint
         original_wf (Workflow)
         check_bandgap_params (dict): a **kwargs** style dict of params, e.g. min_gap or max_gap
         fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this substring.
+
+    Returns:
+       Workflow
     """
     check_bandgap_params = check_bandgap_params or {}
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
@@ -327,6 +343,9 @@ def add_modify_incar_envchk(original_wf, fw_name_constraint=None):
     Args:
         original_wf (Workflow)
         fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this substring.
+
+    Returns:
+       Workflow
     """
     return add_modify_incar(original_wf, {"incar_update": ">>incar_update<<"},
                             fw_name_constraint=fw_name_constraint)
@@ -345,11 +364,13 @@ def add_small_gap_multiply(original_wf, gap_cutoff, density_multiplier, fw_name_
         gap_cutoff (float): Only multiply k-points for materials with gap < gap_cutoff (eV)
         density_multiplier (float): Multiply k-point density by this amount
         fw_name_constraint (str): Only apply changes to FWs where fw_name contains this substring.
+
+    Returns:
+       Workflow
     """
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="WriteVasp"):
-        original_wf.fws[idx_fw].tasks[idx_t]["small_gap_multiply"] = \
-            [gap_cutoff, density_multiplier]
+        original_wf.fws[idx_fw].tasks[idx_t]["small_gap_multiply"] = [gap_cutoff, density_multiplier]
     return original_wf
 
 
@@ -357,8 +378,12 @@ def use_scratch_dir(original_wf, scratch_dir):
     """
     For all RunVaspCustodian tasks, add the desired scratch dir.
 
-    original_wf (Workflow)
-    scratch_dir (path): Path to the scratch dir to use. Supports env_chk
+    Args:
+        original_wf (Workflow)
+        scratch_dir (path): Path to the scratch dir to use. Supports env_chk
+
+    Returns:
+       Workflow
     """
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="RunVaspCustodian"):
         original_wf.fws[idx_fw].tasks[idx_t]["scratch_dir"] = scratch_dir
@@ -367,12 +392,15 @@ def use_scratch_dir(original_wf, scratch_dir):
 
 def add_additional_fields_to_taskdocs(original_wf, update_dict=None):
     """
-    For all VaspToDbTasks in a given workflow, add information 
-    to "additional_fields" to be placed in the task doc.
+    For all VaspToDbTasks in a given workflow, add information  to "additional_fields" to be
+    placed in the task doc.
     
     Args:
         original_wf (Workflow)
         update_dict (Dict): dictionary to add additional_fields
+
+    Returns:
+       Workflow
     """
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="VaspToDb"):
         original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"].update(update_dict)
@@ -381,13 +409,15 @@ def add_additional_fields_to_taskdocs(original_wf, update_dict=None):
 
 def add_tags(original_wf, tags_list):
     """
-    Adds tags to all Fireworks in the Workflow, WF metadata,
-     as well as additional_fields for the VaspDrone to track them later
-     (e.g. all fireworks and vasp tasks related to a research project)
+    Adds tags to all Fireworks in the Workflow, WF metadata, as well as additional_fields for
+    the VaspDrone to track them later (e.g. all fireworks and vasp tasks related to a research project)
 
     Args:
         original_wf (Workflow)
         tags_list: list of tags parameters (list of strings)
+
+    Returns:
+       Workflow
     """
 
     # WF metadata
@@ -449,6 +479,9 @@ def use_gamma_vasp(original_wf, gamma_vasp_cmd):
     Args:
         original_wf (Workflow)
         gamma_vasp_cmd (str): path to gamma_vasp_cmd. Supports env_chk
+
+    Returns:
+       Workflow
     """
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="RunVaspCustodian"):
         original_wf.fws[idx_fw].tasks[idx_t]["gamma_vasp_cmd"] = gamma_vasp_cmd
