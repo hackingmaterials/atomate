@@ -76,10 +76,9 @@ def get_calc_loc(target_name, calc_locs):
 @explicit_serialize
 class PassResult(FiretaskBase):
     """
-    Passes properties and corresponding user-specified data resulting
-    from a run from parent to child fireworks.  Uses a string syntax
-    similar to Mongo-style queries to designate values of output
-    file dictionaries to retrieve.  For example, one could specify
+    Passes properties and corresponding user-specified data resulting from a run from parent
+    to child fireworks.  Uses a string syntax similar to Mongo-style queries to designate
+    values of output file dictionaries to retrieve.  For example, one could specify
     a task to pass the stress from the current calculation using:
     
     PassResult(pass_dict={'stress': ">>ionic_steps.-1.stress"})

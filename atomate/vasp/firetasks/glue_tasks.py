@@ -202,12 +202,12 @@ class CheckBandgap(FiretaskBase):
         return FWAction(stored_data=stored_data)
 
 
-def pass_vasp_result(pass_dict, calc_dir='.', filename="vasprun.xml.gz", 
-        parse_eigen=False, parse_dos=False, **kwargs):
+def pass_vasp_result(pass_dict, calc_dir='.', filename="vasprun.xml.gz", parse_eigen=False,
+                     parse_dos=False, **kwargs):
     """
-    function that gets a PassResult firework corresponding to output
-    from a Vasprun.  Covers most use cases in which user needs to
-    pass results from a vasp run to child FWs (e. g. analysis FWs)
+    Function that gets a PassResult firework corresponding to output from a Vasprun.  Covers
+    most use cases in which user needs to pass results from a vasp run to child FWs
+    (e. g. analysis FWs)
         
     pass_vasp_result(pass_dict={'stress': ">>ionic_steps.-1.stress"})
 
@@ -238,4 +238,4 @@ def pass_vasp_result(pass_dict, calc_dir='.', filename="vasprun.xml.gz",
 
     parse_kwargs = {"filename": filename, "parse_eigen": parse_eigen, "parse_dos":parse_dos}
     return PassResult(pass_dict=pass_dict, calc_dir=calc_dir, parse_kwargs=parse_kwargs,
-            parse_class="pymatgen.io.vasp.outputs.Vasprun", **kwargs)
+                      parse_class="pymatgen.io.vasp.outputs.Vasprun", **kwargs)
