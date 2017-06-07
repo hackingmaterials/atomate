@@ -1,3 +1,5 @@
+numpy==1.12.1
+scipy==0.19.0
 FireWorks==1.4.3
 pymatgen==4.7.7
 pymatgen-db==0.6.5

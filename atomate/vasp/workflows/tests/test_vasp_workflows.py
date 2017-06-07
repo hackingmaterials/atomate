@@ -18,7 +18,6 @@ from atomate.vasp.powerups import use_custodian, add_namefile, use_fake_vasp, ad
 from atomate.vasp.workflows.base.core import get_wf
 from atomate.utils.testing import AtomateTest
 
-from pymatgen import SETTINGS
 from pymatgen.io.vasp.sets import MPRelaxSet
 from pymatgen.util.testing import PymatgenTest
 
@@ -39,17 +38,10 @@ VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this c
 
 
 class TestVaspWorkflows(AtomateTest):
-    @classmethod
-    def setUpClass(cls):
-        # TODO: update this for the latest pymatgen...
-        if not SETTINGS.get("PMG_VASP_PSP_DIR"):
-            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "test_files")
-            print('This system is not set up to run VASP jobs. '
-                  'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
-        cls.struct_si = PymatgenTest.get_structure("Si")
-
-        cls.scratch_dir = os.path.join(module_dir, "scratch")
+    def setUp(self):
+        super(TestVaspWorkflows, self).setUp()
+        self.struct_si = PymatgenTest.get_structure("Si")
 
     def _check_run(self, d, mode):
         if mode not in ["structure optimization", "static", "nscf uniform", "nscf line"]:

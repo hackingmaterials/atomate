@@ -15,7 +15,6 @@ from atomate.vasp.workflows.presets.core import wf_elastic_constant
 from atomate.vasp.workflows.base.elastic import get_wf_elastic_constant
 from atomate.utils.testing import AtomateTest
 
-from pymatgen import SETTINGS
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
@@ -32,24 +31,18 @@ VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this c
 
 class TestElasticWorkflow(AtomateTest):
 
-    @classmethod
-    def setUpClass(cls):
-        if not SETTINGS.get("PMG_VASP_PSP_DIR"):
-            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "..", "..", "test_files")
-            print('This system is not set up to run VASP jobs. '
-                  'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
-
-        cls.struct_si = SpacegroupAnalyzer(
+    def setUp(self):
+        super(TestElasticWorkflow, self).setUp()
+        self.struct_si = SpacegroupAnalyzer(
                 PymatgenTest.get_structure("Si")).get_conventional_standard_structure()
-        cls.scratch_dir = os.path.join(module_dir, "scratch")
-        cls.elastic_config = {"norm_deformations":[0.01],
+        self.elastic_config = {"norm_deformations":[0.01],
                               "shear_deformations":[0.03],
                               "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"}
-        cls.wf = wf_elastic_constant(cls.struct_si, cls.elastic_config)
-        cls.wf_noopt = get_wf_elastic_constant(cls.struct_si, norm_deformations=[0.01], 
+        self.wf = wf_elastic_constant(self.struct_si, self.elastic_config)
+        self.wf_noopt = get_wf_elastic_constant(self.struct_si, norm_deformations=[0.01],
                 shear_deformations=[0.03], optimize_structure=False)
         mip = {"incar_update": {"ENCUT": 700}}
-        cls.wf_noopt = add_modify_incar(cls.wf_noopt, modify_incar_params=mip)
+        self.wf_noopt = add_modify_incar(self.wf_noopt, modify_incar_params=mip)
 
     def _simulate_vasprun(self, wf):
         reference_dir = os.path.abspath(os.path.join(ref_dir, "elastic_wf"))

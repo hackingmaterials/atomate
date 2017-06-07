@@ -14,7 +14,6 @@ from atomate.vasp.powerups import use_fake_vasp
 from atomate.vasp.workflows.presets.core import wf_nudged_elastic_band
 from atomate.utils.testing import AtomateTest
 
-from pymatgen import SETTINGS
 from pymatgen.core import Structure
 from pymatgen.util.testing import PymatgenTest
 
@@ -43,15 +42,7 @@ class TestNudgedElasticBandWorkflow(AtomateTest):
         1) Basic check for pymatgen configurations.
         2) Setup all test workflow.
         """
-        if not SETTINGS.get("PMG_VASP_PSP_DIR"):
-            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests",
-                                                        "..", "..", "test_files")
-            print('This system is not set up to run VASP jobs. '
-                  'Please set PMG_VASP_PSP_DIR variable in '
-                  'your ~/.pmgrc.yaml file.')
-
         super(TestNudgedElasticBandWorkflow, self).setUp()
-
         # Structures used for test:
         parent = PymatgenTest.get_structure("Li2O")
         parent.remove_oxidation_states()

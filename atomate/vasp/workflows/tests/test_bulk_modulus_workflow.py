@@ -4,23 +4,21 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import json
 import os
-import shutil
 import unittest
 
 import numpy as np
 from monty.json import MontyEncoder
 
-from fireworks import LaunchPad, FWorker
+from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_fake_vasp, use_no_vasp
 from atomate.vasp.workflows.presets.core import wf_bulk_modulus
 from atomate.utils.testing import AtomateTest
 
-from pymatgen import SETTINGS, Structure
+from pymatgen import Structure
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
@@ -30,13 +28,10 @@ DEBUG_MODE = False  # If True, retains the database and output dirs at the end o
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 _write_task_docs = False # Test developer option: defaults to False, need to be True only once
 
-struct_si = PymatgenTest.get_structure("Si")
-ndeformations = 6
-deformations = [(np.identity(3)*(1+x)).tolist() for x in np.linspace(-0.05, 0.05, ndeformations)]
-
 
 class TestBulkModulusWorkflow(AtomateTest):
-    """This test will either actually run VASP (if VASP_CMD is set) or artificially pass on outputs
+    """
+    This test will either actually run VASP (if VASP_CMD is set) or artificially pass on outputs
     (if not VASP_CMD) and test the whole bulk modulus workflow and its implementation and outputs
     for an example calculation for silicon.
 
@@ -47,30 +42,28 @@ class TestBulkModulusWorkflow(AtomateTest):
     2. once task.json is present, VaspRun can be skipped where task.json is
         available and their "inputs" and "outputs" folders can be removed
     """
-    @classmethod
-    def setUpClass(cls):
-        if not SETTINGS.get("PMG_VASP_PSP_DIR"):
-            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "reference_files")
-            print('This system is not set up to run VASP jobs. '
-                  'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
 
-        cls.scratch_dir = os.path.join(module_dir, "scratch")
-        cls.wf_config = {"deformations": deformations,
+    def setUp(self):
+        super(TestBulkModulusWorkflow, self).setUp()
+        self.struct_si = PymatgenTest.get_structure("Si")
+        self.ndeformations = 6
+        self.deformations = [(np.identity(3) * (1 + x)).tolist() for x in
+                             np.linspace(-0.05, 0.05, self.ndeformations)]
+        self.wf_config = {"deformations": self.deformations,
                             "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"}
-
-        cls.wf = wf_bulk_modulus(struct_si, cls.wf_config)
+        self.wf = wf_bulk_modulus(self.struct_si, self.wf_config)
 
     def _simulate_vasprun(self, wf):
         no_vasp_ref_dirs = {}
         fake_vasp_ref_dirs = {}
-        for i in range(2, ndeformations+2):
+        for i in range(2, self.ndeformations+2):
             if os.path.exists(os.path.join(reference_dir, str(i), "inputs")):
                 if not VASP_CMD:
                     fake_vasp_ref_dirs["bulk_modulus deformation {}".format(i-2)] = os.path.join(reference_dir, str(i))
             else:
-                no_vasp_ref_dirs["bulk_modulus deformation {}".format(i-2)] = os.path.join(reference_dir, str(i))
+                no_vasp_ref_dirs["bulk_modulus deformation {}".format(i-2)] = os.path.join(self.scratch_dir, str(i))
 
-        fake_vasp_ref_dirs["structure optimization"] =  os.path.join(reference_dir, "1")
+        fake_vasp_ref_dirs["structure optimization"] = os.path.join(reference_dir, "1")
         new_wf = use_no_vasp(wf, no_vasp_ref_dirs)
         return use_fake_vasp(new_wf, fake_vasp_ref_dirs, params_to_check=["ENCUT"])
 
@@ -91,51 +84,52 @@ class TestBulkModulusWorkflow(AtomateTest):
             self.relaxed_struct_si = d["calcs_reversed"][0]["output"]["structure"]
 
         elif mode in ["bulk_modulus deformation 0"]:
-
             for i, l in enumerate(["a", "b", "c"]):
                 self.assertAlmostEqual(d["input"]["structure"]["lattice"][l],
-                self.relaxed_struct_si["lattice"][l]* (deformations[0][i][i]), 2)
+                self.relaxed_struct_si["lattice"][l]* (self.deformations[0][i][i]), 2)
             stress = d["calcs_reversed"][0]["output"]["ionic_steps"][-1]["stress"]
             np.testing.assert_allclose(stress, np.diag([189.19, 189.19, 189.19]), atol=1e-2)
 
         elif mode in ["bulk_modulus deformation 4"]:
             for i, l in enumerate(["a", "b", "c"]):
                 self.assertAlmostEqual(d["input"]["structure"]["lattice"][l],
-                        self.relaxed_struct_si["lattice"][l] * (deformations[4][i][i]), 2)
+                        self.relaxed_struct_si["lattice"][l] * (self.deformations[4][i][i]), 2)
             stress = d["calcs_reversed"][0]["output"]["ionic_steps"][-1]["stress"]
             np.testing.assert_allclose(stress, np.diag([-65.56, -65.56, -65.56]), atol=1e-2)
 
         elif mode in ["fit equation of state"]:
             self.assertAlmostEqual(d["bulk_modulus"], 88.90, places=2)
             self.assertEqual(len(d["all_task_ids"]), 7)
-            self.assertEqual(len(d["energies"]), ndeformations)
-            self.assertEqual(len(d["volumes"]), ndeformations)
+            self.assertEqual(len(d["energies"]), self.ndeformations)
+            self.assertEqual(len(d["volumes"]), self.ndeformations)
             s = SpacegroupAnalyzer(Structure.from_dict(d["structure"])).get_conventional_standard_structure()
             self.assertAlmostEqual(s.lattice.c, 5.468, places=3)
 
     def setup_task_docs(self):
         self.task_file = "task.json"
-        for i in range(2, ndeformations+2):
+        for i in range(2, self.ndeformations+2):
             if os.path.exists(os.path.join(reference_dir, str(i), self.task_file)):
                 with open(os.path.join(reference_dir, str(i), self.task_file)) as fp:
                     d = json.load(fp)
                     new_fw = self.lp.fireworks.find_one(
                         {"name": {"$regex": "bulk_modulus deformation {}".format(i - 2)}})
 
-                    # the fw tag (inluded in "name") is important in pulling tasks in the last FW in wf_bulk_modulus
+                    # the fw tag (inluded in "name") is important in pulling tasks in the last FW
+                    # in wf_bulk_modulus
                     d["task_label"] = new_fw["name"]
                     d["task_id"] += i + 1000000  # to avoid duplicate task_id
 
-                with open(os.path.join(reference_dir, str(i), "task.json"), 'w') as fp:
+                os.makedirs(os.path.join(self.scratch_dir, str(i)))
+                with open(os.path.join(self.scratch_dir, str(i), "task.json"), 'w') as fp:
                     json.dump(d, fp, sort_keys=True, indent=4, ensure_ascii=False, cls=MontyEncoder)
 
             elif not os.path.exists(os.path.join(reference_dir, str(i), "inputs")):
-                raise IOError("neither {} nor {} are present in {}".format("inputs",
-                    self.task_file, os.path.join(reference_dir, str(i))))
+                raise IOError("neither {} nor {} are present in {}".format(
+                    "inputs", self.task_file, os.path.join(reference_dir, str(i))))
 
     def write_task_docs(self):
         # this step needs to be run once: once task.json is present, remove the inputs/outputs folders
-        for i in range(2, ndeformations + 2):
+        for i in range(2, self.ndeformations + 2):
             # not to unnecessarily override available task.json
             if not os.path.exists(os.path.join(reference_dir, str(i), "task.json")):
                 d = self.get_task_collection().find_one(
@@ -152,7 +146,7 @@ class TestBulkModulusWorkflow(AtomateTest):
 
     def test_wf(self):
         self.wf = self._simulate_vasprun(self.wf)
-        self.assertEqual(len(self.wf.fws), ndeformations+2)
+        self.assertEqual(len(self.wf.fws), self.ndeformations+2)
 
         defo_vis = [fw.tasks[2]['vasp_input_set'] for fw in self.wf.fws if "deform" in fw.name]
         assert all([vis.user_incar_settings['NSW'] == 99 for vis in defo_vis])
