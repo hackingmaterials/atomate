@@ -31,11 +31,8 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov'
 logger = get_logger(__name__)
 
 
-# TODO: @computron: re-name most of these, retaining backwards compatibility (easy). Don't need Task
-# at the end of everything. # -computron
-
 @explicit_serialize
-class VaspToDbTask(FiretaskBase):
+class VaspToDb(FiretaskBase):
     """
     Enter a VASP run into the database. Uses current directory unless you
     specify calc_dir or calc_loc.
@@ -128,7 +125,7 @@ class VaspToDbTask(FiretaskBase):
 
 
 @explicit_serialize
-class JsonToDbTask(FiretaskBase):
+class JsonToDb(FiretaskBase):
     """
     Insert the a JSON file (default: task.json) directly into the tasks database.
     Note that if the JSON file contains a "task_id" key, that task_id must not already be present
@@ -158,10 +155,8 @@ class JsonToDbTask(FiretaskBase):
             mmdb.insert(task_doc)
 
 
-
-# TODO: rename to BoltztrapToDb task (capitalization), keep old name backwards-compatible (easy)
 @explicit_serialize
-class BoltztrapToDBTask(FiretaskBase):
+class BoltztrapToDb(FiretaskBase):
     """
     Enter a BoltzTraP run into the database. Note that this assumes you are in a current dir
     that has the uniform band structure data with a sub-directory called "boltztrap" containing
@@ -236,7 +231,7 @@ class BoltztrapToDBTask(FiretaskBase):
 
 
 @explicit_serialize
-class ElasticTensorToDbTask(FiretaskBase):
+class ElasticTensorToDb(FiretaskBase):
     """
     Analyzes the stress/strain data of an elastic workflow to produce
     an elastic tensor and various other quantities.
@@ -261,11 +256,10 @@ class ElasticTensorToDbTask(FiretaskBase):
             d.update({"optimized_structure": opt_struct.as_dict()})
 
         # TODO: @montoyjh: does the below have anything to do with elastic tensor? If not, try
-        # the more general fw_spec_field approach in the VaspToDbTask rather than hard-coding the
+        # the more general fw_spec_field approach in the VaspToDb rather than hard-coding the
         # tags insertion here. -computron
         if fw_spec.get("tags", None):
             d["tags"] = fw_spec["tags"]
-
 
         results = fw_spec["deformation_tasks"].values()
         defos = [r["deformation_matrix"] for r in results]
@@ -275,7 +269,8 @@ class ElasticTensorToDbTask(FiretaskBase):
 
         logger.info("Analyzing stress/strain data")
         # Determine if we have 6 unique deformations
-        if np.linalg.matrix_rank(strains) == 6:  # TODO: @montoyjh: what if it's a cubic system? don't need 6. -computron
+        # TODO: @montoyjh: what if it's a cubic system? don't need 6. -computron
+        if np.linalg.matrix_rank(strains) == 6:
             # Perform Elastic tensor fitting and analysis
             result = ElasticTensor.from_stress_dict(stress_dict)
             d["elastic_tensor"] = result.voigt.tolist()
@@ -299,9 +294,8 @@ class ElasticTensorToDbTask(FiretaskBase):
         return FWAction()
 
 
-#TODO: @computron: shorten name, retaining backwards compatibility (easy) -computron
 @explicit_serialize
-class RamanSusceptibilityTensorToDbTask(FiretaskBase):
+class RamanTensorToDb(FiretaskBase):
     """
     Raman susceptibility tensor for each mode = Finite difference derivative of the dielectric
         tensor wrt the displacement along that mode.
@@ -370,14 +364,12 @@ class RamanSusceptibilityTensorToDbTask(FiretaskBase):
         return FWAction()
 
 
-# TODO: @computron: more consistent name, retaining backwards compatibility (easy) -computron
 # TODO: @computron: this requires a "tasks" collection to proceed. Merits of changing to FW passing
 # method? -computron
 # TODO: @computron: even if you use the db-centric method, embed information in tags rather than
 # task_label? This workflow likely requires review with its authors. -computron
-
 @explicit_serialize
-class GibbsFreeEnergyTask(FiretaskBase):
+class GibbsAnalysisToDb(FiretaskBase):
     """
     Compute the quasi-harmonic gibbs free energy. There are 2 options available for the
     quasi-harmonic approximation (set via 'qha_type' parameter):
@@ -500,9 +492,10 @@ class GibbsFreeEnergyTask(FiretaskBase):
         if not gibbs_dict["success"]:
             return FWAction(defuse_children=True)
 
+
 # TODO: @computron: review method of data passing with the workflow authors. -computron
 @explicit_serialize
-class FitEquationOfStateTask(FiretaskBase):
+class FitEOSToDb(FiretaskBase):
     """
     Retrieve the energy and volume data and fit it to the given equation of state. The summary dict
     is written to 'bulk_modulus.json' file.
@@ -580,8 +573,9 @@ class FitEquationOfStateTask(FiretaskBase):
 
 
 # TODO: @computron: review method of data passing with the workflow authors. -computron
+# TODO: insert to db. -matk
 @explicit_serialize
-class ThermalExpansionCoeffTask(FiretaskBase):
+class ThermalExpansionCoeffToDb(FiretaskBase):
     """
     Compute the quasi-harmonic thermal expansion coefficient using phonopy.
 
@@ -650,3 +644,36 @@ class ThermalExpansionCoeffTask(FiretaskBase):
         # TODO: @matk86 - there needs to be a way to insert this into a database! And also
         # a builder to put it into materials collection... -computron
         logger.info("Thermal expansion coefficient calculation complete.")
+
+
+# the following definitions for backward compatibility
+class VaspToDbTask(VaspToDb):
+    pass
+
+
+class JsonToDbTask(JsonToDb):
+    pass
+
+
+class BoltztrapToDBTask(BoltztrapToDb):
+    pass
+
+
+class ElasticTensorToDbTask(ElasticTensorToDb):
+    pass
+
+
+class RamanSusceptibilityTensorToDbTask(RamanTensorToDb):
+    pass
+
+
+class GibbsFreeEnergyTask(GibbsAnalysisToDb):
+    pass
+
+
+class FitEquationOfStateTask(FitEOSToDb):
+    pass
+
+
+class ThermalExpansionCoeffTask(ThermalExpansionCoeffToDb):
+    pass

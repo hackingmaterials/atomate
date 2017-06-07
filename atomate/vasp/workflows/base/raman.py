@@ -10,7 +10,7 @@ from fireworks import Firework, Workflow
 
 from atomate.utils.utils import get_logger
 from atomate.vasp.fireworks.core import OptimizeFW, LepsFW
-from atomate.vasp.firetasks.parse_outputs import RamanSusceptibilityTensorToDbTask
+from atomate.vasp.firetasks.parse_outputs import RamanTensorToDb
 
 from pymatgen.io.vasp.sets import MPRelaxSet
 
@@ -68,7 +68,7 @@ def get_wf_raman_spectra(structure, modes=None, step_size=0.005, vasp_cmd="vasp"
     fws.extend(fws_nm_disp)
 
     # Compute the Raman susceptibility tensor
-    fw_analysis = Firework(RamanSusceptibilityTensorToDbTask(db_file=db_file), parents=fws[:],
+    fw_analysis = Firework(RamanTensorToDb(db_file=db_file), parents=fws[:],
                            name="{}-{}".format(structure.composition.reduced_formula, "raman analysis"))
     fws.append(fw_analysis)
 

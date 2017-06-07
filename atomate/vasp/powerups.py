@@ -11,7 +11,7 @@ from atomate.vasp.firetasks.glue_tasks import CheckStability, CheckBandgap
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspFake, RunVaspDirect, RunNoVasp
 from atomate.vasp.firetasks.neb_tasks import RunNEBVaspFake
 from atomate.vasp.firetasks.write_inputs import ModifyIncar
-from atomate.vasp.firetasks.parse_outputs import JsonToDbTask
+from atomate.vasp.firetasks.parse_outputs import JsonToDb
 from atomate.vasp.config import ADD_NAMEFILE, SCRATCH_DIR, ADD_MODIFY_INCAR, GAMMA_VASP_CMD
 
 from pymatgen import Structure
@@ -103,8 +103,8 @@ def use_no_vasp(original_wf, ref_dirs):
                     if "RunVasp" in str(t):
                         original_wf.fws[idx_fw].tasks[idx_t] = RunNoVasp(ref_dir=ref_dirs[job_type])
                     if "VaspToDb" in str(t):
-                        original_wf.fws[idx_fw].tasks[idx_t] = JsonToDbTask(db_file=t.get("db_file", None),
-                                                                            calc_dir=ref_dirs[job_type])
+                        original_wf.fws[idx_fw].tasks[idx_t] = JsonToDb(db_file=t.get("db_file", None),
+                                                                        calc_dir=ref_dirs[job_type])
     return original_wf
 
 
@@ -298,7 +298,7 @@ def add_stability_check(original_wf, check_stability_params=None, fw_name_constr
     """
     check_stability_params = check_stability_params or {}
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
-                                           task_name_constraint="VaspToDbTask"):
+                                           task_name_constraint="VaspToDb"):
         original_wf.fws[idx_fw].tasks.append(CheckStability(**check_stability_params))
     return original_wf
 
@@ -314,7 +314,7 @@ def add_bandgap_check(original_wf, check_bandgap_params=None, fw_name_constraint
     """
     check_bandgap_params = check_bandgap_params or {}
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
-                                           task_name_constraint="VaspToDbTask"):
+                                           task_name_constraint="VaspToDb"):
         original_wf.fws[idx_fw].tasks.append(CheckBandgap(**check_bandgap_params))
     return original_wf
 
@@ -374,7 +374,7 @@ def add_additional_fields_to_taskdocs(original_wf, update_dict=None):
         original_wf (Workflow)
         update_dict (Dict): dictionary to add additional_fields
     """
-    for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="VaspToDbTask"):
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="VaspToDb"):
         original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"].update(update_dict)
     return original_wf
 
@@ -404,7 +404,7 @@ def add_tags(original_wf, tags_list):
             original_wf.fws[idx_fw].spec["tags"] = tags_list
 
     # DB insertion tasks
-    for constraint in ["VaspToDbTask", "BoltztrapToDBTask"]:
+    for constraint in ["VaspToDb", "BoltztrapToDb"]:
         for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint=constraint):
             if "tags" in original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"]:
                 original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"][
