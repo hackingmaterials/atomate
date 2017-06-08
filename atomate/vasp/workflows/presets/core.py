@@ -21,7 +21,6 @@ from atomate.vasp.workflows.base.thermal_expansion import get_wf_thermal_expansi
 from atomate.vasp.workflows.base.neb import get_wf_neb_from_endpoints, get_wf_neb_from_structure, \
     get_wf_neb_from_images
 
-
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
@@ -206,10 +205,10 @@ def wf_elastic_constant(structure, c=None):
     # @montoyj - any comments on the following being configurable params?
     norm_deformations = c.get("NORM_DEFORMATIONS", [-0.01, -0.005, 0.005, 0.01])
     shear_deformations = c.get("SHEAR_DEFORMATIONS", [-0.06, -0.03, 0.03, 0.06])
-    optimize_structure = c.get("OPTIMIZE_STRUCTURE", True)
 
     user_kpoints_settings = {"grid_density": 7000}
 
+    # input set for structure optimization
     vis_relax = MPRelaxSet(structure, force_gamma=True)
     v = vis_relax.as_dict()
     v.update({"user_kpoints_settings": user_kpoints_settings})
@@ -221,12 +220,14 @@ def wf_elastic_constant(structure, c=None):
                              "name": "elastic structure optimization"}],
                     vis=vis_relax)
 
+    # deformations wflow for elasticity calculation
     wf_elastic = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd,
                                  norm_deformations=norm_deformations,
                                  shear_deformations=shear_deformations,
                                  db_file=db_file, user_kpoints_settings=user_kpoints_settings,
                                 copy_vasp_outputs=True)
 
+    # chain it
     wf.append_wf(wf_elastic, wf.leaf_fw_ids)
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 700,
@@ -302,6 +303,7 @@ def wf_gibbs_free_energy(structure, c=None):
 
     tag = "gibbs group: >>{}<<".format(str(uuid4()))
 
+    # input set for structure optimization
     vis_relax = MPRelaxSet(structure, force_gamma=True)
     v = vis_relax.as_dict()
     v.update({"user_kpoints_settings": user_kpoints_settings})
@@ -315,9 +317,10 @@ def wf_gibbs_free_energy(structure, c=None):
 
     # get gibbs workflow and chain it to the optimization workflow
     wf_gibbs = get_wf_gibbs_free_energy(structure, user_kpoints_settings=user_kpoints_settings,
-                                  deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file,
-                                  eos=eos, qha_type=qha_type, pressure=pressure, poisson=poisson,
-                                  t_min=t_min, t_max=t_max, t_step=t_step, metadata=metadata, tag=tag)
+                                        deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file,
+                                        eos=eos, qha_type=qha_type, pressure=pressure, poisson=poisson,
+                                        t_min=t_min, t_max=t_max, t_step=t_step, metadata=metadata,
+                                        tag=tag)
 
     # chaining
     wf.append_wf(wf_gibbs, wf.leaf_fw_ids)
@@ -357,6 +360,7 @@ def wf_bulk_modulus(structure, c=None):
 
     tag = "bulk_modulus group: >>{}<<".format(str(uuid4()))
 
+    # input set for structure optimization
     vis_relax = MPRelaxSet(structure, force_gamma=True)
     v = vis_relax.as_dict()
     v.update({"user_kpoints_settings": user_kpoints_settings})
@@ -367,9 +371,12 @@ def wf_bulk_modulus(structure, c=None):
                 params=[{"vasp_cmd": vasp_cmd, "db_file": db_file,
                          "name": "{} structure optimization".format(tag)}],
                 vis=vis_relax)
+
+    # get the deformations wflow for bulk modulus calculation
     wf_bm = get_wf_bulk_modulus(structure, eos=eos, user_kpoints_settings=user_kpoints_settings,
                              deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file, tag=tag)
 
+    # chain it
     wf.append_wf(wf_bm, wf.leaf_fw_ids)
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 600, "EDIFF": 1e-6}})
@@ -405,6 +412,7 @@ def wf_thermal_expansion(structure, c=None):
 
     tag = "thermal_expansion group: >>{}<<".format(str(uuid4()))
 
+    # input set for structure optimization
     vis_relax = MPRelaxSet(structure, force_gamma=True)
     v = vis_relax.as_dict()
     v.update({"user_kpoints_settings": user_kpoints_settings})
@@ -420,7 +428,8 @@ def wf_thermal_expansion(structure, c=None):
                                   deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file,
                                   eos=eos, pressure=pressure, tag=tag)
 
-    wf.append_wf(wf_thermal)
+    # chain it
+    wf.append_wf(wf_thermal, wf.leaf_fw_ids)
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 600, "EDIFF": 1e-6}})
 
