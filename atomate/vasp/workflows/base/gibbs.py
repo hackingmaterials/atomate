@@ -11,6 +11,7 @@ from uuid import uuid4
 from fireworks import Firework, Workflow
 
 from pymatgen.analysis.elasticity.strain import Deformation
+from pymatgen.io.vasp.sets import MPStaticSet
 
 from atomate.utils.utils import get_logger
 from atomate.vasp.firetasks.parse_outputs import GibbsAnalysisToDb
@@ -53,23 +54,29 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
     Returns:
         Workflow
     """
-    lepsilon = False
-    if qha_type not in ["debye_model"]:
-        lepsilon = True
-        try:
-            from phonopy import Phonopy
-        except ImportError:
-            raise RuntimeError("'phonopy' package is NOT installed but is required for the final "
-                               "analysis step; you can alternatively switch to the qha_type to "
-                               "'debye_model' which does not require 'phonopy'.")
 
     tag = tag or "gibbs group: >>{}<<".format(str(uuid4()))
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
+
+    # static input set for the transmuter fireworks
+    vis_static = vasp_input_set
+    if vis_static is None:
+        lepsilon = False
+        if qha_type not in ["debye_model"]:
+            lepsilon = True
+            try:
+                from phonopy import Phonopy
+            except ImportError:
+                raise RuntimeError("'phonopy' package is NOT installed but is required for the final "
+                                   "analysis step; you can alternatively switch to the qha_type to "
+                                   "'debye_model' which does not require 'phonopy'.")
+        vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
+                                 user_kpoints_settings=user_kpoints_settings)
+
     wf_gibbs = get_wf_deformations(structure, deformations, name="gibbs deformation",
-                                   lepsilon=lepsilon, vasp_cmd=vasp_cmd,
-                                   db_file=db_file, user_kpoints_settings=user_kpoints_settings,
-                                   tag=tag, metadata=metadata)
+                                   vasp_cmd=vasp_cmd, db_file=db_file, tag=tag, metadata=metadata,
+                                   vasp_input_set=vis_static)
 
     fw_analysis = Firework(GibbsAnalysisToDb(tag=tag, db_file=db_file, t_step=t_step, t_min=t_min,
                                              t_max=t_max, mesh=mesh, eos=eos, qha_type=qha_type,

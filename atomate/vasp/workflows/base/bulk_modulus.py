@@ -11,6 +11,7 @@ from uuid import uuid4
 from fireworks import Firework, Workflow
 
 from pymatgen.analysis.elasticity.strain import Deformation
+from pymatgen.io.vasp.sets import MPStaticSet
 
 from atomate.utils.utils import get_logger
 from atomate.vasp.firetasks.parse_outputs import FitEOSToDb
@@ -22,8 +23,8 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_bulk_modulus(structure, deformations, vasp_cmd="vasp", db_file=None,
-                        user_kpoints_settings=None, eos="vinet", tag=None):
+def get_wf_bulk_modulus(structure, deformations, vasp_input_set=None, vasp_cmd="vasp", db_file=None,
+                        user_kpoints_settings=None, eos="vinet", tag=None, user_incar_settings=None):
     """
     Returns the workflow that computes the bulk modulus by fitting to the given equation of state.
 
@@ -45,10 +46,14 @@ def get_wf_bulk_modulus(structure, deformations, vasp_cmd="vasp", db_file=None,
     tag = tag or "bulk_modulus group: >>{}<<".format(str(uuid4()))
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
+
+    vis_static = vasp_input_set or MPStaticSet(structure, force_gamma=True, lepsilon=False,
+                                               user_kpoints_settings=user_kpoints_settings,
+                                               user_incar_settings=user_incar_settings)
+
     wf_bulk_modulus = get_wf_deformations(structure, deformations, name="bulk_modulus deformation",
-                                          lepsilon=False,
-                                          vasp_cmd=vasp_cmd, db_file=db_file, relax_deformed=True,
-                                          user_kpoints_settings=user_kpoints_settings, tag=tag)
+                                          vasp_input_set=vis_static, vasp_cmd=vasp_cmd,
+                                          db_file=db_file, tag=tag)
 
     fw_analysis = Firework(FitEOSToDb(tag=tag, db_file=db_file, eos=eos), name="fit equation of state")
 

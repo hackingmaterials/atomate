@@ -220,12 +220,21 @@ def wf_elastic_constant(structure, c=None):
                              "name": "elastic structure optimization"}],
                     vis=vis_relax)
 
+    # static input set for the transmute firework
+    uis_static = {"ISIF": 2,
+                  "ISTART": 1,
+                  "IBRION": 2,
+                  "NSW": 99
+                  }
+    vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=False,
+                             user_kpoints_settings=user_kpoints_settings,
+                             user_incar_settings=uis_static)
     # deformations wflow for elasticity calculation
     wf_elastic = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd,
                                  norm_deformations=norm_deformations,
                                  shear_deformations=shear_deformations,
                                  db_file=db_file, user_kpoints_settings=user_kpoints_settings,
-                                copy_vasp_outputs=True)
+                                copy_vasp_outputs=True, vasp_input_set=vis_static)
 
     # chain it
     wf.append_wf(wf_elastic, wf.leaf_fw_ids)
@@ -315,12 +324,30 @@ def wf_gibbs_free_energy(structure, c=None):
                              "name": "{} structure optimization".format(tag)}],
                     vis=vis_relax)
 
+    # static input set for the transmute firework
+    uis_static = {"ISIF": 2,
+                  "ISTART": 1,
+                  "IBRION": 2,
+                  "NSW": 99
+                  }
+    lepsilon = False
+    if qha_type not in ["debye_model"]:
+        lepsilon = True
+        try:
+            from phonopy import Phonopy
+        except ImportError:
+            raise RuntimeError("'phonopy' package is NOT installed but is required for the final "
+                               "analysis step; you can alternatively switch to the qha_type to "
+                               "'debye_model' which does not require 'phonopy'.")
+    vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
+                                                user_kpoints_settings=user_kpoints_settings,
+                                                user_incar_settings=uis_static)
     # get gibbs workflow and chain it to the optimization workflow
     wf_gibbs = get_wf_gibbs_free_energy(structure, user_kpoints_settings=user_kpoints_settings,
                                         deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file,
                                         eos=eos, qha_type=qha_type, pressure=pressure, poisson=poisson,
                                         t_min=t_min, t_max=t_max, t_step=t_step, metadata=metadata,
-                                        tag=tag)
+                                        tag=tag, vasp_input_set=vis_static)
 
     # chaining
     wf.append_wf(wf_gibbs, wf.leaf_fw_ids)
@@ -372,9 +399,19 @@ def wf_bulk_modulus(structure, c=None):
                          "name": "{} structure optimization".format(tag)}],
                 vis=vis_relax)
 
+    # static input set for the transmute firework
+    uis_static = {"ISIF": 2,
+                  "ISTART": 1,
+                  "IBRION": 2,
+                  "NSW": 99
+                  }
+    vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=False,
+                                                user_kpoints_settings=user_kpoints_settings,
+                                                user_incar_settings=uis_static)
     # get the deformations wflow for bulk modulus calculation
     wf_bm = get_wf_bulk_modulus(structure, eos=eos, user_kpoints_settings=user_kpoints_settings,
-                             deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file, tag=tag)
+                                deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file, tag=tag,
+                                vasp_input_set=vis_static)
 
     # chain it
     wf.append_wf(wf_bm, wf.leaf_fw_ids)
