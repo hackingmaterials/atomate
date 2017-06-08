@@ -24,9 +24,9 @@ logger = get_logger(__name__)
 
 
 def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_cmd="vasp",
-                             db_file=None, user_kpoints_settings=None, t_step=10, t_min=0, t_max=1000,
-                             mesh=(20, 20, 20), eos="vinet", qha_type="debye_model", pressure=0.0,
-                             poisson=0.25, metadata=None, tag=None):
+                             db_file=None, user_kpoints_settings=None, t_step=10, t_min=0,
+                             t_max=1000, mesh=(20, 20, 20), eos="vinet", qha_type="debye_model",
+                             pressure=0.0, poisson=0.25, metadata=None, tag=None):
     """
     Returns quasi-harmonic gibbs free energy workflow.
     Note: phonopy package is required for the final analysis step if qha_type="phonopy"
@@ -50,6 +50,8 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
         pressure (float): in GPa
         poisson (float): poisson ratio
         metadata (dict): meta data
+        tag (str): something unique to identify the tasks in this workflow. If None a random uuid
+            will be assigned.
 
     Returns:
         Workflow

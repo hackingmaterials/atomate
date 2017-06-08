@@ -31,13 +31,16 @@ def get_wf_bulk_modulus(structure, deformations, vasp_input_set=None, vasp_cmd="
     Args:
         structure (Structure): input structure.
         deformations (list): list of deformation matrices(list of lists).
-        vasp_input_set (VaspInputSet)
+        vasp_input_set (VaspInputSet): for the static deformation calculations
         vasp_cmd (str): vasp command to run.
         db_file (str): path to the db file.
         user_kpoints_settings (dict): example: {"grid_density": 7000}
         eos (str): equation of state used for fitting the energies and the volumes.
             supported equation of states: "quadratic", "murnaghan", "birch", "birch_murnaghan",
             "pourier_tarantola", "vinet", "deltafactor". See pymatgen.analysis.eos.py
+        tag (str): something unique to identify the tasks in this workflow. If None a random uuid
+            will be assigned.
+        user_incar_settings (dict):
 
     Returns:
         Workflow
