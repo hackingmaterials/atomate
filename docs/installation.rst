@@ -42,6 +42,7 @@ Completing everything on this checklist should result in a fully functioning env
 #. `Install Python packages`_
 #. `Configure FireWorks`_
 #. `Configure pymatgen`_
+#. `Run VASP unit tests`_
 #. `Run a test workflow`_
 
 
@@ -407,6 +408,18 @@ If you are planning to run VASP, the last configuration step is to configure pym
 .. _Dashboard: https://materialsproject.org/dashboard
 .. _supported by VASP: https://cms.mpi.univie.ac.at/vasp/vasp/GGA_tag.html
 
+
+.. _Run VASP unit tests:
+
+===================
+Run VASP unit tests
+===================
+
+To test the VASP functionality, make sure you have MongoDB running when executing the tests. First run the unit tests in ``atomate.vasp.tests``. These unit tests are designed to run without installing VASP. Some of them start with a VASP workflow but apply the ``use_fake_vasp`` method to replace calling the VASP executable with a "Faker" that verifies basic properties of the inputs and copies pre-stored output files to the current directory, thus simulating the execution of VASP. Anyway this will help make sure your installation is in good shape.
+
+Many tests have a DEBUG option that can sometimes help in finding problems. Sometimes you need to toggle DEBUG on/off a couple of times if you are doing this to make sure all the old data is actually cleared between debug runs.
+
+Note that the unit tests in atomate/vasp/tests/test_vasp_workflows.py can be modified to actually run VASP by setting VASP_CMD to a String representing your VASP command. If you need to debug at a later point, this might be something to refer back to.
 
 .. _Run a test workflow:
 
