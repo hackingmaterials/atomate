@@ -11,6 +11,7 @@ from uuid import uuid4
 from fireworks import Firework, Workflow
 
 from pymatgen.analysis.elasticity.strain import Deformation
+from pymatgen.io.vasp.sets import MPStaticSet
 
 from atomate.utils.utils import get_logger
 from atomate.vasp.firetasks.parse_outputs import ThermalExpansionCoeffToDb
@@ -22,7 +23,7 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_thermal_expansion(structure, deformations, vasp_cmd="vasp",
+def get_wf_thermal_expansion(structure, deformations, vasp_cmd="vasp", vasp_input_set=None,
                              db_file=None, user_kpoints_settings=None, t_step=10, t_min=0, t_max=1000,
                              mesh=(20, 20, 20), eos="vinet", pressure=0.0, tag=None):
     """
@@ -44,6 +45,7 @@ def get_wf_thermal_expansion(structure, deformations, vasp_cmd="vasp",
             options supported by phonopy: "vinet", "murnaghan", "birch_murnaghan".
             Note: pymatgen supports more options than phonopy. see pymatgen.analysis.eos.py
         pressure (float): in GPa
+        tag (str):
 
     Returns:
         Workflow
@@ -56,10 +58,12 @@ def get_wf_thermal_expansion(structure, deformations, vasp_cmd="vasp",
     tag = tag or "thermal_expansion group: >>{}<<".format(str(uuid4()))
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
+
+    vis_static = vasp_input_set or MPStaticSet(structure, force_gamma=True, lepsilon=False,
+                                               user_kpoints_settings=user_kpoints_settings)
     wf_alpha = get_wf_deformations(structure, deformations, name="thermal_expansion deformation",
-                                   lepsilon=True, vasp_cmd=vasp_cmd,
-                                   db_file=db_file, user_kpoints_settings=user_kpoints_settings,
-                                   tag=tag)
+                                   vasp_cmd=vasp_cmd, db_file=db_file, tag=tag,
+                                   vasp_input_set=vis_static)
 
     fw_analysis = Firework(ThermalExpansionCoeffToDb(tag=tag, db_file=db_file, t_step=t_step,
                                                      t_min=t_min, t_max=t_max, mesh=mesh, eos=eos,

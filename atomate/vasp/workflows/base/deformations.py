@@ -8,11 +8,11 @@ This module defines the deformation workflow: structure optimization followed by
 
 from fireworks import Workflow
 
-from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
+from pymatgen.io.vasp.sets import MPStaticSet
 
 from atomate.utils.utils import get_logger
 from atomate.vasp.firetasks.glue_tasks import pass_vasp_result
-from atomate.vasp.fireworks.core import OptimizeFW, TransmuterFW
+from atomate.vasp.fireworks.core import TransmuterFW
 
 __author__ = 'Kiran Mathew'
 __credits__ = 'Joseph Montoya'
@@ -21,9 +21,8 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_deformations(structure, deformations, name="deformation",
-                        lepsilon=False, vasp_cmd="vasp", db_file=None, user_kpoints_settings=None,
-                        pass_stress_strain=False, tag="", relax_deformed=False,
+def get_wf_deformations(structure, deformations, name="deformation", vasp_input_set=None,
+                        vasp_cmd="vasp", db_file=None, pass_stress_strain=False, tag="",
                         copy_vasp_outputs=True, metadata=None):
     """
     Returns a structure deformation workflow.
@@ -36,7 +35,7 @@ def get_wf_deformations(structure, deformations, name="deformation",
         structure (Structure): input structure to be optimized and run
         deformations (list of 3x3 array-likes): list of deformations
         name (str): some appropriate name for the transmuter fireworks.
-        vasp_input_set (DictVaspInputSet): vasp input set.
+        vasp_input_set (DictVaspInputSet): vasp input set for static deformed structure calculation.
         lepsilon (bool): whether or not compute static dielectric constant/normal modes
         vasp_cmd (str): command to run
         db_file (str): path to file containing the database credentials.
@@ -45,7 +44,8 @@ def get_wf_deformations(structure, deformations, name="deformation",
         tag (str): some unique string that will be appended to the names of the fireworks so that
             the data from those tagged fireworks can be queried later during the analysis.
         relax_deformed (bool): whether or not to relax the deformed structures.
-        copy_vasp_outputs (bool):
+        copy_vasp_outputs (bool): whether or not copy the outputs from the previous calc(usually
+            structure optimization) before the transmuter fireworks.
         metadata (dict): meta data
 
     Returns:
@@ -54,22 +54,14 @@ def get_wf_deformations(structure, deformations, name="deformation",
 
     fws, parents = [], []
 
-    uis_static = {"ISIF": 2, "ISTART":1}
-    if relax_deformed:
-        uis_static["IBRION"] = 2
-        uis_static["NSW"] = 99
-
-    # static input set for the transmuter firework
-    vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
-                             user_kpoints_settings=user_kpoints_settings,
-                             user_incar_settings=uis_static)
+    vasp_input_set = vasp_input_set or MPStaticSet(structure, force_gamma=True)
 
     # Deformation fireworks with the task to extract and pass stress-strain appended to it.
     for n, deformation in enumerate(deformations):
         fw = TransmuterFW(name="{} {} {}".format(tag, name, n), structure=structure,
                           transformations=['DeformStructureTransformation'],
                           transformation_params=[{"deformation": deformation.tolist()}],
-                          vasp_input_set=vis_static, copy_vasp_outputs=copy_vasp_outputs,
+                          vasp_input_set=vasp_input_set, copy_vasp_outputs=copy_vasp_outputs,
                           parents=parents, vasp_cmd=vasp_cmd, db_file=db_file)
         if pass_stress_strain:
             pass_dict = {'strain': deformation.green_lagrange_strain.tolist(),
