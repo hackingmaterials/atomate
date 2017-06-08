@@ -25,7 +25,7 @@ logger = get_logger(__name__)
 def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_cmd="vasp",
                              db_file=None, user_kpoints_settings=None, t_step=10, t_min=0, t_max=1000,
                              mesh=(20, 20, 20), eos="vinet", qha_type="debye_model", pressure=0.0,
-                             poisson=0.25, metadata=None):
+                             poisson=0.25, metadata=None, tag=None):
     """
     Returns quasi-harmonic gibbs free energy workflow.
     Note: phonopy package is required for the final analysis step if qha_type="phonopy"
@@ -63,11 +63,11 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
                                "analysis step; you can alternatively switch to the qha_type to "
                                "'debye_model' which does not require 'phonopy'.")
 
-    tag = "gibbs group: >>{}<<".format(str(uuid4()))
+    tag = tag or "gibbs group: >>{}<<".format(str(uuid4()))
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
     wf_gibbs = get_wf_deformations(structure, deformations, name="gibbs deformation",
-                                   vasp_input_set=vasp_input_set, lepsilon=lepsilon, vasp_cmd=vasp_cmd,
+                                   lepsilon=lepsilon, vasp_cmd=vasp_cmd,
                                    db_file=db_file, user_kpoints_settings=user_kpoints_settings,
                                    tag=tag, metadata=metadata)
 

@@ -21,10 +21,10 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_deformations(structure, deformations, name="deformation", vasp_input_set=None,
+def get_wf_deformations(structure, deformations, name="deformation",
                         lepsilon=False, vasp_cmd="vasp", db_file=None, user_kpoints_settings=None,
                         pass_stress_strain=False, tag="", relax_deformed=False,
-                        optimize_structure=True, metadata=None):
+                        copy_vasp_outputs=True, metadata=None):
     """
     Returns a structure deformation workflow.
 
@@ -45,7 +45,7 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
         tag (str): some unique string that will be appended to the names of the fireworks so that
             the data from those tagged fireworks can be queried later during the analysis.
         relax_deformed (bool): whether or not to relax the deformed structures.
-        optimize_structure (bool):
+        copy_vasp_outputs (bool):
         metadata (dict): meta data
 
     Returns:
@@ -54,31 +54,12 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
 
     fws, parents = [], []
 
-    # TODO: @kmathew - I don't see the need for this option. Better if a user can just take an
-    # OptimizeStructure workflow and chain it before this one? It's better if the workflows can
-    # concentrate on what they are doing best, and encourage the user to chain things together. You
-    # could create a preset workflow that chains it for the user, but I don't see a need to do it
-    # here. Maybe I'm wrong though? -computron
-    if optimize_structure:
-        # input set for relaxation
-        vis_relax = vasp_input_set or MPRelaxSet(structure, force_gamma=True)
-        if user_kpoints_settings:
-            v = vis_relax.as_dict()
-            v.update({"user_kpoints_settings": user_kpoints_settings})
-            vis_relax = vis_relax.__class__.from_dict(v)
-
-        # Structure optimization firework
-        fws = [OptimizeFW(structure=structure, vasp_input_set=vis_relax, vasp_cmd=vasp_cmd,
-                          db_file=db_file, name="{} structure optimization".format(tag))]
-        parents = fws[0]
-
     uis_static = {"ISIF": 2, "ISTART":1}
     if relax_deformed:
         uis_static["IBRION"] = 2
         uis_static["NSW"] = 99
 
-    # TODO: @kmathew - see my previous comment about chaining workflows -computron
-    # static input set
+    # static input set for the transmuter firework
     vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
                              user_kpoints_settings=user_kpoints_settings,
                              user_incar_settings=uis_static)
@@ -88,7 +69,7 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
         fw = TransmuterFW(name="{} {} {}".format(tag, name, n), structure=structure,
                           transformations=['DeformStructureTransformation'],
                           transformation_params=[{"deformation": deformation.tolist()}],
-                          vasp_input_set=vis_static, copy_vasp_outputs=optimize_structure, 
+                          vasp_input_set=vis_static, copy_vasp_outputs=copy_vasp_outputs,
                           parents=parents, vasp_cmd=vasp_cmd, db_file=db_file)
         if pass_stress_strain:
             pass_dict = {'strain': deformation.green_lagrange_strain.tolist(),
