@@ -22,8 +22,8 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_bulk_modulus(structure, deformations, vasp_input_set=None, vasp_cmd="vasp", db_file=None,
-                        user_kpoints_settings=None, eos="vinet"):
+def get_wf_bulk_modulus(structure, deformations, vasp_cmd="vasp", db_file=None,
+                        user_kpoints_settings=None, eos="vinet", tag=None):
     """
     Returns the workflow that computes the bulk modulus by fitting to the given equation of state.
 
@@ -42,11 +42,11 @@ def get_wf_bulk_modulus(structure, deformations, vasp_input_set=None, vasp_cmd="
         Workflow
     """
 
-    tag = "wf_bulk_modulus group: >>{}<<".format(str(uuid4()))
+    tag = tag or "bulk_modulus group: >>{}<<".format(str(uuid4()))
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
     wf_bulk_modulus = get_wf_deformations(structure, deformations, name="bulk_modulus deformation",
-                                          vasp_input_set=vasp_input_set, lepsilon=False,
+                                          lepsilon=False,
                                           vasp_cmd=vasp_cmd, db_file=db_file, relax_deformed=True,
                                           user_kpoints_settings=user_kpoints_settings, tag=tag)
 

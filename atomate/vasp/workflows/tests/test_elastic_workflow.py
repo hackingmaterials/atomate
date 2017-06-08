@@ -40,8 +40,7 @@ class TestElasticWorkflow(AtomateTest):
                                "DB_FILE": ">>db_file<<"}
         self.wf = wf_elastic_constant(self.struct_si, self.elastic_config)
         self.wf_noopt = get_wf_elastic_constant(self.struct_si, norm_deformations=[0.01],
-                                                shear_deformations=[0.03],
-                                                optimize_structure=False)
+                                                shear_deformations=[0.03], copy_vasp_outputs=False)
         mip = {"incar_update": {"ENCUT": 700}}
         self.wf_noopt = add_modify_incar(self.wf_noopt, modify_incar_params=mip)
 
