@@ -201,7 +201,7 @@ def wf_elastic_constant(structure, c=None):
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
-    # @montoyj - any comments?
+    # @montoyj - any comments on the following being configurable params?
     norm_deformations = c.get("NORM_DEFORMATIONS", [-0.01, -0.005, 0.005, 0.01])
     shear_deformations = c.get("SHEAR_DEFORMATIONS", [-0.06, -0.03, 0.03, 0.06])
     optimize_structure = c.get("OPTIMIZE_STRUCTURE", True)

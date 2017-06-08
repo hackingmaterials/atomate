@@ -71,8 +71,6 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
                                    db_file=db_file, user_kpoints_settings=user_kpoints_settings,
                                    tag=tag, metadata=metadata)
 
-    # TODO: @kmathew - better to stick to lowercase FW names ('gibbs free energy'). That is the
-    # convention for most FWs and switching back and forth is confusing to remember. -computron
     fw_analysis = Firework(GibbsAnalysisToDb(tag=tag, db_file=db_file, t_step=t_step, t_min=t_min,
                                              t_max=t_max, mesh=mesh, eos=eos, qha_type=qha_type,
                                              pressure=pressure, poisson=poisson, metadata=metadata),
