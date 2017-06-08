@@ -21,7 +21,6 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
-# TODO: @kmathew - add missing docstring (e.g., optimize_structure, relax_deformed..)
 def get_wf_deformations(structure, deformations, name="deformation", vasp_input_set=None,
                         lepsilon=False, vasp_cmd="vasp", db_file=None, user_kpoints_settings=None,
                         pass_stress_strain=False, tag="", relax_deformed=False,
@@ -45,6 +44,8 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
         pass_stress_strain (bool): if True, stress and strain will be parsed and passed on.
         tag (str): some unique string that will be appended to the names of the fireworks so that
             the data from those tagged fireworks can be queried later during the analysis.
+        relax_deformed (bool): whether or not to relax the deformed structures.
+        optimize_structure (bool):
         metadata (dict): meta data
 
     Returns:
