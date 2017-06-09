@@ -30,6 +30,12 @@ very straightforward statements. Features of atomate include:
 Workflows
 =========
 
+.. figure:: _static/example.png
+    :alt: Example outputs
+    :scale: 50%
+
+    Example of GaP band structure (left) computed via atomate/VASP and La0.7Sr0.3MnO3 ELNES spectra (right) computed via atomate/FEFF.
+
 Some of the workflows available as of June 2017 are:
 
 * electronic band structures
@@ -49,17 +55,23 @@ One can customize any of the above workflows. Also, one can create new workflows
 The basics
 ==========
 
+.. figure:: _static/bandstructure_wf.png
+    :alt: Band structure workflow
+    :scale: 25%
+
+    Anatomy of a band structure workflow consisting of 4 separate calculations (Fireworks) and for which each calculation has multiple steps (Firetasks). The anatomy of this workflow is covered in more detail the atomate tutorials.
+
 The basics of setting up and running calculations
 =================================================
 
-The main function of atomate's automatic calculation infrastructure is to help the user generate Workflow objects as defined by the FireWorks workflow software. Once the user has a Workflow object, they can use the FireWorks package to store, manage, organize, and execute the calculations on various types of computing resources in a very general way. All the nitty-gritty details of the Workflow object and its execution are in the `FireWorks documentation <http://pythonhosted.org/FireWorks>`_. The atomate docs and tutorials will walk you through the more important points of how to execute Workflows once you've defined them - but the FireWorks documentation will guide you through all the possible features and options such as monitoring the status of all your calculations through a web interface.
+The main function of atomate's automatic calculation infrastructure is to help the user generate Workflow objects as defined by the FireWorks workflow software. Once the user has a Workflow object, they can use the FireWorks package to store, manage, organize, and execute the calculations on various types of computing resources in a very general way. All the nitty-gritty details of the Workflow object and its execution are in the `FireWorks documentation <http://pythonhosted.org/FireWorks>`_. The atomate docs and tutorials will walk you through the more important points of how to execute Workflows and how to define them, but to understand all the features (e.g., monitoring the status of your calculations through a web interface, reprioritizing jobs, etc.), check the FireWorks documentation.
 
-Atomate itself makes it easy for users to get Workflow objects for many types of simulation procedures. In the simplest case, the user just provides a crystal structure and atomate will give you a fully-functioning Workflow - even for simulation procedures often thought of as complex. Thus, atomate encapsulates methods of performing simulations and materials analysis procedures into reproducible Workflow objects that can be run across multiple computing systems. In addition, atomate provides multiple ways for you to customize these workflows as needed, thus letting you decide whether important parameters should be determined automatically or whether they should be manually overriden. These features and file I/O with various codes are largely provided by the `pymatgen <http://www.pymatgen.org>>`_ library.
+Atomate itself makes it easy for users to get Workflow objects for many types of simulation procedures. In the simplest case, the user just provides a crystal structure and atomate will give you a fully-functioning Workflow - even for simulation procedures often thought of as complex. Thus, atomate encapsulates methods of performing simulations and materials analysis procedures into reproducible Workflow objects that can be run across multiple computing systems. In addition, atomate provides multiple ways for you to customize these workflows as needed, thus letting you decide whether important parameters should be determined automatically or whether they should be manually overriden. These features and file I/O with various codes are largely provided by the `pymatgen <http://www.pymatgen.org>`_ library.
 
 The basics of parsing calculation results
 =========================================
 
-Most workflows defined by atomate not only execute a calculation but also execute steps within the workflow to analyze the output files and, optionally, put the results in a user-friendly database. Much of the infrastructure to parse various file output types is provided by pymatgen and the database technology used to store results is MongoDB. In general, each calculation is represented by a single document in MongoDB that summarizes the important inputs and outputs. Atomate also includes "builders" that combine the results from multiple calculations into higher-level analyses. A simple example of this is to compile all the various calculations on a given crystal structure to provide a summary report of all computed properties for that structure. The builders package in atomate allows one to get high-level summaries of calculation results, which becomes particularly important when running many calculations.
+Most workflows defined by atomate not only execute a calculation but also execute steps within the workflow to analyze the output files and, optionally, put the results in a user-friendly database. Much of the infrastructure to parse various file output types is provided by pymatgen and the database technology used to store results is MongoDB. In general, each calculation is represented by a single document in MongoDB that summarizes the important inputs and outputs. Atomate also includes "builders" that combine the results from multiple calculations into higher-level analyses. A simple example of this is to compile all the various calculations on a given crystal structure to provide a summary report of all computed properties for that structure. The builders package in atomate allows one to get high-level summaries of calculation results, which becomes particularly important when running many calculations. Note that plotting and other high-level analyses can be performed by the pymatgen package.
 
 ===========
 What's new?
@@ -101,7 +113,7 @@ Want to see something added or changed? There are many ways to make that a reali
 
 The list of contributors to atomate can be found :doc:`here </contributors>`.
 
-There is an `atomate Google Group`_ dedicated to discussion and support related to development.
+There is an `atomate Google Group`_ dedicated to discussion and basic support.
 
 .. _atomate Google Group: https://groups.google.com/forum/#!forum/atomate
 
