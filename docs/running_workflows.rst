@@ -168,7 +168,7 @@ You can use a text editor to define your own workflow that chains together pre-d
       db_file: >>db_file<<
 
 .. note::
-    The YAML file format is typically considered easy to read, but if you want to know more about the YAML format in general you might want to take a look at the `detailed YAML specification`_. If you want to know more specifically about atomate's YAML specification, check out ``atomate/vasp/workflows/base/library/README.md``.
+    The YAML file format is typically considered easy to read, but if you want to know more about the YAML format in general you might want to take a look at the `detailed YAML specification`_. If you want to know more specifically about atomate's YAML specification, see the :ref:`Workflow YAML reference`.
 
 .. _detailed YAML specification: http://www.yaml.org/spec/1.2/spec.html
 
