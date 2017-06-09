@@ -48,7 +48,7 @@ Running an Equation of State Workflow
 Setup
 =====
 
-Make sure you have completed the installation tutorial, particuarly configuring your ``$HOME/pmgrc.yaml`` and ``FW_CONFIG.yaml`` files.
+Make sure you have completed the installation tutorial, particuarly configuring your ``$HOME/pmgrc.yaml`` and ``FW_config.yaml`` files.
 
 First make a folder on your HPC resource for this tutorial. It can be located anywhere. You'll keep all of the files for this tutorial there.
 
@@ -178,7 +178,7 @@ Python workflow
 
 The YAML version above is much more efficient and clear to read than some kind of shell script to set up and run these calculations by hand. Even so, the relatively simple workflow would have been tedious to write by hand. `There must be a better way!`_ Enter Python.
 
-In the installation tutorial, you set up your ``FW_CONFIG.yaml``, you indicated the atomate Fireworks can be found at :py:mod:`atomate.vasp.fireworks`. Similarly, atomate preset workflows can be imported from :py:mod:`atomate.vasp.workflows.presets.core`, which thinly wraps the base workflows (:py:mod:`atomate.vasp.workflows.base`) allowing for common settings to be changed with configuration dictionaries. The bulk modulus preset workflow does what the YAML file above does for us. And we can setup the workflow and add it to our LaunchPad ready to run in just a few lines of Python.
+In the installation tutorial, you set up your ``FW_config.yaml``, you indicated the atomate Fireworks can be found at :py:mod:`atomate.vasp.fireworks`. Similarly, atomate preset workflows can be imported from :py:mod:`atomate.vasp.workflows.presets.core`, which thinly wraps the base workflows (:py:mod:`atomate.vasp.workflows.base`) allowing for common settings to be changed with configuration dictionaries. The bulk modulus preset workflow does what the YAML file above does for us. And we can setup the workflow and add it to our LaunchPad ready to run in just a few lines of Python.
 
 
 .. _There must be a better way!: https://www.youtube.com/watch?v=wf-BqAjZb8M
