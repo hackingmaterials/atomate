@@ -27,8 +27,6 @@ In order for you to complete this tutorial you need
     * A working installation of atomate
     * A text editor
 
-
-===========================
 Equation of State Workflows
 ===========================
 
@@ -40,13 +38,11 @@ An equation of state (EOS) relates state variables to each other. In first-princ
 
     Atomate elastic tensor workflow. This uses the same pattern as the EOS workflow, but the analysis step (final Firework) calculates the elastic tensor instead of an EOS.
 
-
-=====================================
 Running an Equation of State Workflow
 =====================================
 
 Setup
-=====
+-----
 
 Make sure you have completed the installation tutorial. Next, create a folder on your HPC resource for this tutorial. It can be located anywhere. You'll keep all of the files for this tutorial there.
 
@@ -59,7 +55,7 @@ If you do not already have important prior results in your atomate environment, 
 If you do not or want to reset your LaunchPad, you can set up a different database to use for tutorials or simply accept mixing your previous results and workflows with the contents of this tutorial in your database.
 
 Create the structure
-====================
+--------------------
 
 In your text editor, create a file called ``POSCAR`` and enter the following text for a conventional fcc Al structure:
 
@@ -84,7 +80,7 @@ Note that this does not have to be a POSCAR. You can also supply multiple format
 There are multiple ways of defining the workflow to execute on the structure. We'll go over 3 options.
 
 Option 1: Use a pre-defined workflow in atomate
-===============================================
+-----------------------------------------------
 
 Atomate includes many pre-defined workflows - some defined as YAML files and others as Python functions. Pre-defined YAML files are in ``atomate.vasp.workflows.base.library``. You can add them using the command::
 
@@ -99,10 +95,9 @@ The Python function presets are defined in ``atomate.vasp.workflows.presets``. Y
 An example of a valid Python functions in ``atomate.vasp.workflows.presets`` is ``wf_bulk_modulus``, which is very similar to the workflow we'll actually run. However, this isn't exactly the procedure we'll follow next, so to continue with this example, let's choose one of the other two options for defining the workflow which are more custom than the presets. However, note that you can and are encouraged to use preset workflows where practical and that there exist many such workflows for you to choose from.
 
 Option 2: Create your own workflow file
-=======================================
+---------------------------------------
 
-Define the workflow file
-------------------------
+**Define the workflow file**
 
 You can use a text editor to define your own workflow that chains together pre-defined steps in atomate. To get a feeling for this procedure, in your text editor, create a file called ``eos.yaml`` and enter the following text:
 
@@ -178,8 +173,7 @@ You can use a text editor to define your own workflow that chains together pre-d
 .. _detailed YAML specification: http://www.yaml.org/spec/1.2/spec.html
 
 
-Add workflow to LaunchPad
--------------------------
+**Add workflow to LaunchPad**
 
 Within the folder containing your ``POSCAR`` (or other structure file) and ``eos.yaml``, run the following command to add the workflow to your LaunchPad:
 
@@ -191,7 +185,7 @@ Unless you also want to try making a Python workflow and add it to your LaunchPa
 
 
 Option 3: use Python to generate and add the workflow
-=====================================================
+-----------------------------------------------------
 
 The YAML version above is more efficient and clear to read and modify than a typical shell script to set up and run these calculations by hand. Even so, this workflow would have been tedious to type out rather than copy-paste. `There must be a better way!`_ Enter Python.
 
@@ -200,8 +194,7 @@ In the installation tutorial, you set up your ``FW_config.yaml``, you indicated 
 
 .. _There must be a better way!: https://www.youtube.com/watch?v=wf-BqAjZb8M
 
-Create the workflow script
---------------------------
+**Create the workflow script**
 
 In the same directory as the POSCAR, create a Python script name ``eos.py`` with the following contents:
 
@@ -237,8 +230,7 @@ In the same directory as the POSCAR, create a Python script name ``eos.py`` with
     lpad.add_wf(wf)
 
 
-Add workflow to LaunchPad
--------------------------
+**Add workflow to LaunchPad**
 
 If you want to add the workflow to your LaunchPad (e.g., you didn't already go through Option 2 for adding a workflow): from the folder with your ``POSCAR`` and ``eos.py``, run the Python script:
 
@@ -249,7 +241,7 @@ If you want to add the workflow to your LaunchPad (e.g., you didn't already go t
 .. _Running the workflow:
 
 Running the workflow
-====================
+--------------------
 
 In both cases, we manually set our ``VASP_CMD`` key to be the plain VASP command for the resource you are using. The reason we did this is because the simulation of EOS for Al is relatively simple, so we can easily run this entire workflow in a couple minutes on a single core without the queue. This is not generally good practice, but we can use it here for demonstration purposes. To run the workflows that you added to the LaunchPad, run the following command. Note the use of ``rlaunch`` rather than ``qlaunch``.
 
@@ -259,12 +251,11 @@ In both cases, we manually set our ``VASP_CMD`` key to be the plain VASP command
 
 You should see logging text on the progress of each Firetask in your workflow. The Fireworks have successfully finished launching and running, the results should be added to your database and you can move on.
 
-=======================================
 Analyzing an Equation of State Workflow
 =======================================
 
 Querying the results
-====================
+--------------------
 
 In the Python preset, we get the nice EOS analysis Firework for free. This is not supported in atwf, so we will extract the data for a simple energy vs. volume curve ourselves. With the ``PMGDB_DB_FILE`` varible set in your ``$HOME/.pmgrc.yaml`` file as in the installation instructions, we will be querying the database that the db.json file you created describes.
 
@@ -324,7 +315,7 @@ We need to format this file to actual JSON to more easily load the results in Py
 
 
 Analyzing the results
-=====================
+---------------------
 
 Finally, we'll plot the EOS results that we saved in the last section. Simply add the following Python script (``eos-analysis.py``) to your folder and run it
 
@@ -364,8 +355,6 @@ If you open the saved figure, ``eos-energy-volume.png``, on your computer you sh
 
     Energy vs. volume curve for Al created from the EOS volume deformations.
 
-
-==========
 Conclusion
 ==========
 

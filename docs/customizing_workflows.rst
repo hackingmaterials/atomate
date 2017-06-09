@@ -24,7 +24,6 @@ It's best if you are able to create workflows on your own in Python. See the :re
 
 .. _powerups:
 
-========
 Powerups
 ========
 
@@ -57,8 +56,6 @@ An example for adding an INCAR setting to use a different force convergence crit
     # print(orig_wf.fws[0].tasks)
     # print(modified_wf.fws[0].tasks)
 
-
-=========================
 VASP Calculation Settings
 =========================
 
@@ -67,7 +64,7 @@ Most VASP calculation-specific settings (e.g. those from INCAR, KPOINTS, and POT
 .. note:: Using the ``vasp_input_set`` or ``vis`` keywords in workflow constructors usually only controls the first Firework that uses that set. If you want to have multiple Fireworks use custom input sets (or just not the first one, e.g. in a bandstructure workflow) then you have to make a custom workflow yourself.
 
 Using a different functional
-============================
+----------------------------
 
 To use a different functional, for instance in a optimization calculation, you can do the following:
 
@@ -127,7 +124,7 @@ For the supported options, see the VASP documentation and `pymatgen's vasp sets`
 
 
 Custom KPOINTS settings
-=======================
+-----------------------
 
 KPOINTS settings can also be similarly customized using the above example. You can control them with the following keywords (from `pymatgen's vasp sets`_):
 
@@ -189,13 +186,13 @@ If you need more control, create the ``Kpoints`` object directly with pymatgen. 
 
 
 Custom INCAR settings
-=====================
+---------------------
 
 Custom INCAR settings can also be accomplished using ``VaspInputSet`` objects, but it is often more efficient to use a `add_modify_incar Powerup <powerups>`_
 
 
 Use a different POTCAR
-======================
+----------------------
 
 Which POTCAR file you want to use is controlled by the input set as well. The easist way to control it is by updating the ``config_dict`` dictionary of your input set.
 

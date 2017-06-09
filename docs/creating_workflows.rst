@@ -32,8 +32,6 @@ In order for you to understand this guide you should
     * Understand how to add Workflows to your FireWorks LaunchPad and run them
     * Be comfortable with Python functions and classes
 
-
-====================
 FireWorks Background
 ====================
 
@@ -65,13 +63,11 @@ The Firetasks of each Firework are all of the individual steps that are performe
 .. _pymatgen-db: https://materialsproject.github.io/pymatgen-db/
 .. _FireWorks documentation: https://pythonhosted.org/FireWorks/index.html#workflow-model
 
-
-==========================
 Creating atomate Workflows
 ==========================
 
 Sketch the workflow
-===================
+-------------------
 
 The first step when you go to write any workflow is to sketch a graph of the workflow. In particular, you want to sketch a `directed acyclic graph`_, which for atomate just means that each calculation step is a node in the graph and parents only point to their children such that there are no loops (cycles) in the graph. Again, you should think of each large single invocation of the scientific code (VASP, LAMMPS, etc.) as corresponding to one Firework. Analysis tasks that aggregate results from several Fireworks, e.g. tasks that analyze volume deformations, also need their own Fireworks that have the calculations as parents. All of the workflow examples in the docs and the atomate paper (submitted) are valid workflow graphs.
 
@@ -84,7 +80,7 @@ The first step when you go to write any workflow is to sketch a graph of the wor
 .. _Fireworks documentation for dynamic workflows: https://pythonhosted.org/FireWorks/dynamic_wf_tutorial.html
 
 Finding Fireworks
-=================
+-----------------
 
 Once you have identified each calculation or analysis step as a Firework in our graph, we must determine which Fireworks correspond to each node in our graph. The full Python documentation for each of the atomate Fireworks can be found in the :py:mod:`atomate.vasp.fireworks module <atomate.vasp.fireworks>` documentation or the corresponding documentation page for the software you want to use. Currently FEFF, LAMMPS, and VASP are supported. Some available VASP Fireworks are
 
@@ -122,7 +118,7 @@ You'll notice that more generic Fireworks and Fireworks for analysis tasks are n
 
 
 Creating the workflow
-=====================
+---------------------
 
 With each of the Fireworks identified for our sketched workflow, they can assemble them into a complete atomate Workflow in Python. In order to understand what's going on here, you should be comfortable with creating instances of classes and using functions. To demonstrate how to assemble and use a workflow, we will use a slightly modified version of the Gibbs Free Energy Workflow and step through each line of code to explain what is going on.
 
@@ -246,8 +242,8 @@ More help
 * Creating workflows can also be done to some extent in YAML files. You can adapt the example along with a short explanation of the :ref:`workflow YAML reference`.
 
 
-Workflow Machinery
-==================
+Modifying workflows
+===================
 
 There are a few other interesting features of workflows in atomate that make writing dynamic and customizable workflows easier.
 

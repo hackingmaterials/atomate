@@ -57,7 +57,6 @@ The `Phases Research Lab at Penn State`_ has developed an `automated installer`_
 
 .. _Prerequisites:
 
-=============
 Prerequisites
 =============
 
@@ -65,7 +64,7 @@ Before you install, you need to make sure that your "worker" computer (where the
 
 
 VASP
-====
+----
 
 Note: you can skip this step if you do not plan to run VASP with atomate.
 
@@ -91,9 +90,8 @@ To get access to VASP on supercomputing resources typically requires that you ar
         └── ...
 
 
-=======
 MongoDB
-=======
+-------
 
 MongoDB_ is a NoSQL database that stores each database entry as a document, which is represented in the JSON format (the formatting is similar to a dictionary in Python). Atomate uses MongoDB to:
 
@@ -133,7 +131,6 @@ You might choose to have *two* separate databases - one for the workflows and an
 
 .. _Create a directory scaffold for atomate:
 
-=======================================
 Create a directory scaffold for atomate
 =======================================
 
@@ -155,7 +152,6 @@ Installing atomate includes installation of codes, configuration files, and vari
 
 .. _Create a Python virtual environment:
 
-===================================
 Create a Python virtual environment
 ===================================
 
@@ -196,7 +192,6 @@ The easiest way to get a Python virtual environment is to use the ``virtualenv``
 
 .. _Install Python packages:
 
-=======================
 Install Python packages
 =======================
 
@@ -227,7 +222,6 @@ However, our recommendation (and the procedure below) is to install directly fro
 
 .. _Configure FireWorks:
 
-===================
 Configure FireWorks
 ===================
 
@@ -244,7 +238,7 @@ The next step is to configure some the codes for your specific system - e.g., yo
 Create the following files in ``<<INSTALL_DIR>>/config``.
 
 db.json
-=======
+-------
 
 The ``db.json`` file tells atomate where to put the results of parsing calculations from your workflows (i.e., actual property output data on materials). The ``db.json`` file requires you to enter the basic database information as well as what to call the main collection that results are kept in (e.g. ``tasks``) and the authentication information for an admin user and a read only user on the database. Mind that valid JSON requires double quotes around each of the string entries and that all of the entries should be strings except the value of "port", which should be an integer.
 
@@ -263,7 +257,7 @@ The ``db.json`` file tells atomate where to put the results of parsing calculati
     }
 
 my_fworker.yaml
-===============
+---------------
 
 In FireWorks' distributed `server-worker model`_, each computing resource where you run jobs is a FireWorker (Worker). ``my_fworker.yaml`` controls the environment and settings unique to the cluster, such as the VASP executable. If this is the only cluster you plan on using just one Worker for all of your calculations a minimal setup for the ``my_fworker.yaml`` file is
 
@@ -279,7 +273,7 @@ In FireWorks' distributed `server-worker model`_, each computing resource where 
 Where the <<WORKER_NAME>> is arbitrary and is useful for keeping track of which Worker is running your jobs (an example might be ``Edison`` if you are running on NERSC's Edison resource). ``db_file`` points to the ``db.json`` file that you just configured and contains credentials to connect to the calculation output database. The <<VASP_CMD>> is the command that you would use to run VASP with parallelization (``srun -n 16 vasp``, ``ibrun -n 16 vasp``, ``mpirun -n 16 vasp``, ...). If you don't know which of these to use or which VASP executable is correct, check the documentation for the computing resource you are running on or try to find them interactively by checking the output of ``which srun``, ``which vasp_std``, etc. . If you later want to set up multiple Workers on the same or different machines, you can find information about controlling which Worker can run which job by using the ``name`` field above, or the ``category`` or ``query`` fields that we did not define. For more information on configuring multiple Workers, see the `FireWorks documentation for controlling Workers`_. Such features allow you to use different settings (e.g., different VASP command such as different parallelization amount) for different types of calculations on the same machine or control what jobs are run on various computing centers.
 
 my_launchpad.yaml
-=================
+-----------------
 
 The ``db.json`` file contained the information to connect to MongoDB for the calculation output database. We must also configure the database for storing and managing workflows within FireWorks using ``my_launchpad.yaml`` as in FireWorks' `server-worker model`_. The LaunchPad is where all of the FireWorks and Workflows are stored. Each Worker can query this database for the status of Fireworks and pull down Fireworks to reserve them in the queue and run them. A ``my_launchpad.yaml`` file with fairly verbose logging (``strm_lvl: INFO``) is below:
 
@@ -305,7 +299,7 @@ Here's what you'll need to fill out:
 **Note**: If you prefer to use the same database for FireWorks and calculation outputs, these values will largely be duplicated with ``db.json``. If you prefer to use different databases for workflows and calculation outputs, the information here will be different than ``db.json``.
 
 my_qadapter.yaml
-================
+----------------
 
 To run your VASP jobs at scale across one or more nodes, you usually submit your jobs through a queue system on the computing resources. FireWorks handles communicating with some of the common queue systems automatically. As usual, only the basic configuration options will be discussed. If you will use atomate as in this tutorial, this basic configuration is sufficient. A minimal ``my_qadapter.yaml`` file for SLURM machines might look like
 
@@ -340,7 +334,7 @@ The ``_fw_name: CommonAdapter`` means that the queue is one of the built in queu
 
 
 FW_config.yaml
-==============
+--------------
 
 The ``FW_config.yaml`` file controls different FireWorks settings and also can point to the location of other configuration files. For a more complete reference to the FireWorks parameters you can control see the `FireWorks documentation for modifying the FW config`_. Here you simply need to accomplish telling FireWorks the location of the ``my_launchpad.yaml``, ``my_qadapter.yaml`` and ``my_fworker.yaml`` configuration files.
 
@@ -351,7 +345,7 @@ Create a file called ``FW_config.yaml`` in ``<<INSTALL_DIR>>/config`` with the f
     CONFIG_FILE_DIR: <<INSTALL_DIR>>/config
 
 Finishing up
-============
+------------
 
 The directory structure of ``<<INSTALL_DIR>>/config`` should now look like
 
@@ -395,7 +389,6 @@ which should return something like:
 
 .. _Configure pymatgen:
 
-==================
 Configure pymatgen
 ==================
 
@@ -419,7 +412,6 @@ If you are planning to run VASP, the last configuration step is to configure pym
 
 .. _Run VASP unit tests:
 
-===================
 Run VASP unit tests
 ===================
 
@@ -435,7 +427,6 @@ If everything looks OK, you are ready to run a test workflow!
 
 .. _Run a test workflow:
 
-===================
 Run a test workflow
 ===================
 
@@ -497,12 +488,8 @@ See the following pages for more information on the topics we covered here:
 .. _FireWorks advanced queue submission tutorial: https://pythonhosted.org/FireWorks/queue_tutorial_pt2.html
 .. _pymatgen-db documentation: https://materialsproject.github.io/pymatgen-db/
 
-===============
-Troubleshooting
-===============
-
-FAQ:
-====
+Troubleshooting and FAQ:
+========================
 
 Q: I can't connect to my LaunchPad database
 -------------------------------------------
@@ -564,8 +551,6 @@ Q: I honestly tried everything I can to solve my problem. I still need help!
 
 :A: There is a Google group for atomate: https://groups.google.com/forum/#!forum/atomate
 
-
-=========
 Footnotes
 =========
 
