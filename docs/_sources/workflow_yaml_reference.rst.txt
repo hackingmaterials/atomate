@@ -74,3 +74,81 @@ name) which can be helpful in record keeping.
 
 Finally, one can specify a `metadata` key as a YAML dict/hash that will
 initialize workflow metadata - this is purely optional and for bookkeeping.
+
+EOS Workflow Example
+====================
+
+This example shows what a more complicated workflow can look like using the YAML version of the EOS workflow described in the :ref:`running workflows tutorial`.
+
+In order to use this example, create a file called ``eos.yaml`` with a text editor and enter the following text:
+
+.. code-block:: yaml
+
+    # EOS Workflow
+    # An optimization Firework followed by 7 deformed structures based on the optimized structure
+    # the deformations are +/- 10% volume of the original cell
+    fireworks:
+    - fw: atomate.vasp.fireworks.core.OptimizeFW
+      user_incar_settings:
+        SIGMA: 0.2
+        ISMEAR: 1
+    - fw: atomate.vasp.fireworks.core.TransmuterFW
+      params:
+        parents: 0
+        transformations:
+        - DeformStructureTransformation
+        transformation_params:
+        - "scaling_matrix": [[0.9655, 0, 0], [0, 0.9655, 0], [0, 0, 0.9655]]
+    - fw: atomate.vasp.fireworks.core.TransmuterFW
+      params:
+        parents: 0
+        transformations:
+        - DeformStructureTransformation
+        transformation_params:
+        - "scaling_matrix": [[0.9773, 0, 0], [0, 0.9773, 0], [0, 0, 0.9773]]
+    - fw: atomate.vasp.fireworks.core.TransmuterFW
+      params:
+        parents: 0
+        transformations:
+        - DeformStructureTransformation
+        transformation_params:
+        - "scaling_matrix": [[0.9888, 0, 0], [0, 0.9888, 0], [0, 0, 0.9888]]
+    - fw: atomate.vasp.fireworks.core.TransmuterFW
+      params:
+        parents: 0
+        transformations:
+        - DeformStructureTransformation
+        transformation_params:
+        - "scaling_matrix": [[1.0000, 0, 0], [0, 1.0000, 0], [0, 0, 1.0000]]
+    - fw: atomate.vasp.fireworks.core.TransmuterFW
+      params:
+        parents: 0
+        transformations:
+        - DeformStructureTransformation
+        transformation_params:
+        - "scaling_matrix": [[1.0110, 0, 0], [0, 1.0110, 0], [0, 0, 1.0110]]
+    - fw: atomate.vasp.fireworks.core.TransmuterFW
+      params:
+        parents: 0
+        transformations:
+        - DeformStructureTransformation
+        transformation_params:
+        - "scaling_matrix": [[1.0217, 0, 0], [0, 1.0217, 0], [0, 0, 1.0217]]
+    - fw: atomate.vasp.fireworks.core.TransmuterFW
+      params:
+        parents: 0
+        transformations:
+        - DeformStructureTransformation
+        transformation_params:
+        - "scaling_matrix": [[1.0323, 0, 0], [0, 1.0323, 0], [0, 0, 1.0323]]
+    common_params:
+      vasp_cmd: >>vasp_cmd<<
+      db_file: >>db_file<<
+
+To add this to your LaunchPad go to the folder containing your ``POSCAR`` (or other structure file) and ``eos.yaml``, run the following command to add the workflow to your LaunchPad:
+
+.. code-block:: bash
+
+    atwf add POSCAR -s eos.yaml
+
+The YAML file format is typically considered easy to read, but it is less practical for more complicated workflows. The Python implementation of the EOS workflow is at :py:mod:`atomate.vasp.workflows.base.bulk_modulus` and it uses the existing deformation workflow to express the same as the above YAML file in less than 20 lines of Python code, including imports. Another advantage of using Python is being able to have more control over Fireworks and create them from Firetasks in the workflow, like the ``FitEOSToDb`` Firetask.
