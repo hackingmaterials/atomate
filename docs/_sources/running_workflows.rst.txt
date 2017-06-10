@@ -101,9 +101,6 @@ Option 2: Create your own workflow file
 
 You can use a text editor to define your own workflow that chains together pre-defined steps in atomate. To get a feeling for this procedure, in your text editor, create a file called ``eos.yaml`` and enter the following text:
 
-.. note:: If your VASP command is anything other than ``vasp_std``, then you'll want to change the last line (common_params). *Don't use any parallelization software (ibrun, srun, etc.)* it's bad behavior and probably won't work.
-
-
 .. code-block:: yaml
 
     # EOS Workflow
@@ -164,7 +161,7 @@ You can use a text editor to define your own workflow that chains together pre-d
         transformation_params:
         - "scaling_matrix": [[1.0323, 0, 0], [0, 1.0323, 0], [0, 0, 1.0323]]
     common_params:
-      vasp_cmd: vasp_std
+      vasp_cmd: >>vasp_cmd<<
       db_file: >>db_file<<
 
 .. note::
@@ -198,8 +195,6 @@ In the installation tutorial, you set up your ``FW_config.yaml``, you indicated 
 
 In the same directory as the POSCAR, create a Python script name ``eos.py`` with the following contents:
 
-.. note:: If your VASP command is anything other than ``vasp_std``, then you'll want to change the line setting the ``VASP_CMD`` key of the configuration dictionary. *Don't use any parallelization software (ibrun, srun, etc.)* it's bad behavior and probably won't work.
-
 .. code-block:: python
 
     # Create an EOS from the workflow from the atomate presets
@@ -217,7 +212,6 @@ In the same directory as the POSCAR, create a Python script name ``eos.py`` with
     # 7 deformations +/- 10% of the equilibrium volume
     # note that the 1/3 power is so that we scale each direction by (x+1)^(1/3) and the total volume by (x+1)
     c["deformations"] =  [(np.identity(3)*(1+x)**(1.0/3.0)).tolist() for x in np.linspace(-0.1, 0.1, 5)]
-    c["VASP_CMD"] = 'vasp_std'
 
     # create the Workflow
     wf = wf_bulk_modulus(struct, c)
@@ -243,7 +237,23 @@ If you want to add the workflow to your LaunchPad (e.g., you didn't already go t
 Running the workflow
 --------------------
 
-In both cases, we manually set our ``VASP_CMD`` key to be the plain VASP command for the resource you are using. The reason we did this is because the simulation of EOS for Al is relatively simple, so we can easily run this entire workflow in a couple minutes on a single core without the queue. This is not generally good practice, but we can use it here for demonstration purposes. To run the workflows that you added to the LaunchPad, run the following command. Note the use of ``rlaunch`` rather than ``qlaunch``.
+Option 1
+~~~~~~~~
+
+Running the workflow the following command will submit a single job to the batch queue configured in ``my_qadapter.yaml``. The job will launch Fireworks from your LaunchPad until all of them have completed or you run out of walltime. This workflow will only take few minutes.
+
+.. code-block:: bash
+
+    qlaunch singleshot
+
+You can go to the output files from the batch job (``*.out`` and ``*.error``) at the launch directories to make sure everything went well.
+
+Option 2
+~~~~~~~~
+
+Since Al is a very easy calculation, we can run this entire workflow in a few minutes on a single core on the login node. This can be valuable for getting quick feedback in this tutorial. You should not be running workflows like this normally and running software like VASP on login nodes is forbidden on some resources.
+
+The easiest way to set this up is to either explicitly set the ``vasp_cmd`` parameter in the configuration dictionary to just ``vasp_std`` (or whichever your system uses). The default is ``>>vasp_cmd<<``, which looks up the ``vasp_cmd`` parameter in your ``my_fworker.yaml`` file. That means you could also temporarily make this change in your ``my_fworker.yaml`` file. In this case, make sure to set the ``vasp_cmd`` *without* ``ibrun``, ``mpirun``, ``srun``, etc., which would use all of the cores on the login node (many hosts prevent you from running these commands on the login nodes altogether). To run the workflow on the login node, run the following command. Note the use of ``rlaunch`` rather than ``qlaunch``.
 
 .. code-block:: bash
 
