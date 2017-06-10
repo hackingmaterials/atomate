@@ -132,7 +132,7 @@ Installation
 ============
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
 
     installation
 
@@ -140,7 +140,7 @@ Running workflows
 =================
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
 
     running_workflows
 
@@ -148,7 +148,7 @@ Creating and customizing workflows
 ==================================
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
 
     creating_workflows
     customizing_workflows
