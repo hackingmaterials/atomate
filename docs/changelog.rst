@@ -1,6 +1,18 @@
-====================
+=================
 atomate Changelog
-====================
+=================
+
+**v0.5.0**
+
+.. caution:: pymatgen has updated its default kpoint scheme! Kpoint settings will change.
+
+* migration to new pymatgen and new kpoint settings
+* much improved docs (B. Bocklund, A. Jain)
+* *major* code cleanup (J. Montoya, K. Mathew, A. Jain)
+* many unit test updates (A. Faghaninia, H. Tang, S.P. Ong, A. Jain)
+* fix automated testing on pull requests (K. Mathew)
+* misc fixes
+
 
 **v0.4.5**
 
