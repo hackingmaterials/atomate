@@ -2,7 +2,7 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-import yaml
+import ruamel.yaml as yaml
 import os
 import unittest
 import copy
@@ -55,7 +55,7 @@ class TestNudgedElasticBandWorkflow(AtomateTest):
         # Run fake vasp
         test_yaml = os.path.join(module_dir, "../../test_files/neb_wf/config/neb_unittest.yaml")
         with open(test_yaml, 'r') as stream:
-            self.config = yaml.load(stream)
+            self.config = yaml.safe_load(stream)
             # Use scratch directory as destination directory for testing
             self.config["common_params"]["_fw_env"] = {"run_dest_root": self.scratch_dir}
 
