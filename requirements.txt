@@ -5,7 +5,7 @@ pymatgen==2017.6.8
 pymatgen-db==0.6.5
 pymatgen_diffusion==0.3.0
 custodian==1.1.0
-monty==0.9.8
+monty==1.0.0
 paramiko==2.1.2
 unittest2==1.1.0
 tqdm==4.11.2
