@@ -6,14 +6,14 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 This module defines the thermal expansion coefficient workflow.
 """
 
-from datetime import datetime
+from uuid import uuid4
 
 from fireworks import Firework, Workflow
 
 from pymatgen.analysis.elasticity.strain import Deformation
 
-from atomate.utils.utils import get_logger, append_fw_wf
-from atomate.vasp.firetasks.parse_outputs import ThermalExpansionCoeffTask
+from atomate.utils.utils import get_logger
+from atomate.vasp.firetasks.parse_outputs import ThermalExpansionCoeffToDb
 from atomate.vasp.workflows.base.deformations import get_wf_deformations
 
 __author__ = 'Kiran Mathew'
@@ -53,8 +53,7 @@ def get_wf_thermal_expansion(structure, deformations, vasp_input_set=None, vasp_
     except ImportError:
         logger.warn("'phonopy' package NOT installed. Required for the final analysis step.")
 
-    # TODO: @kmathew - see all my various comments about "tag" and UUID -computron
-    tag = datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')
+    tag = "thermal_expansion group: >>{}<<".format(str(uuid4()))
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
     wf_alpha = get_wf_deformations(structure, deformations, name="thermal_expansion deformation",
@@ -62,12 +61,12 @@ def get_wf_thermal_expansion(structure, deformations, vasp_input_set=None, vasp_
                                    db_file=db_file, user_kpoints_settings=user_kpoints_settings,
                                    tag=tag)
 
-    fw_analysis = Firework(ThermalExpansionCoeffTask(tag=tag, db_file=db_file, t_step=t_step,
+    fw_analysis = Firework(ThermalExpansionCoeffToDb(tag=tag, db_file=db_file, t_step=t_step,
                                                      t_min=t_min, t_max=t_max, mesh=mesh, eos=eos,
                                                      pressure=pressure),
                            name="Thermal expansion")
 
-    append_fw_wf(wf_alpha, fw_analysis)
+    wf_alpha.append_wf(Workflow.from_Firework(fw_analysis), wf_alpha.leaf_fw_ids)
 
     wf_alpha.name = "{}:{}".format(structure.composition.reduced_formula, "thermal expansion")
 

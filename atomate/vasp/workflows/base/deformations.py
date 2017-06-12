@@ -8,11 +8,11 @@ This module defines the deformation workflow: structure optimization followed by
 
 from fireworks import Workflow
 
-from atomate.utils.utils import get_logger
-from atomate.vasp.firetasks.glue_tasks import PassStressStrainData
-from atomate.vasp.fireworks.core import OptimizeFW, TransmuterFW
-
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
+
+from atomate.utils.utils import get_logger
+from atomate.vasp.firetasks.glue_tasks import pass_vasp_result
+from atomate.vasp.fireworks.core import OptimizeFW, TransmuterFW
 
 __author__ = 'Kiran Mathew'
 __credits__ = 'Joseph Montoya'
@@ -51,8 +51,6 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
         Workflow
     """
 
-    # TODO: @kmathew - why not use UUID to generate a unique tag for the user
-    # if they don't feel like inventing one themselves? -computron
     fws, parents = [], []
 
     # TODO: @kmathew - I don't see the need for this option. Better if a user can just take an
@@ -73,7 +71,6 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
                           db_file=db_file, name="{} structure optimization".format(tag))]
         parents = fws[0]
 
-
     uis_static = {"ISIF": 2, "ISTART":1}
     if relax_deformed:
         uis_static["IBRION"] = 2
@@ -90,10 +87,14 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
         fw = TransmuterFW(name="{} {} {}".format(tag, name, n), structure=structure,
                           transformations=['DeformStructureTransformation'],
                           transformation_params=[{"deformation": deformation.tolist()}],
-                          vasp_input_set=vis_static, copy_vasp_outputs=True, parents=parents,
-                          vasp_cmd=vasp_cmd, db_file=db_file)
+                          vasp_input_set=vis_static, copy_vasp_outputs=optimize_structure, 
+                          parents=parents, vasp_cmd=vasp_cmd, db_file=db_file)
         if pass_stress_strain:
-            fw.tasks.append(PassStressStrainData(deformation=deformation.tolist()))
+            pass_dict = {'strain': deformation.green_lagrange_strain.tolist(),
+                         'stress': '>>output.ionic_steps.-1.stress',
+                         'deformation_matrix': deformation.tolist()}
+            fw.tasks.append(pass_vasp_result(pass_dict=pass_dict,
+                                             mod_spec_key="deformation_tasks->{}".format(n)))
         fws.append(fw)
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, name)

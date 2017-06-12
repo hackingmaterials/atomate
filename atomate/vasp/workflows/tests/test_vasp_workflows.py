@@ -4,21 +4,20 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import json
 import os
-import shutil
 import unittest
 import zlib
 
 import gridfs
-from pymongo import MongoClient, DESCENDING
+from pymongo import DESCENDING
 
-from fireworks import LaunchPad, FWorker
+from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_custodian, add_namefile, use_fake_vasp, add_trackers, \
     add_bandgap_check
 from atomate.vasp.workflows.base.core import get_wf
+from atomate.utils.testing import AtomateTest
 
-from pymatgen import SETTINGS
 from pymatgen.io.vasp.sets import MPRelaxSet
 from pymatgen.util.testing import PymatgenTest
 
@@ -34,61 +33,15 @@ ref_dirs_si = {"structure optimization": os.path.join(reference_dir, "Si_structu
              "nscf uniform": os.path.join(reference_dir, "Si_nscf_uniform"),
              "nscf line": os.path.join(reference_dir, "Si_nscf_line")}
 
-DEBUG_MODE = True  # If true, retains the database and output dirs at the end of the test
+DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
 
-class TestVaspWorkflows(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        # TODO: update this for the latest pymatgen...
-        if not SETTINGS.get("PMG_VASP_PSP_DIR"):
-            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "test_files")
-            print('This system is not set up to run VASP jobs. '
-                  'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
-
-        cls.struct_si = PymatgenTest.get_structure("Si")
-
-        cls.scratch_dir = os.path.join(module_dir, "scratch")
+class TestVaspWorkflows(AtomateTest):
 
     def setUp(self):
-        if os.path.exists(self.scratch_dir):
-            shutil.rmtree(self.scratch_dir)
-        os.makedirs(self.scratch_dir)
-        os.chdir(self.scratch_dir)
-        try:
-            self.lp = LaunchPad.from_file(os.path.join(db_dir, "my_launchpad.yaml"))
-            self.lp.reset("", require_password=False)
-
-        except:
-            raise unittest.SkipTest(
-                'Cannot connect to MongoDB! Is the database server running? '
-                'Are the credentials correct?')
-
-    def tearDown(self):
-        if not DEBUG_MODE:
-            shutil.rmtree(self.scratch_dir)
-            self.lp.reset("", require_password=False)
-            db = self._get_task_database()
-            for coll in db.collection_names():
-                if coll != "system.indexes":
-                    db[coll].drop()
-            os.chdir(module_dir)
-
-    def _get_task_database(self):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            conn = MongoClient(creds["host"], creds["port"])
-            db = conn[creds["database"]]
-            if "admin_user" in creds:
-                db.authenticate(creds["admin_user"], creds["admin_password"])
-            return db
-
-    def _get_task_collection(self):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            db = self._get_task_database()
-            return db[creds["collection"]]
+        super(TestVaspWorkflows, self).setUp()
+        self.struct_si = PymatgenTest.get_structure("Si")
 
     def _check_run(self, d, mode):
         if mode not in ["structure optimization", "static", "nscf uniform", "nscf line"]:
@@ -120,7 +73,7 @@ class TestVaspWorkflows(unittest.TestCase):
 
         # check the DOS and band structure
         if mode == "nscf uniform" or mode == "nscf line":
-            fs = gridfs.GridFS(self._get_task_database(), 'bandstructure_fs')
+            fs = gridfs.GridFS(self.get_task_database(), 'bandstructure_fs')
 
             # check the band structure
             bs_fs_id = d["calcs_reversed"][0]["bandstructure_fs_id"]
@@ -150,7 +103,7 @@ class TestVaspWorkflows(unittest.TestCase):
 
             # check the DOS
             if mode == "nscf uniform":
-                fs = gridfs.GridFS(self._get_task_database(), 'dos_fs')
+                fs = gridfs.GridFS(self.get_task_database(), 'dos_fs')
                 dos_fs_id = d["calcs_reversed"][0]["dos_fs_id"]
 
                 dos_json = zlib.decompress(fs.get(dos_fs_id).read())
@@ -206,7 +159,7 @@ class TestVaspWorkflows(unittest.TestCase):
         # set the db_file variable
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
-        d = self._get_task_collection().find_one()
+        d = self.get_task_collection().find_one()
         self._check_run(d, mode="structure optimization")
 
         wf = self.lp.get_wf_by_fw_id(1)
@@ -234,20 +187,20 @@ class TestVaspWorkflows(unittest.TestCase):
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
         # make sure the structure relaxation ran OK
-        d = self._get_task_collection().find_one({"task_label": "structure optimization"},
-                                                 sort=[("_id", DESCENDING)])
+        d = self.get_task_collection().find_one({"task_label": "structure optimization"},
+                                                sort=[("_id", DESCENDING)])
         self._check_run(d, mode="structure optimization")
 
         # make sure the static run ran OK
-        d = self._get_task_collection().find_one({"task_label": "static"}, sort=[("_id", DESCENDING)])
+        d = self.get_task_collection().find_one({"task_label": "static"}, sort=[("_id", DESCENDING)])
         self._check_run(d, mode="static")
 
         # make sure the uniform run ran OK
-        d = self._get_task_collection().find_one({"task_label": "nscf uniform"}, sort=[("_id", DESCENDING)])
+        d = self.get_task_collection().find_one({"task_label": "nscf uniform"}, sort=[("_id", DESCENDING)])
         self._check_run(d, mode="nscf uniform")
 
         # make sure the uniform run ran OK
-        d = self._get_task_collection().find_one({"task_label": "nscf line"}, sort=[("_id", DESCENDING)])
+        d = self.get_task_collection().find_one({"task_label": "nscf line"}, sort=[("_id", DESCENDING)])
         self._check_run(d, mode="nscf line")
 
         wf = self.lp.get_wf_by_fw_id(1)

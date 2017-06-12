@@ -2,22 +2,19 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-import json
 import os
-import shutil
 import unittest
 
 import numpy as np
 
-from pymongo import MongoClient
-
-from fireworks import LaunchPad, FWorker
+from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
-from atomate.vasp.powerups import use_fake_vasp
+from atomate.vasp.powerups import use_fake_vasp, add_modify_incar
 from atomate.vasp.workflows.presets.core import wf_elastic_constant
+from atomate.vasp.workflows.base.elastic import get_wf_elastic_constant
+from atomate.utils.testing import AtomateTest
 
-from pymatgen import SETTINGS
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
@@ -32,44 +29,21 @@ DEBUG_MODE = False  # If true, retains the database and output dirs at the end o
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
 
-class TestElasticWorkflow(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        if not SETTINGS.get("PMG_VASP_PSP_DIR"):
-            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "..", "..", "test_files")
-            print('This system is not set up to run VASP jobs. '
-                  'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
-
-        cls.struct_si = SpacegroupAnalyzer(
-                PymatgenTest.get_structure("Si")).get_conventional_standard_structure()
-        cls.scratch_dir = os.path.join(module_dir, "scratch")
-        cls.elastic_config = {"norm_deformations":[0.01],
-                              "shear_deformations":[0.03],
-                              "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"}
-        cls.wf = wf_elastic_constant(cls.struct_si, cls.elastic_config)
+class TestElasticWorkflow(AtomateTest):
 
     def setUp(self):
-        if os.path.exists(self.scratch_dir):
-            shutil.rmtree(self.scratch_dir)
-        os.makedirs(self.scratch_dir)
-        os.chdir(self.scratch_dir)
-        try:
-            self.lp = LaunchPad.from_file(os.path.join(db_dir, "my_launchpad.yaml"))
-            self.lp.reset("", require_password=False)
-        except:
-            raise unittest.SkipTest(
-                'Cannot connect to MongoDB! Is the database server running? '
-                'Are the credentials correct?')
-
-    def tearDown(self):
-        if not DEBUG_MODE:
-            shutil.rmtree(self.scratch_dir)
-            self.lp.reset("", require_password=False)
-            db = self._get_task_database()
-            for coll in db.collection_names():
-                if coll != "system.indexes":
-                    db[coll].drop()
-            os.chdir(module_dir)
+        super(TestElasticWorkflow, self).setUp()
+        self.struct_si = SpacegroupAnalyzer(PymatgenTest.get_structure("Si")).get_conventional_standard_structure()
+        self.elastic_config = {"NORM_DEFORMATIONS":[0.01],
+                               "SHEAR_DEFORMATIONS":[0.03],
+                               "VASP_CMD": ">>vasp_cmd<<",
+                               "DB_FILE": ">>db_file<<"}
+        self.wf = wf_elastic_constant(self.struct_si, self.elastic_config)
+        self.wf_noopt = get_wf_elastic_constant(self.struct_si, norm_deformations=[0.01],
+                                                shear_deformations=[0.03],
+                                                optimize_structure=False)
+        mip = {"incar_update": {"ENCUT": 700}}
+        self.wf_noopt = add_modify_incar(self.wf_noopt, modify_incar_params=mip)
 
     def _simulate_vasprun(self, wf):
         reference_dir = os.path.abspath(os.path.join(ref_dir, "elastic_wf"))
@@ -81,22 +55,6 @@ class TestElasticWorkflow(unittest.TestCase):
                        "elastic deformation 4": os.path.join(reference_dir, "3"),
                        "elastic deformation 5": os.path.join(reference_dir, "2")}
         return use_fake_vasp(wf, si_ref_dirs, params_to_check=["ENCUT"])
-
-    def _get_task_database(self):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            conn = MongoClient(creds["host"], creds["port"])
-            db = conn[creds["database"]]
-            if "admin_user" in creds:
-                db.authenticate(creds["admin_user"], creds["admin_password"])
-            return db
-
-    def _get_task_collection(self, coll_name=None):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            db = self._get_task_database()
-            coll_name = coll_name or creds["collection"]
-            return db[coll_name]
 
     def _check_run(self, d, mode):
         if mode not in ["structure optimization", "elastic deformation 0",
@@ -130,6 +88,7 @@ class TestElasticWorkflow(unittest.TestCase):
 
     def test_wf(self):
         self.wf = self._simulate_vasprun(self.wf)
+        self.wf_noopt = self._simulate_vasprun(self.wf_noopt)
 
         self.assertEqual(len(self.wf.fws), 8)
         # check vasp parameters for ionic relaxation
@@ -138,25 +97,25 @@ class TestElasticWorkflow(unittest.TestCase):
         assert all([vis.user_incar_settings['NSW'] == 99 for vis in defo_vis])
         assert all([vis.user_incar_settings['IBRION'] == 2 for vis in defo_vis])
         self.lp.add_wf(self.wf)
+        self.lp.add_wf(self.wf_noopt)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
         # check relaxation
-        d = self._get_task_collection().find_one({"task_label": "elastic structure optimization"})
+        d = self.get_task_collection().find_one({"task_label": "elastic structure optimization"})
         self._check_run(d, mode="structure optimization")
         # check two of the deformation calculations
-        d = self._get_task_collection().find_one({"task_label": "elastic deformation 0"})
+        d = self.get_task_collection().find_one({"task_label": "elastic deformation 0"})
         self._check_run(d, mode="elastic deformation 0")
         
-        d = self._get_task_collection().find_one({"task_label": "elastic deformation 3"})
+        d = self.get_task_collection().find_one({"task_label": "elastic deformation 3"})
         self._check_run(d, mode="elastic deformation 3")
 
         # check the final results
-        d = self._get_task_collection(coll_name="elasticity").find_one()
+        d = self.get_task_collection(coll_name="elasticity").find_one()
         self._check_run(d, mode="elastic analysis")
 
         wf = self.lp.get_wf_by_fw_id(1)
         self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
-
 
 
 if __name__ == "__main__":

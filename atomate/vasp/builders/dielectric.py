@@ -1,6 +1,7 @@
 from tqdm import tqdm
 
 from atomate.utils.utils import get_logger
+
 import numpy as np
 
 from matgendb.util import get_database
@@ -34,12 +35,9 @@ class DielectricBuilder:
                 eig_static = np.linalg.eig(eps["epsilon_static"])[0]
                 d["dielectric.epsilon_ionic_avg"] = float(np.average(eig_ionic))
                 d["dielectric.epsilon_static_avg"] = float(np.average(eig_static))
-                d["dielectric.epsilon_avg"] = \
-                    d["dielectric.epsilon_ionic_avg"] + \
-                    d["dielectric.epsilon_static_avg"]
+                d["dielectric.epsilon_avg"] = d["dielectric.epsilon_ionic_avg"] + d["dielectric.epsilon_static_avg"]
 
-                d["dielectric.has_neg_eps"] = bool(np.any(eig_ionic < -0.1) or
-                                                   np.any(eig_static < -0.1))
+                d["dielectric.has_neg_eps"] = bool(np.any(eig_ionic < -0.1) or np.any(eig_static < -0.1))
 
                 self._materials.update_one({"material_id": m["material_id"]}, {"$set": d})
 
@@ -62,11 +60,15 @@ class DielectricBuilder:
     @staticmethod
     def from_file(db_file, m="materials", **kwargs):
         """
-        Get a MaterialsEhullBuilder using only a db file
+        Get a MaterialsEhullBuilder using only a db file.
+
         Args:
             db_file: (str) path to db file
             m: (str) name of "materials" collection
             **kwargs: other parameters to feed into the builder, e.g. mapi_key
+
+        Returns:
+            DielectricBuilder
         """
         db_write = get_database(db_file, admin=True)
         return DielectricBuilder(db_write[m], **kwargs)
