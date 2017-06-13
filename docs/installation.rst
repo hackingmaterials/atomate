@@ -14,7 +14,7 @@ This guide will get you up and running in an environment for running high-throug
 * custodian_ runs VASP and performs error checking/handling and checkpointing
 * FireWorks_ enables designing, managing and executing workflows.
 
-Details about how atomate is designed, how these different pieces interact, and how to run and write your own workflows will be covered in later tutorials as well as an academic publication on atoate. For now, these topics will be covered here in enough depth to get you set up and to help you know where to troubleshoot if you are having problems.
+Details about how atomate is designed, how these different pieces interact, and how to run and write your own workflows will be covered in later tutorials as well as an academic publication on atomate. For now, these topics will be covered here in enough depth to get you set up and to help you know where to troubleshoot if you are having problems.
 
 It is assumed that you are comfortable with basic Linux shell commands and navigation. If not, `Linux Journey`_ and `Linux Command`_ breifly cover enough to get you started. It will also be helpful if you are familiar with Python, but it is not strictly required for installation.
 
@@ -42,6 +42,7 @@ Completing everything on this checklist should result in a fully functioning env
 #. `Install Python packages`_
 #. `Configure FireWorks`_
 #. `Configure pymatgen`_
+#. `Run VASP unit tests`_
 #. `Run a test workflow`_
 
 
@@ -56,17 +57,18 @@ The `Phases Research Lab at Penn State`_ has developed an `automated installer`_
 
 .. _Prerequisites:
 
-=============
 Prerequisites
 =============
 
-Before you install, you need to make sure that your "worker" computer that will execute workflows can (i) run the base simulation packages (e.g., VASP, LAMMPs, FEFF, etc) and (ii) connect to a MongoDB database.
+Before you install, you need to make sure that your "worker" computer (where the simulations will be run, often a computing cluster) that will execute workflows can (i) run the base simulation packages (e.g., VASP, LAMMPs, FEFF, etc) and (ii) connect to a MongoDB database. For (i), make sure you have the appropriate licenses and compilation to run the simulation packages that are needed. For (ii), make sure your computing center doesn't have firewalls that prevent database access. Typically, academic computing clusters as well as systems with a MOM-node style architecture (e.g., NERSC) are OK. High-security government supercomputing centers often require custom treatment and modified execution patterns - some further details are provided later in this installation guide.
 
 
 VASP
-====
+----
 
-To get access to VASP on supercomputing resources typically requires that you are added to a user group on the system you work on after your license is verified. You will also need access to the psuedopotentials. For convenience, you might copy these to the same directory you will be installating atomate, but this is not required. Regardless of its location, the directory structure should look like:
+Note: you can skip this step if you do not plan to run VASP with atomate.
+
+To get access to VASP on supercomputing resources typically requires that you are added to a user group on the system you work on after your license is verified. You will also need access to the pseudopotentials. For convenience, you might copy these to the same directory you will be installating atomate, but this is not required. Regardless of its location, the directory structure should look like:
 
 ::
 
@@ -88,9 +90,8 @@ To get access to VASP on supercomputing resources typically requires that you ar
         └── ...
 
 
-=======
 MongoDB
-=======
+-------
 
 MongoDB_ is a NoSQL database that stores each database entry as a document, which is represented in the JSON format (the formatting is similar to a dictionary in Python). Atomate uses MongoDB to:
 
@@ -98,19 +99,21 @@ MongoDB_ is a NoSQL database that stores each database entry as a document, whic
 * to parse output files and create database of calculation results (strongly recommended and assumed by most default settings of workflows, but technically optional)
 
 MongoDB must be running and available to accept connections whenever you are running workflows. Thus, it is strongly recommended that you have a server to run MongoDB or (simpler) use a hosting service. Your options are:
+
 * use a commercial service to host your MongoDB instance. These are typically the easiest to use and offer high quality service but require payment for larger databases. mLab_ offers free 500 MB databases with payment required for larger databases or support/backup. The free service is certainly enough to get started for small to medium size projects.
-* contact your supercomputing center to see if the offer MongoDB hosting (e.g., NERSC has this)
+* contact your supercomputing center to see if they offer MongoDB hosting (e.g., NERSC has this)
 * self-host a MongoDB server
 
-If you are just starting, we suggest the first (with a free plan) or second option (if available to you).
+If you are just starting, we suggest the first (with a free plan) or second option (if available to you). The third option will require you to open up network settings to accept outside connections properly which can sometimes be tricky.
 
 Next, create a new database and set up two new username/password combinations:
+
 - an admin user
 - a read-only user
 
 You might choose to have *two* separate databases - one for the workflows and another for the results. We suggest that new users keep both sets of results in a single database and only consider using two databases if they run into specific problems.
 
- Hang on to your credentials - we will configure FireWorks to connect to them in step 5. Also make sure you know the hostname and port for the MongoDB instance.
+ Hang on to your credentials - we will configure FireWorks to connect to them in a later step. Also make sure you know the hostname and port for the MongoDB instance.
 
 .. warning::
 
@@ -128,7 +131,6 @@ You might choose to have *two* separate databases - one for the workflows and an
 
 .. _Create a directory scaffold for atomate:
 
-=======================================
 Create a directory scaffold for atomate
 =======================================
 
@@ -136,9 +138,9 @@ Installing atomate includes installation of codes, configuration files, and vari
 
 1. Log in to the compute cluster and make sure the Python module you want to use is loaded and added to your rc file (e.g. ``~/.bashrc`` or ``~/.bashrc.ext`` at NERSC)
 
-#. Create a directory in a spot on disk that has relatively fast access from compute nodes *and* that is only accessible by yourself or your collaborators. Your Python codes and config files will go here, including database credentials. We will call this place ``<<INSTALL_DIR>>``. A good name might simply be ``atomate``.
+#. Create a directory in a spot on disk that has relatively fast access from compute nodes *and* that is only accessible by yourself or your collaborators. Your Python codes and config files will go here, including database credentials. We will call this place ``<<INSTALL_DIR>>``. A good name might simply be ``atomate``, but you could also use a project-specific name (e.g., ``atomate-solar``).
 
-#. Now you should scaffold the rest of your ``<<INSTALL_DIR>>`` for the things we are going to do next. Create a directories named ``atomate_env``, ``codes``, ``logs``, and ``config`` so your directory structure looks like:
+#. Now you should scaffold the rest of your ``<<INSTALL_DIR>>`` for the things we are going to do next. Create a directories named ``codes``, ``logs``, and ``config`` so your directory structure looks like:
 
     ::
 
@@ -150,7 +152,6 @@ Installing atomate includes installation of codes, configuration files, and vari
 
 .. _Create a Python virtual environment:
 
-===================================
 Create a Python virtual environment
 ===================================
 
@@ -161,7 +162,7 @@ We highly recommended that you organize your installation of the atomate and the
  * Different versions of Python can exist on the same machine and be managed more easily (e.g. Python 2 and Python 3).
  * You have full rights and control over the environment. If it breaks, you can just delete the folder containing the environment and recreate it. On computing resources, this solves permissions issues with installing and modifying packages.
 
-The easiest way to get a Python virtual environment is to use the ``virtualenv`` tool. Most Python distributions come with ``virtualenv``, but some clusters are moving towards using Anaconda_, which is a popular distribution of Python designed for scientific computing. If the compute resource you want to access is using Anaconda, you will follow the same general steps, but create your environment with ``conda create``. See the `documentation for the conda command line tool here`_. To set up your virtual environment:
+The easiest way to get a Python virtual environment is to use the ``virtualenv`` tool. Most Python distributions come with ``virtualenv``, but some clusters (e.g., NERSC) have moved towards using Anaconda_, which is a popular distribution of Python designed for scientific computing. If the compute resource you want to access is using Anaconda, you will follow the same general steps, but create your environment with ``conda create``. See the `documentation for the conda command line tool here`_ as well as a `conversion between virtualenv and conda commands <https://conda.io/docs/_downloads/conda-pip-virtualenv-translator.html>`_. To set up your virtual environment:
 
 
 #. Go to your install directory (``<<INSTALL_DIR>>``) and create a virtual environment there. A good name might be ``atomate_env``. The command to create the environment would be ``virtualenv atomate_env``, which creates a folder ``atomate_env`` in the directory you are in.
@@ -181,9 +182,9 @@ The easiest way to get a Python virtual environment is to use the ``virtualenv``
         ├── config
         └── logs
 
-#. If you look in the ``bin`` directory, you will see several programs, such as activate, pip, and Python itself. ``lib`` will be where all of your installed packages will be kept, etc. Again, if anything goes wrong in installing Python codes, you can just nuke the virtual environment directory and start again.
+#. If you look in the ``bin`` directory, you will see several programs, such as activate, pip, and Python itself. ``lib`` will be where all of your installed packages will be kept, etc. Again, if anything goes wrong in installing Python codes, you can just delete the virtual environment directory (``atomate_env``) and start again.
 
-#. Activate your environment by running ``source <<INSTALL_DIR>>/atomate_env/activate``. This makes it so when you use the command ``python`` the version of ``python`` that you use will be the one in the  ``bin`` directory. You can read the activation script if you are interested. It's just does a little magic to adjust your path to point towards the ``bin`` and other directories you created.
+#. Activate your environment by running ``source <<INSTALL_DIR>>/atomate_env/activate``. This makes it so when you use the command ``python``, the version of ``python`` that you use will be the one in the  ``bin`` directory rather than the system-wide Python. You can read the activation script if you are interested. It's just does a little magic to adjust your path to point towards the ``bin`` and other directories you created.
 
 .. _Anaconda: https://www.continuum.io
 .. _documentation for the conda command line tool here: https://conda.io/docs/using/envs.html
@@ -191,17 +192,16 @@ The easiest way to get a Python virtual environment is to use the ``virtualenv``
 
 .. _Install Python packages:
 
-=======================
 Install Python packages
 =======================
 
-Next we will download and install all of the atomate-related Python packages. The main tool for install Python packages is pip and we will use this to install packages (unless you have an Anaconda distribution where again, you'd use conda_). Technically, you could simply use pip to ``pip install atomate`` and pull in atomate and all of the requirements from PyPI_. In that case, you would need to follow the rest of this section's instructions. However, our recommendation (and the procedure below)is to install directly from GitHub so you can always have the most recent codebase and be able to more easily inspect and modify the code. We'll also do this for the main dependencies of atomate because they often change and evolve together in the source, but not be released to PyPI. Note that this method of installation is required if you will be developing in atomate or any of the other software mentioned here.
+You have successfully set up an environment in which to install atomate! Next, we will download and install all of the atomate-related Python packages. The main tool for installing Python packages is pip and we will use this to install packages (unless you have an Anaconda distribution where again, you'd use conda_). Technically, you could simply use pip to ``pip install atomate`` and pull in atomate and all of the requirements from PyPI_. In that case, you would *not* need to follow the rest of this section's instructions.
+
+However, our recommendation (and the procedure below) is to install directly from GitHub so you can always have the most recent codebase and be able to more easily inspect and modify the code. We'll also do this for the main dependencies of atomate because they often change and evolve together in the source, but not be released to PyPI. Note that this method of installation is required if you will be developing in atomate or any of the other software mentioned here.
 
 1. ``cd`` to your newly created ``codes`` directory.
 
-#. Clone each of the following packages from GitHub using git. You don't have to know the details of how to use git for the installation, but if you are going to be developing code in Python, you should take a look at this `simple git introduction`_. Most Linux distributions include git, so you shouldn't have to install it on the cluster. To download the codes, use the following commands (1 command per line)
-
-    ::
+#. Clone each of the following packages from GitHub using git. You don't have to know the details of how to use git for the installation, but if you are going to be developing code in Python, you should take a look at this `simple git introduction`_. Most Linux distributions include git, so you shouldn't have to install it on the cluster. To download the codes, use the following commands (one command per line)::
 
         git clone https://www.github.com/materialsproject/fireworks.git
         git clone https://www.github.com/materialsproject/pymatgen.git
@@ -213,7 +213,7 @@ Next we will download and install all of the atomate-related Python packages. Th
 
   Now you should have atomate, custodian, FireWorks, phonopy, pymatgen, pymatgen-db and pymatgen-diffusion folders in your ``codes`` directory.
 
-#. For each of these folders, you ``cd`` into the folders and run ``pip install -e .`` (or the ``conda`` equivalent) **It is important that you follow the order listed above to install packages**. For example, you must install atomate last so that it uses your custom installation of pymatgen rather than pulling in the requirements as an external library from PyPI. The ``-e`` flag installs as editable. If you make changes here, the changes will impact immedately without needing to reinstall. The ``.`` simply means to install from the ``setup.py`` in the current directory. There are several clever ways to do this in a one line command as a loop which you can use as an exercise of your shell capabilities [#]_.
+#. **It is important that you follow the order listed above to install packages**. For example, you must install atomate last so that it uses your custom installation of pymatgen rather than pulling in the requirements as an external library from PyPI. The ``-e`` flag installs as editable. For each of these folders, you ``cd`` into the folders and ``pip install -e .`` (the ``.`` simply means to install from the ``setup.py`` in the current directory) or use the ``conda`` equivalent of this command. There are several clever ways to do this in a one line command as a loop which you can use as an exercise of your shell capabilities [#]_. Note that once installed, if you make changes to the code in these directories, the changes will impact immedately without needing to reinstall. Thus, you can view and modify the code installed in these directories.
 
 
 .. _conda: https://conda.io/docs/using/pkgs.html
@@ -222,22 +222,23 @@ Next we will download and install all of the atomate-related Python packages. Th
 
 .. _Configure FireWorks:
 
-===================
 Configure FireWorks
 ===================
 
-With the Python codes set up, FireWorks needs to be configured to communicate with your databases and launch rockets to the queue system on the cluster. Again, the setup below will be just enough to get your environment bootstrapped. For more details on the installation and specifics of FireWorks, read the `installation guide`_.
+We've now set up your environment and installed the necessary codes. You're well on your way!
 
-Next, create the following files in ``<<INSTALL_DIR>>/config``.
+The next step is to configure some the codes for your specific system - e.g., your MongoDB credentials, your computing cluster and its queuing system, etc. - starting with FireWorks. The setup below will be just enough to get your environment bootstrapped. For more details on the installation and specifics of FireWorks, read the `installation guide`_.
 
-.. note:: All of the paths here must be *absolute paths*. For example, the absolute path that refers to ``<<INSTALL_DIR>>`` might be ``/global/homes/u/username/atomate`` which corresponds to the relative directory ``~/atomate``.
+.. note:: All of the paths here must be *absolute paths*. For example, the absolute path that refers to ``<<INSTALL_DIR>>`` might be ``/global/homes/u/username/atomate`` (don't use the relative directory ``~/atomate``).
 
 .. warning::
 
     **Passwords will be stored in plain text!** These files should be stored in a place that is not accessible by unauthorized users. Also, you should make random passwords that are unique only to these databases.
 
+Create the following files in ``<<INSTALL_DIR>>/config``.
+
 db.json
-=======
+-------
 
 The ``db.json`` file tells atomate where to put the results of parsing calculations from your workflows (i.e., actual property output data on materials). The ``db.json`` file requires you to enter the basic database information as well as what to call the main collection that results are kept in (e.g. ``tasks``) and the authentication information for an admin user and a read only user on the database. Mind that valid JSON requires double quotes around each of the string entries and that all of the entries should be strings except the value of "port", which should be an integer.
 
@@ -256,7 +257,7 @@ The ``db.json`` file tells atomate where to put the results of parsing calculati
     }
 
 my_fworker.yaml
-===============
+---------------
 
 In FireWorks' distributed `server-worker model`_, each computing resource where you run jobs is a FireWorker (Worker). ``my_fworker.yaml`` controls the environment and settings unique to the cluster, such as the VASP executable. If this is the only cluster you plan on using just one Worker for all of your calculations a minimal setup for the ``my_fworker.yaml`` file is
 
@@ -269,12 +270,12 @@ In FireWorks' distributed `server-worker model`_, each computing resource where 
         db_file: <<INSTALL_DIR>>/config/db.json
         vasp_cmd: <<VASP_CMD>>
 
-Where the <<WORKER_NAME>> is arbitrary and is useful for keeping track of which Worker is running your jobs (an example might be ``Edison`` if you are running on NERSC's Edison resource). ``db.json`` is the database where calculation results from this Worker will be stored (what you configured above). The <<VASP_CMD>> is the command that you would use to run VASP with parallelization (``srun -n 16 vasp``, ``ibrun -n 16 vasp``, ``mpirun -n 16 vasp``, ...). If you don't know which of these to use or which VASP executable is correct, check with the documentation for computing resource you are running on or try to find them interactively by checking the output of ``which srun``, ``which vasp_std``, etc. . If you later want to set up multiple Workers on the same or different machines, you can find information about controlling which Worker can run which job by using the ``name`` field above, or the ``category`` or ``query`` fields that we did not define. For more information on configuring multiple Workers, see the `FireWorks documentation for controlling Workers`_.
+Where the <<WORKER_NAME>> is arbitrary and is useful for keeping track of which Worker is running your jobs (an example might be ``Edison`` if you are running on NERSC's Edison resource). ``db_file`` points to the ``db.json`` file that you just configured and contains credentials to connect to the calculation output database. The <<VASP_CMD>> is the command that you would use to run VASP with parallelization (``srun -n 16 vasp``, ``ibrun -n 16 vasp``, ``mpirun -n 16 vasp``, ...). If you don't know which of these to use or which VASP executable is correct, check the documentation for the computing resource you are running on or try to find them interactively by checking the output of ``which srun``, ``which vasp_std``, etc. . If you later want to set up multiple Workers on the same or different machines, you can find information about controlling which Worker can run which job by using the ``name`` field above, or the ``category`` or ``query`` fields that we did not define. For more information on configuring multiple Workers, see the `FireWorks documentation for controlling Workers`_. Such features allow you to use different settings (e.g., different VASP command such as different parallelization amount) for different types of calculations on the same machine or control what jobs are run on various computing centers.
 
 my_launchpad.yaml
-=================
+-----------------
 
-We've seen how to set up Workers in FireWorks' `server-worker model`_, but now the server must be set up. The LaunchPad is where all of the FireWorks and Workflows are stored. Each Worker can query this database for the status of FireWorks and pull down FireWorks to reserve them in the queue and run them. A ``my_launchpad.yaml`` file with fairly verbose logging (``strm_lvl: INFO``) is below:
+The ``db.json`` file contained the information to connect to MongoDB for the calculation output database. We must also configure the database for storing and managing workflows within FireWorks using ``my_launchpad.yaml`` as in FireWorks' `server-worker model`_. The LaunchPad is where all of the FireWorks and Workflows are stored. Each Worker can query this database for the status of Fireworks and pull down Fireworks to reserve them in the queue and run them. A ``my_launchpad.yaml`` file with fairly verbose logging (``strm_lvl: INFO``) is below:
 
 .. code-block:: yaml
 
@@ -295,8 +296,10 @@ Here's what you'll need to fill out:
 * ``<<DB_NAME>>`` - the name of the MongoDB database
 * ``<<ADMIN_USERNAME>>`` and ``<<ADMIN_PASSWORD>>`` - the (write) credentials to access your DB. Delete these lines if you do not have password protection in your DB (although you should).
 
+**Note**: If you prefer to use the same database for FireWorks and calculation outputs, these values will largely be duplicated with ``db.json``. If you prefer to use different databases for workflows and calculation outputs, the information here will be different than ``db.json``.
+
 my_qadapter.yaml
-================
+----------------
 
 To run your VASP jobs at scale across one or more nodes, you usually submit your jobs through a queue system on the computing resources. FireWorks handles communicating with some of the common queue systems automatically. As usual, only the basic configuration options will be discussed. If you will use atomate as in this tutorial, this basic configuration is sufficient. A minimal ``my_qadapter.yaml`` file for SLURM machines might look like
 
@@ -331,18 +334,18 @@ The ``_fw_name: CommonAdapter`` means that the queue is one of the built in queu
 
 
 FW_config.yaml
-==============
+--------------
 
-The ``FW_CONFIG.yaml`` file controls different FireWorks settings. For a more complete reference to the FireWorks parameters you can control see the `FireWorks documentation for modifying the FW config`_. Here you simply need to accomplish telling FireWorks the location of the ``my_launchpad.yaml``, ``my_qadapter.yaml`` and ``my_fworker.yaml`` configuration files.
+The ``FW_config.yaml`` file controls different FireWorks settings and also can point to the location of other configuration files. For a more complete reference to the FireWorks parameters you can control see the `FireWorks documentation for modifying the FW config`_. Here you simply need to accomplish telling FireWorks the location of the ``my_launchpad.yaml``, ``my_qadapter.yaml`` and ``my_fworker.yaml`` configuration files.
 
-Create a file called ``FW_CONFIG.yaml`` in ``<<INSTALL_DIR>>/config`` with the following contents:
+Create a file called ``FW_config.yaml`` in ``<<INSTALL_DIR>>/config`` with the following contents:
 
 .. code-block:: yaml
 
     CONFIG_FILE_DIR: <<INSTALL_DIR>>/config
 
 Finishing up
-============
+------------
 
 The directory structure of ``<<INSTALL_DIR>>/config`` should now look like
 
@@ -353,9 +356,9 @@ The directory structure of ``<<INSTALL_DIR>>/config`` should now look like
     ├── FW_config.yaml
     ├── my_fworker.yaml
     ├── my_launchpad.yaml
-    └── my_qadaapter.yaml
+    └── my_qadapter.yaml
 
-The last thing we need to do to configure FireWorks is add the following line to your RC / bash_profile file to set an environment variable telling FireWorks where to find the ``FW_CONFIG.yaml``
+The last thing we need to do to configure FireWorks is add the following line to your RC / bash_profile file to set an environment variable telling FireWorks where to find the ``FW_config.yaml``
 
 .. code-block:: bash
 
@@ -363,7 +366,7 @@ The last thing we need to do to configure FireWorks is add the following line to
 
 where ``<<INSTALL_DIR>>`` is your (usual) installation directory.
 
-That's it. You're done configuring FireWorks and most of atomate. If you've set up with the sample database configuration above, you can do a sanity check and make sure that you can connect to the database by sourcing your RC file (to set this environment variable) and initializing the database by running the command
+That's it. You're done configuring FireWorks and most of atomate. You should now perform a check to make sure that you can connect to the database by sourcing your RC file (to set this environment variable) and initializing the database by running the command
 
 .. code-block:: bash
 
@@ -386,15 +389,14 @@ which should return something like:
 
 .. _Configure pymatgen:
 
-==================
 Configure pymatgen
 ==================
 
-If you are planning to run VASP, the last configuration step is to configure pymatgen to (required) find the pseudopotentials for VASP and (optional) set up your API key from the `Materials Project`_. T
+If you are planning to run VASP, the last configuration step is to configure pymatgen to (required) find the pseudopotentials for VASP and (optional) set up your API key from the `Materials Project`_.
 
-1. The pseudopotentials should be in a folder (such as ``<<INSTALL_DIR>>/pps``) as in the `Prerequisites`_.
+1. The pseudopotentials should be in any folder (such as ``<<INSTALL_DIR>>/pps``) as in the `Prerequisites`_.
 
-#. You can get an API key from the `Materials Project`_ by logging in and going to your `Dashboard`_. Enter these into a ``~/.pmgrc.yaml`` in your home folder with the following contents
+#. You can get an API key from the `Materials Project`_ by logging in and going to your `Dashboard`_. Enter these into a file called ``.pmgrc.yaml`` in your home folder (i.e., ``~/.pmgrc.yaml``) with the following contents
 
 .. code-block:: yaml
 
@@ -408,13 +410,27 @@ If you are planning to run VASP, the last configuration step is to configure pym
 .. _supported by VASP: https://cms.mpi.univie.ac.at/vasp/vasp/GGA_tag.html
 
 
+.. _Run VASP unit tests:
+
+Run VASP unit tests
+===================
+
+To test atomate and the VASP functionality, make sure you have MongoDB running when executing the tests. You can do this by navigating to ``<<INSTALL_DIR>>/codes/atomate/`` and running ``python setup.py test`` or ``nosetests``.
+
+These unit tests are designed to run without installing VASP. Some of them start with a VASP workflow but apply the ``use_fake_vasp`` method to replace calling the VASP executable with a "Faker" that verifies basic properties of the inputs and copies pre-stored output files to the current directory, thus simulating the execution of VASP. Anyway, this will help make sure your installation is in good shape.
+
+Many tests have a DEBUG option that can sometimes help in finding problems. Sometimes you need to toggle DEBUG on/off a couple of times if you are doing this to make sure all the old data is actually cleared between debug runs.
+
+Note that the unit tests in atomate/vasp/tests/test_vasp_workflows.py can be modified to actually run VASP by setting VASP_CMD to a String representing your VASP command. If you need to debug at a later point, this might be something to refer back to.
+
+If everything looks OK, you are ready to run a test workflow!
+
 .. _Run a test workflow:
 
-===================
 Run a test workflow
 ===================
 
-To make sure that everything is set up correctly an in place, we'll finally run a simple test workflow. In general, two ways to create workflows is using atomate's command line utility ``atwf`` or by creating workflows in Python. More discussion on constructing and running workflows can be found in the :ref:`running workflows tutorial` and details on making custom workflows can be found in the :ref:`creating workflows`. For now, we will use ``atwf`` to construct a workflow. Ideally you set up an API key in the `Configure pymatgen`_ section, otherwise you will need to provide a POSCAR for the structure you want to run. If you have an API key configured, you can run the following to run a structure optimization on Si
+To make sure that everything is set up correctly and in place, we'll finally run a simple test workflow. In general, two ways to create workflows is using atomate's command line utility ``atwf`` or by creating workflows in Python. More discussion on constructing and running workflows can be found in the :ref:`running workflows tutorial` and details on writing custom workflows can be found in the :ref:`creating workflows`. For now, we will use ``atwf`` to construct a workflow. Ideally you set up a Materials Project API key in the `Configure pymatgen`_ section, otherwise you will need to provide a POSCAR for the structure you want to run. If you have an API key configured, you can run the following to run a structure optimization on Si
 
 .. code-block:: bash
 
@@ -451,6 +467,8 @@ To launch this FireWork and place a reservation in the queue, go to the director
 
     qlaunch -r rapidfire
 
+**Note**: If you want to run directly rather than through a queue, use ``rlaunch rapidfire`` (go through the FireWorks documentation to understand the details).
+
 If all went well, you can check that the FireWork is in the queue by using the commands for your queue system (e.g. ``squeue`` or ``qstat``) or by checking that the state of the FireWork has changed from ``READY`` to ``RESERVED`` with ``lpad get_wflows``. Once this FireWorks is launched and is completed, you can use pymatgen-db to check that it was entered into your results database by running
 
 .. code-block:: bash
@@ -470,12 +488,8 @@ See the following pages for more information on the topics we covered here:
 .. _FireWorks advanced queue submission tutorial: https://pythonhosted.org/FireWorks/queue_tutorial_pt2.html
 .. _pymatgen-db documentation: https://materialsproject.github.io/pymatgen-db/
 
-===============
-Troubleshooting
-===============
-
-FAQ:
-====
+Troubleshooting and FAQ:
+========================
 
 Q: I can't connect to my LaunchPad database
 -------------------------------------------
@@ -516,7 +530,7 @@ Q: My job fizzled!
 Q: I made a mistake, how do I cancel my job?
 --------------------------------------------
 
-:A: One drawback of using the reservation mode is that you have to cancel your job in two places: the queue and the LaunchPad. To cancel the job in the queue, use whatever command you usually would (e.g. ``scancel`` or ``qdel``). To cancel or rerun the FireWork, run
+:A: One drawback of using the reservation mode (the ``-r`` in ``qlaunch -r rapidfire``) is that you have to cancel your job in two places: the queue and the LaunchPad. To cancel the job in the queue, use whatever command you usually would (e.g. ``scancel`` or ``qdel``). To cancel or rerun the FireWork, run
 
     .. code-block:: bash
 
@@ -530,15 +544,13 @@ Q: I made a mistake, how do I cancel my job?
 
     where `-i 1` means to make perfom the operations on the FireWork at index 1. Run ``lpad -h`` to see all of the options.
 
-There are other modes for qlaunching that require a little less maintenance and have certain tradeoffs, which are detailed in the FireWorks documentation.
+The non-reservation mode for qlaunching requires a little less maintenance with certain tradeoffs, which are detailed in the FireWorks documentation.
 
 Q: I honestly tried everything I can to solve my problem. I still need help!
 ----------------------------------------------------------------------------
 
 :A: There is a Google group for atomate: https://groups.google.com/forum/#!forum/atomate
 
-
-=========
 Footnotes
 =========
 

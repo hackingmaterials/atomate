@@ -7,8 +7,11 @@ import shutil
 
 from fireworks import LaunchPad, Firework, Workflow
 from fireworks.core.rocket_launcher import rapidfire
+
 from pymatgen.apps.borg.hive import AbstractDrone
+
 from atomate.common.firetasks.parse_outputs import ToDbTask
+from atomate.utils.testing import AtomateTest
 
 __author__ = 'Shyam Dwaraknath <shyamd@lbl.gov>'
 
@@ -30,41 +33,7 @@ class TestDrone(AbstractDrone):
         return path
 
 
-class TestToDbTask(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        cls.scratch_dir = os.path.join(module_dir, "scratch")
-
-    def clear_dbs(self):
-        """
-        Properly clear the Fireworks and Tasks DBs
-        """
-        db = self.lp.db
-        for coll in db.collection_names():
-            if coll != "system.indexes":
-                db[coll].drop()
-
-
-    def setUp(self):
-        if os.path.exists(self.scratch_dir):
-            shutil.rmtree(self.scratch_dir)
-        os.makedirs(self.scratch_dir)
-        os.chdir(self.scratch_dir)
-        try:
-            self.lp = LaunchPad.from_file(
-                os.path.join(db_dir, "my_launchpad.yaml"))
-            self.clear_dbs()
-            self.lp.reset("", require_password=False)
-        except:
-            raise unittest.SkipTest(
-                'Cannot connect to MongoDB! Is the database server running? '
-                'Are the credentials correct?')
-
-    def tearDown(self):
-        shutil.rmtree(self.scratch_dir)
-        os.chdir(module_dir)
-        self.clear_dbs()
+class TestToDbTask(AtomateTest):
 
     def test_ToDbTask(self):
         raise unittest.SkipTest("Shyam - please fix this test.")

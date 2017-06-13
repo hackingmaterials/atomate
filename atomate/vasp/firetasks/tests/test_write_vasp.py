@@ -8,8 +8,8 @@ import unittest
 from fireworks.utilities.fw_serializers import load_object
 
 from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspFromPMGObjects, ModifyIncar
+from atomate.utils.testing import AtomateTest
 
-from pymatgen import SETTINGS
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
 from pymatgen.io.vasp.sets import MPRelaxSet
@@ -20,14 +20,9 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 
-class TestWriteVasp(PymatgenTest):
+class TestWriteVasp(PymatgenTest, AtomateTest):
     @classmethod
     def setUpClass(cls):
-        if not SETTINGS.get("PMG_VASP_PSP_DIR"):
-            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "test_files")
-            print('This system is not set up to run VASP jobs. '
-                  'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
-
         cls.struct_si = PymatgenTest.get_structure("Si")
 
         cls.ref_incar = Incar.from_file(
@@ -43,8 +38,7 @@ class TestWriteVasp(PymatgenTest):
                          "KPOINTS"))
         cls.ref_incar_preserve = Incar.from_file(os.path.join(module_dir,
                                                               "..", "..", "test_files",
-                                                              "preserve_incar",
-                                                              "INCAR"))
+                                                              "preserve_incar", "INCAR"))
 
     def setUp(self):
         os.chdir(module_dir)
@@ -76,10 +70,7 @@ class TestWriteVasp(PymatgenTest):
                 self.ref_incar_preserve)
 
     def test_ioset_explicit(self):
-        ft = WriteVaspFromIOSet(dict(structure=self.struct_si,
-                                     vasp_input_set=
-                                     MPRelaxSet(self.struct_si,
-                                                force_gamma=True)))
+        ft = WriteVaspFromIOSet(dict(structure=self.struct_si, vasp_input_set=MPRelaxSet(self.struct_si, force_gamma=True)))
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
         self._verify_files()

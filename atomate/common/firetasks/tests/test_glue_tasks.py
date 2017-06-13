@@ -7,7 +7,10 @@ import unittest
 from fireworks import LaunchPad
 from fireworks.core.firework import Firework, Workflow
 from fireworks.core.rocket_launcher import rapidfire
+
 from atomate.common.firetasks.glue_tasks import PassCalcLocs, get_calc_loc
+
+from atomate.utils.testing import AtomateTest
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -15,31 +18,7 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "test_files")
 
 
-class TestPassCalcLocs(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        cls.scratch_dir = os.path.join(module_dir, "scratch")
-
-    def setUp(self):
-        if os.path.exists(self.scratch_dir):
-            shutil.rmtree(self.scratch_dir)
-        os.makedirs(self.scratch_dir)
-        os.chdir(self.scratch_dir)
-        try:
-            self.lp = LaunchPad.from_file(
-                os.path.join(db_dir, "my_launchpad.yaml"))
-            self.lp.reset("", require_password=False)
-
-        except:
-            raise unittest.SkipTest(
-                'Cannot connect to MongoDB! Is the database server running? '
-                'Are the credentials correct?')
-
-    def tearDown(self):
-        shutil.rmtree(self.scratch_dir)
-        os.chdir(module_dir)
-        self.lp.reset("", require_password=False)
+class TestPassCalcLocs(AtomateTest):
 
     def test_passcalclocs(self):
         fw1 = Firework([PassCalcLocs(name="fw1")], name="fw1")
@@ -64,6 +43,3 @@ class TestPassCalcLocs(unittest.TestCase):
         self.assertEqual(get_calc_loc("fw1", calc_locs), calc_locs[0])
         self.assertEqual(get_calc_loc("fw2", calc_locs), calc_locs[1])
         self.assertEqual(get_calc_loc(True, calc_locs), calc_locs[1])
-
-
-

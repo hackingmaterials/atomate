@@ -4,19 +4,17 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os
 from datetime import datetime
-
 from pymongo import ReturnDocument
 from tqdm import tqdm
 
 from matgendb.util import get_database
-
-from atomate.utils.utils import get_mongolike, get_logger
 
 from monty.serialization import loadfn
 
 from pymatgen import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 
+from atomate.utils.utils import get_mongolike, get_logger
 from atomate.vasp.builders.base import AbstractBuilder
 
 logger = get_logger(__name__)
@@ -94,7 +92,7 @@ class TasksMaterialsBuilder(AbstractBuilder):
 
             except:
                 import traceback
-                hlogger.exception("<---")
+                logger.exception("<---")
                 logger.exception("There was an error processing task_id: {}".format(t_id))
                 logger.exception(traceback.format_exc())
                 logger.exception("--->")

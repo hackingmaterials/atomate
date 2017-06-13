@@ -130,7 +130,7 @@ class TestVaspPowerups(unittest.TestCase):
         for fw in my_wf.fws:
             self.assertEqual(fw.spec["tags"], ["b", "c"])
             for t in fw.tasks:
-                if 'VaspToDbTask' in str(t):
+                if 'VaspToDb' in str(t):
                     self.assertEqual(t["additional_fields"]["tags"], ["b", "c"])
                     found += 1
         self.assertEqual(found, 4)
@@ -145,10 +145,10 @@ class TestVaspPowerups(unittest.TestCase):
         for fw in my_wf.fws:
             self.assertEqual(fw.spec["tags"], ["foo", "bar"])
             for t in fw.tasks:
-                if 'BoltztrapToDBTask' in str(t):
+                if 'BoltztrapToDb' in str(t):
                     self.assertEqual(t["additional_fields"]["tags"], ["foo", "bar"])
                     b_found += 1
-                if 'VaspToDbTask' in str(t):
+                if 'VaspToDb' in str(t):
                     self.assertEqual(t["additional_fields"]["tags"], ["foo", "bar"])
                     v_found += 1
         self.assertEqual(b_found, 1)

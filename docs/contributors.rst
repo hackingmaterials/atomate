@@ -8,5 +8,5 @@ Major contributions are provided by:
 
 * Kiran Mathew, Shyam Dwaraknath, Joey Montoya, and Murat Aykol through the research group of Prof. Kristin Persson at UC Berkeley.
 * Hanmei Tang, Prof. Shyue Ping Ong, and the Materials Virtual Lab research group at UC San Diego.
-* Brandon Bocklund at Penn State, who led the atomate documentation effort.
+* Brandon Bocklund, who led the atomate documentation effort, through the research group of Prof. Zi-Kiu Liu at Penn State.
 * Alireza Faghaninia in the Hacking Materials group.

@@ -8,8 +8,7 @@ from collections import defaultdict
 
 from fireworks import FiretaskBase, Firework, Workflow, explicit_serialize, FWAction
 
-from atomate.utils.utils import env_chk, get_logger, get_mongolike
-from atomate.utils.utils import append_fw_wf, remove_fws, recursive_get_result
+from atomate.utils.utils import env_chk, get_logger, get_mongolike, recursive_get_result
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -67,43 +66,6 @@ class UtilsTests(unittest.TestCase):
         self.assertEqual(get_mongolike(d, "a.0.b"), 1)
         self.assertEqual(get_mongolike(d, "a.1.c.d"), 2)
         self.assertEqual(get_mongolike(d, "h.-1"), 6)
-
-    # TODO: @matk86 - remove this once removing append_fw_wf() method -computron
-    def test_append_fw(self):
-        fw_new = Firework(Task1())
-        fws = [self.fw1, self.fw2, self.fw3]
-        wflow = Workflow(fws)
-        leaf_ids = wflow.leaf_fw_ids
-        append_fw_wf(wflow, fw_new)
-        new_lead_ids = wflow.leaf_fw_ids
-        for i in leaf_ids:
-            self.assertEqual(wflow.links[i], [new_lead_ids[0]])
-
-    # TODO: @matk86 - move this test to FireWorks after moving remove_fws() there
-    def test_remove_leaf_fws(self):
-        fw4 = Firework(Task1(), parents=[self.fw2, self.fw3])
-        fws = [self.fw1, self.fw2, self.fw3, fw4]
-        wflow = Workflow(fws)
-        leaf_ids = wflow.leaf_fw_ids
-        parents = []
-        for i in leaf_ids:
-            parents.extend(wflow.links.parent_links[i])
-        new_wf = remove_fws(wflow, wflow.leaf_fw_ids)
-        new_leaf_ids = new_wf.leaf_fw_ids
-        self.assertEqual(new_leaf_ids, parents)
-
-    # TODO: @matk86 - move this test to FireWorks after moving remove_fws() there
-    def test_remove_root_fws(self):
-        fw4 = Firework(Task1(), parents=[self.fw2, self.fw3])
-        fws = [self.fw1, self.fw2, self.fw3, fw4]
-        wflow = Workflow(fws)
-        root_ids = wflow.root_fw_ids
-        children = []
-        for i in root_ids:
-            children.extend(wflow.links[i])
-        new_wf = remove_fws(wflow, wflow.root_fw_ids)
-        new_root_ids = new_wf.root_fw_ids
-        self.assertEqual(sorted(new_root_ids), sorted(children))
 
     def test_recursive_get_result(self):
         # Basic functionality with dictionary key

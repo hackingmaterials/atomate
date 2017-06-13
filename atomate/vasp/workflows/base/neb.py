@@ -16,6 +16,7 @@ from atomate.vasp.fireworks.core import NEBFW, NEBRelaxationFW
 __author__ = "Hanmei Tang, Iek-Heng Chu"
 __email__ = 'hat003@eng.ucsd.edu, ihchu@eng.ucsd.edu'
 
+
 # TODO: @shyuep: Please do a code review at this module before I look at this. -computron
 def _update_spec(additional_spec):
     """
@@ -44,9 +45,7 @@ def _update_spec(additional_spec):
 
     Returns:
         spec dict
-
     """
-
     additional_spec = additional_spec or {}
     default_spec = {"is_optimized": False,
                     "interpolation_type": "IDPP",
@@ -91,7 +90,6 @@ def get_wf_neb_from_structure(structure, user_incar_settings=None, additional_sp
         Workflow
 
     """
-
     spec = _update_spec(additional_spec)
     site_indices = spec["site_indices"]
     is_optimized = spec["is_optimized"]
@@ -201,7 +199,6 @@ def get_wf_neb_from_endpoints(parent, endpoints, user_incar_settings=None, addit
         Workflow
 
     """
-
     spec = _update_spec(additional_spec)
     spec["parent"] = parent.as_dict()
     spec["ep0"] = endpoints[0].as_dict()
@@ -282,7 +279,6 @@ def get_wf_neb_from_images(parent, images, user_incar_settings, additional_spec=
         Workflow
 
     """
-
     spec = _update_spec(additional_spec)
     spec["parent"] = parent.as_dict()
     assert isinstance(images, list) and len(images) >= 3
@@ -315,7 +311,3 @@ def get_wf_neb_from_images(parent, images, user_incar_settings, additional_spec=
     workflow = Workflow(fws, name=wf_name, links_dict=links_dict)
 
     return workflow
-
-
-if __name__ == "__main__":
-    pass

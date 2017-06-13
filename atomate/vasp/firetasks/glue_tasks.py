@@ -15,13 +15,7 @@ flow of the workflow, e.g. tasks to check stability or the gap is within a certa
 
 import gzip
 import os
-import six
-import operator
 import re
-from decimal import Decimal
-
-import numpy as np
-import monty
 
 from pymatgen import MPRester
 from pymatgen.io.vasp.sets import get_vasprun_outcar
@@ -35,6 +29,11 @@ from atomate.common.firetasks.glue_tasks import get_calc_loc, PassResult
 from atomate.utils.fileio import FileClient
 from atomate.common.firetasks.glue_tasks import GrabFilesFromCalcLoc
 
+from fireworks import explicit_serialize, FiretaskBase, FWAction
+
+from atomate.utils.utils import env_chk, get_logger
+from atomate.common.firetasks.glue_tasks import get_calc_loc, PassResult, CopyFiles
+
 logger = get_logger(__name__)
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
@@ -42,7 +41,7 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 
 @explicit_serialize
-class CopyVaspOutputs(FiretaskBase):
+class CopyVaspOutputs(CopyFiles):
     """
     Copy files from a previous VASP run directory to the current directory.
     By default, copies 'INCAR', 'POSCAR' (default: via 'CONTCAR'), 'KPOINTS', 
@@ -68,47 +67,41 @@ class CopyVaspOutputs(FiretaskBase):
             POSCAR (original POSCAR is not copied).
     """
 
-    optional_params = ["calc_loc", "calc_dir", "filesystem", "additional_files",
-                       "contcar_to_poscar"]
+    optional_params = ["calc_loc", "calc_dir", "filesystem", "additional_files", "contcar_to_poscar"]
 
     def run_task(self, fw_spec):
-        if self.get("calc_dir"):  # direct setting of calc dir - no calc_locs or filesystem!
-            calc_dir = self["calc_dir"]
-            filesystem = None
-        elif self.get("calc_loc"):  # search for calc dir and filesystem within calc_locs
-            calc_loc = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])
-            calc_dir = calc_loc["path"]
-            filesystem = calc_loc["filesystem"]
-        else:
-            raise ValueError("Must specify either calc_dir or calc_loc!")
 
-        fileclient = FileClient(filesystem=filesystem)
-        calc_dir = fileclient.abspath(calc_dir)
-        contcar_to_poscar = self.get("contcar_to_poscar", True)
-
-        all_files = fileclient.listdir(calc_dir)
+        calc_loc = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"]) if self.get("calc_loc") else {}
 
         # determine what files need to be copied
-        if "$ALL" in self.get("additional_files", []):
-            files_to_copy = all_files
-        else:
+        files_to_copy = None
+        if not "$ALL" in self.get("additional_files", []):
             files_to_copy = ['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR', 'vasprun.xml']
-
             if self.get("additional_files"):
                 files_to_copy.extend(self["additional_files"])
 
+        # decide between poscar and contcar
+        contcar_to_poscar = self.get("contcar_to_poscar", True)
         if contcar_to_poscar and "CONTCAR" not in files_to_copy:
             files_to_copy.append("CONTCAR")
             files_to_copy = [f for f in files_to_copy if f != 'POSCAR']  # remove POSCAR
 
+        # setup the copy
+        self.setup_copy(self.get("calc_dir", None), filesystem=self.get("filesystem", None),
+                        files_to_copy=files_to_copy, from_path_dict=calc_loc)
+        # do the copying
+        self.copy_files()
+
+    def copy_files(self):
+        all_files = self.fileclient.listdir(self.from_dir)
         # start file copy
-        for f in files_to_copy:
-            prev_path_full = os.path.join(calc_dir, f)
-            dest_fname = 'POSCAR' if f == 'CONTCAR' and contcar_to_poscar else f
-            dest_path = os.path.join(os.getcwd(), dest_fname)
+        for f in self.files_to_copy:
+            prev_path_full = os.path.join(self.from_dir, f)
+            dest_fname = 'POSCAR' if f == 'CONTCAR' else f
+            dest_path = os.path.join(self.to_dir, dest_fname)
 
             relax_ext = ""
-            relax_paths = sorted(fileclient.glob(prev_path_full+".relax*"))
+            relax_paths = sorted(self.fileclient.glob(prev_path_full+".relax*"))
             if relax_paths:
                 if len(relax_paths) > 9:
                     raise ValueError("CopyVaspOutputs doesn't properly handle >9 relaxations!")
@@ -126,7 +119,7 @@ class CopyVaspOutputs(FiretaskBase):
                 raise ValueError("Cannot find file: {}".format(f))
 
             # copy the file (minus the relaxation extension)
-            fileclient.copy(prev_path_full + relax_ext + gz_ext, dest_path + gz_ext)
+            self.fileclient.copy(prev_path_full + relax_ext + gz_ext, dest_path + gz_ext)
 
             # unzip the .gz if needed
             if gz_ext in ['.gz', ".GZ"]:
@@ -261,9 +254,9 @@ class GetInterpolatedPOSCAR(FiretaskBase):
 def pass_vasp_result(pass_dict, calc_dir='.', filename="vasprun.xml.gz", 
         parse_eigen=False, parse_dos=False, **kwargs):
     """
-    function that gets a PassResult firework corresponding to output
-    from a Vasprun.  Covers most use cases in which user needs to
-    pass results from a vasp run to child FWs (e. g. analysis FWs)
+    Function that gets a PassResult firework corresponding to output from a Vasprun.  Covers
+    most use cases in which user needs to pass results from a vasp run to child FWs
+    (e. g. analysis FWs)
         
     pass_vasp_result(pass_dict={'stress': ">>ionic_steps.-1.stress"})
 
@@ -294,4 +287,4 @@ def pass_vasp_result(pass_dict, calc_dir='.', filename="vasprun.xml.gz",
 
     parse_kwargs = {"filename": filename, "parse_eigen": parse_eigen, "parse_dos":parse_dos}
     return PassResult(pass_dict=pass_dict, calc_dir=calc_dir, parse_kwargs=parse_kwargs,
-            parse_class="pymatgen.io.vasp.outputs.Vasprun", **kwargs)
+                      parse_class="pymatgen.io.vasp.outputs.Vasprun", **kwargs)

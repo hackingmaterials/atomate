@@ -11,9 +11,9 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from fireworks import Firework, Workflow
 
-from atomate.utils.utils import get_logger, append_fw_wf
+from atomate.utils.utils import get_logger
 from atomate.vasp.workflows.base.deformations import get_wf_deformations
-from atomate.vasp.firetasks.parse_outputs import ElasticTensorToDbTask
+from atomate.vasp.firetasks.parse_outputs import ElasticTensorToDb
 
 __author__ = 'Shyam Dwaraknath, Joseph Montoya'
 __email__ = 'shyamd@lbl.gov, montoyjh@lbl.gov'
@@ -81,9 +81,9 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
                                      optimize_structure=optimize_structure)
 
     if add_analysis_task:
-        fw_analysis = Firework(ElasticTensorToDbTask(structure=structure, db_file=db_file),
+        fw_analysis = Firework(ElasticTensorToDb(structure=structure, db_file=db_file),
                                name="Analyze Elastic Data", spec={"_allow_fizzled_parents": True})
-        append_fw_wf(wf_elastic, fw_analysis)
+        wf_elastic.append_wf(Workflow.from_Firework(fw_analysis), wf_elastic.leaf_fw_ids)
 
     wf_elastic.name = "{}:{}".format(structure.composition.reduced_formula, "elastic constants")
 
