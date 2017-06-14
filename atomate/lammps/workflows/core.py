@@ -12,8 +12,8 @@ from pymatgen.io.lammps.input import DictLammpsInput, NVTLammpsInput
 
 from atomate.lammps.firetasks.write_inputs import WriteLammpsFromIOSet
 from atomate.lammps.firetasks.run_calc import RunLammpsDirect
-from atomate.lammps.firetasks.parse_outputs import  LammpsToDBTask
-
+from atomate.lammps.firetasks.parse_outputs import LammpsToDBTask
+from atomate.lammps.fireworks.core import ReadRunFW
 
 __author__ = 'Kiran Mathew'
 __email__ = "kmathew@lbl.gov"
@@ -24,6 +24,33 @@ __email__ = "kmathew@lbl.gov"
 # people to find the Fireworks there since it will be a familiar subpackage structure.
 # It should be an easy mod and shouldn't get in the way much. -computron
 # TODO: @matk86 - is there any workflow or firework taking into account Packmol?  -computron
+
+def get_wf_readrun(job_name, lammps_input, lammps_data, data_filename,
+                 user_lammps_settings={}, is_forcefield=False, lammps_cmd="lammps",
+                 db_file=None):
+    """
+    Workflow that reads a lammps input file, runs lammps, and inserts data to DB
+
+    Args:
+        job_name: descriptive name for lammps simulation
+        lammps_input: path to lammps style input file
+        lammps_data: path to lammps data file
+        data_filename: data file name
+        user_lammps_settings: settings that will overwrite input files
+        is_forcefield: whether the data file has forcefield info in it.
+            This is required only if lammps_data is a path to the data file instead of a data object
+        lammps_cmd: command to run lammps
+        db_file: path to file specifying db credentials to place output parsing
+        parents ([Fireworks)]: parents of this particular Firework
+        \*\*kwargs: other kwargs that are passed to Firework.__init__.
+
+    Returns:
+        Workflow
+    """
+    fws = [ReadRunFW(job_name, lammps_input, lammps_data, data_filename,
+                     user_lammps_settings, is_forcefield, lammps_cmd, db_file)]
+    return Workflow(fws, name=job_name)
+
 
 def get_wf(job_name, lammps_input_set, input_filename="lammps.inp", lammps_bin="lammps",
            db_file=None, dry_run=False):
