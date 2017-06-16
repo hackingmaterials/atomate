@@ -8,10 +8,11 @@ parameters file)
 """
 
 from fireworks import FiretaskBase, explicit_serialize
+from pymatgen.io.lammps.input import DictLammpsInput
 
 
-__author__ = 'Kiran Mathew'
-__email__ = "kmathew@lbl.gov"
+__author__ = 'Kiran Mathew, Brandon Wood'
+__email__ = "kmathew@lbl.gov, b.wood@berkeley.edu"
 
 
 @explicit_serialize
@@ -27,9 +28,16 @@ class WriteLammpsFromIOSet(FiretaskBase):
         data_file (string): if specified the data file will be renamed
     """
 
-    required_params = ["lammps_input_set", "input_file"]
-    optional_params = ["data_file"]
+    required_params = ["job_name", "lammps_input",  "lammps_data", "is_forcefield"]
 
     def run_task(self, fw_spec):
-        lammps_input = self["lammps_input_set"]
-        lammps_input.write_input(self["input_file"], data_filename=self.get("data_file", None))
+        user_default_settings = {"log": "lammps.log"}
+        data_filename = "lammps.data"
+        input_filename = "lammps.in"
+        lammps_input = self["lammps_input"]
+        lammps_data = self["lammps_data"]
+        job_name = self["job_name"]
+        is_forcefield = self["is_forcefield"]
+        lammps_input_set = DictLammpsInput.from_file(job_name, lammps_input, lammps_data,
+                                                     data_filename, user_default_settings, is_forcefield)
+        lammps_input_set.write_input(input_filename, data_filename)
