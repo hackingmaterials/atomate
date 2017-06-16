@@ -3,7 +3,7 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
-First attempt at Lammps Drone for atomate
+Lammps Drones for atomate
 """
 
 import os
@@ -26,9 +26,9 @@ __version__ = "0.1.0"
 logger = get_logger(__name__)
 
 
-class LammpsDrone(AbstractDrone):
+class LammpsForceFieldDrone(AbstractDrone):
     """
-    Simple Lammps drone
+    Lammps force field drone
     """
 
     __version__ = 0.1  # note: the version is inserted into the task doc
@@ -57,12 +57,15 @@ class LammpsDrone(AbstractDrone):
             (dict): a task dictionary
         """
 
-        input_files = [QcInput.from_file(f) for name, f in self.filter_files(path, file_pattern="qc.in").items()]
-        input_files = [DictLammpsInput(f8) for name, f in self.filter_files(path, file_pattern="lammps.in").items()]
-        output_files = [QcOutput.from_file(f) for name, f in self.filter_files(path, file_pattern="qc.out").items()]
-        log_file = [LammpsLog(f) for name, f in self.filter_files(path, file_pattern="lammps.log").items()]
+        in_file = os.path.join(path, "lammps.in")
+        data_file = os.path.join(path, "lammps.data")
+        data_filename = "lammps.data"
+        is_forcefield = True
+        input_file = DictLammpsInput.from_file("lammps", in_file, data_file,
+                                                data_filename, is_forcefield=is_forcefield)
+        log_file = LammpsLog(os.path.join(path, "lammps.log"))
         logger.info("Getting task doc for base dir :{}".format(path))
-        d = self.generate_doc(path, input_files, output_files)
+        d = self.generate_doc(path, input_file, log_file)
         self.post_process(d)
         return d
 
@@ -109,7 +112,7 @@ class LammpsDrone(AbstractDrone):
                     processed_files['standard'] = f
         return processed_files
 
-    def generate_doc(self, dir_name, inputs, outputs):
+    def generate_doc(self, dir_name, input, logfile):
         """
         Adapted from matgendb.creator.generate_doc
         """
@@ -120,10 +123,10 @@ class LammpsDrone(AbstractDrone):
             if self.use_full_uri:
                 fullpath = get_uri(dir_name)
             d = {k: v for k, v in self.additional_fields.items()}
-            d["schema"] = {"code": "atomate", "version": LammpsDrone.__version__}
+            d["schema"] = {"code": "atomate", "version": LammpsForceFieldDrone.__version__}
             d["dir_name"] = fullpath
-            d["input"] = [lammps_input.as_dict() for input in inputs]
-            d["outputs"] = [output.as_dict() for output in outputs]
+            d["input"] = input.as_dict()
+            d["log"] = vars(logfile)
             return d
 
         except Exception:
