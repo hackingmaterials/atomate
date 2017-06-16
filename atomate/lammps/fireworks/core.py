@@ -6,18 +6,22 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 Defines fireworks to be incorporated into workflows
 """
 
+import os
+
 from fireworks import Firework
 from atomate.lammps.firetasks.run_calc import RunLammpsDirect
-from atomate.lammps.firetasks.parse_outputs import LammpsToDBTask
-from pymatgen.io.lammps.input import DictLammpsInput
+from atomate.common.firetasks.parse_outputs import ToDbTask
+from atomate.lammps.firetasks.write_inputs import WriteLammpsFromIOSet
+from atomate.lammps.drones import LammpsForceFieldDrone
 
 __author__ = "Brandon Wood"
 __email__ = "b.wood@berkeley.edu"
 
+cwd = os.getcwd()
 
-class ReadRunFW(Firework):
-    def __init__(self, job_name, lammps_input, lammps_data, data_filename,
-                 user_lammps_settings={}, is_forcefield=False, lammps_cmd="lammps",
+class BasicFW(Firework):
+    def __init__(self, job_name, lammps_input, lammps_data, lammps_cmd,
+                 data_filename="lammps.data", user_lammps_settings={}, is_forcefield=False,
                  db_file=None, parents=None, **kwargs):
         """
         Read, run, and store a lammps simulation. This is useful for lammps simulations that already have
@@ -37,10 +41,12 @@ class ReadRunFW(Firework):
             \*\*kwargs: other kwargs that are passed to Firework.__init__.
         """
 
-        lammps_cmd = lammps_cmd + " -in " + lammps_input
-        lammps_input_set = DictLammpsInput.from_file(job_name, lammps_input, lammps_data,
-                                                     data_filename, user_lammps_settings, is_forcefield)
-        t = []
+        lammps_cmd = lammps_cmd + " -in " + "lammps.in"
+
+        t = list()
+        t.append(WriteLammpsFromIOSet(job_name=job_name, lammps_input=lammps_input,
+                                      lammps_data=lammps_data, is_forcefield=is_forcefield))
         t.append(RunLammpsDirect(lammps_cmd=lammps_cmd))
-        t.append(LammpsToDBTask(lammps_input=lammps_input_set, db_file=db_file))
-        super(ReadRunFW, self).__init__(t, parents=parents, name=job_name, **kwargs)
+        t.append(ToDbTask(drone=LammpsForceFieldDrone(), mmdb="atomate.utils.database.CalcDb",
+                          db_file=db_file, additional_fields={"task_label": job_name}))
+        super(BasicFW, self).__init__(t, parents=parents, name=job_name, **kwargs)
