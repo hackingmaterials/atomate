@@ -13,7 +13,7 @@ from pymatgen.io.lammps.input import DictLammpsInput, NVTLammpsInput
 from atomate.lammps.firetasks.write_inputs import WriteLammpsFromIOSet
 from atomate.lammps.firetasks.run_calc import RunLammpsDirect
 from atomate.lammps.firetasks.parse_outputs import LammpsToDBTask
-from atomate.lammps.fireworks.core import ReadRunFW
+from atomate.lammps.fireworks.core import BasicFW
 
 __author__ = 'Kiran Mathew'
 __email__ = "kmathew@lbl.gov"
@@ -25,9 +25,8 @@ __email__ = "kmathew@lbl.gov"
 # It should be an easy mod and shouldn't get in the way much. -computron
 # TODO: @matk86 - is there any workflow or firework taking into account Packmol?  -computron
 
-def get_wf_readrun(job_name, lammps_input, lammps_data, data_filename,
-                 user_lammps_settings={}, is_forcefield=False, lammps_cmd="lammps",
-                 db_file=None):
+def get_wf_basic(job_name, lammps_input, lammps_data, data_filename, lammps_cmd,
+                 user_lammps_settings={}, is_forcefield=False, db_file=None):
     """
     Workflow that reads a lammps input file, runs lammps, and inserts data to DB
 
@@ -47,8 +46,13 @@ def get_wf_readrun(job_name, lammps_input, lammps_data, data_filename,
     Returns:
         Workflow
     """
-    fws = [ReadRunFW(job_name, lammps_input, lammps_data, data_filename,
-                     user_lammps_settings, is_forcefield, lammps_cmd, db_file)]
+    fws = [BasicFW(job_name=job_name,
+                   lammps_input=lammps_input,
+                   lammps_data=lammps_data,
+                   lammps_cmd=lammps_cmd,
+                   user_lammps_settings=user_lammps_settings,
+                   is_forcefield=is_forcefield,
+                   db_file=db_file)]
     return Workflow(fws, name=job_name)
 
 
