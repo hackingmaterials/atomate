@@ -215,6 +215,13 @@ class VaspDrone(AbstractDrone):
                 "density": d_calc_final.pop("density"),
                 "energy": d_calc_final["output"]["energy"],
                 "energy_per_atom": d_calc_final["output"]["energy_per_atom"]}
+            
+            # patch calculated magnetic moments into final structure
+            if len(d_calc_final["output"]["outcar"]["magnetization"]) != 0:
+                magmoms = [m["tot"] for m in d_calc_final["output"]["outcar"]["magnetization"]]
+                s = Structure.from_dict(d["output"]["structure"])
+                s.add_site_property('magmom', magmoms)
+                d["output"]["structure"] = s.as_dict()
 
             calc = d["calcs_reversed"][0]
             gap = calc["output"]["bandgap"]
