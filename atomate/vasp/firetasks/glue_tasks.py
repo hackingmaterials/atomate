@@ -19,6 +19,15 @@ import re
 
 from pymatgen import MPRester
 from pymatgen.io.vasp.sets import get_vasprun_outcar
+from pymatgen.analysis.elasticity import reverse_voigt_map
+from pymatgen.core.structure import Structure
+
+from fireworks import explicit_serialize, FiretaskBase, FWAction
+
+from atomate.utils.utils import env_chk, get_logger, load_class
+from atomate.common.firetasks.glue_tasks import get_calc_loc, PassResult
+from atomate.utils.fileio import FileClient
+from atomate.common.firetasks.glue_tasks import GrabFilesFromCalcLoc
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
@@ -202,8 +211,48 @@ class CheckBandgap(FiretaskBase):
         return FWAction(stored_data=stored_data)
 
 
-def pass_vasp_result(pass_dict, calc_dir='.', filename="vasprun.xml.gz", parse_eigen=False,
-                     parse_dos=False, **kwargs):
+@explicit_serialize
+class GetInterpolatedPOSCAR(FiretaskBase):
+    """
+    Grabs CONTCARS from two previous calculations
+
+    Args:
+        nimages (int) : Number of interpolations.
+    """
+    required_params = ["start","end","this_image","nimages","autosort_tol"]
+
+    def run_task(self, fw_spec):
+
+        # make folder for poscar interpolation start and end structure files.
+        interpolate_folder = '/interpolate'
+        if not os.path.exists(os.getcwd()+interpolate_folder):
+            os.makedirs(os.getcwd()+interpolate_folder)
+
+            print (os.getcwd()+interpolate_folder)
+
+        # use method of GrabFilesFromCalcLoc to grab files from previous locations.
+        GrabFilesFromCalcLoc(calc_dir=None, calc_loc=self.get("start","default"), filenames="CONTCAR",
+                             name_prepend="interpolate/", name_append="_0").run_task(fw_spec=fw_spec)
+        GrabFilesFromCalcLoc(calc_dir=None, calc_loc=self.get("end","default"), filenames="CONTCAR",
+                             name_prepend="interpolate/", name_append="_1").run_task(fw_spec=fw_spec)
+
+        # assuming first calc_dir is polar structure for ferroelectric search
+
+        s1 = Structure.from_file("interpolate/CONTCAR_0")
+        s2 = Structure.from_file("interpolate/CONTCAR_1")
+
+        structs = s1.interpolate(s2,self.get('nimages',5),interpolate_lattices=True,
+                                 autosort_tol=self.get("autosort_tol",0.5))
+
+        # save only the interpolation needed for this run
+        i = self.get("this_image",0)
+        s = structs[i]
+        s.to(fmt='POSCAR', filename=os.getcwd()+"/POSCAR")
+
+        # will want to call this method after getting first VASP set
+
+def pass_vasp_result(pass_dict, calc_dir='.', filename="vasprun.xml.gz", 
+        parse_eigen=False, parse_dos=False, **kwargs):
     """
     Function that gets a PassResult firework corresponding to output from a Vasprun.  Covers
     most use cases in which user needs to pass results from a vasp run to child FWs
