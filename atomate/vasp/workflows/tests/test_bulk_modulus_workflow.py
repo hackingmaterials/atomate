@@ -49,7 +49,7 @@ class TestBulkModulusWorkflow(AtomateTest):
         self.ndeformations = 6
         self.deformations = [(np.identity(3) * (1 + x)).tolist() for x in
                              np.linspace(-0.05, 0.05, self.ndeformations)]
-        self.wf_config = {"vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"}
+        self.wf_config = {"VASP_CMD": ">>vasp_cmd<<", "DB_FILE": ">>db_file<<"}
         self.wf = wf_bulk_modulus(self.struct_si, self.wf_config)
 
     def _simulate_vasprun(self, wf):

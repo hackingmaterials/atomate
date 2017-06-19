@@ -8,6 +8,7 @@ This module defines the elastic workflow
 
 from pymatgen.analysis.elasticity.strain import Deformation
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from pymatgen.io.vasp.sets import MPStaticSet
 
 from fireworks import Firework, Workflow
 
@@ -21,10 +22,10 @@ __email__ = 'shyamd@lbl.gov, montoyjh@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", norm_deformations=None,
-                            shear_deformations=None, additional_deformations=None, db_file=None,
-                            user_kpoints_settings=None, add_analysis_task=True, conventional=True,
-                            optimize_structure=True):
+def get_wf_elastic_constant(structure, norm_deformations=None, shear_deformations=None,
+                            additional_deformations=None, vasp_input_set=None, vasp_cmd="vasp",
+                            db_file=None, user_kpoints_settings=None, add_analysis_task=True,
+                            conventional=True, copy_vasp_outputs=True, tag="elastic"):
     """
     Returns a workflow to calculate elastic constants.
 
@@ -47,6 +48,11 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
         db_file (str): path to file containing the database credentials.
         user_kpoints_settings (dict): example: {"grid_density": 7000}
         add_analysis_task (bool): boolean indicating whether to add analysis
+        conventional (bool): If True the input structure will be converted to the conventional
+            standard structure.
+        copy_vasp_outputs (bool): whether or not copy the outputs from the previous calc(usually
+            structure optimization) before running the deformed structure calculations(transmuter
+            fireworks).
 
     Returns:
         Workflow
@@ -73,12 +79,12 @@ def get_wf_elastic_constant(structure, vasp_input_set=None, vasp_cmd="vasp", nor
     if not deformations:
         raise ValueError("deformations list empty")
 
-    wf_elastic = get_wf_deformations(structure, deformations, vasp_input_set=vasp_input_set,
-                                     lepsilon=False, vasp_cmd=vasp_cmd, db_file=db_file,
-                                     user_kpoints_settings=user_kpoints_settings,
-                                     pass_stress_strain=True, name="deformation",
-                                     relax_deformed=True, tag="elastic",
-                                     optimize_structure=optimize_structure)
+    vis_static = vasp_input_set or MPStaticSet(structure, force_gamma=True, lepsilon=False,
+                                               user_kpoints_settings=user_kpoints_settings)
+
+    wf_elastic = get_wf_deformations(structure, deformations, vasp_cmd=vasp_cmd, db_file=db_file,
+                                     pass_stress_strain=True, name="deformation", tag=tag,
+                                     vasp_input_set=vis_static, copy_vasp_outputs=copy_vasp_outputs)
 
     if add_analysis_task:
         fw_analysis = Firework(ElasticTensorToDb(structure=structure, db_file=db_file),
