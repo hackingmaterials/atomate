@@ -62,7 +62,6 @@ class VaspToDb(FiretaskBase):
     optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
                        "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful"]
 
-    # TODO: make it so that bandstructure_mode is just T/F with auto-detect of uniform/line
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
         calc_dir = os.getcwd()
