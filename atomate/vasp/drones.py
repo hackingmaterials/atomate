@@ -304,7 +304,7 @@ class VaspDrone(AbstractDrone):
                 raise ValueError("No valid dos data exist in {}.".format(dir_name))
 
         if self.bandstructure_mode:
-            bs = vrun.get_band_structure(line_mode=(self.bandstructure_mode == "line"))
+            bs = vrun.get_band_structure(line_mode=(self.bandstructure_mode.lower() == "line"))
         else:
             bs = vrun.get_band_structure()
 
