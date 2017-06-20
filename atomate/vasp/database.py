@@ -71,10 +71,9 @@ class VaspCalcDb(CalcDb):
         Handles putting DOS and band structure into GridFS as needed.
 
         Args:
-            task_doc: (dict) the task document, with optional keys for "dos" and "bandstructure".
-            parse_dos: (bool) attempt to parse dos in taskdoc["dos"] and insert into Gridfs
-            parse_bs: (bool) attempt to parse bandstructure in taskdoc["bandstructure"] and
-                insert into Gridfs
+            task_doc: (dict) the task document
+            parse_dos: (bool) attempt to parse dos in taskdoc and insert into Gridfs
+            parse_bs: (bool) attempt to parse bandstructure in taskdoc and insert into Gridfs
 
         Returns:
             (int) - task_id of inserted document
