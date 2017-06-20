@@ -84,11 +84,11 @@ class VaspToDb(FiretaskBase):
         # Check for additional keys to set based on the fw_spec
         if self.get("fw_spec_field"):
             task_doc.update(fw_spec[self.get("fw_spec_field")])
-        # get the database connection
 
-        # db insertion or taskdoc dump
+        # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
 
+        # db insertion or taskdoc dump
         if not db_file:
             with open("task.json", "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
