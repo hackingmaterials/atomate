@@ -72,8 +72,8 @@ class VaspCalcDb(CalcDb):
 
         Args:
             task_doc: (dict) the task document
-            parse_dos: (bool) attempt to parse dos in taskdoc and insert into Gridfs
-            parse_bs: (bool) attempt to parse bandstructure in taskdoc and insert into Gridfs
+            parse_dos: (bool) attempt to parse dos in task_doc and insert into Gridfs
+            parse_bs: (bool) attempt to parse bandstructure in task_doc and insert into Gridfs
 
         Returns:
             (int) - task_id of inserted document
