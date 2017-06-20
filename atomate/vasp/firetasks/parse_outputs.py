@@ -93,28 +93,9 @@ class VaspToDb(FiretaskBase):
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
             mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-
-            # insert dos into GridFS
-            if self.get("parse_dos") and "calcs_reversed" in task_doc:
-                if "dos" in task_doc["calcs_reversed"][0]:  # only store idx=0 DOS
-                    dos = json.dumps(task_doc["calcs_reversed"][0]["dos"], cls=MontyEncoder)
-                    gfs_id, compression_type = mmdb.insert_gridfs(dos, "dos_fs")
-                    task_doc["calcs_reversed"][0]["dos_compression"] = compression_type
-                    task_doc["calcs_reversed"][0]["dos_fs_id"] = gfs_id
-                    del task_doc["calcs_reversed"][0]["dos"]
-
-            # insert band structure into GridFS
-            if self.get("bandstructure_mode") and "calcs_reversed" in task_doc:
-                if "bandstructure" in task_doc["calcs_reversed"][0]:  # only store idx=0 BS
-                    bs = json.dumps(task_doc["calcs_reversed"][0]["bandstructure"], cls=MontyEncoder)
-                    gfs_id, compression_type = mmdb.insert_gridfs(bs, "bandstructure_fs")
-                    task_doc["calcs_reversed"][0]["bandstructure_compression"] = compression_type
-                    task_doc["calcs_reversed"][0]["bandstructure_fs_id"] = gfs_id
-                    del task_doc["calcs_reversed"][0]["bandstructure"]
-
-            # insert the task document
-            t_id = mmdb.insert(task_doc)
-
+            t_id = mmdb.insert_task(task_doc,
+                                    parse_dos=self.get("parse_dos", False),
+                                    parse_bs=bool(self.get("bandstructure_mode", False)))
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
         if self.get("defuse_unsuccessful", True):
