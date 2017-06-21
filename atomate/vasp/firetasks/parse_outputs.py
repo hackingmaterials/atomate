@@ -59,7 +59,7 @@ class VaspToDb(FiretaskBase):
             is not "successful"; i.e. both electronic and ionic convergence are reached.
             Defaults to True.
     """
-    optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
+    optional_params = ["calc_dir", "calc_loc", "parse_dos", "parse_bs", "bandstructure_mode",
                        "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful"]
 
     def run_task(self, fw_spec):
@@ -75,6 +75,7 @@ class VaspToDb(FiretaskBase):
 
         drone = VaspDrone(additional_fields=self.get("additional_fields"),
                           parse_dos=self.get("parse_dos", False), compress_dos=1,
+                          parse_bs=self.get("parse_bs", True),
                           bandstructure_mode=self.get("bandstructure_mode", False), compress_bs=1)
 
         # assimilate (i.e., parse)
