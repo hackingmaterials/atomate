@@ -73,7 +73,7 @@ class VaspDrone(AbstractDrone):
     }
 
     def __init__(self, runs=None, parse_dos=False, compress_dos=False, bandstructure_mode=False,
-                 compress_bs=False, additional_fields=None, use_full_uri=True):
+                 compress_bs=False, additional_fields=None, use_full_uri=True, parse_bs=True):
         self.parse_dos = parse_dos
         self.compress_dos = compress_dos
         self.additional_fields = additional_fields or {}
@@ -81,6 +81,7 @@ class VaspDrone(AbstractDrone):
         self.runs = runs or ["relax" + str(i+1) for i in range(9)]  # can't auto-detect: path unknown
         self.bandstructure_mode = bandstructure_mode
         self.compress_bs = compress_bs
+        self.parse_bs = parse_bs
 
     def assimilate(self, path):
         """
@@ -224,13 +225,15 @@ class VaspDrone(AbstractDrone):
                 d["output"]["structure"] = s.as_dict()
 
             calc = d["calcs_reversed"][0]
-            gap = calc["output"]["bandgap"]
-            cbm = calc["output"]["cbm"]
-            vbm = calc["output"]["vbm"]
-            is_direct = calc["output"]["is_gap_direct"]
-            is_metal = calc["output"]["is_metal"]
-            d["output"].update({"bandgap": gap, "cbm": cbm, "vbm": vbm,
-                                "is_gap_direct": is_direct, "is_metal": is_metal})
+            
+            if self.parse_bs:
+                gap = calc["output"]["bandgap"]
+                cbm = calc["output"]["cbm"]
+                vbm = calc["output"]["vbm"]
+                is_direct = calc["output"]["is_gap_direct"]
+                is_metal = calc["output"]["is_metal"]
+                d["output"].update({"bandgap": gap, "cbm": cbm, "vbm": vbm,
+                                    "is_gap_direct": is_direct, "is_metal": is_metal})
 
             sg = SpacegroupAnalyzer(Structure.from_dict(d_calc_final["output"]["structure"]), 0.1)
             if not sg.get_symmetry_dataset():
@@ -267,10 +270,14 @@ class VaspDrone(AbstractDrone):
         Process a vasprun.xml file.
         """
         vasprun_file = os.path.join(dir_name, filename)
-        if self.bandstructure_mode:
-            vrun = Vasprun(vasprun_file, parse_eigen=True, parse_projected_eigen=True)
+        
+        if self.parse_bs:
+            if self.bandstructure_mode:
+                vrun = Vasprun(vasprun_file, parse_eigen=True, parse_projected_eigen=True, parse_dos=self.parse_dos)
+            else:
+                vrun = Vasprun(vasprun_file, parse_eigen=True, parse_dos=self.parse_dos)
         else:
-            vrun = Vasprun(vasprun_file)
+            vrun = Vasprun(vasprun_file, parse_eigen=False, parse_dos=self.parse_dos)
 
         d = vrun.as_dict()
 
@@ -280,9 +287,10 @@ class VaspDrone(AbstractDrone):
                      "composition_unit_cell": "unit_cell_formula"}.items():
             d[k] = d.pop(v)
 
-        for k in ["eigenvalues", "projected_eigenvalues"]:  # large storage space breaks some docs
-            if k in d["output"]:
-                del d["output"][k]
+        if self.parse_bs:            
+            for k in ["eigenvalues", "projected_eigenvalues"]:  # large storage space breaks some docs
+                if k in d["output"]:
+                    del d["output"][k]
 
         comp = Composition(d["composition_unit_cell"])
         d["formula_anonymous"] = comp.anonymized_formula
@@ -303,19 +311,21 @@ class VaspDrone(AbstractDrone):
             except:
                 raise ValueError("No valid dos data exist in {}.".format(dir_name))
 
-        if self.bandstructure_mode:
-            bs = vrun.get_band_structure(line_mode=(self.bandstructure_mode.lower() == "line"))
-        else:
-            bs = vrun.get_band_structure()
+        if self.parse_bs: 
+            if self.bandstructure_mode:
+                bs = vrun.get_band_structure(line_mode=(self.bandstructure_mode.lower() == "line"))
+            else:
+                bs = vrun.get_band_structure()
 
-        d["bandstructure"] = bs.as_dict()
+            d["bandstructure"] = bs.as_dict()
 
-        d["output"]["vbm"] = bs.get_vbm()["energy"]
-        d["output"]["cbm"] = bs.get_cbm()["energy"]
-        bs_gap = bs.get_band_gap()
-        d["output"]["bandgap"] = bs_gap["energy"]
-        d["output"]["is_gap_direct"] = bs_gap["direct"]
-        d["output"]["is_metal"] = bs.is_metal()
+            d["output"]["vbm"] = bs.get_vbm()["energy"]
+            d["output"]["cbm"] = bs.get_cbm()["energy"]
+            bs_gap = bs.get_band_gap()
+            d["output"]["bandgap"] = bs_gap["energy"]
+            d["output"]["is_gap_direct"] = bs_gap["direct"]
+            d["output"]["is_metal"] = bs.is_metal()
+            
         d["task"] = {"type": taskname, "name": taskname}
 
         if hasattr(vrun, "force_constants"):
@@ -464,6 +474,7 @@ class VaspDrone(AbstractDrone):
     def as_dict(self):
         init_args = {
             "parse_dos": self.parse_dos,
+            "parse_bs": self.parse_bs,            
             "compress_dos": self.compress_dos,
             "bandstructure_mode": self.bandstructure_mode,
             "compress_bs": self.compress_bs,
