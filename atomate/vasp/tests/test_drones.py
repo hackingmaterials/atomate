@@ -27,7 +27,7 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
         cls.Al = os.path.join(module_dir, "..", "test_files", "Al")
 
     def test_assimilate(self):
-        drone = VaspDrone()
+        drone = VaspDrone(bandstructure_mode=False, parse_dos=False)
         doc = drone.assimilate(self.relax)
         # Only the main changes from the vasprun as dict format and currently
         # used schema in pymatgen-db are tested for now.
@@ -40,7 +40,7 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
         self.assertEqual(doc["input"]["parameters"]["ISMEAR"], -5)
 
     def test_runs_assimilate(self):
-        drone = VaspDrone(runs=["relax1", "relax2"])
+        drone = VaspDrone(runs=["relax1", "relax2"], bandstructure_mode=False, parse_dos=False)
         doc = drone.assimilate(self.relax2)
         oszicar2 = Oszicar(os.path.join(self.relax2, "OSZICAR.relax2.gz"))
         outcar1 = Outcar(os.path.join(self.relax2, "OUTCAR.relax1.gz"))
@@ -66,7 +66,7 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
         self.assertEqual(doc["calcs_reversed"][1]["output"]["outcar"], outcar1)
 
     def test_bandstructure(self):
-        drone = VaspDrone()
+        drone = VaspDrone(bandstructure_mode="uniform", parse_dos=True)
         doc = drone.assimilate(self.Al)
         self.assertEqual(doc["composition_reduced"], {'Al': 1.0})
         self.assertEqual(doc["formula_pretty"], 'Al')

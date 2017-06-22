@@ -72,16 +72,26 @@ class VaspDrone(AbstractDrone):
                      'warnings'}
     }
 
-    def __init__(self, runs=None, parse_dos=False, compress_dos=False, bandstructure_mode=False,
-                 compress_bs=False, additional_fields=None, use_full_uri=True, parse_bs=True):
+    def __init__(self, runs=None, parse_dos=False, bandstructure_mode="uniform", use_full_uri=True,
+                 additional_fields=None):
+        """
+
+        Args:
+            runs ([str]): list of strings that can be used find the vasp run folders.
+                Default: ["relax1", "relax2", .., "relax9"]
+            parse_dos (bool): whether or not to parse the densit of states.
+            bandstructure_mode (str): set to "uniform" for uniform band structure(the default).
+                Set to "line" for line mode. If False, band structure will not be parsed.
+            use_full_uri (bool): whether or not to set the 'dir_name' key. If True, 'dir_name' is
+                set to the full URI path, e.g., fileserver.host.com:/full/path/of/dir_name.
+            additional_fields (dict): additional items to be set in the task doc, metadat like
+                author, email etc.
+        """
         self.parse_dos = parse_dos
-        self.compress_dos = compress_dos
         self.additional_fields = additional_fields or {}
         self.use_full_uri = use_full_uri
-        self.runs = runs or ["relax" + str(i+1) for i in range(9)]  # can't auto-detect: path unknown
+        self.runs = runs or ["relax" + str(i+1) for i in range(9)] # can't auto-detect: path unknown
         self.bandstructure_mode = bandstructure_mode
-        self.compress_bs = compress_bs
-        self.parse_bs = parse_bs
 
     def assimilate(self, path):
         """
@@ -234,7 +244,7 @@ class VaspDrone(AbstractDrone):
 
             calc = d["calcs_reversed"][0]
             
-            if self.parse_bs:
+            if self.bandstructure_mode:
                 gap = calc["output"]["bandgap"]
                 cbm = calc["output"]["cbm"]
                 vbm = calc["output"]["vbm"]
@@ -283,13 +293,17 @@ class VaspDrone(AbstractDrone):
             dict
         """
         vasprun_file = os.path.join(dir_name, filename)
-        
-        if self.parse_bs:
-            if self.bandstructure_mode:
+
+        if self.bandstructure_mode:
+            bs_type = self.bandstructure_mode.lower()
+            if bs_type == "line":
                 vrun = Vasprun(vasprun_file, parse_eigen=True, parse_projected_eigen=True, parse_dos=self.parse_dos)
-            else:
+            elif bs_type == "uniform":
                 vrun = Vasprun(vasprun_file, parse_eigen=True, parse_dos=self.parse_dos)
+            else:
+                raise ValueError("bs_type must be either 'line' or 'uniform'")
         else:
+            bs_type = None
             vrun = Vasprun(vasprun_file, parse_eigen=False, parse_dos=self.parse_dos)
 
         d = vrun.as_dict()
@@ -300,7 +314,7 @@ class VaspDrone(AbstractDrone):
                      "composition_unit_cell": "unit_cell_formula"}.items():
             d[k] = d.pop(v)
 
-        if self.parse_bs:            
+        if self.bandstructure_mode:
             for k in ["eigenvalues", "projected_eigenvalues"]:  # large storage space breaks some docs
                 if k in d["output"]:
                     del d["output"][k]
@@ -324,11 +338,8 @@ class VaspDrone(AbstractDrone):
             except:
                 raise ValueError("No valid dos data exist in {}.".format(dir_name))
 
-        if self.parse_bs: 
-            if self.bandstructure_mode:
-                bs = vrun.get_band_structure(line_mode=(self.bandstructure_mode.lower() == "line"))
-            else:
-                bs = vrun.get_band_structure()
+        if bs_type:
+            bs = vrun.get_band_structure(line_mode=bool(bs_type == "line"))
 
             d["bandstructure"] = bs.as_dict()
 
@@ -508,10 +519,7 @@ class VaspDrone(AbstractDrone):
         """
         init_args = {
             "parse_dos": self.parse_dos,
-            "parse_bs": self.parse_bs,            
-            "compress_dos": self.compress_dos,
             "bandstructure_mode": self.bandstructure_mode,
-            "compress_bs": self.compress_bs,
             "additional_fields": self.additional_fields,
             "use_full_uri": self.use_full_uri,
             "runs": self.runs}
