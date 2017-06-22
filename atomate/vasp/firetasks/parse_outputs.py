@@ -95,8 +95,8 @@ class VaspToDb(FiretaskBase):
         else:
             mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
             t_id = mmdb.insert_task(task_doc,
-                                    parse_dos=self.get("parse_dos", False),
-                                    parse_bs=bool(self.get("bandstructure_mode", False)))
+                                    insert_dos=self.get("parse_dos", False),
+                                    insert_bs=bool(self.get("bandstructure_mode", False)))
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
         if self.get("defuse_unsuccessful", True):
