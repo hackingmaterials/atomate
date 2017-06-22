@@ -340,6 +340,8 @@ class VaspDrone(AbstractDrone):
         for k, v in {"energy": "final_energy", "energy_per_atom": "final_energy_per_atom"}.items():
             d["output"][k] = d["output"].pop(v)
 
+        # TODO: dont know what the 'final' option is for? Whoever figures that out please add that
+        # to the docstring, thanks - KM
         if self.parse_dos and self.parse_dos != 'final':
             try:
                 d["dos"] = vrun.complete_dos.as_dict()
