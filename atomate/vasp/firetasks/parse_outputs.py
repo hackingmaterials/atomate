@@ -73,9 +73,11 @@ class VaspToDb(FiretaskBase):
         # parse the VASP directory
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
 
+        bandstructure_mode = self.get("bandstructure_mode", "uniform")
+        # if bandstructure_mode is set the dos must be parsed inorder to get the fermi energy
+        parse_dos = self.get("parse_dos", bool(bandstructure_mode))
         drone = VaspDrone(additional_fields=self.get("additional_fields"),
-                          parse_dos=self.get("parse_dos", False),
-                          bandstructure_mode=self.get("bandstructure_mode", "uniform"))
+                          parse_dos=parse_dos, bandstructure_mode=bandstructure_mode)
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)
@@ -93,8 +95,7 @@ class VaspToDb(FiretaskBase):
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
             mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-            t_id = mmdb.insert_task(task_doc, insert_dos=self.get("parse_dos", False),
-                                    insert_bs=bool(self.get("bandstructure_mode", "uniform")))
+            t_id = mmdb.insert_task(task_doc, insert_dos=parse_dos, insert_bs=bandstructure_mode)
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
         if self.get("defuse_unsuccessful", True):

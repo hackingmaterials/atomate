@@ -48,28 +48,30 @@ class VaspDrone(AbstractDrone):
 
     # Schema def of important keys and sub-keys; used in validation
     schema = {
+
         "root": {
             "schema", "dir_name", "chemsys", "composition_reduced",
             "formula_pretty", "formula_reduced_abc", "elements",
             "nelements", "formula_anonymous", "calcs_reversed", "completed_at",
             "nsites", "composition_unit_cell", "input", "output", "state",
-            "analysis", "run_stats"
-        },
-        "input": {'is_lasph', 'is_hubbard', 'xc_override', 'potcar_spec',
-                  'hubbards', 'structure', 'pseudo_potential'},
-        "output": {'structure', 'spacegroup', 'density', 'energy',
-                   'energy_per_atom', 'is_gap_direct', 'bandgap', 'vbm',
-                   'cbm', 'is_metal'},
+            "analysis", "run_stats"},
+
+        "input": {
+            'is_lasph', 'is_hubbard', 'xc_override', 'potcar_spec',
+            'hubbards', 'structure', 'pseudo_potential'},
+
+        "output": {
+            'structure', 'spacegroup', 'density', 'energy', 'energy_per_atom',
+            'is_gap_direct', 'bandgap', 'vbm', 'cbm', 'is_metal'},
+
         "calcs_reversed": {
             'dir_name', 'run_type', 'elements', 'nelements',
             'formula_pretty', 'formula_reduced_abc', 'composition_reduced',
             'vasp_version', 'formula_anonymous', 'nsites',
             'composition_unit_cell', 'completed_at', 'task', 'input', 'output',
-            'has_vasp_completed'
-        },
-        "analysis": {'delta_volume_percent', 'delta_volume', 'max_force',
-                     'errors',
-                     'warnings'}
+            'has_vasp_completed'},
+
+        "analysis": {'delta_volume_percent', 'delta_volume', 'max_force', 'errors', 'warnings'}
     }
 
     def __init__(self, runs=None, parse_dos=False, bandstructure_mode="uniform", use_full_uri=True,
@@ -79,19 +81,26 @@ class VaspDrone(AbstractDrone):
         Args:
             runs ([str]): list of strings that can be used find the vasp run folders.
                 Default: ["relax1", "relax2", .., "relax9"]
-            parse_dos (bool): whether or not to parse the densit of states.
-            bandstructure_mode (str): set to "uniform" for uniform band structure(the default).
+            parse_dos (bool): whether or not to parse the density of states.
+                Warning: if bandstructure is to be read then Vasprun must be told to parse dos
+                         so that the fermi energy can be parsed and Vasprun.get_bandstructure
+                         requires the fermi energy. So parse_dos is overridden depending on the
+                         bandstructure_mode
+            bandstructure_mode (str/bool): set to "uniform" for uniform band structure(the default).
                 Set to "line" for line mode. If False, band structure will not be parsed.
+                Setting to True is the same as "uniform" mode.
             use_full_uri (bool): whether or not to set the 'dir_name' key. If True, 'dir_name' is
                 set to the full URI path, e.g., fileserver.host.com:/full/path/of/dir_name.
-            additional_fields (dict): additional items to be set in the task doc, metadat like
+            additional_fields (dict): additional items to be set in the task doc, metadata such as
                 author, email etc.
         """
-        self.parse_dos = parse_dos
+        # if bandstructure_mode is set then dos must be parsed inorder to get the fermi energy
+        self.parse_dos = bool(bandstructure_mode) if bool(bandstructure_mode) else parse_dos
         self.additional_fields = additional_fields or {}
         self.use_full_uri = use_full_uri
         self.runs = runs or ["relax" + str(i+1) for i in range(9)] # can't auto-detect: path unknown
-        self.bandstructure_mode = bandstructure_mode
+        # take care of the case where bandstructure_mode=True
+        self.bandstructure_mode = "uniform" if bandstructure_mode is True else bandstructure_mode
 
     def assimilate(self, path):
         """
@@ -170,7 +179,7 @@ class VaspDrone(AbstractDrone):
             # basic properties, incl. calcs_reversed and run_stats
             fullpath = os.path.abspath(dir_name)
             d = {k: v for k, v in self.additional_fields.items()}
-            d["schema"] = {"code": "atomate", "version": VaspDrone.__version__}
+            d["schema"] = {"code": "atomate", "version": VaspDrone.__version__, "valid": True}
             d["dir_name"] = fullpath
             d["calcs_reversed"] = [self.process_vasprun(dir_name, taskname, filename)
                                    for taskname, filename in vasprun_files.items()]
@@ -295,15 +304,14 @@ class VaspDrone(AbstractDrone):
         vasprun_file = os.path.join(dir_name, filename)
 
         if self.bandstructure_mode:
-            bs_type = self.bandstructure_mode.lower()
-            if bs_type == "line":
-                vrun = Vasprun(vasprun_file, parse_eigen=True, parse_projected_eigen=True, parse_dos=self.parse_dos)
-            elif bs_type == "uniform":
-                vrun = Vasprun(vasprun_file, parse_eigen=True, parse_dos=self.parse_dos)
+            bs_mode = self.bandstructure_mode.lower()
+            if bs_mode in ["line", "uniform"]:
+                vrun = Vasprun(vasprun_file, parse_eigen=True, parse_dos=self.parse_dos,
+                               parse_projected_eigen=bool(bs_mode == "line"))
             else:
-                raise ValueError("bs_type must be either 'line' or 'uniform'")
+                raise ValueError("bs_type = {} not supported. Must be either 'line' or 'uniform'".format(bs_mode))
         else:
-            bs_type = None
+            bs_mode = None
             vrun = Vasprun(vasprun_file, parse_eigen=False, parse_dos=self.parse_dos)
 
         d = vrun.as_dict()
@@ -338,8 +346,8 @@ class VaspDrone(AbstractDrone):
             except:
                 raise ValueError("No valid dos data exist in {}.".format(dir_name))
 
-        if bs_type:
-            bs = vrun.get_band_structure(line_mode=bool(bs_type == "line"))
+        if bs_mode:
+            bs = vrun.get_band_structure(line_mode=bool(bs_mode == "line"))
 
             d["bandstructure"] = bs.as_dict()
 
@@ -468,15 +476,15 @@ class VaspDrone(AbstractDrone):
 
     def validate_doc(self, d):
         """
-        Sanity check.
-        Make sure all the important keys are set
+        Sanity check. Make sure all the important keys are set.
 
         Args:
             d (dict)
         """
-        # TODO: @matk86 - I like the validation but I think no one will notice a failed
-        # validation tests which removes the usefulness of this. Any ideas to make people
-        # notice if the validation fails? -computron
+        # missing:
+        #   key: the key in the task doc for which subkeys are missing
+        #   value: missing subkeys
+        missing = {}
         for k, v in self.schema.items():
             if k == "calcs_reversed":
                 diff = v.difference(set(d.get(k, d)[0].keys()))
@@ -484,6 +492,8 @@ class VaspDrone(AbstractDrone):
                 diff = v.difference(set(d.get(k, d).keys()))
             if diff:
                 logger.warn("The keys {0} in {1} not set".format(diff, k))
+                missing[k] = list(diff)
+        d["schema"]["valid"] = missing if missing else True
 
     def get_valid_paths(self, path):
         """

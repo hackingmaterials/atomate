@@ -169,8 +169,9 @@ class NonSCFFW(Firework):
 
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
+        # dos must be parsed inorder to get the fermi energy.
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name + " " + mode},
-                          parse_dos=(mode == "uniform"), bandstructure_mode=mode))
+                          parse_dos=bool(mode), bandstructure_mode=mode))
 
         super(NonSCFFW, self).__init__(t, parents=parents, name="%s-%s %s" % (
             structure.composition.reduced_formula, name, mode), **kwargs)
