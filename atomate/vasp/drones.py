@@ -147,6 +147,14 @@ class VaspDrone(AbstractDrone):
     def generate_doc(self, dir_name, vasprun_files, outcar_files):
         """
         Adapted from matgendb.creator.generate_doc
+
+        Args:
+            dir_name (str): path to the run directory
+            vasprun_files ([str]): list of vasprun.xml filenames.
+            outcar_files ([str]): list of outcar fienames.
+
+        Returns:
+            dict
         """
         try:
             # basic properties, incl. calcs_reversed and run_stats
@@ -265,9 +273,14 @@ class VaspDrone(AbstractDrone):
 
     def process_vasprun(self, dir_name, taskname, filename):
         """
-        Adapted from matgendb.creator
+        Adapted from matgendb.creator. Process a vasprun.xml file.
 
-        Process a vasprun.xml file.
+        Args:
+            dir_name (str): path to the run directory
+            taskname (str): somee string to tag the task, used to set the 'task' key in the doc
+
+        Returns:
+            dict
         """
         vasprun_file = os.path.join(dir_name, filename)
         
@@ -338,9 +351,17 @@ class VaspDrone(AbstractDrone):
     @staticmethod
     def set_analysis(d, max_force_threshold=0.5, volume_change_threshold=0.2):
         """
-        Adapted from matgendb.creator
+        Adapted from matgendb.creator. Sets the 'analysis' key.
 
-        set the 'analysis' key
+        Args:
+            d (dict)
+            max_force_threshold (float): For ionic relaxations, if the maximum force is
+                above the threshold, the task doc 'state' is marked as 'error'.
+            volume_change_threshold (float): percentage volume change allowed, issues
+                warning if its violated.
+
+        Returns:
+            dict: updated input dict
         """
         initial_vol = d["input"]["structure"]["lattice"]["volume"]
         final_vol = d["output"]["structure"]["lattice"]["volume"]
@@ -381,10 +402,8 @@ class VaspDrone(AbstractDrone):
         output files need to be processed.
 
         Args:
-            dir_name:
-                The dir_name.
-            d:
-                Current doc generated.
+            dir_name(str): Path to the run directory.
+            d(dict): Current doc generated.
         """
         logger.info("Post-processing dir:{}".format(dir_name))
         fullpath = os.path.abspath(dir_name)
@@ -440,6 +459,9 @@ class VaspDrone(AbstractDrone):
         """
         Sanity check.
         Make sure all the important keys are set
+
+        Args:
+            d (dict)
         """
         # TODO: @matk86 - I like the validation but I think no one will notice a failed
         # validation tests which removes the usefulness of this. Any ideas to make people
@@ -462,6 +484,12 @@ class VaspDrone(AbstractDrone):
            parts of a multiple-optimization run.
         3. Directories containing vasp output with ".relax1"...".relax9" are
            also considered as parts of a multiple-optimization run.
+
+        Args:
+            path (tuple): (parent, subdirs, files)
+
+        Returns:
+            list: list of valid paths to the parent directory. empty if its not valid.
         """
         (parent, subdirs, files) = path
         if set(self.runs).intersection(subdirs):
@@ -472,6 +500,12 @@ class VaspDrone(AbstractDrone):
         return []
 
     def as_dict(self):
+        """
+        Serialization.
+
+        Returns:
+            dict
+        """
         init_args = {
             "parse_dos": self.parse_dos,
             "parse_bs": self.parse_bs,            
@@ -489,4 +523,12 @@ class VaspDrone(AbstractDrone):
 
     @classmethod
     def from_dict(cls, d):
+        """
+
+        Args:
+            d (dict): serialized VaspDrone object
+
+        Returns:
+            VaspDrone object
+        """
         return cls(**d["init_args"])
