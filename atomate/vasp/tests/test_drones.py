@@ -77,8 +77,9 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
         self.assertFalse("is_metal" in doc["output"])
 
     def test_bandstructure(self):
-        drone = VaspDrone(bandstructure_mode="uniform", parse_dos=True)
+        drone = VaspDrone(bandstructure_mode="uniform", parse_dos=False)
         doc = drone.assimilate(self.Al)
+        self.assertFalse("dos" in doc)
         self.assertEqual(doc["composition_reduced"], {'Al': 1.0})
         self.assertEqual(doc["formula_pretty"], 'Al')
         self.assertEqual(doc["formula_anonymous"], 'A')
