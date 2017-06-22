@@ -179,7 +179,7 @@ class VaspDrone(AbstractDrone):
             # basic properties, incl. calcs_reversed and run_stats
             fullpath = os.path.abspath(dir_name)
             d = {k: v for k, v in self.additional_fields.items()}
-            d["schema"] = {"code": "atomate", "version": VaspDrone.__version__, "valid": True}
+            d["schema"] = {"code": "atomate", "version": VaspDrone.__version__}
             d["dir_name"] = fullpath
             d["calcs_reversed"] = [self.process_vasprun(dir_name, taskname, filename)
                                    for taskname, filename in vasprun_files.items()]
@@ -493,7 +493,8 @@ class VaspDrone(AbstractDrone):
             if diff:
                 logger.warn("The keys {0} in {1} not set".format(diff, k))
                 missing[k] = list(diff)
-        d["schema"]["valid"] = missing if missing else True
+        if missing:
+            d["schema"]["missing"] = missing
 
     def get_valid_paths(self, path):
         """
