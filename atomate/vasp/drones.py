@@ -308,7 +308,14 @@ class VaspDrone(AbstractDrone):
                 vrun = Vasprun(vasprun_file, parse_eigen=True, parse_dos=True,
                                parse_projected_eigen=bool(bs_mode == "line"))
             else:
-                raise ValueError("bs_type = {} not supported. Must be either 'line' or 'uniform'".format(bs_mode))
+                raise ValueError("bs_type = {} not supported. Must be either "
+                                 "'line' or 'uniform'".format(bs_mode))
+
+            # ensure that Vasprun has parsed the dos properly and
+            # the fermi energy is set (required by the get_bandstructure method)
+            if vrun.dos_has_errors or (vrun.efermi is None):
+                raise ValueError("Either dos has errors or the fermi energy(={}) is not set by "
+                                 "the dos parser in Vasprun".format(vrun.efermi))
         else:
             bs_mode = None
             vrun = Vasprun(vasprun_file, parse_eigen=False, parse_dos=self.parse_dos)
