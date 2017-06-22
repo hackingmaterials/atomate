@@ -82,10 +82,6 @@ class VaspDrone(AbstractDrone):
             runs ([str]): list of strings that can be used find the vasp run folders.
                 Default: ["relax1", "relax2", .., "relax9"]
             parse_dos (bool): whether or not to parse the density of states.
-                Warning: if bandstructure is to be read then Vasprun must be told to parse dos
-                         so that the fermi energy can be parsed and Vasprun.get_bandstructure
-                         requires the fermi energy. So parse_dos is overridden depending on the
-                         bandstructure_mode
             bandstructure_mode (str/bool): set to "uniform" for uniform band structure(the default).
                 Set to "line" for line mode. If False, band structure will not be parsed.
                 Setting to True is the same as "uniform" mode.
@@ -94,8 +90,11 @@ class VaspDrone(AbstractDrone):
             additional_fields (dict): additional items to be set in the task doc, metadata such as
                 author, email etc.
         """
-        # if bandstructure_mode is set then dos must be parsed inorder to get the fermi energy
-        self.parse_dos = bool(bandstructure_mode) if bool(bandstructure_mode) else parse_dos
+        # if bandstructure_mode is set then dos must be parsed inorder to get the fermi energy.
+        # So self.parse_dos is not passed to Vasprun when bandstructure is required.
+        # Self.parse_dos is passed to Vaspsrun if bandstructure is not required and also used to
+        # decide whether to set the 'dos' field in the task doc.
+        self.parse_dos = parse_dos
         self.additional_fields = additional_fields or {}
         self.use_full_uri = use_full_uri
         self.runs = runs or ["relax" + str(i+1) for i in range(9)] # can't auto-detect: path unknown
@@ -306,7 +305,7 @@ class VaspDrone(AbstractDrone):
         if self.bandstructure_mode:
             bs_mode = self.bandstructure_mode.lower()
             if bs_mode in ["line", "uniform"]:
-                vrun = Vasprun(vasprun_file, parse_eigen=True, parse_dos=self.parse_dos,
+                vrun = Vasprun(vasprun_file, parse_eigen=True, parse_dos=True,
                                parse_projected_eigen=bool(bs_mode == "line"))
             else:
                 raise ValueError("bs_type = {} not supported. Must be either 'line' or 'uniform'".format(bs_mode))
