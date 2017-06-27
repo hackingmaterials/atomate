@@ -54,7 +54,7 @@ class DielectricBuilder:
                 "dielectric.epsilon_avg",
                 "dielectric.has_neg_eps"]
 
-        self._materials.update({}, {"$unset": {k: "" for k in keys}})
+        self._materials.update_many({}, {"$unset": {k: "" for k in keys}})
         logger.info("Finished resetting EpsilonBuilder")
 
     @staticmethod
