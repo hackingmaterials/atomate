@@ -12,10 +12,10 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 """
 Estimates band gap according to equations in:
 Ravindra, N. M., Ganapathy, P. & Choi, J. Energy gap-refractive index relations in semiconductors 
-- An overview. Infrared Phys. Technol. 50, 21–29 (2007).
+- An overview. Infrared Phys. Technol. 50, 21-29 (2007).
 
 Often these estimates are comparable to HSE gap estimates even if based on GGA dielectric constants 
-for gaps ~2 eV and higher. Smaller gaps are less accurate. Preliminary testing (A. Jain) suggests 
+for gaps approximately ~2 eV and higher. Smaller gaps are less accurate. Preliminary testing (A. Jain) suggests 
 use of Reddy-Anjaneyulu relation as most reliable.
 """
 
@@ -49,7 +49,6 @@ class BandgapEstimationBuilder:
                 d["gap_herve_vandamme"] = 13.47/math.sqrt(n**2-1)-3.47 if n > 1 else None
 
                 d = {"bandgap_estimation": d}
-                print(d)
                 self._materials.update_one({"material_id": m["material_id"]}, {"$set": d})
 
             except:
