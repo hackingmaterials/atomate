@@ -48,39 +48,58 @@ class VaspDrone(AbstractDrone):
 
     # Schema def of important keys and sub-keys; used in validation
     schema = {
+
         "root": {
             "schema", "dir_name", "chemsys", "composition_reduced",
             "formula_pretty", "formula_reduced_abc", "elements",
             "nelements", "formula_anonymous", "calcs_reversed", "completed_at",
             "nsites", "composition_unit_cell", "input", "output", "state",
-            "analysis", "run_stats"
-        },
-        "input": {'is_lasph', 'is_hubbard', 'xc_override', 'potcar_spec',
-                  'hubbards', 'structure', 'pseudo_potential'},
-        "output": {'structure', 'spacegroup', 'density', 'energy',
-                   'energy_per_atom', 'is_gap_direct', 'bandgap', 'vbm',
-                   'cbm', 'is_metal'},
+            "analysis", "run_stats"},
+
+        "input": {
+            'is_lasph', 'is_hubbard', 'xc_override', 'potcar_spec',
+            'hubbards', 'structure', 'pseudo_potential'},
+
+        "output": {
+            'structure', 'spacegroup', 'density', 'energy', 'energy_per_atom',
+            'is_gap_direct', 'bandgap', 'vbm', 'cbm', 'is_metal'},
+
         "calcs_reversed": {
             'dir_name', 'run_type', 'elements', 'nelements',
             'formula_pretty', 'formula_reduced_abc', 'composition_reduced',
             'vasp_version', 'formula_anonymous', 'nsites',
             'composition_unit_cell', 'completed_at', 'task', 'input', 'output',
-            'has_vasp_completed'
-        },
-        "analysis": {'delta_volume_percent', 'delta_volume', 'max_force',
-                     'errors',
-                     'warnings'}
+            'has_vasp_completed'},
+
+        "analysis": {'delta_volume_percent', 'delta_volume', 'max_force', 'errors', 'warnings'}
     }
 
-    def __init__(self, runs=None, parse_dos=False, compress_dos=False, bandstructure_mode=False,
-                 compress_bs=False, additional_fields=None, use_full_uri=True):
+    def __init__(self, runs=None, parse_dos=False, bandstructure_mode="uniform", use_full_uri=True,
+                 additional_fields=None):
+        """
+
+        Args:
+            runs ([str]): list of strings that can be used find the vasp run folders.
+                Default: ["relax1", "relax2", .., "relax9"]
+            parse_dos (bool): whether or not to parse the density of states.
+            bandstructure_mode (str/bool): set to "uniform" for uniform band structure(the default).
+                Set to "line" for line mode. If False, band structure will not be parsed.
+                Setting to True is the same as "uniform" mode.
+            use_full_uri (bool): whether or not to set the 'dir_name' key. If True, 'dir_name' is
+                set to the full URI path, e.g., fileserver.host.com:/full/path/of/dir_name.
+            additional_fields (dict): additional items to be set in the task doc, metadata such as
+                author, email etc.
+        """
+        # if bandstructure_mode is set then dos must be parsed inorder to get the fermi energy.
+        # So self.parse_dos is not passed to Vasprun when bandstructure is required.
+        # Self.parse_dos is passed to Vaspsrun if bandstructure is not required and also used to
+        # decide whether to set the 'dos' field in the task doc.
         self.parse_dos = parse_dos
-        self.compress_dos = compress_dos
         self.additional_fields = additional_fields or {}
         self.use_full_uri = use_full_uri
-        self.runs = runs or ["relax" + str(i+1) for i in range(9)]  # can't auto-detect: path unknown
-        self.bandstructure_mode = bandstructure_mode
-        self.compress_bs = compress_bs
+        self.runs = runs or ["relax" + str(i+1) for i in range(9)] # can't auto-detect: path unknown
+        # take care of the case where bandstructure_mode=True
+        self.bandstructure_mode = "uniform" if bandstructure_mode is True else bandstructure_mode
 
     def assimilate(self, path):
         """
@@ -146,6 +165,14 @@ class VaspDrone(AbstractDrone):
     def generate_doc(self, dir_name, vasprun_files, outcar_files):
         """
         Adapted from matgendb.creator.generate_doc
+
+        Args:
+            dir_name (str): path to the run directory
+            vasprun_files ([str]): list of vasprun.xml filenames.
+            outcar_files ([str]): list of outcar fienames.
+
+        Returns:
+            dict
         """
         try:
             # basic properties, incl. calcs_reversed and run_stats
@@ -224,13 +251,15 @@ class VaspDrone(AbstractDrone):
                 d["output"]["structure"] = s.as_dict()
 
             calc = d["calcs_reversed"][0]
-            gap = calc["output"]["bandgap"]
-            cbm = calc["output"]["cbm"]
-            vbm = calc["output"]["vbm"]
-            is_direct = calc["output"]["is_gap_direct"]
-            is_metal = calc["output"]["is_metal"]
-            d["output"].update({"bandgap": gap, "cbm": cbm, "vbm": vbm,
-                                "is_gap_direct": is_direct, "is_metal": is_metal})
+            
+            if self.bandstructure_mode:
+                gap = calc["output"]["bandgap"]
+                cbm = calc["output"]["cbm"]
+                vbm = calc["output"]["vbm"]
+                is_direct = calc["output"]["is_gap_direct"]
+                is_metal = calc["output"]["is_metal"]
+                d["output"].update({"bandgap": gap, "cbm": cbm, "vbm": vbm,
+                                    "is_gap_direct": is_direct, "is_metal": is_metal})
 
             sg = SpacegroupAnalyzer(Structure.from_dict(d_calc_final["output"]["structure"]), 0.1)
             if not sg.get_symmetry_dataset():
@@ -262,15 +291,34 @@ class VaspDrone(AbstractDrone):
 
     def process_vasprun(self, dir_name, taskname, filename):
         """
-        Adapted from matgendb.creator
+        Adapted from matgendb.creator. Process a vasprun.xml file.
 
-        Process a vasprun.xml file.
+        Args:
+            dir_name (str): path to the run directory
+            taskname (str): somee string to tag the task, used to set the 'task' key in the doc
+
+        Returns:
+            dict
         """
         vasprun_file = os.path.join(dir_name, filename)
+
         if self.bandstructure_mode:
-            vrun = Vasprun(vasprun_file, parse_eigen=True, parse_projected_eigen=True)
+            bs_mode = self.bandstructure_mode.lower()
+            if bs_mode in ["line", "uniform"]:
+                vrun = Vasprun(vasprun_file, parse_eigen=True, parse_dos=True,
+                               parse_projected_eigen=True)
+            else:
+                raise ValueError("bs_type = {} not supported. Must be either "
+                                 "'line' or 'uniform'".format(bs_mode))
+
+            # ensure that Vasprun has parsed the dos properly and
+            # the fermi energy is set (required by the get_bandstructure method)
+            if vrun.dos_has_errors or (vrun.efermi is None):
+                raise ValueError("Either dos has errors or the fermi energy(={}) is not set by "
+                                 "the dos parser in Vasprun".format(vrun.efermi))
         else:
-            vrun = Vasprun(vasprun_file)
+            bs_mode = None
+            vrun = Vasprun(vasprun_file, parse_eigen=False, parse_dos=self.parse_dos)
 
         d = vrun.as_dict()
 
@@ -280,9 +328,10 @@ class VaspDrone(AbstractDrone):
                      "composition_unit_cell": "unit_cell_formula"}.items():
             d[k] = d.pop(v)
 
-        for k in ["eigenvalues", "projected_eigenvalues"]:  # large storage space breaks some docs
-            if k in d["output"]:
-                del d["output"][k]
+        if self.bandstructure_mode:
+            for k in ["eigenvalues", "projected_eigenvalues"]:  # large storage space breaks some docs
+                if k in d["output"]:
+                    del d["output"][k]
 
         comp = Composition(d["composition_unit_cell"])
         d["formula_anonymous"] = comp.anonymized_formula
@@ -297,25 +346,26 @@ class VaspDrone(AbstractDrone):
         for k, v in {"energy": "final_energy", "energy_per_atom": "final_energy_per_atom"}.items():
             d["output"][k] = d["output"].pop(v)
 
+        # TODO: dont know what the 'final' option is for? Whoever figures that out please add that
+        # to the docstring, thanks - KM
         if self.parse_dos and self.parse_dos != 'final':
             try:
                 d["dos"] = vrun.complete_dos.as_dict()
             except:
                 raise ValueError("No valid dos data exist in {}.".format(dir_name))
 
-        if self.bandstructure_mode:
-            bs = vrun.get_band_structure(line_mode=(self.bandstructure_mode.lower() == "line"))
-        else:
-            bs = vrun.get_band_structure()
+        if bs_mode:
+            bs = vrun.get_band_structure(line_mode=bool(bs_mode == "line"))
 
-        d["bandstructure"] = bs.as_dict()
+            d["bandstructure"] = bs.as_dict()
 
-        d["output"]["vbm"] = bs.get_vbm()["energy"]
-        d["output"]["cbm"] = bs.get_cbm()["energy"]
-        bs_gap = bs.get_band_gap()
-        d["output"]["bandgap"] = bs_gap["energy"]
-        d["output"]["is_gap_direct"] = bs_gap["direct"]
-        d["output"]["is_metal"] = bs.is_metal()
+            d["output"]["vbm"] = bs.get_vbm()["energy"]
+            d["output"]["cbm"] = bs.get_cbm()["energy"]
+            bs_gap = bs.get_band_gap()
+            d["output"]["bandgap"] = bs_gap["energy"]
+            d["output"]["is_gap_direct"] = bs_gap["direct"]
+            d["output"]["is_metal"] = bs.is_metal()
+            
         d["task"] = {"type": taskname, "name": taskname}
 
         if hasattr(vrun, "force_constants"):
@@ -328,9 +378,17 @@ class VaspDrone(AbstractDrone):
     @staticmethod
     def set_analysis(d, max_force_threshold=0.5, volume_change_threshold=0.2):
         """
-        Adapted from matgendb.creator
+        Adapted from matgendb.creator. Sets the 'analysis' key.
 
-        set the 'analysis' key
+        Args:
+            d (dict)
+            max_force_threshold (float): For ionic relaxations, if the maximum force is
+                above the threshold, the task doc 'state' is marked as 'error'.
+            volume_change_threshold (float): percentage volume change allowed, issues
+                warning if its violated.
+
+        Returns:
+            dict: updated input dict
         """
         initial_vol = d["input"]["structure"]["lattice"]["volume"]
         final_vol = d["output"]["structure"]["lattice"]["volume"]
@@ -371,10 +429,8 @@ class VaspDrone(AbstractDrone):
         output files need to be processed.
 
         Args:
-            dir_name:
-                The dir_name.
-            d:
-                Current doc generated.
+            dir_name(str): Path to the run directory.
+            d(dict): Current doc generated.
         """
         logger.info("Post-processing dir:{}".format(dir_name))
         fullpath = os.path.abspath(dir_name)
@@ -428,12 +484,15 @@ class VaspDrone(AbstractDrone):
 
     def validate_doc(self, d):
         """
-        Sanity check.
-        Make sure all the important keys are set
+        Sanity check. Make sure all the important keys are set.
+
+        Args:
+            d (dict)
         """
-        # TODO: @matk86 - I like the validation but I think no one will notice a failed
-        # validation tests which removes the usefulness of this. Any ideas to make people
-        # notice if the validation fails? -computron
+        # missing:
+        #   key: the key in the task doc for which subkeys are missing
+        #   value: missing subkeys
+        missing = {}
         for k, v in self.schema.items():
             if k == "calcs_reversed":
                 diff = v.difference(set(d.get(k, d)[0].keys()))
@@ -441,6 +500,9 @@ class VaspDrone(AbstractDrone):
                 diff = v.difference(set(d.get(k, d).keys()))
             if diff:
                 logger.warn("The keys {0} in {1} not set".format(diff, k))
+                missing[k] = list(diff)
+        if missing:
+            d["schema"]["missing"] = missing
 
     def get_valid_paths(self, path):
         """
@@ -452,6 +514,12 @@ class VaspDrone(AbstractDrone):
            parts of a multiple-optimization run.
         3. Directories containing vasp output with ".relax1"...".relax9" are
            also considered as parts of a multiple-optimization run.
+
+        Args:
+            path (tuple): (parent, subdirs, files)
+
+        Returns:
+            list: list of valid paths to the parent directory. empty if its not valid.
         """
         (parent, subdirs, files) = path
         if set(self.runs).intersection(subdirs):
@@ -462,11 +530,15 @@ class VaspDrone(AbstractDrone):
         return []
 
     def as_dict(self):
+        """
+        Serialization.
+
+        Returns:
+            dict
+        """
         init_args = {
             "parse_dos": self.parse_dos,
-            "compress_dos": self.compress_dos,
             "bandstructure_mode": self.bandstructure_mode,
-            "compress_bs": self.compress_bs,
             "additional_fields": self.additional_fields,
             "use_full_uri": self.use_full_uri,
             "runs": self.runs}
@@ -478,4 +550,12 @@ class VaspDrone(AbstractDrone):
 
     @classmethod
     def from_dict(cls, d):
+        """
+
+        Args:
+            d (dict): serialized VaspDrone object
+
+        Returns:
+            VaspDrone object
+        """
         return cls(**d["init_args"])

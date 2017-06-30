@@ -47,8 +47,8 @@ class VaspToDb(FiretaskBase):
             search for the most recent calc_loc with the matching name
         parse_dos (bool): whether to parse the DOS and store in GridFS.
             Defaults to False.
-        bandstructure_mode (str): Set to "uniform" for uniform band structure.
-            Set to "line" for line mode. If not set, band structure will not
+        bandstructure_mode (str): Set to "uniform" for uniform band structure(the default).
+            Set to "line" for line mode. If set to False, band structure will not
             be parsed.
         additional_fields (dict): dict of additional fields to add
         db_file (str): path to file containing the database credentials.
@@ -73,9 +73,11 @@ class VaspToDb(FiretaskBase):
         # parse the VASP directory
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
 
+        bandstructure_mode = self.get("bandstructure_mode", "uniform")
+        # if bandstructure_mode is set the dos must be parsed inorder to get the fermi energy
+        parse_dos = self.get("parse_dos", bool(bandstructure_mode))
         drone = VaspDrone(additional_fields=self.get("additional_fields"),
-                          parse_dos=self.get("parse_dos", False), compress_dos=1,
-                          bandstructure_mode=self.get("bandstructure_mode", False), compress_bs=1)
+                          parse_dos=parse_dos, bandstructure_mode=bandstructure_mode)
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)
@@ -93,9 +95,7 @@ class VaspToDb(FiretaskBase):
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
             mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-            t_id = mmdb.insert_task(task_doc,
-                                    parse_dos=self.get("parse_dos", False),
-                                    parse_bs=bool(self.get("bandstructure_mode", False)))
+            t_id = mmdb.insert_task(task_doc, insert_dos=parse_dos, insert_bs=bandstructure_mode)
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
         if self.get("defuse_unsuccessful", True):
