@@ -306,7 +306,7 @@ class VaspDrone(AbstractDrone):
             bs_mode = self.bandstructure_mode.lower()
             if bs_mode in ["line", "uniform"]:
                 vrun = Vasprun(vasprun_file, parse_eigen=True, parse_dos=True,
-                               parse_projected_eigen=bool(bs_mode == "line"))
+                               parse_projected_eigen=True)
             else:
                 raise ValueError("bs_type = {} not supported. Must be either "
                                  "'line' or 'uniform'".format(bs_mode))
