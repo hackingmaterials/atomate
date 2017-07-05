@@ -61,9 +61,9 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None,
     if strain_states is None:
         strain_states = get_default_strain_states(order)
     if stencils is None:
-        stencils = [np.linspace(-0.01, 0.01, 5 + (order-2)*2)]*len(strain_states)
+        stencils = [np.linspace(-0.01, 0.01, 5 + (order - 2) * 2)]*len(strain_states)
     if np.array(stencils).ndim == 1:
-        stencils = [stencils]*len(strain_states)
+        stencils = [stencils] * len(strain_states)
     for state, stencil in zip(strain_states, stencils):
         strains.extend([Strain.from_voigt(s*np.array(state)) for s in stencil])
 
@@ -76,7 +76,7 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None,
 
     deformations = [s.deformation_matrix for s in strains]
     wf_elastic = get_wf_deformations(structure, deformations, pass_stress_strain=True, 
-            name="deformation", relax_deformed=True, tag="elastic", 
+            name="deformation", relax_deformed=True, tag="elastic",
             db_file=db_file, pass_kpoints=pass_kpoints, **kwargs)
 
     fw_analysis = Firework(ElasticTensorToDbTask(structure=structure, db_file=db_file, order=order),

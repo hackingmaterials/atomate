@@ -6,6 +6,7 @@ import numpy as np
 
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from pymatgen.io.vasp.inputs import Kpoints
 
 from atomate.vasp.config import SMALLGAP_KPOINT_MULTIPLY, STABILITY_CHECK, VASP_CMD, DB_FILE, \
     ADD_WF_METADATA
@@ -211,30 +212,29 @@ def wf_elastic_constant(structure, c=None):
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
-    # TODO: @kmathew - this is abuse of the config settings. The config settings should just be
-    # high-level things (executive stuff, metadata options) and global (e.g.,
-    # user_kpoints_settings.grid_density is not a global parameter). Note that they are also
-    # typically capitalized. If the user really wants to tune a workflow (e.g. k-mesh) they should
-    # not use the preset workflows which are about trusting the defaults. -computron
 
     order = c.get("order", 2)
     if order > 2:
+        kpts = Kpoints.automatic_density(structure, 60000, force_gamma=True)
         vis = MPRelaxSet(structure, user_incar_settings={
             "ENCUT": 700, "EDIFF": 1e-10, "LAECHG":False, "EDIFFG":-0.001, "ADDGRID":True, 
-            "LREAL":False, "ISYM":0}, user_kpoints_settings = {"length": 100})
+            "LREAL":False},#, "ISYM":0},
+            user_kpoints_settings = kpts)
         stencils = np.linspace(-0.075, 0.075, 7)
+        conv = False
     else:
         vis = MPRelaxSet(structure, user_incar_settings={
             "incar_update":{"ENCUT": 700, "EDIFF": 1e-6, "LAECHG":False}},
             user_kpoints_settings = {"grid_density": 7000})
         stencils = None # use default
+        conv = True
 
     optimize_structure = c.get("optimize_structure", True)
     sym_red = c.get("symmetry_reduction", False)
     # conv = c.get("conventional", True)
     wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd, symmetry_reduction=sym_red,
                                  db_file=db_file, vasp_input_set=vis, stencils=stencils,
-                                 optimize_structure=optimize_structure, conventional=True, 
+                                 optimize_structure=optimize_structure, conventional=conv, 
                                  order=order)
     #wf = add_modify_incar(wf, modify_incar_params=mip)
     wf = add_common_powerups(wf, c)
