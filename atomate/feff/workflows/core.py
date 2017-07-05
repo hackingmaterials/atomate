@@ -59,7 +59,10 @@ def get_wf_xas(absorbing_atom, structure, feff_input_set="pymatgen.io.feff.sets.
     fws = []
     for ab_idx in ab_atom_indices:
         fw_metadata = dict(metadata) if metadata else {}
-        fw_metadata["absorbing_atom_index"] = ab_idx
+        fw_metadata["absorbing_site"] = {
+            "index": ab_idx,
+            "coords": structure[ab_idx].coords.tolist(),
+            "species_and_occ": structure[ab_idx].species_and_occ.as_dict()}
         fw_name = "{}-{}-{}".format(spectrum_type, edge, ab_idx)
         fws.append(XASFW(ab_idx, structure, edge=edge, radius=radius,
                          feff_input_set=feff_input_set, feff_cmd=feff_cmd, db_file=db_file,
@@ -168,7 +171,10 @@ def get_wf_eels(absorbing_atom, structure=None, feff_input_set="pymatgen.io.feff
     fws = []
     for ab_idx in ab_atom_indices:
         fw_metadata = dict(metadata) if metadata else {}
-        fw_metadata["absorbing_atom_index"] = ab_idx
+        fw_metadata["absorbing_site"] = {
+            "index": ab_idx,
+            "coords": structure[ab_idx].coords.tolist(),
+            "species_and_occ": structure[ab_idx].species_and_occ.as_dict()}
         fw_name = "{}-{}-{}".format(spectrum_type, edge, ab_idx)
         fws.append(EELSFW(ab_idx, structure, feff_input_set=feff_input_set, edge=edge, radius=radius,
                           beam_energy=beam_energy, beam_direction=beam_direction,
