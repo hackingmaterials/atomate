@@ -220,6 +220,16 @@ class RunBoltztrap(FiretaskBase):
 
 
 @explicit_serialize
+class RunNoVasp(FiretaskBase):
+    """
+    Do NOT run vasp. Do nothing.
+    """
+
+    def run_task(self, fw_spec):
+        pass
+
+
+@explicit_serialize
 class RunVaspFake(FiretaskBase):
     """
      Vasp Emulator
@@ -236,8 +246,7 @@ class RunVaspFake(FiretaskBase):
          check_potcar (bool): whether to confirm the POTCAR params (default: True)
      """
     required_params = ["ref_dir"]
-    optional_params = ["params_to_check", "check_incar", "check_kpoints",
-                       "check_poscar", "check_potcar"]
+    optional_params = ["params_to_check", "check_incar", "check_kpoints", "check_poscar", "check_potcar"]
 
     def run_task(self, fw_spec):
         self._verify_inputs()

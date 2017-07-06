@@ -4,11 +4,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from tqdm import tqdm
 
-from atomate.utils.utils import get_logger
 from matgendb.util import get_database
+
 from pymatgen import MPRester, Structure
 from pymatgen.entries.computed_entries import ComputedEntry
 
+from atomate.utils.utils import get_logger
 from atomate.vasp.builders.base import AbstractBuilder
 
 logger = get_logger(__name__)
@@ -56,8 +57,7 @@ class MaterialsEhullBuilder(AbstractBuilder):
                 # TODO: @computron This only calculates Ehull with respect to Materials Project.
                 # It should also account for the current database's results. -computron
                 self._materials.update_one({"material_id": m["material_id"]},
-                                           {"$set": {"stability":
-                                                         self.mpr.get_stability([my_entry])[0]}})
+                                           {"$set": {"stability": self.mpr.get_stability([my_entry])[0]}})
 
                 # TODO: @computron: also add additional properties like inverse hull energy?
 
@@ -69,8 +69,7 @@ class MaterialsEhullBuilder(AbstractBuilder):
                     min_e = min(entries, key=lambda x: x.energy_per_atom).energy_per_atom
                     energy -= elx * min_e
                 self._materials.update_one({"material_id": m["material_id"]},
-                                           {"$set": {"thermo.formation_energy_per_atom":
-                                                         energy / structure.num_sites}})
+                                           {"$set": {"thermo.formation_energy_per_atom": energy / structure.num_sites}})
 
                 mpids = self.mpr.find_structure(structure)
                 self._materials.update_one({"material_id": m["material_id"]}, {"$set": {"mpids": mpids}})

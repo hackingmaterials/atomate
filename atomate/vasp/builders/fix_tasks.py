@@ -2,9 +2,9 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from atomate.utils.utils import get_logger
 from matgendb.util import get_database
 
+from atomate.utils.utils import get_logger
 from atomate.vasp.builders.base import AbstractBuilder
 
 logger = get_logger(__name__)

@@ -2,7 +2,7 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-from pymatgen.electronic_structure.dos import CompleteDos
+from monty.json import MontyEncoder
 
 """
 This module defines the database classes.
@@ -13,6 +13,7 @@ import json
 from bson import ObjectId
 
 from pymatgen.electronic_structure.bandstructure import BandStructure, BandStructureSymmLine
+from pymatgen.electronic_structure.dos import CompleteDos
 
 import gridfs
 from pymongo import ASCENDING, DESCENDING
@@ -64,6 +65,41 @@ class VaspCalcDb(CalcDb):
                                           ("completed_at", DESCENDING)],
                                          background=background)
 
+    def insert_task(self, task_doc, parse_dos=False, parse_bs=False):
+        """
+        Inserts a task document (e.g., as returned by Drone.assimilate()) into the database.
+        Handles putting DOS and band structure into GridFS as needed.
+
+        Args:
+            task_doc: (dict) the task document
+            parse_dos: (bool) attempt to parse dos in task_doc and insert into Gridfs
+            parse_bs: (bool) attempt to parse bandstructure in task_doc and insert into Gridfs
+
+        Returns:
+            (int) - task_id of inserted document
+        """
+
+        # insert dos into GridFS
+        if parse_dos and "calcs_reversed" in task_doc:
+            if "dos" in task_doc["calcs_reversed"][0]:  # only store idx=0 DOS
+                dos = json.dumps(task_doc["calcs_reversed"][0]["dos"], cls=MontyEncoder)
+                gfs_id, compression_type = self.insert_gridfs(dos, "dos_fs")
+                task_doc["calcs_reversed"][0]["dos_compression"] = compression_type
+                task_doc["calcs_reversed"][0]["dos_fs_id"] = gfs_id
+                del task_doc["calcs_reversed"][0]["dos"]
+
+        # insert band structure into GridFS
+        if parse_bs and "calcs_reversed" in task_doc:
+            if "bandstructure" in task_doc["calcs_reversed"][0]:  # only store idx=0 BS
+                bs = json.dumps(task_doc["calcs_reversed"][0]["bandstructure"], cls=MontyEncoder)
+                gfs_id, compression_type = self.insert_gridfs(bs, "bandstructure_fs")
+                task_doc["calcs_reversed"][0]["bandstructure_compression"] = compression_type
+                task_doc["calcs_reversed"][0]["bandstructure_fs_id"] = gfs_id
+                del task_doc["calcs_reversed"][0]["bandstructure"]
+
+        # insert the task document and return task_id
+        return self.insert(task_doc)
+
     def insert_gridfs(self, d, collection="fs", compress=True, oid=None):
         """
         Insert the given document into GridFS.
@@ -85,8 +121,7 @@ class VaspCalcDb(CalcDb):
         return fs_id, "zlib"
 
     def get_band_structure(self, task_id):
-        m_task = self.collection.find_one({"task_id": task_id},
-                                          {"calcs_reversed": 1})
+        m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
         fs_id = m_task['calcs_reversed'][0]['bandstructure_fs_id']
         fs = gridfs.GridFS(self.db, 'bandstructure_fs')
         bs_json = zlib.decompress(fs.get(fs_id).read())
@@ -99,8 +134,7 @@ class VaspCalcDb(CalcDb):
             raise ValueError("Unknown class for band structure! {}".format(bs_dict["@class"]))
 
     def get_dos(self, task_id):
-        m_task = self.collection.find_one({"task_id": task_id},
-                                          {"calcs_reversed": 1})
+        m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
         fs_id = m_task['calcs_reversed'][0]['dos_fs_id']
         fs = gridfs.GridFS(self.db, 'dos_fs')
         dos_json = zlib.decompress(fs.get(fs_id).read())

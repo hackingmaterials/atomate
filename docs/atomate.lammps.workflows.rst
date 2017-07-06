@@ -12,14 +12,6 @@ atomate.lammps.workflows.core module
     :undoc-members:
     :show-inheritance:
 
-atomate.lammps.workflows.presets module
----------------------------------------
-
-.. automodule:: atomate.lammps.workflows.presets
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 
 Module contents
 ---------------

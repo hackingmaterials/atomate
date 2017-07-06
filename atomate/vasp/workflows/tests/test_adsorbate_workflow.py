@@ -2,24 +2,17 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-import json
 import os
-import shutil
 import unittest
 
-import numpy as np
-
-from pymongo import MongoClient
-
-from fireworks import LaunchPad, FWorker
+from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_fake_vasp
 from atomate.vasp.workflows.base.adsorption import get_wf_surface
+from atomate.utils.testing import AtomateTest
 
-from pymatgen import SETTINGS, Structure, Molecule, Lattice
-from pymatgen.util.testing import PymatgenTest
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from pymatgen import Structure, Molecule, Lattice
 from pymatgen.core.surface import generate_all_slabs
 
 __author__ = 'Kiran Mathew, Joseph Montoya'
@@ -33,45 +26,18 @@ DEBUG_MODE = False  # If true, retains the database and output dirs at the end o
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
 
-class TestAdsorptionWorkflow(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        if not SETTINGS.get("PMG_VASP_PSP_DIR"):
-            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.join(module_dir, "..", "..", "tests", "..", "..", "test_files")
-            print('This system is not set up to run VASP jobs. '
-                  'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
-
-        cls.struct_ir = Structure.from_spacegroup("Fm-3m", Lattice.cubic(3.875728), ["Ir"], [[0, 0, 0]])
-        cls.scratch_dir = os.path.join(module_dir, "scratch")
-        sgp = {"max_index": 1, "min_slab_size": 7.0, "min_vacuum_size": 20.0}
-        slabs = generate_all_slabs(cls.struct_ir, **sgp)
-        slabs = [slab for slab in slabs if slab.miller_index==(1, 0, 0)]
-        sgp.pop("max_index")
-        cls.wf_1 = get_wf_surface(slabs, [Molecule("H", [[0, 0, 0]])], cls.struct_ir, sgp,
-                                  db_file=os.path.join(db_dir, "db.json"))
+class TestAdsorptionWorkflow(AtomateTest):
 
     def setUp(self):
-        if os.path.exists(self.scratch_dir):
-            shutil.rmtree(self.scratch_dir)
-        os.makedirs(self.scratch_dir)
-        os.chdir(self.scratch_dir)
-        try:
-            self.lp = LaunchPad.from_file(os.path.join(db_dir, "my_launchpad.yaml"))
-            self.lp.reset("", require_password=False)
-        except:
-            raise unittest.SkipTest(
-                'Cannot connect to MongoDB! Is the database server running? '
-                'Are the credentials correct?')
+        super(TestAdsorptionWorkflow, self).setUp()
 
-    def tearDown(self):
-        if not DEBUG_MODE:
-            shutil.rmtree(self.scratch_dir)
-            self.lp.reset("", require_password=False)
-            db = self._get_task_database()
-            for coll in db.collection_names():
-                if coll != "system.indexes":
-                    db[coll].drop()
-            os.chdir(module_dir)
+        self.struct_ir = Structure.from_spacegroup("Fm-3m", Lattice.cubic(3.875728), ["Ir"], [[0, 0, 0]])
+        sgp = {"max_index": 1, "min_slab_size": 7.0, "min_vacuum_size": 20.0}
+        slabs = generate_all_slabs(self.struct_ir, **sgp)
+        slabs = [slab for slab in slabs if slab.miller_index==(1, 0, 0)]
+        sgp.pop("max_index")
+        self.wf_1 = get_wf_surface(slabs, [Molecule("H", [[0, 0, 0]])], self.struct_ir, sgp,
+                                  db_file=os.path.join(db_dir, "db.json"))
 
     def _simulate_vasprun(self, wf):
         reference_dir = os.path.abspath(os.path.join(ref_dir, "adsorbate_wf"))
@@ -81,22 +47,6 @@ class TestAdsorptionWorkflow(unittest.TestCase):
                        "Ir-H1-Ir_(1, 0, 0) adsorbate optimization 1": os.path.join(reference_dir, "4"),
                        "Ir-H1-Ir_(1, 0, 0) adsorbate optimization 2": os.path.join(reference_dir, "5")}
         return use_fake_vasp(wf, ir_ref_dirs, params_to_check=["ENCUT", "ISIF", "IBRION"])
-
-    def _get_task_database(self):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            conn = MongoClient(creds["host"], creds["port"])
-            db = conn[creds["database"]]
-            if "admin_user" in creds:
-                db.authenticate(creds["admin_user"], creds["admin_password"])
-            return db
-
-    def _get_task_collection(self, coll_name=None):
-        with open(os.path.join(db_dir, "db.json")) as f:
-            creds = json.loads(f.read())
-            db = self._get_task_database()
-            coll_name = coll_name or creds["collection"]
-            return db[coll_name]
 
     def _check_run(self, d, mode):
         if mode not in ["H1-Ir_(1, 0, 0) adsorbate optimization 1"]:
@@ -121,7 +71,7 @@ class TestAdsorptionWorkflow(unittest.TestCase):
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
         # check relaxation
-        d = self._get_task_collection().find_one({"task_label": "H1-Ir_(1, 0, 0) adsorbate optimization 1"})
+        d = self.get_task_collection().find_one({"task_label": "H1-Ir_(1, 0, 0) adsorbate optimization 1"})
         self._check_run(d, mode="H1-Ir_(1, 0, 0) adsorbate optimization 1")
 
         wf = self.lp.get_wf_by_fw_id(1)

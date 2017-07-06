@@ -24,9 +24,8 @@ __email__ = 'hat003@eng.ucsd.edu, ihchu@eng.ucsd.edu'
 
 
 VASP_NEB_OUTPUT_FILES = {'INCAR', 'KPOINTS', 'POTCAR', 'vasprun.xml'}
-VASP_NEB_OUTPUT_SUB_FILES = {'CHG', 'CHGCAR', 'CONTCAR', 'DOSCAR', 'EIGENVAL',
-                             'IBZKPT', 'PCDAT', 'POSCAR', 'PROCAR', 'OSZICAR',
-                             'OUTCAR', 'REPORT', 'WAVECAR', 'XDATCAR'}
+VASP_NEB_OUTPUT_SUB_FILES = {'CHG', 'CHGCAR', 'CONTCAR', 'DOSCAR', 'EIGENVAL', 'IBZKPT', 'PCDAT',
+                             'POSCAR', 'PROCAR', 'OSZICAR', 'OUTCAR', 'REPORT', 'WAVECAR', 'XDATCAR'}
 
 
 @explicit_serialize
@@ -180,7 +179,8 @@ class RunNEBVaspFake(FiretaskBase):
         ref_kpoints = Kpoints.from_file(os.path.join(self.ref_dir_input, "KPOINTS"))
         if user_kpoints.style != ref_kpoints.style or user_kpoints.num_kpts != ref_kpoints.num_kpts:
             raise ValueError("KPOINT files are inconsistent! "
-                             "Paths are:\n{}\n{} with kpts = {} {}".format(self.user_dir, self.ref_dir_input, user_kpoints, ref_kpoints))
+                             "Paths are:\n{}\n{} with kpts = {} {}".format(
+                self.user_dir, self.ref_dir_input, user_kpoints, ref_kpoints))
 
         # Check POTCAR
         user_potcar = Potcar.from_file(os.path.join(self.user_dir, "POTCAR"))
@@ -198,7 +198,9 @@ class RunNEBVaspFake(FiretaskBase):
                 raise ValueError("POSCAR files are inconsistent! Paths are:\n{}\n{}".format(u, r))
 
     def _clear_inputs(self):
-        """Remove all input files from user NEB directory."""
+        """
+        Remove all input files from user NEB directory.
+        """
         # Clear neb directory
         for x in VASP_NEB_OUTPUT_FILES:
             p = os.path.join(os.getcwd(), x)

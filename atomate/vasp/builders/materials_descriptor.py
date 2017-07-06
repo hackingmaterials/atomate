@@ -1,10 +1,12 @@
 from tqdm import tqdm
 
-from atomate.utils.utils import get_logger
-from atomate.vasp.builders.base import AbstractBuilder
 from matgendb.util import get_database
+
 from pymatgen import Structure
 from pymatgen.analysis.structure_analyzer import get_dimensionality
+
+from atomate.utils.utils import get_logger
+from atomate.vasp.builders.base import AbstractBuilder
 
 logger = get_logger(__name__)
 
@@ -39,8 +41,7 @@ class MaterialsDescriptorBuilder(AbstractBuilder):
             pbar.set_description("Processing materials_id: {}".format(m['material_id']))
             struct = Structure.from_dict(m["structure"])
             self._materials.update_one({"material_id": m["material_id"]},
-                                       {"$set": {"descriptors.dimensionality":
-                                                     get_dimensionality(struct)}})
+                                       {"$set": {"descriptors.dimensionality": get_dimensionality(struct)}})
 
     def reset(self):
         logger.info("Resetting MaterialsDescriptorBuilder")
@@ -54,7 +55,8 @@ class MaterialsDescriptorBuilder(AbstractBuilder):
     @classmethod
     def from_file(cls, db_file, m="materials", **kwargs):
         """
-        Get a MaterialsDescriptorBuilder using only a db file
+        Get a MaterialsDescriptorBuilder using only a db file.
+
         Args:
             db_file: (str) path to db file
             m: (str) name of "materials" collection

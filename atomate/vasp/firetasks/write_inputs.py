@@ -344,7 +344,7 @@ class WriteNormalmodeDisplacedPoscar(FiretaskBase):
     """
     Displace the structure from the previous calculation along the provided normal mode by the
     given amount and write the corresponding Poscar file. The fw_spec must contain a "normalmodes"
-    key with "eigenvecs" and "norms" sub-key that is likely produced by a previous calc.
+    key with "eigenvecs" sub-key that is likely produced by a previous calc.
 
     Required params:
         mode (int): normal mode index
@@ -358,12 +358,10 @@ class WriteNormalmodeDisplacedPoscar(FiretaskBase):
         disp = self["displacement"]
         structure = Structure.from_file("POSCAR")
         nm_eigenvecs = np.array(fw_spec["normalmodes"]["eigenvecs"])
-        nm_norms = np.array(fw_spec["normalmodes"]["norms"])
+        nm_norms = np.linalg.norm(nm_eigenvecs, axis=2)
 
-        # displace the sites along the given normal mode
-        # TODO: @matk86 (or whomever wrote this line of code) - Can you clarify this line of code?
-        # Likely only the author can understand it unless someone spends an hour staring at it.
-        # Succintness is helpful when it aids clarity but not when it obfuscates. -computron
+        # displace the sites along the given normal mode:
+        # displacement vector for each site = normalized eigen vector * amount of displacement
         nm_displacement = nm_eigenvecs[mode, :, :] * disp / nm_norms[mode, :, np.newaxis]
         for i, vec in enumerate(nm_displacement):
             structure.translate_sites(i, vec, frac_coords=False)

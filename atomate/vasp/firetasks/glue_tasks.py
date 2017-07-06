@@ -16,19 +16,14 @@ flow of the workflow, e.g. tasks to check stability or the gap is within a certa
 import gzip
 import os
 import re
-from decimal import Decimal
-
-import numpy as np
 
 from pymatgen import MPRester
 from pymatgen.io.vasp.sets import get_vasprun_outcar
-from pymatgen.analysis.elasticity import reverse_voigt_map
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 from atomate.utils.utils import env_chk, get_logger
-from atomate.common.firetasks.glue_tasks import get_calc_loc
-from atomate.utils.fileio import FileClient
+from atomate.common.firetasks.glue_tasks import get_calc_loc, PassResult, CopyFiles
 
 logger = get_logger(__name__)
 
@@ -37,7 +32,7 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
 
 @explicit_serialize
-class CopyVaspOutputs(FiretaskBase):
+class CopyVaspOutputs(CopyFiles):
     """
     Copy files from a previous VASP run directory to the current directory.
     By default, copies 'INCAR', 'POSCAR' (default: via 'CONTCAR'), 'KPOINTS', 
@@ -63,47 +58,41 @@ class CopyVaspOutputs(FiretaskBase):
             POSCAR (original POSCAR is not copied).
     """
 
-    optional_params = ["calc_loc", "calc_dir", "filesystem", "additional_files",
-                       "contcar_to_poscar"]
+    optional_params = ["calc_loc", "calc_dir", "filesystem", "additional_files", "contcar_to_poscar"]
 
     def run_task(self, fw_spec):
-        if self.get("calc_dir"):  # direct setting of calc dir - no calc_locs or filesystem!
-            calc_dir = self["calc_dir"]
-            filesystem = None
-        elif self.get("calc_loc"):  # search for calc dir and filesystem within calc_locs
-            calc_loc = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])
-            calc_dir = calc_loc["path"]
-            filesystem = calc_loc["filesystem"]
-        else:
-            raise ValueError("Must specify either calc_dir or calc_loc!")
 
-        fileclient = FileClient(filesystem=filesystem)
-        calc_dir = fileclient.abspath(calc_dir)
-        contcar_to_poscar = self.get("contcar_to_poscar", True)
-
-        all_files = fileclient.listdir(calc_dir)
+        calc_loc = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"]) if self.get("calc_loc") else {}
 
         # determine what files need to be copied
-        if "$ALL" in self.get("additional_files", []):
-            files_to_copy = all_files
-        else:
+        files_to_copy = None
+        if not "$ALL" in self.get("additional_files", []):
             files_to_copy = ['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR', 'vasprun.xml']
-
             if self.get("additional_files"):
                 files_to_copy.extend(self["additional_files"])
 
+        # decide between poscar and contcar
+        contcar_to_poscar = self.get("contcar_to_poscar", True)
         if contcar_to_poscar and "CONTCAR" not in files_to_copy:
             files_to_copy.append("CONTCAR")
             files_to_copy = [f for f in files_to_copy if f != 'POSCAR']  # remove POSCAR
 
+        # setup the copy
+        self.setup_copy(self.get("calc_dir", None), filesystem=self.get("filesystem", None),
+                        files_to_copy=files_to_copy, from_path_dict=calc_loc)
+        # do the copying
+        self.copy_files()
+
+    def copy_files(self):
+        all_files = self.fileclient.listdir(self.from_dir)
         # start file copy
-        for f in files_to_copy:
-            prev_path_full = os.path.join(calc_dir, f)
-            dest_fname = 'POSCAR' if f == 'CONTCAR' and contcar_to_poscar else f
-            dest_path = os.path.join(os.getcwd(), dest_fname)
+        for f in self.files_to_copy:
+            prev_path_full = os.path.join(self.from_dir, f)
+            dest_fname = 'POSCAR' if f == 'CONTCAR' else f
+            dest_path = os.path.join(self.to_dir, dest_fname)
 
             relax_ext = ""
-            relax_paths = sorted(fileclient.glob(prev_path_full+".relax*"))
+            relax_paths = sorted(self.fileclient.glob(prev_path_full+".relax*"))
             if relax_paths:
                 if len(relax_paths) > 9:
                     raise ValueError("CopyVaspOutputs doesn't properly handle >9 relaxations!")
@@ -121,7 +110,7 @@ class CopyVaspOutputs(FiretaskBase):
                 raise ValueError("Cannot find file: {}".format(f))
 
             # copy the file (minus the relaxation extension)
-            fileclient.copy(prev_path_full + relax_ext + gz_ext, dest_path + gz_ext)
+            self.fileclient.copy(prev_path_full + relax_ext + gz_ext, dest_path + gz_ext)
 
             # unzip the .gz if needed
             if gz_ext in ['.gz', ".GZ"]:
@@ -213,91 +202,40 @@ class CheckBandgap(FiretaskBase):
         return FWAction(stored_data=stored_data)
 
 
-# TODO: @computron - rename to PassStressStrain in backwards-compatible way (easy) -computron
-@explicit_serialize
-class PassStressStrainData(FiretaskBase):
+def pass_vasp_result(pass_dict, calc_dir='.', filename="vasprun.xml.gz", parse_eigen=False,
+                     parse_dos=False, **kwargs):
     """
-    Passes the stress and deformation for an elastic deformation calculation.
-    Requires a "number" such that when a deformation is regenerated when
-    rerunning a workflow, only that defo will be reset in the passing
+    Function that gets a PassResult firework corresponding to output from a Vasprun.  Covers
+    most use cases in which user needs to pass results from a vasp run to child FWs
+    (e. g. analysis FWs)
+        
+    pass_vasp_result(pass_dict={'stress': ">>ionic_steps.-1.stress"})
 
     Required params:
-        number (int): deformation number (i. e. in list of deformations in wf)
-        deformation (3x3 array-like): the deformation gradient used in the elastic analysis.
+        pass_dict (dict): dictionary designating keys and values to pass
+            to child fireworks.  If value is a string beginning with '>>',
+            the firework will search the parsed VASP output dictionary
+            for the designated property by following the sequence of keys
+            separated with periods, e. g. ">>ionic_steps.-1.stress" is used
+            to designate the stress from the last ionic_step. If the value
+            is not a string or does not begin with ">>" or "a>>" (for an
+            object attribute, rather than nested key of .as_dict() conversion),
+            it is passed as is.
+
+    Optional params:
+        calc_dir (str): path to dir that contains VASP output files, defaults
+            to '.', e. g. current directory
+        filename (str): filename for vasp xml file to parse, defaults to
+            "vasprun.xml.gz"
+        parse_eigen (bool): flag on whether or not to parse eigenvalues,
+            defaults to false
+        parse_eigen (bool): flag on whether or not to parse dos,
+            defaults to false
+        **kwargs (keyword args): other keyword arguments passed to PassResult
+            e.g. mod_spec_key or mod_spec_cmd
+        
     """
 
-    required_params = ["number", "deformation"]
-    optional_params = ["symmops"]
-    def run_task(self, fw_spec):
-        v, _ = get_vasprun_outcar(self.get("calc_dir", "."), parse_dos=False, parse_eigen=False)
-        stress = v.ionic_steps[-1]['stress']
-        defo = self['deformation']
-        strain = Strain.from_deformation(defo)
-        defo_dict = {'deformation_matrix': defo, 'strain': strain.tolist(),
-                     'stress': stress, 'independent': None}
-        if self['symmops']:
-            defo_dict['symmops'] = self['symmops']
-
-        return FWAction(mod_spec=[{'_set': {
-            'deformation_tasks->{}'.format(self['number']): defo_dict}}])
-
-
-# TODO: @computron - rename to PassEpsilon in backwards-compatible way (easy) -computron
-@explicit_serialize
-class PassEpsilonTask(FiretaskBase):
-    """
-    Pass the epsilon(dielectric constant) corresponding to the given normal mode and displacement.
-
-    Required params:
-        mode (int): normal mode index
-        displacement (float): displacement along the normal mode in Angstroms
-    """
-
-    required_params = ["mode", "displacement"]
-
-    def run_task(self, fw_spec):
-        vrun, _ = get_vasprun_outcar(self.get("calc_dir", "."), parse_dos=False, parse_eigen=True)
-        epsilon_static = vrun.epsilon_static
-        epsilon_dict = {"mode": self["mode"],
-                        "displacement": self["displacement"],
-                        "epsilon": epsilon_static}
-        # TODO: @matk86 - document the format of what is being passed better, esp with
-        # all the replacements going on -computron
-        return FWAction(mod_spec=[{
-            '_set': {
-                'raman_epsilon->{}_{}'.format(
-                    str(self["mode"]),
-                    str(self["displacement"]).replace("-", "m").replace(".", "d")): epsilon_dict
-            }
-        }])
-
-
-# TODO: @computron - rename to PassNormalModes in backwards-compatible way (easy) -computron
-@explicit_serialize
-class PassNormalmodesTask(FiretaskBase):
-    """
-    Extract and pass the normal mode eigenvalues and vectors.
-
-    Optional_params:
-        calc_dir (str): path to the calculation directory
-    """
-
-    optional_params = ["calc_dir"]
-
-    def run_task(self, fw_spec):
-        # TODO: @matk86 - document the format of what is being passed better. Help someone new
-        # understand the context of this Firetask -computron
-
-        normalmode_dict = fw_spec.get("normalmodes", None)
-        if not normalmode_dict:
-            vrun, _ = get_vasprun_outcar(self.get("calc_dir", "."),
-                                         parse_dos=False, parse_eigen=True)
-            structure = vrun.final_structure.copy()
-            normalmode_eigenvals = vrun.normalmode_eigenvals
-            normalmode_eigenvecs = vrun.normalmode_eigenvecs
-            normalmode_norms = np.linalg.norm(normalmode_eigenvecs, axis=2)
-            normalmode_dict = {"structure": structure,
-                               "eigenvals": normalmode_eigenvals.tolist(),
-                               "eigenvecs": normalmode_eigenvecs.tolist(),
-                               "norms": normalmode_norms.tolist()}
-        return FWAction(mod_spec=[{'_set': {'normalmodes': normalmode_dict}}])
+    parse_kwargs = {"filename": filename, "parse_eigen": parse_eigen, "parse_dos":parse_dos}
+    return PassResult(pass_dict=pass_dict, calc_dir=calc_dir, parse_kwargs=parse_kwargs,
+                      parse_class="pymatgen.io.vasp.outputs.Vasprun", **kwargs)

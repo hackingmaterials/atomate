@@ -6,7 +6,6 @@ import json
 import os
 import itertools
 from collections import defaultdict
-
 from datetime import datetime
 
 import numpy as np
@@ -16,18 +15,20 @@ from monty.json import MontyEncoder
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER, recursive_dict
 
-from atomate.utils.utils import env_chk, get_meta_from_structure
-from atomate.common.firetasks.glue_tasks import get_calc_loc
-from atomate.utils.utils import get_logger
-from atomate.vasp.database import VaspCalcDb
-from atomate.vasp.drones import VaspDrone
-
 from pymatgen import Structure
-from pymatgen.analysis.elasticity import ElasticTensorExpansion, \
-        Stress, Deformation, Strain, ElasticTensor, get_strain_state_dict
+from pymatgen.analysis.elasticity.elastic import ElasticTensor, \
+        ElasticTensorExpansion, get_strain_state_dict
+from pymatgen.analysis.elasticity.strain import Strain
+from pymatgen.analysis.elasticity.stress import Stress
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+
+from atomate.common.firetasks.glue_tasks import get_calc_loc
+from atomate.utils.utils import env_chk, get_meta_from_structure
+from atomate.utils.utils import get_logger
+from atomate.vasp.database import VaspCalcDb
+from atomate.vasp.drones import VaspDrone
 
 __author__ = 'Anubhav Jain, Kiran Mathew, Shyam Dwaraknath'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov'
@@ -35,11 +36,8 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov'
 logger = get_logger(__name__)
 
 
-# TODO: @computron: re-name most of these, retaining backwards compatibility (easy). Don't need Task
-# at the end of everything. # -computron
-
 @explicit_serialize
-class VaspToDbTask(FiretaskBase):
+class VaspToDb(FiretaskBase):
     """
     Enter a VASP run into the database. Uses current directory unless you
     specify calc_dir or calc_loc.
@@ -66,7 +64,6 @@ class VaspToDbTask(FiretaskBase):
     optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
                        "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful"]
 
-    # TODO: make it so that bandstructure_mode is just T/F with auto-detect of uniform/line
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
         calc_dir = os.getcwd()
@@ -88,38 +85,19 @@ class VaspToDbTask(FiretaskBase):
         # Check for additional keys to set based on the fw_spec
         if self.get("fw_spec_field"):
             task_doc.update(fw_spec[self.get("fw_spec_field")])
-        # get the database connection
 
-        # db insertion or taskdoc dump
+        # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
 
+        # db insertion or taskdoc dump
         if not db_file:
             with open("task.json", "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
             mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-
-            # insert dos into GridFS
-            if self.get("parse_dos") and "calcs_reversed" in task_doc:
-                if "dos" in task_doc["calcs_reversed"][0]:  # only store idx=0 DOS
-                    dos = json.dumps(task_doc["calcs_reversed"][0]["dos"], cls=MontyEncoder)
-                    gfs_id, compression_type = mmdb.insert_gridfs(dos, "dos_fs")
-                    task_doc["calcs_reversed"][0]["dos_compression"] = compression_type
-                    task_doc["calcs_reversed"][0]["dos_fs_id"] = gfs_id
-                    del task_doc["calcs_reversed"][0]["dos"]
-
-            # insert band structure into GridFS
-            if self.get("bandstructure_mode") and "calcs_reversed" in task_doc:
-                if "bandstructure" in task_doc["calcs_reversed"][0]:  # only store idx=0 BS
-                    bs = json.dumps(task_doc["calcs_reversed"][0]["bandstructure"], cls=MontyEncoder)
-                    gfs_id, compression_type = mmdb.insert_gridfs(bs, "bandstructure_fs")
-                    task_doc["calcs_reversed"][0]["bandstructure_compression"] = compression_type
-                    task_doc["calcs_reversed"][0]["bandstructure_fs_id"] = gfs_id
-                    del task_doc["calcs_reversed"][0]["bandstructure"]
-
-            # insert the task document
-            t_id = mmdb.insert(task_doc)
-
+            t_id = mmdb.insert_task(task_doc,
+                                    parse_dos=self.get("parse_dos", False),
+                                    parse_bs=bool(self.get("bandstructure_mode", False)))
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
         if self.get("defuse_unsuccessful", True):
@@ -131,9 +109,39 @@ class VaspToDbTask(FiretaskBase):
                         defuse_children=defuse_children)
 
 
-# TODO: rename to BoltztrapToDb task (capitalization), keep old name backwards-compatible (easy)
 @explicit_serialize
-class BoltztrapToDBTask(FiretaskBase):
+class JsonToDb(FiretaskBase):
+    """
+    Insert the a JSON file (default: task.json) directly into the tasks database.
+    Note that if the JSON file contains a "task_id" key, that task_id must not already be present
+    in the tasks collection.
+
+    Optional params:
+        json_filename (str): name of the JSON file to insert (default: "task.json")
+        db_file (str): path to file containing the database credentials. Supports env_chk.
+        calc_dir (str): path to dir (on current filesystem) that contains VASP output files.
+            Default: use current working directory.
+    """
+    optional_params = ["json_filename", "db_file", "calc_dir"]
+
+    def run_task(self, fw_spec):
+
+        ref_file = self.get("json_filename", "task.json")
+        calc_dir = self.get("calc_dir", os.getcwd())
+        with open(os.path.join(calc_dir, ref_file), "r") as fp:
+            task_doc = json.load(fp)
+
+        db_file = env_chk(self.get('db_file'), fw_spec)
+        if not db_file:
+            with open("task.json", "w") as f:
+                f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
+        else:
+            mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
+            mmdb.insert(task_doc)
+
+
+@explicit_serialize
+class BoltztrapToDb(FiretaskBase):
     """
     Enter a BoltzTraP run into the database. Note that this assumes you are in a current dir
     that has the uniform band structure data with a sub-directory called "boltztrap" containing
@@ -208,17 +216,16 @@ class BoltztrapToDBTask(FiretaskBase):
 
 
 @explicit_serialize
-class ElasticTensorToDbTask(FiretaskBase):
+class ElasticTensorToDb(FiretaskBase):
     """
     Analyzes the stress/strain data of an elastic workflow to produce
     an elastic tensor and various other quantities.
     """
 
     required_params = ['structure']
-    optional_params = ['db_file', "order"]
+    optional_params = ['db_file', 'order', 'fw_spec_field']
 
     def run_task(self, fw_spec):
-        
         ref_struct = self['structure']
         d = {"analysis": {},
              "deformation_tasks": fw_spec["deformation_tasks"],
@@ -239,11 +246,9 @@ class ElasticTensorToDbTask(FiretaskBase):
         else:
             d['eq_stress'] = None
 
-        # TODO: @montoyjh: does the below have anything to do with elastic tensor? If not, try
-        # the more general fw_spec_field approach in the VaspToDbTask rather than hard-coding the
-        # tags insertion here. -computron
-        if fw_spec.get("tags", None):
-            d["tags"] = fw_spec["tags"]
+        if self.get("fw_spec_field"):
+            task_doc.update(fw_spec[self.get("fw_spec_field")])
+
         defo_dicts = fw_spec["deformation_tasks"].values()
         stresses, strains = [], []
         for defo_dict in defo_dicts:
@@ -255,7 +260,7 @@ class ElasticTensorToDbTask(FiretaskBase):
                 strains.append(Strain(defo_dict["strain"]).transform(symmop))
         stresses = [-0.1*s for s in stresses]
 
-        logger.info("ANALYZING STRESS/STRAIN DATA")
+        logger.info("Analyzing stress/strain data")
         vstrains = np.array([s.voigt for s in strains])
         # Direct pseudoinverse fitting
         # TODO: @montoyjh: what if it's a cubic system? don't need 6. -computron
@@ -310,9 +315,9 @@ class ElasticTensorToDbTask(FiretaskBase):
             logger.info("Elastic analysis complete.")
         return FWAction()
 
-#TODO: @computron: shorten name, retaining backwards compatibility (easy) -computron
+
 @explicit_serialize
-class RamanSusceptibilityTensorToDbTask(FiretaskBase):
+class RamanTensorToDb(FiretaskBase):
     """
     Raman susceptibility tensor for each mode = Finite difference derivative of the dielectric
         tensor wrt the displacement along that mode.
@@ -327,12 +332,12 @@ class RamanSusceptibilityTensorToDbTask(FiretaskBase):
     optional_params = ["db_file"]
 
     def run_task(self, fw_spec):
-        nm_norms = np.array(fw_spec["normalmodes"]["norms"])
+        nm_eigenvecs = np.array(fw_spec["normalmodes"]["eigenvecs"])
         nm_eigenvals = np.array(fw_spec["normalmodes"]["eigenvals"])
+        nm_norms = np.linalg.norm(nm_eigenvecs, axis=2)
         structure = fw_spec["normalmodes"]["structure"]
         masses = np.array([site.specie.data['Atomic mass'] for site in structure])
         nm_norms = nm_norms / np.sqrt(masses)  # eigenvectors in vasprun.xml are not divided by sqrt(M_i)
-
         # To get the actual eigenvals, the values read from vasprun.xml must be multiplied by -1.
         # frequency_i = sqrt(-e_i)
         # To convert the frequency to THZ: multiply sqrt(-e_i) by 15.633
@@ -381,14 +386,12 @@ class RamanSusceptibilityTensorToDbTask(FiretaskBase):
         return FWAction()
 
 
-# TODO: @computron: more consistent name, retaining backwards compatibility (easy) -computron
 # TODO: @computron: this requires a "tasks" collection to proceed. Merits of changing to FW passing
 # method? -computron
 # TODO: @computron: even if you use the db-centric method, embed information in tags rather than
 # task_label? This workflow likely requires review with its authors. -computron
-
 @explicit_serialize
-class GibbsFreeEnergyTask(FiretaskBase):
+class GibbsAnalysisToDb(FiretaskBase):
     """
     Compute the quasi-harmonic gibbs free energy. There are 2 options available for the
     quasi-harmonic approximation (set via 'qha_type' parameter):
@@ -476,7 +479,7 @@ class GibbsFreeEnergyTask(FiretaskBase):
             # use the phonopy interface
             else:
 
-                from atomate.tools.analysis import get_phonopy_gibbs
+                from atomate.vasp.analysis.phonopy import get_phonopy_gibbs
 
                 G, T = get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min,
                                          t_step, t_max, mesh, eos, pressure)
@@ -487,9 +490,13 @@ class GibbsFreeEnergyTask(FiretaskBase):
         # quasi-harmonic analysis failed, set the flag to false
         except:
             import traceback
+
             logger.warn("Quasi-harmonic analysis failed!")
             gibbs_dict["success"] = False
             gibbs_dict["traceback"] = traceback.format_exc()
+            metadata.update({"task_label_tag": tag})
+            gibbs_dict["metadata"] = metadata
+            gibbs_dict["created_at"] = datetime.utcnow()
 
         # TODO: @matk86: add a list of task_ids that were used to construct the analysis to DB?
         # -computron
@@ -507,9 +514,10 @@ class GibbsFreeEnergyTask(FiretaskBase):
         if not gibbs_dict["success"]:
             return FWAction(defuse_children=True)
 
+
 # TODO: @computron: review method of data passing with the workflow authors. -computron
 @explicit_serialize
-class FitEquationOfStateTask(FiretaskBase):
+class FitEOSToDb(FiretaskBase):
     """
     Retrieve the energy and volume data and fit it to the given equation of state. The summary dict
     is written to 'bulk_modulus.json' file.
@@ -518,28 +526,34 @@ class FitEquationOfStateTask(FiretaskBase):
         tag (str): unique tag appended to the task labels in other fireworks so that all the
             required data can be queried directly from the database.
         db_file (str): path to the db file
-        
+
     Optional parameters:
+        to_db (bool): if True, the data will be inserted to "eos" collection; otherwise, dumped to a .json file.
         eos (str): equation of state used for fitting the energies and the volumes.
             options supported by pymatgen: "quadratic", "murnaghan", "birch", "birch_murnaghan",
             "pourier_tarantola", "vinet", "deltafactor". Default: "vinet"
     """
 
-    required_params = ["tag", "db_file", "eos"]
+    required_params = ["tag", "db_file"]
+    optional_params = ["to_db", "eos"]
 
     def run_task(self, fw_spec):
 
         from pymatgen.analysis.eos import EOS
 
         eos = self.get("eos", "vinet")
-
         tag = self["tag"]
         db_file = env_chk(self.get("db_file"), fw_spec)
         summary_dict = {"eos": eos}
+        to_db = self.get("to_db", True)
+
+        # collect and store task_id of all related tasks to make unique links with "tasks" collection
+        all_task_ids = []
 
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         # get the optimized structure
         d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
+        all_task_ids.append(d["task_id"])
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
         summary_dict["structure"] = structure.as_dict()
 
@@ -552,25 +566,38 @@ class FitEquationOfStateTask(FiretaskBase):
             s = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
             energies.append(d["calcs_reversed"][-1]["output"]['energy'])
             volumes.append(s.volume)
+            all_task_ids.append(d["task_id"])
         summary_dict["energies"] = energies
         summary_dict["volumes"] = volumes
+        summary_dict["all_task_ids"] = all_task_ids
 
         # fit the equation of state
         eos = EOS(eos)
         eos_fit = eos.fit(volumes, energies)
+        summary_dict["bulk_modulus"] = eos_fit.b0_GPa
+
+        # TODO: find a better way for passing tags of the entire workflow to db - albalu
+        if fw_spec.get("tags", None):
+            summary_dict["tags"] = fw_spec["tags"]
         summary_dict["results"] = dict(eos_fit.results)
+        summary_dict["created_at"] = datetime.utcnow()
 
-        with open("bulk_modulus.json", "w") as f:
-            f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
+        # db_file itself is required but the user can choose to pass the results to db or not
+        if to_db:
+            mmdb.collection = mmdb.db["eos"]
+            mmdb.collection.insert_one(summary_dict)
+        else:
+            with open("bulk_modulus.json", "w") as f:
+                f.write(json.dumps(summary_dict, default=DATETIME_HANDLER))
 
-        # TODO: @matk86 - there needs to be a way to insert this into a database! And also
-        # a builder to put it into materials collection... -computron
+        # TODO: @matk86 - there needs to be a builder to put it into materials collection... -computron
         logger.info("Bulk modulus calculation complete.")
 
 
 # TODO: @computron: review method of data passing with the workflow authors. -computron
+# TODO: insert to db. -matk
 @explicit_serialize
-class ThermalExpansionCoeffTask(FiretaskBase):
+class ThermalExpansionCoeffToDb(FiretaskBase):
     """
     Compute the quasi-harmonic thermal expansion coefficient using phonopy.
 
@@ -594,7 +621,7 @@ class ThermalExpansionCoeffTask(FiretaskBase):
 
     def run_task(self, fw_spec):
 
-        from atomate.tools.analysis import get_phonopy_thermal_expansion
+        from atomate.vasp.analysis.phonopy import get_phonopy_thermal_expansion
 
         tag = self["tag"]
         db_file = env_chk(self.get("db_file"), fw_spec)
@@ -639,3 +666,36 @@ class ThermalExpansionCoeffTask(FiretaskBase):
         # TODO: @matk86 - there needs to be a way to insert this into a database! And also
         # a builder to put it into materials collection... -computron
         logger.info("Thermal expansion coefficient calculation complete.")
+
+
+# the following definitions for backward compatibility
+class VaspToDbTask(VaspToDb):
+    pass
+
+
+class JsonToDbTask(JsonToDb):
+    pass
+
+
+class BoltztrapToDBTask(BoltztrapToDb):
+    pass
+
+
+class ElasticTensorToDbTask(ElasticTensorToDb):
+    pass
+
+
+class RamanSusceptibilityTensorToDbTask(RamanTensorToDb):
+    pass
+
+
+class GibbsFreeEnergyTask(GibbsAnalysisToDb):
+    pass
+
+
+class FitEquationOfStateTask(FitEOSToDb):
+    pass
+
+
+class ThermalExpansionCoeffTask(ThermalExpansionCoeffToDb):
+    pass

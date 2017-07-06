@@ -7,6 +7,7 @@ import os
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
+
 from atomate.utils.utils import env_chk, get_logger, load_class
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 

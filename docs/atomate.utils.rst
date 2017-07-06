@@ -27,6 +27,14 @@ atomate.utils.fileio module
     :undoc-members:
     :show-inheritance:
 
+atomate.utils.testing module
+----------------------------
+
+.. automodule:: atomate.utils.testing
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 atomate.utils.utils module
 --------------------------
 

@@ -6,6 +6,7 @@ Subpackages
 
 .. toctree::
 
+    atomate.vasp.analysis
     atomate.vasp.builders
     atomate.vasp.examples
     atomate.vasp.firetasks

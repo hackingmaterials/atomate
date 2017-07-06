@@ -5,13 +5,12 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import logging
 import os
 import sys
-from copy import deepcopy
 
 import six
-
-from fireworks import Workflow, Firework
 from monty.json import MontyDecoder
 from pymatgen import Composition
+
+from fireworks import Workflow
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
@@ -67,14 +66,56 @@ def get_mongolike(d, key):
         value from desired dict (whatever is stored at the desired key)
 
     """
+    lead_key = key.split(".", 1)[0]
+    try:
+        lead_key = int(lead_key)  # for searching array data
+    except:
+        pass
+
     if "." in key:
-        i, j = key.split(".", 1)
-        try:
-            i = int(i)  # for searching array data
-        except:
-            pass
-        return get_mongolike(d[i], j)
-    return d[key]
+        remainder = key.split(".", 1)[1]
+        return get_mongolike(d[lead_key], remainder)
+    return d[lead_key]
+
+
+def recursive_get_result(d, result):
+    """
+    Function that gets designated keys or values of d 
+    (i. e. those that start with "d>>" or "a>>") from 
+    the corresponding entry in result_dict, similar to 
+    FireWorks recursive_deserialize.
+
+    Note that the plain ">>" notation will get a key from
+    the result.as_dict() object and may use MongoDB
+    dot notation, while "a>>" will get an attribute
+    of the object.
+
+    Examples:
+
+    Getting a dict key from a VaspRun instance:
+        recursive_get_result({"stress":">>output.ionic_steps.-1.stress"}, vasprun)
+        --> {"stress":[[0.2, 0, 0], [0, 0.3, 0], [0, 0, 0.3]]}
+
+    Getting an **attribute** from a vasprun:
+        recursive_get_result({"epsilon":"a>>epsilon_static", vasprun}
+        --> {"epsilon":-3.4}
+    """
+    if isinstance(d, six.string_types) and d[:2] == ">>":
+        if hasattr(result, "as_dict"):
+            result = result.as_dict()
+        return get_mongolike(result, d[2:])
+
+    elif isinstance(d, six.string_types) and d[:3] == "a>>":
+        return getattr(result, d[3:])
+    
+    elif isinstance(d, dict):
+        return {k: recursive_get_result(v, result) for k, v in d.items()}
+    
+    elif isinstance(d, (list, tuple)):
+        return [recursive_get_result(i, result) for i in d] 
+    
+    else:
+        return d
 
 
 def get_logger(name, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(message)s',
@@ -223,24 +264,6 @@ def get_wf_from_spec_dict(structure, wfspec):
     return Workflow(fws, name=wfname, metadata=wfspec.get("metadata"))
 
 
-# TODO: @matk86 - please remove this pointless method. Write tighter code rather than this silly
-# "auto-converting without thinking about it" mess. Even if you wanted to do this auto-conversion,
-# just modify Workflow.append_wf() in FireWorks rather than add this thing. -computron
-def append_fw_wf(orig_wf, fw_wf):
-    """
-    Add the given firework or workflow to the end of the provided workflow. If there are multiple
-    leaf nodes the newly added firework/workflow will depend on all of them.
-
-    Args:
-        orig_wf (Workflow): The original workflow object.
-        fw_wf (Firework/Workflow): The firework or workflow object to be appended to orig_wf.
-    """
-    new_wf = fw_wf
-    if isinstance(fw_wf, Firework):
-        new_wf = Workflow.from_Firework(new_wf)
-    orig_wf.append_wf(new_wf, orig_wf.leaf_fw_ids)
-
-
 def load_class(modulepath, classname):
     """
     Load and return the class from the given module.
@@ -254,48 +277,3 @@ def load_class(modulepath, classname):
     """
     mod = __import__(modulepath, globals(), locals(), [classname], 0)
     return getattr(mod, classname)
-
-
-# TODO: @matk86 - put this in FireWorks instead? w/ already existing unit tests. -computron
-def remove_fws(orig_wf, fw_ids):
-    """
-    Remove the fireworks corresponding to the input firework ids and update the workflow i.e the
-    parents of the removed fireworks become the parents of the children fireworks (only if the
-    children dont have any other parents).
-
-    Args:
-        orig_wf (Workflow): The original workflow object.
-        fw_ids (list): list of fw ids to remove.
-
-    Returns:
-        Workflow : the new updated workflow.
-    """
-    # not working with the copies causes spurious behavior
-    wf_dict = deepcopy(orig_wf.as_dict())
-    orig_parent_links = deepcopy(orig_wf.links.parent_links)
-    fws = wf_dict["fws"]
-
-    # update the links dict: remove fw_ids and link their parents to their children (if they don't
-    # have any other parents).
-    for fid in fw_ids:
-        children = wf_dict["links"].pop(str(fid))
-        # root node --> no parents
-        try:
-            parents = orig_parent_links[int(fid)]
-        except KeyError:
-            parents = []
-        # remove the firework from their parent links and re-link their parents to the children.
-        for p in parents:
-            wf_dict["links"][str(p)].remove(fid)
-            # adopt the children
-            for c in children:
-                # adopt only if the child doesn't have any other parents.
-                if len(orig_parent_links[int(c)]) == 1:
-                    wf_dict["links"][str(p)].append(c)
-
-    # update the list of fireworks.
-    wf_dict["fws"] = [f for f in fws if f["fw_id"] not in fw_ids]
-
-    new_wf = Workflow.from_dict(wf_dict)
-
-    return new_wf

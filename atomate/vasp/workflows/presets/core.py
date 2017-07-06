@@ -2,6 +2,8 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
+from uuid import uuid4
+
 import numpy as np
 
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
@@ -21,7 +23,6 @@ from atomate.vasp.workflows.base.thermal_expansion import get_wf_thermal_expansi
 from atomate.vasp.workflows.base.neb import get_wf_neb_from_endpoints, get_wf_neb_from_structure, \
     get_wf_neb_from_images
 
-
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 
@@ -30,14 +31,13 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 # TODO: @computron: Allow default config dict to be loaded from file -computron
 
 def wf_bandstructure(structure, c=None):
+
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
 
-    wf = get_wf(structure, "bandstructure.yaml",
-                vis=MPRelaxSet(structure, force_gamma=True),
-                common_params={"vasp_cmd": vasp_cmd,
-                               "db_file": db_file})
+    wf = get_wf(structure, "bandstructure.yaml", vis=MPRelaxSet(structure, force_gamma=True),
+                common_params={"vasp_cmd": vasp_cmd, "db_file": db_file})
 
     wf = add_common_powerups(wf, c)
 
@@ -55,6 +55,7 @@ def wf_bandstructure(structure, c=None):
 
 
 def wf_bandstructure_plus_hse(structure, gap_only=True, c=None):
+
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
@@ -64,10 +65,8 @@ def wf_bandstructure_plus_hse(structure, gap_only=True, c=None):
     else:
         wf_src_name = "bandstructure_hse.yaml"
 
-    wf = get_wf(structure, wf_src_name,
-                vis=MPRelaxSet(structure, force_gamma=True),
-                common_params={"vasp_cmd": vasp_cmd,
-                               "db_file": db_file})
+    wf = get_wf(structure, wf_src_name, vis=MPRelaxSet(structure, force_gamma=True),
+                common_params={"vasp_cmd": vasp_cmd, "db_file": db_file})
 
     wf = add_common_powerups(wf, c)
 
@@ -85,6 +84,7 @@ def wf_bandstructure_plus_hse(structure, gap_only=True, c=None):
 
 
 def wf_bandstructure_plus_boltztrap(structure, c=None):
+
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
@@ -94,8 +94,7 @@ def wf_bandstructure_plus_boltztrap(structure, c=None):
         params.append({"vasp_cmd": vasp_cmd, "db_file": db_file})
     params.append({"db_file": db_file})
 
-    wf = get_wf(structure, "bandstructure_boltztrap.yaml",
-                vis=MPRelaxSet(structure, force_gamma=True),
+    wf = get_wf(structure, "bandstructure_boltztrap.yaml", vis=MPRelaxSet(structure, force_gamma=True),
                 params=params)
 
     wf = add_common_powerups(wf, c)
@@ -114,14 +113,13 @@ def wf_bandstructure_plus_boltztrap(structure, c=None):
 
 
 def wf_static(structure, c=None):
+
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
 
-    wf = get_wf(structure, "static_only.yaml",
-                vis=MPStaticSet(structure),
-                common_params={"vasp_cmd": vasp_cmd,
-                               "db_file": db_file})
+    wf = get_wf(structure, "static_only.yaml", vis=MPStaticSet(structure),
+                common_params={"vasp_cmd": vasp_cmd, "db_file": db_file})
 
     wf = add_common_powerups(wf, c)
 
@@ -139,10 +137,8 @@ def wf_structure_optimization(structure, c=None):
     user_incar_settings = c.get("USER_INCAR_SETTINGS")
 
     wf = get_wf(structure, "optimize_only.yaml",
-                vis=MPRelaxSet(structure, force_gamma=True,
-                               user_incar_settings=user_incar_settings),
-                common_params={"vasp_cmd": vasp_cmd,
-                               "db_file": db_file})
+                vis=MPRelaxSet(structure, force_gamma=True, user_incar_settings=user_incar_settings),
+                common_params={"vasp_cmd": vasp_cmd, "db_file": db_file})
 
     wf = add_common_powerups(wf, c)
 
@@ -158,10 +154,8 @@ def wf_dielectric_constant(structure, c=None):
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
 
-    wf = get_wf(structure, "dielectric_constant.yaml",
-                vis=MPRelaxSet(structure, force_gamma=True),
-                common_params={"vasp_cmd": vasp_cmd,
-                               "db_file": db_file})
+    wf = get_wf(structure, "dielectric_constant.yaml", vis=MPRelaxSet(structure, force_gamma=True),
+                common_params={"vasp_cmd": vasp_cmd, "db_file": db_file})
 
     wf = add_common_powerups(wf, c)
 
@@ -178,8 +172,7 @@ def wf_dielectric_constant_no_opt(structure, c=None):
     db_file = c.get("DB_FILE", DB_FILE)
 
     wf = get_wf(structure, "dielectric_constant_no_opt.yaml",
-                common_params={"vasp_cmd": vasp_cmd,
-                               "db_file": db_file})
+                common_params={"vasp_cmd": vasp_cmd,  "db_file": db_file})
 
     wf = add_common_powerups(wf, c)
 
@@ -196,8 +189,7 @@ def wf_piezoelectric_constant(structure, c=None):
     db_file = c.get("DB_FILE", DB_FILE)
 
     wf = get_wf(structure, "piezoelectric_constant.yaml",
-                common_params={"vasp_cmd": vasp_cmd,
-                               "db_file": db_file})
+                common_params={"vasp_cmd": vasp_cmd, "db_file": db_file})
 
     wf = add_common_powerups(wf, c)
 
@@ -212,31 +204,41 @@ def wf_elastic_constant(structure, c=None):
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
-
     order = c.get("order", 2)
-    if order > 2:
-        kpts = Kpoints.automatic_density(structure, 60000, force_gamma=True)
-        vis = MPRelaxSet(structure, user_incar_settings={
-            "ENCUT": 700, "EDIFF": 1e-10, "LAECHG":False, "EDIFFG":-0.001, "ADDGRID":True, 
-            "LREAL":False},#, "ISYM":0},
-            user_kpoints_settings = kpts)
-        stencils = np.linspace(-0.075, 0.075, 7)
-        conv = False
-    else:
-        vis = MPRelaxSet(structure, user_incar_settings={
-            "incar_update":{"ENCUT": 700, "EDIFF": 1e-6, "LAECHG":False}},
-            user_kpoints_settings = {"grid_density": 7000})
-        stencils = None # use default
-        conv = True
+    sym_red = c.get("symmetry_reduce", False)
 
-    optimize_structure = c.get("optimize_structure", True)
-    sym_red = c.get("symmetry_reduction", False)
-    # conv = c.get("conventional", True)
-    wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd, symmetry_reduction=sym_red,
-                                 db_file=db_file, vasp_input_set=vis, stencils=stencils,
-                                 optimize_structure=optimize_structure, conventional=conv, 
-                                 order=order)
-    #wf = add_modify_incar(wf, modify_incar_params=mip)
+    uis_optimize = {"ENCUT": 700, "EDIFF": 1e-6, "LAECHG":False}
+    if order > 2:
+        uis_optimize.update({"EDIFF": 1e-10, "EDIFFG":-0.001, 
+                             "ADDGRID":True, "LREAL":False})
+        # This ensures a consistent k-point mesh across all calculations
+        kpts_settings = Kpoints.automatic_density(structure, 60000, force_gamma=True)
+        stencils = np.linspace(-0.075, 0.075, 7)
+    else:
+        kpts_settings = {'grid_density': 7000}
+        stencils = None
+
+    uis_static = uis_optimize.copy()
+    uis_static.update({'ISIF': 2, 'IBRION': 2, 'NSW': 99})
+    
+    # input set for structure optimizationh
+    vis_relax = MPRelaxSet(structure, force_gamma=True, user_incar_settings=uis_optimize,
+                           user_kpoints_settings=kpts_settings)
+
+    # optimization only workflow
+    wf = get_wf(structure, "optimize_only.yaml", vis=vis_relax,
+                params=[{"vasp_cmd": vasp_cmd,  "db_file": db_file,
+                         "name": "elastic structure optimization"}])
+    
+    vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=False,
+                             user_kpoints_settings=kpts_settings,
+                             user_incar_settings=uis_static)
+
+    # deformations wflow for elasticity calculation
+    wf_elastic = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd, db_file=db_file,
+                                         order=order, stencils=stencils, copy_vasp_outputs=True,
+                                         vasp_input_set=vis_static)
+
     wf = add_common_powerups(wf, c)
     if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
         wf = add_wf_metadata(wf, structure)
@@ -245,7 +247,7 @@ def wf_elastic_constant(structure, c=None):
 
 def wf_elastic_constant_minimal(structure, c=None):
 
-    c_new = {"symmetry_reduction":True, "stencils":[[0.005]]*3 + [[0.015]]*3}
+    c_new = {"symmetry_reduce":True, "stencils":[[0.005]]*3 + [[0.015]]*3}
     c_new.update(c or {})
     return wf_elastic_constant(structure, c_new)
 
@@ -263,9 +265,13 @@ def wf_raman_spectra(structure, c=None):
     """
 
     c = c or {}
-    # TODO: @kmathew - See my previous comment about config dict params  -computron
-    wf = get_wf_raman_spectra(structure, modes=c.get("modes", None), step_size=c.get("step_size", 0.005),
-                              vasp_cmd=c.get("vasp_cmd", "vasp"), db_file=c.get("db_file", None))
+    modes = c.get("MODES", None)
+    step_size = c.get("STEP_SIZE", 0.005)
+    vasp_cmd = c.get("VASP_CMD", VASP_CMD)
+    db_file = c.get("DB_FILE", DB_FILE)
+
+    wf = get_wf_raman_spectra(structure, modes=modes, step_size=step_size, vasp_cmd=vasp_cmd,
+                              db_file=db_file)
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 600, "EDIFF": 1e-6}},
                           fw_name_constraint="static dielectric")
@@ -291,35 +297,65 @@ def wf_gibbs_free_energy(structure, c=None):
 
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
-
-    # TODO: @kmathew - See my previous comment about config dict params  -computron
-    user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
-
-    # 21 deformed structures
-    deformations = c.get("deformations", [(np.identity(3)*(1+x)).tolist()
-                                          for x in np.linspace(-0.1, 0.1, 21)])
-
-    eos = c.get("eos", "vinet")
-    qha_type = c.get("qha_type", "debye_model")
-
-    # TODO: @kmathew - See my previous comment about config dict params. Some of these might
-    # reasonably be in the config dict, e.g. GIBBS.T_MIN, GIBBS.TMAX  -computron
-
+    eos = c.get("EOS", "vinet")
+    qha_type = c.get("QHA_TYPE", "debye_model")
     # min and max temp in K, default setting is to compute the properties at 300K only
-    t_min = c.get("t_min", 300.0)
-    t_max = c.get("t_max", 300.0)
-    t_step = c.get("t_step", 100.0)
+    t_min = c.get("T_MIN", 300.0)
+    t_max = c.get("T_MAX", 300.0)
+    t_step = c.get("T_STEP", 100.0)
+    pressure = c.get("PRESSURE", 0.0)
+    poisson = c.get("POISSON", 0.25)
+    metadata = c.get("METADATA", None)
 
-    pressure = c.get("pressure", 0.0)
-    poisson = c.get("poisson", 0.25)
-    metadata = c.get("metadata", None)
+    # 21 deformed structures: from -10% to +10%
+    deformations = [(np.identity(3)*(1+x)).tolist() for x in np.linspace(-0.1, 0.1, 21)]
+    user_kpoints_settings = {"grid_density": 7000}
 
-    wf = get_wf_gibbs_free_energy(structure, user_kpoints_settings=user_kpoints_settings,
-                                  deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file,
-                                  eos=eos, qha_type=qha_type, pressure=pressure, poisson=poisson,
-                                  t_min=t_min, t_max=t_max, t_step=t_step, metadata=metadata)
+    tag = "gibbs group: >>{}<<".format(str(uuid4()))
 
-    wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 600, "EDIFF": 1e-6, "LAECHG": False}})
+    # input set for structure optimization
+    vis_relax = MPRelaxSet(structure, force_gamma=True)
+    v = vis_relax.as_dict()
+    v.update({"user_kpoints_settings": user_kpoints_settings})
+    vis_relax = vis_relax.__class__.from_dict(v)
+
+    # optimization only workflow
+    wf = get_wf(structure, "optimize_only.yaml",
+                    params=[{"vasp_cmd": vasp_cmd,  "db_file": db_file,
+                             "name": "{} structure optimization".format(tag)}],
+                    vis=vis_relax)
+
+    # static input set for the transmute firework
+    uis_static = {"ISIF": 2,
+                  "ISTART": 1,
+                  "IBRION": 2,
+                  "NSW": 99
+                  }
+    lepsilon = False
+    if qha_type not in ["debye_model"]:
+        lepsilon = True
+        try:
+            from phonopy import Phonopy
+        except ImportError:
+            raise RuntimeError("'phonopy' package is NOT installed but is required for the final "
+                               "analysis step; you can alternatively switch to the qha_type to "
+                               "'debye_model' which does not require 'phonopy'.")
+    vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
+                                                user_kpoints_settings=user_kpoints_settings,
+                                                user_incar_settings=uis_static)
+    # get gibbs workflow and chain it to the optimization workflow
+    wf_gibbs = get_wf_gibbs_free_energy(structure, user_kpoints_settings=user_kpoints_settings,
+                                        deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file,
+                                        eos=eos, qha_type=qha_type, pressure=pressure, poisson=poisson,
+                                        t_min=t_min, t_max=t_max, t_step=t_step, metadata=metadata,
+                                        tag=tag, vasp_input_set=vis_static)
+
+    # chaining
+    wf.append_wf(wf_gibbs, wf.leaf_fw_ids)
+
+    wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 600,
+                                                                    "EDIFF": 1e-6,
+                                                                    "LAECHG": False}})
 
     wf = add_common_powerups(wf, c)
 
@@ -341,19 +377,45 @@ def wf_bulk_modulus(structure, c=None):
         Workflow
     """
 
-    # TODO: @kmathew - See my previous comment about config dict params.
-    # TODO: @kmathew - see also CAPITALIZATION of config_dict params. I fixed some but
-    # left some for you. -computron
     c = c or {}
-    eos = c.get("eos", "vinet")
+    eos = c.get("EOS", "vinet")
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
-    user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
-    deformations = c.get("deformations", [(np.identity(3)*(1+x)).tolist()
-                                          for x in np.linspace(-0.1, 0.1, 10)])
 
-    wf = get_wf_bulk_modulus(structure, eos=eos, user_kpoints_settings=user_kpoints_settings,
-                             deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file)
+    user_kpoints_settings = {"grid_density": 7000}
+    # 6 deformations
+    deformations = [(np.identity(3)*(1+x)).tolist() for x in np.linspace(-0.05, 0.05, 6)]
+
+    tag = "bulk_modulus group: >>{}<<".format(str(uuid4()))
+
+    # input set for structure optimization
+    vis_relax = MPRelaxSet(structure, force_gamma=True)
+    v = vis_relax.as_dict()
+    v.update({"user_kpoints_settings": user_kpoints_settings})
+    vis_relax = vis_relax.__class__.from_dict(v)
+
+    # optimization only workflow
+    wf = get_wf(structure, "optimize_only.yaml",
+                params=[{"vasp_cmd": vasp_cmd, "db_file": db_file,
+                         "name": "{} structure optimization".format(tag)}],
+                vis=vis_relax)
+
+    # static input set for the transmute firework
+    uis_static = {"ISIF": 2,
+                  "ISTART": 1,
+                  "IBRION": 2,
+                  "NSW": 99
+                  }
+    vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=False,
+                                                user_kpoints_settings=user_kpoints_settings,
+                                                user_incar_settings=uis_static)
+    # get the deformations wflow for bulk modulus calculation
+    wf_bm = get_wf_bulk_modulus(structure, eos=eos, user_kpoints_settings=user_kpoints_settings,
+                                deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file, tag=tag,
+                                vasp_input_set=vis_static)
+
+    # chain it
+    wf.append_wf(wf_bm, wf.leaf_fw_ids)
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 600, "EDIFF": 1e-6}})
 
@@ -377,20 +439,35 @@ def wf_thermal_expansion(structure, c=None):
         Workflow
     """
     c = c or {}
-    # TODO: @kmathew - See my previous comment about config dict params.
-    # TODO: @kmathew - see also CAPITALIZATION of config_dict params. I fixed some but
-    # left some for you. -computron
-    eos = c.get("eos", "vinet")
-    vasp_cmd = c.get("vasp_cmd", VASP_CMD)
-    db_file = c.get("db_file", DB_FILE)
-    user_kpoints_settings = c.get("user_kpoints_settings", {"grid_density": 7000})
-    deformations = c.get("deformations", [(np.identity(3)*(1+x)).tolist()
-                                          for x in np.linspace(-0.1, 0.1, 10)])
-    pressure = c.get("pressure", 0.0)
+    eos = c.get("EOS", "vinet")
+    vasp_cmd = c.get("VASP_CMD", VASP_CMD)
+    db_file = c.get("DB_FILE", DB_FILE)
+    pressure = c.get("PRESSURE", 0.0)
 
-    wf = get_wf_thermal_expansion(structure, user_kpoints_settings=user_kpoints_settings,
+    user_kpoints_settings = {"grid_density": 7000}
+    # 10 deformations
+    deformations = [(np.identity(3)*(1+x)).tolist() for x in np.linspace(-0.1, 0.1, 10)]
+
+    tag = "thermal_expansion group: >>{}<<".format(str(uuid4()))
+
+    # input set for structure optimization
+    vis_relax = MPRelaxSet(structure, force_gamma=True)
+    v = vis_relax.as_dict()
+    v.update({"user_kpoints_settings": user_kpoints_settings})
+    vis_relax = vis_relax.__class__.from_dict(v)
+
+    # optimization only workflow
+    wf = get_wf(structure, "optimize_only.yaml",
+                    params=[{"vasp_cmd": vasp_cmd,  "db_file": db_file,
+                             "name": "{} structure optimization".format(tag)}],
+                    vis=vis_relax)
+
+    wf_thermal = get_wf_thermal_expansion(structure, user_kpoints_settings=user_kpoints_settings,
                                   deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file,
-                                  eos=eos, pressure=pressure)
+                                  eos=eos, pressure=pressure, tag=tag)
+
+    # chain it
+    wf.append_wf(wf_thermal, wf.leaf_fw_ids)
 
     wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 600, "EDIFF": 1e-6}})
 

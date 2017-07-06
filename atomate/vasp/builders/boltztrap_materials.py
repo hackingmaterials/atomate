@@ -129,8 +129,7 @@ class BoltztrapMaterialsBuilder(AbstractBuilder):
         """
         Create indexes for faster searching
         """
-        for x in ["zt", "pf", "seebeck", "conductivity", "kappa_max",
-                  "kappa_min"]:
+        for x in ["zt", "pf", "seebeck", "conductivity", "kappa_max", "kappa_min"]:
             self._materials.create_index("transport.{}.best.value".format(x))
 
     @classmethod

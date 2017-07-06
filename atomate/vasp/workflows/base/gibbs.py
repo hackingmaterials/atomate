@@ -6,14 +6,15 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 This module defines the gibbs free energy workflow.
 """
 
-from datetime import datetime
+from uuid import uuid4
 
 from fireworks import Firework, Workflow
 
 from pymatgen.analysis.elasticity.strain import Deformation
+from pymatgen.io.vasp.sets import MPStaticSet
 
-from atomate.utils.utils import get_logger, append_fw_wf
-from atomate.vasp.firetasks.parse_outputs import GibbsFreeEnergyTask
+from atomate.utils.utils import get_logger
+from atomate.vasp.firetasks.parse_outputs import GibbsAnalysisToDb
 from atomate.vasp.workflows.base.deformations import get_wf_deformations
 
 __author__ = 'Kiran Mathew'
@@ -23,9 +24,9 @@ logger = get_logger(__name__)
 
 
 def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_cmd="vasp",
-                             db_file=None, user_kpoints_settings=None, t_step=10, t_min=0, t_max=1000,
-                             mesh=(20, 20, 20), eos="vinet", qha_type="debye_model", pressure=0.0,
-                             poisson=0.25, metadata=None):
+                             db_file=None, user_kpoints_settings=None, t_step=10, t_min=0,
+                             t_max=1000, mesh=(20, 20, 20), eos="vinet", qha_type="debye_model",
+                             pressure=0.0, poisson=0.25, metadata=None, tag=None):
     """
     Returns quasi-harmonic gibbs free energy workflow.
     Note: phonopy package is required for the final analysis step if qha_type="phonopy"
@@ -49,37 +50,42 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
         pressure (float): in GPa
         poisson (float): poisson ratio
         metadata (dict): meta data
+        tag (str): something unique to identify the tasks in this workflow. If None a random uuid
+            will be assigned.
 
     Returns:
         Workflow
     """
-    lepsilon = False
-    if qha_type not in ["debye_model"]:
-        lepsilon = True
-        try:
-            from phonopy import Phonopy
-        except ImportError:
-            raise RuntimeError("'phonopy' package is NOT installed but is required for the final "
-                             "analysis step; you can alternatively switch to the qha_type to "
-                             "'debye_model' which does not require 'phonopy'.")
 
-    # TODO: @kmathew - see my various other comments about auto-generated tag and UUID. -computron
-    tag = datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')
+    tag = tag or "gibbs group: >>{}<<".format(str(uuid4()))
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
-    wf_gibbs = get_wf_deformations(structure, deformations, name="gibbs deformation",
-                                   vasp_input_set=vasp_input_set, lepsilon=lepsilon, vasp_cmd=vasp_cmd,
-                                   db_file=db_file, user_kpoints_settings=user_kpoints_settings,
-                                   tag=tag, metadata=metadata)
 
-    # TODO: @kmathew - better to stick to lowercase FW names ('gibbs free energy'). That is the
-    # convention for most FWs and switching back and forth is confusing to remember. -computron
-    fw_analysis = Firework(GibbsFreeEnergyTask(tag=tag, db_file=db_file, t_step=t_step, t_min=t_min,
-                                               t_max=t_max, mesh=mesh, eos=eos, qha_type=qha_type,
-                                               pressure=pressure, poisson=poisson, metadata=metadata),
+    # static input set for the transmuter fireworks
+    vis_static = vasp_input_set
+    if vis_static is None:
+        lepsilon = False
+        if qha_type not in ["debye_model"]:
+            lepsilon = True
+            try:
+                from phonopy import Phonopy
+            except ImportError:
+                raise RuntimeError("'phonopy' package is NOT installed but is required for the final "
+                                   "analysis step; you can alternatively switch to the qha_type to "
+                                   "'debye_model' which does not require 'phonopy'.")
+        vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
+                                 user_kpoints_settings=user_kpoints_settings)
+
+    wf_gibbs = get_wf_deformations(structure, deformations, name="gibbs deformation",
+                                   vasp_cmd=vasp_cmd, db_file=db_file, tag=tag, metadata=metadata,
+                                   vasp_input_set=vis_static)
+
+    fw_analysis = Firework(GibbsAnalysisToDb(tag=tag, db_file=db_file, t_step=t_step, t_min=t_min,
+                                             t_max=t_max, mesh=mesh, eos=eos, qha_type=qha_type,
+                                             pressure=pressure, poisson=poisson, metadata=metadata),
                            name="Gibbs Free Energy")
 
-    append_fw_wf(wf_gibbs, fw_analysis)
+    wf_gibbs.append_wf(Workflow.from_Firework(fw_analysis), wf_gibbs.leaf_fw_ids)
 
     wf_gibbs.name = "{}:{}".format(structure.composition.reduced_formula, "gibbs free energy")
 

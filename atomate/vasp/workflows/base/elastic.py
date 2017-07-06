@@ -10,12 +10,14 @@ import numpy as np
 
 from pymatgen.analysis.elasticity.strain import Deformation, Strain
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from pymatgen.io.vasp.sets import MPStaticSet
 
 from fireworks import Firework, Workflow
 
-from atomate.utils.utils import get_logger, append_fw_wf
+from atomate.utils.utils import get_logger, get_mongolike
 from atomate.vasp.workflows.base.deformations import get_wf_deformations
-from atomate.vasp.firetasks.parse_outputs import ElasticTensorToDbTask
+from atomate.vasp.firetasks.parse_outputs import ElasticTensorToDb
+from atomate.vasp.firetasks.glue_tasks import pass_vasp_result
 
 # HACK
 from atomate.vasp.powerups import add_common_powerups, add_modify_incar
@@ -27,8 +29,9 @@ logger = get_logger(__name__)
 
 
 def get_wf_elastic_constant(structure, strain_states=None, stencils=None,
-                            db_file=None, conventional=True, order=2, 
-                            pass_kpoints=True, **kwargs):
+                            db_file=None, conventional=False, order=2, 
+                            vasp_input_set=None, analysis=True, symmetry_reduce=False,
+                            tag='elastic', **kwargs):
     """
     Returns a workflow to calculate elastic constants.
 
@@ -43,11 +46,23 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None,
 
     Args:
         structure (Structure): input structure to be optimized and run.
-        norm_strains (list of floats): list of values to for normal deformations.
-        shear_strains (list of floats): list of values to for shear deformations.
-        additional_strains (list of 3x3 array-likes): list of additional deformations.
+        strain_states (list of Voigt-notation strains): list of ratios of nonzero elements
+            of Voigt-notation strain, e. g. [(1, 0, 0, 0, 0, 0), (0, 1, 0, 0, 0, 0), etc.].
+        stencils (list of floats, or list of list of floats): values of strain to multiply
+            by for each strain state, i. e. stencil for the perturbation along the strain
+            state direction, e. g. [-0.01, -0.005, 0.005, 0.01].  If a list of lists,
+            stencils must correspond to each strain state provided.
         db_file (str): path to file containing the database credentials.
-        toec (bool): whether to include TOEC analysis
+        conventional (bool): flag to convert input structure to conventional structure,
+            defaults to False.
+        order (int): order of the tensor expansion to be determined.  Defaults to 2 and
+            currently supports up to 3.
+        vasp_input_set (VaspInputSet): vasp input set to be used.  Defaults to static
+            set with ionic relaxation parameters set.  Take care if replacing this,
+            default ensures that ionic relaxation is done and that stress is calculated
+            for each vasp run.
+        analysis (bool): flag to indicate whether analysis task should be added
+            and stresses and strains passed to that task
         kwargs (keyword arguments): additional kwargs to be passed to get_wf_deformations
 
     Returns:
@@ -57,6 +72,8 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None,
     if conventional:
         structure = SpacegroupAnalyzer(structure).get_conventional_standard_structure()
 
+    uis_elastic = {"IBRION": 2, "NSW": 99, "ISIF": 2, "ISTART": 1}
+    vis = vasp_input_set or MPStaticSet(structure, user_incar_settings=uis_elastic)
     strains = []
     if strain_states is None:
         strain_states = get_default_strain_states(order)
@@ -75,13 +92,28 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None,
         raise ValueError("Strain list is insufficient to fit an elastic tensor")
 
     deformations = [s.deformation_matrix for s in strains]
-    wf_elastic = get_wf_deformations(structure, deformations, pass_stress_strain=True, 
-            name="deformation", relax_deformed=True, tag="elastic",
-            db_file=db_file, pass_kpoints=pass_kpoints, **kwargs)
 
-    fw_analysis = Firework(ElasticTensorToDbTask(structure=structure, db_file=db_file, order=order),
-                           name="Analyze Elastic Data", spec={"_allow_fizzled_parents": True})
-    append_fw_wf(wf_elastic, fw_analysis)
+    if symmetry_reduce:
+        deformations = symmetry_reduce(deformations, structure).items()
+
+    wf_elastic = get_wf_deformations(structure, deformations, name="elastic", 
+                                     tag=tag, db_file=db_file, **kwargs)
+    if analysis:
+        for n, fw in enumerate(wf_elastic.fws):
+            defo = get_mongolike(fw.tasks, '1.transformation_params.0.deformation')
+            pass_dict = {'strain': Deformation(defo).green_lagrange_strain.tolist(),
+                         'stress': '>>output.ionic_steps.-1.stress',
+                         'deformation_matrix': defo}
+            if symmetry_reduce:
+                pass_dict.update({'symmops': deformations[defo]})
+
+            fw.tasks.append(pass_vasp_result(pass_dict=pass_dict,
+                                             mod_spec_key="deformation_tasks->{}".format(n)))
+
+        fw_analysis = Firework(ElasticTensorToDb(structure=structure, db_file=db_file, 
+                                                 order=order, fw_spec_field='tags'),
+                               name="Analyze Elastic Data", spec={"_allow_fizzled_parents": True})
+        wf_elastic.append_wf(Workflow.from_Firework(fw_analysis), wf_elastic.leaf_fw_ids)
 
     wf_elastic.name = "{}:{}".format(structure.composition.reduced_formula, "elastic constants")
 
@@ -101,55 +133,6 @@ def get_default_strain_states(order=2):
         np.put(strain_states[n], i, 1)
     strain_states[:, 3:] *= 2
     return strain_states.tolist()
-
-
-def get_legacy_elastic_wf(structure, vasp_input_set=None, vasp_cmd=">>vasp_cmd<<", norm_deformations=None,
-                            shear_deformations=None, additional_deformations=None, db_file=">>db_file<<",
-                            user_kpoints_settings=None, add_analysis_task=True, conventional=True,
-                            optimize_structure=True, symmetry_reduction=True, c=None):
-    # Convert to conventional
-    if conventional:
-        structure = SpacegroupAnalyzer(structure).get_conventional_standard_structure()
-
-    # Generate deformations
-    user_kpoints_settings = user_kpoints_settings or {"grid_density": 7000}
-    norm_deformations = norm_deformations or [0.005] #[-0.01, -0.005, 0.005, 0.01]
-    shear_deformations = shear_deformations or [0.03] #[-0.06, -0.03, 0.03, 0.06]
-    deformations = []
-
-    if norm_deformations is not None:
-        deformations.extend([Deformation.from_index_amount(ind, amount)
-                             for ind in [(0, 0), (1, 1), (2, 2)]
-                             for amount in norm_deformations])
-    if shear_deformations is not None:
-        deformations.extend([Deformation.from_index_amount(ind, amount)
-                             for ind in [(0, 1), (0, 2), (1, 2)]
-                             for amount in shear_deformations])
-
-    if additional_deformations:
-        deformations.extend([Deformation(defo_mat) for defo_mat in additional_deformations])
-
-    if not deformations:
-        raise ValueError("deformations list empty")
-
-    wf_elastic = get_wf_deformations(structure, deformations, vasp_input_set=vasp_input_set,
-                                     lepsilon=False, vasp_cmd=vasp_cmd, db_file=db_file,
-                                     user_kpoints_settings=user_kpoints_settings,
-                                     pass_stress_strain=True, name="deformation",
-                                     relax_deformed=True, tag="elastic",
-                                     optimize_structure=optimize_structure, 
-                                     symmetry_reduction=symmetry_reduction)
-
-    if add_analysis_task:
-        fw_analysis = Firework(ElasticTensorToDbTask(structure=structure, db_file=db_file),
-                               name="Analyze Elastic Data", spec={"_allow_fizzled_parents": True})
-        append_fw_wf(wf_elastic, fw_analysis)
-
-    wf_elastic.name = "{}:{}".format(structure.composition.reduced_formula, "elastic constants")
-    wf_elastic = add_modify_incar(wf_elastic, modify_incar_params = {"incar_update":{"ENCUT":700, "EDIFF":1e-6, "LAECHG":False}})
-    wf_elastic = add_common_powerups(wf_elastic, c)
-
-    return wf_elastic
 
 
 if __name__ == "__main__":

@@ -6,14 +6,15 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 This module defines the bulk modulus workflow.
 """
 
-from datetime import datetime
+from uuid import uuid4
 
 from fireworks import Firework, Workflow
 
 from pymatgen.analysis.elasticity.strain import Deformation
+from pymatgen.io.vasp.sets import MPStaticSet
 
-from atomate.utils.utils import get_logger, append_fw_wf
-from atomate.vasp.firetasks.parse_outputs import FitEquationOfStateTask
+from atomate.utils.utils import get_logger
+from atomate.vasp.firetasks.parse_outputs import FitEOSToDb
 from atomate.vasp.workflows.base.deformations import get_wf_deformations
 
 __author__ = 'Kiran Mathew'
@@ -23,43 +24,43 @@ logger = get_logger(__name__)
 
 
 def get_wf_bulk_modulus(structure, deformations, vasp_input_set=None, vasp_cmd="vasp", db_file=None,
-                        user_kpoints_settings=None, eos="vinet"):
+                        user_kpoints_settings=None, eos="vinet", tag=None, user_incar_settings=None):
     """
     Returns the workflow that computes the bulk modulus by fitting to the given equation of state.
 
     Args:
         structure (Structure): input structure.
         deformations (list): list of deformation matrices(list of lists).
-        vasp_input_set (VaspInputSet)
+        vasp_input_set (VaspInputSet): for the static deformation calculations
         vasp_cmd (str): vasp command to run.
         db_file (str): path to the db file.
         user_kpoints_settings (dict): example: {"grid_density": 7000}
         eos (str): equation of state used for fitting the energies and the volumes.
             supported equation of states: "quadratic", "murnaghan", "birch", "birch_murnaghan",
             "pourier_tarantola", "vinet", "deltafactor". See pymatgen.analysis.eos.py
+        tag (str): something unique to identify the tasks in this workflow. If None a random uuid
+            will be assigned.
+        user_incar_settings (dict):
 
     Returns:
         Workflow
     """
 
-    # TODO: @kmathew - can you add something to this tag that makes it clear it is a necessary part
-    # of the wf_bulk_modulus rather than just random date tag? e.g. "wf_bulk_modulus group:
-    # >>DATE<<" -computron
-
-    # TODO: @kmathew - consider using UUID to clarify that this is a hash: e.g.,
-    # uuid.uuid4(). Just feels cleaner than using the string of date -computron
-    tag = datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f')
+    tag = tag or "bulk_modulus group: >>{}<<".format(str(uuid4()))
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
+
+    vis_static = vasp_input_set or MPStaticSet(structure, force_gamma=True, lepsilon=False,
+                                               user_kpoints_settings=user_kpoints_settings,
+                                               user_incar_settings=user_incar_settings)
+
     wf_bulk_modulus = get_wf_deformations(structure, deformations, name="bulk_modulus deformation",
-                                          vasp_input_set=vasp_input_set, lepsilon=False,
-                                          vasp_cmd=vasp_cmd, db_file=db_file,
-                                          user_kpoints_settings=user_kpoints_settings, tag=tag)
+                                          vasp_input_set=vis_static, vasp_cmd=vasp_cmd,
+                                          db_file=db_file, tag=tag)
 
-    fw_analysis = Firework(FitEquationOfStateTask(tag=tag, db_file=db_file, eos=eos),
-                           name="fit equation of state")
+    fw_analysis = Firework(FitEOSToDb(tag=tag, db_file=db_file, eos=eos), name="fit equation of state")
 
-    append_fw_wf(wf_bulk_modulus, fw_analysis)
+    wf_bulk_modulus.append_wf(Workflow.from_Firework(fw_analysis), wf_bulk_modulus.leaf_fw_ids)
 
     wf_bulk_modulus.name = "{}:{}".format(structure.composition.reduced_formula, "Bulk modulus")
 

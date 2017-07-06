@@ -1,6 +1,24 @@
-====================
+=================
 atomate Changelog
-====================
+=================
+
+**v0.5.1**
+
+* use ruamel instead of pyyaml (S.P. Ong)
+* add magnetic moment parsing of output (M.K. Horton)
+* misc cleanups, bug fixes, doc improvements (K. Matthew, S. Dwaraknath, A. Jain)
+
+**v0.5.0**
+
+.. caution:: pymatgen has updated its default kpoint scheme! Kpoint settings will change.
+
+* migration to new pymatgen and new kpoint settings
+* much improved docs (B. Bocklund, A. Jain)
+* *major* code cleanup (J. Montoya, K. Mathew, A. Jain)
+* many unit test updates (A. Faghaninia, H. Tang, S.P. Ong, A. Jain)
+* fix automated testing on pull requests (K. Mathew)
+* misc fixes
+
 
 **v0.4.5**
 

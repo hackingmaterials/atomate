@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os
 
 from atomate.utils.utils import get_wf_from_spec_dict
+
 from monty.serialization import loadfn
 
 __author__ = 'Anubhav Jain, Shyue Ping Ong, Kiran Mathew'
@@ -39,8 +40,8 @@ def get_wf(structure, wf_filename, params=None, common_params=None, vis=None, wf
 
     if params:
         if len(params) != len(d["fireworks"]):
-            raise ValueError("The length of the params array must match the"
-                             "length of the Fireworks array!")
+            raise ValueError("The length of the params array must match the length of the Fireworks array!")
+
         for idx, v in enumerate(params):
             if "params" not in d["fireworks"][idx]:
                 d["fireworks"][idx]["params"] = {}

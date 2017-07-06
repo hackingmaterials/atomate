@@ -27,5 +27,5 @@ class LammpsCalcDb(CalcDb):
         pass
 
     def reset(self):
-        # TODO: @matk86 - shouldn't this be implemented? Seems simple? -computron
-        pass
+        self.collection.delete_many({})
+        self.build_indexes()
