@@ -9,6 +9,7 @@ import itertools
 import numpy as np
 
 from pymatgen.analysis.elasticity.strain import Deformation, Strain
+from pymatgen.analysis.elasticity.tensors import symmetry_reduce, find_tkd_value
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp.sets import MPStaticSet
 
@@ -19,8 +20,6 @@ from atomate.vasp.workflows.base.deformations import get_wf_deformations
 from atomate.vasp.firetasks.parse_outputs import ElasticTensorToDb
 from atomate.vasp.firetasks.glue_tasks import pass_vasp_result
 
-# HACK
-from atomate.vasp.powerups import add_common_powerups, add_modify_incar
 
 __author__ = 'Shyam Dwaraknath, Joseph Montoya'
 __email__ = 'shyamd@lbl.gov, montoyjh@lbl.gov'
@@ -30,7 +29,7 @@ logger = get_logger(__name__)
 
 def get_wf_elastic_constant(structure, strain_states=None, stencils=None,
                             db_file=None, conventional=False, order=2, 
-                            vasp_input_set=None, analysis=True, symmetry_reduce=False,
+                            vasp_input_set=None, analysis=True, sym_reduce=False,
                             tag='elastic', **kwargs):
     """
     Returns a workflow to calculate elastic constants.
@@ -93,19 +92,19 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None,
 
     deformations = [s.deformation_matrix for s in strains]
 
-    if symmetry_reduce:
-        deformations = symmetry_reduce(deformations, structure).items()
+    if sym_reduce:
+        deformations = symmetry_reduce(deformations, structure)
 
-    wf_elastic = get_wf_deformations(structure, deformations, name="elastic", 
-                                     tag=tag, db_file=db_file, **kwargs)
+    wf_elastic = get_wf_deformations(structure, deformations, name="elastic", tag=tag,
+                                     db_file=db_file, vasp_input_set=vis, **kwargs)
     if analysis:
         for n, fw in enumerate(wf_elastic.fws):
             defo = get_mongolike(fw.tasks, '1.transformation_params.0.deformation')
             pass_dict = {'strain': Deformation(defo).green_lagrange_strain.tolist(),
                          'stress': '>>output.ionic_steps.-1.stress',
                          'deformation_matrix': defo}
-            if symmetry_reduce:
-                pass_dict.update({'symmops': deformations[defo]})
+            if sym_reduce:
+                pass_dict.update({'symmops': find_tkd_value(defo, deformations)})
 
             fw.tasks.append(pass_vasp_result(pass_dict=pass_dict,
                                              mod_spec_key="deformation_tasks->{}".format(n)))
@@ -127,7 +126,8 @@ def get_default_strain_states(order=2):
     if order > 2:
         inds.extend([(0, i) for i in range(1, 5)] + [(1,2), (3,4), (3,5), (4,5)])
         if order > 3:
-            raise ValueError("Standard deformations for tensors higher than rank 4 not yet determined")
+            raise ValueError("Standard deformations for tensors higher "
+                             "than rank 4 not yet determined")
     strain_states = np.zeros((len(inds), 6))
     for n, i in enumerate(inds):
         np.put(strain_states[n], i, 1)
@@ -141,8 +141,8 @@ if __name__ == "__main__":
     structure = PymatgenTest.get_structure("Si")
     #wf = get_wf_elastic_constant(structure)
     try:
-        wf = get_wf_elastic_constant(structure, symmetry_reduction=True)
-        wf2 = get_wf_elastic_constant(structure, order=3, symmetry_reduction=False)
+        wf = get_wf_elastic_constant(structure, sym_reduce=True)
+        wf2 = get_wf_elastic_constant(structure, order=3, sym_reduce=False)
     except:
         import sys, pdb, traceback
         type, value, tb = sys.exc_info()

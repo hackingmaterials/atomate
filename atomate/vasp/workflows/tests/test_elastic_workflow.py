@@ -12,6 +12,7 @@ from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_fake_vasp, add_modify_incar
 from atomate.vasp.workflows.base.elastic import get_wf_elastic_constant
+from atomate.vasp.workflows.presets.core import wf_elastic_constant, wf_elastic_constant_minimal
 from atomate.utils.testing import AtomateTest
 
 from pymatgen.util.testing import PymatgenTest
@@ -36,11 +37,16 @@ class TestElasticWorkflow(AtomateTest):
         self.struct_si = PymatgenTest.get_structure("Si")
         vis = MPRelaxSet(self.struct_si, user_incar_settings={"ENCUT": 700},
                          user_kpoints_settings={"grid_density": 7000})
-        self.wf = get_wf_elastic_constant(self.struct_si, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<", 
-                                          stencils=[[0.01]]*3 + [[0.03]]*3, vasp_input_set=vis)
-        self.wf_noopt = get_wf_elastic_constant(self.struct_si, vasp_cmd=">>vasp_cmd<<", vasp_input_set=vis,
-                                                db_file=">>db_file<<", stencils=[[0.01]]*3 + [[0.03]]*3,
-                                                optimize_structure=False)
+        # Full preset WF
+        self.preset_wf = wf_elastic_constant(self.struct_si)
+
+        # Minimal WF
+        self.minimal_wf = wf_elastic_constant_minimal(self.struct_si)
+        ec_incar_update = {'incar_update': {'EDIFF': 1e-6, 'ENCUT': 700}}
+        self.minimal_wf = add_modify_incar(self.minimal_wf, ec_incar_update)
+        # TOEC WF
+        self.toec_wf = wf_elastic_constant_minimal(self.struct_si, {"order": 3})
+        self.toec_wf = add_modify_incar(self.toec_wf, ec_incar_update)
 
     def _simulate_vasprun(self, wf):
         reference_dir = os.path.abspath(os.path.join(ref_dir, "elastic_wf"))
