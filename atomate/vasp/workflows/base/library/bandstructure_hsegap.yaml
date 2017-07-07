@@ -16,4 +16,3 @@ fireworks:
   params:
     parents: 3
     mode: gap
-    kpoints_line_density: 10
