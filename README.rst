@@ -6,4 +6,4 @@ atomate is a powerful software for computational materials science and contains 
 
 For more about atomate, please visit the official documentation_.
 
-.. _documentation: http://packages.python.org/atomate/
+.. _documentation: http://atomate.readthedocs.io/en/latest/
