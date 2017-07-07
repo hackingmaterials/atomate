@@ -44,7 +44,8 @@ class TestElasticWorkflow(AtomateTest):
         self.minimal_wf = wf_elastic_constant_minimal(self.struct_si)
         ec_incar_update = {'incar_update': {'EDIFF': 1e-6, 'ENCUT': 700}}
         self.minimal_wf = add_modify_incar(self.minimal_wf, ec_incar_update)
-        # TOEC WF
+
+        # TOEC WF (minimal)
         self.toec_wf = wf_elastic_constant_minimal(self.struct_si, {"order": 3})
         self.toec_wf = add_modify_incar(self.toec_wf, ec_incar_update)
 

@@ -9,13 +9,13 @@ import itertools
 import numpy as np
 
 from pymatgen.analysis.elasticity.strain import Deformation, Strain
-from pymatgen.analysis.elasticity.tensors import symmetry_reduce, find_tkd_value
+from pymatgen.analysis.elasticity.tensors import symmetry_reduce, get_tkd_value
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp.sets import MPStaticSet
 
 from fireworks import Firework, Workflow
 
-from atomate.utils.utils import get_logger, get_mongolike
+from atomate.utils.utils import get_logger, get_fws_and_tasks
 from atomate.vasp.workflows.base.deformations import get_wf_deformations
 from atomate.vasp.firetasks.parse_outputs import ElasticTensorToDb
 from atomate.vasp.firetasks.glue_tasks import pass_vasp_result
@@ -95,19 +95,22 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None,
     if sym_reduce:
         deformations = symmetry_reduce(deformations, structure)
 
-    wf_elastic = get_wf_deformations(structure, deformations, name="elastic", tag=tag,
-                                     db_file=db_file, vasp_input_set=vis, **kwargs)
+    wf_elastic = get_wf_deformations(structure, deformations, tag=tag, db_file=db_file, 
+                                     vasp_input_set=vis, **kwargs)
     if analysis:
-        for n, fw in enumerate(wf_elastic.fws):
-            defo = get_mongolike(fw.tasks, '1.transformation_params.0.deformation')
+        defo_fws_and_tasks = get_fws_and_tasks(wf_elastic, fw_name_constraint="deformation",
+                                               task_name_constraint="Transmuted")
+        for idx_fw, idx_t in defo_fws_and_tasks:
+            defo = wf_elastic.fws[idx_fw].tasks[idx_t]['transformation_params'][0]['deformation']
             pass_dict = {'strain': Deformation(defo).green_lagrange_strain.tolist(),
                          'stress': '>>output.ionic_steps.-1.stress',
                          'deformation_matrix': defo}
             if sym_reduce:
-                pass_dict.update({'symmops': find_tkd_value(defo, deformations)})
+                pass_dict.update({'symmops': get_tkd_value(deformations, defo)})
 
-            fw.tasks.append(pass_vasp_result(pass_dict=pass_dict,
-                                             mod_spec_key="deformation_tasks->{}".format(n)))
+            mod_spec_key = "deformation_tasks->{}".format(idx_fw)
+            pass_task = pass_vasp_result(pass_dict=pass_dict, mod_spec_key=mod_spec_key)
+            wf_elastic.fws[idx_fw].tasks.append(pass_task)
 
         fw_analysis = Firework(ElasticTensorToDb(structure=structure, db_file=db_file, 
                                                  order=order, fw_spec_field='tags'),

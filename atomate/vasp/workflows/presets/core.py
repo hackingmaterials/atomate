@@ -254,14 +254,13 @@ def wf_elastic_constant_minimal(structure, c=None):
 
     order = c.get('order', 2)
     stencil = np.arange(0.01, 0.01*order, step=0.01)
-    wf = get_wf_elastic_constant(structure, sym_reduce=True, 
-                                 stencils=stencil, order=order,
+    wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd, db_file=db_file,
+                                 sym_reduce=True, stencils=stencil, order=order,
                                  copy_vasp_outputs=False)
 
     wf = add_common_powerups(wf, c)
     if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
         wf = add_wf_metadata(wf, structure)
-
     return wf
 
 

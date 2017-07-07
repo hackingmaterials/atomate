@@ -9,7 +9,6 @@ This module defines the deformation workflow: structure optimization followed by
 from fireworks import Workflow
 
 from pymatgen.io.vasp.sets import MPStaticSet
-from pymatgen.analysis.elasticity import symmetry_reduce
 from atomate.utils.utils import get_logger
 from atomate.vasp.firetasks.glue_tasks import pass_vasp_result
 from atomate.vasp.fireworks.core import TransmuterFW
@@ -52,7 +51,6 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
     fws, parents = [], []
 
     vasp_input_set = vasp_input_set or MPStaticSet(structure, force_gamma=True)
-
 
     # Deformation fireworks with the task to extract and pass stress-strain appended to it.
     for n, deformation in enumerate(deformations):
