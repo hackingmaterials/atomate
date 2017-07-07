@@ -238,7 +238,6 @@ def wf_elastic_constant(structure, c=None):
     wf_elastic = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd, db_file=db_file,
                                          order=order, stencils=stencils, copy_vasp_outputs=True,
                                          vasp_input_set=vis_static)
-    import pdb; pdb.set_trace()
     wf.append_wf(wf_elastic, wf.leaf_fw_ids)
 
     wf = add_common_powerups(wf, c)
@@ -254,10 +253,10 @@ def wf_elastic_constant_minimal(structure, c=None):
     db_file = c.get("DB_FILE", DB_FILE)
 
     order = c.get('order', 2)
-    stencils = np.array([np.arange(0.01, 0.01*order, step=0.01)]*6)
-    stencils[3:] *= 3
+    stencil = np.arange(0.01, 0.01*order, step=0.01)
     wf = get_wf_elastic_constant(structure, sym_reduce=True, 
-                                 stencils=stencils, order=order)
+                                 stencils=stencil, order=order,
+                                 copy_vasp_outputs=False)
 
     wf = add_common_powerups(wf, c)
     if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
