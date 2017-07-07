@@ -20,7 +20,7 @@ if __name__ == "__main__":
         packages=find_packages(),
         package_data={},
         zip_safe=False,
-        install_requires=['FireWorks>=1.4.0', 'pymatgen>=4.7.1',
+        install_requires=['FireWorks>=1.4.0', 'pymatgen>=2017.7.4',
                           'custodian>=1.1.0', 'pymatgen-db>=0.5.1',
                           'monty>=0.9.5', 'tqdm>=4.7.4', 'six',
                           'pymatgen-diffusion>=0.3.0'],
