@@ -313,8 +313,6 @@ def paste_wfs(wf_1, wf_2, parent_fw_ids=None, glue_tasks_1=[],
     """
     if parent_fw_ids is None:
         parent_fw_ids = wf_1.leaf_fw_ids
-    if child_fw_ids is None:
-        child_fw_ids = wf_1.root_fw_ids
         
     if isinstance(glue_tasks_1, list):
         glue_tasks_1 = {k: glue_tasks_1 for k in parent_fw_ids}
