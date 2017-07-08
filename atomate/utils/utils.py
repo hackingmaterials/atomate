@@ -277,3 +277,53 @@ def load_class(modulepath, classname):
     """
     mod = __import__(modulepath, globals(), locals(), [classname], 0)
     return getattr(mod, classname)
+
+
+def paste_wfs(wf_1, wf_2, parent_fw_ids=None, glue_tasks_1=[], 
+              glue_tasks_2=[], **append_kwargs):
+    """
+    Function to "paste" two workflows together and
+    optionally add glue tasks between parents and
+    children from the first and second workflow
+    respectively
+
+    Examples:
+        new_wf = paste_wfs(optimize_wf, elastic_wf,
+                           glue_tasks_1=[PassCalcLocs()],
+                           glue_tasks_2=[CopyVaspOutputs(contcar_to_poscar=True)])
+
+    Args:
+        wf_1 (Workflow): First workflow to be connected, also
+            the workflow from which to take parent_fw_ids
+        wf_2 (Workflow): Second workflow, the workflow for
+            which roots will be made children of the parents
+            specified by parent_fw_ids
+        parent_fw_ids ([int]): fw_ids to use as parents
+            from the first workflow to children corresponding
+            to root_fw_ids from the second workflow
+        glue_tasks_1 ([Firetasks] or {fw_id: [Firetasks]}):
+            firetasks to append to the end of the firetasks
+            for each firework specified by parent_fw_ids.
+            If a list, adds these firetasks to every parent.
+            If a dict, adds the fireworks specifically by keys
+        glue_tasks_2 ([Firetasks] or {fw_id: [Firetasks]}):
+            Similar to glue_tasks_1, except added to the
+            beginning of Firetasks in root_fws of wf_2
+        **append_kwargs (dict): kwargs for append_wf
+    """
+    if parent_fw_ids is None:
+        parent_fw_ids = wf_1.leaf_fw_ids
+    if child_fw_ids is None:
+        child_fw_ids = wf_1.root_fw_ids
+        
+    if isinstance(glue_tasks_1, list):
+        glue_tasks_1 = {k: glue_tasks_1 for k in parent_fw_ids}
+    if isinstance(glue_tasks_2, list):
+        glue_tasks_2 = {k: glue_tasks_2 for k in child_fw_ids}
+
+    for fw_id in parent_fw_ids:
+        wf_1.id_fw[fw_id].tasks.extend(glue_tasks_1[fw_id])
+    for fw_id in child_fw_ids:
+        wf_2.id_fw[fw_id].tasks = glue_tasks_2[fw_id] + wf_2.id_fw[fw_id].tasks
+
+    wf_1.append_wf(wf_2, parent_fw_ids, **append_kwargs)
