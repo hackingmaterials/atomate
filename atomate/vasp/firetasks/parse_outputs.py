@@ -247,7 +247,7 @@ class ElasticTensorToDb(FiretaskBase):
             d['eq_stress'] = None
 
         if self.get("fw_spec_field"):
-            task_doc.update(fw_spec[self.get("fw_spec_field")])
+            d.update({self.get("fw_spec_field"): fw_spec[self.get("fw_spec_field")]})
 
         defo_dicts = fw_spec["deformation_tasks"].values()
         stresses, strains = [], []
@@ -313,6 +313,7 @@ class ElasticTensorToDb(FiretaskBase):
             db.collection = db.db["elasticity"]
             db.collection.insert_one(d)
             logger.info("Elastic analysis complete.")
+        
         return FWAction()
 
 

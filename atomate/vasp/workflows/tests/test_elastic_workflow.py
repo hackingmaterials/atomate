@@ -35,19 +35,32 @@ class TestElasticWorkflow(AtomateTest):
     def setUp(self):
         super(TestElasticWorkflow, self).setUp()
         self.struct_si = PymatgenTest.get_structure("Si")
-        vis = MPRelaxSet(self.struct_si, user_incar_settings={"ENCUT": 700},
-                         user_kpoints_settings={"grid_density": 7000})
+        self.opt_struct = Structure.from_file(os.path.join(ref_dir, '1', 'POSCAR'))
+
+        # Base WF
+        self.base_wf = get_wf(structure, "optimize_only.yaml")
+        self.base_wf.append_wf(get_wf_elastic_constant(self.struct_si, stencils=[[0.01]*3 + [0.03]*3]),
+                               self.base_wf.leaf_fw_ids)
+        self.base_wf_noopt = get_wf_elastic_constant(self.struct_si, stencils=[[0.01]*3 + [0.03]*3],
+                                                     copy_vasp_outputs=False)
+        ec_incar_update = {'incar_update': {'EDIFF': 1e-6, 'ENCUT': 700}}
+        self.base_wf = add_modify_incar(self.base_wf, ec_incar_update)
+        self.base_wf_noopt = add_modify_incar(self.base_wf_noopt, ec_incar_update)
+
         # Full preset WF
         self.preset_wf = wf_elastic_constant(self.struct_si)
 
         # Minimal WF
-        self.minimal_wf = wf_elastic_constant_minimal(self.struct_si)
-        ec_incar_update = {'incar_update': {'EDIFF': 1e-6, 'ENCUT': 700}}
+        self.minimal_wf = wf_elastic_constant_minimal(self.opt_struct)
         self.minimal_wf = add_modify_incar(self.minimal_wf, ec_incar_update)
 
         # TOEC WF (minimal)
         self.toec_wf = wf_elastic_constant_minimal(self.struct_si, {"order": 3})
         self.toec_wf = add_modify_incar(self.toec_wf, ec_incar_update)
+        toec_data = loadfn(os.path.join(ref_dir, 'toec_wf_data.json'))
+        # Rather than run entire workflow, preload the spec to test the analysis
+        toec_analysis = ElasticTensorToDb(self.struct_si, spec=toec_data['spec'])
+        self.toec_analysis = Workflow(toec_analysis)
 
     def _simulate_vasprun(self, wf):
         reference_dir = os.path.abspath(os.path.join(ref_dir, "elastic_wf"))

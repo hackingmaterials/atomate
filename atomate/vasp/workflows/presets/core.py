@@ -253,6 +253,8 @@ def wf_elastic_constant_minimal(structure, c=None):
     db_file = c.get("DB_FILE", DB_FILE)
 
     order = c.get('order', 2)
+    sym_red = c.get("sym_reduce", True)
+
     stencil = np.arange(0.01, 0.01*order, step=0.01)
     wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd, db_file=db_file,
                                  sym_reduce=True, stencils=stencil, order=order,
