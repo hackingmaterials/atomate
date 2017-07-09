@@ -6,18 +6,22 @@ import os
 import unittest
 
 import numpy as np
+from monty.serialization import loadfn
 
-from fireworks import FWorker
+from fireworks import FWorker, Firework, Workflow
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_fake_vasp, add_modify_incar
 from atomate.vasp.workflows.base.elastic import get_wf_elastic_constant
-from atomate.vasp.workflows.presets.core import wf_elastic_constant, wf_elastic_constant_minimal
+from atomate.vasp.workflows.presets.core import wf_elastic_constant,\
+        wf_elastic_constant_minimal, get_wf
+from atomate.vasp.firetasks.parse_outputs import ElasticTensorToDb
 from atomate.utils.testing import AtomateTest
 
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp.sets import MPRelaxSet
+from pymatgen import Structure
 
 __author__ = 'Kiran Mathew, Joseph Montoya'
 __email__ = 'montoyjh@lbl.gov'
@@ -34,15 +38,19 @@ class TestElasticWorkflow(AtomateTest):
 
     def setUp(self):
         super(TestElasticWorkflow, self).setUp()
+        self.tf_loc = os.path.join(ref_dir, 'elastic_wf')
         self.struct_si = PymatgenTest.get_structure("Si")
-        self.opt_struct = Structure.from_file(os.path.join(ref_dir, '1', 'POSCAR'))
+        self.struct_si = SpacegroupAnalyzer(self.struct_si).get_conventional_standard_structure()
+        self.opt_struct = Structure.from_file(os.path.join(self.tf_loc, '1', 'inputs', 'POSCAR'))
 
         # Base WF
-        self.base_wf = get_wf(structure, "optimize_only.yaml")
-        self.base_wf.append_wf(get_wf_elastic_constant(self.struct_si, stencils=[[0.01]*3 + [0.03]*3]),
+        self.base_wf = get_wf(self.struct_si, "optimize_only.yaml")
+        self.base_wf.append_wf(get_wf_elastic_constant(self.struct_si, 
+                                                       stencils=[[0.01]]*3 + [[0.03]]*3,
+                                                       copy_vasp_outputs=True),
                                self.base_wf.leaf_fw_ids)
-        self.base_wf_noopt = get_wf_elastic_constant(self.struct_si, stencils=[[0.01]*3 + [0.03]*3],
-                                                     copy_vasp_outputs=False)
+        self.base_wf_noopt = get_wf_elastic_constant(self.opt_struct, stencils=[[0.01]]*3 + [[0.03]]*3,
+                                                     copy_vasp_outputs=False, sym_reduce=False)
         ec_incar_update = {'incar_update': {'EDIFF': 1e-6, 'ENCUT': 700}}
         self.base_wf = add_modify_incar(self.base_wf, ec_incar_update)
         self.base_wf_noopt = add_modify_incar(self.base_wf_noopt, ec_incar_update)
@@ -55,22 +63,27 @@ class TestElasticWorkflow(AtomateTest):
         self.minimal_wf = add_modify_incar(self.minimal_wf, ec_incar_update)
 
         # TOEC WF (minimal)
-        self.toec_wf = wf_elastic_constant_minimal(self.struct_si, {"order": 3})
+        self.toec_wf = wf_elastic_constant_minimal(self.struct_si, order=3) 
         self.toec_wf = add_modify_incar(self.toec_wf, ec_incar_update)
-        toec_data = loadfn(os.path.join(ref_dir, 'toec_wf_data.json'))
+        toec_data = loadfn(os.path.join(self.tf_loc, 'toec_wf_data.json'))
         # Rather than run entire workflow, preload the spec to test the analysis
-        toec_analysis = ElasticTensorToDb(self.struct_si, spec=toec_data['spec'])
-        self.toec_analysis = Workflow(toec_analysis)
+        toec_analysis = Firework([ElasticTensorToDb(structure=self.struct_si)], 
+                                 spec=toec_data['spec'])
+        self.toec_analysis = Workflow([toec_analysis])
 
     def _simulate_vasprun(self, wf):
-        reference_dir = os.path.abspath(os.path.join(ref_dir, "elastic_wf"))
-        si_ref_dirs = {"structure optimization": os.path.join(reference_dir, "1"),
-                       "elastic deformation 0": os.path.join(reference_dir, "7"),
-                       "elastic deformation 1": os.path.join(reference_dir, "6"),
-                       "elastic deformation 2": os.path.join(reference_dir, "5"),
-                       "elastic deformation 3": os.path.join(reference_dir, "4"),
-                       "elastic deformation 4": os.path.join(reference_dir, "3"),
-                       "elastic deformation 5": os.path.join(reference_dir, "2")}
+        reference_dir = os.path.abspath(self.tf_loc)
+        if len(wf.fws) > 6:
+            si_ref_dirs = {"structure optimization": os.path.join(reference_dir, "1"),
+                           "elastic deformation 0": os.path.join(reference_dir, "7"),
+                           "elastic deformation 1": os.path.join(reference_dir, "6"),
+                           "elastic deformation 2": os.path.join(reference_dir, "5"),
+                           "elastic deformation 3": os.path.join(reference_dir, "4"),
+                           "elastic deformation 4": os.path.join(reference_dir, "3"),
+                           "elastic deformation 5": os.path.join(reference_dir, "2")}
+        elif len(wf.fws) == 3:
+            si_ref_dirs = {"elastic deformation 0": os.path.join(reference_dir, "7"),
+                           "elastic deformation 1": os.path.join(reference_dir, "4")}
         return use_fake_vasp(wf, si_ref_dirs, params_to_check=["ENCUT"])
 
     def _check_run(self, d, mode):
@@ -86,16 +99,16 @@ class TestElasticWorkflow(AtomateTest):
         
         if mode in ["structure optimization"]:
             self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["a"], 5.469, 2)
-            self.assertAlmostEqual(d["output"]["energy_per_atom"], -5.425, 2)
+            self.assertAlmostEqual(d["output"]["energy_per_atom"], -5.423, 2)
 
         elif mode in ["elastic deformation 0"]:
-            stress = np.diag([-14.741,-5.107, -5.107])
+            stress = np.diag([-14.716,-5.121, -5.121])
             np.testing.assert_allclose(stress,
                     d["calcs_reversed"][0]["output"]["ionic_steps"][-1]["stress"], rtol=1e-2)
 
         elif mode in ["elastic deformation 3"]:
             stress = d["calcs_reversed"][0]["output"]["ionic_steps"][-1]["stress"]
-            self.assertAlmostEqual(stress[0][1], -22.4, places=1)
+            self.assertAlmostEqual(stress[2][1], -45.035, places=1)
 
         elif mode in ["elastic analysis"]:
             c_ij = np.array(d['elastic_tensor'])
@@ -104,17 +117,32 @@ class TestElasticWorkflow(AtomateTest):
             self.assertAlmostEqual(d['k_voigt'], 83, places=0)
 
     def test_wf(self):
-        self.wf = self._simulate_vasprun(self.wf)
-        self.wf_noopt = self._simulate_vasprun(self.wf_noopt)
+        self.base_wf = self._simulate_vasprun(self.base_wf)
+        self.base_wf_noopt = self._simulate_vasprun(self.base_wf_noopt)
+        self.minimal_wf = self._simulate_vasprun(self.minimal_wf)
 
-        self.assertEqual(len(self.wf.fws), 8)
+        self.assertEqual(len(self.base_wf.fws), 8)
+        self.assertEqual(len(self.base_wf_noopt.fws), 7)
+        self.assertEqual(len(self.minimal_wf.fws), 3)
+        self.assertEqual(len(self.toec_wf.fws), 17)
+        self.assertEqual(len(self.preset_wf.fws), 26)
+
         # check vasp parameters for ionic relaxation
-        defo_vis = [fw.tasks[1]['vasp_input_set']
-                    for fw in self.wf.fws if "deform" in fw.name]
+        defo_vis = [fw.tasks[1]['vasp_input_set'] 
+                    for fw in self.base_wf.fws if "deform" in fw.name]
         assert all([vis.user_incar_settings['NSW'] == 99 for vis in defo_vis])
         assert all([vis.user_incar_settings['IBRION'] == 2 for vis in defo_vis])
-        self.lp.add_wf(self.wf)
-        self.lp.add_wf(self.wf_noopt)
+        # check preset parameters
+        defo_vis = [fw.tasks[2]['vasp_input_set'] 
+                    for fw in self.preset_wf.fws if "deform" in fw.name]
+        assert all([vis.user_incar_settings['ENCUT'] == 700 for vis in defo_vis])
+        assert all([vis.user_kpoints_settings.get('grid_density') == 7000 
+                    for vis in defo_vis])
+
+        self.lp.add_wf(self.base_wf)
+        self.lp.add_wf(self.base_wf_noopt)
+        self.lp.add_wf(self.toec_analysis)
+
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
         # check relaxation
@@ -126,7 +154,8 @@ class TestElasticWorkflow(AtomateTest):
         
         d = self.get_task_collection().find_one({"task_label": "elastic deformation 3"})
         self._check_run(d, mode="elastic deformation 3")
-
+        
+        # import pdb; pdb.set_trace()
         # check the final results
         d = self.get_task_collection(coll_name="elasticity").find_one()
         self._check_run(d, mode="elastic analysis")
