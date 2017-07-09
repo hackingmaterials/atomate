@@ -3,3 +3,11 @@ recursive-include atomate * *.yaml *.md
 recursive-exclude atomate *.pyc
 recursive-include docs *
 recursive-exclude docs *.pyc
+recursive-exclude atomate tests/*.* test_files/*.* tests/* test_files/*
+prune */tests
+prune */*/tests
+prune */*/*/tests
+prune */test_files
+prune */*/test_files
+prune */*/*/test_files
+prune */*/*/*/test_files
