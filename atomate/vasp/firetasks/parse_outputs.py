@@ -247,7 +247,7 @@ class ElasticTensorToDb(FiretaskBase):
             d['eq_stress'] = None
 
         if self.get("fw_spec_field"):
-            d.update({self.get("fw_spec_field"): fw_spec[self.get("fw_spec_field")]})
+            d.update({self.get("fw_spec_field"): fw_spec.get(self.get("fw_spec_field"))})
 
         defo_dicts = fw_spec["deformation_tasks"].values()
         stresses, strains = [], []
@@ -283,6 +283,7 @@ class ElasticTensorToDb(FiretaskBase):
                         "structure_prop_dict":result.get_structure_property_dict(ref_struct)}
             d["linear_fit"] = poly_fit
         order = self.get("order", 2)
+        import pdb; pdb.set_trace()
         if order > 2:
             hoec = {}
             hoec['stresses'], hoec['strains'] = stresses, strains
