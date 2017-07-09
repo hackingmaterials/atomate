@@ -30,7 +30,7 @@ logger = get_logger(__name__)
 def get_wf_elastic_constant(structure, strain_states=None, stencils=None,
                             db_file=None, conventional=False, order=2, 
                             vasp_input_set=None, analysis=True, sym_reduce=False,
-                            tag='elastic', **kwargs):
+                            tag='elastic', copy_vasp_outputs=False, **kwargs):
     """
     Returns a workflow to calculate elastic constants.
 
@@ -96,7 +96,8 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None,
         deformations = symmetry_reduce(deformations, structure)
 
     wf_elastic = get_wf_deformations(structure, deformations, tag=tag, db_file=db_file, 
-                                     vasp_input_set=vis, **kwargs)
+                                     vasp_input_set=vis, copy_vasp_outputs=copy_vasp_outputs, 
+                                     **kwargs)
     if analysis:
         defo_fws_and_tasks = get_fws_and_tasks(wf_elastic, fw_name_constraint="deformation",
                                                task_name_constraint="Transmuted")
