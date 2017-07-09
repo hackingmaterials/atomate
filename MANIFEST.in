@@ -1,5 +1,5 @@
 include LICENSE *.txt README.rst
-recursive-include atomate *
+recursive-include atomate * *.yaml
 recursive-exclude atomate *.pyc
 recursive-include docs *
 recursive-exclude docs *.pyc
