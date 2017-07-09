@@ -1,8 +1,8 @@
 include LICENSE *.txt README.rst
-recursive-include atomate * *.yaml *.md
-recursive-exclude atomate *.pyc
-recursive-include docs *
-recursive-exclude docs *.pyc
+recursive-include atomate *.py *.yaml *.md
+#recursive-exclude atomate *.pyc
+recursive-include docs *.*
+#recursive-exclude docs *.pyc
 recursive-exclude atomate tests/*.* test_files/*.* tests/* test_files/*
 prune */tests
 prune */*/tests
