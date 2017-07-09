@@ -199,29 +199,27 @@ def wf_piezoelectric_constant(structure, c=None):
     return wf
 
 
-def wf_elastic_constant(structure, c=None):
+def wf_elastic_constant(structure, c=None, order=2, sym_red=False):
 
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
-    order = c.get("order", 2)
-    sym_red = c.get("sym_reduce", False)
 
     uis_optimize = {"ENCUT": 700, "EDIFF": 1e-6, "LAECHG":False}
     if order > 2:
         uis_optimize.update({"EDIFF": 1e-10, "EDIFFG":-0.001, 
                              "ADDGRID":True, "LREAL":False})
         # This ensures a consistent k-point mesh across all calculations
-        kpts_settings = Kpoints.automatic_density(structure, 60000, force_gamma=True)
+        kpts_settings = Kpoints.automatic_density(structure, 50000, force_gamma=True)
         stencils = np.linspace(-0.075, 0.075, 7)
     else:
         kpts_settings = {'grid_density': 7000}
         stencils = None
 
     uis_static = uis_optimize.copy()
-    uis_static.update({'ISIF': 2, 'IBRION': 2, 'NSW': 99})
+    uis_static.update({'ISIF': 2, 'IBRION': 2, 'NSW': 99, 'ISTART': 1})
     
-    # input set for structure optimizationh
+    # input set for structure optimization
     vis_relax = MPRelaxSet(structure, force_gamma=True, user_incar_settings=uis_optimize,
                            user_kpoints_settings=kpts_settings)
 
@@ -246,14 +244,11 @@ def wf_elastic_constant(structure, c=None):
 
     return wf
 
-def wf_elastic_constant_minimal(structure, c=None):
+def wf_elastic_constant_minimal(structure, c=None, order=2, sym_red=True):
     
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
-
-    order = c.get('order', 2)
-    sym_red = c.get("sym_reduce", True)
 
     stencil = np.arange(0.01, 0.01*order, step=0.01)
     wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd, db_file=db_file,
