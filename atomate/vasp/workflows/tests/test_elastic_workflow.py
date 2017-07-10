@@ -44,13 +44,14 @@ class TestElasticWorkflow(AtomateTest):
         self.opt_struct = Structure.from_file(os.path.join(self.tf_loc, '1', 'inputs', 'POSCAR'))
 
         # Base WF
-        self.base_wf = get_wf(self.struct_si, "optimize_only.yaml")
-        self.base_wf.append_wf(get_wf_elastic_constant(self.struct_si, 
+        self.base_wf = get_wf(self.struct_si, "optimize_only.yaml", db_file='>>db_file<<')
+        self.base_wf.append_wf(get_wf_elastic_constant(self.struct_si, db_file='>>db_file>>',
                                                        stencils=[[0.01]]*3 + [[0.03]]*3,
                                                        copy_vasp_outputs=True),
                                self.base_wf.leaf_fw_ids)
         self.base_wf_noopt = get_wf_elastic_constant(self.opt_struct, stencils=[[0.01]]*3 + [[0.03]]*3,
-                                                     copy_vasp_outputs=False, sym_reduce=False)
+                                                     copy_vasp_outputs=False, sym_reduce=False,
+                                                     db_file='>>db_file>>')
         ec_incar_update = {'incar_update': {'EDIFF': 1e-6, 'ENCUT': 700}}
         self.base_wf = add_modify_incar(self.base_wf, ec_incar_update)
         self.base_wf_noopt = add_modify_incar(self.base_wf_noopt, ec_incar_update)
