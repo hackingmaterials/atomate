@@ -199,7 +199,7 @@ def wf_piezoelectric_constant(structure, c=None):
     return wf
 
 
-def wf_elastic_constant(structure, c=None, order=2, sym_red=False):
+def wf_elastic_constant(structure, c=None, order=2, sym_reduce=False):
 
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
@@ -235,7 +235,7 @@ def wf_elastic_constant(structure, c=None, order=2, sym_red=False):
     # deformations wflow for elasticity calculation
     wf_elastic = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd, db_file=db_file,
                                          order=order, stencils=stencils, copy_vasp_outputs=True,
-                                         vasp_input_set=vis_static)
+                                         vasp_input_set=vis_static, sym_reduce=sym_reduce)
     wf.append_wf(wf_elastic, wf.leaf_fw_ids)
 
     wf = add_common_powerups(wf, c)
@@ -244,7 +244,7 @@ def wf_elastic_constant(structure, c=None, order=2, sym_red=False):
 
     return wf
 
-def wf_elastic_constant_minimal(structure, c=None, order=2, sym_red=True):
+def wf_elastic_constant_minimal(structure, c=None, order=2, sym_reduce=True):
     
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
@@ -252,7 +252,7 @@ def wf_elastic_constant_minimal(structure, c=None, order=2, sym_red=True):
 
     stencil = np.arange(0.01, 0.01*order, step=0.01)
     wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd, db_file=db_file,
-                                 sym_reduce=True, stencils=stencil, order=order,
+                                 sym_reduce=sym_reduce, stencils=stencil, order=order,
                                  copy_vasp_outputs=False)
 
     wf = add_common_powerups(wf, c)
