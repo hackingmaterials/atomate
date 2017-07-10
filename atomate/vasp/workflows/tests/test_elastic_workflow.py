@@ -44,14 +44,15 @@ class TestElasticWorkflow(AtomateTest):
         self.opt_struct = Structure.from_file(os.path.join(self.tf_loc, '1', 'inputs', 'POSCAR'))
 
         # Base WF
-        self.base_wf = get_wf(self.struct_si, "optimize_only.yaml", db_file='>>db_file<<')
-        self.base_wf.append_wf(get_wf_elastic_constant(self.struct_si, db_file='>>db_file>>',
+        self.base_wf = get_wf(self.struct_si, "optimize_only.yaml",
+                              params=[{"db_file": ">>db_file<<"}])
+        self.base_wf.append_wf(get_wf_elastic_constant(self.struct_si, db_file='>>db_file<<',
                                                        stencils=[[0.01]]*3 + [[0.03]]*3,
                                                        copy_vasp_outputs=True),
                                self.base_wf.leaf_fw_ids)
         self.base_wf_noopt = get_wf_elastic_constant(self.opt_struct, stencils=[[0.01]]*3 + [[0.03]]*3,
                                                      copy_vasp_outputs=False, sym_reduce=False,
-                                                     db_file='>>db_file>>')
+                                                     db_file='>>db_file<<')
         ec_incar_update = {'incar_update': {'EDIFF': 1e-6, 'ENCUT': 700}}
         self.base_wf = add_modify_incar(self.base_wf, ec_incar_update)
         self.base_wf_noopt = add_modify_incar(self.base_wf_noopt, ec_incar_update)
@@ -66,10 +67,11 @@ class TestElasticWorkflow(AtomateTest):
         # TOEC WF (minimal)
         self.toec_wf = wf_elastic_constant_minimal(self.struct_si, order=3) 
         self.toec_wf = add_modify_incar(self.toec_wf, ec_incar_update)
-        toec_data = loadfn(os.path.join(self.tf_loc, 'toec_wf_data.json'))
+        toec_data = loadfn(os.path.join(self.tf_loc, 'toec_data.json'))
         # Rather than run entire workflow, preload the spec to test the analysis
-        toec_analysis = Firework([ElasticTensorToDb(structure=self.struct_si)], 
-                                 spec=toec_data['spec'])
+        toec_analysis = Firework([ElasticTensorToDb(structure=self.struct_si, order=3, 
+                                                    db_file=">>db_file<<")], 
+                                 spec={"deformation_tasks": toec_data['deformation_tasks']})
         self.toec_analysis = Workflow([toec_analysis])
 
     def _simulate_vasprun(self, wf):
@@ -89,10 +91,10 @@ class TestElasticWorkflow(AtomateTest):
 
     def _check_run(self, d, mode):
         if mode not in ["structure optimization", "elastic deformation 0",
-                        "elastic deformation 3", "elastic analysis"]:
+                        "elastic deformation 3", "elastic analysis", "toec analysis"]:
             raise ValueError("Invalid mode!")
-
-        if mode not in ["elastic analysis"]:
+        
+        if mode not in ["elastic analysis", "toec analysis"]:
             self.assertEqual(d["formula_pretty"], "Si")
             self.assertEqual(d["formula_anonymous"], "A")
             self.assertEqual(d["nelements"], 1)
@@ -112,10 +114,15 @@ class TestElasticWorkflow(AtomateTest):
             self.assertAlmostEqual(stress[2][1], -45.035, places=1)
 
         elif mode in ["elastic analysis"]:
-            c_ij = np.array(d['elastic_tensor'])
+            c_ij = np.array(d['elastic_tensor']['ieee_format'])
             np.testing.assert_allclose([c_ij[0, 0], c_ij[0, 1], c_ij[3, 3]],
-                                       [146.68, 50.817, 74.706], rtol=1e-2)
-            self.assertAlmostEqual(d['k_voigt'], 83, places=0)
+                                       [146.25, 52.26, 75.23], rtol=1e-2)
+            self.assertAlmostEqual(d['derived_properties']['k_vrh'], 83.6, places=1)
+
+        elif mode in ["toec analysis"]:
+            c_ij = np.array(d['elastic_tensor']['ieee_format'][1])
+            np.testing.assert_allclose([c_ij[0, 0, 0], c_ij[0, 0, 1], c_ij[0, 1, 2]],
+                                       [-779.6, -432.5, -93.3], rtol=1e-1)
 
     def test_wf(self):
         self.base_wf = self._simulate_vasprun(self.base_wf)
@@ -147,7 +154,7 @@ class TestElasticWorkflow(AtomateTest):
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
         # check relaxation
-        d = self.get_task_collection().find_one({"task_label": "elastic structure optimization"})
+        d = self.get_task_collection().find_one({"task_label": "structure optimization"})
         self._check_run(d, mode="structure optimization")
         # check two of the deformation calculations
         d = self.get_task_collection().find_one({"task_label": "elastic deformation 0"})
@@ -156,10 +163,13 @@ class TestElasticWorkflow(AtomateTest):
         d = self.get_task_collection().find_one({"task_label": "elastic deformation 3"})
         self._check_run(d, mode="elastic deformation 3")
         
-        # import pdb; pdb.set_trace()
         # check the final results
-        d = self.get_task_collection(coll_name="elasticity").find_one()
+        d = self.get_task_collection(coll_name="elasticity").find_one({'order': 2})
         self._check_run(d, mode="elastic analysis")
+
+        # check third-order results
+        d = self.get_task_collection(coll_name="elasticity").find_one({'order': 3})
+        self._check_run(d, mode="toec analysis")
 
         wf = self.lp.get_wf_by_fw_id(1)
         self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
