@@ -397,6 +397,8 @@ def wf_bulk_modulus(structure, c=None):
     uis_static = {
         "ISIF": 2,
         "ISTART": 1,
+        "IBRION": 2,
+        "NSW": 99
     }
 
     # optimization only workflow
