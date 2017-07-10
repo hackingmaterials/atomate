@@ -60,7 +60,7 @@ def get_wf_thermal_expansion(structure, deformations, vasp_input_set=None, vasp_
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
 
-    vis_static = vasp_input_set or MPStaticSet(structure, force_gamma=True, lepsilon=False,
+    vis_static = vasp_input_set or MPStaticSet(structure, force_gamma=True, lepsilon=True,
                                                user_kpoints_settings=user_kpoints_settings)
     wf_alpha = get_wf_deformations(structure, deformations, name="thermal_expansion deformation",
                                    vasp_cmd=vasp_cmd, db_file=db_file, tag=tag,
