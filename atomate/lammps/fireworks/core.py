@@ -41,8 +41,6 @@ class BasicFW(Firework):
             \*\*kwargs: other kwargs that are passed to Firework.__init__.
         """
 
-        lammps_cmd = lammps_cmd + " -in " + "lammps.in"
-
         t = list()
         t.append(WriteLammpsFromIOSet(job_name=job_name, lammps_input=lammps_input,
                                       lammps_data=lammps_data, is_forcefield=is_forcefield))
