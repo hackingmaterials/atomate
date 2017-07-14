@@ -6,34 +6,23 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 This module defines functions that yield lammps workflows
 """
 
-from fireworks import Workflow, Firework
+from fireworks import Workflow
 
 from pymatgen.io.lammps.input import DictLammpsInput, NVTLammpsInput
 
-from atomate.lammps.firetasks.write_inputs import WriteLammpsFromIOSet
-from atomate.lammps.firetasks.run_calc import RunLammpsDirect
-from atomate.lammps.firetasks.parse_outputs import LammpsToDBTask
-from atomate.lammps.fireworks.core import BasicFW
+from atomate.lammps.fireworks.core import LammpsFW
 
 __author__ = 'Kiran Mathew'
 __email__ = "kmathew@lbl.gov"
 
 
-# TODO: @matk86 - It is better if you can have a Fireworks module that includes packmol and
-# lammps Fireworks. I understand the firework definitions are simple, but it will be easier for
-# people to find the Fireworks there since it will be a familiar subpackage structure.
-# It should be an easy mod and shouldn't get in the way much. -computron
-# TODO: @matk86 - is there any workflow or firework taking into account Packmol?  -computron
-
-
-def get_wf(job_name, lammps_input_set, input_filename="lammps.in", lammps_cmd="lammps",
-           db_file=None):
+def get_wf(name, lammps_input_set, input_filename="lammps.in", lammps_cmd="lammps", db_file=None):
     """
     Returns workflow that writes lammps input/data files, runs lammps and inserts to DB.
 
     Args:
-        job_name: job name
-        lammps_input_set (DictLammpsInput): lammps input
+        name (str): workflow name
+        lammps_input_set (DictLammpsInput): lammps input set
         input_filename (string): input file name
         lammps_bin (string): path to the lammps binary
         db_file (string): path to the db file
@@ -43,9 +32,9 @@ def get_wf(job_name, lammps_input_set, input_filename="lammps.in", lammps_cmd="l
 
     """
 
-    fws = [BasicFW(job_name, lammps_input_set=lammps_input_set, input_filename=input_filename, lammps_cmd=lammps_cmd,
-                   db_file=db_file)]
-    return Workflow(fws, name=job_name)
+    fws = [LammpsFW(name, lammps_input_set=lammps_input_set, input_filename=input_filename, lammps_cmd=lammps_cmd,
+                    db_file=db_file)]
+    return Workflow(fws, name=name)
 
 
 def get_wf_from_input_template(job_name, input_template_file, lammps_data,

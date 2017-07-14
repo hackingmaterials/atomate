@@ -17,7 +17,7 @@ __author__ = "Brandon Wood"
 __email__ = "b.wood@berkeley.edu"
 
 
-class BasicFW(Firework):
+class LammpsFW(Firework):
     def __init__(self, job_name, lammps_input_set, input_filename="lammps.in",
                  data_filename="lammps.data", lammps_cmd="lammps", db_file=None, parents=None, **kwargs):
         """
@@ -48,4 +48,9 @@ class BasicFW(Firework):
             ToDbTask(drone=LammpsForceFieldDrone(), mmdb="atomate.utils.database.CalcDb",
                      db_file=db_file, additional_fields={"task_label": job_name})
         ]
-        super(BasicFW, self).__init__(t, parents=parents, name=job_name, **kwargs)
+        super(LammpsFW, self).__init__(t, parents=parents, name=job_name, **kwargs)
+
+
+# TODO: implement this
+class PackmolFW(Firework):
+    pass
