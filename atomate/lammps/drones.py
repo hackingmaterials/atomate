@@ -47,12 +47,10 @@ class LammpsForceFieldDrone(AbstractDrone):
 
     def assimilate(self, path):
         """
-        Adapted from matgendb.creator
-        Parses vasp runs(vasprun.xml file) and insert the result into the db.
-        Get the entire task doc from the vasprum.xml and the OUTCAR files in the path.
-        Also adds some post-processed info.
+        Parses lammps input, data and log files and insert the result into the db.
+
         Args:
-            path (str): Path to the directory containing vasprun.xml and OUTCAR files
+            path (str): Path to the directory containing lammps input and output files.
         Returns:
             (dict): a task dictionary
         """
@@ -83,9 +81,6 @@ class LammpsForceFieldDrone(AbstractDrone):
         Find the files that match the pattern in the given path and
         return them in an ordered dictionary. The searched for files are
         filtered by the run types defined in self.runs. e.g. ["relax1", "relax2", ...].
-        Only 2 schemes of the file filtering is enabled: searching for run types
-        in the list of files and in the filenames. Modify this method if more
-        sophisticated filtering scheme is needed.
 
         Args:
             path (string): path to the folder
@@ -129,6 +124,7 @@ class LammpsForceFieldDrone(AbstractDrone):
             d["schema"] = {"code": "atomate", "version": LammpsForceFieldDrone.__version__}
             d["dir_name"] = fullpath
             d["input"] = input.as_dict()
+            # TODO: implement as_dict for LammpsLog and use that
             d["log"] = vars(logfile)
             return d
 
