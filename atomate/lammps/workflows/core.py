@@ -8,7 +8,7 @@ This module defines functions that yield lammps workflows
 
 from fireworks import Workflow
 
-from pymatgen.io.lammps.input import DictLammpsInput, NVTLammpsInput
+from pymatgen.io.lammps.input import DictLammpsInput
 
 from atomate.lammps.fireworks.core import LammpsFW
 
