@@ -47,3 +47,5 @@ nosetests.xml
 
 # scratch files
 atomate/vasp/tests/scratch/*
+
+.DS_Store

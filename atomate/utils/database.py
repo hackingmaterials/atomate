@@ -50,7 +50,6 @@ class CalcDb(six.with_metaclass(ABCMeta)):
             self.db.counter.insert_one({"_id": "taskid", "c": 0})
             self.build_indexes()
 
-    @abstractmethod
     def build_indexes(self, indexes=None, background=True):
         """
          Build the indexes.
@@ -89,7 +88,6 @@ class CalcDb(six.with_metaclass(ABCMeta)):
             logger.info("Skipping duplicate {}".format(d["dir_name"]))
             return None
 
-    @abstractmethod
     def reset(self):
         pass
 
