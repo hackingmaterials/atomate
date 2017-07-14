@@ -28,13 +28,9 @@ __email__ = "kmathew@lbl.gov"
 
 logger = get_logger(__name__)
 
-# TODO: @matk86 - for your consideration. You can implement as a Drone and simply use ToDbTask (in
-# atomate.common) to do the processing instead of a special LammpsToDBTask. Advantage is that the
-# parsing code is then in pymatgen where more people could use and modify it. -computron
-
 
 @explicit_serialize
-class LammpsToDBTask(FiretaskBase):
+class LammpsDiffusionToDB(FiretaskBase):
     """
     Enter a LAMMPS run into the database.
 
