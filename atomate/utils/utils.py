@@ -107,7 +107,7 @@ def recursive_get_result(d, result):
 
     elif isinstance(d, six.string_types) and d[:3] == "a>>":
         attribute = getattr(result, d[3:])
-        if callable(return_value):
+        if callable(attribute):
             attribute = attribute()
         return attribute
     
