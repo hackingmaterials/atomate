@@ -18,9 +18,8 @@ __email__ = "b.wood@berkeley.edu"
 
 
 class BasicFW(Firework):
-    def __init__(self, job_name, lammps_input, lammps_data, lammps_cmd,
-                 data_filename="lammps.data", user_lammps_settings=None, is_forcefield=False,
-                 db_file=None, parents=None, **kwargs):
+    def __init__(self, job_name, lammps_input_set, input_filename="lammps.in",
+                 data_filename="lammps.data", lammps_cmd="lammps", db_file=None, parents=None, **kwargs):
         """
         Read, run, and store a lammps simulation. This is useful for lammps simulations that already
         have input and data files written.
@@ -42,12 +41,9 @@ class BasicFW(Firework):
             \*\*kwargs: other kwargs that are passed to Firework.__init__.
         """
 
-        user_lammps_settings = user_lammps_settings or {}
         t = [
-            WriteLammpsFromIOSet(job_name=job_name, lammps_input=lammps_input,
-                                 lammps_data=lammps_data, data_filename=data_filename,
-                                 is_forcefield=is_forcefield,
-                                 user_lammps_settings=user_lammps_settings),
+            WriteLammpsFromIOSet(lammps_input_set=lammps_input_set, input_filename=input_filename,
+                                 data_filename=data_filename),
             RunLammpsDirect(lammps_cmd=lammps_cmd),
             ToDbTask(drone=LammpsForceFieldDrone(), mmdb="atomate.utils.database.CalcDb",
                      db_file=db_file, additional_fields={"task_label": job_name})

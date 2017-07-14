@@ -25,39 +25,9 @@ __email__ = "kmathew@lbl.gov"
 # It should be an easy mod and shouldn't get in the way much. -computron
 # TODO: @matk86 - is there any workflow or firework taking into account Packmol?  -computron
 
-def get_wf_basic(job_name, lammps_input, lammps_data, data_filename, lammps_cmd,
-                 user_lammps_settings={}, is_forcefield=False, db_file=None):
-    """
-    Workflow that reads a lammps input file, runs lammps, and inserts data to DB
 
-    Args:
-        job_name: descriptive name for lammps simulation
-        lammps_input: path to lammps style input file
-        lammps_data: path to lammps data file
-        data_filename: data file name
-        user_lammps_settings: settings that will overwrite input files
-        is_forcefield: whether the data file has forcefield info in it.
-            This is required only if lammps_data is a path to the data file instead of a data object
-        lammps_cmd: command to run lammps
-        db_file: path to file specifying db credentials to place output parsing
-        parents ([Fireworks)]: parents of this particular Firework
-        \*\*kwargs: other kwargs that are passed to Firework.__init__.
-
-    Returns:
-        Workflow
-    """
-    fws = [BasicFW(job_name=job_name,
-                   lammps_input=lammps_input,
-                   lammps_data=lammps_data,
-                   lammps_cmd=lammps_cmd,
-                   user_lammps_settings=user_lammps_settings,
-                   is_forcefield=is_forcefield,
-                   db_file=db_file)]
-    return Workflow(fws, name=job_name)
-
-
-def get_wf(job_name, lammps_input_set, input_filename="lammps.inp", lammps_bin="lammps",
-           db_file=None, dry_run=False):
+def get_wf(job_name, lammps_input_set, input_filename="lammps.in", lammps_cmd="lammps",
+           db_file=None):
     """
     Returns workflow that writes lammps input/data files, runs lammps and inserts to DB.
 
@@ -67,27 +37,21 @@ def get_wf(job_name, lammps_input_set, input_filename="lammps.inp", lammps_bin="
         input_filename (string): input file name
         lammps_bin (string): path to the lammps binary
         db_file (string): path to the db file
-        dry_run (bool): for test purposes, decides whether or not to run the lammps binary
-            with the input file.
 
     Returns:
         Workflow
 
     """
-    task1 = WriteLammpsFromIOSet(lammps_input_set=lammps_input_set, input_file=input_filename)
-    if dry_run:
-        lammps_cmd = lammps_bin
-    else:
-        lammps_cmd = lammps_bin + " -in " + input_filename
-    task2 = RunLammpsDirect(lammps_cmd=lammps_cmd)
-    task3 = LammpsToDBTask(lammps_input=lammps_input_set, db_file=db_file)
-    fw1 = Firework([task1, task2, task3], name=job_name)
-    return Workflow([fw1], name=job_name)
+
+    fws = [BasicFW(job_name, lammps_input_set=lammps_input_set, input_filename=input_filename, lammps_cmd=lammps_cmd,
+                   db_file=db_file)]
+    return Workflow(fws, name=job_name)
 
 
-def wf_from_input_template(input_template_file, lammps_data, data_filename, user_settings,
-                           is_forcefield=False, input_filename="lammps.inp", lammps_bin="lammps",
-                           db_file=None, dry_run=False):
+def get_wf_from_input_template(job_name, input_template_file, lammps_data,
+                               input_filename="lammps.in", data_filename="lammps.data",
+                               user_lammps_settings=None, is_forcefield=False, lammps_cmd="lammps",
+                               db_file=None):
     """
     Returns workflow where the input file parameters are set from the give json template file.
 
@@ -100,7 +64,7 @@ def wf_from_input_template(input_template_file, lammps_data, data_filename, user
         is_forcefield (bool): whether the data file has forcefield and topology info in it.
             This is required only if lammps_data is a path to the data file instead of a data object
         input_filename (string): input file name
-        lammps_bin (string): path to the lammps binary
+        lammps_cmd (string): path to the lammps binary
         db_file (string): path to the db file
         dry_run (bool): for test purposes, decides whether or not to run the lammps binary
             with the input file.
@@ -109,19 +73,19 @@ def wf_from_input_template(input_template_file, lammps_data, data_filename, user
         Workflow
 
     """
-    wf_name = "LAMMPS Wflow from input template {}".format(input_template_file)
+    user_lammps_settings = user_lammps_settings or {}
+    wf_name = job_name or "LAMMPS Wflow from input template {}".format(input_template_file)
     lammps_dict_input = DictLammpsInput.from_file(wf_name, input_template_file,
                                                   lammps_data=lammps_data,
                                                   data_filename=data_filename,
-                                                  user_lammps_settings=user_settings,
+                                                  user_lammps_settings=user_lammps_settings,
                                                   is_forcefield=is_forcefield)
-    return get_wf(wf_name, lammps_dict_input, input_filename=input_filename, lammps_bin=lammps_bin,
-                  db_file=db_file, dry_run=dry_run)
+    return get_wf(wf_name, lammps_dict_input, input_filename=input_filename, lammps_cmd=lammps_cmd,
+                  db_file=db_file)
 
 
-def nvt_wf(lammps_data, input_filename = "nvt.inp", data_filename="in.data",
-           user_lammps_settings={}, is_forcefield=False, lammps_bin="lammps", db_file=None,
-           dry_run=False):
+def nvt_wf(job_name, lammps_data, input_filename="nvt.inp", data_filename="in.data",
+           user_lammps_settings=None, is_forcefield=False, lammps_cmd="lammps", db_file=None):
     """
     Returns NVT workflow (single Firework: [write lammps input task, run direct task])
 
@@ -137,9 +101,10 @@ def nvt_wf(lammps_data, input_filename = "nvt.inp", data_filename="in.data",
         dry_run (bool): for test purposes, decides whether or not to run the lammps binary
             with the input file.
     """
-    wf_name = "LAMMPS NVT"
+    user_lammps_settings = user_lammps_settings or None
+    wf_name = job_name or "LAMMPS NVT"
     lammps_dict_input = NVTLammpsInput(lammps_data=lammps_data, data_filename=data_filename,
                                        user_lammps_settings=user_lammps_settings,
                                        is_forcefield=is_forcefield)
-    return get_wf(wf_name, lammps_dict_input, input_filename=input_filename, lammps_bin=lammps_bin,
-                  db_file=db_file, dry_run=dry_run)
+    return get_wf(wf_name, lammps_dict_input, input_filename=input_filename, lammps_cmd=lammps_cmd,
+                  db_file=db_file)

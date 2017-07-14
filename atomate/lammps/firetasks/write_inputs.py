@@ -28,21 +28,14 @@ class WriteLammpsFromIOSet(FiretaskBase):
         data_file (string): if specified the data file will be renamed
     """
 
-    required_params = ["job_name", "lammps_input",  "lammps_data", "is_forcefield"]
+    required_params = ["lammps_input_set"]
 
-    optional_params = ["user_lammps_settings", "data_filename"]
+    optional_params = ["input_filename"]
 
     def run_task(self, fw_spec):
 
-        lammps_input = self["lammps_input"]
-        lammps_data = self["lammps_data"]
-        job_name = self["job_name"]
-        is_forcefield = self["is_forcefield"]
-        user_lammps_settings = self.get("user_lammps_settings", {"log": "lammps.log"})
+        lammps_input_set = self["lammps_input_set"]
+        input_filename = self.get("input_filename", "lammps.in")
         data_filename = self.get("data_filename", "lammps.data")
 
-        lammps_input_set = DictLammpsInput.from_file(job_name, lammps_input, lammps_data=lammps_data,
-                                                     data_filename=data_filename,
-                                                     user_lammps_settings=user_lammps_settings,
-                                                     is_forcefield=is_forcefield)
-        lammps_input_set.write_input("lammps.in", data_filename)
+        lammps_input_set.write_input(input_filename, data_filename)

@@ -1,19 +1,14 @@
 # coding: utf-8
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-import json
 import os
-import shutil
 import unittest
 import filecmp
-from pymongo import MongoClient
 
-from pymatgen.io.lammps.data import LammpsForceFieldData
-
-from fireworks import LaunchPad, FWorker
+from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
-from atomate.lammps.workflows.core import get_wf_basic
+from atomate.lammps.workflows.core import get_wf_from_input_template
 from atomate.utils.testing import AtomateTest
 
 __author__ = 'Kiran Mathew, Brandon Wood'
@@ -23,7 +18,7 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "common", "test_files")
 
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
-LAMMPS_CMD = None #"mpirun -n 4 lmp_mpi"
+LAMMPS_CMD = None  # "mpirun -n 4 lmp_mpi"
 
 
 class TestLammpsWorkflows(AtomateTest):
@@ -32,6 +27,7 @@ class TestLammpsWorkflows(AtomateTest):
         super(TestLammpsWorkflows, self).setUp()
         self.data_file = os.path.join(module_dir, "test_files/peo.data")
         self.input_file = os.path.join(module_dir, "test_files/peo.in")
+        self.input_filename = "lammps.in"
         self.db_file = os.path.join(db_dir, "db.json")
         self.reference_files_path = os.path.abspath(os.path.join(module_dir, "reference_files"))
 
@@ -39,12 +35,14 @@ class TestLammpsWorkflows(AtomateTest):
 
         if not LAMMPS_CMD:
             # fake run just copy files from reference path
-            lammps_cmd = "cp -r {}/ .".format(self.reference_files_path)
+            lammps_cmd = "cp {}/* .".format(self.reference_files_path)
         else:
-            lammps_cmd = LAMMPS_CMD + " -in " + "lammps.in"
-        print(lammps_cmd)
-        wf = get_wf_basic("peo_test", self.input_file, self.data_file, "lammps.data", lammps_cmd,
-                          is_forcefield=True, db_file=self.db_file)
+            lammps_cmd = "{} -in {}".format(LAMMPS_CMD, self.input_filename)
+
+        wf = get_wf_from_input_template("peo_test", self.input_file, self.data_file,
+                                        input_filename=self.input_filename,
+                                        data_filename="lammps.data", lammps_cmd=lammps_cmd,
+                                        is_forcefield=True, db_file=self.db_file)
 
         self.lp.add_wf(wf)
         # run
