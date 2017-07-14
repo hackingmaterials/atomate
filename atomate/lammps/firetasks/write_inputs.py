@@ -8,8 +8,6 @@ parameters file)
 """
 
 from fireworks import FiretaskBase, explicit_serialize
-from pymatgen.io.lammps.input import DictLammpsInput
-
 
 __author__ = 'Kiran Mathew, Brandon Wood'
 __email__ = "kmathew@lbl.gov, b.wood@berkeley.edu"

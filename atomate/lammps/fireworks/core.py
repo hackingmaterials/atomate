@@ -45,7 +45,7 @@ class LammpsFW(Firework):
             WriteLammpsFromIOSet(lammps_input_set=lammps_input_set, input_filename=input_filename,
                                  data_filename=data_filename),
             RunLammpsDirect(lammps_cmd=lammps_cmd),
-            ToDbTask(drone=LammpsForceFieldDrone(), mmdb="atomate.utils.database.CalcDb",
+            ToDbTask(drone=LammpsForceFieldDrone(), mmdb="atomate.lammps.database.LammpsCalcDb",
                      db_file=db_file, additional_fields={"task_label": job_name})
         ]
         super(LammpsFW, self).__init__(t, parents=parents, name=job_name, **kwargs)

@@ -12,6 +12,8 @@ import os
 
 from datetime import datetime
 
+from pymatgen.io.lammps.output import LammpsRun
+
 from fireworks import FiretaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.utilities.fw_utilities import explicit_serialize
@@ -20,8 +22,6 @@ from atomate.utils.utils import get_logger
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk
 from atomate.lammps.database import LammpsCalcDb
-from pymatgen.io.lammps.output import LammpsRun
-
 
 __author__ = 'Kiran Mathew'
 __email__ = "kmathew@lbl.gov"

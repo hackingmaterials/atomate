@@ -12,12 +12,12 @@ from fnmatch import fnmatch
 from collections import OrderedDict
 
 from pymatgen.apps.borg.hive import AbstractDrone
+from pymatgen.io.lammps.output import LammpsLog
+from pymatgen.io.lammps.input import DictLammpsInput
 
 from matgendb.creator import get_uri
 
 from atomate.utils.utils import get_logger
-from pymatgen.io.lammps.output import LammpsLog
-from pymatgen.io.lammps.input import DictLammpsInput
 
 __author__ = 'Brandon Wood'
 __email__ = 'b.wood@berkeley.edu'
@@ -61,8 +61,8 @@ class LammpsForceFieldDrone(AbstractDrone):
         data_file = os.path.join(path, "lammps.data")
         data_filename = "lammps.data"
         is_forcefield = True
-        input_file = DictLammpsInput.from_file("lammps", in_file, data_file,
-                                                data_filename, is_forcefield=is_forcefield)
+        input_file = DictLammpsInput.from_file("lammps", in_file, data_file, data_filename,
+                                               is_forcefield=is_forcefield)
         log_file = LammpsLog(os.path.join(path, "lammps.log"))
         logger.info("Getting task doc for base dir :{}".format(path))
         d = self.generate_doc(path, input_file, log_file)
@@ -71,9 +71,10 @@ class LammpsForceFieldDrone(AbstractDrone):
 
     def post_process(self, d):
         """
-        Simple post processing
-        :param d: task dictionary
-        :return:
+        Simple post processing.
+
+        Args:
+            d (dict)
         """
         d['state'] = 'successful'
 
@@ -85,9 +86,11 @@ class LammpsForceFieldDrone(AbstractDrone):
         Only 2 schemes of the file filtering is enabled: searching for run types
         in the list of files and in the filenames. Modify this method if more
         sophisticated filtering scheme is needed.
+
         Args:
             path (string): path to the folder
             file_pattern (string): files to be searched for
+
         Returns:
             OrderedDict of the names of the files to be processed further.
             The key is set from list of run types: self.runs
