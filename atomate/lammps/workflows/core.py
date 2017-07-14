@@ -72,32 +72,3 @@ def get_wf_from_input_template(input_template_file, lammps_data, input_filename=
                                                   is_forcefield=is_forcefield)
     return get_wf(wf_name, lammps_dict_input, input_filename=input_filename,
                   data_filename=data_filename, lammps_cmd=lammps_cmd, db_file=db_file)
-
-
-def nvt_wf(lammps_data, input_filename="lammps_nvt.in", data_filename="lammps.data",
-           user_lammps_settings=None, is_forcefield=False, lammps_cmd="lammps", db_file=None,
-           name="LAMMPS NVT"):
-    """
-    Returns NVT workflow (single Firework: [write lammps input task, run direct task])
-
-    Args:
-        lammps_data (string/LammpsData/LammpsForceFieldData): path to the data file
-            or an appropriate object.
-        input_filename (string): input file name
-        data_filename (string): data file name
-        user_lammps_settings (dict): used to override the default input file parameter settings
-        is_forcefield (bool): whether or not the data file has forcefiled info.
-        lammps_cmd (string): path to the lammps binary
-        db_file (string): path to the db file
-        name (str): workflow name
-
-    Returns:
-        Workflow
-    """
-    user_lammps_settings = user_lammps_settings or None
-    wf_name = name
-    lammps_dict_input = NVTLammpsInput(lammps_data=lammps_data, data_filename=data_filename,
-                                       user_lammps_settings=user_lammps_settings,
-                                       is_forcefield=is_forcefield)
-    return get_wf(wf_name, lammps_dict_input, input_filename=input_filename,
-                  data_filename=data_filename, lammps_cmd=lammps_cmd, db_file=db_file)
