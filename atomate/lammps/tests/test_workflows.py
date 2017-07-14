@@ -39,10 +39,10 @@ class TestLammpsWorkflows(AtomateTest):
         else:
             lammps_cmd = "{} -in {}".format(LAMMPS_CMD, self.input_filename)
 
-        wf = get_wf_from_input_template("peo_test", self.input_file, self.data_file,
+        wf = get_wf_from_input_template(self.input_file, self.data_file,
                                         input_filename=self.input_filename,
                                         data_filename="lammps.data", lammps_cmd=lammps_cmd,
-                                        is_forcefield=True, db_file=self.db_file)
+                                        is_forcefield=True, db_file=self.db_file, name="peo_test")
 
         self.lp.add_wf(wf)
         # run
