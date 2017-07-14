@@ -30,14 +30,19 @@ class WriteLammpsFromIOSet(FiretaskBase):
 
     required_params = ["job_name", "lammps_input",  "lammps_data", "is_forcefield"]
 
+    optional_params = ["user_lammps_settings", "data_filename"]
+
     def run_task(self, fw_spec):
-        user_default_settings = {"log": "lammps.log"}
-        data_filename = "lammps.data"
-        input_filename = "lammps.in"
+
         lammps_input = self["lammps_input"]
         lammps_data = self["lammps_data"]
         job_name = self["job_name"]
         is_forcefield = self["is_forcefield"]
-        lammps_input_set = DictLammpsInput.from_file(job_name, lammps_input, lammps_data,
-                                                     data_filename, user_default_settings, is_forcefield)
-        lammps_input_set.write_input(input_filename, data_filename)
+        user_lammps_settings = self.get("user_lammps_settings", {"log": "lammps.log"})
+        data_filename = self.get("data_filename", "lammps.data")
+
+        lammps_input_set = DictLammpsInput.from_file(job_name, lammps_input, lammps_data=lammps_data,
+                                                     data_filename=data_filename,
+                                                     user_lammps_settings=user_lammps_settings,
+                                                     is_forcefield=is_forcefield)
+        lammps_input_set.write_input("lammps.in", data_filename)
