@@ -17,7 +17,6 @@ __email__ = 'kmathew@lbl.gov, b.wood@berkeley.edu'
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "common", "test_files")
 
-DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 LAMMPS_CMD = None  # "mpirun -n 4 lmp_mpi"
 
 
@@ -25,11 +24,11 @@ class TestLammpsWorkflows(AtomateTest):
 
     def setUp(self):
         super(TestLammpsWorkflows, self).setUp()
-        self.data_file = os.path.join(module_dir, "test_files/peo.data")
-        self.input_file = os.path.join(module_dir, "test_files/peo.in")
+        self.data_file_template = os.path.join(module_dir, "test_files/peo.data")
+        self.input_file_template = os.path.join(module_dir, "test_files/peo.in")
         self.input_filename = "lammps.in"
         self.db_file = os.path.join(db_dir, "db.json")
-        self.reference_files_path = os.path.abspath(os.path.join(module_dir, "reference_files"))
+        self.reference_files_path = os.path.abspath(os.path.join(module_dir, "test_files"))
 
     def test_lammps_wflow(self):
 
@@ -39,7 +38,7 @@ class TestLammpsWorkflows(AtomateTest):
         else:
             lammps_cmd = "{} -in {}".format(LAMMPS_CMD, self.input_filename)
 
-        wf = get_wf_from_input_template(self.input_file, self.data_file,
+        wf = get_wf_from_input_template(self.input_file_template, self.data_file_template,
                                         input_filename=self.input_filename,
                                         data_filename="lammps.data", lammps_cmd=lammps_cmd,
                                         is_forcefield=True, db_file=self.db_file, name="peo_test")
