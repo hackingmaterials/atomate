@@ -30,11 +30,10 @@ def get_wf(name, lammps_input_set, input_filename, data_filename, lammps_cmd, db
 
     Returns:
         Workflow
-
     """
 
-    fws = [LammpsFW(name, lammps_input_set=lammps_input_set, input_filename=input_filename,
-                    data_filename=data_filename, lammps_cmd=lammps_cmd,db_file=db_file)]
+    fws = [LammpsFW(lammps_input_set=lammps_input_set, input_filename=input_filename,
+                    data_filename=data_filename, lammps_cmd=lammps_cmd, db_file=db_file)]
     return Workflow(fws, name=name)
 
 
