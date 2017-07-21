@@ -54,35 +54,37 @@ class CopyVaspOutputs(CopyFiles):
         additional_files ([str]): additional files to copy,
             e.g. ["CHGCAR", "WAVECAR"]. Use $ALL if you just want to copy
             everything
+        exclude_files (list): list of files excluded even if in additional_files
         contcar_to_poscar(bool): If True (default), will move CONTCAR to
             POSCAR (original POSCAR is not copied).
     """
 
-    optional_params = ["calc_loc", "calc_dir", "filesystem", "additional_files", "contcar_to_poscar"]
+    optional_params = ["calc_loc", "calc_dir", "filesystem", "additional_files", "contcar_to_poscar", "exclude_files"]
 
     def run_task(self, fw_spec):
 
         calc_loc = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"]) if self.get("calc_loc") else {}
 
-        # determine what files need to be copied
-        files_to_copy = None
-        if not "$ALL" in self.get("additional_files", []):
-            files_to_copy = ['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR', 'vasprun.xml']
-            if self.get("additional_files"):
-                files_to_copy.extend(self["additional_files"])
+        files_to_copy = self.get("additional_files") or []
+        exclude_files = self.get("exclude_files") or []
 
         # decide between poscar and contcar
-        contcar_to_poscar = self.get("contcar_to_poscar", True)
-        if contcar_to_poscar and "CONTCAR" not in files_to_copy:
+        if self.get("contcar_to_poscar", True):
             files_to_copy.append("CONTCAR")
-            files_to_copy = [f for f in files_to_copy if f != 'POSCAR']  # remove POSCAR
+            exclude_files.append("POSCAR")
+
+        # determine what files need to be copied
+        if not "$ALL" in files_to_copy:
+            files_to_copy.extend(['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR', 'vasprun.xml'])
+        else:
+            files_to_copy = None
 
         # setup the copy
         self.setup_copy(self.get("calc_dir", None), filesystem=self.get("filesystem", None),
-                        files_to_copy=files_to_copy, from_path_dict=calc_loc)
+                        files_to_copy=files_to_copy, exclude_files=exclude_files, from_path_dict=calc_loc)
         # do the copying
         self.copy_files()
-
+        
     def copy_files(self):
         all_files = self.fileclient.listdir(self.from_dir)
         # start file copy
