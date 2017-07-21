@@ -20,7 +20,7 @@ It is assumed that you are comfortable with basic Linux shell commands and navig
 
 .. _pymatgen: http://pymatgen.org
 .. _custodian: https://materialsproject.github.io/custodian/
-.. _FireWorks: https://hackingmaterials.lbl.gov/fireworks/
+.. _FireWorks: https://materialsproject.github.io/fireworks/
 .. _Linux Command: http://linuxcommand.org/lc3_learning_the_shell.php
 .. _Linux Journey: https://linuxjourney.com/lesson/the-shell
 
@@ -126,7 +126,7 @@ You might choose to have *two* separate databases - one for the workflows and an
 
 .. _MongoDB: https://docs.mongodb.com/manual/
 .. _mLab: https://mlab.com
-.. _FireWorks offline mode: https://hackingmaterials.lbl.gov/fireworks/offline_tutorial.html
+.. _FireWorks offline mode: https://materialsproject.github.io/fireworks/offline_tutorial.html
 
 
 .. _Create a directory scaffold for atomate:
@@ -330,7 +330,7 @@ The ``_fw_name: CommonAdapter`` means that the queue is one of the built in queu
 
 ``nodes``, ``walltime`` are the default reservations made to the queue as you would expect. ``queue`` refers to the name of the queue you will submit to. Some clusters support this and appropriate values might be ``regular``, ``normal``, ``knl``, etc. as defined by the compute resource you are using. The ``account`` option refers to which account to charge. Again, whether or not you need to set this depends on the resource. ``pre_rocket`` and ``post_rocket`` add lines to before and after you job launches in your queue submission script. One use of this would be to enter directives such as ``#SBATCH -C knl,quad,cache`` to configure SLURM to run on knl nodes.
 
-.. _FireWorks documentation for writing queue adapters: https://hackingmaterials.lbl.gov/fireworks/qadapter_programming.html?highlight=qadapter
+.. _FireWorks documentation for writing queue adapters: https://materialsproject.github.io/fireworks/qadapter_programming.html?highlight=qadapter
 
 
 FW_config.yaml
@@ -381,10 +381,10 @@ which should return something like:
     2015-12-30 18:00:00,000 INFO LaunchPad was RESET.
 
 
-.. _installation guide: https://hackingmaterials.lbl.gov/fireworks/installation.html
-.. _server-worker model: https://hackingmaterials.lbl.gov/fireworks/index.html#centralized-server-and-worker-model
-.. _FireWorks documentation for controlling Workers: https://hackingmaterials.lbl.gov/fireworks/controlworker.html?highlight=category
-.. _FireWorks documentation for modifying the FW config: https://hackingmaterials.lbl.gov/fireworks/config_tutorial.html
+.. _installation guide: https://materialsproject.github.io/fireworks/installation.html
+.. _server-worker model: https://materialsproject.github.io/fireworks/index.html#centralized-server-and-worker-model
+.. _FireWorks documentation for controlling Workers: https://materialsproject.github.io/fireworks/controlworker.html?highlight=category
+.. _FireWorks documentation for modifying the FW config: https://materialsproject.github.io/fireworks/config_tutorial.html
 
 
 .. _Configure pymatgen:
@@ -485,7 +485,7 @@ See the following pages for more information on the topics we covered here:
 * For using pymatgen-db to query your database see the `pymatgen-db documentation`_
 * To see how to run and customize the existing Workflows and FireWorks try the :ref:`running workflows tutorial`
 
-.. _FireWorks advanced queue submission tutorial: https://hackingmaterials.lbl.gov/fireworks/queue_tutorial_pt2.html
+.. _FireWorks advanced queue submission tutorial: https://materialsproject.github.io/fireworks/queue_tutorial_pt2.html
 .. _pymatgen-db documentation: https://materialsproject.github.io/pymatgen-db/
 
 Troubleshooting and FAQ:
