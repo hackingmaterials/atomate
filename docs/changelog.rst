@@ -2,6 +2,11 @@
 atomate Changelog
 =================
 
+**v0.5.3**
+
+* attempt to fix packaging of YAML workflow library in pip
+* update doc links
+
 **v0.5.2**
 
 * band gap estimation builder based on dielectric constants
