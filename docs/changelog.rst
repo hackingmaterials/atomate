@@ -2,6 +2,10 @@
 atomate Changelog
 =================
 
+**v0.5.4**
+
+* re-attempt to fix packaging of YAML workflow library in pip
+
 **v0.5.3**
 
 * attempt to fix packaging of YAML workflow library in pip
