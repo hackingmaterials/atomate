@@ -8,7 +8,7 @@ Defines fireworks to be incorporated into workflows.
 
 from fireworks import Firework
 
-from atomate.lammps.firetasks.run_calc import RunLammpsDirect
+from atomate.lammps.firetasks.run_calc import RunLammpsDirect, RunPackmol
 from atomate.common.firetasks.parse_outputs import ToDbTask
 from atomate.lammps.firetasks.write_inputs import WriteLammpsFromIOSet
 from atomate.lammps.drones import LammpsForceFieldDrone
@@ -18,6 +18,7 @@ __email__ = "b.wood@berkeley.edu"
 
 
 class LammpsFW(Firework):
+
     def __init__(self, lammps_input_set, input_filename="lammps.in", data_filename="lammps.data",
                  lammps_cmd="lammps", db_file=None, parents=None, name="LammpsFW", **kwargs):
         """
@@ -47,6 +48,13 @@ class LammpsFW(Firework):
         super(LammpsFW, self).__init__(t, parents=parents, name=name, **kwargs)
 
 
-# TODO: implement this
 class PackmolFW(Firework):
-    pass
+
+    def __init__(self, molecules, packing_config, tolerance=2.0, filetype="xyz", control_params=None,
+                 output_file="packed.xyz", parents=None, name="PackmolFW", **kwargs):
+        control_params = control_params or {'maxit': 20, 'nloop': 600}
+        t = [
+            RunPackmol(molecules=molecules, packing_config=packing_config, tolerance=tolerance,
+                       filetype=filetype, control_params=control_params,  output_file=output_file)
+             ]
+        super(PackmolFW, self).__init__(t, parents=parents, name=name, **kwargs)
