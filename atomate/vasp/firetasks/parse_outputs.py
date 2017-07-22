@@ -18,7 +18,7 @@ from fireworks.utilities.fw_serializers import DATETIME_HANDLER, recursive_dict
 from pymatgen import Structure
 from pymatgen.analysis.elasticity.elastic import ElasticTensor, \
         ElasticTensorExpansion, get_strain_state_dict
-from pymatgen.analysis.elasticity.strain import Strain
+from pymatgen.analysis.elasticity.strain import Strain, Deformation
 from pymatgen.analysis.elasticity.stress import Stress
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar
@@ -220,19 +220,35 @@ class ElasticTensorToDb(FiretaskBase):
     """
     Analyzes the stress/strain data of an elastic workflow to produce
     an elastic tensor and various other quantities.
+    
+    Required params:
+        structure (Structure): structure to use for symmetrization,
+            input structure.  If an optimization was used, will
+            look for relaxed structure in calc locs
+
+    Optional params:
+        db_file (str): path to file containing the database credentials.
+            Supports env_chk. Default: write data to JSON file.
+        order (int): order of fit to perform
+        fw_spec_field (str): if set, will update the task doc with the contents
+            of this key in the fw_spec.
+        fitting_method (str): if set, will use one of the specified
+            fitting methods from pymatgen.  Supported methods are
+            "independent", "pseudoinverse", and "finite_difference."
+            Note that order 3 and higher required finite difference
+            fitting, and will override.
     """
 
     required_params = ['structure']
-    optional_params = ['db_file', 'order', 'fw_spec_field']
+    optional_params = ['db_file', 'order', 'fw_spec_field', 'fitting_method']
 
     def run_task(self, fw_spec):
         ref_struct = self['structure']
-        d = {"analysis": {},
-             "deformation_tasks": fw_spec["deformation_tasks"],
-             "initial_structure": self['structure'].as_dict()}
+        d = {"analysis": {}, "initial_structure": self['structure'].as_dict()}
 
         # Get optimized structure
-        calc_locs_opt = [cl for cl in fw_spec['calc_locs'] if 'optimiz' in cl['name']]
+        calc_locs_opt = [cl for cl in fw_spec.get('calc_locs', [])
+                         if 'optimiz' in cl['name']]
         if calc_locs_opt:
             optimize_loc = calc_locs_opt[-1]['path']
             logger.info("Parsing initial optimization directory: {}".format(optimize_loc))
@@ -241,69 +257,72 @@ class ElasticTensorToDb(FiretaskBase):
             opt_struct = Structure.from_dict(optimize_doc["calcs_reversed"][0]["output"]["structure"])
             d.update({"optimized_structure": opt_struct.as_dict()})
             ref_struct = opt_struct
-            d['eq_stress'] = -0.1*Stress(optimize_doc["calcs_reversed"][0]\
+            eq_stress = -0.1*Stress(optimize_doc["calcs_reversed"][0]\
                                          ["output"]["ionic_steps"][-1]["stress"])
         else:
-            d['eq_stress'] = None
+            eq_stress = None
 
         if self.get("fw_spec_field"):
             d.update({self.get("fw_spec_field"): fw_spec.get(self.get("fw_spec_field"))})
 
+        # Get the stresses, strains, deformations from deformation tasks
         defo_dicts = fw_spec["deformation_tasks"].values()
-        stresses, strains = [], []
+        stresses, strains, deformations = [], [], []
         for defo_dict in defo_dicts:
             stresses.append(Stress(defo_dict["stress"]))
             strains.append(Strain(defo_dict["strain"]))
+            deformations.append(Deformation(defo_dict["deformation_matrix"]))
             # Add derived stresses and strains if symmops is present
             for symmop in defo_dict.get("symmops", []):
                 stresses.append(Stress(defo_dict["stress"]).transform(symmop))
                 strains.append(Strain(defo_dict["strain"]).transform(symmop))
+                deformations.append(Deformation(defo_dict["deformation_matrix"]).transform(symmop))
+
         stresses = [-0.1*s for s in stresses]
+        pk_stresses = [stress.piola_kirchoff_2(deformation)
+                       for stress, deformation in zip(stresses, deformations)]
+
+        d['fitting_data'] = {'cauchy_stresses': stresses, 'eq_stress': eq_stress,
+                             'strains': strains, 'pk_stresses': pk_stresses,
+                             'deformations': deformations}
 
         logger.info("Analyzing stress/strain data")
-        vstrains = np.array([s.voigt for s in strains])
-        # Direct pseudoinverse fitting
         # TODO: @montoyjh: what if it's a cubic system? don't need 6. -computron
-        if np.linalg.matrix_rank(np.array(vstrains)) == 6:
-            # Perform Elastic tensor fitting and analysis
-            result = ElasticTensor.from_pseudoinverse(strains, stresses)
-            pinv_fit = {"elastic_tensor":result.voigt.tolist(),
-                        "prop_dict":result.property_dict,
-                        "structure_prop_dict":result.get_structure_property_dict(ref_struct)}
-            d["pseudoinverse_fit"] = pinv_fit
-
-        else:
-            raise ValueError("Data matrix rank is less than 6")
-        ind_strain_states = list(get_strain_state_dict(strains, stresses).keys())
-        if set([tuple(s) for s in np.eye(6)]) <= set(ind_strain_states):
-            result = ElasticTensor.from_independent_strains(strains, stresses,
-                                                            eq_stress=d["eq_stress"])
-            poly_fit = {"elastic_tensor":result.voigt.tolist(),
-                        "prop_dict":result.property_dict,
-                        "structure_prop_dict":result.get_structure_property_dict(ref_struct)}
-            d["linear_fit"] = poly_fit
-        order = self.get("order", 2)
-        import pdb; pdb.set_trace()
+        # TODO: Can add population method but want to think about how it should
+        #           be done. -montoyjh
+        order = self.get('order', 2)
         if order > 2:
-            hoec = {}
-            hoec['stresses'], hoec['strains'] = stresses, strains
-            hoec['pk_stresses'] = [stress.piola_kirchoff_2(strain.deformation_matrix) 
-                                   for stress, strain in zip(stresses, strains)]
-            exp = ElasticTensorExpansion.from_diff_fit(strains, hoec['pk_stresses'],
-                                                       eq_stress = d["eq_stress"], 
-                                                       order=order)
-            expfit = exp.fit_to_structure(ref_struct)
-            hoec["C_raw"] = [c for c in exp.voigt]
-            hoec["C_fit"] = [c for c in expfit.voigt]
-            idx_format = {}
-            for o in range(2, order+1):
-                indices = list(itertools.combinations_with_replacement(range(6), r=o))
-                # Produces a list of strings, c_ijkl = NUMBER for all distinct combinations
-                idx_format[o] = ['c_' + ''.join([str(i) for i in np.array(idx) + 1])\
-                                 + ' = ' + str(expfit[o-2].voigt[idx]) for idx in indices]
-            d["diff_fit"] = hoec
+            method = 'finite_difference'
+        else:
+            method = self.get('fitting_method', 'finite_difference')
+
+        if method == 'finite_difference':
+            result = ElasticTensorExpansion.from_diff_fit(
+                    strains, pk_stresses, eq_stress=eq_stress, order=order)
+            if order == 2:
+                result = ElasticTensor(result[0])
+        elif method == 'pseudoinverse':
+            result = ElasticTensor.from_pseudoinverse(strains, pk_stresses)
+        elif method == 'independent':
+            result = ElasticTensor.from_independent_strains(
+                    strains, pk_stresses, eq_stress=eq_stress)
+        else:
+            raise ValueError("Unsupported method, method must be finite_difference, "
+                             "pseudoinverse, or independent")
+        ieee = result.convert_to_ieee(ref_struct)
+        d.update({"elastic_tensor": {"raw": result.voigt, "ieee_format": ieee.voigt}})
+        if order == 2:
+            d.update({"derived_properties": ieee.get_structure_property_dict(ref_struct)})
+        else:
+            soec = ElasticTensor(ieee[0])
+            d.update({"derived_properties": soec.get_structure_property_dict(ref_struct)})
+
         d["formula_pretty"] = ref_struct.composition.reduced_formula
+        d["fitting_method"] = method
+        d["order"] = order
+
         d = recursive_dict(d)
+
         # Save analysis results in json or db
         db_file = env_chk(self.get('db_file'), fw_spec)
         if not db_file:
