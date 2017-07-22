@@ -208,17 +208,19 @@ def wf_elastic_constant(structure, c=None, order=2, sym_reduce=False):
     uis_optimize = {"ENCUT": 700, "EDIFF": 1e-6, "LAECHG":False}
     if order > 2:
         uis_optimize.update({"EDIFF": 1e-10, "EDIFFG":-0.001, 
-                             "ADDGRID":True, "LREAL":False})
+                             "ADDGRID":True, "LREAL":False, "ISYM": 0})
         # This ensures a consistent k-point mesh across all calculations
-        kpts_settings = Kpoints.automatic_density(structure, 50000, force_gamma=True)
+        # We also turn off symmetry to prevent VASP from changing the
+        # mesh internally
+        kpts_settings = Kpoints.automatic_density(structure, 40000, force_gamma=True)
         stencils = np.linspace(-0.075, 0.075, 7)
     else:
         kpts_settings = {'grid_density': 7000}
         stencils = None
 
     uis_static = uis_optimize.copy()
-    uis_static.update({'ISIF': 2, 'IBRION': 2, 'NSW': 99, 'ISTART': 1})
-    
+    uis_static.update({'ISIF': 2, 'IBRION': 2, 'NSW': 99, 'ISTART': 1, "PREC": "High"})
+
     # input set for structure optimization
     vis_relax = MPRelaxSet(structure, force_gamma=True, user_incar_settings=uis_optimize,
                            user_kpoints_settings=kpts_settings)
