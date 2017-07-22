@@ -2,6 +2,26 @@
 atomate Changelog
 =================
 
+**v0.5.5**
+
+* remove PyPI download size by an order of magnitude
+
+**v0.5.4**
+
+* re-attempt to fix packaging of YAML workflow library in pip
+
+**v0.5.3**
+
+* attempt to fix packaging of YAML workflow library in pip
+* update doc links
+
+**v0.5.2**
+
+* band gap estimation builder based on dielectric constants
+* clean up pypi packaging (S.P. Ong)
+* link to new doc links
+* misc bugfixes and workflow settings update/fixes (K. Mathew, A. Jain)
+
 **v0.5.1**
 
 * use ruamel instead of pyyaml (S.P. Ong)

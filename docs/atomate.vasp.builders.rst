@@ -4,6 +4,14 @@ atomate.vasp.builders package
 Submodules
 ----------
 
+atomate.vasp.builders.bandgap_estimation module
+-----------------------------------------------
+
+.. automodule:: atomate.vasp.builders.bandgap_estimation
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 atomate.vasp.builders.base module
 ---------------------------------
 

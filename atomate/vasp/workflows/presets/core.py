@@ -332,16 +332,16 @@ def wf_gibbs_free_energy(structure, c=None):
 
     # optimization only workflow
     wf = get_wf(structure, "optimize_only.yaml",
-                    params=[{"vasp_cmd": vasp_cmd,  "db_file": db_file,
-                             "name": "{} structure optimization".format(tag)}],
-                    vis=vis_relax)
+                params=[{"vasp_cmd": vasp_cmd,  "db_file": db_file,
+                         "name": "{} structure optimization".format(tag)}],
+                vis=vis_relax)
 
     # static input set for the transmute firework
-    uis_static = {"ISIF": 2,
-                  "ISTART": 1,
-                  "IBRION": 2,
-                  "NSW": 99
-                  }
+    uis_static = {
+        "ISIF": 2,
+        "ISTART": 1,
+    }
+
     lepsilon = False
     if qha_type not in ["debye_model"]:
         lepsilon = True
@@ -352,8 +352,8 @@ def wf_gibbs_free_energy(structure, c=None):
                                "analysis step; you can alternatively switch to the qha_type to "
                                "'debye_model' which does not require 'phonopy'.")
     vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
-                                                user_kpoints_settings=user_kpoints_settings,
-                                                user_incar_settings=uis_static)
+                             user_kpoints_settings=user_kpoints_settings,
+                             user_incar_settings=uis_static)
     # get gibbs workflow and chain it to the optimization workflow
     wf_gibbs = get_wf_gibbs_free_energy(structure, user_kpoints_settings=user_kpoints_settings,
                                         deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file,
@@ -405,21 +405,23 @@ def wf_bulk_modulus(structure, c=None):
     v.update({"user_kpoints_settings": user_kpoints_settings})
     vis_relax = vis_relax.__class__.from_dict(v)
 
+    # static input set for the transmute firework
+    uis_static = {
+        "ISIF": 2,
+        "ISTART": 1,
+        "IBRION": 2,
+        "NSW": 99
+    }
+
     # optimization only workflow
     wf = get_wf(structure, "optimize_only.yaml",
                 params=[{"vasp_cmd": vasp_cmd, "db_file": db_file,
                          "name": "{} structure optimization".format(tag)}],
                 vis=vis_relax)
 
-    # static input set for the transmute firework
-    uis_static = {"ISIF": 2,
-                  "ISTART": 1,
-                  "IBRION": 2,
-                  "NSW": 99
-                  }
     vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=False,
-                                                user_kpoints_settings=user_kpoints_settings,
-                                                user_incar_settings=uis_static)
+                             user_kpoints_settings=user_kpoints_settings,
+                             user_incar_settings=uis_static)
     # get the deformations wflow for bulk modulus calculation
     wf_bm = get_wf_bulk_modulus(structure, eos=eos, user_kpoints_settings=user_kpoints_settings,
                                 deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file, tag=tag,
