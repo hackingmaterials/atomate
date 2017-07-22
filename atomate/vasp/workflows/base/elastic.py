@@ -137,18 +137,3 @@ def get_default_strain_states(order=2):
         np.put(strain_states[n], i, 1)
     strain_states[:, 3:] *= 2
     return strain_states.tolist()
-
-
-if __name__ == "__main__":
-    from pymatgen.util.testing import PymatgenTest
-
-    structure = PymatgenTest.get_structure("Si")
-    #wf = get_wf_elastic_constant(structure)
-    try:
-        wf = get_wf_elastic_constant(structure, sym_reduce=True)
-        wf2 = get_wf_elastic_constant(structure, order=3, sym_reduce=False)
-    except:
-        import sys, pdb, traceback
-        type, value, tb = sys.exc_info()
-        traceback.print_exc()
-        pdb.post_mortem(tb)

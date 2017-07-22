@@ -10,10 +10,10 @@ from datetime import datetime
 
 import numpy as np
 
-from monty.json import MontyEncoder
+from monty.json import MontyEncoder, jsanitize
 
 from fireworks import FiretaskBase, FWAction, explicit_serialize
-from fireworks.utilities.fw_serializers import DATETIME_HANDLER, recursive_dict
+from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
 from pymatgen import Structure
 from pymatgen.analysis.elasticity.elastic import ElasticTensor, \
@@ -321,7 +321,7 @@ class ElasticTensorToDb(FiretaskBase):
         d["fitting_method"] = method
         d["order"] = order
 
-        d = recursive_dict(d)
+        d = jsanitize(d)
 
         # Save analysis results in json or db
         db_file = env_chk(self.get('db_file'), fw_spec)

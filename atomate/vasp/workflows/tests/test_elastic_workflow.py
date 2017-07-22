@@ -93,7 +93,7 @@ class TestElasticWorkflow(AtomateTest):
         if mode not in ["structure optimization", "elastic deformation 0",
                         "elastic deformation 3", "elastic analysis", "toec analysis"]:
             raise ValueError("Invalid mode!")
-        
+
         if mode not in ["elastic analysis", "toec analysis"]:
             self.assertEqual(d["formula_pretty"], "Si")
             self.assertEqual(d["formula_anonymous"], "A")
