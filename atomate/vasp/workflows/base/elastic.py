@@ -71,7 +71,7 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None,
     if conventional:
         structure = SpacegroupAnalyzer(structure).get_conventional_standard_structure()
 
-    uis_elastic = {"IBRION": 2, "NSW": 99, "ISIF": 2, "ISTART": 1}
+    uis_elastic = {"IBRION": 2, "NSW": 99, "ISIF": 2, "ISTART": 1, "PREC": "High"}
     vis = vasp_input_set or MPStaticSet(structure, user_incar_settings=uis_elastic)
     strains = []
     if strain_states is None:
