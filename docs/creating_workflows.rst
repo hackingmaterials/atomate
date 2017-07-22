@@ -59,9 +59,9 @@ The Firetasks of each Firework are all of the individual steps that are performe
 
 .. _pymatgen: http://pymatgen.org
 .. _custodian: https://materialsproject.github.io/custodian/
-.. _FireWorks: https://hackingmaterials.lbl.gov/fireworks/
+.. _FireWorks: https://materialsproject.github.io/fireworks/
 .. _pymatgen-db: https://materialsproject.github.io/pymatgen-db/
-.. _FireWorks documentation: https://hackingmaterials.lbl.gov/fireworks/index.html#workflow-model
+.. _FireWorks documentation: https://materialsproject.github.io/fireworks/index.html#workflow-model
 
 Creating atomate Workflows
 ==========================
@@ -77,7 +77,7 @@ The first step when you go to write any workflow is to sketch a graph of the wor
 
 
 .. _directed acyclic graph: https://en.wikipedia.org/wiki/Directed_acyclic_graph
-.. _Fireworks documentation for dynamic workflows: https://hackingmaterials.lbl.gov/fireworks/dynamic_wf_tutorial.html
+.. _Fireworks documentation for dynamic workflows: https://materialsproject.github.io/fireworks/dynamic_wf_tutorial.html
 
 Finding Fireworks
 -----------------

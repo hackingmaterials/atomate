@@ -32,7 +32,7 @@ def env_chk(val, fw_spec, strict=True, default=None):
     Otherwise, the string "val" is interpreted literally and passed-through as is.
 
     The fw_spec["_fw_env"] is in turn set by the FWorker. For more details,
-    see: https://hackingmaterials.lbl.gov/fireworks/worker_tutorial.html
+    see: https://materialsproject.github.io/fireworks/worker_tutorial.html
 
     Since the fw_env can be set differently for each FireWorker, one can
     use this method to translate a single "val" into multiple possibilities,
