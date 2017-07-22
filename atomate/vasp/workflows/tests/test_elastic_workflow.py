@@ -162,7 +162,7 @@ class TestElasticWorkflow(AtomateTest):
         
         d = self.get_task_collection().find_one({"task_label": "elastic deformation 3"})
         self._check_run(d, mode="elastic deformation 3")
-        
+
         # check the final results
         d = self.get_task_collection(coll_name="elasticity").find_one({'order': 2})
         self._check_run(d, mode="elastic analysis")
