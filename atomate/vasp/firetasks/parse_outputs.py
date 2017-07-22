@@ -16,7 +16,7 @@ from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
 from pymatgen import Structure
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
-from pymatgen.analysis.elasticity.strain import IndependentStrain, Strain
+from pymatgen.analysis.elasticity.strain import Strain
 from pymatgen.analysis.elasticity.stress import Stress
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar
