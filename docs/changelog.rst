@@ -2,6 +2,10 @@
 atomate Changelog
 =================
 
+**v0.5.6**
+
+* major improvements to elastic tensor calculations and compatibility with latest pymatgen (J. Montoya, K. Mathew)
+
 **v0.5.5**
 
 * remove PyPI download size by an order of magnitude
