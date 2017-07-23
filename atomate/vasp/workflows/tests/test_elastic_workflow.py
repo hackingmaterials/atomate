@@ -6,6 +6,7 @@ import os
 import unittest
 
 import numpy as np
+
 from monty.serialization import loadfn
 
 from fireworks import FWorker, Firework, Workflow
@@ -13,14 +14,12 @@ from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_fake_vasp, add_modify_incar
 from atomate.vasp.workflows.base.elastic import get_wf_elastic_constant
-from atomate.vasp.workflows.presets.core import wf_elastic_constant,\
-        wf_elastic_constant_minimal, get_wf
+from atomate.vasp.workflows.presets.core import wf_elastic_constant, wf_elastic_constant_minimal, get_wf
 from atomate.vasp.firetasks.parse_outputs import ElasticTensorToDb
 from atomate.utils.testing import AtomateTest
 
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.io.vasp.sets import MPRelaxSet
 from pymatgen import Structure
 
 __author__ = 'Kiran Mathew, Joseph Montoya'

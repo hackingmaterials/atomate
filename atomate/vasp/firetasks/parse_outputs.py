@@ -4,7 +4,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import json
 import os
-import itertools
 from collections import defaultdict
 from datetime import datetime
 
@@ -16,8 +15,7 @@ from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
 from pymatgen import Structure
-from pymatgen.analysis.elasticity.elastic import ElasticTensor, \
-        ElasticTensorExpansion, get_strain_state_dict
+from pymatgen.analysis.elasticity.elastic import ElasticTensor, ElasticTensorExpansion
 from pymatgen.analysis.elasticity.strain import Strain, Deformation
 from pymatgen.analysis.elasticity.stress import Stress
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
@@ -257,8 +255,7 @@ class ElasticTensorToDb(FiretaskBase):
             opt_struct = Structure.from_dict(optimize_doc["calcs_reversed"][0]["output"]["structure"])
             d.update({"optimized_structure": opt_struct.as_dict()})
             ref_struct = opt_struct
-            eq_stress = -0.1*Stress(optimize_doc["calcs_reversed"][0]\
-                                         ["output"]["ionic_steps"][-1]["stress"])
+            eq_stress = -0.1*Stress(optimize_doc["calcs_reversed"][0]["output"]["ionic_steps"][-1]["stress"])
         else:
             eq_stress = None
 

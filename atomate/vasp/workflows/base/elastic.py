@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 """
 This module defines the elastic workflow
 """
-import itertools
+
 import numpy as np
 
 from pymatgen.analysis.elasticity.strain import Deformation, Strain
@@ -27,10 +27,9 @@ __email__ = 'shyamd@lbl.gov, montoyjh@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_elastic_constant(structure, strain_states=None, stencils=None,
-                            db_file=None, conventional=False, order=2, 
-                            vasp_input_set=None, analysis=True, sym_reduce=False,
-                            tag='elastic', copy_vasp_outputs=False, **kwargs):
+def get_wf_elastic_constant(structure, strain_states=None, stencils=None, db_file=None,
+                            conventional=False, order=2, vasp_input_set=None, analysis=True,
+                            sym_reduce=False, tag='elastic', copy_vasp_outputs=False, **kwargs):
     """
     Returns a workflow to calculate elastic constants.
 
@@ -121,6 +120,7 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None,
     wf_elastic.name = "{}:{}".format(structure.composition.reduced_formula, "elastic constants")
 
     return wf_elastic
+
 
 def get_default_strain_states(order=2):
     """

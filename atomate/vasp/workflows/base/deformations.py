@@ -9,8 +9,8 @@ This module defines the deformation workflow: structure optimization followed by
 from fireworks import Workflow
 
 from pymatgen.io.vasp.sets import MPStaticSet
+
 from atomate.utils.utils import get_logger
-from atomate.vasp.firetasks.glue_tasks import pass_vasp_result
 from atomate.vasp.fireworks.core import TransmuterFW
 
 __author__ = 'Kiran Mathew'
@@ -21,8 +21,7 @@ logger = get_logger(__name__)
 
 
 def get_wf_deformations(structure, deformations, name="deformation", vasp_input_set=None,
-                        vasp_cmd="vasp", db_file=None, pass_stress_strain=False, tag="",
-                        copy_vasp_outputs=True, metadata=None, symmetry_reduction=False):
+                        vasp_cmd="vasp", db_file=None, tag="", copy_vasp_outputs=True, metadata=None):
     """
     Returns a structure deformation workflow.
 

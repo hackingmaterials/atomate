@@ -246,6 +246,7 @@ def wf_elastic_constant(structure, c=None, order=2, sym_reduce=False):
 
     return wf
 
+
 def wf_elastic_constant_minimal(structure, c=None, order=2, sym_reduce=True):
     
     c = c or {}
