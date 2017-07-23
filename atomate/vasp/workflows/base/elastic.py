@@ -61,6 +61,9 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None, db_fil
             for each vasp run.
         analysis (bool): flag to indicate whether analysis task should be added
             and stresses and strains passed to that task
+        sym_reduce (bool): Whether or not to apply symmetry reductions
+        tag (str):
+        copy_vasp_outputs (bool): whether or not to copy previous vasp outputs.
         kwargs (keyword arguments): additional kwargs to be passed to get_wf_deformations
 
     Returns:
@@ -130,8 +133,7 @@ def get_default_strain_states(order=2):
     if order > 2:
         inds.extend([(0, i) for i in range(1, 5)] + [(1,2), (3,4), (3,5), (4,5)])
         if order > 3:
-            raise ValueError("Standard deformations for tensors higher "
-                             "than rank 4 not yet determined")
+            raise ValueError("Standard deformations for tensors higher than rank 4 not yet determined")
     strain_states = np.zeros((len(inds), 6))
     for n, i in enumerate(inds):
         np.put(strain_states[n], i, 1)

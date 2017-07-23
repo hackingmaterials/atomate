@@ -41,7 +41,6 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
         copy_vasp_outputs (bool): whether or not copy the outputs from the previous calc(usually
             structure optimization) before the transmuter fireworks.
         metadata (dict): meta data
-        symmetry_reduce (bool): flag to indicate whether workflow should be symmetry reduced
 
     Returns:
         Workflow
