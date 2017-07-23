@@ -242,11 +242,13 @@ class ElasticTensorToDb(FiretaskBase):
 
     def run_task(self, fw_spec):
         ref_struct = self['structure']
-        d = {"analysis": {}, "initial_structure": self['structure'].as_dict()}
+        d = {
+            "analysis": {},
+            "initial_structure": self['structure'].as_dict()
+        }
 
         # Get optimized structure
-        calc_locs_opt = [cl for cl in fw_spec.get('calc_locs', [])
-                         if 'optimiz' in cl['name']]
+        calc_locs_opt = [cl for cl in fw_spec.get('calc_locs', []) if 'optimiz' in cl['name']]
         if calc_locs_opt:
             optimize_loc = calc_locs_opt[-1]['path']
             logger.info("Parsing initial optimization directory: {}".format(optimize_loc))
@@ -279,9 +281,12 @@ class ElasticTensorToDb(FiretaskBase):
         pk_stresses = [stress.piola_kirchoff_2(deformation)
                        for stress, deformation in zip(stresses, deformations)]
 
-        d['fitting_data'] = {'cauchy_stresses': stresses, 'eq_stress': eq_stress,
-                             'strains': strains, 'pk_stresses': pk_stresses,
-                             'deformations': deformations}
+        d['fitting_data'] = {'cauchy_stresses': stresses,
+                             'eq_stress': eq_stress,
+                             'strains': strains,
+                             'pk_stresses': pk_stresses,
+                             'deformations': deformations
+                             }
 
         logger.info("Analyzing stress/strain data")
         # TODO: @montoyjh: what if it's a cubic system? don't need 6. -computron
@@ -301,13 +306,18 @@ class ElasticTensorToDb(FiretaskBase):
         elif method == 'pseudoinverse':
             result = ElasticTensor.from_pseudoinverse(strains, pk_stresses)
         elif method == 'independent':
-            result = ElasticTensor.from_independent_strains(
-                    strains, pk_stresses, eq_stress=eq_stress)
+            result = ElasticTensor.from_independent_strains(strains, pk_stresses, eq_stress=eq_stress)
         else:
             raise ValueError("Unsupported method, method must be finite_difference, "
                              "pseudoinverse, or independent")
+
         ieee = result.convert_to_ieee(ref_struct)
-        d.update({"elastic_tensor": {"raw": result.voigt, "ieee_format": ieee.voigt}})
+        d.update({
+            "elastic_tensor": {
+                "raw": result.voigt,
+                "ieee_format": ieee.voigt
+            }
+        })
         if order == 2:
             d.update({"derived_properties": ieee.get_structure_property_dict(ref_struct)})
         else:

@@ -297,7 +297,7 @@ class SOCFW(Firework):
 class TransmuterFW(Firework):
     def __init__(self, structure, transformations, transformation_params=None, vasp_input_set=None,
                  name="structure transmuter", vasp_cmd="vasp", copy_vasp_outputs=True, db_file=None,
-                 parents=None, override_default_vasp_params={}, **kwargs):
+                 parents=None, override_default_vasp_params=None, **kwargs):
         """
         Apply the transformations to the input structure, write the input set corresponding
         to the transformed structure, and run vasp on them.  Note that if a transformation yields 
@@ -320,6 +320,7 @@ class TransmuterFW(Firework):
             override_default_vasp_params (dict): additional user input settings for vasp_input_set.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
+        override_default_vasp_params = override_default_vasp_params or {}
         t = []
 
         vasp_input_set = vasp_input_set or MPStaticSet(structure, force_gamma=True,
