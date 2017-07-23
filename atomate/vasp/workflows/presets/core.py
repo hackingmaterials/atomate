@@ -7,6 +7,8 @@ from uuid import uuid4
 import numpy as np
 
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from pymatgen.io.vasp.inputs import Kpoints
 
 from atomate.vasp.config import SMALLGAP_KPOINT_MULTIPLY, STABILITY_CHECK, VASP_CMD, DB_FILE, \
     ADD_WF_METADATA
@@ -197,57 +199,67 @@ def wf_piezoelectric_constant(structure, c=None):
     return wf
 
 
-def wf_elastic_constant(structure, c=None):
+def wf_elastic_constant(structure, c=None, order=2, sym_reduce=False):
 
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
-    # @montoyj - any comments on the following being configurable params?
-    norm_deformations = c.get("NORM_DEFORMATIONS", [-0.01, -0.005, 0.005, 0.01])
-    shear_deformations = c.get("SHEAR_DEFORMATIONS", [-0.06, -0.03, 0.03, 0.06])
 
-    user_kpoints_settings = {"grid_density": 7000}
+    uis_optimize = {"ENCUT": 700, "EDIFF": 1e-6, "LAECHG":False}
+    if order > 2:
+        uis_optimize.update({"EDIFF": 1e-10, "EDIFFG":-0.001, 
+                             "ADDGRID":True, "LREAL":False, "ISYM": 0})
+        # This ensures a consistent k-point mesh across all calculations
+        # We also turn off symmetry to prevent VASP from changing the
+        # mesh internally
+        kpts_settings = Kpoints.automatic_density(structure, 40000, force_gamma=True)
+        stencils = np.linspace(-0.075, 0.075, 7)
+    else:
+        kpts_settings = {'grid_density': 7000}
+        stencils = None
+
+    uis_static = uis_optimize.copy()
+    uis_static.update({'ISIF': 2, 'IBRION': 2, 'NSW': 99, 'ISTART': 1, "PREC": "High"})
 
     # input set for structure optimization
-    vis_relax = MPRelaxSet(structure, force_gamma=True)
-    v = vis_relax.as_dict()
-    v.update({"user_kpoints_settings": user_kpoints_settings})
-    vis_relax = vis_relax.__class__.from_dict(v)
+    vis_relax = MPRelaxSet(structure, force_gamma=True, user_incar_settings=uis_optimize,
+                           user_kpoints_settings=kpts_settings)
 
     # optimization only workflow
-    wf = get_wf(structure, "optimize_only.yaml",
-                    params=[{"vasp_cmd": vasp_cmd,  "db_file": db_file,
-                             "name": "elastic structure optimization"}],
-                    vis=vis_relax)
-
-    # static input set for the transmute firework
-    uis_static = {"ISIF": 2,
-                  "ISTART": 1,
-                  "IBRION": 2,
-                  "NSW": 99
-                  }
+    wf = get_wf(structure, "optimize_only.yaml", vis=vis_relax,
+                params=[{"vasp_cmd": vasp_cmd,  "db_file": db_file,
+                         "name": "elastic structure optimization"}])
+    
     vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=False,
-                             user_kpoints_settings=user_kpoints_settings,
+                             user_kpoints_settings=kpts_settings,
                              user_incar_settings=uis_static)
-    # deformations wflow for elasticity calculation
-    wf_elastic = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd,
-                                 norm_deformations=norm_deformations,
-                                 shear_deformations=shear_deformations,
-                                 db_file=db_file, user_kpoints_settings=user_kpoints_settings,
-                                copy_vasp_outputs=True, vasp_input_set=vis_static)
 
-    # chain it
+    # deformations wflow for elasticity calculation
+    wf_elastic = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd, db_file=db_file,
+                                         order=order, stencils=stencils, copy_vasp_outputs=True,
+                                         vasp_input_set=vis_static, sym_reduce=sym_reduce)
     wf.append_wf(wf_elastic, wf.leaf_fw_ids)
 
-    wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 700,
-                                                                    "EDIFF": 1e-6,
-                                                                    "LAECHG": False}})
-
     wf = add_common_powerups(wf, c)
-
     if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
         wf = add_wf_metadata(wf, structure)
 
+    return wf
+
+def wf_elastic_constant_minimal(structure, c=None, order=2, sym_reduce=True):
+    
+    c = c or {}
+    vasp_cmd = c.get("VASP_CMD", VASP_CMD)
+    db_file = c.get("DB_FILE", DB_FILE)
+
+    stencil = np.arange(0.01, 0.01*order, step=0.01)
+    wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd, db_file=db_file,
+                                 sym_reduce=sym_reduce, stencils=stencil, order=order,
+                                 copy_vasp_outputs=False)
+
+    wf = add_common_powerups(wf, c)
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
     return wf
 
 
