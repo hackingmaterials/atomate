@@ -164,7 +164,8 @@ class TestElasticWorkflow(AtomateTest):
         self._check_run(d, mode="elastic deformation 3")
 
         # check the final results
-        d = self.get_task_collection(coll_name="elasticity").find_one({'order': 2})
+        d = self.get_task_collection(coll_name="elasticity").find_one(
+                {'order': 2, "optimized_structure": {"$exists":True}})
         self._check_run(d, mode="elastic analysis")
 
         # check third-order results
