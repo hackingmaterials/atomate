@@ -24,8 +24,14 @@ class TestLammpsWorkflows(AtomateTest):
 
     def setUp(self):
         super(TestLammpsWorkflows, self).setUp()
-        self.data_file_template = os.path.join(module_dir, "test_files/peo.data")
-        self.input_file_template = os.path.join(module_dir, "test_files/peo.in")
+        self.data_file = os.path.join(module_dir, "test_files/peo.data")
+        self.input_file_template = os.path.join(module_dir, "test_files/peo.in.template")
+        self.user_settings = {"pair_style": "buck/coul/long 15.0",
+                              "kspace_style": "ewald 1.0e-5",
+                              "thermo_style_1": "custom step temp press vol density pe ke etotal enthalpy fmax fnorm",
+                              "thermo_style_2": "100",
+                              "fix_1": "CHbonds CH shake 0.0001 20 0 b 2",
+                              "fix_2": "NPT all npt temp 350 350 100.0 iso 1.0 1.0 1500.0"}
         self.input_filename = "lammps.in"
         self.db_file = os.path.join(db_dir, "db.json")
         self.reference_files_path = os.path.abspath(os.path.join(module_dir, "test_files"))
@@ -38,9 +44,10 @@ class TestLammpsWorkflows(AtomateTest):
         else:
             lammps_cmd = "{} -in {}".format(LAMMPS_CMD, self.input_filename)
 
-        wf = get_wf_from_input_template(self.input_file_template, self.data_file_template,
+        wf = get_wf_from_input_template(self.input_file_template, self.data_file,
                                         input_filename=self.input_filename,
                                         data_filename="lammps.data", lammps_cmd=lammps_cmd,
+                                        user_lammps_settings=self.user_settings,
                                         is_forcefield=True, db_file=self.db_file, name="peo_test")
 
         self.lp.add_wf(wf)
@@ -52,6 +59,8 @@ class TestLammpsWorkflows(AtomateTest):
     def _check_run(self, d):
         if not LAMMPS_CMD:
             path = d["dir_name"].split(":")[-1]
+            self.assertTrue(filecmp.cmp(os.path.join(path, "peo.in"),
+                                        "{}/peo.in".format(self.reference_files_path)))
             self.assertTrue(filecmp.cmp(os.path.join(path, "lammps.log"),
                                         "{}/lammps.log".format(self.reference_files_path)))
             self.assertTrue(filecmp.cmp(os.path.join(path, "peo.dump"),

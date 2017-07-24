@@ -8,7 +8,7 @@ This module defines functions that yield lammps workflows
 
 from fireworks import Workflow
 
-from pymatgen.io.lammps.input import DictLammpsInput
+from pymatgen.io.lammps.sets import LammpsInputSet
 
 from atomate.lammps.fireworks.core import LammpsFW
 
@@ -64,10 +64,10 @@ def get_wf_from_input_template(input_template_file, lammps_data, input_filename=
     """
     user_lammps_settings = user_lammps_settings or {}
     wf_name = name
-    lammps_dict_input = DictLammpsInput.from_file(wf_name, input_template_file,
-                                                  lammps_data=lammps_data,
-                                                  data_filename=data_filename,
-                                                  user_lammps_settings=user_lammps_settings,
-                                                  is_forcefield=is_forcefield)
+    lammps_dict_input = LammpsInputSet.from_file(
+        wf_name, input_template_file, lammps_data=lammps_data,
+        data_filename=data_filename, user_settings=user_lammps_settings,
+        is_forcefield=is_forcefield)
+
     return get_wf(wf_name, lammps_dict_input, input_filename=input_filename,
                   data_filename=data_filename, lammps_cmd=lammps_cmd, db_file=db_file)

@@ -13,7 +13,7 @@ from collections import OrderedDict
 
 from pymatgen.apps.borg.hive import AbstractDrone
 from pymatgen.io.lammps.output import LammpsLog
-from pymatgen.io.lammps.input import DictLammpsInput
+from pymatgen.io.lammps.sets import LammpsInputSet
 
 from matgendb.creator import get_uri
 
@@ -59,7 +59,7 @@ class LammpsForceFieldDrone(AbstractDrone):
         data_file = os.path.join(path, "lammps.data")
         data_filename = "lammps.data"
         is_forcefield = True
-        input_file = DictLammpsInput.from_file("lammps", in_file, data_file, data_filename,
+        input_file = LammpsInputSet.from_file("lammps", in_file, {}, data_file, data_filename,
                                                is_forcefield=is_forcefield)
         log_file = LammpsLog(os.path.join(path, "lammps.log"))
         logger.info("Getting task doc for base dir :{}".format(path))
