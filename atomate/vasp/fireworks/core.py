@@ -424,7 +424,6 @@ class BoltztrapFW(Firework):
             structure.composition.reduced_formula, name), **kwargs)
 
 
-# TODO: @shyuep: Please do a code review before I look at this. -computron
 class NEBRelaxationFW(Firework):
     """
     Relaxation Firework in NEB Workflow.
@@ -480,7 +479,6 @@ class NEBRelaxationFW(Firework):
         super(NEBRelaxationFW, self).__init__(tasks, spec=spec, name=label, **kwargs)
 
 
-# TODO: @shyuep: Please do a code review before I look at this. -computron
 class NEBFW(Firework):
     """
     CI-NEB Firework in NEB Workflow.
