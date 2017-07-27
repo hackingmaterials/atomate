@@ -3,129 +3,122 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
-Lammps Drones for atomate
+Lammps Drones.
 """
 
 import os
-
-from fnmatch import fnmatch
-from collections import OrderedDict
+from datetime import datetime
 
 from pymatgen.apps.borg.hive import AbstractDrone
-from pymatgen.io.lammps.output import LammpsLog
+from pymatgen.io.lammps.input import LammpsInput
+from pymatgen.io.lammps.output import LammpsLog, LammpsRun
 from pymatgen.io.lammps.sets import LammpsInputSet
 
 from matgendb.creator import get_uri
 
 from atomate.utils.utils import get_logger
 
-__author__ = 'Brandon Wood'
+__author__ = 'Brandon Wood, Kiran Mathew'
 __email__ = 'b.wood@berkeley.edu'
-__version__ = "0.1.0"
 
 logger = get_logger(__name__)
 
 
-class LammpsForceFieldDrone(AbstractDrone):
+class LammpsDrone(AbstractDrone):
     """
     Lammps force field drone
     """
 
-    __version__ = 0.1  # note: the version is inserted into the task doc
+    __version__ = 0.1
 
-    # Schema def of important keys and sub-keys; used in validation
     schema = {
-        "root": {
-            "schema", "dir_name", "inputs", "outputs", "version",
-        }
+        "root": {"schema", "dir_name", "input", "output", "last_updated", "state"}
     }
 
-    def __init__(self, additional_fields=None, use_full_uri=True):
+    def __init__(self, additional_fields=None, use_full_uri=True, diffusion_params=None):
+        """
+
+        Args:
+            additional_fields:
+            use_full_uri:
+            diffusion_params (dict): parameters to the diffusion_analyzer. If specified a summary
+                of diffusion statistics will be added.
+        """
         self.additional_fields = additional_fields or {}
         self.use_full_uri = use_full_uri
         self.runs = []
+        self.diffusion_params = diffusion_params
 
-    def assimilate(self, path):
+    def assimilate(self, path, input_filename="lammps.in", data_filename=None,
+                   is_forcefield=True, log_filename="lammps.log", dump_file=None):
         """
         Parses lammps input, data and log files and insert the result into the db.
 
         Args:
-            path (str): Path to the directory containing lammps input and output files.
+            path:
+            input_filename:
+            data_filename:
+            is_forcefield:
+            log_filename:
+
         Returns:
-            (dict): a task dictionary
+            dict
         """
 
-        in_file = os.path.join(path, "lammps.in")
-        data_file = os.path.join(path, "lammps.data")
-        data_filename = "lammps.data"
-        is_forcefield = True
-        input_file = LammpsInputSet.from_file("lammps", in_file, {}, data_file, data_filename,
-                                               is_forcefield=is_forcefield)
-        log_file = LammpsLog(os.path.join(path, "lammps.log"))
+        input_file = os.path.join(path, input_filename)
+        data_file = os.path.join(path, data_filename)
+        log_file = os.path.join(path, log_filename)
+
+        # input
+        if data_filename:
+            lmps_input = LammpsInputSet.from_file("lammps", input_file, {}, data_file, data_filename,
+                                                  is_forcefield=is_forcefield)
+        else:
+            lmps_input = LammpsInput.from_file(input_filename, {})
+
+        # output
+        if dump_file and data_filename:
+            lmps_output = LammpsRun(data_filename, dump_file, log_file=log_filename,
+                                    is_forcefield=is_forcefield)
+        else:
+            lmps_output = LammpsLog(log_file=log_file)
+
         logger.info("Getting task doc for base dir :{}".format(path))
-        d = self.generate_doc(path, input_file, log_file)
-        self.post_process(d)
+        d = self.generate_doc(path, lmps_input, lmps_output)
+
+        self.post_process(d, lmps_output)
+
         return d
 
-    def post_process(self, d):
+    def post_process(self, d, lmps_output):
         """
         Simple post processing.
 
         Args:
             d (dict)
         """
+        if self.diffusion_params and isinstance(lmps_output, LammpsRun):
+            d["analysis"] = {}
+            d["analysis"]["diffusion_params"] = self.diffusion_params
+            diffusion_analyzer = lmps_output.get_diffusion_analyzer(**self.diffusion_params)
+            d["analysis"]["diffusion"] = diffusion_analyzer.get_summary_dict()
         d['state'] = 'successful'
 
-    def filter_files(self, path, file_pattern):
-        """
-        Find the files that match the pattern in the given path and
-        return them in an ordered dictionary. The searched for files are
-        filtered by the run types defined in self.runs. e.g. ["relax1", "relax2", ...].
-
-        Args:
-            path (string): path to the folder
-            file_pattern (string): files to be searched for
-
-        Returns:
-            OrderedDict of the names of the files to be processed further.
-            The key is set from list of run types: self.runs
-        """
-        processed_files = OrderedDict()
-        files = os.listdir(path)
-        for r in self.runs:
-            # try subfolder schema
-            if r in files:
-                for f in os.listdir(os.path.join(path, r)):
-                    if fnmatch(f, "{}*".format(file_pattern)):
-                        processed_files[r] = os.path.join(r, f)
-            # try extension schema
-            else:
-                for f in files:
-                    if fnmatch(f, "{}.{}*".format(file_pattern, r)):
-                        processed_files[r] = f
-        if len(processed_files) == 0:
-            # get any matching file from the folder
-            for f in files:
-                if fnmatch(f, "{}*".format(file_pattern)):
-                    processed_files['standard'] = f
-        return processed_files
-
-    def generate_doc(self, dir_name, input, logfile):
+    def generate_doc(self, dir_name, lmps_input, lmps_output):
         """
         Adapted from matgendb.creator.generate_doc
         """
 
         try:
-            # basic properties, incl. calcs_reversed and run_stats
             fullpath = os.path.abspath(dir_name)
             if self.use_full_uri:
                 fullpath = get_uri(dir_name)
             d = {k: v for k, v in self.additional_fields.items()}
-            d["schema"] = {"code": "atomate", "version": LammpsForceFieldDrone.__version__}
+            d["schema"] = {"code": "atomate", "version": LammpsDrone.__version__}
             d["dir_name"] = fullpath
-            d["input"] = input.as_dict()
-            # TODO: implement as_dict for LammpsLog and use that
-            d["log"] = vars(logfile)
+            d["last_updated"] = datetime.today()
+            d["input"] = lmps_input.as_dict()
+            d["output"] = lmps_output.as_dict()
             return d
 
         except Exception:

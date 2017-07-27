@@ -30,7 +30,7 @@ logger = get_logger(__name__)
 
 
 @explicit_serialize
-class LammpsDiffusionToDB(FiretaskBase):
+class LammpsToDB(FiretaskBase):
     """
     Enter a LAMMPS run into the database.
 
