@@ -89,6 +89,7 @@ class CalcDb(six.with_metaclass(ABCMeta)):
             logger.info("Skipping duplicate {}".format(d["dir_name"]))
             return None
 
+    @abstractmethod
     def reset(self):
         pass
 
