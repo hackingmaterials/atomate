@@ -19,7 +19,8 @@ __email__ = "b.wood@berkeley.edu"
 class LammpsFW(Firework):
 
     def __init__(self, lammps_input_set, input_filename="lammps.in", data_filename="lammps.data",
-                 lammps_cmd="lammps", db_file=None, parents=None, name="LammpsFW", **kwargs):
+                 lammps_cmd="lammps", db_file=None, parents=None, name="LammpsFW",
+                 log_filename="lammps.log", dump_filename=None, **kwargs):
         """
         write lammps inputset, run, and store the output.
 
@@ -41,8 +42,9 @@ class LammpsFW(Firework):
 
             RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename),
 
-            LammpsToDB(input_filename=input_filename, db_file=db_file,
-                       additional_fields={"task_label": name})
+            LammpsToDB(input_filename=input_filename, data_filename=data_filename,
+                       log_filename=log_filename, dump_filename=dump_filename,
+                       db_file=db_file, additional_fields={"task_label": name})
         ]
 
         super(LammpsFW, self).__init__(t, parents=parents, name=name, **kwargs)

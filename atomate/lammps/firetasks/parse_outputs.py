@@ -45,8 +45,7 @@ class LammpsToDB(FiretaskBase):
     required_params = ["input_filename"]
 
     optional_params = ["calc_dir", "calc_loc", "db_file", "fw_spec_field",
-                       "input_filename", "data_filename", "log_filename", "dump_filename",
-                       "diffusion_params"]
+                       "data_filename", "log_filename", "dump_filename", "diffusion_params"]
 
     def run_task(self, fw_spec):
 

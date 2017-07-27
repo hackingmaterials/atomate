@@ -16,7 +16,8 @@ __author__ = 'Kiran Mathew'
 __email__ = "kmathew@lbl.gov"
 
 
-def get_wf(name, lammps_input_set, input_filename, data_filename, lammps_cmd, db_file):
+def get_wf(name, lammps_input_set, input_filename, data_filename, lammps_cmd, db_file,
+           log_filename, dump_filename):
     """
     Returns workflow that writes lammps input/data files, runs lammps and inserts to DB.
 
@@ -25,22 +26,28 @@ def get_wf(name, lammps_input_set, input_filename, data_filename, lammps_cmd, db
         lammps_input_set (DictLammpsInput): lammps input set
         input_filename (str): input file name
         data_filename (str): data file name
-        lammps_cmd (string): path to the lammps binary
-        db_file (string): path to the db file
+        lammps_cmd (str): path to the lammps binary
+        db_file (str): path to the db file
+        log_filename (str)
+        dump_filename (str)
 
     Returns:
         Workflow
     """
 
-    fws = [LammpsFW(lammps_input_set=lammps_input_set, input_filename=input_filename,
-                    data_filename=data_filename, lammps_cmd=lammps_cmd, db_file=db_file)]
+    fws = [
+        LammpsFW(lammps_input_set=lammps_input_set, input_filename=input_filename,
+                 data_filename=data_filename, lammps_cmd=lammps_cmd, db_file=db_file,
+                 log_filename=log_filename, dump_filename=dump_filename)
+    ]
+
     return Workflow(fws, name=name)
 
 
 def get_wf_from_input_template(input_template_file, user_settings, lammps_data=None,
                                input_filename="lammps.in", data_filename="lammps.data",
-                               is_forcefield=False, lammps_cmd="lammps", db_file=None,
-                               name="LAMMPS template Wflow"):
+                               is_forcefield=False, lammps_cmd="lammps",  log_filename="lammps.log",
+                               dump_filename=None, db_file=None, name="LAMMPS template Wflow"):
     """
     Returns workflow where the input file parameters are set from the give json(or plain text)
     template file.
@@ -56,6 +63,8 @@ def get_wf_from_input_template(input_template_file, user_settings, lammps_data=N
         is_forcefield (bool): whether the data file has forcefield and topology info in it.
             This is required only if lammps_data is a path to the data file instead of a data object.
         lammps_cmd (string): lammps command to run (skip the input file).
+        log_filename (str)
+        dump_filename (str)
         db_file (string): path to the db file.
         name (str): workflow name
 
@@ -70,4 +79,5 @@ def get_wf_from_input_template(input_template_file, user_settings, lammps_data=N
                                                 is_forcefield=is_forcefield)
 
     return get_wf(wf_name, lammps_input_set, input_filename=input_filename,
-                  data_filename=data_filename, lammps_cmd=lammps_cmd, db_file=db_file)
+                  data_filename=data_filename, lammps_cmd=lammps_cmd, db_file=db_file,
+                  log_filename=log_filename, dump_filename=dump_filename)

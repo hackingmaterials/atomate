@@ -43,8 +43,9 @@ class TestLammpsWorkflows(AtomateTest):
         wf = get_wf_from_input_template(self.input_file_template, self.user_settings,
                                         lammps_data=self.data_file, is_forcefield=True,
                                         input_filename=self.input_filename,
-                                        data_filename="lammps.data", db_file=self.db_file,
-                                        name="peo_test")
+                                        data_filename="lammps.peo.data", db_file=self.db_file,
+                                        log_filename="peo.log", dump_filename="peo.dump",
+                                        name="peo_wflow_test")
 
         if not LAMMPS_CMD:
             wf = use_fake_lammps(wf, self.reference_files_path)
@@ -63,8 +64,8 @@ class TestLammpsWorkflows(AtomateTest):
             path = d["dir_name"].split(":")[-1]
             self.assertTrue(filecmp.cmp(os.path.join(path, "peo.in"),
                                         "{}/peo.in".format(self.reference_files_path)))
-            self.assertTrue(filecmp.cmp(os.path.join(path, "lammps.log"),
-                                        "{}/lammps.log".format(self.reference_files_path)))
+            self.assertTrue(filecmp.cmp(os.path.join(path, "peo.log"),
+                                        "{}/peo.log".format(self.reference_files_path)))
             self.assertTrue(filecmp.cmp(os.path.join(path, "peo.dump"),
                                         "{}/peo.dump".format(self.reference_files_path)))
             self.assertTrue(filecmp.cmp(os.path.join(path, "peo.dcd"),
