@@ -67,7 +67,7 @@ class RunLammpsDirect(FiretaskBase):
     def run_task(self, fw_spec):
         lammps_cmd = self["lammps_cmd"]
         input_filename = self["input_filename"]
-        lmps_runner = LammpsRunner(input_filename,lammps_cmd)
+        lmps_runner = LammpsRunner(input_filename, lammps_cmd)
         stdout, stderr = lmps_runner.run()
         logger.info("LAMMPS finished running: {} \n {}".format(stdout, stderr))
 

@@ -70,17 +70,16 @@ class LammpsDrone(AbstractDrone):
         data_file = os.path.join(path, data_filename) if data_filename else None
         log_file = os.path.join(path, log_filename)
 
-        # input
-        if data_filename:
-            lmps_input = LammpsInputSet.from_file("lammps", input_file, {}, data_file, data_filename,
-                                                  is_forcefield=is_forcefield)
-        else:
-            lmps_input = LammpsInput.from_file(input_filename, {})
+        # input set
+        lmps_input = LammpsInputSet.from_file("lammps", input_file, {}, data_file, data_filename,
+                                              is_forcefield=is_forcefield)
 
         # output
-        if dump_file and data_filename:
-            lmps_output = LammpsRun(data_filename, dump_file, log_file=log_filename,
+        # log file + dump file
+        if dump_file and data_file:
+            lmps_output = LammpsRun(data_file, dump_file, log_file=log_filename,
                                     is_forcefield=is_forcefield)
+        # just log file
         else:
             lmps_output = LammpsLog(log_file=log_file)
 
