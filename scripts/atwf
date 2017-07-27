@@ -118,7 +118,7 @@ def submit_test_suite(args):
     d = yaml.load(default_yaml)
     wfs = [get_wf_from_spec_dict(s, d) for s in structs]
     # Add preset workflows
-    for name, wf_func in core.__dict__.iteritems():
+    for name, wf_func in core.__dict__.items():
         if callable(wf_func) and name[:2]=="wf":
             if name in custom_compounds:
                 wfs.append(wf_func(custom_compounds[name]))
