@@ -27,7 +27,8 @@ class LammpsFW(Firework):
             lammps_input_set (DictLammpsInput): lammps input set
             input_filename (str): input file name
             data_filename (str): data file name
-            lammps_cmd (str): command to run lammps.
+            lammps_cmd (str): command to run lammps (skip the input file).
+                e.g. 'mpirun -n 8 lmp_mpi'
             db_file (str): path to file specifying db credentials to place output parsing.
             parents ([Fireworks)]: parents of this particular Firework.
             name (str): descriptive name for lammps simulation
@@ -38,9 +39,10 @@ class LammpsFW(Firework):
             WriteLammpsFromIOSet(lammps_input_set=lammps_input_set, input_filename=input_filename,
                                  data_filename=data_filename),
 
-            RunLammpsDirect(lammps_cmd=lammps_cmd),
+            RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename),
 
-            LammpsToDB(db_file=db_file, additional_fields={"task_label": name})
+            LammpsToDB(input_filename=input_filename, db_file=db_file,
+                       additional_fields={"task_label": name})
         ]
 
         super(LammpsFW, self).__init__(t, parents=parents, name=name, **kwargs)

@@ -42,6 +42,8 @@ class LammpsToDB(FiretaskBase):
             Supports env_chk. Default: write data to JSON file.
     """
 
+    required_params = ["input_filename"]
+
     optional_params = ["calc_dir", "calc_loc", "db_file", "fw_spec_field",
                        "input_filename", "data_filename", "log_filename", "dump_filename",
                        "diffusion_params"]
@@ -61,11 +63,10 @@ class LammpsToDB(FiretaskBase):
         drone = LammpsDrone(additional_fields=self.get("additional_fields"),
                             diffusion_params=self.get("diffusion_params", None))
 
-        task_doc = drone.assimilate(calc_dir,
-                                    input_filename=self.get("input_filename", "lammps.in"),
-                                    data_filename=self.get("data_filename", None),
-                                    is_forcefield=self.get("is_forcefield", True),
+        task_doc = drone.assimilate(calc_dir, input_filename=self["input_filename"],
                                     log_filename=self.get("log_filename", "lammps.log"),
+                                    is_forcefield=self.get("is_forcefield", False),
+                                    data_filename=self.get("data_filename", None),
                                     dump_file=self.get("dump_filename", None))
 
         # Check for additional keys to set based on the fw_spec

@@ -8,6 +8,7 @@ import filecmp
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
+from atomate.lammps.firetasks.run_calc import RunLammpsFake
 from atomate.lammps.workflows.core import get_wf_from_input_template
 from atomate.utils.testing import AtomateTest
 
@@ -18,6 +19,14 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "common", "test_files")
 
 LAMMPS_CMD = None  # "mpirun -n 4 lmp_mpi"
+
+
+def use_fake_lammps(original_wf, ref_dir):
+    for idx_fw, fw in enumerate(original_wf.fws):
+        for idx_t, t in enumerate(fw.tasks):
+            if "RunLammps" in str(t):
+                original_wf.fws[idx_fw].tasks[idx_t] = RunLammpsFake(ref_dir=ref_dir)
+    return original_wf
 
 
 class TestLammpsWorkflows(AtomateTest):
@@ -38,22 +47,22 @@ class TestLammpsWorkflows(AtomateTest):
 
     def test_lammps_wflow(self):
 
-        if not LAMMPS_CMD:
-            # fake run just copy files from reference path
-            lammps_cmd = "cp {}/* .".format(self.reference_files_path)
-        else:
-            lammps_cmd = "{} -in {}".format(LAMMPS_CMD, self.input_filename)
-
-        wf = get_wf_from_input_template(self.input_file_template, self.data_file,
+        wf = get_wf_from_input_template(self.input_file_template, self.user_settings,
+                                        lammps_data=self.data_file, is_forcefield=True,
                                         input_filename=self.input_filename,
-                                        data_filename="lammps.data", lammps_cmd=lammps_cmd,
-                                        user_lammps_settings=self.user_settings,
-                                        is_forcefield=True, db_file=self.db_file, name="peo_test")
+                                        data_filename="lammps.data", db_file=self.db_file,
+                                        name="peo_test")
+
+        if not LAMMPS_CMD:
+            wf = use_fake_lammps(wf, self.reference_files_path)
 
         self.lp.add_wf(wf)
+
         # run
         rapidfire(self.lp, fworker=FWorker(env={"db_file": self.db_file}))
+
         d = self.get_task_collection().find_one()
+
         self._check_run(d)
 
     def _check_run(self, d):

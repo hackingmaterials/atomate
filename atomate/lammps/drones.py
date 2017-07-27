@@ -49,17 +49,18 @@ class LammpsDrone(AbstractDrone):
         self.runs = []
         self.diffusion_params = diffusion_params
 
-    def assimilate(self, path, input_filename="lammps.in", data_filename=None,
-                   is_forcefield=True, log_filename="lammps.log", dump_file=None):
+    def assimilate(self, path, input_filename, log_filename="lammps.log",  is_forcefield=False,
+                   data_filename=None, dump_file=None):
         """
         Parses lammps input, data and log files and insert the result into the db.
 
         Args:
-            path:
-            input_filename:
-            data_filename:
-            is_forcefield:
-            log_filename:
+            path (str): path to the run folder
+            input_filename (str): just the name of the input file
+            log_filename (str): lammps log file name
+            is_forcefield (bool): whether or not ot parse forcefield info
+            data_filename (str): name of the data file
+            dump_file (str): dump file name
 
         Returns:
             dict
@@ -96,6 +97,7 @@ class LammpsDrone(AbstractDrone):
 
         Args:
             d (dict)
+            lmps_output (LammpsRun)
         """
         if self.diffusion_params and isinstance(lmps_output, LammpsRun):
             d["analysis"] = {}
@@ -106,9 +108,15 @@ class LammpsDrone(AbstractDrone):
 
     def generate_doc(self, dir_name, lmps_input, lmps_output):
         """
-        Adapted from matgendb.creator.generate_doc
-        """
 
+        Args:
+            dir_name:
+            lmps_input (LammpsInput/LammpsInputSet):
+            lmps_output (LammpsRun/LammpsLog):
+
+        Returns:
+            dict
+        """
         try:
             fullpath = os.path.abspath(dir_name)
             if self.use_full_uri:
@@ -122,7 +130,7 @@ class LammpsDrone(AbstractDrone):
             d["output"] = lmps_output.as_dict()
             return d
 
-        except Exception:
+        except:
             import traceback
             logger.error(traceback.format_exc())
             logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())

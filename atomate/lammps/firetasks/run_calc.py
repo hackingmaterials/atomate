@@ -6,10 +6,13 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 This module defines firetasks for running lammps
 """
 
-import subprocess
+import os
+import shutil
 
-from pymatgen.io.lammps.utils import PackmolRunner
+from pymatgen.io.lammps.utils import PackmolRunner, LammpsRunner
+
 from fireworks import explicit_serialize, FiretaskBase
+
 from atomate.utils.utils import get_logger
 
 __author__ = 'Kiran Mathew'
@@ -56,13 +59,34 @@ class RunLammpsDirect(FiretaskBase):
     Run LAMMPS directly (no custodian).
 
     Required params:
-        lammsps_cmd (str): full command string
+        lammsps_cmd (str): lammps command to run sans the input file name
     """
 
-    required_params = ["lammps_cmd"]
+    required_params = ["lammps_cmd", "input_filename"]
 
     def run_task(self, fw_spec):
         lammps_cmd = self["lammps_cmd"]
-        logger.info("Running LAMMPS using exe: {}".format(lammps_cmd))
-        return_code = subprocess.call(lammps_cmd, shell=True)
-        logger.info("LAMMPS finished running with returncode: {}".format(return_code))
+        input_filename = self["input_filename"]
+        lmps_runner = LammpsRunner(input_filename,lammps_cmd)
+        stdout, stderr = lmps_runner.run()
+        logger.info("LAMMPS finished running: {} \n {}".format(stdout, stderr))
+
+
+@explicit_serialize
+class RunLammpsFake(FiretaskBase):
+    """
+    Run LAMMPS directly (no custodian).
+
+    Required params:
+        lammsps_cmd (str): lammps command to run sans the input file name
+    """
+
+    required_params = ["ref_dir"]
+
+    def run_task(self, fw_spec):
+        output_dir = os.path.abspath(self["ref_dir"])
+        for file_name in os.listdir(output_dir):
+            full_file_name = os.path.join(output_dir, file_name)
+            if os.path.isfile(full_file_name):
+                shutil.copy(full_file_name, os.getcwd())
+        logger.info("ran fake LAMMPS")
