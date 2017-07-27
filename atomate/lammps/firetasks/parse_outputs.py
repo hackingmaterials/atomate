@@ -42,12 +42,12 @@ class LammpsToDB(FiretaskBase):
             Supports env_chk. Default: write data to JSON file.
     """
 
-    required_params = ["lammps_input"]
-    optional_params = ["calc_dir", "calc_loc", "diffusion_params", "db_file",
+    optional_params = ["calc_dir", "calc_loc", "db_file", "fw_spec_field",
                        "input_filename", "data_filename", "log_filename", "dump_filename",
-                       "fw_spec_field"]
+                       "diffusion_params"]
 
     def run_task(self, fw_spec):
+
         # get the directory that contains the LAMMPS dir to parse
         calc_dir = os.getcwd()
         if "calc_dir" in self:
@@ -65,7 +65,7 @@ class LammpsToDB(FiretaskBase):
                                     input_filename=self.get("input_filename", "lammps.in"),
                                     data_filename=self.get("data_filename", None),
                                     is_forcefield=self.get("is_forcefield", True),
-                                    log_filename=self.get("log_filename","lammps.log"),
+                                    log_filename=self.get("log_filename", "lammps.log"),
                                     dump_file=self.get("dump_filename", None))
 
         # Check for additional keys to set based on the fw_spec

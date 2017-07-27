@@ -66,7 +66,7 @@ class LammpsDrone(AbstractDrone):
         """
 
         input_file = os.path.join(path, input_filename)
-        data_file = os.path.join(path, data_filename)
+        data_file = os.path.join(path, data_filename) if data_filename else None
         log_file = os.path.join(path, log_filename)
 
         # input
