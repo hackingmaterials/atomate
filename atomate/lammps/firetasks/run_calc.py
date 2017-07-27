@@ -75,10 +75,10 @@ class RunLammpsDirect(FiretaskBase):
 @explicit_serialize
 class RunLammpsFake(FiretaskBase):
     """
-    Run LAMMPS directly (no custodian).
+    Pretend run i.e just copy files from existing run dir.
 
     Required params:
-        lammsps_cmd (str): lammps command to run sans the input file name
+        ref_dir (str): path to the reference dir
     """
 
     required_params = ["ref_dir"]
