@@ -9,11 +9,10 @@ Defines fireworks to be incorporated into workflows.
 from fireworks import Firework
 
 from atomate.lammps.firetasks.run_calc import RunLammpsDirect, RunPackmol
-from atomate.common.firetasks.parse_outputs import ToDbTask
+from atomate.lammps.firetasks.parse_outputs import LammpsToDB
 from atomate.lammps.firetasks.write_inputs import WriteLammpsFromIOSet
-from atomate.lammps.drones import LammpsDrone
 
-__author__ = "Brandon Wood"
+__author__ = "Brandon Wood, Kiran Mathew"
 __email__ = "b.wood@berkeley.edu"
 
 
@@ -41,8 +40,7 @@ class LammpsFW(Firework):
 
             RunLammpsDirect(lammps_cmd=lammps_cmd),
 
-            ToDbTask(drone=LammpsDrone(), mmdb="atomate.lammps.database.LammpsCalcDb",
-                     db_file=db_file, additional_fields={"task_label": name})
+            LammpsToDB(db_file=db_file, additional_fields={"task_label": name})
         ]
 
         super(LammpsFW, self).__init__(t, parents=parents, name=name, **kwargs)

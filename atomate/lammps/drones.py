@@ -32,7 +32,7 @@ class LammpsDrone(AbstractDrone):
     __version__ = 0.1
 
     schema = {
-        "root": {"schema", "dir_name", "input", "output", "last_updated", "state"}
+        "root": {"schema", "dir_name", "input", "output", "last_updated", "state", "completed_at"}
     }
 
     def __init__(self, additional_fields=None, use_full_uri=True, diffusion_params=None):
@@ -115,6 +115,7 @@ class LammpsDrone(AbstractDrone):
                 fullpath = get_uri(dir_name)
             d = {k: v for k, v in self.additional_fields.items()}
             d["schema"] = {"code": "atomate", "version": LammpsDrone.__version__}
+            d["completed_at"] = str(datetime.fromtimestamp(os.path.getmtime(lmps_output.log_file)))
             d["dir_name"] = fullpath
             d["last_updated"] = datetime.today()
             d["input"] = lmps_input.as_dict()
