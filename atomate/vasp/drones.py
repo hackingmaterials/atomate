@@ -427,8 +427,8 @@ class VaspDrone(AbstractDrone):
             d["tags"] = new_tags
 
         # Calculates done using custodian generate a *.orig file for the inputs
-        # This is usefull to know how the calculation originally started
-        # if such files are foudn they are inserted into orig_inputs
+        # This is useful to know how the calculation originally started
+        # if such files are found they are inserted into orig_inputs
         filenames = glob.glob(os.path.join(fullpath, "*.orig*"))
 
         if len(filenames) >= 1:
