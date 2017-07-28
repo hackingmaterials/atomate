@@ -29,7 +29,6 @@ jobs:
             ls
             echo "PATH=$PATH"
             nosetests --config=nose.cfg --cover-html --cover-html-dir=coverage_reports
-            coveralls
       - store_artifacts:
           path: coverage_reports/
           destination: tr1
@@ -63,7 +62,7 @@ jobs:
             python setup.py develop
             ls
             echo "PATH=$PATH"
-            nosetests
+            nosetests --config=nose.cfg
 
 workflows:
   version: 2
