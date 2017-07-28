@@ -39,7 +39,7 @@ class TestLammpsDrone(AtomateTest):
         # no dump file ==> output is just the log file
         lmps_output = LammpsLog(self.log_file)
         self.assertDictEqual(doc["input"], lmps_input_set.as_dict())
-        self.assertDictEqual(doc["output"], lmps_output.as_dict())
+        self.assertDictEqual(doc["output"]["log"], lmps_output.as_dict())
 
         enthalpy = [1906.1958, 1220.2265, 596.51973, 465.01619, 148.91822, 26.160144,
                     319.27146, 141.35729, 299.04503, 271.19625, 145.4361]

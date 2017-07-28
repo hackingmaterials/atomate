@@ -122,7 +122,10 @@ class LammpsDrone(AbstractDrone):
             d["dir_name"] = fullpath
             d["last_updated"] = datetime.today()
             d["input"] = lmps_input.as_dict()
-            d["output"] = lmps_output.as_dict()
+            if isinstance(lmps_output, LammpsLog):
+                d["output"] = {"log": lmps_output.as_dict()}
+            else:
+                d["output"] = lmps_output.as_dict()
             return d
 
         except:
