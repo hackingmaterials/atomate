@@ -24,6 +24,7 @@ from pymatgen.core.composition import Composition
 from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp import Vasprun, Outcar
+from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
 from pymatgen.apps.borg.hive import AbstractDrone
 
 from matgendb.creator import get_uri
@@ -78,7 +79,7 @@ class VaspDrone(AbstractDrone):
         self.compress_dos = compress_dos
         self.additional_fields = additional_fields or {}
         self.use_full_uri = use_full_uri
-        self.runs = runs or ["relax" + str(i+1) for i in range(9)]  # can't auto-detect: path unknown
+        self.runs = runs or ["relax" + str(i + 1) for i in range(9)]  # can't auto-detect: path unknown
         self.bandstructure_mode = bandstructure_mode
         self.compress_bs = compress_bs
 
@@ -215,7 +216,7 @@ class VaspDrone(AbstractDrone):
                 "density": d_calc_final.pop("density"),
                 "energy": d_calc_final["output"]["energy"],
                 "energy_per_atom": d_calc_final["output"]["energy_per_atom"]}
-            
+
             # patch calculated magnetic moments into final structure
             if len(d_calc_final["output"]["outcar"]["magnetization"]) != 0:
                 magmoms = [m["tot"] for m in d_calc_final["output"]["outcar"]["magnetization"]]
@@ -424,6 +425,24 @@ class VaspDrone(AbstractDrone):
             d["dir_name"] = get_uri(dir_name)
         if new_tags:
             d["tags"] = new_tags
+
+        # Calculates done using custodian generate a *.orig file for the inputs
+        # This is useful to know how the calculation originally started
+        # if such files are found they are inserted into orig_inputs
+        filenames = glob.glob(os.path.join(fullpath, "*.orig*"))
+
+        if len(filenames) >= 1:
+            d["orig_inputs"] = {}
+            for f in filenames:
+                if "INCAR.orig" in f:
+                    d["orig_inputs"]["incar"] = Incar.from_file(f).as_dict()
+                if "POTCAR.orig" in f:
+                    d["orig_inputs"]["potcar"] = Potcar.from_file(f).as_dict()
+                if "KPOINTS.orig" in f:
+                    d["orig_inputs"]["kpoints"] = Kpoints.from_file(f).as_dict()
+                if "POSCAR.orig" in f:
+                    d["orig_inputs"]["poscar"] = Poscar.from_file(f).as_dict()
+
         logger.info("Post-processed " + fullpath)
 
     def validate_doc(self, d):
@@ -457,7 +476,7 @@ class VaspDrone(AbstractDrone):
         if set(self.runs).intersection(subdirs):
             return [parent]
         if not any([parent.endswith(os.sep + r) for r in self.runs]) and \
-                len(glob.glob(os.path.join(parent, "vasprun.xml*"))) > 0:
+                        len(glob.glob(os.path.join(parent, "vasprun.xml*"))) > 0:
             return [parent]
         return []
 
