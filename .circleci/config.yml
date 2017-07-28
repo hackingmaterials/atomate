@@ -63,7 +63,7 @@ jobs:
             python setup.py develop
             ls
             echo "PATH=$PATH"
-            nosetests --config=nose.cfg
+            nosetests
 
 workflows:
   version: 2
