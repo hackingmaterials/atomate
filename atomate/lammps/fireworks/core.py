@@ -36,7 +36,7 @@ class LammpsFW(Firework):
             \*\*kwargs: other kwargs that are passed to Firework.__init__.
         """
 
-        t = [
+        tasks = [
             WriteLammpsFromIOSet(lammps_input_set=lammps_input_set, input_filename=input_filename,
                                  data_filename=data_filename),
 
@@ -47,16 +47,31 @@ class LammpsFW(Firework):
                        db_file=db_file, additional_fields={"task_label": name})
         ]
 
-        super(LammpsFW, self).__init__(t, parents=parents, name=name, **kwargs)
+        super(LammpsFW, self).__init__(tasks, parents=parents, name=name, **kwargs)
 
 
 class PackmolFW(Firework):
 
     def __init__(self, molecules, packing_config, tolerance=2.0, filetype="xyz", control_params=None,
                  output_file="packed.xyz", parents=None, name="PackmolFW", **kwargs):
+        """
+
+        Args:
+            molecules:
+            packing_config:
+            tolerance:
+            filetype:
+            control_params:
+            output_file:
+            parents:
+            name:
+            **kwargs:
+        """
         control_params = control_params or {'maxit': 20, 'nloop': 600}
-        t = [
+
+        tasks = [
             RunPackmol(molecules=molecules, packing_config=packing_config, tolerance=tolerance,
                        filetype=filetype, control_params=control_params,  output_file=output_file)
              ]
-        super(PackmolFW, self).__init__(t, parents=parents, name=name, **kwargs)
+
+        super(PackmolFW, self).__init__(tasks, parents=parents, name=name, **kwargs)

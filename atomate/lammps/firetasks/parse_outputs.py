@@ -7,8 +7,8 @@ This module defines firetasks for parsing and processing the LAMMPS outputfiles 
 information such as the summary of transport properties and insert them into the database.
 """
 
-import json
 import os
+import json
 
 from fireworks import FiretaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
@@ -29,7 +29,7 @@ logger = get_logger(__name__)
 @explicit_serialize
 class LammpsToDB(FiretaskBase):
     """
-    Enter a LAMMPS run into the database.
+    Enter a LAMMPS calculation into the database.
 
     Optional params:
         calc_dir (str): path to dir (on current filesystem) that contains LAMMPS
@@ -49,7 +49,7 @@ class LammpsToDB(FiretaskBase):
 
     def run_task(self, fw_spec):
 
-        # get the directory that contains the LAMMPS dir to parse
+        # get the directory that contains the LAMMPS run parse.
         calc_dir = os.getcwd()
         if "calc_dir" in self:
             calc_dir = self["calc_dir"]

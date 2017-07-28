@@ -5,6 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 """
 This module defines the database classes.
 """
+
 import pymongo
 
 from atomate.utils.database import CalcDb

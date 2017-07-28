@@ -10,7 +10,6 @@ import os
 from datetime import datetime
 
 from pymatgen.apps.borg.hive import AbstractDrone
-from pymatgen.io.lammps.input import LammpsInput
 from pymatgen.io.lammps.output import LammpsLog, LammpsRun
 from pymatgen.io.lammps.sets import LammpsInputSet
 
@@ -25,9 +24,6 @@ logger = get_logger(__name__)
 
 
 class LammpsDrone(AbstractDrone):
-    """
-    Lammps force field drone
-    """
 
     __version__ = 0.1
 
@@ -39,8 +35,8 @@ class LammpsDrone(AbstractDrone):
         """
 
         Args:
-            additional_fields:
-            use_full_uri:
+            additional_fields (dict):
+            use_full_uri (bool):
             diffusion_params (dict): parameters to the diffusion_analyzer. If specified a summary
                 of diffusion statistics will be added.
         """
@@ -109,7 +105,7 @@ class LammpsDrone(AbstractDrone):
         """
 
         Args:
-            dir_name:
+            dir_name (str): path to the run dir.
             lmps_input (LammpsInput/LammpsInputSet):
             lmps_output (LammpsRun/LammpsLog):
 
@@ -139,15 +135,14 @@ class LammpsDrone(AbstractDrone):
         return [path]
 
     def as_dict(self):
-        init_args = {
-            "additional_fields": self.additional_fields,
-            "use_full_uri": self.use_full_uri}
+        init_args = {"additional_fields": self.additional_fields,
+                     "use_full_uri": self.use_full_uri,
+                     "diffusion_params": self.diffusion_params}
 
         return {"@module": self.__class__.__module__,
                 "@class": self.__class__.__name__,
                 "version": self.__class__.__version__,
-                "init_args": init_args
-                }
+                "init_args": init_args}
 
     @classmethod
     def from_dict(cls, d):
