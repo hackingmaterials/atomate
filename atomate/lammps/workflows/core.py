@@ -17,8 +17,7 @@ __email__ = "kmathew@lbl.gov"
 
 
 def get_wf_from_input_template(input_template_file, user_settings, lammps_data=None,
-                               input_filename="lammps.in", data_filename="lammps.data",
-                               is_forcefield=False, lammps_cmd="lammps", log_filename="log.lammps",
+                               input_filename="lammps.in", is_forcefield=False, lammps_cmd="lammps",
                                dump_filenames=None, db_file=None, name="LAMMPS template Wflow"):
     """
     Returns workflow where the input file parameters are set from the given template file.
@@ -30,11 +29,9 @@ def get_wf_from_input_template(input_template_file, user_settings, lammps_data=N
             an appropriate object.
         input_filename (string): input file name. This is the name of the input file passed to the
             lammps binary.
-        data_filename (string): name of the the lammps data file.
         is_forcefield (bool): whether the data file has forcefield and topology info in it.
             This is required only if lammps_data is a path to the data file instead of a data object.
         lammps_cmd (string): lammps command to run (skip the input file).
-        log_filename (str)
         dump_filenames ([str]): list of dump file names
         db_file (string): path to the db file.
         name (str): workflow name
@@ -47,6 +44,8 @@ def get_wf_from_input_template(input_template_file, user_settings, lammps_data=N
 
     fws = []
     for settings in user_settings:
+        data_filename = settings.get("data_file", "lammps.data")
+        log_filename = settings.get("log_file", "log.lammps")
         lammps_input_set = LammpsInputSet.from_file(wf_name, input_template_file,
                                                     user_settings=settings, lammps_data=lammps_data,
                                                     data_filename=data_filename,

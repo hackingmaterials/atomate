@@ -33,19 +33,21 @@ class TestLammpsWorkflows(AtomateTest):
             "thermo_style_1": "custom step temp press vol density pe ke etotal enthalpy fmax fnorm",
             "thermo_style_2": "100",
             "fix_1": "CHbonds CH shake 0.0001 20 0 b 2",
-            "fix_2": "NPT all npt temp 350 350 100.0 iso 1.0 1.0 1500.0"}
+            "fix_2": "NPT all npt temp 350 350 100.0 iso 1.0 1.0 1500.0",
+            "data_file": "lammps.peo.data",
+            "log_file": "peo.log"
+        }
         self.input_filename = "lammps.in"
         self.db_file = os.path.join(db_dir, "db.json")
+        self.dump_filenames = ["peo.dump"]
         self.reference_files_path = os.path.abspath(os.path.join(module_dir, "test_files"))
 
     def test_lammps_wflow(self):
 
         wf = get_wf_from_input_template(self.input_file_template, self.user_settings,
                                         lammps_data=self.data_file, is_forcefield=True,
-                                        input_filename=self.input_filename,
-                                        data_filename="lammps.peo.data", db_file=self.db_file,
-                                        log_filename="peo.log", dump_filenames=["peo.dump"],
-                                        name="peo_wflow_test")
+                                        input_filename=self.input_filename, db_file=self.db_file,
+                                        dump_filenames=self.dump_filenames, name="peo_wflow_test")
 
         if not LAMMPS_CMD:
             wf = use_fake_lammps(wf, self.reference_files_path)
