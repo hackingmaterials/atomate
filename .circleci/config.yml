@@ -3,7 +3,7 @@ jobs:
   py3test:
     working_directory: ~/atomate
     docker:
-      - image: python:3.6.1
+      - image: materialsvirtuallab/circle-ci-pmg-py3:0.0.1
     steps:
       - checkout
       - restore_cache:
@@ -37,7 +37,7 @@ jobs:
   py2test:
     working_directory: ~/atomate
     docker:
-      - image: python:2.7.12
+      - image: materialsvirtuallab/circle-ci-pmg-py2:0.0.2
     steps:
       - checkout
       - restore_cache:
