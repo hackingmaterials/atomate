@@ -45,7 +45,7 @@ class LammpsToDB(FiretaskBase):
     required_params = ["input_filename"]
 
     optional_params = ["calc_dir", "calc_loc", "db_file", "fw_spec_field",
-                       "data_filename", "log_filename", "dump_filename", "diffusion_params"]
+                       "data_filename", "log_filename", "dump_filenames", "diffusion_params"]
 
     def run_task(self, fw_spec):
 
@@ -63,10 +63,10 @@ class LammpsToDB(FiretaskBase):
                             diffusion_params=self.get("diffusion_params", None))
 
         task_doc = drone.assimilate(calc_dir, input_filename=self["input_filename"],
-                                    log_filename=self.get("log_filename", "lammps.log"),
+                                    log_filename=self.get("log_filename", "log.lammps"),
                                     is_forcefield=self.get("is_forcefield", False),
                                     data_filename=self.get("data_filename", None),
-                                    dump_file=self.get("dump_filename", None))
+                                    dump_files=self.get("dump_filenames", None))
 
         # Check for additional keys to set based on the fw_spec
         if self.get("fw_spec_field"):

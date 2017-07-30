@@ -44,7 +44,7 @@ class TestLammpsWorkflows(AtomateTest):
                                         lammps_data=self.data_file, is_forcefield=True,
                                         input_filename=self.input_filename,
                                         data_filename="lammps.peo.data", db_file=self.db_file,
-                                        log_filename="peo.log", dump_filename="peo.dump",
+                                        log_filename="peo.log", dump_filenames=["peo.dump"],
                                         name="peo_wflow_test")
 
         if not LAMMPS_CMD:

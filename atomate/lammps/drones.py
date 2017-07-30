@@ -8,9 +8,10 @@ Lammps Drones.
 
 import os
 from datetime import datetime
+import six
 
 from pymatgen.apps.borg.hive import AbstractDrone
-from pymatgen.io.lammps.output import LammpsLog, LammpsRun
+from pymatgen.io.lammps.output import LammpsLog, LammpsDump, LammpsRun
 from pymatgen.io.lammps.sets import LammpsInputSet
 
 from matgendb.creator import get_uri
@@ -45,8 +46,8 @@ class LammpsDrone(AbstractDrone):
         self.runs = []
         self.diffusion_params = diffusion_params
 
-    def assimilate(self, path, input_filename, log_filename="lammps.log",  is_forcefield=False,
-                   data_filename=None, dump_file=None):
+    def assimilate(self, path, input_filename, log_filename="log.lammps",  is_forcefield=False,
+                   data_filename=None, dump_files=None):
         """
         Parses lammps input, data and log files and insert the result into the db.
 
@@ -56,7 +57,7 @@ class LammpsDrone(AbstractDrone):
             log_filename (str): lammps log file name
             is_forcefield (bool): whether or not ot parse forcefield info
             data_filename (str): name of the data file
-            dump_file (str): dump file name
+            dump_file ([str]): list of dump file names
 
         Returns:
             dict
@@ -65,49 +66,57 @@ class LammpsDrone(AbstractDrone):
         input_file = os.path.join(path, input_filename)
         data_file = os.path.join(path, data_filename) if data_filename else None
         log_file = os.path.join(path, log_filename)
+        dump_files = dump_files or []
+        dump_files = [dump_files] if isinstance(dump_files, six.string_types) else dump_files
 
         # input set
         lmps_input = LammpsInputSet.from_file("lammps", input_file, {}, data_file, data_filename,
                                               is_forcefield=is_forcefield)
 
-        # output
-        # log file + dump file
-        if dump_file and data_file:
-            lmps_output = LammpsRun(data_file, dump_file, log_file=log_filename,
-                                    is_forcefield=is_forcefield)
-        # just log file
-        else:
-            lmps_output = LammpsLog(log_file=log_file)
+        # dumps
+        dumps = []
+        if dump_files:
+            for df in dump_files:
+                dumps.append(LammpsDump.from_file(os.path.join(path, df)))
+
+        # log
+        log = LammpsLog(log_file=log_file)
 
         logger.info("Getting task doc for base dir :{}".format(path))
-        d = self.generate_doc(path, lmps_input, lmps_output)
+        d = self.generate_doc(path, lmps_input, log, dumps)
 
-        self.post_process(d, lmps_output)
+        lmps_run = None
+        if len(dump_files) == 1 and data_file:
+            lmps_run = LammpsRun(data_file, dump_files[0], log_file=log_filename,
+                                 is_forcefield = is_forcefield)
+
+        self.post_process(d, lmps_run)
 
         return d
 
-    def post_process(self, d, lmps_output):
+    def post_process(self, d, lmps_run):
         """
         Simple post processing.
 
         Args:
             d (dict)
-            lmps_output (LammpsRun)
+            lmps_run (LammpsRun)
         """
-        if self.diffusion_params and isinstance(lmps_output, LammpsRun):
+        if self.diffusion_params and isinstance(lmps_run, LammpsRun):
             d["analysis"] = {}
             d["analysis"]["diffusion_params"] = self.diffusion_params
-            diffusion_analyzer = lmps_output.get_diffusion_analyzer(**self.diffusion_params)
+            diffusion_analyzer = lmps_run.get_diffusion_analyzer(**self.diffusion_params)
             d["analysis"]["diffusion"] = diffusion_analyzer.get_summary_dict()
         d['state'] = 'successful'
 
-    def generate_doc(self, dir_name, lmps_input, lmps_output):
+    def generate_doc(self, dir_name, lmps_input, log, dumps):
         """
 
         Args:
             dir_name (str): path to the run dir.
             lmps_input (LammpsInput/LammpsInputSet):
-            lmps_output (LammpsRun/LammpsLog):
+            log (LammpsLog):
+            dumps ([LammpsDump]): list of dumps
 
         Returns:
             dict
@@ -118,14 +127,12 @@ class LammpsDrone(AbstractDrone):
                 fullpath = get_uri(dir_name)
             d = {k: v for k, v in self.additional_fields.items()}
             d["schema"] = {"code": "atomate", "version": LammpsDrone.__version__}
-            d["completed_at"] = str(datetime.fromtimestamp(os.path.getmtime(lmps_output.log_file)))
+            d["completed_at"] = str(datetime.fromtimestamp(os.path.getmtime(log.log_file)))
             d["dir_name"] = fullpath
             d["last_updated"] = datetime.today()
             d["input"] = lmps_input.as_dict()
-            if isinstance(lmps_output, LammpsLog):
-                d["output"] = {"log": lmps_output.as_dict()}
-            else:
-                d["output"] = lmps_output.as_dict()
+            d["output"] = {"log": log.as_dict()}
+            d["output"]["dumps"] = [dmp.as_dict() for dmp in dumps]
             return d
 
         except:
