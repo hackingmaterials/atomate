@@ -1,0 +1,278 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>atomate.vasp.workflows.tests package &#8212; atomate 0.5.6 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.5.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="atomate-vasp-workflows-tests-package">
+<h1>atomate.vasp.workflows.tests package<a class="headerlink" href="#atomate-vasp-workflows-tests-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-atomate.vasp.workflows.tests.test_adsorbate_workflow">
+<span id="atomate-vasp-workflows-tests-test-adsorbate-workflow-module"></span><h2>atomate.vasp.workflows.tests.test_adsorbate_workflow module<a class="headerlink" href="#module-atomate.vasp.workflows.tests.test_adsorbate_workflow" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.workflows.tests.test_adsorbate_workflow.TestAdsorptionWorkflow">
+<em class="property">class </em><code class="descclassname">atomate.vasp.workflows.tests.test_adsorbate_workflow.</code><code class="descname">TestAdsorptionWorkflow</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_adsorbate_workflow.TestAdsorptionWorkflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="atomate.utils.html#atomate.utils.testing.AtomateTest" title="atomate.utils.testing.AtomateTest"><code class="xref py py-class docutils literal"><span class="pre">atomate.utils.testing.AtomateTest</span></code></a></p>
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_adsorbate_workflow.TestAdsorptionWorkflow.setUp">
+<code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_adsorbate_workflow.TestAdsorptionWorkflow.setUp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_adsorbate_workflow.TestAdsorptionWorkflow.test_wf">
+<code class="descname">test_wf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_adsorbate_workflow.TestAdsorptionWorkflow.test_wf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.workflows.tests.test_bulk_modulus_workflow">
+<span id="atomate-vasp-workflows-tests-test-bulk-modulus-workflow-module"></span><h2>atomate.vasp.workflows.tests.test_bulk_modulus_workflow module<a class="headerlink" href="#module-atomate.vasp.workflows.tests.test_bulk_modulus_workflow" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.workflows.tests.test_bulk_modulus_workflow.TestBulkModulusWorkflow">
+<em class="property">class </em><code class="descclassname">atomate.vasp.workflows.tests.test_bulk_modulus_workflow.</code><code class="descname">TestBulkModulusWorkflow</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_bulk_modulus_workflow.TestBulkModulusWorkflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="atomate.utils.html#atomate.utils.testing.AtomateTest" title="atomate.utils.testing.AtomateTest"><code class="xref py py-class docutils literal"><span class="pre">atomate.utils.testing.AtomateTest</span></code></a></p>
+<p>This test will either actually run VASP (if VASP_CMD is set) or artificially pass on outputs
+(if not VASP_CMD) and test the whole bulk modulus workflow and its implementation and outputs
+for an example calculation for silicon.</p>
+<p>note for the developer of the test:
+This tests can be run in two modes if not VASP_CMD:
+1. first all inputs and outputs of all deformations are present in which case</p>
+<blockquote>
+<div>in each folder a trimmed version of task.json will be generated so that</div></blockquote>
+<ol class="arabic simple" start="2">
+<li><dl class="first docutils">
+<dt>once task.json is present, VaspRun can be skipped where task.json is</dt>
+<dd>available and their “inputs” and “outputs” folders can be removed</dd>
+</dl>
+</li>
+</ol>
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_bulk_modulus_workflow.TestBulkModulusWorkflow.setUp">
+<code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_bulk_modulus_workflow.TestBulkModulusWorkflow.setUp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_bulk_modulus_workflow.TestBulkModulusWorkflow.setup_task_docs">
+<code class="descname">setup_task_docs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_bulk_modulus_workflow.TestBulkModulusWorkflow.setup_task_docs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_bulk_modulus_workflow.TestBulkModulusWorkflow.test_wf">
+<code class="descname">test_wf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_bulk_modulus_workflow.TestBulkModulusWorkflow.test_wf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_bulk_modulus_workflow.TestBulkModulusWorkflow.write_task_docs">
+<code class="descname">write_task_docs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_bulk_modulus_workflow.TestBulkModulusWorkflow.write_task_docs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.workflows.tests.test_elastic_workflow">
+<span id="atomate-vasp-workflows-tests-test-elastic-workflow-module"></span><h2>atomate.vasp.workflows.tests.test_elastic_workflow module<a class="headerlink" href="#module-atomate.vasp.workflows.tests.test_elastic_workflow" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.workflows.tests.test_elastic_workflow.TestElasticWorkflow">
+<em class="property">class </em><code class="descclassname">atomate.vasp.workflows.tests.test_elastic_workflow.</code><code class="descname">TestElasticWorkflow</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_elastic_workflow.TestElasticWorkflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="atomate.utils.html#atomate.utils.testing.AtomateTest" title="atomate.utils.testing.AtomateTest"><code class="xref py py-class docutils literal"><span class="pre">atomate.utils.testing.AtomateTest</span></code></a></p>
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_elastic_workflow.TestElasticWorkflow.setUp">
+<code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_elastic_workflow.TestElasticWorkflow.setUp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_elastic_workflow.TestElasticWorkflow.test_wf">
+<code class="descname">test_wf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_elastic_workflow.TestElasticWorkflow.test_wf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.workflows.tests.test_neb_workflow">
+<span id="atomate-vasp-workflows-tests-test-neb-workflow-module"></span><h2>atomate.vasp.workflows.tests.test_neb_workflow module<a class="headerlink" href="#module-atomate.vasp.workflows.tests.test_neb_workflow" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.workflows.tests.test_neb_workflow.TestNudgedElasticBandWorkflow">
+<em class="property">class </em><code class="descclassname">atomate.vasp.workflows.tests.test_neb_workflow.</code><code class="descname">TestNudgedElasticBandWorkflow</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_neb_workflow.TestNudgedElasticBandWorkflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="atomate.utils.html#atomate.utils.testing.AtomateTest" title="atomate.utils.testing.AtomateTest"><code class="xref py py-class docutils literal"><span class="pre">atomate.utils.testing.AtomateTest</span></code></a></p>
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_neb_workflow.TestNudgedElasticBandWorkflow.setUp">
+<code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_neb_workflow.TestNudgedElasticBandWorkflow.setUp" title="Permalink to this definition">¶</a></dt>
+<dd><ol class="arabic simple">
+<li>Basic check for pymatgen configurations.</li>
+<li>Setup all test workflow.</li>
+</ol>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_neb_workflow.TestNudgedElasticBandWorkflow.test_wf">
+<code class="descname">test_wf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_neb_workflow.TestNudgedElasticBandWorkflow.test_wf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.workflows.tests.test_raman_workflow">
+<span id="atomate-vasp-workflows-tests-test-raman-workflow-module"></span><h2>atomate.vasp.workflows.tests.test_raman_workflow module<a class="headerlink" href="#module-atomate.vasp.workflows.tests.test_raman_workflow" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.workflows.tests.test_raman_workflow.TestRamanWorkflow">
+<em class="property">class </em><code class="descclassname">atomate.vasp.workflows.tests.test_raman_workflow.</code><code class="descname">TestRamanWorkflow</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_raman_workflow.TestRamanWorkflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="atomate.utils.html#atomate.utils.testing.AtomateTest" title="atomate.utils.testing.AtomateTest"><code class="xref py py-class docutils literal"><span class="pre">atomate.utils.testing.AtomateTest</span></code></a></p>
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_raman_workflow.TestRamanWorkflow.setUp">
+<code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_raman_workflow.TestRamanWorkflow.setUp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_raman_workflow.TestRamanWorkflow.test_wf">
+<code class="descname">test_wf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_raman_workflow.TestRamanWorkflow.test_wf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.workflows.tests.test_vasp_workflows">
+<span id="atomate-vasp-workflows-tests-test-vasp-workflows-module"></span><h2>atomate.vasp.workflows.tests.test_vasp_workflows module<a class="headerlink" href="#module-atomate.vasp.workflows.tests.test_vasp_workflows" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.workflows.tests.test_vasp_workflows.TestVaspWorkflows">
+<em class="property">class </em><code class="descclassname">atomate.vasp.workflows.tests.test_vasp_workflows.</code><code class="descname">TestVaspWorkflows</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_vasp_workflows.TestVaspWorkflows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="atomate.utils.html#atomate.utils.testing.AtomateTest" title="atomate.utils.testing.AtomateTest"><code class="xref py py-class docutils literal"><span class="pre">atomate.utils.testing.AtomateTest</span></code></a></p>
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_vasp_workflows.TestVaspWorkflows.setUp">
+<code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_vasp_workflows.TestVaspWorkflows.setUp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_vasp_workflows.TestVaspWorkflows.test_bandgap_check_Vasp">
+<code class="descname">test_bandgap_check_Vasp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_vasp_workflows.TestVaspWorkflows.test_bandgap_check_Vasp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_vasp_workflows.TestVaspWorkflows.test_bandstructure_Vasp">
+<code class="descname">test_bandstructure_Vasp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_vasp_workflows.TestVaspWorkflows.test_bandstructure_Vasp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_vasp_workflows.TestVaspWorkflows.test_single_Vasp">
+<code class="descname">test_single_Vasp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_vasp_workflows.TestVaspWorkflows.test_single_Vasp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_vasp_workflows.TestVaspWorkflows.test_single_Vasp_dbinsertion">
+<code class="descname">test_single_Vasp_dbinsertion</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_vasp_workflows.TestVaspWorkflows.test_single_Vasp_dbinsertion" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_vasp_workflows.TestVaspWorkflows.test_trackers">
+<code class="descname">test_trackers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_vasp_workflows.TestVaspWorkflows.test_trackers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.workflows.tests">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.vasp.workflows.tests" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">atomate.vasp.workflows.tests package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.workflows.tests.test_adsorbate_workflow">atomate.vasp.workflows.tests.test_adsorbate_workflow module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.workflows.tests.test_bulk_modulus_workflow">atomate.vasp.workflows.tests.test_bulk_modulus_workflow module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.workflows.tests.test_elastic_workflow">atomate.vasp.workflows.tests.test_elastic_workflow module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.workflows.tests.test_neb_workflow">atomate.vasp.workflows.tests.test_neb_workflow module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.workflows.tests.test_raman_workflow">atomate.vasp.workflows.tests.test_raman_workflow module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.workflows.tests.test_vasp_workflows">atomate.vasp.workflows.tests.test_vasp_workflows module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.workflows.tests">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/atomate.vasp.workflows.tests.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, Anubhav Jain.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

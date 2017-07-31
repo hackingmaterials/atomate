@@ -1,0 +1,248 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>atomate.lammps.firetasks package &#8212; atomate 0.5.6 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.5.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="atomate-lammps-firetasks-package">
+<h1>atomate.lammps.firetasks package<a class="headerlink" href="#atomate-lammps-firetasks-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-atomate.lammps.firetasks.parse_outputs">
+<span id="atomate-lammps-firetasks-parse-outputs-module"></span><h2>atomate.lammps.firetasks.parse_outputs module<a class="headerlink" href="#module-atomate.lammps.firetasks.parse_outputs" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.lammps.firetasks.parse_outputs.LammpsToDBTask">
+<em class="property">class </em><code class="descclassname">atomate.lammps.firetasks.parse_outputs.</code><code class="descname">LammpsToDBTask</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.parse_outputs.LammpsToDBTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Enter a LAMMPS run into the database.</p>
+<dl class="docutils">
+<dt>Require params:</dt>
+<dd>lammps_input (DictLammpsInput)</dd>
+<dt>Optional params:</dt>
+<dd><dl class="first last docutils">
+<dt>calc_dir (str): path to dir (on current filesystem) that contains LAMMPS</dt>
+<dd>output files. Default: use current working directory.</dd>
+<dt>calc_loc (str OR bool): if True will set most recent calc_loc. If str</dt>
+<dd>search for the most recent calc_loc with the matching name</dd>
+<dt>diffusion_params (dict): parameters to the diffusion_analyzer. If specified a summary</dt>
+<dd>of diffusion statistics will be added.</dd>
+<dt>db_file (str): path to file containing the database credentials.</dt>
+<dd>Supports env_chk. Default: write data to JSON file.</dd>
+</dl>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.lammps.firetasks.parse_outputs.LammpsToDBTask.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['calc_dir', 'calc_loc', 'diffusion_params', 'db_file']</em><a class="headerlink" href="#atomate.lammps.firetasks.parse_outputs.LammpsToDBTask.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.lammps.firetasks.parse_outputs.LammpsToDBTask.required_params">
+<code class="descname">required_params</code><em class="property"> = ['lammps_input']</em><a class="headerlink" href="#atomate.lammps.firetasks.parse_outputs.LammpsToDBTask.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.lammps.firetasks.parse_outputs.LammpsToDBTask.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.parse_outputs.LammpsToDBTask.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.lammps.firetasks.run_calc">
+<span id="atomate-lammps-firetasks-run-calc-module"></span><h2>atomate.lammps.firetasks.run_calc module<a class="headerlink" href="#module-atomate.lammps.firetasks.run_calc" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.lammps.firetasks.run_calc.RunLammpsDirect">
+<em class="property">class </em><code class="descclassname">atomate.lammps.firetasks.run_calc.</code><code class="descname">RunLammpsDirect</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.run_calc.RunLammpsDirect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Run LAMMPS directly (no custodian).</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd>lammsps_cmd (str): full command string</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.lammps.firetasks.run_calc.RunLammpsDirect.required_params">
+<code class="descname">required_params</code><em class="property"> = ['lammps_cmd']</em><a class="headerlink" href="#atomate.lammps.firetasks.run_calc.RunLammpsDirect.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.lammps.firetasks.run_calc.RunLammpsDirect.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.run_calc.RunLammpsDirect.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.lammps.firetasks.run_calc.RunPackmol">
+<em class="property">class </em><code class="descclassname">atomate.lammps.firetasks.run_calc.</code><code class="descname">RunPackmol</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.run_calc.RunPackmol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Run packmol.</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd><p class="first">molecules (list): list of constituent molecules(Molecule objects)
+packing_config (list): list of dict config settings for each molecule in the</p>
+<blockquote class="last">
+<div>molecules list. eg: config settings for a single moelcule
+[{“number”: 1, “inside box”:[0,0,0,100,100,100]}]</div></blockquote>
+</dd>
+<dt>Optional params:</dt>
+<dd><p class="first">tolerance (float): packmol tolerance
+filetype (string): input/output structure file type
+control_params: packmol control parameters dictionary. Basically all parameters other</p>
+<blockquote>
+<div>than structure/atoms</div></blockquote>
+<p class="last">output_file: output file name. The extension will be adjusted according to the filetype</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.lammps.firetasks.run_calc.RunPackmol.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['tolerance', 'filetype', 'control_params', 'output_file']</em><a class="headerlink" href="#atomate.lammps.firetasks.run_calc.RunPackmol.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.lammps.firetasks.run_calc.RunPackmol.required_params">
+<code class="descname">required_params</code><em class="property"> = ['molecules', 'packing_config']</em><a class="headerlink" href="#atomate.lammps.firetasks.run_calc.RunPackmol.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.lammps.firetasks.run_calc.RunPackmol.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.run_calc.RunPackmol.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.lammps.firetasks.write_inputs">
+<span id="atomate-lammps-firetasks-write-inputs-module"></span><h2>atomate.lammps.firetasks.write_inputs module<a class="headerlink" href="#module-atomate.lammps.firetasks.write_inputs" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.lammps.firetasks.write_inputs.WriteLammpsFromIOSet">
+<em class="property">class </em><code class="descclassname">atomate.lammps.firetasks.write_inputs.</code><code class="descname">WriteLammpsFromIOSet</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.write_inputs.WriteLammpsFromIOSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Writes LAMMPS Input files(data file and the control parameters file) from DictLammpsInput.</p>
+<dl class="docutils">
+<dt>required_params:</dt>
+<dd>lammps_input_set (DictLammpsInput)
+input_file (string): name of the file to which the input params will be written</dd>
+<dt>optional_params:</dt>
+<dd>data_file (string): if specified the data file will be renamed</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.lammps.firetasks.write_inputs.WriteLammpsFromIOSet.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['data_file']</em><a class="headerlink" href="#atomate.lammps.firetasks.write_inputs.WriteLammpsFromIOSet.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.lammps.firetasks.write_inputs.WriteLammpsFromIOSet.required_params">
+<code class="descname">required_params</code><em class="property"> = ['lammps_input_set', 'input_file']</em><a class="headerlink" href="#atomate.lammps.firetasks.write_inputs.WriteLammpsFromIOSet.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.lammps.firetasks.write_inputs.WriteLammpsFromIOSet.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.write_inputs.WriteLammpsFromIOSet.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.lammps.firetasks">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.lammps.firetasks" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">atomate.lammps.firetasks package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-atomate.lammps.firetasks.parse_outputs">atomate.lammps.firetasks.parse_outputs module</a></li>
+<li><a class="reference internal" href="#module-atomate.lammps.firetasks.run_calc">atomate.lammps.firetasks.run_calc module</a></li>
+<li><a class="reference internal" href="#module-atomate.lammps.firetasks.write_inputs">atomate.lammps.firetasks.write_inputs module</a></li>
+<li><a class="reference internal" href="#module-atomate.lammps.firetasks">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/atomate.lammps.firetasks.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, Anubhav Jain.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,167 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Atomate concepts &#8212; atomate 0.5.6 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.5.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Workflow YAML Reference" href="workflow_yaml_reference.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="workflow_yaml_reference.html" title="Workflow YAML Reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="atomate-concepts">
+<h1>Atomate concepts<a class="headerlink" href="#atomate-concepts" title="Permalink to this headline">¶</a></h1>
+<p>If you are familiar with (i) VASP, (ii) pymatgen, (iii) custodian, and (iv) FireWorks, then most of atomate such be fairly straightforward. For example, the FireTasks implemented in <code class="docutils literal"><span class="pre">atomate/vasp/firetasks</span></code> should look make at least <em>some</em> sense, and the Fireworks implemented in <code class="docutils literal"><span class="pre">atomate/vasp/fireworks</span></code> should also seem logical and mostly clear. Workflows are simply chains of Fireworks (technically, DAGs). Normally, they would be implemented in simple Python, i.e. see the FireWorks codebase about how to compose Workflows with Python, but it turns out they are simple enough that one can write them in a simple YAML text file instead of Python code. There is a custom YAML format that is described in the README for the <code class="docutils literal"><span class="pre">atomate/vasp/workflows/base/library</span></code> folder.</p>
+<p>In practice, getting prebuilt workflows is easier than this. For this, just look in <code class="docutils literal"><span class="pre">atomate/vasp/workflows/presets</span></code>. This folder contains functions where one can simply give a crystal structure and get back an appropriate workflow. Nothing to it!</p>
+<p>There are only a couple of new concepts in atomate that you might need to familiarize yourself with, and they are described below.</p>
+<div class="section" id="the-env-chk-e-g-db-file-syntax">
+<h2>The “env_chk”, e.g. &gt;&gt;db_file&lt;&lt; syntax<a class="headerlink" href="#the-env-chk-e-g-db-file-syntax" title="Permalink to this headline">¶</a></h2>
+<p>One issue in coding workflows is what to do when different machines require different settings. For example, the path to the VASP executable or the path to a file containing database credentials might be located in different places on different machines. For users wanting to run on multiple machines, such parameters cannot be hard-coded. However, users that are running on a single machine, or those that are testing things out, might prefer to hard-code those parameters.</p>
+<p>The <code class="docutils literal"><span class="pre">env_chk</span></code> functionality is a way to support both hard-coding of parameters as well as letting the machine (or more specifically, the FireWorker) set the parameter. Many of the FireTasks in atomate, e.g., <code class="docutils literal"><span class="pre">RunVaspDirect</span></code>, state in the docs that they “support <code class="docutils literal"><span class="pre">env_chk</span></code>” for a parameter such as <code class="docutils literal"><span class="pre">vasp_cmd</span></code>. What this means is that you have two options for creating the FireTask:</p>
+<p>Option 1 is to use something like <code class="docutils literal"><span class="pre">my_task</span> <span class="pre">=</span> <span class="pre">RunVaspDirect(vasp_cmd=&quot;vasp&quot;)</span></code>. This behaves exactly as you would expect in regular Python, i.e., the string literal “vasp” set as the <code class="docutils literal"><span class="pre">vasp_cmd</span></code> parameter.</p>
+<p>Option 2 is to use the <code class="docutils literal"><span class="pre">env_chk</span></code> notation which looks like this: <code class="docutils literal"><span class="pre">my_task</span> <span class="pre">=</span> <span class="pre">RunVaspDirect(vasp_cmd=&quot;&gt;&gt;my_vasp_cmd&lt;&lt;&quot;)</span></code>. If <code class="docutils literal"><span class="pre">env_chk</span></code> parameters like <cite>vasp_cmd`</cite> are enclosed in the <code class="docutils literal"><span class="pre">&gt;&gt;&lt;&lt;</span></code> symbols, it is interpreted that the user wants to get the values from the FireWorker’s <code class="docutils literal"><span class="pre">env</span></code> value. That is, when executing the workflow, one must use a FireWorker that contains an env that looks like <code class="docutils literal"><span class="pre">{&quot;my_vasp_cmd&quot;:</span> <span class="pre">&quot;mpirun</span> <span class="pre">-n</span> <span class="pre">24</span> <span class="pre">vasp&quot;}</span></code>. Here, the <code class="docutils literal"><span class="pre">my_vasp_cmd</span></code> in the dictionary matches the <code class="docutils literal"><span class="pre">&gt;&gt;my_vasp_cmd&lt;&lt;</span></code> string in the env_chk. Thus, when VASP is executed via this FireWorker, it will execute the command <code class="docutils literal"><span class="pre">mpirun</span> <span class="pre">-n</span> <span class="pre">24</span> <span class="pre">vasp</span></code>. Other FireWorkers, for example located on different computing centers, might execute different VASP commands and can support this by setting a different value of the FireWorker <code class="docutils literal"><span class="pre">env</span></code>. The workflow can be kept intact since the workflow is merely pointing to the <code class="docutils literal"><span class="pre">my_vasp_cmd</span></code> env variable and not setting the VASP command explicitly. There are more details about setting the FireWorker env variables in the FireWorks tutorials (in particular the Worker tutorial). The unit tests also use the env_chk feature to find the db configuration file. e.g., see the unit test: <code class="docutils literal"><span class="pre">atomate.vasp.tests.test_vasp_workflows.TestVaspWorkflows#test_single_Vasp_dbinsertion</span></code> and you will have a flavor for how this works. Just remember that if you see something like this <code class="docutils literal"><span class="pre">&gt;&gt;db_file&lt;&lt;</span></code>, when running your Workflow your FireWorker will need to set the env like this: <code class="docutils literal"><span class="pre">FWorker(env={&quot;db_file&quot;:</span> <span class="pre">&quot;path/to/db.json&quot;})</span></code> and you will need to use that FireWorker when launching the jobs.</p>
+</div>
+<div class="section" id="calclocs">
+<h2>CalcLocs<a class="headerlink" href="#calclocs" title="Permalink to this headline">¶</a></h2>
+<p>If you are running multiple VASP jobs that depend on copying the outputs of previous jobs, one issue is how to pass the directory information of previous VASP jobs from Firework to Firework. It is possible to do this manually (as was done in the MPWorks codebase), or using the <code class="docutils literal"><span class="pre">pass_job_info</span></code> keyword built into Fireworks, but the standard way to do this in atomate is <em>CalcLocs</em>. Procedurally, all you need to do is add the <code class="docutils literal"><span class="pre">`PassCalcLocs</span></code> FireTask to every Firework that contains a VASP job (see <code class="docutils literal"><span class="pre">atomate.vasp.fireworks.core</span></code> for examples). Downstream jobs like <code class="docutils literal"><span class="pre">CopyVaspOutput</span></code> will have a <code class="docutils literal"><span class="pre">calc_loc</span></code> variable that can be set to True, and will automatically get the previous VASP dir parsed from before. Similar with <code class="docutils literal"><span class="pre">VaspToDbTask</span></code>. Note that a couple of advantages of this system are:</p>
+<ul class="simple">
+<li>It is a general way of passing VASP directories that works with any Firework, and doesn’t require you to code the logic of passing VASP directories inside of other functions (e.g., database insertion tasks as was done previously in MPWorks). Thus, the task of reporting and passing the VASP job location is well-separated from the other functions and can just be added in very easily. The only downside is that you have to remember to add in this FireTask.</li>
+<li>The CalcLocs maintains a running dictionary of job type to job location. If you need to grab outputs from multiple jobs (or say, from two jobs back), it is all supported within the framework. Just read the docs, e.g., of <code class="docutils literal"><span class="pre">CopyVaspOutput</span></code>.</li>
+<li>Job directories are located across different machines and require <code class="docutils literal"><span class="pre">scp</span></code> or some other complex transfer mechanism are automatically handled by this infrastructure. You don’t have to lift a finger! Just tell the parent Firework to pass the calcloc and the child firework to copy the vasp output (which supports the calcloc framework).</li>
+</ul>
+</div>
+<div class="section" id="workflow-powerups">
+<h2>Workflow “Powerups”<a class="headerlink" href="#workflow-powerups" title="Permalink to this headline">¶</a></h2>
+<p>Workflow powerups are intended to be like function decorators, but for Workflows. For example, let’s say you’ve built a multi-step workflow that computes a band structure. Now, you want to make sure that once a workflow starts running, it is prioritized to finish that particular workflow versus starting other workflows. By passing your workflow through a “powerup”, you can get back a decorated workflow that sets the priorities of the Fireworks inside your workflow to endow this behavior (e.g., give all children Fireworks 2X the priority of the root parent). This particular powerup is located in <code class="docutils literal"><span class="pre">atomate.vasp.vasp_powerups.add_priority</span></code>. Another powerups allows you to track the status of your jobs (last few lines in output files) in the FireWorks database, for example.</p>
+<p>Note that another planned “powerup” is to endow Workflows with duplicate checking, i.e., to make sure the same structure is not run twice. In the past, such duplicate checking logic would be mixed in with the rest of the Workflow (about setting up VASP parameters, running VASP, etc.), and the end result was a very messy workflow code. It was also difficult to turn duplicate checking off and on as desired since all the logic was intermixed. By moving the duplicate checking to a “powerup”, one can simply enable duplicate checking by passing the Workflow through the appropriate powerup.</p>
+<p>See the <code class="docutils literal"><span class="pre">vasp_powerups.py</span></code> file for examples.</p>
+</div>
+<div class="section" id="tuning-performance-on-different-machines">
+<h2>Tuning performance on different machines<a class="headerlink" href="#tuning-performance-on-different-machines" title="Permalink to this headline">¶</a></h2>
+<p>VASP has certain INCAR parameters like NCORE, NPAR, KPAR, etc. that can be tuned
+based on your machine. Since the <code class="docutils literal"><span class="pre">ModifyIncar</span></code> firetask supports
+<code class="docutils literal"><span class="pre">env_chk</span></code>, these values can also be set in the fireworker config file
+(my_fworker.yaml). E.g.,</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">env</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">incar_update</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">NCORE</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">24</span>
+</pre></div>
+</div>
+<p>Note that NCORE sets the number of cores that work on a single orbital.
+Typically, you want to set this between 1 (higher memory requirements) and
+the number of cores per node (lower memory requirements while still
+maintaining fast communication times between workers on an a single orbital).
+A good starting point might be setting NCORE equal to the square root of
+number of cores per node as per the VASP manual. The following information
+might come in handy when setting the NCORE parameter on NERSC machines:</p>
+<ul class="simple">
+<li>Edison - 24 tasks per node</li>
+<li>Cori - 32 tasks per node</li>
+<li>Matgen - 16 tasks per node</li>
+</ul>
+<p>Thus, a good starting point is to set NCORE=4 for Matgen/Edison and NCORE=8 for
+Cori. Reduce NCORE if you want to try to increase speed at the risk of having
+lower memory available per orbital.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Atomate concepts</a><ul>
+<li><a class="reference internal" href="#the-env-chk-e-g-db-file-syntax">The “env_chk”, e.g. &gt;&gt;db_file&lt;&lt; syntax</a></li>
+<li><a class="reference internal" href="#calclocs">CalcLocs</a></li>
+<li><a class="reference internal" href="#workflow-powerups">Workflow “Powerups”</a></li>
+<li><a class="reference internal" href="#tuning-performance-on-different-machines">Tuning performance on different machines</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="workflow_yaml_reference.html"
+                        title="previous chapter">Workflow YAML Reference</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/concepts.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="workflow_yaml_reference.html" title="Workflow YAML Reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, Anubhav Jain.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

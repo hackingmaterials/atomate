@@ -1,0 +1,1233 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>atomate.vasp.firetasks package &#8212; atomate 0.5.6 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.5.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="atomate-vasp-firetasks-package">
+<h1>atomate.vasp.firetasks package<a class="headerlink" href="#atomate-vasp-firetasks-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="atomate.vasp.firetasks.tests.html">atomate.vasp.firetasks.tests package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#module-atomate.vasp.firetasks.tests.test_copy">atomate.vasp.firetasks.tests.test_copy module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#module-atomate.vasp.firetasks.tests.test_write_vasp">atomate.vasp.firetasks.tests.test_write_vasp module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#module-atomate.vasp.firetasks.tests">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-atomate.vasp.firetasks.glue_tasks">
+<span id="atomate-vasp-firetasks-glue-tasks-module"></span><h2>atomate.vasp.firetasks.glue_tasks module<a class="headerlink" href="#module-atomate.vasp.firetasks.glue_tasks" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.firetasks.glue_tasks.CheckBandgap">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.glue_tasks.</code><code class="descname">CheckBandgap</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.glue_tasks.CheckBandgap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Checks the band gap of an entry. If band gap is &gt;min_gap or &lt;max_gap, then
+the task will return a FWAction that will defuse all remaining tasks.</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd>(none) - but you should set either min_gap or max_gap</dd>
+<dt>Optional params:</dt>
+<dd>min_gap: (float) minimum gap energy in eV to proceed
+max_gap: (float) maximum gap energy in eV to proceed
+vasprun_path: (str) path to vasprun.xml file</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.glue_tasks.CheckBandgap.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['min_gap', 'max_gap', 'vasprun_path']</em><a class="headerlink" href="#atomate.vasp.firetasks.glue_tasks.CheckBandgap.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.glue_tasks.CheckBandgap.required_params">
+<code class="descname">required_params</code><em class="property"> = []</em><a class="headerlink" href="#atomate.vasp.firetasks.glue_tasks.CheckBandgap.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.glue_tasks.CheckBandgap.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.glue_tasks.CheckBandgap.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.glue_tasks.CheckStability">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.glue_tasks.</code><code class="descname">CheckStability</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.glue_tasks.CheckStability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Checks the stability of the entry against the Materials Project database.
+If the stability is less than the cutoff (default is 0.1 eV/atom), then
+the task will return a FWAction that will defuse all remaining tasks.</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd>(none) - but your MAPI key must be set as an environ var in this case</dd>
+<dt>Optional params:</dt>
+<dd><dl class="first docutils">
+<dt>ehull_cutoff: (float) energy in eV/atom to use as ehull cutoff. Default</dt>
+<dd>is 0.05 eV/atom.</dd>
+</dl>
+<p class="last">MAPI_KEY: (str) set MAPI key directly. Supports env_chk.
+calc_dir: (str) string to path containing vasprun.xml (default currdir)</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.glue_tasks.CheckStability.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['ehull_cutoff', 'MAPI_KEY', 'calc_dir']</em><a class="headerlink" href="#atomate.vasp.firetasks.glue_tasks.CheckStability.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.glue_tasks.CheckStability.required_params">
+<code class="descname">required_params</code><em class="property"> = []</em><a class="headerlink" href="#atomate.vasp.firetasks.glue_tasks.CheckStability.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.glue_tasks.CheckStability.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.glue_tasks.CheckStability.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.glue_tasks.CopyVaspOutputs">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.glue_tasks.</code><code class="descname">CopyVaspOutputs</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.glue_tasks.CopyVaspOutputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="atomate.common.firetasks.html#atomate.common.firetasks.glue_tasks.CopyFiles" title="atomate.common.firetasks.glue_tasks.CopyFiles"><code class="xref py py-class docutils literal"><span class="pre">atomate.common.firetasks.glue_tasks.CopyFiles</span></code></a></p>
+<p>Copy files from a previous VASP run directory to the current directory.
+By default, copies ‘INCAR’, ‘POSCAR’ (default: via ‘CONTCAR’), ‘KPOINTS’, 
+‘POTCAR’, ‘OUTCAR’, and ‘vasprun.xml’. Additional files, e.g. ‘CHGCAR’, 
+can also be specified. Automatically handles files that have a “.gz” 
+extension (copies and unzips).</p>
+<p>Note that you must specify either “calc_loc” or “calc_dir” to indicate
+the directory containing the previous VASP run.</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd>(none) - but you must specify either “calc_loc” OR “calc_dir”</dd>
+<dt>Optional params:</dt>
+<dd><dl class="first docutils">
+<dt>calc_loc (str OR bool): if True will set most recent calc_loc. If str</dt>
+<dd>search for the most recent calc_loc with the matching name</dd>
+</dl>
+<p>calc_dir (str): path to dir that contains VASP output files.
+filesystem (str): remote filesystem. e.g. <a class="reference external" href="mailto:username&#37;&#52;&#48;host">username<span>&#64;</span>host</a>
+additional_files ([str]): additional files to copy,</p>
+<blockquote>
+<div>e.g. [“CHGCAR”, “WAVECAR”]. Use $ALL if you just want to copy
+everything</div></blockquote>
+<dl class="last docutils">
+<dt>contcar_to_poscar(bool): If True (default), will move CONTCAR to</dt>
+<dd>POSCAR (original POSCAR is not copied).</dd>
+</dl>
+</dd>
+</dl>
+<dl class="method">
+<dt id="atomate.vasp.firetasks.glue_tasks.CopyVaspOutputs.copy_files">
+<code class="descname">copy_files</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.glue_tasks.CopyVaspOutputs.copy_files" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.glue_tasks.CopyVaspOutputs.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['calc_loc', 'calc_dir', 'filesystem', 'additional_files', 'contcar_to_poscar']</em><a class="headerlink" href="#atomate.vasp.firetasks.glue_tasks.CopyVaspOutputs.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.glue_tasks.CopyVaspOutputs.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.glue_tasks.CopyVaspOutputs.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.firetasks.glue_tasks.pass_vasp_result">
+<code class="descclassname">atomate.vasp.firetasks.glue_tasks.</code><code class="descname">pass_vasp_result</code><span class="sig-paren">(</span><em>pass_dict</em>, <em>calc_dir='.'</em>, <em>filename='vasprun.xml.gz'</em>, <em>parse_eigen=False</em>, <em>parse_dos=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.glue_tasks.pass_vasp_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that gets a PassResult firework corresponding to output from a Vasprun.  Covers
+most use cases in which user needs to pass results from a vasp run to child FWs
+(e. g. analysis FWs)</p>
+<p>pass_vasp_result(pass_dict={‘stress’: “&gt;&gt;ionic_steps.-1.stress”})</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd><dl class="first last docutils">
+<dt>pass_dict (dict): dictionary designating keys and values to pass</dt>
+<dd>to child fireworks.  If value is a string beginning with ‘&gt;&gt;’,
+the firework will search the parsed VASP output dictionary
+for the designated property by following the sequence of keys
+separated with periods, e. g. “&gt;&gt;ionic_steps.-1.stress” is used
+to designate the stress from the last ionic_step. If the value
+is not a string or does not begin with “&gt;&gt;” or “a&gt;&gt;” (for an
+object attribute, rather than nested key of .as_dict() conversion),
+it is passed as is.</dd>
+</dl>
+</dd>
+<dt>Optional params:</dt>
+<dd><dl class="first last docutils">
+<dt>calc_dir (str): path to dir that contains VASP output files, defaults</dt>
+<dd>to ‘.’, e. g. current directory</dd>
+<dt>filename (str): filename for vasp xml file to parse, defaults to</dt>
+<dd>“vasprun.xml.gz”</dd>
+<dt>parse_eigen (bool): flag on whether or not to parse eigenvalues,</dt>
+<dd>defaults to false</dd>
+<dt>parse_eigen (bool): flag on whether or not to parse dos,</dt>
+<dd>defaults to false</dd>
+<dt><a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs (keyword args): other keyword arguments passed to PassResult</dt>
+<dd>e.g. mod_spec_key or mod_spec_cmd</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.firetasks.neb_tasks">
+<span id="atomate-vasp-firetasks-neb-tasks-module"></span><h2>atomate.vasp.firetasks.neb_tasks module<a class="headerlink" href="#module-atomate.vasp.firetasks.neb_tasks" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.neb_tasks.</code><code class="descname">RunNEBVaspFake</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Vasp Emulator for NEB, which has a different file arrangement. Similar to RunVaspFake class.</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd><dl class="first last docutils">
+<dt>ref_dir (string): Path to reference vasp run directory with input files in the folder named</dt>
+<dd>‘inputs’ and output files in the folder named ‘outputs’.</dd>
+</dl>
+</dd>
+<dt>Optional params:</dt>
+<dd>params_to_check (list): optional list of incar parameters to check.</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['params_to_check']</em><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake.required_params">
+<code class="descname">required_params</code><em class="property"> = ['ref_dir']</em><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.neb_tasks.TransferNEBTask">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.neb_tasks.</code><code class="descname">TransferNEBTask</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.TransferNEBTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>This class transfers NEB outputs from current directory to destination directory. “label” is
+used to determine the step of calculation and hence the final path. The corresponding structure
+will be updated in fw_spec before files transferring.</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd><dl class="first last docutils">
+<dt>label (str): Type of calculation outputs being transferred, choose from “parent”, “ep0”,</dt>
+<dd>“ep1”, “neb1”, “neb2” and etc..</dd>
+</dl>
+</dd>
+<dt>Optional params:</dt>
+<dd><dl class="first last docutils">
+<dt>d_img (float): Distance between neighbouring images, used to determine the number of images</dt>
+<dd>if “IMAGES” not provided in user_incar_settings, in Angstrom.</dd>
+</dl>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.neb_tasks.TransferNEBTask.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['d_img']</em><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.TransferNEBTask.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.neb_tasks.TransferNEBTask.required_params">
+<code class="descname">required_params</code><em class="property"> = ['label']</em><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.TransferNEBTask.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.neb_tasks.TransferNEBTask.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.TransferNEBTask.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.neb_tasks.</code><code class="descname">WriteNEBFromEndpoints</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Generate NEB input sets using endpoint structures, default writes CI-NEB input.
+MVLCINEBSet is the only vasp_input_set supported now.</p>
+<dl class="docutils">
+<dt>The number of images:</dt>
+<dd><ol class="first last arabic simple">
+<li>search in “user_incar_settings”;</li>
+<li>otherwise, calculated using “d_img”.</li>
+</ol>
+</dd>
+<dt>Required parameters:</dt>
+<dd>user_incar_settings (dict): additional INCAR settings.</dd>
+<dt>Optional parameters:</dt>
+<dd><p class="first">user_kpoints_settings (dict): additional KPOINTS settings.
+sort_tol (float): Distance tolerance (in Angstrom) used to match the atomic indices between</p>
+<blockquote>
+<div>start and end structures. If it is set 0, then no sorting will be performed.</div></blockquote>
+<dl class="last docutils">
+<dt>d_img (float): distance in Angstrom, used in calculating number of images. Default 0.7</dt>
+<dd>Angstrom.</dd>
+<dt>interpolation_type (str): method to do image interpolation from two endpoints.</dt>
+<dd>Choose from [“IDPP”, “linear”], default “IDPP”</dd>
+</dl>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['user_kpoints_settings', 'sort_tol', 'd_img', 'interpolation_type']</em><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints.required_params">
+<code class="descname">required_params</code><em class="property"> = ['user_incar_settings']</em><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.neb_tasks.</code><code class="descname">WriteNEBFromImages</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Generate CI-NEB input sets using given images and endpoints structures. The structures
+correspond to structures nested in subfolders (“00”, “01”, “02”, etc.)</p>
+<dl class="docutils">
+<dt>Required parameters:</dt>
+<dd>neb_label (str): “1”, “2”, etc., labels the running sequence of NEB</dd>
+<dt>Optional parameters:</dt>
+<dd>user_incar_settings (dict): Additional INCAR settings.
+user_kpoints_settings (dict): Additional KPOINTS settings.</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['user_incar_settings', 'user_kpoints_settings']</em><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages.required_params">
+<code class="descname">required_params</code><em class="property"> = ['neb_label']</em><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.firetasks.parse_outputs">
+<span id="atomate-vasp-firetasks-parse-outputs-module"></span><h2>atomate.vasp.firetasks.parse_outputs module<a class="headerlink" href="#module-atomate.vasp.firetasks.parse_outputs" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.firetasks.parse_outputs.BoltztrapToDBTask">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.parse_outputs.</code><code class="descname">BoltztrapToDBTask</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.BoltztrapToDBTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#atomate.vasp.firetasks.parse_outputs.BoltztrapToDb" title="atomate.vasp.firetasks.parse_outputs.BoltztrapToDb"><code class="xref py py-class docutils literal"><span class="pre">atomate.vasp.firetasks.parse_outputs.BoltztrapToDb</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.parse_outputs.BoltztrapToDb">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.parse_outputs.</code><code class="descname">BoltztrapToDb</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.BoltztrapToDb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Enter a BoltzTraP run into the database. Note that this assumes you are in a current dir
+that has the uniform band structure data with a sub-directory called “boltztrap” containing
+the BoltzTraP information.</p>
+<dl class="docutils">
+<dt>Optional params:</dt>
+<dd><dl class="first docutils">
+<dt>db_file (str): path to file containing the database credentials.</dt>
+<dd>Supports env_chk. Default: write data to JSON file.</dd>
+</dl>
+<p class="last">hall_doping (bool): set True to retain hall_doping in dict
+additional_fields (dict): fields added to the document such as user-defined tags or name, ids, etc</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.parse_outputs.BoltztrapToDb.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['db_file', 'hall_doping', 'additional_fields']</em><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.BoltztrapToDb.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.parse_outputs.BoltztrapToDb.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.BoltztrapToDb.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.parse_outputs.ElasticTensorToDb">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.parse_outputs.</code><code class="descname">ElasticTensorToDb</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.ElasticTensorToDb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Analyzes the stress/strain data of an elastic workflow to produce
+an elastic tensor and various other quantities.</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd><dl class="first last docutils">
+<dt>structure (Structure): structure to use for symmetrization,</dt>
+<dd>input structure.  If an optimization was used, will
+look for relaxed structure in calc locs</dd>
+</dl>
+</dd>
+<dt>Optional params:</dt>
+<dd><dl class="first docutils">
+<dt>db_file (str): path to file containing the database credentials.</dt>
+<dd>Supports env_chk. Default: write data to JSON file.</dd>
+</dl>
+<p>order (int): order of fit to perform
+fw_spec_field (str): if set, will update the task doc with the contents</p>
+<blockquote>
+<div>of this key in the fw_spec.</div></blockquote>
+<dl class="last docutils">
+<dt>fitting_method (str): if set, will use one of the specified</dt>
+<dd>fitting methods from pymatgen.  Supported methods are
+“independent”, “pseudoinverse”, and “finite_difference.”
+Note that order 3 and higher required finite difference
+fitting, and will override.</dd>
+</dl>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.parse_outputs.ElasticTensorToDb.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['db_file', 'order', 'fw_spec_field', 'fitting_method']</em><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.ElasticTensorToDb.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.parse_outputs.ElasticTensorToDb.required_params">
+<code class="descname">required_params</code><em class="property"> = ['structure']</em><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.ElasticTensorToDb.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.parse_outputs.ElasticTensorToDb.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.ElasticTensorToDb.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.parse_outputs.ElasticTensorToDbTask">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.parse_outputs.</code><code class="descname">ElasticTensorToDbTask</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.ElasticTensorToDbTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#atomate.vasp.firetasks.parse_outputs.ElasticTensorToDb" title="atomate.vasp.firetasks.parse_outputs.ElasticTensorToDb"><code class="xref py py-class docutils literal"><span class="pre">atomate.vasp.firetasks.parse_outputs.ElasticTensorToDb</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.parse_outputs.FitEOSToDb">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.parse_outputs.</code><code class="descname">FitEOSToDb</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.FitEOSToDb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Retrieve the energy and volume data and fit it to the given equation of state. The summary dict
+is written to ‘bulk_modulus.json’ file.</p>
+<dl class="docutils">
+<dt>Required parameters:</dt>
+<dd><dl class="first docutils">
+<dt>tag (str): unique tag appended to the task labels in other fireworks so that all the</dt>
+<dd>required data can be queried directly from the database.</dd>
+</dl>
+<p class="last">db_file (str): path to the db file</p>
+</dd>
+<dt>Optional parameters:</dt>
+<dd><p class="first">to_db (bool): if True, the data will be inserted to “eos” collection; otherwise, dumped to a .json file.
+eos (str): equation of state used for fitting the energies and the volumes.</p>
+<blockquote class="last">
+<div>options supported by pymatgen: “quadratic”, “murnaghan”, “birch”, “birch_murnaghan”,
+“pourier_tarantola”, “vinet”, “deltafactor”. Default: “vinet”</div></blockquote>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.parse_outputs.FitEOSToDb.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['to_db', 'eos']</em><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.FitEOSToDb.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.parse_outputs.FitEOSToDb.required_params">
+<code class="descname">required_params</code><em class="property"> = ['tag', 'db_file']</em><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.FitEOSToDb.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.parse_outputs.FitEOSToDb.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.FitEOSToDb.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.parse_outputs.FitEquationOfStateTask">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.parse_outputs.</code><code class="descname">FitEquationOfStateTask</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.FitEquationOfStateTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#atomate.vasp.firetasks.parse_outputs.FitEOSToDb" title="atomate.vasp.firetasks.parse_outputs.FitEOSToDb"><code class="xref py py-class docutils literal"><span class="pre">atomate.vasp.firetasks.parse_outputs.FitEOSToDb</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.parse_outputs.GibbsAnalysisToDb">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.parse_outputs.</code><code class="descname">GibbsAnalysisToDb</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.GibbsAnalysisToDb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Compute the quasi-harmonic gibbs free energy. There are 2 options available for the
+quasi-harmonic approximation (set via ‘qha_type’ parameter):
+1. use the phonopy package quasi-harmonic approximation interface or
+2. use the debye model.
+Note: Instead of relying on fw_spec, this task gets the required data directly from the
+tasks collection for processing. The summary dict is written to ‘gibbs.json’ file.</p>
+<dl class="docutils">
+<dt>required_params:</dt>
+<dd><dl class="first docutils">
+<dt>tag (str): unique tag appended to the task labels in other fireworks so that all the</dt>
+<dd>required data can be queried directly from the database.</dd>
+</dl>
+<p class="last">db_file (str): path to the db file</p>
+</dd>
+<dt>optional_params:</dt>
+<dd><dl class="first docutils">
+<dt>qha_type(str): quasi-harmonic approximation type: “debye_model” or “phonopy”,</dt>
+<dd>default is “debye_model”</dd>
+</dl>
+<p>t_min (float): min temperature
+t_step (float): temperature step
+t_max (float): max temperature
+mesh (list/tuple): reciprocal space density
+eos (str): equation of state used for fitting the energies and the volumes.</p>
+<blockquote>
+<div>options supported by phonopy: “vinet”, “murnaghan”, “birch_murnaghan”.</div></blockquote>
+<p class="last">pressure (float): in GPa, optional.
+metadata (dict): meta data</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.parse_outputs.GibbsAnalysisToDb.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['qha_type', 't_min', 't_step', 't_max', 'mesh', 'eos', 'pressure', 'poisson', 'metadata']</em><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.GibbsAnalysisToDb.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.parse_outputs.GibbsAnalysisToDb.required_params">
+<code class="descname">required_params</code><em class="property"> = ['tag', 'db_file']</em><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.GibbsAnalysisToDb.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.parse_outputs.GibbsAnalysisToDb.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.GibbsAnalysisToDb.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.parse_outputs.GibbsFreeEnergyTask">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.parse_outputs.</code><code class="descname">GibbsFreeEnergyTask</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.GibbsFreeEnergyTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#atomate.vasp.firetasks.parse_outputs.GibbsAnalysisToDb" title="atomate.vasp.firetasks.parse_outputs.GibbsAnalysisToDb"><code class="xref py py-class docutils literal"><span class="pre">atomate.vasp.firetasks.parse_outputs.GibbsAnalysisToDb</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.parse_outputs.JsonToDb">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.parse_outputs.</code><code class="descname">JsonToDb</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.JsonToDb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Insert the a JSON file (default: task.json) directly into the tasks database.
+Note that if the JSON file contains a “task_id” key, that task_id must not already be present
+in the tasks collection.</p>
+<dl class="docutils">
+<dt>Optional params:</dt>
+<dd><p class="first">json_filename (str): name of the JSON file to insert (default: “task.json”)
+db_file (str): path to file containing the database credentials. Supports env_chk.
+calc_dir (str): path to dir (on current filesystem) that contains VASP output files.</p>
+<blockquote class="last">
+<div>Default: use current working directory.</div></blockquote>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.parse_outputs.JsonToDb.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['json_filename', 'db_file', 'calc_dir']</em><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.JsonToDb.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.parse_outputs.JsonToDb.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.JsonToDb.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.parse_outputs.JsonToDbTask">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.parse_outputs.</code><code class="descname">JsonToDbTask</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.JsonToDbTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#atomate.vasp.firetasks.parse_outputs.JsonToDb" title="atomate.vasp.firetasks.parse_outputs.JsonToDb"><code class="xref py py-class docutils literal"><span class="pre">atomate.vasp.firetasks.parse_outputs.JsonToDb</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.parse_outputs.RamanSusceptibilityTensorToDbTask">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.parse_outputs.</code><code class="descname">RamanSusceptibilityTensorToDbTask</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.RamanSusceptibilityTensorToDbTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#atomate.vasp.firetasks.parse_outputs.RamanTensorToDb" title="atomate.vasp.firetasks.parse_outputs.RamanTensorToDb"><code class="xref py py-class docutils literal"><span class="pre">atomate.vasp.firetasks.parse_outputs.RamanTensorToDb</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.parse_outputs.RamanTensorToDb">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.parse_outputs.</code><code class="descname">RamanTensorToDb</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.RamanTensorToDb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<dl class="docutils">
+<dt>Raman susceptibility tensor for each mode = Finite difference derivative of the dielectric</dt>
+<dd>tensor wrt the displacement along that mode.</dd>
+</dl>
+<p>See: 10.1103/PhysRevB.73.104304.
+The frequencies are in the units of cm^-1. To convert the frequency to THz: multiply by 0.1884.</p>
+<dl class="docutils">
+<dt>optional_params:</dt>
+<dd>db_file (str): path to the db file</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.parse_outputs.RamanTensorToDb.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['db_file']</em><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.RamanTensorToDb.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.parse_outputs.RamanTensorToDb.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.RamanTensorToDb.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.parse_outputs.ThermalExpansionCoeffTask">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.parse_outputs.</code><code class="descname">ThermalExpansionCoeffTask</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.ThermalExpansionCoeffTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#atomate.vasp.firetasks.parse_outputs.ThermalExpansionCoeffToDb" title="atomate.vasp.firetasks.parse_outputs.ThermalExpansionCoeffToDb"><code class="xref py py-class docutils literal"><span class="pre">atomate.vasp.firetasks.parse_outputs.ThermalExpansionCoeffToDb</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.parse_outputs.ThermalExpansionCoeffToDb">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.parse_outputs.</code><code class="descname">ThermalExpansionCoeffToDb</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.ThermalExpansionCoeffToDb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Compute the quasi-harmonic thermal expansion coefficient using phonopy.</p>
+<dl class="docutils">
+<dt>required_params:</dt>
+<dd><dl class="first docutils">
+<dt>tag (str): unique tag appended to the task labels in other fireworks so that all the</dt>
+<dd>required data can be queried directly from the database.</dd>
+</dl>
+<p class="last">db_file (str): path to the db file</p>
+</dd>
+<dt>optional_params:</dt>
+<dd><p class="first">t_min (float): min temperature
+t_step (float): temperature step
+t_max (float): max temperature
+mesh (list/tuple): reciprocal space density
+eos (str): equation of state used for fitting the energies and the volumes.</p>
+<blockquote>
+<div>options supported by phonopy: “vinet” (default), “murnaghan”, “birch_murnaghan”.</div></blockquote>
+<p class="last">pressure (float): in GPa, optional.</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.parse_outputs.ThermalExpansionCoeffToDb.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['t_min', 't_step', 't_max', 'mesh', 'eos', 'pressure']</em><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.ThermalExpansionCoeffToDb.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.parse_outputs.ThermalExpansionCoeffToDb.required_params">
+<code class="descname">required_params</code><em class="property"> = ['tag', 'db_file']</em><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.ThermalExpansionCoeffToDb.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.parse_outputs.ThermalExpansionCoeffToDb.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.ThermalExpansionCoeffToDb.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.parse_outputs.VaspToDb">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.parse_outputs.</code><code class="descname">VaspToDb</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.VaspToDb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Enter a VASP run into the database. Uses current directory unless you
+specify calc_dir or calc_loc.</p>
+<dl class="docutils">
+<dt>Optional params:</dt>
+<dd><dl class="first docutils">
+<dt>calc_dir (str): path to dir (on current filesystem) that contains VASP</dt>
+<dd>output files. Default: use current working directory.</dd>
+<dt>calc_loc (str OR bool): if True will set most recent calc_loc. If str</dt>
+<dd>search for the most recent calc_loc with the matching name</dd>
+<dt>parse_dos (bool): whether to parse the DOS and store in GridFS.</dt>
+<dd>Defaults to False.</dd>
+<dt>bandstructure_mode (str): Set to “uniform” for uniform band structure.</dt>
+<dd>Set to “line” for line mode. If not set, band structure will not
+be parsed.</dd>
+</dl>
+<p>additional_fields (dict): dict of additional fields to add
+db_file (str): path to file containing the database credentials.</p>
+<blockquote>
+<div>Supports env_chk. Default: write data to JSON file.</div></blockquote>
+<dl class="last docutils">
+<dt>fw_spec_field (str): if set, will update the task doc with the contents</dt>
+<dd>of this key in the fw_spec.</dd>
+<dt>defuse_unsuccessful (bool): Defuses children fireworks if VASP run state</dt>
+<dd>is not “successful”; i.e. both electronic and ionic convergence are reached.
+Defaults to True.</dd>
+</dl>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.parse_outputs.VaspToDb.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['calc_dir', 'calc_loc', 'parse_dos', 'bandstructure_mode', 'additional_fields', 'db_file', 'fw_spec_field', 'defuse_unsuccessful']</em><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.VaspToDb.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.parse_outputs.VaspToDb.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.VaspToDb.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.parse_outputs.VaspToDbTask">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.parse_outputs.</code><code class="descname">VaspToDbTask</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.VaspToDbTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#atomate.vasp.firetasks.parse_outputs.VaspToDb" title="atomate.vasp.firetasks.parse_outputs.VaspToDb"><code class="xref py py-class docutils literal"><span class="pre">atomate.vasp.firetasks.parse_outputs.VaspToDb</span></code></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.firetasks.run_calc">
+<span id="atomate-vasp-firetasks-run-calc-module"></span><h2>atomate.vasp.firetasks.run_calc module<a class="headerlink" href="#module-atomate.vasp.firetasks.run_calc" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.firetasks.run_calc.RunBoltztrap">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.run_calc.</code><code class="descname">RunBoltztrap</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunBoltztrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Run Boltztrap directly. Requires vasprun.xml and OUTCAR to be in current dir.</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd>(none)</dd>
+<dt>Optional params:</dt>
+<dd>scissor: (float) scissor band gap amount in eV (i.e. new gap == scissor)
+tmax: (float) max temperature to evaluate (default = 1300K)
+tgrid: (float) temperature interval (default = 50K)
+doping: ([float]) doping levels you want to compute
+soc: (bool) whether the band structure is calculated with spin-orbit coupling or not</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.run_calc.RunBoltztrap.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['scissor', 'tmax', 'tgrid', 'doping', 'soc']</em><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunBoltztrap.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.run_calc.RunBoltztrap.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunBoltztrap.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.run_calc.RunNoVasp">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.run_calc.</code><code class="descname">RunNoVasp</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunNoVasp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Do NOT run vasp. Do nothing.</p>
+<dl class="method">
+<dt id="atomate.vasp.firetasks.run_calc.RunNoVasp.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunNoVasp.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspCustodian">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.run_calc.</code><code class="descname">RunVaspCustodian</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspCustodian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Run VASP using custodian “on rails”, i.e. in a simple way that supports most common options.</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd>vasp_cmd (str): the name of the full executable for running VASP. Supports env_chk.</dd>
+<dt>Optional params:</dt>
+<dd><dl class="first docutils">
+<dt>job_type: (str) - choose from “normal” (default), “double_relaxation_run” (two consecutive </dt>
+<dd>jobs), “full_opt_run” (multiple optimizations), and “neb”</dd>
+<dt>handler_group: (str) - group of handlers to use. See handler_groups dict in the code for </dt>
+<dd>the groups and complete list of handlers in each group.</dd>
+<dt>max_force_threshold: (float) - if &gt;0, adds MaxForceErrorHandler. Not recommended for </dt>
+<dd>nscf runs.</dd>
+<dt>scratch_dir: (str) - if specified, uses this directory as the root scratch dir. </dt>
+<dd>Supports env_chk.</dd>
+</dl>
+<p>gzip_output: (bool) - gzip output (default=T)
+max_errors: (int) - maximum # of errors to fix before giving up (default=5)
+ediffg: (float) shortcut for setting EDIFFG in special custodian jobs
+auto_npar: (bool) - use auto_npar (default=F). Recommended set to T</p>
+<blockquote>
+<div>for single-node jobs only. Supports env_chk.</div></blockquote>
+<dl class="docutils">
+<dt>gamma_vasp_cmd: (str) - cmd for Gamma-optimized VASP compilation.</dt>
+<dd>Supports env_chk.</dd>
+</dl>
+<p class="last">wall_time (int): Total wall time in seconds. Activates WalltimeHandler if set.</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspCustodian.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['job_type', 'handler_group', 'max_force_threshold', 'scratch_dir', 'gzip_output', 'max_errors', 'ediffg', 'auto_npar', 'gamma_vasp_cmd', 'wall_time']</em><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspCustodian.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspCustodian.required_params">
+<code class="descname">required_params</code><em class="property"> = ['vasp_cmd']</em><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspCustodian.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspCustodian.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspCustodian.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspDirect">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.run_calc.</code><code class="descname">RunVaspDirect</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspDirect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Execute a command directly (no custodian).</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd>cmd (str): the name of the full executable to run. Supports env_chk.</dd>
+<dt>Optional params:</dt>
+<dd>expand_vars (str): Set to true to expand variable names in the cmd.</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspDirect.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['expand_vars']</em><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspDirect.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspDirect.required_params">
+<code class="descname">required_params</code><em class="property"> = ['vasp_cmd']</em><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspDirect.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspDirect.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspDirect.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspFake">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.run_calc.</code><code class="descname">RunVaspFake</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspFake" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Vasp Emulator</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd><dl class="first last docutils">
+<dt>ref_dir (string): Path to reference vasp run directory with input files in the folder</dt>
+<dd>named ‘inputs’ and output files in the folder named ‘outputs’.</dd>
+</dl>
+</dd>
+<dt>Optional params:</dt>
+<dd>params_to_check (list): optional list of incar parameters to check.
+check_incar (bool): whether to confirm the INCAR params (default: True)
+check_kpoints (bool): whether to confirm the KPOINTS params (default: True)
+check_poscar (bool): whether to confirm the POSCAR params (default: True)
+check_potcar (bool): whether to confirm the POTCAR params (default: True)</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspFake.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['params_to_check', 'check_incar', 'check_kpoints', 'check_poscar', 'check_potcar']</em><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspFake.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspFake.required_params">
+<code class="descname">required_params</code><em class="property"> = ['ref_dir']</em><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspFake.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspFake.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspFake.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.firetasks.write_inputs">
+<span id="atomate-vasp-firetasks-write-inputs-module"></span><h2>atomate.vasp.firetasks.write_inputs module<a class="headerlink" href="#module-atomate.vasp.firetasks.write_inputs" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.ModifyIncar">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="descname">ModifyIncar</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.ModifyIncar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Modify an INCAR file.</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd>(none)</dd>
+<dt>Optional params:</dt>
+<dd><p class="first">incar_update (dict): overwrite Incar dict key. Supports env_chk.
+incar_multiply ([{&lt;str&gt;:&lt;float&gt;}]) - multiply Incar key by a constant</p>
+<blockquote>
+<div>factor. Supports env_chk.</div></blockquote>
+<dl class="docutils">
+<dt>incar_dictmod ([{}]): use DictMod language to change Incar.</dt>
+<dd>Supports env_chk.</dd>
+</dl>
+<p class="last">input_filename (str): Input filename (if not “INCAR”)
+output_filename (str): Output filename (if not “INCAR”)</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.ModifyIncar.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['incar_update', 'incar_multiply', 'incar_dictmod', 'input_filename', 'output_filename']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.ModifyIncar.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.ModifyIncar.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.ModifyIncar.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteNormalmodeDisplacedPoscar">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="descname">WriteNormalmodeDisplacedPoscar</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteNormalmodeDisplacedPoscar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Displace the structure from the previous calculation along the provided normal mode by the
+given amount and write the corresponding Poscar file. The fw_spec must contain a “normalmodes”
+key with “eigenvecs” sub-key that is likely produced by a previous calc.</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd>mode (int): normal mode index
+displacement (float): displacement along the normal mode in Angstroms</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteNormalmodeDisplacedPoscar.required_params">
+<code class="descname">required_params</code><em class="property"> = ['mode', 'displacement']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteNormalmodeDisplacedPoscar.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteNormalmodeDisplacedPoscar.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteNormalmodeDisplacedPoscar.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="descname">WriteTransmutedStructureIOSet</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Apply the provided transformations to the input structure and write the
+input set for that structure. Reads structure from POSCAR if no structure provided. Note that 
+if a transformation yields many structures from one, only the last structure in the list is 
+used.</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd><p class="first">structure (Structure): input structure
+transformations (list): list of names of transformation classes as defined in</p>
+<blockquote>
+<div>the modules in pymatgen.transformations</div></blockquote>
+<p class="last">vasp_input_set (VaspInputSet): VASP input set.</p>
+</dd>
+<dt>Optional params:</dt>
+<dd><dl class="first docutils">
+<dt>transformation_params (list): list of dicts where each dict specifies the input parameters</dt>
+<dd>to instantiate the transformation class in the transformations list.</dd>
+</dl>
+<p class="last">override_default_vasp_params (dict): additional user input settings.
+prev_calc_dir: path to previous calculation if using structure from another calculation.</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['prev_calc_dir', 'transformation_params', 'override_default_vasp_params']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet.required_params">
+<code class="descname">required_params</code><em class="property"> = ['structure', 'transformations', 'vasp_input_set']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSet">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="descname">WriteVaspFromIOSet</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Create VASP input files using implementations of pymatgen’s AbstractVaspInputSet. An input set 
+can be provided as an object or as a String/parameter combo.</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd><p class="first">structure (Structure): structure
+vasp_input_set (AbstractVaspInputSet or str): Either a VaspInputSet object or a string</p>
+<blockquote class="last">
+<div>name for the VASP input set (e.g., “MPRelaxSet”).</div></blockquote>
+</dd>
+<dt>Optional params:</dt>
+<dd><dl class="first last docutils">
+<dt>vasp_input_params (dict): When using a string name for VASP input set, use this as a dict </dt>
+<dd>to specify kwargs for instantiating the input set parameters. For example, if you want 
+to change the user_incar_settings, you should provide: {“user_incar_settings”: …}. 
+This setting is ignored if you provide the full object representation of a VaspInputSet 
+rather than a String.</dd>
+</dl>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSet.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['vasp_input_params']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSet.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSet.required_params">
+<code class="descname">required_params</code><em class="property"> = ['structure', 'vasp_input_set']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSet.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSet.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSet.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspFromPMGObjects">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="descname">WriteVaspFromPMGObjects</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspFromPMGObjects" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Write VASP files using pymatgen objects.</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd>(none) - although non-functional unless you set one or more optional params</dd>
+<dt>Optional params:</dt>
+<dd>incar (Incar): pymatgen Incar object
+poscar (Poscar): pymatgen Poscar object
+kpoints (Kpoints): pymatgen Kpoints object
+potcar (Potcar): pymatgen Potcar object</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspFromPMGObjects.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['incar', 'poscar', 'kpoints', 'potcar']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspFromPMGObjects.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspFromPMGObjects.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspFromPMGObjects.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspHSEBSFromPrev">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="descname">WriteVaspHSEBSFromPrev</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspHSEBSFromPrev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Writes input files for HSE band structure run. Assumes that output files from a
+a previous job can be accessed. Since HSE always re-optimizes the charge density (no nSCF mode),
+the previous job is used to get the location of VBM/CBM for mode=”gap” (otherwise just used to
+get the structure / starting charge density).</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd>(none)</dd>
+<dt>Optional params:</dt>
+<dd>(documentation for all other optional params can be found in
+MPHSEBSSet)</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspHSEBSFromPrev.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['prev_calc_dir', 'mode', 'reciprocal_density', 'kpoints_line_density']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspHSEBSFromPrev.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspHSEBSFromPrev.required_params">
+<code class="descname">required_params</code><em class="property"> = []</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspHSEBSFromPrev.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspHSEBSFromPrev.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspHSEBSFromPrev.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspNSCFFromPrev">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="descname">WriteVaspNSCFFromPrev</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspNSCFFromPrev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Writes input files for an NSCF static run. Assumes that output files from an
+scf job can be accessed. There are many options, e.g. uniform mode,
+line mode, adding the optical properties, etc.</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd>(none)</dd>
+<dt>Optional params:</dt>
+<dd>(documentation for all optional params can be found in
+NonSCFVaspInputSet)</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspNSCFFromPrev.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['prev_calc_dir', 'copy_chgcar', 'nbands_factor', 'reciprocal_density', 'kpoints_line_density', 'small_gap_multiply', 'standardize', 'sym_prec', 'international_monoclinic', 'mode', 'nedos', 'optics', 'other_params']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspNSCFFromPrev.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspNSCFFromPrev.required_params">
+<code class="descname">required_params</code><em class="property"> = []</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspNSCFFromPrev.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspNSCFFromPrev.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspNSCFFromPrev.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspSOCFromPrev">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="descname">WriteVaspSOCFromPrev</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspSOCFromPrev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Writes input files for a spinorbit coupling calculation.</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd>prev_calc_dir: path to previous calculation
+magmom (list): magnetic moment values for each site in the structure.
+saxis (list): magnetic field direction</dd>
+<dt>Optional params:</dt>
+<dd>(none)</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspSOCFromPrev.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['copy_chgcar', 'nbands_factor', 'reciprocal_density', 'small_gap_multiply', 'standardize', 'sym_prec', 'international_monoclinic', 'other_params']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspSOCFromPrev.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspSOCFromPrev.required_params">
+<code class="descname">required_params</code><em class="property"> = ['magmom', 'saxis']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspSOCFromPrev.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspSOCFromPrev.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspSOCFromPrev.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspStaticFromPrev">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="descname">WriteVaspStaticFromPrev</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspStaticFromPrev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Writes input files for a static run. Assumes that output files from a previous 
+(e.g., optimization) run can be accessed in current dir or prev_calc_dir. Also allows 
+lepsilon (dielectric constant) calcs.</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd>(none)</dd>
+<dt>Optional params:</dt>
+<dd>(documentation for all other optional params can be found in
+MPStaticSet)</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspStaticFromPrev.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['prev_calc_dir', 'reciprocal_density', 'small_gap_multiply', 'standardize', 'sym_prec', 'international_monoclinic', 'lepsilon', 'other_params']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspStaticFromPrev.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspStaticFromPrev.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspStaticFromPrev.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.firetasks">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.vasp.firetasks" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">atomate.vasp.firetasks package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.firetasks.glue_tasks">atomate.vasp.firetasks.glue_tasks module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.firetasks.neb_tasks">atomate.vasp.firetasks.neb_tasks module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.firetasks.parse_outputs">atomate.vasp.firetasks.parse_outputs module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.firetasks.run_calc">atomate.vasp.firetasks.run_calc module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.firetasks.write_inputs">atomate.vasp.firetasks.write_inputs module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.firetasks">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/atomate.vasp.firetasks.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, Anubhav Jain.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

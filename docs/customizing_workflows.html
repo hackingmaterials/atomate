@@ -1,0 +1,321 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Customizing workflows &#8212; atomate 0.5.6 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.5.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="atomate Changelog" href="changelog.html" />
+    <link rel="prev" title="Creating Workflows" href="creating_workflows.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="changelog.html" title="atomate Changelog"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="creating_workflows.html" title="Creating Workflows"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="customizing-workflows">
+<span id="id1"></span><h1>Customizing Workflows<a class="headerlink" href="#customizing-workflows" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="creating_workflows.html#creating-workflows"><span class="std std-ref">Creating Workflows</span></a> guide gave details on constructing workflows. This group of tutorials will give specific examples for customizations to workflows as you create them.</p>
+<p>For some of these customizations, preset workflows <em>cannot</em> be used. Preset workflows are designed to give generically reasonable options. More full access for customizing the workflows can be achieved by using the <a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base" title="atomate.vasp.workflows.base"><code class="xref py py-mod docutils literal"><span class="pre">atomate.vasp.workflows.base</span></code></a> workflows instead of the presets.</p>
+</div>
+<div class="section" id="objectives">
+<h2>Objectives<a class="headerlink" href="#objectives" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Provide examples for customizating workflows</li>
+</ul>
+</div>
+<div class="section" id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<p>It’s best if you are able to create workflows on your own in Python. See the <a class="reference internal" href="creating_workflows.html#creating-workflows"><span class="std std-ref">creating workflows guide</span></a></p>
+</div>
+<div class="section" id="powerups">
+<span id="id2"></span><h2>Powerups<a class="headerlink" href="#powerups" title="Permalink to this headline">¶</a></h2>
+<p>Powerups are all designed to be used as functions where you pass in your original workflow and other keyword arguments and get back the modified workflow. An example is shown below, but does not show all of the powerups. To see more powerups go to the powerups documentation for the package you are using, e.g. VASP is :py:mod`atomate.vasp.powerups`.</p>
+<p>An example for adding an INCAR setting to use a different force convergence criteria for the only the structure optimization in the elastic workflow is</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">atomate.vasp.workflows.presets.core</span> <span class="kn">import</span> <span class="n">wf_elastic_constant</span>
+<span class="kn">from</span> <span class="nn">atomate.vasp.powerups</span> <span class="kn">import</span> <span class="n">add_modify_incar</span>
+<span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
+
+<span class="c1"># load your structure, e.g. from a POSCAR</span>
+<span class="n">struct</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;POSCAR&#39;</span><span class="p">)</span>
+
+<span class="c1"># create the workflow</span>
+<span class="n">orig_wf</span> <span class="o">=</span> <span class="n">wf_elastic_constant</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span>
+
+
+<span class="c1"># use the powerup to change any Fireworks with &#39;optimization&#39; in the name to use EDIFFG=-0.05</span>
+<span class="c1"># note: the &#39;incar_update&#39; is *required* if you want to update</span>
+<span class="c1"># note: not passing the ``modify_incar_params`` keyword will result in the Firework getting</span>
+<span class="c1">#       the &#39;incar_update&#39; key and values from your FireWorker&#39;s env</span>
+<span class="n">modified_wf</span> <span class="o">=</span> <span class="n">add_modify_incar</span><span class="p">(</span><span class="n">orig_wf</span><span class="p">,</span> <span class="n">modify_incar_params</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;incar_update&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;EDIFFG&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.05</span><span class="p">}},</span>
+                               <span class="n">fw_name_constraint</span><span class="o">=</span><span class="s1">&#39;optimization&#39;</span><span class="p">)</span>
+
+<span class="c1"># print if you want to check the tasks. Warning: several lines long.</span>
+<span class="c1"># print(orig_wf.fws[0].tasks)</span>
+<span class="c1"># print(modified_wf.fws[0].tasks)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="vasp-calculation-settings">
+<h2>VASP Calculation Settings<a class="headerlink" href="#vasp-calculation-settings" title="Permalink to this headline">¶</a></h2>
+<p>Most VASP calculation-specific settings (e.g. those from INCAR, KPOINTS, and POTCAR files) are controlled by <a class="reference external" href="http://pymatgen.org/pymatgen.io.vasp.sets.html">pymatgen’s vasp sets</a> . VASP workflows take <code class="docutils literal"><span class="pre">vasp_input_set</span></code> options and you can directly import and use them or customize them before using them in atomate workflows.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Using the <code class="docutils literal"><span class="pre">vasp_input_set</span></code> or <code class="docutils literal"><span class="pre">vis</span></code> keywords in workflow constructors usually only controls the first Firework that uses that set. If you want to have multiple Fireworks use custom input sets (or just not the first one, e.g. in a bandstructure workflow) then you have to make a custom workflow yourself.</p>
+</div>
+<div class="section" id="using-a-different-functional">
+<h3>Using a different functional<a class="headerlink" href="#using-a-different-functional" title="Permalink to this headline">¶</a></h3>
+<p>To use a different functional, for instance in a optimization calculation, you can do the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">fireworks</span> <span class="kn">import</span> <span class="n">Workflow</span>
+<span class="kn">from</span> <span class="nn">atomate.vasp.fireworks.core</span> <span class="kn">import</span> <span class="n">OptimizeFW</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.vasp.sets</span> <span class="kn">import</span> <span class="n">MPRelaxSet</span>
+<span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
+
+<span class="k">def</span> <span class="nf">get_optimize_wf</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;optimization wf&quot;</span><span class="p">,</span> <span class="n">vasp_input_set</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">vasp_cmd</span><span class="o">=</span><span class="s2">&quot;vasp&quot;</span><span class="p">,</span> <span class="n">db_file</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user_kpoints_settings</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">tag</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a structure optimization workflow.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        structure (Structure): input structure to be optimized and run</span>
+<span class="sd">        name (str): some appropriate name for the transmuter fireworks.</span>
+<span class="sd">        vasp_input_set (DictSet): vasp input set.</span>
+<span class="sd">        vasp_cmd (str): command to run</span>
+<span class="sd">        db_file (str): path to file containing the database credentials.</span>
+<span class="sd">        user_kpoints_settings (dict): example: {&quot;grid_density&quot;: 7000}</span>
+<span class="sd">        tag (str): some unique string that will be appended to the names of the fireworks so that</span>
+<span class="sd">            the data from those tagged fireworks can be queried later during the analysis.</span>
+<span class="sd">        metadata (dict): meta data</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Workflow</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># input set for relaxation</span>
+    <span class="n">vis_relax</span> <span class="o">=</span> <span class="n">vasp_input_set</span> <span class="ow">or</span> <span class="n">MPRelaxSet</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">user_kpoints_settings</span><span class="p">:</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">vis_relax</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;user_kpoints_settings&quot;</span><span class="p">:</span> <span class="n">user_kpoints_settings</span><span class="p">})</span>
+        <span class="n">vis_relax</span> <span class="o">=</span> <span class="n">vis_relax</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+    <span class="c1"># Structure optimization firework</span>
+    <span class="n">fws</span> <span class="o">=</span> <span class="p">[</span><span class="n">OptimizeFW</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">vasp_input_set</span><span class="o">=</span><span class="n">vis_relax</span><span class="p">,</span> <span class="n">vasp_cmd</span><span class="o">=</span><span class="n">vasp_cmd</span><span class="p">,</span>
+                      <span class="n">db_file</span><span class="o">=</span><span class="n">db_file</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;{} structure optimization&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tag</span><span class="p">))]</span>
+
+    <span class="n">wfname</span> <span class="o">=</span> <span class="s2">&quot;{}:{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">composition</span><span class="o">.</span><span class="n">reduced_formula</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">Workflow</span><span class="p">(</span><span class="n">fws</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">wfname</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
+
+<span class="c1"># load your structure, e.g. from a POSCAR</span>
+<span class="n">struct</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;POSCAR&#39;</span><span class="p">)</span>
+
+<span class="c1"># create a custom input set</span>
+<span class="n">my_custom_input_set</span> <span class="o">=</span> <span class="n">MPRelaxSet</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">potcar_functional</span><span class="o">=</span><span class="s1">&#39;LDA&#39;</span><span class="p">)</span>
+
+<span class="c1"># create the workflow</span>
+<span class="n">my_wf</span> <span class="o">=</span> <span class="n">get_optimize_wf</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">vasp_input_set</span><span class="o">=</span><span class="n">my_custom_input_set</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For the supported options, see the VASP documentation and <a class="reference external" href="http://pymatgen.org/pymatgen.io.vasp.sets.html">pymatgen’s vasp sets</a> documentation. PBE (default), LDA, PW91, LDA_US were supported at the time of writing.</p>
+</div>
+<div class="section" id="custom-kpoints-settings">
+<h3>Custom KPOINTS settings<a class="headerlink" href="#custom-kpoints-settings" title="Permalink to this headline">¶</a></h3>
+<p>KPOINTS settings can also be similarly customized using the above example. You can control them with the following keywords (from <a class="reference external" href="http://pymatgen.org/pymatgen.io.vasp.sets.html">pymatgen’s vasp sets</a>):</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">force_gamma</span></code>: always use gamma centered kpoint generation. Default (False) is to use Automatic Density kpoint scheme, which will use the Gamma centered generation scheme for hexagonal cells, and Monkhorst-Pack otherwise.</li>
+<li><code class="docutils literal"><span class="pre">user_kpoints_settings</span></code>: Override kpoints setting by supplying a dict. E.g., <code class="docutils literal"><span class="pre">{&quot;reciprocal_density&quot;:</span> <span class="pre">1000}</span></code>. Other options are <code class="docutils literal"><span class="pre">grid_density</span></code> or <code class="docutils literal"><span class="pre">length</span></code>.</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.io.vasp.sets</span> <span class="kn">import</span> <span class="n">MPRelaxSet</span>
+<span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
+
+<span class="c1"># load your structure, e.g. from a POSCAR</span>
+<span class="n">struct</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;POSCAR&#39;</span><span class="p">)</span>
+
+<span class="c1"># create a custom input set</span>
+<span class="n">my_custom_input_set</span> <span class="o">=</span> <span class="n">MPRelaxSet</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">force_gamma</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;grid_density&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">}</span> <span class="p">)</span>
+
+<span class="c1"># create the workflow</span>
+<span class="n">my_wf</span> <span class="o">=</span> <span class="n">get_optimize_wf</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">vasp_input_set</span><span class="o">=</span><span class="n">my_custom_input_set</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you need more control, create the <code class="docutils literal"><span class="pre">Kpoints</span></code> object directly with pymatgen. It is flexible and only a brief example will be shown. See the <a class="reference external" href="http://pymatgen.org/pymatgen.io.vasp.inputs.html#pymatgen.io.vasp.inputs.Kpoints">full Kpoints documentation</a> for more</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.io.vasp.sets</span> <span class="kn">import</span> <span class="n">MPRelaxSet</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.vasp.inputs</span> <span class="kn">import</span> <span class="n">Kpoints</span>
+<span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
+
+<span class="c1"># load your structure, e.g. from a POSCAR</span>
+<span class="n">struct</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;POSCAR&#39;</span><span class="p">)</span>
+
+<span class="c1"># the simples way to do this is to create a subclass of the input set you want</span>
+<span class="c1"># and override the kpoints property to return what you want.</span>
+<span class="k">class</span> <span class="nc">MyInputSet</span><span class="p">(</span><span class="n">MPRelaxSet</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">),</span> <span class="n">shift</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MPRelaxSet</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">MPRelaxSet</span><span class="o">.</span><span class="n">CONFIG</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">points</span> <span class="o">=</span> <span class="n">points</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="n">shift</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">kpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># choose either of these</span>
+        <span class="c1"># use Monkhorst-Pack scheme</span>
+        <span class="k">return</span> <span class="n">Kpoints</span><span class="o">.</span><span class="n">monkhorst_automatic</span><span class="p">(</span><span class="n">kpts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">)</span>
+        <span class="c1"># use a Gamma centered scheme</span>
+        <span class="k">return</span> <span class="n">Kpoints</span><span class="o">.</span><span class="n">gamma_automatic</span><span class="p">(</span><span class="n">kpts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">)</span>
+
+<span class="c1"># create an instance of the custom input set</span>
+<span class="n">my_custom_input_set</span> <span class="o">=</span> <span class="n">MyInputSet</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">),</span> <span class="n">shift</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="c1"># show that the set applied</span>
+<span class="k">print</span><span class="p">(</span><span class="n">my_custom_input_set</span><span class="o">.</span><span class="n">kpoints</span><span class="p">)</span>
+
+<span class="c1"># create the workflow</span>
+<span class="n">my_wf</span> <span class="o">=</span> <span class="n">get_optimize_wf</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">vasp_input_set</span><span class="o">=</span><span class="n">my_custom_input_set</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="custom-incar-settings">
+<h3>Custom INCAR settings<a class="headerlink" href="#custom-incar-settings" title="Permalink to this headline">¶</a></h3>
+<p>Custom INCAR settings can also be accomplished using <code class="docutils literal"><span class="pre">VaspInputSet</span></code> objects, but it is often more efficient to use a <a class="reference external" href="powerups">add_modify_incar Powerup</a></p>
+</div>
+<div class="section" id="use-a-different-potcar">
+<h3>Use a different POTCAR<a class="headerlink" href="#use-a-different-potcar" title="Permalink to this headline">¶</a></h3>
+<p>Which POTCAR file you want to use is controlled by the input set as well. The easist way to control it is by updating the <code class="docutils literal"><span class="pre">config_dict</span></code> dictionary of your input set.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.io.vasp.sets</span> <span class="kn">import</span> <span class="n">MPRelaxSet</span>
+<span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
+
+<span class="c1"># load your structure, e.g. from a POSCAR</span>
+<span class="n">struct</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;POSCAR&#39;</span><span class="p">)</span>
+
+<span class="c1"># create a custom input set</span>
+<span class="n">my_custom_input_set</span> <span class="o">=</span> <span class="n">MPRelaxSet</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s1">&#39;Config dict example: {}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">my_custom_input_set</span><span class="o">.</span><span class="n">config_dict</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="s1">&#39;Before change: {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">my_custom_input_set</span><span class="o">.</span><span class="n">config_dict</span><span class="p">[</span><span class="s1">&#39;POTCAR&#39;</span><span class="p">][</span><span class="s1">&#39;Mg&#39;</span><span class="p">]))</span>
+<span class="n">my_custom_input_set</span><span class="o">.</span><span class="n">config_dict</span><span class="p">[</span><span class="s1">&#39;POTCAR&#39;</span><span class="p">][</span><span class="s1">&#39;Mg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Mg&#39;</span>
+<span class="k">print</span><span class="p">(</span><span class="s1">&#39;After change: {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">my_custom_input_set</span><span class="o">.</span><span class="n">config_dict</span><span class="p">[</span><span class="s1">&#39;POTCAR&#39;</span><span class="p">][</span><span class="s1">&#39;Mg&#39;</span><span class="p">]))</span>
+
+<span class="c1"># create the workflow</span>
+<span class="n">my_wf</span> <span class="o">=</span> <span class="n">get_optimize_wf</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">vasp_input_set</span><span class="o">=</span><span class="n">my_custom_input_set</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Make sure not to try a nested dictionary update (e.g. <code class="docutils literal"><span class="pre">my_custom_input_set.config_dict.update({'POTCAR':</span> <span class="pre">{'Mg':</span> <span class="pre">'Mg'}})</span></code> )! It will wipe out all of the other <code class="docutils literal"><span class="pre">POTCAR</span></code> entries in the dict.</p>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Customizing Workflows</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#objectives">Objectives</a></li>
+<li><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li><a class="reference internal" href="#powerups">Powerups</a></li>
+<li><a class="reference internal" href="#vasp-calculation-settings">VASP Calculation Settings</a><ul>
+<li><a class="reference internal" href="#using-a-different-functional">Using a different functional</a></li>
+<li><a class="reference internal" href="#custom-kpoints-settings">Custom KPOINTS settings</a></li>
+<li><a class="reference internal" href="#custom-incar-settings">Custom INCAR settings</a></li>
+<li><a class="reference internal" href="#use-a-different-potcar">Use a different POTCAR</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="creating_workflows.html"
+                        title="previous chapter">Creating Workflows</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="changelog.html"
+                        title="next chapter">atomate Changelog</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/customizing_workflows.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="changelog.html" title="atomate Changelog"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="creating_workflows.html" title="Creating Workflows"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, Anubhav Jain.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>
