@@ -1,0 +1,180 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Workflow YAML Reference &#8212; atomate 0.5.6 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.5.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Atomate concepts" href="concepts.html" />
+    <link rel="prev" title="License" href="license.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="concepts.html" title="Atomate concepts"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="license.html" title="License"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="workflow-yaml-reference">
+<span id="id1"></span><h1>Workflow YAML Reference<a class="headerlink" href="#workflow-yaml-reference" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>This document is a short reference for the features of atomate Workflows that you can control in YAML files. It aims to express all of the features that can make up a workflow. The benefit of YAML file workflows is that they are easy to understand and share, especially for non-programmers.</p>
+<p>For details on the YAML format, refer to the <a class="reference external" href="http://www.yaml.org/spec/1.2/spec.html">official YAML specification</a>.</p>
+</div>
+<div class="section" id="yaml-files-in-atomate">
+<h2>YAML Files in atomate<a class="headerlink" href="#yaml-files-in-atomate" title="Permalink to this headline">¶</a></h2>
+<p>The following illustrates an example of a YAML file that can be used in atwf to run a workflow. Unless there is an existing YAML Workflow for the workflow you are trying to create, you will have to determine which required and optional parameters to set. Every Workflow in atomate is required to have a structure as the first parameter. This is implied in all of the YAML files and does not need to be included.</p>
+<blockquote>
+<div>YAML format for the usual MP bandstructure workflow is given as follows:</div></blockquote>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">fireworks</span><span class="p p-Indicator">:</span>
+<span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">fw</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">atomate.vasp.fireworks.core.OptimizeFW</span>
+<span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">fw</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">atomate.vasp.fireworks.core.StaticFW</span>
+  <span class="l l-Scalar l-Scalar-Plain">params</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">parents</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">fw</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">atomate.vasp.fireworks.core.NonSCFUniformFW</span>
+  <span class="l l-Scalar l-Scalar-Plain">params</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">parents</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">fw</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">atomate.vasp.fireworks.core.NonSCFLineFW</span>
+  <span class="l l-Scalar l-Scalar-Plain">params</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">parents</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="l l-Scalar l-Scalar-Plain">common_params</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">db_file</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">db.json</span>
+  <span class="l l-Scalar l-Scalar-Plain">$vasp_cmd</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">$HOME/opt/vasp</span>
+<span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">bandstructure</span>
+<span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">tag</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">testing_workflow</span>
+</pre></div>
+</div>
+<p>At the top there is often a comment (hashtag) describing the workflow (not shown here).</p>
+<p>The <cite>fireworks</cite> key is a list of Fireworks; it is expected that
+all such Fireworks have “structure” as the first argument and
+other optional arguments following that. Each Firework is specified
+via “fw”: &lt;explicit path&gt;.</p>
+<p>You can pass arguments into the Firework constructor using the special
+keyword <cite>params</cite>, which is a dict. Any param starting with a $ will
+be expanded using environment variables. If multiple fireworks share
+the same <cite>params</cite>, you can use <cite>common_params</cite> to specify a common
+set of arguments that are passed to all fireworks. Local params
+take precedent over global params.</p>
+<p>Another special keyword is <cite>parents</cite>, which provides
+the <em>indices</em> of the parents of that particular Firework in the
+list. The indices start at zero, i.e, the first Firework in your list
+has zero. Thus, if you want the second Firework in the list to be a child
+of the first Firework, you should specify a parent of 0 for the Firework.
+Multiple parents are allowed. This allows you to link the Fireworks into a
+logical workflow.</p>
+<p>In the above example, we have:
+* the first Firework (OptimizeFW) will run before anything else
+* the second Firework (StaticFW) will run after the OptimizeFW is complete
+* the third and fourth Fireworks (NonSCFUniformFW and NonSCFLineFW) will
+run after the StaticFW is complete. Note these two Fireworks can run in parallel.</p>
+<p>Next, <cite>name</cite> is used to set the Workflow name (structure formula +
+name) which can be helpful in record keeping.</p>
+<p>Finally, one can specify a <cite>metadata</cite> key as a YAML dict/hash that will
+initialize workflow metadata - this is purely optional and for bookkeeping.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Workflow YAML Reference</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#yaml-files-in-atomate">YAML Files in atomate</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="license.html"
+                        title="previous chapter">License</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="concepts.html"
+                        title="next chapter">Atomate concepts</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/workflow_yaml_reference.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="concepts.html" title="Atomate concepts"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="license.html" title="License"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, Anubhav Jain.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

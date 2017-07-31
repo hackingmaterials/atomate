@@ -1,0 +1,562 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>atomate.vasp.builders package &#8212; atomate 0.5.6 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.5.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="atomate-vasp-builders-package">
+<h1>atomate.vasp.builders package<a class="headerlink" href="#atomate-vasp-builders-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-atomate.vasp.builders.bandgap_estimation">
+<span id="atomate-vasp-builders-bandgap-estimation-module"></span><h2>atomate.vasp.builders.bandgap_estimation module<a class="headerlink" href="#module-atomate.vasp.builders.bandgap_estimation" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.builders.bandgap_estimation.BandgapEstimationBuilder">
+<em class="property">class </em><code class="descclassname">atomate.vasp.builders.bandgap_estimation.</code><code class="descname">BandgapEstimationBuilder</code><span class="sig-paren">(</span><em>materials_write</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.bandgap_estimation.BandgapEstimationBuilder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="atomate.vasp.builders.bandgap_estimation.BandgapEstimationBuilder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>materials_write</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.bandgap_estimation.BandgapEstimationBuilder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starting with an existing materials collection with dielectric constant data, adds
+estimated band gaps that may be more accurate than typical GGA calculations.</p>
+<p>Run the “DielectricBuilder” before running this builder.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>materials_write: mongodb collection for materials (write access needed)</dd>
+</dl>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="atomate.vasp.builders.bandgap_estimation.BandgapEstimationBuilder.from_file">
+<em class="property">static </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>db_file</em>, <em>m='materials'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.bandgap_estimation.BandgapEstimationBuilder.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get builder using only a db file.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>db_file: (str) path to db file
+m: (str) name of “materials” collection
+<a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs: other parameters to feed into the builder, e.g. mapi_key</dd>
+<dt>Returns:</dt>
+<dd>BandgapEstimationBuilder</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.bandgap_estimation.BandgapEstimationBuilder.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.bandgap_estimation.BandgapEstimationBuilder.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.bandgap_estimation.BandgapEstimationBuilder.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.bandgap_estimation.BandgapEstimationBuilder.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.builders.base">
+<span id="atomate-vasp-builders-base-module"></span><h2>atomate.vasp.builders.base module<a class="headerlink" href="#module-atomate.vasp.builders.base" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.builders.base.AbstractBuilder">
+<em class="property">class </em><code class="descclassname">atomate.vasp.builders.base.</code><code class="descname">AbstractBuilder</code><a class="headerlink" href="#atomate.vasp.builders.base.AbstractBuilder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Abstract builder class. Defines the contract and must be subclassed by all builders.</p>
+<dl class="classmethod">
+<dt id="atomate.vasp.builders.base.AbstractBuilder.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.base.AbstractBuilder.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the builder from a db file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.base.AbstractBuilder.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.base.AbstractBuilder.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unset the building.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.base.AbstractBuilder.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.base.AbstractBuilder.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the builder.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.builders.boltztrap_materials">
+<span id="atomate-vasp-builders-boltztrap-materials-module"></span><h2>atomate.vasp.builders.boltztrap_materials module<a class="headerlink" href="#module-atomate.vasp.builders.boltztrap_materials" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.builders.boltztrap_materials.BoltztrapMaterialsBuilder">
+<em class="property">class </em><code class="descclassname">atomate.vasp.builders.boltztrap_materials.</code><code class="descname">BoltztrapMaterialsBuilder</code><span class="sig-paren">(</span><em>materials_write</em>, <em>boltztrap_read</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.boltztrap_materials.BoltztrapMaterialsBuilder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#atomate.vasp.builders.base.AbstractBuilder" title="atomate.vasp.builders.base.AbstractBuilder"><code class="xref py py-class docutils literal"><span class="pre">atomate.vasp.builders.base.AbstractBuilder</span></code></a></p>
+<dl class="method">
+<dt id="atomate.vasp.builders.boltztrap_materials.BoltztrapMaterialsBuilder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>materials_write</em>, <em>boltztrap_read</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.boltztrap_materials.BoltztrapMaterialsBuilder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update materials collection based on boltztrap collection.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>materials_write (pymongo.collection): mongodb collection for materials (write access needed)
+boltztrap_read (pymongo.collection): mongodb collection for boltztrap (suggest read-only for safety)</dd>
+</dl>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="atomate.vasp.builders.boltztrap_materials.BoltztrapMaterialsBuilder.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>db_file</em>, <em>m='materials'</em>, <em>b='boltztrap'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.boltztrap_materials.BoltztrapMaterialsBuilder.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a BoltztrapMaterialsBuilder using only a db file.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>db_file (str): path to db file
+m (str): name of “materials” collection
+b (str): name of “boltztrap” collection
+<a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs: other params to put into BoltztrapMaterialsBuilder</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.boltztrap_materials.BoltztrapMaterialsBuilder.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.boltztrap_materials.BoltztrapMaterialsBuilder.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.boltztrap_materials.BoltztrapMaterialsBuilder.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.boltztrap_materials.BoltztrapMaterialsBuilder.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.builders.dielectric">
+<span id="atomate-vasp-builders-dielectric-module"></span><h2>atomate.vasp.builders.dielectric module<a class="headerlink" href="#module-atomate.vasp.builders.dielectric" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.builders.dielectric.DielectricBuilder">
+<em class="property">class </em><code class="descclassname">atomate.vasp.builders.dielectric.</code><code class="descname">DielectricBuilder</code><span class="sig-paren">(</span><em>materials_write</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.dielectric.DielectricBuilder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="atomate.vasp.builders.dielectric.DielectricBuilder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>materials_write</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.dielectric.DielectricBuilder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starting with an existing materials collection, adds some averages and 
+eigenvalues for dielectric constants rather than just the tensor</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>materials_write: mongodb collection for materials (write access needed)</dd>
+</dl>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="atomate.vasp.builders.dielectric.DielectricBuilder.from_file">
+<em class="property">static </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>db_file</em>, <em>m='materials'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.dielectric.DielectricBuilder.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a MaterialsEhullBuilder using only a db file.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>db_file: (str) path to db file
+m: (str) name of “materials” collection
+<a href="#id5"><span class="problematic" id="id6">**</span></a>kwargs: other parameters to feed into the builder, e.g. mapi_key</dd>
+<dt>Returns:</dt>
+<dd>DielectricBuilder</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.dielectric.DielectricBuilder.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.dielectric.DielectricBuilder.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.dielectric.DielectricBuilder.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.dielectric.DielectricBuilder.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.builders.file_materials">
+<span id="atomate-vasp-builders-file-materials-module"></span><h2>atomate.vasp.builders.file_materials module<a class="headerlink" href="#module-atomate.vasp.builders.file_materials" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.builders.file_materials.FileMaterialsBuilder">
+<em class="property">class </em><code class="descclassname">atomate.vasp.builders.file_materials.</code><code class="descname">FileMaterialsBuilder</code><span class="sig-paren">(</span><em>materials_write</em>, <em>data_file</em>, <em>delimiter='</em>, <em>'</em>, <em>header_lines=0</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.file_materials.FileMaterialsBuilder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#atomate.vasp.builders.base.AbstractBuilder" title="atomate.vasp.builders.base.AbstractBuilder"><code class="xref py py-class docutils literal"><span class="pre">atomate.vasp.builders.base.AbstractBuilder</span></code></a></p>
+<dl class="method">
+<dt id="atomate.vasp.builders.file_materials.FileMaterialsBuilder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>materials_write</em>, <em>data_file</em>, <em>delimiter='</em>, <em>'</em>, <em>header_lines=0</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.file_materials.FileMaterialsBuilder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the database using a data file. Format of file must be:
+&lt;material_id or formula&gt;, &lt;property&gt;, &lt;value&gt;</p>
+<p>Comment lines should <em>start</em> with ‘#’.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>materials_write: mongodb collection for materials (write access needed)
+data_file (str): path to data file
+delimiter (str): delimiter for file parsing
+header_lines (int): number of header lines to skip in data file</dd>
+</dl>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="atomate.vasp.builders.file_materials.FileMaterialsBuilder.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>db_file</em>, <em>data_file=None</em>, <em>m='materials'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.file_materials.FileMaterialsBuilder.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a FileMaterialsBuilder using only a db file.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>db_file (str): path to db file
+data_file (str): path to data file
+m (str): name of “materials” collection
+<a href="#id7"><span class="problematic" id="id8">**</span></a>kwargs: other parameters to feed into the builder, e.g. mapi_key</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.file_materials.FileMaterialsBuilder.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.file_materials.FileMaterialsBuilder.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.file_materials.FileMaterialsBuilder.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.file_materials.FileMaterialsBuilder.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.builders.fix_tasks">
+<span id="atomate-vasp-builders-fix-tasks-module"></span><h2>atomate.vasp.builders.fix_tasks module<a class="headerlink" href="#module-atomate.vasp.builders.fix_tasks" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.builders.fix_tasks.FixTasksBuilder">
+<em class="property">class </em><code class="descclassname">atomate.vasp.builders.fix_tasks.</code><code class="descname">FixTasksBuilder</code><span class="sig-paren">(</span><em>tasks_write</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.fix_tasks.FixTasksBuilder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#atomate.vasp.builders.base.AbstractBuilder" title="atomate.vasp.builders.base.AbstractBuilder"><code class="xref py py-class docutils literal"><span class="pre">atomate.vasp.builders.base.AbstractBuilder</span></code></a></p>
+<dl class="method">
+<dt id="atomate.vasp.builders.fix_tasks.FixTasksBuilder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>tasks_write</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.fix_tasks.FixTasksBuilder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fix historical problems in the tasks database</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>tasks_write (pymongo.collection): mongodb collection for tasks (write access needed)</dd>
+</dl>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="atomate.vasp.builders.fix_tasks.FixTasksBuilder.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>db_file</em>, <em>t='tasks'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.fix_tasks.FixTasksBuilder.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a FixTasksBuilder using only a db file.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>db_file (str): path to db file
+t (str): name of “tasks” collection
+<a href="#id9"><span class="problematic" id="id10">**</span></a>kwargs: other params to put into FixTasksBuilder</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.fix_tasks.FixTasksBuilder.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.fix_tasks.FixTasksBuilder.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.fix_tasks.FixTasksBuilder.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.fix_tasks.FixTasksBuilder.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.builders.materials_descriptor">
+<span id="atomate-vasp-builders-materials-descriptor-module"></span><h2>atomate.vasp.builders.materials_descriptor module<a class="headerlink" href="#module-atomate.vasp.builders.materials_descriptor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.builders.materials_descriptor.MaterialsDescriptorBuilder">
+<em class="property">class </em><code class="descclassname">atomate.vasp.builders.materials_descriptor.</code><code class="descname">MaterialsDescriptorBuilder</code><span class="sig-paren">(</span><em>materials_write</em>, <em>update_all=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.materials_descriptor.MaterialsDescriptorBuilder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#atomate.vasp.builders.base.AbstractBuilder" title="atomate.vasp.builders.base.AbstractBuilder"><code class="xref py py-class docutils literal"><span class="pre">atomate.vasp.builders.base.AbstractBuilder</span></code></a></p>
+<dl class="method">
+<dt id="atomate.vasp.builders.materials_descriptor.MaterialsDescriptorBuilder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>materials_write</em>, <em>update_all=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.materials_descriptor.MaterialsDescriptorBuilder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starting with an existing materials collection, adds some compositional and structural
+descriptors.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>materials_write: mongodb collection for materials (write access needed)
+update_all: (bool) - if true, updates all docs. If false, updates incrementally</dd>
+</dl>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="atomate.vasp.builders.materials_descriptor.MaterialsDescriptorBuilder.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>db_file</em>, <em>m='materials'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.materials_descriptor.MaterialsDescriptorBuilder.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a MaterialsDescriptorBuilder using only a db file.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>db_file: (str) path to db file
+m: (str) name of “materials” collection
+<a href="#id11"><span class="problematic" id="id12">**</span></a>kwargs: other parameters to feed into the builder</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.materials_descriptor.MaterialsDescriptorBuilder.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.materials_descriptor.MaterialsDescriptorBuilder.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.materials_descriptor.MaterialsDescriptorBuilder.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.materials_descriptor.MaterialsDescriptorBuilder.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.builders.materials_ehull">
+<span id="atomate-vasp-builders-materials-ehull-module"></span><h2>atomate.vasp.builders.materials_ehull module<a class="headerlink" href="#module-atomate.vasp.builders.materials_ehull" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.builders.materials_ehull.MaterialsEhullBuilder">
+<em class="property">class </em><code class="descclassname">atomate.vasp.builders.materials_ehull.</code><code class="descname">MaterialsEhullBuilder</code><span class="sig-paren">(</span><em>materials_write</em>, <em>mapi_key=None</em>, <em>update_all=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.materials_ehull.MaterialsEhullBuilder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#atomate.vasp.builders.base.AbstractBuilder" title="atomate.vasp.builders.base.AbstractBuilder"><code class="xref py py-class docutils literal"><span class="pre">atomate.vasp.builders.base.AbstractBuilder</span></code></a></p>
+<dl class="method">
+<dt id="atomate.vasp.builders.materials_ehull.MaterialsEhullBuilder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>materials_write</em>, <em>mapi_key=None</em>, <em>update_all=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.materials_ehull.MaterialsEhullBuilder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starting with an existing materials collection, adds stability information and
+The Materials Project ID.
+Args:</p>
+<blockquote>
+<div><p>materials_write: mongodb collection for materials (write access needed)
+mapi_key: (str) Materials API key (if MAPI_KEY env. var. not set)
+update_all: (bool) - if true, updates all docs. If false, only updates</p>
+<blockquote>
+<div>docs w/o a stability key</div></blockquote>
+</div></blockquote>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="atomate.vasp.builders.materials_ehull.MaterialsEhullBuilder.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>db_file</em>, <em>m='materials'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.materials_ehull.MaterialsEhullBuilder.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a MaterialsEhullBuilder using only a db file
+Args:</p>
+<blockquote>
+<div>db_file: (str) path to db file
+m: (str) name of “materials” collection
+<a href="#id13"><span class="problematic" id="id14">**</span></a>kwargs: other parameters to feed into the builder, e.g. mapi_key</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.materials_ehull.MaterialsEhullBuilder.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.materials_ehull.MaterialsEhullBuilder.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.materials_ehull.MaterialsEhullBuilder.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.materials_ehull.MaterialsEhullBuilder.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.builders.tags">
+<span id="atomate-vasp-builders-tags-module"></span><h2>atomate.vasp.builders.tags module<a class="headerlink" href="#module-atomate.vasp.builders.tags" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.builders.tags.TagsBuilder">
+<em class="property">class </em><code class="descclassname">atomate.vasp.builders.tags.</code><code class="descname">TagsBuilder</code><span class="sig-paren">(</span><em>materials_write</em>, <em>tasks_read</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tags.TagsBuilder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#atomate.vasp.builders.base.AbstractBuilder" title="atomate.vasp.builders.base.AbstractBuilder"><code class="xref py py-class docutils literal"><span class="pre">atomate.vasp.builders.base.AbstractBuilder</span></code></a></p>
+<dl class="method">
+<dt id="atomate.vasp.builders.tags.TagsBuilder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>materials_write</em>, <em>tasks_read</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tags.TagsBuilder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starting with an existing materials collection, searches all its component tasks for 
+the “tags” and key in the tasks collection and copies them to the materials collection.
+Thus, the “tags” for a material will be the union of all the tags for its component tasks.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>materials_write (pymongo.collection): materials collection with write access.
+tasks_read (pymongo.collection): read-only(for safety) tasks collection.</dd>
+</dl>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="atomate.vasp.builders.tags.TagsBuilder.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>db_file</em>, <em>m='materials'</em>, <em>t='tasks'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tags.TagsBuilder.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a TagsCollector using only a db file.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>db_file (str): path to db file
+m (str): name of “materials” collection
+<a href="#id15"><span class="problematic" id="id16">**</span></a>kwargs: other parameters to feed into the builder, e.g. update_all</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.tags.TagsBuilder.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tags.TagsBuilder.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.tags.TagsBuilder.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tags.TagsBuilder.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.builders.tasks_materials">
+<span id="atomate-vasp-builders-tasks-materials-module"></span><h2>atomate.vasp.builders.tasks_materials module<a class="headerlink" href="#module-atomate.vasp.builders.tasks_materials" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder">
+<em class="property">class </em><code class="descclassname">atomate.vasp.builders.tasks_materials.</code><code class="descname">TasksMaterialsBuilder</code><span class="sig-paren">(</span><em>materials_write</em>, <em>counter_write</em>, <em>tasks_read</em>, <em>tasks_prefix='t'</em>, <em>materials_prefix='m'</em>, <em>query=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#atomate.vasp.builders.base.AbstractBuilder" title="atomate.vasp.builders.base.AbstractBuilder"><code class="xref py py-class docutils literal"><span class="pre">atomate.vasp.builders.base.AbstractBuilder</span></code></a></p>
+<dl class="method">
+<dt id="atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>materials_write</em>, <em>counter_write</em>, <em>tasks_read</em>, <em>tasks_prefix='t'</em>, <em>materials_prefix='m'</em>, <em>query=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a materials collection from a tasks collection.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>materials_write (pymongo.collection): mongodb collection for materials (write access needed)
+counter_write (pymongo.collection): mongodb collection for counter (write access needed)
+tasks_read (pymongo.collection): mongodb collection for tasks (suggest read-only for safety)
+tasks_prefix (str): a string prefix for tasks, e.g. “t” gives a task_id like “t-132”
+materials_prefix (str): a string prefix to prepend to material_ids
+query (dict): a pymongo query on tasks_read for which tasks to include in the builder</dd>
+</dl>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>db_file</em>, <em>m='materials'</em>, <em>c='counter'</em>, <em>t='tasks'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a TaskMaterialsBuilder using only a db file.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>db_file (str): path to db file
+m (str): name of “materials” collection
+c (str): name of “counter” collection
+t (str): name of “tasks” collection
+<a href="#id17"><span class="problematic" id="id18">**</span></a>kwargs: other params to put into TasksMaterialsBuilder</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.mid_to_str">
+<code class="descname">mid_to_str</code><span class="sig-paren">(</span><em>material_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.mid_to_str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.tid_to_int">
+<em class="property">static </em><code class="descname">tid_to_int</code><span class="sig-paren">(</span><em>task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.tid_to_int" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.tid_to_str">
+<code class="descname">tid_to_str</code><span class="sig-paren">(</span><em>task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.tid_to_str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.builders">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.vasp.builders" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">atomate.vasp.builders package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.builders.bandgap_estimation">atomate.vasp.builders.bandgap_estimation module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.builders.base">atomate.vasp.builders.base module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.builders.boltztrap_materials">atomate.vasp.builders.boltztrap_materials module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.builders.dielectric">atomate.vasp.builders.dielectric module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.builders.file_materials">atomate.vasp.builders.file_materials module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.builders.fix_tasks">atomate.vasp.builders.fix_tasks module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.builders.materials_descriptor">atomate.vasp.builders.materials_descriptor module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.builders.materials_ehull">atomate.vasp.builders.materials_ehull module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.builders.tags">atomate.vasp.builders.tags module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.builders.tasks_materials">atomate.vasp.builders.tasks_materials module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.builders">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/atomate.vasp.builders.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, Anubhav Jain.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,370 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>atomate (Materials Science Workflows) &#8212; atomate 0.5.6 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.5.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installing atomate" href="installation.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installing atomate"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">atomate 0.5.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <img alt="atomate logo" src="_images/atomate_logo_small.png" />
+<blockquote class="pull-quote">
+<div><div class="line-block">
+<div class="line">“Civilization advances by extending the number of important operations which we can perform without thinking about them.”</div>
+<div class="line-block">
+<div class="line">- Alfred North Whitehead</div>
+</div>
+</div>
+</div></blockquote>
+<div class="section" id="atomate">
+<h1>atomate<a class="headerlink" href="#atomate" title="Permalink to this headline">¶</a></h1>
+<p>Theory and computations are powerful tools for understanding and designing materials, but conventional
+software for performing these computations are still difficult to use, understand, and automate.
+atomate makes it possible to perform complex materials science computations using
+very straightforward statements. Features of atomate include:</p>
+<ul class="simple">
+<li>It is built on top of state-of-the-art open-source libraries: <strong>pymatgen</strong>, <strong>custodian</strong>, and <strong>FireWorks</strong>. Building off these libraries means that atomate can not only serve as a simple and friendly introduction to computational materials science, but that it is powerful enough for even the most demanding of theory users that require precise control and massive execution.</li>
+<li>It is easy to get “standard” workflows for a wide variety of desired materials properties - optimized structures, band structures, electronic transport properties, dielectric constants, and much more. Just provide a crystal structure (that’s it!) and let atomate set up a complete workflow that provides the property you are interested in. You can do this for a single material, 100 materials, or 100,000 materials.</li>
+<li>One can easily change “standard workflows” - whether that is changing some of the default calculation parameters or recomposing the workflow (adding new calculations, removing steps, etc.) - using a very expressive syntax. One can compose very complex new workflows simply by chaining together pre-built calculation steps.</li>
+<li>A system of “powerups” that let you quickly decorate a bare workflow with useful special properties. Just feed the workflow through the powerup and your workflow will have the feature enabled. A config file allows you to automatically set the powerups you want to apply most often.</li>
+<li>It can build large databases of output properties that you can query, analyze, and share in a systematic way.</li>
+<li>It automatically keeps meticulous records of jobs, their directories, runtime parameters, etc.</li>
+<li>Jobs can be run on a variety of computing systems, queue systems, and architectures.</li>
+<li>atomate uses a standard interface for adding new types of calculations and workflows such that it is possible for users to contribute new features and grow the capabilities of the software over time.</li>
+</ul>
+<p><strong>Note</strong>: Atomate is primarily built to work with the <a class="reference external" href="https://www.vasp.at">VASP</a> electronic structure software, but it is the intention of atomate to support a variety of software. For example, <a class="reference external" href="http://leonardo.phys.washington.edu">FEFF</a> software integration has been recently added and other calculation packages are also under development.</p>
+</div>
+<div class="section" id="workflows">
+<h1>Workflows<a class="headerlink" href="#workflows" title="Permalink to this headline">¶</a></h1>
+<div class="figure" id="id1">
+<a class="reference internal image-reference" href="_images/example.png"><img alt="Example outputs" src="_images/example.png" style="width: 709.5px; height: 317.5px;" /></a>
+<p class="caption"><span class="caption-text">Example of GaP band structure (left) computed via atomate/VASP and La0.7Sr0.3MnO3 ELNES spectra (right) computed via atomate/FEFF.</span></p>
+</div>
+<p>Some of the workflows available as of June 2017 are:</p>
+<ul class="simple">
+<li>electronic band structures</li>
+<li>BoltzTraP</li>
+<li>full elastic tensor</li>
+<li>equation of state</li>
+<li>piezoelectric tensor</li>
+<li>dielectric tensor</li>
+<li>ferroelectricity</li>
+<li>nudged elastic band</li>
+<li>Raman spectroscopy</li>
+<li>XAS and EELS spectra (FEFF package)</li>
+</ul>
+<p>One can customize any of the above workflows. Also, one can create new workflows - either from scratch, or by reusing components from the above workflows (atomate’s infrastructure makes this simple). For the VASP package, raw workflows (more parameter settings) are in <code class="docutils literal"><span class="pre">atomate/vasp/workflows/base</span></code> and preset workflows (generally only require a crystal structure) are in <code class="docutils literal"><span class="pre">atomate/vasp/workflows/presets</span></code>. Other packages should have corresponding directories.</p>
+</div>
+<div class="section" id="the-basics">
+<h1>The basics<a class="headerlink" href="#the-basics" title="Permalink to this headline">¶</a></h1>
+<div class="figure" id="id2">
+<a class="reference internal image-reference" href="_images/bandstructure_wf.png"><img alt="Band structure workflow" src="_images/bandstructure_wf.png" style="width: 499.75px; height: 239.0px;" /></a>
+<p class="caption"><span class="caption-text">Anatomy of a band structure workflow consisting of 4 separate calculations (Fireworks) and for which each calculation has multiple steps (Firetasks). The anatomy of this workflow is covered in more detail in the atomate tutorials.</span></p>
+</div>
+<div class="section" id="the-basics-of-setting-up-and-running-calculations">
+<h2>The basics of setting up and running calculations<a class="headerlink" href="#the-basics-of-setting-up-and-running-calculations" title="Permalink to this headline">¶</a></h2>
+<p>The main function of atomate’s automatic calculation infrastructure is to help the user generate Workflow objects as defined by the FireWorks workflow software. Once the user has a Workflow object, they can use the FireWorks package to store, manage, organize, and execute the calculations on various types of computing resources in a very general way. All the nitty-gritty details of the Workflow object and its execution are in the <a class="reference external" href="https://materialsproject.github.io/fireworks">FireWorks documentation</a>. The atomate docs and tutorials will walk you through the most important points of how to define and execute Workflows, but to learn all the possible features (e.g., monitoring the status of your calculations through a web interface, reprioritizing jobs, etc.), check the FireWorks documentation.</p>
+<p>Atomate itself makes it easy for users to get Workflow objects for many types of simulation procedures. In the simplest case, the user just provides a crystal structure and atomate will return a fully-functioning Workflow - even for complex simulation procedures. Thus, atomate encapsulates methods of performing simulations and materials analysis procedures into reproducible Workflow objects that can be run across multiple computing systems. In addition, atomate provides multiple ways for you to customize these workflows as needed, thus letting you decide whether important parameters should be determined automatically or whether they should be manually overridden. These features and file I/O with various codes are largely provided by the <a class="reference external" href="http://www.pymatgen.org">pymatgen</a> library.</p>
+</div>
+<div class="section" id="the-basics-of-parsing-calculation-results">
+<h2>The basics of parsing calculation results<a class="headerlink" href="#the-basics-of-parsing-calculation-results" title="Permalink to this headline">¶</a></h2>
+<p>Most workflows defined by atomate not only execute a calculation but also contain steps to analyze the output files and, optionally, store the results in a user-friendly database where they can be easily searched. Much of the infrastructure to parse various file output types is provided by pymatgen and the database technology used to store results is MongoDB. In general, each calculation is represented by a single document in MongoDB that summarizes the important inputs and outputs. Atomate also includes “builders” that combine the results from multiple calculations into higher-level analyses. A simple example of this is to compile all the various calculations on a given crystal structure to provide a summary report of all computed properties for that structure. The builders package in atomate allows one to get high-level summaries of calculation results, which becomes particularly important when running many calculations. Note that plotting and other high-level analyses can be performed by the pymatgen package.</p>
+</div>
+</div>
+<div class="section" id="what-s-new">
+<h1>What’s new?<a class="headerlink" href="#what-s-new" title="Permalink to this headline">¶</a></h1>
+<p>Track changes to atomate through the <a class="reference internal" href="changelog.html"><span class="doc">atomate Changelog</span></a>.</p>
+</div>
+<div class="section" id="citing-atomate">
+<h1>Citing atomate<a class="headerlink" href="#citing-atomate" title="Permalink to this headline">¶</a></h1>
+<p>A paper on atomate is in submission. For now, you can cite the following two works:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>(1) Jain, A.; Ong, S. P.; Chen, W.; Medasani, B.; Qu, X.; Kocher, M.;
+Brafman, M.; Petretto, G.; Rignanese, G.-M.; Hautier, G.; Gunter, D.;
+Persson, K. A. FireWorks: a dynamic workflow system designed for
+high-throughput applications, Concurr. Comput. Pract. Exp., 2015, 22,
+doi:10.1002/cpe.3505.
+
+(2) Ong, S. P.; Richards, W. D.; Jain, A.; Hautier, G.; Kocher, M.; Cholia,
+S.; Gunter, D.; Chevrier, V. L.; Persson, K. a.; Ceder, G. Python Materials
+Genomics (pymatgen): A robust, open-source python library for materials
+analysis, Comput. Mater. Sci., 2013, 68, 314–319,
+doi:10.1016/j.commatsci.2012.10.028.
+</pre></div>
+</div>
+</div>
+<div class="section" id="contributing-contact-support">
+<span id="contributing-label"></span><h1>Contributing / Contact / Support<a class="headerlink" href="#contributing-contact-support" title="Permalink to this headline">¶</a></h1>
+<p>Want to see something added or changed? There are many ways to make that a reality! Some ways to get involved are:</p>
+<ul class="simple">
+<li>Help us improve the documentation - tell us where you got ‘stuck’ and improve the install process for everyone.</li>
+<li>Let us know if you need support for a queueing system or certain features.</li>
+<li>Point us to areas of the code that are difficult to understand or use.</li>
+<li>Contribute code! You can do this by forking <a class="reference external" href="https://github.com/hackingmaterials/atomate">atomate on Github</a> and submitting a pull request.</li>
+</ul>
+<p>The list of contributors to atomate can be found <a class="reference internal" href="contributors.html"><span class="doc">here</span></a>.</p>
+<p>There is an <a class="reference external" href="https://groups.google.com/forum/#!forum/atomate">atomate Google Group</a> dedicated to discussion and basic support.</p>
+</div>
+<div class="section" id="license">
+<h1>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h1>
+<p>atomate is released under a modified BSD license; the full text can be found <a class="reference internal" href="license.html"><span class="doc">here</span></a>.</p>
+</div>
+<div class="section" id="documentation-tutorials">
+<h1>Documentation &amp; Tutorials<a class="headerlink" href="#documentation-tutorials" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installing atomate</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#objectives">Objectives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#installation-checklist">Installation checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#automated-installer">Automated installer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#prerequisites">Prerequisites</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#vasp">VASP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#mongodb">MongoDB</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#create-a-directory-scaffold-for-atomate">Create a directory scaffold for atomate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#create-a-python-virtual-environment">Create a Python virtual environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#install-python-packages">Install Python packages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#configure-fireworks">Configure FireWorks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#db-json">db.json</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#my-fworker-yaml">my_fworker.yaml</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#my-launchpad-yaml">my_launchpad.yaml</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#my-qadapter-yaml">my_qadapter.yaml</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#fw-config-yaml">FW_config.yaml</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#finishing-up">Finishing up</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#configure-pymatgen">Configure pymatgen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#run-vasp-unit-tests">Run VASP unit tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#run-a-test-workflow">Run a test workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#troubleshooting-and-faq">Troubleshooting and FAQ:</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#q-i-can-t-connect-to-my-launchpad-database">Q: I can’t connect to my LaunchPad database</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#q-my-job-fizzled">Q: My job fizzled!</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#q-i-made-a-mistake-how-do-i-cancel-my-job">Q: I made a mistake, how do I cancel my job?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#q-i-honestly-tried-everything-i-can-to-solve-my-problem-i-still-need-help">Q: I honestly tried everything I can to solve my problem. I still need help!</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#footnotes">Footnotes</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="running-workflows">
+<h2>Running workflows<a class="headerlink" href="#running-workflows" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="running_workflows.html">Running Workflows Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="running_workflows.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="running_workflows.html#objectives">Objectives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="running_workflows.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="running_workflows.html#equation-of-state-workflows">Equation of State Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="running_workflows.html#running-an-equation-of-state-workflow">Running an Equation of State Workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="running_workflows.html#setup">Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="running_workflows.html#create-the-structure">Create the structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="running_workflows.html#option-1-use-a-pre-defined-workflow-in-atomate">Option 1: Use a pre-defined workflow in atomate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="running_workflows.html#option-2-create-your-own-workflow-file">Option 2: Create your own workflow file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="running_workflows.html#option-3-use-python-to-generate-and-add-the-workflow">Option 3: use Python to generate and add the workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="running_workflows.html#running-the-workflow">Running the workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="running_workflows.html#analyzing-an-equation-of-state-workflow">Analyzing an Equation of State Workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="running_workflows.html#querying-the-results">Querying the results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="running_workflows.html#analyzing-the-results">Analyzing the results</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="running_workflows.html#conclusion">Conclusion</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="creating-and-customizing-workflows">
+<h2>Creating and customizing workflows<a class="headerlink" href="#creating-and-customizing-workflows" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="creating_workflows.html">Creating Workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="creating_workflows.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="creating_workflows.html#objectives">Objectives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="creating_workflows.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="creating_workflows.html#fireworks-background">FireWorks Background</a></li>
+<li class="toctree-l2"><a class="reference internal" href="creating_workflows.html#creating-atomate-workflows">Creating atomate Workflows</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="creating_workflows.html#sketch-the-workflow">Sketch the workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="creating_workflows.html#finding-fireworks">Finding Fireworks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="creating_workflows.html#creating-the-workflow">Creating the workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="creating_workflows.html#more-help">More help</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="creating_workflows.html#modifying-workflows">Modifying workflows</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="creating_workflows.html#powerups">Powerups</a></li>
+<li class="toctree-l3"><a class="reference internal" href="creating_workflows.html#env-chk">env_chk</a></li>
+<li class="toctree-l3"><a class="reference internal" href="creating_workflows.html#passcalclocs">PassCalcLocs</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="creating_workflows.html#conclusion">Conclusion</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="customizing_workflows.html">Customizing Workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="customizing_workflows.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="customizing_workflows.html#objectives">Objectives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="customizing_workflows.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="customizing_workflows.html#powerups">Powerups</a></li>
+<li class="toctree-l2"><a class="reference internal" href="customizing_workflows.html#vasp-calculation-settings">VASP Calculation Settings</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="customizing_workflows.html#using-a-different-functional">Using a different functional</a></li>
+<li class="toctree-l3"><a class="reference internal" href="customizing_workflows.html#custom-kpoints-settings">Custom KPOINTS settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="customizing_workflows.html#custom-incar-settings">Custom INCAR settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="customizing_workflows.html#use-a-different-potcar">Use a different POTCAR</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="changelog-contributors-license">
+<h2>Changelog, contributors, license<a class="headerlink" href="#changelog-contributors-license" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">atomate Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributors.html">Contributors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="workflow_yaml_reference.html">Workflow YAML Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">Atomate concepts</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="code-documentation">
+<h1>Code documentation<a class="headerlink" href="#code-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Autogenerated code documentation below:</p>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">atomate</a></li>
+<li><a class="reference internal" href="#workflows">Workflows</a></li>
+<li><a class="reference internal" href="#the-basics">The basics</a><ul>
+<li><a class="reference internal" href="#the-basics-of-setting-up-and-running-calculations">The basics of setting up and running calculations</a></li>
+<li><a class="reference internal" href="#the-basics-of-parsing-calculation-results">The basics of parsing calculation results</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#what-s-new">What’s new?</a></li>
+<li><a class="reference internal" href="#citing-atomate">Citing atomate</a></li>
+<li><a class="reference internal" href="#contributing-contact-support">Contributing / Contact / Support</a></li>
+<li><a class="reference internal" href="#license">License</a></li>
+<li><a class="reference internal" href="#documentation-tutorials">Documentation &amp; Tutorials</a><ul>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#running-workflows">Running workflows</a></li>
+<li><a class="reference internal" href="#creating-and-customizing-workflows">Creating and customizing workflows</a></li>
+<li><a class="reference internal" href="#changelog-contributors-license">Changelog, contributors, license</a></li>
+<li><a class="reference internal" href="#reference">Reference</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#code-documentation">Code documentation</a></li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="next chapter">Installing atomate</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installing atomate"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">atomate 0.5.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, Anubhav Jain.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>
