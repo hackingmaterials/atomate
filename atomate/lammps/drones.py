@@ -116,7 +116,7 @@ class LammpsDrone(AbstractDrone):
             dir_name (str): path to the run dir.
             lmps_input (LammpsInput/LammpsInputSet):
             log (LammpsLog):
-            dumps ([LammpsDump]): list of dumps
+            dumps ([(filename, LammpsDump)]): list of (dump filename, dump) tuples
 
         Returns:
             dict
