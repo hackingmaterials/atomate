@@ -57,7 +57,7 @@ class LammpsDrone(AbstractDrone):
             log_filename (str): lammps log file name
             is_forcefield (bool): whether or not ot parse forcefield info
             data_filename (str): name of the data file
-            dump_file ([str]): list of dump file names
+            dump_files ([str]): list of dump file names
 
         Returns:
             dict
@@ -77,7 +77,7 @@ class LammpsDrone(AbstractDrone):
         dumps = []
         if dump_files:
             for df in dump_files:
-                dumps.append(LammpsDump.from_file(os.path.join(path, df)))
+                dumps.append((df, LammpsDump.from_file(os.path.join(path, df))))
 
         # log
         log = LammpsLog(log_file=log_file)
@@ -88,7 +88,7 @@ class LammpsDrone(AbstractDrone):
         lmps_run = None
         if len(dump_files) == 1 and data_file:
             lmps_run = LammpsRun(data_file, dump_files[0], log_file=log_filename,
-                                 is_forcefield = is_forcefield)
+                                 is_forcefield=is_forcefield)
 
         self.post_process(d, lmps_run)
 
@@ -132,7 +132,7 @@ class LammpsDrone(AbstractDrone):
             d["last_updated"] = datetime.today()
             d["input"] = lmps_input.as_dict()
             d["output"] = {"log": log.as_dict()}
-            d["output"]["dumps"] = [dmp.as_dict() for dmp in dumps]
+            d["output"]["dumps"] = dict([(dump_fname, dmp.as_dict()) for dump_fname, dmp in dumps])
             return d
 
         except:
