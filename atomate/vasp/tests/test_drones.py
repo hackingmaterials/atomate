@@ -79,7 +79,7 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
             self.assertFalse(d["is_gap_direct"])
             self.assertTrue(d["is_metal"])
 
-    def test_volumetric(self):
+    def test_detect_datafiles(self):
         drone = VaspDrone()
         doc = drone.assimilate(self.Si_static)
 
