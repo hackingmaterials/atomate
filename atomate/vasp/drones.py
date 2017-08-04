@@ -319,7 +319,7 @@ class VaspDrone(AbstractDrone):
         d["output"]["is_metal"] = bs.is_metal()
         d["task"] = {"type": taskname, "name": taskname}
 
-        d["volumetric_data"] = self.process_volumetric(dir_name, taskname=taskname)
+        d["datafiles"] = self.process_raw_data(dir_name, taskname=taskname)
 
         if hasattr(vrun, "force_constants"):
             # phonon-dfpt
@@ -328,17 +328,18 @@ class VaspDrone(AbstractDrone):
             d["output"]["normalmode_eigenvecs"] = vrun.normalmode_eigenvecs.tolist()
         return d
 
-    def process_volumetric(self, dir_name, taskname="standard"):
+    def process_raw_data(self, dir_name, taskname="standard"):
         """
-        It is useful to store what volumetric data has been
-        calculated.
+        It is useful to store what raw data has been calculated
+        and exists for easier querying of the taskdoc.
 
         :param dir_name: directory to search
         :param taskname: taskname, e.g. "relax1"
         :return: dict of files present
         """
         d = {}
-        possible_files = ('CHGCAR', 'LOCPOT', 'AECCAR0', 'AECCAR1', 'AECCAR2', 'ELFCAR')
+        possible_files = ('CHGCAR', 'LOCPOT', 'AECCAR0', 'AECCAR1', 'AECCAR2',
+                          'ELFCAR', 'WAVECAR', 'PROCAR', 'OPTIC')
         for f in possible_files:
             files = self.filter_files(dir_name, file_pattern=f)
             if taskname in files:

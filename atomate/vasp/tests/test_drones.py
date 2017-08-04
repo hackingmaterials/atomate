@@ -88,12 +88,15 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
             'locpot': 'LOCPOT.gz',
             'aeccar0': 'AECCAR0.gz',
             'aeccar1': 'AECCAR1.gz',
-            'aeccar2': 'AECCAR2.gz'
-        }, doc['calcs_reversed'][0]['volumetric_data'])
+            'aeccar2': 'AECCAR2.gz',
+            'procar': 'PROCAR.gz',
+            'wavecar': 'WAVECAR.gz'
+        }, doc['calcs_reversed'][0]['datafiles'])
 
         doc = drone.assimilate(self.relax2)
-        self.assertDictEqual({'chgcar': 'CHGCAR.relax1.gz'},
-                             doc['calcs_reversed'][1]['volumetric_data'])
+        self.assertDictEqual({'chgcar': 'CHGCAR.relax1.gz', 'procar': 'PROCAR.relax1.gz',
+                              'wavecar': 'WAVECAR.relax1.gz'},
+                             doc['calcs_reversed'][1]['datafiles'])
 
 if __name__ == "__main__":
     unittest.main()
