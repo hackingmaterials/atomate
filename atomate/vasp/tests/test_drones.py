@@ -79,7 +79,7 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
             self.assertFalse(d["is_gap_direct"])
             self.assertTrue(d["is_metal"])
 
-    def test_detect_datafiles(self):
+    def test_detect_output_file_paths(self):
         drone = VaspDrone()
         doc = drone.assimilate(self.Si_static)
 
@@ -91,12 +91,12 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
             'aeccar2': 'AECCAR2.gz',
             'procar': 'PROCAR.gz',
             'wavecar': 'WAVECAR.gz'
-        }, doc['calcs_reversed'][0]['datafiles'])
+        }, doc['calcs_reversed'][0]['output_file_paths'])
 
         doc = drone.assimilate(self.relax2)
         self.assertDictEqual({'chgcar': 'CHGCAR.relax1.gz', 'procar': 'PROCAR.relax1.gz',
                               'wavecar': 'WAVECAR.relax1.gz'},
-                             doc['calcs_reversed'][1]['datafiles'])
+                             doc['calcs_reversed'][1]['output_file_paths'])
 
 if __name__ == "__main__":
     unittest.main()

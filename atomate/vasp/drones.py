@@ -319,7 +319,7 @@ class VaspDrone(AbstractDrone):
         d["output"]["is_metal"] = bs.is_metal()
         d["task"] = {"type": taskname, "name": taskname}
 
-        d["datafiles"] = self.process_raw_data(dir_name, taskname=taskname)
+        d["output_file_paths"] = self.process_raw_data(dir_name, taskname=taskname)
 
         if hasattr(vrun, "force_constants"):
             # phonon-dfpt
