@@ -70,7 +70,7 @@ class TestXASWorkflow(AtomateTest):
         wf = get_wf_xas("O", self.structure, feff_input_set="XANES", edge="K",
                         use_primitive=False, user_tag_settings=self.user_tag_settings)
         self.assertEqual(len(wf_prim.as_dict()["fws"]), 1)
-        self.assertEqual(len(wf.as_dict()["fws"]), 2)
+        self.assertEqual(len(wf.as_dict()["fws"]), 1)
 
     def test_xanes_vs_exafs(self):
         wf_xanes = get_wf_xas(self.absorbing_atom, self.structure, feff_input_set="XANES", edge="K",

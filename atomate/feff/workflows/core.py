@@ -6,6 +6,10 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 This module defines FEFF XAS(XANES/EXAFS) workflows.
 """
 
+import numpy as np
+
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+
 from fireworks import Workflow
 
 from atomate.utils.utils import get_logger
@@ -49,7 +53,7 @@ def get_wf_xas(absorbing_atom, structure, feff_input_set="pymatgen.io.feff.sets.
         structure = structure.get_primitive_structure()
 
     # get the absorbing atom site index/indices
-    ab_atom_indices = [absorbing_atom] if isinstance(absorbing_atom, int) else structure.indices_from_symbol(absorbing_atom)
+    ab_atom_indices = get_absorbing_atom_indices(structure, absorbing_atom)
 
     override_default_feff_params = {"user_tag_settings": user_tag_settings}
 
@@ -158,7 +162,7 @@ def get_wf_eels(absorbing_atom, structure=None, feff_input_set="pymatgen.io.feff
         structure = structure.get_primitive_structure()
 
     # get the absorbing atom site index/indices
-    ab_atom_indices = [absorbing_atom] if isinstance(absorbing_atom, int) else structure.indices_from_symbol(absorbing_atom)
+    ab_atom_indices = get_absorbing_atom_indices(structure, absorbing_atom)
 
     override_default_feff_params = {"user_tag_settings": user_tag_settings}
 
@@ -183,3 +187,32 @@ def get_wf_eels(absorbing_atom, structure=None, feff_input_set="pymatgen.io.feff
     wf_metadata["absorbing_atom_indices"] = list(ab_atom_indices)
 
     return Workflow(fws, name=wfname, metadata=wf_metadata)
+
+
+def get_absorbing_atom_indices(structure, absorbing_atom):
+    """
+    Args:
+        structure (Structure):
+        absorbing_atom (int/str):
+
+    Returns:
+        list of site ids
+    """
+    # site id
+    if isinstance(absorbing_atom, int):
+        ab_atom_indices = [absorbing_atom]
+    # site symbol
+    else:
+        all_indices = set(structure.indices_from_symbol(absorbing_atom))
+        uniq_indices = set(get_unique_site_indices(structure))
+        ab_atom_indices = list(all_indices.intersection(uniq_indices))
+    return ab_atom_indices
+
+
+def get_unique_site_indices(structure):
+    sa = SpacegroupAnalyzer(structure)
+    symm_data = sa.get_symmetry_dataset()
+    # equivalency mapping for the structure
+    # i'th site in the struct equivalent to eq_struct[i]'th site
+    eq_atoms = symm_data["equivalent_atoms"]
+    return np.unique(eq_atoms).tolist()
