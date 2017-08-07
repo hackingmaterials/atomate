@@ -9,7 +9,6 @@ parameters file)
 
 from pymatgen import Molecule
 from pymatgen.io.lammps.force_field import ForceField
-from pymatgen.io.lammps.topology import Topology
 from pymatgen.io.lammps.data import LammpsForceFieldData
 from pymatgen.io.lammps.sets import LammpsInputSet
 
@@ -48,24 +47,22 @@ class WriteFromIOSet(FiretaskBase):
 @explicit_serialize
 class WriteFromForceFieldAndTopology(FiretaskBase):
 
-    required_params = ["input_file", "final_molecule_path", "molecules", "mols_number",
-                       "forcefield", "input_filename"]
+    required_params = ["input_file", "final_molecule_path", "constituent_molecules", "mols_number",
+                       "box_size" "forcefield", "topologies", "input_filename"]
 
-    optional_params = ["user_settings", "site_property"]
+    optional_params = ["user_settings", "ff_site_property"]
 
     def run_task(self, fw_spec):
 
-        molecules = self["molecules"]
+        molecules = self["constituent_molecules"]
         mols_number = self["mols_number"]
         input_filename = self["input_filename"]
         forcefield = self["forcefield"]
+        topologies = self["topologies"]
+
         user_settings = self.get("user_settings", {})
         data_filename = user_settings.get("data_file", "lammps.data")
         final_molecule = Molecule.from_file(self["final_molecule_path"])
-
-        topologies = []
-        for mol in molecules:
-            topologies.append(Topology.from_molecule(mol, ff_map=self.get("site_property", None)))
 
         lammps_ff_data = LammpsForceFieldData.from_forcefield_and_topology(molecules, mols_number,
                                                                            self["box_size"],

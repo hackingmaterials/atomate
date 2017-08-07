@@ -9,7 +9,7 @@ from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.lammps.utils import use_fake_lammps
-from atomate.lammps.workflows.core import get_wf_from_input_template
+from atomate.lammps.workflows.core import get_wf_basic
 from atomate.utils.testing import AtomateTest
 
 __author__ = 'Kiran Mathew, Brandon Wood'
@@ -44,11 +44,11 @@ class TestLammpsWorkflows(AtomateTest):
 
     def test_lammps_wflow(self):
 
-        wf = get_wf_from_input_template(self.input_file_template, self.user_settings,
-                                        lammps_data=self.data_file, is_forcefield=True,
-                                        input_filename=self.input_filename, db_file=self.db_file,
-                                        dump_filenames=self.dump_filenames, name="peo_wflow_test",
-                                        lammps_cmd=LAMMPS_CMD)
+        wf = get_wf_basic(self.input_file_template, self.user_settings,
+                          lammps_data=self.data_file, is_forcefield=True,
+                          input_filename=self.input_filename, db_file=self.db_file,
+                          dump_filenames=self.dump_filenames, name="peo_wflow_test",
+                          lammps_cmd=LAMMPS_CMD)
 
         if not LAMMPS_CMD:
             wf = use_fake_lammps(wf, self.reference_files_path)

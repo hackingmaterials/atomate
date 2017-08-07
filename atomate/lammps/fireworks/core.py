@@ -6,6 +6,8 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 Defines fireworks to be incorporated into workflows.
 """
 
+from pymatgen.io.lammps.topology import Topology
+
 from fireworks import Firework
 
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
@@ -54,20 +56,47 @@ class LammpsFW(Firework):
 
 class LammpsForceFieldFW(Firework):
 
-    def __init__(self, input_file, final_molecule_path, molecules, mols_number, forcefield,
-                 user_settings=None, site_property=None, input_filename="lammps.in",
-                 data_filename="lammps.data", lammps_cmd="lammps", db_file=None, parents=None,
-                 log_filename="log.lammps", dump_filename=None, name="LammpsFFFW", **kwargs):
+    def __init__(self, input_file, final_molecule, forcefield, box_size, topologies=None,
+                 constituent_molecules=None, mols_number=None, user_settings=None,
+                 ff_site_property=None, input_filename="lammps.in", data_filename="lammps.data",
+                 lammps_cmd="lammps", db_file=None, parents=None, log_filename="log.lammps",
+                 dump_filename=None, name="LammpsFFFW", **kwargs):
+        """
+
+        Args:
+            input_file:
+            final_molecule:
+            forcefield:
+            box_size:
+            topologies:
+            constituent_molecules:
+            mols_number:
+            user_settings:
+            ff_site_property:
+            input_filename:
+            data_filename:
+            lammps_cmd:
+            db_file:
+            parents:
+            log_filename:
+            dump_filename:
+            name:
+            **kwargs:
+        """
 
         user_settings = user_settings or {}
+        constituent_molecules = constituent_molecules or [final_molecule]
+        mols_number = mols_number or [1]
+        topologies = topologies or Topology.from_molecule(final_molecule, ff_map=ff_site_property)
 
         tasks = [
             CopyPackmolOutputs(calc_loc=True),
 
-            WriteFromForceFieldAndTopology(input_file=input_file, final_molecule_path=final_molecule_path,
-                                           molecules=molecules, mols_number=mols_number,
-                                           forcefield=forcefield, input_filename=input_filename,
-                                           user_settings=user_settings, site_property=site_property),
+            WriteFromForceFieldAndTopology(input_file=input_file, final_molecule_path=final_molecule,
+                                           constituent_molecules=constituent_molecules, mols_number=mols_number,
+                                           forcefield=forcefield, topologies=topologies, input_filename=input_filename,
+                                           user_settings=user_settings, ff_site_property=ff_site_property,
+                                           box_size=box_size),
 
             RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename),
 
@@ -87,14 +116,14 @@ class PackmolFW(Firework):
         """
 
         Args:
-            molecules:
-            packing_config:
-            tolerance:
-            filetype:
-            control_params:
-            output_file:
-            parents:
-            name:
+            molecules ([Molecules]):
+            packing_config ([dict]):
+            tolerance (flaot):
+            filetype (str):
+            control_params (dict):
+            output_file (str):
+            parents (list):
+            name (str):
             **kwargs:
         """
         control_params = control_params or {'maxit': 20, 'nloop': 600}
