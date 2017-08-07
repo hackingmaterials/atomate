@@ -14,7 +14,7 @@ Once you have a working installation of atomate, you'll want to jump in and star
 Objectives
 ==========
 
-* Run a workflow from a YAML file and in Python
+* Run an atomate preset workflow using Python
 * Query for the calculation result in your database
 * Visualize the results with matplotlib
 
@@ -75,7 +75,7 @@ In your text editor, create a file called ``POSCAR`` and enter the following tex
          0.500000000         0.500000000         0.000000000
 
 
-Note that this does not have to be a POSCAR. You can also supply multiple formats supported by pymatgen, including: Crystallographic Information File (CIF), POSCAR/CONTCAR, CHGCAR, vasprun.xml, CSSR, Netcdf and pymatgen's JSON serialized structures.
+Note that this does not have to be a POSCAR. You can also supply multiple formats supported by pymatgen, including: Crystallographic Information File (CIF), POSCAR/CONTCAR, CHGCAR, vasprun.xml, CSSR, Netcdf and pymatgen's JSON serialized structures. There are many thousands of structures available from the Materials Project that can be run directly in atwf or by creating ``Structure`` objects with pymatgen's ``MPRester``.
 
 There are multiple ways of defining the workflow to execute on the structure. We'll go over 3 options.
 
@@ -97,91 +97,11 @@ An example of a valid Python functions in ``atomate.vasp.workflows.presets`` is 
 Option 2: Create your own workflow file
 ---------------------------------------
 
-**Define the workflow file**
+You can use a text editor to define your own workflow that chains together pre-defined steps in atomate. The Workflow and its Fireworks are encoded in the YAML format. The pre-defined YAML files at ``atomate.vasp.workflows.base.library`` would make good starting points for YAML workflows.
 
-You can use a text editor to define your own workflow that chains together pre-defined steps in atomate. To get a feeling for this procedure, in your text editor, create a file called ``eos.yaml`` and enter the following text:
+The main benefit of creating custom YAML workflows is to be able to share them with non-programmers and run them on any structure file or any one of the many structures from the Materials Project.
 
-.. note:: If your VASP command is anything other than ``vasp_std``, then you'll want to change the last line (common_params). *Don't use any parallelization software (ibrun, srun, etc.)* it's bad behavior and probably won't work.
-
-
-.. code-block:: yaml
-
-    # EOS Workflow
-    # An optimization Firework followed by 7 deformed structures based on the optimized structure
-    # the deformations are +/- 10% volume of the original cell
-    fireworks:
-    - fw: atomate.vasp.fireworks.core.OptimizeFW
-      user_incar_settings:
-        SIGMA: 0.2
-        ISMEAR: 1
-    - fw: atomate.vasp.fireworks.core.TransmuterFW
-      params:
-        parents: 0
-        transformations:
-        - DeformStructureTransformation
-        transformation_params:
-        - "scaling_matrix": [[0.9655, 0, 0], [0, 0.9655, 0], [0, 0, 0.9655]]
-    - fw: atomate.vasp.fireworks.core.TransmuterFW
-      params:
-        parents: 0
-        transformations:
-        - DeformStructureTransformation
-        transformation_params:
-        - "scaling_matrix": [[0.9773, 0, 0], [0, 0.9773, 0], [0, 0, 0.9773]]
-    - fw: atomate.vasp.fireworks.core.TransmuterFW
-      params:
-        parents: 0
-        transformations:
-        - DeformStructureTransformation
-        transformation_params:
-        - "scaling_matrix": [[0.9888, 0, 0], [0, 0.9888, 0], [0, 0, 0.9888]]
-    - fw: atomate.vasp.fireworks.core.TransmuterFW
-      params:
-        parents: 0
-        transformations:
-        - DeformStructureTransformation
-        transformation_params:
-        - "scaling_matrix": [[1.0000, 0, 0], [0, 1.0000, 0], [0, 0, 1.0000]]
-    - fw: atomate.vasp.fireworks.core.TransmuterFW
-      params:
-        parents: 0
-        transformations:
-        - DeformStructureTransformation
-        transformation_params:
-        - "scaling_matrix": [[1.0110, 0, 0], [0, 1.0110, 0], [0, 0, 1.0110]]
-    - fw: atomate.vasp.fireworks.core.TransmuterFW
-      params:
-        parents: 0
-        transformations:
-        - DeformStructureTransformation
-        transformation_params:
-        - "scaling_matrix": [[1.0217, 0, 0], [0, 1.0217, 0], [0, 0, 1.0217]]
-    - fw: atomate.vasp.fireworks.core.TransmuterFW
-      params:
-        parents: 0
-        transformations:
-        - DeformStructureTransformation
-        transformation_params:
-        - "scaling_matrix": [[1.0323, 0, 0], [0, 1.0323, 0], [0, 0, 1.0323]]
-    common_params:
-      vasp_cmd: vasp_std
-      db_file: >>db_file<<
-
-.. note::
-    The YAML file format is typically considered easy to read, but if you want to know more about the YAML format in general you might want to take a look at the `detailed YAML specification`_. If you want to know more specifically about atomate's YAML specification, see the :ref:`Workflow YAML reference`.
-
-.. _detailed YAML specification: http://www.yaml.org/spec/1.2/spec.html
-
-
-**Add workflow to LaunchPad**
-
-Within the folder containing your ``POSCAR`` (or other structure file) and ``eos.yaml``, run the following command to add the workflow to your LaunchPad:
-
-.. code-block:: bash
-
-    atwf add POSCAR -s eos.yaml
-
-Unless you also want to try making a Python workflow and add it to your LaunchPad, skip ahead to the `Running the workflow`_ section.
+For most non-trival workflows, it is better and often less verbose to use Python to construct the workflows. To get a feeling for this procedure and for an example of the EOS workflow, see the :ref:`workflow yaml reference`.
 
 
 Option 3: use Python to generate and add the workflow
@@ -197,8 +117,6 @@ In the installation tutorial, you set up your ``FW_config.yaml``, you indicated 
 **Create the workflow script**
 
 In the same directory as the POSCAR, create a Python script name ``eos.py`` with the following contents:
-
-.. note:: If your VASP command is anything other than ``vasp_std``, then you'll want to change the line setting the ``VASP_CMD`` key of the configuration dictionary. *Don't use any parallelization software (ibrun, srun, etc.)* it's bad behavior and probably won't work.
 
 .. code-block:: python
 
@@ -217,7 +135,6 @@ In the same directory as the POSCAR, create a Python script name ``eos.py`` with
     # 7 deformations +/- 10% of the equilibrium volume
     # note that the 1/3 power is so that we scale each direction by (x+1)^(1/3) and the total volume by (x+1)
     c["deformations"] =  [(np.identity(3)*(1+x)**(1.0/3.0)).tolist() for x in np.linspace(-0.1, 0.1, 5)]
-    c["VASP_CMD"] = 'vasp_std'
 
     # create the Workflow
     wf = wf_bulk_modulus(struct, c)
@@ -243,7 +160,23 @@ If you want to add the workflow to your LaunchPad (e.g., you didn't already go t
 Running the workflow
 --------------------
 
-In both cases, we manually set our ``VASP_CMD`` key to be the plain VASP command for the resource you are using. The reason we did this is because the simulation of EOS for Al is relatively simple, so we can easily run this entire workflow in a couple minutes on a single core without the queue. This is not generally good practice, but we can use it here for demonstration purposes. To run the workflows that you added to the LaunchPad, run the following command. Note the use of ``rlaunch`` rather than ``qlaunch``.
+Option 1
+~~~~~~~~
+
+Running the workflow the following command will submit a single job to the batch queue configured in ``my_qadapter.yaml``. The job will launch Fireworks from your LaunchPad until all of them have completed or you run out of walltime. This workflow will only take few minutes.
+
+.. code-block:: bash
+
+    qlaunch singleshot
+
+You can go to the output files from the batch job (``*.out`` and ``*.error``) at the launch directories to make sure everything went well.
+
+Option 2
+~~~~~~~~
+
+Since Al is a very easy calculation, we can run this entire workflow in a few minutes on a single core on the login node. This can be valuable for getting quick feedback in this tutorial. You should not be running workflows like this normally and running software like VASP on login nodes is forbidden on some resources.
+
+The easiest way to set this up is to either explicitly set the ``vasp_cmd`` parameter in the configuration dictionary to just ``vasp_std`` (or whichever your system uses). The default is ``>>vasp_cmd<<``, which looks up the ``vasp_cmd`` parameter in your ``my_fworker.yaml`` file. That means you could also temporarily make this change in your ``my_fworker.yaml`` file. In this case, make sure to set the ``vasp_cmd`` *without* ``ibrun``, ``mpirun``, ``srun``, etc., which would use all of the cores on the login node (many hosts prevent you from running these commands on the login nodes altogether). To run the workflow on the login node, run the following command. Note the use of ``rlaunch`` rather than ``qlaunch``.
 
 .. code-block:: bash
 
@@ -358,7 +291,7 @@ If you open the saved figure, ``eos-energy-volume.png``, on your computer you sh
 Conclusion
 ==========
 
-In this tutorial you learned how run a workflow from in a YAML file without writing any code and to do the same in Python. The keys to constructing your own workflows are
+In this tutorial you learned how run a workflow from in a YAML file without writing any code and to do the same in Python.
 
 We have tried to provide common functionality as preset workflows in Python. Due to some current limitation in the atwf utility, some analysis tasks like the EOS Firework cannot currently be expressed in the YAML, so complete access to full preset workflows can only be achieved in Python.
 
