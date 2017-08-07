@@ -1,11 +1,11 @@
-atomate\.vasp\.examples package
-===============================
+atomate.vasp.examples package
+=============================
 
 Submodules
 ----------
 
-atomate\.vasp\.examples\.builders\_example module
--------------------------------------------------
+atomate.vasp.examples.builders_example module
+---------------------------------------------
 
 .. automodule:: atomate.vasp.examples.builders_example
     :members:

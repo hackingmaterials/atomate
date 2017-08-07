@@ -1,11 +1,11 @@
-atomate\.lammps\.workflows package
-==================================
+atomate.lammps.workflows package
+================================
 
 Submodules
 ----------
 
-atomate\.lammps\.workflows\.core module
----------------------------------------
+atomate.lammps.workflows.core module
+------------------------------------
 
 .. automodule:: atomate.lammps.workflows.core
     :members:

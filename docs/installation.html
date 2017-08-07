@@ -1,17 +1,20 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Installing atomate &#8212; atomate 0.5.6 documentation</title>
+    
+    <title>Installing atomate &#8212; atomate 0.5.7 documentation</title>
+    
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.5.6',
+        VERSION:     '0.5.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -26,7 +29,7 @@
     <link rel="next" title="Running Workflows Tutorial" href="running_workflows.html" />
     <link rel="prev" title="atomate" href="index.html" /> 
   </head>
-  <body>
+  <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -42,7 +45,7 @@
         <li class="right" >
           <a href="index.html" title="atomate"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.7 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -87,11 +90,11 @@
 </div>
 <div class="section" id="automated-installer">
 <h2>Automated installer<a class="headerlink" href="#automated-installer" title="Permalink to this headline">¶</a></h2>
-<p>The <a class="reference external" href="http://www.phases.psu.edu">Phases Research Lab at Penn State</a> has developed an <a class="reference external" href="https://github.com/PhasesResearchLab/install-atomate">automated installer</a> to install atomate with minimal user interaction. The installer simply scripts all of the actions given in this installation guide after the user configures their database (see the <a class="reference internal" href="#configure-fireworks">Configure FireWorks</a> section). There are a select few preset systems that are handled automatically (include TACC’s Stampede, NERSC’s Edison and Cori) and otherwise all of the relevant settings can be tweaked in one script and installed. For instructions on the use of the <a class="reference external" href="https://github.com/PhasesResearchLab/install-atomate">automated installer</a>, see the README. <strong>Disclaimer</strong>: this installer comes with no guarantees or warranty and the authors are not responsible for any problems caused (see the LICENSE). If you run into problems caused by the installer, please open an issue on GitHub.</p>
+<p>The <a class="reference external" href="http://www.phases.psu.edu">Phases Research Lab at Penn State</a> has developed an <a class="reference external" href="https://github.com/PhasesResearchLab/install-atomate">automated installer</a> to install atomate with minimal user interaction. The installer simply scripts all of the actions given in this installation guide after the user configures their database (see the <a class="reference internal" href="#configure-fireworks">Configure FireWorks</a> section). There are a select few preset systems that are handled automatically (include TACC&#8217;s Stampede, NERSC&#8217;s Edison and Cori) and otherwise all of the relevant settings can be tweaked in one script and installed. For instructions on the use of the <a class="reference external" href="https://github.com/PhasesResearchLab/install-atomate">automated installer</a>, see the README. <strong>Disclaimer</strong>: this installer comes with no guarantees or warranty and the authors are not responsible for any problems caused (see the LICENSE). If you run into problems caused by the installer, please open an issue on GitHub.</p>
 </div>
 <div class="section" id="prerequisites">
 <span id="id2"></span><h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
-<p>Before you install, you need to make sure that your “worker” computer (where the simulations will be run, often a computing cluster) that will execute workflows can (i) run the base simulation packages (e.g., VASP, LAMMPs, FEFF, etc) and (ii) connect to a MongoDB database. For (i), make sure you have the appropriate licenses and compilation to run the simulation packages that are needed. For (ii), make sure your computing center doesn’t have firewalls that prevent database access. Typically, academic computing clusters as well as systems with a MOM-node style architecture (e.g., NERSC) are OK. High-security government supercomputing centers often require custom treatment and modified execution patterns - some further details are provided later in this installation guide.</p>
+<p>Before you install, you need to make sure that your &#8220;worker&#8221; computer (where the simulations will be run, often a computing cluster) that will execute workflows can (i) run the base simulation packages (e.g., VASP, LAMMPs, FEFF, etc) and (ii) connect to a MongoDB database. For (i), make sure you have the appropriate licenses and compilation to run the simulation packages that are needed. For (ii), make sure your computing center doesn&#8217;t have firewalls that prevent database access. Typically, academic computing clusters as well as systems with a MOM-node style architecture (e.g., NERSC) are OK. High-security government supercomputing centers often require custom treatment and modified execution patterns - some further details are provided later in this installation guide.</p>
 <div class="section" id="vasp">
 <h3>VASP<a class="headerlink" href="#vasp" title="Permalink to this headline">¶</a></h3>
 <p>Note: you can skip this step if you do not plan to run VASP with atomate.</p>
@@ -171,7 +174,7 @@
 </div>
 <div class="section" id="create-a-python-virtual-environment">
 <span id="id5"></span><h2>Create a Python virtual environment<a class="headerlink" href="#create-a-python-virtual-environment" title="Permalink to this headline">¶</a></h2>
-<p>We highly recommended that you organize your installation of the atomate and the other Python codes using a virtual environment (e.g. <code class="docutils literal"><span class="pre">virtualenv</span></code> or similar tool such as anaconda). Ultimately, whether you want to use a virtual environment is optional and you don’t have to use one if you know what you are doing. Virtual environments allow you to keep an installation of Python and all of the installed packages separate from the installation on the system. Some of the main benefits are:</p>
+<p>We highly recommended that you organize your installation of the atomate and the other Python codes using a virtual environment (e.g. <code class="docutils literal"><span class="pre">virtualenv</span></code> or similar tool such as anaconda). Ultimately, whether you want to use a virtual environment is optional and you don&#8217;t have to use one if you know what you are doing. Virtual environments allow you to keep an installation of Python and all of the installed packages separate from the installation on the system. Some of the main benefits are:</p>
 <blockquote>
 <div><ul class="simple">
 <li>Different Python projects that have conflicting packages can coexist on the same machine.</li>
@@ -201,18 +204,18 @@
 </li>
 <li><p class="first">If you look in the <code class="docutils literal"><span class="pre">bin</span></code> directory, you will see several programs, such as activate, pip, and Python itself. <code class="docutils literal"><span class="pre">lib</span></code> will be where all of your installed packages will be kept, etc. Again, if anything goes wrong in installing Python codes, you can just delete the virtual environment directory (<code class="docutils literal"><span class="pre">atomate_env</span></code>) and start again.</p>
 </li>
-<li><p class="first">Activate your environment by running <code class="docutils literal"><span class="pre">source</span> <span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;/atomate_env/activate</span></code>. This makes it so when you use the command <code class="docutils literal"><span class="pre">python</span></code>, the version of <code class="docutils literal"><span class="pre">python</span></code> that you use will be the one in the  <code class="docutils literal"><span class="pre">bin</span></code> directory rather than the system-wide Python. You can read the activation script if you are interested. It’s just does a little magic to adjust your path to point towards the <code class="docutils literal"><span class="pre">bin</span></code> and other directories you created.</p>
+<li><p class="first">Activate your environment by running <code class="docutils literal"><span class="pre">source</span> <span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;/atomate_env/activate</span></code>. This makes it so when you use the command <code class="docutils literal"><span class="pre">python</span></code>, the version of <code class="docutils literal"><span class="pre">python</span></code> that you use will be the one in the  <code class="docutils literal"><span class="pre">bin</span></code> directory rather than the system-wide Python. You can read the activation script if you are interested. It&#8217;s just does a little magic to adjust your path to point towards the <code class="docutils literal"><span class="pre">bin</span></code> and other directories you created.</p>
 </li>
 </ol>
 </div>
 <div class="section" id="install-python-packages">
 <span id="id6"></span><h2>Install Python packages<a class="headerlink" href="#install-python-packages" title="Permalink to this headline">¶</a></h2>
-<p>You have successfully set up an environment in which to install atomate! Next, we will download and install all of the atomate-related Python packages. The main tool for installing Python packages is pip and we will use this to install packages (unless you have an Anaconda distribution where again, you’d use <a class="reference external" href="https://conda.io/docs/using/pkgs.html">conda</a>). Technically, you could simply use pip to <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">atomate</span></code> and pull in atomate and all of the requirements from <a class="reference external" href="https://pypi.python.org/pypi">PyPI</a>. In that case, you would <em>not</em> need to follow the rest of this section’s instructions.</p>
-<p>However, our recommendation (and the procedure below) is to install directly from GitHub so you can always have the most recent codebase and be able to more easily inspect and modify the code. We’ll also do this for the main dependencies of atomate because they often change and evolve together in the source, but not be released to PyPI. Note that this method of installation is required if you will be developing in atomate or any of the other software mentioned here.</p>
+<p>You have successfully set up an environment in which to install atomate! Next, we will download and install all of the atomate-related Python packages. The main tool for installing Python packages is pip and we will use this to install packages (unless you have an Anaconda distribution where again, you&#8217;d use <a class="reference external" href="https://conda.io/docs/using/pkgs.html">conda</a>). Technically, you could simply use pip to <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">atomate</span></code> and pull in atomate and all of the requirements from <a class="reference external" href="https://pypi.python.org/pypi">PyPI</a>. In that case, you would <em>not</em> need to follow the rest of this section&#8217;s instructions.</p>
+<p>However, our recommendation (and the procedure below) is to install directly from GitHub so you can always have the most recent codebase and be able to more easily inspect and modify the code. We&#8217;ll also do this for the main dependencies of atomate because they often change and evolve together in the source, but not be released to PyPI. Note that this method of installation is required if you will be developing in atomate or any of the other software mentioned here.</p>
 <ol class="arabic">
 <li><p class="first"><code class="docutils literal"><span class="pre">cd</span></code> to your newly created <code class="docutils literal"><span class="pre">codes</span></code> directory.</p>
 </li>
-<li><p class="first">Clone each of the following packages from GitHub using git. You don’t have to know the details of how to use git for the installation, but if you are going to be developing code in Python, you should take a look at this <a class="reference external" href="http://rogerdudler.github.io/git-guide/">simple git introduction</a>. Most Linux distributions include git, so you shouldn’t have to install it on the cluster. To download the codes, use the following commands (one command per line):</p>
+<li><p class="first">Clone each of the following packages from GitHub using git. You don&#8217;t have to know the details of how to use git for the installation, but if you are going to be developing code in Python, you should take a look at this <a class="reference external" href="http://rogerdudler.github.io/git-guide/">simple git introduction</a>. Most Linux distributions include git, so you shouldn&#8217;t have to install it on the cluster. To download the codes, use the following commands (one command per line):</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">materialsproject</span><span class="o">/</span><span class="n">fireworks</span><span class="o">.</span><span class="n">git</span>
 <span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">materialsproject</span><span class="o">/</span><span class="n">pymatgen</span><span class="o">.</span><span class="n">git</span>
 <span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">atztogo</span><span class="o">/</span><span class="n">phonopy</span><span class="o">.</span><span class="n">git</span>
@@ -232,11 +235,11 @@
 </div>
 <div class="section" id="configure-fireworks">
 <span id="id8"></span><h2>Configure FireWorks<a class="headerlink" href="#configure-fireworks" title="Permalink to this headline">¶</a></h2>
-<p>We’ve now set up your environment and installed the necessary codes. You’re well on your way!</p>
+<p>We&#8217;ve now set up your environment and installed the necessary codes. You&#8217;re well on your way!</p>
 <p>The next step is to configure some the codes for your specific system - e.g., your MongoDB credentials, your computing cluster and its queuing system, etc. - starting with FireWorks. The setup below will be just enough to get your environment bootstrapped. For more details on the installation and specifics of FireWorks, read the <a class="reference external" href="https://materialsproject.github.io/fireworks/installation.html">installation guide</a>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">All of the paths here must be <em>absolute paths</em>. For example, the absolute path that refers to <code class="docutils literal"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;</span></code> might be <code class="docutils literal"><span class="pre">/global/homes/u/username/atomate</span></code> (don’t use the relative directory <code class="docutils literal"><span class="pre">~/atomate</span></code>).</p>
+<p class="last">All of the paths here must be <em>absolute paths</em>. For example, the absolute path that refers to <code class="docutils literal"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;</span></code> might be <code class="docutils literal"><span class="pre">/global/homes/u/username/atomate</span></code> (don&#8217;t use the relative directory <code class="docutils literal"><span class="pre">~/atomate</span></code>).</p>
 </div>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -245,7 +248,7 @@
 <p>Create the following files in <code class="docutils literal"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;/config</span></code>.</p>
 <div class="section" id="db-json">
 <h3>db.json<a class="headerlink" href="#db-json" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal"><span class="pre">db.json</span></code> file tells atomate where to put the results of parsing calculations from your workflows (i.e., actual property output data on materials). The <code class="docutils literal"><span class="pre">db.json</span></code> file requires you to enter the basic database information as well as what to call the main collection that results are kept in (e.g. <code class="docutils literal"><span class="pre">tasks</span></code>) and the authentication information for an admin user and a read only user on the database. Mind that valid JSON requires double quotes around each of the string entries and that all of the entries should be strings except the value of “port”, which should be an integer.</p>
+<p>The <code class="docutils literal"><span class="pre">db.json</span></code> file tells atomate where to put the results of parsing calculations from your workflows (i.e., actual property output data on materials). The <code class="docutils literal"><span class="pre">db.json</span></code> file requires you to enter the basic database information as well as what to call the main collection that results are kept in (e.g. <code class="docutils literal"><span class="pre">tasks</span></code>) and the authentication information for an admin user and a read only user on the database. Mind that valid JSON requires double quotes around each of the string entries and that all of the entries should be strings except the value of &#8220;port&#8221;, which should be an integer.</p>
 <div class="highlight-json"><div class="highlight"><pre><span></span>{
     &quot;host&quot;: &quot;&lt;&lt;HOSTNAME&gt;&gt;&quot;,
     &quot;port&quot;: &lt;&lt;PORT&gt;&gt;,
@@ -262,7 +265,7 @@
 </div>
 <div class="section" id="my-fworker-yaml">
 <h3>my_fworker.yaml<a class="headerlink" href="#my-fworker-yaml" title="Permalink to this headline">¶</a></h3>
-<p>In FireWorks’ distributed <a class="reference external" href="https://materialsproject.github.io/fireworks/index.html#centralized-server-and-worker-model">server-worker model</a>, each computing resource where you run jobs is a FireWorker (Worker). <code class="docutils literal"><span class="pre">my_fworker.yaml</span></code> controls the environment and settings unique to the cluster, such as the VASP executable. If this is the only cluster you plan on using just one Worker for all of your calculations a minimal setup for the <code class="docutils literal"><span class="pre">my_fworker.yaml</span></code> file is</p>
+<p>In FireWorks&#8217; distributed <a class="reference external" href="https://materialsproject.github.io/fireworks/index.html#centralized-server-and-worker-model">server-worker model</a>, each computing resource where you run jobs is a FireWorker (Worker). <code class="docutils literal"><span class="pre">my_fworker.yaml</span></code> controls the environment and settings unique to the cluster, such as the VASP executable. If this is the only cluster you plan on using just one Worker for all of your calculations a minimal setup for the <code class="docutils literal"><span class="pre">my_fworker.yaml</span></code> file is</p>
 <div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;&lt;WORKER_NAME&gt;&gt;</span>
 <span class="l l-Scalar l-Scalar-Plain">category</span><span class="p p-Indicator">:</span> <span class="s">&#39;&#39;</span>
 <span class="l l-Scalar l-Scalar-Plain">query</span><span class="p p-Indicator">:</span> <span class="s">&#39;{}&#39;</span>
@@ -271,11 +274,11 @@
     <span class="l l-Scalar l-Scalar-Plain">vasp_cmd</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;&lt;VASP_CMD&gt;&gt;</span>
 </pre></div>
 </div>
-<p>Where the &lt;&lt;WORKER_NAME&gt;&gt; is arbitrary and is useful for keeping track of which Worker is running your jobs (an example might be <code class="docutils literal"><span class="pre">Edison</span></code> if you are running on NERSC’s Edison resource). <code class="docutils literal"><span class="pre">db_file</span></code> points to the <code class="docutils literal"><span class="pre">db.json</span></code> file that you just configured and contains credentials to connect to the calculation output database. The &lt;&lt;VASP_CMD&gt;&gt; is the command that you would use to run VASP with parallelization (<code class="docutils literal"><span class="pre">srun</span> <span class="pre">-n</span> <span class="pre">16</span> <span class="pre">vasp</span></code>, <code class="docutils literal"><span class="pre">ibrun</span> <span class="pre">-n</span> <span class="pre">16</span> <span class="pre">vasp</span></code>, <code class="docutils literal"><span class="pre">mpirun</span> <span class="pre">-n</span> <span class="pre">16</span> <span class="pre">vasp</span></code>, …). If you don’t know which of these to use or which VASP executable is correct, check the documentation for the computing resource you are running on or try to find them interactively by checking the output of <code class="docutils literal"><span class="pre">which</span> <span class="pre">srun</span></code>, <code class="docutils literal"><span class="pre">which</span> <span class="pre">vasp_std</span></code>, etc. . If you later want to set up multiple Workers on the same or different machines, you can find information about controlling which Worker can run which job by using the <code class="docutils literal"><span class="pre">name</span></code> field above, or the <code class="docutils literal"><span class="pre">category</span></code> or <code class="docutils literal"><span class="pre">query</span></code> fields that we did not define. For more information on configuring multiple Workers, see the <a class="reference external" href="https://materialsproject.github.io/fireworks/controlworker.html?highlight=category">FireWorks documentation for controlling Workers</a>. Such features allow you to use different settings (e.g., different VASP command such as different parallelization amount) for different types of calculations on the same machine or control what jobs are run on various computing centers.</p>
+<p>Where the &lt;&lt;WORKER_NAME&gt;&gt; is arbitrary and is useful for keeping track of which Worker is running your jobs (an example might be <code class="docutils literal"><span class="pre">Edison</span></code> if you are running on NERSC&#8217;s Edison resource). <code class="docutils literal"><span class="pre">db_file</span></code> points to the <code class="docutils literal"><span class="pre">db.json</span></code> file that you just configured and contains credentials to connect to the calculation output database. The &lt;&lt;VASP_CMD&gt;&gt; is the command that you would use to run VASP with parallelization (<code class="docutils literal"><span class="pre">srun</span> <span class="pre">-n</span> <span class="pre">16</span> <span class="pre">vasp</span></code>, <code class="docutils literal"><span class="pre">ibrun</span> <span class="pre">-n</span> <span class="pre">16</span> <span class="pre">vasp</span></code>, <code class="docutils literal"><span class="pre">mpirun</span> <span class="pre">-n</span> <span class="pre">16</span> <span class="pre">vasp</span></code>, ...). If you don&#8217;t know which of these to use or which VASP executable is correct, check the documentation for the computing resource you are running on or try to find them interactively by checking the output of <code class="docutils literal"><span class="pre">which</span> <span class="pre">srun</span></code>, <code class="docutils literal"><span class="pre">which</span> <span class="pre">vasp_std</span></code>, etc. . If you later want to set up multiple Workers on the same or different machines, you can find information about controlling which Worker can run which job by using the <code class="docutils literal"><span class="pre">name</span></code> field above, or the <code class="docutils literal"><span class="pre">category</span></code> or <code class="docutils literal"><span class="pre">query</span></code> fields that we did not define. For more information on configuring multiple Workers, see the <a class="reference external" href="https://materialsproject.github.io/fireworks/controlworker.html?highlight=category">FireWorks documentation for controlling Workers</a>. Such features allow you to use different settings (e.g., different VASP command such as different parallelization amount) for different types of calculations on the same machine or control what jobs are run on various computing centers.</p>
 </div>
 <div class="section" id="my-launchpad-yaml">
 <h3>my_launchpad.yaml<a class="headerlink" href="#my-launchpad-yaml" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal"><span class="pre">db.json</span></code> file contained the information to connect to MongoDB for the calculation output database. We must also configure the database for storing and managing workflows within FireWorks using <code class="docutils literal"><span class="pre">my_launchpad.yaml</span></code> as in FireWorks’ <a class="reference external" href="https://materialsproject.github.io/fireworks/index.html#centralized-server-and-worker-model">server-worker model</a>. The LaunchPad is where all of the FireWorks and Workflows are stored. Each Worker can query this database for the status of Fireworks and pull down Fireworks to reserve them in the queue and run them. A <code class="docutils literal"><span class="pre">my_launchpad.yaml</span></code> file with fairly verbose logging (<code class="docutils literal"><span class="pre">strm_lvl:</span> <span class="pre">INFO</span></code>) is below:</p>
+<p>The <code class="docutils literal"><span class="pre">db.json</span></code> file contained the information to connect to MongoDB for the calculation output database. We must also configure the database for storing and managing workflows within FireWorks using <code class="docutils literal"><span class="pre">my_launchpad.yaml</span></code> as in FireWorks&#8217; <a class="reference external" href="https://materialsproject.github.io/fireworks/index.html#centralized-server-and-worker-model">server-worker model</a>. The LaunchPad is where all of the FireWorks and Workflows are stored. Each Worker can query this database for the status of Fireworks and pull down Fireworks to reserve them in the queue and run them. A <code class="docutils literal"><span class="pre">my_launchpad.yaml</span></code> file with fairly verbose logging (<code class="docutils literal"><span class="pre">strm_lvl:</span> <span class="pre">INFO</span></code>) is below:</p>
 <div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">host</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;&lt;HOSTNAME&gt;&gt;</span>
 <span class="l l-Scalar l-Scalar-Plain">port</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;&lt;PORT&gt;&gt;</span>
 <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;&lt;DB_NAME&gt;&gt;</span>
@@ -287,7 +290,7 @@
 <span class="l l-Scalar l-Scalar-Plain">wf_user_indices</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">[]</span>
 </pre></div>
 </div>
-<p>Here’s what you’ll need to fill out:</p>
+<p>Here&#8217;s what you&#8217;ll need to fill out:</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">&lt;&lt;HOSTNAME&gt;&gt;</span></code> - the host of your MongoDB db server</li>
 <li><code class="docutils literal"><span class="pre">&lt;&lt;PORT&gt;&gt;</span></code> - the port of your MongoDB db server</li>
@@ -321,7 +324,7 @@
 </ul>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">If you aren’t sure what queue system the cluster you are setting up uses, consult the documentation for that resource. If the queue system isn’t one of these preconfigured ones, consult the <a class="reference external" href="https://materialsproject.github.io/fireworks/qadapter_programming.html?highlight=qadapter">FireWorks documentation for writing queue adapters</a>. The FireWorks documentation also has tutorials on setting up your jobs to run on a queue in a way that is more interactive than the minimal details specified here.</p>
+<p class="last">If you aren&#8217;t sure what queue system the cluster you are setting up uses, consult the documentation for that resource. If the queue system isn&#8217;t one of these preconfigured ones, consult the <a class="reference external" href="https://materialsproject.github.io/fireworks/qadapter_programming.html?highlight=qadapter">FireWorks documentation for writing queue adapters</a>. The FireWorks documentation also has tutorials on setting up your jobs to run on a queue in a way that is more interactive than the minimal details specified here.</p>
 </div>
 <p><code class="docutils literal"><span class="pre">nodes</span></code>, <code class="docutils literal"><span class="pre">walltime</span></code> are the default reservations made to the queue as you would expect. <code class="docutils literal"><span class="pre">queue</span></code> refers to the name of the queue you will submit to. Some clusters support this and appropriate values might be <code class="docutils literal"><span class="pre">regular</span></code>, <code class="docutils literal"><span class="pre">normal</span></code>, <code class="docutils literal"><span class="pre">knl</span></code>, etc. as defined by the compute resource you are using. The <code class="docutils literal"><span class="pre">account</span></code> option refers to which account to charge. Again, whether or not you need to set this depends on the resource. <code class="docutils literal"><span class="pre">pre_rocket</span></code> and <code class="docutils literal"><span class="pre">post_rocket</span></code> add lines to before and after you job launches in your queue submission script. One use of this would be to enter directives such as <code class="docutils literal"><span class="pre">#SBATCH</span> <span class="pre">-C</span> <span class="pre">knl,quad,cache</span></code> to configure SLURM to run on knl nodes.</p>
 </div>
@@ -349,14 +352,14 @@
 </pre></div>
 </div>
 <p>where <code class="docutils literal"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;</span></code> is your (usual) installation directory.</p>
-<p>That’s it. You’re done configuring FireWorks and most of atomate. You should now perform a check to make sure that you can connect to the database by sourcing your RC file (to set this environment variable) and initializing the database by running the command</p>
+<p>That&#8217;s it. You&#8217;re done configuring FireWorks and most of atomate. You should now perform a check to make sure that you can connect to the database by sourcing your RC file (to set this environment variable) and initializing the database by running the command</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span>lpad reset
 </pre></div>
 </div>
 <p>which should return something like:</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span>Are you sure? This will RESET <span class="m">0</span> workflows and all data. <span class="o">(</span>Y/N<span class="o">)</span> y
-<span class="m">2015</span>-12-30 <span class="m">18</span>:00:00,000 INFO Performing db tune-up
-<span class="m">2015</span>-12-30 <span class="m">18</span>:00:00,000 INFO LaunchPad was RESET.
+2015-12-30 18:00:00,000 INFO Performing db tune-up
+2015-12-30 18:00:00,000 INFO LaunchPad was RESET.
 </pre></div>
 </div>
 </div>
@@ -373,20 +376,20 @@
 </pre></div>
 </div>
 <ol class="arabic simple">
-<li>If you’d like to use a non-default functional in all of your calculations, you can set the <code class="docutils literal"><span class="pre">DEFAULT_FUNCTIONAL</span></code> key to a functional that is <a class="reference external" href="https://cms.mpi.univie.ac.at/vasp/vasp/GGA_tag.html">supported by VASP</a>, e.g. <code class="docutils literal"><span class="pre">PS</span></code> to use PBESol.</li>
+<li>If you&#8217;d like to use a non-default functional in all of your calculations, you can set the <code class="docutils literal"><span class="pre">DEFAULT_FUNCTIONAL</span></code> key to a functional that is <a class="reference external" href="https://cms.mpi.univie.ac.at/vasp/vasp/GGA_tag.html">supported by VASP</a>, e.g. <code class="docutils literal"><span class="pre">PS</span></code> to use PBESol.</li>
 </ol>
 </div>
 <div class="section" id="run-vasp-unit-tests">
 <span id="id10"></span><h2>Run VASP unit tests<a class="headerlink" href="#run-vasp-unit-tests" title="Permalink to this headline">¶</a></h2>
 <p>To test atomate and the VASP functionality, make sure you have MongoDB running when executing the tests. You can do this by navigating to <code class="docutils literal"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;/codes/atomate/</span></code> and running <code class="docutils literal"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">test</span></code> or <code class="docutils literal"><span class="pre">nosetests</span></code>.</p>
-<p>These unit tests are designed to run without installing VASP. Some of them start with a VASP workflow but apply the <code class="docutils literal"><span class="pre">use_fake_vasp</span></code> method to replace calling the VASP executable with a “Faker” that verifies basic properties of the inputs and copies pre-stored output files to the current directory, thus simulating the execution of VASP. Anyway, this will help make sure your installation is in good shape.</p>
+<p>These unit tests are designed to run without installing VASP. Some of them start with a VASP workflow but apply the <code class="docutils literal"><span class="pre">use_fake_vasp</span></code> method to replace calling the VASP executable with a &#8220;Faker&#8221; that verifies basic properties of the inputs and copies pre-stored output files to the current directory, thus simulating the execution of VASP. Anyway, this will help make sure your installation is in good shape.</p>
 <p>Many tests have a DEBUG option that can sometimes help in finding problems. Sometimes you need to toggle DEBUG on/off a couple of times if you are doing this to make sure all the old data is actually cleared between debug runs.</p>
 <p>Note that the unit tests in atomate/vasp/tests/test_vasp_workflows.py can be modified to actually run VASP by setting VASP_CMD to a String representing your VASP command. If you need to debug at a later point, this might be something to refer back to.</p>
 <p>If everything looks OK, you are ready to run a test workflow!</p>
 </div>
 <div class="section" id="run-a-test-workflow">
 <span id="id11"></span><h2>Run a test workflow<a class="headerlink" href="#run-a-test-workflow" title="Permalink to this headline">¶</a></h2>
-<p>To make sure that everything is set up correctly and in place, we’ll finally run a simple test workflow. In general, two ways to create workflows is using atomate’s command line utility <code class="docutils literal"><span class="pre">atwf</span></code> or by creating workflows in Python. More discussion on constructing and running workflows can be found in the <a class="reference internal" href="running_workflows.html#running-workflows-tutorial"><span class="std std-ref">Running Workflows Tutorial</span></a> and details on writing custom workflows can be found in the <a class="reference internal" href="creating_workflows.html#creating-workflows"><span class="std std-ref">Creating Workflows</span></a>. For now, we will use <code class="docutils literal"><span class="pre">atwf</span></code> to construct a workflow. Ideally you set up a Materials Project API key in the <a class="reference internal" href="#configure-pymatgen">Configure pymatgen</a> section, otherwise you will need to provide a POSCAR for the structure you want to run. If you have an API key configured, you can run the following to run a structure optimization on Si</p>
+<p>To make sure that everything is set up correctly and in place, we&#8217;ll finally run a simple test workflow. In general, two ways to create workflows is using atomate&#8217;s command line utility <code class="docutils literal"><span class="pre">atwf</span></code> or by creating workflows in Python. More discussion on constructing and running workflows can be found in the <a class="reference internal" href="running_workflows.html#running-workflows-tutorial"><span class="std std-ref">Running Workflows Tutorial</span></a> and details on writing custom workflows can be found in the <a class="reference internal" href="creating_workflows.html#creating-workflows"><span class="std std-ref">Creating Workflows</span></a>. For now, we will use <code class="docutils literal"><span class="pre">atwf</span></code> to construct a workflow. Ideally you set up a Materials Project API key in the <a class="reference internal" href="#configure-pymatgen">Configure pymatgen</a> section, otherwise you will need to provide a POSCAR for the structure you want to run. If you have an API key configured, you can run the following to run a structure optimization on Si</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span>atwf add -l vasp -s optimize_only.yaml -m mp-149
 </pre></div>
 </div>
@@ -394,7 +397,7 @@
 <div class="highlight-bash"><div class="highlight"><pre><span></span>atwf add -l vasp -s optimize_only.yaml POSCAR
 </pre></div>
 </div>
-<p>These commands added workflows for running a single structure optimization FireWork to your LaunchPad. You can verify that by using FireWorks’ <code class="docutils literal"><span class="pre">lpad</span></code> utility:</p>
+<p>These commands added workflows for running a single structure optimization FireWork to your LaunchPad. You can verify that by using FireWorks&#8217; <code class="docutils literal"><span class="pre">lpad</span></code> utility:</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span>lpad get_wflows
 </pre></div>
 </div>
@@ -419,7 +422,7 @@
 </pre></div>
 </div>
 <p>This time, <code class="docutils literal"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;</span></code> can be relative. You should have seen the energy per atom you calculated for Si.</p>
-<p>That’s it! You’ve completed the installation tutorial!</p>
+<p>That&#8217;s it! You&#8217;ve completed the installation tutorial!</p>
 <p>See the following pages for more information on the topics we covered here:</p>
 <ul class="simple">
 <li>For submitting jobs to the queue in reservation mode see the <a class="reference external" href="https://materialsproject.github.io/fireworks/queue_tutorial_pt2.html">FireWorks advanced queue submission tutorial</a></li>
@@ -430,7 +433,7 @@
 <div class="section" id="troubleshooting-and-faq">
 <h2>Troubleshooting and FAQ:<a class="headerlink" href="#troubleshooting-and-faq" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="q-i-can-t-connect-to-my-launchpad-database">
-<h3>Q: I can’t connect to my LaunchPad database<a class="headerlink" href="#q-i-can-t-connect-to-my-launchpad-database" title="Permalink to this headline">¶</a></h3>
+<h3>Q: I can&#8217;t connect to my LaunchPad database<a class="headerlink" href="#q-i-can-t-connect-to-my-launchpad-database" title="Permalink to this headline">¶</a></h3>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -448,7 +451,7 @@ FireWorks version: x.y.z
 located in: &lt;&lt;INSTALL_DIR&gt;&gt;/codes/fireworks
 </pre></div>
 </div>
-<p>If it’s not being found, check that <code class="docutils literal"><span class="pre">echo</span> <span class="pre">$FW_CONFIG_FILE</span></code> returns the location of that file (you could use <code class="docutils literal"><span class="pre">cat</span> <span class="pre">$FW_CONFIG_FILE</span></code> to check the contents)</p>
+<p>If it&#8217;s not being found, check that <code class="docutils literal"><span class="pre">echo</span> <span class="pre">$FW_CONFIG_FILE</span></code> returns the location of that file (you could use <code class="docutils literal"><span class="pre">cat</span> <span class="pre">$FW_CONFIG_FILE</span></code> to check the contents)</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">A:</th><td class="field-body"><p class="first">Double check all of the configuration settings in <code class="docutils literal"><span class="pre">my_launchpad.yaml</span></code></p>
@@ -481,11 +484,11 @@ located in: &lt;&lt;INSTALL_DIR&gt;&gt;/codes/fireworks
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">A:</th><td class="field-body"><p class="first">One drawback of using the reservation mode (the <code class="docutils literal"><span class="pre">-r</span></code> in <code class="docutils literal"><span class="pre">qlaunch</span> <span class="pre">-r</span> <span class="pre">rapidfire</span></code>) is that you have to cancel your job in two places: the queue and the LaunchPad. To cancel the job in the queue, use whatever command you usually would (e.g. <code class="docutils literal"><span class="pre">scancel</span></code> or <code class="docutils literal"><span class="pre">qdel</span></code>). To cancel or rerun the FireWork, run</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>lpad defuse_fws -i <span class="m">1</span>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>lpad defuse_fws -i 1
 </pre></div>
 </div>
 <p>or</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>lpad rerun_fws -i <span class="m">1</span>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>lpad rerun_fws -i 1
 </pre></div>
 </div>
 <p class="last">where <cite>-i 1</cite> means to make perfom the operations on the FireWork at index 1. Run <code class="docutils literal"><span class="pre">lpad</span> <span class="pre">-h</span></code> to see all of the options.</p>
@@ -552,7 +555,7 @@ located in: &lt;&lt;INSTALL_DIR&gt;&gt;/codes/fireworks
 <li><a class="reference internal" href="#run-vasp-unit-tests">Run VASP unit tests</a></li>
 <li><a class="reference internal" href="#run-a-test-workflow">Run a test workflow</a></li>
 <li><a class="reference internal" href="#troubleshooting-and-faq">Troubleshooting and FAQ:</a><ul>
-<li><a class="reference internal" href="#q-i-can-t-connect-to-my-launchpad-database">Q: I can’t connect to my LaunchPad database</a></li>
+<li><a class="reference internal" href="#q-i-can-t-connect-to-my-launchpad-database">Q: I can&#8217;t connect to my LaunchPad database</a></li>
 <li><a class="reference internal" href="#q-my-job-fizzled">Q: My job fizzled!</a></li>
 <li><a class="reference internal" href="#q-i-made-a-mistake-how-do-i-cancel-my-job">Q: I made a mistake, how do I cancel my job?</a></li>
 <li><a class="reference internal" href="#q-i-honestly-tried-everything-i-can-to-solve-my-problem-i-still-need-help">Q: I honestly tried everything I can to solve my problem. I still need help!</a></li>
@@ -605,12 +608,12 @@ located in: &lt;&lt;INSTALL_DIR&gt;&gt;/codes/fireworks
         <li class="right" >
           <a href="index.html" title="atomate"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.7 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.
     </div>
   </body>
 </html>

@@ -1,5 +1,5 @@
-atomate\.feff package
-=====================
+atomate.feff package
+====================
 
 Subpackages
 -----------
@@ -13,8 +13,8 @@ Subpackages
 Submodules
 ----------
 
-atomate\.feff\.database module
-------------------------------
+atomate.feff.database module
+----------------------------
 
 .. automodule:: atomate.feff.database
     :members:
