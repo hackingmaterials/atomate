@@ -18,7 +18,7 @@ __email__ = 'kmathew@lbl.gov, b.wood@berkeley.edu'
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "common", "test_files")
 
-LAMMPS_CMD = None  # "mpirun -n 4 lmp_mpi"
+LAMMPS_CMD = None #"mpirun -n 4 lmp_mpi"
 
 
 class TestLammpsWorkflows(AtomateTest):
