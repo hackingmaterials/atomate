@@ -59,11 +59,11 @@ def release_github(ctx):
         "draft": False,
         "prerelease": False
     }
-    # For this to work properly, you need to go ti your Github profile, generate 
+    # For this to work properly, you need to go to your Github profile, generate
     # a "Personal access token". Then do export GITHUB_RELEASES_TOKEN="xyz1234"
     # (or add it to your bash_profile).
     response = requests.post(
-        "https://api.github.com/repos/materialsproject/atomate/releases",
+        "https://api.github.com/repos/hackingmaterials/atomate/releases",
         data=json.dumps(payload),
         headers={"Authorization": "token " + os.environ["GITHUB_RELEASES_TOKEN"]})
     print(response.text)
