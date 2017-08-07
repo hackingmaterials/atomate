@@ -7,6 +7,12 @@ This module defines firetasks for writing LAMMPS input files (data file and the 
 parameters file)
 """
 
+from pymatgen import Molecule
+from pymatgen.io.lammps.force_field import ForceField
+from pymatgen.io.lammps.topology import Topology
+from pymatgen.io.lammps.data import LammpsForceFieldData
+from pymatgen.io.lammps.sets import LammpsInputSet
+
 from fireworks import FiretaskBase, explicit_serialize
 
 __author__ = 'Kiran Mathew, Brandon Wood'
@@ -14,7 +20,7 @@ __email__ = "kmathew@lbl.gov, b.wood@berkeley.edu"
 
 
 @explicit_serialize
-class WriteLammpsFromIOSet(FiretaskBase):
+class WriteFromIOSet(FiretaskBase):
     """
     Writes LAMMPS Input files(data file and the control parameters file) from DictLammpsInput.
 
@@ -35,5 +41,41 @@ class WriteLammpsFromIOSet(FiretaskBase):
         lammps_input_set = self["lammps_input_set"]
         input_filename = self["input_filename"]
         data_filename = self.get("data_filename", None)
+
+        lammps_input_set.write_input(input_filename, data_filename)
+
+
+@explicit_serialize
+class WriteFromForceFieldAndTopology(FiretaskBase):
+
+    required_params = ["input_file", "final_molecule_path", "molecules", "mols_number",
+                       "forcefield", "input_filename"]
+
+    optional_params = ["user_settings", "site_property"]
+
+    def run_task(self, fw_spec):
+
+        molecules = self["molecules"]
+        mols_number = self["mols_number"]
+        input_filename = self["input_filename"]
+        forcefield = self["forcefield"]
+        user_settings = self.get("user_settings", {})
+        data_filename = user_settings.get("data_file", "lammps.data")
+        final_molecule = Molecule.from_file(self["final_molecule_path"])
+
+        topologies = []
+        for mol in molecules:
+            topologies.append(Topology.from_molecule(mol, ff_map=self.get("site_property", None)))
+
+        lammps_ff_data = LammpsForceFieldData.from_forcefield_and_topology(molecules, mols_number,
+                                                                           self["box_size"],
+                                                                           final_molecule,
+                                                                           forcefield, topologies)
+
+        lammps_input_set = LammpsInputSet.from_file("forcefield", self["input_file"],
+                                                    user_settings=user_settings,
+                                                    lammps_data=lammps_ff_data,
+                                                    data_filename=data_filename,
+                                                    is_forcefield=True)
 
         lammps_input_set.write_input(input_filename, data_filename)

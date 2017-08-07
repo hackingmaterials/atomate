@@ -10,7 +10,7 @@ from fireworks import Workflow
 
 from pymatgen.io.lammps.sets import LammpsInputSet
 
-from atomate.lammps.fireworks.core import LammpsFW
+from atomate.lammps.fireworks.core import LammpsFW, PackmolFW, LammpsForceFieldFW
 
 __author__ = 'Kiran Mathew'
 __email__ = "kmathew@lbl.gov"
@@ -65,6 +65,30 @@ def get_wf_from_input_template(input_template_file, user_settings, lammps_data=N
     return Workflow(fws, name=name)
 
 
+def get_packmol_wf(input_file, user_settings, molecules, packing_config, force_field, box_size,
+                   site_property=None, tolerance=2.0, filetype="xyz", control_params=None,
+                   lammps_cmd = "lammps", dump_filenames=None, db_file=None,
+                   name="LAMMPS packmol Wflow"):
+
+    packmol_output_file = "packed.{}".format(filetype)
+    mols_number = [mol_config["number"] for mol_config in packing_config]
+
+    fw_packmol = PackmolFW(molecules, packing_config, tolerance=tolerance, filetype=filetype,
+                           control_params=control_params, copy_to_current_on_exit=True,
+                           output_file=packmol_output_file, site_property=site_property),
+
+    fw_lammps = LammpsForceFieldFW(input_file, packmol_output_file, molecules, mols_number,
+                                   forcefield, user_settings=user_settings,
+                                   site_property=site_property, input_filename="lammps.in",
+                                   lammps_cmd=lammps_cmd, db_file=db_file, parents=[fw_packmol],
+                                   log_filename="lammps.log", dump_filename=dump_filenames)
+
+    wf = Workflow([fw_packmol, fw_lammps])
+
+    return wf
+
+
+# TODO: get rid off it or find some use for it
 def get_wf(name, lammps_input_set, input_filename, data_filename, lammps_cmd, db_file,
            log_filename, dump_filenames):
     """

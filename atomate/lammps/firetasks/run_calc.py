@@ -81,7 +81,8 @@ class RunPackmol(FiretaskBase):
     """
 
     required_params = ["molecules", "packing_config"]
-    optional_params = ["tolerance", "filetype", "control_params", "output_file"]
+    optional_params = ["tolerance", "filetype", "control_params", "output_file",
+                       "copy_to_current_on_exit", "site_property"]
 
     def run_task(self, fw_spec):
         pmr = PackmolRunner(self["molecules"], self["packing_config"],
@@ -90,5 +91,5 @@ class RunPackmol(FiretaskBase):
                             control_params=self.get("control_params", {"nloop": 1000}),
                             output_file=self.get("output_file", "packed_mol.xyz"))
         logger.info("Running packmol")
-        pmr.run()
+        pmr.run(self.get("copy_to_current_on_exit", False), site_property=self.get("site_property", None))
         logger.info("Packmol finished running.")
