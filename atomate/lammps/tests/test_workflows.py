@@ -18,7 +18,7 @@ __email__ = 'kmathew@lbl.gov, b.wood@berkeley.edu'
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "common", "test_files")
 
-LAMMPS_CMD = None  # "mpirun -n 4 lmp_mpi"
+LAMMPS_CMD = None #"mpirun -n 4 lmp_mpi"
 
 
 class TestLammpsWorkflows(AtomateTest):
@@ -47,7 +47,8 @@ class TestLammpsWorkflows(AtomateTest):
         wf = get_wf_from_input_template(self.input_file_template, self.user_settings,
                                         lammps_data=self.data_file, is_forcefield=True,
                                         input_filename=self.input_filename, db_file=self.db_file,
-                                        dump_filenames=self.dump_filenames, name="peo_wflow_test")
+                                        dump_filenames=self.dump_filenames, name="peo_wflow_test",
+                                        lammps_cmd=LAMMPS_CMD)
 
         if not LAMMPS_CMD:
             wf = use_fake_lammps(wf, self.reference_files_path)
