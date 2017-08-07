@@ -40,20 +40,26 @@ def get_wf_from_input_template(input_template_file, user_settings, lammps_data=N
         Workflow
     """
     wf_name = name
+    user_settings = user_settings or {}
     user_settings = user_settings if isinstance(user_settings, list) else [user_settings]
 
     fws = []
     for settings in user_settings:
+
         data_filename = settings.get("data_file", "lammps.data")
-        log_filename = settings.get("log_file", "lammps.log")
+
+        if "log_file" not in settings:
+            settings["log_file"] = "log.lammps"
+
         lammps_input_set = LammpsInputSet.from_file(wf_name, input_template_file,
                                                     user_settings=settings, lammps_data=lammps_data,
                                                     data_filename=data_filename,
                                                     is_forcefield=is_forcefield)
+
         fws.append(
             LammpsFW(lammps_input_set=lammps_input_set, input_filename=input_filename,
                      data_filename=data_filename, lammps_cmd=lammps_cmd, db_file=db_file,
-                     log_filename=log_filename, dump_filename=dump_filenames)
+                     log_filename=settings["log_file"], dump_filename=dump_filenames)
         )
 
     return Workflow(fws, name=name)

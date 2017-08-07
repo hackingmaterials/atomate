@@ -62,7 +62,7 @@ class TestEELSWorkflow(AtomateTest):
         wf = get_wf_eels("O", self.structure, feff_input_set="ELNES",
                         edge="L1", user_tag_settings=self.user_tag_settings, use_primitive=False)
         self.assertEqual(len(wf_prim.as_dict()["fws"]), 1)
-        self.assertEqual(len(wf.as_dict()["fws"]), 2)
+        self.assertEqual(len(wf.as_dict()["fws"]), 1)
 
     def test_elnes_vs_exelfs(self):
         wf_elnes = get_wf_eels(self.absorbing_atom, self.structure, feff_input_set="ELNES",
