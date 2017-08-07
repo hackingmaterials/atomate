@@ -65,7 +65,7 @@ class LammpsForceFieldFW(Firework):
 
         Args:
             input_file:
-            final_molecule:
+            final_molecule (str/Molecule): either path to the moelcule of Molecule object.
             forcefield:
             box_size:
             topologies:
@@ -93,8 +93,9 @@ class LammpsForceFieldFW(Firework):
             CopyPackmolOutputs(calc_loc=True),
 
             WriteFromForceFieldAndTopology(input_file=input_file, final_molecule_path=final_molecule,
-                                           constituent_molecules=constituent_molecules, mols_number=mols_number,
-                                           forcefield=forcefield, topologies=topologies, input_filename=input_filename,
+                                           constituent_molecules=constituent_molecules,
+                                           mols_number=mols_number, forcefield=forcefield,
+                                           topologies=topologies, input_filename=input_filename,
                                            user_settings=user_settings, ff_site_property=ff_site_property,
                                            box_size=box_size),
 

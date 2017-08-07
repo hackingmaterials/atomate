@@ -7,6 +7,8 @@ This module defines firetasks for writing LAMMPS input files (data file and the 
 parameters file)
 """
 
+import six
+
 from pymatgen import Molecule
 from pymatgen.io.lammps.force_field import ForceField
 from pymatgen.io.lammps.data import LammpsForceFieldData
@@ -47,7 +49,7 @@ class WriteFromIOSet(FiretaskBase):
 @explicit_serialize
 class WriteFromForceFieldAndTopology(FiretaskBase):
 
-    required_params = ["input_file", "final_molecule_path", "constituent_molecules", "mols_number",
+    required_params = ["input_file", "final_molecule", "constituent_molecules", "mols_number",
                        "box_size" "forcefield", "topologies", "input_filename"]
 
     optional_params = ["user_settings", "ff_site_property"]
@@ -62,7 +64,9 @@ class WriteFromForceFieldAndTopology(FiretaskBase):
 
         user_settings = self.get("user_settings", {})
         data_filename = user_settings.get("data_file", "lammps.data")
-        final_molecule = Molecule.from_file(self["final_molecule_path"])
+        final_molecule = self["final_molecule"]
+        if isinstance(final_molecule, six.string_types):
+            final_molecule = Molecule.from_file(final_molecule)
 
         lammps_ff_data = LammpsForceFieldData.from_forcefield_and_topology(molecules, mols_number,
                                                                            self["box_size"],
