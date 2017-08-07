@@ -45,7 +45,7 @@ def get_wf_from_input_template(input_template_file, user_settings, lammps_data=N
     fws = []
     for settings in user_settings:
         data_filename = settings.get("data_file", "lammps.data")
-        log_filename = settings.get("log_file", "log.lammps")
+        log_filename = settings.get("log_file", "lammps.log")
         lammps_input_set = LammpsInputSet.from_file(wf_name, input_template_file,
                                                     user_settings=settings, lammps_data=lammps_data,
                                                     data_filename=data_filename,
