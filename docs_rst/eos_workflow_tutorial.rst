@@ -8,7 +8,7 @@ Running EOS Workflows
 Introduction
 ============
 
-Equations of state are very common and useful in many aspects of .
+Equations of state are common and useful in many aspects of computational materials science.
 This tutorial will quickly guide you through customizing and running a preset EOS workflow.
 
 
@@ -45,7 +45,10 @@ Running an Equation of State Workflow
 Setup
 -----
 
-Make sure you have completed the installation tutorial. Next, create a folder on your HPC resource for this tutorial. It can be located anywhere. You'll keep all of the files for this tutorial there.
+Make sure you have completed the installation tutorial.
+Next, create a folder on your HPC resource for this tutorial.
+It can be located anywhere.
+You'll keep all of the files for this tutorial there.
 
 If you do not already have important prior results in your atomate environment, start fresh by running::
 
@@ -59,7 +62,7 @@ If you do not or want to reset your LaunchPad, you can set up a different databa
 Use Python to generate and add the workflow
 -------------------------------------------
 
-We'll use Al as a simple example and get the structure from the Materials Project.
+We'll use fcc Al as a simple example and get the structure from the Materials Project.
 This requires that you set up an API key in your ``.pmgrc.yaml``.
 In the installation tutorial, you set up your ``FW_config.yaml``, you indicated the atomate Fireworks can be found at :py:mod:`atomate.vasp.fireworks`.
 Similarly, atomate preset workflows can be imported from :py:mod:`atomate.vasp.workflows.presets.core`, which thinly wraps the base workflows (:py:mod:`atomate.vasp.workflows.base`) allowing for common settings to be changed with configuration dictionaries.
@@ -69,7 +72,7 @@ And we can setup the workflow and add it to our LaunchPad ready to run in just a
 
 **Create the workflow script**
 
-In the same directory as the POSCAR, create a Python script name ``eos.py`` with the following contents:
+In the directory you created, make a Python script named ``eos.py`` with the following contents:
 
 .. code-block:: python
 
