@@ -1,16 +1,13 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>atomate.vasp.workflows.presets package &#8212; atomate 0.5.7 documentation</title>
-    
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -27,7 +24,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -118,11 +115,11 @@ c (dict): workflow config dict</dd>
 <dt id="atomate.vasp.workflows.presets.core.wf_nudged_elastic_band">
 <code class="descclassname">atomate.vasp.workflows.presets.core.</code><code class="descname">wf_nudged_elastic_band</code><span class="sig-paren">(</span><em>structures</em>, <em>parent</em>, <em>c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.core.wf_nudged_elastic_band" title="Permalink to this definition">¶</a></dt>
 <dd><p>Nudged elastic band (NEB) workflow from the given structures and config dict.</p>
-<p>&#8216;is_optimized&#8217; default False
-&#8216;neb_round&#8217; default 1</p>
+<p>‘is_optimized’ default False
+‘neb_round’ default 1</p>
 <dl class="docutils">
 <dt>Notes:</dt>
-<dd><p class="first">Length of Structure list and &#8220;is_optimized&#8221; are used to determine the workflow:
+<dd><p class="first">Length of Structure list and “is_optimized” are used to determine the workflow:
 1 structure    # The parent structure &amp; two endpoint indexes provided; need relaxation.</p>
 <blockquote>
 <div># The parent structure &amp; two endpoint indexes provided; no need to relax.</div></blockquote>
@@ -146,9 +143,9 @@ c (dict): workflow config dict</dd>
 c (dict): workflow config dict, basic format:</p>
 <blockquote class="last">
 <div><dl class="docutils">
-<dt>{&#8220;fireworks&#8221;: [],  &#8220;common_params&#8221;: {}, &#8220;additional_ep_params&#8221;: {},</dt>
-<dd>&#8220;additional_neb_params&#8221;: {}}. When the length of structures is 1, &#8220;site_indices&#8221; key
-must be included in c. Note that &#8220;fireworks&#8221; is a list corresponding to the order of
+<dt>{“fireworks”: [],  “common_params”: {}, “additional_ep_params”: {},</dt>
+<dd>“additional_neb_params”: {}}. When the length of structures is 1, “site_indices” key
+must be included in c. Note that “fireworks” is a list corresponding to the order of
 execution.</dd>
 </dl>
 </div></blockquote>
@@ -256,7 +253,7 @@ c (dict): workflow config dict</dd>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
   </body>
 </html>

@@ -19,7 +19,7 @@ YAML Files in atomate
 
 The following illustrates an example of a YAML file that can be used in atwf to run a workflow. Unless there is an existing YAML Workflow for the workflow you are trying to create, you will have to determine which required and optional parameters to set. Every Workflow in atomate is required to have a structure as the first parameter. This is implied in all of the YAML files and does not need to be included.
 
-            YAML format for the usual MP bandstructure workflow is given as follows:
+YAML format for the usual MP bandstructure workflow is given as follows:
 
 .. code-block:: yaml
 
