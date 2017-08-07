@@ -212,7 +212,7 @@ If you open the saved figures, you should see a plot of your DOS and bandstructu
     :alt: MgO density of states
 
 
-.. figure:: _static/MgO-banstructure.png
+.. figure:: _static/MgO-bandstructure.png
     :alt: MgO bandstructure
 
 
