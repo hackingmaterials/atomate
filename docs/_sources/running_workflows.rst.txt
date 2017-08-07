@@ -195,6 +195,10 @@ Simply add the following Python script (``bs-analysis.py``) to your folder, **ch
     dos_plotter.get_plot(xlim=(-10, 10), ylim=(0, 0.1))
     #dos_plotter.save_plot('MgO-dos.pdf', img_format='pdf', xlim=(-10, 10), ylim=(0, 0.1))
 
+    # print the Fermi energy and bandgap from the DOS:
+    print('Fermi energy: {} eV'.format(complete_dos.efermi))
+    print('Bandgap: {} eV'.format(complete_dos.get_gap()))
+
     # get the entry from the database and
     # use the get_band_structure method of the database to get the pymatgen BandStructureSymmLine for that task id
     line_bs_entry = atomate_db.collection.find_one({'task_label': 'nscf line', 'formula_pretty': 'MgO'})
