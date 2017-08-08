@@ -64,23 +64,23 @@ class LammpsForceFieldFW(Firework):
         """
 
         Args:
-            input_file:
+            input_file (str):
             final_molecule (str/Molecule): either path to the moelcule of Molecule object.
-            forcefield:
-            box_size:
-            topologies:
-            constituent_molecules:
-            mols_number:
-            user_settings:
-            ff_site_property:
-            input_filename:
-            data_filename:
-            lammps_cmd:
-            db_file:
-            parents:
-            log_filename:
-            dump_filename:
-            name:
+            forcefield (ForceField):
+            box_size (list):
+            topologies ([Topology]):
+            constituent_molecules ([Molecule]):
+            mols_number (list):
+            user_settings (dict):
+            ff_site_property (str):
+            input_filename (str):
+            data_filename (str):
+            lammps_cmd (str):
+            db_file (str):
+            parents (list):
+            log_filename (str):
+            dump_filename (str):
+            name (str):
             **kwargs:
         """
 

@@ -53,6 +53,7 @@ def get_wf_basic(input_file, user_settings, lammps_data=None, input_filename="la
 
         if "log_file" not in settings:
             settings["log_file"] = "log.lammps"
+        log_filename = settings["log_file"]
 
         lammps_input_set = LammpsInputSet.from_file(wf_name, input_file,
                                                     user_settings=settings, lammps_data=lammps_data,
@@ -62,7 +63,7 @@ def get_wf_basic(input_file, user_settings, lammps_data=None, input_filename="la
         fws.append(
             LammpsFW(lammps_input_set=lammps_input_set, input_filename=input_filename,
                      data_filename=data_filename, lammps_cmd=lammps_cmd, db_file=db_file,
-                     log_filename=settings["log_file"], dump_filename=dump_filenames)
+                     log_filename=log_filename, dump_filename=dump_filenames)
         )
 
     return Workflow(fws, name=name)
