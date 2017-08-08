@@ -1,17 +1,20 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.vasp package &#8212; atomate 0.5.6 documentation</title>
+    
+    <title>atomate.vasp package &#8212; atomate 0.5.7 documentation</title>
+    
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.5.6',
+        VERSION:     '0.5.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -24,7 +27,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
   </head>
-  <body>
+  <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -34,7 +37,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.7 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -161,12 +164,12 @@
 <span id="atomate-vasp-database-module"></span><h2>atomate.vasp.database module<a class="headerlink" href="#module-atomate.vasp.database" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="atomate.vasp.database.VaspCalcDb">
-<em class="property">class </em><code class="descclassname">atomate.vasp.database.</code><code class="descname">VaspCalcDb</code><span class="sig-paren">(</span><em>host='localhost'</em>, <em>port=27017</em>, <em>database='vasp'</em>, <em>collection='tasks'</em>, <em>user=None</em>, <em>password=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">atomate.vasp.database.</code><code class="descname">VaspCalcDb</code><span class="sig-paren">(</span><em>host=u'localhost'</em>, <em>port=27017</em>, <em>database=u'vasp'</em>, <em>collection=u'tasks'</em>, <em>user=None</em>, <em>password=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="atomate.utils.html#atomate.utils.database.CalcDb" title="atomate.utils.database.CalcDb"><code class="xref py py-class docutils literal"><span class="pre">atomate.utils.database.CalcDb</span></code></a></p>
 <p>Class to help manage database insertions of Vasp drones</p>
 <dl class="method">
 <dt id="atomate.vasp.database.VaspCalcDb.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>host='localhost'</em>, <em>port=27017</em>, <em>database='vasp'</em>, <em>collection='tasks'</em>, <em>user=None</em>, <em>password=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>host=u'localhost'</em>, <em>port=27017</em>, <em>database=u'vasp'</em>, <em>collection=u'tasks'</em>, <em>user=None</em>, <em>password=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -194,7 +197,7 @@ background (bool): Run in the background or not.</dd>
 
 <dl class="method">
 <dt id="atomate.vasp.database.VaspCalcDb.insert_gridfs">
-<code class="descname">insert_gridfs</code><span class="sig-paren">(</span><em>d</em>, <em>collection='fs'</em>, <em>compress=True</em>, <em>oid=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.insert_gridfs" title="Permalink to this definition">¶</a></dt>
+<code class="descname">insert_gridfs</code><span class="sig-paren">(</span><em>d</em>, <em>collection=u'fs'</em>, <em>compress=True</em>, <em>oid=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.insert_gridfs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Insert the given document into GridFS.</p>
 <dl class="docutils">
 <dt>Args:</dt>
@@ -265,10 +268,10 @@ Also adds some post-processed info.</p>
 
 <dl class="method">
 <dt id="atomate.vasp.drones.VaspDrone.filter_files">
-<code class="descname">filter_files</code><span class="sig-paren">(</span><em>path</em>, <em>file_pattern='vasprun.xml'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.filter_files" title="Permalink to this definition">¶</a></dt>
+<code class="descname">filter_files</code><span class="sig-paren">(</span><em>path</em>, <em>file_pattern=u'vasprun.xml'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.filter_files" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the files that match the pattern in the given path and
 return them in an ordered dictionary. The searched for files are
-filtered by the run types defined in self.runs. e.g. [“relax1”, “relax2”, …].
+filtered by the run types defined in self.runs. e.g. [&#8220;relax1&#8221;, &#8220;relax2&#8221;, ...].
 Only 2 schemes of the file filtering is enabled: searching for run types
 in the list of files and in the filenames. Modify this method if more
 sophisticated filtering scheme is needed.</p>
@@ -300,9 +303,9 @@ The key is set from list of run types: self.runs</dd>
 <ol class="arabic simple">
 <li>There can be only one vasp run in each directory. Nested directories
 are fine.</li>
-<li>Directories designated “relax1”…”relax9” are considered to be
+<li>Directories designated &#8220;relax1&#8221;...&#8221;relax9&#8221; are considered to be
 parts of a multiple-optimization run.</li>
-<li>Directories containing vasp output with “.relax1”…”.relax9” are
+<li>Directories containing vasp output with &#8221;.relax1&#8221;...&#8221;.relax9&#8221; are
 also considered as parts of a multiple-optimization run.</li>
 </ol>
 </dd></dl>
@@ -334,14 +337,14 @@ output files need to be processed.</p>
 
 <dl class="attribute">
 <dt id="atomate.vasp.drones.VaspDrone.schema">
-<code class="descname">schema</code><em class="property"> = {'root': {'chemsys', 'nsites', 'schema', 'completed_at', 'composition_unit_cell', 'analysis', 'input', 'formula_pretty', 'formula_reduced_abc', 'state', 'calcs_reversed', 'run_stats', 'elements', 'nelements', 'dir_name', 'composition_reduced', 'output', 'formula_anonymous'}, 'input': {'hubbards', 'xc_override', 'structure', 'is_hubbard', 'is_lasph', 'potcar_spec', 'pseudo_potential'}, 'output': {'vbm', 'is_metal', 'density', 'structure', 'is_gap_direct', 'cbm', 'spacegroup', 'bandgap', 'energy', 'energy_per_atom'}, 'calcs_reversed': {'nsites', 'run_type', 'completed_at', 'composition_unit_cell', 'vasp_version', 'has_vasp_completed', 'input', 'task', 'formula_pretty', 'formula_reduced_abc', 'elements', 'nelements', 'dir_name', 'composition_reduced', 'output', 'formula_anonymous'}, 'analysis': {'errors', 'delta_volume', 'delta_volume_percent', 'warnings', 'max_force'}}</em><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.schema" title="Permalink to this definition">¶</a></dt>
+<code class="descname">schema</code><em class="property"> = {u'input': set([u'pseudo_potential', u'hubbards', u'xc_override', u'potcar_spec', u'is_hubbard', u'structure', u'is_lasph']), u'calcs_reversed': set([u'dir_name', u'run_type', u'task', u'input', u'formula_anonymous', u'nelements', u'vasp_version', u'nsites', u'composition_reduced', u'completed_at', u'formula_reduced_abc', u'composition_unit_cell', u'output', u'formula_pretty', u'has_vasp_completed', u'elements']), u'root': set([u'calcs_reversed', u'elements', u'input', u'composition_reduced', u'formula_pretty', u'nelements', u'nsites', u'chemsys', u'analysis', u'completed_at', u'state', u'formula_reduced_abc', u'run_stats', u'composition_unit_cell', u'dir_name', u'output', u'formula_anonymous', u'schema']), u'analysis': set([u'delta_volume', u'errors', u'max_force', u'delta_volume_percent', u'warnings']), u'output': set([u'is_gap_direct', u'density', u'is_metal', u'energy', u'bandgap', u'vbm', u'energy_per_atom', u'spacegroup', u'cbm', u'structure'])}</em><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.schema" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="staticmethod">
 <dt id="atomate.vasp.drones.VaspDrone.set_analysis">
 <em class="property">static </em><code class="descname">set_analysis</code><span class="sig-paren">(</span><em>d</em>, <em>max_force_threshold=0.5</em>, <em>volume_change_threshold=0.2</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.set_analysis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adapted from matgendb.creator</p>
-<p>set the ‘analysis’ key</p>
+<p>set the &#8216;analysis&#8217; key</p>
 </dd></dl>
 
 <dl class="method">
@@ -359,7 +362,7 @@ Make sure all the important keys are set</p>
 <dl class="function">
 <dt id="atomate.vasp.powerups.add_additional_fields_to_taskdocs">
 <code class="descclassname">atomate.vasp.powerups.</code><code class="descname">add_additional_fields_to_taskdocs</code><span class="sig-paren">(</span><em>original_wf</em>, <em>update_dict=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.powerups.add_additional_fields_to_taskdocs" title="Permalink to this definition">¶</a></dt>
-<dd><p>For all VaspToDbTasks in a given workflow, add information  to “additional_fields” to be
+<dd><p>For all VaspToDbTasks in a given workflow, add information  to &#8220;additional_fields&#8221; to be
 placed in the task doc.</p>
 <dl class="docutils">
 <dt>Args:</dt>
@@ -415,7 +418,7 @@ fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this
 <dl class="function">
 <dt id="atomate.vasp.powerups.add_modify_incar_envchk">
 <code class="descclassname">atomate.vasp.powerups.</code><code class="descname">add_modify_incar_envchk</code><span class="sig-paren">(</span><em>original_wf</em>, <em>fw_name_constraint=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.powerups.add_modify_incar_envchk" title="Permalink to this definition">¶</a></dt>
-<dd><p>If you set the “incar_update” parameter in the Worker env, the INCAR will update this
+<dd><p>If you set the &#8220;incar_update&#8221; parameter in the Worker env, the INCAR will update this
 parameter for all matching VASP runs</p>
 <dl class="docutils">
 <dt>Args:</dt>
@@ -430,8 +433,8 @@ fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this
 <dt id="atomate.vasp.powerups.add_namefile">
 <code class="descclassname">atomate.vasp.powerups.</code><code class="descname">add_namefile</code><span class="sig-paren">(</span><em>original_wf</em>, <em>use_slug=True</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.powerups.add_namefile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Every FireWork begins by writing an empty file with the name
-“FW–&lt;fw.name&gt;”. This makes it easy to figure out what jobs are in what
-launcher directories, e.g. “ls -l launch*/FW–<a href="#id1"><span class="problematic" id="id2">*</span></a>” from within a “block” dir.</p>
+&#8220;FW&#8211;&lt;fw.name&gt;&#8221;. This makes it easy to figure out what jobs are in what
+launcher directories, e.g. &#8220;ls -l launch*/FW&#8211;<a href="#id1"><span class="problematic" id="id2">*</span></a>&#8221; from within a &#8220;block&#8221; dir.</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd>original_wf (Workflow)
@@ -458,11 +461,11 @@ child_priority(int): priority of all child jobs. Defaults to root_priority</dd>
 <dl class="function">
 <dt id="atomate.vasp.powerups.add_small_gap_multiply">
 <code class="descclassname">atomate.vasp.powerups.</code><code class="descname">add_small_gap_multiply</code><span class="sig-paren">(</span><em>original_wf</em>, <em>gap_cutoff</em>, <em>density_multiplier</em>, <em>fw_name_constraint=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.powerups.add_small_gap_multiply" title="Permalink to this definition">¶</a></dt>
-<dd><p>In all FWs with specified name constraints, add a ‘small_gap_multiply’ parameter that
+<dd><p>In all FWs with specified name constraints, add a &#8216;small_gap_multiply&#8217; parameter that
 multiplies the k-mesh density of compounds with gap &lt; gap_cutoff by density multiplier.
 Useful for increasing the k-point mesh for metallic or small gap systems.
 Note that this powerup only works on FireWorks with the appropriate WriteVasp* tasks that
-accept the small_gap_multiply argument…</p>
+accept the small_gap_multiply argument...</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd>original_wf (Workflow)
@@ -542,7 +545,7 @@ fw_name_constraints to non-collinear calculations taking spin orbit coupling int
 <dd>original_wf (Workflow)
 nbands (int): number of bands selected by the user (for now)
 structure (Structure)
-modify_incar_params ({}): a dictionary containing the setting for modyfining the INCAR (e.g. {“ICHARG”: 11})
+modify_incar_params ({}): a dictionary containing the setting for modyfining the INCAR (e.g. {&#8220;ICHARG&#8221;: 11})
 fw_name_constraint (string): name of the fireworks to be modified (all if None is passed)</dd>
 <dt>Returns:</dt>
 <dd>Workflow: modified with SOC</dd>
@@ -552,7 +555,7 @@ fw_name_constraint (string): name of the fireworks to be modified (all if None i
 <dl class="function">
 <dt id="atomate.vasp.powerups.remove_custodian">
 <code class="descclassname">atomate.vasp.powerups.</code><code class="descname">remove_custodian</code><span class="sig-paren">(</span><em>original_wf</em>, <em>fw_name_constraint=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.powerups.remove_custodian" title="Permalink to this definition">¶</a></dt>
-<dd><p>Replaces all tasks with “RunVasp*” (e.g. RunVaspCustodian) to be RunVaspDirect.</p>
+<dd><p>Replaces all tasks with &#8220;RunVasp*&#8221; (e.g. RunVaspCustodian) to be RunVaspDirect.</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd>original_wf (Workflow): original workflow
@@ -572,9 +575,9 @@ e.g. run large-memory jobs on a separate queue.</p>
 <dd><p class="first">original_wf (Workflow):
 fworker_name (str): user-defined tag to be added under fw.spec._fworker</p>
 <blockquote>
-<div>e.g. “large memory”, “big”, etc</div></blockquote>
+<div>e.g. &#8220;large memory&#8221;, &#8220;big&#8221;, etc</div></blockquote>
 <p class="last">fw_name_constraint (str): name of the Fireworks to be tagged (all if None is passed)
-task_name_constraint (str): name of the Firetasks to be tagged (e.g. None or ‘RunVasp’)</p>
+task_name_constraint (str): name of the Firetasks to be tagged (e.g. None or &#8216;RunVasp&#8217;)</p>
 </dd>
 <dt>Returns:</dt>
 <dd>Workflow: modified workflow with specified Fireworkers tagged</dd>
@@ -584,7 +587,7 @@ task_name_constraint (str): name of the Firetasks to be tagged (e.g. None or ‘
 <dl class="function">
 <dt id="atomate.vasp.powerups.use_custodian">
 <code class="descclassname">atomate.vasp.powerups.</code><code class="descname">use_custodian</code><span class="sig-paren">(</span><em>original_wf</em>, <em>fw_name_constraint=None</em>, <em>custodian_params=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.powerups.use_custodian" title="Permalink to this definition">¶</a></dt>
-<dd><p>Replaces all tasks with “RunVasp*” (e.g. RunVaspDirect) to be RunVaspCustodian. Thus, this
+<dd><p>Replaces all tasks with &#8220;RunVasp*&#8221; (e.g. RunVaspDirect) to be RunVaspCustodian. Thus, this
 powerup adds error correction into VASP runs if not originally present and/or modifies
 the correction behavior.</p>
 <dl class="docutils">
@@ -593,11 +596,11 @@ the correction behavior.</p>
 fw_name_constraint (str): Only apply changes to FWs where fw_name contains this substring.</p>
 <blockquote>
 <div>For example, use custodian only for certain runs, or set job_type to
-“double_relaxation_run” only for structure optimization run, or set different
+&#8220;double_relaxation_run&#8221; only for structure optimization run, or set different
 handler_group for different runs.</div></blockquote>
 <dl class="last docutils">
 <dt>custodian_params (dict): A dict of parameters for RunVaspCustodian. e.g., use it to set</dt>
-<dd>a “scratch_dir” or “handler_group”.</dd>
+<dd>a &#8220;scratch_dir&#8221; or &#8220;handler_group&#8221;.</dd>
 </dl>
 </dd>
 <dt>Returns:</dt>
@@ -608,7 +611,7 @@ handler_group for different runs.</div></blockquote>
 <dl class="function">
 <dt id="atomate.vasp.powerups.use_fake_vasp">
 <code class="descclassname">atomate.vasp.powerups.</code><code class="descname">use_fake_vasp</code><span class="sig-paren">(</span><em>original_wf</em>, <em>ref_dirs</em>, <em>params_to_check=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.powerups.use_fake_vasp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Replaces all tasks with “RunVasp” (e.g. RunVaspDirect) to be RunVaspFake. Thus, we do not
+<dd><p>Replaces all tasks with &#8220;RunVasp&#8221; (e.g. RunVaspDirect) to be RunVaspFake. Thus, we do not
 actually run VASP but copy pre-determined inputs and outputs.</p>
 <dl class="docutils">
 <dt>Args:</dt>
@@ -669,7 +672,7 @@ scratch_dir (path): Path to the scratch dir to use. Supports env_chk</dd>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">pymatgen.alchemy.filters.AbstractStructureFilter</span></code></p>
 <dl class="attribute">
 <dt id="atomate.vasp.submission_filter.SubmissionFilter.NO_POTCARS">
-<code class="descname">NO_POTCARS</code><em class="property"> = ['Po', 'At', 'Rn', 'Fr', 'Ra', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr']</em><a class="headerlink" href="#atomate.vasp.submission_filter.SubmissionFilter.NO_POTCARS" title="Permalink to this definition">¶</a></dt>
+<code class="descname">NO_POTCARS</code><em class="property"> = [u'Po', u'At', u'Rn', u'Fr', u'Ra', u'Am', u'Cm', u'Bk', u'Cf', u'Es', u'Fm', u'Md', u'No', u'Lr']</em><a class="headerlink" href="#atomate.vasp.submission_filter.SubmissionFilter.NO_POTCARS" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -770,12 +773,12 @@ require_bandstructure (bool): For MP checks, require a band structure calc</dd>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.7 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.
     </div>
   </body>
 </html>

@@ -1,17 +1,20 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Running workflows tutorial &#8212; atomate 0.5.6 documentation</title>
+    
+    <title>Running workflows tutorial &#8212; atomate 0.5.7 documentation</title>
+    
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.5.6',
+        VERSION:     '0.5.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -26,7 +29,7 @@
     <link rel="next" title="Creating Workflows" href="creating_workflows.html" />
     <link rel="prev" title="Installing atomate" href="installation.html" /> 
   </head>
-  <body>
+  <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -42,7 +45,7 @@
         <li class="right" >
           <a href="installation.html" title="Installing atomate"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.7 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -55,7 +58,7 @@
 <span id="id1"></span><h1>Running Workflows Tutorial<a class="headerlink" href="#running-workflows-tutorial" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>Once you have a working installation of atomate, you’ll want to jump in and start running workflows. There are preset workflows with reasonable settings for many calculations. This tutorial will quickly guide you through customizing and running a preset workflow.</p>
+<p>Once you have a working installation of atomate, you&#8217;ll want to jump in and start running workflows. There are preset workflows with reasonable settings for many calculations. This tutorial will quickly guide you through customizing and running a preset workflow.</p>
 </div>
 <div class="section" id="objectives">
 <h2>Objectives<a class="headerlink" href="#objectives" title="Permalink to this headline">¶</a></h2>
@@ -87,7 +90,7 @@
 <h2>Running an Equation of State Workflow<a class="headerlink" href="#running-an-equation-of-state-workflow" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="setup">
 <h3>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h3>
-<p>Make sure you have completed the installation tutorial. Next, create a folder on your HPC resource for this tutorial. It can be located anywhere. You’ll keep all of the files for this tutorial there.</p>
+<p>Make sure you have completed the installation tutorial. Next, create a folder on your HPC resource for this tutorial. It can be located anywhere. You&#8217;ll keep all of the files for this tutorial there.</p>
 <p>If you do not already have important prior results in your atomate environment, start fresh by running:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>``lpad reset``
 </pre></div>
@@ -115,8 +118,8 @@
      <span class="mf">0.500000000</span>         <span class="mf">0.500000000</span>         <span class="mf">0.000000000</span>
 </pre></div>
 </div>
-<p>Note that this does not have to be a POSCAR. You can also supply multiple formats supported by pymatgen, including: Crystallographic Information File (CIF), POSCAR/CONTCAR, CHGCAR, vasprun.xml, CSSR, Netcdf and pymatgen’s JSON serialized structures.</p>
-<p>There are multiple ways of defining the workflow to execute on the structure. We’ll go over 3 options.</p>
+<p>Note that this does not have to be a POSCAR. You can also supply multiple formats supported by pymatgen, including: Crystallographic Information File (CIF), POSCAR/CONTCAR, CHGCAR, vasprun.xml, CSSR, Netcdf and pymatgen&#8217;s JSON serialized structures.</p>
+<p>There are multiple ways of defining the workflow to execute on the structure. We&#8217;ll go over 3 options.</p>
 </div>
 <div class="section" id="option-1-use-a-pre-defined-workflow-in-atomate">
 <h3>Option 1: Use a pre-defined workflow in atomate<a class="headerlink" href="#option-1-use-a-pre-defined-workflow-in-atomate" title="Permalink to this headline">¶</a></h3>
@@ -124,12 +127,12 @@
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">atwf</span> <span class="n">add</span> <span class="p">[[</span><span class="n">STRUCTURE_FILE</span><span class="p">]]</span> <span class="o">-</span><span class="n">l</span> <span class="n">vasp</span> <span class="o">-</span><span class="n">s</span> <span class="p">[[</span><span class="n">NAME_OF_FILE</span><span class="p">]]</span>
 </pre></div>
 </div>
-<p>where <code class="docutils literal"><span class="pre">[[STRUCTURE_FILE]]</span></code> is your POSCAR file (or cif, etc.) and <code class="docutils literal"><span class="pre">[[NAME_OF_FILE]]</span></code> is the name of the workflow file. Note that the <code class="docutils literal"><span class="pre">eos</span></code> workflow is not one of the files (an example of a valid file is <code class="docutils literal"><span class="pre">bandstructure.yaml</span></code>), so we’ll skip this option for this example.</p>
+<p>where <code class="docutils literal"><span class="pre">[[STRUCTURE_FILE]]</span></code> is your POSCAR file (or cif, etc.) and <code class="docutils literal"><span class="pre">[[NAME_OF_FILE]]</span></code> is the name of the workflow file. Note that the <code class="docutils literal"><span class="pre">eos</span></code> workflow is not one of the files (an example of a valid file is <code class="docutils literal"><span class="pre">bandstructure.yaml</span></code>), so we&#8217;ll skip this option for this example.</p>
 <p>The Python function presets are defined in <code class="docutils literal"><span class="pre">atomate.vasp.workflows.presets</span></code>. You can add such workflows using the command:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">atwf</span> <span class="n">add</span> <span class="p">[[</span><span class="n">STRUCTURE_FILE</span><span class="p">]]</span> <span class="o">-</span><span class="n">p</span> <span class="p">[[</span><span class="n">NAME_OF_PYTHON_FUNCTION</span><span class="p">]]</span>
 </pre></div>
 </div>
-<p>An example of a valid Python functions in <code class="docutils literal"><span class="pre">atomate.vasp.workflows.presets</span></code> is <code class="docutils literal"><span class="pre">wf_bulk_modulus</span></code>, which is very similar to the workflow we’ll actually run. However, this isn’t exactly the procedure we’ll follow next, so to continue with this example, let’s choose one of the other two options for defining the workflow which are more custom than the presets. However, note that you can and are encouraged to use preset workflows where practical and that there exist many such workflows for you to choose from.</p>
+<p>An example of a valid Python functions in <code class="docutils literal"><span class="pre">atomate.vasp.workflows.presets</span></code> is <code class="docutils literal"><span class="pre">wf_bulk_modulus</span></code>, which is very similar to the workflow we&#8217;ll actually run. However, this isn&#8217;t exactly the procedure we&#8217;ll follow next, so to continue with this example, let&#8217;s choose one of the other two options for defining the workflow which are more custom than the presets. However, note that you can and are encouraged to use preset workflows where practical and that there exist many such workflows for you to choose from.</p>
 </div>
 <div class="section" id="option-2-create-your-own-workflow-file">
 <h3>Option 2: Create your own workflow file<a class="headerlink" href="#option-2-create-your-own-workflow-file" title="Permalink to this headline">¶</a></h3>
@@ -137,7 +140,7 @@
 <p>You can use a text editor to define your own workflow that chains together pre-defined steps in atomate. To get a feeling for this procedure, in your text editor, create a file called <code class="docutils literal"><span class="pre">eos.yaml</span></code> and enter the following text:</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">If your VASP command is anything other than <code class="docutils literal"><span class="pre">vasp_std</span></code>, then you’ll want to change the last line (common_params). <em>Don’t use any parallelization software (ibrun, srun, etc.)</em> it’s bad behavior and probably won’t work.</p>
+<p class="last">If your VASP command is anything other than <code class="docutils literal"><span class="pre">vasp_std</span></code>, then you&#8217;ll want to change the last line (common_params). <em>Don&#8217;t use any parallelization software (ibrun, srun, etc.)</em> it&#8217;s bad behavior and probably won&#8217;t work.</p>
 </div>
 <div class="highlight-yaml"><div class="highlight"><pre><span></span># EOS Workflow
 # An optimization Firework followed by 7 deformed structures based on the optimized structure
@@ -203,7 +206,7 @@ common_params:
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The YAML file format is typically considered easy to read, but if you want to know more about the YAML format in general you might want to take a look at the <a class="reference external" href="http://www.yaml.org/spec/1.2/spec.html">detailed YAML specification</a>. If you want to know more specifically about atomate’s YAML specification, see the <a class="reference internal" href="workflow_yaml_reference.html#workflow-yaml-reference"><span class="std std-ref">Workflow YAML Reference</span></a>.</p>
+<p class="last">The YAML file format is typically considered easy to read, but if you want to know more about the YAML format in general you might want to take a look at the <a class="reference external" href="http://www.yaml.org/spec/1.2/spec.html">detailed YAML specification</a>. If you want to know more specifically about atomate&#8217;s YAML specification, see the <a class="reference internal" href="workflow_yaml_reference.html#workflow-yaml-reference"><span class="std std-ref">Workflow YAML Reference</span></a>.</p>
 </div>
 <p><strong>Add workflow to LaunchPad</strong></p>
 <p>Within the folder containing your <code class="docutils literal"><span class="pre">POSCAR</span></code> (or other structure file) and <code class="docutils literal"><span class="pre">eos.yaml</span></code>, run the following command to add the workflow to your LaunchPad:</p>
@@ -220,7 +223,7 @@ common_params:
 <p>In the same directory as the POSCAR, create a Python script name <code class="docutils literal"><span class="pre">eos.py</span></code> with the following contents:</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">If your VASP command is anything other than <code class="docutils literal"><span class="pre">vasp_std</span></code>, then you’ll want to change the line setting the <code class="docutils literal"><span class="pre">VASP_CMD</span></code> key of the configuration dictionary. <em>Don’t use any parallelization software (ibrun, srun, etc.)</em> it’s bad behavior and probably won’t work.</p>
+<p class="last">If your VASP command is anything other than <code class="docutils literal"><span class="pre">vasp_std</span></code>, then you&#8217;ll want to change the line setting the <code class="docutils literal"><span class="pre">VASP_CMD</span></code> key of the configuration dictionary. <em>Don&#8217;t use any parallelization software (ibrun, srun, etc.)</em> it&#8217;s bad behavior and probably won&#8217;t work.</p>
 </div>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># Create an EOS from the workflow from the atomate presets</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
@@ -251,7 +254,7 @@ common_params:
 </pre></div>
 </div>
 <p><strong>Add workflow to LaunchPad</strong></p>
-<p>If you want to add the workflow to your LaunchPad (e.g., you didn’t already go through Option 2 for adding a workflow): from the folder with your <code class="docutils literal"><span class="pre">POSCAR</span></code> and <code class="docutils literal"><span class="pre">eos.py</span></code>, run the Python script:</p>
+<p>If you want to add the workflow to your LaunchPad (e.g., you didn&#8217;t already go through Option 2 for adding a workflow): from the folder with your <code class="docutils literal"><span class="pre">POSCAR</span></code> and <code class="docutils literal"><span class="pre">eos.py</span></code>, run the Python script:</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span>python eos.py
 </pre></div>
 </div>
@@ -276,12 +279,12 @@ common_params:
 <p>which will give you an overview of the each Firework you ran. It should look something like</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span>  task_id  formula_pretty      output.energy_per_atom    output.structure.lattice.volume  task_label
 ---------  ----------------  ------------------------  ---------------------------------  -----------------------------------------------------
-        <span class="m">1</span>  Al                                -3.74617                            <span class="m">65</span>.8868  <span class="m">2015</span>-12-30-18-00-00-163825 structure optimization
-        <span class="m">2</span>  Al                                -3.69701                            <span class="m">59</span>.2981  <span class="m">2015</span>-12-30-18-00-00-163825 bulk_modulus deformation <span class="m">0</span>
-        <span class="m">3</span>  Al                                -3.73492                            <span class="m">62</span>.5925  <span class="m">2015</span>-12-30-18-00-00-163825 bulk_modulus deformation <span class="m">1</span>
-        <span class="m">4</span>  Al                                -3.74617                            <span class="m">65</span>.8868  <span class="m">2015</span>-12-30-18-00-00-163825 bulk_modulus deformation <span class="m">2</span>
-        <span class="m">5</span>  Al                                -3.73752                            <span class="m">69</span>.1812  <span class="m">2015</span>-12-30-18-00-00-163825 bulk_modulus deformation <span class="m">3</span>
-        <span class="m">6</span>  Al                                -3.71384                            <span class="m">72</span>.4755  <span class="m">2015</span>-12-30-18-00-00-163825 bulk_modulus deformation <span class="m">4</span>
+        <span class="m">1</span>  Al                                -3.74617                            65.8868  2015-12-30-18-00-00-163825 structure optimization
+        <span class="m">2</span>  Al                                -3.69701                            59.2981  2015-12-30-18-00-00-163825 bulk_modulus deformation 0
+        <span class="m">3</span>  Al                                -3.73492                            62.5925  2015-12-30-18-00-00-163825 bulk_modulus deformation 1
+        <span class="m">4</span>  Al                                -3.74617                            65.8868  2015-12-30-18-00-00-163825 bulk_modulus deformation 2
+        <span class="m">5</span>  Al                                -3.73752                            69.1812  2015-12-30-18-00-00-163825 bulk_modulus deformation 3
+        <span class="m">6</span>  Al                                -3.71384                            72.4755  2015-12-30-18-00-00-163825 bulk_modulus deformation 4
 </pre></div>
 </div>
 <p>Now we want to get the results for just our deformations. We add the <code class="docutils literal"><span class="pre">--crit</span></code> option to enable searching based on JSON-formatted criteria. Specifically we just want the deformation. By using the <code class="docutils literal"><span class="pre">--dump</span></code> option and redirection the results to a JSON file, we can load the results in Python for our analysis. We can also simplify the properties are getting, since we are already aware of the other things.</p>
@@ -290,7 +293,7 @@ common_params:
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">It is important to format your criteria as single quotes on the outside and double quotes on the inside. Double quotes are required for JSON and the single quotes prevent any shell magic that curly braces (‘{‘) usually invoke.</p>
+<p class="last">It is important to format your criteria as single quotes on the outside and double quotes on the inside. Double quotes are required for JSON and the single quotes prevent any shell magic that curly braces (&#8216;{&#8216;) usually invoke.</p>
 </div>
 <p>If everything worked, you should have gotten no output, but you should be able to find an <code class="docutils literal"><span class="pre">eos-results.json</span></code> with the following content</p>
 <div class="highlight-json"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;output.structure.lattice.volume&quot;</span><span class="p">:</span> <span class="mf">59.29814953343786</span><span class="p">,</span> <span class="nt">&quot;output.energy_per_atom&quot;</span><span class="p">:</span> <span class="mf">-3.69701308</span><span class="p">}</span>
@@ -300,7 +303,7 @@ common_params:
 <span class="p">{</span><span class="nt">&quot;output.structure.lattice.volume&quot;</span><span class="p">:</span> <span class="mf">72.47551533513209</span><span class="p">,</span> <span class="nt">&quot;output.energy_per_atom&quot;</span><span class="p">:</span> <span class="mf">-3.7138362225</span><span class="p">}</span>
 </pre></div>
 </div>
-<p>We need to format this file to actual JSON to more easily load the results in Python. Add a “data” property name, extra curly braces and brackets around all of the data and a comma on each line, making the results a list. The file <code class="docutils literal"><span class="pre">eos-results.json</span></code> should look like</p>
+<p>We need to format this file to actual JSON to more easily load the results in Python. Add a &#8220;data&#8221; property name, extra curly braces and brackets around all of the data and a comma on each line, making the results a list. The file <code class="docutils literal"><span class="pre">eos-results.json</span></code> should look like</p>
 <div class="highlight-json"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;data&quot;</span><span class="p">:</span>
 <span class="p">[</span>
 <span class="p">{</span><span class="nt">&quot;output.structure.lattice.volume&quot;</span><span class="p">:</span> <span class="mf">59.29814953343786</span><span class="p">,</span> <span class="nt">&quot;output.energy_per_atom&quot;</span><span class="p">:</span> <span class="mf">-3.69701308</span><span class="p">},</span>
@@ -315,7 +318,7 @@ common_params:
 </div>
 <div class="section" id="analyzing-the-results">
 <h3>Analyzing the results<a class="headerlink" href="#analyzing-the-results" title="Permalink to this headline">¶</a></h3>
-<p>Finally, we’ll plot the EOS results that we saved in the last section. Simply add the following Python script (<code class="docutils literal"><span class="pre">eos-analysis.py</span></code>) to your folder and run it</p>
+<p>Finally, we&#8217;ll plot the EOS results that we saved in the last section. Simply add the following Python script (<code class="docutils literal"><span class="pre">eos-analysis.py</span></code>) to your folder and run it</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># eos-analysis.py</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span>
@@ -433,12 +436,12 @@ common_params:
         <li class="right" >
           <a href="installation.html" title="Installing atomate"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.6 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.7 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.
     </div>
   </body>
 </html>

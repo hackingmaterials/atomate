@@ -83,20 +83,14 @@ Track changes to atomate through the :doc:`changelog`.
 Citing atomate
 ==============
 
-A paper on atomate is in submission. For now, you can cite the following two works::
+Please help encourage atomate development by citing the following paper to acknowledge its use::
 
-    (1) Jain, A.; Ong, S. P.; Chen, W.; Medasani, B.; Qu, X.; Kocher, M.;
-    Brafman, M.; Petretto, G.; Rignanese, G.-M.; Hautier, G.; Gunter, D.;
-    Persson, K. A. FireWorks: a dynamic workflow system designed for
-    high-throughput applications, Concurr. Comput. Pract. Exp., 2015, 22,
-    doi:10.1002/cpe.3505.
-
-    (2) Ong, S. P.; Richards, W. D.; Jain, A.; Hautier, G.; Kocher, M.; Cholia,
-    S.; Gunter, D.; Chevrier, V. L.; Persson, K. a.; Ceder, G. Python Materials
-    Genomics (pymatgen): A robust, open-source python library for materials
-    analysis, Comput. Mater. Sci., 2013, 68, 314–319,
-    doi:10.1016/j.commatsci.2012.10.028.
-
+    Mathew, K., Montoya, J. H., Faghaninia, A., Dwarakanath, S., Aykol, M.,
+    Tang, H., Chu, I., Smidt, T., Bocklund, B., Horton, M., Dagdelen, J.,
+    Wood, B., Liu, Z.-K., Neaton, J., Ong, S. P., Persson, K., Jain, A.,
+    Atomate: A high-level interface to generate, execute, and analyze
+    computational materials science workflows. Comput. Mater. Sci. 139,
+    140–152 (2017).
 
 .. _contributing-label:
 

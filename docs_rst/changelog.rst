@@ -2,6 +2,13 @@
 atomate Changelog
 =================
 
+**v0.5.7**
+
+* VASP drone stores original inputs (S. Dwaraknath)
+* updates to EELS workflow (K. Mathew)
+* misc cleanups (A. Jain, S.P. Ong, K. Mathew)
+
+
 **v0.5.6**
 
 * major improvements to elastic tensor calculations and compatibility with latest pymatgen (J. Montoya, K. Mathew)

@@ -1,19 +1,19 @@
-atomate\.vasp\.firetasks\.tests package
-=======================================
+atomate.vasp.firetasks.tests package
+====================================
 
 Submodules
 ----------
 
-atomate\.vasp\.firetasks\.tests\.test\_copy module
---------------------------------------------------
+atomate.vasp.firetasks.tests.test_copy module
+---------------------------------------------
 
 .. automodule:: atomate.vasp.firetasks.tests.test_copy
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.vasp\.firetasks\.tests\.test\_write\_vasp module
----------------------------------------------------------
+atomate.vasp.firetasks.tests.test_write_vasp module
+---------------------------------------------------
 
 .. automodule:: atomate.vasp.firetasks.tests.test_write_vasp
     :members:

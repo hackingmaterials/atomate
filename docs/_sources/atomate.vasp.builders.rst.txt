@@ -1,83 +1,83 @@
-atomate\.vasp\.builders package
-===============================
+atomate.vasp.builders package
+=============================
 
 Submodules
 ----------
 
-atomate\.vasp\.builders\.bandgap\_estimation module
----------------------------------------------------
+atomate.vasp.builders.bandgap_estimation module
+-----------------------------------------------
 
 .. automodule:: atomate.vasp.builders.bandgap_estimation
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.vasp\.builders\.base module
-------------------------------------
+atomate.vasp.builders.base module
+---------------------------------
 
 .. automodule:: atomate.vasp.builders.base
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.vasp\.builders\.boltztrap\_materials module
-----------------------------------------------------
+atomate.vasp.builders.boltztrap_materials module
+------------------------------------------------
 
 .. automodule:: atomate.vasp.builders.boltztrap_materials
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.vasp\.builders\.dielectric module
-------------------------------------------
+atomate.vasp.builders.dielectric module
+---------------------------------------
 
 .. automodule:: atomate.vasp.builders.dielectric
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.vasp\.builders\.file\_materials module
------------------------------------------------
+atomate.vasp.builders.file_materials module
+-------------------------------------------
 
 .. automodule:: atomate.vasp.builders.file_materials
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.vasp\.builders\.fix\_tasks module
-------------------------------------------
+atomate.vasp.builders.fix_tasks module
+--------------------------------------
 
 .. automodule:: atomate.vasp.builders.fix_tasks
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.vasp\.builders\.materials\_descriptor module
------------------------------------------------------
+atomate.vasp.builders.materials_descriptor module
+-------------------------------------------------
 
 .. automodule:: atomate.vasp.builders.materials_descriptor
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.vasp\.builders\.materials\_ehull module
-------------------------------------------------
+atomate.vasp.builders.materials_ehull module
+--------------------------------------------
 
 .. automodule:: atomate.vasp.builders.materials_ehull
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.vasp\.builders\.tags module
-------------------------------------
+atomate.vasp.builders.tags module
+---------------------------------
 
 .. automodule:: atomate.vasp.builders.tags
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.vasp\.builders\.tasks\_materials module
-------------------------------------------------
+atomate.vasp.builders.tasks_materials module
+--------------------------------------------
 
 .. automodule:: atomate.vasp.builders.tasks_materials
     :members:
