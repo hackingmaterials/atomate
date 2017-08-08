@@ -37,6 +37,8 @@ class LammpsFW(Firework):
             db_file (str): path to file specifying db credentials to place output parsing.
             parents ([Fireworks)]: parents of this particular Firework.
             name (str): descriptive name for lammps simulation
+            log_filename (str)
+            dump_filename (str)
             \*\*kwargs: other kwargs that are passed to Firework.__init__.
         """
 
@@ -60,27 +62,28 @@ class LammpsForceFieldFW(Firework):
                  constituent_molecules=None, mols_number=None, user_settings=None,
                  ff_site_property=None, input_filename="lammps.in", data_filename="lammps.data",
                  lammps_cmd="lammps", db_file=None, parents=None, log_filename="log.lammps",
-                 dump_filename=None, name="LammpsFFFW", **kwargs):
+                 dump_filenames=None, name="LammpsFFFW", **kwargs):
         """
 
         Args:
-            input_file (str):
+            input_file (str): path to lammps input(or template) file.
             final_molecule (str/Molecule): either path to the moelcule of Molecule object.
-            forcefield (ForceField):
-            box_size (list):
-            topologies ([Topology]):
-            constituent_molecules ([Molecule]):
-            mols_number (list):
+            forcefield (ForceField): pymatgen.io.lammps.force_field.ForceField object
+            box_size (list):  list of list of low and high values for each dimension [[xlow, xhigh], ...]
+            topologies ([Topology]): list of pymatgen.io.lammps.topology.Topology objects, one for
+                each constituent molecule.
+            constituent_molecules ([Molecule]): list of Molecule objects that make up the final_molecule
+            mols_number (list): list of number of each constituent moelcule.
             user_settings (dict):
-            ff_site_property (str):
-            input_filename (str):
-            data_filename (str):
-            lammps_cmd (str):
-            db_file (str):
-            parents (list):
-            log_filename (str):
-            dump_filename (str):
-            name (str):
+            ff_site_property (str): the site property used for forcefiled mapping
+            input_filename (str): name of the input file to be written
+            data_filename (str):name of the data file to be written
+            lammps_cmd (str): lammps command run (without the input file)
+            db_file (str): path to the db settings
+            parents (list): list of Fireworks
+            log_filename (str): lammps log file name
+            dump_filenames (str): list of dump files
+            name (str): firework name
             **kwargs:
         """
 
@@ -102,7 +105,7 @@ class LammpsForceFieldFW(Firework):
             RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename),
 
             LammpsToDB(input_filename=input_filename, data_filename=data_filename,
-                       log_filename=log_filename, dump_filename=dump_filename,
+                       log_filename=log_filename, dump_filenames=dump_filenames,
                        db_file=db_file, additional_fields={"task_label": name})
         ]
 
@@ -117,14 +120,16 @@ class PackmolFW(Firework):
         """
 
         Args:
-            molecules ([Molecules]):
-            packing_config ([dict]):
-            tolerance (flaot):
-            filetype (str):
-            control_params (dict):
-            output_file (str):
-            parents (list):
-            name (str):
+            molecules:
+            packing_config:
+            tolerance:
+            filetype:
+            control_params:
+            output_file:
+            copy_to_current_on_exit:
+            site_property:
+            parents:
+            name:
             **kwargs:
         """
         control_params = control_params or {'maxit': 20, 'nloop': 600}

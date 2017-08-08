@@ -31,21 +31,29 @@ class LammpsToDB(FiretaskBase):
     """
     Enter a LAMMPS calculation into the database.
 
-    Optional params:
+    required_params:
+        input_filename (str)
+
+    optional_params:
         calc_dir (str): path to dir (on current filesystem) that contains LAMMPS
             output files. Default: use current working directory.
         calc_loc (str OR bool): if True will set most recent calc_loc. If str
             search for the most recent calc_loc with the matching name
-        diffusion_params (dict): parameters to the diffusion_analyzer. If specified a summary
-            of diffusion statistics will be added.
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
+        fw_spec_field:
+        data_filename:
+        log_filename:
+        dump_filenames:
+        diffusion_params
+        additional_fields:
     """
 
     required_params = ["input_filename"]
 
     optional_params = ["calc_dir", "calc_loc", "db_file", "fw_spec_field",
-                       "data_filename", "log_filename", "dump_filenames", "diffusion_params"]
+                       "data_filename", "log_filename", "dump_filenames", "diffusion_params",
+                       "additional_fields"]
 
     def run_task(self, fw_spec):
 

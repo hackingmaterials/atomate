@@ -30,7 +30,7 @@ class WriteFromIOSet(FiretaskBase):
         input_file (string): name of the file to which the input params will be written
 
     optional_params:
-        data_file (string): if specified the data file will be renamed
+        data_filename (string): if specified the data file will be renamed
     """
 
     required_params = ["lammps_input_set", "input_filename"]

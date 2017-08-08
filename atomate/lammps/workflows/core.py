@@ -82,7 +82,7 @@ def get_packmol_wf(input_file, user_settings, constituent_molecules, packing_con
         input_file (str):  path to lammps input(or template) file.
         user_settings (dict): if the input_file is a tempalte file then this dict contains
             the key value pairs for the template file.
-        constituent_molecules ([Molleecules]): list of pymatgen Molecule objects
+        constituent_molecules ([Molecules]): list of pymatgen Molecule objects
         packing_config ([dict]): list of configuration dictionaries, one for each constituent molecule.
         forcefield (ForceField): pymatgen.io.lammps.forcefield.ForceField object
         final_box_size ([list]): list of list of low and high values for each dimension [[xlow, xhigh], ...]
@@ -111,10 +111,9 @@ def get_packmol_wf(input_file, user_settings, constituent_molecules, packing_con
 
     fw_lammps = LammpsForceFieldFW(input_file, packmol_output_file, forcefield, final_box_size,
                                    topologies=topologies, constituent_molecules=constituent_molecules,
-                                   mols_number=mols_number,  user_settings=user_settings,
-                                   ff_site_property=ff_site_property,  input_filename="lammps.in",
+                                   mols_number=mols_number, user_settings=user_settings,
+                                   ff_site_property=ff_site_property, input_filename="lammps.in",
                                    lammps_cmd=lammps_cmd, db_file=db_file, log_filename="lammps.log",
-                                   dump_filename=dump_filenames, parents=[fw_packmol])
+                                   dump_filenames=dump_filenames, parents=[fw_packmol])
 
     return Workflow([fw_packmol, fw_lammps], name=name)
-
