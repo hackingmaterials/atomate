@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Customizing Workflows" href="customizing_workflows.html" />
-    <link rel="prev" title="Running Workflows Tutorial" href="running_workflows.html" /> 
+    <link rel="prev" title="Running EOS Workflows" href="eos_workflow_tutorial.html" /> 
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -43,7 +43,7 @@
           <a href="customizing_workflows.html" title="Customizing Workflows"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="running_workflows.html" title="Running Workflows Tutorial"
+          <a href="eos_workflow_tutorial.html" title="Running EOS Workflows"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.7 documentation</a> &#187;</li> 
       </ul>
@@ -146,7 +146,7 @@
 <div class="section" id="creating-the-workflow">
 <h3>Creating the workflow<a class="headerlink" href="#creating-the-workflow" title="Permalink to this headline">¶</a></h3>
 <p>With each of the Fireworks identified for our sketched workflow, they can assemble them into a complete atomate Workflow in Python. In order to understand what&#8217;s going on here, you should be comfortable with creating instances of classes and using functions. To demonstrate how to assemble and use a workflow, we will use a slightly modified version of the Gibbs Free Energy Workflow and step through each line of code to explain what is going on.</p>
-<p>For context, the Gibbs Free Energy Workflow calculates <img class="math" src="_images/math/3e8656187474a3145c68b42dfc12efc5115aaa82.png" alt="G(P,T)"/> for a structure. Two methods for doing this are using the Debye model (see <a href="#id4"><span class="problematic" id="id5">`link me to debye`_</span></a>) or through vibration frequencies of atoms (see <a class="reference external" href="http://dx.doi.org/10.1016/j.scriptamat.2015.07.021">Togo and Tanaka, Scr. Mater., 108 (2015)</a>. It does this by first optimizing the desired structure. Next, that optimized structure has its volume scaled and a VASP calculation that is either a static calculation or calculation with density functional perturbation theory (the <code class="docutils literal"><span class="pre">IBRION</span> <span class="pre">=</span> <span class="pre">7</span> <span class="pre">or</span> <span class="pre">8</span></code> INCAR setting) is performed depending on what type of analysis is used. In the analysis, the Debye model or a phonon calculation is used to extrapolate the from 0K to finite temperatures using the harmonic approximation, giving each structure an <img class="math" src="_images/math/88aec2489da0734cf63c2dd134a1f82301d7edac.png" alt="F(T)"/> dependence. Then each of these structures are considered together and fit to an equation of state which allows us express <img class="math" src="_images/math/ed2a0cbdcad2bc864a89ae8e66bd25d60f55957d.png" alt="F(V,T)"/> for this structure, which we can transform to <img class="math" src="_images/math/3e8656187474a3145c68b42dfc12efc5115aaa82.png" alt="G(P,T)"/> to get the Gibbs free energy of that structure. The phonopy website has a <a class="reference external" href="https://atztogo.github.io/phonopy/qha.html#phonopy-qha">good visualization for Helmholtz energies and volumes with increasing temperature</a>.</p>
+<p>For context, the Gibbs Free Energy Workflow calculates <img class="math" src="_images/math/3e8656187474a3145c68b42dfc12efc5115aaa82.png" alt="G(P,T)"/> for a structure. Two methods for doing this are using the Debye model (see <a class="reference external" href="http://dx.doi.org/10.1016/j.comphy.2003.12.001">Blanco et al. Comput. Phys. Commun., 158, (2004)</a>) or through vibration frequencies of atoms (see <a class="reference external" href="http://dx.doi.org/10.1016/j.scriptamat.2015.07.021">Togo and Tanaka, Scr. Mater., 108 (2015)</a>. It does this by first optimizing the desired structure. Next, that optimized structure has its volume scaled and a VASP calculation that is either a static calculation or calculation with density functional perturbation theory (the <code class="docutils literal"><span class="pre">IBRION</span> <span class="pre">=</span> <span class="pre">7</span> <span class="pre">or</span> <span class="pre">8</span></code> INCAR setting) is performed depending on what type of analysis is used. In the analysis, the Debye model or a phonon calculation is used to extrapolate the from 0K to finite temperatures using the harmonic approximation, giving each structure an <img class="math" src="_images/math/88aec2489da0734cf63c2dd134a1f82301d7edac.png" alt="F(T)"/> dependence. Then each of these structures are considered together and fit to an equation of state which allows us express <img class="math" src="_images/math/ed2a0cbdcad2bc864a89ae8e66bd25d60f55957d.png" alt="F(V,T)"/> for this structure, which we can transform to <img class="math" src="_images/math/3e8656187474a3145c68b42dfc12efc5115aaa82.png" alt="G(P,T)"/> to get the Gibbs free energy of that structure. The phonopy website has a <a class="reference external" href="https://atztogo.github.io/phonopy/qha.html#phonopy-qha">good visualization for Helmholtz energies and volumes with increasing temperature</a>.</p>
 <p>The Python implementation of the modified Gibbs Free Energy Workflow is:</p>
 <div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
  2
@@ -423,8 +423,8 @@
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="running_workflows.html"
-                        title="previous chapter">Running Workflows Tutorial</a></p>
+  <p class="topless"><a href="eos_workflow_tutorial.html"
+                        title="previous chapter">Running EOS Workflows</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="customizing_workflows.html"
                         title="next chapter">Customizing Workflows</a></p>
@@ -462,7 +462,7 @@
           <a href="customizing_workflows.html" title="Customizing Workflows"
              >next</a> |</li>
         <li class="right" >
-          <a href="running_workflows.html" title="Running Workflows Tutorial"
+          <a href="eos_workflow_tutorial.html" title="Running EOS Workflows"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.7 documentation</a> &#187;</li> 
       </ul>

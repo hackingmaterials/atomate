@@ -64,8 +64,7 @@
 <div class="section" id="yaml-files-in-atomate">
 <h2>YAML Files in atomate<a class="headerlink" href="#yaml-files-in-atomate" title="Permalink to this headline">¶</a></h2>
 <p>The following illustrates an example of a YAML file that can be used in atwf to run a workflow. Unless there is an existing YAML Workflow for the workflow you are trying to create, you will have to determine which required and optional parameters to set. Every Workflow in atomate is required to have a structure as the first parameter. This is implied in all of the YAML files and does not need to be included.</p>
-<blockquote>
-<div>YAML format for the usual MP bandstructure workflow is given as follows:</div></blockquote>
+<p>YAML format for the usual MP bandstructure workflow is given as follows:</p>
 <div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">fireworks</span><span class="p p-Indicator">:</span>
 <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">fw</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">atomate.vasp.fireworks.core.OptimizeFW</span>
 <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">fw</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">atomate.vasp.fireworks.core.StaticFW</span>
@@ -113,6 +112,78 @@ name) which can be helpful in record keeping.</p>
 <p>Finally, one can specify a <cite>metadata</cite> key as a YAML dict/hash that will
 initialize workflow metadata - this is purely optional and for bookkeeping.</p>
 </div>
+<div class="section" id="eos-workflow-example">
+<h2>EOS Workflow Example<a class="headerlink" href="#eos-workflow-example" title="Permalink to this headline">¶</a></h2>
+<p>This example shows what a more complicated workflow can look like using the YAML version of the EOS workflow described in the <a class="reference internal" href="running_workflows.html#running-workflows-tutorial"><span class="std std-ref">Running Workflows Tutorial</span></a>.</p>
+<p>In order to use this example, create a file called <code class="docutils literal"><span class="pre">eos.yaml</span></code> with a text editor and enter the following text:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span># EOS Workflow
+# An optimization Firework followed by 7 deformed structures based on the optimized structure
+# the deformations are +/- 10% volume of the original cell
+fireworks:
+- fw: atomate.vasp.fireworks.core.OptimizeFW
+  user_incar_settings:
+    SIGMA: 0.2
+    ISMEAR: 1
+- fw: atomate.vasp.fireworks.core.TransmuterFW
+  params:
+    parents: 0
+    transformations:
+    - DeformStructureTransformation
+    transformation_params:
+    - &quot;scaling_matrix&quot;: [[0.9655, 0, 0], [0, 0.9655, 0], [0, 0, 0.9655]]
+- fw: atomate.vasp.fireworks.core.TransmuterFW
+  params:
+    parents: 0
+    transformations:
+    - DeformStructureTransformation
+    transformation_params:
+    - &quot;scaling_matrix&quot;: [[0.9773, 0, 0], [0, 0.9773, 0], [0, 0, 0.9773]]
+- fw: atomate.vasp.fireworks.core.TransmuterFW
+  params:
+    parents: 0
+    transformations:
+    - DeformStructureTransformation
+    transformation_params:
+    - &quot;scaling_matrix&quot;: [[0.9888, 0, 0], [0, 0.9888, 0], [0, 0, 0.9888]]
+- fw: atomate.vasp.fireworks.core.TransmuterFW
+  params:
+    parents: 0
+    transformations:
+    - DeformStructureTransformation
+    transformation_params:
+    - &quot;scaling_matrix&quot;: [[1.0000, 0, 0], [0, 1.0000, 0], [0, 0, 1.0000]]
+- fw: atomate.vasp.fireworks.core.TransmuterFW
+  params:
+    parents: 0
+    transformations:
+    - DeformStructureTransformation
+    transformation_params:
+    - &quot;scaling_matrix&quot;: [[1.0110, 0, 0], [0, 1.0110, 0], [0, 0, 1.0110]]
+- fw: atomate.vasp.fireworks.core.TransmuterFW
+  params:
+    parents: 0
+    transformations:
+    - DeformStructureTransformation
+    transformation_params:
+    - &quot;scaling_matrix&quot;: [[1.0217, 0, 0], [0, 1.0217, 0], [0, 0, 1.0217]]
+- fw: atomate.vasp.fireworks.core.TransmuterFW
+  params:
+    parents: 0
+    transformations:
+    - DeformStructureTransformation
+    transformation_params:
+    - &quot;scaling_matrix&quot;: [[1.0323, 0, 0], [0, 1.0323, 0], [0, 0, 1.0323]]
+common_params:
+  vasp_cmd: &gt;&gt;vasp_cmd&lt;&lt;
+  db_file: &gt;&gt;db_file&lt;&lt;
+</pre></div>
+</div>
+<p>To add this to your LaunchPad go to the folder containing your <code class="docutils literal"><span class="pre">POSCAR</span></code> (or other structure file) and <code class="docutils literal"><span class="pre">eos.yaml</span></code>, run the following command to add the workflow to your LaunchPad:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>atwf add POSCAR -s eos.yaml
+</pre></div>
+</div>
+<p>The YAML file format is typically considered easy to read, but it is less practical for more complicated workflows. The Python implementation of the EOS workflow is at <a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base.bulk_modulus" title="atomate.vasp.workflows.base.bulk_modulus"><code class="xref py py-mod docutils literal"><span class="pre">atomate.vasp.workflows.base.bulk_modulus</span></code></a> and it uses the existing deformation workflow to express the same as the above YAML file in less than 20 lines of Python code, including imports. Another advantage of using Python is being able to have more control over Fireworks and create them from Firetasks in the workflow, like the <code class="docutils literal"><span class="pre">FitEOSToDb</span></code> Firetask.</p>
+</div>
 </div>
 
 
@@ -126,6 +197,7 @@ initialize workflow metadata - this is purely optional and for bookkeeping.</p>
 <li><a class="reference internal" href="#">Workflow YAML Reference</a><ul>
 <li><a class="reference internal" href="#introduction">Introduction</a></li>
 <li><a class="reference internal" href="#yaml-files-in-atomate">YAML Files in atomate</a></li>
+<li><a class="reference internal" href="#eos-workflow-example">EOS Workflow Example</a></li>
 </ul>
 </li>
 </ul>
