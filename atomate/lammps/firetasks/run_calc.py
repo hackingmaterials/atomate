@@ -75,9 +75,12 @@ class RunPackmol(FiretaskBase):
     Optional params:
         tolerance (float): packmol tolerance
         filetype (string): input/output structure file type
-        control_params: packmol control parameters dictionary. Basically all parameters other
+        control_params (dict): packmol control parameters dictionary. Basically all parameters other
             than structure/atoms
-        output_file: output file name. The extension will be adjusted according to the filetype
+        output_file (str): output file name. The extension will be adjusted according to the filetype
+        copy_to_current_on_exit (bool): whether or not to copy the packed molecule output file to
+            the current directory.
+        site_property (str): the specified site property will be restored for the final Molecule object.
     """
 
     required_params = ["molecules", "packing_config"]

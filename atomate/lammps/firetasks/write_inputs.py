@@ -21,7 +21,7 @@ __email__ = "kmathew@lbl.gov, b.wood@berkeley.edu"
 
 
 @explicit_serialize
-class WriteFromIOSet(FiretaskBase):
+class WriteInputFromIOSet(FiretaskBase):
     """
     Writes LAMMPS Input files(data file and the control parameters file) from DictLammpsInput.
 
@@ -47,7 +47,7 @@ class WriteFromIOSet(FiretaskBase):
 
 
 @explicit_serialize
-class WriteFromForceFieldAndTopology(FiretaskBase):
+class WriteInputFromForceFieldAndTopology(FiretaskBase):
 
     required_params = ["input_file", "final_molecule", "constituent_molecules", "mols_number",
                        "box_size" "forcefield", "topologies", "input_filename"]

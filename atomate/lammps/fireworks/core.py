@@ -13,7 +13,7 @@ from fireworks import Firework
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
 from atomate.lammps.firetasks.run_calc import RunLammpsDirect, RunPackmol
 from atomate.lammps.firetasks.parse_outputs import LammpsToDB
-from atomate.lammps.firetasks.write_inputs import WriteFromIOSet, WriteFromForceFieldAndTopology
+from atomate.lammps.firetasks.write_inputs import WriteInputFromIOSet, WriteInputFromForceFieldAndTopology
 from atomate.lammps.firetasks.glue_tasks import CopyPackmolOutputs
 
 __author__ = "Brandon Wood, Kiran Mathew"
@@ -43,8 +43,8 @@ class LammpsFW(Firework):
         """
 
         tasks = [
-            WriteFromIOSet(lammps_input_set=lammps_input_set, input_filename=input_filename,
-                           data_filename=data_filename),
+            WriteInputFromIOSet(lammps_input_set=lammps_input_set, input_filename=input_filename,
+                                data_filename=data_filename),
 
             RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename),
 
@@ -95,12 +95,12 @@ class LammpsForceFieldFW(Firework):
         tasks = [
             CopyPackmolOutputs(calc_loc=True),
 
-            WriteFromForceFieldAndTopology(input_file=input_file, final_molecule_path=final_molecule,
-                                           constituent_molecules=constituent_molecules,
-                                           mols_number=mols_number, forcefield=forcefield,
-                                           topologies=topologies, input_filename=input_filename,
-                                           user_settings=user_settings, ff_site_property=ff_site_property,
-                                           box_size=box_size),
+            WriteInputFromForceFieldAndTopology(input_file=input_file, final_molecule_path=final_molecule,
+                                                constituent_molecules=constituent_molecules,
+                                                mols_number=mols_number, forcefield=forcefield,
+                                                topologies=topologies, input_filename=input_filename,
+                                                user_settings=user_settings, ff_site_property=ff_site_property,
+                                                box_size=box_size),
 
             RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename),
 
@@ -120,16 +120,20 @@ class PackmolFW(Firework):
         """
 
         Args:
-            molecules:
-            packing_config:
-            tolerance:
-            filetype:
-            control_params:
-            output_file:
-            copy_to_current_on_exit:
-            site_property:
-            parents:
-            name:
+            molecules (list): list of constituent molecules(Molecule objects)
+            packing_config (list): list of dict config settings for each molecule in the
+                molecules list. eg: config settings for a single molecule
+                [{"number": 1, "inside box":[0,0,0,100,100,100]}]
+            tolerance (float): packmol tolerance
+            filetype (string): input/output structure file type
+            control_params (dict): packmol control parameters dictionary. Basically all parameters
+                other than structure/atoms.
+            output_file (str): output file name. The extension will be adjusted according to the filetype.
+            copy_to_current_on_exit (bool): whether or not to copy the packed molecule output file
+                to the current directory.
+            site_property (str): the specified site property will be restored for the final Molecule object.
+            parents ([Firework]): parent fireworks
+            name (str): firework name
             **kwargs:
         """
         control_params = control_params or {'maxit': 20, 'nloop': 600}

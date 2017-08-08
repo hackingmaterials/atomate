@@ -18,7 +18,7 @@ __email__ = "kmathew@lbl.gov"
 
 
 def get_wf_basic(input_file, user_settings, lammps_data=None, input_filename="lammps.in",
-                 is_forcefield=False, lammps_cmd="lammps", dump_filenames=None, db_file=None,
+                 is_forcefield=False, lammps_cmd="lmp_serial", dump_filenames=None, db_file=None,
                  name="LAMMPS Wflow"):
     """
     Returns basic lammps workflow. This is more useful if the input_file is template file with
@@ -75,7 +75,7 @@ def get_packmol_wf(input_file, user_settings, constituent_molecules, packing_con
                    name="Packmol Lammps Wflow"):
     """
     Returns workflow that uses Packmol to pack the constituent molecules into the given
-    configureation and then then run lammps on the final packed molecule. Useful for
+    configuration and then run lammps on the final packed molecule. Useful for
     polymer studies.
 
     Args:
