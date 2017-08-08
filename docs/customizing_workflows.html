@@ -1,13 +1,16 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>Customizing workflows &#8212; atomate 0.5.7 documentation</title>
+    
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -26,7 +29,7 @@
     <link rel="next" title="atomate Changelog" href="changelog.html" />
     <link rel="prev" title="Creating Workflows" href="creating_workflows.html" /> 
   </head>
-  <body>
+  <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -66,7 +69,7 @@
 </div>
 <div class="section" id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
-<p>It’s best if you are able to create workflows on your own in Python. See the <a class="reference internal" href="creating_workflows.html#creating-workflows"><span class="std std-ref">creating workflows guide</span></a></p>
+<p>It&#8217;s best if you are able to create workflows on your own in Python. See the <a class="reference internal" href="creating_workflows.html#creating-workflows"><span class="std std-ref">creating workflows guide</span></a></p>
 </div>
 <div class="section" id="powerups">
 <span id="id2"></span><h2>Powerups<a class="headerlink" href="#powerups" title="Permalink to this headline">¶</a></h2>
@@ -98,7 +101,7 @@
 </div>
 <div class="section" id="vasp-calculation-settings">
 <h2>VASP Calculation Settings<a class="headerlink" href="#vasp-calculation-settings" title="Permalink to this headline">¶</a></h2>
-<p>Most VASP calculation-specific settings (e.g. those from INCAR, KPOINTS, and POTCAR files) are controlled by <a class="reference external" href="http://pymatgen.org/pymatgen.io.vasp.sets.html">pymatgen’s vasp sets</a> . VASP workflows take <code class="docutils literal"><span class="pre">vasp_input_set</span></code> options and you can directly import and use them or customize them before using them in atomate workflows.</p>
+<p>Most VASP calculation-specific settings (e.g. those from INCAR, KPOINTS, and POTCAR files) are controlled by <a class="reference external" href="http://pymatgen.org/pymatgen.io.vasp.sets.html">pymatgen&#8217;s vasp sets</a> . VASP workflows take <code class="docutils literal"><span class="pre">vasp_input_set</span></code> options and you can directly import and use them or customize them before using them in atomate workflows.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Using the <code class="docutils literal"><span class="pre">vasp_input_set</span></code> or <code class="docutils literal"><span class="pre">vis</span></code> keywords in workflow constructors usually only controls the first Firework that uses that set. If you want to have multiple Fireworks use custom input sets (or just not the first one, e.g. in a bandstructure workflow) then you have to make a custom workflow yourself.</p>
@@ -136,7 +139,7 @@
     <span class="k">if</span> <span class="n">user_kpoints_settings</span><span class="p">:</span>
         <span class="n">v</span> <span class="o">=</span> <span class="n">vis_relax</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
         <span class="n">v</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;user_kpoints_settings&quot;</span><span class="p">:</span> <span class="n">user_kpoints_settings</span><span class="p">})</span>
-        <span class="n">vis_relax</span> <span class="o">=</span> <span class="n">vis_relax</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="n">vis_relax</span> <span class="o">=</span> <span class="n">vis_relax</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
 
     <span class="c1"># Structure optimization firework</span>
     <span class="n">fws</span> <span class="o">=</span> <span class="p">[</span><span class="n">OptimizeFW</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">vasp_input_set</span><span class="o">=</span><span class="n">vis_relax</span><span class="p">,</span> <span class="n">vasp_cmd</span><span class="o">=</span><span class="n">vasp_cmd</span><span class="p">,</span>
@@ -156,11 +159,11 @@
 <span class="n">my_wf</span> <span class="o">=</span> <span class="n">get_optimize_wf</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">vasp_input_set</span><span class="o">=</span><span class="n">my_custom_input_set</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>For the supported options, see the VASP documentation and <a class="reference external" href="http://pymatgen.org/pymatgen.io.vasp.sets.html">pymatgen’s vasp sets</a> documentation. PBE (default), LDA, PW91, LDA_US were supported at the time of writing.</p>
+<p>For the supported options, see the VASP documentation and <a class="reference external" href="http://pymatgen.org/pymatgen.io.vasp.sets.html">pymatgen&#8217;s vasp sets</a> documentation. PBE (default), LDA, PW91, LDA_US were supported at the time of writing.</p>
 </div>
 <div class="section" id="custom-kpoints-settings">
 <h3>Custom KPOINTS settings<a class="headerlink" href="#custom-kpoints-settings" title="Permalink to this headline">¶</a></h3>
-<p>KPOINTS settings can also be similarly customized using the above example. You can control them with the following keywords (from <a class="reference external" href="http://pymatgen.org/pymatgen.io.vasp.sets.html">pymatgen’s vasp sets</a>):</p>
+<p>KPOINTS settings can also be similarly customized using the above example. You can control them with the following keywords (from <a class="reference external" href="http://pymatgen.org/pymatgen.io.vasp.sets.html">pymatgen&#8217;s vasp sets</a>):</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">force_gamma</span></code>: always use gamma centered kpoint generation. Default (False) is to use Automatic Density kpoint scheme, which will use the Gamma centered generation scheme for hexagonal cells, and Monkhorst-Pack otherwise.</li>
 <li><code class="docutils literal"><span class="pre">user_kpoints_settings</span></code>: Override kpoints setting by supplying a dict. E.g., <code class="docutils literal"><span class="pre">{&quot;reciprocal_density&quot;:</span> <span class="pre">1000}</span></code>. Other options are <code class="docutils literal"><span class="pre">grid_density</span></code> or <code class="docutils literal"><span class="pre">length</span></code>.</li>
@@ -189,8 +192,8 @@
 <span class="c1"># the simples way to do this is to create a subclass of the input set you want</span>
 <span class="c1"># and override the kpoints property to return what you want.</span>
 <span class="k">class</span> <span class="nc">MyInputSet</span><span class="p">(</span><span class="n">MPRelaxSet</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">),</span> <span class="n">shift</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">MPRelaxSet</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">MPRelaxSet</span><span class="o">.</span><span class="n">CONFIG</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">),</span> <span class="n">shift</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MPRelaxSet</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">MPRelaxSet</span><span class="o">.</span><span class="n">CONFIG</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">points</span> <span class="o">=</span> <span class="n">points</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="n">shift</span>
 
@@ -315,7 +318,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.
     </div>
   </body>
 </html>

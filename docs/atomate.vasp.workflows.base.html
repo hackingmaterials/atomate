@@ -1,13 +1,16 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>atomate.vasp.workflows.base package &#8212; atomate 0.5.7 documentation</title>
+    
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -24,7 +27,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
   </head>
-  <body>
+  <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -52,7 +55,7 @@
 <span id="atomate-vasp-workflows-base-adsorption-module"></span><h2>atomate.vasp.workflows.base.adsorption module<a class="headerlink" href="#module-atomate.vasp.workflows.base.adsorption" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="atomate.vasp.workflows.base.adsorption.get_slab_fw">
-<code class="descclassname">atomate.vasp.workflows.base.adsorption.</code><code class="descname">get_slab_fw</code><span class="sig-paren">(</span><em>slab</em>, <em>bulk_structure=None</em>, <em>slab_gen_params={}</em>, <em>db_file=None</em>, <em>vasp_input_set=None</em>, <em>parents=None</em>, <em>vasp_cmd='vasp'</em>, <em>name=''</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.get_slab_fw" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">atomate.vasp.workflows.base.adsorption.</code><code class="descname">get_slab_fw</code><span class="sig-paren">(</span><em>slab</em>, <em>bulk_structure=None</em>, <em>slab_gen_params={}</em>, <em>db_file=None</em>, <em>vasp_input_set=None</em>, <em>parents=None</em>, <em>vasp_cmd=u'vasp'</em>, <em>name=u''</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.get_slab_fw" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to generate a a slab firework.  Returns a TransmuterFW if bulk_structure is specified,
 constructing the necessary transformations from the slab and slab generator parameters,
 or an OptimizeFW if only a slab is specified.</p>
@@ -81,7 +84,7 @@ vasp_cmd (string): vasp command</p>
 
 <dl class="function">
 <dt id="atomate.vasp.workflows.base.adsorption.get_wf_surface">
-<code class="descclassname">atomate.vasp.workflows.base.adsorption.</code><code class="descname">get_wf_surface</code><span class="sig-paren">(</span><em>slabs</em>, <em>molecules=[]</em>, <em>bulk_structure=None</em>, <em>slab_gen_params=None</em>, <em>vasp_cmd='vasp'</em>, <em>db_file=None</em>, <em>ads_structures_params={}</em>, <em>add_molecules_in_box=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.get_wf_surface" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">atomate.vasp.workflows.base.adsorption.</code><code class="descname">get_wf_surface</code><span class="sig-paren">(</span><em>slabs</em>, <em>molecules=[]</em>, <em>bulk_structure=None</em>, <em>slab_gen_params=None</em>, <em>vasp_cmd=u'vasp'</em>, <em>db_file=None</em>, <em>ads_structures_params={}</em>, <em>add_molecules_in_box=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.get_wf_surface" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Args:</dt>
 <dd><p class="first">slabs (list of Slabs or Structures): slabs to calculate
@@ -129,7 +132,7 @@ slab_gen_params (dict): dictionary of kwargs for generate_all_slabs</dd>
 <span id="atomate-vasp-workflows-base-bulk-modulus-module"></span><h2>atomate.vasp.workflows.base.bulk_modulus module<a class="headerlink" href="#module-atomate.vasp.workflows.base.bulk_modulus" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="atomate.vasp.workflows.base.bulk_modulus.get_wf_bulk_modulus">
-<code class="descclassname">atomate.vasp.workflows.base.bulk_modulus.</code><code class="descname">get_wf_bulk_modulus</code><span class="sig-paren">(</span><em>structure</em>, <em>deformations</em>, <em>vasp_input_set=None</em>, <em>vasp_cmd='vasp'</em>, <em>db_file=None</em>, <em>user_kpoints_settings=None</em>, <em>eos='vinet'</em>, <em>tag=None</em>, <em>user_incar_settings=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.bulk_modulus.get_wf_bulk_modulus" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">atomate.vasp.workflows.base.bulk_modulus.</code><code class="descname">get_wf_bulk_modulus</code><span class="sig-paren">(</span><em>structure</em>, <em>deformations</em>, <em>vasp_input_set=None</em>, <em>vasp_cmd=u'vasp'</em>, <em>db_file=None</em>, <em>user_kpoints_settings=None</em>, <em>eos=u'vinet'</em>, <em>tag=None</em>, <em>user_incar_settings=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.bulk_modulus.get_wf_bulk_modulus" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the workflow that computes the bulk modulus by fitting to the given equation of state.</p>
 <dl class="docutils">
 <dt>Args:</dt>
@@ -138,11 +141,11 @@ deformations (list): list of deformation matrices(list of lists).
 vasp_input_set (VaspInputSet): for the static deformation calculations
 vasp_cmd (str): vasp command to run.
 db_file (str): path to the db file.
-user_kpoints_settings (dict): example: {“grid_density”: 7000}
+user_kpoints_settings (dict): example: {&#8220;grid_density&#8221;: 7000}
 eos (str): equation of state used for fitting the energies and the volumes.</p>
 <blockquote>
-<div>supported equation of states: “quadratic”, “murnaghan”, “birch”, “birch_murnaghan”,
-“pourier_tarantola”, “vinet”, “deltafactor”. See pymatgen.analysis.eos.py</div></blockquote>
+<div>supported equation of states: &#8220;quadratic&#8221;, &#8220;murnaghan&#8221;, &#8220;birch&#8221;, &#8220;birch_murnaghan&#8221;,
+&#8220;pourier_tarantola&#8221;, &#8220;vinet&#8221;, &#8220;deltafactor&#8221;. See pymatgen.analysis.eos.py</div></blockquote>
 <dl class="docutils">
 <dt>tag (str): something unique to identify the tasks in this workflow. If None a random uuid</dt>
 <dd>will be assigned.</dd>
@@ -167,7 +170,7 @@ include band structure, dielectric constant, NEB, and more.</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd><p class="first">structure: (Structure) structure to run
-wf_filename: filename in library subdir, e.g. “band_structure.yaml”
+wf_filename: filename in library subdir, e.g. &#8220;band_structure.yaml&#8221;
 params: (list of dicts) set params for each Firework; format is list</p>
 <blockquote>
 <div>that is same length as # of fws in the workflow</div></blockquote>
@@ -185,7 +188,7 @@ wf_metadata: (dict) workflow metadata</p>
 <span id="atomate-vasp-workflows-base-deformations-module"></span><h2>atomate.vasp.workflows.base.deformations module<a class="headerlink" href="#module-atomate.vasp.workflows.base.deformations" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="atomate.vasp.workflows.base.deformations.get_wf_deformations">
-<code class="descclassname">atomate.vasp.workflows.base.deformations.</code><code class="descname">get_wf_deformations</code><span class="sig-paren">(</span><em>structure</em>, <em>deformations</em>, <em>name='deformation'</em>, <em>vasp_input_set=None</em>, <em>vasp_cmd='vasp'</em>, <em>db_file=None</em>, <em>tag=''</em>, <em>copy_vasp_outputs=True</em>, <em>metadata=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.deformations.get_wf_deformations" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">atomate.vasp.workflows.base.deformations.</code><code class="descname">get_wf_deformations</code><span class="sig-paren">(</span><em>structure</em>, <em>deformations</em>, <em>name=u'deformation'</em>, <em>vasp_input_set=None</em>, <em>vasp_cmd=u'vasp'</em>, <em>db_file=None</em>, <em>tag=u''</em>, <em>copy_vasp_outputs=True</em>, <em>metadata=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.deformations.get_wf_deformations" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a structure deformation workflow.</p>
 <p>Firework 1 : structural relaxation
 Firework 2 - len(deformations): Deform the optimized structure and run static calculations.</p>
@@ -217,16 +220,16 @@ tag (str): some unique string that will be appended to the names of the firework
 <dl class="function">
 <dt id="atomate.vasp.workflows.base.elastic.get_default_strain_states">
 <code class="descclassname">atomate.vasp.workflows.base.elastic.</code><code class="descname">get_default_strain_states</code><span class="sig-paren">(</span><em>order=2</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.elastic.get_default_strain_states" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates a list of “strain-states”</p>
+<dd><p>Generates a list of &#8220;strain-states&#8221;</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="atomate.vasp.workflows.base.elastic.get_wf_elastic_constant">
-<code class="descclassname">atomate.vasp.workflows.base.elastic.</code><code class="descname">get_wf_elastic_constant</code><span class="sig-paren">(</span><em>structure</em>, <em>strain_states=None</em>, <em>stencils=None</em>, <em>db_file=None</em>, <em>conventional=False</em>, <em>order=2</em>, <em>vasp_input_set=None</em>, <em>analysis=True</em>, <em>sym_reduce=False</em>, <em>tag='elastic'</em>, <em>copy_vasp_outputs=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.elastic.get_wf_elastic_constant" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">atomate.vasp.workflows.base.elastic.</code><code class="descname">get_wf_elastic_constant</code><span class="sig-paren">(</span><em>structure</em>, <em>strain_states=None</em>, <em>stencils=None</em>, <em>db_file=None</em>, <em>conventional=False</em>, <em>order=2</em>, <em>vasp_input_set=None</em>, <em>analysis=True</em>, <em>sym_reduce=False</em>, <em>tag=u'elastic'</em>, <em>copy_vasp_outputs=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.elastic.get_wf_elastic_constant" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a workflow to calculate elastic constants.</p>
 <dl class="docutils">
-<dt>Firework 1 <span class="classifier-delimiter">:</span> <span class="classifier">write vasp input set for structural relaxation,</span></dt>
-<dd>run vasp,
+<dt>Firework 1</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">write vasp input set for structural relaxation,</span><dd>run vasp,
 pass run location,
 database insertion.</dd>
 </dl>
@@ -273,9 +276,9 @@ kwargs (keyword arguments): additional kwargs to be passed to get_wf_deformation
 <span id="atomate-vasp-workflows-base-gibbs-module"></span><h2>atomate.vasp.workflows.base.gibbs module<a class="headerlink" href="#module-atomate.vasp.workflows.base.gibbs" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="atomate.vasp.workflows.base.gibbs.get_wf_gibbs_free_energy">
-<code class="descclassname">atomate.vasp.workflows.base.gibbs.</code><code class="descname">get_wf_gibbs_free_energy</code><span class="sig-paren">(</span><em>structure</em>, <em>deformations</em>, <em>vasp_input_set=None</em>, <em>vasp_cmd='vasp'</em>, <em>db_file=None</em>, <em>user_kpoints_settings=None</em>, <em>t_step=10</em>, <em>t_min=0</em>, <em>t_max=1000</em>, <em>mesh=(20</em>, <em>20</em>, <em>20)</em>, <em>eos='vinet'</em>, <em>qha_type='debye_model'</em>, <em>pressure=0.0</em>, <em>poisson=0.25</em>, <em>metadata=None</em>, <em>tag=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.gibbs.get_wf_gibbs_free_energy" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">atomate.vasp.workflows.base.gibbs.</code><code class="descname">get_wf_gibbs_free_energy</code><span class="sig-paren">(</span><em>structure</em>, <em>deformations</em>, <em>vasp_input_set=None</em>, <em>vasp_cmd=u'vasp'</em>, <em>db_file=None</em>, <em>user_kpoints_settings=None</em>, <em>t_step=10</em>, <em>t_min=0</em>, <em>t_max=1000</em>, <em>mesh=(20</em>, <em>20</em>, <em>20)</em>, <em>eos=u'vinet'</em>, <em>qha_type=u'debye_model'</em>, <em>pressure=0.0</em>, <em>poisson=0.25</em>, <em>metadata=None</em>, <em>tag=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.gibbs.get_wf_gibbs_free_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns quasi-harmonic gibbs free energy workflow.
-Note: phonopy package is required for the final analysis step if qha_type=”phonopy”</p>
+Note: phonopy package is required for the final analysis step if qha_type=&#8221;phonopy&#8221;</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd><p class="first">structure (Structure): input structure.
@@ -283,18 +286,18 @@ deformations (list): list of deformation matrices(list of lists).
 vasp_input_set (VaspInputSet)
 vasp_cmd (str): vasp command to run.
 db_file (str): path to the db file.
-user_kpoints_settings (dict): example: {“grid_density”: 7000}
+user_kpoints_settings (dict): example: {&#8220;grid_density&#8221;: 7000}
 t_step (float): temperature step (in K)
 t_min (float): min temperature (in K)
 t_max (float): max temperature (in K)
 mesh (list/tuple): reciprocal space density
 eos (str): equation of state used for fitting the energies and the volumes.</p>
 <blockquote>
-<div>options supported by phonopy: “vinet”, “murnaghan”, “birch_murnaghan”.
+<div>options supported by phonopy: &#8220;vinet&#8221;, &#8220;murnaghan&#8221;, &#8220;birch_murnaghan&#8221;.
 Note: pymatgen supports more options than phonopy. see pymatgen.analysis.eos.py</div></blockquote>
 <dl class="docutils">
-<dt>qha_type(str): quasi-harmonic approximation type: “debye_model” or “phonopy”,</dt>
-<dd>default is “debye_model”</dd>
+<dt>qha_type(str): quasi-harmonic approximation type: &#8220;debye_model&#8221; or &#8220;phonopy&#8221;,</dt>
+<dd>default is &#8220;debye_model&#8221;</dd>
 </dl>
 <p>pressure (float): in GPa
 poisson (float): poisson ratio
@@ -316,9 +319,9 @@ tag (str): something unique to identify the tasks in this workflow. If None a ra
 <dt id="atomate.vasp.workflows.base.neb.get_wf_neb_from_endpoints">
 <code class="descclassname">atomate.vasp.workflows.base.neb.</code><code class="descname">get_wf_neb_from_endpoints</code><span class="sig-paren">(</span><em>parent</em>, <em>endpoints</em>, <em>user_incar_settings=None</em>, <em>additional_spec=None</em>, <em>user_kpoints_settings=None</em>, <em>additional_cust_args=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.neb.get_wf_neb_from_endpoints" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a CI-NEB workflow from given endpoints.
-Workflow: (Endpoints relax – ) NEB_1 – NEB_2 - … - NEB_r</p>
+Workflow: (Endpoints relax &#8211; ) NEB_1 &#8211; NEB_2 - ... - NEB_r</p>
 <blockquote>
-<div>endpoints not optimized: ep–neb(r)
+<div>endpoints not optimized: ep&#8211;neb(r)
 endpoints are optimized: neb(r)</div></blockquote>
 <dl class="docutils">
 <dt>Args:</dt>
@@ -326,17 +329,17 @@ endpoints are optimized: neb(r)</div></blockquote>
 endpoints (list[Structure]): The endpoint structures.
 user_incar_settings([dict]): Additional user_incar_settings. Note that the order of the</p>
 <blockquote>
-<div>list is set as: “parent”, “ep_relax”, “neb1”, “neb2” etc., which contains
+<div>list is set as: &#8220;parent&#8221;, &#8220;ep_relax&#8221;, &#8220;neb1&#8221;, &#8220;neb2&#8221; etc., which contains
 at least three elements. The first dict is for parent structure relaxation,
 the second dict is for endpoints relaxation, and the rest are for NEB
-calculations. For example, [{}, {}, {“IOPT”: 7}, {“IOPT”: 1}]. Besides,
+calculations. For example, [{}, {}, {&#8220;IOPT&#8221;: 7}, {&#8220;IOPT&#8221;: 1}]. Besides,
 user_incar_settings is used to determine how many NEB rounds will be. Default
 is [{}, {}, {}].</div></blockquote>
 <p>additional_spec (dict): User spec settings to overwrite default_spec.
 user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at at</p>
 <blockquote>
 <div>least three elements, which is similar to user_incar_settings. For example,
-[{}, {}, {“grid_density”: 100}] for the workflow from the parent structure
+[{}, {}, {&#8220;grid_density&#8221;: 100}] for the workflow from the parent structure
 relaxation, then the endpoint relaxation followed by one-round NEB simulation.
 Default values depend on the selected VaspInputSet.</div></blockquote>
 <dl class="last docutils">
@@ -353,24 +356,24 @@ Default values depend on the selected VaspInputSet.</div></blockquote>
 <dt id="atomate.vasp.workflows.base.neb.get_wf_neb_from_images">
 <code class="descclassname">atomate.vasp.workflows.base.neb.</code><code class="descname">get_wf_neb_from_images</code><span class="sig-paren">(</span><em>parent</em>, <em>images</em>, <em>user_incar_settings</em>, <em>additional_spec=None</em>, <em>user_kpoints_settings=None</em>, <em>additional_cust_args=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.neb.get_wf_neb_from_images" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a CI-NEB workflow from given images.
-Workflow: NEB_1 – NEB_2 - … - NEB_n</p>
+Workflow: NEB_1 &#8211; NEB_2 - ... - NEB_n</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd><p class="first">parent (Structure): parent structure.
 images ([Structure]): All images and two endpoints.
 user_incar_settings([dict]): Additional user_incar_settings. Note that the order of the</p>
 <blockquote>
-<div>list is set as: “parent”, “ep_relax”, “neb1”, “neb2” etc., which contains
+<div>list is set as: &#8220;parent&#8221;, &#8220;ep_relax&#8221;, &#8220;neb1&#8221;, &#8220;neb2&#8221; etc., which contains
 at least three elements. The first dict is for parent structure relaxation,
 the second dict is for endpoints relaxation, and the rest are for NEB
-calculations. For example, [{}, {}, {“IOPT”: 7}, {“IOPT”: 1}]. Besides,
+calculations. For example, [{}, {}, {&#8220;IOPT&#8221;: 7}, {&#8220;IOPT&#8221;: 1}]. Besides,
 user_incar_settings is used to determine how many NEB rounds will be. Default
 is [{}, {}, {}].</div></blockquote>
 <p>additional_spec (dict): User spec settings to overwrite default_spec.
 user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at at</p>
 <blockquote>
 <div>least three elements, which is similar to user_incar_settings. For example,
-[{}, {}, {“grid_density”: 100}] for the workflow from the parent structure
+[{}, {}, {&#8220;grid_density&#8221;: 100}] for the workflow from the parent structure
 relaxation, then the endpoint relaxation followed by one-round NEB simulation.
 Default values depend on the selected VaspInputSet.</div></blockquote>
 <dl class="last docutils">
@@ -389,31 +392,33 @@ Default values depend on the selected VaspInputSet.</div></blockquote>
 <dd><p>Obtain the CI-NEB workflow staring with a parent structure. This works only under the single
 vacancy diffusion mechanism.</p>
 <dl class="docutils">
-<dt>Workflow: (parent relaxation) –&gt; Endpoints relaxation –&gt; NEB_1 –&gt; NEB_2 –&gt; … –&gt; NEB_r</dt>
-<dd><ol class="first last lowerroman simple">
+<dt>Workflow: (parent relaxation) &#8211;&gt; Endpoints relaxation &#8211;&gt; NEB_1 &#8211;&gt; NEB_2 &#8211;&gt; ... &#8211;&gt; NEB_r</dt>
+<dd><ol class="first last lowerroman">
 <li><dl class="first docutils">
-<dt>If parent is not relaxed: then parent relaxation–ep–neb(r)</dt>
-<dd>(r rounds of NEB)</dd>
+<dt>If parent is not relaxed: then parent relaxation&#8211;ep&#8211;neb(r)</dt>
+<dd><p class="first last">(r rounds of NEB)</p>
+</dd>
 </dl>
 </li>
-<li>If parent is relaxed: ep–neb(r) (r rounds of NEB)</li>
+<li><p class="first">If parent is relaxed: ep&#8211;neb(r) (r rounds of NEB)</p>
+</li>
 </ol>
 </dd>
 <dt>Args:</dt>
 <dd><p class="first">structure (Structure): The parent structure.
 user_incar_settings([dict]): Additional user_incar_settings. Note that the order of the</p>
 <blockquote>
-<div>list is set as: “parent”, “ep_relax”, “neb1”, “neb2” etc., which contains
+<div>list is set as: &#8220;parent&#8221;, &#8220;ep_relax&#8221;, &#8220;neb1&#8221;, &#8220;neb2&#8221; etc., which contains
 at least three elements. The first dict is for parent structure relaxation,
 the second dict is for endpoints relaxation, and the rest are for NEB
-calculations. For example, [{}, {}, {“IOPT”: 7}, {“IOPT”: 1}]. Besides,
+calculations. For example, [{}, {}, {&#8220;IOPT&#8221;: 7}, {&#8220;IOPT&#8221;: 1}]. Besides,
 user_incar_settings is used to determine how many NEB rounds will be. Default
 is [{}, {}, {}].</div></blockquote>
 <p>additional_spec (dict): User spec settings to overwrite default_spec.
 user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at at</p>
 <blockquote>
 <div>least three elements, which is similar to user_incar_settings. For example,
-[{}, {}, {“grid_density”: 100}] for the workflow from the parent structure
+[{}, {}, {&#8220;grid_density&#8221;: 100}] for the workflow from the parent structure
 relaxation, then the endpoint relaxation followed by one-round NEB simulation.
 Default values depend on the selected VaspInputSet.</div></blockquote>
 <dl class="last docutils">
@@ -431,7 +436,7 @@ Default values depend on the selected VaspInputSet.</div></blockquote>
 <span id="atomate-vasp-workflows-base-raman-module"></span><h2>atomate.vasp.workflows.base.raman module<a class="headerlink" href="#module-atomate.vasp.workflows.base.raman" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="atomate.vasp.workflows.base.raman.get_wf_raman_spectra">
-<code class="descclassname">atomate.vasp.workflows.base.raman.</code><code class="descname">get_wf_raman_spectra</code><span class="sig-paren">(</span><em>structure</em>, <em>modes=None</em>, <em>step_size=0.005</em>, <em>vasp_cmd='vasp'</em>, <em>db_file=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.raman.get_wf_raman_spectra" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">atomate.vasp.workflows.base.raman.</code><code class="descname">get_wf_raman_spectra</code><span class="sig-paren">(</span><em>structure</em>, <em>modes=None</em>, <em>step_size=0.005</em>, <em>vasp_cmd=u'vasp'</em>, <em>db_file=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.raman.get_wf_raman_spectra" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Raman susceptibility tensor workflow:</dt>
 <dd>Calculation of phonon normal modes followed by the computation of dielectric tensor for
@@ -461,7 +466,7 @@ db_file (str): path to file containing the database credentials.</p>
 <span id="atomate-vasp-workflows-base-thermal-expansion-module"></span><h2>atomate.vasp.workflows.base.thermal_expansion module<a class="headerlink" href="#module-atomate.vasp.workflows.base.thermal_expansion" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="atomate.vasp.workflows.base.thermal_expansion.get_wf_thermal_expansion">
-<code class="descclassname">atomate.vasp.workflows.base.thermal_expansion.</code><code class="descname">get_wf_thermal_expansion</code><span class="sig-paren">(</span><em>structure</em>, <em>deformations</em>, <em>vasp_input_set=None</em>, <em>vasp_cmd='vasp'</em>, <em>db_file=None</em>, <em>user_kpoints_settings=None</em>, <em>t_step=10</em>, <em>t_min=0</em>, <em>t_max=1000</em>, <em>mesh=(20</em>, <em>20</em>, <em>20)</em>, <em>eos='vinet'</em>, <em>pressure=0.0</em>, <em>tag=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.thermal_expansion.get_wf_thermal_expansion" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">atomate.vasp.workflows.base.thermal_expansion.</code><code class="descname">get_wf_thermal_expansion</code><span class="sig-paren">(</span><em>structure</em>, <em>deformations</em>, <em>vasp_input_set=None</em>, <em>vasp_cmd=u'vasp'</em>, <em>db_file=None</em>, <em>user_kpoints_settings=None</em>, <em>t_step=10</em>, <em>t_min=0</em>, <em>t_max=1000</em>, <em>mesh=(20</em>, <em>20</em>, <em>20)</em>, <em>eos=u'vinet'</em>, <em>pressure=0.0</em>, <em>tag=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.thermal_expansion.get_wf_thermal_expansion" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns quasi-harmonic thermal expansion workflow.
 Note: phonopy package is required for the final analysis step.</p>
 <dl class="docutils">
@@ -471,14 +476,14 @@ deformations (list): list of deformation matrices(list of lists).
 vasp_input_set (VaspInputSet)
 vasp_cmd (str): vasp command to run.
 db_file (str): path to the db file.
-user_kpoints_settings (dict): example: {“grid_density”: 7000}
+user_kpoints_settings (dict): example: {&#8220;grid_density&#8221;: 7000}
 t_step (float): temperature step (in K)
 t_min (float): min temperature (in K)
 t_max (float): max temperature (in K)
 mesh (list/tuple): reciprocal space density
 eos (str): equation of state used for fitting the energies and the volumes.</p>
 <blockquote>
-<div>options supported by phonopy: “vinet”, “murnaghan”, “birch_murnaghan”.
+<div>options supported by phonopy: &#8220;vinet&#8221;, &#8220;murnaghan&#8221;, &#8220;birch_murnaghan&#8221;.
 Note: pymatgen supports more options than phonopy. see pymatgen.analysis.eos.py</div></blockquote>
 <p>pressure (float): in GPa
 tag (str): something unique to identify the tasks in this workflow. If None a random uuid</p>
@@ -555,7 +560,7 @@ tag (str): something unique to identify the tasks in this workflow. If None a ra
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.
     </div>
   </body>
 </html>
