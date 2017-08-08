@@ -1,16 +1,13 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>atomate.lammps.workflows package &#8212; atomate 0.5.7 documentation</title>
-    
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -27,7 +24,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -51,11 +48,81 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="atomate-lammps-workflows-core-module">
-<h2>atomate.lammps.workflows.core module<a class="headerlink" href="#atomate-lammps-workflows-core-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-atomate.lammps.workflows.core">
+<span id="atomate-lammps-workflows-core-module"></span><h2>atomate.lammps.workflows.core module<a class="headerlink" href="#module-atomate.lammps.workflows.core" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="atomate.lammps.workflows.core.get_wf">
+<code class="descclassname">atomate.lammps.workflows.core.</code><code class="descname">get_wf</code><span class="sig-paren">(</span><em>job_name</em>, <em>lammps_input_set</em>, <em>input_filename='lammps.inp'</em>, <em>lammps_bin='lammps'</em>, <em>db_file=None</em>, <em>dry_run=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.workflows.core.get_wf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns workflow that writes lammps input/data files, runs lammps and inserts to DB.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">job_name: job name
+lammps_input_set (DictLammpsInput): lammps input
+input_filename (string): input file name
+lammps_bin (string): path to the lammps binary
+db_file (string): path to the db file
+dry_run (bool): for test purposes, decides whether or not to run the lammps binary</p>
+<blockquote class="last">
+<div>with the input file.</div></blockquote>
+</dd>
+<dt>Returns:</dt>
+<dd>Workflow</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="atomate.lammps.workflows.core.nvt_wf">
+<code class="descclassname">atomate.lammps.workflows.core.</code><code class="descname">nvt_wf</code><span class="sig-paren">(</span><em>lammps_data</em>, <em>input_filename='nvt.inp'</em>, <em>data_filename='in.data'</em>, <em>user_lammps_settings={}</em>, <em>is_forcefield=False</em>, <em>lammps_bin='lammps'</em>, <em>db_file=None</em>, <em>dry_run=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.workflows.core.nvt_wf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns NVT workflow (single Firework: [write lammps input task, run direct task])</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first docutils">
+<dt>lammps_data (string/LammpsData/LammpsForceFieldData): path to the data file</dt>
+<dd>or an appropriate object.</dd>
+</dl>
+<p>input_filename (string): input file name
+data_filename (string): data file name
+user_lammps_settings (dict): used to override the default input file parameter settings
+is_forcefield (bool): whether or not the data file has forcefiled info.
+lammps_bin (string): path to the lammps binary
+db_file (string): path to the db file
+dry_run (bool): for test purposes, decides whether or not to run the lammps binary</p>
+<blockquote class="last">
+<div>with the input file.</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="atomate.lammps.workflows.core.wf_from_input_template">
+<code class="descclassname">atomate.lammps.workflows.core.</code><code class="descname">wf_from_input_template</code><span class="sig-paren">(</span><em>input_template_file</em>, <em>lammps_data</em>, <em>data_filename</em>, <em>user_settings</em>, <em>is_forcefield=False</em>, <em>input_filename='lammps.inp'</em>, <em>lammps_bin='lammps'</em>, <em>db_file=None</em>, <em>dry_run=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.workflows.core.wf_from_input_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns workflow where the input file parameters are set from the give json template file.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">input_template_file: json template input file
+lammps_data (string/LammpsData/LammpsForceFieldData): path to the data file or</p>
+<blockquote>
+<div>an appropriate object</div></blockquote>
+<p>data_filename (string): name of the the lammps data file
+user_settings (dict): User lammps settings
+is_forcefield (bool): whether the data file has forcefield and topology info in it.</p>
+<blockquote>
+<div>This is required only if lammps_data is a path to the data file instead of a data object</div></blockquote>
+<p>input_filename (string): input file name
+lammps_bin (string): path to the lammps binary
+db_file (string): path to the db file
+dry_run (bool): for test purposes, decides whether or not to run the lammps binary</p>
+<blockquote class="last">
+<div>with the input file.</div></blockquote>
+</dd>
+<dt>Returns:</dt>
+<dd>Workflow</dd>
+</dl>
+</dd></dl>
+
 </div>
-<div class="section" id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-atomate.lammps.workflows">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.lammps.workflows" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -69,8 +136,8 @@
   <ul>
 <li><a class="reference internal" href="#">atomate.lammps.workflows package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#atomate-lammps-workflows-core-module">atomate.lammps.workflows.core module</a></li>
-<li><a class="reference internal" href="#module-contents">Module contents</a></li>
+<li><a class="reference internal" href="#module-atomate.lammps.workflows.core">atomate.lammps.workflows.core module</a></li>
+<li><a class="reference internal" href="#module-atomate.lammps.workflows">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -110,7 +177,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
   </body>
 </html>
