@@ -64,6 +64,8 @@ class LammpsForceFieldFW(Firework):
                  lammps_cmd="lammps", db_file=None, parents=None, log_filename="log.lammps",
                  dump_filenames=None, name="LammpsFFFW", **kwargs):
         """
+        Write lammps input from forcefield and topology, run lammps, store results. Can be used
+        with RunPackmol firework.
 
         Args:
             input_file (str): path to lammps input(or template) file.
@@ -92,22 +94,23 @@ class LammpsForceFieldFW(Firework):
         mols_number = mols_number or [1]
         topologies = topologies or Topology.from_molecule(final_molecule, ff_map=ff_site_property)
 
-        tasks = [
-            CopyPackmolOutputs(calc_loc=True),
+        # one constituent molecule ==> no packmol usage.
+        tasks = [CopyPackmolOutputs(calc_loc=True)] if mols_number != [1] else []
 
-            WriteInputFromForceFieldAndTopology(input_file=input_file, final_molecule_path=final_molecule,
-                                                constituent_molecules=constituent_molecules,
-                                                mols_number=mols_number, forcefield=forcefield,
-                                                topologies=topologies, input_filename=input_filename,
-                                                user_settings=user_settings, ff_site_property=ff_site_property,
-                                                box_size=box_size),
+        tasks.extend(
+            [
+                WriteInputFromForceFieldAndTopology(
+                    input_file=input_file, final_molecule_path=final_molecule,
+                    constituent_molecules=constituent_molecules, mols_number=mols_number,
+                    forcefield=forcefield, topologies=topologies, input_filename=input_filename,
+                    user_settings=user_settings, ff_site_property=ff_site_property, box_size=box_size),
 
-            RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename),
+                RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename),
 
-            LammpsToDB(input_filename=input_filename, data_filename=data_filename,
-                       log_filename=log_filename, dump_filenames=dump_filenames,
-                       db_file=db_file, additional_fields={"task_label": name})
-        ]
+                LammpsToDB(input_filename=input_filename, data_filename=data_filename,
+                           log_filename=log_filename, dump_filenames=dump_filenames,
+                           db_file=db_file, additional_fields={"task_label": name})
+            ])
 
         super(LammpsForceFieldFW, self).__init__(tasks, parents=parents, name=name, **kwargs)
 
