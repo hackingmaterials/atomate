@@ -2,6 +2,12 @@
 atomate Changelog
 =================
 
+**v0.5.8**
+
+* major improvements to LAMMPS workflow (B. Wood, K. Mathew)
+* doc updates (B. Bocklund)
+* minor cleanups (K. Mathew)
+
 **v0.5.7**
 
 * VASP drone stores original inputs (S. Dwaraknath)

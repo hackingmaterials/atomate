@@ -4,6 +4,14 @@ atomate.lammps.firetasks package
 Submodules
 ----------
 
+atomate.lammps.firetasks.glue_tasks module
+------------------------------------------
+
+.. automodule:: atomate.lammps.firetasks.glue_tasks
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 atomate.lammps.firetasks.parse_outputs module
 ---------------------------------------------
 
