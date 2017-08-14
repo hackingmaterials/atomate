@@ -104,8 +104,11 @@ def get_packmol_wf(input_file, user_settings, constituent_molecules, packing_con
 
     packmol_output_file = "packed.{}".format(filetype)
     mols_number = [mol_config["number"] for mol_config in packing_config]
-    topologies = topologies or []
 
+    data_filename = user_settings.get("data_file", "lammps.data")
+    log_filename = user_settings.get("log_file", "lammps.log")
+
+    topologies = topologies or []
     if not topologies:
        topologies = [Topology.from_molecule(mol, ff_map=ff_site_property) for mol in constituent_molecules]
 
@@ -118,7 +121,8 @@ def get_packmol_wf(input_file, user_settings, constituent_molecules, packing_con
                                    topologies=topologies, constituent_molecules=constituent_molecules,
                                    mols_number=mols_number, user_settings=user_settings,
                                    ff_site_property=ff_site_property, input_filename="lammps.in",
-                                   lammps_cmd=lammps_cmd, db_file=db_file, log_filename="lammps.log",
+                                   data_filename=data_filename, lammps_cmd=lammps_cmd,
+                                   db_file=db_file, log_filename=log_filename,
                                    dump_filenames=dump_filenames, parents=[fw_packmol])
 
     fws = [fw_packmol, fw_lammps]

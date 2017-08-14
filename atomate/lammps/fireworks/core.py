@@ -100,7 +100,7 @@ class LammpsForceFieldFW(Firework):
                                                 constituent_molecules=constituent_molecules,
                                                 mols_number=mols_number, forcefield=forcefield,
                                                 topologies=topologies, input_filename=input_filename,
-                                                user_settings=user_settings,
+                                                user_settings=user_settings, data_filename=data_filename,
                                                 ff_site_property=ff_site_property, box_size=box_size),
 
             RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename),

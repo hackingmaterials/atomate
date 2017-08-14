@@ -52,7 +52,7 @@ class WriteInputFromForceFieldAndTopology(FiretaskBase):
     required_params = ["input_file", "final_molecule", "constituent_molecules", "mols_number",
                        "box_size", "forcefield", "topologies", "input_filename"]
 
-    optional_params = ["user_settings", "ff_site_property"]
+    optional_params = ["data_filename", "user_settings", "ff_site_property"]
 
     def run_task(self, fw_spec):
 
@@ -63,7 +63,7 @@ class WriteInputFromForceFieldAndTopology(FiretaskBase):
         topologies = self["topologies"]
 
         user_settings = self.get("user_settings", {})
-        data_filename = user_settings.get("data_file", "lammps.data")
+        data_filename = self.get("data_filename", user_settings.get("data_file", "lammps.data"))
         final_molecule = self["final_molecule"]
 
         # if the final molecule was generated using packmol
