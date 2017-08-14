@@ -94,23 +94,21 @@ class LammpsForceFieldFW(Firework):
         mols_number = mols_number or [1]
         topologies = topologies or Topology.from_molecule(final_molecule, ff_map=ff_site_property)
 
-        # one constituent molecule ==> no packmol usage.
-        tasks = [CopyPackmolOutputs(calc_loc=True)] if mols_number != [1] else []
+        tasks = [
 
-        tasks.extend(
-            [
-                WriteInputFromForceFieldAndTopology(
-                    input_file=input_file, final_molecule=final_molecule,
-                    constituent_molecules=constituent_molecules, mols_number=mols_number,
-                    forcefield=forcefield, topologies=topologies, input_filename=input_filename,
-                    user_settings=user_settings, ff_site_property=ff_site_property, box_size=box_size),
+            WriteInputFromForceFieldAndTopology(input_file=input_file, final_molecule=final_molecule,
+                                                constituent_molecules=constituent_molecules,
+                                                mols_number=mols_number, forcefield=forcefield,
+                                                topologies=topologies, input_filename=input_filename,
+                                                user_settings=user_settings,
+                                                ff_site_property=ff_site_property, box_size=box_size),
 
-                RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename),
+            RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename),
 
-                LammpsToDB(input_filename=input_filename, data_filename=data_filename,
-                           log_filename=log_filename, dump_filenames=dump_filenames,
-                           db_file=db_file, additional_fields={"task_label": name})
-            ])
+            LammpsToDB(input_filename=input_filename, data_filename=data_filename,
+                       log_filename=log_filename, dump_filenames=dump_filenames,
+                       db_file=db_file, additional_fields={"task_label": name})
+            ]
 
         super(LammpsForceFieldFW, self).__init__(tasks, parents=parents, name=name, **kwargs)
 
