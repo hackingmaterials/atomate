@@ -70,7 +70,7 @@ def get_wf_basic(input_file, user_settings, lammps_data=None, input_filename="la
 
 
 def get_packmol_wf(input_file, user_settings, constituent_molecules, packing_config, forcefield,
-                   final_box_size, ff_site_property=None, tolerance=2.0, filetype="xyz",
+                   final_box_size, topologies=None, ff_site_property=None, tolerance=2.0, filetype="xyz",
                    control_params=None, lammps_cmd="lmp_serial", dump_filenames=None, db_file=None,
                    name="Packmol Lammps Wflow"):
     """
@@ -86,6 +86,8 @@ def get_packmol_wf(input_file, user_settings, constituent_molecules, packing_con
         packing_config ([dict]): list of configuration dictionaries, one for each constituent molecule.
         forcefield (ForceField): pymatgen.io.lammps.forcefield.ForceField object
         final_box_size ([list]): list of list of low and high values for each dimension [[xlow, xhigh], ...]
+        topologies ([Topology]): list of Topology objects. If not given, will be set from the
+            topology of the constituent molecules.
         ff_site_property (str): the name of the site property used for forcefield mapping
         tolerance (float): packmol tolerance
         filetype (str): packmol i/o file type.
@@ -101,13 +103,14 @@ def get_packmol_wf(input_file, user_settings, constituent_molecules, packing_con
 
     packmol_output_file = "packed.{}".format(filetype)
     mols_number = [mol_config["number"] for mol_config in packing_config]
-    topologies = []
-    for mol in constituent_molecules:
-        topologies.append(Topology.from_molecule(mol, ff_map=ff_site_property))
+    topologies = topologies or []
+
+    if not topologies:
+       topologies = [Topology.from_molecule(mol, ff_map=ff_site_property) for mol in constituent_molecules]
 
     fw_packmol = PackmolFW(constituent_molecules, packing_config, tolerance=tolerance, filetype=filetype,
                            control_params=control_params, copy_to_current_on_exit=True,
-                           output_file=packmol_output_file, site_property=ff_site_property),
+                           output_file=packmol_output_file, site_property=ff_site_property)
 
     fw_lammps = LammpsForceFieldFW(input_file, packmol_output_file, forcefield, final_box_size,
                                    topologies=topologies, constituent_molecules=constituent_molecules,
@@ -116,4 +119,6 @@ def get_packmol_wf(input_file, user_settings, constituent_molecules, packing_con
                                    lammps_cmd=lammps_cmd, db_file=db_file, log_filename="lammps.log",
                                    dump_filenames=dump_filenames, parents=[fw_packmol])
 
-    return Workflow([fw_packmol, fw_lammps], name=name)
+    fws = [fw_packmol, fw_lammps]
+
+    return Workflow(fws, name=name)

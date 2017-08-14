@@ -100,7 +100,7 @@ class LammpsForceFieldFW(Firework):
         tasks.extend(
             [
                 WriteInputFromForceFieldAndTopology(
-                    input_file=input_file, final_molecule_path=final_molecule,
+                    input_file=input_file, final_molecule=final_molecule,
                     constituent_molecules=constituent_molecules, mols_number=mols_number,
                     forcefield=forcefield, topologies=topologies, input_filename=input_filename,
                     user_settings=user_settings, ff_site_property=ff_site_property, box_size=box_size),
