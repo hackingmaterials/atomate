@@ -14,7 +14,7 @@ This guide will get you up and running in an environment for running high-throug
 * custodian_ runs VASP and performs error checking/handling and checkpointing
 * FireWorks_ enables designing, managing and executing workflows.
 
-Details about how atomate is designed, how these different pieces interact, and how to run and write your own workflows will be covered in later tutorials as well as an academic publication on atomate. For now, these topics will be covered here in enough depth to get you set up and to help you know where to troubleshoot if you are having problems.
+Details about how atomate is designed can be found in the `atomate paper`_ and an overview of how these different pieces interact are in a `Slideshare presentation`_. Running and writing your own workflows are covered in later tutorials. For now, these topics will be covered here in enough depth to get you set up and to help you know where to troubleshoot if you are having problems.
 
 It is assumed that you are comfortable with basic Linux shell commands and navigation. If not, `Linux Journey`_ and `Linux Command`_ breifly cover enough to get you started. It will also be helpful if you are familiar with Python, but it is not strictly required for installation.
 
@@ -23,6 +23,9 @@ It is assumed that you are comfortable with basic Linux shell commands and navig
 .. _FireWorks: https://materialsproject.github.io/fireworks/
 .. _Linux Command: http://linuxcommand.org/lc3_learning_the_shell.php
 .. _Linux Journey: https://linuxjourney.com/lesson/the-shell
+.. _Slideshare presentation: https://www.slideshare.net/anubhavster/software-tools-for-calculating-materials-properties-in-highthroughput-pymatgen-atomate-fireworks
+.. _atomate paper: https://doi.org/10.1016/j.commatsci.2017.07.030
+.. _: http://linuxcommand.org/lc3_learning_the_shell.php
 
 
 Objectives
@@ -484,9 +487,10 @@ That's it! You've completed the installation tutorial!
 
 See the following pages for more information on the topics we covered here:
 
+* To see how to run and customize the existing Workflows and FireWorks try the :ref:`running workflows tutorial` (suggested next step)
 * For submitting jobs to the queue in reservation mode see the `FireWorks advanced queue submission tutorial`_
 * For using pymatgen-db to query your database see the `pymatgen-db documentation`_
-* To see how to run and customize the existing Workflows and FireWorks try the :ref:`running workflows tutorial`
+
 
 .. _FireWorks advanced queue submission tutorial: https://materialsproject.github.io/fireworks/queue_tutorial_pt2.html
 .. _pymatgen-db documentation: https://materialsproject.github.io/pymatgen-db/
