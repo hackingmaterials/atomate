@@ -269,8 +269,11 @@ In FireWorks' distributed `server-worker model`_, each computing resource where 
     env:
         db_file: <<INSTALL_DIR>>/config/db.json
         vasp_cmd: <<VASP_CMD>>
+    scratch_dir: null
 
 Where the <<WORKER_NAME>> is arbitrary and is useful for keeping track of which Worker is running your jobs (an example might be ``Edison`` if you are running on NERSC's Edison resource). ``db_file`` points to the ``db.json`` file that you just configured and contains credentials to connect to the calculation output database. The <<VASP_CMD>> is the command that you would use to run VASP with parallelization (``srun -n 16 vasp``, ``ibrun -n 16 vasp``, ``mpirun -n 16 vasp``, ...). If you don't know which of these to use or which VASP executable is correct, check the documentation for the computing resource you are running on or try to find them interactively by checking the output of ``which srun``, ``which vasp_std``, etc. . If you later want to set up multiple Workers on the same or different machines, you can find information about controlling which Worker can run which job by using the ``name`` field above, or the ``category`` or ``query`` fields that we did not define. For more information on configuring multiple Workers, see the `FireWorks documentation for controlling Workers`_. Such features allow you to use different settings (e.g., different VASP command such as different parallelization amount) for different types of calculations on the same machine or control what jobs are run on various computing centers.
+
+Optionally, you can set the ``scratch_dir`` to something other than null if there is a particular location where you have fast disk access. This key sets the "root" scratch dir; a temporary directory will be created in this root directory for each calculation.
 
 my_launchpad.yaml
 -----------------
