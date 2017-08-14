@@ -71,8 +71,8 @@ def get_wf_basic(input_file, user_settings, lammps_data=None, input_filename="la
 
 def get_packmol_wf(input_file, user_settings, constituent_molecules, packing_config, forcefield,
                    final_box_size, topologies=None, ff_site_property=None, tolerance=2.0, filetype="xyz",
-                   control_params=None, lammps_cmd="lmp_serial", dump_filenames=None, db_file=None,
-                   name="Packmol Lammps Wflow"):
+                   control_params=None, lammps_cmd="lmp_serial", packmol_cmd="packmol",
+                   dump_filenames=None, db_file=None, name="Packmol Lammps Wflow"):
     """
     Returns workflow that uses Packmol to pack the constituent molecules into the given
     configuration and then run lammps on the final packed molecule. Useful for
@@ -93,6 +93,7 @@ def get_packmol_wf(input_file, user_settings, constituent_molecules, packing_con
         filetype (str): packmol i/o file type.
         control_params (dict): packmol control params
         lammps_cmd (string): lammps command to run (skip the input file).
+        packmol_cmd (string): path to packmol bin
         dump_filenames ([str]): list of dump file names
         db_file (string): path to the db file.
         name (str): workflow name
@@ -110,7 +111,8 @@ def get_packmol_wf(input_file, user_settings, constituent_molecules, packing_con
 
     fw_packmol = PackmolFW(constituent_molecules, packing_config, tolerance=tolerance, filetype=filetype,
                            control_params=control_params, copy_to_current_on_exit=True,
-                           output_file=packmol_output_file, site_property=ff_site_property)
+                           output_file=packmol_output_file, site_property=ff_site_property,
+                           packmol_cmd=packmol_cmd)
 
     fw_lammps = LammpsForceFieldFW(input_file, packmol_output_file, forcefield, final_box_size,
                                    topologies=topologies, constituent_molecules=constituent_molecules,
