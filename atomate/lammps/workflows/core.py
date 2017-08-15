@@ -27,7 +27,8 @@ def get_wf_basic(input_file, user_settings, lammps_data=None, input_filename="la
     Args:
         input_file (str): path to lammps input file.
             Note: It could be a template file too, then the user_settings must be set.
-        user_settings ([dict] or dict): list of settings dict
+        user_settings ([dict] or dict): list of settings dict. if the input_file is a tempalte file
+            then each dict contains the key value pairs for the template file.
         lammps_data (string/LammpsData/LammpsForceFieldData): path to the data file or
             an appropriate object.
         input_filename (string): input file name. This is the name of the input file passed to the
@@ -75,13 +76,13 @@ def get_packmol_wf(input_file, user_settings, constituent_molecules, packing_con
                    dump_filenames=None, db_file=None, name="Packmol Lammps Wflow"):
     """
     Returns workflow that uses Packmol to pack the constituent molecules into the given
-    configuration and then run lammps on the final packed molecule. Useful for
-    polymer studies.
+    configuration and then run lammps on the final packed molecule for the given list of
+    user_settings.
 
     Args:
         input_file (str):  path to lammps input(or template) file.
-        user_settings (dict): if the input_file is a tempalte file then this dict contains
-            the key value pairs for the template file.
+        user_settings ([dict] or dict): list of settings dict. if the input_file is a tempalte file
+            then each dict contains the key value pairs for the template file.
         constituent_molecules ([Molecules]): list of pymatgen Molecule objects
         packing_config ([dict]): list of configuration dictionaries, one for each constituent molecule.
         forcefield (ForceField): pymatgen.io.lammps.forcefield.ForceField object
@@ -102,29 +103,41 @@ def get_packmol_wf(input_file, user_settings, constituent_molecules, packing_con
         Workflow
     """
 
-    packmol_output_file = "packed.{}".format(filetype)
+    user_settings = user_settings if isinstance(user_settings, list) else [user_settings]
+
+    packmol_output_file = "packed_mol.{}".format(filetype)
     mols_number = [mol_config["number"] for mol_config in packing_config]
 
-    data_filename = user_settings.get("data_file", "lammps.data")
-    log_filename = user_settings.get("log_file", "lammps.log")
-
     topologies = topologies or []
+    # if not given then get the topology from the constituent molecules.
     if not topologies:
-       topologies = [Topology.from_molecule(mol, ff_map=ff_site_property) for mol in constituent_molecules]
+        topologies = [Topology.from_molecule(mol, ff_map=ff_site_property or "ff_map")
+                      for mol in constituent_molecules]
 
-    fw_packmol = PackmolFW(constituent_molecules, packing_config, tolerance=tolerance, filetype=filetype,
-                           control_params=control_params, copy_to_current_on_exit=True,
-                           output_file=packmol_output_file, site_property=ff_site_property,
-                           packmol_cmd=packmol_cmd)
+    fws = []
 
-    fw_lammps = LammpsForceFieldFW(input_file, packmol_output_file, forcefield, final_box_size,
-                                   topologies=topologies, constituent_molecules=constituent_molecules,
-                                   mols_number=mols_number, user_settings=user_settings,
-                                   ff_site_property=ff_site_property, input_filename="lammps.in",
-                                   data_filename=data_filename, lammps_cmd=lammps_cmd,
-                                   db_file=db_file, log_filename=log_filename,
-                                   dump_filenames=dump_filenames, parents=[fw_packmol])
+    fw_packmol = PackmolFW(constituent_molecules, packing_config, tolerance=tolerance,
+                           filetype=filetype, control_params=control_params,
+                           copy_to_current_on_exit=True, output_file=packmol_output_file,
+                           site_property=ff_site_property, packmol_cmd=packmol_cmd)
 
-    fws = [fw_packmol, fw_lammps]
+    fws.append(fw_packmol)
+
+    for setting in user_settings:
+
+        data_filename = setting.get("data_file", "data.lammps")
+
+        if "log_file" not in setting:
+            setting["log_file"] = "log.lammps"
+        log_filename = setting["log_file"]
+
+        fw_lammps = LammpsForceFieldFW(input_file, packmol_output_file, forcefield, final_box_size,
+                                       topologies=topologies, constituent_molecules=constituent_molecules,
+                                       mols_number=mols_number, user_settings=setting,
+                                       ff_site_property=ff_site_property, input_filename="lammps.in",
+                                       data_filename=data_filename, lammps_cmd=lammps_cmd,
+                                       db_file=db_file, log_filename=log_filename,
+                                       dump_filenames=dump_filenames, parents=[fw_packmol])
+        fws.append(fw_lammps)
 
     return Workflow(fws, name=name)
