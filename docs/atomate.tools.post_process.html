@@ -1,0 +1,203 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>atomate.tools.post_process package &#8212; atomate 0.5.8 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.5.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.8 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="atomate-tools-post-process-package">
+<h1>atomate.tools.post_process package<a class="headerlink" href="#atomate-tools-post-process-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-atomate.tools.post_process.gibbs">
+<span id="atomate-tools-post-process-gibbs-module"></span><h2>atomate.tools.post_process.gibbs module<a class="headerlink" href="#module-atomate.tools.post_process.gibbs" title="Permalink to this headline">¶</a></h2>
+<p>Compute the quasi harmonic approximation gibbs free energy using phonopy.</p>
+<dl class="function">
+<dt id="atomate.tools.post_process.gibbs.get_collection">
+<code class="descclassname">atomate.tools.post_process.gibbs.</code><code class="descname">get_collection</code><span class="sig-paren">(</span><em>db_file</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.tools.post_process.gibbs.get_collection" title="Permalink to this definition">¶</a></dt>
+<dd><p>connect to the database and return task collection</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="atomate.tools.post_process.gibbs.get_data">
+<code class="descclassname">atomate.tools.post_process.gibbs.</code><code class="descname">get_data</code><span class="sig-paren">(</span><em>db_file</em>, <em>query</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.tools.post_process.gibbs.get_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="atomate.tools.post_process.gibbs.get_db">
+<code class="descclassname">atomate.tools.post_process.gibbs.</code><code class="descname">get_db</code><span class="sig-paren">(</span><em>db_file</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.tools.post_process.gibbs.get_db" title="Permalink to this definition">¶</a></dt>
+<dd><p>connect to the database and return the connection</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="atomate.tools.post_process.gibbs.get_gibbs">
+<code class="descclassname">atomate.tools.post_process.gibbs.</code><code class="descname">get_gibbs</code><span class="sig-paren">(</span><em>structure</em>, <em>db_file</em>, <em>eos='vinet'</em>, <em>t_step=10</em>, <em>t_min=0</em>, <em>t_max=1000</em>, <em>mesh=(20</em>, <em>20</em>, <em>20)</em>, <em>plot=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.tools.post_process.gibbs.get_gibbs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="atomate.tools.post_process.gibbs.get_phonopy">
+<code class="descclassname">atomate.tools.post_process.gibbs.</code><code class="descname">get_phonopy</code><span class="sig-paren">(</span><em>structure</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.tools.post_process.gibbs.get_phonopy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-atomate.tools.post_process.plot_raman">
+<span id="atomate-tools-post-process-plot-raman-module"></span><h2>atomate.tools.post_process.plot_raman module<a class="headerlink" href="#module-atomate.tools.post_process.plot_raman" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="atomate.tools.post_process.plot_raman.get_freq_intensities">
+<code class="descclassname">atomate.tools.post_process.plot_raman.</code><code class="descname">get_freq_intensities</code><span class="sig-paren">(</span><em>input_file</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.tools.post_process.plot_raman.get_freq_intensities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return frequencies and normalized intensities from the json input file</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>input_file (str): path to the json file containing the raman tensors</dd>
+<dt>Returns:</dt>
+<dd>(numpy array, numpy array): frequencies, intensities</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="atomate.tools.post_process.plot_raman.lorentzian">
+<code class="descclassname">atomate.tools.post_process.plot_raman.</code><code class="descname">lorentzian</code><span class="sig-paren">(</span><em>w</em>, <em>wj</em>, <em>delta_w=4.0</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.tools.post_process.plot_raman.lorentzian" title="Permalink to this definition">¶</a></dt>
+<dd><p>delta function approximation</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>w (float/np.ndarray): frequency
+wj (float): frequency where the delta function will be centered
+delta_w (float): peak width, default= 4 cm^-1(from the above paper)</dd>
+<dt>Returns:</dt>
+<dd>broadened delta function</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="atomate.tools.post_process.plot_raman.plot_spectrum">
+<code class="descclassname">atomate.tools.post_process.plot_raman.</code><code class="descname">plot_spectrum</code><span class="sig-paren">(</span><em>freq</em>, <em>intensities</em>, <em>lorentzian_width</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.tools.post_process.plot_raman.plot_spectrum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the Raman spectrum.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>freq (numpy array): frequencies
+intensities (numpy array): intensities computed from the raman tensors
+lorentzian_width (float): width of the lorentzian delta function</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="atomate.tools.post_process.plot_raman.raman_intensity">
+<code class="descclassname">atomate.tools.post_process.plot_raman.</code><code class="descname">raman_intensity</code><span class="sig-paren">(</span><em>R</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.tools.post_process.plot_raman.raman_intensity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scattering intensity</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>R (3x3 numpy array): Susceptibility tensor</dd>
+<dt>Returns:</dt>
+<dd>float: scattering intensity according to Eq 7, Phys Rev B 73, 104304 2006</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="atomate.tools.post_process.plot_raman.run">
+<code class="descclassname">atomate.tools.post_process.plot_raman.</code><code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.tools.post_process.plot_raman.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-atomate.tools.post_process">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.tools.post_process" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">atomate.tools.post_process package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-atomate.tools.post_process.gibbs">atomate.tools.post_process.gibbs module</a></li>
+<li><a class="reference internal" href="#module-atomate.tools.post_process.plot_raman">atomate.tools.post_process.plot_raman module</a></li>
+<li><a class="reference internal" href="#module-atomate.tools.post_process">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/atomate.tools.post_process.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.8 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, Anubhav Jain.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.
+    </div>
+  </body>
+</html>

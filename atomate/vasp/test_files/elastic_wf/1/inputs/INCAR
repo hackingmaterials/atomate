@@ -1,4 +1,4 @@
-ALGO = Fast
+ALGO = Normal
 EDIFF = 1e-06
 ENCUT = 700
 IBRION = 2
@@ -11,7 +11,7 @@ LORBIT = 11
 LREAL = Auto
 LWAVE = False
 MAGMOM = 8*0.6
-NCORE = 4
+NCORE = 16
 NELM = 100
 NSW = 99
 PREC = Accurate

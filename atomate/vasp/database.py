@@ -125,7 +125,7 @@ class VaspCalcDb(CalcDb):
         fs_id = m_task['calcs_reversed'][0]['bandstructure_fs_id']
         fs = gridfs.GridFS(self.db, 'bandstructure_fs')
         bs_json = zlib.decompress(fs.get(fs_id).read())
-        bs_dict = json.loads(bs_json)
+        bs_dict = json.loads(bs_json.decode())
         if bs_dict["@class"] == "BandStructure":
             return BandStructure.from_dict(bs_dict)
         elif bs_dict["@class"] == "BandStructureSymmLine":
@@ -138,7 +138,7 @@ class VaspCalcDb(CalcDb):
         fs_id = m_task['calcs_reversed'][0]['dos_fs_id']
         fs = gridfs.GridFS(self.db, 'dos_fs')
         dos_json = zlib.decompress(fs.get(fs_id).read())
-        dos_dict = json.loads(dos_json)
+        dos_dict = json.loads(dos_json.decode())
         return CompleteDos.from_dict(dos_dict)
 
     def reset(self):
