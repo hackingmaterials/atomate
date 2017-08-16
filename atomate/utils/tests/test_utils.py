@@ -78,7 +78,7 @@ class UtilsTests(unittest.TestCase):
         self.assertEqual(out_attr["fw_name"],"{{atomate.utils.tests.test_utils.Task1}}")
         # Basic functionality with callable attribute
         out_attr2 = recursive_get_result({"keys":"a>>keys"}, task1)
-        self.assertEqual(out_attr2["keys"], [])
+        self.assertEqual(list(out_attr2["keys"]), [])
         # Testing as_dict functionality
         out_as_dict = recursive_get_result({"fw_name":">>_fw_name"}, task1)
         self.assertEqual(out_as_dict["fw_name"],"{{atomate.utils.tests.test_utils.Task1}}")
