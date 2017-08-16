@@ -41,6 +41,9 @@ class TestWriteVasp(AtomateTest):
                                                               "..", "..", "test_files",
                                                               "preserve_incar", "INCAR"))
 
+    def setUp(self):
+        super(TestWriteVasp, self).setUp(lpad=False)
+
     def tearDown(self):
         for x in ["INCAR", "POSCAR", "POTCAR", "KPOINTS"]:
             if os.path.exists(os.path.join(module_dir, x)):
