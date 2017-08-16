@@ -321,7 +321,8 @@ def wf_gibbs_free_energy(structure, c=None):
     metadata = c.get("METADATA", None)
 
     # 21 deformed structures: from -10% to +10%
-    deformations = [(np.identity(3)*(1+x)).tolist() for x in np.linspace(-0.1, 0.1, 21)]
+    defos = [(np.identity(3)*(1+x)).tolist() for x in np.linspace(-0.1, 0.1, 21)]
+    deformations = c.get("DEFORMATIONS", defos)
     user_kpoints_settings = {"grid_density": 7000}
 
     tag = "gibbs group: >>{}<<".format(str(uuid4()))
