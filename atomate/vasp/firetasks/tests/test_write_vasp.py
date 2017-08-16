@@ -139,6 +139,7 @@ class TestWriteVasp(PymatgenTest, AtomateTest):
         new_potcar = Potcar.from_file("POTCAR")
         self.assertEqual(len(new_potcar), 1)
         self.assertTrue("alt" in new_potcar[0].header)
+        self.assertEqual(new_potcar[0].keywords['EAUG'], 360.0)
 
 
 if __name__ == '__main__':
