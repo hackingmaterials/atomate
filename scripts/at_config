@@ -62,7 +62,7 @@ def build_qadapter(dir_path, q_type):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="at_setup is a convenient script to initialize a fireworks"
+    parser = argparse.ArgumentParser(description="at_config is a convenient script to initialize a fireworks"
                                                  " environment for atomate",
                                      epilog="Author: Shyam Dwaraknath")
 
