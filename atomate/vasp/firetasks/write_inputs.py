@@ -133,6 +133,39 @@ class ModifyIncar(FiretaskBase):
 
 
 @explicit_serialize
+class ModifyPotcar(FiretaskBase):
+    """
+    Modify Potcar file.
+
+    Required params:
+        potcar_symbols (dict): overwrite potcar with symbol. Supports env_chk.
+
+    Optional params:
+        functional (dict): functional to use, e.g. PBE, PBE_52, LDA_US, PW91
+        input_filename (str): Input filename (if not "INCAR")
+        output_filename (str): Output filename (if not "INCAR")
+    """
+
+    required_params = ["potcar_symbols"]
+    optional_params = ["functional", "input_filename", "output_filename"]
+    
+    def run_task:
+        potcar_symbols = self.get("potcar_symbols")
+        functional = self.get("functional", None)
+        potcar_name = self.get("input_filename", "POTCAR")
+        potcar = Potcar.from_file(potcar_name)
+
+        # Replace PotcarSingles corresponding to elements 
+        # contained in potcar_symbols
+        for n, psingle in enumerate(potcar):
+            if psingle.element in potcar_symbols:
+                potcar[n] = PotcarSingle.from_symbol_and_functional(
+                    potcar_symbols[psingle.element], functional)
+
+        potcar.write_file(self.get("output_filename", "POTCAR"))
+
+
+@explicit_serialize
 class WriteVaspStaticFromPrev(FiretaskBase):
     """
     Writes input files for a static run. Assumes that output files from a previous 
