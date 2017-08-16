@@ -1,0 +1,91 @@
+#!/usr/bin/env python
+# coding: utf-8
+# Copyright (c) atomate Development Team.
+
+from __future__ import division, unicode_literals, print_function
+
+from fireworks.user_objects.queue_adapters.common_adapter import CommonAdapter
+from monty.serialization import loadfn, dumpfn
+import os
+import argparse
+
+
+def build_db_json(launchpad):
+    return {
+        "database": launchpad.get("name", ""),
+        "collection": "tasks",
+        "admin_user": launchpad.get("username", ""),
+        "admin_password": launchpad.get("password", ""),
+        "host": launchpad.get("host", ""),
+        "port": launchpad.get("port", 27017),
+        "aliases": {}
+    }
+
+
+def build_fworker(dir_path, fworker=None):
+    if fworker:
+        d = dict(fworker)
+        d["env"]["db_file"] = os.path.join(dir_path, "db.json")
+        return d
+    else:
+        d = {'category': '',
+             'env': {'db_file': '<</FULL/PATH/TO/DB.JSON>>'},
+             'name': '<<DESCRIPTIVE_NAME>>',
+             'query': '{}'}
+        return d
+
+def build_qadapter(dir_path,q_type):
+
+    return {
+        "rocket_launch": "rlaunch -c {} singleshot".format(dir_path),
+        "_fw_q_type": q_type,
+        "pre_rocket": None,
+        "post_rocket": None,
+    }
+
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="at_setup is a convenient script to initialize a fireworks"
+                                                 " environment for atomate",
+                                     epilog="Author: Shyam Dwaraknath")
+
+    q_types = CommonAdapter.default_q_commands.keys()
+
+    parser.add_argument("name")
+    parser.add_argument("-d", "--directory",
+                        dest="directory",
+                        type=str,
+                        required=True,
+                        help="configuration directory to setup")
+    parser.add_argument("-l", "--launchpad",
+                        dest="launchpad",
+                        required=True,
+                        help="input launchpad file for configuration")
+    parser.add_argument("--db",
+                        dest="db",
+                        nargs="?",
+                        help="Generate a db.json file with either the input argument or from launchpad file")
+    parser.add_argument("--fworker",
+                        dest="fworker",
+                        nargs="?",
+                        help="Generate a fworker.yaml file with either the input argument or based on defaults")
+    parser.add_argument("--qadapter",
+                        dest="qadapter",
+                        default="SLURM",
+                        help="Generate a default my_qdapter.yaml for the given type."
+                             " Queue Types: {}".format(" ".join(q_types)))
+
+    args = parser.parse_args()
+    launchpad = loadfn(args.launchpad)
+    dir_path = os.path.abspath(args.directory)
+    db = loadfn(args.db) if args.db else build_db_json(launchpad)
+    fworker = build_fworker(dir_path, loadfn(args.fworker)) if args.fworker else build_fworker(dir_path)
+    qadapter = build_qadapter(dir_path,args.qadapter)
+
+    if not os.path.exists(dir_path):
+        os.mkdir(dir_path)
+    dumpfn(launchpad, os.path.join(dir_path, "my_launchpad.yaml"))
+    dumpfn(db, os.path.join(dir_path, "db.json"),indent=4, sort_keys=True)
+    dumpfn(fworker, os.path.join(dir_path, "my_fworker.yaml"),indent=4, default_flow_style=False)
+    dumpfn(qadapter, os.path.join(dir_path, "my_qadapter.yaml"),indent=4, default_flow_style=False)
