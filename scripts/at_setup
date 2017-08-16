@@ -5,9 +5,12 @@
 from __future__ import division, unicode_literals, print_function
 
 from fireworks.user_objects.queue_adapters.common_adapter import CommonAdapter
+from fireworks.queue.queue_adapter import QScriptTemplate
+import fireworks.user_objects.queue_adapters
 from monty.serialization import loadfn, dumpfn
 import os
 import argparse
+from itertools import chain
 
 DEFAULT_LAUNCHPAD = {'host': 'localhost',
                      'name': 'atomate',
@@ -44,12 +47,18 @@ def build_fworker(dir_path, name, fworker=None):
 
 
 def build_qadapter(dir_path, q_type):
-    return {
+    qscript = os.path.join(os.path.dirname(fireworks.user_objects.queue_adapters.__file__),
+                           '{}_template.txt'.format(q_type))
+    with open(qscript) as f:
+        a = QScriptTemplate.pattern.findall(f.read())
+        keys = [s for s in chain(*a) if s is not ""]
+
+    d = {s: "<<FILL>>" for s in keys}
+    d.update({
         "rocket_launch": "rlaunch -c {} singleshot".format(dir_path),
         "_fw_q_type": q_type,
-        "pre_rocket": None,
-        "post_rocket": None,
-    }
+    })
+    return d
 
 
 if __name__ == "__main__":
