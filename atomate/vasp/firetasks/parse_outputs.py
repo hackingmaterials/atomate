@@ -181,6 +181,7 @@ class BoltztrapToDb(FiretaskBase):
         v, o = get_vasprun_outcar(bandstructure_dir, parse_eigen=False, parse_dos=False)
         structure = v.final_structure
         d["structure"] = structure.as_dict()
+        d["formula_pretty"] = structure.composition.reduced_formula
         d.update(get_meta_from_structure(structure))
 
         # add the spacegroup
@@ -373,6 +374,7 @@ class RamanTensorToDb(FiretaskBase):
         nm_frequencies = np.sqrt(np.abs(nm_eigenvals)) * 82.995  # cm^-1
 
         d = {"structure": structure.as_dict(),
+             "formula_pretty": structure.composition.reduced_formula,
              "normalmodes": {"eigenvals": fw_spec["normalmodes"]["eigenvals"],
                              "eigenvecs": fw_spec["normalmodes"]["eigenvecs"]
                              },
@@ -474,6 +476,7 @@ class GibbsAnalysisToDb(FiretaskBase):
                                      {"calcs_reversed": 1})
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
         gibbs_dict["structure"] = structure.as_dict()
+        gibbs_dict["formula_pretty"] = structure.composition.reduced_formula
 
         # get the data(energy, volume, force constant) from the deformation runs
         docs = mmdb.collection.find({"task_label": {"$regex": "{} gibbs*".format(tag)},
@@ -584,6 +587,7 @@ class FitEOSToDb(FiretaskBase):
         all_task_ids.append(d["task_id"])
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
         summary_dict["structure"] = structure.as_dict()
+        summary_dict["formula_pretty"] = structure.composition.reduced_formula
 
         # get the data(energy, volume, force constant) from the deformation runs
         docs = mmdb.collection.find({"task_label": {"$regex": "{} bulk_modulus*".format(tag)},
@@ -666,6 +670,7 @@ class ThermalExpansionCoeffToDb(FiretaskBase):
         d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
         summary_dict["structure"] = structure.as_dict()
+        summary_dict["formula_pretty"] = structure.composition.reduced_formula
 
         # get the data(energy, volume, force constant) from the deformation runs
         docs = mmdb.collection.find({"task_label": {"$regex": "{} thermal_expansion*".format(tag)},
