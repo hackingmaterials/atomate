@@ -9,6 +9,14 @@ from monty.serialization import loadfn, dumpfn
 import os
 import argparse
 
+DEFAULT_LAUNCHPAD = {'host': 'localhost',
+                     'name': 'atomate',
+                     'port': 27017,
+                     'strm_lvl': 'INFO',
+                     'user_indices': [],
+                     'wf_user_indices': []
+                     }
+
 
 def build_db_json(launchpad):
     return {
@@ -22,27 +30,26 @@ def build_db_json(launchpad):
     }
 
 
-def build_fworker(dir_path, fworker=None):
+def build_fworker(dir_path, name, fworker=None):
     if fworker:
         d = dict(fworker)
         d["env"]["db_file"] = os.path.join(dir_path, "db.json")
         return d
     else:
         d = {'category': '',
-             'env': {'db_file': '<</FULL/PATH/TO/DB.JSON>>'},
-             'name': '<<DESCRIPTIVE_NAME>>',
+             'env': {'db_file': os.path.join(dir_path, "db.json")},
+             'name': name,
              'query': '{}'}
         return d
 
-def build_qadapter(dir_path,q_type):
 
+def build_qadapter(dir_path, q_type):
     return {
         "rocket_launch": "rlaunch -c {} singleshot".format(dir_path),
         "_fw_q_type": q_type,
         "pre_rocket": None,
         "post_rocket": None,
     }
-
 
 
 if __name__ == "__main__":
@@ -60,8 +67,8 @@ if __name__ == "__main__":
                         help="configuration directory to setup")
     parser.add_argument("-l", "--launchpad",
                         dest="launchpad",
-                        required=True,
-                        help="input launchpad file for configuration")
+                        help="input launchpad file for configuration, assumes localhost and no username/password"
+                             " if not supplied")
     parser.add_argument("--db",
                         dest="db",
                         nargs="?",
@@ -77,15 +84,16 @@ if __name__ == "__main__":
                              " Queue Types: {}".format(" ".join(q_types)))
 
     args = parser.parse_args()
-    launchpad = loadfn(args.launchpad)
+    launchpad = loadfn(args.launchpad) if args.launchpad else DEFAULT_LAUNCHPAD
     dir_path = os.path.abspath(args.directory)
     db = loadfn(args.db) if args.db else build_db_json(launchpad)
-    fworker = build_fworker(dir_path, loadfn(args.fworker)) if args.fworker else build_fworker(dir_path)
-    qadapter = build_qadapter(dir_path,args.qadapter)
+    fworker = build_fworker(dir_path, args.name, loadfn(args.fworker)) if args.fworker else build_fworker(dir_path,
+                                                                                                          args.name)
+    qadapter = build_qadapter(dir_path, args.qadapter)
 
     if not os.path.exists(dir_path):
         os.mkdir(dir_path)
     dumpfn(launchpad, os.path.join(dir_path, "my_launchpad.yaml"))
-    dumpfn(db, os.path.join(dir_path, "db.json"),indent=4, sort_keys=True)
-    dumpfn(fworker, os.path.join(dir_path, "my_fworker.yaml"),indent=4, default_flow_style=False)
-    dumpfn(qadapter, os.path.join(dir_path, "my_qadapter.yaml"),indent=4, default_flow_style=False)
+    dumpfn(db, os.path.join(dir_path, "db.json"), indent=4, sort_keys=True)
+    dumpfn(fworker, os.path.join(dir_path, "my_fworker.yaml"), indent=4, default_flow_style=False)
+    dumpfn(qadapter, os.path.join(dir_path, "my_qadapter.yaml"), indent=4, default_flow_style=False)
