@@ -445,13 +445,17 @@ class GibbsAnalysisToDb(FiretaskBase):
         eos (str): equation of state used for fitting the energies and the volumes.
             options supported by phonopy: "vinet", "murnaghan", "birch_murnaghan".
         pressure (float): in GPa, optional.
+        poisson (float): poisson ratio. Defaults to 0.25.
+        anharmonic_contribution (bool): consider anharmonic contributions to
+            Gibbs energy from the Debye model. Defaults to False.
+        pressure (float): in GPa, optional.
         metadata (dict): meta data
 
     """
 
     required_params = ["tag", "db_file"]
-    optional_params = ["qha_type", "t_min", "t_step", "t_max", "mesh", "eos", "pressure", "poisson",
-                       "metadata"]
+    optional_params = ["qha_type", "t_min", "t_step", "t_max", "mesh", "eos",
+                       "pressure", "poisson", "anharmonic_contribution", "metadata"]
 
     def run_task(self, fw_spec):
 
@@ -466,6 +470,7 @@ class GibbsAnalysisToDb(FiretaskBase):
         qha_type = self.get("qha_type", "debye_model")
         pressure = self.get("pressure", 0.0)
         poisson = self.get("poisson", 0.25)
+        anharmonic_contribution = self.get("anharmonic_contribution", False)
         gibbs_dict["metadata"] = self.get("metadata", {})
 
 
@@ -503,8 +508,10 @@ class GibbsAnalysisToDb(FiretaskBase):
                 from pymatgen.analysis.quasiharmonic import QuasiharmonicDebyeApprox
 
                 qhda = QuasiharmonicDebyeApprox(energies, volumes, structure, t_min, t_step, t_max,
-                                                eos, pressure=pressure, poisson=poisson)
+                                                eos, pressure=pressure, poisson=poisson,
+                                                anharmonic_contribution=anharmonic_contribution)
                 gibbs_dict.update(qhda.get_summary_dict())
+                gibbs_dict["anharmonic_contribution"] = anharmonic_contribution
                 gibbs_dict["success"] = True
 
             # use the phonopy interface
@@ -525,8 +532,7 @@ class GibbsAnalysisToDb(FiretaskBase):
             logger.warn("Quasi-harmonic analysis failed!")
             gibbs_dict["success"] = False
             gibbs_dict["traceback"] = traceback.format_exc()
-            metadata.update({"task_label_tag": tag})
-            gibbs_dict["metadata"] = metadata
+            gibbs_dict['metadata'].update({"task_label_tag": tag})
             gibbs_dict["created_at"] = datetime.utcnow()
 
         # TODO: @matk86: add a list of task_ids that were used to construct the analysis to DB?

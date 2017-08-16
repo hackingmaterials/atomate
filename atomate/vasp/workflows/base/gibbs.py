@@ -26,7 +26,8 @@ logger = get_logger(__name__)
 def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_cmd="vasp",
                              db_file=None, user_kpoints_settings=None, t_step=10, t_min=0,
                              t_max=1000, mesh=(20, 20, 20), eos="vinet", qha_type="debye_model",
-                             pressure=0.0, poisson=0.25, metadata=None, tag=None):
+                             pressure=0.0, poisson=0.25, anharmonic_contribution=False,
+                             metadata=None, tag=None):
     """
     Returns quasi-harmonic gibbs free energy workflow.
     Note: phonopy package is required for the final analysis step if qha_type="phonopy"
@@ -49,6 +50,8 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
             default is "debye_model"
         pressure (float): in GPa
         poisson (float): poisson ratio
+        anharmonic_contribution (bool): consider anharmonic contributions to
+            Gibbs energy from the Debye model. Defaults to False.
         metadata (dict): meta data
         tag (str): something unique to identify the tasks in this workflow. If None a random uuid
             will be assigned.
@@ -82,7 +85,8 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
 
     fw_analysis = Firework(GibbsAnalysisToDb(tag=tag, db_file=db_file, t_step=t_step, t_min=t_min,
                                              t_max=t_max, mesh=mesh, eos=eos, qha_type=qha_type,
-                                             pressure=pressure, poisson=poisson, metadata=metadata),
+                                             pressure=pressure, poisson=poisson, metadata=metadata,
+                                             anharmonic_contribution=anharmonic_contribution,),
                            name="Gibbs Free Energy")
 
     wf_gibbs.append_wf(Workflow.from_Firework(fw_analysis), wf_gibbs.leaf_fw_ids)
