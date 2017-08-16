@@ -106,7 +106,10 @@ def recursive_get_result(d, result):
         return get_mongolike(result, d[2:])
 
     elif isinstance(d, six.string_types) and d[:3] == "a>>":
-        return getattr(result, d[3:])
+        attribute = getattr(result, d[3:])
+        if callable(attribute):
+            attribute = attribute()
+        return attribute
     
     elif isinstance(d, dict):
         return {k: recursive_get_result(v, result) for k, v in d.items()}

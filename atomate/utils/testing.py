@@ -27,7 +27,7 @@ VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this c
 
 class AtomateTest(unittest.TestCase):
 
-    def setUp(self):
+    def setUp(self, lpad=True):
         """
         Create scratch directory(removes the old one if there is one) and change to it.
         Also initialize launchpad.
@@ -42,12 +42,13 @@ class AtomateTest(unittest.TestCase):
             shutil.rmtree(self.scratch_dir)
         os.makedirs(self.scratch_dir)
         os.chdir(self.scratch_dir)
-        try:
-            self.lp = LaunchPad.from_file(os.path.join(DB_DIR, "my_launchpad.yaml"))
-            self.lp.reset("", require_password=False)
-        except:
-            raise unittest.SkipTest('Cannot connect to MongoDB! Is the database server running? '
-                                    'Are the credentials correct?')
+        if lpad:
+            try:
+                self.lp = LaunchPad.from_file(os.path.join(DB_DIR, "my_launchpad.yaml"))
+                self.lp.reset("", require_password=False)
+            except:
+                raise unittest.SkipTest('Cannot connect to MongoDB! Is the database server running? '
+                                        'Are the credentials correct?')
 
     # Note: the functions in matgendb.util, get_database and get_collection require db authentication
     # but the db.json config file used for atomate testing purpose doesnt require db authentication.

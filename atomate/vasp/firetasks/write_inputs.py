@@ -18,7 +18,7 @@ from fireworks.utilities.dict_mods import apply_mod
 from pymatgen.core.structure import Structure
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
-from pymatgen.io.vasp import Incar, Poscar
+from pymatgen.io.vasp import Incar, Poscar, Potcar, PotcarSingle
 from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, MPHSEBSSet
 
 from atomate.utils.utils import env_chk, load_class
@@ -130,6 +130,39 @@ class ModifyIncar(FiretaskBase):
             apply_mod(incar_dictmod, incar)
 
         incar.write_file(self.get("output_filename", "INCAR"))
+
+
+@explicit_serialize
+class ModifyPotcar(FiretaskBase):
+    """
+    Modify Potcar file.
+
+    Required params:
+        potcar_symbols (dict): overwrite potcar with symbol. Supports env_chk.
+
+    Optional params:
+        functional (dict): functional to use, e.g. PBE, PBE_52, LDA_US, PW91
+        input_filename (str): Input filename (if not "INCAR")
+        output_filename (str): Output filename (if not "INCAR")
+    """
+
+    required_params = ["potcar_symbols"]
+    optional_params = ["functional", "input_filename", "output_filename"]
+    
+    def run_task(self, fw_spec):
+        potcar_symbols = env_chk(self.get("potcar_symbols"), fw_spec)
+        functional = self.get("functional", None)
+        potcar_name = self.get("input_filename", "POTCAR")
+        potcar = Potcar.from_file(potcar_name)
+
+        # Replace PotcarSingles corresponding to elements 
+        # contained in potcar_symbols
+        for n, psingle in enumerate(potcar):
+            if psingle.element in potcar_symbols:
+                potcar[n] = PotcarSingle.from_symbol_and_functional(
+                    potcar_symbols[psingle.element], functional)
+
+        potcar.write_file(self.get("output_filename", "POTCAR"))
 
 
 @explicit_serialize

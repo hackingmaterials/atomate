@@ -202,7 +202,7 @@ class CheckBandgap(FiretaskBase):
         return FWAction(stored_data=stored_data)
 
 
-def pass_vasp_result(pass_dict, calc_dir='.', filename="vasprun.xml.gz", parse_eigen=False,
+def pass_vasp_result(pass_dict=None, calc_dir='.', filename="vasprun.xml.gz", parse_eigen=False,
                      parse_dos=False, **kwargs):
     """
     Function that gets a PassResult firework corresponding to output from a Vasprun.  Covers
@@ -211,7 +211,7 @@ def pass_vasp_result(pass_dict, calc_dir='.', filename="vasprun.xml.gz", parse_e
         
     pass_vasp_result(pass_dict={'stress': ">>ionic_steps.-1.stress"})
 
-    Required params:
+    Args:
         pass_dict (dict): dictionary designating keys and values to pass
             to child fireworks.  If value is a string beginning with '>>',
             the firework will search the parsed VASP output dictionary
@@ -220,9 +220,8 @@ def pass_vasp_result(pass_dict, calc_dir='.', filename="vasprun.xml.gz", parse_e
             to designate the stress from the last ionic_step. If the value
             is not a string or does not begin with ">>" or "a>>" (for an
             object attribute, rather than nested key of .as_dict() conversion),
-            it is passed as is.
-
-    Optional params:
+            it is passed as is.  Defaults to pass the computed entry of
+            the Vasprun.
         calc_dir (str): path to dir that contains VASP output files, defaults
             to '.', e. g. current directory
         filename (str): filename for vasp xml file to parse, defaults to
@@ -235,7 +234,7 @@ def pass_vasp_result(pass_dict, calc_dir='.', filename="vasprun.xml.gz", parse_e
             e.g. mod_spec_key or mod_spec_cmd
         
     """
-
+    pass_dict = pass_dict or {"computed_entry": "a>>get_computed_entry"}
     parse_kwargs = {"filename": filename, "parse_eigen": parse_eigen, "parse_dos":parse_dos}
     return PassResult(pass_dict=pass_dict, calc_dir=calc_dir, parse_kwargs=parse_kwargs,
                       parse_class="pymatgen.io.vasp.outputs.Vasprun", **kwargs)

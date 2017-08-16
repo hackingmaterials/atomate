@@ -7,7 +7,8 @@ import unittest
 
 from fireworks.utilities.fw_serializers import load_object
 
-from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspFromPMGObjects, ModifyIncar
+from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspFromPMGObjects, \
+        ModifyPotcar, ModifyIncar
 from atomate.utils.testing import AtomateTest
 
 from pymatgen.util.testing import PymatgenTest
@@ -20,7 +21,7 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 
-class TestWriteVasp(PymatgenTest, AtomateTest):
+class TestWriteVasp(AtomateTest):
     @classmethod
     def setUpClass(cls):
         cls.struct_si = PymatgenTest.get_structure("Si")
@@ -41,7 +42,7 @@ class TestWriteVasp(PymatgenTest, AtomateTest):
                                                               "preserve_incar", "INCAR"))
 
     def setUp(self):
-        os.chdir(module_dir)
+        super(TestWriteVasp, self).setUp(lpad=False)
 
     def tearDown(self):
         for x in ["INCAR", "POSCAR", "POTCAR", "KPOINTS"]:
@@ -50,27 +51,20 @@ class TestWriteVasp(PymatgenTest, AtomateTest):
 
     def _verify_files(self, skip_kpoints=False, preserve_incar=False):
         if not preserve_incar:
-            self.assertEqual(
-                Incar.from_file(os.path.join(module_dir, "INCAR")),
-                self.ref_incar)
-            self.assertEqual(
-                str(Poscar.from_file(os.path.join(module_dir, "POSCAR"))),
-                str(self.ref_poscar))
-            self.assertEqual((Potcar.from_file(os.path.join(module_dir,
-                                                            "POTCAR"))).symbols,
+            self.assertEqual(Incar.from_file("INCAR"), self.ref_incar)
+            self.assertEqual(str(Poscar.from_file("POSCAR")), str(self.ref_poscar))
+            self.assertEqual(Potcar.from_file("POTCAR").symbols,
                              self.ref_potcar.symbols)
             if not skip_kpoints:
-                self.assertEqual(
-                    str(Kpoints.from_file(
-                        os.path.join(module_dir, "KPOINTS"))),
-                    str(self.ref_kpoints))
+                self.assertEqual(str(Kpoints.from_file("KPOINTS")),
+                                 str(self.ref_kpoints))
         else:
-            self.assertEqual(
-                Incar.from_file(os.path.join(module_dir, "INCAR")),
-                self.ref_incar_preserve)
+            self.assertEqual(Incar.from_file("INCAR"),
+                             self.ref_incar_preserve)
 
     def test_ioset_explicit(self):
-        ft = WriteVaspFromIOSet(dict(structure=self.struct_si, vasp_input_set=MPRelaxSet(self.struct_si, force_gamma=True)))
+        ft = WriteVaspFromIOSet(dict(structure=self.struct_si, 
+            vasp_input_set=MPRelaxSet(self.struct_si, force_gamma=True)))
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
         self._verify_files()
@@ -88,7 +82,7 @@ class TestWriteVasp(PymatgenTest, AtomateTest):
                  vasp_input_params={"user_incar_settings": {"ISMEAR": 1000}}))
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
-        incar = Incar.from_file(os.path.join(module_dir, "INCAR"))
+        incar = Incar.from_file("INCAR")
         self.assertEqual(incar["ISMEAR"], 1000)  # make sure override works
         incar['ISMEAR'] = -5  # switch back to default
         incar.write_file("INCAR")
@@ -119,10 +113,10 @@ class TestWriteVasp(PymatgenTest, AtomateTest):
                         incar_dict[lda_param][most_electroneg][sym] = vals[i]
         return incar_dict
 
-    def test_modifyincar(self):
+    def test_modify_incar(self):
         # create an INCAR
         incar = self.ref_incar
-        incar.write_file(os.path.join(module_dir, "INCAR"))
+        incar.write_file("INCAR")
 
         # modify and test
         ft = ModifyIncar(
@@ -135,6 +129,21 @@ class TestWriteVasp(PymatgenTest, AtomateTest):
         self.assertEqual(incar_mod['ISMEAR'], 1000)
         self.assertEqual(incar_mod['ENCUT'], 780)
         self.assertEqual(incar_mod['ISPIN'], 1)
+
+    def test_modify_potcar(self):
+        Potcar(["Si"]).write_file("POTCAR")
+        potcar = Potcar.from_file("POTCAR")
+        self.assertFalse("alt" in potcar[0].header)
+
+        # modify/test
+        ft = ModifyPotcar(potcar_symbols={"Si": "Si_alt"})
+        ft = load_object(ft.to_dict())  # simulate database insertion
+        ft.run_task({})
+
+        new_potcar = Potcar.from_file("POTCAR")
+        self.assertEqual(len(new_potcar), 1)
+        self.assertTrue("alt" in new_potcar[0].header)
+        self.assertEqual(new_potcar[0].keywords['EAUG'], 360.0)
 
 
 if __name__ == '__main__':

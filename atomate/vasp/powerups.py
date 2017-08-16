@@ -12,7 +12,7 @@ from atomate.utils.utils import get_meta_from_structure, get_fws_and_tasks
 from atomate.vasp.firetasks.glue_tasks import CheckStability, CheckBandgap
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspFake, RunVaspDirect, RunNoVasp
 from atomate.vasp.firetasks.neb_tasks import RunNEBVaspFake
-from atomate.vasp.firetasks.write_inputs import ModifyIncar
+from atomate.vasp.firetasks.write_inputs import ModifyIncar, ModifyPotcar
 from atomate.vasp.firetasks.parse_outputs import JsonToDb
 from atomate.vasp.config import ADD_NAMEFILE, SCRATCH_DIR, ADD_MODIFY_INCAR, GAMMA_VASP_CMD
 
@@ -208,6 +208,26 @@ def add_modify_incar(original_wf, modify_incar_params=None, fw_name_constraint=N
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp"):
         original_wf.fws[idx_fw].tasks.insert(idx_t, ModifyIncar(**modify_incar_params))
+    return original_wf
+
+
+def add_modify_potcar(original_wf, modify_potcar_params=None, fw_name_constraint=None):
+    """
+    Every FireWork that runs VASP has a ModifyIncar task just beforehand. For example, allows
+    you to modify the INCAR based on the Worker using env_chk or using hard-coded changes.
+
+    Args:
+        original_wf (Workflow)
+        modify_incar_params (dict) - dict of parameters for ModifyIncar.
+        fw_name_constraint (str) - Only apply changes to FWs where fw_name contains this substring.
+
+    Returns:
+       Workflow
+    """
+    modify_potcar_params = modify_potcar_params or {"potcar_symbols": ">>potcar_symbols<<"}
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
+                                           task_name_constraint="RunVasp"):
+        original_wf.fws[idx_fw].tasks.insert(idx_t, ModifyPotcar(**modify_potcar_params))
     return original_wf
 
 
