@@ -18,7 +18,7 @@ from fireworks.utilities.dict_mods import apply_mod
 from pymatgen.core.structure import Structure
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
-from pymatgen.io.vasp import Incar, Poscar
+from pymatgen.io.vasp import Incar, Poscar, Potcar, PotcarSingle
 from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, MPHSEBSSet
 
 from atomate.utils.utils import env_chk, load_class
@@ -149,8 +149,8 @@ class ModifyPotcar(FiretaskBase):
     required_params = ["potcar_symbols"]
     optional_params = ["functional", "input_filename", "output_filename"]
     
-    def run_task:
-        potcar_symbols = self.get("potcar_symbols")
+    def run_task(self, fw_spec):
+        potcar_symbols = env_chk(self.get("potcar_symbols"), fw_spec)
         functional = self.get("functional", None)
         potcar_name = self.get("input_filename", "POTCAR")
         potcar = Potcar.from_file(potcar_name)
