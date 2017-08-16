@@ -106,3 +106,7 @@ if __name__ == "__main__":
     dumpfn(db, os.path.join(dir_path, "db.json"), indent=4, sort_keys=True)
     dumpfn(fworker, os.path.join(dir_path, "my_fworker.yaml"), indent=4, default_flow_style=False)
     dumpfn(qadapter, os.path.join(dir_path, "my_qadapter.yaml"), indent=4, default_flow_style=False)
+
+    print("Config files written")
+    print("Most files have intelligent defaults for basic use")
+    print("my_qadapter.yaml still needs additional configuration for launching fireworks to queue")
