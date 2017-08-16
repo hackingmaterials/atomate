@@ -9,7 +9,7 @@ from fireworks import Firework, ScriptTask, Workflow
 
 from atomate.vasp.powerups import add_priority, use_custodian, add_trackers, \
     add_modify_incar, add_small_gap_multiply, use_scratch_dir, remove_custodian, \
-    add_tags, add_wf_metadata
+    add_tags, add_wf_metadata, add_modify_potcar
 from atomate.vasp.workflows.base.core import get_wf
 
 from pymatgen.io.vasp.sets import MPRelaxSet
@@ -84,6 +84,18 @@ class TestVaspPowerups(unittest.TestCase):
             else:
                 for t in fw.tasks:
                     self.assertFalse("ModifyIncar" in t["_fw_name"])
+
+    def test_modify_potcar(self):
+        my_wf = add_modify_potcar(self._copy_wf(self.bs_wf), {"potcar_symbols": {"Si": "Si_alt"}},
+                                  fw_name_constraint="structure optimization")
+
+        for fw in my_wf.fws:
+            if "structure optimization" in fw.name:
+                self.assertTrue("ModifyPotcar" in fw.tasks[1]._fw_name)
+                self.assertEqual(fw.tasks[1]["potcar_symbols"], {"Si": "Si_alt"})
+            else:
+                for t in fw.tasks:
+                    self.assertFalse("ModifyPotcar" in t["_fw_name"])
 
     def test_add_trackers(self):
         my_wf = add_trackers(self._copy_wf(self.bs_wf))
