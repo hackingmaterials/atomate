@@ -68,7 +68,9 @@ if __name__ == "__main__":
 
     q_types = CommonAdapter.default_q_commands.keys()
 
-    parser.add_argument("name")
+    parser.add_argument("name",
+                        help ="Name for the fireworks configuration. "
+                        "This is just used to differentiate your configuration when running")
     parser.add_argument("-d", "--directory",
                         dest="directory",
                         type=str,
