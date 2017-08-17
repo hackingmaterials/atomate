@@ -1,6 +1,8 @@
 # This file configures the behavior of the TasksMaterialsBuilder
 
 # the types of tasks that are considered for building the materials collection
+# Any tasks without a task_label in the supported_task_labels will not be used
+# to create a new material!
 supported_task_labels:
   - "structure optimization"
   - "static"
@@ -11,8 +13,11 @@ supported_task_labels:
 
 # Each entry in property settings includes:
 # (i) a list of materials properties that are affected
-# (ii) where those properties are located in the tasks (tasks_key) and materials (materials_key) collections
-# (iii) quality scores that define which kinds of task labels give better accuracy for those properties
+# (ii) where those properties are currently located in the tasks (tasks_key) and should be entered
+#    into the materials (materials_key) collections
+# (iii) quality scores that define which kinds of task labels give better accuracy for those
+#    properties. If two different tasks on the same material give different property values, these
+#    scores determine which task to trust more.
 property_settings:
   - properties:
       - bandgap
@@ -74,7 +79,7 @@ properties_root:
   - bandgap
   - energy_per_atom
 
-# database indexes on materials collection for faster query
+# these are database indexes on materials collection for faster query
 indexes:
   - "_tasksbuilder.all_task_ids"
   - "bandstructure.bandgap"

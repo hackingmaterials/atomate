@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from tqdm import tqdm
 
+from atomate.vasp.builders.utils import dbid_to_int
 from matgendb.util import get_database
 
 from atomate.utils.utils import get_logger
@@ -43,7 +44,7 @@ class TagsBuilder(AbstractBuilder):
             pbar.set_description("Processing materials_id: {}".format(m['material_id']))
             all_tags = []
             try:
-                intid_list = [TasksMaterialsBuilder.tid_to_int(tid) for tid in
+                intid_list = [dbid_to_int(tid) for tid in
                               m["_tasksbuilder"]["all_task_ids"]]
                 tasks = self._tasks.find({"task_id": {"$in": intid_list},
                                           "tags": {"$exists": True}}, {"tags": 1})

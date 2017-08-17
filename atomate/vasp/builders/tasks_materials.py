@@ -4,18 +4,17 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os
 from datetime import datetime
+
 from pymongo import ReturnDocument
 from tqdm import tqdm
 
-from matgendb.util import get_database
-
-from monty.serialization import loadfn
-
-from pymatgen import Structure
-from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
-
 from atomate.utils.utils import get_mongolike, get_logger
 from atomate.vasp.builders.base import AbstractBuilder
+from atomate.vasp.builders.utils import dbid_to_str, dbid_to_int
+from matgendb.util import get_database
+from monty.serialization import loadfn
+from pymatgen import Structure
+from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 
 logger = get_logger(__name__)
 
@@ -23,6 +22,14 @@ __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
+"""
+This class collects all "tasks" (individual calculations) on a single compound and produces a 
+summary report in a new collection ("materials"). The tasks are matched based on having the same 
+crystal structure, with some options for overriding this.
+
+There is lots of config for this builder in the accompanying "tasks_materials_settings.yaml" file.
+
+"""
 
 class TasksMaterialsBuilder(AbstractBuilder):
     def __init__(self, materials_write, counter_write, tasks_read, tasks_prefix="t",
@@ -64,9 +71,7 @@ class TasksMaterialsBuilder(AbstractBuilder):
         for m in self._materials.find({}, {"_tasksbuilder.all_task_ids": 1}):
             previous_task_ids.extend(m["_tasksbuilder"]["all_task_ids"])
 
-        q = {}
-        q["state"] = "successful"
-        q["task_label"] = {"$in": self.supported_task_labels}
+        q = {"state": "successful", "task_label": {"$in": self.supported_task_labels}}
 
         if self.query:
             common_keys = [k for k in q.keys() if k in self.query.keys()]
@@ -75,7 +80,8 @@ class TasksMaterialsBuilder(AbstractBuilder):
                                  format(common_keys))
             q.update(self.query)
 
-        all_task_ids = [self.tid_to_str(t["task_id"]) for t in self._tasks.find(q, {"task_id": 1})]
+        all_task_ids = [dbid_to_str(self._t_prefix, t["task_id"]) for t in
+                        self._tasks.find(q, {"task_id": 1})]
         task_ids = [t_id for t_id in all_task_ids if t_id not in previous_task_ids]
 
         logger.info("There are {} new task_ids to process.".format(len(task_ids)))
@@ -84,7 +90,7 @@ class TasksMaterialsBuilder(AbstractBuilder):
         for t_id in pbar:
             pbar.set_description("Processing task_id: {}".format(t_id))
             try:
-                taskdoc = self._tasks.find_one({"task_id": self.tid_to_int(t_id)})
+                taskdoc = self._tasks.find_one({"task_id": dbid_to_int(t_id)})
                 m_id = self._match_material(taskdoc)
                 if not m_id:
                     m_id = self._create_new_material(taskdoc)
@@ -105,20 +111,7 @@ class TasksMaterialsBuilder(AbstractBuilder):
         self._counter.delete_one({"_id": "materialid"})
         self._counter.insert_one({"_id": "materialid", "c": 0})
         self._build_indexes()
-        logger.info("Finished resetting TasksMaterialsBuilder")
-
-    def tid_to_str(self, task_id):
-        # converts int task_id to string
-        return "{}-{}".format(self._t_prefix, task_id)
-
-    @staticmethod
-    def tid_to_int(task_id):
-        # converts string task_id to int
-        return int(task_id.split("-")[1])
-
-    def mid_to_str(self, material_id):
-        # converts int material_id to string
-        return "{}-{}".format(self._m_prefix, material_id)
+        logger.info("Finished resetting TasksMaterialsBuilder.")
 
     @classmethod
     def from_file(cls, db_file, m="materials", c="counter", t="tasks", **kwargs):
@@ -204,17 +197,18 @@ class TasksMaterialsBuilder(AbstractBuilder):
         doc["_tasksbuilder"] = {"all_task_ids": [], "prop_metadata":
             {"labels": {}, "task_ids": {}}, "updated_at": datetime.utcnow()}
         doc["spacegroup"] = taskdoc["output"]["spacegroup"]
+        doc["structure"] = taskdoc["output"]["structure"]
+        doc["material_id"] = dbid_to_str(
+            self._m_prefix, self._counter.find_one_and_update(
+                {"_id": "materialid"}, {"$inc": {"c": 1}},
+                return_document=ReturnDocument.AFTER)["c"])
+
         doc["sg_symbol"] = doc["spacegroup"]["symbol"]
         doc["sg_number"] = doc["spacegroup"]["number"]
-        doc["structure"] = taskdoc["output"]["structure"]
-        doc["material_id"] = self.mid_to_str(self._counter.
-                                             find_one_and_update({"_id": "materialid"},
-                                                                 {"$inc": {"c": 1}},
-                                                                 return_document=ReturnDocument.AFTER)[
-                                                 "c"])
 
-        for x in ["formula_anonymous", "formula_pretty", "formula_reduced_abc",
-                  "elements", "nelements", "chemsys"]:
+
+        for x in ["formula_anonymous", "formula_pretty", "formula_reduced_abc", "elements",
+                  "nelements", "chemsys"]:
             doc[x] = taskdoc[x]
 
         if "parent_structure" in taskdoc:
@@ -278,7 +272,8 @@ class TasksMaterialsBuilder(AbstractBuilder):
                             update_one({"material_id": m_id},
                                        {"$set": {materials_key: get_mongolike(taskdoc, tasks_key),
                                                  "_tasksbuilder.prop_metadata.labels.{}".format(p): task_label,
-                                                 "_tasksbuilder.prop_metadata.task_ids.{}".format(p): self.tid_to_str(taskdoc["task_id"]),
+                                                 "_tasksbuilder.prop_metadata.task_ids.{}".format(p): dbid_to_str(
+                                                     self._t_prefix, taskdoc["task_id"]),
                                                  "_tasksbuilder.prop_metadata.energies.{}".format(p): taskdoc["output"]["energy_per_atom"],
                                                  "_tasksbuilder.updated_at": datetime.utcnow()}})
 
@@ -289,5 +284,7 @@ class TasksMaterialsBuilder(AbstractBuilder):
                             update_one({"material_id": m_id},
                                        {"$set": {p: get_mongolike(taskdoc, tasks_key)}})
 
+        # update the database to reflect that this task_id was already processed
         self._materials.update_one({"material_id": m_id},
-                                   {"$push": {"_tasksbuilder.all_task_ids": self.tid_to_str(taskdoc["task_id"])}})
+                                   {"$push": {"_tasksbuilder.all_task_ids": dbid_to_str(
+                                       self._t_prefix, taskdoc["task_id"])}})
