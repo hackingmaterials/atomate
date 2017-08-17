@@ -1,6 +1,13 @@
 atomate.vasp.builders package
 =============================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    atomate.vasp.builders.examples
+
 Submodules
 ----------
 
@@ -80,6 +87,14 @@ atomate.vasp.builders.tasks_materials module
 --------------------------------------------
 
 .. automodule:: atomate.vasp.builders.tasks_materials
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+atomate.vasp.builders.utils module
+----------------------------------
+
+.. automodule:: atomate.vasp.builders.utils
     :members:
     :undoc-members:
     :show-inheritance:

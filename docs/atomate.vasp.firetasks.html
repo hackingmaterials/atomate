@@ -184,13 +184,13 @@ everything</div></blockquote>
 
 <dl class="function">
 <dt id="atomate.vasp.firetasks.glue_tasks.pass_vasp_result">
-<code class="descclassname">atomate.vasp.firetasks.glue_tasks.</code><code class="descname">pass_vasp_result</code><span class="sig-paren">(</span><em>pass_dict</em>, <em>calc_dir=u'.'</em>, <em>filename=u'vasprun.xml.gz'</em>, <em>parse_eigen=False</em>, <em>parse_dos=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.glue_tasks.pass_vasp_result" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">atomate.vasp.firetasks.glue_tasks.</code><code class="descname">pass_vasp_result</code><span class="sig-paren">(</span><em>pass_dict=None</em>, <em>calc_dir=u'.'</em>, <em>filename=u'vasprun.xml.gz'</em>, <em>parse_eigen=False</em>, <em>parse_dos=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.glue_tasks.pass_vasp_result" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function that gets a PassResult firework corresponding to output from a Vasprun.  Covers
 most use cases in which user needs to pass results from a vasp run to child FWs
 (e. g. analysis FWs)</p>
 <p>pass_vasp_result(pass_dict={&#8216;stress&#8217;: &#8220;&gt;&gt;ionic_steps.-1.stress&#8221;})</p>
 <dl class="docutils">
-<dt>Required params:</dt>
+<dt>Args:</dt>
 <dd><dl class="first last docutils">
 <dt>pass_dict (dict): dictionary designating keys and values to pass</dt>
 <dd>to child fireworks.  If value is a string beginning with &#8216;&gt;&gt;&#8217;,
@@ -200,11 +200,8 @@ separated with periods, e. g. &#8220;&gt;&gt;ionic_steps.-1.stress&#8221; is use
 to designate the stress from the last ionic_step. If the value
 is not a string or does not begin with &#8220;&gt;&gt;&#8221; or &#8220;a&gt;&gt;&#8221; (for an
 object attribute, rather than nested key of .as_dict() conversion),
-it is passed as is.</dd>
-</dl>
-</dd>
-<dt>Optional params:</dt>
-<dd><dl class="first last docutils">
+it is passed as is.  Defaults to pass the computed entry of
+the Vasprun.</dd>
 <dt>calc_dir (str): path to dir that contains VASP output files, defaults</dt>
 <dd>to &#8216;.&#8217;, e. g. current directory</dd>
 <dt>filename (str): filename for vasp xml file to parse, defaults to</dt>
@@ -913,6 +910,36 @@ output_filename (str): Output filename (if not &#8220;INCAR&#8221;)</p>
 <dl class="method">
 <dt id="atomate.vasp.firetasks.write_inputs.ModifyIncar.run_task">
 <code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.ModifyIncar.run_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.ModifyPotcar">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="descname">ModifyPotcar</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.ModifyPotcar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Modify Potcar file.</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd>potcar_symbols (dict): overwrite potcar with symbol. Supports env_chk.</dd>
+<dt>Optional params:</dt>
+<dd>functional (dict): functional to use, e.g. PBE, PBE_52, LDA_US, PW91
+input_filename (str): Input filename (if not &#8220;INCAR&#8221;)
+output_filename (str): Output filename (if not &#8220;INCAR&#8221;)</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.ModifyPotcar.optional_params">
+<code class="descname">optional_params</code><em class="property"> = [u'functional', u'input_filename', u'output_filename']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.ModifyPotcar.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.ModifyPotcar.required_params">
+<code class="descname">required_params</code><em class="property"> = [u'potcar_symbols']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.ModifyPotcar.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.ModifyPotcar.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.ModifyPotcar.run_task" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>

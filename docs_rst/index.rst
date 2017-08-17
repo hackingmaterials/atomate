@@ -138,6 +138,7 @@ Running workflows
 
     running_workflows
     eos_workflow_tutorial
+    builders
 
 Creating and customizing workflows
 ==================================

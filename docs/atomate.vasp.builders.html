@@ -48,6 +48,19 @@
             
   <div class="section" id="atomate-vasp-builders-package">
 <h1>atomate.vasp.builders package<a class="headerlink" href="#atomate-vasp-builders-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="atomate.vasp.builders.examples.html">atomate.vasp.builders.examples package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.builders.examples.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.builders.examples.html#module-atomate.vasp.builders.examples.run_builders">atomate.vasp.builders.examples.run_builders module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.builders.examples.html#module-atomate.vasp.builders.examples">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
@@ -105,7 +118,7 @@ m: (str) name of &#8220;materials&#8221; collection
 <dl class="classmethod">
 <dt id="atomate.vasp.builders.base.AbstractBuilder.from_file">
 <em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.base.AbstractBuilder.from_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the builder from a db file</p>
+<dd><p>Set the builder from a config file, e.g., a db file</p>
 </dd></dl>
 
 <dl class="method">
@@ -465,11 +478,6 @@ t (str): name of &#8220;tasks&#8221; collection
 </dd></dl>
 
 <dl class="method">
-<dt id="atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.mid_to_str">
-<code class="descname">mid_to_str</code><span class="sig-paren">(</span><em>material_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.mid_to_str" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
 <dt id="atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.reset">
 <code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.reset" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -479,17 +487,30 @@ t (str): name of &#8220;tasks&#8221; collection
 <code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.run" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="staticmethod">
-<dt id="atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.tid_to_int">
-<em class="property">static </em><code class="descname">tid_to_int</code><span class="sig-paren">(</span><em>task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.tid_to_int" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.tid_to_str">
-<code class="descname">tid_to_str</code><span class="sig-paren">(</span><em>task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.tid_to_str" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
+
+<dl class="data">
+<dt id="atomate.vasp.builders.tasks_materials.module_dir">
+<code class="descclassname">atomate.vasp.builders.tasks_materials.</code><code class="descname">module_dir</code><em class="property"> = '/Users/ajain/Documents/code_matgen/atomate/atomate/vasp/builders'</em><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.module_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class collects all &#8220;tasks&#8221; (individual calculations) on a single compound and produces a
+summary report in a new collection (&#8220;materials&#8221;). The tasks are matched based on having the same
+crystal structure, with some options for overriding this.</p>
+<p>There is lots of config for this builder in the accompanying &#8220;tasks_materials_settings.yaml&#8221; file.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.builders.utils">
+<span id="atomate-vasp-builders-utils-module"></span><h2>atomate.vasp.builders.utils module<a class="headerlink" href="#module-atomate.vasp.builders.utils" title="Permalink to this headline">¶</a></h2>
+<p>This class contains common functions for builders</p>
+<dl class="function">
+<dt id="atomate.vasp.builders.utils.dbid_to_int">
+<code class="descclassname">atomate.vasp.builders.utils.</code><code class="descname">dbid_to_int</code><span class="sig-paren">(</span><em>dbid</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.utils.dbid_to_int" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.builders.utils.dbid_to_str">
+<code class="descclassname">atomate.vasp.builders.utils.</code><code class="descname">dbid_to_str</code><span class="sig-paren">(</span><em>prefix</em>, <em>dbid</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.utils.dbid_to_str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 <div class="section" id="module-atomate.vasp.builders">
@@ -506,6 +527,7 @@ t (str): name of &#8220;tasks&#8221; collection
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">atomate.vasp.builders package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.builders.bandgap_estimation">atomate.vasp.builders.bandgap_estimation module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.builders.base">atomate.vasp.builders.base module</a></li>
@@ -517,6 +539,7 @@ t (str): name of &#8220;tasks&#8221; collection
 <li><a class="reference internal" href="#module-atomate.vasp.builders.materials_ehull">atomate.vasp.builders.materials_ehull module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.builders.tags">atomate.vasp.builders.tags module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.builders.tasks_materials">atomate.vasp.builders.tasks_materials module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.builders.utils">atomate.vasp.builders.utils module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.builders">Module contents</a></li>
 </ul>
 </li>
