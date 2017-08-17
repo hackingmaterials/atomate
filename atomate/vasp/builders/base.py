@@ -32,6 +32,6 @@ class AbstractBuilder(six.with_metaclass(ABCMeta)):
     @abstractmethod
     def from_file(cls, filename):
         """
-        Set the builder from a db file
+        Set the builder from a config file, e.g., a db file
         """
         pass
