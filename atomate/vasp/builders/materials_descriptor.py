@@ -32,7 +32,7 @@ class MaterialsDescriptorBuilder(AbstractBuilder):
 
         q = {}
         if not self.update_all:
-            q["descriptors.dimensionality"] = {"$exists": False}
+            q["descriptors.density"] = {"$exists": False}
 
         mats = [m for m in self._materials.find(q, {"structure": 1, "material_id": 1})]
 
@@ -40,8 +40,13 @@ class MaterialsDescriptorBuilder(AbstractBuilder):
         for m in pbar:
             pbar.set_description("Processing materials_id: {}".format(m['material_id']))
             struct = Structure.from_dict(m["structure"])
-            self._materials.update_one({"material_id": m["material_id"]},
-                                       {"$set": {"descriptors.dimensionality": get_dimensionality(struct)}})
+            d = {"descriptors": {}}
+            d["descriptors"]["dimensionality"] = get_dimensionality(struct)
+            d["descriptors"]["density"] = Structure.density
+            d["descriptors"]["nsites"] = len(Structure)
+            d["descriptors"]["volume"] = Structure.volume
+
+            self._materials.update_one({"material_id": m["material_id"]}, {"$set": d})
 
     def reset(self):
         logger.info("Resetting MaterialsDescriptorBuilder")
@@ -50,7 +55,8 @@ class MaterialsDescriptorBuilder(AbstractBuilder):
         logger.info("Finished resetting MaterialsDescriptorBuilder")
 
     def _build_indexes(self):
-        self._materials.create_index("descriptors.dimensionality")
+        for i in ["descriptors.dimensionality", "descriptors.density", "descriptors.nsites"]:
+            self._materials.create_index(i)
 
     @classmethod
     def from_file(cls, db_file, m="materials", **kwargs):
