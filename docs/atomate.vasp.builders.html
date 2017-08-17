@@ -402,18 +402,19 @@ m: (str) name of &#8220;materials&#8221; collection
 <span id="atomate-vasp-builders-tags-module"></span><h2>atomate.vasp.builders.tags module<a class="headerlink" href="#module-atomate.vasp.builders.tags" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="atomate.vasp.builders.tags.TagsBuilder">
-<em class="property">class </em><code class="descclassname">atomate.vasp.builders.tags.</code><code class="descname">TagsBuilder</code><span class="sig-paren">(</span><em>materials_write</em>, <em>tasks_read</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tags.TagsBuilder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">atomate.vasp.builders.tags.</code><code class="descname">TagsBuilder</code><span class="sig-paren">(</span><em>materials_write</em>, <em>tasks_read</em>, <em>tasks_prefix=u't'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tags.TagsBuilder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#atomate.vasp.builders.base.AbstractBuilder" title="atomate.vasp.builders.base.AbstractBuilder"><code class="xref py py-class docutils literal"><span class="pre">atomate.vasp.builders.base.AbstractBuilder</span></code></a></p>
 <dl class="method">
 <dt id="atomate.vasp.builders.tags.TagsBuilder.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>materials_write</em>, <em>tasks_read</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tags.TagsBuilder.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>materials_write</em>, <em>tasks_read</em>, <em>tasks_prefix=u't'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tags.TagsBuilder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Starting with an existing materials collection, searches all its component tasks for 
 the &#8220;tags&#8221; and key in the tasks collection and copies them to the materials collection.
 Thus, the &#8220;tags&#8221; for a material will be the union of all the tags for its component tasks.</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd>materials_write (pymongo.collection): materials collection with write access.
-tasks_read (pymongo.collection): read-only(for safety) tasks collection.</dd>
+tasks_read (pymongo.collection): read-only(for safety) tasks collection.
+tasks_prefix (str): the string prefix for tasks, e.g. &#8220;t&#8221; for a task_id like &#8220;t-132&#8221;</dd>
 </dl>
 </dd></dl>
 

@@ -533,13 +533,18 @@ mesh (list/tuple): reciprocal space density
 eos (str): equation of state used for fitting the energies and the volumes.</p>
 <blockquote>
 <div>options supported by phonopy: &#8220;vinet&#8221;, &#8220;murnaghan&#8221;, &#8220;birch_murnaghan&#8221;.</div></blockquote>
+<p>pressure (float): in GPa, optional.
+poisson (float): poisson ratio. Defaults to 0.25.
+anharmonic_contribution (bool): consider anharmonic contributions to</p>
+<blockquote>
+<div>Gibbs energy from the Debye model. Defaults to False.</div></blockquote>
 <p class="last">pressure (float): in GPa, optional.
 metadata (dict): meta data</p>
 </dd>
 </dl>
 <dl class="attribute">
 <dt id="atomate.vasp.firetasks.parse_outputs.GibbsAnalysisToDb.optional_params">
-<code class="descname">optional_params</code><em class="property"> = [u'qha_type', u't_min', u't_step', u't_max', u'mesh', u'eos', u'pressure', u'poisson', u'metadata']</em><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.GibbsAnalysisToDb.optional_params" title="Permalink to this definition">¶</a></dt>
+<code class="descname">optional_params</code><em class="property"> = [u'qha_type', u't_min', u't_step', u't_max', u'mesh', u'eos', u'pressure', u'poisson', u'anharmonic_contribution', u'metadata']</em><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.GibbsAnalysisToDb.optional_params" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">

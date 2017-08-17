@@ -52,7 +52,7 @@ Make sure you have completed the installation tutorial. Next, create a folder on
 
 If you do not already have important prior results in your atomate environment, start fresh by running::
 
-``lpad reset``
+    lpad reset
 
 .. warning:: This will reset all of your previous Fireworks and Workflows in your LaunchPad. Do not do this if you have actual results that you want to keep!
 
@@ -122,7 +122,7 @@ We can setup the workflow and add it to our LaunchPad ready to run in just a few
 
 **Create the workflow script**
 
-In the same directory as the POSCAR, create a Python script named ``si_bandstructure.py`` with the following contents:
+In the same directory as the POSCAR, create a Python script named ``mgo_bandstructure.py`` with the following contents:
 
 .. code-block:: python
 
@@ -146,18 +146,18 @@ In the same directory as the POSCAR, create a Python script named ``si_bandstruc
 
 **Add workflow to LaunchPad**
 
-If you want to add the workflow to your LaunchPad (e.g., you didn't already go through Option 2 for adding a workflow): from the folder with your ``POSCAR`` and ``si_bandstructure.py``, run the Python script:
+If you want to add the workflow to your LaunchPad (e.g., you didn't already go through Option 2 for adding a workflow): from the folder with your ``POSCAR`` and ``mgo_bandstructure.py``, run the Python script:
 
 .. code-block:: bash
 
-    python si_bandstructure.py
+    python mgo_bandstructure.py
 
 .. _Running the workflow:
 
 Running the workflow
 --------------------
 
-Running the workflow the following command will submit a single job to the batch queue configured in ``my_qadapter.yaml``.
+Running the workflow with the following command will submit a single job to the batch queue configured in ``my_qadapter.yaml``.
 The job will launch Fireworks from your LaunchPad until all of them have completed or you run out of walltime.
 This workflow will likely on the order of an hour, depending on your cluster configuration.
 
@@ -227,7 +227,7 @@ In this tutorial you learned how run a workflow from in a YAML file without writ
 
 To see what preset workflows can be run, see the documentation that includes them at :py:mod:`atomate.vasp.workflows.presets`.
 They can be set up the same way as in this tutorial.
-Another example follows for running an EOS workflow: :ref:`running eos workflows`.
+Another example follows for running a Gibbs free energy workflow: :ref:`running gibbs workflows`.
 
 Eventually you may want to create your own workflows that you can use and distribute.
 The :ref:`creating workflows` article is a guide for writing custom workflows in Python.
