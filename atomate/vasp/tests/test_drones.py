@@ -25,6 +25,7 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
         cls.relax2 = os.path.join(module_dir, "..", "test_files", "Si_structure_optimization_relax2",
                                  "outputs")
         cls.Al = os.path.join(module_dir, "..", "test_files", "Al")
+        cls.Si_static = os.path.join(module_dir, "..", "test_files", "Si_static", "outputs")
 
     def test_assimilate(self):
         drone = VaspDrone()
@@ -77,6 +78,25 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
             self.assertEqual(d["bandgap"], 0.0)
             self.assertFalse(d["is_gap_direct"])
             self.assertTrue(d["is_metal"])
+
+    def test_detect_output_file_paths(self):
+        drone = VaspDrone()
+        doc = drone.assimilate(self.Si_static)
+
+        self.assertDictEqual({
+            'chgcar': 'CHGCAR.gz',
+            'locpot': 'LOCPOT.gz',
+            'aeccar0': 'AECCAR0.gz',
+            'aeccar1': 'AECCAR1.gz',
+            'aeccar2': 'AECCAR2.gz',
+            'procar': 'PROCAR.gz',
+            'wavecar': 'WAVECAR.gz'
+        }, doc['calcs_reversed'][0]['output_file_paths'])
+
+        doc = drone.assimilate(self.relax2)
+        self.assertDictEqual({'chgcar': 'CHGCAR.relax1.gz', 'procar': 'PROCAR.relax1.gz',
+                              'wavecar': 'WAVECAR.relax1.gz'},
+                             doc['calcs_reversed'][1]['output_file_paths'])
 
 if __name__ == "__main__":
     unittest.main()

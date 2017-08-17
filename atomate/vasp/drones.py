@@ -319,11 +319,31 @@ class VaspDrone(AbstractDrone):
         d["output"]["is_metal"] = bs.is_metal()
         d["task"] = {"type": taskname, "name": taskname}
 
+        d["output_file_paths"] = self.process_raw_data(dir_name, taskname=taskname)
+
         if hasattr(vrun, "force_constants"):
             # phonon-dfpt
             d["output"]["force_constants"] = vrun.force_constants.tolist()
             d["output"]["normalmode_eigenvals"] = vrun.normalmode_eigenvals.tolist()
             d["output"]["normalmode_eigenvecs"] = vrun.normalmode_eigenvecs.tolist()
+        return d
+
+    def process_raw_data(self, dir_name, taskname="standard"):
+        """
+        It is useful to store what raw data has been calculated
+        and exists for easier querying of the taskdoc.
+
+        :param dir_name: directory to search
+        :param taskname: taskname, e.g. "relax1"
+        :return: dict of files present
+        """
+        d = {}
+        possible_files = ('CHGCAR', 'LOCPOT', 'AECCAR0', 'AECCAR1', 'AECCAR2',
+                          'ELFCAR', 'WAVECAR', 'PROCAR', 'OPTIC')
+        for f in possible_files:
+            files = self.filter_files(dir_name, file_pattern=f)
+            if taskname in files:
+                d[f.lower()] = files[taskname]
         return d
 
     @staticmethod
