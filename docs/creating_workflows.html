@@ -1,16 +1,13 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>Creating workflows &#8212; atomate 0.5.8 documentation</title>
-    
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -27,9 +24,9 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Customizing Workflows" href="customizing_workflows.html" />
-    <link rel="prev" title="Running EOS Workflows" href="eos_workflow_tutorial.html" /> 
+    <link rel="prev" title="Running Gibbs Workflows" href="gibbs_workflow_tutorial.html" /> 
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -43,7 +40,7 @@
           <a href="customizing_workflows.html" title="Customizing Workflows"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="eos_workflow_tutorial.html" title="Running EOS Workflows"
+          <a href="gibbs_workflow_tutorial.html" title="Running Gibbs Workflows"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.8 documentation</a> &#187;</li> 
       </ul>
@@ -60,7 +57,7 @@
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>The <a class="reference internal" href="running_workflows.html#running-workflows-tutorial"><span class="std std-ref">Running Workflows Tutorial</span></a> walked you through customizing and running a preset VASP workflow from the library of YAML files. While these presets are useful standards for making specific, straightforward calculations, it is often desirable to create your own workflows.</p>
 <p>Ideally, custom workflows can be constructed entirely with existing Fireworks. Generally speaking, any workflow that is a series of calculations where only the input files and calculation settings change can be constructed from existing Fireworks. The workflow can have either a simple or complex dependency graph. This guide will explain how to create such custom workflows in Python.</p>
-<p>If your desired workflow cannot be created with existing Fireworks, you&#8217;ll have to code your own Fireworks. It should be mostly straightforward to do so by looking at the currently implemented Fireworks in atomate and using that as a guide to code your own. For now, we will assume that the Fireworks you need already exist.</p>
+<p>If your desired workflow cannot be created with existing Fireworks, you’ll have to code your own Fireworks. It should be mostly straightforward to do so by looking at the currently implemented Fireworks in atomate and using that as a guide to code your own. For now, we will assume that the Fireworks you need already exist.</p>
 </div>
 <div class="section" id="objectives">
 <h2>Objectives<a class="headerlink" href="#objectives" title="Permalink to this headline">¶</a></h2>
@@ -107,7 +104,7 @@
 <p>The first step when you go to write any workflow is to sketch a graph of the workflow. In particular, you want to sketch a <a class="reference external" href="https://en.wikipedia.org/wiki/Directed_acyclic_graph">directed acyclic graph</a>, which for atomate just means that each calculation step is a node in the graph and parents only point to their children such that there are no loops (cycles) in the graph. Again, you should think of each large single invocation of the scientific code (VASP, LAMMPS, etc.) as corresponding to one Firework. Analysis tasks that aggregate results from several Fireworks, e.g. tasks that analyze volume deformations, also need their own Fireworks that have the calculations as parents. All of the workflow examples in the docs and the atomate paper (submitted) are valid workflow graphs.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">An advanced method of workflow programming in the FireWorks package allows the workflow to change depending on the results of execution. For example, a Firework can add more Fireworks to the workflow based on results that it obtained. If you need some kind of looping or branching at a high level, you&#8217;ll have to write a custom Firetask that creates new Fireworks on the fly. Writing custom Firetasks in atomate may be covered more in depth in a future workflow, but it is beyond the scope of this guide. <a class="reference external" href="https://materialsproject.github.io/fireworks/dynamic_wf_tutorial.html">Fireworks documentation for dynamic workflows</a> discusses this from an abstract perspective.</p>
+<p class="last">An advanced method of workflow programming in the FireWorks package allows the workflow to change depending on the results of execution. For example, a Firework can add more Fireworks to the workflow based on results that it obtained. If you need some kind of looping or branching at a high level, you’ll have to write a custom Firetask that creates new Fireworks on the fly. Writing custom Firetasks in atomate may be covered more in depth in a future workflow, but it is beyond the scope of this guide. <a class="reference external" href="https://materialsproject.github.io/fireworks/dynamic_wf_tutorial.html">Fireworks documentation for dynamic workflows</a> discusses this from an abstract perspective.</p>
 </div>
 </div>
 <div class="section" id="finding-fireworks">
@@ -141,11 +138,11 @@
 <li>PerturbStructureTransformation: Applies a perturbation of a specified amplitude to each site</li>
 <li>DeformStructureTransformation: Apply a deformation matrix to the lattice matrix of the structure</li>
 </ul>
-<p>You&#8217;ll notice that more generic Fireworks and Fireworks for analysis tasks are not in this list. Because they are intended to be simple and modular, these Fireworks are actually written as plain Firetasks that will get wrapped into a Firework when the Workflow is constructed. We’ll cover how to use them as Fireworks in the next section, but know that they can be found at places like <a class="reference internal" href="atomate.common.firetasks.html#module-atomate.common.firetasks" title="atomate.common.firetasks"><code class="xref py py-mod docutils literal"><span class="pre">atomate.common.firetasks</span> <span class="pre">module</span></code></a> for software-agnostic tasks such as <code class="docutils literal"><span class="pre">PassCalcLocs</span></code> or <code class="xref py py-mod docutils literal"><span class="pre">atomate.vasp.firetasks</span> <span class="pre">package</span> <span class="pre">&lt;atomate.vasp.firetasks</span></code> for some VASP specific ones, including the analysis tasks usually found in <a class="reference internal" href="atomate.vasp.firetasks.html#module-atomate.vasp.firetasks.parse_outputs" title="atomate.vasp.firetasks.parse_outputs"><code class="xref py py-mod docutils literal"><span class="pre">atomate.vasp.firetasks.parse_outputs</span></code></a>.</p>
+<p>You’ll notice that more generic Fireworks and Fireworks for analysis tasks are not in this list. Because they are intended to be simple and modular, these Fireworks are actually written as plain Firetasks that will get wrapped into a Firework when the Workflow is constructed. We’ll cover how to use them as Fireworks in the next section, but know that they can be found at places like <a class="reference internal" href="atomate.common.firetasks.html#module-atomate.common.firetasks" title="atomate.common.firetasks"><code class="xref py py-mod docutils literal"><span class="pre">atomate.common.firetasks</span> <span class="pre">module</span></code></a> for software-agnostic tasks such as <code class="docutils literal"><span class="pre">PassCalcLocs</span></code> or <code class="xref py py-mod docutils literal"><span class="pre">atomate.vasp.firetasks</span> <span class="pre">package</span> <span class="pre">&lt;atomate.vasp.firetasks</span></code> for some VASP specific ones, including the analysis tasks usually found in <a class="reference internal" href="atomate.vasp.firetasks.html#module-atomate.vasp.firetasks.parse_outputs" title="atomate.vasp.firetasks.parse_outputs"><code class="xref py py-mod docutils literal"><span class="pre">atomate.vasp.firetasks.parse_outputs</span></code></a>.</p>
 </div>
 <div class="section" id="creating-the-workflow">
 <h3>Creating the workflow<a class="headerlink" href="#creating-the-workflow" title="Permalink to this headline">¶</a></h3>
-<p>With each of the Fireworks identified for our sketched workflow, they can assemble them into a complete atomate Workflow in Python. In order to understand what&#8217;s going on here, you should be comfortable with creating instances of classes and using functions. To demonstrate how to assemble and use a workflow, we will use a slightly modified version of the Gibbs Free Energy Workflow and step through each line of code to explain what is going on.</p>
+<p>With each of the Fireworks identified for our sketched workflow, they can assemble them into a complete atomate Workflow in Python. In order to understand what’s going on here, you should be comfortable with creating instances of classes and using functions. To demonstrate how to assemble and use a workflow, we will use a slightly modified version of the Gibbs Free Energy Workflow and step through each line of code to explain what is going on.</p>
 <p>For context, the Gibbs Free Energy Workflow calculates <img class="math" src="_images/math/3e8656187474a3145c68b42dfc12efc5115aaa82.png" alt="G(P,T)"/> for a structure. Two methods for doing this are using the Debye model (see <a class="reference external" href="http://dx.doi.org/10.1016/j.comphy.2003.12.001">Blanco et al. Comput. Phys. Commun., 158, (2004)</a>) or through vibration frequencies of atoms (see <a class="reference external" href="http://dx.doi.org/10.1016/j.scriptamat.2015.07.021">Togo and Tanaka, Scr. Mater., 108 (2015)</a>. It does this by first optimizing the desired structure. Next, that optimized structure has its volume scaled and a VASP calculation that is either a static calculation or calculation with density functional perturbation theory (the <code class="docutils literal"><span class="pre">IBRION</span> <span class="pre">=</span> <span class="pre">7</span> <span class="pre">or</span> <span class="pre">8</span></code> INCAR setting) is performed depending on what type of analysis is used. In the analysis, the Debye model or a phonon calculation is used to extrapolate the from 0K to finite temperatures using the harmonic approximation, giving each structure an <img class="math" src="_images/math/88aec2489da0734cf63c2dd134a1f82301d7edac.png" alt="F(T)"/> dependence. Then each of these structures are considered together and fit to an equation of state which allows us express <img class="math" src="_images/math/ed2a0cbdcad2bc864a89ae8e66bd25d60f55957d.png" alt="F(V,T)"/> for this structure, which we can transform to <img class="math" src="_images/math/3e8656187474a3145c68b42dfc12efc5115aaa82.png" alt="G(P,T)"/> to get the Gibbs free energy of that structure. The phonopy website has a <a class="reference external" href="https://atztogo.github.io/phonopy/qha.html#phonopy-qha">good visualization for Helmholtz energies and volumes with increasing temperature</a>.</p>
 <p>The Python implementation of the modified Gibbs Free Energy Workflow is:</p>
 <div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
@@ -278,7 +275,7 @@
     <span class="k">if</span> <span class="n">user_kpoints_settings</span><span class="p">:</span>
         <span class="n">v</span> <span class="o">=</span> <span class="n">vis_relax</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
         <span class="n">v</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;user_kpoints_settings&quot;</span><span class="p">:</span> <span class="n">user_kpoints_settings</span><span class="p">})</span>
-        <span class="n">vis_relax</span> <span class="o">=</span> <span class="n">vis_relax</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="n">vis_relax</span> <span class="o">=</span> <span class="n">vis_relax</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
 
     <span class="c1"># Structure optimization firework</span>
     <span class="n">fws</span> <span class="o">=</span> <span class="p">[</span><span class="n">OptimizeFW</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">vasp_input_set</span><span class="o">=</span><span class="n">vis_relax</span><span class="p">,</span> <span class="n">vasp_cmd</span><span class="o">=</span><span class="n">vasp_cmd</span><span class="p">,</span>
@@ -325,11 +322,11 @@
 <p class="first admonition-title">Note</p>
 <p class="last">The documentation and source for the actual Gibbs Free Energy Workflow is found at <a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base.gibbs" title="atomate.vasp.workflows.base.gibbs"><code class="xref py py-mod docutils literal"><span class="pre">atomate.vasp.workflows.base.gibbs</span></code></a>. Here we have simplified some of the options and explicitly added each Firework.</p>
 </div>
-<p>In the above code example, we start by importing the classes and functions we&#8217;ll be using and defining our <code class="docutils literal"><span class="pre">wf_gibbs_free_energy</span></code> function with all of the parameters we&#8217;d like to control from a workflow level and the documentation for those parameters. Running the function will return a FireWorks Workflow to add to the LaunchPad.</p>
-<p>Lines 41-51 is where we define the optimization Firework. First we check if a vasp_input_set_relax parameter was passed, if not we default to MPRelaxSet and update that set if the <code class="docutils literal"><span class="pre">user_kpoints_settings</span></code> parameter was passed. It&#8217;s common to see a similar parameter for <code class="docutils literal"><span class="pre">user_incar_settings</span></code>. On line 49 we create our list of Fireworks (<code class="docutils literal"><span class="pre">fws</span></code>) with the <code class="docutils literal"><span class="pre">OptimizeFW</span></code> that we imported. Take note that this is the only Firework we pass our structure to, which allows for more flexibility. More on this later.</p>
+<p>In the above code example, we start by importing the classes and functions we’ll be using and defining our <code class="docutils literal"><span class="pre">wf_gibbs_free_energy</span></code> function with all of the parameters we’d like to control from a workflow level and the documentation for those parameters. Running the function will return a FireWorks Workflow to add to the LaunchPad.</p>
+<p>Lines 41-51 is where we define the optimization Firework. First we check if a vasp_input_set_relax parameter was passed, if not we default to MPRelaxSet and update that set if the <code class="docutils literal"><span class="pre">user_kpoints_settings</span></code> parameter was passed. It’s common to see a similar parameter for <code class="docutils literal"><span class="pre">user_incar_settings</span></code>. On line 49 we create our list of Fireworks (<code class="docutils literal"><span class="pre">fws</span></code>) with the <code class="docutils literal"><span class="pre">OptimizeFW</span></code> that we imported. Take note that this is the only Firework we pass our structure to, which allows for more flexibility. More on this later.</p>
 <p>Lines 52-61 we do a similar thing with the <code class="docutils literal"><span class="pre">MPStaticSet</span></code> from pymatgen that we did for the <code class="docutils literal"><span class="pre">MPRelaxSet</span></code>. Then in lines 63-71, we loop through each of the deformations passed (as a list of 2-dimensional lists describing deformation matricies) and instantiate <code class="docutils literal"><span class="pre">TransmuterFW</span></code> with that deformation as the <code class="docutils literal"><span class="pre">transformation_params</span></code>. For each type of transformation you use (<code class="docutils literal"><span class="pre">DeformStructureTransformation</span></code>) here, you will need to look at what parameters that class takes and use the right keyword, which is <code class="docutils literal"><span class="pre">deformation</span></code> in this case. Another example is the <code class="docutils literal"><span class="pre">SupercellTransformation</span></code> takes a transformation parameter called <code class="docutils literal"><span class="pre">scale</span></code>. Pay close attention that on line 69 we are adding the <code class="docutils literal"><span class="pre">OptimizeFW</span></code> (from <code class="docutils literal"><span class="pre">fws[0]</span></code>) as the parent for all of these Fireworks so they can run in parallel.</p>
 <p>Next on lines 73-76 we taking a <em>Firetask</em> and wrapping it in a pure Firework object from FireWorks. This demonstrates the modularity and customizability that FireWorks allows, which favors composing existing objects over writing custom ones for each level of abstraction. We are passing the same sort of parameters to this Firetask that we have been passing, which allows you to correctly infer that Fireworks themselves propogate relevant parameters down to their Firetasks. Again, we are setting the parents of this analysis Firework to all of the Fireworks in our list except the first one (the <code class="docutils literal"><span class="pre">OptimizeFW</span></code>). This ensure that the analysis does not run until <em>all</em> of our transformed structures have finished running.</p>
-<p>Finally we use a vanilla FireWorks <code class="docutils literal"><span class="pre">Workflow</span></code> object to pull in all our Fireworks, update the name of the Workflow and return the object. From here you can write a script similar to the <a class="reference internal" href="running_workflows.html#running-workflows-tutorial"><span class="std std-ref">Running Workflows Tutorial</span></a> and pass in the correct variables to get a workflow to add to the LaunchPad. In this workflow, pay attention to the <code class="docutils literal"><span class="pre">vasp_cmd</span></code> parameter and <code class="docutils literal"><span class="pre">db_file</span></code> parameters to get the correct behavior. The preset workers will default these to your FireWorker&#8217;s environment variables, but you will have to handle that manually here. To use your environment variables, pass in <code class="docutils literal"><span class="pre">'&gt;&gt;vasp_cmd&lt;&lt;'</span></code> and <code class="docutils literal"><span class="pre">'&gt;&gt;db_file&lt;&lt;'</span></code> for each of these parameters, respectively. More on this behavior in the <a class="reference internal" href="#env-chk">env_chk</a> section.</p>
+<p>Finally we use a vanilla FireWorks <code class="docutils literal"><span class="pre">Workflow</span></code> object to pull in all our Fireworks, update the name of the Workflow and return the object. From here you can write a script similar to the <a class="reference internal" href="running_workflows.html#running-workflows-tutorial"><span class="std std-ref">Running Workflows Tutorial</span></a> and pass in the correct variables to get a workflow to add to the LaunchPad. In this workflow, pay attention to the <code class="docutils literal"><span class="pre">vasp_cmd</span></code> parameter and <code class="docutils literal"><span class="pre">db_file</span></code> parameters to get the correct behavior. The preset workers will default these to your FireWorker’s environment variables, but you will have to handle that manually here. To use your environment variables, pass in <code class="docutils literal"><span class="pre">'&gt;&gt;vasp_cmd&lt;&lt;'</span></code> and <code class="docutils literal"><span class="pre">'&gt;&gt;db_file&lt;&lt;'</span></code> for each of these parameters, respectively. More on this behavior in the <a class="reference internal" href="#env-chk">env_chk</a> section.</p>
 </div>
 <div class="section" id="more-help">
 <h3>More help<a class="headerlink" href="#more-help" title="Permalink to this headline">¶</a></h3>
@@ -344,7 +341,7 @@
 <p>There are a few other interesting features of workflows in atomate that make writing dynamic and customizable workflows easier.</p>
 <div class="section" id="powerups">
 <h3>Powerups<a class="headerlink" href="#powerups" title="Permalink to this headline">¶</a></h3>
-<p>Powerups (<a class="reference internal" href="atomate.vasp.html#module-atomate.vasp.powerups" title="atomate.vasp.powerups"><code class="xref py py-mod docutils literal"><span class="pre">atomate.vasp.powerups</span></code></a>) enable modifications to be made to workflows <strong>after</strong> they have been created. The benefit of these is that you can apply powerups conditionally in code or to a large list of Workflows that you&#8217;ll later add to your LaunchPad. Some powerups affect the behavior of your calculations, others simply add metadata or change how the individual Fireworks interact with the database under the hood.</p>
+<p>Powerups (<a class="reference internal" href="atomate.vasp.html#module-atomate.vasp.powerups" title="atomate.vasp.powerups"><code class="xref py py-mod docutils literal"><span class="pre">atomate.vasp.powerups</span></code></a>) enable modifications to be made to workflows <strong>after</strong> they have been created. The benefit of these is that you can apply powerups conditionally in code or to a large list of Workflows that you’ll later add to your LaunchPad. Some powerups affect the behavior of your calculations, others simply add metadata or change how the individual Fireworks interact with the database under the hood.</p>
 <p>Some useful powerups that affect the behavior of VASP are</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">add_modify_incar</span></code>: Update the INCAR of Fireworks specifed by (partially matched) name at runtime</li>
@@ -369,7 +366,7 @@
 <li>Ensure more consistent and easier usage of INCAR parameters you use often, such as setting a high <code class="docutils literal"><span class="pre">NEDOS</span></code> INCAR parameter</li>
 <li>Set FireWorkers up for low and high precision jobs, or normal and high-memory jobs on the same computing resource.</li>
 </ul>
-<p>To use <code class="docutils literal"><span class="pre">env_chk</span></code>, you don&#8217;t have to do anything explicity, just pass <code class="docutils literal"><span class="pre">'&gt;&gt;db_file&lt;&lt;'</span></code>, <code class="docutils literal"><span class="pre">'&gt;&gt;vasp_cmd&lt;&lt;'</span></code>, <code class="docutils literal"><span class="pre">'&gt;&gt;incar_update&lt;&lt;'</span></code> to any parameter that supports <code class="docutils literal"><span class="pre">env_chk</span></code>.</p>
+<p>To use <code class="docutils literal"><span class="pre">env_chk</span></code>, you don’t have to do anything explicity, just pass <code class="docutils literal"><span class="pre">'&gt;&gt;db_file&lt;&lt;'</span></code>, <code class="docutils literal"><span class="pre">'&gt;&gt;vasp_cmd&lt;&lt;'</span></code>, <code class="docutils literal"><span class="pre">'&gt;&gt;incar_update&lt;&lt;'</span></code> to any parameter that supports <code class="docutils literal"><span class="pre">env_chk</span></code>.</p>
 <p>Currently supported <code class="docutils literal"><span class="pre">env_chk</span></code> variables are:</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">&gt;&gt;scratch_dir&lt;&lt;</span></code></li>
@@ -423,8 +420,8 @@
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="eos_workflow_tutorial.html"
-                        title="previous chapter">Running EOS Workflows</a></p>
+  <p class="topless"><a href="gibbs_workflow_tutorial.html"
+                        title="previous chapter">Running Gibbs Workflows</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="customizing_workflows.html"
                         title="next chapter">Customizing Workflows</a></p>
@@ -462,14 +459,14 @@
           <a href="customizing_workflows.html" title="Customizing Workflows"
              >next</a> |</li>
         <li class="right" >
-          <a href="eos_workflow_tutorial.html" title="Running EOS Workflows"
+          <a href="gibbs_workflow_tutorial.html" title="Running Gibbs Workflows"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">atomate 0.5.8 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
   </body>
 </html>
