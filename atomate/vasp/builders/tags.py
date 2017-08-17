@@ -45,7 +45,8 @@ class TagsBuilder(AbstractBuilder):
 
         previous_task_ids = [dbid_to_int(t) for t in previous_task_ids]
 
-        q = {"tags": {"$exists": True}, "task_id": {"$nin": previous_task_ids}}
+        q = {"tags": {"$exists": True}, "task_id": {"$nin": previous_task_ids},
+             "state": "successful"}
 
         tasks = [t for t in self._tasks.find(q, {"task_id": 1, "tags": 1})]
         pbar = tqdm(tasks)
@@ -58,19 +59,19 @@ class TagsBuilder(AbstractBuilder):
                                                   dbid_to_str(self._tasks_prefix, t["task_id"])},
                                              {"material_id": 1, "tags": 1,
                                               "_tagsbuilder": 1})
+                if m:
+                    all_tags = t["tags"]
+                    if "tags" in m and m["tags"]:
+                        all_tags.extend(m["tags"])
 
-                all_tags = t["tags"]
-                if "tags" in m and m["tags"]:
-                    all_tags.extend(m["tags"])
+                    all_tasks = [dbid_to_str(self._tasks_prefix, t["task_id"])]
+                    if "_tagsbuilder" in m:
+                        all_tasks.extend(m["_tagsbuilder"]["all_task_ids"])
 
-                all_tasks = [dbid_to_str(self._tasks_prefix, t["task_id"])]
-                if "_tagsbuilder" in m:
-                    all_tasks.extend(m["_tagsbuilder"]["all_task_ids"])
-
-                all_tags = list(set(all_tags))  # filter duplicates
-                self._materials.update_one({"material_id": m["material_id"]},
-                                           {"$set": {"tags": all_tags,
-                                                     "_tagsbuilder.all_task_ids": all_tasks}})
+                    all_tags = list(set(all_tags))  # filter duplicates
+                    self._materials.update_one({"material_id": m["material_id"]},
+                                               {"$set": {"tags": all_tags,
+                                                         "_tagsbuilder.all_task_ids": all_tasks}})
 
             except:
                 import traceback

@@ -9,6 +9,7 @@ from atomate.vasp.builders.boltztrap_materials import BoltztrapMaterialsBuilder
 from atomate.vasp.builders.dielectric import DielectricBuilder
 from atomate.vasp.builders.fix_tasks import FixTasksBuilder
 from atomate.vasp.builders.materials_descriptor import MaterialsDescriptorBuilder
+from atomate.vasp.builders.materials_ehull import MaterialsEhullBuilder
 from atomate.vasp.builders.tags import TagsBuilder
 from atomate.vasp.builders.tasks_materials import TasksMaterialsBuilder
 
@@ -28,3 +29,8 @@ if __name__ == "__main__":
         # b.reset()  # uncomment if you want to start a builder from scratch!
         b.run()
 
+    # Uncomment below to run MP Ehull builder
+
+    # mapi_key = None  # Replace with your Materials API key!
+    # ehull_builder = MaterialsEhullBuilder.from_file(dbfile, mapi_key=mapi_key)
+    # ehull_builder.run()
