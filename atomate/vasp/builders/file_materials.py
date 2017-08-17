@@ -52,7 +52,8 @@ class FileMaterialsBuilder(AbstractBuilder):
                             search_key = "material_id"
                         else:
                             search_key = "formula_reduced_abc"
-                            search_val = Composition(line[0]).reduced_composition.alphabetical_formula
+                            search_val = Composition(line[0]).\
+                                reduced_composition.alphabetical_formula
 
                         key = line[1]
                         val = line[2]
