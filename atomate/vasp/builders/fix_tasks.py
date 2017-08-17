@@ -34,7 +34,7 @@ class FixTasksBuilder(AbstractBuilder):
 
         # change tags from string to list where needed
         for t in self._tasks.find({"tags": {"$type": 2}}, {"task_id": 1, "tags": 1}):
-            logger.info("Fixing tag (converging to list), tid: {}".format(t["task_id"]))
+            logger.info("Fixing tag (converting to list), tid: {}".format(t["task_id"]))
             self._tasks.update_one({"task_id": t["task_id"]},
                                    {"$set": {"tags": [t["tags"]]}})
 
