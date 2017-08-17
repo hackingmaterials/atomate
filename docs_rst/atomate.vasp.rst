@@ -8,7 +8,6 @@ Subpackages
 
     atomate.vasp.analysis
     atomate.vasp.builders
-    atomate.vasp.examples
     atomate.vasp.firetasks
     atomate.vasp.fireworks
     atomate.vasp.tests

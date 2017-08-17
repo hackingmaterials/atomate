@@ -276,7 +276,7 @@ kwargs (keyword arguments): additional kwargs to be passed to get_wf_deformation
 <span id="atomate-vasp-workflows-base-gibbs-module"></span><h2>atomate.vasp.workflows.base.gibbs module<a class="headerlink" href="#module-atomate.vasp.workflows.base.gibbs" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="atomate.vasp.workflows.base.gibbs.get_wf_gibbs_free_energy">
-<code class="descclassname">atomate.vasp.workflows.base.gibbs.</code><code class="descname">get_wf_gibbs_free_energy</code><span class="sig-paren">(</span><em>structure</em>, <em>deformations</em>, <em>vasp_input_set=None</em>, <em>vasp_cmd=u'vasp'</em>, <em>db_file=None</em>, <em>user_kpoints_settings=None</em>, <em>t_step=10</em>, <em>t_min=0</em>, <em>t_max=1000</em>, <em>mesh=(20</em>, <em>20</em>, <em>20)</em>, <em>eos=u'vinet'</em>, <em>qha_type=u'debye_model'</em>, <em>pressure=0.0</em>, <em>poisson=0.25</em>, <em>metadata=None</em>, <em>tag=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.gibbs.get_wf_gibbs_free_energy" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">atomate.vasp.workflows.base.gibbs.</code><code class="descname">get_wf_gibbs_free_energy</code><span class="sig-paren">(</span><em>structure</em>, <em>deformations</em>, <em>vasp_input_set=None</em>, <em>vasp_cmd=u'vasp'</em>, <em>db_file=None</em>, <em>user_kpoints_settings=None</em>, <em>t_step=10</em>, <em>t_min=0</em>, <em>t_max=1000</em>, <em>mesh=(20</em>, <em>20</em>, <em>20)</em>, <em>eos=u'vinet'</em>, <em>qha_type=u'debye_model'</em>, <em>pressure=0.0</em>, <em>poisson=0.25</em>, <em>anharmonic_contribution=False</em>, <em>metadata=None</em>, <em>tag=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.gibbs.get_wf_gibbs_free_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns quasi-harmonic gibbs free energy workflow.
 Note: phonopy package is required for the final analysis step if qha_type=&#8221;phonopy&#8221;</p>
 <dl class="docutils">
@@ -301,7 +301,10 @@ Note: pymatgen supports more options than phonopy. see pymatgen.analysis.eos.py<
 </dl>
 <p>pressure (float): in GPa
 poisson (float): poisson ratio
-metadata (dict): meta data
+anharmonic_contribution (bool): consider anharmonic contributions to</p>
+<blockquote>
+<div>Gibbs energy from the Debye model. Defaults to False.</div></blockquote>
+<p>metadata (dict): meta data
 tag (str): something unique to identify the tasks in this workflow. If None a random uuid</p>
 <blockquote class="last">
 <div>will be assigned.</div></blockquote>

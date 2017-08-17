@@ -83,12 +83,6 @@
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.builders.html#module-atomate.vasp.builders">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="atomate.vasp.examples.html">atomate.vasp.examples package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.examples.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.examples.html#module-atomate.vasp.examples.builders_example">atomate.vasp.examples.builders_example module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.examples.html#module-atomate.vasp.examples">Module contents</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="atomate.vasp.firetasks.html">atomate.vasp.firetasks package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="atomate.vasp.firetasks.tests.html">atomate.vasp.firetasks.tests package</a><ul>
@@ -336,6 +330,28 @@ output files need to be processed.</p>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.drones.VaspDrone.process_raw_data">
+<code class="descname">process_raw_data</code><span class="sig-paren">(</span><em>dir_name</em>, <em>taskname=u'standard'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.process_raw_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>It is useful to store what raw data has been calculated
+and exists for easier querying of the taskdoc.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dir_name</strong> &#8211; directory to search</li>
+<li><strong>taskname</strong> &#8211; taskname, e.g. &#8220;relax1&#8221;</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">dict of files present</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
