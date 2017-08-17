@@ -36,8 +36,10 @@ class DielectricBuilder:
 
                 d["dielectric.epsilon_ionic_avg"] = float(np.average(eig_ionic))
                 d["dielectric.epsilon_static_avg"] = float(np.average(eig_static))
-                d["dielectric.epsilon_avg"] = d["dielectric.epsilon_ionic_avg"] + d["dielectric.epsilon_static_avg"]
-                d["dielectric.has_neg_eps"] = bool(np.any(eig_ionic < -0.1) or np.any(eig_static < -0.1))
+                d["dielectric.epsilon_avg"] = d["dielectric.epsilon_ionic_avg"] + \
+                                              d["dielectric.epsilon_static_avg"]
+                d["dielectric.has_neg_eps"] = bool(np.any(eig_ionic < -0.1) or
+                                                   np.any(eig_static < -0.1))
 
                 self._materials.update_one({"material_id": m["material_id"]}, {"$set": d})
 

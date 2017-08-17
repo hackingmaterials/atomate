@@ -15,8 +15,8 @@ Ravindra, N. M., Ganapathy, P. & Choi, J. Energy gap-refractive index relations 
 - An overview. Infrared Phys. Technol. 50, 21-29 (2007).
 
 Often these estimates are comparable to HSE gap estimates even if based on GGA dielectric constants 
-for gaps approximately ~2 eV and higher. Smaller gaps are less accurate. Preliminary testing (A. Jain) suggests 
-use of Reddy-Anjaneyulu relation as most reliable.
+for gaps approximately ~2 eV and higher. Smaller gaps are less accurate. Preliminary testing 
+(A. Jain) suggests use of Reddy-Anjaneyulu relation as most reliable.
 """
 
 
