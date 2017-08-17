@@ -137,7 +137,7 @@ Running workflows
     :maxdepth: 3
 
     running_workflows
-    eos_workflow_tutorial
+    gibbs_workflow_tutorial
 
 Creating and customizing workflows
 ==================================
