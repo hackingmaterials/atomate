@@ -181,6 +181,7 @@ class BoltztrapToDb(FiretaskBase):
         v, o = get_vasprun_outcar(bandstructure_dir, parse_eigen=False, parse_dos=False)
         structure = v.final_structure
         d["structure"] = structure.as_dict()
+        d["formula_pretty"] = structure.composition.reduced_formula
         d.update(get_meta_from_structure(structure))
 
         # add the spacegroup
@@ -373,6 +374,7 @@ class RamanTensorToDb(FiretaskBase):
         nm_frequencies = np.sqrt(np.abs(nm_eigenvals)) * 82.995  # cm^-1
 
         d = {"structure": structure.as_dict(),
+             "formula_pretty": structure.composition.reduced_formula,
              "normalmodes": {"eigenvals": fw_spec["normalmodes"]["eigenvals"],
                              "eigenvecs": fw_spec["normalmodes"]["eigenvecs"]
                              },
@@ -443,13 +445,17 @@ class GibbsAnalysisToDb(FiretaskBase):
         eos (str): equation of state used for fitting the energies and the volumes.
             options supported by phonopy: "vinet", "murnaghan", "birch_murnaghan".
         pressure (float): in GPa, optional.
+        poisson (float): poisson ratio. Defaults to 0.25.
+        anharmonic_contribution (bool): consider anharmonic contributions to
+            Gibbs energy from the Debye model. Defaults to False.
+        pressure (float): in GPa, optional.
         metadata (dict): meta data
 
     """
 
     required_params = ["tag", "db_file"]
-    optional_params = ["qha_type", "t_min", "t_step", "t_max", "mesh", "eos", "pressure", "poisson",
-                       "metadata"]
+    optional_params = ["qha_type", "t_min", "t_step", "t_max", "mesh", "eos",
+                       "pressure", "poisson", "anharmonic_contribution", "metadata"]
 
     def run_task(self, fw_spec):
 
@@ -464,6 +470,7 @@ class GibbsAnalysisToDb(FiretaskBase):
         qha_type = self.get("qha_type", "debye_model")
         pressure = self.get("pressure", 0.0)
         poisson = self.get("poisson", 0.25)
+        anharmonic_contribution = self.get("anharmonic_contribution", False)
         gibbs_dict["metadata"] = self.get("metadata", {})
 
 
@@ -474,6 +481,7 @@ class GibbsAnalysisToDb(FiretaskBase):
                                      {"calcs_reversed": 1})
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
         gibbs_dict["structure"] = structure.as_dict()
+        gibbs_dict["formula_pretty"] = structure.composition.reduced_formula
 
         # get the data(energy, volume, force constant) from the deformation runs
         docs = mmdb.collection.find({"task_label": {"$regex": "{} gibbs*".format(tag)},
@@ -500,8 +508,10 @@ class GibbsAnalysisToDb(FiretaskBase):
                 from pymatgen.analysis.quasiharmonic import QuasiharmonicDebyeApprox
 
                 qhda = QuasiharmonicDebyeApprox(energies, volumes, structure, t_min, t_step, t_max,
-                                                eos, pressure=pressure, poisson=poisson)
+                                                eos, pressure=pressure, poisson=poisson,
+                                                anharmonic_contribution=anharmonic_contribution)
                 gibbs_dict.update(qhda.get_summary_dict())
+                gibbs_dict["anharmonic_contribution"] = anharmonic_contribution
                 gibbs_dict["success"] = True
 
             # use the phonopy interface
@@ -522,8 +532,7 @@ class GibbsAnalysisToDb(FiretaskBase):
             logger.warn("Quasi-harmonic analysis failed!")
             gibbs_dict["success"] = False
             gibbs_dict["traceback"] = traceback.format_exc()
-            metadata.update({"task_label_tag": tag})
-            gibbs_dict["metadata"] = metadata
+            gibbs_dict['metadata'].update({"task_label_tag": tag})
             gibbs_dict["created_at"] = datetime.utcnow()
 
         # TODO: @matk86: add a list of task_ids that were used to construct the analysis to DB?
@@ -584,6 +593,7 @@ class FitEOSToDb(FiretaskBase):
         all_task_ids.append(d["task_id"])
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
         summary_dict["structure"] = structure.as_dict()
+        summary_dict["formula_pretty"] = structure.composition.reduced_formula
 
         # get the data(energy, volume, force constant) from the deformation runs
         docs = mmdb.collection.find({"task_label": {"$regex": "{} bulk_modulus*".format(tag)},
@@ -666,6 +676,7 @@ class ThermalExpansionCoeffToDb(FiretaskBase):
         d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
         structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
         summary_dict["structure"] = structure.as_dict()
+        summary_dict["formula_pretty"] = structure.composition.reduced_formula
 
         # get the data(energy, volume, force constant) from the deformation runs
         docs = mmdb.collection.find({"task_label": {"$regex": "{} thermal_expansion*".format(tag)},

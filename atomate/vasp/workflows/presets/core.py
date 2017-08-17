@@ -317,10 +317,12 @@ def wf_gibbs_free_energy(structure, c=None):
     t_step = c.get("T_STEP", 100.0)
     pressure = c.get("PRESSURE", 0.0)
     poisson = c.get("POISSON", 0.25)
+    anharmonic_contribution = c.get("ANHARMONIC_CONTRIBUTION", False)
     metadata = c.get("METADATA", None)
 
     # 21 deformed structures: from -10% to +10%
-    deformations = [(np.identity(3)*(1+x)).tolist() for x in np.linspace(-0.1, 0.1, 21)]
+    defos = [(np.identity(3)*(1+x)).tolist() for x in np.linspace(-0.1, 0.1, 21)]
+    deformations = c.get("DEFORMATIONS", defos)
     user_kpoints_settings = {"grid_density": 7000}
 
     tag = "gibbs group: >>{}<<".format(str(uuid4()))
@@ -360,6 +362,7 @@ def wf_gibbs_free_energy(structure, c=None):
                                         deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file,
                                         eos=eos, qha_type=qha_type, pressure=pressure, poisson=poisson,
                                         t_min=t_min, t_max=t_max, t_step=t_step, metadata=metadata,
+                                        anharmonic_contribution=anharmonic_contribution,
                                         tag=tag, vasp_input_set=vis_static)
 
     # chaining
