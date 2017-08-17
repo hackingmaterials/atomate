@@ -42,9 +42,9 @@ class MaterialsDescriptorBuilder(AbstractBuilder):
             struct = Structure.from_dict(m["structure"])
             d = {"descriptors": {}}
             d["descriptors"]["dimensionality"] = get_dimensionality(struct)
-            d["descriptors"]["density"] = Structure.density
-            d["descriptors"]["nsites"] = len(Structure)
-            d["descriptors"]["volume"] = Structure.volume
+            d["descriptors"]["density"] = struct.density
+            d["descriptors"]["nsites"] = len(struct)
+            d["descriptors"]["volume"] = struct.volume
 
             self._materials.update_one({"material_id": m["material_id"]}, {"$set": d})
 
