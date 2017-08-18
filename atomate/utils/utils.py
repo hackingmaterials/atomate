@@ -139,7 +139,7 @@ def get_meta_from_structure(structure):
             'elements': elsyms,
             'nelements': len(elsyms),
             'formula': comp.formula,
-            'formula_reduced': comp.reduced_formula,
+            'formula_pretty': comp.reduced_formula,
             'formula_reduced_abc': Composition(comp.reduced_formula)
             .alphabetical_formula,
             'formula_anonymous': comp.anonymized_formula,
