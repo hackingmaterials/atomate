@@ -14,18 +14,18 @@ import six
 from itertools import chain
 from atomate.utils.utils import recursive_update
 
-DEFAULT_LAUNCHPAD = {'host': 'localhost',
-                     'name': 'atomate',
-                     'port': 27017,
-                     'strm_lvl': 'INFO',
-                     'user_indices': [],
-                     'wf_user_indices': []
+DEFAULT_LAUNCHPAD = {"host": "localhost",
+                     "name": "atomate",
+                     "port": 27017,
+                     "strm_lvl": "INFO",
+                     "user_indices": [],
+                     "wf_user_indices": []
                      }
 
-DEFAULT_FWORKER = {'category': '',
-                   'env': {'db_file': "db.json"},
-                   'name': "atomate",
-                   'query': '{}'}
+DEFAULT_FWORKER = {"category": "",
+                   "env": {"db_file": "db.json"},
+                   "name": "atomate",
+                   "query": "{}"}
 
 
 def build_db_json(launchpad):
@@ -63,11 +63,10 @@ def build_from_defaults(file_name, defaults, new_dict={}, interactive=False, ):
     return temp
 
 
-def build_qadapter(dir_path, q_type,interactive=False):
-
+def build_qadapter(dir_path, q_type, interactive=False):
     # Get the default script
     qscript = os.path.join(os.path.dirname(fireworks.user_objects.queue_adapters.__file__),
-                           '{}_template.txt'.format(q_type))
+                           "{}_template.txt".format(q_type))
     # setup some defaults
     d = {
         "rocket_launch": "rlaunch -c {} singleshot".format(dir_path),
@@ -85,11 +84,11 @@ def build_qadapter(dir_path, q_type,interactive=False):
         defaults = {s: "<<FILL>>" for s in keys}
 
     # Use interactive mode to change values if set
-    qadapter = build_from_defaults("my_qadapter.yaml",defaults,d,interactive)
+    qadapter = build_from_defaults("my_qadapter.yaml", defaults, d, interactive)
 
-    # if interactive and value wasn't changed, remove from file
+    # if interactive and value wasn"t changed, remove from file
     if interactive:
-        qadapter = {k:v for k,v in qadapter.items() if v is not ""}
+        qadapter = {k: v for k, v in qadapter.items() if v is not ""}
 
     return qadapter
 
@@ -154,14 +153,14 @@ if __name__ == "__main__":
     # Build my_fworker.yaml from inputs and interactive mode if set
     if args.fworker:
         d = {
-            'env': {'db_file': os.path.join(dir_path, "db.json")},
-            'name': args.name
+            "env": {"db_file": os.path.join(dir_path, "db.json")},
+            "name": args.name
         }
         fworker = build_from_defaults("my_fworker.yaml", loadfn(args.fworker), d, interactive=args.interactive)
     else:
         d = {
-            'env': {'db_file': os.path.join(dir_path, "db.json")},
-            'name': args.name
+            "env": {"db_file": os.path.join(dir_path, "db.json")},
+            "name": args.name
         }
         fworker = build_from_defaults("my_fworker.yaml", DEFAULT_FWORKER, d, interactive=args.interactive)
 
