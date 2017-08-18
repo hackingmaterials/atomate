@@ -8,13 +8,14 @@ import argparse
 import os
 import sys
 import yaml
+import ast
 from datetime import datetime
 
 from monty.serialization import loadfn
 
 from fireworks import LaunchPad
 
-from atomate.utils.utils import get_wf_from_spec_dict
+from atomate.utils.utils import get_wf_from_spec_dict, load_class
 from atomate.vasp.powerups import add_namefile, add_tags
 from atomate.vasp.workflows.presets import core
 
@@ -109,10 +110,12 @@ def submit_test_suite(args):
     structs.append(Structure.from_spacegroup("Fm-3m", Lattice.cubic(4.204), ["Ni","O"],
                                              [[0, 0, 0], [0.5, 0.5, 0.5]]))
     structs = [s.get_primitive_structure() for s in structs]
-
+    scopy = structs[0].copy()
+    scopy.perturb(0.1)
     # Compounds for specific workflows, if not specified uses Si
-    custom_compounds = {"wf_elastic_constant":PymatgenTest.get_structure("Sn"),
-                        "wf_piezoelectric_constant":PymatgenTest.get_structure("SrTiO3")}
+    custom_args = {"wf_elastic_constant":[PymatgenTest.get_structure("Sn")],
+                   "wf_piezoelectric_constant":[PymatgenTest.get_structure("SrTiO3")],
+                   "wf_nudged_elastic_band": [[structs[0], scopy], structs[0]]}
 
     # Add default workflows
     d = yaml.load(default_yaml)
@@ -120,8 +123,8 @@ def submit_test_suite(args):
     # Add preset workflows
     for name, wf_func in core.__dict__.items():
         if callable(wf_func) and name[:2]=="wf":
-            if name in custom_compounds:
-                wfs.append(wf_func(custom_compounds[name]))
+            if name in custom_args:
+                wfs.append(wf_func(*custom_args[name]))
             else:
                 wfs.append(wf_func(structs[0]))
     wfs = [add_tags(wf, "test set {}".format(dt)) for wf in wfs]
@@ -148,6 +151,29 @@ def verify_test_suite(args):
             print("   No fizzled workflows, testing not yet complete.")
         else:
             print("   {} fireworks have have fizzled.".format(rep_dict["FIZZLED"]))
+
+
+def powerup_workflow(args):
+    """
+    Simple function that will powerup a workflow in the database
+    """
+    if args.wf_id and args.query:
+        raise ValueError("Only one of --wf_id and --query may be specified")
+    elif args.wf_id:
+        wfs = [lpad.get_wf_by_fw_id(int(args.wf_id))]
+    elif args.query:
+        query = ast.literal_eval(args.query)
+        wf_ids = lpad.get_wf_ids(query)
+        wfs = [lpad.get_wf_by_fw_id(wf_id) for wf_id in wf_ids]
+    else:
+        raise ValueError("At least one of --wf_id or --query must be specified")
+    powerup_fn = load_class(args.module, args.name)
+    powerup_kwargs = ast.literal_eval(args.powerup_kwargs)
+    for wf in wfs:
+        wf = powerup_fn(wf, **powerup_kwargs)
+        for fw in wf.fws:
+            lpad.update_spec([fw.fw_id], {"_tasks": fw.as_dict()['spec']['_tasks']})
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -189,6 +215,18 @@ if __name__ == "__main__":
                          help="Use this option to print summary of test workflow "
                               "states.")
     pverify.set_defaults(func=verify_test_suite)
+
+    ppowerup = subparsers.add_parser("powerup", help="Apply a powerup to a workflow")
+    ppowerup.add_argument("-i", "--wf_id", help="Workflow id to powerup")
+    ppowerup.add_argument("-q", "--query", help="Query for workflows")
+    ppowerup.add_argument("-n", "--name", help="Name of powerup to apply, "
+                                               "e.g. add_modify_incar")
+    ppowerup.add_argument("-m", "--module", default="atomate.vasp.powerups",
+                          help="Module containing powerup")
+    ppowerup.add_argument("-pk", "--powerup_kwargs", default='{}',
+                          help="powerup keyword arguments, e.g. "
+                               "'{\"incar_update\": {\"ENCUT\": 700}}'")
+    ppowerup.set_defaults(func=powerup_workflow)
 
     args = parser.parse_args()
 
