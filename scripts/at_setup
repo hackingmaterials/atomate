@@ -14,6 +14,8 @@ import six
 from itertools import chain
 from atomate.utils.utils import recursive_update
 
+__author__ = "Shyam Dwaraknath"
+
 DEFAULT_LAUNCHPAD = {"host": "localhost",
                      "name": "atomate",
                      "port": 27017,
