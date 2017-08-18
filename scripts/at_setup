@@ -56,7 +56,7 @@ def build_from_defaults(file_name, defaults, new_dict={}, interactive=False, ):
     recursive_update(temp, new_dict)
 
     if interactive:
-        print("Please supply the following configuration values for {}".format(file_name))
+        print("\nPlease supply the following configuration values for {}".format(file_name))
         print("(press Enter if you want to accept the defaults)\n")
         temp = interactive_build("", temp)
 
@@ -177,5 +177,6 @@ if __name__ == "__main__":
     dumpfn(qadapter, os.path.join(dir_path, "my_qadapter.yaml"), indent=4, default_flow_style=False)
 
     print("Config files written")
-    print("Most files have intelligent defaults for basic use")
-    print("my_qadapter.yaml still needs additional configuration for launching fireworks to queue")
+    if not args.interactive:
+        print("Most files have intelligent defaults for basic use")
+        print("my_qadapter.yaml still needs additional configuration for launching fireworks to queue")
