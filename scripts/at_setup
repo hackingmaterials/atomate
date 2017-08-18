@@ -23,7 +23,9 @@ DEFAULT_LAUNCHPAD = {"host": "localhost",
                      }
 
 DEFAULT_FWORKER = {"category": "",
-                   "env": {"db_file": "db.json"},
+                   "env": {"db_file": "db.json",
+                           "incar_update": "",
+                           "scratch_dir": ""},
                    "name": "atomate",
                    "query": "{}"}
 
