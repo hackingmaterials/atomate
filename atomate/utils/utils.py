@@ -280,3 +280,20 @@ def load_class(modulepath, classname):
     """
     mod = __import__(modulepath, globals(), locals(), [classname], 0)
     return getattr(mod, classname)
+
+def recursive_update(d, u):
+    """
+    Recursive updates d with values from u
+    Args:
+        d (dict): dict to update
+        u (dict): updates to propogate
+    """
+
+    for k, v in u.items():
+        if k in d:
+            if isinstance(v, dict) and isinstance(d[k], dict):
+                recursive_update(d[k], v)
+            else:
+                d[k] = v
+        else:
+            d[k] = v

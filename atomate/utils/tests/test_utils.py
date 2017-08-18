@@ -8,7 +8,7 @@ from collections import defaultdict
 
 from fireworks import FiretaskBase, Firework, Workflow, explicit_serialize, FWAction
 
-from atomate.utils.utils import env_chk, get_logger, get_mongolike, recursive_get_result
+from atomate.utils.utils import env_chk, get_logger, get_mongolike, recursive_get_result, recursive_update
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -76,10 +76,21 @@ class UtilsTests(unittest.TestCase):
         task1 = Task1()
         out_attr = recursive_get_result({"fw_name":"a>>_fw_name"}, task1)
         self.assertEqual(out_attr["fw_name"],"{{atomate.utils.tests.test_utils.Task1}}")
-        # Basic functionality with callable attribute
-        out_attr2 = recursive_get_result({"keys":"a>>keys"}, task1)
-        self.assertEqual(list(out_attr2["keys"]), [])
         # Testing as_dict functionality
         out_as_dict = recursive_get_result({"fw_name":">>_fw_name"}, task1)
         self.assertEqual(out_as_dict["fw_name"],"{{atomate.utils.tests.test_utils.Task1}}")
 
+    def test_recursiveupdate(self):
+        d = {"a": {"b": 3}, "c": [4]}
+
+        recursive_update(d, {"c": [5]})
+        self.assertEqual(d["c"], [5])
+
+        recursive_update(d, {"a": {"b": 5}})
+        self.assertEqual(d["a"]["b"], 5)
+
+        recursive_update(d, {"a": {"b": [6]}})
+        self.assertEqual(d["a"]["b"], [6])
+
+        recursive_update(d, {"a": {"b": [7]}})
+        self.assertEqual(d["a"]["b"], [7])
