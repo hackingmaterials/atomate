@@ -26,7 +26,7 @@ DEFAULT_FWORKER = {"category": "",
                    "env": {"db_file": "db.json",
                            "incar_update": "",
                            "scratch_dir": ""},
-                   "name": "atomate",
+                   "name": "default fworker",
                    "query": "{}"}
 
 
