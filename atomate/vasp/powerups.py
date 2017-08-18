@@ -277,6 +277,23 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
     return original_wf
 
 
+def clear_modify(original_wf, fw_name_constraint=None):
+    """
+    Simple powerup that clears the modifications to a workflow.
+
+    Args:
+        fw_name_constraint (str): name constraint for fireworks to
+            have their modification tasks removed
+    """
+    idx_list = get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
+                                 task_name_constraint="Modify")
+    idx_list.reverse()
+    for idx_fw, idx_t in idx_list:
+        original_wf.fws[idx_fw].tasks.pop(idx_t)
+    return original_wf
+
+
+
 def set_fworker(original_wf, fworker_name, fw_name_constraint=None, task_name_constraint=None):
     """
     set _fworker spec of Fireworker(s) of a Workflow. It can be used to specify a queue;
