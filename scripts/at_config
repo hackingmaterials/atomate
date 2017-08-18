@@ -1,0 +1,114 @@
+#!/usr/bin/env python
+# coding: utf-8
+# Copyright (c) atomate Development Team.
+
+from __future__ import division, unicode_literals, print_function
+
+from fireworks.user_objects.queue_adapters.common_adapter import CommonAdapter
+from fireworks.queue.queue_adapter import QScriptTemplate
+import fireworks.user_objects.queue_adapters
+from monty.serialization import loadfn, dumpfn
+import os
+import argparse
+from itertools import chain
+
+DEFAULT_LAUNCHPAD = {'host': 'localhost',
+                     'name': 'atomate',
+                     'port': 27017,
+                     'strm_lvl': 'INFO',
+                     'user_indices': [],
+                     'wf_user_indices': []
+                     }
+
+
+def build_db_json(launchpad):
+    return {
+        "database": launchpad.get("name", ""),
+        "collection": "tasks",
+        "admin_user": launchpad.get("username", ""),
+        "admin_password": launchpad.get("password", ""),
+        "host": launchpad.get("host", ""),
+        "port": launchpad.get("port", 27017),
+        "aliases": {}
+    }
+
+
+def build_fworker(dir_path, name, fworker=None):
+    if fworker:
+        d = dict(fworker)
+        d["env"]["db_file"] = os.path.join(dir_path, "db.json")
+        return d
+    else:
+        d = {'category': '',
+             'env': {'db_file': os.path.join(dir_path, "db.json")},
+             'name': name,
+             'query': '{}'}
+        return d
+
+
+def build_qadapter(dir_path, q_type):
+    qscript = os.path.join(os.path.dirname(fireworks.user_objects.queue_adapters.__file__),
+                           '{}_template.txt'.format(q_type))
+    with open(qscript) as f:
+        a = QScriptTemplate.pattern.findall(f.read())
+        keys = [s for s in chain(*a) if s is not ""]
+
+    d = {s: "<<FILL>>" for s in keys}
+    d.update({
+        "rocket_launch": "rlaunch -c {} singleshot".format(dir_path),
+        "_fw_q_type": q_type,
+    })
+    return d
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="at_config is a convenient script to initialize a fireworks"
+                                                 " environment for atomate",
+                                     epilog="Author: Shyam Dwaraknath")
+
+    q_types = CommonAdapter.default_q_commands.keys()
+
+    parser.add_argument("name",
+                        help ="Name for the fireworks configuration. "
+                        "This is just used to differentiate your configuration when running")
+    parser.add_argument("-d", "--directory",
+                        dest="directory",
+                        type=str,
+                        required=True,
+                        help="configuration directory to setup")
+    parser.add_argument("-l", "--launchpad",
+                        dest="launchpad",
+                        help="input launchpad file for configuration, assumes localhost and no username/password"
+                             " if not supplied")
+    parser.add_argument("--db",
+                        dest="db",
+                        nargs="?",
+                        help="Generate a db.json file with either the input argument or from launchpad file")
+    parser.add_argument("--fworker",
+                        dest="fworker",
+                        nargs="?",
+                        help="Generate a fworker.yaml file with either the input argument or based on defaults")
+    parser.add_argument("--qadapter",
+                        dest="qadapter",
+                        default="SLURM",
+                        help="Generate a default my_qdapter.yaml for the given type."
+                             " Queue Types: {}".format(" ".join(q_types)))
+
+    args = parser.parse_args()
+    launchpad = loadfn(args.launchpad) if args.launchpad else DEFAULT_LAUNCHPAD
+    dir_path = os.path.abspath(args.directory)
+    db = loadfn(args.db) if args.db else build_db_json(launchpad)
+    fworker = build_fworker(dir_path, args.name, loadfn(args.fworker)) if args.fworker else build_fworker(dir_path,
+                                                                                                          args.name)
+    qadapter = build_qadapter(dir_path, args.qadapter)
+
+    if not os.path.exists(dir_path):
+        os.mkdir(dir_path)
+    dumpfn(launchpad, os.path.join(dir_path, "my_launchpad.yaml"))
+    dumpfn(db, os.path.join(dir_path, "db.json"), indent=4, sort_keys=True)
+    dumpfn(fworker, os.path.join(dir_path, "my_fworker.yaml"), indent=4, default_flow_style=False)
+    dumpfn(qadapter, os.path.join(dir_path, "my_qadapter.yaml"), indent=4, default_flow_style=False)
+
+    print("Config files written")
+    print("Most files have intelligent defaults for basic use")
+    print("my_qadapter.yaml still needs additional configuration for launching fireworks to queue")
