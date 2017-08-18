@@ -10,7 +10,9 @@ import fireworks.user_objects.queue_adapters
 from monty.serialization import loadfn, dumpfn
 import os
 import argparse
+import six
 from itertools import chain
+from atomate.utils.utils import recursive_update
 
 DEFAULT_LAUNCHPAD = {'host': 'localhost',
                      'name': 'atomate',
@@ -19,6 +21,11 @@ DEFAULT_LAUNCHPAD = {'host': 'localhost',
                      'user_indices': [],
                      'wf_user_indices': []
                      }
+
+DEFAULT_FWORKER = {'category': '',
+                   'env': {'db_file': "db.json"},
+                   'name': "atomate",
+                   'query': '{}'}
 
 
 def build_db_json(launchpad):
@@ -33,35 +40,63 @@ def build_db_json(launchpad):
     }
 
 
-def build_fworker(dir_path, name, fworker=None):
-    if fworker:
-        d = dict(fworker)
-        d["env"]["db_file"] = os.path.join(dir_path, "db.json")
-        return d
-    else:
-        d = {'category': '',
-             'env': {'db_file': os.path.join(dir_path, "db.json")},
-             'name': name,
-             'query': '{}'}
+def build_from_defaults(file_name, defaults, new_dict={}, interactive=False, ):
+    def interactive_build(lead, temp):
+        d = {}
+        for k, v in temp.items():
+            if type(v) is dict:
+                v = interactive_build(lead + "." + str(k), v)
+            else:
+                temp_k = "{}.{}".format(lead, k).lstrip(".")
+                temp_v = six.moves.input("Enter {} (default: {}) : ".format(temp_k, v))
+                d[k] = temp_v if temp_v else v
         return d
 
+    temp = dict(defaults)
+    recursive_update(temp, new_dict)
 
-def build_qadapter(dir_path, q_type):
+    if interactive:
+        print("Please supply the following configuration values for {}".format(file_name))
+        print("(press Enter if you want to accept the defaults)\n")
+        temp = interactive_build("", temp)
+
+    return temp
+
+
+def build_qadapter(dir_path, q_type,interactive=False):
+
+    # Get the default script
     qscript = os.path.join(os.path.dirname(fireworks.user_objects.queue_adapters.__file__),
                            '{}_template.txt'.format(q_type))
+    # setup some defaults
+    d = {
+        "rocket_launch": "rlaunch -c {} singleshot".format(dir_path),
+        "_fw_q_type": q_type,
+    }
+
     with open(qscript) as f:
         a = QScriptTemplate.pattern.findall(f.read())
         keys = [s for s in chain(*a) if s is not ""]
 
-    d = {s: "<<FILL>>" for s in keys}
-    d.update({
-        "rocket_launch": "rlaunch -c {} singleshot".format(dir_path),
-        "_fw_q_type": q_type,
-    })
-    return d
+    # setup the dictionary of values for the qscript
+    if interactive:
+        defaults = {s: "" for s in keys}
+    else:
+        defaults = {s: "<<FILL>>" for s in keys}
+
+    # Use interactive mode to change values if set
+    qadapter = build_from_defaults("my_qadapter.yaml",defaults,d,interactive)
+
+    # if interactive and value wasn't changed, remove from file
+    if interactive:
+        qadapter = {k:v for k,v in qadapter.items() if v is not ""}
+
+    return qadapter
 
 
 if __name__ == "__main__":
+
+    # Define the argument parser which handles all inputs
     parser = argparse.ArgumentParser(description="at_setup is a convenient script to initialize a fireworks"
                                                  " environment for atomate",
                                      epilog="Author: Shyam Dwaraknath")
@@ -69,12 +104,11 @@ if __name__ == "__main__":
     q_types = CommonAdapter.default_q_commands.keys()
 
     parser.add_argument("name",
-                        help ="Name for the fireworks configuration. "
-                        "This is just used to differentiate your configuration when running")
+                        help="Name for the fireworks configuration. "
+                             "This is just used to differentiate your configuration when running")
     parser.add_argument("-d", "--directory",
                         dest="directory",
                         type=str,
-                        required=True,
                         help="configuration directory to setup")
     parser.add_argument("-l", "--launchpad",
                         dest="launchpad",
@@ -83,27 +117,60 @@ if __name__ == "__main__":
     parser.add_argument("--db",
                         dest="db",
                         nargs="?",
-                        help="Generate a db.json file with either the input argument or from launchpad file")
+                        help="Generate a db.json file with either the input argument or from launchpad"
+                             " if no db is supplied")
     parser.add_argument("--fworker",
                         dest="fworker",
                         nargs="?",
                         help="Generate a fworker.yaml file with either the input argument or based on defaults")
     parser.add_argument("--qadapter",
                         dest="qadapter",
+                        choices=q_types,
                         default="SLURM",
                         help="Generate a default my_qdapter.yaml for the given type."
                              " Queue Types: {}".format(" ".join(q_types)))
+    parser.add_argument("-i", "--interactive",
+                        dest="interactive",
+                        action="store_true",
+                        help="Setup in interactive mode")
 
     args = parser.parse_args()
-    launchpad = loadfn(args.launchpad) if args.launchpad else DEFAULT_LAUNCHPAD
     dir_path = os.path.abspath(args.directory)
-    db = loadfn(args.db) if args.db else build_db_json(launchpad)
-    fworker = build_fworker(dir_path, args.name, loadfn(args.fworker)) if args.fworker else build_fworker(dir_path,
-                                                                                                          args.name)
-    qadapter = build_qadapter(dir_path, args.qadapter)
+
+    # Build my_launchpad.yaml from inputs and interactive mode if set
+    if args.launchpad:
+        launchpad = build_from_defaults("my_launchpad.yaml", DEFAULT_LAUNCHPAD, new_dict=loadfn(args.launchpad),
+                                        interactive=args.interactive)
+    else:
+        launchpad = build_from_defaults("my_launchpad.yaml", DEFAULT_LAUNCHPAD,
+                                        interactive=args.interactive)
+
+    # Build db.json from inputs and interactive mode if set
+    if args.db:
+        db = build_from_defaults("db.json", build_db_json(launchpad), loadfn(args.db), interactive=args.interactive)
+    else:
+        db = build_from_defaults("db.json", build_db_json(launchpad), interactive=args.interactive)
+
+    # Build my_fworker.yaml from inputs and interactive mode if set
+    if args.fworker:
+        d = {
+            'env': {'db_file': os.path.join(dir_path, "db.json")},
+            'name': args.name
+        }
+        fworker = build_from_defaults("my_fworker.yaml", loadfn(args.fworker), d, interactive=args.interactive)
+    else:
+        d = {
+            'env': {'db_file': os.path.join(dir_path, "db.json")},
+            'name': args.name
+        }
+        fworker = build_from_defaults("my_fworker.yaml", DEFAULT_FWORKER, d, interactive=args.interactive)
+
+    # Build qadapter
+    qadapter = build_qadapter(dir_path, args.qadapter, args.interactive)
 
     if not os.path.exists(dir_path):
         os.mkdir(dir_path)
+
     dumpfn(launchpad, os.path.join(dir_path, "my_launchpad.yaml"))
     dumpfn(db, os.path.join(dir_path, "db.json"), indent=4, sort_keys=True)
     dumpfn(fworker, os.path.join(dir_path, "my_fworker.yaml"), indent=4, default_flow_style=False)
