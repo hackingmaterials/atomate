@@ -473,7 +473,9 @@ To launch this FireWork and place a reservation in the queue, go to the director
 
     qlaunch -r rapidfire
 
-**Note**: If you want to run directly rather than through a queue, use ``rlaunch rapidfire`` (go through the FireWorks documentation to understand the details).
+**Note**: If you want to run directly rather than through a queue, use ``rlaunch rapidfire`` instead of the ``qlaunch`` command (go through the FireWorks documentation to understand the details).
+
+**Note**: The ``-r`` flag denotes "reservation mode" launching, in which there is a 1:1 mapping of queue submission and VASP calculation. This mode is also bit more complex than normal launching. It may be worth going through the FireWorks documentation to understand the difference between these modes and making an informed choice about which mode to use.
 
 If all went well, you can check that the FireWork is in the queue by using the commands for your queue system (e.g. ``squeue`` or ``qstat``) or by checking that the state of the FireWork has changed from ``READY`` to ``RESERVED`` with ``lpad get_wflows``. Once this FireWorks is launched and is completed, you can use pymatgen-db to check that it was entered into your results database by running
 
