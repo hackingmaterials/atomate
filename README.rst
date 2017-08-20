@@ -7,3 +7,5 @@ atomate is a powerful software for computational materials science and contains 
 For more about atomate, please visit the official documentation_.
 
 .. _documentation: https://hackingmaterials.github.io/atomate/
+
+test
