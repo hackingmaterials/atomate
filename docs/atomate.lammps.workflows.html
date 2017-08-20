@@ -1,16 +1,13 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>atomate.lammps.workflows package &#8212; atomate 0.5.8 documentation</title>
-    
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -27,7 +24,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -55,7 +52,7 @@
 <span id="atomate-lammps-workflows-core-module"></span><h2>atomate.lammps.workflows.core module<a class="headerlink" href="#module-atomate.lammps.workflows.core" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="atomate.lammps.workflows.core.get_packmol_wf">
-<code class="descclassname">atomate.lammps.workflows.core.</code><code class="descname">get_packmol_wf</code><span class="sig-paren">(</span><em>input_file</em>, <em>user_settings</em>, <em>constituent_molecules</em>, <em>packing_config</em>, <em>forcefield</em>, <em>final_box_size</em>, <em>topologies=None</em>, <em>ff_site_property=None</em>, <em>tolerance=2.0</em>, <em>filetype=u'xyz'</em>, <em>control_params=None</em>, <em>lammps_cmd=u'lmp_serial'</em>, <em>packmol_cmd=u'packmol'</em>, <em>dump_filenames=None</em>, <em>db_file=None</em>, <em>name=u'Packmol Lammps Wflow'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.workflows.core.get_packmol_wf" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">atomate.lammps.workflows.core.</code><code class="descname">get_packmol_wf</code><span class="sig-paren">(</span><em>input_file</em>, <em>user_settings</em>, <em>constituent_molecules</em>, <em>packing_config</em>, <em>forcefield</em>, <em>final_box_size</em>, <em>topologies=None</em>, <em>ff_site_property=None</em>, <em>tolerance=2.0</em>, <em>filetype='xyz'</em>, <em>control_params=None</em>, <em>lammps_cmd='lmp_serial'</em>, <em>packmol_cmd='packmol'</em>, <em>dump_filenames=None</em>, <em>db_file=None</em>, <em>name='Packmol Lammps Wflow'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.workflows.core.get_packmol_wf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns workflow that uses Packmol to pack the constituent molecules into the given
 configuration and then run lammps on the final packed molecule for the given list of
 user_settings.</p>
@@ -68,7 +65,7 @@ user_settings ([dict] or dict): list of settings dict. if the input_file is a te
 <p>constituent_molecules ([Molecules]): list of pymatgen Molecule objects
 packing_config ([dict]): list of configuration dictionaries, one for each constituent molecule.
 forcefield (ForceField): pymatgen.io.lammps.forcefield.ForceField object
-final_box_size ([list]): list of list of low and high values for each dimension [[xlow, xhigh], ...]
+final_box_size ([list]): list of list of low and high values for each dimension [[xlow, xhigh], …]
 topologies ([Topology]): list of Topology objects. If not given, will be set from the</p>
 <blockquote>
 <div>topology of the constituent molecules.</div></blockquote>
@@ -89,7 +86,7 @@ name (str): workflow name</p>
 
 <dl class="function">
 <dt id="atomate.lammps.workflows.core.get_wf_basic">
-<code class="descclassname">atomate.lammps.workflows.core.</code><code class="descname">get_wf_basic</code><span class="sig-paren">(</span><em>input_file</em>, <em>user_settings</em>, <em>lammps_data=None</em>, <em>input_filename=u'lammps.in'</em>, <em>is_forcefield=False</em>, <em>lammps_cmd=u'lmp_serial'</em>, <em>dump_filenames=None</em>, <em>db_file=None</em>, <em>name=u'LAMMPS Wflow'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.workflows.core.get_wf_basic" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">atomate.lammps.workflows.core.</code><code class="descname">get_wf_basic</code><span class="sig-paren">(</span><em>input_file</em>, <em>user_settings</em>, <em>lammps_data=None</em>, <em>input_filename='lammps.in'</em>, <em>is_forcefield=False</em>, <em>lammps_cmd='lmp_serial'</em>, <em>dump_filenames=None</em>, <em>db_file=None</em>, <em>name='LAMMPS Wflow'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.workflows.core.get_wf_basic" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns basic lammps workflow. This is more useful if the input_file is template file with
 the corresponding settings defined in user_settings</p>
 <dl class="docutils">
@@ -173,7 +170,7 @@ name (str): workflow name</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
   </body>
 </html>
