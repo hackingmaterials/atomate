@@ -51,17 +51,6 @@ Completing everything on this checklist should result in a fully functioning env
 #. `Run a test workflow`_
 
 
-A note on automated installers
-------------------------------
-
-The `Phases Research Lab at Penn State`_, which collaborates on atomate development, has developed an `automated installer`_ to install atomate with minimal user interaction. The installer simply scripts all of the actions given in this installation guide after the user configures their database (see the `Configure FireWorks`_ section). There are a select few preset systems that are handled automatically (include TACC's Stampede, NERSC's Edison and Cori) and otherwise all of the relevant settings can be tweaked in one script and installed. For instructions on the use of the `automated installer`_, see the README. **Disclaimer**: this installer comes with no guarantees or warranty and the authors are not responsible for any problems caused (see the LICENSE). If you run into problems caused by the installer, please open an issue on its respective GitHub page (not on the atomate issues).
-
-Note: Although automated installers are tempting, we highly suggest that new users try following the procedure below first. This will also give you a sense of what the various configuration files are and explain the installation better.
-
-.. _Phases Research Lab at Penn State: http://www.phases.psu.edu
-.. _automated installer: https://github.com/PhasesResearchLab/install-atomate
-
-
 .. _Prerequisites:
 
 Prerequisites
@@ -311,13 +300,23 @@ Here's what you'll need to fill out:
 my_qadapter.yaml
 ----------------
 
-To run your VASP jobs at scale across one or more nodes, you usually submit your jobs through a queue system on the computing resources. FireWorks handles communicating with some of the common queue systems automatically. As usual, only the basic configuration options will be discussed. If you will use atomate as in this tutorial, this basic configuration is sufficient. A minimal ``my_qadapter.yaml`` file for SLURM machines might look like
+To run your VASP jobs at scale across one or more nodes, you usually submit your jobs through a queue system on the computing resources.
+FireWorks handles communicating with some of the common queue systems automatically.
+As usual, only the basic configuration options will be discussed.
+If you will use atomate as in this tutorial, this basic configuration is sufficient.
+
+If you do change anything, one key aspect would be to change the rocket launcher command from ``rapidfire`` to ``singleshot``, which will let you launch in reservation mode.
+Using the ``qlaunch`` with the ``-r`` flag (reservation mode launching) means there is a 1:1 mapping of queue submission and VASP calculation.
+This mode is also bit more complex than normal launching.
+It may be worth going through the FireWorks documentation to understand the difference between these modes and making an informed choice about which mode to use.
+
+A minimal ``my_qadapter.yaml`` file for SLURM machines might look like
 
 .. code-block:: yaml
 
     _fw_name: CommonAdapter
     _fw_q_type: SLURM
-    rocket_launch: rlaunch -c <<INSTALL_DIR>>/config singleshot
+    rocket_launch: rlaunch -c <<INSTALL_DIR>>/config rapidfire
     nodes: 2
     walltime: 24:00:00
     queue: null
@@ -512,11 +511,10 @@ To launch this FireWork and place a reservation in the queue, go to the director
 
 .. code-block:: bash
 
-    qlaunch -r rapidfire
+    qlaunch singleshot
 
 **Note**: If you want to run directly rather than through a queue, use ``rlaunch rapidfire`` instead of the ``qlaunch`` command (go through the FireWorks documentation to understand the details).
 
-**Note**: The ``-r`` flag denotes "reservation mode" launching, in which there is a 1:1 mapping of queue submission and VASP calculation. This mode is also bit more complex than normal launching. It may be worth going through the FireWorks documentation to understand the difference between these modes and making an informed choice about which mode to use.
 
 If all went well, you can check that the FireWork is in the queue by using the commands for your queue system (e.g. ``squeue`` or ``qstat``) or by checking that the state of the FireWork has changed from ``READY`` to ``RESERVED`` with ``lpad get_wflows``. Once this FireWorks is launched and is completed, you can use pymatgen-db to check that it was entered into your results database by running
 
@@ -577,8 +575,8 @@ Q: My job fizzled!
 :A: Check the ``*_structure_optimization.out`` and ``*_structure_optimization.error`` in the launch directory for any errors. Also check the ``FW.json`` to check for a Python traceback.
 
 
-Q: I made a mistake, how do I cancel my job?
---------------------------------------------
+Q: I made a mistake using reservation mode, how do I cancel my job?
+-------------------------------------------------------------------
 
 :A: One drawback of using the reservation mode (the ``-r`` in ``qlaunch -r rapidfire``) is that you have to cancel your job in two places: the queue and the LaunchPad. To cancel the job in the queue, use whatever command you usually would (e.g. ``scancel`` or ``qdel``). To cancel or rerun the FireWork, run
 

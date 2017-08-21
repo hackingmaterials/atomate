@@ -178,7 +178,7 @@ Simply add the following Python script (``bs-analysis.py``) to your folder, **ch
 .. code-block:: python
 
     from atomate.vasp.database import VaspCalcDb
-    from pymatgen.electronic_structure.plotter import DosPlotter, BSDOSPlotter
+    from pymatgen.electronic_structure.plotter import DosPlotter, BSPlotter
 
     # create the atomate db from your db.json
     PATH_TO_MY_DB_JSON = '/path/to/my/db.json'
@@ -206,8 +206,8 @@ Simply add the following Python script (``bs-analysis.py``) to your folder, **ch
     # Instatiate a bandstructure plotter and plot the bandstructure.
     # You can uncomment out the get_plot if you have a GUI frontend to plot to.
     bs_plotter = BSPlotter(bandstructure)
-    # bs_plotter.get_plot()
-    bs_plotter.save_plot('MgO-bandstructure.pdf', img_format='pdf')
+    bs_plotter.get_plot()
+    # bs_plotter.save_plot('MgO-bandstructure.pdf', img_format='pdf')
 
 
 If you open the saved figures, you should see a plot of your DOS and bandstructure!
