@@ -196,7 +196,7 @@ Unless there were any errors, the Fireworks have successfully finished launching
 <p>Finally, we’ll plot the results that we calculated.
 Simply add the following Python script (<code class="docutils literal"><span class="pre">bs-analysis.py</span></code>) to your folder, <strong>change the ``PATH_TO_MY_DB_JSON`` to the path to your ``db.json`` file</strong> (e.g. <code class="docutils literal"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;/config/db.json</span></code>), and run the script.</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">atomate.vasp.database</span> <span class="kn">import</span> <span class="n">VaspCalcDb</span>
-<span class="kn">from</span> <span class="nn">pymatgen.electronic_structure.plotter</span> <span class="kn">import</span> <span class="n">DosPlotter</span><span class="p">,</span> <span class="n">BSDOSPlotter</span>
+<span class="kn">from</span> <span class="nn">pymatgen.electronic_structure.plotter</span> <span class="kn">import</span> <span class="n">DosPlotter</span><span class="p">,</span> <span class="n">BSPlotter</span>
 
 <span class="c1"># create the atomate db from your db.json</span>
 <span class="n">PATH_TO_MY_DB_JSON</span> <span class="o">=</span> <span class="s1">&#39;/path/to/my/db.json&#39;</span>
@@ -224,8 +224,8 @@ Simply add the following Python script (<code class="docutils literal"><span cla
 <span class="c1"># Instatiate a bandstructure plotter and plot the bandstructure.</span>
 <span class="c1"># You can uncomment out the get_plot if you have a GUI frontend to plot to.</span>
 <span class="n">bs_plotter</span> <span class="o">=</span> <span class="n">BSPlotter</span><span class="p">(</span><span class="n">bandstructure</span><span class="p">)</span>
-<span class="c1"># bs_plotter.get_plot()</span>
-<span class="n">bs_plotter</span><span class="o">.</span><span class="n">save_plot</span><span class="p">(</span><span class="s1">&#39;MgO-bandstructure.pdf&#39;</span><span class="p">,</span> <span class="n">img_format</span><span class="o">=</span><span class="s1">&#39;pdf&#39;</span><span class="p">)</span>
+<span class="n">bs_plotter</span><span class="o">.</span><span class="n">get_plot</span><span class="p">()</span>
+<span class="c1"># bs_plotter.save_plot(&#39;MgO-bandstructure.pdf&#39;, img_format=&#39;pdf&#39;)</span>
 </pre></div>
 </div>
 <p>If you open the saved figures, you should see a plot of your DOS and bandstructure!</p>
