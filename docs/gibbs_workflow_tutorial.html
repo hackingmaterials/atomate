@@ -1,13 +1,16 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>Running Gibbs workflows &#8212; atomate 0.5.8 documentation</title>
+    
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -26,7 +29,7 @@
     <link rel="next" title="Builders: creating calculation reports for data analysis" href="builders.html" />
     <link rel="prev" title="Running Workflows Tutorial" href="running_workflows.html" /> 
   </head>
-  <body>
+  <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -97,7 +100,7 @@ First the input structure is optimized, then volume of the optimize structure is
 <p>Make sure you have completed the installation tutorial.
 Next, create a folder on your HPC resource for this tutorial.
 It can be located anywhere.
-You’ll keep all of the files for this tutorial there.</p>
+You&#8217;ll keep all of the files for this tutorial there.</p>
 <p>If you do not already have important prior results in your atomate environment, start fresh by running:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lpad</span> <span class="n">reset</span>
 </pre></div>
@@ -110,7 +113,7 @@ You’ll keep all of the files for this tutorial there.</p>
 </div>
 <div class="section" id="use-python-to-generate-and-add-the-workflow">
 <h3>Use Python to generate and add the workflow<a class="headerlink" href="#use-python-to-generate-and-add-the-workflow" title="Permalink to this headline">¶</a></h3>
-<p>We’ll use diamond Si as a simple example and get the structure from the Materials Project.
+<p>We&#8217;ll use diamond Si as a simple example and get the structure from the Materials Project.
 This requires that you set up an API key in your <code class="docutils literal"><span class="pre">.pmgrc.yaml</span></code>.
 In the installation tutorial, you set up your <code class="docutils literal"><span class="pre">FW_config.yaml</span></code>, you indicated the atomate Fireworks can be found at <a class="reference internal" href="atomate.vasp.fireworks.html#module-atomate.vasp.fireworks" title="atomate.vasp.fireworks"><code class="xref py py-mod docutils literal"><span class="pre">atomate.vasp.fireworks</span></code></a>.
 Similarly, atomate preset workflows can be imported from <a class="reference internal" href="atomate.vasp.workflows.presets.html#module-atomate.vasp.workflows.presets.core" title="atomate.vasp.workflows.presets.core"><code class="xref py py-mod docutils literal"><span class="pre">atomate.vasp.workflows.presets.core</span></code></a>, which thinly wraps the base workflows (<a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base" title="atomate.vasp.workflows.base"><code class="xref py py-mod docutils literal"><span class="pre">atomate.vasp.workflows.base</span></code></a>) allowing for common settings to be changed with configuration dictionaries.
@@ -171,8 +174,8 @@ This workflow should only take few minutes.</p>
 </div>
 <div class="section" id="analyzing-an-equation-of-state-workflow">
 <h2>Analyzing an Equation of State Workflow<a class="headerlink" href="#analyzing-an-equation-of-state-workflow" title="Permalink to this headline">¶</a></h2>
-<p>Finally, we’ll analyze the results of our Gibbs free energy calculation.
-Here we’ll compare the heat capacity from our DFT calculation with experimental values.
+<p>Finally, we&#8217;ll analyze the results of our Gibbs free energy calculation.
+Here we&#8217;ll compare the heat capacity from our DFT calculation with experimental values.
 Simply add the following Python script (<code class="docutils literal"><span class="pre">gibbs-analysis.py</span></code>) to your folder and run it</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">atomate.vasp.database</span> <span class="kn">import</span> <span class="n">VaspCalcDb</span>
 <span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
@@ -304,7 +307,7 @@ The <a class="reference internal" href="creating_workflows.html#creating-workflo
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.
     </div>
   </body>
 </html>

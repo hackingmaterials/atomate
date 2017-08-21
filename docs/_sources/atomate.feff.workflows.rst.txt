@@ -1,5 +1,5 @@
-atomate\.feff\.workflows package
-================================
+atomate.feff.workflows package
+==============================
 
 Subpackages
 -----------
@@ -11,16 +11,16 @@ Subpackages
 Submodules
 ----------
 
-atomate\.feff\.workflows\.core module
--------------------------------------
+atomate.feff.workflows.core module
+----------------------------------
 
 .. automodule:: atomate.feff.workflows.core
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.feff\.workflows\.presets module
-----------------------------------------
+atomate.feff.workflows.presets module
+-------------------------------------
 
 .. automodule:: atomate.feff.workflows.presets
     :members:

@@ -1,11 +1,11 @@
-atomate\.lammps\.fireworks package
-==================================
+atomate.lammps.fireworks package
+================================
 
 Submodules
 ----------
 
-atomate\.lammps\.fireworks\.core module
----------------------------------------
+atomate.lammps.fireworks.core module
+------------------------------------
 
 .. automodule:: atomate.lammps.fireworks.core
     :members:
