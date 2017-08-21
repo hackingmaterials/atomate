@@ -67,7 +67,7 @@ def _get_wf(args, structure):
             else:
                 raise ValueError("Unknown library: {}".format(args.library))
         d = loadfn(spec_path)
-        return get_wf_from_spec_dict(structure, d)
+        return get_wf_from_spec_dict(structure, d, args.common_param_updates)
 
     elif args.preset:
         if args.library:
@@ -83,7 +83,7 @@ def _get_wf(args, structure):
 
     else:
         d = yaml.load(default_yaml)
-        return get_wf_from_spec_dict(structure, d)
+        return get_wf_from_spec_dict(structure, d, args.common_param_updates)
 
 
 def add_wf(args):
@@ -200,6 +200,8 @@ if __name__ == "__main__":
                            "Note that your MAPI_KEY environment variable must "
                            "be set to get structures from the Materials "
                            "Project.")
+    padd.add_argument("-c", "--common_params", dest="common_param_updates",
+                      help="Set to a dict-like string, e.g. '{\"a\":\"b\"}', to set common params")
     padd.add_argument("files", metavar="files", type=str, nargs="+",
                       help="Structures to add workflows for.")
     padd.set_defaults(func=add_wf)
@@ -229,6 +231,9 @@ if __name__ == "__main__":
     ppowerup.set_defaults(func=powerup_workflow)
 
     args = parser.parse_args()
+
+    if args.common_param_updates:
+        args.common_param_updates = ast.literal_eval(args.common_param_updates)  # str->dict
 
     try:
         a = getattr(args, "func")

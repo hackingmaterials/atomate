@@ -173,7 +173,7 @@ def get_fws_and_tasks(workflow, fw_name_constraint=None, task_name_constraint=No
 
 # TODO: @computron - move this somewhere else, maybe dedicated serialization package - @computron
 # TODO: @computron - also review this code for clarity - @computron
-def get_wf_from_spec_dict(structure, wfspec):
+def get_wf_from_spec_dict(structure, wfspec, common_param_updates=None):
     """
     Load a WF from a structure and a spec dict. This allows simple
     custom workflows to be constructed quickly via a YAML file.
@@ -222,6 +222,7 @@ def get_wf_from_spec_dict(structure, wfspec):
 
             Finally, `name` is used to set the Workflow name
             (structure formula + name) which can be helpful in record keeping.
+        common_param_updates (dict): A dict specifying any user-specified updates to common_params
 
     Returns:
         Workflow
@@ -244,6 +245,8 @@ def get_wf_from_spec_dict(structure, wfspec):
 
     fws = []
     common_params = process_params(wfspec.get("common_params", {}))
+    if common_param_updates:
+        common_params.update(common_param_updates)
     for d in wfspec["fireworks"]:
         modname, classname = d["fw"].rsplit(".", 1)
         cls_ = load_class(modname, classname)
