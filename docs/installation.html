@@ -413,22 +413,35 @@ It may be worth going through the FireWorks documentation to understand the diff
 <div class="section" id="run-vasp-unit-tests">
 <span id="id8"></span><h2>Run VASP unit tests<a class="headerlink" href="#run-vasp-unit-tests" title="Permalink to this headline">¶</a></h2>
 <p>To test atomate and the VASP functionality, make sure you have MongoDB running when executing the tests. You can do this by navigating to <code class="docutils literal"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;/codes/atomate/</span></code> and running <code class="docutils literal"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">test</span></code> or <code class="docutils literal"><span class="pre">nosetests</span></code>. Note that some tests won&#8217;t run unless you either (i) start a local MongoDB instance (host: localhost, port:27017) for testing purposes or (ii) modify the config in <a href="#id9"><span class="problematic" id="id10">``</span></a>atomate/common/test_files` to your remote MongoDB.</p>
-<p>These unit tests are designed to run without installing VASP. Some of them start with a VASP workflow but apply the <code class="docutils literal"><span class="pre">use_fake_vasp</span></code> method to replace calling the VASP executable with a &#8220;Faker&#8221; that verifies basic properties of the inputs and copies pre-stored output files to the current directory, thus simulating the execution of VASP. Running these tests will help make sure your installation is in good shape.</p>
+<p>These unit tests are designed to run without installing VASP. Some of them start with a VASP workflow but apply the <code class="docutils literal"><span class="pre">use_fake_vasp</span></code> method to replace calling the VASP executable with a &#8220;Faker&#8221; that verifies basic properties of the inputs and copies pre-stored output files to the current directory, thus simulating the execution of VASP. Running these tests will help make sure your installation is in good shape but by default won&#8217;t actually run a real VASP simulation.</p>
 <p>Many tests have a DEBUG option that can sometimes help in finding problems. Sometimes you need to toggle DEBUG on/off a couple of times if you are doing this to make sure all the old data is actually cleared between debug runs.</p>
 <p>Note that the unit tests in atomate/vasp/tests/test_vasp_workflows.py can be modified to actually run VASP by setting VASP_CMD to a String representing your VASP command - however, this will just directly execute VASP where you are running the test (i.e., won&#8217;t submit jobs to a queue). If you need to debug at a later point, this might be something to refer back to, e.g., by running an interactive job on your supercomputing center (so that you are on a compute node) and trying this procedure.</p>
 <p>If everything looks OK, you are ready to run a test workflow!</p>
 </div>
 <div class="section" id="run-a-test-workflow">
 <span id="id11"></span><h2>Run a test workflow<a class="headerlink" href="#run-a-test-workflow" title="Permalink to this headline">¶</a></h2>
-<p>To make sure that everything is set up correctly and in place, we&#8217;ll finally run a simple test workflow. In general, two ways to create workflows is using atomate&#8217;s command line utility <code class="docutils literal"><span class="pre">atwf</span></code> or by creating workflows in Python. More discussion on constructing and running workflows can be found in the <a class="reference internal" href="running_workflows.html#running-workflows-tutorial"><span class="std std-ref">Running Workflows Tutorial</span></a> and details on writing custom workflows can be found in the <a class="reference internal" href="creating_workflows.html#creating-workflows"><span class="std std-ref">Creating Workflows</span></a>. For now, we will use <code class="docutils literal"><span class="pre">atwf</span></code> to construct a workflow. Ideally you set up a Materials Project API key in the <a class="reference internal" href="#configure-pymatgen">Configure pymatgen</a> section, otherwise you will need to provide a POSCAR for the structure you want to run. If you have an API key configured, you can run the following to run a structure optimization on Si</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>atwf add -l vasp -s optimize_only.yaml -m mp-149
-</pre></div>
+<p>To make sure that everything is set up correctly and in place, we&#8217;ll finally run a simple (but real) test workflow. Two methods to create workflows are (i) using atomate&#8217;s command line utility <code class="docutils literal"><span class="pre">atwf</span></code> or (ii) by creating workflows in Python. For the most part, we recommend using method (ii), the Python interface, since it is more powerful and also simple to use. However, in order to get started without any programming, we&#8217;ll stick to method (i), the command line, using <code class="docutils literal"><span class="pre">atwf</span></code> to construct a workflow. Note that we&#8217;ll discuss the Python interface more in the <a class="reference internal" href="running_workflows.html#running-workflows-tutorial"><span class="std std-ref">Running Workflows Tutorial</span></a> and provide details on writing custom workflows in the <a class="reference internal" href="creating_workflows.html#creating-workflows"><span class="std std-ref">Creating Workflows</span></a>.</p>
+<p>Ideally you set up a Materials Project API key in the <a class="reference internal" href="#configure-pymatgen">Configure pymatgen</a> section, otherwise you will need to provide a POSCAR for the structure you want to run. In addition, there are two different methods to use <code class="docutils literal"><span class="pre">atwf</span></code> - one using a library of preset functions for constructing workflows and another with a library of files for constructing workflows.</p>
+<p>This particular workflow will only run a single calculation that optimizes a crystal structure (not very exciting). In the subsequent tutorials, we&#8217;ll run more complex workflows.</p>
+<div class="section" id="add-a-workflow">
+<h3>Add a workflow<a class="headerlink" href="#add-a-workflow" title="Permalink to this headline">¶</a></h3>
+<p>Below are 4 different options for adding a workflow to the database. You only need to execute one of the below commands; note that it doesn&#8217;t matter at this point whether you are loading the workflow from a file or from a Python function.</p>
+<ul class="simple">
+<li>Option 1 (you set up a Materials Project API key, and want to load the workflow using a file): <code class="docutils literal"><span class="pre">atwf</span> <span class="pre">add</span> <span class="pre">-l</span> <span class="pre">vasp</span> <span class="pre">-s</span> <span class="pre">optimize_only.yaml</span> <span class="pre">-m</span> <span class="pre">mp-149</span> <span class="pre">-c</span> <span class="pre">'{&quot;vasp_cmd&quot;:</span> <span class="pre">&quot;&gt;&gt;vasp_cmd&lt;&lt;&quot;,</span> <span class="pre">&quot;db_file&quot;:</span> <span class="pre">&quot;&gt;&gt;db_file&lt;&lt;&quot;}'</span></code></li>
+<li>Option 2 (you set up a Materials Project API key, and want to load the workflow using a Python function): <code class="docutils literal"><span class="pre">atwf</span> <span class="pre">add</span> <span class="pre">-l</span> <span class="pre">vasp</span> <span class="pre">-p</span> <span class="pre">wf_structure_optimization</span> <span class="pre">-m</span> <span class="pre">mp-149</span></code></li>
+<li>Option 3 (you will load the structure from a POSCAR file, and want to load the workflow using a file): <code class="docutils literal"><span class="pre">atwf</span> <span class="pre">add</span> <span class="pre">-l</span> <span class="pre">vasp</span> <span class="pre">-s</span> <span class="pre">optimize_only.yaml</span> <span class="pre">POSCAR</span> <span class="pre">-c</span> <span class="pre">'{&quot;vasp_cmd&quot;:</span> <span class="pre">&quot;&gt;&gt;vasp_cmd&lt;&lt;&quot;,</span> <span class="pre">&quot;db_file&quot;:</span> <span class="pre">&quot;&gt;&gt;db_file&lt;&lt;&quot;}'</span></code></li>
+<li>Option 4 (you will load the structure from a POSCAR file, and want to load the workflow using a Python function): <code class="docutils literal"><span class="pre">atwf</span> <span class="pre">add</span> <span class="pre">-l</span> <span class="pre">vasp</span> <span class="pre">-p</span> <span class="pre">wf_structure_optimization</span> <span class="pre">POSCAR</span></code></li>
+</ul>
+<p>All of these function specify (i) a type of workflow and (ii) the structure to feed into that workflow.</p>
+<ul class="simple">
+<li>The <code class="docutils literal"><span class="pre">-l</span> <span class="pre">vasp</span></code> option states to use the <code class="docutils literal"><span class="pre">vasp</span></code> library of workflows.</li>
+<li>The <cite>-s optimize_only.yaml</cite> sets the specification of the workflow using the <code class="docutils literal"><span class="pre">optimize_only.yaml</span></code> file in <a class="reference external" href="https://github.com/hackingmaterials/atomate/blob/master/atomate/vasp/workflows/base/library/">this directory</a>. Alternatively, the <code class="docutils literal"><span class="pre">-p</span> <span class="pre">wf_structure_optimization</span></code> sets the workflow specification using the preset Python function located in <a class="reference external" href="https://github.com/hackingmaterials/atomate/blob/master/atomate/vasp/workflows/presets/core.py">this module</a>. For now, it&#8217;s probably best not to worry about the distinction but to know that both libraries of workflows are available to you.</li>
+<li>The <cite>-c`</cite> option is used in file-based workflows to make sure that one uses the <code class="docutils literal"><span class="pre">vasp_cmd</span></code> and <code class="docutils literal"><span class="pre">db_file</span></code> that are specified in <code class="docutils literal"><span class="pre">my_fworker.yaml</span></code> that you specified earlier. In the preset workflows, it is the default behavior to take these parameters from the <code class="docutils literal"><span class="pre">my_fworker.yaml</span></code> so this option is not needed.</li>
+</ul>
 </div>
-<p>Alternatively, if you did not set up your API key or want to use a custom POSCAR instead the following command will accomplish the same</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>atwf add -l vasp -s optimize_only.yaml POSCAR
-</pre></div>
-</div>
-<p>These commands added workflows for running a single structure optimization FireWork to your LaunchPad. You can verify that by using FireWorks&#8217; <code class="docutils literal"><span class="pre">lpad</span></code> utility:</p>
+<div class="section" id="verify-the-workflow">
+<h3>Verify the workflow<a class="headerlink" href="#verify-the-workflow" title="Permalink to this headline">¶</a></h3>
+<p>These commands added a workflow for running a single structure optimization FireWork to your LaunchPad. You can verify that by using FireWorks&#8217; <code class="docutils literal"><span class="pre">lpad</span></code> utility:</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span>lpad get_wflows
 </pre></div>
 </div>
@@ -443,16 +456,40 @@ It may be worth going through the FireWorks documentation to understand the diff
 <span class="o">]</span>
 </pre></div>
 </div>
-<p>To launch this FireWork and place a reservation in the queue, go to the directory where you would like your calculations to run (e.g. your scratch or work directories) and run the command</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>qlaunch singleshot
+<p>Note that the <code class="docutils literal"><span class="pre">lpad</span></code> command is from FireWorks and has many functions. As simple modifications to the above command, you can also try <code class="docutils literal"><span class="pre">lpad</span> <span class="pre">get_wflows</span> <span class="pre">-d</span> <span class="pre">more</span></code> (or if you are very curious, <code class="docutils literal"><span class="pre">lpad</span> <span class="pre">get_wflows</span> <span class="pre">-d</span> <span class="pre">all</span></code>). You can use <code class="docutils literal"><span class="pre">lpad</span> <span class="pre">get_wflows</span> <span class="pre">-h</span></code> to see a list of all available modifications and <code class="docutils literal"><span class="pre">lpad</span> <span class="pre">-h</span></code> to see all possible commands.</p>
+<p>If this works, congrats! You&#8217;ve added a workflow (in this case, just a single calculation) to the FireWorks database.</p>
+</div>
+<div class="section" id="submit-the-workflow">
+<h3>Submit the workflow<a class="headerlink" href="#submit-the-workflow" title="Permalink to this headline">¶</a></h3>
+<p>To launch this FireWork through queue, go to the directory where you would like your calculations to run (e.g. your scratch or work directories) and run the command</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>qlaunch rapidfire
 </pre></div>
 </div>
-<p><strong>Note</strong>: If you want to run directly rather than through a queue, use <code class="docutils literal"><span class="pre">rlaunch</span> <span class="pre">rapidfire</span></code> instead of the <code class="docutils literal"><span class="pre">qlaunch</span></code> command (go through the FireWorks documentation to understand the details).</p>
-<p>If all went well, you can check that the FireWork is in the queue by using the commands for your queue system (e.g. <code class="docutils literal"><span class="pre">squeue</span></code> or <code class="docutils literal"><span class="pre">qstat</span></code>) or by checking that the state of the FireWork has changed from <code class="docutils literal"><span class="pre">READY</span></code> to <code class="docutils literal"><span class="pre">RESERVED</span></code> with <code class="docutils literal"><span class="pre">lpad</span> <span class="pre">get_wflows</span></code>. Once this FireWorks is launched and is completed, you can use pymatgen-db to check that it was entered into your results database by running</p>
+<p>There are lots of things to note here:</p>
+<ul class="simple">
+<li>As with all FireWorks commands, you can get more options using <code class="docutils literal"><span class="pre">qlaunch</span> <span class="pre">rapidfire</span> <span class="pre">-h</span></code> or simply <code class="docutils literal"><span class="pre">qlaunch</span> <span class="pre">-h</span></code>.</li>
+<li>The qlaunch mode specified above is the simplest and most general way to get started. It will end up creating a somewhat nested directory structure, but this will make more sense when there are many calculations to run.</li>
+<li>One other option for qlaunch is &#8220;reservation mode&#8221;, i.e., <code class="docutils literal"><span class="pre">qlaunch</span> <span class="pre">-r</span> <span class="pre">rapidfire</span></code>. There are many nice things about this mode - you&#8217;ll get pretty queue job names that represent your calculated composition and task type (these are really nice to see specifically which calculations are queued) and you&#8217;ll have more options for tailoring specific queue parameters to specific jobs. However, this mode does add its own complications and we do not recommend starting with it (in many if not most cases, it&#8217;s not worth switching at all). If you are interested by this option, consult the FireWorks documentation for more details.</li>
+<li>If you want to run directly on your computing platform rather than through a queue, use <code class="docutils literal"><span class="pre">rlaunch</span> <span class="pre">rapidfire</span></code> instead of the <code class="docutils literal"><span class="pre">qlaunch</span></code> command (go through the FireWorks documentation to understand the details).</li>
+</ul>
+<p>If all went well, you can check that the FireWork is in the queue by using the commands for your queue system (e.g. <code class="docutils literal"><span class="pre">squeue</span></code> or <code class="docutils literal"><span class="pre">qstat</span></code>). When the job finally starts running, you will see the state of the workflow as running using the command <code class="docutils literal"><span class="pre">lpad</span> <span class="pre">get_wflows</span> <span class="pre">-d</span> <span class="pre">more</span></code>.</p>
+</div>
+<div class="section" id="analyzing-the-results">
+<h3>Analyzing the results<a class="headerlink" href="#analyzing-the-results" title="Permalink to this headline">¶</a></h3>
+<p>Once this FireWorks is launched and is completed, you can use pymatgen-db to check that it was entered into your results database by running</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span>mgdb query -c <span class="s">&lt;&lt;INSTALL_DI</span>R&gt;&gt;/config/db.json --props task_id formula_pretty output.energy_per_atom
 </pre></div>
 </div>
 <p>This time, <code class="docutils literal"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;</span></code> can be relative. You should have seen the energy per atom you calculated for Si.</p>
+<p>Note that the <code class="docutils literal"><span class="pre">mgdb</span></code> tools is only one way to see the results. You can connect to your MongoDB and explore the results using any MongoDB analysis tool. In later tools, we&#8217;ll also demonstrate how various Python classes in atomate also help in retrieving and analyzing data. For now, the <code class="docutils literal"><span class="pre">mgdb</span></code> command is a simple way to get basic properties.</p>
+<p>You can also check that the workflow is marked as completed in your FireWorks database:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>lpad get_wflows -d more
+</pre></div>
+</div>
+<p>which will show the state of the workflow as COMPLETED.</p>
+</div>
+<div class="section" id="next-steps">
+<h3>Next steps<a class="headerlink" href="#next-steps" title="Permalink to this headline">¶</a></h3>
 <p>That&#8217;s it! You&#8217;ve completed the installation tutorial!</p>
 <p>See the following pages for more information on the topics we covered here:</p>
 <ul class="simple">
@@ -460,6 +497,7 @@ It may be worth going through the FireWorks documentation to understand the diff
 <li>For submitting jobs to the queue in reservation mode see the <a class="reference external" href="https://materialsproject.github.io/fireworks/queue_tutorial_pt2.html">FireWorks advanced queue submission tutorial</a></li>
 <li>For using pymatgen-db to query your database see the <a class="reference external" href="https://materialsproject.github.io/pymatgen-db/">pymatgen-db documentation</a></li>
 </ul>
+</div>
 </div>
 <div class="section" id="troubleshooting-and-faq">
 <h2>Troubleshooting and FAQ:<a class="headerlink" href="#troubleshooting-and-faq" title="Permalink to this headline">¶</a></h2>
@@ -591,7 +629,14 @@ located in: &lt;&lt;INSTALL_DIR&gt;&gt;/codes/fireworks
 </ul>
 </li>
 <li><a class="reference internal" href="#run-vasp-unit-tests">Run VASP unit tests</a></li>
-<li><a class="reference internal" href="#run-a-test-workflow">Run a test workflow</a></li>
+<li><a class="reference internal" href="#run-a-test-workflow">Run a test workflow</a><ul>
+<li><a class="reference internal" href="#add-a-workflow">Add a workflow</a></li>
+<li><a class="reference internal" href="#verify-the-workflow">Verify the workflow</a></li>
+<li><a class="reference internal" href="#submit-the-workflow">Submit the workflow</a></li>
+<li><a class="reference internal" href="#analyzing-the-results">Analyzing the results</a></li>
+<li><a class="reference internal" href="#next-steps">Next steps</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#troubleshooting-and-faq">Troubleshooting and FAQ:</a><ul>
 <li><a class="reference internal" href="#q-i-can-t-connect-to-my-launchpad-database">Q: I can&#8217;t connect to my LaunchPad database</a></li>
 <li><a class="reference internal" href="#q-my-job-fizzled">Q: My job fizzled!</a></li>

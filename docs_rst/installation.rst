@@ -463,7 +463,7 @@ Run VASP unit tests
 
 To test atomate and the VASP functionality, make sure you have MongoDB running when executing the tests. You can do this by navigating to ``<<INSTALL_DIR>>/codes/atomate/`` and running ``python setup.py test`` or ``nosetests``. Note that some tests won't run unless you either (i) start a local MongoDB instance (host: localhost, port:27017) for testing purposes or (ii) modify the config in ``atomate/common/test_files` to your remote MongoDB.
 
-These unit tests are designed to run without installing VASP. Some of them start with a VASP workflow but apply the ``use_fake_vasp`` method to replace calling the VASP executable with a "Faker" that verifies basic properties of the inputs and copies pre-stored output files to the current directory, thus simulating the execution of VASP. Running these tests will help make sure your installation is in good shape.
+These unit tests are designed to run without installing VASP. Some of them start with a VASP workflow but apply the ``use_fake_vasp`` method to replace calling the VASP executable with a "Faker" that verifies basic properties of the inputs and copies pre-stored output files to the current directory, thus simulating the execution of VASP. Running these tests will help make sure your installation is in good shape but by default won't actually run a real VASP simulation.
 
 Many tests have a DEBUG option that can sometimes help in finding problems. Sometimes you need to toggle DEBUG on/off a couple of times if you are doing this to make sure all the old data is actually cleared between debug runs.
 
@@ -476,19 +476,32 @@ If everything looks OK, you are ready to run a test workflow!
 Run a test workflow
 ===================
 
-To make sure that everything is set up correctly and in place, we'll finally run a simple test workflow. In general, two ways to create workflows is using atomate's command line utility ``atwf`` or by creating workflows in Python. More discussion on constructing and running workflows can be found in the :ref:`running workflows tutorial` and details on writing custom workflows can be found in the :ref:`creating workflows`. For now, we will use ``atwf`` to construct a workflow. Ideally you set up a Materials Project API key in the `Configure pymatgen`_ section, otherwise you will need to provide a POSCAR for the structure you want to run. If you have an API key configured, you can run the following to run a structure optimization on Si
+To make sure that everything is set up correctly and in place, we'll finally run a simple (but real) test workflow. Two methods to create workflows are (i) using atomate's command line utility ``atwf`` or (ii) by creating workflows in Python. For the most part, we recommend using method (ii), the Python interface, since it is more powerful and also simple to use. However, in order to get started without any programming, we'll stick to method (i), the command line, using ``atwf`` to construct a workflow. Note that we'll discuss the Python interface more in the :ref:`running workflows tutorial` and provide details on writing custom workflows in the :ref:`creating workflows`.
 
-.. code-block:: bash
+Ideally you set up a Materials Project API key in the `Configure pymatgen`_ section, otherwise you will need to provide a POSCAR for the structure you want to run. In addition, there are two different methods to use ``atwf`` - one using a library of preset functions for constructing workflows and another with a library of files for constructing workflows.
 
-    atwf add -l vasp -s optimize_only.yaml -m mp-149
+This particular workflow will only run a single calculation that optimizes a crystal structure (not very exciting). In the subsequent tutorials, we'll run more complex workflows.
 
-Alternatively, if you did not set up your API key or want to use a custom POSCAR instead the following command will accomplish the same
+Add a workflow
+--------------
 
-.. code-block:: bash
+Below are 4 different options for adding a workflow to the database. You only need to execute one of the below commands; note that it doesn't matter at this point whether you are loading the workflow from a file or from a Python function.
 
-    atwf add -l vasp -s optimize_only.yaml POSCAR
+* Option 1 (you set up a Materials Project API key, and want to load the workflow using a file): ``atwf add -l vasp -s optimize_only.yaml -m mp-149 -c '{"vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"}'``
+* Option 2 (you set up a Materials Project API key, and want to load the workflow using a Python function): ``atwf add -l vasp -p wf_structure_optimization -m mp-149``
+* Option 3 (you will load the structure from a POSCAR file, and want to load the workflow using a file): ``atwf add -l vasp -s optimize_only.yaml POSCAR -c '{"vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"}'``
+* Option 4 (you will load the structure from a POSCAR file, and want to load the workflow using a Python function): ``atwf add -l vasp -p wf_structure_optimization POSCAR``
 
-These commands added workflows for running a single structure optimization FireWork to your LaunchPad. You can verify that by using FireWorks' ``lpad`` utility:
+All of these function specify (i) a type of workflow and (ii) the structure to feed into that workflow.
+
+* The ``-l vasp`` option states to use the ``vasp`` library of workflows.
+* The `-s optimize_only.yaml` sets the specification of the workflow using the ``optimize_only.yaml`` file in `this directory <https://github.com/hackingmaterials/atomate/blob/master/atomate/vasp/workflows/base/library/>`_. Alternatively, the ``-p wf_structure_optimization`` sets the workflow specification using the preset Python function located in `this module <https://github.com/hackingmaterials/atomate/blob/master/atomate/vasp/workflows/presets/core.py>`_. For now, it's probably best not to worry about the distinction but to know that both libraries of workflows are available to you.
+* The `-c`` option is used in file-based workflows to make sure that one uses the ``vasp_cmd`` and ``db_file`` that are specified in ``my_fworker.yaml`` that you specified earlier. In the preset workflows, it is the default behavior to take these parameters from the ``my_fworker.yaml`` so this option is not needed.
+
+Verify the workflow
+-------------------
+
+These commands added a workflow for running a single structure optimization FireWork to your LaunchPad. You can verify that by using FireWorks' ``lpad`` utility:
 
 .. code-block:: bash
 
@@ -507,22 +520,51 @@ which should return:
         },
     ]
 
-To launch this FireWork and place a reservation in the queue, go to the directory where you would like your calculations to run (e.g. your scratch or work directories) and run the command
+Note that the ``lpad`` command is from FireWorks and has many functions. As simple modifications to the above command, you can also try ``lpad get_wflows -d more`` (or if you are very curious, ``lpad get_wflows -d all``). You can use ``lpad get_wflows -h`` to see a list of all available modifications and ``lpad -h`` to see all possible commands.
+
+If this works, congrats! You've added a workflow (in this case, just a single calculation) to the FireWorks database.
+
+Submit the workflow
+-------------------
+
+To launch this FireWork through queue, go to the directory where you would like your calculations to run (e.g. your scratch or work directories) and run the command
 
 .. code-block:: bash
 
-    qlaunch singleshot
+    qlaunch rapidfire
 
-**Note**: If you want to run directly rather than through a queue, use ``rlaunch rapidfire`` instead of the ``qlaunch`` command (go through the FireWorks documentation to understand the details).
+There are lots of things to note here:
 
+* As with all FireWorks commands, you can get more options using ``qlaunch rapidfire -h`` or simply ``qlaunch -h``.
+* The qlaunch mode specified above is the simplest and most general way to get started. It will end up creating a somewhat nested directory structure, but this will make more sense when there are many calculations to run.
+* One other option for qlaunch is "reservation mode", i.e., ``qlaunch -r rapidfire``. There are many nice things about this mode - you'll get pretty queue job names that represent your calculated composition and task type (these are really nice to see specifically which calculations are queued) and you'll have more options for tailoring specific queue parameters to specific jobs. However, this mode does add its own complications and we do not recommend starting with it (in many if not most cases, it's not worth switching at all). If you are interested by this option, consult the FireWorks documentation for more details.
+* If you want to run directly on your computing platform rather than through a queue, use ``rlaunch rapidfire`` instead of the ``qlaunch`` command (go through the FireWorks documentation to understand the details).
 
-If all went well, you can check that the FireWork is in the queue by using the commands for your queue system (e.g. ``squeue`` or ``qstat``) or by checking that the state of the FireWork has changed from ``READY`` to ``RESERVED`` with ``lpad get_wflows``. Once this FireWorks is launched and is completed, you can use pymatgen-db to check that it was entered into your results database by running
+If all went well, you can check that the FireWork is in the queue by using the commands for your queue system (e.g. ``squeue`` or ``qstat``). When the job finally starts running, you will see the state of the workflow as running using the command ``lpad get_wflows -d more``.
+
+Analyzing the results
+---------------------
+
+Once this FireWorks is launched and is completed, you can use pymatgen-db to check that it was entered into your results database by running
 
 .. code-block:: bash
 
     mgdb query -c <<INSTALL_DIR>>/config/db.json --props task_id formula_pretty output.energy_per_atom
 
 This time, ``<<INSTALL_DIR>>`` can be relative. You should have seen the energy per atom you calculated for Si.
+
+Note that the ``mgdb`` tools is only one way to see the results. You can connect to your MongoDB and explore the results using any MongoDB analysis tool. In later tools, we'll also demonstrate how various Python classes in atomate also help in retrieving and analyzing data. For now, the ``mgdb`` command is a simple way to get basic properties.
+
+You can also check that the workflow is marked as completed in your FireWorks database:
+
+.. code-block:: bash
+
+    lpad get_wflows -d more
+
+which will show the state of the workflow as COMPLETED.
+
+Next steps
+----------
 
 That's it! You've completed the installation tutorial!
 
