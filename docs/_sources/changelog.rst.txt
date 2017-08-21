@@ -2,6 +2,19 @@
 atomate Changelog
 =================
 
+**v0.6.0**
+
+* Gibbs preset workflow and anharmonic contributions (B. Bocklund)
+* improvements to packmol workflow (K. Mathew)
+* modify_potcar powerup (J. Montoya)
+* more metadata in some analysis collections (B. Bocklund)
+* ability to specify common params in atwf (A. Jain)
+* allow powerups in atwf (J. Montoya)
+* many improvements to builders performance (A. Jain)
+* updates and fixes to installation tutorial (A. Jain, B. Bocklund)
+* unit testing updates (J. Montoya)
+* misc fixes ...
+
 **v0.5.8**
 
 * major improvements to LAMMPS workflow (B. Wood, K. Mathew)
