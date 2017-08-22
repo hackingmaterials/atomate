@@ -22,10 +22,12 @@ import numpy as np
 
 from pymatgen.core.composition import Composition
 from pymatgen.core.structure import Structure
+from pymatgen.core.operations import SymmOp
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp import Vasprun, Outcar
 from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
 from pymatgen.apps.borg.hive import AbstractDrone
+
 
 from matgendb.creator import get_uri
 
@@ -247,6 +249,9 @@ class VaspDrone(AbstractDrone):
             if d["input"]["parameters"].get("LEPSILON"):
                 for k in ['epsilon_static', 'epsilon_static_wolfe', 'epsilon_ionic']:
                     d["output"][k] = d_calc_final["output"][k]
+                if SymmOp.inversion() not in sg.get_symmetry_operations():
+                    for k in ["piezo_ionic_tensor","piezo_tensor"]:
+                        d["output"][k] = d_calc_final["output"]["outcar"][k]
 
             d["state"] = "successful" if d_calc["has_vasp_completed"] else "unsuccessful"
 
