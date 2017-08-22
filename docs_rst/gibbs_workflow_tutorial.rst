@@ -215,6 +215,7 @@ In this tutorial we have further demonstrated the use of atomate preset workflow
 To see what other preset workflows can be run, see the documentation that includes them at :py:mod:`atomate.vasp.workflows.presets`. They can be set up and run in exactly the same way as this tutorial, by passing in a structure and an optional configuration dictionary.
 
 At this point, you might:
+
 * Explore using builders to generate metadata: :ref:`builders`.
 * Skip to learning how to create your own workflows that you can use and distribute: :ref:`creating workflows`.
 
