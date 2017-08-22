@@ -56,7 +56,7 @@ def get_wf_raman_spectra(structure, modes=None, step_size=0.005, vasp_cmd="vasp"
     fws.append(fw_opt)
 
     # Static run: compute the normal modes and pass
-    fw_leps = LepsFW(structure=structure, vasp_cmd=vasp_cmd, db_file=db_file, parents=fw_opt)
+    fw_leps = LepsFW(structure=structure, vasp_cmd=vasp_cmd, db_file=db_file, parents=fw_opt, pass_nm_results=True)
     fws.append(fw_leps)
 
     # Static runs to compute epsilon for each mode and displacement along that mode.

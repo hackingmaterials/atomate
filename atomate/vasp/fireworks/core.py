@@ -178,10 +178,9 @@ class NonSCFFW(Firework):
 
 class LepsFW(Firework):
     def __init__(self, structure, name="static dielectric", vasp_cmd="vasp", copy_vasp_outputs=True,
-                 db_file=None, parents=None, user_incar_settings=None, **kwargs):
+                 db_file=None, parents=None, user_incar_settings=None, pass_nm_results=False, **kwargs):
         """
-         Static calculation Firework that computes the the normal mode eigenvals and vectors
-         using DFPT.
+         Static DFPT calculation Firework
 
         Args:
             structure (Structure): Input structure. If copy_vasp_outputs, used only to set the 
@@ -194,6 +193,8 @@ class LepsFW(Firework):
             parents (Firework): Parents of this particular Firework.
                 FW or list of FWS.
             user_incar_settings (dict): Parameters in INCAR to override
+            pass_nm_results (bool): if true the normal mode eigen vals and vecs are passed so that 
+                next firework can use it.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
 
@@ -213,11 +214,12 @@ class LepsFW(Firework):
 
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
 
-        t.append(pass_vasp_result({"structure": "a>>final_structure",
-                                   "eigenvals": "a>>normalmode_eigenvals",
-                                   "eigenvecs": "a>>normalmode_eigenvecs"},
-                                  parse_eigen=True,
-                                  mod_spec_key="normalmodes"))
+        if pass_nm_results:
+            t.append(pass_vasp_result({"structure": "a>>final_structure",
+                                       "eigenvals": "a>>normalmode_eigenvals",
+                                       "eigenvecs": "a>>normalmode_eigenvecs"},
+                                      parse_eigen=True,
+                                      mod_spec_key="normalmodes"))
 
         t.append(PassCalcLocs(name=name))
 
