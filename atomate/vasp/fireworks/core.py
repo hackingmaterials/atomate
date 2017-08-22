@@ -178,8 +178,7 @@ class NonSCFFW(Firework):
 
 class LepsFW(Firework):
     def __init__(self, structure, name="static dielectric", vasp_cmd="vasp", copy_vasp_outputs=True,
-                 db_file=None, parents=None, phonon=False, mode=None, displacement=None,
-                 user_incar_settings=None, **kwargs):
+                 db_file=None, parents=None, user_incar_settings=None, **kwargs):
         """
         Standard static calculation Firework for dielectric constants using DFPT.
 
@@ -201,6 +200,9 @@ class LepsFW(Firework):
             user_incar_settings (dict): Parameters in INCAR to override
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
+
+        name = "{} {}".format("phonon", name)
+
         user_incar_settings = user_incar_settings or {}
         t = []
 
@@ -215,44 +217,57 @@ class LepsFW(Firework):
                                          user_incar_settings=user_incar_settings)
             t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
 
-        activate_raman = False
-        if phonon:
-            if (mode is not None) and (displacement is not None):
-                activate_raman = True
-
-        # write inputset for the structure displace along the normal mode directions obtained from
-        # the previous phonon calculation.
-        if phonon and activate_raman:
-
-            name = "raman_{}_{} {}".format(str(mode), str(displacement), name)
-            key = "{}_{}".format(mode, displacement).replace('-', 'm').replace('.', 'd')
-            pass_fw = [pass_vasp_result(pass_dict={"mode": mode,
-                                                   "displacement": displacement,
-                                                   "epsilon": "a>>epsilon_static"},
-                                        mod_spec_key="raman_epsilon->" + key,
-                                        parse_eigen=True)]
-
-            t.append(WriteNormalmodeDisplacedPoscar(mode=mode, displacement=displacement))
-
-        # just the dfpt phonon calc and pass along the results
-        elif phonon and not activate_raman:
-
-            name = "{} {}".format("phonon", name)
-            pass_fw = [pass_vasp_result({"structure": "a>>final_structure",
-                                         "eigenvals": "a>>normalmode_eigenvals",
-                                         "eigenvecs": "a>>normalmode_eigenvecs"},
-                                        parse_eigen=True,
-                                        mod_spec_key="normalmodes")]
-
-        else:
-            pass_fw = []
-
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
-        t.extend(pass_fw)
+
+        t.append(pass_vasp_result({"structure": "a>>final_structure",
+                                   "eigenvals": "a>>normalmode_eigenvals",
+                                   "eigenvecs": "a>>normalmode_eigenvecs"},
+                                  parse_eigen=True,
+                                  mod_spec_key="normalmodes"))
+
         t.append(PassCalcLocs(name=name))
+
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
 
         super(LepsFW, self).__init__(t, parents=parents, name="{}-{}".format(
+            structure.composition.reduced_formula, name), **kwargs)
+
+
+class RamanFW(Firework):
+    def __init__(self, structure, mode, displacement, name="raman", vasp_cmd="vasp",
+                 copy_vasp_outputs=True, db_file=None, parents=None, user_incar_settings=None,
+                 **kwargs):
+
+        name = "{}_{}_{} static dielectric".format(name, str(mode), str(displacement))
+
+        user_incar_settings = user_incar_settings or {}
+        t = []
+
+        if copy_vasp_outputs:
+            t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"], contcar_to_poscar=True))
+            t.append(WriteVaspStaticFromPrev(lepsilon=True,
+                                             other_params={'user_incar_settings': user_incar_settings}))
+        else:
+            vasp_input_set = MPStaticSet(structure, lepsilon=True,
+                                         user_incar_settings=user_incar_settings)
+            t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
+
+        t.append(WriteNormalmodeDisplacedPoscar(mode=mode, displacement=displacement))
+
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
+
+        key = "{}_{}".format(mode, displacement).replace('-', 'm').replace('.', 'd')
+        t.append(pass_vasp_result(pass_dict={"mode": mode,
+                                             "displacement": displacement,
+                                             "epsilon": "a>>epsilon_static"},
+                                  mod_spec_key="raman_epsilon->" + key,
+                                  parse_eigen=True))
+
+        t.append(PassCalcLocs(name=name))
+
+        t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
+
+        super(RamanFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)
 
 
