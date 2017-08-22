@@ -180,7 +180,8 @@ class LepsFW(Firework):
     def __init__(self, structure, name="static dielectric", vasp_cmd="vasp", copy_vasp_outputs=True,
                  db_file=None, parents=None, user_incar_settings=None, **kwargs):
         """
-        Standard static calculation Firework for dielectric constants using DFPT.
+         Static calculation Firework that computes the the normal mode eigenvals and vectors
+         using DFPT.
 
         Args:
             structure (Structure): Input structure. If copy_vasp_outputs, used only to set the 
@@ -192,11 +193,6 @@ class LepsFW(Firework):
             db_file (str): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework.
                 FW or list of FWS.
-            phonon (bool): Whether or not to extract normal modes and pass it. This argument along
-                with the mode and displacement arguments must be set for the calculation of
-                dielectric constant in the Raman tensor workflow.
-            mode (int): normal mode index.
-            displacement (float): displacement along the normal mode in Angstroms.
             user_incar_settings (dict): Parameters in INCAR to override
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
@@ -209,9 +205,7 @@ class LepsFW(Firework):
         if copy_vasp_outputs:
             t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
                                      contcar_to_poscar=True))
-            t.append(WriteVaspStaticFromPrev(lepsilon=True,
-                                             other_params={
-                                                 'user_incar_settings': user_incar_settings}))
+            t.append(WriteVaspStaticFromPrev(lepsilon=True, other_params={'user_incar_settings': user_incar_settings}))
         else:
             vasp_input_set = MPStaticSet(structure, lepsilon=True,
                                          user_incar_settings=user_incar_settings)
@@ -234,23 +228,33 @@ class LepsFW(Firework):
 
 
 class RamanFW(Firework):
-    def __init__(self, structure, mode, displacement, name="raman", vasp_cmd="vasp",
-                 copy_vasp_outputs=True, db_file=None, parents=None, user_incar_settings=None,
-                 **kwargs):
+    def __init__(self, structure, mode, displacement, name="raman", vasp_cmd="vasp", db_file=None,
+                 parents=None, user_incar_settings=None, **kwargs):
+        """
+        Static calculation Firework that computes the DFPT dielectric constant for
+        structure displaced along the given normal mode direction.
+
+        Args:
+            structure (Structure): Input structure. If copy_vasp_outputs, used only to set the
+                name of the FW.
+            mode (int): normal mode index.
+            displacement (float): displacement along the normal mode in Angstroms.
+            name (str): Name for the Firework.
+            vasp_cmd (str): Command to run vasp.
+            db_file (str): Path to file specifying db credentials.
+            parents (Firework): Parents of this particular Firework.
+                FW or list of FWS.
+            user_incar_settings (dict): Parameters in INCAR to override
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
 
         name = "{}_{}_{} static dielectric".format(name, str(mode), str(displacement))
-
         user_incar_settings = user_incar_settings or {}
         t = []
 
-        if copy_vasp_outputs:
-            t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"], contcar_to_poscar=True))
-            t.append(WriteVaspStaticFromPrev(lepsilon=True,
-                                             other_params={'user_incar_settings': user_incar_settings}))
-        else:
-            vasp_input_set = MPStaticSet(structure, lepsilon=True,
-                                         user_incar_settings=user_incar_settings)
-            t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
+        t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"], contcar_to_poscar=True))
+
+        t.append(WriteVaspStaticFromPrev(lepsilon=True, other_params={'user_incar_settings': user_incar_settings}))
 
         t.append(WriteNormalmodeDisplacedPoscar(mode=mode, displacement=displacement))
 
@@ -260,7 +264,7 @@ class RamanFW(Firework):
         t.append(pass_vasp_result(pass_dict={"mode": mode,
                                              "displacement": displacement,
                                              "epsilon": "a>>epsilon_static"},
-                                  mod_spec_key="raman_epsilon->" + key,
+                                  mod_spec_key="raman_epsilon->{}".format(key),
                                   parse_eigen=True))
 
         t.append(PassCalcLocs(name=name))
