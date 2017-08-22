@@ -212,9 +212,9 @@ Conclusion
 
 In this tutorial we have further demonstrated the use of atomate preset workflows to easily calculate and analyze interesting materials properties.
 
-To see what other preset workflows can be run, see the documentation that includes them at :py:mod:`atomate.vasp.workflows.presets`.
-They can be set up and run in exactly the same way as this tutorial, by passing in a structure and an optional configuration dictionary.
+To see what other preset workflows can be run, see the documentation that includes them at :py:mod:`atomate.vasp.workflows.presets`. They can be set up and run in exactly the same way as this tutorial, by passing in a structure and an optional configuration dictionary.
 
-Eventually you may want to create your own workflows that you can use and distribute.
-The :ref:`creating workflows` article is a guide for writing custom workflows in Python.
+At this point, you might:
+* Explore using builders to generate metadata: :ref:`builders`.
+* Skip to learning how to create your own workflows that you can use and distribute: :ref:`creating workflows`.
 

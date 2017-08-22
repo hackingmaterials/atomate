@@ -225,10 +225,10 @@ Conclusion
 
 In this tutorial you learned how run a workflow from in a YAML file without writing any code and to do the same in Python.
 
-To see what preset workflows can be run, see the documentation that includes them at :py:mod:`atomate.vasp.workflows.presets`.
-They can be set up the same way as in this tutorial.
-Another example follows for running a Gibbs free energy workflow: :ref:`running gibbs workflows`.
+To see what preset workflows can be run, see the documentation that includes them at :py:mod:`atomate.vasp.workflows.presets`. They can be set up the same way as in this tutorial.
 
-Eventually you may want to create your own workflows that you can use and distribute.
-The :ref:`creating workflows` article is a guide for writing custom workflows in Python.
+At this point, you might:
+* Try another example: running a Gibbs free energy workflow: :ref:`running gibbs workflows`.
+* Skip to exploring how to use builders to generate metadata: :ref:`builders`.
+* Skip to learning how to create your own workflows that you can use and distribute: :ref:`creating workflows`.
 
