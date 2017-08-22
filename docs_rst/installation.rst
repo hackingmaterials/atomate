@@ -138,7 +138,7 @@ We highly recommended that you organize your installation of the atomate and the
  * Different versions of Python can exist on the same machine and be managed more easily (e.g. Python 2 and Python 3).
  * You have full rights and control over the environment. If it breaks, you can just delete the folder containing the environment and recreate it. On computing resources, this solves permissions issues with installing and modifying packages.
 
-The easiest way to get a Python virtual environment is to use the ``virtualenv`` tool. Most Python distributions come with ``virtualenv``, but some clusters (e.g., NERSC) have moved towards using Anaconda_, which is a popular distribution of Python designed for scientific computing that can serve the same purpose. If the compute resource you want to access is using Anaconda, you will follow the same general steps, but create your environment with ``conda create``. See the `documentation for the conda command line tool here`_ as well as a `conversion between virtualenv and conda commands <https://conda.io/docs/_downloads/conda-pip-virtualenv-translator.html>`_. To set up your virtual environment:
+The easiest way to get a Python virtual environment is to use the ``virtualenv`` tool. Most Python distributions come with ``virtualenv``, but some clusters (e.g., NERSC) have moved towards using Anaconda_, which is a popular distribution of Python designed for scientific computing that can serve the same purpose. If the compute resource you want to access is using Anaconda, you will follow the same general steps, but create your environment with ``conda create``. See the `documentation for the conda command line tool here`_ as well as a `conversion between virtualenv and conda commands <https://conda.io/docs/commands.html#conda-vs-pip-vs-virtualenv-commands>`_. To set up your virtual environment:
 
 
 #. Go to your install directory (``<<INSTALL_DIR>>``) and create a virtual environment there. A good name might be ``atomate_env``. The default command to create the environment would be ``virtualenv atomate_env``, which creates a folder ``atomate_env`` in the directory you are in.
@@ -160,9 +160,9 @@ The easiest way to get a Python virtual environment is to use the ``virtualenv``
 
 #. If you look in the ``bin`` directory, you will see several programs, such as activate, pip, and Python itself. ``lib`` will be where all of your installed packages will be kept, etc. Again, if anything goes wrong in installing Python codes, you can just delete the virtual environment directory (``atomate_env``) and start again.
 
-#. Activate your environment by running ``source <<INSTALL_DIR>>/atomate_env/activate``. This makes it so when you use the command ``python``, the version of ``python`` that you use will be the one in the  ``bin`` directory rather than the system-wide Python. You can read the activation script if you are interested. It's just does a little magic to adjust your path to point towards the ``bin`` and other directories you created.
+#. Activate your environment by running ``source <<INSTALL_DIR>>/atomate_env/bin/activate``. This makes it so when you use the command ``python``, the version of ``python`` that you use will be the one in the  ``bin`` directory rather than the system-wide Python. You can read the activation script if you are interested. It's just does a little magic to adjust your path to point towards the ``bin`` and other directories you created.
 
-#. Consider adding ``source <<INSTALL_DIR>>/atomate_env/activate`` to your .rc file so that it is run whenever you log in. Otherwise, note that you must call this command after every log in before you can do work on your atomate project.
+#. Consider adding ``source <<INSTALL_DIR>>/atomate_env/bin/activate`` to your .rc file so that it is run whenever you log in. Otherwise, note that you must call this command after every log in before you can do work on your atomate project.
 
 .. _Anaconda: https://www.continuum.io
 .. _documentation for the conda command line tool here: https://conda.io/docs/using/envs.html
@@ -190,19 +190,21 @@ Our recommendation (and the procedure below) is to install directly from GitHub 
 
 #. Clone each of the following packages from GitHub using git. You don't have to know the details of how to use git for the installation, but if you are going to be developing code in Python, you should take a look at this `simple git introduction`_. Most Linux distributions include git, so you shouldn't have to install it on the cluster. To download the codes, use the following commands (one command per line)::
 
-        git clone https://www.github.com/materialsproject/fireworks.git
-        git clone https://www.github.com/materialsproject/pymatgen.git
-        git clone https://www.github.com/atztogo/phonopy.git  # OPTIONAL! Only used for certain calculations
-        git clone https://www.github.com/materialsvirtuallab/pymatgen-diffusion.git  # OPTIONAL! Only used for certain calculations
-        git clone https://www.github.com/materialsproject/pymatgen-db.git
-        git clone https://www.github.com/materialsproject/custodian.git
-        git clone https://www.github.com/hackingmaterials/atomate.git
+        git clone https://github.com/materialsproject/fireworks.git
+        git clone https://github.com/materialsproject/pymatgen.git
+        git clone https://github.com/atztogo/phonopy.git  # OPTIONAL! Only used for certain calculations
+        git clone https://github.com/materialsvirtuallab/pymatgen-diffusion.git  # OPTIONAL! Only used for certain calculations
+        git clone https://github.com/materialsproject/pymatgen-db.git
+        git clone https://github.com/materialsproject/custodian.git
+        git clone https://github.com/hackingmaterials/atomate.git
 
   Now you should have atomate, custodian, FireWorks, phonopy, pymatgen, pymatgen-db and pymatgen-diffusion folders in your ``codes`` directory.
 
 #. **It is important that you follow the order listed above to install packages**. For example, you must install atomate last so that it uses your custom installation of pymatgen rather than pulling in the requirements as an external library from PyPI. If you don't, you might end up with two versions of the same code - one installed via Github and another via pip.
 
-#. For each of these folders, you ``cd`` into the folders and ``pip install -e .`` (ehe ``-e`` flag installs as editable, and the ``.`` simply means to install from the ``setup.py`` in the current directory) or use the ``conda`` equivalent of this command. There are several clever ways to do this in a one line command as a loop which you can use as an exercise of your shell capabilities [#]_. Note that once installed, if you make changes to the code in these directories, the changes will impact immediately without needing to reinstall. Thus, you can view and modify the code installed in these directories.
+#. For each of these folders, you ``cd`` into the folders and ``pip install -e .`` (ehe ``-e`` flag installs as editable, and the ``.`` simply means to install from the ``setup.py`` in the current directory) or use the ``conda`` equivalent of this command. If you run into problems during this procedure, you may need manually install or load certain dependencies (e.g., use ``module load numpy`` on your system or ``pip install numpy`` or ``conda install numpy``). Note that if you don't like to ``cd`` all the time, there are several clever ways to do this in a one line command as a loop which you can use as an exercise of your shell capabilities [#]_. Note that once installed, if you make changes to the code in these directories, the changes will impact immediately without needing to reinstall. Thus, you can both view and modify the code installed in these directories.
+
+#. If you want to update these codes later on, execute ``git pull`` followed by ``python setup.py develop`` (the latter is required when the code version changes) in the relevant directory. Note that you should update codes in the same order as installation as listed above.
 
 .. _conda: https://conda.io/docs/using/pkgs.html
 .. _PyPI: https://pypi.python.org/pypi
@@ -531,13 +533,13 @@ To launch this FireWork through queue, go to the directory where you would like 
 
 .. code-block:: bash
 
-    qlaunch rapidfire
+    qlaunch rapidfire -m 1
 
 There are lots of things to note here:
 
-* As with all FireWorks commands, you can get more options using ``qlaunch rapidfire -h`` or simply ``qlaunch -h``.
+* The ``-m 1`` means to keep a maximum of 1 job in the queue to prevent submitting too many jobs. As with all FireWorks commands, you can get more options using ``qlaunch rapidfire -h`` or simply ``qlaunch -h``.
 * The qlaunch mode specified above is the simplest and most general way to get started. It will end up creating a somewhat nested directory structure, but this will make more sense when there are many calculations to run.
-* One other option for qlaunch is "reservation mode", i.e., ``qlaunch -r rapidfire``. There are many nice things about this mode - you'll get pretty queue job names that represent your calculated composition and task type (these are really nice to see specifically which calculations are queued) and you'll have more options for tailoring specific queue parameters to specific jobs. However, this mode does add its own complications and we do not recommend starting with it (in many if not most cases, it's not worth switching at all). If you are interested by this option, consult the FireWorks documentation for more details.
+* One other option for qlaunch is "reservation mode", i.e., ``qlaunch -r rapidfire``. There are many nice things about this mode - you'll get pretty queue job names that represent your calculated composition and task type (these are really nice to see specifically which calculations are queued) and you'll have more options for tailoring specific queue parameters to specific jobs. In addition, reservation mode will automatically stop submitting jobs to the queue depending on how many jobs you have in the database so you don't need to use the ``-m 1`` parameter (this is usually desirable and nice, although in some cases it's better to submit to the queue first and add jobs to the database later which reservation mode doesn't support). However, reservation mode does add its own complications and we do not recommend starting with it (in many if not most cases, it's not worth switching at all). If you are interested by this option, consult the FireWorks documentation for more details.
 * If you want to run directly on your computing platform rather than through a queue, use ``rlaunch rapidfire`` instead of the ``qlaunch`` command (go through the FireWorks documentation to understand the details).
 
 If all went well, you can check that the FireWork is in the queue by using the commands for your queue system (e.g. ``squeue`` or ``qstat``). When the job finally starts running, you will see the state of the workflow as running using the command ``lpad get_wflows -d more``.
