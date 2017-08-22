@@ -215,45 +215,42 @@ class LepsFW(Firework):
                                          user_incar_settings=user_incar_settings)
             t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
 
+        activate_raman = False
         if phonon:
-            if mode is None and displacement is None:
-                # TODO: @matk86 - I really don't understand the point of setting phonon=True w/o
-                # the mode or displacement. It seems to simply be running a regular static run and
-                # doing nothing else than changing the name of the Firework and perhaps passing
-                # normal modes data (but it's unclear how that data is generated. Why would anyone
-                # want to do this? -computron
-                name = "{} {}".format("phonon", name)
+            if (mode is not None) and (displacement is not None):
+                activate_raman = True
 
-                # TODO: @matk86 - not sure why this line is here. I understand you are trying to
-                # keep the code short but the logic is very confusing. The RunVaspCustodian is
-                # common to all 3 situations (phonon=F, phonon=T/mode=F, phonon=T/mode=T) yet is
-                # duplicated in each place. Instead, for better clarity construct the Firework
-                # sequentially (write inputs, run vasp, parse output data, pass output data) and
-                # add if/else for phonons where it is needed. Any name overrides can go near the
-                # top of the Firework. -computron
-                t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
-                t.append(pass_vasp_result({"structure": "a>>final_structure",
-                                           "eigenvals": "a>>normalmode_eigenvals",
-                                           "eigenvecs": "a>>normalmode_eigenvecs"}, parse_eigen=True,
-                                           mod_spec_key="normalmodes"))
-            else:
-                # TODO: @matk86 - Why is this second calculation being tacked on to the first one?
-                # It looks like it will overwrite INCAR/CHGCAR/etc of the first calculation and
-                # thus completely remove access to the original output files. Shouldn't this be a
-                # new Firework rather than a second calculation in the same Firework? -computron
-                name = "raman_{}_{} {}".format(str(mode), str(displacement), name)
-                key = "{}_{}".format(mode, displacement).replace('-', 'm').replace('.', 'd')
-                pass_fw = pass_vasp_result(pass_dict={"mode": mode, "displacement": displacement,
-                                                      "epsilon": "a>>epsilon_static"},
-                                           mod_spec_key="raman_epsilon->" + key,
-                                           parse_eigen=True)
-                t.extend([WriteNormalmodeDisplacedPoscar(mode=mode, displacement=displacement),
-                          RunVaspCustodian(vasp_cmd=vasp_cmd), pass_fw])
+        # write inputset for the structure displace along the normal mode directions obtained from
+        # the previous phonon calculation.
+        if phonon and activate_raman:
+
+            name = "raman_{}_{} {}".format(str(mode), str(displacement), name)
+            key = "{}_{}".format(mode, displacement).replace('-', 'm').replace('.', 'd')
+            pass_fw = [pass_vasp_result(pass_dict={"mode": mode,
+                                                   "displacement": displacement,
+                                                   "epsilon": "a>>epsilon_static"},
+                                        mod_spec_key="raman_epsilon->" + key,
+                                        parse_eigen=True)]
+
+            t.append(WriteNormalmodeDisplacedPoscar(mode=mode, displacement=displacement))
+
+        # just the dfpt phonon calc and pass along the results
+        elif phonon and not activate_raman:
+
+            name = "{} {}".format("phonon", name)
+            pass_fw = [pass_vasp_result({"structure": "a>>final_structure",
+                                         "eigenvals": "a>>normalmode_eigenvals",
+                                         "eigenvecs": "a>>normalmode_eigenvecs"},
+                                        parse_eigen=True,
+                                        mod_spec_key="normalmodes")]
+
         else:
-            t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
+            pass_fw = []
 
-        t.extend([PassCalcLocs(name=name),
-                  VaspToDb(db_file=db_file, additional_fields={"task_label": name})])
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
+        t.extend(pass_fw)
+        t.append(PassCalcLocs(name=name))
+        t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
 
         super(LepsFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)
