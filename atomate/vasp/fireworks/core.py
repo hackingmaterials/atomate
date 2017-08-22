@@ -204,12 +204,10 @@ class LepsFW(Firework):
         t = []
 
         if copy_vasp_outputs:
-            t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
-                                     contcar_to_poscar=True))
+            t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
             t.append(WriteVaspStaticFromPrev(lepsilon=True, other_params={'user_incar_settings': user_incar_settings}))
         else:
-            vasp_input_set = MPStaticSet(structure, lepsilon=True,
-                                         user_incar_settings=user_incar_settings)
+            vasp_input_set = MPStaticSet(structure, lepsilon=True, user_incar_settings=user_incar_settings)
             t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
 
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
@@ -254,7 +252,7 @@ class RamanFW(Firework):
         user_incar_settings = user_incar_settings or {}
         t = []
 
-        t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"], contcar_to_poscar=True))
+        t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
 
         t.append(WriteVaspStaticFromPrev(lepsilon=True, other_params={'user_incar_settings': user_incar_settings}))
 
