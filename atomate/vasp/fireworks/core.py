@@ -178,8 +178,8 @@ class NonSCFFW(Firework):
             structure.composition.reduced_formula, name, mode), **kwargs)
 
 
+@deprecated(None, " This firework will be removed soon. Use DFPTFW and/or RamanFW fireworks.")
 class LepsFW(Firework):
-    @deprecated(None, " This firework will be removed soon. Use DFPTFW and/or RamanFW fireworks.")
     def __init__(self, structure, name="static dielectric", vasp_cmd="vasp", copy_vasp_outputs=True,
                  db_file=None, parents=None, phonon=False, mode=None, displacement=None,
                  user_incar_settings=None, **kwargs):
