@@ -220,12 +220,13 @@ class LepsFW(Firework):
                                       parse_eigen=True,
                                       mod_spec_key="normalmodes"))
 
-        t.append(PassCalcLocs(name=name))
-
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
 
+        spec = kwargs.pop("spec", {})
+        spec.update({"_files_out": {"POSCAR": "CONTCAR", "OUTCAR": "OUTCAR*", 'vasprunxml': "vasprun.xml*"}})
+
         super(LepsFW, self).__init__(t, parents=parents, name="{}-{}".format(
-            structure.composition.reduced_formula, name), **kwargs)
+            structure.composition.reduced_formula, name), spec=spec, **kwargs)
 
 
 class RamanFW(Firework):
@@ -251,9 +252,11 @@ class RamanFW(Firework):
 
         name = "{}_{}_{} static dielectric".format(name, str(mode), str(displacement))
         user_incar_settings = user_incar_settings or {}
-        t = []
 
-        t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
+        spec = kwargs.pop("spec", {})
+        spec.update({"_files_in": {"POSCAR": "POSCAR", "OUTCAR": "OUTCAR", "vasprunxml": "vasprun.xml"}})
+
+        t = []
 
         t.append(WriteVaspStaticFromPrev(lepsilon=True, other_params={'user_incar_settings': user_incar_settings}))
 
@@ -273,7 +276,7 @@ class RamanFW(Firework):
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
 
         super(RamanFW, self).__init__(t, parents=parents, name="{}-{}".format(
-            structure.composition.reduced_formula, name), **kwargs)
+            structure.composition.reduced_formula, name), spec=spec, **kwargs)
 
 
 class SOCFW(Firework):
