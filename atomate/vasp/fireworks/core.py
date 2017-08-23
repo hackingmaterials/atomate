@@ -184,6 +184,59 @@ class LepsFW(Firework):
          Static DFPT calculation Firework
 
         Args:
+            structure (Structure): Input structure. If copy_vasp_outputs, used only to set the
+                name of the FW.
+            name (str): Name for the Firework.
+            vasp_cmd (str): Command to run vasp.
+            copy_vasp_outputs (bool): Whether to copy outputs from previous
+                run. Defaults to True.
+            db_file (str): Path to file specifying db credentials.
+            parents (Firework): Parents of this particular Firework.
+                FW or list of FWS.
+            user_incar_settings (dict): Parameters in INCAR to override
+            pass_nm_results (bool): if true the normal mode eigen vals and vecs are passed so that
+                next firework can use it.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+
+        name = "{} {}".format("phonon", name)
+
+        user_incar_settings = user_incar_settings or {}
+        t = []
+
+        if copy_vasp_outputs:
+            t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
+            t.append(WriteVaspStaticFromPrev(lepsilon=True, other_params={'user_incar_settings': user_incar_settings}))
+        else:
+            vasp_input_set = MPStaticSet(structure, lepsilon=True, user_incar_settings=user_incar_settings)
+            t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
+
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
+
+        if pass_nm_results:
+            t.append(pass_vasp_result({"structure": "a>>final_structure",
+                                       "eigenvals": "a>>normalmode_eigenvals",
+                                       "eigenvecs": "a>>normalmode_eigenvecs"},
+                                      parse_eigen=True,
+                                      mod_spec_key="normalmodes"))
+
+        t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
+
+        spec = kwargs.pop("spec", {})
+        spec.update({"_files_out": {"POSCAR": "CONTCAR", "OUTCAR": "OUTCAR*", 'vasprunxml': "vasprun.xml*"}})
+
+        super(DFPTPhononFW, self).__init__(t, parents=parents, name="{}-{}".format(
+            structure.composition.reduced_formula, name), spec=spec, **kwargs)
+
+
+class DFPTPhononFW(Firework):
+    def __init__(self, structure, name="static dielectric", vasp_cmd="vasp", copy_vasp_outputs=True,
+                 db_file=None, parents=None, user_incar_settings=None, pass_nm_results=False, **kwargs):
+
+        """
+         Static DFPT calculation Firework
+
+        Args:
             structure (Structure): Input structure. If copy_vasp_outputs, used only to set the 
                 name of the FW.
             name (str): Name for the Firework.
@@ -225,7 +278,7 @@ class LepsFW(Firework):
         spec = kwargs.pop("spec", {})
         spec.update({"_files_out": {"POSCAR": "CONTCAR", "OUTCAR": "OUTCAR*", 'vasprunxml': "vasprun.xml*"}})
 
-        super(LepsFW, self).__init__(t, parents=parents, name="{}-{}".format(
+        super(DFPTPhononFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), spec=spec, **kwargs)
 
 
