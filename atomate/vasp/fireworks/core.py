@@ -179,6 +179,7 @@ class NonSCFFW(Firework):
 class LepsFW(Firework):
     def __init__(self, structure, name="static dielectric", vasp_cmd="vasp", copy_vasp_outputs=True,
                  db_file=None, parents=None, user_incar_settings=None, pass_nm_results=False, **kwargs):
+
         """
          Static DFPT calculation Firework
 
