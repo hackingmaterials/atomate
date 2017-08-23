@@ -7,6 +7,8 @@ Defines standardized Fireworks that can be chained easily to perform various
 sequences of VASP calculations.
 """
 
+from monty.dev import deprecated
+
 from fireworks import Firework
 
 from pymatgen import Structure
@@ -176,6 +178,7 @@ class NonSCFFW(Firework):
             structure.composition.reduced_formula, name, mode), **kwargs)
 
 
+@deprecated(None, " This firework will be removed soon. Use DFPTFW and/or RamanFW fireworks.")
 class LepsFW(Firework):
     def __init__(self, structure, name="static dielectric", vasp_cmd="vasp", copy_vasp_outputs=True,
                  db_file=None, parents=None, phonon=False, mode=None, displacement=None,
@@ -184,7 +187,7 @@ class LepsFW(Firework):
         Standard static calculation Firework for dielectric constants using DFPT.
 
         Args:
-            structure (Structure): Input structure. If copy_vasp_outputs, used only to set the 
+            structure (Structure): Input structure. If copy_vasp_outputs, used only to set the
                 name of the FW.
             name (str): Name for the Firework.
             vasp_cmd (str): Command to run vasp.
@@ -217,30 +220,13 @@ class LepsFW(Firework):
 
         if phonon:
             if mode is None and displacement is None:
-                # TODO: @matk86 - I really don't understand the point of setting phonon=True w/o
-                # the mode or displacement. It seems to simply be running a regular static run and
-                # doing nothing else than changing the name of the Firework and perhaps passing
-                # normal modes data (but it's unclear how that data is generated. Why would anyone
-                # want to do this? -computron
                 name = "{} {}".format("phonon", name)
-
-                # TODO: @matk86 - not sure why this line is here. I understand you are trying to
-                # keep the code short but the logic is very confusing. The RunVaspCustodian is
-                # common to all 3 situations (phonon=F, phonon=T/mode=F, phonon=T/mode=T) yet is
-                # duplicated in each place. Instead, for better clarity construct the Firework
-                # sequentially (write inputs, run vasp, parse output data, pass output data) and
-                # add if/else for phonons where it is needed. Any name overrides can go near the
-                # top of the Firework. -computron
                 t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
                 t.append(pass_vasp_result({"structure": "a>>final_structure",
                                            "eigenvals": "a>>normalmode_eigenvals",
                                            "eigenvecs": "a>>normalmode_eigenvecs"}, parse_eigen=True,
                                            mod_spec_key="normalmodes"))
             else:
-                # TODO: @matk86 - Why is this second calculation being tacked on to the first one?
-                # It looks like it will overwrite INCAR/CHGCAR/etc of the first calculation and
-                # thus completely remove access to the original output files. Shouldn't this be a
-                # new Firework rather than a second calculation in the same Firework? -computron
                 name = "raman_{}_{} {}".format(str(mode), str(displacement), name)
                 key = "{}_{}".format(mode, displacement).replace('-', 'm').replace('.', 'd')
                 pass_fw = pass_vasp_result(pass_dict={"mode": mode, "displacement": displacement,
@@ -257,6 +243,109 @@ class LepsFW(Firework):
 
         super(LepsFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)
+
+
+class DFPTFW(Firework):
+    def __init__(self, structure, name="static dielectric", vasp_cmd="vasp", copy_vasp_outputs=True,
+                 db_file=None, parents=None, user_incar_settings=None, pass_nm_results=False, **kwargs):
+
+        """
+         Static DFPT calculation Firework
+
+        Args:
+            structure (Structure): Input structure. If copy_vasp_outputs, used only to set the
+                name of the FW.
+            name (str): Name for the Firework.
+            vasp_cmd (str): Command to run vasp.
+            copy_vasp_outputs (bool): Whether to copy outputs from previous
+                run. Defaults to True.
+            db_file (str): Path to file specifying db credentials.
+            parents (Firework): Parents of this particular Firework.
+                FW or list of FWS.
+            user_incar_settings (dict): Parameters in INCAR to override
+            pass_nm_results (bool): if true the normal mode eigen vals and vecs are passed so that
+                next firework can use it.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+
+        name = "{} {}".format("phonon", name)
+
+        user_incar_settings = user_incar_settings or {}
+        t = []
+
+        if copy_vasp_outputs:
+            t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
+            t.append(WriteVaspStaticFromPrev(lepsilon=True, other_params={'user_incar_settings': user_incar_settings}))
+        else:
+            vasp_input_set = MPStaticSet(structure, lepsilon=True, user_incar_settings=user_incar_settings)
+            t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
+
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
+
+        if pass_nm_results:
+            t.append(pass_vasp_result({"structure": "a>>final_structure",
+                                       "eigenvals": "a>>normalmode_eigenvals",
+                                       "eigenvecs": "a>>normalmode_eigenvecs"},
+                                      parse_eigen=True,
+                                      mod_spec_key="normalmodes"))
+
+        t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
+
+        spec = kwargs.pop("spec", {})
+        spec.update({"_files_out": {"POSCAR": "CONTCAR", "OUTCAR": "OUTCAR*", 'vasprunxml': "vasprun.xml*"}})
+
+        super(DFPTFW, self).__init__(t, parents=parents, name="{}-{}".format(
+            structure.composition.reduced_formula, name), spec=spec, **kwargs)
+
+
+class RamanFW(Firework):
+    def __init__(self, structure, mode, displacement, name="raman", vasp_cmd="vasp", db_file=None,
+                 parents=None, user_incar_settings=None, **kwargs):
+        """
+        Static calculation Firework that computes the DFPT dielectric constant for
+        structure displaced along the given normal mode direction.
+
+        Args:
+            structure (Structure): Input structure. If copy_vasp_outputs, used only to set the
+                name of the FW.
+            mode (int): normal mode index.
+            displacement (float): displacement along the normal mode in Angstroms.
+            name (str): Name for the Firework.
+            vasp_cmd (str): Command to run vasp.
+            db_file (str): Path to file specifying db credentials.
+            parents (Firework): Parents of this particular Firework.
+                FW or list of FWS.
+            user_incar_settings (dict): Parameters in INCAR to override
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+
+        name = "{}_{}_{} static dielectric".format(name, str(mode), str(displacement))
+        user_incar_settings = user_incar_settings or {}
+
+        spec = kwargs.pop("spec", {})
+        spec.update({"_files_in": {"POSCAR": "POSCAR", "OUTCAR": "OUTCAR", "vasprunxml": "vasprun.xml"}})
+
+        t = []
+
+        t.append(WriteVaspStaticFromPrev(lepsilon=True, other_params={'user_incar_settings': user_incar_settings}))
+
+        t.append(WriteNormalmodeDisplacedPoscar(mode=mode, displacement=displacement))
+
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
+
+        key = "{}_{}".format(mode, displacement).replace('-', 'm').replace('.', 'd')
+        t.append(pass_vasp_result(pass_dict={"mode": mode,
+                                             "displacement": displacement,
+                                             "epsilon": "a>>epsilon_static"},
+                                  mod_spec_key="raman_epsilon->{}".format(key),
+                                  parse_eigen=True))
+
+        t.append(PassCalcLocs(name=name))
+
+        t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
+
+        super(RamanFW, self).__init__(t, parents=parents, name="{}-{}".format(
+            structure.composition.reduced_formula, name), spec=spec, **kwargs)
 
 
 class SOCFW(Firework):
