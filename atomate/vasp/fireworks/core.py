@@ -7,6 +7,8 @@ Defines standardized Fireworks that can be chained easily to perform various
 sequences of VASP calculations.
 """
 
+from monty.dev import deprecated
+
 from fireworks import Firework
 
 from pymatgen import Structure
@@ -177,6 +179,73 @@ class NonSCFFW(Firework):
 
 
 class LepsFW(Firework):
+    @deprecated(None, " This firework will be removed soon. Use DFPTFW and/or RamanFW fireworks.")
+    def __init__(self, structure, name="static dielectric", vasp_cmd="vasp", copy_vasp_outputs=True,
+                 db_file=None, parents=None, phonon=False, mode=None, displacement=None,
+                 user_incar_settings=None, **kwargs):
+        """
+        Standard static calculation Firework for dielectric constants using DFPT.
+
+        Args:
+            structure (Structure): Input structure. If copy_vasp_outputs, used only to set the
+                name of the FW.
+            name (str): Name for the Firework.
+            vasp_cmd (str): Command to run vasp.
+            copy_vasp_outputs (bool): Whether to copy outputs from previous
+                run. Defaults to True.
+            db_file (str): Path to file specifying db credentials.
+            parents (Firework): Parents of this particular Firework.
+                FW or list of FWS.
+            phonon (bool): Whether or not to extract normal modes and pass it. This argument along
+                with the mode and displacement arguments must be set for the calculation of
+                dielectric constant in the Raman tensor workflow.
+            mode (int): normal mode index.
+            displacement (float): displacement along the normal mode in Angstroms.
+            user_incar_settings (dict): Parameters in INCAR to override
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+        user_incar_settings = user_incar_settings or {}
+        t = []
+
+        if copy_vasp_outputs:
+            t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
+                                     contcar_to_poscar=True))
+            t.append(WriteVaspStaticFromPrev(lepsilon=True,
+                                             other_params={
+                                                 'user_incar_settings': user_incar_settings}))
+        else:
+            vasp_input_set = MPStaticSet(structure, lepsilon=True,
+                                         user_incar_settings=user_incar_settings)
+            t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
+
+        if phonon:
+            if mode is None and displacement is None:
+                name = "{} {}".format("phonon", name)
+                t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
+                t.append(pass_vasp_result({"structure": "a>>final_structure",
+                                           "eigenvals": "a>>normalmode_eigenvals",
+                                           "eigenvecs": "a>>normalmode_eigenvecs"}, parse_eigen=True,
+                                           mod_spec_key="normalmodes"))
+            else:
+                name = "raman_{}_{} {}".format(str(mode), str(displacement), name)
+                key = "{}_{}".format(mode, displacement).replace('-', 'm').replace('.', 'd')
+                pass_fw = pass_vasp_result(pass_dict={"mode": mode, "displacement": displacement,
+                                                      "epsilon": "a>>epsilon_static"},
+                                           mod_spec_key="raman_epsilon->" + key,
+                                           parse_eigen=True)
+                t.extend([WriteNormalmodeDisplacedPoscar(mode=mode, displacement=displacement),
+                          RunVaspCustodian(vasp_cmd=vasp_cmd), pass_fw])
+        else:
+            t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
+
+        t.extend([PassCalcLocs(name=name),
+                  VaspToDb(db_file=db_file, additional_fields={"task_label": name})])
+
+        super(LepsFW, self).__init__(t, parents=parents, name="{}-{}".format(
+            structure.composition.reduced_formula, name), **kwargs)
+
+
+class DFPTFW(Firework):
     def __init__(self, structure, name="static dielectric", vasp_cmd="vasp", copy_vasp_outputs=True,
                  db_file=None, parents=None, user_incar_settings=None, pass_nm_results=False, **kwargs):
 
@@ -225,60 +294,7 @@ class LepsFW(Firework):
         spec = kwargs.pop("spec", {})
         spec.update({"_files_out": {"POSCAR": "CONTCAR", "OUTCAR": "OUTCAR*", 'vasprunxml': "vasprun.xml*"}})
 
-        super(DFPTPhononFW, self).__init__(t, parents=parents, name="{}-{}".format(
-            structure.composition.reduced_formula, name), spec=spec, **kwargs)
-
-
-class DFPTPhononFW(Firework):
-    def __init__(self, structure, name="static dielectric", vasp_cmd="vasp", copy_vasp_outputs=True,
-                 db_file=None, parents=None, user_incar_settings=None, pass_nm_results=False, **kwargs):
-
-        """
-         Static DFPT calculation Firework
-
-        Args:
-            structure (Structure): Input structure. If copy_vasp_outputs, used only to set the 
-                name of the FW.
-            name (str): Name for the Firework.
-            vasp_cmd (str): Command to run vasp.
-            copy_vasp_outputs (bool): Whether to copy outputs from previous
-                run. Defaults to True.
-            db_file (str): Path to file specifying db credentials.
-            parents (Firework): Parents of this particular Firework.
-                FW or list of FWS.
-            user_incar_settings (dict): Parameters in INCAR to override
-            pass_nm_results (bool): if true the normal mode eigen vals and vecs are passed so that 
-                next firework can use it.
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
-        """
-
-        name = "{} {}".format("phonon", name)
-
-        user_incar_settings = user_incar_settings or {}
-        t = []
-
-        if copy_vasp_outputs:
-            t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
-            t.append(WriteVaspStaticFromPrev(lepsilon=True, other_params={'user_incar_settings': user_incar_settings}))
-        else:
-            vasp_input_set = MPStaticSet(structure, lepsilon=True, user_incar_settings=user_incar_settings)
-            t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
-
-        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
-
-        if pass_nm_results:
-            t.append(pass_vasp_result({"structure": "a>>final_structure",
-                                       "eigenvals": "a>>normalmode_eigenvals",
-                                       "eigenvecs": "a>>normalmode_eigenvecs"},
-                                      parse_eigen=True,
-                                      mod_spec_key="normalmodes"))
-
-        t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
-
-        spec = kwargs.pop("spec", {})
-        spec.update({"_files_out": {"POSCAR": "CONTCAR", "OUTCAR": "OUTCAR*", 'vasprunxml': "vasprun.xml*"}})
-
-        super(DFPTPhononFW, self).__init__(t, parents=parents, name="{}-{}".format(
+        super(DFPTFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), spec=spec, **kwargs)
 
 

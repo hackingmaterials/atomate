@@ -11,7 +11,7 @@ from fireworks import Firework, Workflow
 from pymatgen.io.vasp.sets import MPRelaxSet
 
 from atomate.utils.utils import get_logger
-from atomate.vasp.fireworks.core import OptimizeFW, DFPTPhononFW, RamanFW
+from atomate.vasp.fireworks.core import OptimizeFW, DFPTFW, RamanFW
 from atomate.vasp.firetasks.parse_outputs import RamanTensorToDb
 
 __author__ = 'Kiran Mathew'
@@ -56,7 +56,7 @@ def get_wf_raman_spectra(structure, modes=None, step_size=0.005, vasp_cmd="vasp"
     fws.append(fw_opt)
 
     # Static run: compute the normal modes and pass
-    fw_leps = DFPTPhononFW(structure=structure, vasp_cmd=vasp_cmd, db_file=db_file, parents=fw_opt, pass_nm_results=True)
+    fw_leps = DFPTFW(structure=structure, vasp_cmd=vasp_cmd, db_file=db_file, parents=fw_opt, pass_nm_results=True)
 
     fws.append(fw_leps)
 
