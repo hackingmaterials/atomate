@@ -2,6 +2,13 @@
 atomate Changelog
 =================
 
+**v0.6.1**
+
+* many improvements to documentation (A. Jain, B. Bocklund)
+* add DFPTFW (K. Mathew)
+* simplify LepsFW - move Raman into RamanFW (K. Mathew)
+* copy piezo tensor to output (S. Dwaraknath)
+
 **v0.6.0**
 
 * Gibbs preset workflow and anharmonic contributions (B. Bocklund)
