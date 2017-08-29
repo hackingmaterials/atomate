@@ -176,9 +176,10 @@ Install Python packages
 
 You have successfully set up an environment in which to install atomate!
 Next, we will download and install all of the atomate-related Python packages.
-The main tool for installing Python packages is pip and we will use this to install packages (unless you have an Anaconda distribution where again, you'd use conda_).
 
-To install the packages run::
+You can install these packages automatically or in "development mode". The latter makes it easier to view and modify the source code to your needs, but requires just a few more steps to set up and maintain.
+
+To install packages automatically, the main tool we will uses is pip (unless you have an Anaconda distribution where you'd again use conda_). To install the packages run::
 
     pip install atomate
 
