@@ -133,8 +133,6 @@ Since we are potentially interested in the high-temperature thermodynamic behavi
 
     python gibbs.py
 
-.. _Running the workflow:
-
 Running the workflow
 --------------------
 

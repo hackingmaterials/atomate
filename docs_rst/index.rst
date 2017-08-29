@@ -129,6 +129,7 @@ Installation
     :maxdepth: 3
 
     installation
+    developer_installation
 
 Running workflows
 =================
