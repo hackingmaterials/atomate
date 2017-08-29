@@ -88,7 +88,7 @@ Using the fit equation of state, the volume that minimized the energy at a fixed
 Finding the minimum volume at each temperature and fixed pressure yields the conversion from <img class="math" src="_images/math/aa0695ba4ffe8720f4922d37f4de70c2db4526cd.png" alt="F_{\textrm{vib}}(V,T)"/> to <img class="math" src="_images/math/a7ba23a9afbf7968fd0c491fb943a4f230bb5c7b.png" alt="G(V,T)"/></p>
 <p>From the perspective of a workflow, the Gibbs free energy workflow is procedurally similar to the elastic tensor workflow.
 First the input structure is optimized, then volume of the optimize structure is deformed and energies calculated to yield the points for an E-V curve (or phonon calculations), finally the analysis workflow corresponding to the Debye model or phonon formalism is performed.</p>
-<div class="figure" id="id3">
+<div class="figure" id="id2">
 <a class="reference internal image-reference" href="_images/elastic_tensor.png"><img alt="Elastic Tensor Workflow" src="_images/elastic_tensor.png" style="width: 999.5px; height: 556.0px;" /></a>
 <p class="caption"><span class="caption-text">Atomate elastic tensor workflow. This uses the same pattern as the Gibbs free energy workflow, but the analysis step (final Firework) calculates the elastic tensor instead of Gibbs free energies.</span></p>
 </div>
@@ -162,7 +162,7 @@ Poisson ratios can be taken from experimental references, from the Materials Pro
 </div>
 </div>
 <div class="section" id="running-the-workflow">
-<span id="id2"></span><h3>Running the workflow<a class="headerlink" href="#running-the-workflow" title="Permalink to this headline">¶</a></h3>
+<h3>Running the workflow<a class="headerlink" href="#running-the-workflow" title="Permalink to this headline">¶</a></h3>
 <p>The following command will submit a single job to the batch queue configured in <code class="docutils literal"><span class="pre">my_qadapter.yaml</span></code>.
 Assuming the same configuration as in the installation tutorial, the job will launch Fireworks from your LaunchPad until all of them have completed or you run out of walltime.
 This workflow should only take few minutes.</p>
@@ -221,7 +221,7 @@ Simply add the following Python script (<code class="docutils literal"><span cla
 </pre></div>
 </div>
 <p>If you open the saved figure, <code class="docutils literal"><span class="pre">Si-heat-capacity.png</span></code>, it should match the one below!</p>
-<div class="figure" id="id4">
+<div class="figure" id="id3">
 <img alt="Si heat capacity compared with experiment" src="_images/Si-heat-capacity.png" />
 <p class="caption"><span class="caption-text">Heat capacity for Si calculated with atomate and compared with experimental values.</span></p>
 </div>

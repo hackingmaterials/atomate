@@ -27,7 +27,6 @@ Note that this installation tutorial is VASP-centric since almost all functional
 .. _Linux Journey: https://linuxjourney.com/lesson/the-shell
 .. _Slideshare presentation: https://www.slideshare.net/anubhavster/software-tools-for-calculating-materials-properties-in-highthroughput-pymatgen-atomate-fireworks
 .. _atomate paper: https://doi.org/10.1016/j.commatsci.2017.07.030
-.. _: http://linuxcommand.org/lc3_learning_the_shell.php
 
 
 Objectives
@@ -47,7 +46,6 @@ Completing everything on this checklist should result in a fully functioning env
 #. `Install Python packages`_
 #. `Configure FireWorks`_
 #. `Configure pymatgen`_
-#. `Run VASP unit tests`_
 #. `Run a test workflow`_
 
 
@@ -114,32 +112,36 @@ Installing atomate includes installation of codes, configuration files, and vari
 
 1. Log in to the compute cluster and make sure the Python module you want to use is loaded. We highly recommend to make sure Python is loaded upon login, e.g. through an rc file (e.g. ``~/.bashrc`` at most centers or ``~/.bashrc.ext`` at NERSC)
 
-#. Create a directory in a spot on disk that has relatively fast access from compute nodes *and* that is only accessible by yourself or your collaborators. Your Python codes and config files will go here, including database credentials. We will call this place ``<<INSTALL_DIR>>``. A good name might simply be ``atomate``, but you could also use a project-specific name (e.g., ``atomate-solar``).
+#. Create a directory in a spot on disk that has relatively fast access from compute nodes *and* that is only accessible by yourself or your collaborators. Your environment and configuration files will go here, including database credentials. We will call this place ``<<INSTALL_DIR>>``. A good name might simply be ``atomate``, but you could also use a project-specific name (e.g., ``atomate-solar``).
 
-#. Now you should scaffold the rest of your ``<<INSTALL_DIR>>`` for the things we are going to do next. Create a directories named ``codes``, ``logs``, and ``config`` so your directory structure looks like:
+#. Now you should scaffold the rest of your ``<<INSTALL_DIR>>`` for the things we are going to do next. Create a directories named ``logs``, and ``config`` so your directory structure looks like:
 
     ::
 
         atomate
-        ├── codes
         ├── config
         └── logs
-
 
 .. _Create a Python virtual environment:
 
 Create a Python virtual environment
 ===================================
 
-We highly recommended that you organize your installation of the atomate and the other Python codes using a virtual environment (e.g. ``virtualenv`` or similar tool such as anaconda). Ultimately, whether you want to use a virtual environment is optional and you don't have to use one if you know what you are doing. Virtual environments allow you to keep an installation of Python and all of the installed packages separate from the installation on the system. Some of the main benefits are:
+We highly recommended that you organize your installation of the atomate and the other Python codes using a virtual environment (e.g. ``virtualenv`` or similar tool such as anaconda).
+Ultimately, whether you want to use a virtual environment is optional and you don't have to use one if you know what you are doing.
+Virtual environments allow you to keep an installation of Python and all of the installed packages separate from the installation on the system.
+Some of the main benefits are:
 
 
  * Different Python projects that have conflicting packages can coexist on the same machine.
  * Different versions of Python can exist on the same machine and be managed more easily (e.g. Python 2 and Python 3).
  * You have full rights and control over the environment. If it breaks, you can just delete the folder containing the environment and recreate it. On computing resources, this solves permissions issues with installing and modifying packages.
 
-The easiest way to get a Python virtual environment is to use the ``virtualenv`` tool. Most Python distributions come with ``virtualenv``, but some clusters (e.g., NERSC) have moved towards using Anaconda_, which is a popular distribution of Python designed for scientific computing that can serve the same purpose. If the compute resource you want to access is using Anaconda, you will follow the same general steps, but create your environment with ``conda create``. See the `documentation for the conda command line tool here`_ as well as a `conversion between virtualenv and conda commands <https://conda.io/docs/commands.html#conda-vs-pip-vs-virtualenv-commands>`_. To set up your virtual environment:
-
+The easiest way to get a Python virtual environment is to use the ``virtualenv`` tool.
+Most Python distributions come with ``virtualenv``, but some clusters (e.g., NERSC) have moved towards using Anaconda_, which is a popular distribution of Python designed for scientific computing that can serve the same purpose.
+If the compute resource you want to access is using Anaconda, you will follow the same general steps, but create your environment with ``conda create``.
+See the `documentation for the conda command line tool here`_ as well as a `conversion between virtualenv and conda commands <https://conda.io/docs/commands.html#conda-vs-pip-vs-virtualenv-commands>`_.
+To set up your virtual environment:
 
 #. Go to your install directory (``<<INSTALL_DIR>>``) and create a virtual environment there. A good name might be ``atomate_env``. The default command to create the environment would be ``virtualenv atomate_env``, which creates a folder ``atomate_env`` in the directory you are in.
 
@@ -154,7 +156,6 @@ The easiest way to get a Python virtual environment is to use the ``virtualenv``
            ├── lib
            ├── lib64
            └── pip-selfcheck.json
-        ├── codes
         ├── config
         └── logs
 
@@ -173,51 +174,28 @@ The easiest way to get a Python virtual environment is to use the ``virtualenv``
 Install Python packages
 =======================
 
-You have successfully set up an environment in which to install atomate! Next, we will download and install all of the atomate-related Python packages. The main tool for installing Python packages is pip and we will use this to install packages (unless you have an Anaconda distribution where again, you'd use conda_).
+You have successfully set up an environment in which to install atomate!
+Next, we will download and install all of the atomate-related Python packages.
 
+You can install these packages automatically or in "development mode". The latter makes it easier to view and modify the source code to your needs, but requires just a few more steps to set up and maintain.
 
-Option 1: (simple but limited flexibility)
-------------------------------------------
+To install packages automatically, the main tool we will uses is pip (unless you have an Anaconda distribution where you'd again use conda_). To install the packages run::
 
-Technically, you could simply use pip to ``pip install atomate`` and pull in atomate and all of the requirements from PyPI_. In that case, you would *not* need to follow the rest of this section's instructions and your ``<<INSTALL_DIR>>/codes`` directory will be empty. We suggest you try the second option first.
+    pip install atomate
 
-Option 2: (recommended)
------------------------
-
-Our recommendation (and the procedure below) is to install directly from GitHub so you can always have the most recent codebase and be able to more easily inspect and modify the code. We'll also do this for the main dependencies of atomate because they often change and evolve together in the source, but not be released to PyPI. Note that this method of installation is required if you will be developing in atomate or any of the other software mentioned here.
-
-1. ``cd`` to your newly created ``codes`` directory.
-
-#. Clone each of the following packages from GitHub using git. You don't have to know the details of how to use git for the installation, but if you are going to be developing code in Python, you should take a look at this `simple git introduction`_. Most Linux distributions include git, so you shouldn't have to install it on the cluster. To download the codes, use the following commands (one command per line)::
-
-        git clone https://github.com/materialsproject/fireworks.git
-        git clone https://github.com/materialsproject/pymatgen.git
-        git clone https://github.com/atztogo/phonopy.git  # OPTIONAL! Only used for certain calculations
-        git clone https://github.com/materialsvirtuallab/pymatgen-diffusion.git  # OPTIONAL! Only used for certain calculations
-        git clone https://github.com/materialsproject/pymatgen-db.git
-        git clone https://github.com/materialsproject/custodian.git
-        git clone https://github.com/hackingmaterials/atomate.git
-
-  Now you should have atomate, custodian, FireWorks, phonopy, pymatgen, pymatgen-db and pymatgen-diffusion folders in your ``codes`` directory.
-
-#. **It is important that you follow the order listed above to install packages**. For example, you must install atomate last so that it uses your custom installation of pymatgen rather than pulling in the requirements as an external library from PyPI. If you don't, you might end up with two versions of the same code - one installed via Github and another via pip.
-
-#. For each of these folders, you ``cd`` into the folders and ``pip install -e .`` (ehe ``-e`` flag installs as editable, and the ``.`` simply means to install from the ``setup.py`` in the current directory) or use the ``conda`` equivalent of this command. If you run into problems during this procedure, you may need manually install or load certain dependencies (e.g., use ``module load numpy`` on your system or ``pip install numpy`` or ``conda install numpy``). Note that if you don't like to ``cd`` all the time, there are several clever ways to do this in a one line command as a loop which you can use as an exercise of your shell capabilities [#]_. Note that once installed, if you make changes to the code in these directories, the changes will impact immediately without needing to reinstall. Thus, you can both view and modify the code installed in these directories.
-
-#. If you want to update these codes later on, execute ``git pull`` followed by ``python setup.py develop`` (the latter is required when the code version changes) in the relevant directory. Note that you should update codes in the same order as installation as listed above.
+Alternatively, if you would like to install atomate or any other codes in development mode via git, see the developer installation for :ref:`installing atomate codes in development mode <codes-develop-mode>`.
 
 .. _conda: https://conda.io/docs/using/pkgs.html
 .. _PyPI: https://pypi.python.org/pypi
-.. _simple git introduction: http://rogerdudler.github.io/git-guide/
 
 .. _Configure FireWorks:
 
 Configure database connections and computing center parameters
 ==============================================================
 
-We've now set up your environment and installed the necessary codes. You're well on your way!
+We've now set up your environment and installed the necessary software. You're well on your way!
 
-The next step is to configure some the codes for your specific system - e.g., your MongoDB credentials, your computing cluster and its queuing system, etc. The setup below will be just enough to get your environment bootstrapped. For more details on the installation and specifics of FireWorks, read the `installation guide`_.
+The next step is to configure some the software for your specific system - e.g., your MongoDB credentials, your computing cluster and its queuing system, etc. The setup below will be just enough to get your environment bootstrapped. For more details on the installation and specifics of FireWorks, read the `installation guide`_.
 
 .. note:: All of the paths here must be *absolute paths*. For example, the absolute path that refers to ``<<INSTALL_DIR>>`` might be ``/global/homes/u/username/atomate`` (don't use the relative directory ``~/atomate``).
 
@@ -458,21 +436,6 @@ You can get an API key from the `Materials Project`_ by logging in and going to 
 .. _Materials Project: https://materialsproject.org/dashboard
 .. _Dashboard: https://materialsproject.org/dashboard
 
-.. _Run VASP unit tests:
-
-Run VASP unit tests
-===================
-
-To test atomate and the VASP functionality, make sure you have MongoDB running when executing the tests. You can do this by navigating to ``<<INSTALL_DIR>>/codes/atomate/`` and running ``python setup.py test`` or ``nosetests``. Note that some tests won't run unless you either (i) start a local MongoDB instance (host: localhost, port:27017) for testing purposes or (ii) modify the config in ``atomate/common/test_files` to your remote MongoDB.
-
-These unit tests are designed to run without installing VASP. Some of them start with a VASP workflow but apply the ``use_fake_vasp`` method to replace calling the VASP executable with a "Faker" that verifies basic properties of the inputs and copies pre-stored output files to the current directory, thus simulating the execution of VASP. Running these tests will help make sure your installation is in good shape but by default won't actually run a real VASP simulation.
-
-Many tests have a DEBUG option that can sometimes help in finding problems. Sometimes you need to toggle DEBUG on/off a couple of times if you are doing this to make sure all the old data is actually cleared between debug runs.
-
-Note that the unit tests in atomate/vasp/tests/test_vasp_workflows.py can be modified to actually run VASP by setting VASP_CMD to a String representing your VASP command - however, this will just directly execute VASP where you are running the test (i.e., won't submit jobs to a queue). If you need to debug at a later point, this might be something to refer back to, e.g., by running an interactive job on your supercomputing center (so that you are on a compute node) and trying this procedure.
-
-If everything looks OK, you are ready to run a test workflow!
-
 .. _Run a test workflow:
 
 Run a test workflow
@@ -602,7 +565,7 @@ Q: I can't connect to my LaunchPad database
 
     Database at <<INSTALL_DIR>>/config/FW_config.yaml is getting selected.
     FireWorks version: x.y.z
-    located in: <<INSTALL_DIR>>/codes/fireworks
+    located in: <<INSTALL_DIR>>/atomate_env/lib/python3.6/site-packages/fireworks
 
   If it's not being found, check that ``echo $FW_CONFIG_FILE`` returns the location of that file (you could use ``cat $FW_CONFIG_FILE`` to check the contents)
 
@@ -643,7 +606,3 @@ Q: I honestly tried everything I can to solve my problem. I still need help!
 
 :A: There is a Google group for atomate: https://groups.google.com/forum/#!forum/atomate
 
-Footnotes
-=========
-
-.. [#] ``for D in */; do cd D && pip install -e . && cd .. ; done``
