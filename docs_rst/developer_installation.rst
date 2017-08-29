@@ -51,8 +51,6 @@ The ``db.json`` and ``my_launchpad.yaml`` in the ``<<INSTALL_DIR>>/codes/atomate
 The default is to use a MongoDB running on localhost.
 You can update these to whatever you like, e.g. a MongoDB instance in the cloud that you use for tests.
 
-.. warning:: The database and LaunchPad you use in the unit tests **WILL** be reset frequently. **DO NOT USE YOUR PRODUCTION DATABASES** or you will lose everything!
-
 These unit tests are designed to run without installing VASP or other codes so you can run these on your local machine.
 Some of them start with a VASP workflow but apply the ``use_fake_vasp`` method to replace calling the VASP executable with a "Faker" that verifies basic properties of the inputs and copies pre-stored output files to the current directory, thus simulating the execution of VASP.
 
