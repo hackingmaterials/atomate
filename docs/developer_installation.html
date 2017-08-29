@@ -92,9 +92,11 @@ It is only intended as a supplement to the main installation guide and does not 
 <div class="section" id="run-unit-tests">
 <h3>Run unit tests<a class="headerlink" href="#run-unit-tests" title="Permalink to this headline">¶</a></h3>
 <p>Every time you make changes to atomate, you should rerun the unit tests to make sure everything is still working.
-The <code class="docutils literal"><span class="pre">db.json</span></code> and <code class="docutils literal"><span class="pre">my_launchpad.yaml</span></code> in the <code class="docutils literal"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;/codes/atomate/atomate/common/test_files</span></code> directory control the database to use for the unit tests.
-The default is to use a MongoDB running on localhost.
-You can update these to whatever you like, e.g. a MongoDB instance in the cloud that you use for tests.</p>
+The <code class="docutils literal"><span class="pre">db.json</span></code> and <code class="docutils literal"><span class="pre">my_launchpad.yaml</span></code> in the <code class="docutils literal"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;/codes/atomate/atomate/common/test_files</span></code> directory control the database to use for the unit tests. The default is to use a MongoDB running on localhost. You can update these to whatever you like, e.g. a MongoDB instance in the cloud that you use for tests.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Although you can re-use the same Mongo host and port as your production installation for tests, do <strong>not</strong> also use the same database as your production runs! This is why the default configuration uses a database name with <code class="docutils literal"><span class="pre">_unittest</span></code> - so that it won&#8217;t conflict with any production database. The database and LaunchPad you use in the unit tests <strong>WILL</strong> be reset frequently. <strong>DO NOT USE YOUR PRODUCTION DATABASES FOR TESTING</strong> or you will lose everything!</p>
+</div>
 <p>These unit tests are designed to run without installing VASP or other codes so you can run these on your local machine.
 Some of them start with a VASP workflow but apply the <code class="docutils literal"><span class="pre">use_fake_vasp</span></code> method to replace calling the VASP executable with a &#8220;Faker&#8221; that verifies basic properties of the inputs and copies pre-stored output files to the current directory, thus simulating the execution of VASP.</p>
 <p>Note that the unit tests in <code class="docutils literal"><span class="pre">atomate/vasp/tests/test_vasp_workflows.py</span></code> can be modified to actually run VASP by setting VASP_CMD to a String representing your VASP command.

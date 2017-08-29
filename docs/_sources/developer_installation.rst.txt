@@ -49,9 +49,9 @@ Run unit tests
 --------------
 
 Every time you make changes to atomate, you should rerun the unit tests to make sure everything is still working.
-The ``db.json`` and ``my_launchpad.yaml`` in the ``<<INSTALL_DIR>>/codes/atomate/atomate/common/test_files`` directory control the database to use for the unit tests.
-The default is to use a MongoDB running on localhost.
-You can update these to whatever you like, e.g. a MongoDB instance in the cloud that you use for tests.
+The ``db.json`` and ``my_launchpad.yaml`` in the ``<<INSTALL_DIR>>/codes/atomate/atomate/common/test_files`` directory control the database to use for the unit tests. The default is to use a MongoDB running on localhost. You can update these to whatever you like, e.g. a MongoDB instance in the cloud that you use for tests.
+
+.. warning:: Although you can re-use the same Mongo host and port as your production installation for tests, do **not** also use the same database as your production runs! This is why the default configuration uses a database name with ``_unittest`` - so that it won't conflict with any production database. The database and LaunchPad you use in the unit tests **WILL** be reset frequently. **DO NOT USE YOUR PRODUCTION DATABASES FOR TESTING** or you will lose everything!
 
 These unit tests are designed to run without installing VASP or other codes so you can run these on your local machine.
 Some of them start with a VASP workflow but apply the ``use_fake_vasp`` method to replace calling the VASP executable with a "Faker" that verifies basic properties of the inputs and copies pre-stored output files to the current directory, thus simulating the execution of VASP.

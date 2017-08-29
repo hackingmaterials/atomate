@@ -75,7 +75,7 @@ Note that there are various tools to query this information later, ranging from 
 MongoDB must be running and available to accept connections whenever you are running workflows. Thus, it is strongly recommended that you have a server to run MongoDB or (simpler) use a hosting service. Your options are:
 
 * use a commercial service to host your MongoDB instance. These are typically the easiest to use and offer high quality service but require payment for larger databases. mLab_ offers free 500 MB databases with payment required for larger databases or support/backup. The free service is certainly enough to get started for small to medium size projects.
-* contact your supercomputing center to see if they offer MongoDB hosting (e.g., NERSC has this)
+* contact your supercomputing center to see if they offer MongoDB hosting (e.g., NERSC has this, Google "request NERSC MongoDB database")
 * self-host a MongoDB server
 
 If you are just starting, we suggest the first (with a free plan) or second option (if available to you). The third option will require you to open up network settings to accept outside connections properly which can sometimes be tricky.
