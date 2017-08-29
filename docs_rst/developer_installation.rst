@@ -20,8 +20,10 @@ Installation
 Install Python codes in development mode
 ----------------------------------------
 
-You can install any code you like in development mode.
-This would allow you to make changes directly to the source, so you can contribute back changes or new features to atomate (or pymatgen, FireWorks, etc.).
+You can install any code you like in development mode. This would allow you to make changes directly to the source, so you can contribute back changes or new features to atomate (or pymatgen, FireWorks, etc.).
+
+Note that if you previously installed atomate using another tool (e.g., pip or conda), you should uninstall that first before starting this installation. Otherwise, you might have conflicts or unintended behavior resulting from the two different code installations.
+
 The steps for installing pymatgen and atomate in development mode are below.
 
 1. Create a ``codes`` directory in ``<<INSTALL_DIR>>``
