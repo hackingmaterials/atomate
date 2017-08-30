@@ -264,6 +264,7 @@ Next, we will download and install all of the atomate-related Python packages.</
 <span class="l l-Scalar l-Scalar-Plain">username</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;&lt;ADMIN_USERNAME&gt;&gt;</span>
 <span class="l l-Scalar l-Scalar-Plain">password</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;&lt;ADMIN_PASSWORD&gt;&gt;</span>
 <span class="l l-Scalar l-Scalar-Plain">ssl_ca_file</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>
+<span class="l l-Scalar l-Scalar-Plain">logdir</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>
 <span class="l l-Scalar l-Scalar-Plain">strm_lvl</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">INFO</span>
 <span class="l l-Scalar l-Scalar-Plain">user_indices</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">[]</span>
 <span class="l l-Scalar l-Scalar-Plain">wf_user_indices</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">[]</span>
@@ -276,6 +277,7 @@ Next, we will download and install all of the atomate-related Python packages.</
 <li><code class="docutils literal"><span class="pre">&lt;&lt;DB_NAME&gt;&gt;</span></code> - the name of the MongoDB database</li>
 <li><code class="docutils literal"><span class="pre">&lt;&lt;ADMIN_USERNAME&gt;&gt;</span></code> and <code class="docutils literal"><span class="pre">&lt;&lt;ADMIN_PASSWORD&gt;&gt;</span></code> - the (write) credentials to access your DB. Delete these lines if you do not have password protection in your DB (although you should).</li>
 </ul>
+<p>You can optionally set <code class="docutils literal"><span class="pre">logdir</span></code> to your <code class="docutils literal"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;/logs</span></code> directory, although you shouldn&#8217;t need them. The <code class="docutils literal"><span class="pre">strm_lvl</span></code> sets the verbosity of the log and <code class="docutils literal"><span class="pre">user_indices</span></code> and <code class="docutils literal"><span class="pre">wf_user_indices</span></code> can be used to speed up targeted database queries if your project grows very large and queries are slow.</p>
 <p><strong>Note</strong>: If you prefer to use the same database for FireWorks and calculation outputs, these values will largely be duplicated with <code class="docutils literal"><span class="pre">db.json</span></code> (this is what our tutorial is assuming). If you prefer to use different databases for workflows and calculation outputs, the information here will be different than <code class="docutils literal"><span class="pre">db.json</span></code>.</p>
 </div>
 <div class="section" id="my-qadapter-yaml">

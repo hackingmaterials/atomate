@@ -264,6 +264,7 @@ The LaunchPad is where all of the FireWorks and Workflows are stored. Each Worke
     username: <<ADMIN_USERNAME>>
     password: <<ADMIN_PASSWORD>>
     ssl_ca_file: null
+    logdir: null
     strm_lvl: INFO
     user_indices: []
     wf_user_indices: []
@@ -274,6 +275,8 @@ Here's what you'll need to fill out:
 * ``<<PORT>>`` - the port of your MongoDB db server
 * ``<<DB_NAME>>`` - the name of the MongoDB database
 * ``<<ADMIN_USERNAME>>`` and ``<<ADMIN_PASSWORD>>`` - the (write) credentials to access your DB. Delete these lines if you do not have password protection in your DB (although you should).
+
+You can optionally set ``logdir`` to your ``<<INSTALL_DIR>>/logs`` directory, although you shouldn't need them. The ``strm_lvl`` sets the verbosity of the log and ``user_indices`` and ``wf_user_indices`` can be used to speed up targeted database queries if your project grows very large and queries are slow.
 
 **Note**: If you prefer to use the same database for FireWorks and calculation outputs, these values will largely be duplicated with ``db.json`` (this is what our tutorial is assuming). If you prefer to use different databases for workflows and calculation outputs, the information here will be different than ``db.json``.
 
