@@ -1,7 +1,7 @@
 numpy==1.13.1
 scipy==0.19.1
-FireWorks==1.4.8
-pymatgen==2017.8.16
+FireWorks==1.5.2
+pymatgen==2017.9.1
 pymatgen-db==0.7.0
 pymatgen_diffusion==0.3.0
 custodian==1.1.0
@@ -10,4 +10,4 @@ paramiko==2.1.2
 tqdm==4.11.2
 six==1.10.0
 pybtex==0.21
-ruamel.yaml==0.15.25
+ruamel.yaml==0.15.33
