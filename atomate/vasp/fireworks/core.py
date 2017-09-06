@@ -2,6 +2,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import warnings
+
 """
 Defines standardized Fireworks that can be chained easily to perform various
 sequences of VASP calculations.
@@ -178,7 +180,6 @@ class NonSCFFW(Firework):
             structure.composition.reduced_formula, name, mode), **kwargs)
 
 
-@deprecated(None, " This firework will be removed soon. Use DFPTFW and/or RamanFW fireworks.")
 class LepsFW(Firework):
     def __init__(self, structure, name="static dielectric", vasp_cmd="vasp", copy_vasp_outputs=True,
                  db_file=None, parents=None, phonon=False, mode=None, displacement=None,
@@ -204,6 +205,7 @@ class LepsFW(Firework):
             user_incar_settings (dict): Parameters in INCAR to override
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
+        warnings.warn("This firework will be removed soon. Use DFPTFW and/or RamanFW fireworks.")
         user_incar_settings = user_incar_settings or {}
         t = []
 
