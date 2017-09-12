@@ -473,7 +473,6 @@ class GibbsAnalysisToDb(FiretaskBase):
         anharmonic_contribution = self.get("anharmonic_contribution", False)
         gibbs_dict["metadata"] = self.get("metadata", {})
 
-
         db_file = env_chk(self.get("db_file"), fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         # get the optimized structure
@@ -534,6 +533,8 @@ class GibbsAnalysisToDb(FiretaskBase):
             gibbs_dict["traceback"] = traceback.format_exc()
             gibbs_dict['metadata'].update({"task_label_tag": tag})
             gibbs_dict["created_at"] = datetime.utcnow()
+
+        gibbs_dict = jsanitize(gibbs_dict)
 
         # TODO: @matk86: add a list of task_ids that were used to construct the analysis to DB?
         # -computron
