@@ -2,6 +2,11 @@
 atomate Changelog
 =================
 
+**v0.6.3**
+
+* fix Gibbs wf db insertion (A. Dunn, K. Mathew)
+* minor doc updates & fixes (A. Jain)
+
 **v0.6.2**
 
 * Fix LepsFW after prev refactor (A. Jain)
