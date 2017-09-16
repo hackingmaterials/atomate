@@ -483,7 +483,7 @@ def add_tags(original_wf, tags_list):
     return original_wf
 
 
-def add_common_powerups(wf, c):
+def add_common_powerups(wf, c=None):
     """
     Apply the common powerups such as add_namefile, use_scratch_dir etc. from the given config dict.
 
@@ -494,6 +494,8 @@ def add_common_powerups(wf, c):
     Returns:
         Workflow
     """
+    c = c or {}
+
     if c.get("ADD_NAMEFILE", ADD_NAMEFILE):
         wf = add_namefile(wf)
 
