@@ -170,7 +170,7 @@ class RunVaspCustodian(FiretaskBase):
         # construct handlers
         handlers = handler_groups[self.get("handler_group", "default")]
 
-        if self.get("max_force_threshold") and self.get("ediffg",0.1) > 0:
+        if self.get("max_force_threshold"):
             handlers.append(MaxForceErrorHandler(max_force_threshold=self["max_force_threshold"]))
 
         if self.get("wall_time"):
