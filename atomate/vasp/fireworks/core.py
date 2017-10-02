@@ -30,7 +30,7 @@ from atomate.vasp.firetasks.neb_tasks import WriteNEBFromImages, WriteNEBFromEnd
 class OptimizeFW(Firework):
     def __init__(self, structure, name="structure optimization", vasp_input_set=None,
                  vasp_cmd="vasp", override_default_vasp_params=None, ediffg=-0.05, db_file=None,
-                 force_gamma=True, job_type="double_relaxation_run", max_force_threshold=0.25,
+                 force_gamma=True, job_type="double_relaxation_run", max_force_threshold=0,
                  auto_npar=">>auto_npar<<",half_kpts_first_relax=True, parents=None, **kwargs):
         """
         Optimize the given structure.
