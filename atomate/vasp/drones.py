@@ -275,10 +275,8 @@ class VaspDrone(AbstractDrone):
         Process a vasprun.xml file.
         """
         vasprun_file = os.path.join(dir_name, filename)
-        if self.bandstructure_mode:
-            vrun = Vasprun(vasprun_file, parse_eigen=True, parse_projected_eigen=True)
-        else:
-            vrun = Vasprun(vasprun_file)
+
+        vrun = Vasprun(vasprun_file, parse_eigen=True, parse_projected_eigen=True)
 
         d = vrun.as_dict()
 
