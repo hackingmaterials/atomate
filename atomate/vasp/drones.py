@@ -24,7 +24,7 @@ from pymatgen.core.composition import Composition
 from pymatgen.core.structure import Structure
 from pymatgen.core.operations import SymmOp
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.io.vasp import Vasprun, Outcar
+from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar
 from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
 from pymatgen.apps.borg.hive import AbstractDrone
 
@@ -276,7 +276,7 @@ class VaspDrone(AbstractDrone):
         """
         vasprun_file = os.path.join(dir_name, filename)
 
-        vrun = Vasprun(vasprun_file, parse_projected_eigen=True)
+        vrun = Vasprun(vasprun_file)
 
         d = vrun.as_dict()
 
@@ -309,8 +309,28 @@ class VaspDrone(AbstractDrone):
             except:
                 raise ValueError("No valid dos data exist in {}.".format(dir_name))
 
-        if self.bandstructure_mode:
-            bs = vrun.get_band_structure(line_mode=(self.bandstructure_mode.lower() == "line"))
+        # Band structure parsing logic
+        if str(self.bandstructure_mode).lower() == "auto":
+            # if line mode nscf
+            if vrun.incar.get("ICHARG", 0) > 10 and vrun.kpoints.num_kpts > 0:
+                bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=True)
+                bs = bs_vrun.get_band_structure(line_mode=True)
+            # else if uniform nscf
+            elif vrun.incar.get("ICHARG", 0) > 10 :
+                bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=True)
+                bs = bs_vrun.get_band_structure()
+            # else just regular calculation
+            else:
+                bs = vrun.get_band_structure()
+
+            # only save the bandstructure if not moving ions
+            if vrun.incar["NSW"] == 0:
+                d["bandstructure"] = bs.as_dict()
+        # legacy line/True behavior for bandstructure_mode
+        elif self.bandstructure_mode:
+            bs_vrun = BSVasprun(vasprun_file,parse_projected_eigen=True)
+            bs = bs_vrun.get_band_structure()
+            d["bandstructure"] = bs.as_dict()
         else:
             bs = vrun.get_band_structure()
 
@@ -318,7 +338,6 @@ class VaspDrone(AbstractDrone):
         # For certain optimizers this is broken and we don't get an efermi resulting in the bandstructure
         try:
             bs_gap = bs.get_band_gap()
-            d["bandstructure"] = bs.as_dict()
             d["output"]["vbm"] = bs.get_vbm()["energy"]
             d["output"]["cbm"] = bs.get_cbm()["energy"]
             d["output"]["bandgap"] = bs_gap["energy"]
