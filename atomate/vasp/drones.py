@@ -227,13 +227,15 @@ class VaspDrone(AbstractDrone):
                 d["output"]["structure"] = s.as_dict()
 
             calc = d["calcs_reversed"][0]
-            gap = calc["output"]["bandgap"]
-            cbm = calc["output"]["cbm"]
-            vbm = calc["output"]["vbm"]
-            is_direct = calc["output"]["is_gap_direct"]
-            is_metal = calc["output"]["is_metal"]
-            d["output"].update({"bandgap": gap, "cbm": cbm, "vbm": vbm,
-                                "is_gap_direct": is_direct, "is_metal": is_metal})
+
+            try:
+                d["output"].update({"bandgap": calc["output"]["bandgap"],
+                                    "cbm": calc["output"]["cbm"],
+                                    "vbm": calc["output"]["vbm"],
+                                    "is_gap_direct": calc["output"]["is_gap_direct"],
+                                    "is_metal": calc["output"]["is_metal"]})
+            except Exception:
+                pass
 
             sg = SpacegroupAnalyzer(Structure.from_dict(d_calc_final["output"]["structure"]), 0.1)
             if not sg.get_symmetry_dataset():
@@ -314,14 +316,23 @@ class VaspDrone(AbstractDrone):
         else:
             bs = vrun.get_band_structure()
 
-        d["bandstructure"] = bs.as_dict()
+        # Parse electronic information if possible.
+        # For certain optimizers this is broken and we don't get an efermi resulting in the bandstructure
+        try:
+            d["bandstructure"] = bs.as_dict()
 
-        d["output"]["vbm"] = bs.get_vbm()["energy"]
-        d["output"]["cbm"] = bs.get_cbm()["energy"]
-        bs_gap = bs.get_band_gap()
-        d["output"]["bandgap"] = bs_gap["energy"]
-        d["output"]["is_gap_direct"] = bs_gap["direct"]
-        d["output"]["is_metal"] = bs.is_metal()
+            d["output"]["vbm"] = bs.get_vbm()["energy"]
+            d["output"]["cbm"] = bs.get_cbm()["energy"]
+            bs_gap = bs.get_band_gap()
+            d["output"]["bandgap"] = bs_gap["energy"]
+            d["output"]["is_gap_direct"] = bs_gap["direct"]
+            d["output"]["is_metal"] = bs.is_metal()
+
+        except Exception:
+            logger.warning("Error in parsing bandstructure")
+            if v.incar["IBRION"] == 1:
+                logger.warning("Vasp doesn't properly output efermi for IBRION == 1")
+
         d["task"] = {"type": taskname, "name": taskname}
 
         d["output_file_paths"] = self.process_raw_data(dir_name, taskname=taskname)
