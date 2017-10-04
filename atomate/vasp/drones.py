@@ -315,7 +315,7 @@ class VaspDrone(AbstractDrone):
             if vrun.incar.get("ICHARG", 0) > 10 and vrun.kpoints.num_kpts > 0:
                 bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=True)
                 bs = bs_vrun.get_band_structure(line_mode=True)
-            # else if uniform nscf
+            # else if nscf
             elif vrun.incar.get("ICHARG", 0) > 10 :
                 bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=True)
                 bs = bs_vrun.get_band_structure()
@@ -329,8 +329,9 @@ class VaspDrone(AbstractDrone):
         # legacy line/True behavior for bandstructure_mode
         elif self.bandstructure_mode:
             bs_vrun = BSVasprun(vasprun_file,parse_projected_eigen=True)
-            bs = bs_vrun.get_band_structure()
+            bs = bs_vrun.get_band_structure(line_mode=(str(self.bandstructure_mode).lower() == "line"))
             d["bandstructure"] = bs.as_dict()
+        # parse bandstructure for vbm/cbm/bandgap but don't save
         else:
             bs = vrun.get_band_structure()
 
