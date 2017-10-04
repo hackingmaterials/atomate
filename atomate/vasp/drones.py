@@ -317,11 +317,10 @@ class VaspDrone(AbstractDrone):
         # Parse electronic information if possible.
         # For certain optimizers this is broken and we don't get an efermi resulting in the bandstructure
         try:
+            bs_gap = bs.get_band_gap()
             d["bandstructure"] = bs.as_dict()
-
             d["output"]["vbm"] = bs.get_vbm()["energy"]
             d["output"]["cbm"] = bs.get_cbm()["energy"]
-            bs_gap = bs.get_band_gap()
             d["output"]["bandgap"] = bs_gap["energy"]
             d["output"]["is_gap_direct"] = bs_gap["direct"]
             d["output"]["is_metal"] = bs.is_metal()
