@@ -330,7 +330,7 @@ class VaspDrone(AbstractDrone):
 
         except Exception:
             logger.warning("Error in parsing bandstructure")
-            if v.incar["IBRION"] == 1:
+            if vrun.incar["IBRION"] == 1:
                 logger.warning("Vasp doesn't properly output efermi for IBRION == 1")
 
         d["task"] = {"type": taskname, "name": taskname}
