@@ -28,7 +28,6 @@ from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar
 from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
 from pymatgen.apps.borg.hive import AbstractDrone
 
-
 from matgendb.creator import get_uri
 
 from atomate.utils.utils import get_logger
@@ -252,7 +251,7 @@ class VaspDrone(AbstractDrone):
                 for k in ['epsilon_static', 'epsilon_static_wolfe', 'epsilon_ionic']:
                     d["output"][k] = d_calc_final["output"][k]
                 if SymmOp.inversion() not in sg.get_symmetry_operations():
-                    for k in ["piezo_ionic_tensor","piezo_tensor"]:
+                    for k in ["piezo_ionic_tensor", "piezo_tensor"]:
                         d["output"][k] = d_calc_final["output"]["outcar"][k]
 
             d["state"] = "successful" if d_calc["has_vasp_completed"] else "unsuccessful"
@@ -303,7 +302,7 @@ class VaspDrone(AbstractDrone):
         for k, v in {"energy": "final_energy", "energy_per_atom": "final_energy_per_atom"}.items():
             d["output"][k] = d["output"].pop(v)
 
-        if self.parse_dos and self.parse_dos != 'final':
+        if self.parse_dos or (str(self.parse_dos).lower() == "auto" and vrun.incar.get("NSW", 1) == 0):
             try:
                 d["dos"] = vrun.complete_dos.as_dict()
             except:
@@ -316,7 +315,7 @@ class VaspDrone(AbstractDrone):
                 bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=True)
                 bs = bs_vrun.get_band_structure(line_mode=True)
             # else if nscf
-            elif vrun.incar.get("ICHARG", 0) > 10 :
+            elif vrun.incar.get("ICHARG", 0) > 10:
                 bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=True)
                 bs = bs_vrun.get_band_structure()
             # else just regular calculation
@@ -328,7 +327,7 @@ class VaspDrone(AbstractDrone):
                 d["bandstructure"] = bs.as_dict()
         # legacy line/True behavior for bandstructure_mode
         elif self.bandstructure_mode:
-            bs_vrun = BSVasprun(vasprun_file,parse_projected_eigen=True)
+            bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=True)
             bs = bs_vrun.get_band_structure(line_mode=(str(self.bandstructure_mode).lower() == "line"))
             d["bandstructure"] = bs.as_dict()
         # parse bandstructure for vbm/cbm/bandgap but don't save
