@@ -345,6 +345,11 @@ class VaspDrone(AbstractDrone):
             d["output"]["is_metal"] = bs.is_metal()
 
         except Exception:
+            if self.bandstructure_mode is True:
+                import traceback
+                logger.error(traceback.format_exc())
+                logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
+                raise
             logger.warning("Error in parsing bandstructure")
             if vrun.incar["IBRION"] == 1:
                 logger.warning("Vasp doesn't properly output efermi for IBRION == 1")
