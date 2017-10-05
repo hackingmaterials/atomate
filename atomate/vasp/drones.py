@@ -234,7 +234,11 @@ class VaspDrone(AbstractDrone):
                                     "is_gap_direct": calc["output"]["is_gap_direct"],
                                     "is_metal": calc["output"]["is_metal"]})
             except Exception:
-                pass
+                if self.bandstructure_mode is True:
+                    import traceback
+                    logger.error(traceback.format_exc())
+                    logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
+                    raise
 
             sg = SpacegroupAnalyzer(Structure.from_dict(d_calc_final["output"]["structure"]), 0.1)
             if not sg.get_symmetry_dataset():
