@@ -327,7 +327,7 @@ class VaspDrone(AbstractDrone):
         for k, v in {"energy": "final_energy", "energy_per_atom": "final_energy_per_atom"}.items():
             d["output"][k] = d["output"].pop(v)
 
-        if self.parse_dos or (str(self.parse_dos).lower() == "auto" and vrun.incar.get("NSW", 1) == 0):
+        if self.parse_dos == True or (str(self.parse_dos).lower() == "auto" and vrun.incar.get("NSW", 1) == 0):
             try:
                 d["dos"] = vrun.complete_dos.as_dict()
             except:
