@@ -76,6 +76,27 @@ class VaspDrone(AbstractDrone):
 
     def __init__(self, runs=None, parse_dos="auto", compress_dos=False, bandstructure_mode="auto",
                  compress_bs=False, additional_fields=None, use_full_uri=True):
+        """
+        Initialize a Vasp drone to parse vasp outputs
+        Args:
+            runs (list): Naming scheme for multiple calcuations in on folder e.g. ["relax1","relax2"].
+             Can be subfolder or extension
+            parse_dos (str or bool): Whether to parse the DOS. Can be "auto", True or False.
+            "auto" will only parse DOS if NSW = 0, so there are no ionic steps
+            compress_dos (bool): Compress DOS using zlib or not
+            bandstructure_mode (str or bool): How to parse the bandstructure or not. Can be "auto","line", True or False.
+             "auto" will parse the bandstructure with projections for NSCF calcs and decide automatically
+              if it's line mode or uniform. Saves the bandstructure in the output doc.
+             "line" will parse the bandstructure as a line mode calculation with projections.
+              Saves the bandstructure in the output doc.
+             True will parse the bandstructure with projections as a uniform calculation.
+              Saves the bandstructure in the output doc.
+             False will parse the bandstructure without projections to calculate vbm, cbm, band_gap, is_metal and efermi
+              Dose not saves the bandstructure in the output doc.
+            compress_bs (bool): Compress the bandstructure using zlib or not
+            additional_fields (dict): dictionary of additional fields to add to output document
+            use_full_uri (bool): converts the directory path to the full URI path
+        """
         self.parse_dos = parse_dos
         self.compress_dos = compress_dos
         self.additional_fields = additional_fields or {}
