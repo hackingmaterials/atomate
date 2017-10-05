@@ -29,9 +29,9 @@ from atomate.vasp.firetasks.neb_tasks import WriteNEBFromImages, WriteNEBFromEnd
 
 class OptimizeFW(Firework):
     def __init__(self, structure, name="structure optimization", vasp_input_set=None,
-                 vasp_cmd="vasp", override_default_vasp_params=None, ediffg=None, db_file=None,
-                 force_gamma=True, job_type="double_relaxation_run", max_force_threshold=0.25,
-                 auto_npar=">>auto_npar<<", parents=None, **kwargs):
+                 vasp_cmd="vasp", override_default_vasp_params=None, ediffg=-0.05, db_file=None,
+                 force_gamma=True, job_type="double_relaxation_run", max_force_threshold=0,
+                 auto_npar=">>auto_npar<<",half_kpts_first_relax=True, parents=None, **kwargs):
         """
         Optimize the given structure.
 
@@ -49,6 +49,7 @@ class OptimizeFW(Firework):
             job_type (str): custodian job type (default "double_relaxation_run")
             max_force_threshold (float): max force on a site allowed at end; otherwise, reject job
             auto_npar (bool or str): whether to set auto_npar. defaults to env_chk: ">>auto_npar<<"
+            half_kpts_first_relax (bool): whether to use half the kpoints for the first relaxation
             parents ([Firework]): Parents of this particular Firework.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
@@ -60,7 +61,7 @@ class OptimizeFW(Firework):
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, job_type=job_type,
                                   max_force_threshold=max_force_threshold, ediffg=ediffg,
-                                  auto_npar=auto_npar))
+                                  auto_npar=auto_npar, half_kpts_first_relax=half_kpts_first_relax))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
         super(OptimizeFW, self).__init__(t, parents=parents, name="{}-{}".
