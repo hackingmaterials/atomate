@@ -74,7 +74,7 @@ class VaspDrone(AbstractDrone):
                      'warnings'}
     }
 
-    def __init__(self, runs=None, parse_dos=False, compress_dos=False, bandstructure_mode="Auto",
+    def __init__(self, runs=None, parse_dos="auto", compress_dos=False, bandstructure_mode="auto",
                  compress_bs=False, additional_fields=None, use_full_uri=True):
         self.parse_dos = parse_dos
         self.compress_dos = compress_dos
