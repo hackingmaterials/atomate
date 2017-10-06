@@ -136,14 +136,14 @@ class TestWriteVasp(AtomateTest):
         self.assertFalse("alt" in potcar[0].header)
 
         # modify/test
-        ft = ModifyPotcar(potcar_symbols={"Si": "Si_alt"})
+        ft = ModifyPotcar(potcar_symbols={"Si": "O"})
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
 
         new_potcar = Potcar.from_file("POTCAR")
         self.assertEqual(len(new_potcar), 1)
-        self.assertTrue("alt" in new_potcar[0].header)
-        self.assertEqual(new_potcar[0].keywords['EAUG'], 360.0)
+        self.assertEqual('PAW_PBE O 08Apr2002', new_potcar[0].header)
+        self.assertEqual(new_potcar[0].keywords['EAUG'], 605.392)
 
 
 if __name__ == '__main__':
