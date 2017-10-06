@@ -142,7 +142,7 @@ class TestWriteVasp(AtomateTest):
 
         new_potcar = Potcar.from_file("POTCAR")
         self.assertEqual(len(new_potcar), 1)
-        self.assertEqual('PAW_PBE O 08Apr2002', new_potcar[0].header)
+        self.assertTrue('PAW_PBE O ' in new_potcar[0].header)
         self.assertEqual(new_potcar[0].keywords['EAUG'], 605.392)
 
 
