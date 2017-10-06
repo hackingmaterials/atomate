@@ -51,7 +51,7 @@ def get_wf_raman_spectra(structure, modes=None, step_size=0.005, vasp_cmd="vasp"
     fws = []
 
     # Structure optimization
-    fw_opt = OptimizeFW(structure=structure, vasp_input_set=vis,  ediffg=-0.05, vasp_cmd=vasp_cmd,
+    fw_opt = OptimizeFW(structure=structure, vasp_input_set=vis,  ediffg=None, vasp_cmd=vasp_cmd,
                         db_file=db_file)
     fws.append(fw_opt)
 
