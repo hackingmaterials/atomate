@@ -11,3 +11,4 @@ STABILITY_CHECK = False
 VASP_CMD = ">>vasp_cmd<<"
 DB_FILE = ">>db_file<<"
 ADD_WF_METADATA = True
+HALF_KPOINTS_FIRST_RELAX = False  # whether to use only half the kpoint density in the initial relaxation of a structure optimization for faster performance

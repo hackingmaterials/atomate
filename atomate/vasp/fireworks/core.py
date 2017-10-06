@@ -4,6 +4,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import warnings
 
+from atomate.vasp.config import HALF_KPOINTS_FIRST_RELAX
+
 """
 Defines standardized Fireworks that can be chained easily to perform various
 sequences of VASP calculations.
@@ -31,7 +33,7 @@ class OptimizeFW(Firework):
     def __init__(self, structure, name="structure optimization", vasp_input_set=None,
                  vasp_cmd="vasp", override_default_vasp_params=None, ediffg=None, db_file=None,
                  force_gamma=True, job_type="double_relaxation_run", max_force_threshold=0,
-                 auto_npar=">>auto_npar<<",half_kpts_first_relax=True, parents=None, **kwargs):
+                 auto_npar=">>auto_npar<<",half_kpts_first_relax=HALF_KPOINTS_FIRST_RELAX, parents=None, **kwargs):
         """
         Optimize the given structure.
 
