@@ -142,8 +142,7 @@ class TestWriteVasp(AtomateTest):
 
         new_potcar = Potcar.from_file("POTCAR")
         self.assertEqual(len(new_potcar), 1)
-        self.assertTrue('PAW_PBE O ' in new_potcar[0].header)
-        self.assertEqual(new_potcar[0].keywords['EAUG'], 605.392)
+        self.assertEqual(new_potcar[0].symbol, 'O')
 
 
 if __name__ == '__main__':
