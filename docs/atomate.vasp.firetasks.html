@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>atomate.vasp.firetasks package &#8212; atomate 0.6.3 documentation</title>
+    <title>atomate.vasp.firetasks package &#8212; atomate 0.6.4 documentation</title>
     
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.6.3',
+        VERSION:     '0.6.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -37,7 +37,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.4 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -799,12 +799,13 @@ auto_npar: (bool) - use auto_npar (default=F). Recommended set to T</p>
 <dt>gamma_vasp_cmd: (str) - cmd for Gamma-optimized VASP compilation.</dt>
 <dd>Supports env_chk.</dd>
 </dl>
-<p class="last">wall_time (int): Total wall time in seconds. Activates WalltimeHandler if set.</p>
+<p class="last">wall_time (int): Total wall time in seconds. Activates WalltimeHandler if set.
+half_kpts_first_relax (bool): Use half the k-points for the first relaxation</p>
 </dd>
 </dl>
 <dl class="attribute">
 <dt id="atomate.vasp.firetasks.run_calc.RunVaspCustodian.optional_params">
-<code class="descname">optional_params</code><em class="property"> = [u'job_type', u'handler_group', u'max_force_threshold', u'scratch_dir', u'gzip_output', u'max_errors', u'ediffg', u'auto_npar', u'gamma_vasp_cmd', u'wall_time']</em><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspCustodian.optional_params" title="Permalink to this definition">¶</a></dt>
+<code class="descname">optional_params</code><em class="property"> = [u'job_type', u'handler_group', u'max_force_threshold', u'scratch_dir', u'gzip_output', u'max_errors', u'ediffg', u'auto_npar', u'gamma_vasp_cmd', u'wall_time', u'half_kpts_first_relax']</em><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspCustodian.optional_params" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -1257,7 +1258,7 @@ MPStaticSet)</dd>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.4 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

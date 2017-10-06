@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>atomate.vasp.fireworks package &#8212; atomate 0.6.3 documentation</title>
+    <title>atomate.vasp.fireworks package &#8212; atomate 0.6.4 documentation</title>
     
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.6.3',
+        VERSION:     '0.6.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -37,7 +37,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.4 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -305,11 +305,11 @@ parents (Firework): Parents of this particular Firework.</p>
 
 <dl class="class">
 <dt id="atomate.vasp.fireworks.core.OptimizeFW">
-<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">OptimizeFW</code><span class="sig-paren">(</span><em>structure</em>, <em>name=u'structure optimization'</em>, <em>vasp_input_set=None</em>, <em>vasp_cmd=u'vasp'</em>, <em>override_default_vasp_params=None</em>, <em>ediffg=None</em>, <em>db_file=None</em>, <em>force_gamma=True</em>, <em>job_type=u'double_relaxation_run'</em>, <em>max_force_threshold=0.25</em>, <em>auto_npar=u'&gt;&gt;auto_npar&lt;&lt;'</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.OptimizeFW" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">OptimizeFW</code><span class="sig-paren">(</span><em>structure</em>, <em>name=u'structure optimization'</em>, <em>vasp_input_set=None</em>, <em>vasp_cmd=u'vasp'</em>, <em>override_default_vasp_params=None</em>, <em>ediffg=None</em>, <em>db_file=None</em>, <em>force_gamma=True</em>, <em>job_type=u'double_relaxation_run'</em>, <em>max_force_threshold=0.25</em>, <em>auto_npar=u'&gt;&gt;auto_npar&lt;&lt;'</em>, <em>half_kpts_first_relax=False</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.OptimizeFW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.Firework</span></code></p>
 <dl class="method">
 <dt id="atomate.vasp.fireworks.core.OptimizeFW.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>structure</em>, <em>name=u'structure optimization'</em>, <em>vasp_input_set=None</em>, <em>vasp_cmd=u'vasp'</em>, <em>override_default_vasp_params=None</em>, <em>ediffg=None</em>, <em>db_file=None</em>, <em>force_gamma=True</em>, <em>job_type=u'double_relaxation_run'</em>, <em>max_force_threshold=0.25</em>, <em>auto_npar=u'&gt;&gt;auto_npar&lt;&lt;'</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.OptimizeFW.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>structure</em>, <em>name=u'structure optimization'</em>, <em>vasp_input_set=None</em>, <em>vasp_cmd=u'vasp'</em>, <em>override_default_vasp_params=None</em>, <em>ediffg=None</em>, <em>db_file=None</em>, <em>force_gamma=True</em>, <em>job_type=u'double_relaxation_run'</em>, <em>max_force_threshold=0.25</em>, <em>auto_npar=u'&gt;&gt;auto_npar&lt;&lt;'</em>, <em>half_kpts_first_relax=False</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.OptimizeFW.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Optimize the given structure.</p>
 <dl class="docutils">
 <dt>Args:</dt>
@@ -327,6 +327,7 @@ force_gamma (bool): Force gamma centered kpoint generation
 job_type (str): custodian job type (default &#8220;double_relaxation_run&#8221;)
 max_force_threshold (float): max force on a site allowed at end; otherwise, reject job
 auto_npar (bool or str): whether to set auto_npar. defaults to env_chk: &#8220;&gt;&gt;auto_npar&lt;&lt;&#8221;
+half_kpts_first_relax (bool): whether to use half the kpoints for the first relaxation
 parents ([Firework]): Parents of this particular Firework.
 **kwargs: Other kwargs that are passed to Firework.__init__.</p>
 </dd>
@@ -517,7 +518,7 @@ override_default_vasp_params (dict): additional user input settings for vasp_inp
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.4 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
