@@ -2,6 +2,12 @@
 atomate Changelog
 =================
 
+**v0.6.4**
+
+* add config option for half_kpts_first and max force (A. Jain, S. Dwaraknath)
+* better logic for band structure parsing (S. Dwaraknath)
+* misc bugfix (P. Huck)
+
 **v0.6.3**
 
 * fix Gibbs wf db insertion (A. Dunn, K. Mathew)
