@@ -31,6 +31,7 @@ from pymatgen.apps.borg.hive import AbstractDrone
 from matgendb.creator import get_uri
 
 from atomate.utils.utils import get_logger
+from atomate import __version__ as atomate_version
 
 __author__ = 'Kiran Mathew, Shyue Ping Ong, Shyam Dwaraknath, Anubhav Jain'
 __email__ = 'kmathew@lbl.gov'
@@ -46,7 +47,7 @@ class VaspDrone(AbstractDrone):
     Please refer to matgendb.creator.VaspToDbTaskDrone documentation.
     """
 
-    __version__ = 0.2  # note: the version is inserted into the task doc
+    __version__ = atomate_version  # note: the version is inserted into the task doc
 
     # Schema def of important keys and sub-keys; used in validation
     schema = {
