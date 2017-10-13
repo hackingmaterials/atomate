@@ -419,7 +419,7 @@ class VaspDrone(AbstractDrone):
         initial_vol = d["input"]["structure"]["lattice"]["volume"]
         final_vol = d["output"]["structure"]["lattice"]["volume"]
         delta_vol = final_vol - initial_vol
-        percent_delta_vol = delta_vol / initial_vol
+        percent_delta_vol = 100 * delta_vol / initial_vol
         warning_msgs = []
         error_msgs = []
 
