@@ -70,7 +70,7 @@ class VaspDrone(AbstractDrone):
             'composition_unit_cell', 'completed_at', 'task', 'input', 'output',
             'has_vasp_completed'
         },
-        "analysis": {'delta_volume_percent', 'delta_volume', 'max_force',
+        "analysis": {'delta_volume_as_percent', 'delta_volume', 'max_force',
                      'errors',
                      'warnings'}
     }
@@ -443,7 +443,7 @@ class VaspDrone(AbstractDrone):
                 d["state"] = "error"
 
         d["analysis"] = {"delta_volume": delta_vol,
-                         "delta_volume_percent": percent_delta_vol,
+                         "delta_volume_as_percent": percent_delta_vol,
                          "max_force": max_force,
                          "warnings": warning_msgs,
                          "errors": error_msgs}
