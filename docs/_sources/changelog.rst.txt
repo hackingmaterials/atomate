@@ -2,6 +2,12 @@
 atomate Changelog
 =================
 
+**v0.6.5**
+
+* fix delta_volume_percent, set as new key and update FixTasksBuilder (B. Bocklund, A. Jain)
+* drone schema version reflects atomate version (M. Horton)
+* unit test fix (J. Montoya)
+
 **v0.6.4**
 
 * add config option for half_kpts_first and max force (A. Jain, S. Dwaraknath)
