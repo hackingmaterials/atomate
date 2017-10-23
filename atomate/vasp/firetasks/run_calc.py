@@ -22,7 +22,7 @@ from custodian import Custodian
 from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, \
     MeshSymmetryErrorHandler, UnconvergedErrorHandler, MaxForceErrorHandler, PotimErrorHandler, \
     FrozenJobErrorHandler, NonConvergingErrorHandler, PositiveEnergyErrorHandler, \
-    WalltimeHandler, StdErrHandler
+    WalltimeHandler, StdErrHandler, DriftErrorHandler
 from custodian.vasp.jobs import VaspJob, VaspNEBJob
 from custodian.vasp.validators import VasprunXMLValidator, VaspFilesValidator
 
@@ -172,6 +172,8 @@ class RunVaspCustodian(FiretaskBase):
         # construct handlers
         handlers = handler_groups[self.get("handler_group", "default")]
 
+        if self.get("ediffg"):
+            handlers.append(DriftErrorHandler())
         if self.get("max_force_threshold"):
             handlers.append(MaxForceErrorHandler(max_force_threshold=self["max_force_threshold"]))
 
