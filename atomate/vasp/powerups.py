@@ -316,8 +316,10 @@ def set_fworker(original_wf, fworker_name, fw_name_constraint=None, task_name_co
 
 def preserve_fworker(original_wf, fw_name_constraint=None):
     """
-    set _preserve_fworker spec of Fireworker(s) of a Workflow. Can be used to ensure 
-    the workflow runs on the same machine
+    set _preserve_fworker spec of Fireworker(s) of a Workflow. Can be used to pin a workflow to 
+    the first fworker it is run with. Very useful when running on multiple machines that can't 
+    share files. fw_name_constraint can be used to only preserve fworker after a certain point 
+    where file passing becomes important
 
     Args:
         original_wf (Workflow):
