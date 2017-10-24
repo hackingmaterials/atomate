@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Atomate developer installation &#8212; atomate 0.6.2 documentation</title>
+    <title>Atomate developer installation &#8212; atomate 0.6.5 documentation</title>
     
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.6.2',
+        VERSION:     '0.6.5',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="installation.html" title="Installing atomate"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.2 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.5 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -69,6 +69,8 @@ It is only intended as a supplement to the main installation guide and does not 
 <p>Note that if you previously installed atomate using another tool (e.g., pip or conda), you should uninstall that first before starting this installation. Otherwise, you might have conflicts or unintended behavior resulting from the two different code installations.</p>
 <p>The steps for installing pymatgen and atomate in development mode are below.</p>
 <ol class="arabic">
+<li><p class="first">Note: you should have activated your virtual environment or conda environment before proceeding.</p>
+</li>
 <li><p class="first">Create a <code class="docutils literal"><span class="pre">codes</span></code> directory in <code class="docutils literal"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;</span></code></p>
 </li>
 <li><p class="first"><code class="docutils literal"><span class="pre">cd</span></code> to your newly created <code class="docutils literal"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;/codes</span></code> directory.</p>
@@ -89,9 +91,13 @@ It is only intended as a supplement to the main installation guide and does not 
 </div>
 <div class="section" id="post-installation">
 <h2>Post-installation<a class="headerlink" href="#post-installation" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="run-unit-tests">
-<h3>Run unit tests<a class="headerlink" href="#run-unit-tests" title="Permalink to this headline">¶</a></h3>
-<p>Every time you make changes to atomate, you should rerun the unit tests to make sure everything is still working.
+<div class="section" id="basic-confirmation-of-installation">
+<h3>Basic confirmation of installation<a class="headerlink" href="#basic-confirmation-of-installation" title="Permalink to this headline">¶</a></h3>
+<p>Open up a Python shell using the command <code class="docutils literal"><span class="pre">python</span></code>. Confirm that the commands <code class="docutils literal"><span class="pre">import</span> <span class="pre">pymatgen</span></code> and <code class="docutils literal"><span class="pre">import</span> <span class="pre">atomate</span></code> execute without any issues / errors. Remember that you will need to still be in your virtual environment!</p>
+</div>
+<div class="section" id="optional-run-unit-tests">
+<h3>(optional) Run unit tests<a class="headerlink" href="#optional-run-unit-tests" title="Permalink to this headline">¶</a></h3>
+<p>If you make changes to atomate, it is a good idea to rerun the unit tests to make sure everything is still working.
 The <code class="docutils literal"><span class="pre">db.json</span></code> and <code class="docutils literal"><span class="pre">my_launchpad.yaml</span></code> in the <code class="docutils literal"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;/codes/atomate/atomate/common/test_files</span></code> directory control the database to use for the unit tests. The default is to use a MongoDB running on localhost. You can update these to whatever you like, e.g. a MongoDB instance in the cloud that you use for tests.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -124,7 +130,8 @@ Sometimes you need to toggle DEBUG on/off a couple of times if you are doing thi
 </ul>
 </li>
 <li><a class="reference internal" href="#post-installation">Post-installation</a><ul>
-<li><a class="reference internal" href="#run-unit-tests">Run unit tests</a></li>
+<li><a class="reference internal" href="#basic-confirmation-of-installation">Basic confirmation of installation</a></li>
+<li><a class="reference internal" href="#optional-run-unit-tests">(optional) Run unit tests</a></li>
 </ul>
 </li>
 </ul>
@@ -173,7 +180,7 @@ Sometimes you need to toggle DEBUG on/off a couple of times if you are doing thi
         <li class="right" >
           <a href="installation.html" title="Installing atomate"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.2 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.5 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

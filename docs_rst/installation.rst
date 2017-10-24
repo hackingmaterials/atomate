@@ -163,7 +163,7 @@ To set up your virtual environment:
 
 #. Activate your environment by running ``source <<INSTALL_DIR>>/atomate_env/bin/activate``. This makes it so when you use the command ``python``, the version of ``python`` that you use will be the one in the  ``bin`` directory rather than the system-wide Python. You can read the activation script if you are interested. It's just does a little magic to adjust your path to point towards the ``bin`` and other directories you created.
 
-#. Consider adding ``source <<INSTALL_DIR>>/atomate_env/bin/activate`` to your .rc file so that it is run whenever you log in. Otherwise, note that you must call this command after every log in before you can do work on your atomate project.
+#. Consider adding ``source <<INSTALL_DIR>>/atomate_env/bin/activate`` to your .rc  or .bash_profile file so that it is run whenever you log in. Otherwise, note that you must call this command after every log in before you can do work on your atomate project.
 
 .. _Anaconda: https://www.continuum.io
 .. _documentation for the conda command line tool here: https://conda.io/docs/using/envs.html

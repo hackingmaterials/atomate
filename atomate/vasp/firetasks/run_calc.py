@@ -2,6 +2,8 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
+from atomate.vasp.config import HALF_KPOINTS_FIRST_RELAX
+
 """
 This module defines tasks that support running vasp in various ways.
 """
@@ -83,11 +85,12 @@ class RunVaspCustodian(FiretaskBase):
         gamma_vasp_cmd: (str) - cmd for Gamma-optimized VASP compilation.
             Supports env_chk.
         wall_time (int): Total wall time in seconds. Activates WalltimeHandler if set.
+        half_kpts_first_relax (bool): Use half the k-points for the first relaxation
     """
     required_params = ["vasp_cmd"]
     optional_params = ["job_type", "handler_group", "max_force_threshold", "scratch_dir",
                        "gzip_output", "max_errors", "ediffg", "auto_npar", "gamma_vasp_cmd",
-                       "wall_time"]
+                       "wall_time","half_kpts_first_relax"]
 
     def run_task(self, fw_spec):
 
@@ -125,11 +128,12 @@ class RunVaspCustodian(FiretaskBase):
         elif job_type == "double_relaxation_run":
             jobs = VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar,
                                                  ediffg=self.get("ediffg"),
-                                                 half_kpts_first_relax=False)
+                                                 half_kpts_first_relax=self.get("half_kpts_first_relax", HALF_KPOINTS_FIRST_RELAX))
         elif job_type == "full_opt_run":
             jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar,
                                         ediffg=self.get("ediffg"),
-                                        max_steps=9, half_kpts_first_relax=False)
+                                        max_steps=9,
+                                        half_kpts_first_relax=self.get("half_kpts_first_relax", HALF_KPOINTS_FIRST_RELAX))
         elif job_type == "neb":
             # TODO: @shyuep @HanmeiTang This means that NEB can only be run (i) in reservation mode
             # and (ii) when the queueadapter parameter is overridden and (iii) the queue adapter

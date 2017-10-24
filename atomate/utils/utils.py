@@ -11,6 +11,7 @@ from monty.json import MontyDecoder
 from pymatgen import Composition
 
 from fireworks import Workflow
+from pymatgen.alchemy.materials import TransformedStructure
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
@@ -133,9 +134,12 @@ def get_logger(name, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(na
 
 
 def get_meta_from_structure(structure):
+    if isinstance(structure, TransformedStructure):
+        structure = structure.final_structure
+
     comp = structure.composition
     elsyms = sorted(set([e.symbol for e in comp.elements]))
-    meta = {'nsites': len(structure),
+    meta = {'nsites': structure.num_sites,
             'elements': elsyms,
             'nelements': len(elsyms),
             'formula': comp.formula,

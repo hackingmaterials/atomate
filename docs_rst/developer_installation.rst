@@ -26,7 +26,9 @@ Note that if you previously installed atomate using another tool (e.g., pip or c
 
 The steps for installing pymatgen and atomate in development mode are below.
 
-1. Create a ``codes`` directory in ``<<INSTALL_DIR>>``
+1. Note: you should have activated your virtual environment or conda environment before proceeding.
+
+#. Create a ``codes`` directory in ``<<INSTALL_DIR>>``
 
 #. ``cd`` to your newly created ``<<INSTALL_DIR>>/codes`` directory.
 
@@ -45,10 +47,15 @@ The steps for installing pymatgen and atomate in development mode are below.
 Post-installation
 =================
 
-Run unit tests
---------------
+Basic confirmation of installation
+----------------------------------
 
-Every time you make changes to atomate, you should rerun the unit tests to make sure everything is still working.
+Open up a Python shell using the command ``python``. Confirm that the commands ``import pymatgen`` and ``import atomate`` execute without any issues / errors. Remember that you will need to still be in your virtual environment!
+
+(optional) Run unit tests
+-------------------------
+
+If you make changes to atomate, it is a good idea to rerun the unit tests to make sure everything is still working.
 The ``db.json`` and ``my_launchpad.yaml`` in the ``<<INSTALL_DIR>>/codes/atomate/atomate/common/test_files`` directory control the database to use for the unit tests. The default is to use a MongoDB running on localhost. You can update these to whatever you like, e.g. a MongoDB instance in the cloud that you use for tests.
 
 .. warning:: Although you can re-use the same Mongo host and port as your production installation for tests, do **not** also use the same database as your production runs! This is why the default configuration uses a database name with ``_unittest`` - so that it won't conflict with any production database. The database and LaunchPad you use in the unit tests **WILL** be reset frequently. **DO NOT USE YOUR PRODUCTION DATABASES FOR TESTING** or you will lose everything!

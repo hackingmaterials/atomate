@@ -68,6 +68,33 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
 
     def test_bandstructure(self):
         drone = VaspDrone()
+
+        doc = drone.assimilate(self.relax2)
+        self.assertEqual(doc["composition_reduced"], {'Si': 1.0})
+        self.assertEqual(doc["formula_pretty"], 'Si')
+        self.assertEqual(doc["formula_anonymous"], 'A')
+        for d in [doc["calcs_reversed"][0]["output"], doc["output"]]:
+            self.assertAlmostEqual(d["vbm"],5.6147)
+            self.assertAlmostEqual(d["cbm"],6.2652)
+            self.assertAlmostEqual(d["bandgap"], 0.6505)
+            self.assertFalse(d["is_gap_direct"])
+            self.assertFalse(d["is_metal"])
+            self.assertNotIn("bandstructure",doc["calcs_reversed"][0])
+
+
+        doc = drone.assimilate(self.Si_static)
+        self.assertEqual(doc["composition_reduced"], {'Si': 1.0})
+        self.assertEqual(doc["formula_pretty"], 'Si')
+        self.assertEqual(doc["formula_anonymous"], 'A')
+        for d in [doc["calcs_reversed"][0]["output"], doc["output"]]:
+            self.assertAlmostEqual(d["vbm"],5.6138)
+            self.assertAlmostEqual(d["cbm"],6.2644)
+            self.assertAlmostEqual(d["bandgap"],  0.6506)
+            self.assertFalse(d["is_gap_direct"])
+            self.assertFalse(d["is_metal"])
+            self.assertIn("bandstructure", doc["calcs_reversed"][0])
+
+
         doc = drone.assimilate(self.Al)
         self.assertEqual(doc["composition_reduced"], {'Al': 1.0})
         self.assertEqual(doc["formula_pretty"], 'Al')
@@ -78,6 +105,7 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
             self.assertEqual(d["bandgap"], 0.0)
             self.assertFalse(d["is_gap_direct"])
             self.assertTrue(d["is_metal"])
+            self.assertEqual(doc["calcs_reversed"][0]["bandstructure"]["@class"],"BandStructureSymmLine")
 
     def test_detect_output_file_paths(self):
         drone = VaspDrone()
