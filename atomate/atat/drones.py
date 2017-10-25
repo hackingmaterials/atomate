@@ -8,6 +8,7 @@ import datetime
 from pymatgen.core.structure import Structure
 from atomate.utils.utils import get_logger
 from atomate import __version__ as atomate_version
+from monty.serialization import loadfn
 
 logger = get_logger(__name__)
 
@@ -50,13 +51,25 @@ class McsqsDrone:
             lines = f.read().split('\n')
             num_clusters = (len(lines.split('\n')) - 2) / 7
 
+        # load input args
+        try:
+            input_args = loadfn("mcsqs_input_args.json")
+            walltime = input_args['walltime']
+            clusters = input_args['clusters']
+            user_input_settings = input_args['user_input_settings']
+        except:
+            walltime = None
+            clusters = None
+            user_input_settings = None
+
         return {
             'disordered': input_structure,
             'bestsqs': output_structure,
-            'clusters': None, # TODO: retrieve this from FW.json
+            'clusters': clusters,
             'num_clusters': num_clusters,
+            'user_input_settings': user_input_settings,
             'objective_function': obj_func,
-            'walltime': None, # TODO: pick this up from FW
+            'walltime': walltime,
             'atomate_version': atomate_version,
             'mcsqs_version': mcsqs_version,
             'spacegroup': input_structure.get_space_group_info()[0],
