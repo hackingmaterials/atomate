@@ -138,6 +138,8 @@ done
             ], shell_exe='/bin/bash')
         ]
 
+        # TODO: add tracker(s)
+
         super(McsqsFW, self).__init__(t, name=name, **kwargs)
 
     @staticmethod
