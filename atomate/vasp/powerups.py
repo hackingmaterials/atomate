@@ -259,12 +259,22 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
     for _ in structure:
         magmom += "0 0 0.6 "
     #TODO: add saxis as an input parameter with default being (0 0 1)
-    modify_incar_params = modify_incar_params or {"incar_update": {"LSORBIT": "T", "NBANDS":
-        nbands, "MAGMOM": magmom, "ISPIN": 1, "LMAXMIX": 4, "ISYM": 0}}
+    # please note Magmom class in pymatgen.electronic_structure.core for saxis handling
+    modify_incar_params = modify_incar_params or {
+        "incar_update": {
+            "LSORBIT": "T",
+            "NBANDS": nbands,
+            "MAGMOM": magmom,
+            "ISPIN": 1,
+            "LMAXMIX": 4,
+            "ISYM": 0
+        }
+    }
 
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp"):
-        if "structure" not in original_wf.fws[idx_fw].name and "static" not in original_wf.fws[idx_fw].name:
+        if "structure" not in original_wf.fws[idx_fw].name \
+                and "static" not in original_wf.fws[idx_fw].name:
             original_wf.fws[idx_fw].tasks[idx_t]["vasp_cmd"] = ">>vasp_ncl<<"
             original_wf.fws[idx_fw].tasks.insert(idx_t, ModifyIncar(**modify_incar_params))
 
