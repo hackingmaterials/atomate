@@ -221,7 +221,10 @@ class GetInterpolatedPOSCAR(FiretaskBase):
     required_params = ["start","end","this_image","nimages","autosort_tol"]
 
     def run_task(self, fw_spec):
+        structure = self.interpolate_poscar(fw_spec)
+        structure.to(fmt='POSCAR', filename=os.getcwd() + "/POSCAR")
 
+    def interpolate_poscar(self, fw_spec):
         # make folder for poscar interpolation start and end structure files.
         interpolate_folder = '/interpolate'
         if not os.path.exists(os.getcwd()+interpolate_folder):
@@ -245,8 +248,8 @@ class GetInterpolatedPOSCAR(FiretaskBase):
 
         # save only the interpolation needed for this run
         i = self.get("this_image",0)
-        s = structs[i]
-        s.to(fmt='POSCAR', filename=os.getcwd()+"/POSCAR")
+        return structs[i]
+
 
 
 def pass_vasp_result(pass_dict=None, calc_dir='.', filename="vasprun.xml.gz", parse_eigen=False,
