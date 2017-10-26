@@ -19,11 +19,12 @@ import re
 
 from pymatgen import MPRester
 from pymatgen.io.vasp.sets import get_vasprun_outcar
+from pymatgen.core.structure import Structure
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 from atomate.utils.utils import env_chk, get_logger
-from atomate.common.firetasks.glue_tasks import get_calc_loc, PassResult, CopyFiles
+from atomate.common.firetasks.glue_tasks import get_calc_loc, PassResult, CopyFiles, GrabFilesFromCalcLoc
 
 logger = get_logger(__name__)
 
@@ -88,7 +89,7 @@ class CopyVaspOutputs(CopyFiles):
         # start file copy
         for f in self.files_to_copy:
             prev_path_full = os.path.join(self.from_dir, f)
-            dest_fname = 'POSCAR' if f == 'CONTCAR' else f
+            dest_fname = 'POSCAR' if f == 'CONTCAR' and self.get("contcar_to_poscar", True) else f
             dest_path = os.path.join(self.to_dir, dest_fname)
 
             relax_ext = ""
@@ -200,6 +201,52 @@ class CheckBandgap(FiretaskBase):
             return FWAction(stored_data=stored_data, exit=True, defuse_workflow=True)
 
         return FWAction(stored_data=stored_data)
+
+
+@explicit_serialize
+class GetInterpolatedPOSCAR(FiretaskBase):
+    """
+    Grabs CONTCARS from two previous calculations to create interpolated
+    structure.
+
+    Required params:
+        start (str): name of fw for start of interpolation.
+        end (str): name of fw for end of interpolation.
+        this_image (int): which interpolation this is.
+        nimages (int) : number of interpolations.
+        autosort_tol (float): a distance tolerance in angstrom in which
+          to automatically sort end_structure to match to the closest
+          points in this particular structure.
+    """
+    required_params = ["start","end","this_image","nimages","autosort_tol"]
+
+    def run_task(self, fw_spec):
+
+        # make folder for poscar interpolation start and end structure files.
+        interpolate_folder = '/interpolate'
+        if not os.path.exists(os.getcwd()+interpolate_folder):
+            os.makedirs(os.getcwd()+interpolate_folder)
+
+            print (os.getcwd()+interpolate_folder)
+
+        # use method of GrabFilesFromCalcLoc to grab files from previous locations.
+        GrabFilesFromCalcLoc(calc_dir=None, calc_loc=self.get("start","default"), filenames="CONTCAR",
+                             name_prepend="interpolate/", name_append="_0").run_task(fw_spec=fw_spec)
+        GrabFilesFromCalcLoc(calc_dir=None, calc_loc=self.get("end","default"), filenames="CONTCAR",
+                             name_prepend="interpolate/", name_append="_1").run_task(fw_spec=fw_spec)
+
+        # assuming first calc_dir is polar structure for ferroelectric search
+
+        s1 = Structure.from_file("interpolate/CONTCAR_0")
+        s2 = Structure.from_file("interpolate/CONTCAR_1")
+
+        structs = s1.interpolate(s2,self.get('nimages',5),interpolate_lattices=True,
+                                 autosort_tol=self.get("autosort_tol",0.5))
+
+        # save only the interpolation needed for this run
+        i = self.get("this_image",0)
+        s = structs[i]
+        s.to(fmt='POSCAR', filename=os.getcwd()+"/POSCAR")
 
 
 def pass_vasp_result(pass_dict=None, calc_dir='.', filename="vasprun.xml.gz", parse_eigen=False,
