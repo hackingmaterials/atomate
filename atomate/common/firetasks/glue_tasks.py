@@ -76,15 +76,16 @@ def get_calc_loc(target_name, calc_locs):
 @explicit_serialize
 class GrabFilesFromCalcLoc(FiretaskBase):
     """
-    Based on CopyVaspOutputs but for general file copying
+    Based on CopyVaspOutputs but for general file copying.
 
-    This FireTask can be inherited to use the get_file functionality.
+    Required params:
+        filenames (str): filenames to copy.
+        name_prepend (str): string to prepend filenames, e.g. can be a directory.
+        name_append (str): string to append to filenames.
 
-    May need to have arguments to get_file that have the calc_dir of
-    the desired calculation file, so this can be generically used by
-    whatever class inherits it. This way, an inheriting class can
-    decide which variables need to be pulled from fw_spec to determine
-    which files need to be copied.
+    Optional params:
+        calc_dir: directory to copy from.
+        calc_loc: name of fw to get location for.
     """
 
     required_params = ["filenames", "name_prepend","name_append"]
@@ -137,6 +138,11 @@ class GrabFilesFromCalcLoc(FiretaskBase):
 class CreateFolder(FiretaskBase):
     """
     FireTask to create new folder with the option of changing directory to the new folder.
+
+    Required params:
+        folder_name (str): folder name.
+        change_to (bool): change to new folder.
+
     """
     required_params = ["folder_name","change_to"]
 
