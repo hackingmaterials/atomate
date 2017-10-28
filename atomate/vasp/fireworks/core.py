@@ -20,14 +20,16 @@ from pymatgen import Structure
 from pymatgen.io.vasp.sets import MPRelaxSet, MITMDSet, MITRelaxSet, \
     MPStaticSet, MPSOCSet
 
-from atomate.common.firetasks.glue_tasks import PassCalcLocs
-from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, pass_vasp_result
+from atomate.common.firetasks.glue_tasks import PassCalcLocs, CreateFolder
+from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, pass_vasp_result, \
+    CheckBandgap
 from atomate.vasp.firetasks.neb_tasks import TransferNEBTask
 from atomate.vasp.firetasks.parse_outputs import VaspToDb, BoltztrapToDb
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunBoltztrap
 from atomate.vasp.firetasks.write_inputs import WriteNormalmodeDisplacedPoscar, \
     WriteTransmutedStructureIOSet, WriteVaspFromIOSet, WriteVaspHSEBSFromPrev, \
-    WriteVaspNSCFFromPrev, WriteVaspSOCFromPrev, WriteVaspStaticFromPrev
+    WriteVaspNSCFFromPrev, WriteVaspSOCFromPrev, WriteVaspStaticFromPrev, \
+    WriteVaspFromIOSetFromInterpolatedPOSCAR, ModifyIncar
 from atomate.vasp.firetasks.neb_tasks import WriteNEBFromImages, \
     WriteNEBFromEndpoints
 
@@ -86,9 +88,8 @@ class OptimizeFW(Firework):
 
 
 class StaticFW(Firework):
-    def __init__(self, structure, name="static", vasp_input_set=None,
-                 vasp_cmd="vasp",
-                 prev_calc_loc=True, db_file=None, parents=None, **kwargs):
+    def __init__(self, structure, name="static", vasp_input_set=None, vasp_input_set_params=None,
+                 vasp_cmd="vasp", prev_calc_loc=True, db_file=None, parents=None, **kwargs):
         """
         Standard static calculation Firework - either from a previous location or from a structure.
 
@@ -114,6 +115,8 @@ class StaticFW(Firework):
 
         t = []
 
+        vasp_input_set_params = vasp_input_set_params or {}
+
         if parents:
             if prev_calc_loc:
                 t.append(CopyVaspOutputs(calc_loc=prev_calc_loc,
@@ -122,13 +125,50 @@ class StaticFW(Firework):
         else:
             vasp_input_set = vasp_input_set or MPStaticSet(structure)
             t.append(WriteVaspFromIOSet(structure=structure,
-                                        vasp_input_set=vasp_input_set))
+                                        vasp_input_set=vasp_input_set,
+                                        vasp_input_set_params=vasp_input_set_params))
 
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
         t.append(
             VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
         super(StaticFW, self).__init__(t, parents=parents, name="{}-{}".format(
+            structure.composition.reduced_formula, name), **kwargs)
+
+
+class StaticInterpolateFW(Firework):
+    def __init__(self, structure, start, end, name="static", vasp_input_set="MPStaticSet",
+                 vasp_input_set_params=None, vasp_cmd="vasp", db_file=None,
+                 parents=None, this_image=None, nimages=None, autosort_tol=0, **kwargs):
+        """
+        Standard static calculation Firework that interpolates structures from two previous calculations.
+
+        Args:
+            structure (Structure): Input structure used to name FireWork.
+            name (str): Name for the Firework.
+            vasp_input_set (str): Input set to use. Defaults to MPStaticSet.
+            vasp_input_set_params (dict): Dict of vasp_input_set_kwargs.
+            vasp_cmd (str): Command to run vasp.
+            copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
+            db_file (str): Path to file specifying db credentials.
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+        t = []
+
+        vasp_input_set_params = vasp_input_set_params or {}
+        vasp_input_set_params = vasp_input_set_params.copy()
+
+        t.append(WriteVaspFromIOSetFromInterpolatedPOSCAR(
+            start=start, end=end, this_image=this_image, nimages=nimages,
+            autosort_tol=autosort_tol, vasp_input_set=vasp_input_set,
+            vasp_input_set_params=vasp_input_set_params))
+
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
+        t.append(PassCalcLocs(name=name))
+        t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
+
+        super(StaticInterpolateFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)
 
 
@@ -284,6 +324,89 @@ class LepsFW(Firework):
 
         super(LepsFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)
+
+
+class LcalcpolFW(Firework):
+    def __init__(self, structure, name="static dipole moment", static_name="static", vasp_cmd="vasp",
+                 vasp_input_set=None, vasp_input_set_params=None, db_file=None, parents=None,
+                 gap_threshold=0.010, interpolate=False, start=None, end=None, this_image=0, nimages=5, **kwargs):
+        """
+        Standard static calculation Firework for dipole moment. The calculation will not calculate the polarization
+        if the band gap of the SCF calculation is metallic (have a band gap less than the gap_threshold).
+
+        The SCF calculation can be provided as a previous run or can be computed within this Firework.
+
+        Args:
+            structure (Structure): Input structure. For an interpolation, this is a dummy structure.
+            name (str): Name for the polarization FireWork.
+            static_name (str): Name for the SCF run to be used in PassCalcLoc if copy_vasp_outputs != True.
+            vasp_cmd (str): Command to run vasp.
+            copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to False.
+            vasp_input_set (str): string name for the VASP input set (e.g., "MITMDVaspInputSet").
+            db_file (str): Path to file specifying db credentials.
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            calc_loc (str or True): Name of the previous SCF calculation to be use for CopyVaspOutputs.
+                True defaults to parent.
+            gap_threshold: Band gap cutoff for determining whether polarization calculation will proceed from
+                SCF band gap.
+            defuse_children (bool): defuse children FireWorks if StaticFW shows material is metallic.
+            exit_firework (bool): do not run polarization calculation if StaticFW shows material is metallic.
+            interpolate (bool): use an interpolated structure
+            start (str): PassCalcLoc name of StaticFW or RelaxFW run of starting structure
+            end (str): PassCalcLoc name of StaticFW or RelaxFW run of ending structure
+            this_image (int): which interpolation to use for this run
+            nimages (int): number of interpolations
+        """
+
+        t = []
+
+        # Ensure that LWAVE is set to true so we can use WAVECAR for polarization calculation.
+        vasp_input_set_params = vasp_input_set_params or {}
+        vasp_input_set_params = vasp_input_set_params.copy()
+
+        if not vasp_input_set_params.get('user_incar_settings', None):
+            vasp_input_set_params.update({'user_incar_settings': {}})
+        vasp_input_set_params['user_incar_settings'].update({'LWAVE': True})
+
+        vasp_input_set = vasp_input_set or "MPStaticSet"
+
+        if interpolate:
+            static = StaticInterpolateFW(structure, start, end, name=static_name, vasp_input_set=vasp_input_set,
+                                         vasp_input_set_params=vasp_input_set_params, vasp_cmd=vasp_cmd,
+                                         db_file=db_file, parents=parents, this_image=this_image,
+                                         nimages=nimages, **kwargs)
+        else:
+            vasp_input_set = MPStaticSet(structure, **vasp_input_set_params)
+            static = StaticFW(structure, name=static_name, vasp_input_set=vasp_input_set,
+                              vasp_input_set_params=vasp_input_set_params, vasp_cmd=vasp_cmd,
+                              db_file=db_file, parents=parents, **kwargs)
+        t.extend(static.tasks)
+
+        # Defuse workflow if bandgap is less than gap_threshold.
+        t.append(CheckBandgap(min_gap=gap_threshold))
+
+        # Create new directory and move to that directory to perform polarization calculation
+        t.append(CreateFolder(folder_name="polarization",change_to=True))
+
+        # Copy VASP Outputs from static calculation
+        t.append(CopyVaspOutputs(calc_loc=static_name,
+                                 additional_files=["CHGCAR", "WAVECAR"],
+                                 contcar_to_poscar=True))
+
+        t.extend([
+            # WriteVaspStaticFromPrev(prev_calc_dir="../",other_params={'lcalcpol':True}),
+            ModifyIncar(incar_update={'lcalcpol':True}),
+            RunVaspCustodian(vasp_cmd=vasp_cmd),
+            PassCalcLocs(name=name),
+            VaspToDb(db_file=db_file,
+                     additional_fields={"task_label": name})])
+
+        # Note, Outcar must have read_lcalcpol method for polarization information to be processed.
+        # ...assuming VaspDrone will automatically assimilate all properties of the Outcar.
+
+        super(LcalcpolFW, self).__init__(t, parents=parents, name="{}-{}".format(
+            structure.composition.reduced_formula,
+            name), **kwargs)
 
 
 class DFPTFW(Firework):
