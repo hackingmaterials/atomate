@@ -232,7 +232,7 @@ class GetInterpolatedPOSCAR(FiretaskBase):
 
             print (os.getcwd()+interpolate_folder)
 
-        # use method of GrabFilesFromCalcLoc to grab files from previous locations.
+        # use method of CopyFilesFromCalcLoc to grab files from previous locations.
         CopyFilesFromCalcLoc(calc_dir=None, calc_loc=self.get("start","default"), filenames=["CONTCAR"],
                              name_prepend="interpolate/", name_append="_0").run_task(fw_spec=fw_spec)
         CopyFilesFromCalcLoc(calc_dir=None, calc_loc=self.get("end","default"), filenames=["CONTCAR"],
