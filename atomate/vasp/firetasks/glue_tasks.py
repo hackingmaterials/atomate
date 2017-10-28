@@ -24,7 +24,7 @@ from pymatgen.core.structure import Structure
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 from atomate.utils.utils import env_chk, get_logger
-from atomate.common.firetasks.glue_tasks import get_calc_loc, PassResult, CopyFiles, GrabFilesFromCalcLoc
+from atomate.common.firetasks.glue_tasks import get_calc_loc, PassResult, CopyFiles, CopyFilesFromCalcLoc
 
 logger = get_logger(__name__)
 
@@ -230,9 +230,9 @@ class GetInterpolatedPOSCAR(FiretaskBase):
             print (os.getcwd()+interpolate_folder)
 
         # use method of GrabFilesFromCalcLoc to grab files from previous locations.
-        GrabFilesFromCalcLoc(calc_dir=None, calc_loc=self.get("start","default"), filenames="CONTCAR",
+        CopyFilesFromCalcLoc(calc_dir=None, calc_loc=self.get("start","default"), filenames=["CONTCAR"],
                              name_prepend="interpolate/", name_append="_0").run_task(fw_spec=fw_spec)
-        GrabFilesFromCalcLoc(calc_dir=None, calc_loc=self.get("end","default"), filenames="CONTCAR",
+        CopyFilesFromCalcLoc(calc_dir=None, calc_loc=self.get("end","default"), filenames=["CONTCAR"],
                              name_prepend="interpolate/", name_append="_1").run_task(fw_spec=fw_spec)
 
         # assuming first calc_dir is polar structure for ferroelectric search
