@@ -81,14 +81,12 @@ class TestCopyFilesFromCalcLoc(AtomateTest):
         fw2 = Firework([CopyVaspOutputs(calc_dir=self.relax2_outdir),
                         PassCalcLocs(name="fw2")], name="fw2")
 
-        fw3 = Firework([CopyFilesFromCalcLoc(calc_dir=None,
-                                             calc_loc="fw1",
-                                             filenames="POSCAR",
+        fw3 = Firework([CopyFilesFromCalcLoc(calc_loc="fw1",
+                                             filenames=["POSCAR"],
                                              name_prepend="",
                                              name_append="_0"),
-                        CopyFilesFromCalcLoc(calc_dir=None,
-                                             calc_loc="fw2",
-                                             filenames="POSCAR",
+                        CopyFilesFromCalcLoc(calc_loc="fw2",
+                                             filenames=["POSCAR"],
                                              name_prepend="",
                                              name_append="_1"),
                         PassCalcLocs(name="fw3")],

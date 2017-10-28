@@ -76,62 +76,41 @@ def get_calc_loc(target_name, calc_locs):
 @explicit_serialize
 class CopyFilesFromCalcLoc(FiretaskBase):
     """
-    Based on CopyVaspOutputs but for general file copying.
+    Based on CopyVaspOutputs but for general file copying. Note that "calc_locs"
+    must be set in the fw_spec.
 
     Required params:
-        filenames (str): filenames to copy.
+        calc_loc: name of target fw to get location for within the calc_locs.
+        filenames (list(str)): filenames to copy. If not set, all files will be
+            copied.
         name_prepend (str): string to prepend filenames, e.g. can be a directory.
         name_append (str): string to append to filenames.
-
-    Optional params:
-        calc_dir: directory to copy from.
-        calc_loc: name of fw to get location for.
     """
 
-    required_params = ["filenames", "name_prepend","name_append"]
-    optional_params = ["calc_dir", "calc_loc"]
+    required_params = ["calc_loc", "filenames", "name_prepend","name_append"]
 
     def run_task(self,fw_spec=None):
-
-        if self.get('calc_dir',False):
-            filesystem = None
-        elif self.get('calc_loc',False):
-            calc_loc = get_calc_loc(self.get('calc_loc',False), fw_spec["calc_locs"])
-            calc_dir = calc_loc["path"]
-            filesystem = calc_loc["filesystem"]
-        else:
-            raise ValueError("Must specify either calc_dir or calc_loc!")
+        calc_loc = get_calc_loc(self['calc_loc'], fw_spec["calc_locs"])
+        calc_dir = calc_loc["path"]
+        filesystem = calc_loc["filesystem"]
 
         fileclient = FileClient(filesystem=filesystem)
         calc_dir = fileclient.abspath(calc_dir)
 
-        all_files = fileclient.listdir(calc_dir)
-
-        if self.get('filenames',False):
-            if type(self.get('filenames',False)) == list:
-                files_to_copy = self.get('filenames',False)
-            elif isinstance(self.get('filenames',False), six.string_types):
-                files_to_copy = [ self.get('filenames',False) ]
-            else:
-                ValueError("Must have a list of strings or a strings!")
+        if self.get('filenames'):
+            if isinstance(self["filenames"], six.string_types):
+                raise ValueError("filenames must be a list!")
+            files_to_copy = self['filenames']
         else:
-            raise ValueError("Must have a list of filenames!")
+            files_to_copy = fileclient.listdir(calc_dir)
 
-        # determine what files need to be copied
-        if "$ALL" in self.get('filenames',False):
-            files_to_copy = all_files
-
-        # start file copy
         for f in files_to_copy:
             prev_path_full = os.path.join(calc_dir, f)
-            # prev_path = os.path.join(os.path.split(calc_dir)[1], f)
-            dest_fname = self.get('name_prepend',"")+f+self.get('name_append',"")
+            dest_fname = self.get('name_prepend', "") + f + self.get(
+                'name_append', "")
             dest_path = os.path.join(os.getcwd(), dest_fname)
 
-            # copy the file (minus the relaxation extension)
             fileclient.copy(prev_path_full, dest_path)
-            print(prev_path_full)
-            print(dest_path)
 
 
 @explicit_serialize
