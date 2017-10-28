@@ -122,21 +122,23 @@ class CreateFolder(FiretaskBase):
         folder_name (str): folder name.
 
     Optional params:
-        change_to (bool): change to new folder. Defaults to False.
-        local (bool): whether folder name is relative or absolute. Defaults to True.
+        change_dir(bool): change working dir to new folder after creation.
+            Defaults to False.
+        relative_path (bool): whether folder name is relative or absolute.
+            Defaults to True.
     """
     required_params = ["folder_name"]
-    optional_params = ["change_to", "local"]
+    optional_params = ["change_dir", "relative_path"]
 
     def run_task(self, fw_spec):
 
-        if self.get("local", True):
+        if self.get("relative_path", True):
             new_dir = os.path.join(os.getcwd(), self["folder_name"])
         else:
             new_dir = os.path.join(self["folder_name"])
         if not os.path.exists(new_dir):
             os.makedirs(new_dir)
-        if self.get("change_to", False):
+        if self.get("change_dir", False):
             os.chdir(new_dir)
 
 

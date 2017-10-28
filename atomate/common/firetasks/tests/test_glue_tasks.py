@@ -51,7 +51,7 @@ class TestCreateFolder(AtomateTest):
     def test_createfolder(self):
 
         folder_name = "test_folder"
-        fw1 = Firework([CreateFolder(folder_name=folder_name, change_to=False),
+        fw1 = Firework([CreateFolder(folder_name=folder_name, change_dir=False),
                         PassCalcLocs(name="fw1")],
                         name="fw3")
         fw2 = Firework([PassCalcLocs(name="fw2")], name="fw2", parents=fw1)
