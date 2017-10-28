@@ -8,7 +8,7 @@ from fireworks import LaunchPad
 from fireworks.core.firework import Firework, Workflow
 from fireworks.core.rocket_launcher import rapidfire
 
-from atomate.common.firetasks.glue_tasks import PassCalcLocs, get_calc_loc, GrabFilesFromCalcLoc, CreateFolder
+from atomate.common.firetasks.glue_tasks import PassCalcLocs, get_calc_loc, CopyFilesFromCalcLoc, CreateFolder
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 
 from atomate.utils.testing import AtomateTest
@@ -65,7 +65,7 @@ class TestCreateFolder(AtomateTest):
         self.assertTrue(os.path.exists(get_calc_loc("fw1", calc_locs)["path"] +
                                        "/" + folder_name))
 
-class TestGrabFilesFromCalcLoc(AtomateTest):
+class TestCopyFilesFromCalcLoc(AtomateTest):
 
     @classmethod
     def setUpClass(cls):
@@ -74,19 +74,19 @@ class TestGrabFilesFromCalcLoc(AtomateTest):
         cls.relax2_outdir = os.path.join(module_dir, "..", "..", "..", "vasp", "test_files",
                                          "Si_structure_optimization_relax2", "outputs")
 
-    def test_grabfilesfromcalcloc(self):
+    def test_copyfilesfromcalcloc(self):
         fw1 = Firework([CopyVaspOutputs(calc_dir=self.plain_outdir),
                         PassCalcLocs(name="fw1")], name="fw1")
 
         fw2 = Firework([CopyVaspOutputs(calc_dir=self.relax2_outdir),
                         PassCalcLocs(name="fw2")], name="fw2")
 
-        fw3 = Firework([GrabFilesFromCalcLoc(calc_dir=None,
+        fw3 = Firework([CopyFilesFromCalcLoc(calc_dir=None,
                                              calc_loc="fw1",
                                              filenames="POSCAR",
                                              name_prepend="",
                                              name_append="_0"),
-                        GrabFilesFromCalcLoc(calc_dir=None,
+                        CopyFilesFromCalcLoc(calc_dir=None,
                                              calc_loc="fw2",
                                              filenames="POSCAR",
                                              name_prepend="",

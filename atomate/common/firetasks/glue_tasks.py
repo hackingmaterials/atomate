@@ -74,7 +74,7 @@ def get_calc_loc(target_name, calc_locs):
 
 
 @explicit_serialize
-class GrabFilesFromCalcLoc(FiretaskBase):
+class CopyFilesFromCalcLoc(FiretaskBase):
     """
     Based on CopyVaspOutputs but for general file copying.
 
