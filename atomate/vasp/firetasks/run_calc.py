@@ -97,11 +97,12 @@ class RunVaspCustodian(FiretaskBase):
         handler_groups = {
             "default": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
                         NonConvergingErrorHandler(),PotimErrorHandler(),
-                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(), StdErrHandler()],
+                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(), StdErrHandler(),
+                        DriftErrorHandler()],
             "strict": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
                        NonConvergingErrorHandler(),PotimErrorHandler(),
                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(),
-                       StdErrHandler(), AliasingErrorHandler()],
+                       StdErrHandler(), AliasingErrorHandler(), DriftErrorHandler()],
             "md": [VaspErrorHandler(), NonConvergingErrorHandler()],
             "no_handler": []
             }
@@ -172,8 +173,6 @@ class RunVaspCustodian(FiretaskBase):
         # construct handlers
         handlers = handler_groups[self.get("handler_group", "default")]
 
-        if self.get("ediffg"):
-            handlers.append(DriftErrorHandler())
         if self.get("max_force_threshold"):
             handlers.append(MaxForceErrorHandler(max_force_threshold=self["max_force_threshold"]))
 
