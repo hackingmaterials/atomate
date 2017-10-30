@@ -257,7 +257,6 @@ class GetInterpolatedPOSCAR(FiretaskBase):
                                  autosort_tol=self.get("autosort_tol", 0.0))
 
         # save only the interpolation needed for this run
-
         i = self.get("this_image")
         return structs[i]
 
