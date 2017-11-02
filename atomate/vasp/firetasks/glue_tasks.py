@@ -241,9 +241,9 @@ class GetInterpolatedPOSCAR(FiretaskBase):
 
         # use method of GrabFilesFromCalcLoc to grab files from previous locations.
         CopyFilesFromCalcLoc(calc_dir=None, calc_loc=self["start"], filenames=["CONTCAR"],
-                             name_prepend=interpolate_folder+"/", name_append="_0").run_task(fw_spec=fw_spec)
+                             name_prepend=interpolate_folder+os.sep, name_append="_0").run_task(fw_spec=fw_spec)
         CopyFilesFromCalcLoc(calc_dir=None, calc_loc=self["end"], filenames=["CONTCAR"],
-                             name_prepend=interpolate_folder+"/", name_append="_1").run_task(fw_spec=fw_spec)
+                             name_prepend=interpolate_folder+os.sep, name_append="_1").run_task(fw_spec=fw_spec)
 
         # assuming first calc_dir is polar structure for ferroelectric search
 
