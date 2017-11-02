@@ -240,9 +240,9 @@ class GetInterpolatedPOSCAR(FiretaskBase):
             os.makedirs(os.path.join(os.getcwd(),interpolate_folder))
 
         # use method of GrabFilesFromCalcLoc to grab files from previous locations.
-        CopyFilesFromCalcLoc(calc_dir=None, calc_loc=self.get("start","default"), filenames=["CONTCAR"],
+        CopyFilesFromCalcLoc(calc_dir=None, calc_loc=self["start"], filenames=["CONTCAR"],
                              name_prepend=interpolate_folder+"/", name_append="_0").run_task(fw_spec=fw_spec)
-        CopyFilesFromCalcLoc(calc_dir=None, calc_loc=self.get("end","default"), filenames=["CONTCAR"],
+        CopyFilesFromCalcLoc(calc_dir=None, calc_loc=self["end"], filenames=["CONTCAR"],
                              name_prepend=interpolate_folder+"/", name_append="_1").run_task(fw_spec=fw_spec)
 
         # assuming first calc_dir is polar structure for ferroelectric search
@@ -250,12 +250,11 @@ class GetInterpolatedPOSCAR(FiretaskBase):
         s1 = Structure.from_file(os.path.join(interpolate_folder, "CONTCAR_0"))
         s2 = Structure.from_file(os.path.join(interpolate_folder, "CONTCAR_1"))
 
-        structs = s1.interpolate(s2,self.get("nimages"), interpolate_lattices=True,
+        structs = s1.interpolate(s2,self["nimages"], interpolate_lattices=True,
                                  autosort_tol=self.get("autosort_tol", 0.0))
 
         # save only the interpolation needed for this run
-        i = self.get("this_image")
-        s = structs[i]
+        s = structs[self["this_image"]]
         s.to(fmt='POSCAR', filename=os.path.join(os.getcwd(), "POSCAR"))
 
 
