@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals, \
     absolute_import
 
 import datetime
+import os
 
 from pymatgen.core.structure import Structure
 from atomate.utils.utils import get_logger
@@ -18,11 +19,13 @@ class McsqsDrone:
 
         logger.info("Assimilating mcsqs for base dir: {}".format(path))
 
-        input_structure = Structure.from_file('rndstr.in')
-        output_structure = Structure.from_file('bestsqs.out')
+
+        input_structure = Structure.from_file(str(path) + 'rndstr.in')
+        
+        output_structure = Structure.from_file(str(path) + 'bestsqs.out')
 
         # get our objective function
-        with open('bestcorr.out') as f:
+        with open(str(path) + 'bestcorr.out') as f:
             lines = f.read().split('\n')
             lines = [l for l in lines if l]
             try:
@@ -41,19 +44,19 @@ class McsqsDrone:
         # get mcsqs version
         try:
             # if running via atomate, we will create this file
-            with open('mcsqs_version.txt') as f:
+            with open(str(path) +'mcsqs_version.txt') as f:
                 mcsqs_version = str(f.read())
         except:
             mcsqs_version = "Unknown mcsqs version"
 
         # get number of clusters
-        with open('clusters.out') as f:
+        with open(str(path) +'clusters.out') as f:
             lines = f.read().split('\n')
-            num_clusters = (len(lines.split('\n')) - 2) / 7
+            num_clusters = (len(lines) - 2) / 7
 
         # load input args
         try:
-            input_args = loadfn("mcsqs_input_args.json")
+            input_args = loadfn(str(path) +"mcsqs_input_args.json")
             walltime = input_args['walltime']
             clusters = input_args['clusters']
             user_input_settings = input_args['user_input_settings']
@@ -77,3 +80,4 @@ class McsqsDrone:
             'size': len(output_structure)/len(input_structure),
             'last_updated': str(datetime.datetime.now())
         }
+
