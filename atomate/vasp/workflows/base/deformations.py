@@ -46,7 +46,7 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
         Workflow
     """
 
-    fws, parents = [], []
+    fws = []
 
     vasp_input_set = vasp_input_set or MPStaticSet(structure, force_gamma=True)
 
@@ -56,7 +56,7 @@ def get_wf_deformations(structure, deformations, name="deformation", vasp_input_
                           transformations=['DeformStructureTransformation'],
                           transformation_params=[{"deformation": deformation.tolist()}],
                           vasp_input_set=vasp_input_set, copy_vasp_outputs=copy_vasp_outputs,
-                          parents=parents, vasp_cmd=vasp_cmd, db_file=db_file)
+                          vasp_cmd=vasp_cmd, db_file=db_file)
         fws.append(fw)
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, name)
