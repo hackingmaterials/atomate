@@ -314,6 +314,23 @@ def set_fworker(original_wf, fworker_name, fw_name_constraint=None, task_name_co
         original_wf.fws[idx_fw].spec["_fworker"] = fworker_name
     return original_wf
 
+def preserve_fworker(original_wf, fw_name_constraint=None):
+    """
+    set _preserve_fworker spec of Fireworker(s) of a Workflow. Can be used to pin a workflow to 
+    the first fworker it is run with. Very useful when running on multiple machines that can't 
+    share files. fw_name_constraint can be used to only preserve fworker after a certain point 
+    where file passing becomes important
+
+    Args:
+        original_wf (Workflow):
+        fw_name_constraint (str): name of the Fireworks to be tagged (all if None is passed)
+
+    Returns:
+        Workflow: modified workflow with specified Fireworkers tagged
+    """
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint):
+        original_wf.fws[idx_fw].spec["_preserve_fworker"] = True
+    return original_wf
 
 def add_wf_metadata(original_wf, structure):
     """
