@@ -150,7 +150,7 @@ def get_structure_metadata(structure, sga_params={}):
     comp = structure.composition
     elsyms = sorted(set([e.symbol for e in comp.elements]))
     sg = SpacegroupAnalyzer(structure, **sga_params)
-    doc = {'structure': structure,
+    doc = {'structure': structure.as_dict(),
            'formula_pretty': structure.composition.reduced_formula,
            'nsites': structure.num_sites,
            'elements': elsyms,
