@@ -116,7 +116,7 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None, db_fil
             wf_elastic.fws[idx_fw].tasks.append(pass_task)
 
         fw_analysis = Firework(ElasticTensorToDb(structure=structure, db_file=db_file, 
-                                                 order=order, fw_spec_field='tags'),
+                                                 order=order, fw_spec_fields=['tags']),
                                name="Analyze Elastic Data", spec={"_allow_fizzled_parents": True})
         wf_elastic.append_wf(Workflow.from_Firework(fw_analysis), wf_elastic.leaf_fw_ids)
 

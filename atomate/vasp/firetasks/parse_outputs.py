@@ -53,14 +53,14 @@ class VaspToDb(FiretaskBase):
         additional_fields (dict): dict of additional fields to add
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
-        fw_spec_field (str): if set, will update the task doc with the contents
-            of this key in the fw_spec.
+        fw_spec_fields ([str]): if set, will update the task doc with the contents
+            of these keys in the fw_spec.
         defuse_unsuccessful (bool): Defuses children fireworks if VASP run state
             is not "successful"; i.e. both electronic and ionic convergence are reached.
             Defaults to True.
     """
     optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
-                       "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful"]
+                       "additional_fields", "db_file", "fw_spec_fields", "defuse_unsuccessful"]
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
@@ -81,8 +81,9 @@ class VaspToDb(FiretaskBase):
         task_doc = drone.assimilate(calc_dir)
 
         # Check for additional keys to set based on the fw_spec
-        if self.get("fw_spec_field"):
-            task_doc.update(fw_spec[self.get("fw_spec_field")])
+        fw_spec_fields = self.get("fw_spec_fields", [])
+        for fw_spec_field in fw_spec_fields:
+            task_doc.update({fw_spec_field: fw_spec.get(fw_spec_field)})
 
         # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
@@ -229,7 +230,7 @@ class ElasticTensorToDb(FiretaskBase):
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
         order (int): order of fit to perform
-        fw_spec_field (str): if set, will update the task doc with the contents
+        fw_spec_fields (str): if set, will update the task doc with the contents
             of this key in the fw_spec.
         fitting_method (str): if set, will use one of the specified
             fitting methods from pymatgen.  Supported methods are
@@ -239,7 +240,7 @@ class ElasticTensorToDb(FiretaskBase):
     """
 
     required_params = ['structure']
-    optional_params = ['db_file', 'order', 'fw_spec_field', 'fitting_method']
+    optional_params = ['db_file', 'order', 'fw_spec_fields', 'fitting_method']
 
     def run_task(self, fw_spec):
         ref_struct = self['structure']
@@ -262,8 +263,10 @@ class ElasticTensorToDb(FiretaskBase):
         else:
             eq_stress = None
 
-        if self.get("fw_spec_field"):
-            d.update({self.get("fw_spec_field"): fw_spec.get(self.get("fw_spec_field"))})
+        # Update the task doc with specified fields from the fw_spec e.g. tags
+        fw_spec_fields = self.get("fw_spec_fields", [])
+        for fw_spec_field in fw_spec_fields:
+            d.update({fw_spec_field: fw_spec.get(fw_spec_field)})
 
         # Get the stresses, strains, deformations from deformation tasks
         defo_dicts = fw_spec["deformation_tasks"].values()
