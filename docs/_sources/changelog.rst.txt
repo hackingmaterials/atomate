@@ -2,6 +2,24 @@
 atomate Changelog
 =================
 
+**v0.6.6**
+
+* powerup to preserve the same FWorker for all jobs in workflow (S. Dwaraknath)
+* DriftErrorHandler in VASP custodian jobs (S. Dwaraknath)
+* some FireTasks in anticipation of ferroelectrics workflow (T. Schmidt, A. Jain)
+
+**v0.6.5**
+
+* fix delta_volume_percent, set as new key and update FixTasksBuilder (B. Bocklund, A. Jain)
+* drone schema version reflects atomate version (M. Horton)
+* unit test fix (J. Montoya)
+
+**v0.6.4**
+
+* add config option for half_kpts_first and max force (A. Jain, S. Dwaraknath)
+* better logic for band structure parsing (S. Dwaraknath)
+* misc bugfix (P. Huck)
+
 **v0.6.3**
 
 * fix Gibbs wf db insertion (A. Dunn, K. Mathew)

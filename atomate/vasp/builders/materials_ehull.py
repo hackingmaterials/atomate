@@ -63,7 +63,7 @@ class MaterialsEhullBuilder(AbstractBuilder):
 
                 # TODO: @computron it's better to use PD tool or reaction energy calculator
                 # Otherwise the compatibility schemes might have issues...one strategy might be
-                # use MP only to grab entries but compute the PD locally -computron
+                # use MP only to retrieve entries but compute the PD locally -computron
                 for el, elx in my_entry.composition.items():
                     entries = self.mpr.get_entries(el.symbol, compatible_only=True)
                     min_e = min(entries, key=lambda x: x.energy_per_atom).energy_per_atom

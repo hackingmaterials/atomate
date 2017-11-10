@@ -74,6 +74,75 @@ def get_calc_loc(target_name, calc_locs):
 
 
 @explicit_serialize
+class CopyFilesFromCalcLoc(FiretaskBase):
+    """
+    Based on CopyVaspOutputs but for general file copying. Note that "calc_locs"
+    must be set in the fw_spec.
+
+    Required params:
+        calc_loc: name of target fw to get location for within the calc_locs.
+        filenames (list(str)): filenames to copy. If not set, all files will be
+            copied.
+        name_prepend (str): string to prepend filenames, e.g. can be a directory.
+        name_append (str): string to append to filenames.
+    """
+
+    required_params = ["calc_loc", "filenames", "name_prepend","name_append"]
+
+    def run_task(self,fw_spec=None):
+        calc_loc = get_calc_loc(self['calc_loc'], fw_spec["calc_locs"])
+        calc_dir = calc_loc["path"]
+        filesystem = calc_loc["filesystem"]
+
+        fileclient = FileClient(filesystem=filesystem)
+        calc_dir = fileclient.abspath(calc_dir)
+
+        if self.get('filenames'):
+            if isinstance(self["filenames"], six.string_types):
+                raise ValueError("filenames must be a list!")
+            files_to_copy = self['filenames']
+        else:
+            files_to_copy = fileclient.listdir(calc_dir)
+
+        for f in files_to_copy:
+            prev_path_full = os.path.join(calc_dir, f)
+            dest_fname = self.get('name_prepend', "") + f + self.get(
+                'name_append', "")
+            dest_path = os.path.join(os.getcwd(), dest_fname)
+
+            fileclient.copy(prev_path_full, dest_path)
+
+
+@explicit_serialize
+class CreateFolder(FiretaskBase):
+    """
+    FireTask to create new folder with the option of changing directory to the new folder.
+
+    Required params:
+        folder_name (str): folder name.
+
+    Optional params:
+        change_dir(bool): change working dir to new folder after creation.
+            Defaults to False.
+        relative_path (bool): whether folder name is relative or absolute.
+            Defaults to True.
+    """
+    required_params = ["folder_name"]
+    optional_params = ["change_dir", "relative_path"]
+
+    def run_task(self, fw_spec):
+
+        if self.get("relative_path", True):
+            new_dir = os.path.join(os.getcwd(), self["folder_name"])
+        else:
+            new_dir = os.path.join(self["folder_name"])
+        if not os.path.exists(new_dir):
+            os.makedirs(new_dir)
+        if self.get("change_dir", False):
+            os.chdir(new_dir)
+
+
+@explicit_serialize
 class PassResult(FiretaskBase):
     """
     Passes properties and corresponding user-specified data resulting from a run from parent

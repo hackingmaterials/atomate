@@ -1,7 +1,7 @@
 {
     "analysis": {
         "delta_volume": 0.0,
-        "delta_volume_percent": 0.0,
+        "delta_volume_as_percent": 0.0,
         "errors": [],
         "max_force": 0.0,
         "warnings": []

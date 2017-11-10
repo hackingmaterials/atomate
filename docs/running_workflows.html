@@ -1,20 +1,17 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Running workflows tutorial &#8212; atomate 0.6.3 documentation</title>
-    
+    <title>Running workflows tutorial &#8212; atomate 0.6.6 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.6.3',
+        VERSION:     '0.6.6',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -29,7 +26,7 @@
     <link rel="next" title="Running Gibbs Workflows" href="gibbs_workflow_tutorial.html" />
     <link rel="prev" title="Installing atomate in development mode" href="developer_installation.html" /> 
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -45,7 +42,7 @@
         <li class="right" >
           <a href="developer_installation.html" title="Installing atomate in development mode"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.6 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -58,7 +55,7 @@
 <span id="id1"></span><h1>Running Workflows Tutorial<a class="headerlink" href="#running-workflows-tutorial" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>Once you have a working installation of atomate, you&#8217;ll want to jump in and start running workflows.
+<p>Once you have a working installation of atomate, you’ll want to jump in and start running workflows.
 There are preset workflows with reasonable settings for many calculations.
 This tutorial will quickly guide you through customizing and running a preset workflow to calculate the bandstructure of MgO.</p>
 </div>
@@ -95,7 +92,7 @@ Then non-selfconsistent static calculations are completed with k-points on a pat
 <h2>Running a Bandstructure Workflow<a class="headerlink" href="#running-a-bandstructure-workflow" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="setup">
 <h3>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h3>
-<p>Make sure you have completed the installation tutorial. Next, create a folder on your HPC resource for this tutorial. It can be located anywhere. You&#8217;ll keep all of the files for this tutorial there.</p>
+<p>Make sure you have completed the installation tutorial. Next, create a folder on your HPC resource for this tutorial. It can be located anywhere. You’ll keep all of the files for this tutorial there.</p>
 <p>If you do not already have important prior results in your atomate environment, start fresh by running:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lpad</span> <span class="n">reset</span>
 </pre></div>
@@ -121,9 +118,9 @@ Then non-selfconsistent static calculations are completed with k-points on a pat
 <span class="mf">0.000000</span> <span class="mf">0.000000</span> <span class="mf">0.000000</span> <span class="n">Mg</span>
 </pre></div>
 </div>
-<p>Note that this does not have to be a POSCAR. You can also supply multiple formats supported by pymatgen, including: Crystallographic Information File (CIF), POSCAR/CONTCAR, CHGCAR, vasprun.xml, CSSR, Netcdf and pymatgen&#8217;s JSON serialized structures.
-There are many thousands of structures available from the Materials Project that can be run directly in atwf or by creating <code class="docutils literal"><span class="pre">Structure</span></code> objects with pymatgen&#8217;s <code class="docutils literal"><span class="pre">MPRester</span></code>.</p>
-<p>There are multiple ways of defining the workflow to execute on the structure. We&#8217;ll go over 3 options.</p>
+<p>Note that this does not have to be a POSCAR. You can also supply multiple formats supported by pymatgen, including: Crystallographic Information File (CIF), POSCAR/CONTCAR, CHGCAR, vasprun.xml, CSSR, Netcdf and pymatgen’s JSON serialized structures.
+There are many thousands of structures available from the Materials Project that can be run directly in atwf or by creating <code class="docutils literal"><span class="pre">Structure</span></code> objects with pymatgen’s <code class="docutils literal"><span class="pre">MPRester</span></code>.</p>
+<p>There are multiple ways of defining the workflow to execute on the structure. We’ll go over 3 options.</p>
 </div>
 <div class="section" id="option-1-use-a-pre-defined-workflow-in-atomate">
 <h3>Option 1: Use a pre-defined workflow in atomate<a class="headerlink" href="#option-1-use-a-pre-defined-workflow-in-atomate" title="Permalink to this headline">¶</a></h3>
@@ -136,7 +133,7 @@ There are many thousands of structures available from the Materials Project that
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">atwf</span> <span class="n">add</span> <span class="p">[[</span><span class="n">STRUCTURE_FILE</span><span class="p">]]</span> <span class="o">-</span><span class="n">p</span> <span class="p">[[</span><span class="n">NAME_OF_PYTHON_FUNCTION</span><span class="p">]]</span>
 </pre></div>
 </div>
-<p>An example of a valid Python functions in <code class="docutils literal"><span class="pre">atomate.vasp.workflows.presets</span></code> is <code class="docutils literal"><span class="pre">wf_bandstructure</span></code>. However, this isn&#8217;t exactly the procedure we&#8217;ll follow next, so to continue with this example, let&#8217;s choose one of the other two options for defining the workflow which are more custom than the presets. However, note that you can and are encouraged to use preset workflows where practical and that there exist many such workflows for you to choose from.</p>
+<p>An example of a valid Python functions in <code class="docutils literal"><span class="pre">atomate.vasp.workflows.presets</span></code> is <code class="docutils literal"><span class="pre">wf_bandstructure</span></code>. However, this isn’t exactly the procedure we’ll follow next, so to continue with this example, let’s choose one of the other two options for defining the workflow which are more custom than the presets. However, note that you can and are encouraged to use preset workflows where practical and that there exist many such workflows for you to choose from.</p>
 </div>
 <div class="section" id="option-2-create-your-own-workflow-file">
 <h3>Option 2: Create your own workflow file<a class="headerlink" href="#option-2-create-your-own-workflow-file" title="Permalink to this headline">¶</a></h3>
@@ -176,7 +173,7 @@ We can setup the workflow and add it to our LaunchPad ready to run in just a few
 </pre></div>
 </div>
 <p><strong>Add workflow to LaunchPad</strong></p>
-<p>If you want to add the workflow to your LaunchPad (e.g., you didn&#8217;t already go through Option 2 for adding a workflow): from the folder with your <code class="docutils literal"><span class="pre">POSCAR</span></code> and <code class="docutils literal"><span class="pre">mgo_bandstructure.py</span></code>, run the Python script:</p>
+<p>If you want to add the workflow to your LaunchPad (e.g., you didn’t already go through Option 2 for adding a workflow): from the folder with your <code class="docutils literal"><span class="pre">POSCAR</span></code> and <code class="docutils literal"><span class="pre">mgo_bandstructure.py</span></code>, run the Python script:</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span>python mgo_bandstructure.py
 </pre></div>
 </div>
@@ -196,7 +193,7 @@ Unless there were any errors, the Fireworks have successfully finished launching
 </div>
 <div class="section" id="analyzing-a-bandstructure-workflow">
 <h2>Analyzing a Bandstructure Workflow<a class="headerlink" href="#analyzing-a-bandstructure-workflow" title="Permalink to this headline">¶</a></h2>
-<p>Finally, we&#8217;ll plot the results that we calculated.
+<p>Finally, we’ll plot the results that we calculated.
 Simply add the following Python script (<code class="docutils literal"><span class="pre">bs-analysis.py</span></code>) to your folder, <strong>change the ``PATH_TO_MY_DB_JSON`` to the path to your ``db.json`` file</strong> (e.g. <code class="docutils literal"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;/config/db.json</span></code>), and run the script.</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">atomate.vasp.database</span> <span class="kn">import</span> <span class="n">VaspCalcDb</span>
 <span class="kn">from</span> <span class="nn">pymatgen.electronic_structure.plotter</span> <span class="kn">import</span> <span class="n">DosPlotter</span><span class="p">,</span> <span class="n">BSPlotter</span>
@@ -322,12 +319,12 @@ Simply add the following Python script (<code class="docutils literal"><span cla
         <li class="right" >
           <a href="developer_installation.html" title="Installing atomate in development mode"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.6 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
   </body>
 </html>
