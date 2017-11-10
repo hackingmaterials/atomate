@@ -495,7 +495,8 @@ class TransmuterFW(Firework):
                           additional_fields={
                               "task_label": name,
                               "transmuter": {"transformations": transformations,
-                                             "transformation_params": transformation_params}
+                                             "transformation_params": transformation_params},
+                              "parent_structure": structure
                           }))
 
         super(TransmuterFW, self).__init__(t, parents=parents,
