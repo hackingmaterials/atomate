@@ -30,6 +30,7 @@ from atomate.vasp.firetasks.write_inputs import WriteNormalmodeDisplacedPoscar, 
     WriteVaspNSCFFromPrev, WriteVaspSOCFromPrev, WriteVaspStaticFromPrev
 from atomate.vasp.firetasks.neb_tasks import WriteNEBFromImages, \
     WriteNEBFromEndpoints
+from atomate.utils.utils import get_structure_metadata
 
 
 class OptimizeFW(Firework):
@@ -496,7 +497,7 @@ class TransmuterFW(Firework):
                               "task_label": name,
                               "transmuter": {"transformations": transformations,
                                              "transformation_params": transformation_params},
-                              "parent_structure": structure
+                              "parent_structure": get_structure_metadata(structure)
                           }))
 
         super(TransmuterFW, self).__init__(t, parents=parents,

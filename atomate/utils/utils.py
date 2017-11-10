@@ -9,6 +9,7 @@ import sys
 import six
 from monty.json import MontyDecoder
 from pymatgen import Composition
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from fireworks import Workflow
 from pymatgen.alchemy.materials import TransformedStructure
@@ -133,24 +134,42 @@ def get_logger(name, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(na
     return logger
 
 
-def get_meta_from_structure(structure):
+def get_structure_metadata(structure, sga_params={}):
+    """
+    Gets a dictionary corresponding to structure metadata
+    for insertion of structure info into task docs and
+    parent structure info
+
+    Args:
+        structure (Structure): structure to prepare doc for
+        sga_params (dict): dictionary of kwargs for SpacegroupAnalyzer
+    """
     if isinstance(structure, TransformedStructure):
         structure = structure.final_structure
 
     comp = structure.composition
     elsyms = sorted(set([e.symbol for e in comp.elements]))
-    meta = {'nsites': structure.num_sites,
-            'elements': elsyms,
-            'nelements': len(elsyms),
-            'formula': comp.formula,
-            'formula_pretty': comp.reduced_formula,
-            'formula_reduced_abc': Composition(comp.reduced_formula)
-            .alphabetical_formula,
-            'formula_anonymous': comp.anonymized_formula,
-            'chemsys': '-'.join(elsyms),
-            'is_ordered': structure.is_ordered,
-            'is_valid': structure.is_valid()}
-    return meta
+    sg = SpacegroupAnalyzer(structure, **sga_params)
+    doc = {'structure': structure,
+           'formula_pretty': structure.composition.reduced_formula,
+           'nsites': structure.num_sites,
+           'elements': elsyms,
+           'nelements': len(elsyms),
+           'formula': comp.formula,
+           'formula_pretty': comp.reduced_formula,
+           'formula_reduced_abc': Composition(comp.reduced_formula)
+           .alphabetical_formula,
+           'formula_anonymous': comp.anonymized_formula,
+           'chemsys': '-'.join(elsyms),
+           'is_ordered': structure.is_ordered,
+           'is_valid': structure.is_valid(),
+           'spacegroup': {"symbol": sg.get_space_group_symbol(),
+                          "number": sg.get_space_group_number(),
+                          "point_group": sg.get_point_group_symbol(),
+                          "source": "spglib",
+                          "crystal_system": sg.get_crystal_system(),
+                          "hall": sg.get_hall()}}
+    return doc
 
 
 def get_fws_and_tasks(workflow, fw_name_constraint=None, task_name_constraint=None):

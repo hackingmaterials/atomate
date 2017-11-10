@@ -23,7 +23,7 @@ from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from atomate.common.firetasks.glue_tasks import get_calc_loc
-from atomate.utils.utils import env_chk, get_meta_from_structure
+from atomate.utils.utils import env_chk, get_structure_metadata
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.drones import VaspDrone
@@ -181,18 +181,7 @@ class BoltztrapToDb(FiretaskBase):
         # add the structure
         v, o = get_vasprun_outcar(bandstructure_dir, parse_eigen=False, parse_dos=False)
         structure = v.final_structure
-        d["structure"] = structure.as_dict()
-        d["formula_pretty"] = structure.composition.reduced_formula
-        d.update(get_meta_from_structure(structure))
-
-        # add the spacegroup
-        sg = SpacegroupAnalyzer(Structure.from_dict(d["structure"]), 0.1)
-        d["spacegroup"] = {"symbol": sg.get_space_group_symbol(),
-                           "number": sg.get_space_group_number(),
-                           "point_group": sg.get_point_group_symbol(),
-                           "source": "spglib",
-                           "crystal_system": sg.get_crystal_system(),
-                           "hall": sg.get_hall()}
+        d.update(get_structure_metadata(structure, sga_params={"symprec": 0.1}))
 
         d["created_at"] = datetime.utcnow()
 
