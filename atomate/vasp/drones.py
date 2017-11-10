@@ -24,7 +24,7 @@ from pymatgen.core.composition import Composition
 from pymatgen.core.structure import Structure
 from pymatgen.core.operations import SymmOp
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar
+from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot
 from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
 from pymatgen.apps.borg.hive import AbstractDrone
 
@@ -76,7 +76,7 @@ class VaspDrone(AbstractDrone):
     }
 
     def __init__(self, runs=None, parse_dos="auto", compress_dos=False, bandstructure_mode="auto",
-                 compress_bs=False, additional_fields=None, use_full_uri=True):
+                 compress_bs=False, parse_locpot = False, additional_fields=None, use_full_uri=True):
         """
         Initialize a Vasp drone to parse vasp outputs
         Args:
@@ -95,6 +95,7 @@ class VaspDrone(AbstractDrone):
              False will parse the bandstructure without projections to calculate vbm, cbm, band_gap, is_metal and efermi
               Dose not saves the bandstructure in the output doc.
             compress_bs (bool): Compress the bandstructure using zlib or not
+            parse_locpot (bool): Parses the LOCPOT file and saves the 3 axis averages
             additional_fields (dict): dictionary of additional fields to add to output document
             use_full_uri (bool): converts the directory path to the full URI path
         """
@@ -105,6 +106,7 @@ class VaspDrone(AbstractDrone):
         self.runs = runs or ["relax" + str(i + 1) for i in range(9)]  # can't auto-detect: path unknown
         self.bandstructure_mode = bandstructure_mode
         self.compress_bs = compress_bs
+        self.parse_locpot = parse_locpot
 
     def assimilate(self, path):
         """
@@ -383,6 +385,10 @@ class VaspDrone(AbstractDrone):
         d["task"] = {"type": taskname, "name": taskname}
 
         d["output_file_paths"] = self.process_raw_data(dir_name, taskname=taskname)
+
+        if "locpot" in d["output_file_paths"] and self.parse_locpot:
+            locpot = Locpot.from_file(os.path.join(dir_name,d["output_file_paths"]["locpot"]))
+            d["output"]["locpot"] = {i:locpot.get_average_along_axis(i) for i in range(3)}
 
         if hasattr(vrun, "force_constants"):
             # phonon-dfpt
