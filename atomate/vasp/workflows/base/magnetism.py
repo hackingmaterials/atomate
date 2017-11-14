@@ -325,7 +325,7 @@ def get_wf_magnetic_orderings(structure,
         fws.append(OptimizeFW(ordered_structure, vasp_input_set=vis,
                               vasp_cmd=vasp_cmd, db_file=db_file,
                               max_force_threshold=0.05,
-                              half_kpts_first_relax=True,
+                              half_kpts_first_relax=False,
                               name=name+" optimize"))
 
         # static
