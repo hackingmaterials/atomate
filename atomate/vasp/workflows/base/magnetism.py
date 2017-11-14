@@ -289,7 +289,6 @@ def get_wf_magnetic_orderings(structure,
     # if our input structure isn't in our generated structures,
     # let's add it manually
     matches = [msa.matches_ordering(s) for s in ordered_structures]
-    tags = []
     if not any(matches):
         ordered_structures.append(structure)
         indexes += [-1]
@@ -297,7 +296,6 @@ def get_wf_magnetic_orderings(structure,
     else:
         # keep a note of which structure is our input
         # this is mostly for book-keeping
-        tags.append('Input structure index: {}'.format(matches.index(True)))
         logger.info("Input structure was found in enumerated "
                     "structures at index {}".format(matches.index(True)))
 
