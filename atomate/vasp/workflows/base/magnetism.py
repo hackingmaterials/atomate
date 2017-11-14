@@ -301,9 +301,8 @@ def get_wf_magnetic_orderings(structure,
         logger.info("Input structure was found in enumerated "
                     "structures at index {}".format(matches.index(True)))
 
-    # TODO: tags!
-
     fws = []
+    analysis_parents = []
 
     for idx, ordered_structure in enumerate(ordered_structures):
 
@@ -337,6 +336,8 @@ def get_wf_magnetic_orderings(structure,
                             name=name+" static",
                             prev_calc_loc=True, parents=fws[-1]))
 
+        analysis_parents.append(fws[-1])
+
     uuid = str(uuid4())
     fw_analysis = Firework(MagneticOrderingsToDB(db_file=db_file,
                                                  wf_uuid=uuid,
@@ -344,11 +345,11 @@ def get_wf_magnetic_orderings(structure,
                                                  name="MagneticOrderingsToDB",
                                                  parent_structure=structure,
                                                  strategy=vasp_input_set_kwargs),
-                           name="Magnetic Orderings Analysis")
+                           name="Magnetic Orderings Analysis", parents=analysis_parents)
     fws.append(fw_analysis)
 
     wf_name = "{} - magnetic orderings".format(formula)
-    wf = Workflow(fws, name="{}")
+    wf = Workflow(fws, name=wf_name)
 
     wf = add_additional_fields_to_taskdocs(wf, {
         'wf_meta': {
