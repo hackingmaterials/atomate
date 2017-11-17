@@ -251,6 +251,10 @@ class GetInterpolatedPOSCAR(FiretaskBase):
     optional_params = ["autosort_tol"]
 
     def run_task(self, fw_spec):
+        structure = self.interpolate_poscar(fw_spec)
+        structure.to(fmt="POSCAR", filename=os.path.join(os.getcwd(), "POSCAR"))
+
+    def interpolate_poscar(self, fw_spec):
         # make folder for poscar interpolation start and end structure files.
         interpolate_folder = 'interpolate'
         if not os.path.exists(os.path.join(os.getcwd(), interpolate_folder)):
@@ -266,8 +270,8 @@ class GetInterpolatedPOSCAR(FiretaskBase):
                              name_prepend=interpolate_folder + os.sep,
                              name_append="_1").run_task(fw_spec=fw_spec)
 
-        # assuming first calc_dir is polar structure for ferroelectric search
 
+        # assuming first calc_dir is polar structure for ferroelectric search
         s1 = Structure.from_file(os.path.join(interpolate_folder, "CONTCAR_0"))
         s2 = Structure.from_file(os.path.join(interpolate_folder, "CONTCAR_1"))
 
@@ -275,8 +279,9 @@ class GetInterpolatedPOSCAR(FiretaskBase):
                                  autosort_tol=self.get("autosort_tol", 0.0))
 
         # save only the interpolation needed for this run
-        s = structs[self["this_image"]]
-        s.to(fmt='POSCAR', filename=os.path.join(os.getcwd(), "POSCAR"))
+
+        i = self.get("this_image")
+        return structs[i]
 
 
 def pass_vasp_result(pass_dict=None, calc_dir='.', filename="vasprun.xml.gz",
