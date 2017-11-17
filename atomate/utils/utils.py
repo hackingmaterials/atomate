@@ -58,10 +58,10 @@ def env_chk(val, fw_spec, strict=True, default=None):
 
 def get_mongolike(d, key):
     """
-    Grab a dict value using dot-notation like "a.b.c" from dict {"a":{"b":{"c": 3}}}
+    Retrieve a dict value using dot-notation like "a.b.c" from dict {"a":{"b":{"c": 3}}}
     Args:
         d (dict): the dictionary to search
-        key (str): the key we want to grab with dot notation, e.g., "a.b.c" 
+        key (str): the key we want to retrieve with dot notation, e.g., "a.b.c"
 
     Returns:
         value from desired dict (whatever is stored at the desired key)

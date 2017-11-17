@@ -1,6 +1,7 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, \
+    absolute_import
 
 import glob
 
@@ -24,7 +25,8 @@ from pymatgen.core.structure import Structure
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 from atomate.utils.utils import env_chk, get_logger
-from atomate.common.firetasks.glue_tasks import get_calc_loc, PassResult, CopyFiles, GrabFilesFromCalcLoc
+from atomate.common.firetasks.glue_tasks import get_calc_loc, PassResult, \
+    CopyFiles, CopyFilesFromCalcLoc
 
 logger = get_logger(__name__)
 
@@ -59,16 +61,20 @@ class CopyVaspOutputs(CopyFiles):
             POSCAR (original POSCAR is not copied).
     """
 
-    optional_params = ["calc_loc", "calc_dir", "filesystem", "additional_files", "contcar_to_poscar"]
+    optional_params = ["calc_loc", "calc_dir", "filesystem", "additional_files",
+                       "contcar_to_poscar"]
 
     def run_task(self, fw_spec):
 
-        calc_loc = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"]) if self.get("calc_loc") else {}
+        calc_loc = get_calc_loc(self["calc_loc"],
+                                fw_spec["calc_locs"]) if self.get(
+            "calc_loc") else {}
 
         # determine what files need to be copied
         files_to_copy = None
         if not "$ALL" in self.get("additional_files", []):
-            files_to_copy = ['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR', 'vasprun.xml']
+            files_to_copy = ['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR',
+                             'vasprun.xml']
             if self.get("additional_files"):
                 files_to_copy.extend(self["additional_files"])
 
@@ -76,10 +82,12 @@ class CopyVaspOutputs(CopyFiles):
         contcar_to_poscar = self.get("contcar_to_poscar", True)
         if contcar_to_poscar and "CONTCAR" not in files_to_copy:
             files_to_copy.append("CONTCAR")
-            files_to_copy = [f for f in files_to_copy if f != 'POSCAR']  # remove POSCAR
+            files_to_copy = [f for f in files_to_copy if
+                             f != 'POSCAR']  # remove POSCAR
 
         # setup the copy
-        self.setup_copy(self.get("calc_dir", None), filesystem=self.get("filesystem", None),
+        self.setup_copy(self.get("calc_dir", None),
+                        filesystem=self.get("filesystem", None),
                         files_to_copy=files_to_copy, from_path_dict=calc_loc)
         # do the copying
         self.copy_files()
@@ -89,14 +97,17 @@ class CopyVaspOutputs(CopyFiles):
         # start file copy
         for f in self.files_to_copy:
             prev_path_full = os.path.join(self.from_dir, f)
-            dest_fname = 'POSCAR' if f == 'CONTCAR' and self.get("contcar_to_poscar", True) else f
+            dest_fname = 'POSCAR' if f == 'CONTCAR' and self.get(
+                "contcar_to_poscar", True) else f
             dest_path = os.path.join(self.to_dir, dest_fname)
 
             relax_ext = ""
-            relax_paths = sorted(self.fileclient.glob(prev_path_full+".relax*"))
+            relax_paths = sorted(
+                self.fileclient.glob(prev_path_full + ".relax*"))
             if relax_paths:
                 if len(relax_paths) > 9:
-                    raise ValueError("CopyVaspOutputs doesn't properly handle >9 relaxations!")
+                    raise ValueError(
+                        "CopyVaspOutputs doesn't properly handle >9 relaxations!")
                 m = re.search('\.relax\d*', relax_paths[-1])
                 relax_ext = m.group(0)
 
@@ -111,7 +122,8 @@ class CopyVaspOutputs(CopyFiles):
                 raise ValueError("Cannot find file: {}".format(f))
 
             # copy the file (minus the relaxation extension)
-            self.fileclient.copy(prev_path_full + relax_ext + gz_ext, dest_path + gz_ext)
+            self.fileclient.copy(prev_path_full + relax_ext + gz_ext,
+                                 dest_path + gz_ext)
 
             # unzip the .gz if needed
             if gz_ext in ['.gz', ".GZ"]:
@@ -146,7 +158,8 @@ class CheckStability(FiretaskBase):
 
     def run_task(self, fw_spec):
         mpr = MPRester(env_chk(self.get("MAPI_KEY"), fw_spec))
-        vasprun, outcar = get_vasprun_outcar(self.get("calc_dir", "."), parse_dos=False,
+        vasprun, outcar = get_vasprun_outcar(self.get("calc_dir", "."),
+                                             parse_dos=False,
                                              parse_eigen=False)
 
         my_entry = vasprun.get_computed_entry(inc_structure=False)
@@ -154,7 +167,8 @@ class CheckStability(FiretaskBase):
 
         if stored_data["e_above_hull"] > self.get("ehull_cutoff", 0.05):
             logger.info("CheckStability: failed test!")
-            return FWAction(stored_data=stored_data, exit=True, defuse_workflow=True)
+            return FWAction(stored_data=stored_data, exit=True,
+                            defuse_workflow=True)
 
         else:
             return FWAction(stored_data=stored_data)
@@ -187,18 +201,22 @@ class CheckBandgap(FiretaskBase):
             relax_paths = sorted(glob.glob(vr_path + ".relax*"))
             if relax_paths:
                 if len(relax_paths) > 9:
-                    raise ValueError("CheckBandgap doesn't properly handle >9 relaxations!")
+                    raise ValueError(
+                        "CheckBandgap doesn't properly handle >9 relaxations!")
                 vr_path = relax_paths[-1]
 
         logger.info("Checking the gap of file: {}".format(vr_path))
         vr = Vasprun(vr_path)
         gap = vr.get_band_structure().get_band_gap()["energy"]
         stored_data = {"band_gap": gap}
-        logger.info("The gap is: {}. Min gap: {}. Max gap: {}".format(gap, min_gap, max_gap))
+        logger.info(
+            "The gap is: {}. Min gap: {}. Max gap: {}".format(gap, min_gap,
+                                                              max_gap))
 
         if (min_gap and gap < min_gap) or (max_gap and gap > max_gap):
             logger.info("CheckBandgap: failed test!")
-            return FWAction(stored_data=stored_data, exit=True, defuse_workflow=True)
+            return FWAction(stored_data=stored_data, exit=True,
+                            defuse_workflow=True)
 
         return FWAction(stored_data=stored_data)
 
@@ -209,50 +227,65 @@ class GetInterpolatedPOSCAR(FiretaskBase):
     Grabs CONTCARS from two previous calculations to create interpolated
     structure.
 
+    The code gets the CONTCAR locations using get_calc_loc of two calculations
+    indicated by the start and end params, creates a folder named "interpolate"
+    in the current FireWork directory, and copies the two CONTCARs to this folder.
+    The two CONTCARs are then used to create nimages interpolated structures using
+    pymatgen.core.structure.Structure.interpolate. Finally, the structure indicated
+    by this_image is written as a POSCAR file.
+
     Required params:
         start (str): name of fw for start of interpolation.
         end (str): name of fw for end of interpolation.
         this_image (int): which interpolation this is.
         nimages (int) : number of interpolations.
-        autosort_tol (float): a distance tolerance in angstrom in which
-          to automatically sort end_structure to match to the closest
-          points in this particular structure.
+
+    Optional params:
+        autosort_tol (float): parameter used by Structure.interpolate.
+          a distance tolerance in angstrom in which to automatically
+          sort end_structure to match to the closest
+          points in this particular structure. Default is 0.0.
+
     """
-    required_params = ["start","end","this_image","nimages","autosort_tol"]
+    required_params = ["start", "end", "this_image", "nimages"]
+    optional_params = ["autosort_tol"]
 
     def run_task(self, fw_spec):
         structure = self.interpolate_poscar(fw_spec)
-        structure.to(fmt='POSCAR', filename=os.getcwd() + "/POSCAR")
+        structure.to(fmt="POSCAR", filename=os.path.join(os.getcwd(), "POSCAR"))
 
     def interpolate_poscar(self, fw_spec):
         # make folder for poscar interpolation start and end structure files.
-        interpolate_folder = '/interpolate'
-        if not os.path.exists(os.getcwd()+interpolate_folder):
-            os.makedirs(os.getcwd()+interpolate_folder)
-
-            print (os.getcwd()+interpolate_folder)
+        interpolate_folder = 'interpolate'
+        if not os.path.exists(os.path.join(os.getcwd(), interpolate_folder)):
+            os.makedirs(os.path.join(os.getcwd(), interpolate_folder))
 
         # use method of GrabFilesFromCalcLoc to grab files from previous locations.
-        GrabFilesFromCalcLoc(calc_dir=None, calc_loc=self.get("start","default"), filenames="CONTCAR",
-                             name_prepend="interpolate/", name_append="_0").run_task(fw_spec=fw_spec)
-        GrabFilesFromCalcLoc(calc_dir=None, calc_loc=self.get("end","default"), filenames="CONTCAR",
-                             name_prepend="interpolate/", name_append="_1").run_task(fw_spec=fw_spec)
+        CopyFilesFromCalcLoc(calc_dir=None, calc_loc=self["start"],
+                             filenames=["CONTCAR"],
+                             name_prepend=interpolate_folder + os.sep,
+                             name_append="_0").run_task(fw_spec=fw_spec)
+        CopyFilesFromCalcLoc(calc_dir=None, calc_loc=self["end"],
+                             filenames=["CONTCAR"],
+                             name_prepend=interpolate_folder + os.sep,
+                             name_append="_1").run_task(fw_spec=fw_spec)
+
 
         # assuming first calc_dir is polar structure for ferroelectric search
+        s1 = Structure.from_file(os.path.join(interpolate_folder, "CONTCAR_0"))
+        s2 = Structure.from_file(os.path.join(interpolate_folder, "CONTCAR_1"))
 
-        s1 = Structure.from_file("interpolate/CONTCAR_0")
-        s2 = Structure.from_file("interpolate/CONTCAR_1")
-
-        structs = s1.interpolate(s2,self.get('nimages',5),interpolate_lattices=True,
-                                 autosort_tol=self.get("autosort_tol",0.5))
+        structs = s1.interpolate(s2, self["nimages"], interpolate_lattices=True,
+                                 autosort_tol=self.get("autosort_tol", 0.0))
 
         # save only the interpolation needed for this run
-        i = self.get("this_image",0)
+
+        i = self.get("this_image")
         return structs[i]
 
 
-
-def pass_vasp_result(pass_dict=None, calc_dir='.', filename="vasprun.xml.gz", parse_eigen=False,
+def pass_vasp_result(pass_dict=None, calc_dir='.', filename="vasprun.xml.gz",
+                     parse_eigen=False,
                      parse_dos=False, **kwargs):
     """
     Function that gets a PassResult firework corresponding to output from a Vasprun.  Covers
@@ -285,6 +318,8 @@ def pass_vasp_result(pass_dict=None, calc_dir='.', filename="vasprun.xml.gz", pa
         
     """
     pass_dict = pass_dict or {"computed_entry": "a>>get_computed_entry"}
-    parse_kwargs = {"filename": filename, "parse_eigen": parse_eigen, "parse_dos":parse_dos}
-    return PassResult(pass_dict=pass_dict, calc_dir=calc_dir, parse_kwargs=parse_kwargs,
+    parse_kwargs = {"filename": filename, "parse_eigen": parse_eigen,
+                    "parse_dos": parse_dos}
+    return PassResult(pass_dict=pass_dict, calc_dir=calc_dir,
+                      parse_kwargs=parse_kwargs,
                       parse_class="pymatgen.io.vasp.outputs.Vasprun", **kwargs)

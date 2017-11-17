@@ -87,13 +87,12 @@ class WriteVaspFromIOSetFromInterpolatedPOSCAR(GetInterpolatedPOSCAR):
             rather than a String.
     """
     # First, we make a fresh copy of the required_params before modifying.
-    required_params = list(GetInterpolatedPOSCAR.required_params)
-    required_params += ["vasp_input_set"]
-    optional_params = ["vasp_input_params"]
+    required_params = ["start", "end", "this_image", "nimages", "vasp_input_set"]
+    optional_params = ["vasp_input_params", "autosort_tol"]
 
     def run_task(self, fw_spec):
         # Get interpolated structure.
-        structure = GetInterpolatedPOSCAR.interpolate_poscar(self,fw_spec)
+        structure = GetInterpolatedPOSCAR.interpolate_poscar(self, fw_spec)
 
         # Assumes VaspInputSet String + parameters was provided
         vis_cls = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])

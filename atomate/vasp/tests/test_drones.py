@@ -12,6 +12,8 @@ from pymatgen.io.vasp import Outcar, Oszicar
 
 from atomate.vasp.drones import VaspDrone
 
+import numpy as np
+
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
@@ -125,6 +127,20 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
         self.assertDictEqual({'chgcar': 'CHGCAR.relax1.gz', 'procar': 'PROCAR.relax1.gz',
                               'wavecar': 'WAVECAR.relax1.gz'},
                              doc['calcs_reversed'][1]['output_file_paths'])
+
+    def test_parse_locpot(self):
+        drone = VaspDrone(parse_locpot=True)
+        doc = drone.assimilate(self.Si_static)
+
+        self.assertTrue(drone.parse_locpot)
+        self.assertTrue('locpot' in doc['calcs_reversed'][0]['output'])
+        self.assertTrue(0 in doc['calcs_reversed'][0]['output']['locpot'])
+        self.assertTrue(1 in doc['calcs_reversed'][0]['output']['locpot'])
+        self.assertTrue(2 in doc['calcs_reversed'][0]['output']['locpot'])
+
+        self.assertAlmostEqual(np.sum(doc['calcs_reversed'][0]['output']['locpot'][0]),0)
+        self.assertAlmostEqual(np.sum(doc['calcs_reversed'][0]['output']['locpot'][1]),0)
+        self.assertAlmostEqual(np.sum(doc['calcs_reversed'][0]['output']['locpot'][2]),0)
 
 if __name__ == "__main__":
     unittest.main()

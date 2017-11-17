@@ -101,7 +101,7 @@ class StaticFW(Firework):
                 Defaults to MPStaticSet() if None.
             vasp_cmd (str): Command to run vasp.
             prev_calc_loc (bool or str): If true (default), copies outputs from previous calc. If 
-                a str value, grabs a previous calculation output by name. If False/None, will create
+                a str value, retrieves a previous calculation output by name. If False/None, will create
                 new static calculation using the provided structure.
             db_file (str): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
