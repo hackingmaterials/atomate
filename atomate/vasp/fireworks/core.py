@@ -12,8 +12,6 @@ Defines standardized Fireworks that can be chained easily to perform various
 sequences of VASP calculations.
 """
 
-from monty.dev import deprecated
-
 from fireworks import Firework
 
 from pymatgen import Structure
