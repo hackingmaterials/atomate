@@ -130,6 +130,32 @@ class RunVaspCustodian(FiretaskBase):
             jobs = VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar,
                                                  ediffg=self.get("ediffg"),
                                                  half_kpts_first_relax=self.get("half_kpts_first_relax", HALF_KPOINTS_FIRST_RELAX))
+        elif job_type == "scan_relaxation_run":
+
+            # Pre optimze WAVECAR and structure using regular GGA
+            pre_opt_setings = {"dict": "INCAR",
+                               "action": {"_set": {"METAGGA": None}}}
+            jobs = [VaspJob(vasp_cmd, auto_npar=auto_npar, gamma_vasp_cmd=gamma_vasp_cmd,
+                            ediffg=self.get("ediffg"), final=False, suffix=".relax0",
+                            settings_override=pre_opt_setings)]
+
+            # Finish with regular double relaxation style run using SCAN
+            jobs.append(VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar,
+                                                      ediffg=self.get(
+                                                          "ediffg"),
+                                                      half_kpts_first_relax=self.get("half_kpts_first_relax", HALF_KPOINTS_FIRST_RELAX)))
+
+            # Update double_relaxation jobs to start from pre-optimized unr
+            post_opt_settings = [{"dict": "INCAR",
+                                  "action": {"_set": {"METAGGA": "SCAN", "ISTART": 1}}},
+                                 {"file": "CONTCAR",
+                                  "action": {"_file_copy": {"dest": "POSCAR"}}}]
+            if jobs[1].settings_override:
+                post_opt_settings.extend(jobs[0].settings_override)
+                jobs[1].settings_override = post_opt_settings
+            else:
+                jobs[1].settings_override = post_opt_settings
+
         elif job_type == "full_opt_run":
             jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar,
                                         ediffg=self.get("ediffg"),
