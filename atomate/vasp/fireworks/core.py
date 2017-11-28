@@ -319,7 +319,7 @@ class DFPTFW(Firework):
             t.append(WriteVaspStaticFromPrev(lepsilon=True, other_params={
                 'user_incar_settings': user_incar_settings}))
         else:
-            vasp_input_set = MPStaticSet(structure, lepsilon=True,
+            vasp_input_set = MPStaticSet(structure, lepsilon=True, force_gamma=True,
                                          user_incar_settings=user_incar_settings)
             t.append(WriteVaspFromIOSet(structure=structure,
                                         vasp_input_set=vasp_input_set))
