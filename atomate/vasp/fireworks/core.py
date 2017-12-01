@@ -317,9 +317,9 @@ class DFPTFW(Firework):
         if copy_vasp_outputs:
             t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
             t.append(WriteVaspStaticFromPrev(lepsilon=True, other_params={
-                'user_incar_settings': user_incar_settings}))
+                'user_incar_settings': user_incar_settings, 'force_gamma': True}))
         else:
-            vasp_input_set = MPStaticSet(structure, lepsilon=True,
+            vasp_input_set = MPStaticSet(structure, lepsilon=True, force_gamma=True,
                                          user_incar_settings=user_incar_settings)
             t.append(WriteVaspFromIOSet(structure=structure,
                                         vasp_input_set=vasp_input_set))
