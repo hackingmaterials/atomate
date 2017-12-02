@@ -7,7 +7,6 @@ This module defines firetasks for writing LAMMPS input files (data file and the 
 parameters file)
 """
 
-import os
 import six
 
 from pymatgen import Molecule
