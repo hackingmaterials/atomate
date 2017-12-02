@@ -10,7 +10,7 @@ parameters file)
 import six
 
 from pymatgen import Molecule
-from pymatgen.io.lammps.data import LammpsForceFieldData
+from pymatgen.io.lammps.data import LammpsData
 from pymatgen.io.lammps.sets import LammpsInputSet
 
 from fireworks import FiretaskBase, explicit_serialize
@@ -71,10 +71,8 @@ class WriteInputFromForceFieldAndTopology(FiretaskBase):
         elif isinstance(final_molecule, six.string_types):
             final_molecule = Molecule.from_file(final_molecule)
 
-        lammps_ff_data = LammpsForceFieldData.from_forcefield_and_topology(molecules, mols_number,
-                                                                           self["box_size"],
-                                                                           final_molecule,
-                                                                           forcefield, topologies)
+        #molecules, mols_number, final_molecule
+        lammps_ff_data = LammpsData.from_ff_and_topologies(forcefield, topologies, self["box_size"])
 
         lammps_input_set = LammpsInputSet.from_file("ff-inputset", self["input_file"],
                                                     user_settings=user_settings,
