@@ -41,7 +41,8 @@ class WriteInputFromIOSet(FiretaskBase):
         lammps_input_set = self["lammps_input_set"]
         input_filename = self["input_filename"]
         data_filename = self.get("data_filename", None)
-
+        if isinstance(lammps_input_set.lammps_data, dict):
+            lammps_input_set.lammps_data = LammpsData.from_dict(lammps_input_set.lammps_data)
         lammps_input_set.write_input(input_filename, data_filename)
 
 
