@@ -58,8 +58,7 @@ def get_wf_basic(input_file, user_settings, lammps_data=None, input_filename="la
 
         lammps_input_set = LammpsInputSet.from_file(wf_name, input_file,
                                                     user_settings=settings, lammps_data=lammps_data,
-                                                    data_filename=data_filename,
-                                                    is_forcefield=is_forcefield)
+                                                    data_filename=data_filename)
 
         fws.append(
             LammpsFW(lammps_input_set=lammps_input_set, input_filename=input_filename,
