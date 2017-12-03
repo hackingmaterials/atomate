@@ -133,14 +133,15 @@ class RunVaspCustodian(FiretaskBase):
         elif job_type == "scan_relaxation_run":
 
             # Pre optimze WAVECAR and structure using regular GGA
-            pre_opt_setings = {"dict": "INCAR",
-                               "action": {"_set": {"METAGGA": None}}}
+            pre_opt_setings = [{"dict": "INCAR",
+                               "action": {"_set": {"METAGGA": None,
+                               "LWAVE": True}}}]
             jobs = [VaspJob(vasp_cmd, auto_npar=auto_npar, gamma_vasp_cmd=gamma_vasp_cmd,
-                            ediffg=self.get("ediffg"), final=False, suffix=".relax0",
+                            final=False, suffix=".relax0",
                             settings_override=pre_opt_setings)]
 
             # Finish with regular double relaxation style run using SCAN
-            jobs.append(VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar,
+            jobs.extend(VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar,
                                                       ediffg=self.get(
                                                           "ediffg"),
                                                       half_kpts_first_relax=self.get("half_kpts_first_relax", HALF_KPOINTS_FIRST_RELAX)))
