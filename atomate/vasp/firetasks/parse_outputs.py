@@ -219,7 +219,7 @@ class ElasticTensorToDb(FiretaskBase):
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
         order (int): order of fit to perform
-        fw_spec_fields (str): if set, will update the task doc with the contents
+        fw_spec_fields ([str]): if set, will update the task doc with the contents
             of this key in the fw_spec.
         fitting_method (str): if set, will use one of the specified
             fitting methods from pymatgen.  Supported methods are
