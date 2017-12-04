@@ -448,7 +448,7 @@ class TransmuterFW(Firework):
     def __init__(self, structure, transformations, transformation_params=None,
                  vasp_input_set=None, name="structure transmuter", vasp_cmd="vasp",
                  copy_vasp_outputs=True, db_file=None, parent_structure=False,
-                 override_default_vasp_params=None, **kwargs):
+                 parents=None, override_default_vasp_params=None, **kwargs):
         """
         Apply the transformations to the input structure, write the input set corresponding
         to the transformed structure, and run vasp on them.  Note that if a transformation yields 
@@ -467,6 +467,7 @@ class TransmuterFW(Firework):
             vasp_cmd (string): Command to run vasp.
             copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
             db_file (string): Path to file specifying db credentials.
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
             override_default_vasp_params (dict): additional user input settings for vasp_input_set.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
@@ -498,7 +499,7 @@ class TransmuterFW(Firework):
         t.append(VaspToDb(db_file=db_file, additional_fields=additional_fields))
 
         name = "{}-{}".format(structure.composition.reduced_formula, name)
-        super(TransmuterFW, self).__init__(t, name=name, **kwargs)
+        super(TransmuterFW, self).__init__(t, name=name, parents=parents, **kwargs)
 
 
 class MDFW(Firework):
