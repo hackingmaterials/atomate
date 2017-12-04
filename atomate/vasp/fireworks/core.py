@@ -447,7 +447,7 @@ class SOCFW(Firework):
 class TransmuterFW(Firework):
     def __init__(self, structure, transformations, transformation_params=None,
                  vasp_input_set=None, name="structure transmuter", vasp_cmd="vasp",
-                 copy_vasp_outputs=True, db_file=None, parent_structure=False,
+                 copy_vasp_outputs=True, db_file=None, add_parent_structure=False,
                  parents=None, override_default_vasp_params=None, **kwargs):
         """
         Apply the transformations to the input structure, write the input set corresponding
@@ -469,6 +469,8 @@ class TransmuterFW(Firework):
             db_file (string): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
             override_default_vasp_params (dict): additional user input settings for vasp_input_set.
+            add_parent_structure (bool): flag to indicate whether "parent structure"
+                should be set in resulting task document
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         override_default_vasp_params = override_default_vasp_params or {}
@@ -494,7 +496,7 @@ class TransmuterFW(Firework):
         additional_fields = {"task_label": name, 
                              "transmuter": {"transformations": transformations,
                                             "transformation_params": transformation_params}}
-        if parent_structure:
+        if add_parent_structure:
             additional_fields.update(get_structure_metadata(structure))
         t.append(VaspToDb(db_file=db_file, additional_fields=additional_fields))
 
