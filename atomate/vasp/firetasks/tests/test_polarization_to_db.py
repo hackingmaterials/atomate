@@ -16,7 +16,6 @@ from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.utils.testing import AtomateTest
 from atomate.vasp.powerups import use_fake_vasp
-from atomate.vasp.workflows.base.ferroelectric import get_wf_ferroelectric, get_wf_id
 from atomate.vasp.firetasks.parse_outputs import PolarizationToDb
 
 from pymatgen import SETTINGS
