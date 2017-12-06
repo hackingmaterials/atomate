@@ -146,16 +146,16 @@ class RunVaspCustodian(FiretaskBase):
                                                           "ediffg"),
                                                       half_kpts_first_relax=self.get("half_kpts_first_relax", HALF_KPOINTS_FIRST_RELAX)))
 
-            # Update double_relaxation jobs to start from pre-optimized unr
+            # Update double_relaxation jobs to start from pre-optimized run
             post_opt_settings = [{"dict": "INCAR",
                                   "action": {"_set": {"METAGGA": "SCAN", "ISTART": 1}}},
                                  {"file": "CONTCAR",
                                   "action": {"_file_copy": {"dest": "POSCAR"}}}]
             if jobs[1].settings_override:
-                post_opt_settings.extend(jobs[0].settings_override)
-                jobs[1].settings_override = post_opt_settings
-            else:
-                jobs[1].settings_override = post_opt_settings
+                post_opt_settings = jobs[1].settings_override + post_opt_settings
+        
+            jobs[1].settings_override = post_opt_settings
+            jobs[1].backup = False
 
         elif job_type == "full_opt_run":
             jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar,
