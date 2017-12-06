@@ -100,11 +100,18 @@ class VaspCalcDb(CalcDb):
         # insert the task document and return task_id
         return self.insert(task_doc)
 
-    def find_task(self, query):
-        task_doc = self.collection.find_one(query)
-        if task_doc is None:
-            return
-        task_id = task_doc['task_id']
+    def retrieve_task(self, task_id):
+        """
+        Retrieves a task document and unpacks the band structure and DOS as dict
+
+        Args:
+            task_id: (int) task_id to retrieve
+
+        Returns:
+            (dict) complete task document with BS + DOS included
+
+        """
+        task_doc = self.collection.find_one({"task_id": task_id})
         calc = task_doc["calcs_reversed"][0]
         if 'bandstructure_fs_id' in calc:
             bs = self.get_band_structure(task_id)
