@@ -100,6 +100,20 @@ class VaspCalcDb(CalcDb):
         # insert the task document and return task_id
         return self.insert(task_doc)
 
+    def find_task(self, query):
+        task_doc = self.collection.find_one(query)
+        if task_doc is None:
+            return
+        task_id = task_doc['task_id']
+        calc = task_doc["calcs_reversed"][0]
+        if 'bandstructure_fs_id' in calc:
+            bs = self.get_band_structure(task_id)
+            calc["bandstructure"] = bs.as_dict()
+        if 'dos_fs_id' in calc:
+            dos = self.get_dos(task_id)
+            calc["dos"] = dos.as_dict()
+        return task_doc
+
     def insert_gridfs(self, d, collection="fs", compress=True, oid=None):
         """
         Insert the given document into GridFS.
