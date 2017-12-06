@@ -8,7 +8,8 @@ from fireworks import LaunchPad
 from fireworks.core.firework import Firework, Workflow
 from fireworks.core.rocket_launcher import rapidfire
 
-from atomate.common.firetasks.glue_tasks import PassCalcLocs, get_calc_loc
+from atomate.common.firetasks.glue_tasks import PassCalcLocs, get_calc_loc, CopyFilesFromCalcLoc, CreateFolder
+from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 
 from atomate.utils.testing import AtomateTest
 
@@ -43,3 +44,67 @@ class TestPassCalcLocs(AtomateTest):
         self.assertEqual(get_calc_loc("fw1", calc_locs), calc_locs[0])
         self.assertEqual(get_calc_loc("fw2", calc_locs), calc_locs[1])
         self.assertEqual(get_calc_loc(True, calc_locs), calc_locs[1])
+
+
+class TestCreateFolder(AtomateTest):
+
+    def test_createfolder(self):
+
+        folder_name = "test_folder"
+        fw1 = Firework([CreateFolder(folder_name=folder_name, change_dir=False),
+                        PassCalcLocs(name="fw1")],
+                        name="fw3")
+        fw2 = Firework([PassCalcLocs(name="fw2")], name="fw2", parents=fw1)
+        wf = Workflow([fw1, fw2])
+        self.lp.add_wf(wf)
+        rapidfire(self.lp)
+
+        fw2 = self.lp.get_fw_by_id(self.lp.get_fw_ids({"name": "fw2"})[0])
+        calc_locs = fw2.spec["calc_locs"]
+
+        self.assertTrue(os.path.exists(get_calc_loc("fw1", calc_locs)["path"] +
+                                       "/" + folder_name))
+
+class TestCopyFilesFromCalcLoc(AtomateTest):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.plain_outdir = os.path.join(module_dir, "..", "..", "..", "vasp", "test_files",
+                                        "Si_structure_optimization_plain", "outputs")
+        cls.relax2_outdir = os.path.join(module_dir, "..", "..", "..", "vasp", "test_files",
+                                         "Si_structure_optimization_relax2", "outputs")
+
+    def test_copyfilesfromcalcloc(self):
+        fw1 = Firework([CopyVaspOutputs(calc_dir=self.plain_outdir),
+                        PassCalcLocs(name="fw1")], name="fw1")
+
+        fw2 = Firework([CopyVaspOutputs(calc_dir=self.relax2_outdir),
+                        PassCalcLocs(name="fw2")], name="fw2")
+
+        fw3 = Firework([CopyFilesFromCalcLoc(calc_loc="fw1",
+                                             filenames=["POSCAR"],
+                                             name_prepend="",
+                                             name_append="_0"),
+                        CopyFilesFromCalcLoc(calc_loc="fw2",
+                                             filenames=["POSCAR"],
+                                             name_prepend="",
+                                             name_append="_1"),
+                        PassCalcLocs(name="fw3")],
+                       name="fw3", parents=[fw1, fw2])
+        fw4 = Firework([PassCalcLocs(name="fw4")], name="fw4", parents=fw3)
+
+        wf = Workflow([fw1, fw2, fw3, fw4])
+        self.lp.add_wf(wf)
+        rapidfire(self.lp)
+
+        fw4 = self.lp.get_fw_by_id(self.lp.get_fw_ids({"name": "fw4"})[0])
+
+        calc_locs = fw4.spec["calc_locs"]
+        self.assertTrue(os.path.exists(get_calc_loc("fw3", calc_locs)["path"] +
+                                       "/POSCAR_0"))
+        self.assertTrue(os.path.exists(get_calc_loc("fw3", calc_locs)["path"] +
+                                       "/POSCAR_1"))
+
+
+if __name__ == "__main__":
+    unittest.main()

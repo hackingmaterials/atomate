@@ -2,6 +2,12 @@
 atomate Changelog
 =================
 
+**v0.6.6**
+
+* powerup to preserve the same FWorker for all jobs in workflow (S. Dwaraknath)
+* DriftErrorHandler in VASP custodian jobs (S. Dwaraknath)
+* some FireTasks in anticipation of ferroelectrics workflow (T. Schmidt, A. Jain)
+
 **v0.6.5**
 
 * fix delta_volume_percent, set as new key and update FixTasksBuilder (B. Bocklund, A. Jain)

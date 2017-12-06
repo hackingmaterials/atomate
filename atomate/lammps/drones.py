@@ -70,8 +70,7 @@ class LammpsDrone(AbstractDrone):
         dump_files = [dump_files] if isinstance(dump_files, six.string_types) else dump_files
 
         # input set
-        lmps_input = LammpsInputSet.from_file("lammps", input_file, {}, data_file, data_filename,
-                                              is_forcefield=is_forcefield)
+        lmps_input = LammpsInputSet.from_file("lammps", input_file, {}, data_file, data_filename)
 
         # dumps
         dumps = []
@@ -87,8 +86,7 @@ class LammpsDrone(AbstractDrone):
 
         lmps_run = None
         if len(dump_files) == 1 and data_file:
-            lmps_run = LammpsRun(data_file, dump_files[0], log_file=log_filename,
-                                 is_forcefield=is_forcefield)
+            lmps_run = LammpsRun(data_file, dump_files[0], log_file=log_filename)
 
         self.post_process(d, lmps_run)
 
