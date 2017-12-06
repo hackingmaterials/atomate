@@ -48,8 +48,10 @@ class VaspCalcDb(CalcDb):
         TODO: make sure that the index building is sensible and check for
             existing indexes.
         """
-        _indices = indexes if indexes else ["formula_pretty", "formula_anonymous",
-                                            "output.energy", "output.energy_per_atom"]
+        _indices = indexes if indexes else [
+            "formula_pretty", "formula_anonymous",
+            "output.energy", "output.energy_per_atom", "dir_name"
+        ]
         self.collection.create_index("task_id", unique=True, background=background)
         # build single field indexes
         for i in _indices:
