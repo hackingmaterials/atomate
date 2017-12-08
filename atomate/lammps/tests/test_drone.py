@@ -31,11 +31,11 @@ class TestLammpsDrone(AtomateTest):
 
     def test_assimilate(self):
         doc = self.drone.assimilate(self.calc_dir, input_filename="lammps.in",
-                                    log_filename="lammps.log",  is_forcefield=True,
+                                    log_filename="lammps.log",
                                     data_filename="lammps.data")
         lmps_input_set = LammpsInputSet.from_file("lammps", self.input_file,
                                                   {}, lammps_data=self.data_file,
-                                                  data_filename="lammps.data", is_forcefield=True)
+                                                  data_filename="lammps.data")
         # no dump file ==> output is just the log file
         lmps_output = LammpsLog(self.log_file)
         self.assertDictEqual(doc["input"], lmps_input_set.as_dict())

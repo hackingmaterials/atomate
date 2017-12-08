@@ -6,7 +6,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 Defines fireworks to be incorporated into workflows.
 """
 
-from pymatgen.io.lammps.topology import Topology
+from pymatgen.io.lammps.data import Topology
 
 from fireworks import Firework
 
@@ -14,7 +14,6 @@ from atomate.common.firetasks.glue_tasks import PassCalcLocs
 from atomate.lammps.firetasks.run_calc import RunLammpsDirect, RunPackmol
 from atomate.lammps.firetasks.parse_outputs import LammpsToDB
 from atomate.lammps.firetasks.write_inputs import WriteInputFromIOSet, WriteInputFromForceFieldAndTopology
-from atomate.lammps.firetasks.glue_tasks import CopyPackmolOutputs
 
 __author__ = "Brandon Wood, Kiran Mathew"
 __email__ = "b.wood@berkeley.edu"
