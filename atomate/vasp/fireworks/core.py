@@ -562,7 +562,7 @@ class MDFW(Firework):
 
 class BoltztrapFW(Firework):
     def __init__(self, structure, name="boltztrap", db_file=None, parents=None,
-                 scissor=0.0,
+                 scissor=0.0, doping=None, tmax=1300, tgrid=50,
                  soc=False, additional_fields=None, **kwargs):
         """
         Run Boltztrap (which includes writing bolztrap input files and parsing outputs). Assumes 
@@ -575,13 +575,16 @@ class BoltztrapFW(Firework):
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
             scissor (float): if scissor > 0, apply scissor on the band structure so that new
                 band gap = scissor (in eV)
+            doping: ([float]) doping levels you want to compute
+            tmax: (float) max temperature to evaluate
+            tgrid: (float) temperature interval
             soc (bool): whether the band structure is calculated with spin-orbit coupling
             additional_fields (dict): fields added to the document such as user-defined tags or name, ids, etc
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         additional_fields = additional_fields or {}
         t = [CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True),
-             RunBoltztrap(scissor=scissor, soc=soc),
+             RunBoltztrap(scissor=scissor, soc=soc, doping=doping, tmax=tmax, tgrid=tgrid),
              BoltztrapToDb(db_file=db_file,
                            additional_fields=additional_fields),
              PassCalcLocs(name=name)]
