@@ -66,7 +66,7 @@ class WriteVaspFromIOSetFromInterpolatedPOSCAR(GetInterpolatedPOSCAR):
     """
     Grabs CONTCARS from two previous calculations to create interpolated
     structure. Create VASP input files using implementations of pymatgen's
-    AbstractVaspInputSet. An input set can be provided a String/parameter
+    AbstractVaspInputSet. An input set can be provided as String/parameter
     combo.
 
     Required params:
