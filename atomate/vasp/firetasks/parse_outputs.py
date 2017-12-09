@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import json
 import os
+import re
 from collections import defaultdict
 from datetime import datetime
 
@@ -21,6 +22,8 @@ from pymatgen.analysis.elasticity.stress import Stress
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from pymatgen.analysis.ferroelectricity.polarization import Polarization, get_total_ionic_dipole, \
+    EnergyTrend
 
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk, get_meta_from_structure
@@ -706,6 +709,129 @@ class ThermalExpansionCoeffToDb(FiretaskBase):
         # TODO: @matk86 - there needs to be a way to insert this into a database! And also
         # a builder to put it into materials collection... -computron
         logger.info("Thermal expansion coefficient calculation complete.")
+
+
+@explicit_serialize
+class PolarizationToDb(FiretaskBase):
+    """
+    Recovers the same branch polarization and spontaneous polarization
+    for a ferroelectric workflow.
+    """
+
+    optional_params = ["db_file"]
+
+    def run_task(self, fw_spec):
+
+        wfid = list(filter(lambda x: 'wfid' in x, fw_spec['tags'])).pop()
+        db_file = env_chk(self.get("db_file"), fw_spec)
+        vaspdb = VaspCalcDb.from_db_file(db_file, admin=True)
+
+        # ferroelectric workflow groups calculations by generated wfid tag
+        polarization_tasks = vaspdb.collection.find({"tags": wfid, "task_label": {"$regex": ".*polarization"}})
+
+        tasks = []
+        outcars = []
+        structure_dicts = []
+        sort_weight = []
+        energies_per_atom = []
+        energies = []
+        zval_dicts = []
+
+        for p in polarization_tasks:
+            # Grab data from each polarization task
+            energies_per_atom.append(p['calcs_reversed'][0]['output']['energy_per_atom'])
+            energies.append(p['calcs_reversed'][0]['output']['energy'])
+            tasks.append(p['task_label'])
+            outcars.append(p['calcs_reversed'][0]['output']['outcar'])
+            structure_dicts.append(p['calcs_reversed'][0]['input']['structure'])
+            zval_dicts.append(p['calcs_reversed'][0]['output']['outcar']['zval_dict'])
+
+            # Add weight for sorting
+            # Want polarization calculations in order of nonpolar to polar for Polarization object
+
+            # This number needs to be bigger than the number of calculations
+            max_sort_weight = 1000000
+
+            if 'nonpolar_polarization' in p['task_label']:
+                sort_weight.append(0)
+            elif "polar_polarization" in p['task_label']:
+                sort_weight.append(max_sort_weight)
+            elif "interpolation_" in p['task_label']:
+                num = 0
+                part = re.findall(r'interpolation_[0-9]+_polarization', p['task_label'])
+                if part != []:
+                    part2 = re.findall(r'[0-9]+', part.pop())
+                    if part2 != []:
+                        num = part2.pop()
+                sort_weight.append(max_sort_weight - int(num))
+
+        # Sort polarization tasks
+        # nonpolar -> interpolation_n -> interpolation_n-1 -> ...  -> interpolation_1 -> polar
+        data = zip(tasks, structure_dicts, outcars, energies_per_atom, energies, sort_weight)
+        data.sort(key=lambda x: x[-1])
+
+        # Get the tasks, structures, etc in sorted order from the zipped data.
+        tasks, structure_dicts, outcars, energies_per_atom, energies, sort_weight = zip(*data)
+
+        structures = [Structure.from_dict(structure) for structure in structure_dicts]
+
+        # If LCALCPOL = True then Outcar will parse and store the pseudopotential zvals.
+        zval_dict = zval_dicts.pop()
+
+        # Assumes that we want to calculate the ionic contribution to the dipole moment.
+        # VASP's ionic contribution is sometimes strange.
+        # See pymatgen.analysis.ferroelectricity.polarization.Polarization for details.
+        p_elecs = [outcar['p_elec'] for outcar in outcars]
+        p_ions = [get_total_ionic_dipole(structure, zval_dict) for structure in structures]
+
+        polarization = Polarization(p_elecs, p_ions, structures)
+
+        p_change = polarization.get_polarization_change().A1.tolist()
+        p_norm = polarization.get_polarization_change_norm()
+        polarization_max_spline_jumps = polarization.max_spline_jumps()
+        same_branch = polarization.get_same_branch_polarization_data(convert_to_muC_per_cm2=True)
+        raw_elecs, raw_ions = polarization.get_pelecs_and_pions()
+        quanta = polarization.get_lattice_quanta(convert_to_muC_per_cm2=True)
+
+        energy_trend = EnergyTrend(energies_per_atom)
+        energy_max_spline_jumps = energy_trend.max_spline_jump()
+
+        polarization_dict = {}
+
+        def split_abc(var, var_name):
+            d = {}
+            for i, j in enumerate('abc'):
+                d.update({var_name + "_{}".format(j): var[:, i].A1.tolist()})
+            return d
+
+        # Add some sort of id for the structures? Like cid but more general?
+        # polarization_dict.update({'cid': cid})
+
+        # General information
+        polarization_dict.update({'pretty_formula': structures[0].composition.reduced_formula})
+        polarization_dict.update({'wfid': wfid})
+        polarization_dict.update({'task_label_order': tasks})
+
+        # Polarization information
+        polarization_dict.update({'polarization_change': p_change})
+        polarization_dict.update({'polarization_change_norm': p_norm})
+        polarization_dict.update({'polarization_max_spline_jumps': polarization_max_spline_jumps})
+        polarization_dict.update(split_abc(same_branch, "same_branch_polarization"))
+        polarization_dict.update(split_abc(raw_elecs, "raw_electron_polarization"))
+        polarization_dict.update(split_abc(raw_ions, "raw_electron_polarization"))
+        polarization_dict.update(split_abc(quanta, "polarization_quanta"))
+        polarization_dict.update({"zval_dict": zval_dict})
+
+        # Energy information
+        polarization_dict.update({'energy_per_atom_max_spline_jumps': energy_max_spline_jumps})
+        polarization_dict.update({"energies": energies})
+        polarization_dict.update({"energies_per_atom": energies_per_atom})
+        polarization_dict.update({'outcars': outcars})
+        polarization_dict.update({"structures": structure_dicts})
+
+        # Write all the info to db.
+        coll = vaspdb.db["polarization_tasks"]
+        coll.insert_one(polarization_dict)
 
 
 # the following definitions for backward compatibility
