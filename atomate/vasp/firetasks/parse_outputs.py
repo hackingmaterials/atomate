@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import json
 import os
+import re
 from collections import defaultdict
 from datetime import datetime
 
@@ -21,6 +22,8 @@ from pymatgen.analysis.elasticity.stress import Stress
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from pymatgen.analysis.ferroelectricity.polarization import Polarization, get_total_ionic_dipole, \
+    EnergyTrend
 
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk, get_meta_from_structure
@@ -718,9 +721,6 @@ class PolarizationToDb(FiretaskBase):
     optional_params = ["db_file"]
 
     def run_task(self, fw_spec):
-        import re
-        from pymatgen.analysis.ferroelectricity.polarization import Polarization, get_total_ionic_dipole, \
-            EnergyTrend
 
         wfid = list(filter(lambda x: 'wfid' in x, fw_spec['tags'])).pop()
         db_file = env_chk(self.get("db_file"), fw_spec)
@@ -738,44 +738,42 @@ class PolarizationToDb(FiretaskBase):
         zval_dicts = []
 
         for p in polarization_tasks:
-            # Grad data from each polarization task
-            c = p['calcs_reversed'][0]
-            t = p['task_label']
-            o = c['output']['outcar']
-            s = c['input']['structure']
-            e_a = c['output']['energy_per_atom']
-            e = c['output']['energy']
-
-            energies_per_atom.append(e_a)
-            energies.append(e)
-            tasks.append(t)
-            outcars.append(o)
-            structure_dicts.append(s)
-            zval_dicts.append(o['zval_dict'])
+            # Grab data from each polarization task
+            energies_per_atom.append(p['calcs_reversed'][0]['output']['energy_per_atom'])
+            energies.append(p['calcs_reversed'][0]['output']['energy'])
+            tasks.append(p['task_label'])
+            outcars.append(p['calcs_reversed'][0]['output']['outcar'])
+            structure_dicts.append(p['calcs_reversed'][0]['input']['structure'])
+            zval_dicts.append(p['calcs_reversed'][0]['output']['outcar']['zval_dict'])
 
             # Add weight for sorting
             # Want polarization calculations in order of nonpolar to polar for Polarization object
-            if 'nonpolar_polarization' in t:
+
+            # This number needs to be bigger than the number of calculations
+            max_sort_weight = 1000000
+
+            if 'nonpolar_polarization' in p['task_label']:
                 sort_weight.append(0)
-            elif "polar_polarization" in t:
-                sort_weight.append(1000000)
-            elif "interpolation_" in t:
+            elif "polar_polarization" in p['task_label']:
+                sort_weight.append(max_sort_weight)
+            elif "interpolation_" in p['task_label']:
                 num = 0
-                part = re.findall(r'interpolation_[0-9]+_polarization', t)
+                part = re.findall(r'interpolation_[0-9]+_polarization', p['task_label'])
                 if part != []:
                     part2 = re.findall(r'[0-9]+', part.pop())
                     if part2 != []:
                         num = part2.pop()
-                sort_weight.append(1000 - int(num))
+                sort_weight.append(max_sort_weight - int(num))
 
         # Sort polarization tasks
         # nonpolar -> interpolation_n -> interpolation_n-1 -> ...  -> interpolation_1 -> polar
         data = zip(tasks, structure_dicts, outcars, energies_per_atom, energies, sort_weight)
         data.sort(key=lambda x: x[-1])
 
+        # Get the tasks, structures, etc in sorted order from the zipped data.
         tasks, structure_dicts, outcars, energies_per_atom, energies, sort_weight = zip(*data)
 
-        structures = [Structure.from_dict(s) for s in structure_dicts]
+        structures = [Structure.from_dict(structure) for structure in structure_dicts]
 
         # If LCALCPOL = True then Outcar will parse and store the pseudopotential zvals.
         zval_dict = zval_dicts.pop()
@@ -784,7 +782,7 @@ class PolarizationToDb(FiretaskBase):
         # VASP's ionic contribution is sometimes strange.
         # See pymatgen.analysis.ferroelectricity.polarization.Polarization for details.
         p_elecs = [outcar['p_elec'] for outcar in outcars]
-        p_ions = [get_total_ionic_dipole(s, zval_dict) for s in structures]
+        p_ions = [get_total_ionic_dipole(structure, zval_dict) for structure in structures]
 
         polarization = Polarization(p_elecs, p_ions, structures)
 

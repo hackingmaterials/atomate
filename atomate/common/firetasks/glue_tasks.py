@@ -83,6 +83,8 @@ class CopyFilesFromCalcLoc(FiretaskBase):
         calc_loc: name of target fw to get location for within the calc_locs.
         filenames (list(str)): filenames to copy. If not set, all files will be
             copied.
+    
+    Optional params:
         name_prepend (str): string to prepend filenames, e.g. can be a directory.
         name_append (str): string to append to filenames.
     """
