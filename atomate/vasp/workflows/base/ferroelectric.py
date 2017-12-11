@@ -6,36 +6,23 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 This module defines the ferroelectric workflow
 """
 
-import json
-from decimal import Decimal
+from fireworks import Firework, Workflow
 
-import numpy as np
-
-from fireworks import FiretaskBase, Firework, FWAction, Workflow
-
-from atomate.utils.utils import env_chk, get_logger
+from atomate.utils.utils import get_logger, get_a_unique_id
 
 from pymatgen import Structure
-from pymatgen.io.vasp.sets import MPStaticSet
 
-from atomate.vasp.fireworks.core import LcalcpolFW, OptimizeFW
+from atomate.vasp.fireworks.core import OptimizeFW
+from atomate.vasp.fireworks.polarization import LcalcpolFW
 from atomate.vasp.fireworks.core import HSEBSFW
 from atomate.vasp.firetasks.parse_outputs import PolarizationToDb
 from atomate.vasp.powerups import add_tags
-
-from time import time
-from random import randint
-
 
 __author__ = 'Tess Smidt'
 __email__ = 'tsmidt@berkeley.edu'
 
 logger = get_logger(__name__)
 
-def get_wf_id():
-    ts = "{:.4f}".format(time())
-    ts += str(randint(0,9999)).zfill(4)
-    return ts
 
 def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", db_file=None,
                          vasp_input_set_polar="MPStaticSet", vasp_input_set_nonpolar="MPStaticSet",
@@ -77,7 +64,7 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
     wf = []
 
     if wfid is None:
-        wfid = 'wfid_' + get_wf_id()
+        wfid = 'wfid_' + get_a_unique_id()
     if tags is None:
         tags = []
 

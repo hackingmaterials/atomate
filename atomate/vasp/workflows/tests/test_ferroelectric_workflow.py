@@ -16,7 +16,8 @@ from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.utils.testing import AtomateTest
 from atomate.vasp.powerups import use_fake_vasp
-from atomate.vasp.workflows.base.ferroelectric import get_wf_ferroelectric, get_wf_id
+from atomate.vasp.workflows.base.ferroelectric import get_wf_ferroelectric
+from atomate.utils.utils import get_a_unique_id
 from atomate.vasp.firetasks.parse_outputs import PolarizationToDb
 
 from pymatgen import SETTINGS
@@ -42,7 +43,7 @@ class TestFerroelectricWorkflow(AtomateTest):
         self.bto_polar = Structure.from_file(ref_dir+"/ferroelectric_wf/"+"BTO_polar_POSCAR")
         self.bto_nonpolar = Structure.from_file(ref_dir+"/ferroelectric_wf/"+"BTO_nonpolar_POSCAR")
 
-        self.wfid = "wfid_" + get_wf_id()
+        self.wfid = "wfid_" + get_a_unique_id()
 
         self.ferroelectric_config = {'vasp_cmd': '>>vasp_cmd<<',
                                     'db_file': '>>db_file<<',
