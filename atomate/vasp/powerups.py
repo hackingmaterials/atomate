@@ -9,6 +9,7 @@ from fireworks.utilities.fw_utilities import get_slug
 from pymatgen import Structure
 
 from atomate.utils.utils import get_meta_from_structure, get_fws_and_tasks
+from atomate.common.firetasks.glue_tasks import CleanUpFiles
 from atomate.vasp.firetasks.glue_tasks import CheckStability, CheckBandgap
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspFake, RunVaspDirect, RunNoVasp
 from atomate.vasp.firetasks.neb_tasks import RunNEBVaspFake
@@ -441,6 +442,23 @@ def use_scratch_dir(original_wf, scratch_dir):
     """
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="RunVaspCustodian"):
         original_wf.fws[idx_fw].tasks[idx_t]["scratch_dir"] = scratch_dir
+    return original_wf
+
+def clean_up_files(original_wf, files=["WAVECAR*"] , fw_name_constraint=None,task_name_constraint="RunVasp"):
+    """
+    Cleans up files after another fireworks. Default behavior is to remove WAVECAR after running VASP
+
+    Args:
+        original_wf (Workflow)
+        files (list): list of patterns to match for files to clean up
+        fw_name_constraint (str): pattern for firetask to clean up files after
+
+    Returns:
+       Workflow
+    """
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
+                                           task_name_constraint=task_name_constraint):
+        original_wf.fws[idx_fw].tasks.insert(idx_t+1, CleanUpFiles(files=files))
     return original_wf
 
 
