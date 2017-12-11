@@ -13,7 +13,7 @@ from pymatgen.io.vasp.inputs import Kpoints
 from atomate.vasp.config import SMALLGAP_KPOINT_MULTIPLY, STABILITY_CHECK, VASP_CMD, DB_FILE, \
     ADD_WF_METADATA, HALF_KPOINTS_FIRST_RELAX
 from atomate.vasp.powerups import add_small_gap_multiply, add_stability_check, add_modify_incar, \
-    add_wf_metadata, add_common_powerups, use_custodian
+    add_wf_metadata, add_common_powerups, use_custodian, clean_up_files
 from atomate.vasp.workflows.base.core import get_wf
 from atomate.vasp.workflows.base.elastic import get_wf_elastic_constant
 from atomate.vasp.workflows.base.raman import get_wf_raman_spectra
