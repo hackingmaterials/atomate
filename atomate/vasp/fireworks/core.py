@@ -25,7 +25,8 @@ from atomate.vasp.firetasks.parse_outputs import VaspToDb, BoltztrapToDb
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunBoltztrap
 from atomate.vasp.firetasks.write_inputs import WriteNormalmodeDisplacedPoscar, \
     WriteTransmutedStructureIOSet, WriteVaspFromIOSet, WriteVaspHSEBSFromPrev, \
-    WriteVaspNSCFFromPrev, WriteVaspSOCFromPrev, WriteVaspStaticFromPrev
+    WriteVaspNSCFFromPrev, WriteVaspSOCFromPrev, WriteVaspStaticFromPrev, \
+    WriteVaspFromIOSetFromInterpolatedPOSCAR
 from atomate.vasp.firetasks.neb_tasks import WriteNEBFromImages, \
     WriteNEBFromEndpoints
 
@@ -84,9 +85,8 @@ class OptimizeFW(Firework):
 
 
 class StaticFW(Firework):
-    def __init__(self, structure, name="static", vasp_input_set=None,
-                 vasp_cmd="vasp",
-                 prev_calc_loc=True, db_file=None, parents=None, **kwargs):
+    def __init__(self, structure, name="static", vasp_input_set=None, vasp_input_set_params=None,
+                 vasp_cmd="vasp", prev_calc_loc=True, db_file=None, parents=None, **kwargs):
         """
         Standard static calculation Firework - either from a previous location or from a structure.
 
@@ -112,6 +112,8 @@ class StaticFW(Firework):
 
         t = []
 
+        vasp_input_set_params = vasp_input_set_params or {}
+
         if parents:
             if prev_calc_loc:
                 t.append(CopyVaspOutputs(calc_loc=prev_calc_loc,
@@ -120,13 +122,57 @@ class StaticFW(Firework):
         else:
             vasp_input_set = vasp_input_set or MPStaticSet(structure)
             t.append(WriteVaspFromIOSet(structure=structure,
-                                        vasp_input_set=vasp_input_set))
+                                        vasp_input_set=vasp_input_set,
+                                        vasp_input_set_params=vasp_input_set_params))
 
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
         t.append(
             VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
         super(StaticFW, self).__init__(t, parents=parents, name="{}-{}".format(
+            structure.composition.reduced_formula, name), **kwargs)
+
+
+class StaticInterpolateFW(Firework):
+    def __init__(self, structure, start, end, name="static", vasp_input_set="MPStaticSet",
+                 vasp_input_set_params=None, vasp_cmd="vasp", db_file=None,
+                 parents=None, this_image=None, nimages=None, autosort_tol=0, **kwargs):
+        """
+        Standard static calculation Firework that interpolates structures from two previous calculations.
+
+        Args:
+            structure (Structure): Input structure used to name FireWork.
+            start (str): PassCalcLoc name of StaticFW or RelaxFW run of starting structure.
+            end (str): PassCalcLoc name of StaticFW or RelaxFW run of ending structure.
+            name (str): Name for the Firework.
+            vasp_input_set (str): Input set to use. Defaults to MPStaticSet.
+            vasp_input_set_params (dict): Dict of vasp_input_set_kwargs.
+            vasp_cmd (str): Command to run vasp.
+            copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
+            db_file (str): Path to file specifying db credentials.
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            this_image (int): which interpolation to use for this run
+            nimages (int): number of interpolations
+            autosort_tol (float): a distance tolerance in angstrom in which
+                to automatically sort end_structure to match to the closest
+                points in this particular structure.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+        t = []
+
+        vasp_input_set_params = vasp_input_set_params or {}
+        vasp_input_set_params = vasp_input_set_params.copy()
+
+        t.append(WriteVaspFromIOSetFromInterpolatedPOSCAR(
+            start=start, end=end, this_image=this_image, nimages=nimages,
+            autosort_tol=autosort_tol, vasp_input_set=vasp_input_set,
+            vasp_input_set_params=vasp_input_set_params))
+
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
+        t.append(PassCalcLocs(name=name))
+        t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
+
+        super(StaticInterpolateFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)
 
 
