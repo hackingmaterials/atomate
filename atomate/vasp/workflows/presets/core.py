@@ -59,7 +59,7 @@ def wf_scan_opt(structure,c={}):
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
     user_incar_settings = c.get("USER_INCAR_SETTINGS")
-    half_kpts = c.get("HALF_KPTS",HALF_KPOINTS_FIRST_RELAX)
+    half_kpts = c.get("HALF_KPOINTS_FIRST_RELAX",HALF_KPOINTS_FIRST_RELAX)
     ediffg = user_incar_settings.get("EDIFFG",-0.05) if user_incar_settings else -0.05
 
     wf = get_wf(structure, "optimize_only.yaml",
