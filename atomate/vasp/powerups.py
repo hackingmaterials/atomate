@@ -450,7 +450,7 @@ def use_scratch_dir(original_wf, scratch_dir):
     return original_wf
 
 
-def add_additional_fields_to_taskdocs(original_wf, update_dict=None):
+def add_additional_fields_to_taskdocs(original_wf, update_dict=None, task_name_constraint="VaspToDb"):
     """
     For all VaspToDbTasks in a given workflow, add information  to "additional_fields" to be
     placed in the task doc.
@@ -462,7 +462,7 @@ def add_additional_fields_to_taskdocs(original_wf, update_dict=None):
     Returns:
        Workflow
     """
-    for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="VaspToDb"):
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint=task_name_constraint):
         original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"].update(update_dict)
     return original_wf
 
