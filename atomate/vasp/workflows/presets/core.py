@@ -77,6 +77,9 @@ def wf_scan_opt(structure,c={}):
     if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
         wf = add_wf_metadata(wf, structure)
 
+    if not c.get("KEEP_WAVECAR", False):
+        wf = clean_up_files(wf)
+
     return wf
 
 def wf_bandstructure_plus_hse(structure, gap_only=True, c=None):
