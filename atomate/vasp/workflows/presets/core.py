@@ -6,14 +6,14 @@ from uuid import uuid4
 
 import numpy as np
 
-from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
+from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet, MVLScanRelaxSet
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp.inputs import Kpoints
 
 from atomate.vasp.config import SMALLGAP_KPOINT_MULTIPLY, STABILITY_CHECK, VASP_CMD, DB_FILE, \
-    ADD_WF_METADATA
+    ADD_WF_METADATA, HALF_KPOINTS_FIRST_RELAX
 from atomate.vasp.powerups import add_small_gap_multiply, add_stability_check, add_modify_incar, \
-    add_wf_metadata, add_common_powerups
+    add_wf_metadata, add_common_powerups, use_custodian
 from atomate.vasp.workflows.base.core import get_wf
 from atomate.vasp.workflows.base.elastic import get_wf_elastic_constant
 from atomate.vasp.workflows.base.raman import get_wf_raman_spectra
@@ -53,6 +53,31 @@ def wf_bandstructure(structure, c=None):
 
     return wf
 
+def wf_scan_opt(structure,c={}):
+
+    c = c or {}
+    vasp_cmd = c.get("VASP_CMD", VASP_CMD)
+    db_file = c.get("DB_FILE", DB_FILE)
+    user_incar_settings = c.get("USER_INCAR_SETTINGS")
+    half_kpts = c.get("HALF_KPTS",HALF_KPOINTS_FIRST_RELAX)
+    ediffg = user_incar_settings.get("EDIFFG",-0.05) if user_incar_settings else -0.05
+
+    wf = get_wf(structure, "optimize_only.yaml",
+                vis=MVLScanRelaxSet(structure, user_incar_settings=user_incar_settings),
+                common_params={"vasp_cmd": vasp_cmd, "db_file": db_file})
+
+    wf = use_custodian(wf,custodian_params={"ediffg":ediffg,
+                                            "max_force_threshold":0,
+                                            "half_kpts_first_relax":half_kpts,
+                                            "job_type":"metagga_relaxation_run",
+                                            "db_file":db_file,
+                                            "vasp_cmd":vasp_cmd})
+    wf = add_common_powerups(wf, c)
+
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
+    return wf
 
 def wf_bandstructure_plus_hse(structure, gap_only=True, c=None):
 
