@@ -29,6 +29,7 @@ from atomate.vasp.firetasks.write_inputs import WriteNormalmodeDisplacedPoscar, 
     WriteVaspFromIOSetFromInterpolatedPOSCAR
 from atomate.vasp.firetasks.neb_tasks import WriteNEBFromImages, \
     WriteNEBFromEndpoints
+from atomate.utils.utils import get_structure_metadata
 
 
 class OptimizeFW(Firework):
@@ -489,9 +490,8 @@ class SOCFW(Firework):
 
 class TransmuterFW(Firework):
     def __init__(self, structure, transformations, transformation_params=None,
-                 vasp_input_set=None,
-                 name="structure transmuter", vasp_cmd="vasp",
-                 copy_vasp_outputs=True, db_file=None,
+                 vasp_input_set=None, name="structure transmuter", vasp_cmd="vasp",
+                 copy_vasp_outputs=True, db_file=None, add_parent_structure=False,
                  parents=None, override_default_vasp_params=None, **kwargs):
         """
         Apply the transformations to the input structure, write the input set corresponding
@@ -513,6 +513,8 @@ class TransmuterFW(Firework):
             db_file (string): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
             override_default_vasp_params (dict): additional user input settings for vasp_input_set.
+            add_parent_structure (bool): flag to indicate whether "parent structure"
+                should be set in resulting task document
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         override_default_vasp_params = override_default_vasp_params or {}
@@ -535,17 +537,15 @@ class TransmuterFW(Firework):
                                           prev_calc_dir=prev_calc_dir))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
-        t.append(VaspToDb(db_file=db_file,
-                          additional_fields={
-                              "task_label": name,
-                              "transmuter": {"transformations": transformations,
-                                             "transformation_params": transformation_params}
-                          }))
+        additional_fields = {"task_label": name, 
+                             "transmuter": {"transformations": transformations,
+                                            "transformation_params": transformation_params}}
+        if add_parent_structure:
+            additional_fields.update(get_structure_metadata(structure))
+        t.append(VaspToDb(db_file=db_file, additional_fields=additional_fields))
 
-        super(TransmuterFW, self).__init__(t, parents=parents,
-                                           name="{}-{}".format(
-                                               structure.composition.reduced_formula,
-                                               name), **kwargs)
+        name = "{}-{}".format(structure.composition.reduced_formula, name)
+        super(TransmuterFW, self).__init__(t, name=name, parents=parents, **kwargs)
 
 
 class MDFW(Firework):

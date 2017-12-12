@@ -26,7 +26,7 @@ from pymatgen.analysis.ferroelectricity.polarization import Polarization, get_to
     EnergyTrend
 
 from atomate.common.firetasks.glue_tasks import get_calc_loc
-from atomate.utils.utils import env_chk, get_meta_from_structure
+from atomate.utils.utils import env_chk, get_structure_metadata
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.drones import VaspDrone
@@ -56,14 +56,14 @@ class VaspToDb(FiretaskBase):
         additional_fields (dict): dict of additional fields to add
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
-        fw_spec_field (str): if set, will update the task doc with the contents
-            of this key in the fw_spec.
+        fw_spec_fields ([str]): if set, will update the task doc with the contents
+            of these keys in the fw_spec.
         defuse_unsuccessful (bool): Defuses children fireworks if VASP run state
             is not "successful"; i.e. both electronic and ionic convergence are reached.
             Defaults to True.
     """
     optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
-                       "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful"]
+                       "additional_fields", "db_file", "fw_spec_fields", "defuse_unsuccessful"]
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
@@ -84,8 +84,9 @@ class VaspToDb(FiretaskBase):
         task_doc = drone.assimilate(calc_dir)
 
         # Check for additional keys to set based on the fw_spec
-        if self.get("fw_spec_field"):
-            task_doc.update(fw_spec[self.get("fw_spec_field")])
+        fw_spec_fields = self.get("fw_spec_fields", [])
+        for fw_spec_field in fw_spec_fields:
+            task_doc.update({fw_spec_field: fw_spec.get(fw_spec_field)})
 
         # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
@@ -183,18 +184,7 @@ class BoltztrapToDb(FiretaskBase):
         # add the structure
         v, o = get_vasprun_outcar(bandstructure_dir, parse_eigen=False, parse_dos=False)
         structure = v.final_structure
-        d["structure"] = structure.as_dict()
-        d["formula_pretty"] = structure.composition.reduced_formula
-        d.update(get_meta_from_structure(structure))
-
-        # add the spacegroup
-        sg = SpacegroupAnalyzer(Structure.from_dict(d["structure"]), 0.1)
-        d["spacegroup"] = {"symbol": sg.get_space_group_symbol(),
-                           "number": sg.get_space_group_number(),
-                           "point_group": sg.get_point_group_symbol(),
-                           "source": "spglib",
-                           "crystal_system": sg.get_crystal_system(),
-                           "hall": sg.get_hall()}
+        d.update(get_structure_metadata(structure, sga_params={"symprec": 0.1}))
 
         d["created_at"] = datetime.utcnow()
 
@@ -232,7 +222,7 @@ class ElasticTensorToDb(FiretaskBase):
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
         order (int): order of fit to perform
-        fw_spec_field (str): if set, will update the task doc with the contents
+        fw_spec_fields ([str]): if set, will update the task doc with the contents
             of this key in the fw_spec.
         fitting_method (str): if set, will use one of the specified
             fitting methods from pymatgen.  Supported methods are
@@ -242,7 +232,7 @@ class ElasticTensorToDb(FiretaskBase):
     """
 
     required_params = ['structure']
-    optional_params = ['db_file', 'order', 'fw_spec_field', 'fitting_method']
+    optional_params = ['db_file', 'order', 'fw_spec_fields', 'fitting_method']
 
     def run_task(self, fw_spec):
         ref_struct = self['structure']
@@ -265,8 +255,10 @@ class ElasticTensorToDb(FiretaskBase):
         else:
             eq_stress = None
 
-        if self.get("fw_spec_field"):
-            d.update({self.get("fw_spec_field"): fw_spec.get(self.get("fw_spec_field"))})
+        # Update the task doc with specified fields from the fw_spec e.g. tags
+        fw_spec_fields = self.get("fw_spec_fields", [])
+        for fw_spec_field in fw_spec_fields:
+            d.update({fw_spec_field: fw_spec.get(fw_spec_field)})
 
         # Get the stresses, strains, deformations from deformation tasks
         defo_dicts = fw_spec["deformation_tasks"].values()

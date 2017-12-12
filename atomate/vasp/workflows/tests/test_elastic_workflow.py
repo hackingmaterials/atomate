@@ -72,6 +72,8 @@ class TestElasticWorkflow(AtomateTest):
                                                     db_file=">>db_file<<")], 
                                  spec={"deformation_tasks": toec_data['deformation_tasks']})
         self.toec_analysis = Workflow([toec_analysis])
+        # Check 4th order to see if constructed correctly
+        self.foec_wf = wf_elastic_constant_minimal(self.struct_si, order=4)
 
     def _simulate_vasprun(self, wf):
         reference_dir = os.path.abspath(self.tf_loc)
@@ -133,6 +135,7 @@ class TestElasticWorkflow(AtomateTest):
         self.assertEqual(len(self.minimal_wf.fws), 3)
         self.assertEqual(len(self.toec_wf.fws), 17)
         self.assertEqual(len(self.preset_wf.fws), 26)
+        self.assertEqual(len(self.foec_wf.fws), 49)
 
         # check vasp parameters for ionic relaxation
         defo_vis = [fw.tasks[1]['vasp_input_set'] 
