@@ -2,6 +2,15 @@
 atomate Changelog
 =================
 
+
+**v0.6.7**
+
+* New ferroelectrics workflow! (T. Smidt)
+* option to parse LOCPOT in VaspDrone (S. Dwaraknath)
+* rename set_fworker -> set_execution_option
+* more options for BoltztrapFW (A. Faghaninia)
+* misc. bugfixes (D. Broberg, K. Mathew, P. Huck)
+
 **v0.6.6**
 
 * powerup to preserve the same FWorker for all jobs in workflow (S. Dwaraknath)

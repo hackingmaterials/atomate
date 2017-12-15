@@ -44,6 +44,14 @@ atomate\.vasp\.workflows\.base\.elastic module
     :undoc-members:
     :show-inheritance:
 
+atomate\.vasp\.workflows\.base\.ferroelectric module
+----------------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.base.ferroelectric
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 atomate\.vasp\.workflows\.base\.gibbs module
 --------------------------------------------
 
