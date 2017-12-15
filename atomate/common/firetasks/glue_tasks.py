@@ -89,7 +89,7 @@ class CopyFilesFromCalcLoc(FiretaskBase):
         name_append (str): string to append to destination filenames.
         keep_filenames (bool): if True, all copied filenames are kept the same.
             The difference w/ not setting name_prepend and name_append is that
-            "foo/bar" can be in filenames copy from subfolder "foo" in calc_dir
+            "foo/bar" can be in filenames copied from subfolder foo in calc_dir
     """
 
     required_params = ["calc_loc", "filenames"]
