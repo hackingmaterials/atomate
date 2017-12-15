@@ -87,10 +87,13 @@ class CopyFilesFromCalcLoc(FiretaskBase):
     Optional params:
         name_prepend (str): string to prepend filenames, e.g. can be a directory.
         name_append (str): string to append to destination filenames.
+        keep_filenames (bool): if True, all copied filenames are kept the same.
+            The difference w/ not setting name_prepend and name_append is that
+            "foo/bar" can be in filenames copy from subfolder "foo" in calc_dir
     """
 
     required_params = ["calc_loc", "filenames"]
-    optional_params = ["name_prepend", "name_append"]
+    optional_params = ["name_prepend", "name_append", "keep_filenames"]
 
     def run_task(self,fw_spec=None):
         calc_loc = get_calc_loc(self['calc_loc'], fw_spec["calc_locs"])
@@ -111,7 +114,10 @@ class CopyFilesFromCalcLoc(FiretaskBase):
             prev_path_full = os.path.join(calc_dir, f)
             dest_fname = self.get('name_prepend', "") + f + self.get(
                 'name_append', "")
-            dest_path = os.path.join(os.getcwd(), dest_fname)
+            if self.get('keep_filenames', False):
+                dest_path = os.path.join(os.getcwd(), ".")
+            else:
+                dest_path = os.path.join(os.getcwd(), dest_fname)
 
             fileclient.copy(prev_path_full, dest_path)
 
