@@ -86,10 +86,11 @@ class CopyFilesFromCalcLoc(FiretaskBase):
     
     Optional params:
         name_prepend (str): string to prepend filenames, e.g. can be a directory.
-        name_append (str): string to append to filenames.
+        name_append (str): string to append to destination filenames.
     """
 
-    required_params = ["calc_loc", "filenames", "name_prepend","name_append"]
+    required_params = ["calc_loc", "filenames"]
+    optional_params = ["name_prepend", "name_append"]
 
     def run_task(self,fw_spec=None):
         calc_loc = get_calc_loc(self['calc_loc'], fw_spec["calc_locs"])
