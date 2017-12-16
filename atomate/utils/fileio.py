@@ -121,6 +121,26 @@ class FileClient(object):
             else:
                 self.sftp.put(src, os.path.join(dest, os.path.basename(src)))
 
+    def copytree(self, src, dst, symlinks=False, ignore=None):
+        """
+        Recursively copy all files and subfolders from source to destination.
+            The difference with the original shutil.copytree is that dst folder
+            can already exist.
+
+        Args:
+            see shutil.copytree documentation
+        """
+        if not self.ssh:
+            for item in os.listdir(src):
+                s = os.path.join(src, item)
+                d = os.path.join(dst, item)
+                if os.path.isdir(s):
+                    shutil.copytree(s, d, symlinks, ignore)
+                else:
+                    shutil.copy2(s, d)
+        else:
+            raise NotImplementedError('copytree with ssh not implemented yet.')
+
     def abspath(self, path):
         """
         return the absolute path
