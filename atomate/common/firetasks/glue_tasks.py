@@ -77,14 +77,16 @@ def get_calc_loc(target_name, calc_locs):
 class CopyFilesFromCalcLoc(FiretaskBase):
     """
     Based on CopyVaspOutputs but for general file copying. Note that "calc_locs"
-    must be set in the fw_spec.
+    must be set in the fw_spec. Files are copied to the current folder.
 
     Required params:
         calc_loc: name of target fw to get location for within the calc_locs.
     
     Optional params:
-        filenames (list(str)): filenames to copy. If not set, all files will be
-            copied.
+        filenames (list(str)): filenames to copy. Special behavior for:
+            None: if filenames not set, all files in calc_loc will be copied
+            '$ALL_NO_SUBDIRS' in filenames: similar to filenames is None
+            '$ALL' in filenames: all files and subfolders copied
         name_prepend (str): string to prepend filenames, e.g. can be a directory.
         name_append (str): string to append to destination filenames.
     """
