@@ -97,6 +97,7 @@ class StaticFW(Firework):
             name (str): Name for the Firework.
             vasp_input_set (VaspInputSet): input set to use (for jobs w/no parents)
                 Defaults to MPStaticSet() if None.
+            vasp_input_set_params (dict): Dict of vasp_input_set kwargs.
             vasp_cmd (str): Command to run vasp.
             prev_calc_loc (bool or str): If true (default), copies outputs from previous calc. If 
                 a str value, retrieves a previous calculation output by name. If False/None, will create
@@ -118,7 +119,7 @@ class StaticFW(Firework):
             if prev_calc_loc:
                 t.append(CopyVaspOutputs(calc_loc=prev_calc_loc,
                                          contcar_to_poscar=True))
-            t.append(WriteVaspStaticFromPrev())
+            t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
         else:
             vasp_input_set = vasp_input_set or MPStaticSet(structure)
             t.append(WriteVaspFromIOSet(structure=structure,
