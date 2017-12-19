@@ -332,3 +332,17 @@ def get_uri(dir_name):
         hostname = socket.gethostname()
     return "{}:{}".format(hostname, fullpath)
 
+
+
+def get_database(config_file=None, settings=None, admin=False, **kwargs):
+    d = get_settings(config_file) if settings is None else settings
+    conn = MongoClient(host=d["host"], port=d["port"], **kwargs)
+    db = conn[d["database"]]
+    try:
+        user = d["admin_user"] if admin else d["readonly_user"]
+        passwd = d["admin_password"] if admin else d["readonly_password"]
+        db.authenticate(user, passwd)
+    except (KeyError, TypeError, ValueError):
+        _log.warn("No {admin,readonly}_user/password found in config. file, "
+                  "accessing DB without authentication")
+    return db
