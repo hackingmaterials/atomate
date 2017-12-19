@@ -295,7 +295,8 @@ def clear_modify(original_wf, fw_name_constraint=None):
 
 
 
-def set_fworker(original_wf, fworker_name, fw_name_constraint=None, task_name_constraint=None):
+def set_execution_options(original_wf, fworker_name=None, category=None,
+                          fw_name_constraint=None, task_name_constraint=None):
     """
     set _fworker spec of Fireworker(s) of a Workflow. It can be used to specify a queue;
     e.g. run large-memory jobs on a separate queue.
@@ -304,15 +305,20 @@ def set_fworker(original_wf, fworker_name, fw_name_constraint=None, task_name_co
         original_wf (Workflow):
         fworker_name (str): user-defined tag to be added under fw.spec._fworker
             e.g. "large memory", "big", etc
+        category (str): category of FWorker that should pul job
         fw_name_constraint (str): name of the Fireworks to be tagged (all if None is passed)
         task_name_constraint (str): name of the Firetasks to be tagged (e.g. None or 'RunVasp')
 
     Returns:
         Workflow: modified workflow with specified Fireworkers tagged
     """
-    for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf,
+                                           fw_name_constraint=fw_name_constraint,
                                            task_name_constraint=task_name_constraint):
-        original_wf.fws[idx_fw].spec["_fworker"] = fworker_name
+        if fworker_name:
+            original_wf.fws[idx_fw].spec["_fworker"] = fworker_name
+        if category:
+            original_wf.fws[idx_fw].spec["_category"] = category
     return original_wf
 
 def preserve_fworker(original_wf, fw_name_constraint=None):
@@ -462,7 +468,7 @@ def clean_up_files(original_wf, files=["WAVECAR*"] , fw_name_constraint=None,tas
     return original_wf
 
 
-def add_additional_fields_to_taskdocs(original_wf, update_dict=None):
+def add_additional_fields_to_taskdocs(original_wf, update_dict=None, task_name_constraint="VaspToDb"):
     """
     For all VaspToDbTasks in a given workflow, add information  to "additional_fields" to be
     placed in the task doc.
@@ -474,7 +480,7 @@ def add_additional_fields_to_taskdocs(original_wf, update_dict=None):
     Returns:
        Workflow
     """
-    for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="VaspToDb"):
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint=task_name_constraint):
         original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"].update(update_dict)
     return original_wf
 

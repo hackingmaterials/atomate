@@ -5,6 +5,8 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import logging
 import os
 import sys
+from random import randint
+from time import time
 
 import six
 from monty.json import MontyDecoder
@@ -304,3 +306,9 @@ def recursive_update(d, u):
                 d[k] = v
         else:
             d[k] = v
+
+
+def get_a_unique_id():
+    ts = "{:.4f}".format(time())
+    ts += str(randint(0,9999)).zfill(4)
+    return ts

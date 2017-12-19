@@ -7,11 +7,10 @@ This module defines firetasks for writing LAMMPS input files (data file and the 
 parameters file)
 """
 
-import os
 import six
 
 from pymatgen import Molecule
-from pymatgen.io.lammps.data import LammpsForceFieldData
+from pymatgen.io.lammps.data import LammpsData
 from pymatgen.io.lammps.sets import LammpsInputSet
 
 from fireworks import FiretaskBase, explicit_serialize
@@ -42,7 +41,8 @@ class WriteInputFromIOSet(FiretaskBase):
         lammps_input_set = self["lammps_input_set"]
         input_filename = self["input_filename"]
         data_filename = self.get("data_filename", None)
-
+        if isinstance(lammps_input_set.lammps_data, dict):
+            lammps_input_set.lammps_data = LammpsData.from_dict(lammps_input_set.lammps_data)
         lammps_input_set.write_input(input_filename, data_filename)
 
 
@@ -72,10 +72,8 @@ class WriteInputFromForceFieldAndTopology(FiretaskBase):
         elif isinstance(final_molecule, six.string_types):
             final_molecule = Molecule.from_file(final_molecule)
 
-        lammps_ff_data = LammpsForceFieldData.from_forcefield_and_topology(molecules, mols_number,
-                                                                           self["box_size"],
-                                                                           final_molecule,
-                                                                           forcefield, topologies)
+        #molecules, mols_number, final_molecule
+        lammps_ff_data = LammpsData.from_ff_and_topologies(forcefield, topologies, self["box_size"])
 
         lammps_input_set = LammpsInputSet.from_file("ff-inputset", self["input_file"],
                                                     user_settings=user_settings,
