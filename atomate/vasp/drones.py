@@ -23,6 +23,7 @@ import numpy as np
 from pymatgen.core.composition import Composition
 from pymatgen.core.structure import Structure
 from pymatgen.core.operations import SymmOp
+from pymatgen.electronic_structure.bandstructure import BandStructureSymmLine
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot
 from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
@@ -257,6 +258,11 @@ class VaspDrone(AbstractDrone):
                                     "vbm": calc["output"]["vbm"],
                                     "is_gap_direct": calc["output"]["is_gap_direct"],
                                     "is_metal": calc["output"]["is_metal"]})
+                if not calc["output"]["is_gap_direct"]:
+                    d["output"]["direct_gap"] = calc["output"]["direct_gap"]
+                if "transition" in calc["output"]:
+                    d["output"]["transition"] = calc["output"]["transition"]
+
             except Exception:
                 if self.bandstructure_mode is True:
                     import traceback
@@ -371,6 +377,11 @@ class VaspDrone(AbstractDrone):
             d["output"]["bandgap"] = bs_gap["energy"]
             d["output"]["is_gap_direct"] = bs_gap["direct"]
             d["output"]["is_metal"] = bs.is_metal()
+            if not bs_gap["direct"]:
+                d["output"]["direct_gap"] = bs.get_direct_band_gap()
+            if isinstance(bs,BandStructureSymmLine):
+                d["output"]["transition"] = bs_gap["transition"]
+            
 
         except Exception:
             if self.bandstructure_mode is True:
