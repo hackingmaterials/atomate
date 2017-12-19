@@ -29,7 +29,7 @@ from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot
 from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
 from pymatgen.apps.borg.hive import AbstractDrone
 
-from matgendb.creator import get_uri
+from atomate.utils.utils import get_uri
 
 from atomate.utils.utils import get_logger
 from atomate import __version__ as atomate_version

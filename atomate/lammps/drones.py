@@ -14,7 +14,7 @@ from pymatgen.apps.borg.hive import AbstractDrone
 from pymatgen.io.lammps.output import LammpsLog, LammpsDump, LammpsRun
 from pymatgen.io.lammps.sets import LammpsInputSet
 
-from matgendb.creator import get_uri
+from atomate.utils.utils import get_uri
 
 from atomate.utils.utils import get_logger
 
