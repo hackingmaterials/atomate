@@ -86,7 +86,8 @@ class CopyFilesFromCalcLoc(FiretaskBase):
         filenames (list(str)): filenames to copy. Special behavior for:
             None: if filenames not set, all files in calc_loc will be copied
             '$ALL_NO_SUBDIRS' in filenames: similar to filenames is None
-            '$ALL' in filenames: all files and subfolders copied
+            '$ALL' in filenames: all files and subfolders copied, name_prepend
+                and name_append cannot be set in this case
         name_prepend (str): string to prepend filenames, e.g. can be a directory.
         name_append (str): string to append to destination filenames.
     """
@@ -109,6 +110,8 @@ class CopyFilesFromCalcLoc(FiretaskBase):
         if '$ALL_NO_SUBDIRS' in filenames:
             files_to_copy = fileclient.listdir(calc_dir)
         elif '$ALL' in filenames:
+            if self.get('name_prepend', None) or self.get('name_append', None):
+                raise ValueError('name_prepend or name_append options not compatible with "$ALL" option')
             fileclient.copytree(calc_dir, os.getcwd())
             return
         else:
