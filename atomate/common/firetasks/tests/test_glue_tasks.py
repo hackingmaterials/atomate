@@ -47,7 +47,7 @@ class TestPassCalcLocs(AtomateTest):
 
 class TestCleanUpFiles(AtomateTest):
 
-    def test_cleanpfiles(self):
+    def test_cleanupfiles(self):
         
 
 
