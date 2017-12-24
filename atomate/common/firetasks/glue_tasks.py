@@ -114,6 +114,8 @@ class CopyFilesFromCalcLoc(FiretaskBase):
                 raise ValueError('name_prepend or name_append options not compatible with "$ALL" option')
             fileclient.copytree(calc_dir, os.getcwd())
             return
+        else:
+            files_to_copy = filenames
 
         for f in files_to_copy:
             prev_path_full = os.path.join(calc_dir, f)
