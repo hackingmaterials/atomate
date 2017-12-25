@@ -102,7 +102,7 @@ class CopyFilesFromCalcLoc(FiretaskBase):
 
         fileclient = FileClient(filesystem=filesystem)
         calc_dir = fileclient.abspath(calc_dir)
-        filenames = self.get('filenames', None)
+        filenames = self.get('filenames')
         if filenames is None:
             files_to_copy = fileclient.listdir(calc_dir)
         elif isinstance(filenames, six.string_types):
@@ -110,7 +110,7 @@ class CopyFilesFromCalcLoc(FiretaskBase):
         elif '$ALL_NO_SUBDIRS' in filenames:
             files_to_copy = fileclient.listdir(calc_dir)
         elif '$ALL' in filenames:
-            if self.get('name_prepend', None) or self.get('name_append', None):
+            if self.get('name_prepend') or self.get('name_append'):
                 raise ValueError('name_prepend or name_append options not compatible with "$ALL" option')
             fileclient.copytree(calc_dir, os.getcwd())
             return
