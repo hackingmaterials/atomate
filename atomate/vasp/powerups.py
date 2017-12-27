@@ -450,7 +450,7 @@ def use_scratch_dir(original_wf, scratch_dir):
         original_wf.fws[idx_fw].tasks[idx_t]["scratch_dir"] = scratch_dir
     return original_wf
 
-def clean_up_files(original_wf, files=["WAVECAR*"] , fw_name_constraint=None,task_name_constraint="RunVasp"):
+def clean_up_files(original_wf, files=("WAVECAR*",) , fw_name_constraint=None,task_name_constraint="RunVasp"):
     """
     Cleans up files after another fireworks. Default behavior is to remove WAVECAR after running VASP
 

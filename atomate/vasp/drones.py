@@ -379,9 +379,8 @@ class VaspDrone(AbstractDrone):
             d["output"]["is_metal"] = bs.is_metal()
             if not bs_gap["direct"]:
                 d["output"]["direct_gap"] = bs.get_direct_band_gap()
-            if isinstance(bs,BandStructureSymmLine):
+            if isinstance(bs, BandStructureSymmLine):
                 d["output"]["transition"] = bs_gap["transition"]
-            
 
         except Exception:
             if self.bandstructure_mode is True:
@@ -398,8 +397,8 @@ class VaspDrone(AbstractDrone):
         d["output_file_paths"] = self.process_raw_data(dir_name, taskname=taskname)
 
         if "locpot" in d["output_file_paths"] and self.parse_locpot:
-            locpot = Locpot.from_file(os.path.join(dir_name,d["output_file_paths"]["locpot"]))
-            d["output"]["locpot"] = {i:locpot.get_average_along_axis(i) for i in range(3)}
+            locpot = Locpot.from_file(os.path.join(dir_name, d["output_file_paths"]["locpot"]))
+            d["output"]["locpot"] = {i: locpot.get_average_along_axis(i) for i in range(3)}
 
         if hasattr(vrun, "force_constants"):
             # phonon-dfpt
@@ -576,7 +575,7 @@ class VaspDrone(AbstractDrone):
         if set(self.runs).intersection(subdirs):
             return [parent]
         if not any([parent.endswith(os.sep + r) for r in self.runs]) and \
-                        len(glob.glob(os.path.join(parent, "vasprun.xml*"))) > 0:
+                len(glob.glob(os.path.join(parent, "vasprun.xml*"))) > 0:
             return [parent]
         return []
 

@@ -178,7 +178,7 @@ class TestVaspPowerups(unittest.TestCase):
         for fw in my_wf.fws:
             fw_names = [t._fw_name for t in fw.tasks]
             clean_idx = fw_names.index("{{atomate.common.firetasks.glue_tasks.CleanUpFiles}}") # Raises an error if not in list
-            self.assertEqual(fw.tasks[clean_idx].get("files"), ["WAVECAR*"])
+            self.assertEqual(list(fw.tasks[clean_idx].get("files")), ["WAVECAR*"])
 
 if __name__ == "__main__":
     unittest.main()
