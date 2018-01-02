@@ -30,6 +30,7 @@ if __name__ == "__main__":
                         'complete': ['paramiko>=1.15.0',
                                      'matplotlib>=1.5.2',
                                      'phonopy>=1.10.8',
+                                     'boltons>=17.2.0',
                                      ]},
         classifiers=['Programming Language :: Python :: 2.7',
                      "Programming Language :: Python :: 3",
