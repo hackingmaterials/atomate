@@ -22,7 +22,10 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+ 
+<link href='http://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
+
   </head>
   <body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -119,21 +122,32 @@ from_path_dict (dict): dict specification of the path. If specified must contain
 <em class="property">class </em><code class="descclassname">atomate.common.firetasks.glue_tasks.</code><code class="descname">CopyFilesFromCalcLoc</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
 <p>Based on CopyVaspOutputs but for general file copying. Note that “calc_locs”
-must be set in the fw_spec.</p>
+must be set in the fw_spec. Files are copied to the current folder.</p>
 <dl class="docutils">
 <dt>Required params:</dt>
-<dd><p class="first">calc_loc: name of target fw to get location for within the calc_locs.
-filenames (list(str)): filenames to copy. If not set, all files will be</p>
-<blockquote class="last">
-<div>copied.</div></blockquote>
-</dd>
+<dd>calc_loc: name of target fw to get location for within the calc_locs.</dd>
 <dt>Optional params:</dt>
-<dd>name_prepend (str): string to prepend filenames, e.g. can be a directory.
-name_append (str): string to append to filenames.</dd>
+<dd><dl class="first docutils">
+<dt>filenames (list(str)): filenames to copy. Special behavior for:</dt>
+<dd><p class="first">None: if filenames not set, all files in calc_loc will be copied
+‘$ALL_NO_SUBDIRS’ in filenames: similar to filenames is None
+‘$ALL’ in filenames: all files and subfolders copied, name_prepend</p>
+<blockquote class="last">
+<div>and name_append cannot be set in this case</div></blockquote>
+</dd>
+</dl>
+<p class="last">name_prepend (str): string to prepend filenames, e.g. can be a directory.
+name_append (str): string to append to destination filenames.</p>
+</dd>
 </dl>
 <dl class="attribute">
+<dt id="atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['filenames', 'name_prepend', 'name_append']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc.required_params">
-<code class="descname">required_params</code><em class="property"> = ['calc_loc', 'filenames', 'name_prepend', 'name_append']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc.required_params" title="Permalink to this definition">¶</a></dt>
+<code class="descname">required_params</code><em class="property"> = ['calc_loc']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc.required_params" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -462,9 +476,11 @@ custodian_params ({}) - dict of all other custodian parameters</dd>
         <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.7 documentation</a> &#187;</li> 
       </ul>
     </div>
+
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
+
   </body>
 </html>

@@ -22,7 +22,10 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+ 
+<link href='http://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
+
   </head>
   <body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -159,6 +162,18 @@ of whether those operations are happening locally or via SSH</p>
 <dt>Args:</dt>
 <dd>src (str): source full path
 dest (str): destination file full path</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.utils.fileio.FileClient.copytree">
+<code class="descname">copytree</code><span class="sig-paren">(</span><em>src</em>, <em>dst</em>, <em>symlinks=False</em>, <em>ignore=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.copytree" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Recursively copy all files and subfolders from source to destination.</dt>
+<dd>The difference with the original shutil.copytree is that dst folder
+can already exist.</dd>
+<dt>Args:</dt>
+<dd>see shutil.copytree documentation</dd>
 </dl>
 </dd></dl>
 
@@ -496,9 +511,11 @@ u (dict): updates to propogate</div></blockquote>
         <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.7 documentation</a> &#187;</li> 
       </ul>
     </div>
+
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
+
   </body>
 </html>
