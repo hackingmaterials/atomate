@@ -22,7 +22,10 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+ 
+<link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
+
   </head>
   <body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -51,8 +54,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="atomate.feff.firetasks.tests.html">atomate.feff.firetasks.tests package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.feff.firetasks.tests.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.feff.firetasks.tests.html#module-atomate.feff.firetasks.tests.test_tasks">atomate.feff.firetasks.tests.test_tasks module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.feff.firetasks.tests.html#module-atomate.feff.firetasks.tests">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.feff.firetasks.tests.html#atomate-feff-firetasks-tests-test-tasks-module">atomate.feff.firetasks.tests.test_tasks module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.feff.firetasks.tests.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -61,222 +64,20 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.feff.firetasks.glue_tasks">
-<span id="atomate-feff-firetasks-glue-tasks-module"></span><h2>atomate.feff.firetasks.glue_tasks module<a class="headerlink" href="#module-atomate.feff.firetasks.glue_tasks" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="atomate.feff.firetasks.glue_tasks.CopyFeffOutputs">
-<em class="property">class </em><code class="descclassname">atomate.feff.firetasks.glue_tasks.</code><code class="descname">CopyFeffOutputs</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.firetasks.glue_tasks.CopyFeffOutputs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="atomate.common.firetasks.html#atomate.common.firetasks.glue_tasks.CopyFiles" title="atomate.common.firetasks.glue_tasks.CopyFiles"><code class="xref py py-class docutils literal"><span class="pre">atomate.common.firetasks.glue_tasks.CopyFiles</span></code></a></p>
-<p>Copy files from a previous run directory to the current directory.
-Note: must specify either “calc_loc” or “calc_dir” to indicate the directory</p>
-<blockquote>
-<div>containing the files to copy.</div></blockquote>
-<dl class="docutils">
-<dt>Optional params:</dt>
-<dd><dl class="first docutils">
-<dt>calc_loc (str OR bool): if True will set most recent calc_loc. If str</dt>
-<dd>search for the most recent calc_loc with the matching name.</dd>
-</dl>
-<p class="last">calc_dir (str): path to dir that contains VASP output files.
-filesystem (str): remote filesystem. e.g. <a class="reference external" href="mailto:username&#37;&#52;&#48;host">username<span>&#64;</span>host</a>
-exclude_files (list): list fo filenames to be excluded when copying.</p>
-</dd>
-</dl>
-<dl class="attribute">
-<dt id="atomate.feff.firetasks.glue_tasks.CopyFeffOutputs.optional_params">
-<code class="descname">optional_params</code><em class="property"> = ['calc_loc', 'calc_dir', 'filesystem', 'exclude_files']</em><a class="headerlink" href="#atomate.feff.firetasks.glue_tasks.CopyFeffOutputs.optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.feff.firetasks.glue_tasks.CopyFeffOutputs.run_task">
-<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.firetasks.glue_tasks.CopyFeffOutputs.run_task" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="atomate-feff-firetasks-glue-tasks-module">
+<h2>atomate.feff.firetasks.glue_tasks module<a class="headerlink" href="#atomate-feff-firetasks-glue-tasks-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.feff.firetasks.parse_outputs">
-<span id="atomate-feff-firetasks-parse-outputs-module"></span><h2>atomate.feff.firetasks.parse_outputs module<a class="headerlink" href="#module-atomate.feff.firetasks.parse_outputs" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="atomate.feff.firetasks.parse_outputs.AddPathsToFilepadTask">
-<em class="property">class </em><code class="descclassname">atomate.feff.firetasks.parse_outputs.</code><code class="descname">AddPathsToFilepadTask</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.firetasks.parse_outputs.AddPathsToFilepadTask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
-<p>Insert the scattering amplitude outputs(all feffNNNN.dat files) to gridfs using filepad.</p>
-<dl class="docutils">
-<dt>Optional_params:</dt>
-<dd>labels (list): list of labels to tag the inserted files. Useful for querying later.
-filepad_file (str): path to the filepad connection settings file.
-compress (bool): wether or not to compress the file contents before insertion.
-metadata (dict): metadata.</dd>
-</dl>
-<dl class="attribute">
-<dt id="atomate.feff.firetasks.parse_outputs.AddPathsToFilepadTask.optional_params">
-<code class="descname">optional_params</code><em class="property"> = ['labels', 'filepad_file', 'compress', 'metadata']</em><a class="headerlink" href="#atomate.feff.firetasks.parse_outputs.AddPathsToFilepadTask.optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.feff.firetasks.parse_outputs.AddPathsToFilepadTask.run_task">
-<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.firetasks.parse_outputs.AddPathsToFilepadTask.run_task" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="atomate.feff.firetasks.parse_outputs.SpectrumToDbTask">
-<em class="property">class </em><code class="descclassname">atomate.feff.firetasks.parse_outputs.</code><code class="descname">SpectrumToDbTask</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.firetasks.parse_outputs.SpectrumToDbTask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
-<p>Parse the output of absorption/core-loss spectrum calculations(xmu.dat, eels.dat) and insert it
-into the database.</p>
-<dl class="docutils">
-<dt>Required_params:</dt>
-<dd>absorbing_atom (str): absorbing atom symbol
-structure (Structure): input structure
-spectrum_type (str): XANES, EXAFS, ELNES, EXELFS
-output_file (str): the output file name. xmu.dat or eels.dat</dd>
-<dt>Optional_params:</dt>
-<dd><p class="first">input_file (str): path to the feff input file.
-calc_dir (str): path to dir (on current filesystem) that contains FEFF output files.</p>
-<blockquote>
-<div>Default: use current working directory.</div></blockquote>
-<dl class="docutils">
-<dt>calc_loc (str OR bool): if True will set most recent calc_loc. If str search for the most</dt>
-<dd>recent calc_loc with the matching name</dd>
-</dl>
-<p class="last">db_file (str): path to the db file.
-edge (str): absorption edge
-metadata (dict): meta data</p>
-</dd>
-</dl>
-<dl class="attribute">
-<dt id="atomate.feff.firetasks.parse_outputs.SpectrumToDbTask.optional_params">
-<code class="descname">optional_params</code><em class="property"> = ['input_file', 'calc_dir', 'calc_loc', 'db_file', 'edge', 'metadata']</em><a class="headerlink" href="#atomate.feff.firetasks.parse_outputs.SpectrumToDbTask.optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="atomate.feff.firetasks.parse_outputs.SpectrumToDbTask.required_params">
-<code class="descname">required_params</code><em class="property"> = ['absorbing_atom', 'structure', 'spectrum_type', 'output_file']</em><a class="headerlink" href="#atomate.feff.firetasks.parse_outputs.SpectrumToDbTask.required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.feff.firetasks.parse_outputs.SpectrumToDbTask.run_task">
-<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.firetasks.parse_outputs.SpectrumToDbTask.run_task" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="atomate-feff-firetasks-parse-outputs-module">
+<h2>atomate.feff.firetasks.parse_outputs module<a class="headerlink" href="#atomate-feff-firetasks-parse-outputs-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.feff.firetasks.run_calc">
-<span id="atomate-feff-firetasks-run-calc-module"></span><h2>atomate.feff.firetasks.run_calc module<a class="headerlink" href="#module-atomate.feff.firetasks.run_calc" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="atomate.feff.firetasks.run_calc.RunFeffDirect">
-<em class="property">class </em><code class="descclassname">atomate.feff.firetasks.run_calc.</code><code class="descname">RunFeffDirect</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.firetasks.run_calc.RunFeffDirect" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
-<p>Run FEFF.</p>
-<dl class="docutils">
-<dt>Required params:</dt>
-<dd>feff_cmd (str): the name of the full executable for running FEFF (supports env_chk)</dd>
-</dl>
-<dl class="attribute">
-<dt id="atomate.feff.firetasks.run_calc.RunFeffDirect.required_params">
-<code class="descname">required_params</code><em class="property"> = ['feff_cmd']</em><a class="headerlink" href="#atomate.feff.firetasks.run_calc.RunFeffDirect.required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.feff.firetasks.run_calc.RunFeffDirect.run_task">
-<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.firetasks.run_calc.RunFeffDirect.run_task" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="atomate-feff-firetasks-run-calc-module">
+<h2>atomate.feff.firetasks.run_calc module<a class="headerlink" href="#atomate-feff-firetasks-run-calc-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.feff.firetasks.write_inputs">
-<span id="atomate-feff-firetasks-write-inputs-module"></span><h2>atomate.feff.firetasks.write_inputs module<a class="headerlink" href="#module-atomate.feff.firetasks.write_inputs" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="atomate.feff.firetasks.write_inputs.WriteEXAFSPaths">
-<em class="property">class </em><code class="descclassname">atomate.feff.firetasks.write_inputs.</code><code class="descname">WriteEXAFSPaths</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.firetasks.write_inputs.WriteEXAFSPaths" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
-<p>Write the scattering paths to paths.dat file.</p>
-<dl class="docutils">
-<dt>Required_params:</dt>
-<dd>feff_input_set: (FeffDictSet subclass)
-paths (list): list of paths. A path = list of site indices.</dd>
-<dt>Optional_params:</dt>
-<dd>degeneracies (list): list of path degeneracies.</dd>
-</dl>
-<dl class="attribute">
-<dt id="atomate.feff.firetasks.write_inputs.WriteEXAFSPaths.optional_params">
-<code class="descname">optional_params</code><em class="property"> = ['degeneracies']</em><a class="headerlink" href="#atomate.feff.firetasks.write_inputs.WriteEXAFSPaths.optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="atomate.feff.firetasks.write_inputs.WriteEXAFSPaths.required_params">
-<code class="descname">required_params</code><em class="property"> = ['feff_input_set', 'paths']</em><a class="headerlink" href="#atomate.feff.firetasks.write_inputs.WriteEXAFSPaths.required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.feff.firetasks.write_inputs.WriteEXAFSPaths.run_task">
-<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.firetasks.write_inputs.WriteEXAFSPaths.run_task" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="atomate.feff.firetasks.write_inputs.WriteFeffFromIOSet">
-<em class="property">class </em><code class="descclassname">atomate.feff.firetasks.write_inputs.</code><code class="descname">WriteFeffFromIOSet</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.firetasks.write_inputs.WriteFeffFromIOSet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
-<p>Generate FEFF input (feff.inp) from the given InputSet object or InputSet name</p>
-<dl class="docutils">
-<dt>Required_params:</dt>
-<dd><p class="first">absorbing_atom (str): absorbing atom symbol
-structure (Structure): input structure
-feff_input_set (str or FeffDictSet subclass): The inputset for setting params. If string</p>
-<blockquote class="last">
-<div>then either the entire path to the class or the spectrum type must be provided
-e.g. “pymatgen.io.feff.sets.MPXANESSet” or “XANES”</div></blockquote>
-</dd>
-<dt>Optional_params:</dt>
-<dd>radius (float): cluster radius in angstroms
-other_params (dict): <a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs to pass into the desired InputSet if using str feff_input_set</dd>
-</dl>
-<dl class="attribute">
-<dt id="atomate.feff.firetasks.write_inputs.WriteFeffFromIOSet.optional_params">
-<code class="descname">optional_params</code><em class="property"> = ['radius', 'other_params']</em><a class="headerlink" href="#atomate.feff.firetasks.write_inputs.WriteFeffFromIOSet.optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="atomate.feff.firetasks.write_inputs.WriteFeffFromIOSet.required_params">
-<code class="descname">required_params</code><em class="property"> = ['absorbing_atom', 'structure', 'feff_input_set']</em><a class="headerlink" href="#atomate.feff.firetasks.write_inputs.WriteFeffFromIOSet.required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.feff.firetasks.write_inputs.WriteFeffFromIOSet.run_task">
-<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.firetasks.write_inputs.WriteFeffFromIOSet.run_task" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.feff.firetasks.write_inputs.get_feff_input_set_obj">
-<code class="descclassname">atomate.feff.firetasks.write_inputs.</code><code class="descname">get_feff_input_set_obj</code><span class="sig-paren">(</span><em>fis</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.firetasks.write_inputs.get_feff_input_set_obj" title="Permalink to this definition">¶</a></dt>
-<dd><p>returns feff input set object.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><dl class="first docutils">
-<dt>fis (str or FeffDictSet subclass): The inputset for setting params. If string then</dt>
-<dd>the entire path to the class or the spectrum type must be provided
-e.g. “pymatgen.io.feff.sets.MPXANESSet” or “XANES”</dd>
-</dl>
-<p class="last">args (tuple): feff input set args
-kwargs (dict): feff input set kwargs</p>
-</dd>
-<dt>Returns:</dt>
-<dd>FeffDictSet object</dd>
-</dl>
-</dd></dl>
-
+<div class="section" id="atomate-feff-firetasks-write-inputs-module">
+<h2>atomate.feff.firetasks.write_inputs module<a class="headerlink" href="#atomate-feff-firetasks-write-inputs-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.feff.firetasks">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.feff.firetasks" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -291,11 +92,11 @@ kwargs (dict): feff input set kwargs</p>
 <li><a class="reference internal" href="#">atomate.feff.firetasks package</a><ul>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-atomate.feff.firetasks.glue_tasks">atomate.feff.firetasks.glue_tasks module</a></li>
-<li><a class="reference internal" href="#module-atomate.feff.firetasks.parse_outputs">atomate.feff.firetasks.parse_outputs module</a></li>
-<li><a class="reference internal" href="#module-atomate.feff.firetasks.run_calc">atomate.feff.firetasks.run_calc module</a></li>
-<li><a class="reference internal" href="#module-atomate.feff.firetasks.write_inputs">atomate.feff.firetasks.write_inputs module</a></li>
-<li><a class="reference internal" href="#module-atomate.feff.firetasks">Module contents</a></li>
+<li><a class="reference internal" href="#atomate-feff-firetasks-glue-tasks-module">atomate.feff.firetasks.glue_tasks module</a></li>
+<li><a class="reference internal" href="#atomate-feff-firetasks-parse-outputs-module">atomate.feff.firetasks.parse_outputs module</a></li>
+<li><a class="reference internal" href="#atomate-feff-firetasks-run-calc-module">atomate.feff.firetasks.run_calc module</a></li>
+<li><a class="reference internal" href="#atomate-feff-firetasks-write-inputs-module">atomate.feff.firetasks.write_inputs module</a></li>
+<li><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -333,9 +134,11 @@ kwargs (dict): feff input set kwargs</p>
         <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.7 documentation</a> &#187;</li> 
       </ul>
     </div>
+
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
+
   </body>
 </html>

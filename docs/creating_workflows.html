@@ -24,7 +24,10 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Customizing Workflows" href="customizing_workflows.html" />
-    <link rel="prev" title="Builders: creating calculation reports for data analysis" href="builders.html" /> 
+    <link rel="prev" title="Builders: creating calculation reports for data analysis" href="builders.html" />
+ 
+<link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
+
   </head>
   <body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -378,7 +381,7 @@
 </div>
 <div class="section" id="passcalclocs">
 <h3>PassCalcLocs<a class="headerlink" href="#passcalclocs" title="Permalink to this headline">¶</a></h3>
-<p>In order to be able to act on and modify the initial structure as it changes throughout workflows, there needed to be a way to refer to previous calculations that without hard coding file paths or by meticululously keeping track of paths throughout Firetasks and Fireworks. <code class="docutils literal"><span class="pre">PassCalcLocs</span></code> (<a class="reference internal" href="atomate.common.firetasks.html#module-atomate.common.firetasks.glue_tasks" title="atomate.common.firetasks.glue_tasks"><code class="xref py py-mod docutils literal"><span class="pre">atomate.common.firetasks.glue_tasks</span></code></a>) solves this problem by easily tracking previous calculation directories and making them available to consecutive Fireworks, even between different computing resources. <code class="docutils literal"><span class="pre">PassCalcLocs</span></code> enables Fireworks to be dynamically added and removed from workflows during runtime, enabling features such as branching during the calculation. Such branching could be used by having different workflow steps for handing metals and non-metals.</p>
+<p>In order to be able to act on and modify the initial structure as it changes throughout workflows, there needed to be a way to refer to previous calculations that without hard coding file paths or by meticululously keeping track of paths throughout Firetasks and Fireworks. <code class="docutils literal"><span class="pre">PassCalcLocs</span></code> (<code class="xref py py-mod docutils literal"><span class="pre">atomate.common.firetasks.glue_tasks</span></code>) solves this problem by easily tracking previous calculation directories and making them available to consecutive Fireworks, even between different computing resources. <code class="docutils literal"><span class="pre">PassCalcLocs</span></code> enables Fireworks to be dynamically added and removed from workflows during runtime, enabling features such as branching during the calculation. Such branching could be used by having different workflow steps for handing metals and non-metals.</p>
 </div>
 </div>
 <div class="section" id="conclusion">
@@ -464,9 +467,11 @@
         <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.7 documentation</a> &#187;</li> 
       </ul>
     </div>
+
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
+
   </body>
 </html>

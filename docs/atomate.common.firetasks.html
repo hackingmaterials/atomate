@@ -22,7 +22,10 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+ 
+<link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
+
   </head>
   <body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -52,7 +55,7 @@
 <li class="toctree-l1"><a class="reference internal" href="atomate.common.firetasks.tests.html">atomate.common.firetasks.tests package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.common.firetasks.tests.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.common.firetasks.tests.html#atomate-common-firetasks-tests-test-glue-tasks-module">atomate.common.firetasks.tests.test_glue_tasks module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.common.firetasks.tests.html#module-atomate.common.firetasks.tests.test_parse_outputs">atomate.common.firetasks.tests.test_parse_outputs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.common.firetasks.tests.html#atomate-common-firetasks-tests-test-parse-outputs-module">atomate.common.firetasks.tests.test_parse_outputs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.common.firetasks.tests.html#module-atomate.common.firetasks.tests">Module contents</a></li>
 </ul>
 </li>
@@ -62,286 +65,11 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.common.firetasks.glue_tasks">
-<span id="atomate-common-firetasks-glue-tasks-module"></span><h2>atomate.common.firetasks.glue_tasks module<a class="headerlink" href="#module-atomate.common.firetasks.glue_tasks" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="atomate.common.firetasks.glue_tasks.CopyFiles">
-<em class="property">class </em><code class="descclassname">atomate.common.firetasks.glue_tasks.</code><code class="descname">CopyFiles</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFiles" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
-<p>Task to copy the given list of files from the given directory to the destination directory.
-To customize override the setup_copy and copy_files methods.</p>
-<dl class="docutils">
-<dt>Optional params:</dt>
-<dd>from_dir (str): path to the directory containing the files to be copied.
-to_dir (str): path to the destination directory
-filesystem (str)
-files_to_copy (list): list of file names.
-exclude_files (list): list of file names to be excluded.</dd>
-</dl>
-<dl class="method">
-<dt id="atomate.common.firetasks.glue_tasks.CopyFiles.copy_files">
-<code class="descname">copy_files</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFiles.copy_files" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the copy operation. Override this to customize copying.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="atomate.common.firetasks.glue_tasks.CopyFiles.optional_params">
-<code class="descname">optional_params</code><em class="property"> = ['from_dir', 'to_dir', 'filesystem', 'files_to_copy', 'exclude_files']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFiles.optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.common.firetasks.glue_tasks.CopyFiles.run_task">
-<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFiles.run_task" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.common.firetasks.glue_tasks.CopyFiles.setup_copy">
-<code class="descname">setup_copy</code><span class="sig-paren">(</span><em>from_dir</em>, <em>to_dir=None</em>, <em>filesystem=None</em>, <em>files_to_copy=None</em>, <em>exclude_files=None</em>, <em>from_path_dict=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFiles.setup_copy" title="Permalink to this definition">¶</a></dt>
-<dd><p>setup the copy i.e setup the from directory, filesystem, destination directory etc.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><p class="first">from_dir (str)
-to_dir (str)
-filesystem (str)
-files_to_copy (list): if None all the files in the from_dir will be copied
-exclude_files (list)
-from_path_dict (dict): dict specification of the path. If specified must contain atleast</p>
-<blockquote class="last">
-<div>the key “path” that specifies the path to the from_dir.</div></blockquote>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc">
-<em class="property">class </em><code class="descclassname">atomate.common.firetasks.glue_tasks.</code><code class="descname">CopyFilesFromCalcLoc</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
-<p>Based on CopyVaspOutputs but for general file copying. Note that “calc_locs”
-must be set in the fw_spec.</p>
-<dl class="docutils">
-<dt>Required params:</dt>
-<dd><p class="first">calc_loc: name of target fw to get location for within the calc_locs.
-filenames (list(str)): filenames to copy. If not set, all files will be</p>
-<blockquote class="last">
-<div>copied.</div></blockquote>
-</dd>
-<dt>Optional params:</dt>
-<dd>name_prepend (str): string to prepend filenames, e.g. can be a directory.
-name_append (str): string to append to filenames.</dd>
-</dl>
-<dl class="attribute">
-<dt id="atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc.required_params">
-<code class="descname">required_params</code><em class="property"> = ['calc_loc', 'filenames', 'name_prepend', 'name_append']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc.required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc.run_task">
-<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc.run_task" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="atomate.common.firetasks.glue_tasks.CreateFolder">
-<em class="property">class </em><code class="descclassname">atomate.common.firetasks.glue_tasks.</code><code class="descname">CreateFolder</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CreateFolder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
-<p>FireTask to create new folder with the option of changing directory to the new folder.</p>
-<dl class="docutils">
-<dt>Required params:</dt>
-<dd>folder_name (str): folder name.</dd>
-<dt>Optional params:</dt>
-<dd><dl class="first last docutils">
-<dt>change_dir(bool): change working dir to new folder after creation.</dt>
-<dd>Defaults to False.</dd>
-<dt>relative_path (bool): whether folder name is relative or absolute.</dt>
-<dd>Defaults to True.</dd>
-</dl>
-</dd>
-</dl>
-<dl class="attribute">
-<dt id="atomate.common.firetasks.glue_tasks.CreateFolder.optional_params">
-<code class="descname">optional_params</code><em class="property"> = ['change_dir', 'relative_path']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CreateFolder.optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="atomate.common.firetasks.glue_tasks.CreateFolder.required_params">
-<code class="descname">required_params</code><em class="property"> = ['folder_name']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CreateFolder.required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.common.firetasks.glue_tasks.CreateFolder.run_task">
-<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CreateFolder.run_task" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="atomate.common.firetasks.glue_tasks.PassCalcLocs">
-<em class="property">class </em><code class="descclassname">atomate.common.firetasks.glue_tasks.</code><code class="descname">PassCalcLocs</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.PassCalcLocs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
-<p>Passes information about where the current calculation is located
-for the next FireWork. This is achieved by passing a key to
-the fw_spec called “calc_locs” with this information.</p>
-<dl class="docutils">
-<dt>Required params:</dt>
-<dd>name (str): descriptive name for this calculation file/dir</dd>
-<dt>Optional params:</dt>
-<dd><dl class="first last docutils">
-<dt>filesystem (str or custom user format): name of filesystem. Supports env_chk. </dt>
-<dd>defaults to None</dd>
-<dt>path (str): The path to the directory containing the calculation. defaults to</dt>
-<dd>current working directory.</dd>
-</dl>
-</dd>
-</dl>
-<dl class="attribute">
-<dt id="atomate.common.firetasks.glue_tasks.PassCalcLocs.optional_params">
-<code class="descname">optional_params</code><em class="property"> = ['filesystem', 'path']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.PassCalcLocs.optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="atomate.common.firetasks.glue_tasks.PassCalcLocs.required_params">
-<code class="descname">required_params</code><em class="property"> = ['name']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.PassCalcLocs.required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.common.firetasks.glue_tasks.PassCalcLocs.run_task">
-<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.PassCalcLocs.run_task" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="atomate.common.firetasks.glue_tasks.PassResult">
-<em class="property">class </em><code class="descclassname">atomate.common.firetasks.glue_tasks.</code><code class="descname">PassResult</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.PassResult" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
-<p>Passes properties and corresponding user-specified data resulting from a run from parent
-to child fireworks.  Uses a string syntax similar to Mongo-style queries to designate
-values of output file dictionaries to retrieve.  For example, one could specify
-a task to pass the stress from the current calculation using:</p>
-<p>PassResult(pass_dict={‘stress’: “&gt;&gt;ionic_steps.-1.stress”})</p>
-<dl class="docutils">
-<dt>Required params:</dt>
-<dd><dl class="first last docutils">
-<dt>pass_dict (dict): dictionary designating keys and values to pass</dt>
-<dd>to child fireworks.  If value is a string beginning with ‘&gt;&gt;’,
-the firework will search the parsed VASP output dictionary
-for the designated property by following the sequence of keys
-separated with periods, e. g. “&gt;&gt;ionic_steps.-1.stress” is used
-to designate the stress from the last ionic_step. If the value
-is not a string or does not begin with “&gt;&gt;”, it is passed as is.</dd>
-<dt>parse_class (str): string representation of complete path to a class </dt>
-<dd>with which to parse the output, e. g. pymatgen.io.vasp.Vasprun
-or pymatgen.io.feff.LDos.from_file, class must be MSONable</dd>
-<dt>parse_kwargs (str): dict of kwargs for the parse class,</dt>
-<dd>e. g. {“filename”: “vasprun.xml”, “parse_dos”: False, 
-“parse_eigen”: False}</dd>
-</dl>
-</dd>
-<dt>Optional params:</dt>
-<dd><dl class="first last docutils">
-<dt>calc_dir (str): path to dir that contains VASP output files, defaults</dt>
-<dd>to ‘.’, e. g. current directory</dd>
-<dt>mod_spec_cmd (str): command to issue for mod_spec, e. g. “_set” or “_push”,</dt>
-<dd>defaults to “_set”</dd>
-<dt>mod_spec_key (str): key to pass to mod_spec _set dictmod command, defaults</dt>
-<dd>to “prev_calc_result”</dd>
-</dl>
-</dd>
-</dl>
-<dl class="attribute">
-<dt id="atomate.common.firetasks.glue_tasks.PassResult.optional_params">
-<code class="descname">optional_params</code><em class="property"> = ['calc_dir', 'mod_spec_cmd', 'mod_spec_key']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.PassResult.optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="atomate.common.firetasks.glue_tasks.PassResult.required_params">
-<code class="descname">required_params</code><em class="property"> = ['pass_dict', 'parse_class', 'parse_kwargs']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.PassResult.required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.common.firetasks.glue_tasks.PassResult.run_task">
-<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.PassResult.run_task" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.common.firetasks.glue_tasks.get_calc_loc">
-<code class="descclassname">atomate.common.firetasks.glue_tasks.</code><code class="descname">get_calc_loc</code><span class="sig-paren">(</span><em>target_name</em>, <em>calc_locs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.get_calc_loc" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is a helper method that helps you pick out a certain calculation
-from an array of calc_locs.</p>
-<dl class="docutils">
-<dt>There are three modes:</dt>
-<dd><ul class="first last simple">
-<li><dl class="first docutils">
-<dt>If you set target_name to a String, search for most recent calc_loc</dt>
-<dd>with matching <a href="#id1"><span class="problematic" id="id2">nameget_</span></a></dd>
-</dl>
-</li>
-<li>Otherwise, return most recent calc_loc overall</li>
-</ul>
-</dd>
-<dt>Args:</dt>
-<dd><dl class="first docutils">
-<dt>target_name: (bool or str) If str, will search for calc_loc with</dt>
-<dd>matching name, else use most recent calc_loc</dd>
-</dl>
-<p class="last">calc_locs: (dict) The dictionary of all calc_locs</p>
-</dd>
-<dt>Returns:</dt>
-<dd>(dict) dict with subkeys path, filesystem, and name</dd>
-</dl>
-</dd></dl>
-
+<div class="section" id="atomate-common-firetasks-glue-tasks-module">
+<h2>atomate.common.firetasks.glue_tasks module<a class="headerlink" href="#atomate-common-firetasks-glue-tasks-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.common.firetasks.parse_outputs">
-<span id="atomate-common-firetasks-parse-outputs-module"></span><h2>atomate.common.firetasks.parse_outputs module<a class="headerlink" href="#module-atomate.common.firetasks.parse_outputs" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="atomate.common.firetasks.parse_outputs.ToDbTask">
-<em class="property">class </em><code class="descclassname">atomate.common.firetasks.parse_outputs.</code><code class="descname">ToDbTask</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.parse_outputs.ToDbTask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
-<p>General task to parse output data via a Drone and either (i) write to JSON file or
-(ii) insert into a database.</p>
-<dl class="docutils">
-<dt>Required params:</dt>
-<dd>drone (AbstractDrone): Drone to convert the data to dict</dd>
-<dt>Optional params:</dt>
-<dd><dl class="first docutils">
-<dt>db_file (str): path to file containing the database credentials. Supports env_chk.</dt>
-<dd>Default is None, which will write data to JSON file.</dd>
-</dl>
-<p>mmdb (MMDb) (str): If db_file, sets the type of MMDb, e.g. “atomate.vasp.database.MMVaspDb”
-calc_dir (str): path to dir (on current filesystem) that contains calculation output files.</p>
-<blockquote>
-<div>Default: use current working directory.</div></blockquote>
-<dl class="docutils">
-<dt>calc_loc (str OR bool): if True will set most recent calc_loc. If str search for the most</dt>
-<dd>recent calc_loc with the matching name</dd>
-</dl>
-<p class="last">options (dict): dict of options to pass into the Drone
-additional_fields (dict): dict of additional fields to add</p>
-</dd>
-</dl>
-<dl class="attribute">
-<dt id="atomate.common.firetasks.parse_outputs.ToDbTask.optional_params">
-<code class="descname">optional_params</code><em class="property"> = ['mmdb', 'db_file', 'calc_dir', 'calc_loc', 'additional_fields', 'options']</em><a class="headerlink" href="#atomate.common.firetasks.parse_outputs.ToDbTask.optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="atomate.common.firetasks.parse_outputs.ToDbTask.required_params">
-<code class="descname">required_params</code><em class="property"> = ['drone']</em><a class="headerlink" href="#atomate.common.firetasks.parse_outputs.ToDbTask.required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.common.firetasks.parse_outputs.ToDbTask.run_task">
-<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.parse_outputs.ToDbTask.run_task" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="atomate-common-firetasks-parse-outputs-module">
+<h2>atomate.common.firetasks.parse_outputs module<a class="headerlink" href="#atomate-common-firetasks-parse-outputs-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-atomate.common.firetasks.run_calc">
 <span id="atomate-common-firetasks-run-calc-module"></span><h2>atomate.common.firetasks.run_calc module<a class="headerlink" href="#module-atomate.common.firetasks.run_calc" title="Permalink to this headline">¶</a></h2>
@@ -421,8 +149,8 @@ custodian_params ({}) - dict of all other custodian parameters</dd>
 <li><a class="reference internal" href="#">atomate.common.firetasks package</a><ul>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-atomate.common.firetasks.glue_tasks">atomate.common.firetasks.glue_tasks module</a></li>
-<li><a class="reference internal" href="#module-atomate.common.firetasks.parse_outputs">atomate.common.firetasks.parse_outputs module</a></li>
+<li><a class="reference internal" href="#atomate-common-firetasks-glue-tasks-module">atomate.common.firetasks.glue_tasks module</a></li>
+<li><a class="reference internal" href="#atomate-common-firetasks-parse-outputs-module">atomate.common.firetasks.parse_outputs module</a></li>
 <li><a class="reference internal" href="#module-atomate.common.firetasks.run_calc">atomate.common.firetasks.run_calc module</a></li>
 <li><a class="reference internal" href="#module-atomate.common.firetasks">Module contents</a></li>
 </ul>
@@ -462,9 +190,11 @@ custodian_params ({}) - dict of all other custodian parameters</dd>
         <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.7 documentation</a> &#187;</li> 
       </ul>
     </div>
+
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
+
   </body>
 </html>
