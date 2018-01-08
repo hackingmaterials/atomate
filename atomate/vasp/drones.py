@@ -77,7 +77,7 @@ class VaspDrone(AbstractDrone):
     }
 
     def __init__(self, runs=None, parse_dos="auto", compress_dos=False, bandstructure_mode="auto",
-                 compress_bs=False, parse_locpot=False, additional_fields=None, use_full_uri=True):
+                 compress_bs=False, parse_locpot=True, additional_fields=None, use_full_uri=True):
         """
         Initialize a Vasp drone to parse vasp outputs
         Args:
