@@ -45,20 +45,18 @@ class TestPassCalcLocs(AtomateTest):
         self.assertEqual(get_calc_loc("fw2", calc_locs), calc_locs[1])
         self.assertEqual(get_calc_loc(True, calc_locs), calc_locs[1])
 
+
 class TestCleanUpFiles(AtomateTest):
 
     def test_cleanupfiles(self):
-        
-
 
         fw1 = Firework([CreateFolder(folder_name="to_remove.relax0"),
-            CreateFolder(folder_name="to_remove.relax1"),
-            CreateFolder(folder_name="dont_remove.relax0"),
-            CreateFolder(folder_name="shouldnt_touch"),
-            CleanUpFiles(files=["to_remove*","dont_remove"]),
-            PassCalcLocs(name="fw1")], name="fw1")
+                        CreateFolder(folder_name="to_remove.relax1"),
+                        CreateFolder(folder_name="dont_remove.relax0"),
+                        CreateFolder(folder_name="shouldnt_touch"),
+                        CleanUpFiles(files=["to_remove*", "dont_remove"]),
+                        PassCalcLocs(name="fw1")], name="fw1")
         fw2 = Firework([PassCalcLocs(name="fw2")], name="fw2", parents=fw1)
-
 
         wf = Workflow([fw1, fw2])
         self.lp.add_wf(wf)
@@ -67,10 +65,10 @@ class TestCleanUpFiles(AtomateTest):
         fw2 = self.lp.get_fw_by_id(self.lp.get_fw_ids({"name": "fw2"})[0])
         calc_locs = fw2.spec["calc_locs"]
 
-        self.assertTrue(os.path.exists(os.path.join(get_calc_loc("fw1", calc_locs)["path"],"dont_remove.relax0")))
-        self.assertTrue(os.path.exists(os.path.join(get_calc_loc("fw1", calc_locs)["path"],"shouldnt_touch")))
-        self.assertFalse(os.path.exists(os.path.join(get_calc_loc("fw1", calc_locs)["path"],"to_remove.relax0")))
-        self.assertFalse(os.path.exists(os.path.join(get_calc_loc("fw1", calc_locs)["path"],"to_remove.relax1")))
+        self.assertTrue(os.path.exists(os.path.join(get_calc_loc("fw1", calc_locs)["path"], "dont_remove.relax0")))
+        self.assertTrue(os.path.exists(os.path.join(get_calc_loc("fw1", calc_locs)["path"], "shouldnt_touch")))
+        self.assertFalse(os.path.exists(os.path.join(get_calc_loc("fw1", calc_locs)["path"], "to_remove.relax0")))
+        self.assertFalse(os.path.exists(os.path.join(get_calc_loc("fw1", calc_locs)["path"], "to_remove.relax1")))
 
 
 class TestCreateFolder(AtomateTest):
@@ -80,7 +78,7 @@ class TestCreateFolder(AtomateTest):
         folder_name = "test_folder"
         fw1 = Firework([CreateFolder(folder_name=folder_name, change_dir=False),
                         PassCalcLocs(name="fw1")],
-                        name="fw3")
+                       name="fw3")
         fw2 = Firework([PassCalcLocs(name="fw2")], name="fw2", parents=fw1)
         wf = Workflow([fw1, fw2])
         self.lp.add_wf(wf)
@@ -91,6 +89,7 @@ class TestCreateFolder(AtomateTest):
 
         self.assertTrue(os.path.exists(get_calc_loc("fw1", calc_locs)["path"] +
                                        "/" + folder_name))
+
 
 class TestCopyFilesFromCalcLoc(AtomateTest):
 

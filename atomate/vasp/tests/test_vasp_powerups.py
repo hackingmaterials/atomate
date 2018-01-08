@@ -30,8 +30,8 @@ class TestVaspPowerups(unittest.TestCase):
                            "bandstructure.yaml",
                            vis=vis, common_params={"vasp_cmd": "test_VASP"})
         cls.bsboltz_wf = get_wf(struct_si,
-                           "bandstructure_boltztrap.yaml",
-                           vis=vis)
+                                "bandstructure_boltztrap.yaml",
+                                vis=vis)
 
     def _copy_wf(self, wf):
         return Workflow.from_dict(wf.to_dict())
@@ -172,13 +172,13 @@ class TestVaspPowerups(unittest.TestCase):
         self.assertEqual(my_wf.metadata["nelements"], 1)
         self.assertEqual(my_wf.metadata["formula"], "Si2")
 
-
     def test_add_clean_up(self):
         my_wf = clean_up_files(self.bs_wf)
         for fw in my_wf.fws:
             fw_names = [t._fw_name for t in fw.tasks]
-            clean_idx = fw_names.index("{{atomate.common.firetasks.glue_tasks.CleanUpFiles}}") # Raises an error if not in list
-            self.assertEqual(fw.tasks[clean_idx].get("files"), ["WAVECAR*"])
+            # Raises an error if not in list
+            clean_idx = fw_names.index("{{atomate.common.firetasks.glue_tasks.CleanUpFiles}}")
+            self.assertEqual(list(fw.tasks[clean_idx].get("files")), ["WAVECAR*"])
 
 if __name__ == "__main__":
     unittest.main()
