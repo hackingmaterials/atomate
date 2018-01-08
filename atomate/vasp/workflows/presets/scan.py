@@ -2,8 +2,6 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-from uuid import uuid4
-
 from pymatgen.io.vasp.sets import MVLScanRelaxSet
 
 from atomate.vasp.config import VASP_CMD, DB_FILE, ADD_WF_METADATA, HALF_KPOINTS_FIRST_RELAX, REMOVE_WAVECAR
