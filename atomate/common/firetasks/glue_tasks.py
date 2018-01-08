@@ -13,6 +13,7 @@ from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 from atomate.utils.utils import env_chk, load_class, recursive_get_result
 from atomate.utils.fileio import FileClient
+from boltons.fileutils import copytree
 
 __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
@@ -79,19 +80,23 @@ def get_calc_loc(target_name, calc_locs):
 class CopyFilesFromCalcLoc(FiretaskBase):
     """
     Based on CopyVaspOutputs but for general file copying. Note that "calc_locs"
-    must be set in the fw_spec.
+    must be set in the fw_spec. Files are copied to the current folder.
 
     Required params:
         calc_loc: name of target fw to get location for within the calc_locs.
-        filenames (list(str)): filenames to copy. If not set, all files will be
-            copied.
     
     Optional params:
+        filenames (list(str)): filenames to copy. Special behavior for:
+            None: if filenames not set, all files in calc_loc will be copied
+            '$ALL_NO_SUBDIRS' in filenames: similar to filenames is None
+            '$ALL' in filenames: all files and subfolders copied, name_prepend
+                and name_append cannot be set in this case
         name_prepend (str): string to prepend filenames, e.g. can be a directory.
-        name_append (str): string to append to filenames.
+        name_append (str): string to append to destination filenames.
     """
 
-    required_params = ["calc_loc", "filenames", "name_prepend","name_append"]
+    required_params = ["calc_loc"]
+    optional_params = ["filenames", "name_prepend", "name_append"]
 
     def run_task(self,fw_spec=None):
         calc_loc = get_calc_loc(self['calc_loc'], fw_spec["calc_locs"])
@@ -100,13 +105,20 @@ class CopyFilesFromCalcLoc(FiretaskBase):
 
         fileclient = FileClient(filesystem=filesystem)
         calc_dir = fileclient.abspath(calc_dir)
-
-        if self.get('filenames'):
-            if isinstance(self["filenames"], six.string_types):
-                raise ValueError("filenames must be a list!")
-            files_to_copy = self['filenames']
-        else:
+        filenames = self.get('filenames')
+        if filenames is None:
             files_to_copy = fileclient.listdir(calc_dir)
+        elif isinstance(filenames, six.string_types):
+            raise ValueError("filenames must be a list!")
+        elif '$ALL_NO_SUBDIRS' in filenames:
+            files_to_copy = fileclient.listdir(calc_dir)
+        elif '$ALL' in filenames:
+            if self.get('name_prepend') or self.get('name_append'):
+                raise ValueError('name_prepend or name_append options not compatible with "$ALL" option')
+            copytree(calc_dir, os.getcwd())
+            return
+        else:
+            files_to_copy = filenames
 
         for f in files_to_copy:
             prev_path_full = os.path.join(calc_dir, f)

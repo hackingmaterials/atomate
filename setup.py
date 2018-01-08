@@ -12,7 +12,7 @@ if __name__ == "__main__":
         version='0.6.7',
         description='atomate has implementations of FireWorks workflows for '
                     'Materials Science',
-        long_description=open(os.path.join(module_dir, 'README.rst')).read(),
+        long_description=open(os.path.join(module_dir, 'README.md')).read(),
         url='https://github.com/hackingmaterials/atomate',
         author='Anubhav Jain, Kiran Mathew',
         author_email='anubhavster@gmail.com, kmathew@lbl.gov',
@@ -30,6 +30,7 @@ if __name__ == "__main__":
                         'complete': ['paramiko>=1.15.0',
                                      'matplotlib>=1.5.2',
                                      'phonopy>=1.10.8',
+                                     'boltons>=17.2.0',
                                      ]},
         classifiers=['Programming Language :: Python :: 2.7',
                      "Programming Language :: Python :: 3",

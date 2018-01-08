@@ -1,4 +1,4 @@
-include LICENSE *.txt README.rst
+include LICENSE *.txt README.md
 include atomate/vasp/base/library/*
 recursive-include atomate *.py *.yaml *.md
 recursive-include docs *.*
