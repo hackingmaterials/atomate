@@ -12,6 +12,14 @@ atomate\.vasp\.fireworks\.core module
     :undoc-members:
     :show-inheritance:
 
+atomate\.vasp\.fireworks\.polarization module
+---------------------------------------------
+
+.. automodule:: atomate.vasp.fireworks.polarization
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.lammps package &#8212; atomate 0.6.6 documentation</title>
+    <title>atomate.lammps package &#8212; atomate 0.6.7 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.6.6',
+        VERSION:     '0.6.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -22,7 +22,10 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+ 
+<link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
+
   </head>
   <body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -34,7 +37,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.6 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.7 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -51,23 +54,23 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="atomate.lammps.firetasks.html">atomate.lammps.firetasks package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.lammps.firetasks.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.firetasks.html#module-atomate.lammps.firetasks.glue_tasks">atomate.lammps.firetasks.glue_tasks module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.firetasks.html#module-atomate.lammps.firetasks.parse_outputs">atomate.lammps.firetasks.parse_outputs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.firetasks.html#atomate-lammps-firetasks-glue-tasks-module">atomate.lammps.firetasks.glue_tasks module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.firetasks.html#atomate-lammps-firetasks-parse-outputs-module">atomate.lammps.firetasks.parse_outputs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.lammps.firetasks.html#module-atomate.lammps.firetasks.run_calc">atomate.lammps.firetasks.run_calc module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.lammps.firetasks.html#module-atomate.lammps.firetasks.write_inputs">atomate.lammps.firetasks.write_inputs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.firetasks.html#module-atomate.lammps.firetasks">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.firetasks.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="atomate.lammps.fireworks.html">atomate.lammps.fireworks package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.lammps.fireworks.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.fireworks.html#module-atomate.lammps.fireworks.core">atomate.lammps.fireworks.core module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.fireworks.html#module-atomate.lammps.fireworks">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.fireworks.html#atomate-lammps-fireworks-core-module">atomate.lammps.fireworks.core module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.fireworks.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="atomate.lammps.workflows.html">atomate.lammps.workflows package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.lammps.workflows.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.workflows.html#module-atomate.lammps.workflows.core">atomate.lammps.workflows.core module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.workflows.html#module-atomate.lammps.workflows">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.workflows.html#atomate-lammps-workflows-core-module">atomate.lammps.workflows.core module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.workflows.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -100,98 +103,11 @@
 </dd></dl>
 
 </div>
-<div class="section" id="module-atomate.lammps.drones">
-<span id="atomate-lammps-drones-module"></span><h2>atomate.lammps.drones module<a class="headerlink" href="#module-atomate.lammps.drones" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="atomate.lammps.drones.LammpsDrone">
-<em class="property">class </em><code class="descclassname">atomate.lammps.drones.</code><code class="descname">LammpsDrone</code><span class="sig-paren">(</span><em>additional_fields=None</em>, <em>use_full_uri=True</em>, <em>diffusion_params=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.drones.LammpsDrone" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">pymatgen.apps.borg.hive.AbstractDrone</span></code></p>
-<dl class="method">
-<dt id="atomate.lammps.drones.LammpsDrone.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>additional_fields=None</em>, <em>use_full_uri=True</em>, <em>diffusion_params=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.drones.LammpsDrone.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Args:</dt>
-<dd><p class="first">additional_fields (dict):
-use_full_uri (bool):
-diffusion_params (dict): parameters to the diffusion_analyzer. If specified a summary</p>
-<blockquote class="last">
-<div>of diffusion statistics will be added.</div></blockquote>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.lammps.drones.LammpsDrone.as_dict">
-<code class="descname">as_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.drones.LammpsDrone.as_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.lammps.drones.LammpsDrone.assimilate">
-<code class="descname">assimilate</code><span class="sig-paren">(</span><em>path</em>, <em>input_filename</em>, <em>log_filename='log.lammps'</em>, <em>is_forcefield=False</em>, <em>data_filename=None</em>, <em>dump_files=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.drones.LammpsDrone.assimilate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parses lammps input, data and log files and insert the result into the db.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd>path (str): path to the run folder
-input_filename (str): just the name of the input file
-log_filename (str): lammps log file name
-is_forcefield (bool): whether or not ot parse forcefield info
-data_filename (str): name of the data file
-dump_files ([str]): list of dump file names</dd>
-<dt>Returns:</dt>
-<dd>dict</dd>
-</dl>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="atomate.lammps.drones.LammpsDrone.from_dict">
-<em class="property">classmethod </em><code class="descname">from_dict</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.drones.LammpsDrone.from_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.lammps.drones.LammpsDrone.generate_doc">
-<code class="descname">generate_doc</code><span class="sig-paren">(</span><em>dir_name</em>, <em>lmps_input</em>, <em>log</em>, <em>dumps</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.drones.LammpsDrone.generate_doc" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Args:</dt>
-<dd>dir_name (str): path to the run dir.
-lmps_input (LammpsInput/LammpsInputSet):
-log (LammpsLog):
-dumps ([(filename, LammpsDump)]): list of (dump filename, dump) tuples</dd>
-<dt>Returns:</dt>
-<dd>dict</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.lammps.drones.LammpsDrone.get_valid_paths">
-<code class="descname">get_valid_paths</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.drones.LammpsDrone.get_valid_paths" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.lammps.drones.LammpsDrone.post_process">
-<code class="descname">post_process</code><span class="sig-paren">(</span><em>d</em>, <em>lmps_run</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.drones.LammpsDrone.post_process" title="Permalink to this definition">¶</a></dt>
-<dd><p>Simple post processing.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd>d (dict)
-lmps_run (LammpsRun)</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="atomate.lammps.drones.LammpsDrone.schema">
-<code class="descname">schema</code><em class="property"> = {'root': {'state', 'output', 'last_updated', 'schema', 'dir_name', 'input', 'completed_at'}}</em><a class="headerlink" href="#atomate.lammps.drones.LammpsDrone.schema" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="atomate-lammps-drones-module">
+<h2>atomate.lammps.drones module<a class="headerlink" href="#atomate-lammps-drones-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.lammps.utils">
-<span id="atomate-lammps-utils-module"></span><h2>atomate.lammps.utils module<a class="headerlink" href="#module-atomate.lammps.utils" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="atomate.lammps.utils.use_fake_lammps">
-<code class="descclassname">atomate.lammps.utils.</code><code class="descname">use_fake_lammps</code><span class="sig-paren">(</span><em>original_wf</em>, <em>ref_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.utils.use_fake_lammps" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<div class="section" id="atomate-lammps-utils-module">
+<h2>atomate.lammps.utils module<a class="headerlink" href="#atomate-lammps-utils-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-atomate.lammps">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.lammps" title="Permalink to this headline">¶</a></h2>
@@ -210,8 +126,8 @@ lmps_run (LammpsRun)</dd>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#module-atomate.lammps.database">atomate.lammps.database module</a></li>
-<li><a class="reference internal" href="#module-atomate.lammps.drones">atomate.lammps.drones module</a></li>
-<li><a class="reference internal" href="#module-atomate.lammps.utils">atomate.lammps.utils module</a></li>
+<li><a class="reference internal" href="#atomate-lammps-drones-module">atomate.lammps.drones module</a></li>
+<li><a class="reference internal" href="#atomate-lammps-utils-module">atomate.lammps.utils module</a></li>
 <li><a class="reference internal" href="#module-atomate.lammps">Module contents</a></li>
 </ul>
 </li>
@@ -247,12 +163,14 @@ lmps_run (LammpsRun)</dd>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.6 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.7 documentation</a> &#187;</li> 
       </ul>
     </div>
+
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
+
   </body>
 </html>

@@ -28,6 +28,14 @@ atomate\.vasp\.workflows\.tests\.test\_elastic\_workflow module
     :undoc-members:
     :show-inheritance:
 
+atomate\.vasp\.workflows\.tests\.test\_ferroelectric\_workflow module
+---------------------------------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.tests.test_ferroelectric_workflow
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 atomate\.vasp\.workflows\.tests\.test\_neb\_workflow module
 -----------------------------------------------------------
 
