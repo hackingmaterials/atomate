@@ -12,6 +12,8 @@ from importlib import import_module
 
 import numpy as np
 
+from monty.serialization import dumpfn
+
 from fireworks import FiretaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
 
@@ -410,6 +412,7 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
         vis = vis_orig.__class__.from_dict(vis_dict)
         vis.write_input(".")
 
+        dumpfn(transmuter.transformed_structures[-1],"transformations.json")
 
 @explicit_serialize
 class WriteNormalmodeDisplacedPoscar(FiretaskBase):
