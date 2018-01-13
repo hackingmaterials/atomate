@@ -132,7 +132,7 @@ class CopyFilesFromCalcLoc(FiretaskBase):
 @explicit_serialize
 class DeleteFiles(FiretaskBase):
     """
-    Delete files 
+    Delete files
     Uses glob to search for files so any pattern it can accept can be used
 
     Required params:
