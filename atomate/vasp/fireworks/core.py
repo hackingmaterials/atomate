@@ -32,6 +32,7 @@ from atomate.vasp.firetasks.neb_tasks import WriteNEBFromImages, \
 
 
 class OptimizeFW(Firework):
+
     def __init__(self, structure, name="structure optimization",
                  vasp_input_set=None,
                  vasp_cmd="vasp", override_default_vasp_params=None,
@@ -80,11 +81,12 @@ class OptimizeFW(Firework):
             VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
         super(OptimizeFW, self).__init__(t, parents=parents, name="{}-{}".
                                          format(
-            structure.composition.reduced_formula, name),
+                                             structure.composition.reduced_formula, name),
                                          **kwargs)
 
 
 class StaticFW(Firework):
+
     def __init__(self, structure=None, name="static", vasp_input_set=None, vasp_input_set_params=None,
                  vasp_cmd="vasp", prev_calc_loc=True, db_file=None, parents=None, **kwargs):
         """
@@ -107,7 +109,7 @@ class StaticFW(Firework):
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
 
-        if structure is None and ( parents is None or prev_calc_loc is False ):
+        if structure is None and (parents is None or prev_calc_loc is False):
             raise ValueError("Must specify structure or previous calculation")
 
         t = []
@@ -135,6 +137,7 @@ class StaticFW(Firework):
 
 
 class StaticInterpolateFW(Firework):
+
     def __init__(self, structure, start, end, name="static", vasp_input_set="MPStaticSet",
                  vasp_input_set_params=None, vasp_cmd="vasp", db_file=None,
                  parents=None, this_image=None, nimages=None, autosort_tol=0, **kwargs):
@@ -177,6 +180,7 @@ class StaticInterpolateFW(Firework):
 
 
 class HSEBSFW(Firework):
+
     def __init__(self, parents, structure=None, mode="gap", name=None,
                  vasp_cmd="vasp", db_file=None,
                  **kwargs):
@@ -214,6 +218,7 @@ class HSEBSFW(Firework):
 
 
 class NonSCFFW(Firework):
+
     def __init__(self, parents, structure=None, name="nscf", mode="uniform", vasp_cmd="vasp",
                  copy_vasp_outputs=True, db_file=None,  **kwargs):
         """
@@ -235,7 +240,8 @@ class NonSCFFW(Firework):
         if parents is None:
             raise ValueError("Must specify previous calculation")
 
-        fw_name = "{}-{} {}".format(structure.composition.reduced_formula, name, mode) if structure else "{} {}".format(name,mode)
+        fw_name = "{}-{} {}".format(structure.composition.reduced_formula, name,
+                                    mode) if structure else "{} {}".format(name, mode)
 
         t = []
         t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
@@ -260,6 +266,7 @@ class NonSCFFW(Firework):
 
 
 class LepsFW(Firework):
+
     def __init__(self, structure, name="static dielectric", vasp_cmd="vasp",
                  copy_vasp_outputs=True,
                  db_file=None, parents=None, phonon=False, mode=None,
@@ -338,11 +345,11 @@ class LepsFW(Firework):
 
 
 class DFPTFW(Firework):
+
     def __init__(self, structure=None, name="static dielectric", vasp_cmd="vasp",
                  copy_vasp_outputs=True,
                  db_file=None, parents=None, user_incar_settings=None,
                  pass_nm_results=False, **kwargs):
-
         """
          Static DFPT calculation Firework
 
@@ -402,6 +409,7 @@ class DFPTFW(Firework):
 
 
 class RamanFW(Firework):
+
     def __init__(self, mode, displacement, structure=None, name="raman",
                  vasp_cmd="vasp", db_file=None,
                  parents=None, user_incar_settings=None, **kwargs):
@@ -464,6 +472,7 @@ class RamanFW(Firework):
 
 
 class SOCFW(Firework):
+
     def __init__(self, magmom, structure=None, name="spin-orbit coupling",
                  saxis=(0, 0, 1),
                  vasp_cmd="vasp_ncl", copy_vasp_outputs=True, db_file=None,
@@ -483,7 +492,7 @@ class SOCFW(Firework):
                 FW or list of FWS.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        if structure is None and ( parents is None or copy_vasp_outputs is False ):
+        if structure is None and (parents is None or copy_vasp_outputs is False):
             raise ValueError("Must specify structure or previous calculation")
 
         fw_name = "{}-{}".format(structure.composition.reduced_formula, name) if structure else name
@@ -508,6 +517,7 @@ class SOCFW(Firework):
 
 
 class TransmuterFW(Firework):
+
     def __init__(self, transformations, transformation_params=None, structure=None,
                  vasp_input_set=None,
                  name="structure transmuter", vasp_cmd="vasp",
@@ -535,7 +545,7 @@ class TransmuterFW(Firework):
             override_default_vasp_params (dict): additional user input settings for vasp_input_set.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        if structure is None and ( parents is None or copy_vasp_outputs is False ):
+        if structure is None and (parents is None or copy_vasp_outputs is False):
             raise ValueError("Must specify structure or previous calculation")
 
         fw_name = "{}-{}".format(structure.composition.reduced_formula, name) if structure else name
@@ -574,6 +584,7 @@ class TransmuterFW(Firework):
 
 
 class MDFW(Firework):
+
     def __init__(self, structure, start_temp, end_temp, nsteps,
                  name="molecular dynamics",
                  vasp_input_set=None, vasp_cmd="vasp",
@@ -632,6 +643,7 @@ class MDFW(Firework):
 
 
 class BoltztrapFW(Firework):
+
     def __init__(self, parents, structure=None, name="boltztrap", db_file=None,
                  scissor=0.0, doping=None, tmax=1300, tgrid=50,
                  soc=False, additional_fields=None, **kwargs):

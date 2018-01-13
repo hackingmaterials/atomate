@@ -32,7 +32,7 @@ def env_chk(val, fw_spec, strict=True, default=None):
     ">>ENV_KEY<<"
     to the contents of:
     fw_spec["_fw_env"][ENV_KEY]
-    
+
     Otherwise, the string "val" is interpreted literally and passed-through as is.
 
     The fw_spec["_fw_env"] is in turn set by the FWorker. For more details,
@@ -114,13 +114,13 @@ def recursive_get_result(d, result):
         if callable(attribute):
             attribute = attribute()
         return attribute
-    
+
     elif isinstance(d, dict):
         return {k: recursive_get_result(v, result) for k, v in d.items()}
-    
+
     elif isinstance(d, (list, tuple)):
-        return [recursive_get_result(i, result) for i in d] 
-    
+        return [recursive_get_result(i, result) for i in d]
+
     else:
         return d
 
@@ -291,6 +291,7 @@ def load_class(modulepath, classname):
     mod = __import__(modulepath, globals(), locals(), [classname], 0)
     return getattr(mod, classname)
 
+
 def recursive_update(d, u):
     """
     Recursive updates d with values from u
@@ -311,7 +312,7 @@ def recursive_update(d, u):
 
 def get_a_unique_id():
     ts = "{:.4f}".format(time())
-    ts += str(randint(0,9999)).zfill(4)
+    ts += str(randint(0, 9999)).zfill(4)
     return ts
 
 
@@ -331,7 +332,6 @@ def get_uri(dir_name):
     except:
         hostname = socket.gethostname()
     return "{}:{}".format(hostname, fullpath)
-
 
 
 def get_database(config_file=None, settings=None, admin=False, **kwargs):

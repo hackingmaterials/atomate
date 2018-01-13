@@ -39,7 +39,7 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None, db_fil
                  database insertion.
 
     Firework 2 - number of total deformations: Static runs on the deformed structures
-    
+
     last Firework : Analyze Stress/Strain data and fit the elastic tensor
 
     Args:
@@ -79,11 +79,11 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None, db_fil
     if strain_states is None:
         strain_states = get_default_strain_states(order)
     if stencils is None:
-        stencils = [np.linspace(-0.01, 0.01, 5 + (order - 2) * 2)]*len(strain_states)
+        stencils = [np.linspace(-0.01, 0.01, 5 + (order - 2) * 2)] * len(strain_states)
     if np.array(stencils).ndim == 1:
         stencils = [stencils] * len(strain_states)
     for state, stencil in zip(strain_states, stencils):
-        strains.extend([Strain.from_voigt(s*np.array(state)) for s in stencil])
+        strains.extend([Strain.from_voigt(s * np.array(state)) for s in stencil])
 
     # Remove zero strains
     strains = [strain for strain in strains if not (abs(strain) < 1e-10).all()]
@@ -97,8 +97,8 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None, db_fil
     if sym_reduce:
         deformations = symmetry_reduce(deformations, structure)
 
-    wf_elastic = get_wf_deformations(structure, deformations, tag=tag, db_file=db_file, 
-                                     vasp_input_set=vis, copy_vasp_outputs=copy_vasp_outputs, 
+    wf_elastic = get_wf_deformations(structure, deformations, tag=tag, db_file=db_file,
+                                     vasp_input_set=vis, copy_vasp_outputs=copy_vasp_outputs,
                                      **kwargs)
     if analysis:
         defo_fws_and_tasks = get_fws_and_tasks(wf_elastic, fw_name_constraint="deformation",
@@ -115,7 +115,7 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None, db_fil
             pass_task = pass_vasp_result(pass_dict=pass_dict, mod_spec_key=mod_spec_key)
             wf_elastic.fws[idx_fw].tasks.append(pass_task)
 
-        fw_analysis = Firework(ElasticTensorToDb(structure=structure, db_file=db_file, 
+        fw_analysis = Firework(ElasticTensorToDb(structure=structure, db_file=db_file,
                                                  order=order, fw_spec_field='tags'),
                                name="Analyze Elastic Data", spec={"_allow_fizzled_parents": True})
         wf_elastic.append_wf(Workflow.from_Firework(fw_analysis), wf_elastic.leaf_fw_ids)
@@ -131,7 +131,7 @@ def get_default_strain_states(order=2):
     """
     inds = [(i,) for i in range(6)]
     if order > 2:
-        inds.extend([(0, i) for i in range(1, 5)] + [(1,2), (3,4), (3,5), (4,5)])
+        inds.extend([(0, i) for i in range(1, 5)] + [(1, 2), (3, 4), (3, 5), (4, 5)])
         if order > 3:
             raise ValueError("Standard deformations for tensors higher than rank 4 not yet determined")
     strain_states = np.zeros((len(inds), 6))
