@@ -130,7 +130,7 @@ class RunVaspCustodian(FiretaskBase):
             jobs = VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar,
                                                  ediffg=self.get("ediffg"),
                                                  half_kpts_first_relax=self.get("half_kpts_first_relax", HALF_KPOINTS_FIRST_RELAX))
-        elif job_type == "metagga_relaxation_run":
+        elif job_type == "metagga_opt_run":
             jobs = VaspJob.metagga_opt_run(vasp_cmd, auto_npar=auto_npar,
                                                  ediffg=self.get("ediffg"),
                                                  half_kpts_first_relax=self.get("half_kpts_first_relax", HALF_KPOINTS_FIRST_RELAX))
