@@ -9,7 +9,7 @@ from fireworks.utilities.fw_utilities import get_slug
 from pymatgen import Structure
 
 from atomate.utils.utils import get_meta_from_structure, get_fws_and_tasks
-from atomate.common.firetasks.glue_tasks import CleanUpFiles
+from atomate.common.firetasks.glue_tasks import DeleteFiles
 from atomate.vasp.firetasks.glue_tasks import CheckStability, CheckBandgap
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspFake, RunVaspDirect, RunNoVasp
 from atomate.vasp.firetasks.neb_tasks import RunNEBVaspFake
@@ -466,7 +466,7 @@ def clean_up_files(original_wf, files=("WAVECAR*",), fw_name_constraint=None, ta
     """
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint=task_name_constraint):
-        original_wf.fws[idx_fw].tasks.insert(idx_t + 1, CleanUpFiles(files=files))
+        original_wf.fws[idx_fw].tasks.insert(idx_t + 1, DeleteFiles(files=files))
     return original_wf
 
 

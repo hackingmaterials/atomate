@@ -8,7 +8,7 @@ from fireworks import LaunchPad
 from fireworks.core.firework import Firework, Workflow
 from fireworks.core.rocket_launcher import rapidfire
 
-from atomate.common.firetasks.glue_tasks import PassCalcLocs, get_calc_loc, CopyFilesFromCalcLoc, CreateFolder, CleanUpFiles
+from atomate.common.firetasks.glue_tasks import PassCalcLocs, get_calc_loc, CopyFilesFromCalcLoc, CreateFolder, DeleteFiles
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 
 from atomate.utils.testing import AtomateTest
@@ -46,7 +46,7 @@ class TestPassCalcLocs(AtomateTest):
         self.assertEqual(get_calc_loc(True, calc_locs), calc_locs[1])
 
 
-class TestCleanUpFiles(AtomateTest):
+class TestDeleteFiles(AtomateTest):
 
     def test_cleanupfiles(self):
 
@@ -54,7 +54,7 @@ class TestCleanUpFiles(AtomateTest):
                         CreateFolder(folder_name="to_remove.relax1"),
                         CreateFolder(folder_name="dont_remove.relax0"),
                         CreateFolder(folder_name="shouldnt_touch"),
-                        CleanUpFiles(files=["to_remove*", "dont_remove"]),
+                        DeleteFiles(files=["to_remove*", "dont_remove"]),
                         PassCalcLocs(name="fw1")], name="fw1")
         fw2 = Firework([PassCalcLocs(name="fw2")], name="fw2", parents=fw1)
 

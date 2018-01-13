@@ -130,18 +130,13 @@ class CopyFilesFromCalcLoc(FiretaskBase):
 
 
 @explicit_serialize
-class CleanUpFiles(FiretaskBase):
+class DeleteFiles(FiretaskBase):
     """
-    Cleans up files at the end of the run that you don't want to keep around.
+    Delete files 
     Uses glob to search for files so any pattern it can accept can be used
 
     Required params:
         files: list of files to remove
-        calc_loc: name of target fw to get location for within the calc_locs.
-        filenames (list(str)): filenames to copy. If not set, all files will be
-            copied.
-        name_prepend (str): string to prepend filenames, e.g. can be a directory.
-        name_append (str): string to append to filenames.
     """
 
     required_params = ["files"]
