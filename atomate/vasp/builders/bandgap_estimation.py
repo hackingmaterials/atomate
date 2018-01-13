@@ -2,8 +2,7 @@ from __future__ import division
 
 from tqdm import tqdm
 import math
-from atomate.utils.utils import get_logger
-from matgendb.util import get_database
+from atomate.utils.utils import get_logger, get_database
 
 logger = get_logger(__name__)
 

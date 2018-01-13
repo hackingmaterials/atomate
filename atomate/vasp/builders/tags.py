@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from tqdm import tqdm
 
 from atomate.vasp.builders.utils import dbid_to_int, dbid_to_str
-from matgendb.util import get_database
+from atomate.utils.utils import get_database
 
 from atomate.utils.utils import get_logger
 from atomate.vasp.builders.tasks_materials import TasksMaterialsBuilder

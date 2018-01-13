@@ -13,3 +13,4 @@ DB_FILE = ">>db_file<<"
 ADD_WF_METADATA = True
 HALF_KPOINTS_FIRST_RELAX = False  # whether to use only half the kpoint density in the initial relaxation of a structure optimization for faster performance
 RELAX_MAX_FORCE = 0.25  # maximum force allowed on atom for successful structure optimization
+REMOVE_WAVECAR = False # Remove Wavecar after the calculation is finished. Only used for SCAN structure optimizations right now.

@@ -9,6 +9,7 @@ from fireworks.utilities.fw_utilities import get_slug
 from pymatgen import Structure
 
 from atomate.utils.utils import get_meta_from_structure, get_fws_and_tasks
+from atomate.common.firetasks.glue_tasks import DeleteFiles
 from atomate.vasp.firetasks.glue_tasks import CheckStability, CheckBandgap
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspFake, RunVaspDirect, RunNoVasp
 from atomate.vasp.firetasks.neb_tasks import RunNEBVaspFake
@@ -258,9 +259,9 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
     magmom = ""
     for _ in structure:
         magmom += "0 0 0.6 "
-    #TODO: add saxis as an input parameter with default being (0 0 1)
+    # TODO: add saxis as an input parameter with default being (0 0 1)
     modify_incar_params = modify_incar_params or {"incar_update": {"LSORBIT": "T", "NBANDS":
-        nbands, "MAGMOM": magmom, "ISPIN": 1, "LMAXMIX": 4, "ISYM": 0}}
+                                                                   nbands, "MAGMOM": magmom, "ISPIN": 1, "LMAXMIX": 4, "ISYM": 0}}
 
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp"):
@@ -293,7 +294,6 @@ def clear_modify(original_wf, fw_name_constraint=None):
     return original_wf
 
 
-
 def set_execution_options(original_wf, fworker_name=None, category=None,
                           fw_name_constraint=None, task_name_constraint=None):
     """
@@ -320,6 +320,7 @@ def set_execution_options(original_wf, fworker_name=None, category=None,
             original_wf.fws[idx_fw].spec["_category"] = category
     return original_wf
 
+
 def preserve_fworker(original_wf, fw_name_constraint=None):
     """
     set _preserve_fworker spec of Fireworker(s) of a Workflow. Can be used to pin a workflow to 
@@ -337,6 +338,7 @@ def preserve_fworker(original_wf, fw_name_constraint=None):
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint):
         original_wf.fws[idx_fw].spec["_preserve_fworker"] = True
     return original_wf
+
 
 def add_wf_metadata(original_wf, structure):
     """
@@ -450,11 +452,29 @@ def use_scratch_dir(original_wf, scratch_dir):
     return original_wf
 
 
+def clean_up_files(original_wf, files=("WAVECAR*",), fw_name_constraint=None, task_name_constraint="RunVasp"):
+    """
+    Cleans up files after another fireworks. Default behavior is to remove WAVECAR after running VASP
+
+    Args:
+        original_wf (Workflow)
+        files (list): list of patterns to match for files to clean up
+        fw_name_constraint (str): pattern for firetask to clean up files after
+
+    Returns:
+       Workflow
+    """
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
+                                           task_name_constraint=task_name_constraint):
+        original_wf.fws[idx_fw].tasks.insert(idx_t + 1, DeleteFiles(files=files))
+    return original_wf
+
+
 def add_additional_fields_to_taskdocs(original_wf, update_dict=None, task_name_constraint="VaspToDb"):
     """
     For all VaspToDbTasks in a given workflow, add information  to "additional_fields" to be
     placed in the task doc.
-    
+
     Args:
         original_wf (Workflow)
         update_dict (Dict): dictionary to add additional_fields
@@ -529,7 +549,7 @@ def add_common_powerups(wf, c=None):
         wf = add_modify_incar(wf)
 
     if c.get("GAMMA_VASP_CMD", GAMMA_VASP_CMD):
-        wf = use_gamma_vasp((wf),c.get("GAMMA_VASP_CMD", GAMMA_VASP_CMD))
+        wf = use_gamma_vasp((wf), c.get("GAMMA_VASP_CMD", GAMMA_VASP_CMD))
 
     return wf
 

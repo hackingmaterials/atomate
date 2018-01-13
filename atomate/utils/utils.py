@@ -5,6 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import logging
 import os
 import sys
+import socket
 from random import randint
 from time import time
 
@@ -312,3 +313,36 @@ def get_a_unique_id():
     ts = "{:.4f}".format(time())
     ts += str(randint(0,9999)).zfill(4)
     return ts
+
+
+def get_uri(dir_name):
+    """
+    Returns the URI path for a directory. This allows files hosted on
+    different file servers to have distinct locations.
+    Args:
+        dir_name:
+            A directory name.
+    Returns:
+        Full URI path, e.g., fileserver.host.com:/full/path/of/dir_name.
+    """
+    fullpath = os.path.abspath(dir_name)
+    try:
+        hostname = socket.gethostbyaddr(socket.gethostname())[0]
+    except:
+        hostname = socket.gethostname()
+    return "{}:{}".format(hostname, fullpath)
+
+
+
+def get_database(config_file=None, settings=None, admin=False, **kwargs):
+    d = get_settings(config_file) if settings is None else settings
+    conn = MongoClient(host=d["host"], port=d["port"], **kwargs)
+    db = conn[d["database"]]
+    try:
+        user = d["admin_user"] if admin else d["readonly_user"]
+        passwd = d["admin_password"] if admin else d["readonly_password"]
+        db.authenticate(user, passwd)
+    except (KeyError, TypeError, ValueError):
+        _log.warn("No {admin,readonly}_user/password found in config. file, "
+                  "accessing DB without authentication")
+    return db

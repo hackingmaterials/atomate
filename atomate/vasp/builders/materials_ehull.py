@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from tqdm import tqdm
 
-from matgendb.util import get_database
+from atomate.utils.utils import get_database
 
 from pymatgen import MPRester, Structure
 from pymatgen.entries.computed_entries import ComputedEntry

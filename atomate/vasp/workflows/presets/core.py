@@ -205,10 +205,10 @@ def wf_elastic_constant(structure, c=None, order=2, sym_reduce=False):
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
 
-    uis_optimize = {"ENCUT": 700, "EDIFF": 1e-6, "LAECHG":False}
+    uis_optimize = {"ENCUT": 700, "EDIFF": 1e-6, "LAECHG": False}
     if order > 2:
-        uis_optimize.update({"EDIFF": 1e-10, "EDIFFG":-0.001, 
-                             "ADDGRID":True, "LREAL":False, "ISYM": 0})
+        uis_optimize.update({"EDIFF": 1e-10, "EDIFFG": -0.001,
+                             "ADDGRID": True, "LREAL": False, "ISYM": 0})
         # This ensures a consistent k-point mesh across all calculations
         # We also turn off symmetry to prevent VASP from changing the
         # mesh internally
@@ -229,7 +229,7 @@ def wf_elastic_constant(structure, c=None, order=2, sym_reduce=False):
     wf = get_wf(structure, "optimize_only.yaml", vis=vis_relax,
                 params=[{"vasp_cmd": vasp_cmd,  "db_file": db_file,
                          "name": "elastic structure optimization"}])
-    
+
     vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=False,
                              user_kpoints_settings=kpts_settings,
                              user_incar_settings=uis_static)
@@ -248,12 +248,12 @@ def wf_elastic_constant(structure, c=None, order=2, sym_reduce=False):
 
 
 def wf_elastic_constant_minimal(structure, c=None, order=2, sym_reduce=True):
-    
+
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
 
-    stencil = np.arange(0.01, 0.01*order, step=0.01)
+    stencil = np.arange(0.01, 0.01 * order, step=0.01)
     wf = get_wf_elastic_constant(structure, vasp_cmd=vasp_cmd, db_file=db_file,
                                  sym_reduce=sym_reduce, stencils=stencil, order=order,
                                  copy_vasp_outputs=False)
@@ -321,7 +321,7 @@ def wf_gibbs_free_energy(structure, c=None):
     metadata = c.get("METADATA", None)
 
     # 21 deformed structures: from -10% to +10%
-    defos = [(np.identity(3)*(1+x)).tolist() for x in np.linspace(-0.1, 0.1, 21)]
+    defos = [(np.identity(3) * (1 + x)).tolist() for x in np.linspace(-0.1, 0.1, 21)]
     deformations = c.get("DEFORMATIONS", defos)
     user_kpoints_settings = {"grid_density": 7000}
 
@@ -399,7 +399,7 @@ def wf_bulk_modulus(structure, c=None):
 
     user_kpoints_settings = {"grid_density": 7000}
     # 6 deformations
-    deformations = [(np.identity(3)*(1+x)).tolist() for x in np.linspace(-0.05, 0.05, 6)]
+    deformations = [(np.identity(3) * (1 + x)).tolist() for x in np.linspace(-0.05, 0.05, 6)]
 
     tag = "bulk_modulus group: >>{}<<".format(str(uuid4()))
 
@@ -463,7 +463,7 @@ def wf_thermal_expansion(structure, c=None):
 
     user_kpoints_settings = {"grid_density": 7000}
     # 10 deformations
-    deformations = [(np.identity(3)*(1+x)).tolist() for x in np.linspace(-0.1, 0.1, 10)]
+    deformations = [(np.identity(3) * (1 + x)).tolist() for x in np.linspace(-0.1, 0.1, 10)]
 
     tag = "thermal_expansion group: >>{}<<".format(str(uuid4()))
 
@@ -475,13 +475,13 @@ def wf_thermal_expansion(structure, c=None):
 
     # optimization only workflow
     wf = get_wf(structure, "optimize_only.yaml",
-                    params=[{"vasp_cmd": vasp_cmd,  "db_file": db_file,
-                             "name": "{} structure optimization".format(tag)}],
-                    vis=vis_relax)
+                params=[{"vasp_cmd": vasp_cmd,  "db_file": db_file,
+                         "name": "{} structure optimization".format(tag)}],
+                vis=vis_relax)
 
     wf_thermal = get_wf_thermal_expansion(structure, user_kpoints_settings=user_kpoints_settings,
-                                  deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file,
-                                  eos=eos, pressure=pressure, tag=tag)
+                                          deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file,
+                                          eos=eos, pressure=pressure, tag=tag)
 
     # chain it
     wf.append_wf(wf_thermal, wf.leaf_fw_ids)
@@ -572,7 +572,7 @@ def wf_nudged_elastic_band(structures, parent, c=None):
 
     # TODO: @shyuep - I have no idea what's going on here -computron
     if "fireworks" in c:
-        for i in range(1, len(c["fireworks"])+1):
+        for i in range(1, len(c["fireworks"]) + 1):
             user_incar_settings[-i] = c["fireworks"][-i].get("user_incar_settings", {})
             user_kpoints_settings[-i] = c["fireworks"][-i].get("user_kpoints_settings",
                                                                {"grid_density": 1000})
