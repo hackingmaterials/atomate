@@ -104,7 +104,7 @@ class VaspDrone(AbstractDrone):
         self.compress_dos = compress_dos
         self.additional_fields = additional_fields or {}
         self.use_full_uri = use_full_uri
-        self.runs = runs or ["relax" + str(i) for i in range(9)]  # can't auto-detect: path unknown
+        self.runs = runs or ["precondition"] + ["relax" + str(i + 1) for i in range(9)]  # can't auto-detect: path unknown
         self.bandstructure_mode = bandstructure_mode
         self.compress_bs = compress_bs
         self.parse_locpot = parse_locpot
