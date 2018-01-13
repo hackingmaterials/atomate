@@ -111,7 +111,7 @@ def get_wf_surface(slabs, molecules=[], bulk_structure=None, slab_gen_params=Non
 
     if bulk_structure:
         vis = MVLSlabSet(bulk_structure, bulk=True)
-        fws.append(OptimizeFW(bulk_structure, vasp_input_set=vis, vasp_cmd="vasp", db_file=db_file))
+        fws.append(OptimizeFW(structure=bulk_structure, vasp_input_set=vis, vasp_cmd="vasp", db_file=db_file))
         parents = fws[0]
 
     for slab in slabs:
@@ -135,7 +135,7 @@ def get_wf_surface(slabs, molecules=[], bulk_structure=None, slab_gen_params=Non
             m_struct.translate_sites(list(range(len(m_struct))),
                                  np.array([0.5]*3) - np.average(m_struct.frac_coords, axis=0))
             vis = MVLSlabSet(m_struct)
-            fws.append(OptimizeFW(molecule, job_type="normal", vasp_input_set=vis,
+            fws.append(OptimizeFW(structure=molecule, job_type="normal", vasp_input_set=vis,
                                   db_file=db_file, vasp_cmd=vasp_cmd))
     # TODO: add analysis framework
     return Workflow(fws, name="")

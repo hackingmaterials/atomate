@@ -50,7 +50,7 @@ def get_wf_bulk_modulus(structure, deformations, vasp_input_set=None, vasp_cmd="
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
 
-    vis_static = vasp_input_set or MPStaticSet(structure, force_gamma=True, lepsilon=False,
+    vis_static = vasp_input_set or MPStaticSet(structure=structure, force_gamma=True, lepsilon=False,
                                                user_kpoints_settings=user_kpoints_settings,
                                                user_incar_settings=user_incar_settings)
 

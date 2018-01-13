@@ -64,7 +64,7 @@ def get_wf_raman_spectra(structure, modes=None, step_size=0.005, vasp_cmd="vasp"
     fws_nm_disp = []
     for mode in modes:
         for disp in displacements:
-            fws_nm_disp.append(RamanFW(structure, mode, disp, parents=fw_leps, vasp_cmd=vasp_cmd, db_file=db_file))
+            fws_nm_disp.append(RamanFW(mode, disp, structure=structure, parents=fw_leps, vasp_cmd=vasp_cmd, db_file=db_file))
     fws.extend(fws_nm_disp)
 
     # Compute the Raman susceptibility tensor

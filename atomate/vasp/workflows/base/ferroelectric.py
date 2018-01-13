@@ -69,9 +69,9 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
         tags = []
 
     if relax:
-        polar_relax = OptimizeFW(polar_structure,name="_polar_relaxation",
+        polar_relax = OptimizeFW(structure=polar_structure,name="_polar_relaxation",
                                  vasp_cmd=vasp_cmd, db_file=db_file, vasp_input_set=vasp_relax_input_set_polar)
-        nonpolar_relax = OptimizeFW(nonpolar_structure, name="_nonpolar_relaxation",
+        nonpolar_relax = OptimizeFW(structure=nonpolar_structure, name="_nonpolar_relaxation",
                                     vasp_cmd=vasp_cmd, db_file=db_file, vasp_input_set=vasp_relax_input_set_nonpolar)
         wf.append(polar_relax)
         wf.append(nonpolar_relax)
@@ -83,7 +83,7 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
 
     # Run polarization calculation on polar structure.
     # Defuse workflow if polar structure is metallic.
-    polar = LcalcpolFW(polar_structure,
+    polar = LcalcpolFW(structure=polar_structure,
                        name="_polar_polarization",
                        static_name="_polar_static",
                        parents=parents_polar,
@@ -93,7 +93,7 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
 
     # Run polarization calculation on nonpolar structure.
     # Defuse workflow if nonpolar structure is metallic.
-    nonpolar = LcalcpolFW(nonpolar_structure,
+    nonpolar = LcalcpolFW(structure=nonpolar_structure,
                           name="_nonpolar_polarization",
                           static_name="_nonpolar_static",
                           parents=parents_nonpolar,
@@ -111,7 +111,7 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
         # StaticInterpolatedFW.
         # Defuse workflow if interpolated structure is metallic.
         interpolation.append(
-            LcalcpolFW(polar_structure,
+            LcalcpolFW(structure=polar_structure,
                        name="_interpolation_{}_polarization".format(str(i)),
                        static_name="_interpolation_{}_static".format(str(i)),
                        vasp_cmd=vasp_cmd, db_file=db_file,
@@ -133,7 +133,7 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
     # Run HSE band gap calculation
     if hse:
         # Run HSE calculation at band gap for polar calculation if polar structure is not metallic
-        hse = HSEBSFW(polar_structure, polar, name="_polar_hse_gap", vasp_cmd=vasp_cmd,
+        hse = HSEBSFW(structure=polar_structure, polar, name="_polar_hse_gap", vasp_cmd=vasp_cmd,
                       db_file=db_file, calc_loc="_polar_polarization")
         wf.append(hse)
 
