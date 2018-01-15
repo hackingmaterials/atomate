@@ -132,7 +132,7 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
     # Run HSE band gap calculation
     if hse:
         # Run HSE calculation at band gap for polar calculation if polar structure is not metallic
-        hse = HSEBSFW(structure=polar_structure, polar, name="_polar_hse_gap", vasp_cmd=vasp_cmd,
+        hse = HSEBSFW(structure=polar_structure, parents=polar, name="_polar_hse_gap", vasp_cmd=vasp_cmd,
                       db_file=db_file, calc_loc="_polar_polarization")
         wf.append(hse)
 
