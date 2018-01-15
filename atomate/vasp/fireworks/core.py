@@ -431,6 +431,7 @@ class RamanFW(Firework):
             mode (int): normal mode index.
             displacement (float): displacement along the normal mode in Angstroms.
             name (str): Name for the Firework.
+            prev_calc_dir (str): Path to a previous calculation to copy from
             vasp_cmd (str): Command to run vasp.
             db_file (str): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework.
