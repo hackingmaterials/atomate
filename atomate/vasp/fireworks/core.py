@@ -183,7 +183,7 @@ class StaticInterpolateFW(Firework):
 
 class HSEBSFW(Firework):
 
-    def __init__(self, parents, structure=None, mode="gap", name=None,
+    def __init__(self, parents=None, prev_calc_dir=None, structure=None, mode="gap", name=None,
                  vasp_cmd="vasp", db_file=None,
                  **kwargs):
         """
@@ -191,8 +191,9 @@ class HSEBSFW(Firework):
         calculation that gives VBM/CBM info or the high-symmetry kpoints.
 
         Args:
-            structure (Structure): Input structure - used only to set the name of the FW.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            prev_calc_dir (str): Path to a previous calculation to copy from
+            structure (Structure): Input structure - used only to set the name of the FW.
             mode (string): options:
                 "line" to get a full band structure along symmetry lines or
                 "uniform" for uniform mesh band structure or
@@ -202,15 +203,18 @@ class HSEBSFW(Firework):
             db_file (str): Path to file specifying db credentials.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        if parents is None:
-            raise ValueError("Must specify previous calculation")
-
         name = name if name else "{} {}".format("hse", mode)
 
         fw_name = "{}-{}".format(structure.composition.reduced_formula, name) if structure else name
 
         t = []
-        t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
+        if prev_calc_dir:
+            t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, additional_files=["CHGCAR"]))
+        elif parents:    
+            t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
+        else:
+            raise ValueError("Must specify a previous calculation for HSEBSFW")
+
         t.append(WriteVaspHSEBSFromPrev(prev_calc_dir='.', mode=mode))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
