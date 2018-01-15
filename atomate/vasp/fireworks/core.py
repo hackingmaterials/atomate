@@ -452,7 +452,7 @@ class RamanFW(Firework):
         elif parents:    
             t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
         else:
-            raise ValueError("Must specify structure or previous calculation")
+            raise ValueError("Must specify a previous calculation")
 
         t.append(WriteVaspStaticFromPrev(lepsilon=True, other_params={
             'user_incar_settings': user_incar_settings}))
