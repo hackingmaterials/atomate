@@ -88,7 +88,7 @@ class OptimizeFW(Firework):
 class StaticFW(Firework):
 
     def __init__(self, structure=None, name="static", vasp_input_set=None, vasp_input_set_params=None,
-                 vasp_cmd="vasp", prev_calc_loc=True, db_file=None, parents=None, **kwargs):
+                 vasp_cmd="vasp", prev_calc_loc=True,prev_calc_dir=None, db_file=None, parents=None, **kwargs):
         """
         Standard static calculation Firework - either from a previous location or from a structure.
 
@@ -104,30 +104,32 @@ class StaticFW(Firework):
             prev_calc_loc (bool or str): If true (default), copies outputs from previous calc. If 
                 a str value, retrieves a previous calculation output by name. If False/None, will create
                 new static calculation using the provided structure.
+            prev_calc_dir (str): Path to a previous calculation to copy from
             db_file (str): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-
-        if structure is None and (parents is None or prev_calc_loc is False):
-            raise ValueError("Must specify structure or previous calculation")
-
         t = []
 
         vasp_input_set_params = vasp_input_set_params or {}
 
         fw_name = "{}-{}".format(structure.composition.reduced_formula, name) if structure else name
 
-        if parents:
+        if prev_calc_dir:
+            t.append(CopyVaspOutputs(calc_dir=prev_calc_dir,contcar_to_poscar=True))
+            t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
+        elif parents:
             if prev_calc_loc:
                 t.append(CopyVaspOutputs(calc_loc=prev_calc_loc,
                                          contcar_to_poscar=True))
             t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
-        else:
+        elif structure:
             vasp_input_set = vasp_input_set or MPStaticSet(structure)
             t.append(WriteVaspFromIOSet(structure=structure,
                                         vasp_input_set=vasp_input_set,
                                         vasp_input_set_params=vasp_input_set_params))
+        else:
+            raise ValueError("Must specify structure or previous calculation")
 
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
