@@ -355,7 +355,7 @@ class LepsFW(Firework):
 
 class DFPTFW(Firework):
 
-    def __init__(self, structure=None, name="static dielectric", vasp_cmd="vasp",
+    def __init__(self, structure=None, prev_calc_dir=None, name="static dielectric", vasp_cmd="vasp",
                  copy_vasp_outputs=True,
                  db_file=None, parents=None, user_incar_settings=None,
                  pass_nm_results=False, **kwargs):
@@ -367,8 +367,9 @@ class DFPTFW(Firework):
                 name of the FW.
             name (str): Name for the Firework.
             vasp_cmd (str): Command to run vasp.
-            copy_vasp_outputs (bool): Whether to copy outputs from previous
+            copy_vasp_outputs (str or bool): Whether to copy outputs from previous
                 run. Defaults to True.
+            prev_calc_dir (str): Path to a previous calculation to copy from
             db_file (str): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework.
                 FW or list of FWS.
@@ -377,10 +378,6 @@ class DFPTFW(Firework):
                 next firework can use it.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-
-        if structure is None and parents is None:
-            raise ValueError("Must specify structure or previous calculation")
-
         name = "{} {}".format("phonon", name)
 
         fw_name = "{}-{}".format(structure.composition.reduced_formula, name) if structure else name
@@ -388,15 +385,21 @@ class DFPTFW(Firework):
         user_incar_settings = user_incar_settings or {}
         t = []
 
-        if copy_vasp_outputs:
+        if prev_calc_dir:
+            t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, contcar_to_poscar=True))
+            t.append(WriteVaspStaticFromPrev(lepsilon=True, other_params={
+                'user_incar_settings': user_incar_settings, 'force_gamma': True}))
+        elif parents and copy_vasp_outputs:    
             t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
             t.append(WriteVaspStaticFromPrev(lepsilon=True, other_params={
                 'user_incar_settings': user_incar_settings, 'force_gamma': True}))
-        else:
+        elif structure:
             vasp_input_set = MPStaticSet(structure, lepsilon=True, force_gamma=True,
                                          user_incar_settings=user_incar_settings)
             t.append(WriteVaspFromIOSet(structure=structure,
                                         vasp_input_set=vasp_input_set))
+        else:
+            raise ValueError("Must specify structure or previous calculation")
 
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
 
@@ -407,19 +410,15 @@ class DFPTFW(Firework):
                                       parse_eigen=True,
                                       mod_spec_key="normalmodes"))
 
-        t.append(
-            VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
+        t.append(PassCalcLocs(name=name))
+        t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
 
-        spec = kwargs.pop("spec", {})
-        spec.update({"_files_out": {"POSCAR": "CONTCAR", "OUTCAR": "OUTCAR*",
-                                    'vasprunxml': "vasprun.xml*"}})
-
-        super(DFPTFW, self).__init__(t, parents=parents, name=fw_name, spec=spec, **kwargs)
+        super(DFPTFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class RamanFW(Firework):
 
-    def __init__(self, mode, displacement, structure=None, name="raman",
+    def __init__(self, mode, displacement, prev_calc_dir=None, structure=None, name="raman",
                  vasp_cmd="vasp", db_file=None,
                  parents=None, user_incar_settings=None, **kwargs):
         """
@@ -439,22 +438,20 @@ class RamanFW(Firework):
             user_incar_settings (dict): Parameters in INCAR to override
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        if structure is None and parents is None:
-            raise ValueError("Must specify structure or previous calculation")
-
         name = "{}_{}_{} static dielectric".format(name, str(mode),
                                                    str(displacement))
-
         fw_name = "{}-{}".format(structure.composition.reduced_formula, name) if structure else name
 
         user_incar_settings = user_incar_settings or {}
 
-        # @shyamd: What is this even doing? This doesn't seem to be referenced anywhere
-        spec = kwargs.pop("spec", {})
-        spec.update({"_files_in": {"POSCAR": "POSCAR", "OUTCAR": "OUTCAR",
-                                   "vasprunxml": "vasprun.xml"}})
-
         t = []
+
+        if prev_calc_dir:
+            t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, contcar_to_poscar=True))
+        elif parents:    
+            t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
+        else:
+            raise ValueError("Must specify structure or previous calculation")
 
         t.append(WriteVaspStaticFromPrev(lepsilon=True, other_params={
             'user_incar_settings': user_incar_settings}))
@@ -477,7 +474,7 @@ class RamanFW(Firework):
         t.append(
             VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
 
-        super(RamanFW, self).__init__(t, parents=parents, name=fw_name, spec=spec, **kwargs)
+        super(RamanFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class SOCFW(Firework):
