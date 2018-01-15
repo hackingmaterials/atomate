@@ -225,7 +225,7 @@ class HSEBSFW(Firework):
 
 class NonSCFFW(Firework):
 
-    def __init__(self, parents, structure=None, name="nscf", mode="uniform", vasp_cmd="vasp",
+    def __init__(self, parents=None, prev_calc_dir=None, structure=None, name="nscf", mode="uniform", vasp_cmd="vasp",
                  copy_vasp_outputs=True, db_file=None,  **kwargs):
         """
         Standard NonSCF Calculation Firework supporting both
@@ -243,14 +243,16 @@ class NonSCFFW(Firework):
                 FW or list of FWS.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        if parents is None:
-            raise ValueError("Must specify previous calculation")
-
         fw_name = "{}-{} {}".format(structure.composition.reduced_formula, name,
                                     mode) if structure else "{} {}".format(name, mode)
-
         t = []
-        t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
+        
+        if prev_calc_dir:
+            t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, additional_files=["CHGCAR"]))
+        elif parents:    
+            t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
+        else:
+            raise ValueError("Must specify structure or previous calculation")
 
         mode = mode.lower()
         if mode == "uniform":
