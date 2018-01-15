@@ -481,7 +481,7 @@ class RamanFW(Firework):
 class SOCFW(Firework):
 
     def __init__(self, magmom, structure=None, name="spin-orbit coupling",
-                 saxis=(0, 0, 1),
+                 saxis=(0, 0, 1), prev_calc_dir=None,
                  vasp_cmd="vasp_ncl", copy_vasp_outputs=True, db_file=None,
                  parents=None, **kwargs):
         """
@@ -506,15 +506,21 @@ class SOCFW(Firework):
 
         t = []
 
-        if copy_vasp_outputs:
+        if prev_calc_dir:
+            t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, additional_files=["CHGCAR"], contcar_to_poscar=True))
+            t.append(WriteVaspSOCFromPrev(prev_calc_dir=".", magmom=magmom,
+                                          saxis=saxis))
+        elif parents and copy_vasp_outputs:
             t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
                                      contcar_to_poscar=True))
             t.append(WriteVaspSOCFromPrev(prev_calc_dir=".", magmom=magmom,
                                           saxis=saxis))
-        else:
+        elif structure:
             vasp_input_set = MPSOCSet(structure)
             t.append(WriteVaspFromIOSet(structure=structure,
                                         vasp_input_set=vasp_input_set))
+        else:
+            raise ValueError("Must specify structure or previous calculation")
 
         t.extend(
             [RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"),
