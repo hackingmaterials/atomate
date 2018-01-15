@@ -253,7 +253,7 @@ class NonSCFFW(Firework):
         elif parents:    
             t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
         else:
-            raise ValueError("Must specify structure or previous calculation")
+            raise ValueError("Must specify previous calculation for NonSCFFW")
 
         mode = mode.lower()
         if mode == "uniform":
