@@ -603,9 +603,7 @@ class TransmuterFW(Firework):
                           }))
 
         super(TransmuterFW, self).__init__(t, parents=parents,
-                                           name="{}-{}".format(
-                                               structure.composition.reduced_formula,
-                                               name), **kwargs)
+                                           name=fw_name, **kwargs)
 
 
 class MDFW(Firework):
