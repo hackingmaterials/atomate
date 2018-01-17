@@ -532,7 +532,7 @@ class SOCFW(Firework):
 class TransmuterFW(Firework):
 
     def __init__(self, transformations, transformation_params=None, structure=None,
-                 vasp_input_set=None,
+                 vasp_input_set=None, prev_calc_dir=None,
                  name="structure transmuter", vasp_cmd="vasp",
                  copy_vasp_outputs=True, db_file=None,
                  parents=None, override_default_vasp_params=None, **kwargs):
@@ -558,9 +558,6 @@ class TransmuterFW(Firework):
             override_default_vasp_params (dict): additional user input settings for vasp_input_set.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        if structure is None and (parents is None or copy_vasp_outputs is False):
-            raise ValueError("Must specify structure or previous calculation")
-
         fw_name = "{}-{}".format(structure.composition.reduced_formula, name) if structure else name
 
         override_default_vasp_params = override_default_vasp_params or {}
@@ -570,17 +567,32 @@ class TransmuterFW(Firework):
                                                        force_gamma=True,
                                                        **override_default_vasp_params)
 
-        if copy_vasp_outputs:
+        if prev_calc_dir:
+            t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, contcar_to_poscar=True))
+            t.append(
+            WriteTransmutedStructureIOSet(transformations=transformations,
+                                          transformation_params=transformation_params,
+                                          vasp_input_set=vasp_input_set,
+                                          override_default_vasp_params=override_default_vasp_params,
+                                          prev_calc_dir="."))
+        elif copy_vasp_outputs:
             t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
-
-        prev_calc_dir = "." if copy_vasp_outputs else None
-        t.append(
+            t.append(
             WriteTransmutedStructureIOSet(structure=structure,
                                           transformations=transformations,
                                           transformation_params=transformation_params,
                                           vasp_input_set=vasp_input_set,
                                           override_default_vasp_params=override_default_vasp_params,
-                                          prev_calc_dir=prev_calc_dir))
+                                          prev_calc_dir="."))
+        elif structure:
+            t.append(WriteTransmutedStructureIOSet(structure=structure,
+                                          transformations=transformations,
+                                          transformation_params=transformation_params,
+                                          vasp_input_set=vasp_input_set,
+                                          override_default_vasp_params=override_default_vasp_params))
+        else:
+            raise ValueError("Must specify structure or previous calculation")
+
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDb(db_file=db_file,
