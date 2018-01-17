@@ -88,7 +88,7 @@ class OptimizeFW(Firework):
 class StaticFW(Firework):
 
     def __init__(self, structure=None, name="static", vasp_input_set=None, vasp_input_set_params=None,
-                 vasp_cmd="vasp", prev_calc_loc=True,prev_calc_dir=None, db_file=None, parents=None, **kwargs):
+                 vasp_cmd="vasp", prev_calc_loc=True, prev_calc_dir=None, db_file=None, parents=None, **kwargs):
         """
         Standard static calculation Firework - either from a previous location or from a structure.
 
@@ -116,7 +116,7 @@ class StaticFW(Firework):
         fw_name = "{}-{}".format(structure.composition.reduced_formula, name) if structure else name
 
         if prev_calc_dir:
-            t.append(CopyVaspOutputs(calc_dir=prev_calc_dir,contcar_to_poscar=True))
+            t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, contcar_to_poscar=True))
             t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
         elif parents:
             if prev_calc_loc:
@@ -210,7 +210,7 @@ class HSEBSFW(Firework):
         t = []
         if prev_calc_dir:
             t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, additional_files=["CHGCAR"]))
-        elif parents:    
+        elif parents:
             t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
         else:
             raise ValueError("Must specify a previous calculation for HSEBSFW")
@@ -247,10 +247,10 @@ class NonSCFFW(Firework):
         fw_name = "{}-{} {}".format(structure.composition.reduced_formula, name,
                                     mode) if structure else "{} {}".format(name, mode)
         t = []
-        
+
         if prev_calc_dir:
             t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, additional_files=["CHGCAR"]))
-        elif parents:    
+        elif parents:
             t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"]))
         else:
             raise ValueError("Must specify previous calculation for NonSCFFW")
@@ -389,7 +389,7 @@ class DFPTFW(Firework):
             t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, contcar_to_poscar=True))
             t.append(WriteVaspStaticFromPrev(lepsilon=True, other_params={
                 'user_incar_settings': user_incar_settings, 'force_gamma': True}))
-        elif parents and copy_vasp_outputs:    
+        elif parents and copy_vasp_outputs:
             t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
             t.append(WriteVaspStaticFromPrev(lepsilon=True, other_params={
                 'user_incar_settings': user_incar_settings, 'force_gamma': True}))
@@ -449,7 +449,7 @@ class RamanFW(Firework):
 
         if prev_calc_dir:
             t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, contcar_to_poscar=True))
-        elif parents:    
+        elif parents:
             t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
         else:
             raise ValueError("Must specify a previous calculation")
@@ -570,26 +570,26 @@ class TransmuterFW(Firework):
         if prev_calc_dir:
             t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, contcar_to_poscar=True))
             t.append(
-            WriteTransmutedStructureIOSet(transformations=transformations,
-                                          transformation_params=transformation_params,
-                                          vasp_input_set=vasp_input_set,
-                                          override_default_vasp_params=override_default_vasp_params,
-                                          prev_calc_dir="."))
+                WriteTransmutedStructureIOSet(transformations=transformations,
+                                              transformation_params=transformation_params,
+                                              vasp_input_set=vasp_input_set,
+                                              override_default_vasp_params=override_default_vasp_params,
+                                              prev_calc_dir="."))
         elif copy_vasp_outputs:
             t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
             t.append(
-            WriteTransmutedStructureIOSet(structure=structure,
-                                          transformations=transformations,
-                                          transformation_params=transformation_params,
-                                          vasp_input_set=vasp_input_set,
-                                          override_default_vasp_params=override_default_vasp_params,
-                                          prev_calc_dir="."))
+                WriteTransmutedStructureIOSet(structure=structure,
+                                              transformations=transformations,
+                                              transformation_params=transformation_params,
+                                              vasp_input_set=vasp_input_set,
+                                              override_default_vasp_params=override_default_vasp_params,
+                                              prev_calc_dir="."))
         elif structure:
             t.append(WriteTransmutedStructureIOSet(structure=structure,
-                                          transformations=transformations,
-                                          transformation_params=transformation_params,
-                                          vasp_input_set=vasp_input_set,
-                                          override_default_vasp_params=override_default_vasp_params))
+                                                   transformations=transformations,
+                                                   transformation_params=transformation_params,
+                                                   vasp_input_set=vasp_input_set,
+                                                   override_default_vasp_params=override_default_vasp_params))
         else:
             raise ValueError("Must specify structure or previous calculation")
 
