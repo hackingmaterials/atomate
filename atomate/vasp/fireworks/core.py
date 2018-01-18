@@ -38,7 +38,7 @@ class OptimizeFW(Firework):
                  ediffg=None, db_file=None,
                  force_gamma=True, job_type="double_relaxation_run",
                  max_force_threshold=RELAX_MAX_FORCE,
-                 auto_npar=">>auto_npar<<",
+                 auto_npar=">>auto_npar<<", additional_fields=None,
                  half_kpts_first_relax=HALF_KPOINTS_FIRST_RELAX, parents=None,
                  **kwargs):
         """
@@ -76,8 +76,12 @@ class OptimizeFW(Firework):
                                   auto_npar=auto_npar,
                                   half_kpts_first_relax=half_kpts_first_relax))
         t.append(PassCalcLocs(name=name))
+        if additional_fields:
+            additional_fields["task_label"] = name
+        else:
+            additional_fields = {"task_label": name}
         t.append(
-            VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
+            VaspToDb(db_file=db_file, additional_fields=additional_fields))
         super(OptimizeFW, self).__init__(t, parents=parents, name="{}-{}".
                                          format(
             structure.composition.reduced_formula, name),
