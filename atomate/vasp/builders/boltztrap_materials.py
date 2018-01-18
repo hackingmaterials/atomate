@@ -4,8 +4,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from tqdm import tqdm
 
-from atomate.utils.utils import get_logger
-from matgendb.util import get_database
+from atomate.utils.utils import get_logger , get_database
 
 from pymatgen import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator

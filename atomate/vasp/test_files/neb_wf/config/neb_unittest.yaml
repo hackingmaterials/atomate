@@ -29,7 +29,6 @@ fireworks:
   user_incar_settings:
     IMAGES: 3
     EDIFFG: -0.03
-    EDIFFG: -0.03
     IOPT: 1
   user_kpoints_settings:
     grid_density: 100

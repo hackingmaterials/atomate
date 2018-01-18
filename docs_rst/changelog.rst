@@ -2,6 +2,15 @@
 atomate Changelog
 =================
 
+**v0.6.8**
+
+* New SCAN functional workflow (S. Dwaraknath)
+* remove dependence on pymatgen-db (S. Dwaraknath)
+* more bandgap properties parsed by drone (transition and is-direct) (S. Dwaraknath)
+* option to clean up large output files like WAVECAR (S. Dwaraknath)
+* option to recursively copy file tree in CopyFilesFromCalcLoc (A. Faghaninia)
+* bugfix: apply vasp_input_set_params when StaticFW have parents (specter119)
+* misc bugfixes (S. Dwaraknath, A. Jain)
 
 **v0.6.7**
 

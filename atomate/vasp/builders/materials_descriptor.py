@@ -1,6 +1,6 @@
 from tqdm import tqdm
 
-from matgendb.util import get_database
+from atomate.utils.utils import get_database
 
 from pymatgen import Structure
 from pymatgen.analysis.structure_analyzer import get_dimensionality

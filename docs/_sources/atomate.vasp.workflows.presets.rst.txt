@@ -12,6 +12,14 @@ atomate\.vasp\.workflows\.presets\.core module
     :undoc-members:
     :show-inheritance:
 
+atomate\.vasp\.workflows\.presets\.scan module
+----------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.presets.scan
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

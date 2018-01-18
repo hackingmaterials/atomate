@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.utils package &#8212; atomate 0.6.7 documentation</title>
+    <title>atomate.utils package &#8212; atomate 0.6.8 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.6.7',
+        VERSION:     '0.6.8',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -37,7 +37,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.7 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.8 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -288,6 +288,11 @@ default: if val is None or env cannot be found in non-strict mode,</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="atomate.utils.utils.get_database">
+<code class="descclassname">atomate.utils.utils.</code><code class="descname">get_database</code><span class="sig-paren">(</span><em>config_file=None</em>, <em>settings=None</em>, <em>admin=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.get_database" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="atomate.utils.utils.get_fws_and_tasks">
 <code class="descclassname">atomate.utils.utils.</code><code class="descname">get_fws_and_tasks</code><span class="sig-paren">(</span><em>workflow</em>, <em>fw_name_constraint=None</em>, <em>task_name_constraint=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.get_fws_and_tasks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper method: given a workflow, returns back the fw_ids and task_ids that match name 
@@ -323,6 +328,24 @@ key (str): the key we want to retrieve with dot notation, e.g., “a.b.c”</div
 <dl class="docutils">
 <dt>Returns:</dt>
 <dd>value from desired dict (whatever is stored at the desired key)</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="atomate.utils.utils.get_uri">
+<code class="descclassname">atomate.utils.utils.</code><code class="descname">get_uri</code><span class="sig-paren">(</span><em>dir_name</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.get_uri" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the URI path for a directory. This allows files hosted on
+different file servers to have distinct locations.
+Args:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>dir_name:</dt>
+<dd>A directory name.</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>Full URI path, e.g., fileserver.host.com:/full/path/of/dir_name.</dd>
 </dl>
 </dd></dl>
 
@@ -496,7 +519,7 @@ u (dict): updates to propogate</div></blockquote>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.7 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.8 documentation</a> &#187;</li> 
       </ul>
     </div>
 

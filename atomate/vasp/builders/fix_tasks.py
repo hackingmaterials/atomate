@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from matgendb.util import get_database
+from atomate.utils.utils import get_database
 
 from atomate.utils.utils import get_logger
 from atomate.vasp.builders.base import AbstractBuilder

@@ -768,7 +768,7 @@ class PolarizationToDb(FiretaskBase):
         # Sort polarization tasks
         # nonpolar -> interpolation_n -> interpolation_n-1 -> ...  -> interpolation_1 -> polar
         data = zip(tasks, structure_dicts, outcars, energies_per_atom, energies, sort_weight)
-        data.sort(key=lambda x: x[-1])
+        data = sorted(data,key=lambda x: x[-1])
 
         # Get the tasks, structures, etc in sorted order from the zipped data.
         tasks, structure_dicts, outcars, energies_per_atom, energies, sort_weight = zip(*data)
