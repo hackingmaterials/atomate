@@ -517,7 +517,7 @@ class SOCFW(Firework):
             t.append(WriteVaspFromIOSet(structure=structure,
                                         vasp_input_set=vasp_input_set))
         else:
-            raise ValueError("Must specify structure or previous calculation")
+            raise ValueError("Must specify structure or previous calculation.")
 
         t.extend(
             [RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"),
@@ -676,6 +676,7 @@ class BoltztrapFW(Firework):
             name (str): name of this FW
             db_file (str): path to the db file
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            prev_calc_dir (str): Path to a previous calculation to copy from
             scissor (float): if scissor > 0, apply scissor on the band structure so that new
                 band gap = scissor (in eV)
             doping: ([float]) doping levels you want to compute
