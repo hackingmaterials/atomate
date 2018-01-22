@@ -204,7 +204,7 @@ if __name__ == "__main__":
                       help="Set to a dict-like string, e.g. '{\"a\":\"b\"}', to set common params")
     padd.add_argument("files", metavar="files", type=str, nargs="+",
                       help="Structures to add workflows for.")
-    padd.set_defaults(func=add_wf,common_param_updates={})
+    padd.set_defaults(func=add_wf,common_param_updates="{}")
 
     ptest = subparsers.add_parser("test", help="Add test suite.")
     ptest.add_argument("-r", "--reset", dest="reset", action='store_true',
