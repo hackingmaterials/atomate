@@ -491,6 +491,7 @@ class SOCFW(Firework):
             structure (Structure): Input structure. If copy_vasp_outputs, used only to set the 
                 name of the FW.
             name (str): Name for the Firework.
+            prev_calc_dir (str): Path to a previous calculation to copy from
             vasp_cmd (str): Command to run vasp.
             copy_vasp_outputs (bool): Whether to copy outputs from previous
                 run. Defaults to True.
