@@ -113,7 +113,7 @@ class StaticFW(Firework):
 
         vasp_input_set_params = vasp_input_set_params or {}
 
-        fw_name = "{}-{}".format(structure.composition.reduced_formula, name) if structure else name
+        fw_name = "{}-{}".format(structure.composition.reduced_formula if structure else "unknown", name)
 
         if prev_calc_dir:
             t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, contcar_to_poscar=True))
@@ -205,7 +205,7 @@ class HSEBSFW(Firework):
         """
         name = name if name else "{} {}".format("hse", mode)
 
-        fw_name = "{}-{}".format(structure.composition.reduced_formula, name) if structure else name
+        fw_name = "{}-{}".format(structure.composition.reduced_formula if structure else "unknown", name)
 
         t = []
         if prev_calc_dir:
@@ -244,8 +244,8 @@ class NonSCFFW(Firework):
                 FW or list of FWS.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = "{}-{} {}".format(structure.composition.reduced_formula, name,
-                                    mode) if structure else "{} {}".format(name, mode)
+        fw_name = "{}-{} {}".format(structure.composition.reduced_formula if structure else "unknown", name,
+                                    mode)
         t = []
 
         if prev_calc_dir:
@@ -378,9 +378,9 @@ class DFPTFW(Firework):
                 next firework can use it.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        name = "{} {}".format("phonon", name)
+        name = "static dielectric" if lepsilon else "phonon"
 
-        fw_name = "{}-{}".format(structure.composition.reduced_formula, name) if structure else name
+        fw_name = "{}-{}".format(structure.composition.reduced_formula if structure else "unknown", name)
 
         user_incar_settings = user_incar_settings or {}
         t = []
@@ -439,9 +439,8 @@ class RamanFW(Firework):
             user_incar_settings (dict): Parameters in INCAR to override
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        name = "{}_{}_{} static dielectric".format(name, str(mode),
-                                                   str(displacement))
-        fw_name = "{}-{}".format(structure.composition.reduced_formula, name) if structure else name
+        name = "{}_{}_{}".format(name, str(mode), str(displacement))
+        fw_name = "{}-{}".format(structure.composition.reduced_formula if structure else "unknown", name)
 
         user_incar_settings = user_incar_settings or {}
 
@@ -499,13 +498,9 @@ class SOCFW(Firework):
                 FW or list of FWS.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        if structure is None and (parents is None or copy_vasp_outputs is False):
-            raise ValueError("Must specify structure or previous calculation")
-
-        fw_name = "{}-{}".format(structure.composition.reduced_formula, name) if structure else name
+        fw_name = "{}-{}".format(structure.composition.reduced_formula if structure else "unknown", name)
 
         t = []
-
         if prev_calc_dir:
             t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, additional_files=["CHGCAR"], contcar_to_poscar=True))
             t.append(WriteVaspSOCFromPrev(prev_calc_dir=".", magmom=magmom,
@@ -531,7 +526,7 @@ class SOCFW(Firework):
 
 class TransmuterFW(Firework):
 
-    def __init__(self, transformations, transformation_params=None, structure=None,
+    def __init__(self, structure, transformations, transformation_params=None,
                  vasp_input_set=None, prev_calc_dir=None,
                  name="structure transmuter", vasp_cmd="vasp",
                  copy_vasp_outputs=True, db_file=None,
@@ -553,13 +548,13 @@ class TransmuterFW(Firework):
             name (string): Name for the Firework.
             vasp_cmd (string): Command to run vasp.
             copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
+            prev_calc_dir (str): Path to a previous calculation to copy from
             db_file (string): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
             override_default_vasp_params (dict): additional user input settings for vasp_input_set.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = "{}-{}".format(structure.composition.reduced_formula, name) if structure else name
-
+        fw_name = "{}-{}".format(structure.composition.reduced_formula, name)
         override_default_vasp_params = override_default_vasp_params or {}
         t = []
 
@@ -667,8 +662,8 @@ class MDFW(Firework):
 
 class BoltztrapFW(Firework):
 
-    def __init__(self, parents, structure=None, name="boltztrap", db_file=None,
-                 scissor=0.0, doping=None, tmax=1300, tgrid=50,
+    def __init__(self, parents=None, structure=None, name="boltztrap", db_file=None,
+                 scissor=0.0, doping=None, tmax=1300, tgrid=50, prev_calc_dir=None,
                  soc=False, additional_fields=None, **kwargs):
         """
         Run Boltztrap (which includes writing bolztrap input files and parsing outputs). Assumes 
@@ -688,15 +683,24 @@ class BoltztrapFW(Firework):
             additional_fields (dict): fields added to the document such as user-defined tags or name, ids, etc
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = "{}-{}".format(structure.composition.reduced_formula, name) if structure else name
+        fw_name = "{}-{}".format(structure.composition.reduced_formula if structure else "unknown", name)
 
         additional_fields = additional_fields or {}
-        t = [CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True),
-             RunBoltztrap(scissor=scissor, soc=soc, doping=doping, tmax=tmax, tgrid=tgrid),
+
+        t = []
+
+        if prev_calc_dir:
+            t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, contcar_to_poscar=True))
+        elif parents:
+            t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
+        else:
+            raise ValueError("Must specify structure or previous calculation")
+
+        t.extend([RunBoltztrap(scissor=scissor, soc=soc, doping=doping, tmax=tmax, tgrid=tgrid),
              BoltztrapToDb(db_file=db_file, additional_fields=additional_fields),
-             PassCalcLocs(name=name)]
-        super(BoltztrapFW, self).__init__(t, parents=parents,
-                                          name=fw_name, **kwargs)
+             PassCalcLocs(name=name)])
+
+        super(BoltztrapFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class NEBRelaxationFW(Firework):
