@@ -356,7 +356,7 @@ class LepsFW(Firework):
 class DFPTFW(Firework):
 
     def __init__(self, structure=None, prev_calc_dir=None, name="static dielectric", vasp_cmd="vasp",
-                 copy_vasp_outputs=True,
+                 copy_vasp_outputs=True, lepsilon=True,
                  db_file=None, parents=None, user_incar_settings=None,
                  pass_nm_results=False, **kwargs):
         """
@@ -366,6 +366,7 @@ class DFPTFW(Firework):
             structure (Structure): Input structure. If copy_vasp_outputs, used only to set the
                 name of the FW.
             name (str): Name for the Firework.
+            lepsilon (bool): Turn on LEPSILON to calculate polar properties
             vasp_cmd (str): Command to run vasp.
             copy_vasp_outputs (str or bool): Whether to copy outputs from previous
                 run. Defaults to True.
@@ -387,14 +388,14 @@ class DFPTFW(Firework):
 
         if prev_calc_dir:
             t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, contcar_to_poscar=True))
-            t.append(WriteVaspStaticFromPrev(lepsilon=True, other_params={
+            t.append(WriteVaspStaticFromPrev(lepsilon=lepsilon, other_params={
                 'user_incar_settings': user_incar_settings, 'force_gamma': True}))
         elif parents and copy_vasp_outputs:
             t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
-            t.append(WriteVaspStaticFromPrev(lepsilon=True, other_params={
+            t.append(WriteVaspStaticFromPrev(lepsilon=lepsilon, other_params={
                 'user_incar_settings': user_incar_settings, 'force_gamma': True}))
         elif structure:
-            vasp_input_set = MPStaticSet(structure, lepsilon=True, force_gamma=True,
+            vasp_input_set = MPStaticSet(structure, lepsilon=lepsilon, force_gamma=True,
                                          user_incar_settings=user_incar_settings)
             t.append(WriteVaspFromIOSet(structure=structure,
                                         vasp_input_set=vasp_input_set))
