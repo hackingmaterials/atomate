@@ -9,7 +9,6 @@ from pymatgen.core.lattice import Lattice
 from pymatgen.core.structure import Structure
 from pymatgen.transformations.standard_transformations import RotationTransformation
 
-from atomate.utils.testing import AtomateTest
 from atomate.vasp.fireworks.core import *
 
 __author__ = 'Shyam Dwaraknath'

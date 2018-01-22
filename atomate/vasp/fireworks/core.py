@@ -700,8 +700,8 @@ class BoltztrapFW(Firework):
             raise ValueError("Must specify structure or previous calculation")
 
         t.extend([RunBoltztrap(scissor=scissor, soc=soc, doping=doping, tmax=tmax, tgrid=tgrid),
-             BoltztrapToDb(db_file=db_file, additional_fields=additional_fields),
-             PassCalcLocs(name=name)])
+                  BoltztrapToDb(db_file=db_file, additional_fields=additional_fields),
+                  PassCalcLocs(name=name)])
 
         super(BoltztrapFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
 
