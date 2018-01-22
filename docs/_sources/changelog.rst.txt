@@ -2,6 +2,11 @@
 atomate Changelog
 =================
 
+**v0.6.9**
+
+* update requirements to include boltons
+* bugfix for atwf (S. Dwaraknath)
+
 **v0.6.8**
 
 * New SCAN functional workflow (S. Dwaraknath)
