@@ -1,20 +1,17 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Atomate developer installation &#8212; atomate 0.6.5 documentation</title>
-    
+    <title>Atomate developer installation &#8212; atomate 0.6.9 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.6.5',
+        VERSION:     '0.6.9',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -27,9 +24,12 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Running Workflows Tutorial" href="running_workflows.html" />
-    <link rel="prev" title="Installing atomate" href="installation.html" /> 
+    <link rel="prev" title="Installing atomate" href="installation.html" />
+ 
+<link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
+
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="installation.html" title="Installing atomate"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.9 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -75,7 +75,7 @@ It is only intended as a supplement to the main installation guide and does not 
 </li>
 <li><p class="first"><code class="docutils literal"><span class="pre">cd</span></code> to your newly created <code class="docutils literal"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;/codes</span></code> directory.</p>
 </li>
-<li><p class="first">Clone each of the packages you want to install in development mode using git. You don&#8217;t have to know the details of how to use git for the installation, but if you are going to be developing code in Python, you should take a look at this <a class="reference external" href="http://rogerdudler.github.io/git-guide/">simple git introduction</a>. Most Linux distributions include git, so you shouldn&#8217;t have to install it on the cluster. To download the codes, use the following commands (one command per line):</p>
+<li><p class="first">Clone each of the packages you want to install in development mode using git. You don’t have to know the details of how to use git for the installation, but if you are going to be developing code in Python, you should take a look at this <a class="reference external" href="http://rogerdudler.github.io/git-guide/">simple git introduction</a>. Most Linux distributions include git, so you shouldn’t have to install it on the cluster. To download the codes, use the following commands (one command per line):</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">materialsproject</span><span class="o">/</span><span class="n">pymatgen</span><span class="o">.</span><span class="n">git</span>
 <span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">hackingmaterials</span><span class="o">/</span><span class="n">atomate</span><span class="o">.</span><span class="n">git</span>
 </pre></div>
@@ -101,12 +101,12 @@ It is only intended as a supplement to the main installation guide and does not 
 The <code class="docutils literal"><span class="pre">db.json</span></code> and <code class="docutils literal"><span class="pre">my_launchpad.yaml</span></code> in the <code class="docutils literal"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;/codes/atomate/atomate/common/test_files</span></code> directory control the database to use for the unit tests. The default is to use a MongoDB running on localhost. You can update these to whatever you like, e.g. a MongoDB instance in the cloud that you use for tests.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
-<p class="last">Although you can re-use the same Mongo host and port as your production installation for tests, do <strong>not</strong> also use the same database as your production runs! This is why the default configuration uses a database name with <code class="docutils literal"><span class="pre">_unittest</span></code> - so that it won&#8217;t conflict with any production database. The database and LaunchPad you use in the unit tests <strong>WILL</strong> be reset frequently. <strong>DO NOT USE YOUR PRODUCTION DATABASES FOR TESTING</strong> or you will lose everything!</p>
+<p class="last">Although you can re-use the same Mongo host and port as your production installation for tests, do <strong>not</strong> also use the same database as your production runs! This is why the default configuration uses a database name with <code class="docutils literal"><span class="pre">_unittest</span></code> - so that it won’t conflict with any production database. The database and LaunchPad you use in the unit tests <strong>WILL</strong> be reset frequently. <strong>DO NOT USE YOUR PRODUCTION DATABASES FOR TESTING</strong> or you will lose everything!</p>
 </div>
 <p>These unit tests are designed to run without installing VASP or other codes so you can run these on your local machine.
-Some of them start with a VASP workflow but apply the <code class="docutils literal"><span class="pre">use_fake_vasp</span></code> method to replace calling the VASP executable with a &#8220;Faker&#8221; that verifies basic properties of the inputs and copies pre-stored output files to the current directory, thus simulating the execution of VASP.</p>
+Some of them start with a VASP workflow but apply the <code class="docutils literal"><span class="pre">use_fake_vasp</span></code> method to replace calling the VASP executable with a “Faker” that verifies basic properties of the inputs and copies pre-stored output files to the current directory, thus simulating the execution of VASP.</p>
 <p>Note that the unit tests in <code class="docutils literal"><span class="pre">atomate/vasp/tests/test_vasp_workflows.py</span></code> can be modified to actually run VASP by setting VASP_CMD to a String representing your VASP command.
-This will just directly execute VASP where you are running the test (i.e., won&#8217;t submit jobs to a queue).
+This will just directly execute VASP where you are running the test (i.e., won’t submit jobs to a queue).
 If you need to debug at a later point, this might be something to refer back to, e.g., by running an interactive job on your supercomputing center (so that you are on a compute node) and trying this procedure.</p>
 <p>Many tests have a DEBUG option that can sometimes help in finding problems.
 Sometimes you need to toggle DEBUG on/off a couple of times if you are doing this to make sure all the old data is actually cleared between debug runs.</p>
@@ -180,12 +180,14 @@ Sometimes you need to toggle DEBUG on/off a couple of times if you are doing thi
         <li class="right" >
           <a href="installation.html" title="Installing atomate"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.9 documentation</a> &#187;</li> 
       </ul>
     </div>
+
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
+
   </body>
 </html>

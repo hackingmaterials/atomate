@@ -9,7 +9,7 @@ from fireworks import Firework, ScriptTask, Workflow
 
 from atomate.vasp.powerups import add_priority, use_custodian, add_trackers, \
     add_modify_incar, add_small_gap_multiply, use_scratch_dir, remove_custodian, \
-    add_tags, add_wf_metadata, add_modify_potcar
+    add_tags, add_wf_metadata, add_modify_potcar, clean_up_files
 from atomate.vasp.workflows.base.core import get_wf
 
 from pymatgen.io.vasp.sets import MPRelaxSet
@@ -30,8 +30,8 @@ class TestVaspPowerups(unittest.TestCase):
                            "bandstructure.yaml",
                            vis=vis, common_params={"vasp_cmd": "test_VASP"})
         cls.bsboltz_wf = get_wf(struct_si,
-                           "bandstructure_boltztrap.yaml",
-                           vis=vis)
+                                "bandstructure_boltztrap.yaml",
+                                vis=vis)
 
     def _copy_wf(self, wf):
         return Workflow.from_dict(wf.to_dict())
@@ -172,6 +172,13 @@ class TestVaspPowerups(unittest.TestCase):
         self.assertEqual(my_wf.metadata["nelements"], 1)
         self.assertEqual(my_wf.metadata["formula"], "Si2")
 
+    def test_add_clean_up(self):
+        my_wf = clean_up_files(self.bs_wf)
+        for fw in my_wf.fws:
+            fw_names = [t._fw_name for t in fw.tasks]
+            # Raises an error if not in list
+            clean_idx = fw_names.index("{{atomate.common.firetasks.glue_tasks.DeleteFiles}}")
+            self.assertEqual(list(fw.tasks[clean_idx].get("files")), ["WAVECAR*"])
 
 if __name__ == "__main__":
     unittest.main()

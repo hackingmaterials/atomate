@@ -4,7 +4,7 @@ from atomate.utils.utils import get_logger
 
 import numpy as np
 
-from matgendb.util import get_database
+from atomate.utils.utils import get_database
 
 logger = get_logger(__name__)
 

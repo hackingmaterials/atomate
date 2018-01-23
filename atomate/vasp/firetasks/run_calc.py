@@ -22,7 +22,7 @@ from custodian import Custodian
 from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, \
     MeshSymmetryErrorHandler, UnconvergedErrorHandler, MaxForceErrorHandler, PotimErrorHandler, \
     FrozenJobErrorHandler, NonConvergingErrorHandler, PositiveEnergyErrorHandler, \
-    WalltimeHandler, StdErrHandler
+    WalltimeHandler, StdErrHandler, DriftErrorHandler
 from custodian.vasp.jobs import VaspJob, VaspNEBJob
 from custodian.vasp.validators import VasprunXMLValidator, VaspFilesValidator
 
@@ -97,11 +97,12 @@ class RunVaspCustodian(FiretaskBase):
         handler_groups = {
             "default": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
                         NonConvergingErrorHandler(),PotimErrorHandler(),
-                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(), StdErrHandler()],
+                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(), StdErrHandler(),
+                        DriftErrorHandler()],
             "strict": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
                        NonConvergingErrorHandler(),PotimErrorHandler(),
                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(),
-                       StdErrHandler(), AliasingErrorHandler()],
+                       StdErrHandler(), AliasingErrorHandler(), DriftErrorHandler()],
             "md": [VaspErrorHandler(), NonConvergingErrorHandler()],
             "no_handler": []
             }
@@ -129,6 +130,11 @@ class RunVaspCustodian(FiretaskBase):
             jobs = VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar,
                                                  ediffg=self.get("ediffg"),
                                                  half_kpts_first_relax=self.get("half_kpts_first_relax", HALF_KPOINTS_FIRST_RELAX))
+        elif job_type == "metagga_opt_run":
+            jobs = VaspJob.metagga_opt_run(vasp_cmd, auto_npar=auto_npar,
+                                                 ediffg=self.get("ediffg"),
+                                                 half_kpts_first_relax=self.get("half_kpts_first_relax", HALF_KPOINTS_FIRST_RELAX))
+
         elif job_type == "full_opt_run":
             jobs = VaspJob.full_opt_run(vasp_cmd, auto_npar=auto_npar,
                                         ediffg=self.get("ediffg"),

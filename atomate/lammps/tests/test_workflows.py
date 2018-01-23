@@ -45,7 +45,7 @@ class TestLammpsWorkflows(AtomateTest):
     def test_lammps_wflow(self):
 
         wf = get_wf_basic(self.input_file_template, self.user_settings,
-                          lammps_data=self.data_file, is_forcefield=True,
+                          lammps_data=self.data_file,
                           input_filename=self.input_filename, db_file=self.db_file,
                           dump_filenames=self.dump_filenames, name="peo_wflow_test",
                           lammps_cmd=LAMMPS_CMD)

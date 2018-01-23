@@ -1,20 +1,17 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>atomate.vasp.workflows package &#8212; atomate 0.6.5 documentation</title>
-    
+    <title>atomate.vasp.workflows package &#8212; atomate 0.6.9 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.6.5',
+        VERSION:     '0.6.9',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -25,9 +22,12 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+ 
+<link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
+
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -37,7 +37,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.9 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -59,6 +59,7 @@
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base.core">atomate.vasp.workflows.base.core module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base.deformations">atomate.vasp.workflows.base.deformations module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base.elastic">atomate.vasp.workflows.base.elastic module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base.ferroelectric">atomate.vasp.workflows.base.ferroelectric module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base.gibbs">atomate.vasp.workflows.base.gibbs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base.neb">atomate.vasp.workflows.base.neb module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base.raman">atomate.vasp.workflows.base.raman module</a></li>
@@ -69,6 +70,7 @@
 <li class="toctree-l1"><a class="reference internal" href="atomate.vasp.workflows.presets.html">atomate.vasp.workflows.presets package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.workflows.presets.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.workflows.presets.html#module-atomate.vasp.workflows.presets.core">atomate.vasp.workflows.presets.core module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.workflows.presets.html#module-atomate.vasp.workflows.presets.scan">atomate.vasp.workflows.presets.scan module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.workflows.presets.html#module-atomate.vasp.workflows.presets">Module contents</a></li>
 </ul>
 </li>
@@ -77,6 +79,7 @@
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_adsorbate_workflow">atomate.vasp.workflows.tests.test_adsorbate_workflow module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_bulk_modulus_workflow">atomate.vasp.workflows.tests.test_bulk_modulus_workflow module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_elastic_workflow">atomate.vasp.workflows.tests.test_elastic_workflow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_ferroelectric_workflow">atomate.vasp.workflows.tests.test_ferroelectric_workflow module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_neb_workflow">atomate.vasp.workflows.tests.test_neb_workflow module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_raman_workflow">atomate.vasp.workflows.tests.test_raman_workflow module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_vasp_workflows">atomate.vasp.workflows.tests.test_vasp_workflows module</a></li>
@@ -136,12 +139,14 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.9 documentation</a> &#187;</li> 
       </ul>
     </div>
+
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
+
   </body>
 </html>

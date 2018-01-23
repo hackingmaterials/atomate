@@ -1,20 +1,17 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>atomate.vasp.workflows.tests package &#8212; atomate 0.6.5 documentation</title>
-    
+    <title>atomate.vasp.workflows.tests package &#8212; atomate 0.6.9 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.6.5',
+        VERSION:     '0.6.9',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -25,9 +22,12 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+ 
+<link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
+
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -37,7 +37,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.9 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -84,11 +84,10 @@ This tests can be run in two modes if not VASP_CMD:
 1. first all inputs and outputs of all deformations are present in which case</p>
 <blockquote>
 <div>in each folder a trimmed version of task.json will be generated so that</div></blockquote>
-<ol class="arabic" start="2">
+<ol class="arabic simple" start="2">
 <li><dl class="first docutils">
 <dt>once task.json is present, VaspRun can be skipped where task.json is</dt>
-<dd><p class="first last">available and their &#8220;inputs&#8221; and &#8220;outputs&#8221; folders can be removed</p>
-</dd>
+<dd>available and their “inputs” and “outputs” folders can be removed</dd>
 </dl>
 </li>
 </ol>
@@ -129,6 +128,30 @@ This tests can be run in two modes if not VASP_CMD:
 <dl class="method">
 <dt id="atomate.vasp.workflows.tests.test_elastic_workflow.TestElasticWorkflow.test_wf">
 <code class="descname">test_wf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_elastic_workflow.TestElasticWorkflow.test_wf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.vasp.workflows.tests.test_ferroelectric_workflow">
+<span id="atomate-vasp-workflows-tests-test-ferroelectric-workflow-module"></span><h2>atomate.vasp.workflows.tests.test_ferroelectric_workflow module<a class="headerlink" href="#module-atomate.vasp.workflows.tests.test_ferroelectric_workflow" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.workflows.tests.test_ferroelectric_workflow.TestFerroelectricWorkflow">
+<em class="property">class </em><code class="descclassname">atomate.vasp.workflows.tests.test_ferroelectric_workflow.</code><code class="descname">TestFerroelectricWorkflow</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_ferroelectric_workflow.TestFerroelectricWorkflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="atomate.utils.html#atomate.utils.testing.AtomateTest" title="atomate.utils.testing.AtomateTest"><code class="xref py py-class docutils literal"><span class="pre">atomate.utils.testing.AtomateTest</span></code></a></p>
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_ferroelectric_workflow.TestFerroelectricWorkflow.setUp">
+<code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_ferroelectric_workflow.TestFerroelectricWorkflow.setUp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_ferroelectric_workflow.TestFerroelectricWorkflow.test_wf">
+<code class="descname">test_wf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_ferroelectric_workflow.TestFerroelectricWorkflow.test_wf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.workflows.tests.test_ferroelectric_workflow.TestFerroelectricWorkflow.untarTestFiles">
+<code class="descname">untarTestFiles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.tests.test_ferroelectric_workflow.TestFerroelectricWorkflow.untarTestFiles" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -233,6 +256,7 @@ This tests can be run in two modes if not VASP_CMD:
 <li><a class="reference internal" href="#module-atomate.vasp.workflows.tests.test_adsorbate_workflow">atomate.vasp.workflows.tests.test_adsorbate_workflow module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.workflows.tests.test_bulk_modulus_workflow">atomate.vasp.workflows.tests.test_bulk_modulus_workflow module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.workflows.tests.test_elastic_workflow">atomate.vasp.workflows.tests.test_elastic_workflow module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.workflows.tests.test_ferroelectric_workflow">atomate.vasp.workflows.tests.test_ferroelectric_workflow module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.workflows.tests.test_neb_workflow">atomate.vasp.workflows.tests.test_neb_workflow module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.workflows.tests.test_raman_workflow">atomate.vasp.workflows.tests.test_raman_workflow module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.workflows.tests.test_vasp_workflows">atomate.vasp.workflows.tests.test_vasp_workflows module</a></li>
@@ -271,12 +295,14 @@ This tests can be run in two modes if not VASP_CMD:
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.9 documentation</a> &#187;</li> 
       </ul>
     </div>
+
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
+
   </body>
 </html>

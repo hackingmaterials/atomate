@@ -23,12 +23,13 @@ import numpy as np
 from pymatgen.core.composition import Composition
 from pymatgen.core.structure import Structure
 from pymatgen.core.operations import SymmOp
+from pymatgen.electronic_structure.bandstructure import BandStructureSymmLine
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar
+from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot
 from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
 from pymatgen.apps.borg.hive import AbstractDrone
 
-from matgendb.creator import get_uri
+from atomate.utils.utils import get_uri
 
 from atomate.utils.utils import get_logger
 from atomate import __version__ as atomate_version
@@ -76,7 +77,7 @@ class VaspDrone(AbstractDrone):
     }
 
     def __init__(self, runs=None, parse_dos="auto", compress_dos=False, bandstructure_mode="auto",
-                 compress_bs=False, additional_fields=None, use_full_uri=True):
+                 compress_bs=False, parse_locpot=True, additional_fields=None, use_full_uri=True):
         """
         Initialize a Vasp drone to parse vasp outputs
         Args:
@@ -95,6 +96,7 @@ class VaspDrone(AbstractDrone):
              False will parse the bandstructure without projections to calculate vbm, cbm, band_gap, is_metal and efermi
               Dose not saves the bandstructure in the output doc.
             compress_bs (bool): Compress the bandstructure using zlib or not
+            parse_locpot (bool): Parses the LOCPOT file and saves the 3 axis averages
             additional_fields (dict): dictionary of additional fields to add to output document
             use_full_uri (bool): converts the directory path to the full URI path
         """
@@ -102,9 +104,10 @@ class VaspDrone(AbstractDrone):
         self.compress_dos = compress_dos
         self.additional_fields = additional_fields or {}
         self.use_full_uri = use_full_uri
-        self.runs = runs or ["relax" + str(i + 1) for i in range(9)]  # can't auto-detect: path unknown
+        self.runs = runs or ["precondition"] + ["relax" + str(i + 1) for i in range(9)]  # can't auto-detect: path unknown
         self.bandstructure_mode = bandstructure_mode
         self.compress_bs = compress_bs
+        self.parse_locpot = parse_locpot
 
     def assimilate(self, path):
         """
@@ -255,6 +258,11 @@ class VaspDrone(AbstractDrone):
                                     "vbm": calc["output"]["vbm"],
                                     "is_gap_direct": calc["output"]["is_gap_direct"],
                                     "is_metal": calc["output"]["is_metal"]})
+                if not calc["output"]["is_gap_direct"]:
+                    d["output"]["direct_gap"] = calc["output"]["direct_gap"]
+                if "transition" in calc["output"]:
+                    d["output"]["transition"] = calc["output"]["transition"]
+
             except Exception:
                 if self.bandstructure_mode is True:
                     import traceback
@@ -369,6 +377,10 @@ class VaspDrone(AbstractDrone):
             d["output"]["bandgap"] = bs_gap["energy"]
             d["output"]["is_gap_direct"] = bs_gap["direct"]
             d["output"]["is_metal"] = bs.is_metal()
+            if not bs_gap["direct"]:
+                d["output"]["direct_gap"] = bs.get_direct_band_gap()
+            if isinstance(bs, BandStructureSymmLine):
+                d["output"]["transition"] = bs_gap["transition"]
 
         except Exception:
             if self.bandstructure_mode is True:
@@ -383,6 +395,10 @@ class VaspDrone(AbstractDrone):
         d["task"] = {"type": taskname, "name": taskname}
 
         d["output_file_paths"] = self.process_raw_data(dir_name, taskname=taskname)
+
+        if "locpot" in d["output_file_paths"] and self.parse_locpot:
+            locpot = Locpot.from_file(os.path.join(dir_name, d["output_file_paths"]["locpot"]))
+            d["output"]["locpot"] = {i: locpot.get_average_along_axis(i) for i in range(3)}
 
         if hasattr(vrun, "force_constants"):
             # phonon-dfpt
@@ -559,7 +575,7 @@ class VaspDrone(AbstractDrone):
         if set(self.runs).intersection(subdirs):
             return [parent]
         if not any([parent.endswith(os.sep + r) for r in self.runs]) and \
-                        len(glob.glob(os.path.join(parent, "vasprun.xml*"))) > 0:
+                len(glob.glob(os.path.join(parent, "vasprun.xml*"))) > 0:
             return [parent]
         return []
 
