@@ -8,7 +8,6 @@ This module defines firetasks for running lammps
 
 import os
 import shutil
-import json
 
 from pymatgen.io.lammps.utils import PackmolRunner, LammpsRunner
 

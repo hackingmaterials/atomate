@@ -6,11 +6,14 @@ import os
 
 import six
 import monty
+import shutil
+import glob
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 from atomate.utils.utils import env_chk, load_class, recursive_get_result
 from atomate.utils.fileio import FileClient
+from boltons.fileutils import copytree
 
 __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
@@ -71,6 +74,110 @@ def get_calc_loc(target_name, calc_locs):
         raise ValueError("Could not find the target_name: {}".format(target_name))
     else:
         return calc_locs[-1]
+
+
+@explicit_serialize
+class CopyFilesFromCalcLoc(FiretaskBase):
+    """
+    Based on CopyVaspOutputs but for general file copying. Note that "calc_locs"
+    must be set in the fw_spec. Files are copied to the current folder.
+
+    Required params:
+        calc_loc: name of target fw to get location for within the calc_locs.
+    
+    Optional params:
+        filenames (list(str)): filenames to copy. Special behavior for:
+            None: if filenames not set, all files in calc_loc will be copied
+            '$ALL_NO_SUBDIRS' in filenames: similar to filenames is None
+            '$ALL' in filenames: all files and subfolders copied, name_prepend
+                and name_append cannot be set in this case
+        name_prepend (str): string to prepend filenames, e.g. can be a directory.
+        name_append (str): string to append to destination filenames.
+    """
+
+    required_params = ["calc_loc"]
+    optional_params = ["filenames", "name_prepend", "name_append"]
+
+    def run_task(self,fw_spec=None):
+        calc_loc = get_calc_loc(self['calc_loc'], fw_spec["calc_locs"])
+        calc_dir = calc_loc["path"]
+        filesystem = calc_loc["filesystem"]
+
+        fileclient = FileClient(filesystem=filesystem)
+        calc_dir = fileclient.abspath(calc_dir)
+        filenames = self.get('filenames')
+        if filenames is None:
+            files_to_copy = fileclient.listdir(calc_dir)
+        elif isinstance(filenames, six.string_types):
+            raise ValueError("filenames must be a list!")
+        elif '$ALL_NO_SUBDIRS' in filenames:
+            files_to_copy = fileclient.listdir(calc_dir)
+        elif '$ALL' in filenames:
+            if self.get('name_prepend') or self.get('name_append'):
+                raise ValueError('name_prepend or name_append options not compatible with "$ALL" option')
+            copytree(calc_dir, os.getcwd())
+            return
+        else:
+            files_to_copy = filenames
+
+        for f in files_to_copy:
+            prev_path_full = os.path.join(calc_dir, f)
+            dest_fname = self.get('name_prepend', "") + f + self.get(
+                'name_append', "")
+            dest_path = os.path.join(os.getcwd(), dest_fname)
+
+            fileclient.copy(prev_path_full, dest_path)
+
+
+@explicit_serialize
+class DeleteFiles(FiretaskBase):
+    """
+    Delete files
+    Uses glob to search for files so any pattern it can accept can be used
+
+    Required params:
+        files: list of files to remove
+    """
+
+    required_params = ["files"]
+
+    def run_task(self,fw_spec=None):
+        cwd = os.getcwd()
+
+        for file in self.get("files",[]):
+            for f in glob.glob(os.path.join(cwd,file)):
+                if os.path.isdir(f):
+                    shutil.rmtree(f)
+                else:
+                    os.remove(f)
+
+@explicit_serialize
+class CreateFolder(FiretaskBase):
+    """
+    FireTask to create new folder with the option of changing directory to the new folder.
+
+    Required params:
+        folder_name (str): folder name.
+
+    Optional params:
+        change_dir(bool): change working dir to new folder after creation.
+            Defaults to False.
+        relative_path (bool): whether folder name is relative or absolute.
+            Defaults to True.
+    """
+    required_params = ["folder_name"]
+    optional_params = ["change_dir", "relative_path"]
+
+    def run_task(self, fw_spec):
+
+        if self.get("relative_path", True):
+            new_dir = os.path.join(os.getcwd(), self["folder_name"])
+        else:
+            new_dir = os.path.join(self["folder_name"])
+        if not os.path.exists(new_dir):
+            os.makedirs(new_dir)
+        if self.get("change_dir", False):
+            os.chdir(new_dir)
 
 
 @explicit_serialize

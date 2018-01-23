@@ -5,12 +5,16 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import logging
 import os
 import sys
+import socket
+from random import randint
+from time import time
 
 import six
 from monty.json import MontyDecoder
 from pymatgen import Composition
 
 from fireworks import Workflow
+from pymatgen.alchemy.materials import TransformedStructure
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
@@ -57,10 +61,10 @@ def env_chk(val, fw_spec, strict=True, default=None):
 
 def get_mongolike(d, key):
     """
-    Grab a dict value using dot-notation like "a.b.c" from dict {"a":{"b":{"c": 3}}}
+    Retrieve a dict value using dot-notation like "a.b.c" from dict {"a":{"b":{"c": 3}}}
     Args:
         d (dict): the dictionary to search
-        key (str): the key we want to grab with dot notation, e.g., "a.b.c" 
+        key (str): the key we want to retrieve with dot notation, e.g., "a.b.c"
 
     Returns:
         value from desired dict (whatever is stored at the desired key)
@@ -133,9 +137,12 @@ def get_logger(name, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(na
 
 
 def get_meta_from_structure(structure):
+    if isinstance(structure, TransformedStructure):
+        structure = structure.final_structure
+
     comp = structure.composition
     elsyms = sorted(set([e.symbol for e in comp.elements]))
-    meta = {'nsites': len(structure),
+    meta = {'nsites': structure.num_sites,
             'elements': elsyms,
             'nelements': len(elsyms),
             'formula': comp.formula,
@@ -300,3 +307,42 @@ def recursive_update(d, u):
                 d[k] = v
         else:
             d[k] = v
+
+
+def get_a_unique_id():
+    ts = "{:.4f}".format(time())
+    ts += str(randint(0,9999)).zfill(4)
+    return ts
+
+
+def get_uri(dir_name):
+    """
+    Returns the URI path for a directory. This allows files hosted on
+    different file servers to have distinct locations.
+    Args:
+        dir_name:
+            A directory name.
+    Returns:
+        Full URI path, e.g., fileserver.host.com:/full/path/of/dir_name.
+    """
+    fullpath = os.path.abspath(dir_name)
+    try:
+        hostname = socket.gethostbyaddr(socket.gethostname())[0]
+    except:
+        hostname = socket.gethostname()
+    return "{}:{}".format(hostname, fullpath)
+
+
+
+def get_database(config_file=None, settings=None, admin=False, **kwargs):
+    d = get_settings(config_file) if settings is None else settings
+    conn = MongoClient(host=d["host"], port=d["port"], **kwargs)
+    db = conn[d["database"]]
+    try:
+        user = d["admin_user"] if admin else d["readonly_user"]
+        passwd = d["admin_password"] if admin else d["readonly_password"]
+        db.authenticate(user, passwd)
+    except (KeyError, TypeError, ValueError):
+        _log.warn("No {admin,readonly}_user/password found in config. file, "
+                  "accessing DB without authentication")
+    return db

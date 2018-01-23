@@ -1,20 +1,17 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>atomate.utils package &#8212; atomate 0.6.3 documentation</title>
-    
+    <title>atomate.utils package &#8212; atomate 0.6.9 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.6.3',
+        VERSION:     '0.6.9',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -25,9 +22,12 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+ 
+<link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
+
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -37,7 +37,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.9 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -125,13 +125,13 @@ update_duplicates (bool): whether to update the duplicates</dd>
 <span id="atomate-utils-fileio-module"></span><h2>atomate.utils.fileio module<a class="headerlink" href="#module-atomate.utils.fileio" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="atomate.utils.fileio.FileClient">
-<em class="property">class </em><code class="descclassname">atomate.utils.fileio.</code><code class="descname">FileClient</code><span class="sig-paren">(</span><em>filesystem=None</em>, <em>private_key=u'~/.ssh/id_rsa'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">atomate.utils.fileio.</code><code class="descname">FileClient</code><span class="sig-paren">(</span><em>filesystem=None</em>, <em>private_key='~/.ssh/id_rsa'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <p>A client for performing many file operations while being agnostic
 of whether those operations are happening locally or via SSH</p>
 <dl class="method">
 <dt id="atomate.utils.fileio.FileClient.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>filesystem=None</em>, <em>private_key=u'~/.ssh/id_rsa'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>filesystem=None</em>, <em>private_key='~/.ssh/id_rsa'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Args:</dt>
 <dd><dl class="first last docutils">
@@ -168,7 +168,7 @@ dest (str): destination file full path</dd>
 <dl class="staticmethod">
 <dt id="atomate.utils.fileio.FileClient.exists">
 <em class="property">static </em><code class="descname">exists</code><span class="sig-paren">(</span><em>sftp</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.exists" title="Permalink to this definition">¶</a></dt>
-<dd><p>os.path.exists() for paramiko&#8217;s SCP object</p>
+<dd><p>os.path.exists() for paramiko’s SCP object</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd>sftp (SFTPClient):
@@ -260,19 +260,19 @@ Also initialize launchpad.</p>
 on the worker machine. For example, you might have slightly different
 executable names or scratch directories on different machines.</p>
 <p>env_chk() works using the principles of the FWorker env in FireWorks.</p>
-<p>This helper method translates string &#8220;val&#8221; that looks like this:
-&#8220;&gt;&gt;ENV_KEY&lt;&lt;&#8221;
+<p>This helper method translates string “val” that looks like this:
+“&gt;&gt;ENV_KEY&lt;&lt;”
 to the contents of:
-fw_spec[&#8220;_fw_env&#8221;][ENV_KEY]</p>
-<p>Otherwise, the string &#8220;val&#8221; is interpreted literally and passed-through as is.</p>
-<p>The fw_spec[&#8220;_fw_env&#8221;] is in turn set by the FWorker. For more details,
+fw_spec[“_fw_env”][ENV_KEY]</p>
+<p>Otherwise, the string “val” is interpreted literally and passed-through as is.</p>
+<p>The fw_spec[“_fw_env”] is in turn set by the FWorker. For more details,
 see: <a class="reference external" href="https://materialsproject.github.io/fireworks/worker_tutorial.html">https://materialsproject.github.io/fireworks/worker_tutorial.html</a></p>
 <p>Since the fw_env can be set differently for each FireWorker, one can
-use this method to translate a single &#8220;val&#8221; into multiple possibilities,
+use this method to translate a single “val” into multiple possibilities,
 thus achieving different behavior on different machines.</p>
 <dl class="docutils">
 <dt>Args:</dt>
-<dd><p class="first">val: any value, with &#8220;&gt;&gt;&lt;&lt;&#8221; notation reserved for special env lookup values
+<dd><p class="first">val: any value, with “&gt;&gt;&lt;&lt;” notation reserved for special env lookup values
 fw_spec: (dict) fw_spec where one can find the _fw_env keys
 strict (bool): if True, errors if env format (&gt;&gt;&lt;&lt;) specified but cannot be found in fw_spec
 default: if val is None or env cannot be found in non-strict mode,</p>
@@ -281,6 +281,16 @@ default: if val is None or env cannot be found in non-strict mode,</p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="function">
+<dt id="atomate.utils.utils.get_a_unique_id">
+<code class="descclassname">atomate.utils.utils.</code><code class="descname">get_a_unique_id</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.get_a_unique_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="atomate.utils.utils.get_database">
+<code class="descclassname">atomate.utils.utils.</code><code class="descname">get_database</code><span class="sig-paren">(</span><em>config_file=None</em>, <em>settings=None</em>, <em>admin=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.get_database" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="atomate.utils.utils.get_fws_and_tasks">
@@ -299,7 +309,7 @@ task_name_constraint (str): a constraint on the task name</dd>
 
 <dl class="function">
 <dt id="atomate.utils.utils.get_logger">
-<code class="descclassname">atomate.utils.utils.</code><code class="descname">get_logger</code><span class="sig-paren">(</span><em>name</em>, <em>level=10</em>, <em>format=u'%(asctime)s %(levelname)s %(name)s %(message)s'</em>, <em>stream=&lt;open file '&lt;stdout&gt;'</em>, <em>mode 'w'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.get_logger" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">atomate.utils.utils.</code><code class="descname">get_logger</code><span class="sig-paren">(</span><em>name</em>, <em>level=10</em>, <em>format='%(asctime)s %(levelname)s %(name)s %(message)s'</em>, <em>stream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.get_logger" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -310,14 +320,32 @@ task_name_constraint (str): a constraint on the task name</dd>
 <dl class="function">
 <dt id="atomate.utils.utils.get_mongolike">
 <code class="descclassname">atomate.utils.utils.</code><code class="descname">get_mongolike</code><span class="sig-paren">(</span><em>d</em>, <em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.get_mongolike" title="Permalink to this definition">¶</a></dt>
-<dd><p>Grab a dict value using dot-notation like &#8220;a.b.c&#8221; from dict {&#8220;a&#8221;:{&#8220;b&#8221;:{&#8220;c&#8221;: 3}}}
+<dd><p>Retrieve a dict value using dot-notation like “a.b.c” from dict {“a”:{“b”:{“c”: 3}}}
 Args:</p>
 <blockquote>
 <div>d (dict): the dictionary to search
-key (str): the key we want to grab with dot notation, e.g., &#8220;a.b.c&#8221;</div></blockquote>
+key (str): the key we want to retrieve with dot notation, e.g., “a.b.c”</div></blockquote>
 <dl class="docutils">
 <dt>Returns:</dt>
 <dd>value from desired dict (whatever is stored at the desired key)</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="atomate.utils.utils.get_uri">
+<code class="descclassname">atomate.utils.utils.</code><code class="descname">get_uri</code><span class="sig-paren">(</span><em>dir_name</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.get_uri" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the URI path for a directory. This allows files hosted on
+different file servers to have distinct locations.
+Args:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>dir_name:</dt>
+<dd>A directory name.</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>Full URI path, e.g., fileserver.host.com:/full/path/of/dir_name.</dd>
 </dl>
 </dd></dl>
 
@@ -367,9 +395,9 @@ metadata:</p>
 <div>tag: testing_workflow</div></blockquote>
 <p><a href="#id3"><span class="problematic" id="id4">``</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a></p>
 <p>The <cite>fireworks</cite> key is a list of Fireworks; it is expected that
-all such Fireworks have &#8220;structure&#8221; as the first argument and
+all such Fireworks have “structure” as the first argument and
 other optional arguments following that. Each Firework is specified
-via &#8220;fw&#8221;: &lt;explicit path&gt;.</p>
+via “fw”: &lt;explicit path&gt;.</p>
 <p>You can pass arguments into the constructor using the special
 keyword <cite>params</cite>, which is a dict. Any param starting with a $ will
 be expanded using environment variables.If multiple fireworks share
@@ -396,7 +424,7 @@ workflow.</p>
 <dd><p>Load and return the class from the given module.</p>
 <dl class="docutils">
 <dt>Args:</dt>
-<dd>modulepath (str): dotted path to the module. eg: &#8220;pymatgen.io.vasp.sets&#8221;
+<dd>modulepath (str): dotted path to the module. eg: “pymatgen.io.vasp.sets”
 classname (str): name of the class to be loaded.</dd>
 <dt>Returns:</dt>
 <dd>class</dd>
@@ -407,21 +435,21 @@ classname (str): name of the class to be loaded.</dd>
 <dt id="atomate.utils.utils.recursive_get_result">
 <code class="descclassname">atomate.utils.utils.</code><code class="descname">recursive_get_result</code><span class="sig-paren">(</span><em>d</em>, <em>result</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.recursive_get_result" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function that gets designated keys or values of d 
-(i. e. those that start with &#8220;d&gt;&gt;&#8221; or &#8220;a&gt;&gt;&#8221;) from 
+(i. e. those that start with “d&gt;&gt;” or “a&gt;&gt;”) from 
 the corresponding entry in result_dict, similar to 
 FireWorks recursive_deserialize.</p>
-<p>Note that the plain &#8220;&gt;&gt;&#8221; notation will get a key from
+<p>Note that the plain “&gt;&gt;” notation will get a key from
 the result.as_dict() object and may use MongoDB
-dot notation, while &#8220;a&gt;&gt;&#8221; will get an attribute
+dot notation, while “a&gt;&gt;” will get an attribute
 of the object.</p>
 <p>Examples:</p>
 <dl class="docutils">
 <dt>Getting a dict key from a VaspRun instance:</dt>
-<dd>recursive_get_result({&#8220;stress&#8221;:&#8221;&gt;&gt;output.ionic_steps.-1.stress&#8221;}, vasprun)
-&#8211;&gt; {&#8220;stress&#8221;:[[0.2, 0, 0], [0, 0.3, 0], [0, 0, 0.3]]}</dd>
+<dd>recursive_get_result({“stress”:”&gt;&gt;output.ionic_steps.-1.stress”}, vasprun)
+–&gt; {“stress”:[[0.2, 0, 0], [0, 0.3, 0], [0, 0, 0.3]]}</dd>
 <dt>Getting an <strong>attribute</strong> from a vasprun:</dt>
-<dd>recursive_get_result({&#8220;epsilon&#8221;:&#8221;a&gt;&gt;epsilon_static&#8221;, vasprun}
-&#8211;&gt; {&#8220;epsilon&#8221;:-3.4}</dd>
+<dd>recursive_get_result({“epsilon”:”a&gt;&gt;epsilon_static”, vasprun}
+–&gt; {“epsilon”:-3.4}</dd>
 </dl>
 </dd></dl>
 
@@ -491,12 +519,14 @@ u (dict): updates to propogate</div></blockquote>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.9 documentation</a> &#187;</li> 
       </ul>
     </div>
+
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
+
   </body>
 </html>

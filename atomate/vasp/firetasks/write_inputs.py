@@ -22,6 +22,7 @@ from pymatgen.io.vasp import Incar, Poscar, Potcar, PotcarSingle
 from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, MPHSEBSSet
 
 from atomate.utils.utils import env_chk, load_class
+from atomate.vasp.firetasks.glue_tasks import GetInterpolatedPOSCAR
 
 __author__ = 'Anubhav Jain, Shyue Ping Ong, Kiran Mathew'
 __email__ = 'ajain@lbl.gov'
@@ -58,6 +59,44 @@ class WriteVaspFromIOSet(FiretaskBase):
         else:
             vis_cls = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])
             vis = vis_cls(self["structure"], **self.get("vasp_input_params", {}))
+        vis.write_input(".")
+
+@explicit_serialize
+class WriteVaspFromIOSetFromInterpolatedPOSCAR(GetInterpolatedPOSCAR):
+    """
+    Grabs CONTCARS from two previous calculations to create interpolated
+    structure. Create VASP input files using implementations of pymatgen's
+    AbstractVaspInputSet. An input set can be provided as String/parameter
+    combo.
+
+    Required params:
+        start (str): name of fw for start of interpolation.
+        end (str): name of fw for end of interpolation.
+        this_image (int): which interpolation this is.
+        nimages (int) : number of interpolations.
+        autosort_tol (float): a distance tolerance in angstrom in which
+          to automatically sort end_structure to match to the closest
+          points in this particular structure.
+        vasp_input_set (str): a string name for the VASP input set (e.g., "MPRelaxSet").
+
+    Optional params:
+        vasp_input_params (dict): When using a string name for VASP input set, use this as a dict
+            to specify kwargs for instantiating the input set parameters. For example, if you want
+            to change the user_incar_settings, you should provide: {"user_incar_settings": ...}.
+            This setting is ignored if you provide the full object representation of a VaspInputSet
+            rather than a String.
+    """
+    # First, we make a fresh copy of the required_params before modifying.
+    required_params = ["start", "end", "this_image", "nimages", "vasp_input_set"]
+    optional_params = ["vasp_input_params", "autosort_tol"]
+
+    def run_task(self, fw_spec):
+        # Get interpolated structure.
+        structure = GetInterpolatedPOSCAR.interpolate_poscar(self, fw_spec)
+
+        # Assumes VaspInputSet String + parameters was provided
+        vis_cls = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])
+        vis = vis_cls(structure, **self.get("vasp_input_params", {}))
         vis.write_input(".")
 
 

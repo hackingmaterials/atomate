@@ -1,20 +1,17 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Builders &#8212; atomate 0.6.3 documentation</title>
-    
+    <title>Builders &#8212; atomate 0.6.9 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.6.3',
+        VERSION:     '0.6.9',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -27,9 +24,12 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Creating Workflows" href="creating_workflows.html" />
-    <link rel="prev" title="Running Gibbs Workflows" href="gibbs_workflow_tutorial.html" /> 
+    <link rel="prev" title="Running Gibbs Workflows" href="gibbs_workflow_tutorial.html" />
+ 
+<link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
+
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="gibbs_workflow_tutorial.html" title="Running Gibbs Workflows"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.9 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -58,14 +58,14 @@
 <span id="builders"></span><h1>Builders: creating calculation reports for data analysis<a class="headerlink" href="#builders-creating-calculation-reports-for-data-analysis" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>By default, atomate parses the results of each calculation (&#8220;task&#8221;) and stores the result in
-MongoDB. Although it is often useful to have such a &#8220;calculation-centric&#8221; view of the data, in
+<p>By default, atomate parses the results of each calculation (“task”) and stores the result in
+MongoDB. Although it is often useful to have such a “calculation-centric” view of the data, in
 which each document in the database represents one calculation, it is sometimes even more useful
 to have a database in which each document summarizes all calculated properties of a given material.</p>
-<p>A &#8220;builder&#8221; in atomate summarizes all calculated data on a single material by collecting together
+<p>A “builder” in atomate summarizes all calculated data on a single material by collecting together
 information from multiple tasks. One can also use builders to do post-processing such as computing
 and storing materials descriptors that can be helpful in data analysis. Thus, the main goal of a
-builder is take the somewhat &#8220;raw&#8221; information from a set of calculation tasks and derive a summary
+builder is take the somewhat “raw” information from a set of calculation tasks and derive a summary
 and higher-level information from a materials perspective.</p>
 <p>A high-level diagram of the build process is shown below.</p>
 <div class="figure" id="id1">
@@ -76,16 +76,16 @@ and higher-level information from a materials perspective.</p>
 <h3>The core builder: TasksMaterialsBuilder<a class="headerlink" href="#the-core-builder-tasksmaterialsbuilder" title="Permalink to this headline">¶</a></h3>
 <p>The core builder of atomate is TasksMaterialsBuilder. This builder will:</p>
 <ul class="simple">
-<li>automatically determine which tasks are on the same material using pymatgen&#8217;s StructureMatcher</li>
-<li>collect together basic data from all those tasks into a single document that is stored in a new collection called &#8220;materials&#8221;.</li>
+<li>automatically determine which tasks are on the same material using pymatgen’s StructureMatcher</li>
+<li>collect together basic data from all those tasks into a single document that is stored in a new collection called “materials”.</li>
 </ul>
 <p>This core builder is one of the more complex builders because it needs to decide things like:</p>
 <ul class="simple">
-<li>what kinds of calculations should be considered as possible new materials? (for example, in general one would not like to consider a small deformation calculation performed for the purpose of elastic tensor calculation to be different &#8220;material&#8221; than its parent)</li>
+<li>what kinds of calculations should be considered as possible new materials? (for example, in general one would not like to consider a small deformation calculation performed for the purpose of elastic tensor calculation to be different “material” than its parent)</li>
 <li>if there are multiple calculation types that give different values of the same property for a single material, which calculation should be trusted?</li>
 <li>how can we decide if two calculations are on the same material?</li>
 </ul>
-<p>However, this is the &#8220;core&#8221; builder because it begins the process of collecting together data from individual calculations and creating a single materials-centric report.</p>
+<p>However, this is the “core” builder because it begins the process of collecting together data from individual calculations and creating a single materials-centric report.</p>
 </div>
 <div class="section" id="other-builders">
 <h3>Other builders<a class="headerlink" href="#other-builders" title="Permalink to this headline">¶</a></h3>
@@ -161,12 +161,14 @@ and higher-level information from a materials perspective.</p>
         <li class="right" >
           <a href="gibbs_workflow_tutorial.html" title="Running Gibbs Workflows"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.9 documentation</a> &#187;</li> 
       </ul>
     </div>
+
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
+
   </body>
 </html>

@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from matgendb.util import get_database
+from atomate.utils.utils import get_database
 
 from atomate.utils.utils import get_logger
 from atomate.vasp.builders.base import AbstractBuilder
@@ -37,6 +37,22 @@ class FixTasksBuilder(AbstractBuilder):
             logger.info("Fixing tag (converting to list), tid: {}".format(t["task_id"]))
             self._tasks.update_one({"task_id": t["task_id"]},
                                    {"$set": {"tags": [t["tags"]]}})
+
+        # fix old (incorrect) delta volume percent
+        for t in self._tasks.find({"analysis.delta_volume_percent": {"$exists": True}, "analysis.delta_volume_as_percent": {"$exists": False}}, {"task_id": 1, "analysis": 1}):
+            logger.info("Converting delta_volume_percent to be on a percentage scale, tid: {}".format(t["task_id"]))
+            self._tasks.update_one({"task_id": t["task_id"]},
+                                   {"$set": {"analysis.delta_volume_as_percent": t["analysis"]["delta_volume_percent"] * 100}})
+
+        # remove old (incorrect) delta volume percent
+        for t in self._tasks.find(
+                {"analysis.delta_volume_percent": {"$exists": True},
+                 "analysis.delta_volume_as_percent": {"$exists": True}},
+                {"task_id": 1}):
+            logger.info("Removing delta_volume_percent, tid: {}".format(t["task_id"]))
+            self._tasks.update_one({"task_id": t["task_id"]},
+                                   {"$unset": {"analysis.delta_volume_percent": 1}})
+
 
         logger.info("FixTasksBuilder finished.")
 
