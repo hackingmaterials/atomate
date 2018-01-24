@@ -1,6 +1,6 @@
 numpy==1.14.0
 scipy==1.0.0
-FireWorks==1.6.4
+FireWorks==1.6.5
 pymatgen==2018.1.19
 pymatgen_diffusion==2018.1.4
 custodian==2017.12.23
