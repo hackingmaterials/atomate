@@ -37,6 +37,8 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
         self.assertEqual(doc["composition_reduced"], {'Si': 1.0})
         self.assertEqual(doc["composition_unit_cell"], {'Si': 2.0})
         self.assertAlmostEqual(doc["output"]["energy"], -10.84671647)
+        self.assertTrue(np.allclose(doc["output"]["forces"], [[0, 0, 0], [0, 0, 0]]))
+        self.assertAlmostEqual(doc['output']['stress'][0][0], -0.08173155)
         self.assertEqual(doc["formula_pretty"], 'Si')
         self.assertEqual(doc["formula_anonymous"], 'A')
         self.assertEqual(doc["calcs_reversed"][0]["output"]["energy"], doc["output"]["energy"])
