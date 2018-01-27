@@ -25,6 +25,7 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.analysis.ferroelectricity.polarization import Polarization, get_total_ionic_dipole, \
     EnergyTrend
 from pymatgen.analysis.magnetism import CollinearMagneticStructureAnalyzer, Ordering
+from pymatgen.command_line.bader_caller import bader_analysis_from_path
 
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk, get_meta_from_structure
@@ -64,7 +65,8 @@ class VaspToDb(FiretaskBase):
             Defaults to True.
     """
     optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
-                       "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful"]
+                       "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful",
+                       "perform_bader"]
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
@@ -729,14 +731,11 @@ class MagneticOrderingsToDB(FiretaskBase):
         used to make it easier to retrieve task docs
         parent_structure: Structure of parent crystal (not magnetically
         ordered)
-        strategy: copy of other input kwargs
     """
 
-    # TODO: this is based on other ToDB tasks, will likely change as magnetism_wf changes
-    # -mkhorton
-
-    # TODO: remove strategy?
-    required_params = ["db_file", "wf_uuid", "parent_structure", "strategy", "perform_bader"]
+    required_params = ["db_file", "wf_uuid", "parent_structure",
+                       "perform_bader", "scan"]
+    optional_params = ["origins", "input_index"]
 
     def run_task(self, fw_spec):
 
@@ -747,10 +746,12 @@ class MagneticOrderingsToDB(FiretaskBase):
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
         formula = self["parent_structure"].formula
+        formula_pretty = self["parent_structure"].composition.reduced_formula
 
         # get ground state energy
+        task_label_regex = 'static' if not self['scan'] else 'optimize'
         docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid,
-                                          "task_label": {"$regex": "static"}},
+                                          "task_label": {"$regex": task_label_regex}},
                                          ["task_id", "output.energy_per_atom"]))
 
         energies = [d["output"]["energy_per_atom"] for d in docs]
@@ -763,7 +764,7 @@ class MagneticOrderingsToDB(FiretaskBase):
 
         # get results for different orderings
         docs = list(mmdb.collection.find({
-            "task_label": {"$regex": "static"},
+            "task_label": {"$regex": task_label_regex},
             "wf_meta.wf_uuid": uuid
         }))
 
@@ -782,11 +783,11 @@ class MagneticOrderingsToDB(FiretaskBase):
 
             final_structure = Structure.from_dict(d["output"]["structure"])
 
-            input_msa = CollinearMagneticStructureAnalyzer(input_structure)
-            final_msa = CollinearMagneticStructureAnalyzer(final_structure)
-
-            ordering_changed = final_msa.ordering == input_msa.ordering
-            symmetry_changed = final_structure.get_space_group_info()[0] == input_structure.get_space_group_info()[0]
+            # picking a fairly large threshold so that default 0.6 µB magmoms don't
+            # cause problems with analysis, this is obviously not approriate for
+            # some magnetic structures with small magnetic moments (e.g. CuO)
+            input_analyzer = CollinearMagneticStructureAnalyzer(input_structure, threshold=0.61)
+            final_analyzer = CollinearMagneticStructureAnalyzer(final_structure, threshold=0.61)
 
             if d["task_id"] == ground_state_task_id:
                 stable = True
@@ -796,6 +797,8 @@ class MagneticOrderingsToDB(FiretaskBase):
                 decomposes_to = ground_state_task_id
             energy_above_ground_state_per_atom = d["output"]["energy_per_atom"] \
                                                  - ground_state_energy
+            energy_diff_relax_static = optimize_task["output"]["energy_per_atom"] \
+                                       - d["output"]["energy_per_atom"]
 
             # tells us the order in which structure was guessed
             # 1 is FM, then AFM..., -1 means it was entered manually
@@ -804,33 +807,66 @@ class MagneticOrderingsToDB(FiretaskBase):
             task_label = d["task_label"].split(' ')
             ordering_index = task_label.index('ordering')
             ordering_index = int(task_label[ordering_index + 1])
-
-            # note if a magnetic structure relaxes to a non-magnetic structure
-            # TODO: filter out 0.6 magmoms?
-            if input_msa.ordering != Ordering.NM \
-                    and final_msa.ordering == Ordering.NM:
-                successful = False
+            if self["origins"]:
+                ordering_origin = self["origins"][ordering_index]
             else:
-                successful = True
+                ordering_origin = None
 
-            # TODO: get magnetic moments via bader analysis
+            final_magmoms = final_structure.site_properties["magmom"]
+            magmoms = {"vasp": final_magmoms}
             if self["perform_bader"]:
-                ...
+                # if bader has already been run during task ingestion,
+                # use existing analysis
+                if "bader" in d:
+                    magmoms["bader"] = d["bader"]["magmom"]
+                # else try to run it
+                else:
+                    try:
+                        dir_name = d["dir_name"]
+                        # strip hostname if present, implicitly assumes
+                        # ToDB task has access to appropriate dir
+                        if ":" in dir_name:
+                            dir_name = dir_name.split(":")[1]
+                        magmoms["bader"] = bader_analysis_from_path(dir_name)["magmom"]
+                        # prefer bader magmoms if we have them
+                        final_magmoms = magmoms["bader"]
+                    except Exception as e:
+                        magmoms["bader"] = "Bader analysis failed: {}".format(e)
+
+            input_order_check = [0 if abs(m) < 0.61 else m for m in input_magmoms]
+            final_order_check = [0 if abs(m) < 0.61 else m for m in final_magmoms]
+            ordering_changed = not np.array_equal(np.sign(input_order_check),
+                                                  np.sign(final_order_check))
+
+            symmetry_changed = (final_structure.get_space_group_info()[0]
+                                != input_structure.get_space_group_info()[0])
+
+            total_magnetization = abs(d["calcs_reversed"][0]["output"]["outcar"]["total_magnetization"])
+            num_formula_units = sum(d["calcs_reversed"][0]["composition_reduced"].values())/\
+                                sum(d["calcs_reversed"][0]["composition_unit_cell"].values())
+            total_magnetization_per_formula_unit = total_magnetization/num_formula_units
+            total_magnetization_per_unit_volume = total_magnetization/final_structure.volume
 
             summary = {
                 "formula": formula,
+                "formula_pretty": formula_pretty,
                 "parent_structure": self["parent_structure"].as_dict(),
                 "wf_meta": d["wf_meta"],  # book-keeping
                 "task_id": d["task_id"],
                 "structure": final_structure.as_dict(),
+                "magmoms": magmoms,
                 "input": {
                     "structure": input_structure.as_dict(),
-                    "ordering": input_msa.ordering.value,
+                    "ordering": input_analyzer.ordering.value,
                     "symmetry": input_structure.get_space_group_info()[0],
                     "index": ordering_index,
-                    "strategy": self["strategy"]
+                    "origin": ordering_origin,
+                    "input_index": self.get("input_index", None)
                 },
-                "ordering": final_msa.ordering.value,
+                "total_magnetization": total_magnetization,
+                "total_magnetization_per_formula_unit": total_magnetization_per_formula_unit,
+                "total_magnetization_per_unit_volume": total_magnetization_per_unit_volume,
+                "ordering": final_analyzer.ordering.value,
                 "ordering_changed": ordering_changed,
                 "symmetry": final_structure.get_space_group_info()[0],
                 "symmetry_changed": symmetry_changed,
@@ -838,7 +874,7 @@ class MagneticOrderingsToDB(FiretaskBase):
                 "stable": stable,
                 "decomposes_to": decomposes_to,
                 "energy_above_ground_state_per_atom": energy_above_ground_state_per_atom,
-                "successful": successful,
+                "energy_diff_relax_static": energy_diff_relax_static,
                 "created_at": datetime.utcnow()
             }
 
@@ -922,7 +958,7 @@ class MagneticDeformationToDB(FiretaskBase):
         success = False if msa.ordering == Ordering.NM else True
 
         # get mpid
-        mpr = MPRester()
+        mpr = MPRester() #TODO: remove?
         try:
             mpids = mpr.find_structure(m_structure)
         except:

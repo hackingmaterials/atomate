@@ -28,7 +28,6 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot
 from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
 from pymatgen.apps.borg.hive import AbstractDrone
-from pymatgen.command_line.bader_caller import bader_analysis_from_path
 
 from atomate.utils.utils import get_uri
 
@@ -78,8 +77,7 @@ class VaspDrone(AbstractDrone):
     }
 
     def __init__(self, runs=None, parse_dos="auto", compress_dos=False, bandstructure_mode="auto",
-                 compress_bs=False, parse_locpot=True, perform_bader=False,
-                 additional_fields=None, use_full_uri=True):
+                 compress_bs=False, parse_locpot=True, additional_fields=None, use_full_uri=True):
         """
         Initialize a Vasp drone to parse vasp outputs
         Args:
@@ -98,8 +96,6 @@ class VaspDrone(AbstractDrone):
              False will parse the bandstructure without projections to calculate vbm, cbm, band_gap, is_metal and efermi
               Dose not saves the bandstructure in the output doc.
             compress_bs (bool): Compress the bandstructure using zlib or not
-            perform_bader (bool): Whether or not to perform Bader analysis, requires bader binary
-            to be in path (only recommended for static calculations)
             parse_locpot (bool): Parses the LOCPOT file and saves the 3 axis averages
             additional_fields (dict): dictionary of additional fields to add to output document
             use_full_uri (bool): converts the directory path to the full URI path
@@ -112,7 +108,6 @@ class VaspDrone(AbstractDrone):
         self.bandstructure_mode = bandstructure_mode
         self.compress_bs = compress_bs
         self.parse_locpot = parse_locpot
-        self.perform_bader = perform_bader
 
     def assimilate(self, path):
         """
@@ -292,13 +287,6 @@ class VaspDrone(AbstractDrone):
                 if SymmOp.inversion() not in sg.get_symmetry_operations():
                     for k in ["piezo_ionic_tensor", "piezo_tensor"]:
                         d["output"][k] = d_calc_final["output"]["outcar"][k]
-
-            if self.perform_bader:
-                try:
-                    bader = bader_analysis_from_path(dir_name)
-                except Exception as e:
-                    bader = "Bader analysis failed: {}".format(e)
-                d["bader"] = bader
 
             d["state"] = "successful" if d_calc["has_vasp_completed"] else "unsuccessful"
 
