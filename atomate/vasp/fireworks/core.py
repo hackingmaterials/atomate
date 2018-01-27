@@ -86,7 +86,8 @@ class OptimizeFW(Firework):
 
 class StaticFW(Firework):
     def __init__(self, structure, name="static", vasp_input_set=None, vasp_input_set_params=None,
-                 vasp_cmd="vasp", prev_calc_loc=True, db_file=None, parents=None, **kwargs):
+                 vasp_cmd="vasp", prev_calc_loc=True, db_file=None, parents=None,
+                 vasp_to_db_kwargs=None, **kwargs):
         """
         Standard static calculation Firework - either from a previous location or from a structure.
 
@@ -104,6 +105,7 @@ class StaticFW(Firework):
                 new static calculation using the provided structure.
             db_file (str): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            vasp_to_db_kwargs (dict): kwargs to pass to VaspToDb
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
 
@@ -114,6 +116,11 @@ class StaticFW(Firework):
         t = []
 
         vasp_input_set_params = vasp_input_set_params or {}
+
+        vasp_to_db_kwargs = vasp_to_db_kwargs or {}
+        if "additional_fields" not in vasp_to_db_kwargs:
+            vasp_to_db_kwargs["additional_fields"] = {}
+        vasp_to_db_kwargs["additional_fields"]["task_label"] = name
 
         if parents:
             if prev_calc_loc:
@@ -128,8 +135,7 @@ class StaticFW(Firework):
 
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
-        t.append(
-            VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
+        t.append(VaspToDb(db_file=db_file, **vasp_to_db_kwargs))
         super(StaticFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)
 
