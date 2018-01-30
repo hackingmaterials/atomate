@@ -11,4 +11,3 @@ six==1.11.0
 pybtex==0.21
 ruamel.yaml==0.15.35
 pandas==0.22.0
-boltons==17.2.0

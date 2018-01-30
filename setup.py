@@ -23,7 +23,7 @@ if __name__ == "__main__":
         install_requires=['FireWorks>=1.4.0', 'pymatgen>=2017.12.15',
                           'custodian>=2017.12.23', 'monty>=1.0.2',
                           'tqdm>=4.7.4', 'six',
-                          'pymatgen-diffusion>=2018.1.4', 'boltons>=17.2.0'],
+                          'pymatgen-diffusion>=2018.1.4'],
         extras_require={'rtransfer': ['paramiko>=1.15.0'],
                         'plotting': ['matplotlib>=1.5.2'],
                         'phonons': ['phonopy>=1.10.8'],
