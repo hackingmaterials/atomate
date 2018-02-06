@@ -450,7 +450,13 @@ class VaspDrone(AbstractDrone):
         calc = d["calcs_reversed"][0]
         if d["state"] == "successful" and calc["input"]["parameters"].get("NSW", 0) > 0:
             # handle the max force and max force error
-            max_force = max([np.linalg.norm(a) for a in calc["output"]["ionic_steps"][-1]["forces"]])
+            forces = np.array(calc['output']['ionic_steps'][-1]['forces'])
+            # account for selective dynamics
+            final_structure = Structure.from_dict(calc['output']['structure'])
+            sdyn = final_structure.site_properties.get('selective_dynamics')
+            if sdyn:
+                forces[np.logical_not(sdyn)] = 0
+            max_force = max(np.linalg.norm(forces, axis=1))
             if max_force > max_force_threshold:
                 error_msgs.append("Final max force exceeds {} eV".format(max_force_threshold))
                 d["state"] = "error"
