@@ -44,7 +44,17 @@ from fireworks.core.launchpad import LaunchPad
 from matgendb import QueryEngine
 from pymongo import MongoClient
 
+class SurfacePropertiesWF(object):
+    """
+    Strings together a bunch of SurfPropFWs (each of these FWs is
+    associated with a single structure). Inside SurfPropFWs is a
+    bunch of SurfCalcFWs which can represent calculating, inserting
+    and post processing of any conv_ucell, ouc, slab, or static slab
+    (for work function).
+    """
 
+    def __init__(self, production_mode=False):
+        return
 
 
 class SurfaceDBQueryEngine(QueryEngine):
@@ -71,26 +81,6 @@ class SurfaceDBQueryEngine(QueryEngine):
         self.db_file = db_file
 
         super(SurfaceDBQueryEngine, self).__init__(**surf_db_credentials)
-
-    def get_conventional_ucell(self, formula_id, symprec=1e-3,
-                               angle_tolerance=5):
-        """
-        Gets the conventional unit cell by querying
-        materials project for the primitive unit cell
-
-        Args:
-            formula_id (string): Materials Project ID
-                associated with the slab data entry.
-        """
-
-        entries = self.mprester.get_entries(formula_id, inc_structure="Final",
-                                            property_data=["e_above_hull"])
-        prim_unit_cell = entries[0].structure
-
-        spa = SpacegroupAnalyzer(prim_unit_cell, symprec=symprec,
-                                 angle_tolerance=angle_tolerance)
-        return spa.get_conventional_standard_structure()
-
 
 def get_fw_from_ucell(ucell, vasp_cmd, scratch_dir, db_file,
                       max_errors=10, handler_group=[], k_product=50,

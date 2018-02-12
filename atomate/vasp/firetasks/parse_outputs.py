@@ -834,6 +834,12 @@ class PolarizationToDb(FiretaskBase):
         coll.insert_one(polarization_dict)
 
 
+class SurfCalcToDbTask(FiretaskBase):
+    pass
+
+class SurfPropToDbTask(FiretaskBase):
+    pass
+
 # the following definitions for backward compatibility
 class VaspToDbTask(VaspToDb):
     pass

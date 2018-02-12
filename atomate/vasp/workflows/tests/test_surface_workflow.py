@@ -19,20 +19,20 @@ from pymatgen import Structure, Molecule, Lattice
 __author__ = "Richard Tran"
 __email__ = "rit001@eng.ucsd.edu"
 
-# module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-# db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
-# reference_dir = os.path.join(module_dir, "..", "..", "test_files", "surface_wf")
-#
-# DEBUG_MODE = False  # If True, retains the database and output dirs at the end of the test
-# VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
-# _write_task_docs = False # Test developer option: defaults to False, need to be True only once
+module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
+reference_dir = os.path.join(module_dir, "..", "..", "test_files", "surface_wf")
+
+DEBUG_MODE = False  # If True, retains the database and output dirs at the end of the test
+VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
+_write_task_docs = False # Test developer option: defaults to False, need to be True only once
 
 
 class TestSurfaceWorkflow(AtomateTest):
 
     def setUp(self):
 
-        # super(TestSurfaceWorkflow, self).setUp()
+        super(TestSurfaceWorkflow, self).setUp()
         self.struct_li = Structure.from_spacegroup("Im-3m", Lattice.cubic(3.478000),
                                                    ["Li"], [[0, 0, 0]])
         # self.wf = get_fw_from_ucell(self.struct_ir, "vasp", ".",
@@ -40,7 +40,7 @@ class TestSurfaceWorkflow(AtomateTest):
         #                             inc_conv_ucell=True)
         # self.name = "%s_%s_conventional_k%s" %("Ni", "--", 50)
         # self.cwd = os.getcwd()
-        super(TestSurfaceWorkflow, self).setUp()
+
     def test_wf(self):
         # ref_dir = os.path.join(self.cwd, self.name)
         fw = SurfCalcFW(self.struct_li, "conventional_unit_cell", "mp-135",

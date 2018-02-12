@@ -794,8 +794,11 @@ class SurfCalcFW(Firework):
                 work function.
         """
 
-        bulk = True if calc_type in ["conventional_unit_cell", "oriented_unit_cell"] else False
-        mvl = MVLSlabSet(structure, k_product=k_product, bulk=bulk,
+        bulk = True if calc_type in ["conventional_unit_cell",
+                                     "oriented_unit_cell"] else False
+        get_wf = True if calc_type not in ["conventional_unit_cell",
+                                           "oriented_unit_cell"] else False
+        mvl = MVLSlabSet(structure, k_product=k_product, bulk=bulk, get_fw=get_wf,
                          user_incar_settings=user_incar_settings)
 
         self.calc_type = calc_type
@@ -826,11 +829,11 @@ class SurfCalcFW(Firework):
         firetaskmeta = copy.deepcopy(tasks[4])
         tasks[4] = SurfPropToDbTask()
 
-        # This particular task will propagate other branches of the fw depending on what
-        # kind of calculation this is. e.g. if convenitional unit cell, build fws for
-        # several oucs, if ouc, build fws for several slabs, if slab, build a follow up
-        # static fw for workfunction calculations, if static slab, dont do anything
-        # tasks.append(SurfaceWFGlueTask())
+        # This particular task will propagate other branches of the fw depending on
+        # what kind of calculation this is. e.g. if convenitional unit cell, build
+        # fws for several oucs, if ouc, build fws for several slabs, if slab, build
+        # a follow up static fw for workfunction calculations, if static slab, dont
+        # do anything tasks.append(SurfaceWFGlueTask())
 
         tasks.append(firetaskmeta)
 
@@ -855,7 +858,3 @@ class SurfCalcFW(Firework):
                                                                self.min_vac_size,
                                                                self.hkl[0], self.hkl[1],
                                                                self.hkl[2], self.shift)
-        elif self.calc_type == "static_slab_cell":
-            return "-%s_static_slab_k%s_s%ss%s_%s%s%s_shift%s" % (self.mpid, self.k_product,
-                                                                  self.hkl[0], self.hkl[1],
-                                                                  self.hkl[2], self.shift)
