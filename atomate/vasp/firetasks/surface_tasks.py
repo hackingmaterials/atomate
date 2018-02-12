@@ -52,8 +52,9 @@ class SurfaceWFGlueTask(FiretaskBase):
         min_slab_size (in Angstrom):
         min_vac_size (in Angstroms):
     """
-    required_params = ["fwname", "ouc_node", "miller_index", "mmi"]
-    optional_params = ["db_config", "miller_index", "min_slab_size", "min_vac_size"]
+    required_params = ["fwname", "ouc_node", "miller_index"]
+    optional_params = ["db_config", "miller_index", "min_slab_size",
+                       "min_vac_size", "mmi"]
 
     def run_task(self, fw_spec):
 
@@ -117,12 +118,12 @@ class SurfaceWFGlueTask(FiretaskBase):
         hkl = slab.miller_index
         name = '-%s_slab_k%s_s%ss%s_%s%s%s_shift%s' % (mpid, k_product, min_slab_size, min_vac_size,
                                                        hkl[0], hkl[1], hkl[2], slab.shift)
-        return OptimizeFW(slab, name=name, vasp_input_set=mvl_slab,
+        return SurfCalcFW(slab, name=name, vasp_input_set=mvl_slab,
                           ediffg=-0.02, vasp_cmd=vasp_cmd, parent=parent)
 
     def ouc_optimize_fw(self, ouc, hkl):
 
         mvl_ouc = MVLSlabSet(ouc, k_product=k_product, bulk=True)
         name = '-%s_bulk_k%s_%s%s%s' % (mpid, k_product, hkl[0], hkl[1], hkl[2])
-        return OptimizeFW(ouc, name=name, vasp_input_set=mvl_ouc,
+        return SurfCalcFW(ouc, name=name, vasp_input_set=mvl_ouc,
                           ediffg=-0.02, vasp_cmd=vasp_cmd, parent=parent)

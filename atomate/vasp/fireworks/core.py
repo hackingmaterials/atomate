@@ -769,20 +769,64 @@ class NEBFW(Firework):
 
 
 class SurfPropFW(Firework):
+    """
+    Strings together all slab calculation fws, ouc calculation fws and
+    conventional ucell fws in the form of a bunch of parent and child
+    SurfCalcFWs. One structure (or mpid) can be represented as one SurfPropFW.
+    """
 
-    # Strings together all slab calculation fws, ouc calculation fws
-    # and conventional ucell fws in the form of a bunch of SurfCalcFWs.
+    def __init__(self, structure, calc_type, mpid, k_product=50, miller_index=None,
+                 min_slab_size=None, min_vac_size=None, reconstruction_name=None,
+                 shift=None, user_incar_settings={}, ediffg=-0.02, vasp_cmd="vasp"):
 
-    def __init__(self):
+        tasks = SurfCalcFW(structure, calc_type, mpid, k_product=50, miller_index=None,
+                           min_slab_size=None, min_vac_size=None, reconstruction_name=None,
+                           shift=None, user_incar_settings={}, ediffg=-0.02, vasp_cmd="vasp").tasks
 
-        return
+        # This particular task will propagate other branches of the fw depending
+        # on what kind of calculation this is. e.g. if convenitional unit cell,
+        # build fws for several oucs, if ouc, build fws for several slabs, if
+        # slab, build a follow up static fw for workfunction calculations, if
+        # static slab, dont do anything
+        ouc_none = True if calc_type == "oriented_unit_cell" else False
+        firetaskmeta = copy.deepcopy(tasks[-1])
+        tasks[-1] = SurfaceWFGlueTask(ouc_none=ouc_none, fwname=self.get_name(),
+                                      miller_index=self.hkl, mmi=max(hkl))
+        task.append(firetaskmeta)
+
+        name = self.get_name()
+        super(SurfCalcFW, self).__init__(tasks, name=name, **kwargs)
+
+    def get_surf_optimization_fw(self):
+        pass
+
+    def get_name(self):
+
+        if self.calc_type == "conventional_unit_cell":
+            return "-%s_conventional_unit_cell_k%s" % (self.mpid, self.k_product)
+        elif self.calc_type == "oriented_unit_cell":
+            return "-%s_bulk_k%s_%s%s%s" % (self.mpid, self.k_product, self.hkl[0],
+                                            self.hkl[1], self.hkl[2])
+        elif self.calc_type == "slab_cell":
+            if reconstruction_name:
+                return "-%s_slab_k%s_s%sv%s_%s" % (self.mpid, self.k_product,
+                                                   self.min_slab_size,
+                                                   self.min_vac_size,
+                                                   self.reconstruction_name)
+            else:
+                return "-%s_slab_k%s_s%sv%s_%s%s%s_shift%s" % (self.mpid, self.k_product,
+                                                               self.min_slab_size,
+                                                               self.min_vac_size,
+                                                               self.hkl[0], self.hkl[1],
+                                                               self.hkl[2], self.shift)
 
 
 class SurfCalcFW(Firework):
-
-    # Basic unit of the Surface WF. One SurfCalcFW can represent one single
-    # calculation. Analagous to OptimizeFW. Will write, calculate, insert, then
-    # post process data to be stored in API.
+    """
+    Basic unit of the Surface WF. One SurfCalcFW can represent one single
+    calculation. Analagous to OptimizeFW. Will write, calculate, insert,
+    then post process data to be stored in API.
+    """
 
     def __init__(self, structure, calc_type, mpid, k_product=50, miller_index=None,
                  min_slab_size=None, min_vac_size=None, reconstruction_name=None,
@@ -794,10 +838,8 @@ class SurfCalcFW(Firework):
                 work function.
         """
 
-        bulk = True if calc_type in ["conventional_unit_cell",
-                                     "oriented_unit_cell"] else False
-        get_wf = True if calc_type not in ["conventional_unit_cell",
-                                           "oriented_unit_cell"] else False
+        bulk = True if calc_type == "oriented_unit_cell" else False
+        get_wf = True if calc_type != "oriented_unit_cell" else False
         mvl = MVLSlabSet(structure, k_product=k_product, bulk=bulk, get_fw=get_wf,
                          user_incar_settings=user_incar_settings)
 
@@ -828,13 +870,6 @@ class SurfCalcFW(Firework):
         tasks[3] = SurfCalcToDbTask()
         firetaskmeta = copy.deepcopy(tasks[4])
         tasks[4] = SurfPropToDbTask()
-
-        # This particular task will propagate other branches of the fw depending on
-        # what kind of calculation this is. e.g. if convenitional unit cell, build
-        # fws for several oucs, if ouc, build fws for several slabs, if slab, build
-        # a follow up static fw for workfunction calculations, if static slab, dont
-        # do anything tasks.append(SurfaceWFGlueTask())
-
         tasks.append(firetaskmeta)
 
         super(SurfCalcFW, self).__init__(tasks, name=name, **kwargs)
