@@ -94,9 +94,9 @@ class SurfacePropertiesWF(object):
         # Modify list of tasks. This will give us our five tasks:
         # WriteVaspFromIOSet, RunVaspCustodian, PassCalcLocs
         # SurfCalcToDbTask and SurfPropToDbTask
-        # tasks[3] = SurfCalcToDbTask(vaspdbinsert_parameters=self.dbconfig,
-        #                             struct_type="conventional_unit_cell",
-        #                             polymorph=polymorph)
+        tasks[3] = SurfCalcToDbTask(vaspdbinsert_parameters=self.dbconfig,
+                                    struct_type="conventional_unit_cell",
+                                    polymorph=polymorph)
         # firetaskmeta = copy.deepcopy(tasks[3])
         # tasks[3] = SurfPropToDbTask()
         # tasks.append(firetaskmeta)
