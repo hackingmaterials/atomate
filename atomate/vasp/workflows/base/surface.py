@@ -154,16 +154,15 @@ class SurfCalcToDbTask(FiretaskBase):
         """
 
         # Get all the optional/required parameters
-        dec = MontyDecoder()
-        struct_type = dec.process_decoded(self.get("struct_type"))
-        shift = dec.process_decoded(self.get("shift", None))
-        vsize = dec.process_decoded(self.get("vsize", None))
-        ssize = dec.process_decoded(self.get("ssize", None))
-        miller_index = dec.process_decoded(self.get("miller_index"))
-        mpid = dec.process_decoded(self.get("mpid", None))
-        polymorph = dec.process_decoded(self.get("polymorph"))
-        vaspdbinsert_parameters = \
-            dec.process_decoded(self.get("vaspdbinsert_parameters"))
+        # dec = MontyDecoder()
+        struct_type = self.get("struct_type")
+        shift = self.get("shift", None)
+        vsize = self.get("vsize", None)
+        ssize = self.get("ssize", None)
+        miller_index = self.get("miller_index")
+        mpid = self.get("mpid", None)
+        polymorph = self.get("polymorph")
+        vaspdbinsert_parameters = self.get("vaspdbinsert_parameters")
 
         name = folder
         warnings = []
