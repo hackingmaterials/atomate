@@ -62,6 +62,7 @@ class SurfacePropertiesWF(object):
 
     def __init__(self, apikey, dbconfig, tasks_coll="surface_tasks",
                  prop_coll="surface_properties", production_mode=False,
+                 scratch_dir="",
                  k_product=45, vasp_cmd="vasp", ediffg=-0.02,):
 
         self.k_product = k_product
@@ -69,12 +70,13 @@ class SurfacePropertiesWF(object):
         self.ediffg = ediffg
         self.dbconfig = dbconfig
         self.qe = SurfaceDBQueryEngine(dbconfig, apikey)
+        self.scratch_dir = scratch_dir
 
     def wf_from_mpid(self, mpid, polymorph):
 
         ucell = self.qe.mprester.get_entry_by_material_id(mpid, inc_structure=True,
                                                           conventional_unit_cell=True).structure
-        name = "-%s_conventional_unit_cell_k%s" % (mpid, self.k_product)
+        name = "%s_conventional_unit_cell_k%s" % (mpid, self.k_product)
 
         # bulk = True if calc_type == "oriented_unit_cell" else False
         # get_wf = True if calc_type != "oriented_unit_cell" else False
@@ -86,7 +88,7 @@ class SurfacePropertiesWF(object):
         optimizeFW = OptimizeFW(ucell, name=name, vasp_input_set=mvl,
                                 vasp_cmd=self.vasp_cmd, force_gamma=True, parents=None,
                                 override_default_vasp_params=None, ediffg=self.ediffg,
-                                max_force_threshold=RELAX_MAX_FORCE,
+                                max_force_threshold=RELAX_MAX_FORCE, scratch_dir=scratch_dir,
                                 auto_npar=">>auto_npar<<", job_type="double_relaxation_run",
                                 half_kpts_first_relax=HALF_KPOINTS_FIRST_RELAX)
         tasks = optimizeFW.tasks
@@ -164,7 +166,6 @@ class SurfCalcToDbTask(FiretaskBase):
         polymorph = self.get("polymorph")
         vaspdbinsert_parameters = self.get("vaspdbinsert_parameters")
 
-        name = folder
         warnings = []
         # Addtional info relating to slabs
         additional_fields = {"author": os.environ.get("USER"),
