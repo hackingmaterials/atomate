@@ -61,11 +61,10 @@ class SurfacePropertiesWF(object):
 
     def __init__(self, apikey, dbconfig, tasks_coll="surface_tasks",
                  prop_coll="surface_properties", production_mode=False,
-                 scratch_dir="",
-                 k_product=45, vasp_cmd="vasp", ediffg=-0.02,):
+                 scratch_dir="", k_product=45, vasp_cmd="vasp", ediffg=-0.02,):
 
         self.k_product = k_product
-        self.vasp_cmd =vasp_cmd
+        self.vasp_cmd = vasp_cmd
         self.ediffg = ediffg
         self.dbconfig = dbconfig
         self.qe = SurfaceDBQueryEngine(dbconfig, apikey)
@@ -88,9 +87,9 @@ class SurfacePropertiesWF(object):
                                 vasp_cmd=self.vasp_cmd, force_gamma=True, parents=None,
                                 override_default_vasp_params=None, ediffg=self.ediffg,
                                 auto_npar=">>auto_npar<<", job_type="double_relaxation_run")
-        tasks = optimizeFW.tasks
 
-        tasks[1] = RunVaspCustodian(self.vasp_cmd,
+        tasks = optimizeFW.tasks
+        tasks[1] = RunVaspCustodian(vasp_cmd=self.vasp_cmd,
                                     auto_npar=">>auto_npar<<",
                                     job_type="double_relaxation_run",
                                     scratch_dir=self.scratch_dir)
