@@ -93,7 +93,6 @@ class SurfacePropertiesWF(object):
         tasks[1] = RunVaspCustodian(self.vasp_cmd,
                                     auto_npar=">>auto_npar<<",
                                     job_type="double_relaxation_run",
-                                    half_kpts_first_relax=half_kpts_first_relax,
                                     scratch_dir=self.scratch_dir)
 
         # Modify list of tasks. This will give us our five tasks:
