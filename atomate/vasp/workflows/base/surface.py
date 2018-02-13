@@ -88,10 +88,17 @@ class SurfacePropertiesWF(object):
         optimizeFW = OptimizeFW(ucell, name=name, vasp_input_set=mvl,
                                 vasp_cmd=self.vasp_cmd, force_gamma=True, parents=None,
                                 override_default_vasp_params=None, ediffg=self.ediffg,
-                                max_force_threshold=RELAX_MAX_FORCE, scratch_dir=scratch_dir,
+                                max_force_threshold=RELAX_MAX_FORCE,
                                 auto_npar=">>auto_npar<<", job_type="double_relaxation_run",
                                 half_kpts_first_relax=HALF_KPOINTS_FIRST_RELAX)
         tasks = optimizeFW.tasks
+
+        tasks[1] = RunVaspCustodian(self.vasp_cmd,
+                                    max_force_threshold=RELAX_MAX_FORCE,
+                                    auto_npar=">>auto_npar<<",
+                                    job_type="double_relaxation_run",
+                                    half_kpts_first_relax=half_kpts_first_relax,
+                                    scratch_dir=self.scratch_dir)
 
         # Modify list of tasks. This will give us our five tasks:
         # WriteVaspFromIOSet, RunVaspCustodian, PassCalcLocs
