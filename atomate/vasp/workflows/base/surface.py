@@ -38,6 +38,7 @@ from pymatgen import MPRester
 from pymatgen.analysis.structure_analyzer import VoronoiConnectivity
 from pymatgen import Element
 from pymatgen.io.vasp.sets import MVLSlabSet
+from pymatgen.io.vasp.outputs import Incar, Outcar
 
 from matgendb import QueryEngine
 
