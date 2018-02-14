@@ -30,6 +30,7 @@ from custodian.vasp.handlers import VaspErrorHandler, NonConvergingErrorHandler,
 
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian
 from atomate.vasp.fireworks.core import OptimizeFW
+from atomate.vasp.firetasks.parse_outputs import VaspToDb
 
 from pymatgen.core.surface import \
     get_symmetrically_distinct_miller_indices, generate_all_slabs
@@ -98,103 +99,110 @@ class SurfacePropertiesWF(object):
         # Modify list of tasks. This will give us our five tasks:
         # WriteVaspFromIOSet, RunVaspCustodian, PassCalcLocs
         # SurfCalcToDbTask and SurfPropToDbTask
-        tasks[3] = SurfCalcToDbTask(vaspdbinsert_parameters=self.dbconfig,
-                                    struct_type="conventional_unit_cell",
-                                    polymorph=polymorph)
-        # firetaskmeta = copy.deepcopy(tasks[3])
-        # tasks[3] = SurfPropToDbTask()
-        # tasks.append(firetaskmeta)
+        additional_fields = {"author": os.environ.get("USER"),
+                             "structure_type": "conventional_unit_cell",
+                             "calculation_name": name}
+        # Add mpid as optional so we won't get None
+        # when looking for mpid of isolated atoms
+        additional_fields["conventional_spacegroup"] = \
+            SpacegroupAnalyzer(ucell).get_space_group_symbol()
+        additional_fields["polymorph"] = polymorph
+        additional_fields["initial_structure"] = ucell
+        if mpid:
+            additional_fields["material_id"] = mpid
+
+        tasks[3] = VaspToDb(additional_fields=additional_fields)
         optimizeFW.tasks = tasks
 
         return Workflow([optimizeFW])
 
 
-@explicit_serialize
-class SurfCalcToDbTask(FiretaskBase):
-    """
-        Inserts a single vasp calculation in a folder into a DB and
-        useful information pertaining to slabs and oriented unit cells.
-    """
-
-    required_params = ["vaspdbinsert_parameters", "struct_type", "polymorph"]
-    optional_params = ["surface_area", "shift", "debug", "diatomic", "mpid",
-                       "miller_index", "vsize", "ssize", "isolated_atom"]
-
-    def run_task(self, fw_spec):
-        """
-            Required Parameters:
-                host (str): See SurfaceWorkflowManager in surface_wf.py
-                port (int): See SurfaceWorkflowManager in surface_wf.py
-                user (str): See SurfaceWorkflowManager in surface_wf.py
-                password (str): See SurfaceWorkflowManager in surface_wf.py
-                database (str): See SurfaceWorkflowManager in surface_wf.py
-                collection (str): See SurfaceWorkflowManager in surface_wf.py
-                mpid (str): The Materials Project ID associated with the
-                    initial structure used to build the slab from
-                struct_type (str): either oriented_unit_cell or slab_cell
-                miller_index (list): Miller Index of the oriented
-                    unit cell or slab
-                loc (str path): Location of the outputs of
-                    the vasp calculations
-                cwd (str): Current working directory
-                conventional_spacegroup (str): The spacegroup of the structure
-                    asscociated with the MPID input
-                polymorph (str): The rank of the  polymorph of the structure
-                    associated with the MPID input, 0 being the ground state
-                    polymorph.
-            Optional Parameters:
-                surface_area (float): surface area of the slab, obtained
-                    from slab object before relaxation
-                shift (float): A shift value in Angstrom that determines how
-                    much a slab should be shifted. For determining number of
-                    terminations, obtained from slab object before relaxation
-                vsize (float): Size of vacuum layer of slab in Angstroms,
-                    obtained from slab object before relaxation
-                ssize (float): Size of slab layer of slab in Angstroms,
-                    obtained from slab object before relaxation
-                isolated_atom (str): Specie of the structure used to
-                    calculate the energy of an isolated atom (for cohesive
-                    energy calculations)
-        """
-
-        # Get all the optional/required parameters
-        # dec = MontyDecoder()
-        struct_type = self.get("struct_type")
-        shift = self.get("shift", None)
-        vsize = self.get("vsize", None)
-        ssize = self.get("ssize", None)
-        miller_index = self.get("miller_index")
-        mpid = self.get("mpid", None)
-        polymorph = self.get("polymorph")
-        vaspdbinsert_parameters = self.get("vaspdbinsert_parameters")
-
-        warnings = []
-        # Addtional info relating to slabs
-        additional_fields = {"author": os.environ.get("USER"),
-                             "structure_type": struct_type,
-                             "final_incar": Incar.from_file("./INCAR.relax2.gz"),
-                             "final_magnetization": Outcar("./OUTCAR.relax2.gz").magnetization,
-                             "calculation_name": name,
-                             "warnings": warnings}
-
-        # Add mpid as optional so we won't get None
-        # when looking for mpid of isolated atoms
-        additional_fields["miller_index"] = miller_index
-        additional_fields["surface_area"] = surface_area
-        additional_fields["shift"] = shift
-        additional_fields["vac_size"] = vsize
-        additional_fields["slab_size"] = ssize
-        additional_fields["material_id"] = mpid
-        additional_fields["conventional_spacegroup"] = spacegroup
-        additional_fields["polymorph"] = polymorph
-
-        if mpid:
-            additional_fields["material_id"] = mpid
-
-        drone = VaspToDbTaskDrone(use_full_uri=False,
-                                  additional_fields=additional_fields,
-                                  **vaspdbinsert_parameters)
-        drone.assimilate(calc_locs)
+# @explicit_serialize
+# class SurfCalcToDbTask(FiretaskBase):
+#     """
+#         Inserts a single vasp calculation in a folder into a DB and
+#         useful information pertaining to slabs and oriented unit cells.
+#     """
+#
+#     required_params = ["vaspdbinsert_parameters", "struct_type", "polymorph"]
+#     optional_params = ["surface_area", "shift", "debug", "diatomic", "mpid",
+#                        "miller_index", "vsize", "ssize", "isolated_atom"]
+#
+#     def run_task(self, fw_spec):
+#         """
+#             Required Parameters:
+#                 host (str): See SurfaceWorkflowManager in surface_wf.py
+#                 port (int): See SurfaceWorkflowManager in surface_wf.py
+#                 user (str): See SurfaceWorkflowManager in surface_wf.py
+#                 password (str): See SurfaceWorkflowManager in surface_wf.py
+#                 database (str): See SurfaceWorkflowManager in surface_wf.py
+#                 collection (str): See SurfaceWorkflowManager in surface_wf.py
+#                 mpid (str): The Materials Project ID associated with the
+#                     initial structure used to build the slab from
+#                 struct_type (str): either oriented_unit_cell or slab_cell
+#                 miller_index (list): Miller Index of the oriented
+#                     unit cell or slab
+#                 loc (str path): Location of the outputs of
+#                     the vasp calculations
+#                 cwd (str): Current working directory
+#                 conventional_spacegroup (str): The spacegroup of the structure
+#                     asscociated with the MPID input
+#                 polymorph (str): The rank of the  polymorph of the structure
+#                     associated with the MPID input, 0 being the ground state
+#                     polymorph.
+#             Optional Parameters:
+#                 surface_area (float): surface area of the slab, obtained
+#                     from slab object before relaxation
+#                 shift (float): A shift value in Angstrom that determines how
+#                     much a slab should be shifted. For determining number of
+#                     terminations, obtained from slab object before relaxation
+#                 vsize (float): Size of vacuum layer of slab in Angstroms,
+#                     obtained from slab object before relaxation
+#                 ssize (float): Size of slab layer of slab in Angstroms,
+#                     obtained from slab object before relaxation
+#                 isolated_atom (str): Specie of the structure used to
+#                     calculate the energy of an isolated atom (for cohesive
+#                     energy calculations)
+#         """
+#
+#         # Get all the optional/required parameters
+#         # dec = MontyDecoder()
+#         struct_type = self.get("struct_type")
+#         shift = self.get("shift", None)
+#         vsize = self.get("vsize", None)
+#         ssize = self.get("ssize", None)
+#         miller_index = self.get("miller_index")
+#         mpid = self.get("mpid", None)
+#         polymorph = self.get("polymorph")
+#         vaspdbinsert_parameters = self.get("vaspdbinsert_parameters")
+#
+#         warnings = []
+#         # Addtional info relating to slabs
+#         additional_fields = {"author": os.environ.get("USER"),
+#                              "structure_type": struct_type,
+#                              "final_incar": Incar.from_file("./INCAR.relax2.gz"),
+#                              "final_magnetization": Outcar("./OUTCAR.relax2.gz").magnetization,
+#                              "calculation_name": name,
+#                              "warnings": warnings}
+#
+#         # Add mpid as optional so we won't get None
+#         # when looking for mpid of isolated atoms
+#         additional_fields["miller_index"] = miller_index
+#         additional_fields["surface_area"] = surface_area
+#         additional_fields["shift"] = shift
+#         additional_fields["vac_size"] = vsize
+#         additional_fields["slab_size"] = ssize
+#         additional_fields["material_id"] = mpid
+#         additional_fields["conventional_spacegroup"] = spacegroup
+#         additional_fields["polymorph"] = polymorph
+#
+#         if mpid:
+#             additional_fields["material_id"] = mpid
+#
+#         drone = VaspToDbTaskDrone(use_full_uri=False,
+#                                   additional_fields=additional_fields,
+#                                   **vaspdbinsert_parameters)
+#         drone.assimilate(calc_locs)
 
 
 class SurfPropToDbTask(FiretaskBase):
