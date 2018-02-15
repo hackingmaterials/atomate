@@ -33,6 +33,7 @@ from atomate.vasp.firetasks.run_calc import RunVaspCustodian
 from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.firetasks.parse_outputs import VaspToDb
 from atomate.common.firetasks.glue_tasks import CreateFolder
+from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet
 
 from pymatgen.core.surface import \
     get_symmetrically_distinct_miller_indices, generate_all_slabs
@@ -91,11 +92,8 @@ class SurfacePropertiesWF(object):
         # This will give us our four basic tasks: WriteVaspFromIOSet,
         # RunVaspCustodian, PassCalcLocs and VaspToDB. We can then
         # modify or remove tasks to suit our needs.
-        optimizeFW = OptimizeFW(ucell, name=name, vasp_input_set=mvl,
-                                vasp_cmd=self.vasp_cmd, force_gamma=True, parents=None,
-                                override_default_vasp_params=None, ediffg=self.ediffg,
-                                auto_npar=">>auto_npar<<", job_type="double_relaxation_run")
-        tasks = [optimizeFW.tasks[0]]
+        tasks = []
+        tasks.append(WriteVaspFromIOSet(structure=ucell, vasp_input_set=mvl))
         tasks.append(CreateFolder(folder_name=name, change_dir=True))
         tasks.append(RunVaspCustodian(vasp_cmd=self.vasp_cmd,
                                       auto_npar=">>auto_npar<<",
