@@ -81,7 +81,7 @@ class SurfacePropertiesWF(object):
 
         ucell = self.qe.mprester.get_entry_by_material_id(mpid, inc_structure=True,
                                                           conventional_unit_cell=True).structure
-        name = "%s_conventional_unit_cell_k%s" % (mpid, self.k_product)
+        name = "%s_%s_conventional_unit_cell_k%s" % (ucell[0].specie_string, mpid, self.k_product)
 
         # bulk = True if calc_type == "oriented_unit_cell" else False
         # get_wf = True if calc_type != "oriented_unit_cell" else False
