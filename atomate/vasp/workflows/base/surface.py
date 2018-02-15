@@ -18,6 +18,7 @@ except ImportError:
 
 import os
 import copy
+import json
 
 from pymongo import MongoClient
 
@@ -61,14 +62,18 @@ class SurfacePropertiesWF(object):
     (for work function).
     """
 
-    def __init__(self, apikey, dbconfig, tasks_coll="surface_tasks",
+    def __init__(self, apikey, db_file, tasks_coll="surface_tasks",
                  prop_coll="surface_properties", production_mode=False,
                  scratch_dir="", k_product=45, vasp_cmd="vasp", ediffg=-0.02,):
+
+        with open(db_file) as data_file:
+            dbconfig = json.load(data_file)
 
         self.k_product = k_product
         self.vasp_cmd = vasp_cmd
         self.ediffg = ediffg
         self.dbconfig = dbconfig
+        self.db_file = db_file
         self.qe = SurfaceDBQueryEngine(dbconfig, apikey)
         self.scratch_dir = scratch_dir
 
@@ -111,7 +116,7 @@ class SurfacePropertiesWF(object):
         if mpid:
             additional_fields["material_id"] = mpid
 
-        tasks[3] = VaspToDb(additional_fields=additional_fields)
+        tasks[3] = VaspToDb(additional_fields=additional_fields, db_file=db_file)
         optimizeFW.tasks = tasks
 
         return Workflow([optimizeFW])
