@@ -127,10 +127,10 @@ def recursive_get_result(d, result):
         return d
 
 
-def get_logger(name, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(message)s', stream=sys.stdout):
+def get_logger(name, level=logging.DEBUG, log_format='%(asctime)s %(levelname)s %(name)s %(message)s', stream=sys.stdout):
     logger = logging.getLogger(name)
     logger.setLevel(level)
-    formatter = logging.Formatter(format)
+    formatter = logging.Formatter(log_format)
     sh = logging.StreamHandler(stream=stream)
     sh.setFormatter(formatter)
     logger.addHandler(sh)
