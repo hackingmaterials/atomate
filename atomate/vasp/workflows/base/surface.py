@@ -43,8 +43,6 @@ from pymatgen import Element
 from pymatgen.io.vasp.sets import MVLSlabSet
 from pymatgen.io.vasp.outputs import Incar, Outcar
 
-from matgendb import QueryEngine
-
 from fireworks.core.firework import Firework, Workflow, FiretaskBase, FWAction
 from fireworks import explicit_serialize
 from fireworks.core.launchpad import LaunchPad
@@ -140,7 +138,6 @@ class BasicSurfaceFW(Firework):
         # when looking for mpid of isolated atoms
         additional_fields["conventional_spacegroup"] = \
             SpacegroupAnalyzer(ucell).get_space_group_symbol()
-        additional_fields["polymorph"] = polymorph
         additional_fields["initial_structure"] = ucell
         if mpid:
             additional_fields["material_id"] = mpid
