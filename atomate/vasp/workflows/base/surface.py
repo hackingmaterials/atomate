@@ -9,48 +9,19 @@ __version__ = "0.2"
 __email__ = "rit001@eng.ucsd.edu"
 __date__ = "11/30/17"
 
-try:
-    # New Py>=3.5 import
-    from math import gcd
-except ImportError:
-    # Deprecated import from Py3.5 onwards.
-    from fractions import gcd
-
-import os
-import copy
 import json
-
-from pymongo import MongoClient
-
-db = MongoClient().data
-
-from custodian.vasp.jobs import VaspJob
-from custodian.vasp.handlers import VaspErrorHandler, NonConvergingErrorHandler, \
-    UnconvergedErrorHandler, PotimErrorHandler, PositiveEnergyErrorHandler, \
-    FrozenJobErrorHandler
 
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian
 from atomate.vasp.firetasks.parse_outputs import VaspToDb
 from atomate.common.firetasks.glue_tasks import CreateFolder
 from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet
-from atomate.vasp.firetasks.glu_tasks import pass_vasp_result
 
-from pymatgen.core.surface import \
-    get_symmetrically_distinct_miller_indices, generate_all_slabs, Structure
+from pymatgen.core.surface import generate_all_slabs, Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen import MPRester
-from pymatgen.analysis.structure_analyzer import VoronoiConnectivity
-from pymatgen import Element
 from pymatgen.io.vasp.sets import MVLSlabSet
-from pymatgen.io.vasp.outputs import Incar, Outcar
 
 from fireworks.core.firework import Firework, Workflow, FiretaskBase, FWAction
 from fireworks import explicit_serialize
-from fireworks.core.launchpad import LaunchPad
-
-from matgendb import QueryEngine
-from matgendb.creator import VaspToDbTaskDrone
-from pymongo import MongoClient
 
 
 class SurfacePropertiesWF(object):
@@ -455,29 +426,6 @@ class FacetFWsGeneratorTask(FiretaskBase):
 
 
 
-class SurfaceDBQueryEngine(QueryEngine):
-    def __init__(self, dbconfig, apikey, tasks_coll="surface_tasks",
-                 prop_coll="surface_properties"):
-
-        surf_db_credentials = {'host': dbconfig['host'],
-                               'port': dbconfig['port'],
-                               'user': dbconfig['admin_user'],
-                               'password': dbconfig['admin_password'],
-                               'database': dbconfig['database'],
-                               'collection': tasks_coll}
-
-        conn = MongoClient(host=surf_db_credentials["host"],
-                           port=surf_db_credentials["port"])
-        db = conn.get_database(surf_db_credentials["database"])
-        db.authenticate(surf_db_credentials["user"],
-                        surf_db_credentials["password"])
-
-        surface_properties = db[prop_coll]
-
-        self.surface_properties = surface_properties
-        self.mprester = MPRester(apikey)
-
-        super(SurfaceDBQueryEngine, self).__init__(**surf_db_credentials)
 
 
 
