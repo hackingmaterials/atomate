@@ -159,7 +159,7 @@ class OUCFW(Firework):
         additional_fields = {"structure_type": "oriented_unit_cell",
                              "calculation_name": name}
         additional_fields["conventional_spacegroup"] = \
-            SpacegroupAnalyzer(ucell).get_space_group_symbol()
+            SpacegroupAnalyzer(ouc).get_space_group_symbol()
         additional_fields["initial_structure"] = ouc
         additional_fields["material_id"] = mpid
         additional_fields["miller_index"] = miller_index
