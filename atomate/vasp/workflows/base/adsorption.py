@@ -84,7 +84,6 @@ def get_slab_fw(slab, bulk_structure=None, slab_gen_params={}, db_file=None, vas
                           db_file=db_file, parents=parents, job_type="normal")
 
 
-# TODO: add a name??
 def get_wf_surface(slabs, molecules=[], bulk_structure=None, slab_gen_params=None, vasp_cmd="vasp",
                    db_file=None, ads_structures_params={}, add_molecules_in_box=False):
     """
@@ -139,7 +138,7 @@ def get_wf_surface(slabs, molecules=[], bulk_structure=None, slab_gen_params=Non
             fws.append(OptimizeFW(structure=molecule, job_type="normal", vasp_input_set=vis,
                                   db_file=db_file, vasp_cmd=vasp_cmd))
     # TODO: add analysis framework
-    return Workflow(fws, name="")
+    return Workflow(fws, name="{} surfaces wf, e.g., {}".format(len(fws), fws[0].name))
 
 
 def get_wf_surface_all_slabs(bulk_structure, molecules, max_index=1, slab_gen_params=None, **kwargs):
