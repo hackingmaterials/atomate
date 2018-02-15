@@ -76,16 +76,50 @@ class SurfacePropertiesWF(object):
         self.db_file = db_file
         self.qe = SurfaceDBQueryEngine(dbconfig, apikey)
         self.scratch_dir = scratch_dir
+        self.production_mode = production_mode
+        self.tasks_coll = tasks_coll
+        self.prop_coll = prop_coll
 
-    def wf_from_mpid(self, mpid, polymorph):
+    def wf_from_mpid(self, mpid):
 
-        ucell = self.qe.mprester.get_entry_by_material_id(mpid, inc_structure=True,
-                                                          conventional_unit_cell=True).structure
-        name = "%s_%s_conventional_unit_cell_k%s" % (ucell[0].species_string, mpid, self.k_product)
+        return Workflow([BasicSurfaceFW(self.qe, self.tasks_coll, self.prop_coll,
+                                        self.production_mode, self.scratch_dir, self.k_product,
+                                        self.db_file, self.vasp_cmd, mpid=mpid)])
 
-        # bulk = True if calc_type == "oriented_unit_cell" else False
-        # get_wf = True if calc_type != "oriented_unit_cell" else False
-        mvl = MVLSlabSet(ucell, k_product=self.k_product, bulk=True)
+class BasicSurfaceFW(Firework):
+    def __init__(self, qe, tasks_coll, prop_coll, production_mode,
+                 scratch_dir, k_product, db_file, vasp_cmd,
+                 mpid="", structure=None, **kwargs):
+        """
+        Optimize the given structure.
+
+        Args:
+            qe (SurfaceDBQueryEngine): For querying structures from the MPAPI
+                or your own DB
+            tasks_coll (str): Name of the collection to store the raw data
+            prop_coll (str): Name of the collection to store the post-processed
+                data (to be queried from the MAPI)
+            production_mode (bool): Whether or not to run addition fws, tasks,
+                operations meant for high-throughput production, set to False for
+                most users who just run a workflow for non high-throughput purposes.
+            scratch_dir: (str) - if specified, uses this directory as the root
+                scratch dir. Supports env_chk.
+            k_product (int): Default to 50, kpoint number * length for a & b
+                directions, also for c direction in bulk calculations.
+            db_file (str): FULL path to file containing the database credentials.
+                Supports env_chk.
+            vasp_cmd (str): Command to run vasp.
+            structure (Structure): Input structure. Need to input either the
+                structure or an mpid
+            mpid (str): Unique Materials Project structure id. Need to input
+                either the structure or an mpid
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+
+        ucell = qe.mprester.get_entry_by_material_id(mpid, inc_structure=True,
+                                                     conventional_unit_cell=True).structure
+        name = "%s_%s_conventional_unit_cell_k%s" % (ucell[0].species_string, mpid, k_product)
+        mvl = MVLSlabSet(ucell, k_product=k_product, bulk=True)
 
         # This will give us our four basic tasks: WriteVaspFromIOSet,
         # RunVaspCustodian, PassCalcLocs and VaspToDB. We can then
@@ -93,10 +127,10 @@ class SurfacePropertiesWF(object):
         tasks = []
         tasks.append(CreateFolder(folder_name=name, change_dir=True))
         tasks.append(WriteVaspFromIOSet(structure=ucell, vasp_input_set=mvl))
-        tasks.append(RunVaspCustodian(vasp_cmd=self.vasp_cmd,
+        tasks.append(RunVaspCustodian(vasp_cmd=vasp_cmd,
                                       auto_npar=">>auto_npar<<",
                                       job_type="double_relaxation_run",
-                                      scratch_dir=self.scratch_dir))
+                                      scratch_dir=scratch_dir))
 
         # Add additional fields to distinguish this calculation
         additional_fields = {"author": os.environ.get("USER"),
@@ -111,55 +145,9 @@ class SurfacePropertiesWF(object):
         if mpid:
             additional_fields["material_id"] = mpid
 
-        tasks.append(VaspToDb(additional_fields=additional_fields, db_file=self.db_file))
+        tasks.append(VaspToDb(additional_fields=additional_fields, db_file=db_file))
 
-        return Workflow([Firework(tasks, name=name)])
-
-    # class BasicSurfaceFW(Firework):
-    #     def __init__(self, structure, tasks_coll, prop_coll, production_mode,
-    #                  name, scratch_dir, k_product, db_file, vasp_cmd, **kwargs):
-    #         """
-    #         Optimize the given structure.
-    #
-    #         Args:
-    #             structure (Structure): Input structure.
-    #             tasks_coll
-    #             name (str): Name for the Firework.
-    #             vasp_input_set (VaspInputSet): input set to use. Defaults to MPRelaxSet() if None.
-    #             override_default_vasp_params (dict): If this is not None, these params are passed to
-    #                 the default vasp_input_set, i.e., MPRelaxSet. This allows one to easily override
-    #                 some settings, e.g., user_incar_settings, etc.
-    #             vasp_cmd (str): Command to run vasp.
-    #             ediffg (float): Shortcut to set ediffg in certain jobs
-    #             db_file (str): Path to file specifying db credentials to place output parsing.
-    #             force_gamma (bool): Force gamma centered kpoint generation
-    #             job_type (str): custodian job type (default "double_relaxation_run")
-    #             max_force_threshold (float): max force on a site allowed at end; otherwise, reject job
-    #             auto_npar (bool or str): whether to set auto_npar. defaults to env_chk: ">>auto_npar<<"
-    #             half_kpts_first_relax (bool): whether to use half the kpoints for the first relaxation
-    #             parents ([Firework]): Parents of this particular Firework.
-    #             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
-    #         """
-    #         override_default_vasp_params = override_default_vasp_params or {}
-    #         vasp_input_set = vasp_input_set or MPRelaxSet(structure,
-    #                                                       force_gamma=force_gamma,
-    #                                                       **override_default_vasp_params)
-    #
-    #         t = []
-    #         t.append(WriteVaspFromIOSet(structure=structure,
-    #                                     vasp_input_set=vasp_input_set))
-    #         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, job_type=job_type,
-    #                                   max_force_threshold=max_force_threshold,
-    #                                   ediffg=ediffg,
-    #                                   auto_npar=auto_npar,
-    #                                   half_kpts_first_relax=half_kpts_first_relax))
-    #         t.append(PassCalcLocs(name=name))
-    #         t.append(
-    #             VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
-    #         super(OptimizeFW, self).__init__(t, parents=parents, name="{}-{}".
-    #                                          format(
-    #             structure.composition.reduced_formula, name),
-    #                                          **kwargs)
+        super(BasicSurfaceFW, self).__init__(tasks, name=name, **kwargs)
 
 
 # @explicit_serialize
