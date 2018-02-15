@@ -52,8 +52,8 @@ class SurfacePropertiesWF(object):
     def wf_from_mpid(self, structure, mmi, mpid=None):
 
         return Workflow([ConvUcellFW(structure, mmi, self.tasks_coll, self.prop_coll,
-                                        self.production_mode, self.scratch_dir, self.k_product,
-                                        self.db_file, self.vasp_cmd, mpid=mpid)])
+                                     self.production_mode, self.scratch_dir,
+                                     self.k_product, self.db_file, self.vasp_cmd, mpid=mpid)])
 
 class ConvUcellFW(Firework):
     def __init__(self, ucell, mmi, tasks_coll, prop_coll,
@@ -105,7 +105,10 @@ class ConvUcellFW(Firework):
         additional_fields["initial_structure"] = ucell
         additional_fields["material_id"] = mpid
         tasks.append(VaspToDb(additional_fields=additional_fields, db_file=db_file))
-        tasks.append(FacetFWsGeneratorTask(structure_type="conventional_unit_cell", mmi=mmi))
+        tasks.append(FacetFWsGeneratorTask(structure_type="conventional_unit_cell", mmi=mmi,
+                                           scratch_dir=scratch_dir, k_product=k_product,
+                                           db_file=db_file, tasks_coll=tasks_coll, mpid=mpid,
+                                           prop_coll=prop_coll, production_mode=production_mode))
 
         super(ConvUcellFW, self).__init__(tasks, name=name, **kwargs)
 
@@ -162,7 +165,8 @@ class OUCFW(Firework):
         additional_fields["miller_index"] = miller_index
         additional_fields["scale_factor"] = scale_factor
         tasks.append(VaspToDb(additional_fields=additional_fields, db_file=db_file))
-        tasks.append(FacetFWsGeneratorTask(structure_type="oriented_unit_cell"))
+        # tasks.append(FacetFWsGeneratorTask(structure_type="oriented_unit_cell", 'structure_type', "mmi", "scratch_dir", "k_product",
+        #                "db_file", "tasks_coll", "prop_coll", "slab_gen_params", "production_mode", "mpid"))
 
         super(OUCFW, self).__init__(tasks, name=name, **kwargs)
 
@@ -244,7 +248,8 @@ class FacetFWsGeneratorTask(FiretaskBase):
     unit cell and reconstruction calculations.
     """
 
-    required_params = ['structure_type', "mmi", "scratch_dir", "k_product", "db_file", "tasks_coll", "prop_coll"]
+    required_params = ['structure_type', "mmi", "scratch_dir", "k_product",
+                       "db_file", "tasks_coll", "prop_coll"]
     optional_params = ["slab_gen_params", "production_mode", "mpid"]
 
     def run_task(self, fw_spec):
