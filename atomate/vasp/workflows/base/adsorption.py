@@ -2,8 +2,6 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from atomate.vasp.config import VASP_CMD
-
 """
 This module defines a workflow for adsorption on surfaces
 """
@@ -26,7 +24,7 @@ __email__ = 'montoyjh@lbl.gov'
 
 
 def get_slab_fw(slab, bulk_structure=None, slab_gen_params={}, db_file=None, vasp_input_set=None,
-                parents=None, vasp_cmd=None, name=""):
+                parents=None, vasp_cmd="vasp", name=""):
     """
     Function to generate a a slab firework.  Returns a TransmuterFW if bulk_structure is specified,
     constructing the necessary transformations from the slab and slab generator parameters,
@@ -51,7 +49,6 @@ def get_slab_fw(slab, bulk_structure=None, slab_gen_params={}, db_file=None, vas
         Firework
     """
     vasp_input_set = vasp_input_set or MVLSlabSet(slab)
-    vasp_cmd = vasp_cmd or VASP_CMD
 
     # If a bulk_structure is specified, generate the set of transformations, else
     # just create an optimize FW with the slab
@@ -87,7 +84,7 @@ def get_slab_fw(slab, bulk_structure=None, slab_gen_params={}, db_file=None, vas
                           db_file=db_file, parents=parents, job_type="normal")
 
 
-def get_wf_surface(slabs, molecules=[], bulk_structure=None, slab_gen_params=None, vasp_cmd=None,
+def get_wf_surface(slabs, molecules=[], bulk_structure=None, slab_gen_params=None, vasp_cmd="vasp",
                    db_file=None, ads_structures_params={}, add_molecules_in_box=False):
     """
 
@@ -111,11 +108,10 @@ def get_wf_surface(slabs, molecules=[], bulk_structure=None, slab_gen_params=Non
         Workflow
     """
     fws, parents = [], []
-    vasp_cmd = vasp_cmd or VASP_CMD
 
     if bulk_structure:
         vis = MVLSlabSet(bulk_structure, bulk=True)
-        fws.append(OptimizeFW(structure=bulk_structure, vasp_input_set=vis, vasp_cmd=vasp_cmd, db_file=db_file))
+        fws.append(OptimizeFW(structure=bulk_structure, vasp_input_set=vis, vasp_cmd="vasp", db_file=db_file))
         parents = fws[0]
 
     for slab in slabs:
