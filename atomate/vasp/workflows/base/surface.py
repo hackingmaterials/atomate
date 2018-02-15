@@ -32,6 +32,7 @@ from custodian.vasp.handlers import VaspErrorHandler, NonConvergingErrorHandler,
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian
 from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.firetasks.parse_outputs import VaspToDb
+from atomate.common.firetasks.glue_tasks import CreateFolder
 
 from pymatgen.core.surface import \
     get_symmetrically_distinct_miller_indices, generate_all_slabs
@@ -94,16 +95,14 @@ class SurfacePropertiesWF(object):
                                 vasp_cmd=self.vasp_cmd, force_gamma=True, parents=None,
                                 override_default_vasp_params=None, ediffg=self.ediffg,
                                 auto_npar=">>auto_npar<<", job_type="double_relaxation_run")
+        tasks = [optimizeFW.tasks[0]]
+        tasks.append(CreateFolder(folder_name=name, change_dir=True))
+        tasks.append(RunVaspCustodian(vasp_cmd=self.vasp_cmd,
+                                      auto_npar=">>auto_npar<<",
+                                      job_type="double_relaxation_run",
+                                      scratch_dir=self.scratch_dir))
 
-        tasks = optimizeFW.tasks
-        tasks[1] = RunVaspCustodian(vasp_cmd=self.vasp_cmd,
-                                    auto_npar=">>auto_npar<<",
-                                    job_type="double_relaxation_run",
-                                    scratch_dir=self.scratch_dir)
-
-        # Modify list of tasks. This will give us our five tasks:
-        # WriteVaspFromIOSet, RunVaspCustodian, PassCalcLocs
-        # SurfCalcToDbTask and SurfPropToDbTask
+        # Add additional fields to distinguish this calculation
         additional_fields = {"author": os.environ.get("USER"),
                              "structure_type": "conventional_unit_cell",
                              "calculation_name": name}
