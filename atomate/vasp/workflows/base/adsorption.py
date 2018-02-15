@@ -84,6 +84,7 @@ def get_slab_fw(slab, bulk_structure=None, slab_gen_params={}, db_file=None, vas
                           db_file=db_file, parents=parents, job_type="normal")
 
 
+# TODO: add a name??
 def get_wf_surface(slabs, molecules=[], bulk_structure=None, slab_gen_params=None, vasp_cmd="vasp",
                    db_file=None, ads_structures_params={}, add_molecules_in_box=False):
     """
