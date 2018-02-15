@@ -115,7 +115,7 @@ class SurfacePropertiesWF(object):
         if mpid:
             additional_fields["material_id"] = mpid
 
-        tasks[3] = VaspToDb(additional_fields=additional_fields, db_file=self.db_file)
+        tasks.append(VaspToDb(additional_fields=additional_fields, db_file=self.db_file))
         optimizeFW.tasks = tasks
 
         return Workflow([optimizeFW])
