@@ -219,8 +219,8 @@ class SurfaceDBQueryEngine(QueryEngine):
 
         surf_db_credentials = {'host': dbconfig['host'],
                                'port': dbconfig['port'],
-                               'user': dbconfig['user'],
-                               'password': dbconfig['password'],
+                               'user': dbconfig['admin_user'],
+                               'password': dbconfig['admin_password'],
                                'database': dbconfig['database'],
                                'collection': tasks_coll}
 
