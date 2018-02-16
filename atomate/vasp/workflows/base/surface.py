@@ -16,7 +16,7 @@ from atomate.vasp.firetasks.parse_outputs import VaspToDb
 from atomate.common.firetasks.glue_tasks import CreateFolder
 from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet
 
-from pymatgen.core.surface import generate_all_slabs, Structure
+from pymatgen.core.surface import generate_all_slabs, Structure, SlabGenerator
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp.sets import MVLSlabSet
 
@@ -108,7 +108,7 @@ class ConvUcellFW(Firework):
         tasks.append(FacetFWsGeneratorTask(structure_type="conventional_unit_cell", mmi=mmi,
                                            vasp_cmd=vasp_cmd, mpid=mpid, db_file=db_file,
                                            scratch_dir=scratch_dir, k_product=k_product,
-                                           tasks_coll=tasks_coll, prop_coll=prop_coll, 
+                                           tasks_coll=tasks_coll, prop_coll=prop_coll,
                                            production_mode=production_mode))
 
         super(ConvUcellFW, self).__init__(tasks, name=name, **kwargs)
@@ -166,8 +166,13 @@ class OUCFW(Firework):
         additional_fields["miller_index"] = miller_index
         additional_fields["scale_factor"] = scale_factor
         tasks.append(VaspToDb(additional_fields=additional_fields, db_file=db_file))
-        # tasks.append(FacetFWsGeneratorTask(structure_type="oriented_unit_cell", 'structure_type', "mmi", "scratch_dir", "k_product",
-        #                "db_file", "tasks_coll", "prop_coll", "slab_gen_params", "production_mode", "mpid"))
+        
+        tasks.append(FacetFWsGeneratorTask(structure_type="oriented_unit_cell",
+                                           vasp_cmd=vasp_cmd, mpid=mpid, db_file=db_file,
+                                           scratch_dir=scratch_dir, k_product=k_product,
+                                           tasks_coll=tasks_coll, prop_coll=prop_coll,
+                                           production_mode=production_mode,
+                                           miller_index=miller_index))
 
         super(OUCFW, self).__init__(tasks, name=name, **kwargs)
 
@@ -233,6 +238,7 @@ class SlabFW(Firework):
         additional_fields["slab_size"] = ssize
         additional_fields["vac_size"] = vsize
         additional_fields["shift"] = shift
+        additional_fields["reconstruction"] = reconstruction
         # additional_fields["local_potential_along_c"]
         # additional_fields["efermi"]
         tasks.append(VaspToDb(additional_fields=additional_fields, db_file=db_file))
@@ -249,56 +255,74 @@ class FacetFWsGeneratorTask(FiretaskBase):
     unit cell and reconstruction calculations.
     """
 
-    required_params = ['structure_type', "mmi", "scratch_dir", "k_product",
+    required_params = ['structure_type', "scratch_dir", "k_product",
                        "db_file", "tasks_coll", "prop_coll", "vasp_cmd"]
-    optional_params = ["slab_gen_params", "production_mode", "mpid"]
+    optional_params = ["slab_gen_params", "production_mode", "mpid", "mmi", "miller_index"]
 
     def run_task(self, fw_spec):
+
+        if self.get("slab_gen_params", None):
+            slab_gen_params = self.get("slab_gen_params", None)
+        else:
+            slab_gen_params = {"min_slab_size": 10, "min_vacuum_size": 10,
+                               "center_slab": True,
+                               "symmetrize": True,
+                               "include_reconstructions": True}
+            slab_gen_params["max_normal_search"] = self.get("mmi") if \
+                self.get("mmi") else max(self.get("miller_index"))
 
         FWs = []
         if self.get("structure_type") == "conventional_unit_cell":
             # Then we create a set of FWs for oriented_unit_cell
             # calculations and reconstructed slabs
-            miller_list = []
-            if self.get("slab_gen_params", None):
-                slab_gen_params = self.get("slab_gen_params", None)
-            else:
-                ucell = Structure.from_file("CONTCAR.relax2.gz")
-                slab_gen_params = {"structure": ucell, "min_slab_size": 10,
-                                   "min_vacuum_size": 10, "center_slab": True,
-                                   "max_normal_search": self.get("mmi"),
-                                   "symmetrize": True,
-                                   "include_reconstructions": True}
+
+            slab_gen_params["structure"] = Structure.from_file("CONTCAR.relax2.gz")
 
             all_slabs = generate_all_slabs(max_index=self.get("mmi"),
                                            **slab_gen_params)
+            miller_list = []
             for slab in all_slabs:
                 if slab.reconstruction:
-                    # build a slab fw
-                    FWs.append(SlabFW(slab, self.get("tasks_coll"),
-                                      self.get("prop_coll"), slab_gen_params,
-                                      slab.miller_index, slab.scale_factor,
-                                      slab.oriented_unit_cell, slab.shift,
-                                      slab_gen_params["min_slab_size"],
-                                      slab_gen_params["min_vacuum_size"],
-                                      self.get("production_mode", True),
-                                      self.get("scratch_dir"), self.get("k_product"),
-                                      self.get("db_file"), self.get("vasp_cmd"),
-                                      reconstruction=slab.reconstruction,
-                                      mpid=self.get("mpid", "--")))
+                    FWs.append(self.get_slab_fw(slab, slab_gen_params))
                 else:
                     if tuple(slab.miller_index) in miller_list:
                         continue
                     else:
                         # build a oriented unit cell fw
-                        FWs.append(OUCFW(slab.oriented_unit_cell, self.get("tasks_coll"),
-                                         self.get("prop_coll"), slab.miller_index,
-                                         slab.scale_factor, self.get("production_mode", True),
-                                         self.get("scratch_dir"), self.get("k_product"),
-                                         self.get("db_file"), self.get("vasp_cmd"),
-                                         mpid=self.get("mpid", "--")))
+                        FWs.append(self.get_ouc_fw(slab))
+
+        elif self.get("structure_type") == "oriented_unit_cell":
+            slab_gen_params["structure"] = Structure.from_file("CONTCAR.relax2.gz")
+            slab_gen_params["miller_index"] = [0,0,1]
+            slabgen = SlabGenerator(**slab_gen_params)
+            for slab in slabgen.get_slabs(symmetrize=slab_gen_params["symmetrize"]):
+                slab.miller_index = self.get("miller_index")
+                FWs.append(self.get_slab_fw(slab, slab_gen_params))
 
         return FWAction(additions=FWs)
+
+    def get_ouc_fw(self, slab):
+
+        return OUCFW(slab.oriented_unit_cell, self.get("tasks_coll"),
+                     self.get("prop_coll"), slab.miller_index,
+                     slab.scale_factor, self.get("production_mode", True),
+                     self.get("scratch_dir"), self.get("k_product"),
+                     self.get("db_file"), self.get("vasp_cmd"),
+                     mpid=self.get("mpid", "--"))
+
+    def get_slab_fw(self, slab, slab_gen_params):
+
+        return SlabFW(slab, self.get("tasks_coll"),
+                      self.get("prop_coll"), slab_gen_params,
+                      slab.miller_index, slab.scale_factor,
+                      slab.oriented_unit_cell, slab.shift,
+                      slab_gen_params["min_slab_size"],
+                      slab_gen_params["min_vacuum_size"],
+                      self.get("production_mode", True),
+                      self.get("scratch_dir"), self.get("k_product"),
+                      self.get("db_file"), self.get("vasp_cmd"),
+                      reconstruction=slab.reconstruction,
+                      mpid=self.get("mpid", "--"))
 
 # @explicit_serialize
 # class SurfPropToDbTask(FiretaskBase):
