@@ -10,6 +10,7 @@ __email__ = "rit001@eng.ucsd.edu"
 __date__ = "11/30/17"
 
 import json
+import os
 
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian
 from atomate.vasp.firetasks.parse_outputs import VaspToDb
@@ -33,7 +34,7 @@ class SurfacePropertiesWF(object):
     (for work function).
     """
 
-    def __init__(self, db_file, tasks_coll="surface_tasks",
+    def __init__(self, db_file, tasks_coll="surface_tasks", cwd=os.getcwd(),
                  prop_coll="surface_properties", production_mode=False,
                  scratch_dir="", k_product=50, vasp_cmd="vasp"):
 
@@ -48,17 +49,18 @@ class SurfacePropertiesWF(object):
         self.production_mode = production_mode
         self.tasks_coll = tasks_coll
         self.prop_coll = prop_coll
+        self.cwd = cwd
 
     def wf_from_mpid(self, structure, mmi, mpid=None):
 
         return Workflow([ConvUcellFW(structure, mmi, self.tasks_coll, self.prop_coll,
-                                     self.production_mode, self.scratch_dir,
-                                     self.k_product, self.db_file, self.vasp_cmd, mpid=mpid)])
+                                     self.production_mode, self.scratch_dir, self.k_product,
+                                     self.db_file, self.vasp_cmd, cwd=cwd, mpid=mpid)])
 
 class ConvUcellFW(Firework):
     def __init__(self, ucell, mmi, tasks_coll, prop_coll,
                  production_mode, scratch_dir, k_product,
-                 db_file, vasp_cmd, mpid="--", **kwargs):
+                 db_file, vasp_cmd, cwd=os.getcwd(), mpid="--", **kwargs):
         """
         Customized FW similar to OptimizeFW.
 
@@ -90,7 +92,8 @@ class ConvUcellFW(Firework):
         # RunVaspCustodian, PassCalcLocs and VaspToDB. We can then
         # modify or remove tasks to suit our needs.
         tasks = []
-        tasks.append(CreateFolder(folder_name=name, change_dir=True))
+        tasks.append(CreateFolder(folder_name=os.path.join(cwd, name),
+                                  change_dir=True, relative_path=True))
         tasks.append(WriteVaspFromIOSet(structure=ucell, vasp_input_set=mvl))
         tasks.append(RunVaspCustodian(vasp_cmd=vasp_cmd,
                                       auto_npar=">>auto_npar<<",
@@ -114,9 +117,9 @@ class ConvUcellFW(Firework):
         super(ConvUcellFW, self).__init__(tasks, name=name, **kwargs)
 
 class OUCFW(Firework):
-    def __init__(self, ouc, tasks_coll, prop_coll, miller_index, scale_factor,
-                 production_mode, scratch_dir, k_product,
-                 db_file, vasp_cmd, mpid="--", **kwargs):
+    def __init__(self, ouc, tasks_coll, prop_coll, miller_index,
+                 scale_factor, production_mode, scratch_dir, k_product,
+                 db_file, vasp_cmd, cwd=os.getcwd(), mpid="--", **kwargs):
         """
         Customized FW similar to OptimizeFW.
 
@@ -149,7 +152,8 @@ class OUCFW(Firework):
         # RunVaspCustodian, PassCalcLocs and VaspToDB. We can then
         # modify or remove tasks to suit our needs.
         tasks = []
-        tasks.append(CreateFolder(folder_name=name, change_dir=True))
+        tasks.append(CreateFolder(folder_name=os.path.join(cwd, name),
+                                  change_dir=True, relative_path=True))
         tasks.append(WriteVaspFromIOSet(structure=ouc, vasp_input_set=mvl))
         tasks.append(RunVaspCustodian(vasp_cmd=vasp_cmd,
                                       auto_npar=">>auto_npar<<",
@@ -180,7 +184,8 @@ class SlabFW(Firework):
     def __init__(self, slab, tasks_coll, prop_coll, slab_gen_params,
                  miller_index, scale_factor, ouc, shift, ssize, vsize,
                  production_mode, scratch_dir, k_product, db_file,
-                 vasp_cmd, reconstruction=None, mpid="--", **kwargs):
+                 vasp_cmd, reconstruction=None, cwd=os.getcwd(),
+                 mpid="--", **kwargs):
         """
         Customized FW similar to OptimizeFW.
 
@@ -218,7 +223,8 @@ class SlabFW(Firework):
         # RunVaspCustodian, PassCalcLocs and VaspToDB. We can then
         # modify or remove tasks to suit our needs.
         tasks = []
-        tasks.append(CreateFolder(folder_name=name, change_dir=True))
+        tasks.append(CreateFolder(folder_name=os.path.join(cwd, name),
+                                  change_dir=True, relative_path=True))
         tasks.append(WriteVaspFromIOSet(structure=slab, vasp_input_set=mvl))
         tasks.append(RunVaspCustodian(vasp_cmd=vasp_cmd,
                                       auto_npar=">>auto_npar<<",
