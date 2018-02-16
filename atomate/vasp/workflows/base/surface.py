@@ -55,7 +55,7 @@ class SurfacePropertiesWF(object):
 
         return Workflow([ConvUcellFW(structure, mmi, self.tasks_coll, self.prop_coll,
                                      self.production_mode, self.scratch_dir, self.k_product,
-                                     self.db_file, self.vasp_cmd, cwd=cwd, mpid=mpid)])
+                                     self.db_file, self.vasp_cmd, cwd=self.cwd, mpid=mpid)])
 
 class ConvUcellFW(Firework):
     def __init__(self, ucell, mmi, tasks_coll, prop_coll,
