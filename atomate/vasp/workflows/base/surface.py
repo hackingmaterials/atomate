@@ -148,7 +148,7 @@ class OUCFW(Firework):
         # RunVaspCustodian, PassCalcLocs and VaspToDB. We can then
         # modify or remove tasks to suit our needs.
         tasks = []
-        tasks.append(CreateFolder(folder_name=name, change_dir=True))
+        # tasks.append(CreateFolder(folder_name=name, change_dir=True))
         tasks.append(WriteVaspFromIOSet(structure=ouc, vasp_input_set=mvl))
         tasks.append(RunVaspCustodian(vasp_cmd=vasp_cmd,
                                       auto_npar=">>auto_npar<<",
@@ -212,7 +212,7 @@ class SlabFW(Firework):
         # RunVaspCustodian, PassCalcLocs and VaspToDB. We can then
         # modify or remove tasks to suit our needs.
         tasks = []
-        tasks.append(CreateFolder(folder_name=name, change_dir=True))
+        # tasks.append(CreateFolder(folder_name=name, change_dir=True))
         tasks.append(WriteVaspFromIOSet(structure=slab, vasp_input_set=mvl))
         tasks.append(RunVaspCustodian(vasp_cmd=vasp_cmd,
                                       auto_npar=">>auto_npar<<",
