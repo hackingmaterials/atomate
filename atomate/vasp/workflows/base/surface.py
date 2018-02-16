@@ -265,7 +265,6 @@ class FacetFWsGeneratorTask(FiretaskBase):
             slab_gen_params = self.get("slab_gen_params", None)
         else:
             slab_gen_params = {"min_slab_size": 10, "min_vacuum_size": 10,
-                               "include_reconstructions": True,
                                "symmetrize": True}
             slab_gen_params["max_normal_search"] = self.get("mmi") if \
                 self.get("mmi") else max(self.get("miller_index"))
