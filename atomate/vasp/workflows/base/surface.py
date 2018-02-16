@@ -106,9 +106,10 @@ class ConvUcellFW(Firework):
         additional_fields["material_id"] = mpid
         tasks.append(VaspToDb(additional_fields=additional_fields, db_file=db_file))
         tasks.append(FacetFWsGeneratorTask(structure_type="conventional_unit_cell", mmi=mmi,
+                                           vasp_cmd=vasp_cmd, mpid=mpid, db_file=db_file,
                                            scratch_dir=scratch_dir, k_product=k_product,
-                                           db_file=db_file, tasks_coll=tasks_coll, mpid=mpid,
-                                           prop_coll=prop_coll, production_mode=production_mode))
+                                           tasks_coll=tasks_coll, prop_coll=prop_coll, 
+                                           production_mode=production_mode))
 
         super(ConvUcellFW, self).__init__(tasks, name=name, **kwargs)
 
@@ -249,7 +250,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
     """
 
     required_params = ['structure_type', "mmi", "scratch_dir", "k_product",
-                       "db_file", "tasks_coll", "prop_coll"]
+                       "db_file", "tasks_coll", "prop_coll", "vasp_cmd"]
     optional_params = ["slab_gen_params", "production_mode", "mpid"]
 
     def run_task(self, fw_spec):
