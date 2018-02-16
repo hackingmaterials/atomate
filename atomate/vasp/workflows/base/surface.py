@@ -265,7 +265,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
             slab_gen_params = self.get("slab_gen_params", None)
         else:
             slab_gen_params = {"min_slab_size": 10, "min_vacuum_size": 10,
-                               "symmetrize": True}
+                               "symmetrize": True, "center_slab": True}
             slab_gen_params["max_normal_search"] = self.get("mmi") if \
                 self.get("mmi") else max(self.get("miller_index"))
             if self.get("structure_type") == "conventional_unit_cell":
@@ -292,7 +292,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
                         FWs.append(self.get_ouc_fw(slab))
 
         elif self.get("structure_type") == "oriented_unit_cell":
-            slab_gen_params["structure"] = Structure.from_file("CONTCAR.relax2.gz")
+            slab_gen_params["initial_structure"] = Structure.from_file("CONTCAR.relax2.gz")
             slab_gen_params["miller_index"] = [0,0,1]
             symmetrize = slab_gen_params["symmetrize"]
             del slab_gen_params["symmetrize"]
