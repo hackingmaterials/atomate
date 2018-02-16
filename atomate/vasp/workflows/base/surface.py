@@ -166,7 +166,7 @@ class OUCFW(Firework):
         additional_fields["miller_index"] = miller_index
         additional_fields["scale_factor"] = scale_factor
         tasks.append(VaspToDb(additional_fields=additional_fields, db_file=db_file))
-        
+
         tasks.append(FacetFWsGeneratorTask(structure_type="oriented_unit_cell",
                                            vasp_cmd=vasp_cmd, mpid=mpid, db_file=db_file,
                                            scratch_dir=scratch_dir, k_product=k_product,
@@ -265,11 +265,12 @@ class FacetFWsGeneratorTask(FiretaskBase):
             slab_gen_params = self.get("slab_gen_params", None)
         else:
             slab_gen_params = {"min_slab_size": 10, "min_vacuum_size": 10,
-                               "center_slab": True,
-                               "symmetrize": True,
-                               "include_reconstructions": True}
+                               "include_reconstructions": True,
+                               "symmetrize": True}
             slab_gen_params["max_normal_search"] = self.get("mmi") if \
                 self.get("mmi") else max(self.get("miller_index"))
+            if self.get("structure_type") == "conventional_unit_cell":
+                slab_gen_params["include_reconstructions"] = True
 
         FWs = []
         if self.get("structure_type") == "conventional_unit_cell":
@@ -294,8 +295,10 @@ class FacetFWsGeneratorTask(FiretaskBase):
         elif self.get("structure_type") == "oriented_unit_cell":
             slab_gen_params["structure"] = Structure.from_file("CONTCAR.relax2.gz")
             slab_gen_params["miller_index"] = [0,0,1]
+            symmetrize = slab_gen_params["symmetrize"]
+            del slab_gen_params["symmetrize"]
             slabgen = SlabGenerator(**slab_gen_params)
-            for slab in slabgen.get_slabs(symmetrize=slab_gen_params["symmetrize"]):
+            for slab in slabgen.get_slabs(symmetrize=symmetrize):
                 slab.miller_index = self.get("miller_index")
                 FWs.append(self.get_slab_fw(slab, slab_gen_params))
 
