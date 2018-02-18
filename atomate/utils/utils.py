@@ -10,7 +10,9 @@ from random import randint
 from time import time
 
 import six
+from pymongo import MongoClient
 from monty.json import MontyDecoder
+from monty.serialization import loadfn
 from pymatgen import Composition
 
 from fireworks import Workflow
@@ -125,11 +127,10 @@ def recursive_get_result(d, result):
         return d
 
 
-def get_logger(name, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(message)s',
-               stream=sys.stdout):
+def get_logger(name, level=logging.DEBUG, log_format='%(asctime)s %(levelname)s %(name)s %(message)s', stream=sys.stdout):
     logger = logging.getLogger(name)
     logger.setLevel(level)
-    formatter = logging.Formatter(format)
+    formatter = logging.Formatter(log_format)
     sh = logging.StreamHandler(stream=stream)
     sh.setFormatter(formatter)
     logger.addHandler(sh)
@@ -335,7 +336,7 @@ def get_uri(dir_name):
 
 
 def get_database(config_file=None, settings=None, admin=False, **kwargs):
-    d = get_settings(config_file) if settings is None else settings
+    d = loadfn(config_file) if settings is None else settings
     conn = MongoClient(host=d["host"], port=d["port"], **kwargs)
     db = conn[d["database"]]
     try:
@@ -343,6 +344,9 @@ def get_database(config_file=None, settings=None, admin=False, **kwargs):
         passwd = d["admin_password"] if admin else d["readonly_password"]
         db.authenticate(user, passwd)
     except (KeyError, TypeError, ValueError):
-        _log.warn("No {admin,readonly}_user/password found in config. file, "
-                  "accessing DB without authentication")
+        logger.warn("No {admin,readonly}_user/password found in config. file, "
+            "accessing DB without authentication")
     return db
+
+
+logger = get_logger(__name__)
