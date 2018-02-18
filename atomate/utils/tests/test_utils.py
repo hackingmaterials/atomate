@@ -37,7 +37,7 @@ class Task2(FiretaskBase):
 
 class UtilsTests(AtomateTest):
 
-    def setUp(self):
+    def setUp(self, lpad=True):
 
         super(UtilsTests, self).setUp()
         self.fw1 = Firework(Task1())
