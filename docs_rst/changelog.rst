@@ -2,6 +2,11 @@
 atomate Changelog
 =================
 
+**v0.7.1**
+
+* update ``atwf`` to find the path to workflows better (M. Dias Costa)
+* better surface workflow naming (A. Jain)
+
 **v0.7.0**
 
 * change default behavior when a run looks OK but is unconverged (A. Jain)
