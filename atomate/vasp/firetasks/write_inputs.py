@@ -21,7 +21,7 @@ from pymatgen.core.structure import Structure
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
 from pymatgen.io.vasp import Incar, Poscar, Potcar, PotcarSingle
-from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, MPHSEBSSet
+from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, MPHSEBSSet, MPNMRSet
 
 from atomate.utils.utils import env_chk, load_class
 from atomate.vasp.firetasks.glue_tasks import GetInterpolatedPOSCAR
@@ -351,6 +351,31 @@ class WriteVaspSOCFromPrev(FiretaskBase):
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
             international_monoclinic=self.get("international_monoclinic", True),
+            **self.get("other_params", {}))
+        vis.write_input(".")
+
+
+@explicit_serialize
+class WriteVaspNMRFromPrev(FiretaskBase):
+    """
+    Writes input files for a NMR calculation
+
+    Optional params::
+        prev_calc_dir: path to previous calculation, else current directory
+        mode (str): the NMR calculation type: cs or efg, default is cs
+        isotopes (list): list of isotopes to include, default is to include the
+                         lowest mass quadrupolar isotope for all applicable elements
+        reciprocol_density (int): the reciprocol density for the kpoint mesh, defaults to 100
+        other_aprams (dict) : any other params passsed to MPNMRSet as a dictionary
+    """
+    optional_params = ["mode", "isotopes", "reciprocal_density", "other_params"]
+
+    def run_task(self, fw_spec):
+        vis = MPNMRSet.from_prev_calc(
+            prev_calc_dir=self.get("prev_calc_dir", "."),
+            mode=self.get("mode", "cs"),
+            isotopes=self.get("isotopes", None),
+            reciprocal_density=self.get("reciprocal_density", 100),
             **self.get("other_params", {}))
         vis.write_input(".")
 
