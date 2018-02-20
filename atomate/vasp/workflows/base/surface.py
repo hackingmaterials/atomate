@@ -369,7 +369,7 @@ class SurfPropToDbTask(FiretaskBase):
             Note that order 3 and higher required finite difference
             fitting, and will override.
     """
-    required_params = ["structure_type"]
+    required_params = ["structure_type", "db_configs"]
     optional_params = ["calc_dir", "calc_loc", "prop_coll",
                        "additional_fields", "db_file", "apikey"]
 
@@ -378,7 +378,7 @@ class SurfPropToDbTask(FiretaskBase):
         # get the database connection
         self.db_file = env_chk(self.get('db_file'), fw_spec)
 
-        self.mmdb = VaspCalcDb(**db_configs)
+        self.mmdb = VaspCalcDb.from_db_file(self.db_file)
         self.mprester = MPRester(api_key=self.get("apikey", None))
         self.surftasks = self.mmdb.db[db_configs["collection"]]
 
