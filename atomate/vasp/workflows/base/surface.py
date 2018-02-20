@@ -371,7 +371,7 @@ class SurfPropToDbTask(FiretaskBase):
             fitting, and will override.
     """
     required_params = ["structure_type"]
-    optional_params = ["prop_coll", "additional_fields", "db_file", "apikey"]
+    optional_params = ["prop_coll", "additional_fields", "db_file"]
 
     def run_task(self, fw_spec):
 
@@ -385,7 +385,7 @@ class SurfPropToDbTask(FiretaskBase):
 
 
         self.mmdb = VaspCalcDb.from_db_file(self.db_file, admin=True)
-        self.mprester = MPRester(api_key=self.get("apikey", None))
+        self.mprester = MPRester()
         self.surftasks = self.mmdb.db[self.dbconfig["collection"]]
 
         # Insert the raw calculation
@@ -517,13 +517,21 @@ class SurfPropToDbTask(FiretaskBase):
     def get_facet_properties(self):
 
         # Get surface properties for a specific facet
+        facet_props = {}
 
         # Get the ouc and slab entries
         ouc_task = self.surftasks.find_one({"material_id": self.mpid,
                                             "structure_type": "oriented_unit_cell",
                                             "miller_index": self.task_doc["miller_index"]})
         slab = Structure.from_dict(self.task_doc["structure"])
-        slab_entry = SlabEntry()
+        slab_entry = SlabEntry(slab, self.task_doc["energy"], self.task_doc["miller_index"])
+        ouc = Structure.from_dict(ouc_task["structure"])
+        ouc_entry = ComputedStructureEntry(ouc, ouc_task["energy"])
+        se = slab_entry.surface_energy(ouc_entry)
+        facet_props["surface_energy_EV_PER_ANG2"] = se
+        facet_props["surface_energy"] = se*EV_PER_ANG2_TO_JOULES_PER_M2
+        facet_props["miller_index"] = self.task_doc["miller_index"]
+
 
 
 
