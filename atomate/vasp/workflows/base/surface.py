@@ -115,8 +115,9 @@ class ConvUcellFW(Firework):
             SpacegroupAnalyzer(ucell).get_space_group_symbol()
         additional_fields["initial_structure"] = ucell.as_dict()
         additional_fields["material_id"] = mpid
-        tasks.append(SurfPropToDbTask(structure_type="conventional_unit_cell", calc_dir=cwd, calc_loc=cwd,
-                                      additional_fields=additional_fields, db_file=db_file))
+
+        tasks.append(SurfPropToDbTask(structure_type="conventional_unit_cell",
+                                      db_file=db_file, additional_fields=additional_fields))
         tasks.append(FacetFWsGeneratorTask(structure_type="conventional_unit_cell", mmi=mmi,
                                            vasp_cmd=vasp_cmd, mpid=mpid, db_file=db_file,
                                            scratch_dir=scratch_dir, k_product=k_product,
@@ -178,8 +179,8 @@ class OUCFW(Firework):
         additional_fields["material_id"] = mpid
         additional_fields["miller_index"] = miller_index
         additional_fields["scale_factor"] = scale_factor
-        tasks.append(SurfPropToDbTask(structure_type="oriented_unit_cell", calc_dir=cwd, calc_loc=cwd,
-                                      additional_fields=additional_fields, db_file=db_file))
+        tasks.append(SurfPropToDbTask(structure_type="oriented_unit_cell",
+                                      db_file=db_file, additional_fields=additional_fields))
         tasks.append(FacetFWsGeneratorTask(structure_type="oriented_unit_cell",
                                            vasp_cmd=vasp_cmd, mpid=mpid, db_file=db_file,
                                            scratch_dir=scratch_dir, k_product=k_product,
@@ -257,8 +258,8 @@ class SlabFW(Firework):
         additional_fields["reconstruction"] = reconstruction
         # additional_fields["local_potential_along_c"]
         # additional_fields["efermi"]
-        tasks.append(SurfPropToDbTask(structure_type="slab_cell", calc_dir=cwd, calc_loc=cwd,
-                                      prop_coll=prop_coll, additional_fields=additional_fields,
+        tasks.append(SurfPropToDbTask(structure_type="slab_cell", prop_coll=prop_coll,
+                                      additional_fields=additional_fields,
                                       db_file=db_file))
         super(SlabFW, self).__init__(tasks, name=name, **kwargs)
 
@@ -370,8 +371,7 @@ class SurfPropToDbTask(FiretaskBase):
             fitting, and will override.
     """
     required_params = ["structure_type"]
-    optional_params = ["calc_dir", "calc_loc", "prop_coll",
-                       "additional_fields", "db_file", "apikey"]
+    optional_params = ["prop_coll", "additional_fields", "db_file", "apikey"]
 
     def run_task(self, fw_spec):
 
@@ -482,11 +482,6 @@ class SurfPropToDbTask(FiretaskBase):
 
         # get the directory that contains the VASP dir to parse
         calc_dir = os.getcwd()
-        if "calc_dir" in self:
-            calc_dir = self["calc_dir"]
-        elif self.get("calc_loc"):
-            calc_dir = get_calc_loc(self["calc_loc"],
-                                    fw_spec["calc_locs"])["path"]
 
         # parse the VASP directory
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
@@ -524,10 +519,11 @@ class SurfPropToDbTask(FiretaskBase):
         # Get surface properties for a specific facet
 
         # Get the ouc and slab entries
-        self.task_doc
-        self.surftasks.find_one({"material_id": self.mpid,
-                                 "structure_type": "oriented_unit_cell",
-                                 "miller_index": self.task_doc["miller_index"]})
+        ouc_task = self.surftasks.find_one({"material_id": self.mpid,
+                                            "structure_type": "oriented_unit_cell",
+                                            "miller_index": self.task_doc["miller_index"]})
+        slab = Structure.from_dict(self.task_doc["structure"])
+        slab_entry = SlabEntry()
 
 
 
