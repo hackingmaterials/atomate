@@ -376,12 +376,15 @@ class SurfPropToDbTask(FiretaskBase):
     def run_task(self, fw_spec):
 
         # get the database connection
-        self.db_file = env_chk(self.get('db_file'), fw_spec)
-        with open(self.db_file) as db_file:
-            self.dbconfig = json.load(db_file)
+        if not self.get('db_config', None):
+            self.db_file = env_chk(self.get('db_file'), fw_spec)
+            with open(self.db_file) as db_file:
+                self.dbconfig = json.load(db_file)
+        else:
+            self.dbconfig = self.get("db_config")
 
 
-        self.mmdb = VaspCalcDb(**self.dbconfig)
+        self.mmdb = VaspCalcDb.from_db_file(self.db_file, admin=True)
         self.mprester = MPRester(api_key=self.get("apikey", None))
         self.surftasks = self.mmdb.db[self.dbconfig["collection"]]
 
