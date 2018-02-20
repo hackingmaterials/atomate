@@ -15,6 +15,11 @@ import os
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian
 from atomate.common.firetasks.glue_tasks import CreateFolder
 from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet
+from atomate.utils.utils import env_chk
+from atomate.vasp.database import VaspCalcDb
+from atomate.common.firetasks.glue_tasks import get_calc_loc
+from atomate.utils.utils import get_logger
+from atomate.vasp.drones import VaspDrone
 
 from pymatgen.core.surface import generate_all_slabs, Structure, SlabGenerator
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -24,6 +29,8 @@ from pymatgen import MPRester
 
 from fireworks.core.firework import Firework, Workflow, FiretaskBase, FWAction
 from fireworks import explicit_serialize
+
+logger = get_logger(__name__)
 
 
 class SurfacePropertiesWF(object):
@@ -373,7 +380,7 @@ class SurfPropToDbTask(FiretaskBase):
 
         self.mmdb = VaspCalcDb(**db_configs)
         self.mprester = MPRester(api_key=self.get("apikey", None))
-        self.surftasks = mmdb.db[db_configs["collection"]]
+        self.surftasks = self.mmdb.db[db_configs["collection"]]
 
         # Insert the raw calculation
         self.task_doc = self.insert_raw_calcs()
@@ -456,11 +463,11 @@ class SurfPropToDbTask(FiretaskBase):
         #     logger.info("Finished parsing surface properties with task_id: {}".format(t_id))
 
         if self.get("defuse_unsuccessful", True):
-            defuse_children = (task_doc["state"] != "successful")
+            defuse_children = (self.task_doc["state"] != "successful")
         else:
             defuse_children = False
 
-        return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
+        return FWAction(stored_data={"task_id": self.task_doc.get("task_id", None)},
                         defuse_children=defuse_children)
 
     def insert_raw_calcs(self):
