@@ -397,8 +397,8 @@ class SurfPropToDbTask(FiretaskBase):
         # If the prop_coll is given, store post processed surface energies in
         # that collection, if not, store it in default collection from db_file
         if self.get("prop_coll", None):
-            db_configs["collection"] = self.get("prop_coll", None)
-        self.surfpropdb = VaspCalcDb(**db_configs)
+            self.db_configs["collection"] = self.get("prop_coll", None)
+        self.surfpropdb = VaspCalcDb(**self.db_configs)
         self.surfprops = self.get_surface_properties_entry()
 
         # # If this is a slab calculation, we should have all
