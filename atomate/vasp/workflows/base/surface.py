@@ -478,7 +478,8 @@ class SurfPropToDbTask(FiretaskBase):
 
         # get the locpot for work function calculations
         if self.get("structure_type") == "slab_cell":
-            os.rename("LOCPOT.gz", "LOCPOT.relax2.gz")
+            os.rename(os.path.join(calc_dir, "LOCPOT.gz"),
+                      os.path.join(calc_dir, "LOCPOT.relax2.gz"))
 
         drone = VaspDrone(additional_fields=self.get("additional_fields"),
                           parse_dos=self.get("parse_dos", False), compress_dos=1,
