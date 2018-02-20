@@ -377,16 +377,16 @@ class SurfPropToDbTask(FiretaskBase):
 
         # get the database connection
         self.db_file = env_chk(self.get('db_file'), fw_spec)
-        with open(db_file) as self.db_file:
-            dbconfig = json.load(self.db_file)
+        with open(self.db_file) as db_file:
+            self.dbconfig = json.load(db_file)
 
 
-        self.mmdb = VaspCalcDb(**dbconfig)
+        self.mmdb = VaspCalcDb(**self.dbconfig)
         self.mprester = MPRester(api_key=self.get("apikey", None))
-        self.surftasks = self.mmdb.db[dbconfig["collection"]]
+        self.surftasks = self.mmdb.db[self.dbconfig["collection"]]
 
         # Insert the raw calculation
-        self.task_doc = self.insert_raw_calcs()
+        self.task_doc = self.parse_raw_calcs()
         self.mpid = self.task_doc["material_id"]
         self.mpentry = self.mprester.get_entry_by_material_id(self.task_doc["material_id"],
                                                               property_data=["e_above_hull"])
@@ -473,7 +473,7 @@ class SurfPropToDbTask(FiretaskBase):
         return FWAction(stored_data={"task_id": self.task_doc.get("task_id", None)},
                         defuse_children=defuse_children)
 
-    def insert_raw_calcs(self):
+    def parse_raw_calcs(self):
 
         # This just acts as the VaspToDb FireTask
 
@@ -521,8 +521,10 @@ class SurfPropToDbTask(FiretaskBase):
         # Get surface properties for a specific facet
 
         # Get the ouc and slab entries
-
-
+        self.task_doc
+        self.surftasks.find_one({"material_id": self.mpid,
+                                 "structure_type": "oriented_unit_cell",
+                                 "miller_index": self.task_doc["miller_index"]})
 
 
 
