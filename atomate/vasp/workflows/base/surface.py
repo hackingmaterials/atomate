@@ -13,7 +13,6 @@ import json
 import os
 
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian
-from atomate.vasp.firetasks.parse_outputs import VaspToDb
 from atomate.common.firetasks.glue_tasks import CreateFolder
 from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet
 
@@ -109,7 +108,8 @@ class ConvUcellFW(Firework):
             SpacegroupAnalyzer(ucell).get_space_group_symbol()
         additional_fields["initial_structure"] = ucell.as_dict()
         additional_fields["material_id"] = mpid
-        tasks.append(VaspToDb(additional_fields=additional_fields, db_file=db_file))
+        tasks.append(SurfPropToDbTask(structure_type="conventional_unit_cell", calc_dir=cwd, calc_loc=cwd,
+                                      additional_fields=additional_fields, db_file=db_file))
         tasks.append(FacetFWsGeneratorTask(structure_type="conventional_unit_cell", mmi=mmi,
                                            vasp_cmd=vasp_cmd, mpid=mpid, db_file=db_file,
                                            scratch_dir=scratch_dir, k_product=k_product,
@@ -171,8 +171,8 @@ class OUCFW(Firework):
         additional_fields["material_id"] = mpid
         additional_fields["miller_index"] = miller_index
         additional_fields["scale_factor"] = scale_factor
-        tasks.append(VaspToDb(additional_fields=additional_fields, db_file=db_file))
-
+        tasks.append(SurfPropToDbTask(structure_type="oriented_unit_cell", calc_dir=cwd, calc_loc=cwd,
+                                      additional_fields=additional_fields, db_file=db_file))
         tasks.append(FacetFWsGeneratorTask(structure_type="oriented_unit_cell",
                                            vasp_cmd=vasp_cmd, mpid=mpid, db_file=db_file,
                                            scratch_dir=scratch_dir, k_product=k_product,
@@ -250,8 +250,9 @@ class SlabFW(Firework):
         additional_fields["reconstruction"] = reconstruction
         # additional_fields["local_potential_along_c"]
         # additional_fields["efermi"]
-        tasks.append(VaspToDb(additional_fields=additional_fields, db_file=db_file))
-
+        tasks.append(SurfPropToDbTask(structure_type="slab_cell", calc_dir=cwd, calc_loc=cwd,
+                                      prop_coll=prop_coll, additional_fields=additional_fields,
+                                      db_file=db_file))
         super(SlabFW, self).__init__(tasks, name=name, **kwargs)
 
 
@@ -478,8 +479,7 @@ class SurfPropToDbTask(FiretaskBase):
 
         # get the locpot for work function calculations
         if self.get("structure_type") == "slab_cell":
-            os.rename(os.path.join(calc_dir, "LOCPOT.gz"),
-                      os.path.join(calc_dir, "LOCPOT.relax2.gz"))
+            os.rename("LOCPOT.gz", "LOCPOT.relax2.gz")
 
         drone = VaspDrone(additional_fields=self.get("additional_fields"),
                           parse_dos=self.get("parse_dos", False), compress_dos=1,
@@ -511,6 +511,8 @@ class SurfPropToDbTask(FiretaskBase):
     def get_facet_properties(self):
 
         # Get surface properties for a specific facet
+
+        # Get the ouc and slab entries
 
 
 
