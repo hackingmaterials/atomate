@@ -20,6 +20,8 @@ from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet
 from pymatgen.core.surface import generate_all_slabs, Structure, SlabGenerator
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp.sets import MVLSlabSet
+from pymatgen.analysis.surface_analysis import SlabEntry, SurfaceEnergyPlotter, ComputedStructureEntry
+from pymatgen import MPRester
 
 from fireworks.core.firework import Firework, Workflow, FiretaskBase, FWAction
 from fireworks import explicit_serialize
@@ -105,7 +107,7 @@ class ConvUcellFW(Firework):
                              "calculation_name": name}
         additional_fields["conventional_spacegroup"] = \
             SpacegroupAnalyzer(ucell).get_space_group_symbol()
-        additional_fields["initial_structure"] = ucell
+        additional_fields["initial_structure"] = ucell.as_dict()
         additional_fields["material_id"] = mpid
         tasks.append(VaspToDb(additional_fields=additional_fields, db_file=db_file))
         tasks.append(FacetFWsGeneratorTask(structure_type="conventional_unit_cell", mmi=mmi,
@@ -165,7 +167,7 @@ class OUCFW(Firework):
                              "calculation_name": name}
         additional_fields["conventional_spacegroup"] = \
             SpacegroupAnalyzer(ouc).get_space_group_symbol()
-        additional_fields["initial_structure"] = ouc
+        additional_fields["initial_structure"] = ouc.as_dict()
         additional_fields["material_id"] = mpid
         additional_fields["miller_index"] = miller_index
         additional_fields["scale_factor"] = scale_factor
@@ -234,13 +236,14 @@ class SlabFW(Firework):
         # Add additional fields to distinguish this calculation
         additional_fields = {"structure_type": "slab_cell",
                              "calculation_name": name}
+        sg = SpacegroupAnalyzer(ouc)
         additional_fields["conventional_spacegroup"] = \
-            SpacegroupAnalyzer(ouc).get_space_group_symbol()
-        additional_fields["initial_structure"] = slab
+            {"symbol": sg.get_space_group_symbol(), "number": sg.get_space_group_number()}
+        additional_fields["initial_structure"] = slab.as_dict()
         additional_fields["material_id"] = mpid
         additional_fields["miller_index"] = miller_index
         additional_fields["scale_factor"] = scale_factor
-        additional_fields["oriented_unit_cell"] = ouc
+        additional_fields["oriented_unit_cell"] = ouc.as_dict()
         additional_fields["slab_size"] = ssize
         additional_fields["vac_size"] = vsize
         additional_fields["shift"] = shift
@@ -332,268 +335,223 @@ class FacetFWsGeneratorTask(FiretaskBase):
                       reconstruction=slab.reconstruction,
                       mpid=self.get("mpid", "--"))
 
-# @explicit_serialize
-# class SurfPropToDbTask(FiretaskBase):
-#     """
-#     Analyzes the stress/strain data of an elastic workflow to produce
-#     an elastic tensor and various other quantities.
-#
-#     Required params:
-#         structure (Structure): structure to use for symmetrization,
-#             input structure.  If an optimization was used, will
-#             look for relaxed structure in calc locs
-#
-#     Optional params:
-#         db_file (str): path to file containing the database credentials.
-#             Supports env_chk. Default: write data to JSON file.
-#         order (int): order of fit to perform
-#         fw_spec_field (str): if set, will update the task doc with the contents
-#             of this key in the fw_spec.
-#         fitting_method (str): if set, will use one of the specified
-#             fitting methods from pymatgen.  Supported methods are
-#             "independent", "pseudoinverse", and "finite_difference."
-#             Note that order 3 and higher required finite difference
-#             fitting, and will override.
-#     """
-#
-#     required_params = ['structure']
-#     optional_params = ['db_file', 'order', 'fw_spec_field', 'fitting_method']
-#
-#     def run_task(self, fw_spec):
-#
-#         # Add additional fields to distinguish this calculation
-#         additional_fields = {"structure_type": "conventional_unit_cell",
-#                              "calculation_name": name}
-#         additional_fields["conventional_spacegroup"] = \
-#             SpacegroupAnalyzer(ucell).get_space_group_symbol()
-#         additional_fields["initial_structure"] = ucell
-#         # Add mpid as optional so we won't get None
-#         # when looking for mpid of isolated atoms
-#         if mpid:
-#             additional_fields["material_id"] = mpid
-#
-#         return FWAction()
+EV_PER_ANG2_TO_JOULES_PER_M2 = 16.0217656
 
+@explicit_serialize
+class SurfPropToDbTask(FiretaskBase):
+    """
+    Analyzes the stress/strain data of an elastic workflow to produce
+    an elastic tensor and various other quantities.
 
-# @explicit_serialize
-# class SurfCalcToDbTask(FiretaskBase):
-#     """
-#         Inserts a single vasp calculation in a folder into a DB and
-#         useful information pertaining to slabs and oriented unit cells.
-#     """
-#
-#     required_params = ["vaspdbinsert_parameters", "struct_type", "polymorph"]
-#     optional_params = ["surface_area", "shift", "debug", "diatomic", "mpid",
-#                        "miller_index", "vsize", "ssize", "isolated_atom"]
-#
-#     def run_task(self, fw_spec):
-#         """
-#             Required Parameters:
-#                 host (str): See SurfaceWorkflowManager in surface_wf.py
-#                 port (int): See SurfaceWorkflowManager in surface_wf.py
-#                 user (str): See SurfaceWorkflowManager in surface_wf.py
-#                 password (str): See SurfaceWorkflowManager in surface_wf.py
-#                 database (str): See SurfaceWorkflowManager in surface_wf.py
-#                 collection (str): See SurfaceWorkflowManager in surface_wf.py
-#                 mpid (str): The Materials Project ID associated with the
-#                     initial structure used to build the slab from
-#                 struct_type (str): either oriented_unit_cell or slab_cell
-#                 miller_index (list): Miller Index of the oriented
-#                     unit cell or slab
-#                 loc (str path): Location of the outputs of
-#                     the vasp calculations
-#                 cwd (str): Current working directory
-#                 conventional_spacegroup (str): The spacegroup of the structure
-#                     asscociated with the MPID input
-#                 polymorph (str): The rank of the  polymorph of the structure
-#                     associated with the MPID input, 0 being the ground state
-#                     polymorph.
-#             Optional Parameters:
-#                 surface_area (float): surface area of the slab, obtained
-#                     from slab object before relaxation
-#                 shift (float): A shift value in Angstrom that determines how
-#                     much a slab should be shifted. For determining number of
-#                     terminations, obtained from slab object before relaxation
-#                 vsize (float): Size of vacuum layer of slab in Angstroms,
-#                     obtained from slab object before relaxation
-#                 ssize (float): Size of slab layer of slab in Angstroms,
-#                     obtained from slab object before relaxation
-#                 isolated_atom (str): Specie of the structure used to
-#                     calculate the energy of an isolated atom (for cohesive
-#                     energy calculations)
-#         """
-#
-#         # Get all the optional/required parameters
-#         # dec = MontyDecoder()
-#         struct_type = self.get("struct_type")
-#         shift = self.get("shift", None)
-#         vsize = self.get("vsize", None)
-#         ssize = self.get("ssize", None)
-#         miller_index = self.get("miller_index")
-#         mpid = self.get("mpid", None)
-#         polymorph = self.get("polymorph")
-#         vaspdbinsert_parameters = self.get("vaspdbinsert_parameters")
-#
-#         warnings = []
-#         # Addtional info relating to slabs
-#         additional_fields = {"author": os.environ.get("USER"),
-#                              "structure_type": struct_type,
-#                              "final_incar": Incar.from_file("./INCAR.relax2.gz"),
-#                              "final_magnetization": Outcar("./OUTCAR.relax2.gz").magnetization,
-#                              "calculation_name": name,
-#                              "warnings": warnings}
-#
-#         # Add mpid as optional so we won't get None
-#         # when looking for mpid of isolated atoms
-#         additional_fields["miller_index"] = miller_index
-#         additional_fields["surface_area"] = surface_area
-#         additional_fields["shift"] = shift
-#         additional_fields["vac_size"] = vsize
-#         additional_fields["slab_size"] = ssize
-#         additional_fields["material_id"] = mpid
-#         additional_fields["conventional_spacegroup"] = spacegroup
-#         additional_fields["polymorph"] = polymorph
-#
-#         if mpid:
-#             additional_fields["material_id"] = mpid
-#
-#         drone = VaspToDbTaskDrone(use_full_uri=False,
-#                                   additional_fields=additional_fields,
-#                                   **vaspdbinsert_parameters)
-#         drone.assimilate(calc_locs)
+    Required params:
+        structure (Structure): structure to use for symmetrization,
+            input structure.  If an optimization was used, will
+            look for relaxed structure in calc locs
 
+    Optional params:
+        db_file (str): path to file containing the database credentials.
+            Supports env_chk. Default: write data to JSON file.
+        order (int): order of fit to perform
+        fw_spec_field (str): if set, will update the task doc with the contents
+            of this key in the fw_spec.
+        fitting_method (str): if set, will use one of the specified
+            fitting methods from pymatgen.  Supported methods are
+            "independent", "pseudoinverse", and "finite_difference."
+            Note that order 3 and higher required finite difference
+            fitting, and will override.
+    """
+    required_params = ["structure_type"]
+    optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
+                       "prop_coll", "additional_fields", "db_file", "fw_spec_field",
+                       "defuse_unsuccessful", "apikey"]
 
+    def run_task(self, fw_spec):
 
+        with open(db_file) as db_configs:
+            db_configs = json.loads(db_configs.read())
+        self.mmdb = VaspCalcDb(**db_configs)
+        self.mprester = MPRester(api_key=self.get("apikey", None))
+        self.surftasks = mmdb.db[db_configs["collection"]]
 
+        # Insert the raw calculation
+        self.task_doc = self.insert_raw_calcs()
+        self.mpid = self.task_doc["material_id"]
+        self.mpentry = self.mprester.get_entry_by_material_id(self.task_doc["material_id"],
+                                                              property_data=["e_above_hull"])
 
+        # If the prop_coll is given, store post processed surface energies in
+        # that collection, if not, store it in default collection from db_file
+        if self.get("prop_coll", None):
+            db_configs["collection"] = self.get("prop_coll", None)
+        self.surfpropdb = VaspCalcDb(**db_configs)
+        self.surfprops = self.get_surface_properties_entry()
 
-
-
-
-
-
-
-
-        # if self.calc_type == "conventional_unit_cell":
-        #     name = "-%s_conventional_unit_cell_k%s" %(self.mpid, self.k_product)
-        # elif self.calc_type == "oriented_unit_cell":
-        #     "-%s_bulk_k%s_%s%s%s" % (self.mpid, self.k_product, self.hkl[0],
-        #                              self.hkl[1], self.hkl[2])
-        # elif self.calc_type == "slab_cell":
-        #     if reconstruction_name:
-        #         return "-%s_slab_k%s_s%sv%s_%s" %(self.mpid, self.k_product,
-        #                                           self.min_slab_size,
-        #                                           self.min_vac_size,
-        #                                           self.reconstruction_name)
+        # # If this is a slab calculation, we should have all
+        # # the data needed to get the surface properties now
+        # if self.get("structure_type") == "slab_cell":
+        #
+        #     logger.info("Retrieving surface properties")
+        #
+        #     propdoc = self.get_facet_properties()
+        #
+        #     # Get the facet specific properties. Note there can be more than
+        #     # one item for a Miller index when reconstruction is a possibility
+        #     surfaces, facetprops = [], []
+        #     for surface in self.surfprops["surfaces"]:
+        #         if tuple(surface["miller_index"]) == tuple(self.task_doc["miller_index"]):
+        #             facetprops.append(surface)
+        #         else:
+        #             surfaces.append(surface)
+        #
+        #     # Three possibilities:
+        #     # 1) there are no facet entries as of yet
+        #     # 2) only one entry exists (its unreconstructed)
+        #     # 3) two entries exists (its reconstructed)
+        #
+        #     # Do entries for this specific facet exist already?
+        #     if not facetprops:
+        #         # If not, then just append the current facet entry
+        #         surfaces.append(propdoc)
+        #     elif len(facetprops) > 1:
+        #         # That means one of these entries must be reconstructed
+        #         resurf = [surf for surf in facetprops if surf['is_reconstructed']][0]
+        #         surf = [surf for surf in facetprops if not surf['is_reconstructed']][0]
+        #         if not propdoc["is_reconstructed"] and \
+        #                 all([se < surf["surface_energy"],
+        #                      se < resurf["surface_energy"]]):
+        #             # then replace both entries, reconstruction won't happen and
+        #             # the current unreconstructed termination is too unstable
+        #             surfaces.append(propdoc)
+        #         elif not propdoc["is_reconstructed"] \
+        #                 and propdoc["surface_energy"] < surf["surface_energy"]:
+        #             # It is only more stable than the unreconstructed
+        #             # entry, replace that entry only
+        #             surfaces.append(propdoc)
+        #             surfaces.append(resurf)
+        #         elif propdoc["is_reconstructed"] and \
+        #                         propdoc["surface_energy"] < resurf["surface_energy"]:
+        #             # it is a more stable reconstruction, append it along with the unreconstructed
+        #             surfaces.append(propdoc)
+        #             surfaces.append(surf)
+        #         else:
+        #             # do nothing
+        #             surfaces.extend(facetprops)
         #     else:
-        #         return "-%s_slab_k%s_s%sv%s_%s%s%s_shift%s" % (self.mpid, self.k_product,
-        #                                                        self.min_slab_size,
-        #                                                        self.min_vac_size,
-        #                                                        self.hkl[0], self.hkl[1],
-        #                                                        self.hkl[2], self.shift)
+        #         # That means no reconstruction as of yet
+        #         if propdoc["surface_energy"] < facetprops[0]["surface_energy"]:
+        #             # replace the current doc
+        #             surfaces.append(propdoc)
+        #         else:
+        #             # do not do anything
+        #             surfaces.extend(facetprops)
+        #
+        #     # Get properties relative to the Wulff shape (overall surfaces)
+        #     self.surfprops["surfaces"] = surfaces
+        #     self.surfprops = self.get_relative_properties(self.surfprops)
+        #     self.surfpropdb.update_one({"material_id": self.mpid},
+        #                                {"$set": self.surfprops})
+        #
+        #     logger.info("Finished parsing surface properties with task_id: {}".format(t_id))
+
+        if self.get("defuse_unsuccessful", True):
+            defuse_children = (task_doc["state"] != "successful")
+        else:
+            defuse_children = False
+
+        return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
+                        defuse_children=defuse_children)
+
+    def insert_raw_calcs(self):
+
+        # This just acts as the VaspToDb FireTask
+
+        # get the directory that contains the VASP dir to parse
+        calc_dir = os.getcwd()
+        if "calc_dir" in self:
+            calc_dir = self["calc_dir"]
+        elif self.get("calc_loc"):
+            calc_dir = get_calc_loc(self["calc_loc"],
+                                    fw_spec["calc_locs"])["path"]
+
+        # parse the VASP directory
+        logger.info("PARSING DIRECTORY: {}".format(calc_dir))
+
+        # get the locpot for work function calculations
+        if self.get("structure_type") == "slab_cell":
+            os.rename("LOCPOT.gz", "LOCPOT.relax2.gz")
+
+        drone = VaspDrone(additional_fields=self.get("additional_fields"),
+                          parse_dos=self.get("parse_dos", False), compress_dos=1,
+                          bandstructure_mode=self.get("bandstructure_mode",
+                                                      False), compress_bs=1)
+
+        # assimilate (i.e., parse)
+        task_doc = drone.assimilate(calc_dir)
+
+        # Check for additional keys to set based on the fw_spec
+        if self.get("fw_spec_field"):
+            task_doc.update(fw_spec[self.get("fw_spec_field")])
+
+        # get the database connection
+        db_file = env_chk(self.get('db_file'), fw_spec)
+
+        # db insertion or taskdoc dump
+        if not db_file:
+            with open("task.json", "w") as f:
+                f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
+        else:
+            t_id = self.mmdb.insert_task(task_doc, parse_dos=self.get("parse_dos", False),
+                                         parse_bs=bool(self.get("bandstructure_mode", False)))
+
+            logger.info("Finished parsing raw tasks with task_id: {}".format(t_id))
+
+        return task_doc
+
+    def get_facet_properties(self):
+
+        # Get surface properties for a specific facet
 
 
 
 
 
+        return
+
+    def get_surface_properties_entry(self):
+
+        surfprops = self.surfpropdb.find_one({"material_id": self.mpid})
+
+        if surfprops:
+            # Check if a material entry even exists for this system
+            return surfprops
+        else:
+            # Then we create the entry.
+            surfprops = {}
+            surfprops["surfaces"] = []
+            surfprops["e_above_hull"] = self.mpentry.data["e_above_hull"]
+            entries = mprester.get_entries(self.surftasks["elements"][0] ,
+                                           property_data=["e_above_hull", "material_id"])
+            sorted_entries = sorted(entries, key=lambda entry: entry.data["e_above_hull"])
+            surfprops["weighted_surface_energy_EV_PER_ANG2"] = None
+            surfprops["weighted_surface_energy"] = None
+            surfprops["pretty_formula"] = self.surftasks["elements"][0]
+            surfprops["material_id"] = self.task_doc["material_id"]
+            surfprops["polymorph"] = [i for i, entry in enumerate(sorted_entries)
+                                           if entry.data["material_id"] == self.mpid][0]
+            surfprops["spacegroup"] = self.task_doc["conventional_spacegroup"]
+            surfprops["surface_anisotropy"] = None
+            surfprops["shape_factor"] = None
+            surfprops["weighted_work_function"] = None
+
+            # Add this new entry to the collection
+            self.surfpropdb.insert(surfprops)
+            return surfprops
 
 
+    def get_wulff_shape(self):
 
+        return
 
+    def get_relative_properties(self):
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# def get_fw_from_ucell(ucell, vasp_cmd, scratch_dir, db_file,
-#                       max_errors=10, handler_group=[], k_product=50,
-#                       mpid="--", inc_conv_ucell=False):
-#
-#     # Get the pretty formula for naming
-#     comp = ucell.composition.reduced_composition.as_dict()
-#     pretty_formula = ""
-#     for el, stoich in comp.items():
-#         pretty_formula += str(el)
-#         if stoich != 1:
-#             pretty_formula += str(int(stoich))
-#
-#     # Set up Firetask parameters
-#     OptimizeFW_kwargs = {"vasp_cmd": vasp_cmd,
-#                          "handler_group": handler_group,
-#                          "scratch_dir": scratch_dir,
-#                          "job_type": "double_relaxation_run",
-#                          "half_kpts_first_relax": True,
-#                          "max_errors": max_errors}
-#     VaspToDb_kwargs = {"db_file": db_file}
-#     additional_fields = {"pretty_formula": pretty_formula,
-#                          "material_id": mpid,
-#                          "author": os.environ.get("USER")}
-#
-#     cwd = os.getcwd()
-#     fws = []
-#     if inc_conv_ucell:
-#         mvl = MVLSlabSet(ucell, k_product=k_product, bulk=True)
-#         name = "%s_%s_conventional_k%s" % (pretty_formula, mpid, k_product)
-#
-#         # Edit Firetask parameters for particular Firework
-#         OptimizeFW_kwargs["structure"] = ucell
-#         OptimizeFW_kwargs["vasp_input_set"] = mvl
-#         OptimizeFW_kwargs["name"] = name
-#         additional_fields["structure_type"] = "conventional_unit_cell"
-#         additional_fields["calculation_nme"] = name
-#         VaspToDb_kwargs["calc_dir"] = os.path.join(cwd, name)
-#         VaspToDb_kwargs["additional_fields"] = additional_fields
-#
-#         tasks = [OptimizeFW(**OptimizeFW_kwargs),
-#                  VaspToDb(**VaspToDb_kwargs)]
-#         fws.append(Firework(tasks, name="%s_%s" %(pretty_formula, mpid)))
-#
-#     return fws
-#
-# def get_wflow_from_mpid(mpid, qe, vasp_cmd, scratch_dir, db_file,
-#                         max_errors=10, handler_group=[], k_product=50):
-#
-#     # Check for conventional unit cell optimization
-#     conv_ucell_entry = qe.get_entries({"material_id": mpid,
-#                                        "structure_type": "conventional_unit_cell"},
-#                                       inc_structure="Final")
-#
-#     inc_conv_ucell = True if not conv_ucell_entry else False
-#     ucell = conv_ucell_entry.structure if conv_ucell_entry \
-#         else qe.get_conventional_ucell(mpid)
-#
-#     fws = get_tasks_from_ucell(ucell, qe, vasp_cmd, scratch_dir,
-#                                db_file, max_errors=max_errors,
-#                                handler_group=handler_group, k_product=k_product,
-#                                mpid=mpid, inc_conv_ucell=inc_conv_ucell)
-#
-#     return Workflow(fws, name='Surface Calculations')
-        # launchpad = LaunchPad.from_file(os.path.join(os.environ["HOME"],
-        #                                              launchpad_dir,
-        #                                              "my_launchpad.yaml"))
-        # launchpad.add_wf(wf)
+        return
