@@ -369,7 +369,7 @@ class SurfPropToDbTask(FiretaskBase):
             Note that order 3 and higher required finite difference
             fitting, and will override.
     """
-    required_params = ["structure_type", "db_configs"]
+    required_params = ["structure_type"]
     optional_params = ["calc_dir", "calc_loc", "prop_coll",
                        "additional_fields", "db_file", "apikey"]
 
