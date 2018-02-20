@@ -152,6 +152,23 @@ class DeleteFiles(FiretaskBase):
                     os.remove(f)
 
 @explicit_serialize
+class RenameFile(FiretaskBase):
+    """
+    Rename a file
+
+    Required params:
+        file (str): file to rename
+        new_name (str): new name of the file
+    """
+
+    required_params = ["file", "new_name"]
+
+    def run_task(self,fw_spec=None):
+        cwd = os.getcwd()
+        os.rename(self.get("file"), self.get("new_name"))
+
+
+@explicit_serialize
 class CreateFolder(FiretaskBase):
     """
     FireTask to create new folder with the option of changing directory to the new folder.
