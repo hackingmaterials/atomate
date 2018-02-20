@@ -363,14 +363,14 @@ class SurfPropToDbTask(FiretaskBase):
             fitting, and will override.
     """
     required_params = ["structure_type"]
-    optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
-                       "prop_coll", "additional_fields", "db_file", "fw_spec_field",
-                       "defuse_unsuccessful", "apikey"]
+    optional_params = ["calc_dir", "calc_loc", "prop_coll",
+                       "additional_fields", "db_file", "apikey"]
 
     def run_task(self, fw_spec):
 
-        with open(db_file) as db_configs:
-            db_configs = json.loads(db_configs.read())
+        # get the database connection
+        self.db_file = env_chk(self.get('db_file'), fw_spec)
+
         self.mmdb = VaspCalcDb(**db_configs)
         self.mprester = MPRester(api_key=self.get("apikey", None))
         self.surftasks = mmdb.db[db_configs["collection"]]
@@ -494,11 +494,8 @@ class SurfPropToDbTask(FiretaskBase):
         if self.get("fw_spec_field"):
             task_doc.update(fw_spec[self.get("fw_spec_field")])
 
-        # get the database connection
-        db_file = env_chk(self.get('db_file'), fw_spec)
-
         # db insertion or taskdoc dump
-        if not db_file:
+        if not self.db_file:
             with open("task.json", "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
