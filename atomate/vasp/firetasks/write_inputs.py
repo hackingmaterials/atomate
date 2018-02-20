@@ -12,6 +12,8 @@ from importlib import import_module
 
 import numpy as np
 
+from monty.serialization import dumpfn
+
 from fireworks import FiretaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
 
@@ -60,6 +62,7 @@ class WriteVaspFromIOSet(FiretaskBase):
             vis_cls = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])
             vis = vis_cls(self["structure"], **self.get("vasp_input_params", {}))
         vis.write_input(".")
+
 
 @explicit_serialize
 class WriteVaspFromIOSetFromInterpolatedPOSCAR(GetInterpolatedPOSCAR):
@@ -187,14 +190,14 @@ class ModifyPotcar(FiretaskBase):
 
     required_params = ["potcar_symbols"]
     optional_params = ["functional", "input_filename", "output_filename"]
-    
+
     def run_task(self, fw_spec):
         potcar_symbols = env_chk(self.get("potcar_symbols"), fw_spec)
         functional = self.get("functional", None)
         potcar_name = self.get("input_filename", "POTCAR")
         potcar = Potcar.from_file(potcar_name)
 
-        # Replace PotcarSingles corresponding to elements 
+        # Replace PotcarSingles corresponding to elements
         # contained in potcar_symbols
         for n, psingle in enumerate(potcar):
             if psingle.element in potcar_symbols:
@@ -395,11 +398,11 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
                 found = True
             if not found:
                 raise ValueError("Could not find transformation: {}".format(t))
-        
+
         # TODO: @matk86 - should prev_calc_dir use CONTCAR instead of POSCAR? Note that if
         # current dir, maybe it is POSCAR indeed best ... -computron
         structure = self['structure'] if not self.get('prev_calc_dir', None) else \
-                Poscar.from_file(os.path.join(self['prev_calc_dir'], 'POSCAR')).structure
+            Poscar.from_file(os.path.join(self['prev_calc_dir'], 'POSCAR')).structure
         ts = TransformedStructure(structure)
         transmuter = StandardTransmuter([ts], transformations)
         final_structure = transmuter.transformed_structures[-1].final_structure.copy()
@@ -409,6 +412,8 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
         vis_dict.update(self.get("override_default_vasp_params", {}) or {})
         vis = vis_orig.__class__.from_dict(vis_dict)
         vis.write_input(".")
+
+        dumpfn(transmuter.transformed_structures[-1], "transformations.json")
 
 
 @explicit_serialize

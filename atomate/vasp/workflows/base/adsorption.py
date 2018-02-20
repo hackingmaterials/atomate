@@ -55,24 +55,24 @@ def get_slab_fw(slab, bulk_structure=None, slab_gen_params={}, db_file=None, vas
     if bulk_structure:
         if not isinstance(slab, Slab):
             raise ValueError("structure input to get_slab_fw requires slab to be a slab object!")
-        slab_trans_params = {"miller_index": slab.miller_index, "shift":slab.shift}
+        slab_trans_params = {"miller_index": slab.miller_index, "shift": slab.shift}
         slab_trans_params.update(slab_gen_params)
 
         # Get supercell parameters
         trans_struct = SlabTransformation(**slab_trans_params)
         slab_from_bulk = trans_struct.apply_transformation(bulk_structure)
         supercell_trans = SupercellTransformation.from_scaling_factors(
-                round(slab.lattice.a / slab_from_bulk.lattice.a),
-                round(slab.lattice.b / slab_from_bulk.lattice.b))
+            round(slab.lattice.a / slab_from_bulk.lattice.a),
+            round(slab.lattice.b / slab_from_bulk.lattice.b))
 
         # Get adsorbates for InsertSitesTransformation
         if "adsorbate" in slab.site_properties.get("surface_properties", [None]):
-            ads_sites = [site for site in slab if site.properties["surface_properties"]=="adsorbate"]
+            ads_sites = [site for site in slab if site.properties["surface_properties"] == "adsorbate"]
         else:
             ads_sites = []
         transformations = ["SlabTransformation", "SupercellTransformation",
                            "InsertSitesTransformation", "AddSitePropertyTransformation"]
-        trans_params = [slab_trans_params, {"scaling_matrix":supercell_trans.scaling_matrix},
+        trans_params = [slab_trans_params, {"scaling_matrix": supercell_trans.scaling_matrix},
                         {"species": [site.species_string for site in ads_sites],
                          "coords": [site.frac_coords for site in ads_sites]},
                         {"site_properties": slab.site_properties}]
@@ -111,15 +111,15 @@ def get_wf_surface(slabs, molecules=[], bulk_structure=None, slab_gen_params=Non
 
     if bulk_structure:
         vis = MVLSlabSet(bulk_structure, bulk=True)
-        fws.append(OptimizeFW(bulk_structure, vasp_input_set=vis, vasp_cmd="vasp", db_file=db_file))
+        fws.append(OptimizeFW(structure=bulk_structure, vasp_input_set=vis, vasp_cmd="vasp", db_file=db_file))
         parents = fws[0]
 
     for slab in slabs:
         name = slab.composition.reduced_formula
         if getattr(slab, "miller_index", None):
             name += "_{}".format(slab.miller_index)
-        fws.append(get_slab_fw(slab, bulk_structure, slab_gen_params, db_file=db_file, 
-            vasp_cmd=vasp_cmd, parents=parents, name=name+" slab optimization"))
+        fws.append(get_slab_fw(slab, bulk_structure, slab_gen_params, db_file=db_file,
+                               vasp_cmd=vasp_cmd, parents=parents, name=name + " slab optimization"))
         for molecule in molecules:
             ads_slabs = AdsorbateSiteFinder(slab).generate_adsorption_structures(
                 molecule, **ads_structures_params)
@@ -133,12 +133,12 @@ def get_wf_surface(slabs, molecules=[], bulk_structure=None, slab_gen_params=Non
             m_struct = Structure(Lattice.cubic(10), molecule.species_and_occu,
                                  molecule.cart_coords, coords_are_cartesian=True)
             m_struct.translate_sites(list(range(len(m_struct))),
-                                 np.array([0.5]*3) - np.average(m_struct.frac_coords, axis=0))
+                                     np.array([0.5] * 3) - np.average(m_struct.frac_coords, axis=0))
             vis = MVLSlabSet(m_struct)
-            fws.append(OptimizeFW(molecule, job_type="normal", vasp_input_set=vis,
+            fws.append(OptimizeFW(structure=molecule, job_type="normal", vasp_input_set=vis,
                                   db_file=db_file, vasp_cmd=vasp_cmd))
     # TODO: add analysis framework
-    return Workflow(fws, name="")
+    return Workflow(fws, name="{} surfaces wf, e.g., {}".format(len(fws), fws[0].name))
 
 
 def get_wf_surface_all_slabs(bulk_structure, molecules, max_index=1, slab_gen_params=None, **kwargs):

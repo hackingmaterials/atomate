@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.vasp.fireworks package &#8212; atomate 0.6.8 documentation</title>
+    <title>atomate.vasp.fireworks package &#8212; atomate 0.7.1 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.6.8',
+        VERSION:     '0.7.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -37,7 +37,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.8 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.1 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -55,11 +55,11 @@
 <span id="atomate-vasp-fireworks-core-module"></span><h2>atomate.vasp.fireworks.core module<a class="headerlink" href="#module-atomate.vasp.fireworks.core" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="atomate.vasp.fireworks.core.BoltztrapFW">
-<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">BoltztrapFW</code><span class="sig-paren">(</span><em>structure</em>, <em>name='boltztrap'</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>scissor=0.0</em>, <em>doping=None</em>, <em>tmax=1300</em>, <em>tgrid=50</em>, <em>soc=False</em>, <em>additional_fields=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.BoltztrapFW" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">BoltztrapFW</code><span class="sig-paren">(</span><em>parents=None</em>, <em>structure=None</em>, <em>name='boltztrap'</em>, <em>db_file=None</em>, <em>scissor=0.0</em>, <em>doping=None</em>, <em>tmax=1300</em>, <em>tgrid=50</em>, <em>prev_calc_dir=None</em>, <em>soc=False</em>, <em>additional_fields=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.BoltztrapFW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.Firework</span></code></p>
 <dl class="method">
 <dt id="atomate.vasp.fireworks.core.BoltztrapFW.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>structure</em>, <em>name='boltztrap'</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>scissor=0.0</em>, <em>doping=None</em>, <em>tmax=1300</em>, <em>tgrid=50</em>, <em>soc=False</em>, <em>additional_fields=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.BoltztrapFW.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>parents=None</em>, <em>structure=None</em>, <em>name='boltztrap'</em>, <em>db_file=None</em>, <em>scissor=0.0</em>, <em>doping=None</em>, <em>tmax=1300</em>, <em>tgrid=50</em>, <em>prev_calc_dir=None</em>, <em>soc=False</em>, <em>additional_fields=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.BoltztrapFW.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run Boltztrap (which includes writing bolztrap input files and parsing outputs). Assumes 
 you have a previous FW with the calc_locs passed into the current FW.</p>
 <dl class="docutils">
@@ -68,6 +68,7 @@ you have a previous FW with the calc_locs passed into the current FW.</p>
 name (str): name of this FW
 db_file (str): path to the db file
 parents (Firework): Parents of this particular Firework. FW or list of FWS.
+prev_calc_dir (str): Path to a previous calculation to copy from
 scissor (float): if scissor &gt; 0, apply scissor on the band structure so that new</p>
 <blockquote>
 <div>band gap = scissor (in eV)</div></blockquote>
@@ -85,11 +86,11 @@ additional_fields (dict): fields added to the document such as user-defined tags
 
 <dl class="class">
 <dt id="atomate.vasp.fireworks.core.DFPTFW">
-<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">DFPTFW</code><span class="sig-paren">(</span><em>structure</em>, <em>name='static dielectric'</em>, <em>vasp_cmd='vasp'</em>, <em>copy_vasp_outputs=True</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>user_incar_settings=None</em>, <em>pass_nm_results=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.DFPTFW" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">DFPTFW</code><span class="sig-paren">(</span><em>structure=None</em>, <em>prev_calc_dir=None</em>, <em>name='static dielectric'</em>, <em>vasp_cmd='vasp'</em>, <em>copy_vasp_outputs=True</em>, <em>lepsilon=True</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>user_incar_settings=None</em>, <em>pass_nm_results=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.DFPTFW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.Firework</span></code></p>
 <dl class="method">
 <dt id="atomate.vasp.fireworks.core.DFPTFW.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>structure</em>, <em>name='static dielectric'</em>, <em>vasp_cmd='vasp'</em>, <em>copy_vasp_outputs=True</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>user_incar_settings=None</em>, <em>pass_nm_results=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.DFPTFW.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>structure=None</em>, <em>prev_calc_dir=None</em>, <em>name='static dielectric'</em>, <em>vasp_cmd='vasp'</em>, <em>copy_vasp_outputs=True</em>, <em>lepsilon=True</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>user_incar_settings=None</em>, <em>pass_nm_results=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.DFPTFW.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div>Static DFPT calculation Firework</div></blockquote>
 <dl class="docutils">
@@ -99,11 +100,13 @@ additional_fields (dict): fields added to the document such as user-defined tags
 <dd>name of the FW.</dd>
 </dl>
 <p>name (str): Name for the Firework.
+lepsilon (bool): Turn on LEPSILON to calculate polar properties
 vasp_cmd (str): Command to run vasp.
-copy_vasp_outputs (bool): Whether to copy outputs from previous</p>
+copy_vasp_outputs (str or bool): Whether to copy outputs from previous</p>
 <blockquote>
 <div>run. Defaults to True.</div></blockquote>
-<p>db_file (str): Path to file specifying db credentials.
+<p>prev_calc_dir (str): Path to a previous calculation to copy from
+db_file (str): Path to file specifying db credentials.
 parents (Firework): Parents of this particular Firework.</p>
 <blockquote>
 <div>FW or list of FWS.</div></blockquote>
@@ -120,17 +123,18 @@ pass_nm_results (bool): if true the normal mode eigen vals and vecs are passed s
 
 <dl class="class">
 <dt id="atomate.vasp.fireworks.core.HSEBSFW">
-<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">HSEBSFW</code><span class="sig-paren">(</span><em>structure</em>, <em>parents</em>, <em>mode='gap'</em>, <em>name=None</em>, <em>vasp_cmd='vasp'</em>, <em>db_file=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.HSEBSFW" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">HSEBSFW</code><span class="sig-paren">(</span><em>parents=None</em>, <em>prev_calc_dir=None</em>, <em>structure=None</em>, <em>mode='gap'</em>, <em>name=None</em>, <em>vasp_cmd='vasp'</em>, <em>db_file=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.HSEBSFW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.Firework</span></code></p>
 <dl class="method">
 <dt id="atomate.vasp.fireworks.core.HSEBSFW.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>structure</em>, <em>parents</em>, <em>mode='gap'</em>, <em>name=None</em>, <em>vasp_cmd='vasp'</em>, <em>db_file=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.HSEBSFW.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>parents=None</em>, <em>prev_calc_dir=None</em>, <em>structure=None</em>, <em>mode='gap'</em>, <em>name=None</em>, <em>vasp_cmd='vasp'</em>, <em>db_file=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.HSEBSFW.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>For getting a more accurate band gap or a full band structure with HSE - requires previous
 calculation that gives VBM/CBM info or the high-symmetry kpoints.</p>
 <dl class="docutils">
 <dt>Args:</dt>
-<dd><p class="first">structure (Structure): Input structure - used only to set the name of the FW.
-parents (Firework): Parents of this particular Firework. FW or list of FWS.
+<dd><p class="first">parents (Firework): Parents of this particular Firework. FW or list of FWS.
+prev_calc_dir (str): Path to a previous calculation to copy from
+structure (Structure): Input structure - used only to set the name of the FW.
 mode (string): options:</p>
 <blockquote>
 <div>“line” to get a full band structure along symmetry lines or
@@ -279,11 +283,11 @@ additional_cust_args (dict): Other kwargs that are passed to RunVaspCustodian.
 
 <dl class="class">
 <dt id="atomate.vasp.fireworks.core.NonSCFFW">
-<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">NonSCFFW</code><span class="sig-paren">(</span><em>structure</em>, <em>name='nscf'</em>, <em>mode='uniform'</em>, <em>vasp_cmd='vasp'</em>, <em>copy_vasp_outputs=True</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.NonSCFFW" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">NonSCFFW</code><span class="sig-paren">(</span><em>parents=None</em>, <em>prev_calc_dir=None</em>, <em>structure=None</em>, <em>name='nscf'</em>, <em>mode='uniform'</em>, <em>vasp_cmd='vasp'</em>, <em>copy_vasp_outputs=True</em>, <em>db_file=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.NonSCFFW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.Firework</span></code></p>
 <dl class="method">
 <dt id="atomate.vasp.fireworks.core.NonSCFFW.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>structure</em>, <em>name='nscf'</em>, <em>mode='uniform'</em>, <em>vasp_cmd='vasp'</em>, <em>copy_vasp_outputs=True</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.NonSCFFW.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>parents=None</em>, <em>prev_calc_dir=None</em>, <em>structure=None</em>, <em>name='nscf'</em>, <em>mode='uniform'</em>, <em>vasp_cmd='vasp'</em>, <em>copy_vasp_outputs=True</em>, <em>db_file=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.NonSCFFW.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Standard NonSCF Calculation Firework supporting both
 uniform and line modes.</p>
 <dl class="docutils">
@@ -295,7 +299,8 @@ vasp_cmd (str): Command to run vasp.
 copy_vasp_outputs (bool): Whether to copy outputs from previous</p>
 <blockquote>
 <div>run. Defaults to True.</div></blockquote>
-<p>db_file (str): Path to file specifying db credentials.
+<p>prev_calc_dir (str): Path to a previous calculation to copy from
+db_file (str): Path to file specifying db credentials.
 parents (Firework): Parents of this particular Firework.</p>
 <blockquote>
 <div>FW or list of FWS.</div></blockquote>
@@ -341,11 +346,11 @@ parents ([Firework]): Parents of this particular Firework.
 
 <dl class="class">
 <dt id="atomate.vasp.fireworks.core.RamanFW">
-<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">RamanFW</code><span class="sig-paren">(</span><em>structure</em>, <em>mode</em>, <em>displacement</em>, <em>name='raman'</em>, <em>vasp_cmd='vasp'</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>user_incar_settings=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.RamanFW" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">RamanFW</code><span class="sig-paren">(</span><em>mode</em>, <em>displacement</em>, <em>prev_calc_dir=None</em>, <em>structure=None</em>, <em>name='raman'</em>, <em>vasp_cmd='vasp'</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>user_incar_settings=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.RamanFW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.Firework</span></code></p>
 <dl class="method">
 <dt id="atomate.vasp.fireworks.core.RamanFW.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>structure</em>, <em>mode</em>, <em>displacement</em>, <em>name='raman'</em>, <em>vasp_cmd='vasp'</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>user_incar_settings=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.RamanFW.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>mode</em>, <em>displacement</em>, <em>prev_calc_dir=None</em>, <em>structure=None</em>, <em>name='raman'</em>, <em>vasp_cmd='vasp'</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>user_incar_settings=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.RamanFW.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Static calculation Firework that computes the DFPT dielectric constant for
 structure displaced along the given normal mode direction.</p>
 <dl class="docutils">
@@ -357,6 +362,7 @@ structure displaced along the given normal mode direction.</p>
 <p>mode (int): normal mode index.
 displacement (float): displacement along the normal mode in Angstroms.
 name (str): Name for the Firework.
+prev_calc_dir (str): Path to a previous calculation to copy from
 vasp_cmd (str): Command to run vasp.
 db_file (str): Path to file specifying db credentials.
 parents (Firework): Parents of this particular Firework.</p>
@@ -372,11 +378,11 @@ parents (Firework): Parents of this particular Firework.</p>
 
 <dl class="class">
 <dt id="atomate.vasp.fireworks.core.SOCFW">
-<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">SOCFW</code><span class="sig-paren">(</span><em>structure</em>, <em>magmom</em>, <em>name='spin-orbit coupling'</em>, <em>saxis=(0</em>, <em>0</em>, <em>1)</em>, <em>vasp_cmd='vasp_ncl'</em>, <em>copy_vasp_outputs=True</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.SOCFW" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">SOCFW</code><span class="sig-paren">(</span><em>magmom</em>, <em>structure=None</em>, <em>name='spin-orbit coupling'</em>, <em>saxis=(0</em>, <em>0</em>, <em>1)</em>, <em>prev_calc_dir=None</em>, <em>vasp_cmd='vasp_ncl'</em>, <em>copy_vasp_outputs=True</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.SOCFW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.Firework</span></code></p>
 <dl class="method">
 <dt id="atomate.vasp.fireworks.core.SOCFW.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>structure</em>, <em>magmom</em>, <em>name='spin-orbit coupling'</em>, <em>saxis=(0</em>, <em>0</em>, <em>1)</em>, <em>vasp_cmd='vasp_ncl'</em>, <em>copy_vasp_outputs=True</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.SOCFW.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>magmom</em>, <em>structure=None</em>, <em>name='spin-orbit coupling'</em>, <em>saxis=(0</em>, <em>0</em>, <em>1)</em>, <em>prev_calc_dir=None</em>, <em>vasp_cmd='vasp_ncl'</em>, <em>copy_vasp_outputs=True</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.SOCFW.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Firework for spin orbit coupling calculation.</p>
 <dl class="docutils">
 <dt>Args:</dt>
@@ -385,6 +391,7 @@ parents (Firework): Parents of this particular Firework.</p>
 <dd>name of the FW.</dd>
 </dl>
 <p>name (str): Name for the Firework.
+prev_calc_dir (str): Path to a previous calculation to copy from
 vasp_cmd (str): Command to run vasp.
 copy_vasp_outputs (bool): Whether to copy outputs from previous</p>
 <blockquote>
@@ -402,11 +409,11 @@ parents (Firework): Parents of this particular Firework.</p>
 
 <dl class="class">
 <dt id="atomate.vasp.fireworks.core.StaticFW">
-<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">StaticFW</code><span class="sig-paren">(</span><em>structure</em>, <em>name='static'</em>, <em>vasp_input_set=None</em>, <em>vasp_input_set_params=None</em>, <em>vasp_cmd='vasp'</em>, <em>prev_calc_loc=True</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.StaticFW" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">StaticFW</code><span class="sig-paren">(</span><em>structure=None</em>, <em>name='static'</em>, <em>vasp_input_set=None</em>, <em>vasp_input_set_params=None</em>, <em>vasp_cmd='vasp'</em>, <em>prev_calc_loc=True</em>, <em>prev_calc_dir=None</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.StaticFW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.Firework</span></code></p>
 <dl class="method">
 <dt id="atomate.vasp.fireworks.core.StaticFW.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>structure</em>, <em>name='static'</em>, <em>vasp_input_set=None</em>, <em>vasp_input_set_params=None</em>, <em>vasp_cmd='vasp'</em>, <em>prev_calc_loc=True</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.StaticFW.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>structure=None</em>, <em>name='static'</em>, <em>vasp_input_set=None</em>, <em>vasp_input_set_params=None</em>, <em>vasp_cmd='vasp'</em>, <em>prev_calc_loc=True</em>, <em>prev_calc_dir=None</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.StaticFW.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Standard static calculation Firework - either from a previous location or from a structure.</p>
 <dl class="docutils">
 <dt>Args:</dt>
@@ -425,7 +432,8 @@ prev_calc_loc (bool or str): If true (default), copies outputs from previous cal
 <blockquote>
 <div>a str value, retrieves a previous calculation output by name. If False/None, will create
 new static calculation using the provided structure.</div></blockquote>
-<p class="last">db_file (str): Path to file specifying db credentials.
+<p class="last">prev_calc_dir (str): Path to a previous calculation to copy from
+db_file (str): Path to file specifying db credentials.
 parents (Firework): Parents of this particular Firework. FW or list of FWS.
 **kwargs: Other kwargs that are passed to Firework.__init__.</p>
 </dd>
@@ -469,11 +477,11 @@ points in this particular structure.</div></blockquote>
 
 <dl class="class">
 <dt id="atomate.vasp.fireworks.core.TransmuterFW">
-<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">TransmuterFW</code><span class="sig-paren">(</span><em>structure</em>, <em>transformations</em>, <em>transformation_params=None</em>, <em>vasp_input_set=None</em>, <em>name='structure transmuter'</em>, <em>vasp_cmd='vasp'</em>, <em>copy_vasp_outputs=True</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>override_default_vasp_params=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.TransmuterFW" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">TransmuterFW</code><span class="sig-paren">(</span><em>structure</em>, <em>transformations</em>, <em>transformation_params=None</em>, <em>vasp_input_set=None</em>, <em>prev_calc_dir=None</em>, <em>name='structure transmuter'</em>, <em>vasp_cmd='vasp'</em>, <em>copy_vasp_outputs=True</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>override_default_vasp_params=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.TransmuterFW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">fireworks.core.firework.Firework</span></code></p>
 <dl class="method">
 <dt id="atomate.vasp.fireworks.core.TransmuterFW.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>structure</em>, <em>transformations</em>, <em>transformation_params=None</em>, <em>vasp_input_set=None</em>, <em>name='structure transmuter'</em>, <em>vasp_cmd='vasp'</em>, <em>copy_vasp_outputs=True</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>override_default_vasp_params=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.TransmuterFW.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>structure</em>, <em>transformations</em>, <em>transformation_params=None</em>, <em>vasp_input_set=None</em>, <em>prev_calc_dir=None</em>, <em>name='structure transmuter'</em>, <em>vasp_cmd='vasp'</em>, <em>copy_vasp_outputs=True</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>override_default_vasp_params=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.TransmuterFW.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply the transformations to the input structure, write the input set corresponding
 to the transformed structure, and run vasp on them.  Note that if a transformation yields 
 many structures from one, only the last structure in the list is used.</p>
@@ -493,6 +501,7 @@ eg:  transformations=[‘DeformStructureTransformation’, ‘SupercellTransform
 <p class="last">name (string): Name for the Firework.
 vasp_cmd (string): Command to run vasp.
 copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
+prev_calc_dir (str): Path to a previous calculation to copy from
 db_file (string): Path to file specifying db credentials.
 parents (Firework): Parents of this particular Firework. FW or list of FWS.
 override_default_vasp_params (dict): additional user input settings for vasp_input_set.
@@ -615,7 +624,7 @@ nimages (int): number of interpolations between CONTCAR structures from calculat
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.8 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.1 documentation</a> &#187;</li> 
       </ul>
     </div>
 

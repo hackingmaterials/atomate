@@ -63,7 +63,7 @@ class VaspDrone(AbstractDrone):
                   'hubbards', 'structure', 'pseudo_potential'},
         "output": {'structure', 'spacegroup', 'density', 'energy',
                    'energy_per_atom', 'is_gap_direct', 'bandgap', 'vbm',
-                   'cbm', 'is_metal'},
+                   'cbm', 'is_metal', 'forces', 'stress'},
         "calcs_reversed": {
             'dir_name', 'run_type', 'elements', 'nelements',
             'formula_pretty', 'formula_reduced_abc', 'composition_reduced',
@@ -241,7 +241,9 @@ class VaspDrone(AbstractDrone):
                 "structure": d_calc_final["output"]["structure"],
                 "density": d_calc_final.pop("density"),
                 "energy": d_calc_final["output"]["energy"],
-                "energy_per_atom": d_calc_final["output"]["energy_per_atom"]}
+                "energy_per_atom": d_calc_final["output"]["energy_per_atom"],
+                "forces": d_calc_final["output"]["ionic_steps"][-1].get("forces"),
+                "stress": d_calc_final["output"]["ionic_steps"][-1].get("stress")}
 
             # patch calculated magnetic moments into final structure
             if len(d_calc_final["output"]["outcar"]["magnetization"]) != 0:
@@ -448,7 +450,13 @@ class VaspDrone(AbstractDrone):
         calc = d["calcs_reversed"][0]
         if d["state"] == "successful" and calc["input"]["parameters"].get("NSW", 0) > 0:
             # handle the max force and max force error
-            max_force = max([np.linalg.norm(a) for a in calc["output"]["ionic_steps"][-1]["forces"]])
+            forces = np.array(calc['output']['ionic_steps'][-1]['forces'])
+            # account for selective dynamics
+            final_structure = Structure.from_dict(calc['output']['structure'])
+            sdyn = final_structure.site_properties.get('selective_dynamics')
+            if sdyn:
+                forces[np.logical_not(sdyn)] = 0
+            max_force = max(np.linalg.norm(forces, axis=1))
             if max_force > max_force_threshold:
                 error_msgs.append("Final max force exceeds {} eV".format(max_force_threshold))
                 d["state"] = "error"

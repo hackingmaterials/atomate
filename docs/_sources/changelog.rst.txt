@@ -2,6 +2,24 @@
 atomate Changelog
 =================
 
+**v0.7.1**
+
+* update ``atwf`` to find the path to workflows better (M. Dias Costa)
+* better surface workflow naming (A. Jain)
+
+**v0.7.0**
+
+* change default behavior when a run looks OK but is unconverged (A. Jain)
+* Some test and code cleanups (S. Dwaraknath, J. Montoya)
+* update to FW names when no structure provided (S. Dwaraknath)
+* remove boltons dependency (A. Faghaninia)
+* fix max_force check for selective dynamics (J. Montoya)
+
+**v0.6.9**
+
+* update requirements to include boltons
+* bugfix for atwf (S. Dwaraknath)
+
 **v0.6.8**
 
 * New SCAN functional workflow (S. Dwaraknath)

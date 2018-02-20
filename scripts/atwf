@@ -39,7 +39,7 @@ common_params:
   db_file: None
 """
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+presets_dir = os.path.join(os.path.dirname(os.path.abspath(core.__file__)))
 lpad = LaunchPad.auto_load()
 
 
@@ -61,8 +61,7 @@ def _get_wf(args, structure):
         spec_path = args.spec_file
         if args.library:
             if args.library.lower() == "vasp":
-                spec_path = os.path.join(module_dir, "..", "atomate",
-                                         "vasp", "workflows", "base",
+                spec_path = os.path.join(presets_dir, "..", "base",
                                          "library", spec_path)
             else:
                 raise ValueError("Unknown library: {}".format(args.library))
@@ -204,7 +203,7 @@ if __name__ == "__main__":
                       help="Set to a dict-like string, e.g. '{\"a\":\"b\"}', to set common params")
     padd.add_argument("files", metavar="files", type=str, nargs="+",
                       help="Structures to add workflows for.")
-    padd.set_defaults(func=add_wf,common_param_updates={})
+    padd.set_defaults(func=add_wf,common_param_updates="{}")
 
     ptest = subparsers.add_parser("test", help="Add test suite.")
     ptest.add_argument("-r", "--reset", dest="reset", action='store_true',

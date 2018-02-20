@@ -36,7 +36,6 @@ class TestDrone(AbstractDrone):
 class TestToDbTask(AtomateTest):
 
     def test_ToDbTask(self):
-        raise unittest.SkipTest("Shyam - please fix this test.")
         d = TestDrone()
 
         fw1 = Firework([ToDbTask(drone=d,

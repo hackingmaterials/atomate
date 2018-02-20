@@ -9,7 +9,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 if __name__ == "__main__":
     setup(
         name='atomate',
-        version='0.6.8',
+        version='0.7.1',
         description='atomate has implementations of FireWorks workflows for '
                     'Materials Science',
         long_description=open(os.path.join(module_dir, 'README.md')).read(),
@@ -29,9 +29,7 @@ if __name__ == "__main__":
                         'phonons': ['phonopy>=1.10.8'],
                         'complete': ['paramiko>=1.15.0',
                                      'matplotlib>=1.5.2',
-                                     'phonopy>=1.10.8',
-                                     'boltons>=17.2.0',
-                                     ]},
+                                     'phonopy>=1.10.8']},
         classifiers=['Programming Language :: Python :: 2.7',
                      "Programming Language :: Python :: 3",
                      "Programming Language :: Python :: 3.6",

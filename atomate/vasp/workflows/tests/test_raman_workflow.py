@@ -39,16 +39,16 @@ class TestRamanWorkflow(AtomateTest):
     def _simulate_vasprun(self, wf):
         reference_dir = os.path.abspath(os.path.join(ref_dir, "raman_wf"))
         si_ref_dirs = {"structure optimization": os.path.join(reference_dir, "1"),
-                       "phonon static dielectric": os.path.join(reference_dir, "2"),
-                       "raman_0_-0.005 static dielectric": os.path.join(reference_dir, "6"),
-                       "raman_0_0.005 static dielectric": os.path.join(reference_dir, "5"),
-                       "raman_1_-0.005 static dielectric": os.path.join(reference_dir, "4"),
-                       "raman_1_0.005 static dielectric": os.path.join(reference_dir, "3")}
+                       "static dielectric": os.path.join(reference_dir, "2"),
+                       "raman_0_-0.005": os.path.join(reference_dir, "6"),
+                       "raman_0_0.005": os.path.join(reference_dir, "5"),
+                       "raman_1_-0.005": os.path.join(reference_dir, "4"),
+                       "raman_1_0.005": os.path.join(reference_dir, "3")}
         return use_fake_vasp(wf, si_ref_dirs, params_to_check=["ENCUT"])
 
     def _check_run(self, d, mode):
-        if mode not in ["structure optimization", "phonon static dielectric",
-                        "raman_0_0.005 static dielectric", "raman analysis"]:
+        if mode not in ["structure optimization", "static dielectric",
+                        "raman_0_0.005", "raman analysis"]:
             raise ValueError("Invalid mode!")
 
         if mode not in ["raman analysis"]:
@@ -62,13 +62,13 @@ class TestRamanWorkflow(AtomateTest):
             self.assertAlmostEqual(d["output"]["energy"], -10.850, 2)
             self.assertAlmostEqual(d["output"]["energy_per_atom"], -5.425, 2)
 
-        elif mode in ["phonon static dielectric"]:
+        elif mode in ["static dielectric"]:
             epsilon = [[13.23245131, -1.98e-06, -1.4e-06],
                        [-1.98e-06, 13.23245913, 8.38e-06],
                        [-1.4e-06, 8.38e-06, 13.23245619]]
             np.testing.assert_allclose(epsilon, d["output"]["epsilon_static"], rtol=1e-5)
 
-        elif mode in ["raman_0_0.005 static dielectric"]:
+        elif mode in ["raman_0_0.005"]:
             epsilon = [[13.16509632, 0.00850098, 0.00597267],
                        [0.00850097, 13.25477303, -0.02979572],
                        [0.00597267, -0.0297953, 13.28883867]]
@@ -100,12 +100,12 @@ class TestRamanWorkflow(AtomateTest):
         self._check_run(d, mode="structure optimization")
 
         # check phonon DFPT calculation
-        d = self.get_task_collection().find_one({"task_label": "phonon static dielectric"})
-        self._check_run(d, mode="phonon static dielectric")
+        d = self.get_task_collection().find_one({"task_label": "static dielectric"})
+        self._check_run(d, mode="static dielectric")
 
         # check one of the raman static dielectric calculation
-        d = self.get_task_collection().find_one({"task_label": "raman_0_0.005 static dielectric"})
-        self._check_run(d, mode="raman_0_0.005 static dielectric")
+        d = self.get_task_collection().find_one({"task_label": "raman_0_0.005"})
+        self._check_run(d, mode="raman_0_0.005")
 
         # check the final results
         d = self.get_task_collection(coll_name="raman").find_one()
