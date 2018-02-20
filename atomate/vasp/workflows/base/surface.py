@@ -377,10 +377,13 @@ class SurfPropToDbTask(FiretaskBase):
 
         # get the database connection
         self.db_file = env_chk(self.get('db_file'), fw_spec)
+        with open(db_file) as self.db_file:
+            dbconfig = json.load(self.db_file)
 
-        self.mmdb = VaspCalcDb.from_db_file(self.db_file)
+
+        self.mmdb = VaspCalcDb(**dbconfig)
         self.mprester = MPRester(api_key=self.get("apikey", None))
-        self.surftasks = self.mmdb.db[db_configs["collection"]]
+        self.surftasks = self.mmdb.db[dbconfig["collection"]]
 
         # Insert the raw calculation
         self.task_doc = self.insert_raw_calcs()
