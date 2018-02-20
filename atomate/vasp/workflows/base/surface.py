@@ -114,7 +114,7 @@ class ConvUcellFW(Firework):
                                            vasp_cmd=vasp_cmd, mpid=mpid, db_file=db_file,
                                            scratch_dir=scratch_dir, k_product=k_product,
                                            tasks_coll=tasks_coll, prop_coll=prop_coll,
-                                           production_mode=production_mode))
+                                           production_mode=production_mode, cwd=cwd))
 
         super(ConvUcellFW, self).__init__(tasks, name=name, **kwargs)
 
@@ -178,7 +178,7 @@ class OUCFW(Firework):
                                            scratch_dir=scratch_dir, k_product=k_product,
                                            tasks_coll=tasks_coll, prop_coll=prop_coll,
                                            production_mode=production_mode,
-                                           miller_index=miller_index))
+                                           miller_index=miller_index, cwd=cwd))
 
         super(OUCFW, self).__init__(tasks, name=name, **kwargs)
 
@@ -267,7 +267,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
 
     required_params = ['structure_type', "scratch_dir", "k_product",
                        "db_file", "tasks_coll", "prop_coll", "vasp_cmd"]
-    optional_params = ["slab_gen_params", "production_mode", "mpid", "mmi", "miller_index"]
+    optional_params = ["slab_gen_params", "production_mode", "mpid", "mmi", "miller_index", "cwd"]
 
     def run_task(self, fw_spec):
 
@@ -334,6 +334,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
                       self.get("scratch_dir"), self.get("k_product"),
                       self.get("db_file"), self.get("vasp_cmd"),
                       reconstruction=slab.reconstruction,
+                      cwd=self.get("cwd", os.getcwd()),
                       mpid=self.get("mpid", "--"))
 
 EV_PER_ANG2_TO_JOULES_PER_M2 = 16.0217656
