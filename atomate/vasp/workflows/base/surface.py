@@ -112,10 +112,10 @@ class SurfCalcOptimizer(Firework):
         self.db_file = db_file
         self.mmi = mmi
 
-        super(SurfCalcOptimizer, self).__init__(self.tasks, name=self.name, **kwargs)
+        super(SurfCalcOptimizer, self).__init__(self.get_tasks, name=self.get_name, **kwargs)
 
     @property
-    def input_set(self):
+    def get_input_set(self):
 
         if self.structure_type != "slab_cell":
             return MVLSlabSet(self.structure, bulk=True,
@@ -125,7 +125,7 @@ class SurfCalcOptimizer(Firework):
                               k_product=self.k_product)
 
     @property
-    def name(self):
+    def get_name(self):
         if self.structure_type == "conventional_unit_cell":
             return "%s_%s_conventional_unit_cell_k%s" % \
                    (self.el, self.mpid, self.k_product)
@@ -144,10 +144,10 @@ class SurfCalcOptimizer(Firework):
                                                      self.vsize, self.reconstruction)
 
     @property
-    def additional_fields(self):
+    def get_additional_fields(self):
 
         additional_fields = {"structure_type": self.structure_type,
-                             "calculation_name": self.name,
+                             "calculation_name": self.get_name,
                              "conventional_spacegroup": \
                                  {"symbol": self.sg.get_space_group_symbol(),
                                   "number": self.sg.get_space_group_number()},
@@ -167,12 +167,12 @@ class SurfCalcOptimizer(Firework):
         return additional_fields
 
     @property
-    def tasks(self):
+    def get_tasks(self):
 
-        tasks = [CreateFolder(folder_name=os.path.join(self.cwd, self.name),
+        tasks = [CreateFolder(folder_name=os.path.join(self.cwd, self.get_name),
                               change_dir=True, relative_path=True),
                  WriteVaspFromIOSet(structure=self.structure,
-                                    vasp_input_set=self.input_set),
+                                    vasp_input_set=self.get_input_set),
                  RunVaspCustodian(vasp_cmd=self.vasp_cmd,
                                   scratch_dir=self.scratch_dir,
                                   auto_npar=">>auto_npar<<",
@@ -181,7 +181,7 @@ class SurfCalcOptimizer(Firework):
         if self.structure_type == "slab_cell":
             tasks.append(RenameFile(file="LOCPOT.gz", new_name="LOCPOT.relax2.gz"))
 
-        tasks.append(VaspToDb(additional_fields=self.additional_fields,
+        tasks.append(VaspToDb(additional_fields=self.get_additional_fields,
                               db_file=self.db_file))
 
         if self.structure_type != "slab_cell":
