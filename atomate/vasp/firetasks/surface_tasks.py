@@ -3,20 +3,14 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
-import glob
-import shutil
 
 from pymatgen.core import Structure
-from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
-from pymatgen.core.surface import SlabGenerator, get_symmetrically_distinct_miller_indices, ReconstructionGenerator
-from pymatgen.io.vasp.sets import MVLSlabSet
+from pymatgen.core.surface import SlabGenerator, ReconstructionGenerator
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
-from atomate.vasp.fireworks.core import OptimizeFW
 from fireworks.core.firework import FiretaskBase, FWAction
 from fireworks.utilities.fw_utilities import explicit_serialize
 
-from atomate.utils.utils import get_logger
 
 """
 Surface workflow firetasks.
@@ -25,105 +19,153 @@ Surface workflow firetasks.
 __author__ = "Richard Tran"
 __email__ = 'rit001@eng.ucsd.edu'
 
+
 @explicit_serialize
-class SurfaceWFGlueTask(FiretaskBase):
+class FacetFWsGeneratorTask(FiretaskBase):
     """
-    This class generates either a list of child FWs for oriented unit cell
-    calculations which subsequently generate child FWs of their own for slab
-    calculations or it just directly generates slab calculations as the child
-    FWs. In regards to slabs, for now, let's keep it simple and calculate all
-    terminations and reconstructions (and for the future, nonstoichiometric,
-    tasker 2, etc for multi-element compounds).
-
-    Required params:
-        fwname (str): Name of the completed calculation for either a
-            conventional unit cell (if this is a node for OUC calculations)
-            or OUC (if this is a node for slabs calculations).
-        ouc_node (bool): If true, this task generate a list of child slab
-            calculation fws from the ouc, otherwise it generates a list of
-            child ouc calculation fws from the conventional unit cell
-
-    Optional params:
-        surf_qe (QueryEngine): QueryEngine containing all calculations in
-            regards to surface properties. If provided, the task will search
-            for the final structure in the database using the fwname
-        miller_index ([h,k,l]): Miller index of the ouc. Must be provided
-            if ouc_node=True
-        min_slab_size (in Angstrom):
-        min_vac_size (in Angstroms):
+    Task for generating FWs for oriented unit cell calculations or slab
+    calculations. If the initial structure is an oriented unit cell,
+    generate slab fws, if its a conventional unit cell, generate oriented
+    unit cell and reconstruction calculations.
     """
-    required_params = ["fwname", "ouc_node", "miller_index"]
-    optional_params = ["db_config", "miller_index", "min_slab_size",
-                       "min_vac_size", "mmi"]
+
+    required_params = ['structure_type', "scratch_dir", "k_product",
+                       "db_file", "vasp_cmd"]
+    optional_params = ["slab_gen_params", "mpid", "mmi", "miller_index", "cwd"]
 
     def run_task(self, fw_spec):
+        """
+        Generates a list of oriented unit cell FWs or
+        slab cell FWs depending on the structure type.
 
-        s = self.get_final_structure()
-        min_slab_size = self.get("min_slab_size", 10)
-        min_vac_size = self.get("min_vac_size", 10)
+        Args:
+            structure_type (str): Type of structure. Options are:
+                conventional_unit_cell, oriented_unit_cell and slab_cell
+            scratch_dir (str): - if specified, uses this directory as the root
+                scratch dir. Supports env_chk.
+            k_product (int): Default to 50, kpoint number * length for a & b
+                directions, also for c direction in bulk calculations.
+            db_file (str): FULL path to file containing the database credentials.
+                Supports env_chk.
+            vasp_cmd (str): Command to run vasp.
+            slab_gen_params (dict): Parameters for SlabGenerator or generate_all_slabs
+            mpid (str): Materials Project ID of the conventional unit cell.
+            mmi (int): Max Miller index.
+            miller_index ([h, k, l]): Miller index of plane parallel to
+                surface (and oriented unit cell).
+            cwd (str): Location of directory to operate the
+                workflow and store the final outputs
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
 
-        list_of_fws = []
-        # generate list of child fw for slabs
-        if self.get("ouc_node"):
-            # The actual Miller index is not (001), but since the ouc is
-            # already oriented in its hkl direction, we want to cleave
-            # slabs along that direction which is now the c direction
-            slabgen = SlabGenerator(s, (0,0,1), min_slab_size, min_vac_size,
-                                    center_slab=True, max_normal_search=max(hkl))
-            slabs = slabgen.get_slabs(symmetrize=True)
-            for slab in slabs:
-                list_of_fws.append(self.slab_optimize_fw(slab))
-
-        # generate list of child fw for oucs
+        # get the parameters for SlabGenerator if we are getting a
+        # list of Slab calculation FWs or generate_all_slabs if we
+        # are getting a list of oritend unit cell calculation FWs
+        if self.get("slab_gen_params", None):
+            slab_gen_params = self.get("slab_gen_params", None)
         else:
-            symbol = SpacegroupAnalyzer(s).get_space_group_symbol()
-            for hkl in get_symmetrically_distinct_miller_indices(s, self.get("mmi")):
-                # Check for reconstructions while we're at it. These are
-                # constructed from the conventional unit cell. Enumerate
-                # through all posisble reconstructions in the archive
-                # available for this particular spacegroup
-                for rec_name, instructions in reconstructions_archive.items():
-                    if "base_reconstruction" in instructions.keys():
-                        instructions = reconstructions_archive[instructions["base_reconstruction"]]
-                    if instructions["spacegroup"]["symbol"] == symbol:
-                        # check if this reconstruction has a max index
-                        # equal or less than the given max index
-                        if max(instructions["miller_index"]) > max_index:
-                            continue
-                        recon = ReconstructionGenerator(structure, min_slab_size,
-                                                        min_vacuum_size, rec_name)
-                        list_of_fws.append(self.slab_optimize_fw(recon.build_slab()))
+            slab_gen_params = {"min_slab_size": 10, "min_vacuum_size": 10,
+                               "symmetrize": True, "center_slab": True}
+            slab_gen_params["max_normal_search"] = self.get("mmi") if \
+                self.get("mmi") else max(self.get("miller_index"))
+            if self.get("structure_type") == "conventional_unit_cell":
+                slab_gen_params["include_reconstructions"] = True
 
-                ouc = SlabGenerator(s, hkl, 10, 10, max_normal_search=max(hkl)).get_slab().oriented_unit_cell
-                list_of_fws.append(self.ouc_optimize_fw(ouc, hkl))
+        FWs = []
+        if self.get("structure_type") == "conventional_unit_cell":
+            # Then we create a set of FWs for oriented_unit_cell
+            # calculations and reconstructed slabs
+
+            slab_gen_params["structure"] = Structure.from_file("CONTCAR.relax2.gz")
+
+            all_slabs = generate_all_slabs(max_index=self.get("mmi"),
+                                           **slab_gen_params)
+            # Get all oriented unit cells up ot a max Miller index (mmi)
+            miller_list = []
+            for slab in all_slabs:
+                if slab.reconstruction:
+                    FWs.append(self.get_ouc_fw(slab))
+                else:
+                    # There are several surface terminations for an oriented unit
+                    # cell, we only need to calculate the oriented unit cell once
+                    if tuple(slab.miller_index) in miller_list:
+                        continue
+                    else:
+                        # build a oriented unit cell fw
+                        FWs.append(self.get_ouc_fw(slab))
+                        miller_list.append(tuple(slab.miller_index))
+
+        elif self.get("structure_type") == "oriented_unit_cell":
+
+            folder = os.path.basename(os.getcwd())
+            # If this is a reconstruction, we need to use the ReconstructionGenerator
+            if "_rec_" in folder:
+                ouc = Structure.from_file("CONTCAR.relax2.gz")
+                # ReconstructionGenerator only works on the conventional ucell
+                ucell = SpacegroupAnalyzer(ouc).get_conventional_standard_structure()
+                # Get the name of the reocnstruction
+                ns, n = "", 0
+                for s in folder:
+                    ns+=s
+                    if s == "_":
+                        n+=1
+                    if n == 5:
+                        break
+                rec = ReconstructionGenerator(ucell, slab_gen_params["min_slab_size"],
+                                              slab_gen_params["min_vacuum_size"],
+                                              reconstruction_name=folder[len(ns):])
+                FWs.append(self.get_slab_fw(rec.build_slab(), slab_gen_params))
+
+            else:
+                # Get the list of FWs for the various terminations
+                # for a slab based on the oriented unit cell
+                slab_gen_params["initial_structure"] = \
+                    Structure.from_file("CONTCAR.relax2.gz")
+                slab_gen_params["miller_index"] = [0,0,1]
+                symmetrize = slab_gen_params["symmetrize"]
+                del slab_gen_params["symmetrize"]
+                slabgen = SlabGenerator(**slab_gen_params)
+                for slab in slabgen.get_slabs(symmetrize=symmetrize):
+                    slab.miller_index = self.get("miller_index")
+                    FWs.append(self.get_slab_fw(slab, slab_gen_params))
 
         return FWAction(additions=FWs)
 
-    def get_final_structure(self):
+    def get_ouc_fw(self, slab):
+        """
+        Return a SurfCalcOptimizer FW for an oriented unit cell.
 
-        surf_qe = self.get("surf_qe", None)
-        # Queries for the structure in the surface database
-        if surf_qe:
-            return surf_qe.get_entry({"name": self.get("name")},
-                                     inc_structure="Final").structure
-        # Load the CONTCAR from a directory with an associated namefile
-        else:
-            for dir in glob.glob("*"):
-                if "FW--{}".format(self.get("name")) in glob.glob("*"):
-                    return Structure.from_file("CONTCAR.relax2.gz")
+        Args:
+            slab (Slab): Slab object containing various
+                attributes related to the slab
+        """
 
-    def slab_optimize_fw(self, slab):
+        return SurfCalcOptimizer(slab.oriented_unit_cell, self.get("scratch_dir"),
+                                 self.get("k_product"), self.get("db_file"),
+                                 self.get("vasp_cmd"), "oriented_unit_cell",
+                                 reconstruction=slab.reconstruction,
+                                 miller_index=slab.miller_index,
+                                 scale_factor=slab.scale_factor,
+                                 mpid=self.get("mpid", "--"))
 
-        mvl_slab = MVLSlabSet(slab, k_product=k_product, bulk=False)
-        hkl = slab.miller_index
-        name = '-%s_slab_k%s_s%ss%s_%s%s%s_shift%s' % (mpid, k_product, min_slab_size, min_vac_size,
-                                                       hkl[0], hkl[1], hkl[2], slab.shift)
-        return SurfCalcFW(slab, name=name, vasp_input_set=mvl_slab,
-                          ediffg=-0.02, vasp_cmd=vasp_cmd, parent=parent)
+    def get_slab_fw(self, slab, slab_gen_params):
+        """
+        Return a SurfCalcOptimizer FW for a Slab cell.
 
-    def ouc_optimize_fw(self, ouc, hkl):
+        Args:
+            slab (Slab): Slab object containing various
+                attributes related to the slab
+            slab_gen_params (dict): Parameters for SlabGenerator
+                or generate_all_slabs
+        """
 
-        mvl_ouc = MVLSlabSet(ouc, k_product=k_product, bulk=True)
-        name = '-%s_bulk_k%s_%s%s%s' % (mpid, k_product, hkl[0], hkl[1], hkl[2])
-        return SurfCalcFW(ouc, name=name, vasp_input_set=mvl_ouc,
-                          ediffg=-0.02, vasp_cmd=vasp_cmd, parent=parent)
+        return SurfCalcOptimizer(slab, self.get("scratch_dir"),
+                                 self.get("k_product"), self.get("db_file"),
+                                 self.get("vasp_cmd"), "slab_cell",
+                                 miller_index=slab.miller_index,
+                                 scale_factor=slab.scale_factor,
+                                 ouc=slab.oriented_unit_cell, shift=slab.shift,
+                                 ssize=slab_gen_params["min_slab_size"],
+                                 vsize=slab_gen_params["min_vacuum_size"],
+                                 reconstruction=slab.reconstruction,
+                                 mpid=self.get("mpid", "--"))
