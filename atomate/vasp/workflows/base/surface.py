@@ -398,7 +398,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
                     if n == 5:
                         break
                 rec = ReconstructionGenerator(ucell, slab_gen_params["min_slab_size"],
-                                              slab_gen_params["min_vac_size"],
+                                              slab_gen_params["min_vacuum_size"],
                                               reconstruction_name=folder.strip(ns))
                 FWs.append(self.get_slab_fw(rec.build_slab(), slab_gen_params))
 
