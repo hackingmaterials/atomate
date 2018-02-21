@@ -359,7 +359,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
             miller_list = []
             for slab in all_slabs:
                 if slab.reconstruction:
-                    FWs.append(self.get_ouc_fw(slab, slab_gen_params))
+                    FWs.append(self.get_ouc_fw(slab))
                 else:
                     if tuple(slab.miller_index) in miller_list:
                         continue
@@ -386,7 +386,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
                                               slab_gen_params["min_vac_size"],
                                               reconstruction_name=folder.strip(ns))
                 FWs.append(self.get_slab_fw(rec.build_slab(), slab_gen_params))
-                
+
             else:
                 slab_gen_params["initial_structure"] = \
                     Structure.from_file("CONTCAR.relax2.gz")
