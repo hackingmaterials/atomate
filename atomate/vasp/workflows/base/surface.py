@@ -4,6 +4,19 @@
 ## for Surface Energy Calculation
 from __future__ import division, unicode_literals
 
+"""
+If you use this module, please consider citing the following work::
+
+    R. Tran, Z. Xu, B. Radhakrishnan, D. Winston, W. Sun, K. A. Persson,
+    S. P. Ong, "Surface Energies of Elemental Crystals", Scientific Data,
+    2016, 3:160080, doi: 10.1038/sdata.2016.80.
+
+as well as::
+
+    Sun, W.; Ceder, G. Efficient creation and convergence of surface slabs,
+    Surface Science, 2013, 617, 53–59, doi:10.1016/j.susc.2013.05.016.
+"""
+
 __author__ = "Richard Tran"
 __version__ = "0.2"
 __email__ = "rit001@eng.ucsd.edu"
@@ -27,9 +40,18 @@ from fireworks import explicit_serialize
 
 class SurfaceWorkflowManager(object):
     """
-        Initializes the workflow manager by taking in a list of
-        formulas/mpids or a dictionary with the formula as the key referring
-        to a list of miller indices.
+        Workflow manager with a set of common database and calculation specs for
+            all workflows. The workflow will use VASP to ultimately calculate the
+            results needed to derive the surface energy and work function. Other
+            properties such as the Wulff shape, weighted surface energy and weighted
+            work functions can then be derived from these basic properties. The user
+            has the option of started their calculations from the conventional unit
+            cell which will calculate all oriented unit cells, terminations, and
+            reconstructions of slabs, or from an oriented unit cell which will
+            calculate all possible terminations for a specific facet or from a
+            single slab structure which will just calculate the given slab. The
+            use of the oriented unit cell calculations provides us with well
+            converged surface quantities.
     """
 
     def __init__(self, db_file, cwd=os.getcwd(),
@@ -241,7 +263,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
 
         elif self.get("structure_type") == "oriented_unit_cell":
             slab_gen_params["initial_structure"] = \
-                Structure.from_file("CONTCAR.relax2.gz").as_dict()
+                Structure.from_file("CONTCAR.relax2.gz")
             slab_gen_params["miller_index"] = [0,0,1]
             symmetrize = slab_gen_params["symmetrize"]
             del slab_gen_params["symmetrize"]
