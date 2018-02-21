@@ -240,6 +240,9 @@ class SurfCalcOptimizer(Firework):
     @property
     def get_input_set(self):
 
+        # Get the MVLSlabSet based on structure type
+        # Returns input_set
+
         if self.structure_type != "slab_cell":
             return MVLSlabSet(self.structure, bulk=False,
                               k_product=self.k_product, get_locpot=True)
@@ -249,6 +252,11 @@ class SurfCalcOptimizer(Firework):
 
     @property
     def get_name(self):
+
+        # Get the name of the calculation based on element,
+        # mpid, kproduct, structure type, and slab parameters
+        # Returns str (name)
+
         if self.structure_type == "conventional_unit_cell":
             return "%s_%s_conventional_unit_cell_k%s" % \
                    (self.el, self.mpid, self.k_product)
@@ -274,6 +282,10 @@ class SurfCalcOptimizer(Firework):
     @property
     def get_additional_fields(self):
 
+        # Get additional fields for raw data insertion that can
+        # not be derived from the vasp outputs like Miller index
+        # Return dict (additional fields)
+
         additional_fields = {"structure_type": self.structure_type,
                              "calculation_name": self.get_name,
                              "conventional_spacegroup": \
@@ -296,6 +308,9 @@ class SurfCalcOptimizer(Firework):
 
     @property
     def get_tasks(self):
+
+        # Get sequence of tasks depending on structure_type
+        # Return list (tasks)
 
         tasks = [CreateFolder(folder_name=os.path.join(self.cwd, self.get_name),
                               change_dir=True, relative_path=True),
