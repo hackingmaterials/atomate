@@ -254,22 +254,22 @@ class FacetFWsGeneratorTask(FiretaskBase):
 
     def get_ouc_fw(self, slab):
 
-        return OUCFW(slab.oriented_unit_cell, slab.miller_index,
-                     slab.scale_factor,
-                     self.get("scratch_dir"), self.get("k_product"),
-                     self.get("db_file"), self.get("vasp_cmd"),
-                     mpid=self.get("mpid", "--"))
+        return SurfCalcOptimizer(slab.oriented_unit_cell, self.get("scratch_dir"),
+                                 self.get("k_product"), self.get("db_file"),
+                                 self.get("vasp_cmd"), "oriented_unit_cell",
+                                 miller_index=slab.miller_index,
+                                 scale_factor=slab.scale_factor,
+                                 mpid=self.get("mpid", "--"))
 
     def get_slab_fw(self, slab, slab_gen_params):
 
-        return SlabFW(slab, slab_gen_params,
-                      slab.miller_index, slab.scale_factor,
-                      slab.oriented_unit_cell, slab.shift,
-                      slab_gen_params["min_slab_size"],
-                      slab_gen_params["min_vacuum_size"],
-                      self.get("scratch_dir"), self.get("k_product"),
-                      self.get("db_file"), self.get("vasp_cmd"),
-                      reconstruction=slab.reconstruction,
-                      cwd=self.get("cwd", os.getcwd()),
-                      mpid=self.get("mpid", "--"))
-
+        return SurfCalcOptimizer(slab.oriented_unit_cell, self.get("scratch_dir"),
+                                 self.get("k_product"), self.get("db_file"),
+                                 self.get("vasp_cmd"), "slab_cell",
+                                 miller_index=slab.miller_index,
+                                 scale_factor=slab.scale_factor,
+                                 ouc=slab.oriented_unit_cell, shift=slab.shift,
+                                 ssize=slab_gen_params["min_slab_size"],
+                                 vsize=slab_gen_params["min_vacuum_size"],
+                                 reconstruction=slab.reconstruction,
+                                 mpid=self.get("mpid", "--"))
