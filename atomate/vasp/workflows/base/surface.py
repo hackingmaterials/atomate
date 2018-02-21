@@ -33,7 +33,6 @@ class SurfaceWorkflowManager(object):
     """
 
     def __init__(self, db_file, cwd=os.getcwd(),
-                 production_mode=False,
                  scratch_dir="", k_product=50, vasp_cmd="vasp"):
 
         with open(db_file) as data_file:
@@ -46,32 +45,36 @@ class SurfaceWorkflowManager(object):
         self.scratch_dir = scratch_dir
         self.cwd = cwd
 
-    def from_conventional_unit_cell(self, structure, mmi, mpid=None):
+    def from_conventional_unit_cell(self, structure, mmi, mpid="--"):
 
-        return Workflow([ConvUcellFW(structure, mmi,
-                                     self.production_mode, self.scratch_dir,
-                                     self.k_product, self.db_file, self.vasp_cmd,
-                                     cwd=self.cwd, mpid=mpid)])
+        return Workflow([SurfCalcOptimizer(structure, self.scratch_dir,
+                                           self.k_product, self.db_file,
+                                           self.vasp_cmd, "conventional_unit_cell",
+                                           mmi=mmi, cwd=self.cwd, mpid=mpid)])
 
-    def from_oriented_unit_cell(self, structure, miller_index, mpid=None):
+    def from_oriented_unit_cell(self, structure, miller_index, scale_factor, mpid="--"):
 
-        return Workflow([OUCFW(ouc, miller_index, scale_factor, scratch_dir,
-                               k_product, db_file, vasp_cmd, cwd=os.getcwd(),
-                               mpid="--", **kwargs)])
+        return Workflow([SurfCalcOptimizer(structure, self.scratch_dir, self.k_product,
+                                           self.db_file, self.vasp_cmd, "oriented_unit_cell",
+                                           miller_index=miller_index, scale_factor=scale_factor,
+                                           cwd=self.cwd, mpid=mpid, **kwargs)])
 
-    def from_slab_cell(self, structure, miller_index, mpid=None):
+    def from_slab_cell(self, structure, miller_index, shift, scale_factor,
+                       ouc, ssize, vsize, reconstruction=None, mpid="--"):
 
-        return Workflow([SlabFW(slab, miller_index, scale_factor, ouc, shift,
-                                ssize, vsize, scratch_dir, k_product, db_file,
-                                vasp_cmd, reconstruction=None, cwd=os.getcwd(),
-                                mpid="--", **kwargs)])
+        return Workflow([SurfCalcOptimizer(structure, self.scratch_dir, self.k_product,
+                                           self.db_file, self.vasp_cmd, "slab_cell",
+                                           miller_index=miller_index, ouc=ouc, shift=shift,
+                                           scale_factor=scale_factor, ssize=ssize, vsize=vsize,
+                                           reconstruction=reconstruction, cwd=self.cwd,
+                                           mpid=mpid, **kwargs)])
 
 
 class SurfCalcOptimizer(Firework):
-    def __init__(self, structure, scratch_dir, k_product, db_file, vasp_cmd, structure_type,
-                 miller_index=[], scale_factor=[], mmi=None, ouc=None,
-                 shift=None, ssize=None, vsize=None, reconstruction=None,
-                 cwd=os.getcwd(), mpid="--", **kwargs):
+    def __init__(self, structure, scratch_dir, k_product, db_file,
+                 vasp_cmd, structure_type, miller_index=[], scale_factor=[],
+                 vsize=None, mmi=None, ouc=None, shift=None, ssize=None,
+                 reconstruction=None, cwd=os.getcwd(), mpid="--", **kwargs):
         """
         Customized FW similar to OptimizeFW.
 
@@ -93,7 +96,7 @@ class SurfCalcOptimizer(Firework):
         self.el = self.structure[0].species_string
         self.structure_type = structure_type
         self.k_product = k_product
-        self.mpid
+        self.mpid = mpid
         self.hkl = miller_index
         self.reconstruction = reconstruction
         self.ssize = ssize
