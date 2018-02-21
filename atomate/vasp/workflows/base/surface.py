@@ -67,6 +67,130 @@ class SurfaceWorkflowManager(object):
                                 mpid="--", **kwargs)])
 
 
+class SurfCalcOptimizer(Firework):
+    def __init__(self, structure, scratch_dir, k_product, db_file, vasp_cmd, structure_type,
+                 miller_index=[], scale_factor=[], mmi=None, ouc=None,
+                 shift=None, ssize=None, vsize=None, reconstruction=None,
+                 cwd=os.getcwd(), mpid="--", **kwargs):
+        """
+        Customized FW similar to OptimizeFW.
+
+        Args:
+            scratch_dir: (str) - if specified, uses this directory as the root
+                scratch dir. Supports env_chk.
+            k_product (int): Default to 50, kpoint number * length for a & b
+                directions, also for c direction in bulk calculations.
+            db_file (str): FULL path to file containing the database credentials.
+                Supports env_chk.
+            vasp_cmd (str): Command to run vasp.
+            structure (Structure): Input structure. Need to input either the
+                structure or an mpid
+            mpid (str): Unique Materials Project structure ID of the unit cell.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+
+        self.structure = structure
+        self.el = self.structure[0].species_string
+        self.structure_type = structure_type
+        self.k_product = k_product
+        self.mpid
+        self.hkl = miller_index
+        self.reconstruction = reconstruction
+        self.ssize = ssize
+        self.vsize = vsize
+        self.shift = shift
+        self.sg = SpacegroupAnalyzer(ouc if structure_type ==
+                                            "slab_cell" else structure)
+        self.scale_factor = scale_factor
+        self.ouc = ouc
+        self.cwd = cwd
+        self.vasp_cmd = vasp_cmd
+        self.scratch_dir = scratch_dir
+        self.db_file = db_file
+        self.mmi = mmi
+
+        super(SurfCalcOptimizer, self).__init__(self.tasks, name=self.name, **kwargs)
+
+    @property
+    def input_set(self):
+
+        if self.structure_type != "slab_cell":
+            return MVLSlabSet(self.structure, bulk=True,
+                              k_product=self.k_product)
+        else:
+            return MVLSlabSet(self.structure, bulk=True,
+                              k_product=self.k_product)
+
+    @property
+    def name(self):
+        if self.structure_type == "conventional_unit_cell":
+            return "%s_%s_conventional_unit_cell_k%s" % \
+                   (self.el, self.mpid, self.k_product)
+        elif self.structure_type == "oriented_unit_cell":
+            return "%s_%s_bulk_k%s_%s%s%s" % \
+                   (self.el, self.mpid, self.k_product,
+                    self.hkl[0], self.hkl[1], self.hkl[2])
+        elif self.structure_type == "slab_cell":
+            if not self.reconstruction:
+                return "%s_%s_slab_k%s_s%sv%s_%s%s%s_shift%s" % \
+                       (self.el, self.mpid, self.k_product, self.ssize, self.vsize,
+                        self.hkl[0], self.hkl[1], self.hkl[2], self.shift)
+            else:
+                return "%s_%s_slab_k%s_s%sv%s_%s" % (self.el, self.mpid, \
+                                                     self.k_product, self.ssize,
+                                                     self.vsize, self.reconstruction)
+
+    @property
+    def additional_fields(self):
+
+        additional_fields = {"structure_type": self.structure_type,
+                             "calculation_name": self.name,
+                             "conventional_spacegroup": \
+                                 {"symbol": self.sg.get_space_group_symbol(),
+                                  "number": self.sg.get_space_group_number()},
+                             "initial_structure": self.structure.as_dict(),
+                             "material_id": self.mpid}
+
+        if self.structure_type != "conventional_unit_cell":
+            additional_fields.update({"miller_index": self.hkl,
+                                      "scale_factor": self.scale_factor})
+
+        if self.structure_type == "slab_cell":
+            additional_fields.update({"oriented_unit_cell": self.ouc.as_dict(),
+                                      "slab_size":self.ssize, "shift": self.shift,
+                                      "vac_size": self.vsize,
+                                      "reconstruction": self.reconstruction})
+
+        return additional_fields
+
+    @property
+    def tasks(self):
+
+        tasks = [CreateFolder(folder_name=os.path.join(self.cwd, self.name),
+                              change_dir=True, relative_path=True),
+                 WriteVaspFromIOSet(structure=self.structure,
+                                    vasp_input_set=self.input_set),
+                 RunVaspCustodian(vasp_cmd=self.vasp_cmd,
+                                  scratch_dir=self.scratch_dir,
+                                  auto_npar=">>auto_npar<<",
+                                  job_type="double_relaxation_run")]
+
+        if self.structure_type == "slab_cell":
+            tasks.append(RenameFile(file="LOCPOT.gz", new_name="LOCPOT.relax2.gz"))
+
+        tasks.append(VaspToDb(additional_fields=self.additional_fields,
+                              db_file=self.db_file))
+
+        if self.structure_type != "slab_cell":
+            tasks.append(FacetFWsGeneratorTask(structure_type=self.structure_type,
+                                               vasp_cmd=self.vasp_cmd, cwd=self.cwd,
+                                               db_file=self.db_file, miller_index=self.hkl,
+                                               scratch_dir=self.scratch_dir, mmi=self.mmi,
+                                               mpid=self.mpid, k_product=self.k_product))
+
+        return tasks
+
+
 class ConvUcellFW(Firework):
     def __init__(self, ucell, mmi, scratch_dir, k_product,
                  db_file, vasp_cmd, cwd=os.getcwd(), mpid="--", **kwargs):
@@ -116,6 +240,8 @@ class ConvUcellFW(Firework):
                                            scratch_dir=scratch_dir, k_product=k_product, cwd=cwd))
 
         super(ConvUcellFW, self).__init__(tasks, name=name, **kwargs)
+
+
 
 class OUCFW(Firework):
     def __init__(self, ouc, miller_index,
