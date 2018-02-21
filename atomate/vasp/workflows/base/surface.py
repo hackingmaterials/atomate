@@ -30,7 +30,8 @@ from atomate.common.firetasks.glue_tasks import CreateFolder, RenameFile
 from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet
 from atomate.vasp.firetasks.parse_outputs import VaspToDb
 
-from pymatgen.core.surface import generate_all_slabs, Structure, SlabGenerator, ReconstructionGenerator
+from pymatgen.core.surface import generate_all_slabs, Structure, SlabGenerator, \
+    ReconstructionGenerator
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp.sets import MVLSlabSet
 
@@ -74,7 +75,7 @@ class SurfaceWorkflowManager(object):
 
     .. attribute:: cwd
 
-        Directory to run the workflow nad store the final outputs.
+        Directory to run the workflow and store the final outputs.
 
     """
 
@@ -135,10 +136,11 @@ class SurfaceWorkflowManager(object):
         """
 
         return Workflow([SurfCalcOptimizer(structure, self.scratch_dir, self.k_product,
-                                           self.db_file, self.vasp_cmd, "oriented_unit_cell",
-                                           miller_index=miller_index, scale_factor=scale_factor,
+                                           self.db_file, self.vasp_cmd,
+                                           "oriented_unit_cell", cwd=self.cwd,
+                                           miller_index=miller_index, mpid=mpid,
                                            reconstruction=reconstruction,
-                                           cwd=self.cwd, mpid=mpid, **kwargs)])
+                                           scale_factor=scale_factor, **kwargs)])
 
     def from_slab_cell(self, structure, miller_index, shift, scale_factor,
                        ouc, ssize, vsize, reconstruction=None, mpid="--"):
@@ -165,9 +167,9 @@ class SurfaceWorkflowManager(object):
         return Workflow([SurfCalcOptimizer(structure, self.scratch_dir, self.k_product,
                                            self.db_file, self.vasp_cmd, "slab_cell",
                                            miller_index=miller_index, ouc=ouc, shift=shift,
-                                           scale_factor=scale_factor, ssize=ssize, vsize=vsize,
+                                           scale_factor=scale_factor, ssize=ssize,
                                            reconstruction=reconstruction, cwd=self.cwd,
-                                           mpid=mpid, **kwargs)])
+                                           vsize=vsize, mpid=mpid, **kwargs)])
 
 
 class SurfCalcOptimizer(Firework):
@@ -194,8 +196,8 @@ class SurfCalcOptimizer(Firework):
             db_file (str): FULL path to file containing the database credentials.
                 Supports env_chk.
             vasp_cmd (str): Command to run vasp.
-            structure_type (str): Type of structure. Options are: conventional_unit_cell,
-                oriented_unit_cell and slab_cell
+            structure_type (str): Type of structure. Options are:
+                conventional_unit_cell, oriented_unit_cell and slab_cell
             miller_index ([h, k, l]): Miller index of plane parallel to
                 surface (and oriented unit cell).
             ouc (Structure): The oriented_unit_cell from which
@@ -235,7 +237,8 @@ class SurfCalcOptimizer(Firework):
         self.db_file = db_file
         self.mmi = mmi
 
-        super(SurfCalcOptimizer, self).__init__(self.get_tasks, name=self.get_name, **kwargs)
+        super(SurfCalcOptimizer, self).__init__(self.get_tasks,
+                                                name=self.get_name, **kwargs)
 
     @property
     def get_input_set(self):
@@ -309,7 +312,10 @@ class SurfCalcOptimizer(Firework):
     @property
     def get_tasks(self):
 
-        # Get sequence of tasks depending on structure_type
+        # Get sequence of tasks depending on structure_type. This is similar
+        # to the OptimzeFW but has an additional task for generating children
+        # FWs as surface energy calculations require the transformation of a
+        # relaxed bulk structure into a slab
         # Return list (tasks)
 
         tasks = [CreateFolder(folder_name=os.path.join(self.cwd, self.get_name),
@@ -330,9 +336,10 @@ class SurfCalcOptimizer(Firework):
         if self.structure_type != "slab_cell":
             tasks.append(FacetFWsGeneratorTask(structure_type=self.structure_type,
                                                vasp_cmd=self.vasp_cmd, cwd=self.cwd,
-                                               db_file=self.db_file, miller_index=self.hkl,
-                                               scratch_dir=self.scratch_dir, mmi=self.mmi,
-                                               mpid=self.mpid, k_product=self.k_product))
+                                               db_file=self.db_file, mmi=self.mmi,
+                                               miller_index=self.hkl, mpid=self.mpid,
+                                               scratch_dir=self.scratch_dir,
+                                               k_product=self.k_product))
 
         return tasks
 
@@ -351,7 +358,33 @@ class FacetFWsGeneratorTask(FiretaskBase):
     optional_params = ["slab_gen_params", "mpid", "mmi", "miller_index", "cwd"]
 
     def run_task(self, fw_spec):
+        """
+        Generates a list of oriented unit cell FWs or
+        slab cell FWs depending on the structure type.
 
+        Args:
+            structure_type (str): Type of structure. Options are:
+                conventional_unit_cell, oriented_unit_cell and slab_cell
+            scratch_dir (str): - if specified, uses this directory as the root
+                scratch dir. Supports env_chk.
+            k_product (int): Default to 50, kpoint number * length for a & b
+                directions, also for c direction in bulk calculations.
+            db_file (str): FULL path to file containing the database credentials.
+                Supports env_chk.
+            vasp_cmd (str): Command to run vasp.
+            slab_gen_params (dict): Parameters for SlabGenerator or generate_all_slabs
+            mpid (str): Materials Project ID of the conventional unit cell.
+            mmi (int): Max Miller index.
+            miller_index ([h, k, l]): Miller index of plane parallel to
+                surface (and oriented unit cell).
+            cwd (str): Location of directory to operate the
+                workflow and store the final outputs
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+
+        # get the parameters for SlabGenerator if we are getting a
+        # list of Slab calculation FWs or generate_all_slabs if we
+        # are getting a list of oritend unit cell calculation FWs
         if self.get("slab_gen_params", None):
             slab_gen_params = self.get("slab_gen_params", None)
         else:
@@ -371,11 +404,14 @@ class FacetFWsGeneratorTask(FiretaskBase):
 
             all_slabs = generate_all_slabs(max_index=self.get("mmi"),
                                            **slab_gen_params)
+            # Get all oriented unit cells up ot a max Miller index (mmi)
             miller_list = []
             for slab in all_slabs:
                 if slab.reconstruction:
                     FWs.append(self.get_ouc_fw(slab))
                 else:
+                    # There are several surface terminations for an oriented unit
+                    # cell, we only need to calculate the oriented unit cell once
                     if tuple(slab.miller_index) in miller_list:
                         continue
                     else:
@@ -399,7 +435,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
                         break
                 rec = ReconstructionGenerator(ucell, slab_gen_params["min_slab_size"],
                                               slab_gen_params["min_vacuum_size"],
-                                              reconstruction_name=folder.strip(ns))
+                                              reconstruction_name=folder[len(ns):])
                 FWs.append(self.get_slab_fw(rec.build_slab(), slab_gen_params))
 
             else:
