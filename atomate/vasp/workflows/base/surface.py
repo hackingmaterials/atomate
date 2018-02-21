@@ -425,7 +425,9 @@ class FacetFWsGeneratorTask(FiretaskBase):
             # If this is a reconstruction, we need to use the ReconstructionGenerator
             if "_rec_" in folder:
                 ouc = Structure.from_file("CONTCAR.relax2.gz")
+                # ReconstructionGenerator only works on the conventional ucell
                 ucell = SpacegroupAnalyzer(ouc).get_conventional_standard_structure()
+                # Get the name of the reocnstruction
                 ns, n = "", 0
                 for s in folder:
                     ns+=s
@@ -439,6 +441,8 @@ class FacetFWsGeneratorTask(FiretaskBase):
                 FWs.append(self.get_slab_fw(rec.build_slab(), slab_gen_params))
 
             else:
+                # Get the list of FWs for the various terminations
+                # for a slab based on the oriented unit cell
                 slab_gen_params["initial_structure"] = \
                     Structure.from_file("CONTCAR.relax2.gz")
                 slab_gen_params["miller_index"] = [0,0,1]
@@ -452,6 +456,13 @@ class FacetFWsGeneratorTask(FiretaskBase):
         return FWAction(additions=FWs)
 
     def get_ouc_fw(self, slab):
+        """
+        Return a SurfCalcOptimizer FW for an oriented unit cell.
+
+        Args:
+            slab (Slab): Slab object containing various
+                attributes related to the slab
+        """
 
         return SurfCalcOptimizer(slab.oriented_unit_cell, self.get("scratch_dir"),
                                  self.get("k_product"), self.get("db_file"),
@@ -462,6 +473,15 @@ class FacetFWsGeneratorTask(FiretaskBase):
                                  mpid=self.get("mpid", "--"))
 
     def get_slab_fw(self, slab, slab_gen_params):
+        """
+        Return a SurfCalcOptimizer FW for a Slab cell.
+
+        Args:
+            slab (Slab): Slab object containing various
+                attributes related to the slab
+            slab_gen_params (dict): Parameters for SlabGenerator
+                or generate_all_slabs
+        """
 
         return SurfCalcOptimizer(slab, self.get("scratch_dir"),
                                  self.get("k_product"), self.get("db_file"),
