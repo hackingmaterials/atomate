@@ -5,7 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import os
 
 from pymatgen.core import Structure
-from pymatgen.core.surface import SlabGenerator, ReconstructionGenerator
+from pymatgen.core.surface import SlabGenerator, ReconstructionGenerator, generate_all_slabs
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from fireworks.core.firework import FiretaskBase, FWAction
@@ -31,7 +31,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
 
     required_params = ['structure_type', "scratch_dir", "k_product",
                        "db_file", "vasp_cmd"]
-    optional_params = ["slab_gen_params", "mpid", "mmi", "miller_index", "cwd"]
+    optional_params = ["slab_gen_params", "mpid", "mmi", "miller_index"]
 
     def run_task(self, fw_spec):
         """
@@ -140,6 +140,8 @@ class FacetFWsGeneratorTask(FiretaskBase):
                 attributes related to the slab
         """
 
+        from atomate.vasp.fireworks.core import SurfCalcOptimizer
+
         return SurfCalcOptimizer(slab.oriented_unit_cell, self.get("scratch_dir"),
                                  self.get("k_product"), self.get("db_file"),
                                  self.get("vasp_cmd"), "oriented_unit_cell",
@@ -159,6 +161,8 @@ class FacetFWsGeneratorTask(FiretaskBase):
             slab_gen_params (dict): Parameters for SlabGenerator
                 or generate_all_slabs
         """
+
+        from atomate.vasp.fireworks.core import SurfCalcOptimizer
 
         return SurfCalcOptimizer(slab, self.get("scratch_dir"),
                                  self.get("k_product"), self.get("db_file"),

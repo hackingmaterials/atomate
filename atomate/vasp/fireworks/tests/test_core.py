@@ -173,7 +173,6 @@ class TestCoreFireworks(unittest.TestCase):
 
         adds = surface_fw.get_tasks[3]["additional_fields"]
         self.assertEqual(len(adds.keys()), 8)
-        self.assertEqual(adds["conventional_spacegroup"], {"symbol": "Fd-3m", "number": 227})
         self.assertEqual(adds["miller_index"], tuple(slab.miller_index))
         self.assertTrue(all(all(t) for t in adds["scale_factor"] == slab.scale_factor))
         self.assertEqual(adds["calculation_name"], "Si_mp-149_bulk_k50_111")
