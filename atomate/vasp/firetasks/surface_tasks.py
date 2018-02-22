@@ -30,7 +30,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
     """
 
     required_params = ['structure_type', "scratch_dir", "k_product", "vasp_cmd"]
-    optional_params = ["slab_gen_params", "mpid", "mmi", "db_file", "miller_index"]
+    optional_params = ["slab_gen_params", "mpid", "mmi", "db_file", "miller_index", "cwd"]
 
     def run_task(self, fw_spec):
         """
@@ -144,7 +144,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
         return SurfCalcOptimizer(slab.oriented_unit_cell, self.get("scratch_dir"),
                                  self.get("k_product"), self.get("db_file"),
                                  self.get("vasp_cmd"), "oriented_unit_cell",
-                                 cwd, reconstruction=slab.reconstruction,
+                                 self.get("cwd", os.getcwd()), reconstruction=slab.reconstruction,
                                  miller_index=slab.miller_index,
                                  scale_factor=slab.scale_factor,
                                  mpid=self.get("mpid", "--"))
@@ -165,7 +165,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
         return SurfCalcOptimizer(slab, self.get("scratch_dir"),
                                  self.get("k_product"), self.get("db_file"),
                                  self.get("vasp_cmd"), "slab_cell",
-                                 cwd, miller_index=slab.miller_index,
+                                 self.get("cwd", os.getcwd()), miller_index=slab.miller_index,
                                  scale_factor=slab.scale_factor,
                                  ouc=slab.oriented_unit_cell, shift=slab.shift,
                                  ssize=slab_gen_params["min_slab_size"],
