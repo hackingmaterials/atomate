@@ -142,9 +142,9 @@ class FacetFWsGeneratorTask(FiretaskBase):
         from atomate.vasp.fireworks.core import SurfCalcOptimizer
 
         return SurfCalcOptimizer(slab.oriented_unit_cell, self.get("scratch_dir"),
-                                 self.get("k_product"), self.get("db_file"),
-                                 self.get("vasp_cmd"), "oriented_unit_cell",
-                                 self.get("cwd", os.getcwd()), reconstruction=slab.reconstruction,
+                                 self.get("k_product"), self.get("vasp_cmd"),
+                                 "oriented_unit_cell", self.get("cwd", os.getcwd()),
+                                 reconstruction=slab.reconstruction,
                                  miller_index=slab.miller_index,
                                  scale_factor=slab.scale_factor,
                                  mpid=self.get("mpid", "--"))
@@ -163,9 +163,9 @@ class FacetFWsGeneratorTask(FiretaskBase):
         from atomate.vasp.fireworks.core import SurfCalcOptimizer
 
         return SurfCalcOptimizer(slab, self.get("scratch_dir"),
-                                 self.get("k_product"), self.get("db_file"),
-                                 self.get("vasp_cmd"), "slab_cell",
-                                 self.get("cwd", os.getcwd()), miller_index=slab.miller_index,
+                                 self.get("k_product"), self.get("vasp_cmd"),
+                                 "slab_cell", self.get("cwd", os.getcwd()),
+                                 miller_index=slab.miller_index,
                                  scale_factor=slab.scale_factor,
                                  ouc=slab.oriented_unit_cell, shift=slab.shift,
                                  ssize=slab_gen_params["min_slab_size"],
