@@ -177,7 +177,7 @@ class TestCoreFireworks(unittest.TestCase):
         self.assertTrue(all(all(t) for t in adds["scale_factor"] == slab.scale_factor))
         self.assertEqual(adds["calculation_name"], "Si_mp-149_bulk_k50_111")
         self.assertEqual(len(surface_fw.get_tasks), 5)
-        #
+
         # FW for reconstructed and unreconstructed slab cell
         slabs = [slabs[0], slabs[-1]]
         for slab in slabs:
@@ -187,6 +187,7 @@ class TestCoreFireworks(unittest.TestCase):
                                            reconstruction=slab.reconstruction, **kwargs)
 
             adds = surface_fw.get_tasks[4]["additional_fields"]
+            self.assertTrue(surface_fw.get_tasks[1]["vasp_input_set"].get_locpot)
             self.assertEqual(len(adds.keys()), 12)
             self.assertEqual(adds["conventional_spacegroup"], {"symbol": "Fd-3m", "number": 227})
             p = list(slab.miller_index)

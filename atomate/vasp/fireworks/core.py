@@ -911,10 +911,10 @@ class SurfCalcOptimizer(Firework):
 
         if self.structure_type != "slab_cell":
             return MVLSlabSet(self.structure, bulk=False,
-                              k_product=self.k_product, get_locpot=True)
+                              k_product=self.k_product, get_locpot=False)
         else:
             return MVLSlabSet(self.structure, bulk=True,
-                              k_product=self.k_product)
+                              k_product=self.k_product, get_locpot=True)
 
     @property
     def get_name(self):
