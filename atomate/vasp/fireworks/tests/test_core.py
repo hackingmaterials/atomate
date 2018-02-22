@@ -8,6 +8,7 @@ import unittest
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.structure import Structure
 from pymatgen.core.surface import generate_all_slabs
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.transformations.standard_transformations import RotationTransformation
 
 from atomate.vasp.fireworks.core import *
@@ -147,21 +148,22 @@ class TestCoreFireworks(unittest.TestCase):
 
     def testSurfCalcOptimizer(self):
 
-        Fe = Structure.from_spacegroup("Im-3m", Lattice.cubic(2.819), ["Fe"], [(0,0,0)])
+        sg = SpacegroupAnalyzer(self.structure)
+        Si = sg.get_conventional_standard_structure()
         kwargs = {"scratch_dir": ".", "k_product": 50, "db_file": ".",
-                  "vasp_cmd": "vasp", "cwd": ".", "mpid": "mp-13"}
+                  "vasp_cmd": "vasp", "cwd": ".", "mpid": "mp-149"}
 
         # FW for conventional unit cell calculation
-        surface_fw = SurfCalcOptimizer(Fe, structure_type="conventional_unit_cell", **kwargs)
-        self.assertEqual(surface_fw.el, "Fe")
-        additionals = surface_fw.get_tasks[3]["additional_fields"]
-        self.assertEqual(len(additionals.keys()), 5)
-        self.assertEqual(additionals["calculation_name"],
-                         "Fe_mp-13_conventional_unit_cell_k50")
-        self.assertEqual(surface_fw.name, additionals["calculation_name"])
+        surface_fw = SurfCalcOptimizer(Si, structure_type="conventional_unit_cell", **kwargs)
+        self.assertEqual(surface_fw.el, "Si")
+        adds = surface_fw.get_tasks[3]["additional_fields"]
+        self.assertEqual(len(adds.keys()), 5)
+        self.assertEqual(adds["calculation_name"],
+                         "Si_mp-149_conventional_unit_cell_k50")
+        self.assertEqual(surface_fw.name, adds["calculation_name"])
         self.assertEqual(len(surface_fw.get_tasks), 5)
 
-        slabs = generate_all_slabs(Fe, 1, 10, 10, max_normal_search=1,
+        slabs = generate_all_slabs(Si, 1, 10, 10, max_normal_search=1,
                                        include_reconstructions=True)
         # FW for oriented unit cell calculation
         slab = slabs[0]
@@ -169,15 +171,14 @@ class TestCoreFireworks(unittest.TestCase):
                                        miller_index=slab.miller_index,
                                        scale_factor=slab.scale_factor, **kwargs)
 
-        additionals = surface_fw.get_tasks[3]["additional_fields"]
-        self.assertEqual(len(additionals.keys()), 8)
-        self.assertEqual(additionals["conventional_spacegroup"],
-                         {"symbol": "Im-3m", "number": 229})
-        self.assertEqual(additionals["miller_index"], tuple(slab.miller_index))
-        self.assertTrue(all(all(t) for t in additionals["scale_factor"] == slab.scale_factor))
-        self.assertEqual(additionals["calculation_name"], "Fe_mp-13_bulk_k50_111")
+        adds = surface_fw.get_tasks[3]["additional_fields"]
+        self.assertEqual(len(adds.keys()), 8)
+        self.assertEqual(adds["conventional_spacegroup"], {"symbol": "Fd-3m", "number": 227})
+        self.assertEqual(adds["miller_index"], tuple(slab.miller_index))
+        self.assertTrue(all(all(t) for t in adds["scale_factor"] == slab.scale_factor))
+        self.assertEqual(adds["calculation_name"], "Si_mp-149_bulk_k50_111")
         self.assertEqual(len(surface_fw.get_tasks), 5)
-
+        #
         # FW for reconstructed and unreconstructed slab cell
         slabs = [slabs[0], slabs[-1]]
         for slab in slabs:
@@ -186,17 +187,16 @@ class TestCoreFireworks(unittest.TestCase):
                                            scale_factor=slab.scale_factor, ouc=slab.oriented_unit_cell,
                                            reconstruction=slab.reconstruction, **kwargs)
 
-            additionals = surface_fw.get_tasks[4]["additional_fields"]
-            self.assertEqual(len(additionals.keys()), 12)
-            self.assertEqual(additionals["conventional_spacegroup"],
-                             {"symbol": "Im-3m", "number": 229})
+            adds = surface_fw.get_tasks[4]["additional_fields"]
+            self.assertEqual(len(adds.keys()), 12)
+            self.assertEqual(adds["conventional_spacegroup"], {"symbol": "Fd-3m", "number": 227})
             p = list(slab.miller_index)
-            p.append(additionals["shift"])
-            n = "Fe_mp-13_slab_k50_s10v10_"
+            p.append(adds["shift"])
+            n = "Si_mp-149_slab_k50_s10v10_"
             if slab.reconstruction:
-                self.assertEqual(additionals["calculation_name"], n+slab.reconstruction)
+                self.assertEqual(adds["calculation_name"], n+slab.reconstruction)
             else:
-                self.assertEqual(additionals["calculation_name"], n+"%s%s%s_shift%s" %tuple(p))
+                self.assertEqual(adds["calculation_name"], n+"%s%s%s_shift%s" %tuple(p))
             self.assertEqual(len(surface_fw.get_tasks), 5)
 
 
