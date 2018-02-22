@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-import warnings
+import warnings, os
 
 from atomate.vasp.config import HALF_KPOINTS_FIRST_RELAX, RELAX_MAX_FORCE
 
@@ -15,6 +15,7 @@ sequences of VASP calculations.
 from fireworks import Firework
 
 from pymatgen import Structure
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp.sets import MPRelaxSet, MITMDSet, MITRelaxSet, \
     MPStaticSet, MPSOCSet, MVLSlabSet
 
@@ -841,10 +842,10 @@ class SurfCalcOptimizer(Firework):
         input sets and insert different additionals depending on the structure_type.
     """
 
-    def __init__(self, structure, scratch_dir, k_product, db_file,
-                 vasp_cmd, structure_type, miller_index=[], scale_factor=[],
+    def __init__(self, structure, scratch_dir, k_product, db_file, vasp_cmd,
+                 structure_type, cwd, miller_index=[], scale_factor=[],
                  vsize=None, mmi=None, ouc=None, shift=None, ssize=None,
-                 reconstruction=None, cwd=os.getcwd(), mpid="--", **kwargs):
+                 reconstruction=None, mpid="--", **kwargs):
         """
         Initializes the Firework.
 
