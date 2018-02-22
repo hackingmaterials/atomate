@@ -146,6 +146,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
                                  "oriented_unit_cell", self.get("cwd", os.getcwd()),
                                  reconstruction=slab.reconstruction,
                                  miller_index=slab.miller_index,
+                                 db_file=self.get("db_file"),
                                  scale_factor=slab.scale_factor,
                                  mpid=self.get("mpid", "--"))
 
@@ -166,6 +167,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
                                  self.get("k_product"), self.get("vasp_cmd"),
                                  "slab_cell", self.get("cwd", os.getcwd()),
                                  miller_index=slab.miller_index,
+                                 db_file=self.get("db_file"),
                                  scale_factor=slab.scale_factor,
                                  ouc=slab.oriented_unit_cell, shift=slab.shift,
                                  ssize=slab_gen_params["min_slab_size"],
