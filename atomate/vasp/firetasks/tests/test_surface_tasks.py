@@ -5,17 +5,9 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import os
 import unittest
 
-from fireworks.utilities.fw_serializers import load_object
-
-from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspFromPMGObjects, \
-        ModifyPotcar, ModifyIncar
 from atomate.vasp.firetasks.surface_tasks import FacetFWsGeneratorTask
-from atomate.utils.testing import AtomateTest
 
-from pymatgen.util.testing import PymatgenTest
-from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
-from pymatgen.io.vasp.sets import MPRelaxSet
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from pymatgen.io.vasp import Poscar
 from pymatgen import Structure, Lattice
 from pymatgen.core.surface import SlabGenerator
 
