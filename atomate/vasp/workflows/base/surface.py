@@ -160,5 +160,3 @@ class SurfaceWorkflowManager(object):
                                            ouc=ouc, shift=shift, scale_factor=scale_factor,
                                            reconstruction=reconstruction, vsize=vsize,
                                            mpid=mpid, **kwargs)])
-
-

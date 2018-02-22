@@ -140,7 +140,6 @@ class FacetFWsGeneratorTask(FiretaskBase):
         """
 
         from atomate.vasp.fireworks.core import SurfCalcOptimizer
-
         return SurfCalcOptimizer(slab.oriented_unit_cell, self.get("scratch_dir"),
                                  self.get("k_product"), self.get("vasp_cmd"),
                                  "oriented_unit_cell", self.get("cwd", os.getcwd()),
