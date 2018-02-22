@@ -71,7 +71,7 @@ class SurfaceWorkflowManager(object):
 
     """
 
-    def __init__(self, db_file, cwd=os.getcwd(),
+    def __init__(self, db_file=None, cwd=os.getcwd(),
                  scratch_dir="", k_product=50, vasp_cmd="vasp"):
 
         """
@@ -106,10 +106,9 @@ class SurfaceWorkflowManager(object):
             mpid (str): Materials Project ID of the conventional unit cell.
         """
 
-        return Workflow([SurfCalcOptimizer(structure, self.scratch_dir,
-                                           self.k_product, self.db_file,
+        return Workflow([SurfCalcOptimizer(structure, self.scratch_dir, self.k_product,
                                            self.vasp_cmd, "conventional_unit_cell",
-                                           mmi=mmi, cwd=self.cwd, mpid=mpid)])
+                                           self.cwd, db_file=self.db_file, mmi=mmi, mpid=mpid)])
 
     def from_oriented_unit_cell(self, structure, miller_index, scale_factor,
                                 reconstruction=None, mpid="--"):
@@ -128,10 +127,9 @@ class SurfaceWorkflowManager(object):
         """
 
         return Workflow([SurfCalcOptimizer(structure, self.scratch_dir, self.k_product,
-                                           self.db_file, self.vasp_cmd,
-                                           "oriented_unit_cell", cwd=self.cwd,
-                                           miller_index=miller_index, mpid=mpid,
-                                           reconstruction=reconstruction,
+                                           self.vasp_cmd, "oriented_unit_cell", self.cwd,
+                                           db_file=self.db_file, miller_index=miller_index,
+                                           mpid=mpid, reconstruction=reconstruction,
                                            scale_factor=scale_factor, **kwargs)])
 
     def from_slab_cell(self, structure, miller_index, shift, scale_factor,
@@ -157,10 +155,10 @@ class SurfaceWorkflowManager(object):
         """
 
         return Workflow([SurfCalcOptimizer(structure, self.scratch_dir, self.k_product,
-                                           self.db_file, self.vasp_cmd, "slab_cell",
-                                           miller_index=miller_index, ouc=ouc, shift=shift,
-                                           scale_factor=scale_factor, ssize=ssize,
-                                           reconstruction=reconstruction, cwd=self.cwd,
-                                           vsize=vsize, mpid=mpid, **kwargs)])
+                                           self.vasp_cmd, "slab_cell", self.cwd, ssize=ssize,
+                                           db_file=self.db_file,  miller_index=miller_index,
+                                           ouc=ouc, shift=shift, scale_factor=scale_factor,
+                                           reconstruction=reconstruction, vsize=vsize,
+                                           mpid=mpid, **kwargs)])
 
 
