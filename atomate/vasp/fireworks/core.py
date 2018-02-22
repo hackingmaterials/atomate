@@ -842,10 +842,10 @@ class SurfCalcOptimizer(Firework):
         input sets and insert different additionals depending on the structure_type.
     """
 
-    def __init__(self, structure, scratch_dir, k_product, db_file, vasp_cmd,
-                 structure_type, cwd, miller_index=[], scale_factor=[],
-                 vsize=None, mmi=None, ouc=None, shift=None, ssize=None,
-                 reconstruction=None, mpid="--", **kwargs):
+    def __init__(self, structure, scratch_dir, k_product, vasp_cmd,
+                 structure_type, cwd, db_file=None, miller_index=[],
+                 ouc=None, scale_factor=[], vsize=None, mmi=None, mpid="--",
+                 shift=None, ssize=None, reconstruction=None,  **kwargs):
         """
         Initializes the Firework.
 

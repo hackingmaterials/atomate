@@ -29,9 +29,8 @@ class FacetFWsGeneratorTask(FiretaskBase):
     unit cell and reconstruction calculations.
     """
 
-    required_params = ['structure_type', "scratch_dir", "k_product",
-                       "db_file", "vasp_cmd"]
-    optional_params = ["slab_gen_params", "mpid", "mmi", "miller_index"]
+    required_params = ['structure_type', "scratch_dir", "k_product", "vasp_cmd"]
+    optional_params = ["slab_gen_params", "mpid", "mmi", "db_file", "miller_index"]
 
     def run_task(self, fw_spec):
         """
