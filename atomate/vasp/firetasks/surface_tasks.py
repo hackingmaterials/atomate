@@ -29,7 +29,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
     unit cell and reconstruction calculations.
     """
 
-    required_params = ['structure_type', "scratch_dir", "k_product", "vasp_cmd"]
+    required_params = ['structure_type', "k_product", "vasp_cmd", "scratch_dir"]
     optional_params = ["slab_gen_params", "mpid", "mmi", "db_file", "miller_index", "cwd"]
 
     def run_task(self, fw_spec):
@@ -74,7 +74,6 @@ class FacetFWsGeneratorTask(FiretaskBase):
         if self.get("structure_type") == "conventional_unit_cell":
             # Then we create a set of FWs for oriented_unit_cell
             # calculations and reconstructed slabs
-
             slab_gen_params["structure"] = Structure.from_file("CONTCAR.relax2.gz")
 
             all_slabs = generate_all_slabs(max_index=self.get("mmi"),

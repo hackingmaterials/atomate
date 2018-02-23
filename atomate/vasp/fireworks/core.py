@@ -881,6 +881,7 @@ class SurfCalcOptimizer(Firework):
         """
 
         self.structure = structure
+        self.scratch_dir = scratch_dir
         self.el = self.structure[0].species_string
         self.structure_type = structure_type
         self.k_product = k_product
@@ -896,7 +897,6 @@ class SurfCalcOptimizer(Firework):
         self.ouc = ouc
         self.cwd = cwd
         self.vasp_cmd = vasp_cmd
-        self.scratch_dir = scratch_dir
         self.db_file = db_file
         self.mmi = mmi
 
@@ -998,10 +998,10 @@ class SurfCalcOptimizer(Firework):
 
         if self.structure_type != "slab_cell":
             tasks.append(FacetFWsGeneratorTask(structure_type=self.structure_type,
+                                               scratch_dir=self.scratch_dir,
                                                vasp_cmd=self.vasp_cmd, cwd=self.cwd,
                                                db_file=self.db_file, mmi=self.mmi,
                                                miller_index=self.hkl, mpid=self.mpid,
-                                               scratch_dir=self.scratch_dir,
                                                k_product=self.k_product))
 
         return tasks
