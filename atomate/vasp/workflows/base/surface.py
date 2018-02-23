@@ -71,7 +71,7 @@ class SurfaceWorkflowManager(object):
 
     """
 
-    def __init__(self, db_file=None, cwd=os.getcwd(),
+    def __init__(self, db_file=None, scratch_dir=None, cwd=os.getcwd(),
                  k_product=50, vasp_cmd="vasp"):
 
         """
@@ -91,6 +91,7 @@ class SurfaceWorkflowManager(object):
         self.k_product = k_product
         self.vasp_cmd = vasp_cmd
         self.db_file = db_file
+        self.scratch_dir = scratch_dir
         self.cwd = cwd
 
     def from_conventional_unit_cell(self, structure, mmi, mpid="--"):
@@ -105,7 +106,7 @@ class SurfaceWorkflowManager(object):
             mpid (str): Materials Project ID of the conventional unit cell.
         """
 
-        return Workflow([SurfCalcOptimizer(structure, self.k_product,
+        return Workflow([SurfCalcOptimizer(structure, self.scratch_dir, self.k_product,
                                            self.vasp_cmd, "conventional_unit_cell",
                                            self.cwd, db_file=self.db_file, mmi=mmi, mpid=mpid)])
 
@@ -125,7 +126,7 @@ class SurfaceWorkflowManager(object):
             mpid (str): Materials Project ID of the conventional unit cell.
         """
 
-        return Workflow([SurfCalcOptimizer(structure,  self.k_product,
+        return Workflow([SurfCalcOptimizer(structure, self.scratch_dir, self.k_product,
                                            self.vasp_cmd, "oriented_unit_cell", self.cwd,
                                            db_file=self.db_file, miller_index=miller_index,
                                            mpid=mpid, reconstruction=reconstruction,
@@ -153,7 +154,7 @@ class SurfaceWorkflowManager(object):
                 (if it is a reconstructed slab).
         """
 
-        return Workflow([SurfCalcOptimizer(structure,  self.k_product,
+        return Workflow([SurfCalcOptimizer(structure, self.scratch_dir, self.k_product,
                                            self.vasp_cmd, "slab_cell", self.cwd, ssize=ssize,
                                            db_file=self.db_file,  miller_index=miller_index,
                                            ouc=ouc, shift=shift, scale_factor=scale_factor,
