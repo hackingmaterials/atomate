@@ -24,8 +24,6 @@ __date__ = "11/30/17"
 
 import os
 
-from pymatgen import Structure
-
 from fireworks import Workflow
 
 from atomate.vasp.fireworks.core import SurfCalcOptimizer

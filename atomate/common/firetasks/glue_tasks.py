@@ -163,7 +163,6 @@ class RenameFile(FiretaskBase):
     required_params = ["file", "new_name"]
 
     def run_task(self,fw_spec=None):
-        cwd = os.getcwd()
         os.rename(self.get("file"), self.get("new_name"))
 
 
