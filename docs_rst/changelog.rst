@@ -2,6 +2,10 @@
 atomate Changelog
 =================
 
+**v0.7.2**
+
+* Bugfix database getter in builders (S. Dwaraknath)
+
 **v0.7.1**
 
 * update ``atwf`` to find the path to workflows better (M. Dias Costa)
