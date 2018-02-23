@@ -130,7 +130,7 @@ class SurfaceWorkflowManager(object):
                                            self.vasp_cmd, "oriented_unit_cell", self.cwd,
                                            db_file=self.db_file, miller_index=miller_index,
                                            mpid=mpid, reconstruction=reconstruction,
-                                           scale_factor=scale_factor, **kwargs)])
+                                           scale_factor=scale_factor)])
 
     def from_slab_cell(self, structure, miller_index, shift, scale_factor,
                        ouc, ssize, vsize, reconstruction=None, mpid="--"):
@@ -159,4 +159,4 @@ class SurfaceWorkflowManager(object):
                                            db_file=self.db_file,  miller_index=miller_index,
                                            ouc=ouc, shift=shift, scale_factor=scale_factor,
                                            reconstruction=reconstruction, vsize=vsize,
-                                           mpid=mpid, **kwargs)])
+                                           mpid=mpid)])
