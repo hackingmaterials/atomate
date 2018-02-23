@@ -8,7 +8,6 @@ from fireworks.core.launchpad import LaunchPad
 from fireworks.core.rocket_launcher import launch_rocket
 
 from atomate.vasp.workflows.base.surface import SurfaceWorkflowManager
-from atomate.utils.testing import AtomateTest
 from atomate.vasp.powerups import use_fake_vasp
 
 from pymatgen.core.surface import SlabGenerator, Structure
@@ -42,17 +41,6 @@ class TestSurfaceWorkflow(unittest.TestCase):
                                             vasp_cmd="vasp")
         self.mpid = "mp-135"
 
-    def tear_down(self, base_dir):
-
-        # Remove outputs when done
-        os.remove(os.path.join(base_dir, "OUTCAR.relax2.gz"))
-        os.remove(os.path.join(base_dir, "CONTCAR.relax2.gz"))
-        os.remove(os.path.join(base_dir, "vasprun.xml.relax2.gz"))
-        if "FW.json" in glob.glob("*"):
-            os.remove(os.path.join(base_dir, "FW.json"))
-        if "slab" in base_dir:
-            os.remove(os.path.join(base_dir, "LOCPOT.relax2.gz"))
-
     def test_wf(self):
 
         # Run workflows
@@ -65,7 +53,7 @@ class TestSurfaceWorkflow(unittest.TestCase):
         wf = use_fake_vasp(wf, {"1": base_dir})
         self.lp.add_wf(wf)
         launch_rocket(self.lp)
-        self.tear_down(base_dir)
+        tear_down(base_dir)
 
         # Test workflow from oriented unit cell
         self.lp.reset(".", require_password=False)
@@ -78,7 +66,7 @@ class TestSurfaceWorkflow(unittest.TestCase):
         wf = use_fake_vasp(wf, {"1": base_dir})
         self.lp.add_wf(wf)
         launch_rocket(self.lp)
-        self.tear_down(base_dir)
+        tear_down(base_dir)
 
         # Test workflow from slab cell
         self.lp.reset(".", require_password=False)
@@ -93,6 +81,19 @@ class TestSurfaceWorkflow(unittest.TestCase):
         tear_down(base_dir)
 
         self.lp.reset(".", require_password=False)
+
+
+def tear_down(base_dir):
+
+    # Remove outputs when done
+    os.remove(os.path.join(base_dir, "OUTCAR.relax2.gz"))
+    os.remove(os.path.join(base_dir, "CONTCAR.relax2.gz"))
+    os.remove(os.path.join(base_dir, "vasprun.xml.relax2.gz"))
+    if "FW.json" in glob.glob("*"):
+        os.remove(os.path.join(base_dir, "FW.json"))
+    if "slab" in base_dir:
+        os.remove(os.path.join(base_dir, "LOCPOT.relax2.gz"))
+
 
 
 if __name__ == "__main__":
