@@ -880,7 +880,7 @@ class SurfCalcOptimizer(Firework):
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
 
-        self.structure = structure
+        self.structure = structure.copy()
         self.scratch_dir = scratch_dir
         self.el = self.structure[0].species_string
         self.structure_type = structure_type
@@ -957,7 +957,7 @@ class SurfCalcOptimizer(Firework):
                              "conventional_spacegroup": \
                                  {"symbol": self.sg.get_space_group_symbol(),
                                   "number": self.sg.get_space_group_number()},
-                             "initial_structure": self.structure.as_dict(),
+                             "initial_structure": self.structure.to("cif"),
                              "material_id": self.mpid}
 
         if self.structure_type != "conventional_unit_cell":
@@ -966,7 +966,7 @@ class SurfCalcOptimizer(Firework):
                                        "reconstruction": self.reconstruction})
 
         if self.structure_type == "slab_cell":
-            additional_fields.update({"oriented_unit_cell": self.ouc.as_dict(),
+            additional_fields.update({"oriented_unit_cell": self.ouc.to("cif"),
                                       "slab_size":self.ssize, "shift": self.shift,
                                       "vac_size": self.vsize})
 
