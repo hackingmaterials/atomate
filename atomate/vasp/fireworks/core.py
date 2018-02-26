@@ -914,7 +914,7 @@ class SurfCalcOptimizer(Firework):
                               k_product=self.k_product)
         else:
             return MVLSlabSet(self.structure, bulk=False,
-                              k_product=self.k_product, 
+                              k_product=self.k_product,
                               user_incar_settings={"LVTOT": True})
 
     @property
