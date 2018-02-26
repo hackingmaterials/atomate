@@ -15,7 +15,7 @@ as well as::
 
     Sun, W.; Ceder, G. Efficient creation and convergence of surface slabs,
     Surface Science, 2013, 617, 53–59, doi:10.1016/j.susc.2013.05.016.
-""" 
+"""
 
 __author__ = "Richard Tran"
 __version__ = "0.2"
