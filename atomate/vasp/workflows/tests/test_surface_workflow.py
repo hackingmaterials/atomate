@@ -9,6 +9,7 @@ from fireworks.core.rocket_launcher import launch_rocket
 
 from atomate.vasp.workflows.base.surface import SurfaceWorkflowManager
 from atomate.vasp.powerups import use_fake_vasp
+from atomate.utils.testing import AtomateTest
 
 from pymatgen.core.surface import SlabGenerator, Structure
 
@@ -25,7 +26,7 @@ VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this c
 _write_task_docs = False # Test developer option: defaults to False, need to be True only once
 
 
-class TestSurfaceWorkflow(unittest.TestCase):
+class TestSurfaceWorkflow(AtomateTest):
 
     def setUp(self):
         # Set up workflow
@@ -34,7 +35,6 @@ class TestSurfaceWorkflow(unittest.TestCase):
                                                       "inputs", "POSCAR"))
         self.slab = SlabGenerator(self.ucell, (1, 1, 1), 10, 10,
                                   max_normal_search=1).get_slabs()[0]
-        self.lp = LaunchPad()
         self.wfgen = SurfaceWorkflowManager(db_file=os.path.join(db_dir, "db.json"),
                                             scratch_dir=reference_dir,
                                             cwd=reference_dir, k_product=45,
