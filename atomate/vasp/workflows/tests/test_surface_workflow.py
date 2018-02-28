@@ -4,7 +4,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import os, unittest, glob
 
-from fireworks.core.launchpad import LaunchPad
 from fireworks.core.rocket_launcher import launch_rocket
 
 from atomate.vasp.workflows.base.surface import SurfaceWorkflowManager

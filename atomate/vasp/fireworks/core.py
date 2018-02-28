@@ -843,8 +843,8 @@ class SurfCalcOptimizer(Firework):
     """
 
     def __init__(self, structure, scratch_dir, k_product, vasp_cmd,
-                 structure_type, cwd, db_file=None, miller_index=[],
-                 ouc=None, scale_factor=[], vsize=None, mmi=None, mpid="--",
+                 structure_type, cwd, db_file=None, miller_index=None,
+                 ouc=None, scale_factor=None, vsize=None, mmi=None, mpid="--",
                  shift=None, ssize=None, reconstruction=None,  **kwargs):
         """
         Initializes the Firework.
