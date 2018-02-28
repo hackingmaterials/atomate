@@ -24,8 +24,7 @@ class TestFacetFWsGeneratorTask(unittest.TestCase):
                                                    ["Fe"], [(0,0,0)])
         self.Co = Structure.from_spacegroup("P6_3/mmc", Lattice.hexagonal(2.5, 4.07),
                                                    ["Co"], [(1/3,2/3,1/4)])
-
-        os.chdir("../../test_files/surface_wf")
+        os.chdir(os.path.join(module_dir, "../../test_files/surface_wf"))
 
     def test_get_ouc_fw(self):
 
