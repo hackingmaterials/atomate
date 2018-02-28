@@ -20,10 +20,10 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 class TestFacetFWsGeneratorTask(unittest.TestCase):
     def setUp(self):
 
-        self.Fe = Structure.from_spacegroup("Im-3m", Lattice.cubic(2.819),
-                                                   ["Fe"], [(0,0,0)])
-        self.Co = Structure.from_spacegroup("P6_3/mmc", Lattice.hexagonal(2.5, 4.07),
-                                                   ["Co"], [[0.333333,0.6666667,0.25]])
+        self.Fe = Structure(Lattice.cubic(2.819), ["Fe", "Fe"],
+                            [(0,0,0), (0.5,0.5,0.5)])
+        self.Co = Structure(Lattice.hexagonal(2.5, 4.07), ["Co", "Co"],
+                            [[1/3, 2/3, 1/4], [2/3, 1/3, 3/4]])
         os.chdir(os.path.join(module_dir, "../../test_files/surface_wf"))
 
     def test_get_ouc_fw(self):
