@@ -34,7 +34,7 @@ class TestFacetFWsGeneratorTask(unittest.TestCase):
 
         facettask = FacetFWsGeneratorTask(structure_type="conventional_unit_cell",
                                           scratch_dir=".", k_product=50, db_file=".",
-                                          vasp_cmd="vasp", mmi=1, mpid="mp-13")
+                                          vasp_cmd="vasp", max_index=1, naming_tag="mp-13")
 
         fwaction = facettask.run_task({})
 
@@ -60,7 +60,7 @@ class TestFacetFWsGeneratorTask(unittest.TestCase):
         facettask = FacetFWsGeneratorTask(structure_type="oriented_unit_cell",
                                           scratch_dir=".", k_product=50,
                                           db_file=".", vasp_cmd="vasp",
-                                          miller_index=(1, 0, 2), mpid="mp-54")
+                                          miller_index=(1, 0, 2), naming_tag="mp-54")
 
         fwaction = facettask.run_task({})
 

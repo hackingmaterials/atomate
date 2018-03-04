@@ -151,7 +151,7 @@ class TestCoreFireworks(unittest.TestCase):
         sg = SpacegroupAnalyzer(self.structure)
         Si = sg.get_conventional_standard_structure()
         kwargs = {"scratch_dir": ".", "k_product": 50, "db_file": ".",
-                  "vasp_cmd": "vasp", "cwd": ".", "mpid": "mp-149"}
+                  "vasp_cmd": "vasp", "cwd": ".", "naming_tag": "mp-149"}
 
         # FW for conventional unit cell calculation
         surface_fw = SurfCalcOptimizer(Si, structure_type="conventional_unit_cell", **kwargs)
@@ -167,7 +167,8 @@ class TestCoreFireworks(unittest.TestCase):
                                        include_reconstructions=True)
         # FW for oriented unit cell calculation
         slab = slabs[0]
-        surface_fw = SurfCalcOptimizer(slab.oriented_unit_cell, structure_type="oriented_unit_cell",
+        surface_fw = SurfCalcOptimizer(slab.oriented_unit_cell,
+                                       structure_type="oriented_unit_cell",
                                        miller_index=slab.miller_index,
                                        scale_factor=slab.scale_factor, **kwargs)
 
@@ -181,13 +182,14 @@ class TestCoreFireworks(unittest.TestCase):
         # FW for reconstructed and unreconstructed slab cell
         slabs = [slabs[0], slabs[-1]]
         for slab in slabs:
-            surface_fw = SurfCalcOptimizer(slab, structure_type="slab_cell", vsize=10, ssize=10,
-                                           miller_index=slab.miller_index, shift=slab.shift,
-                                           scale_factor=slab.scale_factor, ouc=slab.oriented_unit_cell,
+            surface_fw = SurfCalcOptimizer(slab, structure_type="slab_cell",
+                                           min_vac_size=10, min_slab_size=10,
+                                           miller_index=slab.miller_index,
+                                           shift=slab.shift, ouc=slab.oriented_unit_cell,
+                                           scale_factor=slab.scale_factor,
                                            reconstruction=slab.reconstruction, **kwargs)
 
             adds = surface_fw.get_tasks[4]["additional_fields"]
-            # self.assertTrue(surface_fw.get_tasks[1]["vasp_input_set"].get_locpot)
             self.assertTrue(not surface_fw.get_tasks[1]["vasp_input_set"].bulk)
             self.assertEqual(len(adds.keys()), 12)
             self.assertEqual(adds["conventional_spacegroup"], {"symbol": "Fd-3m", "number": 227})

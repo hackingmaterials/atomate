@@ -6,7 +6,7 @@ import os, unittest, glob
 
 from fireworks.core.rocket_launcher import launch_rocket
 
-from atomate.vasp.workflows.base.surface import SurfaceWorkflowManager
+from atomate.vasp.workflows.base.surface import SurfaceWorkflowCreator
 from atomate.vasp.powerups import use_fake_vasp
 from atomate.utils.testing import AtomateTest
 
@@ -36,9 +36,9 @@ class TestSurfaceWorkflow(AtomateTest):
                                                       "inputs", "POSCAR"))
         self.slab = SlabGenerator(self.ucell, (1, 1, 1), 10, 10,
                                   max_normal_search=1).get_slabs()[0]
-        self.wfgen = SurfaceWorkflowManager(db_file=os.path.join(db_dir, "db.json"),
+        self.wfgen = SurfaceWorkflowCreator(db_file=os.path.join(db_dir, "db.json"),
                                             scratch_dir=reference_dir,
-                                            cwd=reference_dir, k_product=45,
+                                            run_dir=reference_dir, k_product=45,
                                             vasp_cmd="vasp")
         self.mpid = "mp-135"
 
@@ -48,7 +48,7 @@ class TestSurfaceWorkflow(AtomateTest):
 
         # Test workflow from conventional unit cell
         self.lp.reset(".", require_password=False)
-        wf = self.wfgen.from_conventional_unit_cell(self.ucell, 1, mpid=self.mpid)
+        wf = self.wfgen.from_conventional_unit_cell(self.ucell, 1, naming_tag=self.mpid)
         folder = "Li_mp-135_conventional_unit_cell_k45"
         base_dir = os.path.join(reference_dir, folder)
         wf = use_fake_vasp(wf, {"1": base_dir})
@@ -61,7 +61,7 @@ class TestSurfaceWorkflow(AtomateTest):
         scale_factor = self.slab.scale_factor
         ouc = self.slab.oriented_unit_cell
         wf = self.wfgen.from_oriented_unit_cell(ouc, (1,1,1),
-                                                scale_factor, mpid=self.mpid)
+                                                scale_factor, naming_tag=self.mpid)
         folder = "Li_mp-135_bulk_k45_111"
         base_dir = os.path.join(reference_dir, folder)
         wf = use_fake_vasp(wf, {"1": base_dir})
@@ -73,7 +73,7 @@ class TestSurfaceWorkflow(AtomateTest):
         self.lp.reset(".", require_password=False)
         scale_factor = self.slab.scale_factor
         wf = self.wfgen.from_slab_cell(self.slab, (1,1,1), self.slab.shift,
-                                       scale_factor, ouc, 10, 10, mpid=self.mpid)
+                                       scale_factor, ouc, 10, 10, naming_tag=self.mpid)
         folder = "Li_mp-135_slab_k45_s10v10_111_shift0.08333333333333348"
         base_dir = os.path.join(reference_dir, folder)
         wf = use_fake_vasp(wf, {"1": base_dir})

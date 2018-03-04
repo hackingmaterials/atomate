@@ -29,7 +29,7 @@ from fireworks import Workflow
 from atomate.vasp.fireworks.core import SurfCalcOptimizer
 
 
-class SurfaceWorkflowManager(object):
+class SurfaceWorkflowCreator(object):
     """
         Workflow manager with a set of common database and calculation specs for
             all workflows. The workflow will use VASP to ultimately calculate the
