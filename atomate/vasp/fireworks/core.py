@@ -844,7 +844,7 @@ class SurfCalcOptimizer(Firework):
 
     def __init__(self, structure, scratch_dir, k_product, vasp_cmd,
                  structure_type, run_dir, db_file=None, miller_index=None,
-                 ouc=None, scale_factor=None, min_slab_size=None,
+                 oriented_ucell=None, scale_factor=None, min_slab_size=None,
                  min_vac_size=None, max_index=None, naming_tag="--",
                  shift=None, reconstruction=None,  **kwargs):
         """
@@ -867,7 +867,7 @@ class SurfCalcOptimizer(Firework):
             miller_index ([h, k, l]): Miller index of plane parallel to
                 surface (and oriented unit cell).This is needed if you
                 are starting from an oriented_unit_cell or slab_cell.
-            ouc (Structure): The oriented_unit_cell from which
+            oriented_ucell (Structure): The oriented_unit_cell from which
                 this Slab is created (by scaling in the c-direction). Defaults
                 to None, but is required for slab_cell calculations.
             shift (float): The shift in the c-direction applied to get the
@@ -898,10 +898,10 @@ class SurfCalcOptimizer(Firework):
         self.min_slab_size = min_slab_size
         self.min_vac_size = min_vac_size
         self.shift = shift
-        self.sg = SpacegroupAnalyzer(ouc if structure_type ==
-                                            "slab_cell" else structure)
+        self.sg = SpacegroupAnalyzer(oriented_ucell if structure_type ==
+                                                       "slab_cell" else structure)
         self.scale_factor = scale_factor
-        self.ouc = ouc
+        self.oriented_ucell = oriented_ucell
         self.run_dir = run_dir
         self.vasp_cmd = vasp_cmd
         self.db_file = db_file
@@ -980,7 +980,7 @@ class SurfCalcOptimizer(Firework):
                                        "reconstruction": self.reconstruction})
 
         if self.structure_type == "slab_cell":
-            additional_fields.update({"oriented_unit_cell": self.ouc.to("cif"),
+            additional_fields.update({"oriented_unit_cell": self.oriented_ucell.to("cif"),
                                       "slab_size":self.min_slab_size, "shift": self.shift,
                                       "vac_size": self.min_vac_size})
 

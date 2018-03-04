@@ -59,8 +59,8 @@ class TestSurfaceWorkflow(AtomateTest):
         # Test workflow from oriented unit cell
         self.lp.reset(".", require_password=False)
         scale_factor = self.slab.scale_factor
-        ouc = self.slab.oriented_unit_cell
-        wf = self.wfgen.from_oriented_unit_cell(ouc, (1,1,1),
+        oriented_ucell = self.slab.oriented_unit_cell
+        wf = self.wfgen.from_oriented_unit_cell(oriented_ucell, (1,1,1),
                                                 scale_factor, naming_tag=self.mpid)
         folder = "Li_mp-135_bulk_k45_111"
         base_dir = os.path.join(reference_dir, folder)
@@ -73,7 +73,8 @@ class TestSurfaceWorkflow(AtomateTest):
         self.lp.reset(".", require_password=False)
         scale_factor = self.slab.scale_factor
         wf = self.wfgen.from_slab_cell(self.slab, (1,1,1), self.slab.shift,
-                                       scale_factor, ouc, 10, 10, naming_tag=self.mpid)
+                                       scale_factor, oriented_ucell, 10,
+                                       10, naming_tag=self.mpid)
         folder = "Li_mp-135_slab_k45_s10v10_111_shift0.08333333333333348"
         base_dir = os.path.join(reference_dir, folder)
         wf = use_fake_vasp(wf, {"1": base_dir})

@@ -138,8 +138,8 @@ class SurfaceWorkflowCreator(object):
                                            scale_factor=scale_factor)])
 
     def from_slab_cell(self, structure, miller_index, shift,
-                       scale_factor, ouc, min_slab_size, min_vac_size,
-                       reconstruction=None, naming_tag="--"):
+                       scale_factor, oriented_ucell, min_slab_size,
+                       min_vac_size, reconstruction=None, naming_tag="--"):
         """
         Calculates the surface properties of a single slab structure
 
@@ -147,7 +147,7 @@ class SurfaceWorkflowCreator(object):
             structure (Structure): Slab structure.
             miller_index ([h, k, l]): Miller index of plane parallel to
                 surface (and oriented unit cell).
-            ouc (Structure): The oriented_unit_cell from which
+            oriented_ucell (Structure): The oriented_unit_cell from which
                 this Slab is created (by scaling in the c-direction).
             shift (float): The shift in the c-direction applied to get the
                 termination.
@@ -168,7 +168,7 @@ class SurfaceWorkflowCreator(object):
                                            min_slab_size=min_slab_size,
                                            db_file=self.db_file,
                                            miller_index=miller_index,
-                                           ouc=ouc, shift=shift,
+                                           oriented_ucell=oriented_ucell, shift=shift,
                                            scale_factor=scale_factor,
                                            reconstruction=reconstruction,
                                            min_vac_size=min_vac_size,

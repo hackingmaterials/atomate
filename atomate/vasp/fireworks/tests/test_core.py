@@ -185,14 +185,16 @@ class TestCoreFireworks(unittest.TestCase):
             surface_fw = SurfCalcOptimizer(slab, structure_type="slab_cell",
                                            min_vac_size=10, min_slab_size=10,
                                            miller_index=slab.miller_index,
-                                           shift=slab.shift, ouc=slab.oriented_unit_cell,
+                                           shift=slab.shift,
+                                           oriented_ucell=slab.oriented_unit_cell,
                                            scale_factor=slab.scale_factor,
                                            reconstruction=slab.reconstruction, **kwargs)
 
             adds = surface_fw.get_tasks[4]["additional_fields"]
             self.assertTrue(not surface_fw.get_tasks[1]["vasp_input_set"].bulk)
             self.assertEqual(len(adds.keys()), 12)
-            self.assertEqual(adds["conventional_spacegroup"], {"symbol": "Fd-3m", "number": 227})
+            self.assertEqual(adds["conventional_spacegroup"],
+                             {"symbol": "Fd-3m", "number": 227})
             p = list(slab.miller_index)
             p.append(adds["shift"])
             n = "Si_mp-149_slab_k50_s10v10_"

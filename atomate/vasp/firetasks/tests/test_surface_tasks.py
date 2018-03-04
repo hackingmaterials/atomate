@@ -26,7 +26,7 @@ class TestFacetFWsGeneratorTask(unittest.TestCase):
                             [[1/3, 2/3, 1/4], [2/3, 1/3, 3/4]])
         os.chdir(os.path.join(module_dir, "../../test_files/surface_wf"))
 
-    def test_get_ouc_fw(self):
+    def test_get_oriented_ucell_fw(self):
 
         # Test for conventional unit cell
         p = Poscar(self.Fe)
@@ -52,9 +52,9 @@ class TestFacetFWsGeneratorTask(unittest.TestCase):
     def test_get_slab_fw(self):
 
         # Test for oriented unit cell
-        ouc = SlabGenerator(self.Co, (1, 0, 2), 10, 10,
+        oriented_ucell = SlabGenerator(self.Co, (1, 0, 2), 10, 10,
                             max_normal_search=2).get_slab().oriented_unit_cell
-        p = Poscar(ouc)
+        p = Poscar(oriented_ucell)
         p.write_file("CONTCAR.relax2.gz")
 
         facettask = FacetFWsGeneratorTask(structure_type="oriented_unit_cell",

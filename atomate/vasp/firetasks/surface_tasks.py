@@ -90,14 +90,14 @@ class FacetFWsGeneratorTask(FiretaskBase):
             miller_list, recon_unit_vects = [], []
             for slab in all_slabs:
                 if slab.reconstruction:
-                    # Some reconstructions may be based on the same type
-                    # on ouc, avoid duplicate calculations of ouc
+                    # Some reconstructions may be based on the same type on oriented
+                    # unit cell, avoid duplicate calculations of oriented unit cell
                     m = tuple([tuple(v) for v in slab.recon_trans_matrix])
                     if m in recon_unit_vects:
                         continue
                     else:
                         recon_unit_vects.append(m)
-                        FWs.append(self.get_ouc_fw(slab))
+                        FWs.append(self.get_oriented_ucell_fw(slab))
                 else:
                     # There are several surface terminations for an oriented unit
                     # cell, we only need to calculate the oriented unit cell once
@@ -105,17 +105,18 @@ class FacetFWsGeneratorTask(FiretaskBase):
                         continue
                     else:
                         # build a oriented unit cell fw
-                        FWs.append(self.get_ouc_fw(slab))
+                        FWs.append(self.get_oriented_ucell_fw(slab))
                         miller_list.append(tuple(slab.miller_index))
 
         elif structure_type == "oriented_unit_cell":
             folder = os.path.basename(os.getcwd())
             # If this is a reconstruction, we need to use the ReconstructionGenerator
             if "_rec_" in folder:
-                ouc = Structure.from_file("CONTCAR.relax2.gz")
+                oriented_ucell = Structure.from_file("CONTCAR.relax2.gz")
                 # ReconstructionGenerator only works on the conventional ucell
-                ucell = SpacegroupAnalyzer(ouc).get_conventional_standard_structure()
-                # Get the name of the reocnstruction
+                ucell = SpacegroupAnalyzer(oriented_ucell).\
+                    get_conventional_standard_structure()
+                # Get the name of the reconstruction
                 ns, n = "", 0
                 for s in folder:
                     ns+=s
@@ -144,7 +145,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
 
         return FWAction(additions=FWs)
 
-    def get_ouc_fw(self, slab):
+    def get_oriented_ucell_fw(self, slab):
         """
         Return a SurfCalcOptimizer FW for an oriented unit cell.
 
@@ -182,7 +183,8 @@ class FacetFWsGeneratorTask(FiretaskBase):
                                  miller_index=slab.miller_index,
                                  db_file=self.get("db_file"),
                                  scale_factor=slab.scale_factor,
-                                 ouc=slab.oriented_unit_cell, shift=slab.shift,
+                                 oriented_ucell=slab.oriented_unit_cell,
+                                 shift=slab.shift,
                                  min_slab_size=slab_gen_params["min_slab_size"],
                                  min_vac_size=slab_gen_params["min_vacuum_size"],
                                  reconstruction=slab.reconstruction,
