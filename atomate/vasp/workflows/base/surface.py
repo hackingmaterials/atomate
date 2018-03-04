@@ -63,57 +63,59 @@ class SurfaceWorkflowManager(object):
 
         The directory to run the calculations in.
 
-    .. attribute:: cwd
+    .. attribute:: run_dir
 
         Directory to run the workflow and store the final outputs.
 
     """
 
-    def __init__(self, db_file=None, scratch_dir=None, cwd=os.getcwd(),
+    def __init__(self, db_file=None, scratch_dir=None, run_dir=os.getcwd(),
                  k_product=50, vasp_cmd="vasp"):
 
         """
         Initializes the workflow manager with common database and calculations specs
 
         Args:
-            db_file (str): Location of file containing database specs.
-            cwd (str): Location of directory to operate the
-                workflow and store the final outputs
+            db_file (str): Location of file containing database specs. Default: None
             scratch_dir (str): if specified, uses this directory as the root
-                scratch dir. Supports env_chk.
+                scratch dir. Supports env_chk. Defaults to None.
+            run_dir (str): Location of directory to operate the workflow and store
+                the final outputs. Defaults to current working directory.
             k_product (int): Kpoint number * length for a & b directions, also for c
-                direction in bulk calculations. Default to 40.
-            vasp_cmd (str): Command used to run vasp.
+                direction in bulk calculations. Defaults to 50.
+            vasp_cmd (str): Command used to run vasp. Defaults to "vasp".
         """
 
         self.k_product = k_product
         self.vasp_cmd = vasp_cmd
         self.db_file = db_file
         self.scratch_dir = scratch_dir
-        self.cwd = cwd
+        self.run_dir = run_dir
 
-    def from_conventional_unit_cell(self, structure, mmi, mpid="--"):
+    def from_conventional_unit_cell(self, structure, max_index, naming_tag="--"):
         """
         Calculate surface properties from a conventional unit cell. This workflow
             will continue running calculations until all possible slabs up to a max
-            miller index of mmi has been completed.
+            miller index of max_index has been completed.
 
         Args:
             structure (Structure): The conventional unit cell.
-            mmi (int): Max Miller index.
-            mpid (str): Materials Project ID of the conventional unit cell.
+            max_index (int): Max Miller index.
+            naming_tag (str): Naming tag associated with the calculation. Defaults to "--".
         """
 
-        return Workflow([SurfCalcOptimizer(structure, self.scratch_dir, self.k_product,
-                                           self.vasp_cmd, "conventional_unit_cell",
-                                           self.cwd, db_file=self.db_file, mmi=mmi, mpid=mpid)])
+        return Workflow([SurfCalcOptimizer(structure, self.scratch_dir,
+                                           self.k_product,  self.vasp_cmd,
+                                           "conventional_unit_cell", self.run_dir,
+                                           db_file=self.db_file, max_index=max_index,
+                                           naming_tag=naming_tag)])
 
     def from_oriented_unit_cell(self, structure, miller_index, scale_factor,
-                                reconstruction=None, mpid="--"):
+                                reconstruction=None, naming_tag="--"):
         """
-        Calculate surface properties from an oriented unit cell. This workflow will run
-            calculations on all possible terminations and reconstructions for a specific
-            facet (miller index).
+        Calculate surface properties from an oriented unit cell. This workflow will
+            run calculations on all possible terminations and reconstructions for
+            a specific facet (miller index).
 
         Args:
             structure (Structure): Oriented unit cell structure.
@@ -121,17 +123,23 @@ class SurfaceWorkflowManager(object):
                 surface (and oriented unit cell).
             scale_factor (array): Final computed scale factor that brings
                 the parent cell to the surface cell.
-            mpid (str): Materials Project ID of the conventional unit cell.
+            reconstruction (str): The name of the reconstruction
+                (if it is a reconstructed slab). Defaults to None.
+            naming_tag (str): Naming tag associated with the calculation. Defaults to "--".
         """
 
-        return Workflow([SurfCalcOptimizer(structure, self.scratch_dir, self.k_product,
-                                           self.vasp_cmd, "oriented_unit_cell", self.cwd,
-                                           db_file=self.db_file, miller_index=miller_index,
-                                           mpid=mpid, reconstruction=reconstruction,
+        return Workflow([SurfCalcOptimizer(structure, self.scratch_dir,
+                                           self.k_product, self.vasp_cmd,
+                                           "oriented_unit_cell", self.run_dir,
+                                           db_file=self.db_file,
+                                           miller_index=miller_index,
+                                           naming_tag=naming_tag,
+                                           reconstruction=reconstruction,
                                            scale_factor=scale_factor)])
 
-    def from_slab_cell(self, structure, miller_index, shift, scale_factor,
-                       ouc, ssize, vsize, reconstruction=None, mpid="--"):
+    def from_slab_cell(self, structure, miller_index, shift,
+                       scale_factor, ouc, min_slab_size, min_vac_size,
+                       reconstruction=None, naming_tag="--"):
         """
         Calculates the surface properties of a single slab structure
 
@@ -143,18 +151,25 @@ class SurfaceWorkflowManager(object):
                 this Slab is created (by scaling in the c-direction).
             shift (float): The shift in the c-direction applied to get the
                 termination.
-            ssize (float): Minimum slab size in Angstroms or number of hkl planes
-            vsize (float): Minimum vacuum size in Angstroms or number of hkl planes
+            min_slab_size (float): Minimum slab size
+                in Angstroms or number of hkl planes
+            min_vac_size (float): Minimum vacuum size
+                in Angstroms or number of hkl planes
             scale_factor (array): Final computed scale factor that brings
                 the parent cell to the surface cell.
-            mpid (str): Materials Project ID of the conventional unit cell.
             reconstruction (str): The name of the reconstruction
-                (if it is a reconstructed slab).
+                (if it is a reconstructed slab). Defaults to None.
+            naming_tag (str): Naming tag associated with the calculation. Defaults to "--".
         """
 
-        return Workflow([SurfCalcOptimizer(structure, self.scratch_dir, self.k_product,
-                                           self.vasp_cmd, "slab_cell", self.cwd, ssize=ssize,
-                                           db_file=self.db_file,  miller_index=miller_index,
-                                           ouc=ouc, shift=shift, scale_factor=scale_factor,
-                                           reconstruction=reconstruction, vsize=vsize,
-                                           mpid=mpid)])
+        return Workflow([SurfCalcOptimizer(structure, self.scratch_dir,
+                                           self.k_product, self.vasp_cmd,
+                                           "slab_cell", self.run_dir,
+                                           min_slab_size=min_slab_size,
+                                           db_file=self.db_file,
+                                           miller_index=miller_index,
+                                           ouc=ouc, shift=shift,
+                                           scale_factor=scale_factor,
+                                           reconstruction=reconstruction,
+                                           min_vac_size=min_vac_size,
+                                           naming_tag=naming_tag)])

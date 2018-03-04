@@ -30,7 +30,8 @@ class FacetFWsGeneratorTask(FiretaskBase):
     """
 
     required_params = ['structure_type', "k_product", "vasp_cmd", "scratch_dir"]
-    optional_params = ["slab_gen_params", "mpid", "mmi", "db_file", "miller_index", "cwd"]
+    optional_params = ["slab_gen_params", "naming_tag", "max_index",
+                       "db_file", "miller_index", "run_dir"]
 
     def run_task(self, fw_spec):
         """
@@ -47,42 +48,56 @@ class FacetFWsGeneratorTask(FiretaskBase):
             db_file (str): FULL path to file containing the database credentials.
                 Supports env_chk.
             vasp_cmd (str): Command to run vasp.
-            slab_gen_params (dict): Parameters for SlabGenerator or generate_all_slabs
-            mpid (str): Materials Project ID of the conventional unit cell.
-            mmi (int): Max Miller index.
+            slab_gen_params (dict): Parameters for SlabGenerator or
+                generate_all_slabs. Defaults to a minimum slab/vacuum
+                size of 10A and with a max_normal_search equal to the max Miller index
+            naming_tag (str): Naming tag associated with the calculation. Defaults to "--".
+            max_index (int): Max Miller index. This is needed if you are starting
+                from a conventional_unit_cell.
             miller_index ([h, k, l]): Miller index of plane parallel to
-                surface (and oriented unit cell).
-            cwd (str): Location of directory to operate the
-                workflow and store the final outputs
+                surface (and oriented unit cell). This is needed if you
+                are starting from an oriented_unit_cell or slab_cell.
+            run_dir (str): Location of directory to operate the
+                workflow and store the final outputs. Defaults
+                to your current working directory.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
+
+        structure_type = self["structure_type"]
 
         # get the parameters for SlabGenerator if we are getting a
         # list of Slab calculation FWs or generate_all_slabs if we
         # are getting a list of oritend unit cell calculation FWs
-        if self.get("slab_gen_params", None):
-            slab_gen_params = self.get("slab_gen_params", None)
+        if self.get("slab_gen_params"):
+            slab_gen_params = self["slab_gen_params"]
         else:
             slab_gen_params = {"min_slab_size": 10, "min_vacuum_size": 10,
                                "symmetrize": True, "center_slab": True}
-            slab_gen_params["max_normal_search"] = self.get("mmi") if \
-                self.get("mmi") else max(self.get("miller_index"))
-            if self.get("structure_type") == "conventional_unit_cell":
+            slab_gen_params["max_normal_search"] = self["max_index"] if \
+                self.get("max_index") else max(self["miller_index"])
+            if structure_type == "conventional_unit_cell":
                 slab_gen_params["include_reconstructions"] = True
 
         FWs = []
-        if self.get("structure_type") == "conventional_unit_cell":
+        if structure_type == "conventional_unit_cell":
             # Then we create a set of FWs for oriented_unit_cell
             # calculations and reconstructed slabs
             slab_gen_params["structure"] = Structure.from_file("CONTCAR.relax2.gz")
 
-            all_slabs = generate_all_slabs(max_index=self.get("mmi"),
+            all_slabs = generate_all_slabs(max_index=self["max_index"],
                                            **slab_gen_params)
-            # Get all oriented unit cells up ot a max Miller index (mmi)
-            miller_list = []
+            # Get all oriented unit cells up to a max Miller index (max_index)
+            miller_list, recon_unit_vects = [], []
             for slab in all_slabs:
                 if slab.reconstruction:
-                    FWs.append(self.get_ouc_fw(slab))
+                    # Some reconstructions may be based on the same type
+                    # on ouc, avoid duplicate calculations of ouc
+                    m = tuple([tuple(v) for v in slab.recon_trans_matrix])
+                    if m in recon_unit_vects:
+                        continue
+                    else:
+                        recon_unit_vects.append(m)
+                        FWs.append(self.get_ouc_fw(slab))
                 else:
                     # There are several surface terminations for an oriented unit
                     # cell, we only need to calculate the oriented unit cell once
@@ -93,8 +108,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
                         FWs.append(self.get_ouc_fw(slab))
                         miller_list.append(tuple(slab.miller_index))
 
-        elif self.get("structure_type") == "oriented_unit_cell":
-
+        elif structure_type == "oriented_unit_cell":
             folder = os.path.basename(os.getcwd())
             # If this is a reconstruction, we need to use the ReconstructionGenerator
             if "_rec_" in folder:
@@ -112,7 +126,8 @@ class FacetFWsGeneratorTask(FiretaskBase):
                 rec = ReconstructionGenerator(ucell, slab_gen_params["min_slab_size"],
                                               slab_gen_params["min_vacuum_size"],
                                               reconstruction_name=folder[len(ns):])
-                FWs.append(self.get_slab_fw(rec.build_slab(), slab_gen_params))
+                for slab in rec.build_slabs():
+                    FWs.append(self.get_slab_fw(slab, slab_gen_params))
 
             else:
                 # Get the list of FWs for the various terminations
@@ -124,7 +139,7 @@ class FacetFWsGeneratorTask(FiretaskBase):
                 del slab_gen_params["symmetrize"]
                 slabgen = SlabGenerator(**slab_gen_params)
                 for slab in slabgen.get_slabs(symmetrize=symmetrize):
-                    slab.miller_index = self.get("miller_index")
+                    slab.miller_index = self["miller_index"]
                     FWs.append(self.get_slab_fw(slab, slab_gen_params))
 
         return FWAction(additions=FWs)
@@ -139,14 +154,14 @@ class FacetFWsGeneratorTask(FiretaskBase):
         """
 
         from atomate.vasp.fireworks.core import SurfCalcOptimizer
-        return SurfCalcOptimizer(slab.oriented_unit_cell, self.get("scratch_dir"),
-                                 self.get("k_product"), self.get("vasp_cmd"),
-                                 "oriented_unit_cell", self.get("cwd", os.getcwd()),
+        return SurfCalcOptimizer(slab.oriented_unit_cell, self["scratch_dir"],
+                                 self["k_product"], self["vasp_cmd"],
+                                 "oriented_unit_cell", self.get("run_dir", os.getcwd()),
                                  reconstruction=slab.reconstruction,
                                  miller_index=slab.miller_index,
                                  db_file=self.get("db_file"),
                                  scale_factor=slab.scale_factor,
-                                 mpid=self.get("mpid", "--"))
+                                 naming_tag=self.get("naming_tag", "--"))
 
     def get_slab_fw(self, slab, slab_gen_params):
         """
@@ -161,14 +176,14 @@ class FacetFWsGeneratorTask(FiretaskBase):
 
         from atomate.vasp.fireworks.core import SurfCalcOptimizer
 
-        return SurfCalcOptimizer(slab, self.get("scratch_dir"),
-                                 self.get("k_product"), self.get("vasp_cmd"),
-                                 "slab_cell", self.get("cwd", os.getcwd()),
+        return SurfCalcOptimizer(slab, self["scratch_dir"],
+                                 self["k_product"], self["vasp_cmd"],
+                                 "slab_cell", self.get("run_dir", os.getcwd()),
                                  miller_index=slab.miller_index,
                                  db_file=self.get("db_file"),
                                  scale_factor=slab.scale_factor,
                                  ouc=slab.oriented_unit_cell, shift=slab.shift,
-                                 ssize=slab_gen_params["min_slab_size"],
-                                 vsize=slab_gen_params["min_vacuum_size"],
+                                 min_slab_size=slab_gen_params["min_slab_size"],
+                                 min_vac_size=slab_gen_params["min_vacuum_size"],
                                  reconstruction=slab.reconstruction,
-                                 mpid=self.get("mpid", "--"))
+                                 naming_tag=self.get("naming_tag", "--"))
