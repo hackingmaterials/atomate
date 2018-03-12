@@ -15,6 +15,7 @@ from fnmatch import fnmatch
 from collections import OrderedDict
 import json
 import glob
+import traceback
 
 from monty.io import zopen
 
@@ -250,6 +251,7 @@ class VaspDrone(AbstractDrone):
 
             calc = d["calcs_reversed"][0]
 
+            # copy band gap and properties into output
             d["output"].update({"bandgap": calc["output"]["bandgap"],
                                 "cbm": calc["output"]["cbm"],
                                 "vbm": calc["output"]["vbm"],
@@ -263,11 +265,11 @@ class VaspDrone(AbstractDrone):
 
             except Exception:
                 if self.bandstructure_mode is True:
-                    import traceback
                     logger.error(traceback.format_exc())
                     logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
                     raise
 
+            # Store symmetry information
             sg = SpacegroupAnalyzer(Structure.from_dict(d_calc_final["output"]["structure"]), 0.1)
             if not sg.get_symmetry_dataset():
                 sg = SpacegroupAnalyzer(Structure.from_dict(d_calc_final["output"]["structure"]),
@@ -279,6 +281,8 @@ class VaspDrone(AbstractDrone):
                 "point_group": sg.get_point_group_symbol(),
                 "crystal_system": sg.get_crystal_system(),
                 "hall": sg.get_hall()}
+
+            # store dieelctric and piezo information
             if d["input"]["parameters"].get("LEPSILON"):
                 for k in ['epsilon_static', 'epsilon_static_wolfe', 'epsilon_ionic']:
                     d["output"][k] = d_calc_final["output"][k]
@@ -294,7 +298,6 @@ class VaspDrone(AbstractDrone):
             return d
 
         except Exception:
-            import traceback
             logger.error(traceback.format_exc())
             logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
             raise
@@ -334,6 +337,7 @@ class VaspDrone(AbstractDrone):
         for k, v in {"energy": "final_energy", "energy_per_atom": "final_energy_per_atom"}.items():
             d["output"][k] = d["output"].pop(v)
 
+        # parse dos if forced to or auto mode set and  0 ionic steps were performed -> static calculation
         if self.parse_dos == True or (str(self.parse_dos).lower() == "auto" and vrun.incar.get("NSW", 1) == 0):
             try:
                 d["dos"] = vrun.complete_dos.as_dict()
@@ -357,6 +361,7 @@ class VaspDrone(AbstractDrone):
             # only save the bandstructure if not moving ions
             if vrun.incar["NSW"] == 0:
                 d["bandstructure"] = bs.as_dict()
+
         # legacy line/True behavior for bandstructure_mode
         elif self.bandstructure_mode:
             bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=True)
@@ -381,25 +386,27 @@ class VaspDrone(AbstractDrone):
                 d["output"]["transition"] = bs_gap["transition"]
 
         except Exception:
-            if self.bandstructure_mode is True:
-                import traceback
-                logger.error(traceback.format_exc())
-                logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
-                raise
             logger.warning("Error in parsing bandstructure")
             if vrun.incar["IBRION"] == 1:
                 logger.warning("Vasp doesn't properly output efermi for IBRION == 1")
+            if self.bandstructure_mode is True:
+                logger.error(traceback.format_exc())
+                logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
+                raise
 
+        # store run name and location ,e.g. relax1, relax2, etc.
         d["task"] = {"type": taskname, "name": taskname}
 
+        # include output file names
         d["output_file_paths"] = self.process_raw_data(dir_name, taskname=taskname)
 
+        # parse axially averaged locpot
         if "locpot" in d["output_file_paths"] and self.parse_locpot:
             locpot = Locpot.from_file(os.path.join(dir_name, d["output_file_paths"]["locpot"]))
             d["output"]["locpot"] = {i: locpot.get_average_along_axis(i) for i in range(3)}
 
+        # parse force constants
         if hasattr(vrun, "force_constants"):
-            # phonon-dfpt
             d["output"]["force_constants"] = vrun.force_constants.tolist()
             d["output"]["normalmode_eigenvals"] = vrun.normalmode_eigenvals.tolist()
             d["output"]["normalmode_eigenvecs"] = vrun.normalmode_eigenvecs.tolist()
