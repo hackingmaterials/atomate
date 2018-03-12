@@ -250,12 +250,12 @@ class VaspDrone(AbstractDrone):
 
             calc = d["calcs_reversed"][0]
 
+            d["output"].update({"bandgap": calc["output"]["bandgap"],
+                                "cbm": calc["output"]["cbm"],
+                                "vbm": calc["output"]["vbm"],
+                                "is_gap_direct": calc["output"]["is_gap_direct"]})
             try:
-                d["output"].update({"bandgap": calc["output"]["bandgap"],
-                                    "cbm": calc["output"]["cbm"],
-                                    "vbm": calc["output"]["vbm"],
-                                    "is_gap_direct": calc["output"]["is_gap_direct"],
-                                    "is_metal": calc["output"]["is_metal"]})
+                d["output"].update({"is_metal": calc["output"]["is_metal"]})
                 if not calc["output"]["is_gap_direct"]:
                     d["output"]["direct_gap"] = calc["output"]["direct_gap"]
                 if "transition" in calc["output"]:
