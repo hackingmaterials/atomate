@@ -1,9 +1,9 @@
 numpy==1.14.1
 scipy==1.0.0
 FireWorks==1.6.8
-pymatgen==2018.2.13
+pymatgen==2018.3.13
 pymatgen_diffusion==2018.1.4
-custodian==2017.12.23
+custodian==2018.3.10
 monty==1.0.2
 paramiko==2.1.2
 tqdm==4.19.6
