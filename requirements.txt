@@ -1,12 +1,12 @@
-numpy==1.14.1
+numpy==1.14.2
 scipy==1.0.0
-FireWorks==1.6.8
-pymatgen==2018.3.13
+FireWorks==1.6.9
+pymatgen==2018.3.14
 pymatgen_diffusion==2018.1.4
 custodian==2018.3.10
 monty==1.0.2
 paramiko==2.1.2
-tqdm==4.19.6
+tqdm==4.19.8
 six==1.11.0
 pybtex==0.21
 ruamel.yaml==0.15.35
