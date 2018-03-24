@@ -2,6 +2,11 @@
 atomate Changelog
 =================
 
+**v0.7.3**
+
+* minor drones updates (S. Dwaraknath)
+* installation fix (P. Huck)
+
 **v0.7.2**
 
 * Bugfix database getter in builders (S. Dwaraknath)
