@@ -2,6 +2,10 @@
 atomate Changelog
 =================
 
+**v0.7.4**
+
+* fix pymatgen dep (A. Jain)
+
 **v0.7.3**
 
 * minor drones updates (S. Dwaraknath)
