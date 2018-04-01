@@ -95,7 +95,7 @@ Keep a record of your credentials - we will configure FireWorks to connect to th
 
   * contact your computing center to review their security policy to allow connections from your MongoDB server (best resolution)
   * set up an ssh tunnel to forward connections from allowed machines (the tunnel must be kept alive at all times you are running workflows)
-  * use `FireWorks offline mode`_, which is a workable solution but makes the system more difficult to use and limits some features of FireWorks.
+  * use `FireWorks offline mode`_, which is a workable solution but makes the system more difficult to use and limits some features of FireWorks. Some notes on usage are in `this thread <https://groups.google.com/forum/#!topic/atomate/dggbBsK628Q>`_:
 
 
 .. _MongoDB: https://docs.mongodb.com/manual/
