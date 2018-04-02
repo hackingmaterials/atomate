@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-import warnings
+import warnings, os
 
 from atomate.vasp.config import HALF_KPOINTS_FIRST_RELAX, RELAX_MAX_FORCE
 
@@ -15,10 +15,11 @@ sequences of VASP calculations.
 from fireworks import Firework
 
 from pymatgen import Structure
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp.sets import MPRelaxSet, MITMDSet, MITRelaxSet, \
-    MPStaticSet, MPSOCSet
+    MPStaticSet, MPSOCSet, MVLSlabSet
 
-from atomate.common.firetasks.glue_tasks import PassCalcLocs
+from atomate.common.firetasks.glue_tasks import PassCalcLocs, CreateFolder, RenameFile
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, pass_vasp_result
 from atomate.vasp.firetasks.neb_tasks import TransferNEBTask
 from atomate.vasp.firetasks.parse_outputs import VaspToDb, BoltztrapToDb
@@ -27,6 +28,7 @@ from atomate.vasp.firetasks.write_inputs import WriteNormalmodeDisplacedPoscar, 
     WriteTransmutedStructureIOSet, WriteVaspFromIOSet, WriteVaspHSEBSFromPrev, \
     WriteVaspNSCFFromPrev, WriteVaspSOCFromPrev, WriteVaspStaticFromPrev, \
     WriteVaspFromIOSetFromInterpolatedPOSCAR
+from atomate.vasp.firetasks.surface_tasks import FacetFWsGeneratorTask
 from atomate.vasp.firetasks.neb_tasks import WriteNEBFromImages, \
     WriteNEBFromEndpoints
 
@@ -49,8 +51,8 @@ class OptimizeFW(Firework):
             structure (Structure): Input structure.
             name (str): Name for the Firework.
             vasp_input_set (VaspInputSet): input set to use. Defaults to MPRelaxSet() if None.
-            override_default_vasp_params (dict): If this is not None, these params are passed to 
-                the default vasp_input_set, i.e., MPRelaxSet. This allows one to easily override 
+            override_default_vasp_params (dict): If this is not None, these params are passed to
+                the default vasp_input_set, i.e., MPRelaxSet. This allows one to easily override
                 some settings, e.g., user_incar_settings, etc.
             vasp_cmd (str): Command to run vasp.
             ediffg (float): Shortcut to set ediffg in certain jobs
@@ -93,15 +95,15 @@ class StaticFW(Firework):
         Standard static calculation Firework - either from a previous location or from a structure.
 
         Args:
-            structure (Structure): Input structure. Note that for prev_calc_loc jobs, the structure 
-                is only used to set the name of the FW and any structure with the same composition 
+            structure (Structure): Input structure. Note that for prev_calc_loc jobs, the structure
+                is only used to set the name of the FW and any structure with the same composition
                 can be used.
             name (str): Name for the Firework.
             vasp_input_set (VaspInputSet): input set to use (for jobs w/no parents)
                 Defaults to MPStaticSet() if None.
             vasp_input_set_params (dict): Dict of vasp_input_set kwargs.
             vasp_cmd (str): Command to run vasp.
-            prev_calc_loc (bool or str): If true (default), copies outputs from previous calc. If 
+            prev_calc_loc (bool or str): If true (default), copies outputs from previous calc. If
                 a str value, retrieves a previous calculation output by name. If False/None, will create
                 new static calculation using the provided structure.
             prev_calc_dir (str): Path to a previous calculation to copy from
@@ -488,7 +490,7 @@ class SOCFW(Firework):
         Firework for spin orbit coupling calculation.
 
         Args:
-            structure (Structure): Input structure. If copy_vasp_outputs, used only to set the 
+            structure (Structure): Input structure. If copy_vasp_outputs, used only to set the
                 name of the FW.
             name (str): Name for the Firework.
             prev_calc_dir (str): Path to a previous calculation to copy from
@@ -535,7 +537,7 @@ class TransmuterFW(Firework):
                  parents=None, override_default_vasp_params=None, **kwargs):
         """
         Apply the transformations to the input structure, write the input set corresponding
-        to the transformed structure, and run vasp on them.  Note that if a transformation yields 
+        to the transformed structure, and run vasp on them.  Note that if a transformation yields
         many structures from one, only the last structure in the list is used.
 
         Args:
@@ -543,7 +545,7 @@ class TransmuterFW(Firework):
             transformations (list): list of names of transformation classes as defined in
                 the modules in pymatgen.transformations.
                 eg:  transformations=['DeformStructureTransformation', 'SupercellTransformation']
-            transformation_params (list): list of dicts where each dict specify the input 
+            transformation_params (list): list of dicts where each dict specify the input
                 parameters to instantiate the transformation class in the transformations list.
             vasp_input_set (VaspInputSet): VASP input set, used to write the input set for the
                 transmuted structure.
@@ -668,7 +670,7 @@ class BoltztrapFW(Firework):
                  scissor=0.0, doping=None, tmax=1300, tgrid=50, prev_calc_dir=None,
                  soc=False, additional_fields=None, **kwargs):
         """
-        Run Boltztrap (which includes writing bolztrap input files and parsing outputs). Assumes 
+        Run Boltztrap (which includes writing bolztrap input files and parsing outputs). Assumes
         you have a previous FW with the calc_locs passed into the current FW.
 
         Args:
@@ -831,3 +833,193 @@ class NEBFW(Firework):
                  PassCalcLocs(name=label)]
 
         super(NEBFW, self).__init__(tasks, spec=spec, name=label, **kwargs)
+
+
+class SurfCalcOptimizer(Firework):
+    """
+    Optimizer firework for surface property calculation and insertion. Will build
+        a Firework tailored to the type of structure and as a result, use  different
+        input sets and insert different additionals depending on the structure_type.
+    """
+
+    def __init__(self, structure, scratch_dir, k_product, vasp_cmd,
+                 structure_type, run_dir, db_file=None, miller_index=None,
+                 oriented_ucell=None, scale_factor=None, min_slab_size=None,
+                 min_vac_size=None, max_index=None, naming_tag="--",
+                 shift=None, reconstruction=None,  **kwargs):
+        """
+        Initializes the Firework.
+
+        Args:
+            structure (Structure): Can be a conventional unit cell, oriented
+                unit cell or slab cell.
+            scratch_dir (str): - if specified, uses this directory as the root
+                scratch dir. Supports env_chk.
+            k_product (int): Default to 50, kpoint number * length for a & b
+                directions, also for c direction in bulk calculations.
+            vasp_cmd (str): Command to run vasp.
+            structure_type (str): Type of structure. Options are:
+                conventional_unit_cell, oriented_unit_cell and slab_cell
+            run_dir (str): Location of directory to operate the
+                workflow and store the final outputs
+            db_file (str): FULL path to file containing the database credentials.
+                Supports env_chk.
+            miller_index ([h, k, l]): Miller index of plane parallel to
+                surface (and oriented unit cell).This is needed if you
+                are starting from an oriented_unit_cell or slab_cell.
+            oriented_ucell (Structure): The oriented_unit_cell from which
+                this Slab is created (by scaling in the c-direction). Defaults
+                to None, but is required for slab_cell calculations.
+            shift (float): The shift in the c-direction applied to get the
+                termination. Defaults to None, but is required for slab_cell calculations.
+            min_slab_size (float): Minimum slab size in Angstroms or number of hkl
+                 planes Defaults to None, but is required for slab_cell calculations.
+            min_vac_size (float): Minimum vacuum size in Angstroms or number of hkl planes.
+                Defaults to None, but is required for slab_cell calculations.
+            max_index (int): Max Miller index. Defaults to None but needed for
+                conventional_unit_cell.
+            scale_factor (array): Final computed scale factor that brings
+                the parent cell to the surface cell. Defaults to None, but is
+                required for slab_cell and oriented_unit_cell calculations.
+            naming_tag (str): Naming tag associated with the calculation. Defaults to "--".
+            reconstruction (str): The name of the reconstruction
+                (if it is a reconstructed slab). Defaults to None.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+
+        self.structure = structure.copy()
+        self.scratch_dir = scratch_dir
+        self.el = self.structure[0].species_string
+        self.structure_type = structure_type
+        self.k_product = k_product
+        self.naming_tag = naming_tag
+        self.hkl = miller_index
+        self.reconstruction = reconstruction
+        self.min_slab_size = min_slab_size
+        self.min_vac_size = min_vac_size
+        self.shift = shift
+        self.sg = SpacegroupAnalyzer(oriented_ucell if structure_type ==
+                                                       "slab_cell" else structure)
+        self.scale_factor = scale_factor
+        self.oriented_ucell = oriented_ucell
+        self.run_dir = run_dir
+        self.vasp_cmd = vasp_cmd
+        self.db_file = db_file
+        self.max_index = max_index
+
+        super(SurfCalcOptimizer, self).__init__(self.get_tasks,
+                                                name=self.get_name, **kwargs)
+
+    @property
+    def get_input_set(self):
+        """
+        Get the MVLSlabSet based on structure type
+        Returns input_set
+        """
+
+        if self.structure_type == "slab_cell":
+            return MVLSlabSet(self.structure, bulk=False,
+                              k_product=self.k_product,
+                              user_incar_settings={"LVTOT": True})
+        else:
+            return MVLSlabSet(self.structure, bulk=True,
+                              k_product=self.k_product)
+
+    @property
+    def get_name(self):
+        """
+        Get the name of the calculation based on element,
+        naming_tag, kproduct, structure type, and slab parameters
+        Returns str (name)
+        """
+
+        if self.structure_type == "conventional_unit_cell":
+            return "%s_%s_conventional_unit_cell_k%s" % \
+                   (self.el, self.naming_tag, self.k_product)
+        elif self.structure_type == "oriented_unit_cell":
+            if self.reconstruction:
+                return "%s_%s_bulk_rec_k%s_%s" % \
+                       (self.el, self.naming_tag, self.k_product,
+                        self.reconstruction)
+            else:
+                return "%s_%s_bulk_k%s_%s%s%s" % \
+                       (self.el, self.naming_tag, self.k_product,
+                        self.hkl[0], self.hkl[1], self.hkl[2])
+        elif self.structure_type == "slab_cell":
+            if  self.reconstruction:
+                return "%s_%s_slab_k%s_s%sv%s_%s_shift%s" % (self.el, self.naming_tag,
+                                                             self.k_product,
+                                                             self.min_slab_size,
+                                                             self.min_vac_size,
+                                                             self.reconstruction, self.shift)
+            else:
+                return "%s_%s_slab_k%s_s%sv%s_%s%s%s_shift%s" % \
+                       (self.el, self.naming_tag, self.k_product,
+                        self.min_slab_size, self.min_vac_size,
+                        self.hkl[0], self.hkl[1], self.hkl[2], self.shift)
+
+    @property
+    def get_additional_fields(self):
+        """
+        Get additional fields for raw data insertion that can
+        not be derived from the vasp outputs like Miller index
+        Return dict (additional fields)
+        """
+
+        additional_fields = {"structure_type": self.structure_type,
+                             "calculation_name": self.get_name,
+                             "conventional_spacegroup": \
+                                 {"symbol": self.sg.get_space_group_symbol(),
+                                  "number": self.sg.get_space_group_number()},
+                             "initial_structure": self.structure.to("cif"),
+                             "material_id": self.naming_tag}
+
+        if self.structure_type in ["slab_cell", "oriented_unit_cell"]:
+            additional_fields.update({"miller_index": self.hkl,
+                                      "scale_factor": self.scale_factor,
+                                       "reconstruction": self.reconstruction})
+
+        if self.structure_type == "slab_cell":
+            additional_fields.update({"oriented_unit_cell": self.oriented_ucell.to("cif"),
+                                      "slab_size":self.min_slab_size, "shift": self.shift,
+                                      "vac_size": self.min_vac_size})
+
+        return additional_fields
+
+    @property
+    def get_tasks(self):
+        """
+        Get sequence of tasks depending on structure_type. This is similar
+        to the OptimzeFW but has an additional task for generating children
+        FWs as surface energy calculations require the transformation of a
+        relaxed bulk structure into a slab
+        Return list (tasks)
+        """
+
+        tasks = [CreateFolder(folder_name=os.path.join(self.run_dir, self.get_name),
+                              change_dir=True, relative_path=True),
+                 WriteVaspFromIOSet(structure=self.structure,
+                                    vasp_input_set=self.get_input_set),
+                 RunVaspCustodian(vasp_cmd=self.vasp_cmd,
+                                  scratch_dir=self.scratch_dir,
+                                  auto_npar=">>auto_npar<<",
+                                  job_type="double_relaxation_run")]
+
+        vasptodb_task = VaspToDb(additional_fields=self.get_additional_fields,
+                                 db_file=self.db_file)
+        if self.structure_type == "slab_cell":
+            tasks.extend([RenameFile(file="LOCPOT.gz",
+                                     new_name="LOCPOT.relax2.gz"), vasptodb_task])
+        else:
+            tasks.extend([vasptodb_task,
+                          FacetFWsGeneratorTask(structure_type=self.structure_type,
+                                                scratch_dir=self.scratch_dir,
+                                                vasp_cmd=self.vasp_cmd,
+                                                run_dir=self.run_dir,
+                                                db_file=self.db_file,
+                                                max_index=self.max_index,
+                                                miller_index=self.hkl,
+                                                naming_tag=self.naming_tag,
+                                                k_product=self.k_product)])
+
+        return tasks

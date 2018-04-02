@@ -7,6 +7,8 @@ import unittest
 
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.structure import Structure
+from pymatgen.core.surface import generate_all_slabs
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.transformations.standard_transformations import RotationTransformation
 
 from atomate.vasp.fireworks.core import *
@@ -143,6 +145,65 @@ class TestCoreFireworks(unittest.TestCase):
         self.assertTrue(boltz_fw.tasks[0]["calc_loc"])
 
         self.assertRaises(ValueError, BoltztrapFW)
+
+    def testSurfCalcOptimizer(self):
+
+        sg = SpacegroupAnalyzer(self.structure)
+        Si = sg.get_conventional_standard_structure()
+        kwargs = {"scratch_dir": ".", "k_product": 50, "db_file": ".",
+                  "vasp_cmd": "vasp", "cwd": ".", "naming_tag": "mp-149"}
+
+        # FW for conventional unit cell calculation
+        surface_fw = SurfCalcOptimizer(Si, structure_type="conventional_unit_cell", **kwargs)
+        self.assertEqual(surface_fw.el, "Si")
+        adds = surface_fw.get_tasks[3]["additional_fields"]
+        self.assertEqual(len(adds.keys()), 5)
+        self.assertEqual(adds["calculation_name"],
+                         "Si_mp-149_conventional_unit_cell_k50")
+        self.assertEqual(surface_fw.name, adds["calculation_name"])
+        self.assertEqual(len(surface_fw.get_tasks), 5)
+
+        slabs = generate_all_slabs(Si, 1, 10, 10, max_normal_search=1,
+                                       include_reconstructions=True)
+        # FW for oriented unit cell calculation
+        slab = slabs[0]
+        surface_fw = SurfCalcOptimizer(slab.oriented_unit_cell,
+                                       structure_type="oriented_unit_cell",
+                                       miller_index=slab.miller_index,
+                                       scale_factor=slab.scale_factor, **kwargs)
+
+        adds = surface_fw.get_tasks[3]["additional_fields"]
+        self.assertEqual(len(adds.keys()), 8)
+        self.assertEqual(adds["miller_index"], tuple(slab.miller_index))
+        self.assertTrue(all(all(t) for t in adds["scale_factor"] == slab.scale_factor))
+        self.assertEqual(adds["calculation_name"], "Si_mp-149_bulk_k50_111")
+        self.assertEqual(len(surface_fw.get_tasks), 5)
+
+        # FW for reconstructed and unreconstructed slab cell
+        slabs = [slabs[0], slabs[-1]]
+        for slab in slabs:
+            surface_fw = SurfCalcOptimizer(slab, structure_type="slab_cell",
+                                           min_vac_size=10, min_slab_size=10,
+                                           miller_index=slab.miller_index,
+                                           shift=slab.shift,
+                                           oriented_ucell=slab.oriented_unit_cell,
+                                           scale_factor=slab.scale_factor,
+                                           reconstruction=slab.reconstruction, **kwargs)
+
+            adds = surface_fw.get_tasks[4]["additional_fields"]
+            self.assertTrue(not surface_fw.get_tasks[1]["vasp_input_set"].bulk)
+            self.assertEqual(len(adds.keys()), 12)
+            self.assertEqual(adds["conventional_spacegroup"],
+                             {"symbol": "Fd-3m", "number": 227})
+            p = list(slab.miller_index)
+            p.append(adds["shift"])
+            n = "Si_mp-149_slab_k50_s10v10_"
+            if slab.reconstruction:
+                self.assertEqual(adds["calculation_name"], n+slab.reconstruction)
+            else:
+                self.assertEqual(adds["calculation_name"], n+"%s%s%s_shift%s" %tuple(p))
+            self.assertEqual(len(surface_fw.get_tasks), 5)
+
 
 
 if __name__ == "__main__":
