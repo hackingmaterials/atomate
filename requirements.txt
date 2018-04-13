@@ -6,7 +6,7 @@ pymatgen_diffusion==2018.1.4
 custodian==2018.3.10
 monty==1.0.2
 paramiko==2.4.0
-tqdm==4.21.0
+tqdm==4.22.0
 six==1.11.0
 pybtex==0.21
 ruamel.yaml==0.15.37
