@@ -9,7 +9,7 @@ from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_fake_vasp
-from atomate.vasp.workflows.base.adsorption import get_wf_surface
+from atomate.vasp.workflows.base.adsorption import get_wf_slab
 from atomate.utils.testing import AtomateTest
 
 from pymatgen import Structure, Molecule, Lattice
@@ -31,13 +31,15 @@ class TestAdsorptionWorkflow(AtomateTest):
     def setUp(self):
         super(TestAdsorptionWorkflow, self).setUp()
 
-        self.struct_ir = Structure.from_spacegroup("Fm-3m", Lattice.cubic(3.875728), ["Ir"], [[0, 0, 0]])
+        self.struct_ir = Structure.from_spacegroup(
+            "Fm-3m", Lattice.cubic(3.875728), ["Ir"], [[0, 0, 0]])
         sgp = {"max_index": 1, "min_slab_size": 7.0, "min_vacuum_size": 20.0}
         slabs = generate_all_slabs(self.struct_ir, **sgp)
-        slabs = [slab for slab in slabs if slab.miller_index==(1, 0, 0)]
+        slab_100 = [slab for slab in slabs if slab.miller_index==(1, 0, 0)][0]
         sgp.pop("max_index")
-        self.wf_1 = get_wf_surface(slabs, [Molecule("H", [[0, 0, 0]])], self.struct_ir, sgp,
-                                  db_file=os.path.join(db_dir, "db.json"))
+        self.wf_1 = get_wf_slab(
+            slab_100, True, sgp, [Molecule("H", [[0, 0, 0]])],
+            db_file=os.path.join(db_dir, "db.json"))
 
     def _simulate_vasprun(self, wf):
         reference_dir = os.path.abspath(os.path.join(ref_dir, "adsorbate_wf"))
@@ -49,14 +51,19 @@ class TestAdsorptionWorkflow(AtomateTest):
         return use_fake_vasp(wf, ir_ref_dirs, params_to_check=["ENCUT", "ISIF", "IBRION"])
 
     def _check_run(self, d, mode):
-        if mode not in ["H1-Ir_(1, 0, 0) adsorbate optimization 1"]:
+        if mode not in ["H1-Ir_(1, 0, 0) adsorbate optimization 1",
+                        "oriented_ucell"]:
             raise ValueError("Invalid mode!")
 
         if "adsorbate" in mode:
             self.assertEqual(d["formula_reduced_abc"], "H1 Ir16")
+            self.assertEqual(d["slab"])
+            import nose; nose.tools.set_trace()
         # Check relaxation of adsorbate
         # Check slab calculations
         # Check structure optimization
+        if mode == "oriented_ucell":
+            self.assertAlmostEqual(d["output"]["structure"]["lattice"]["a"], 3.89189644)
 
     def test_wf(self):
         wf = self._simulate_vasprun(self.wf_1)
@@ -68,11 +75,18 @@ class TestAdsorptionWorkflow(AtomateTest):
         assert all([vis.incar['EDIFFG']==-0.02 for vis in ads_vis])
         assert all([vis.incar['ISIF']==2 for vis in ads_vis])
         self.lp.add_wf(wf)
-        rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
+        rapidfire(self.lp, fworker=FWorker(
+            env={"db_file": os.path.join(db_dir, "db.json")}))
 
         # check relaxation
-        d = self.get_task_collection().find_one({"task_label": "H1-Ir_(1, 0, 0) adsorbate optimization 1"})
+        d = self.get_task_collection().find_one(
+            {"task_label": "H1-Ir_(1, 0, 0) adsorbate optimization 1"})
         self._check_run(d, mode="H1-Ir_(1, 0, 0) adsorbate optimization 1")
+
+        # Check bulk opt
+        d = self.get_task_collection().find_one(
+            {"task_label": "structure optimization"})
+        self._check_run(d, mode='oriented_ucell')
 
         wf = self.lp.get_wf_by_fw_id(1)
         self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))

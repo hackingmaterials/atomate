@@ -23,8 +23,7 @@ __author__ = 'Joseph Montoya'
 __email__ = 'montoyjh@lbl.gov'
 
 
-# TODO: It would be a lot more convenient if slab_gen_params could
-#       be intelligently detected from the slab itself
+#TODO: This doesn't currently allow for reconstructions, AFAIK
 def get_slab_fw(slab, transmuter=False, slab_gen_params=None, db_file=None,
                 vasp_input_set=None, parents=None, vasp_cmd="vasp", name=""):
     """
@@ -64,6 +63,9 @@ def get_slab_fw(slab, transmuter=False, slab_gen_params=None, db_file=None,
         slab_trans_params = slab_gen_params.copy()
         slab_trans_params.update({"miller_index": [0, 0, 1],
                                   "shift": slab.shift})
+        # TODO: It would be a lot more convenient if slab_gen_params could
+        #       be intelligently detected from the slab itself, rather than
+        #       having to be passed
         trans_struct = SlabTransformation(**slab_trans_params)
         slab_from_bulk = trans_struct.apply_transformation(oriented_bulk)
 
@@ -97,16 +99,16 @@ def get_slab_fw(slab, transmuter=False, slab_gen_params=None, db_file=None,
                         vasp_input_set=vasp_input_set, vasp_cmd=vasp_cmd,
                         db_file=db_file, parents=parents, job_type="normal")
     # Add slab metadata
-    fw.tasks[-1].additional_fields = {"slab": slab.as_dict()}
+    fw.tasks[-1]["additional_fields"].update({"slab": slab})
     return fw
 
 
-def get_wf_surface(slabs, include_bulk_opt=False, slab_gen_params=None,
-                   molecules=None, ads_structures_params=None, vasp_cmd="vasp",
-                   db_file=None, add_molecules_in_box=False):
+def get_wf_slab(slab, include_bulk_opt=False, slab_gen_params=None,
+                molecules=None, ads_structures_params=None, vasp_cmd="vasp",
+                db_file=None, add_molecules_in_box=False):
     """
-    Gets a workflow corresponding to slab calculations derived from a
-    bulk_structure.
+    Gets a workflow corresponding to a slab calculation along with optional
+    adsorbate calcs and precursor oriented unit cell optimization
 
     Args:
         slabs (list of Slabs or Structures): slabs to calculate
@@ -135,44 +137,78 @@ def get_wf_surface(slabs, include_bulk_opt=False, slab_gen_params=None,
     if ads_structures_params is None:
         ads_structures_params = {}
 
-    for slab in slabs:
-        if include_bulk_opt:
-            oriented_bulk = slab.oriented_unit_cell
-            vis = MVLSlabSet(oriented_bulk, bulk=True)
-            fws.append(OptimizeFW(structure=oriented_bulk, vasp_input_set=vis,
-                                  vasp_cmd="vasp", db_file=db_file))
-            parents = fws[-1]
-        name = slab.composition.reduced_formula
-        if getattr(slab, "miller_index", None):
-            name += "_{}".format(slab.miller_index)
-        fws.append(get_slab_fw(slab, include_bulk_opt, slab_gen_params,
-                               db_file=db_file, vasp_cmd=vasp_cmd,
-                               parents=parents, name=name + " slab optimization"))
-        for molecule in molecules:
-            ads_slabs = AdsorbateSiteFinder(slab).generate_adsorption_structures(
-                molecule, **ads_structures_params)
-            for n, ads_slab in enumerate(ads_slabs):
-                ads_name = "{}-{} adsorbate optimization {}".format(
-                    molecule.composition.formula, name, n)
-                fws.append(get_slab_fw(ads_slab, include_bulk_opt, slab_gen_params,
-                                       db_file=db_file, vasp_cmd=vasp_cmd,
-                                       parents=parents, name=ads_name))
-    if add_molecules_in_box:
-        for molecule in molecules:
-            # molecule in box
-            m_struct = molecule.get_boxed_structure(10, 10, 10,
-                                                    offset=np.array([5, 5, 5]))
-            vis = MVLSlabSet(m_struct)
-            fws.append(OptimizeFW(structure=molecule, job_type="normal",
-                                  vasp_input_set=vis, db_file=db_file,
-                                  vasp_cmd=vasp_cmd))
+    if include_bulk_opt:
+        oriented_bulk = slab.oriented_unit_cell
+        vis = MVLSlabSet(oriented_bulk, bulk=True)
+        fws.append(OptimizeFW(structure=oriented_bulk, vasp_input_set=vis,
+                              vasp_cmd="vasp", db_file=db_file))
+        parents = fws[-1]
+    name = slab.composition.reduced_formula
+    if getattr(slab, "miller_index", None):
+        name += "_{}".format(slab.miller_index)
+    fws.append(get_slab_fw(slab, include_bulk_opt, slab_gen_params,
+                           db_file=db_file, vasp_cmd=vasp_cmd,
+                           parents=parents, name=name + " slab optimization"))
+    for molecule in molecules:
+        ads_slabs = AdsorbateSiteFinder(slab).generate_adsorption_structures(
+            molecule, **ads_structures_params)
+        for n, ads_slab in enumerate(ads_slabs):
+            ads_name = "{}-{} adsorbate optimization {}".format(
+                molecule.composition.formula, name, n)
+            fws.append(get_slab_fw(ads_slab, include_bulk_opt, slab_gen_params,
+                                   db_file=db_file, vasp_cmd=vasp_cmd,
+                                   parents=parents, name=ads_name))
 
     # TODO: add analysis framework
-    return Workflow(fws, name="{} surfaces wf, e.g., {}".format(len(fws), fws[0].name))
+    if isinstance(slab, Slab):
+        name = "{}_{} slab workflow".format(
+            slab.composition.reduced_composition, slab.miller_index)
+    else:
+        name = "{} slab workflow".format(slab.composition.reduced_composition)
+    wf = Workflow(fws, name=name)
+
+    # Add optional molecules workflow
+    if add_molecules_in_box:
+        molecule_wf = get_wf_molecules(molecules, db_file=db_file,
+                                       vasp_cmd=vasp_cmd)
+        wf.append_wf(molecule_wf)
+    return wf
 
 
-def get_wf_surface_all_slabs(bulk_structure, molecules, max_index=1,
-                             slab_gen_params=None, **kwargs):
+def get_wf_molecules(molecules, vasp_input_set=None, db_file=None,
+                     vasp_cmd="vasp", name=""):
+    """
+    Args:
+        molecules (Molecules): list of molecules to calculate
+        vasp_input_set (DictSet): VaspInputSet for molecules
+        db_file (string): database file path
+        vasp_cmd (string): VASP command
+        name (string): name for workflow
+
+    Returns:
+        workflow consisting of molecule calculations
+    """
+    fws = []
+    # TODO: this should probably include vibrations so that free energy
+    #       corrections can be made
+    for molecule in molecules:
+        # molecule in box
+        m_struct = molecule.get_boxed_structure(10, 10, 10,
+                                                offset=np.array([5, 5, 5]))
+        vis = vasp_input_set or MVLSlabSet(m_struct)
+        fws.append(OptimizeFW(structure=molecule, job_type="normal",
+                              vasp_input_set=vis, db_file=db_file,
+                              vasp_cmd=vasp_cmd))
+    name = name or "molecules workflow"
+    return Workflow(fws, name=name)
+
+
+# TODO: this will duplicate a precursor optimization for slabs with
+#       the same miller index, but different shift
+def get_wfs_all_slabs(bulk_structure, include_bulk_opt=False,
+                      molecules=None, max_index=1, slab_gen_params=None,
+                      ads_structures_params=None, vasp_cmd="vasp",
+                      db_file=None, add_molecules_in_box=False):
     """
     Convenience constructor that allows a user to construct a workflow
     that finds all adsorption configurations (or slabs) for a given
@@ -185,8 +221,19 @@ def get_wf_surface_all_slabs(bulk_structure, molecules, max_index=1,
         slab_gen_params (dict): dictionary of kwargs for generate_all_slabs
 
     Returns:
-        Workflow
+        list of slab-specific Workflows
     """
+    # TODO: these could be more well-thought out defaults
     sgp = slab_gen_params or {"min_slab_size": 7.0, "min_vacuum_size": 20.0}
     slabs = generate_all_slabs(bulk_structure, max_index=max_index, **sgp)
-    return get_wf_surface(slabs, molecules, bulk_structure, sgp, **kwargs)
+    wfs = []
+    for slab in slabs:
+        slab_wf = get_wf_slab(slab, include_bulk_opt, sgp, molecules,
+                              ads_structures_params, vasp_cmd, db_file)
+        wfs.append(slab_wf)
+
+    if add_molecules_in_box:
+        wfs.append(get_wf_molecules(molecules, db_file=db_file,
+                                    vasp_cmd=vasp_cmd))
+
+    return wfs
