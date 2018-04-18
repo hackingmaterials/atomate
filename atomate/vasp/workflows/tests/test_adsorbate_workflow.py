@@ -57,8 +57,7 @@ class TestAdsorptionWorkflow(AtomateTest):
 
         if "adsorbate" in mode:
             self.assertEqual(d["formula_reduced_abc"], "H1 Ir16")
-            self.assertEqual(d["slab"])
-            import nose; nose.tools.set_trace()
+            self.assertAlmostEqual(d["slab"]["lattice"]["c"], 31.005824)
         # Check relaxation of adsorbate
         # Check slab calculations
         # Check structure optimization
