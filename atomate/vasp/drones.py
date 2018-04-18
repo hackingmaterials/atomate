@@ -18,6 +18,7 @@ import glob
 import traceback
 
 from monty.io import zopen
+from monty.json import jsanitize
 
 import numpy as np
 
@@ -174,7 +175,7 @@ class VaspDrone(AbstractDrone):
         try:
             # basic properties, incl. calcs_reversed and run_stats
             fullpath = os.path.abspath(dir_name)
-            d = {k: v for k, v in self.additional_fields.items()}
+            d = jsanitize(self.additional_fields, strict=True)
             d["schema"] = {"code": "atomate", "version": VaspDrone.__version__}
             d["dir_name"] = fullpath
             d["calcs_reversed"] = [self.process_vasprun(dir_name, taskname, filename)

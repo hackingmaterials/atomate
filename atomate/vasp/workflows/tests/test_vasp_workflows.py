@@ -44,7 +44,8 @@ class TestVaspWorkflows(AtomateTest):
         self.struct_si = PymatgenTest.get_structure("Si")
 
     def _check_run(self, d, mode):
-        if mode not in ["structure optimization", "static", "nscf uniform", "nscf line"]:
+        if mode not in ["structure optimization", "static", "nscf uniform",
+                        "nscf line", "additional field"]:
             raise ValueError("Invalid mode!")
 
         self.assertEqual(d["formula_pretty"], "Si")
@@ -57,6 +58,9 @@ class TestVaspWorkflows(AtomateTest):
         if mode in ["structure optimization", "static"]:
             self.assertAlmostEqual(d["output"]["energy"], -10.850, 2)
             self.assertAlmostEqual(d["output"]["energy_per_atom"], -5.425, 2)
+
+        if mode == "additional field":
+            self.assertAlmostEqual(d["test_additional_field"]["lattice"]["a"], 3.8401979337)
 
         elif mode in ["ncsf uniform"]:
             self.assertAlmostEqual(d["output"]["energy"], -10.828, 2)
@@ -153,7 +157,12 @@ class TestVaspWorkflows(AtomateTest):
             my_wf = use_fake_vasp(my_wf, ref_dirs_si)
         else:
             my_wf = use_custodian(my_wf)
+
+        # add an msonable object to additional fields
+        my_wf.fws[0].tasks[-1]['additional_fields'].update(
+            {"test_additional_field": self.struct_si})
         self.lp.add_wf(my_wf)
+
 
         # run the workflow
         # set the db_file variable
@@ -161,6 +170,7 @@ class TestVaspWorkflows(AtomateTest):
 
         d = self.get_task_collection().find_one()
         self._check_run(d, mode="structure optimization")
+        self._check_run(d, mode="additional field")
 
         wf = self.lp.get_wf_by_fw_id(1)
         self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
