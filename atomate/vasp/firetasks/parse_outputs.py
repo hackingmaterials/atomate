@@ -106,14 +106,20 @@ class VaspToDb(FiretaskBase):
 
         defuse_children = False
         if task_doc["state"] != "successful":
-            if self.get("defuse_unsuccessful", DEFUSE_UNSUCCESSFUL) is True:
+            defuse_unsuccessful = self.get("defuse_unsuccessful",
+                                           DEFUSE_UNSUCCESSFUL)
+            if defuse_unsuccessful is True:
                 defuse_children = True
-            elif self.get("defuse_unsuccessful", DEFUSE_UNSUCCESSFUL).lower() \
-                    == "fizzle":
+            elif defuse_unsuccessful is False:
+                pass
+            elif defuse_unsuccessful == "fizzle":
                 raise RuntimeError(
                     "VaspToDb indicates that job is not successful "
                     "(perhaps your job did not converge within the "
                     "limit of electronic/ionic iterations)!")
+            else:
+                raise RuntimeError("Unknown option for defuse_unsuccessful: "
+                                   "{}".format(defuse_unsuccessful))
 
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
                         defuse_children=defuse_children)
