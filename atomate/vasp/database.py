@@ -101,17 +101,19 @@ class VaspCalcDb(CalcDb):
         # insert the dos into gridfs and update the task document
         if dos:
             dos_gfs_id, compression_type = self.insert_gridfs(dos, "dos_fs", task_id=t_id)
-            self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.dos_compression": compression_type}})
+            self.collection.update_one(
+                {"task_id": t_id}, {"$set": {"calcs_reversed.0.dos_compression": compression_type}})
             self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.dos_fs_id": dos_gfs_id}})
 
         # insert the bandstructure into gridfs and update the task documents
         if bs:
             bfs_gfs_id, compression_type = self.insert_gridfs(bs, "bandstructure_fs", task_id=t_id)
-            self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.bandstructure_compression": compression_type}})
-            self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.bandstructure_fs_id": bfs_gfs_id}})
+            self.collection.update_one(
+                {"task_id": t_id}, {"$set": {"calcs_reversed.0.bandstructure_compression": compression_type}})
+            self.collection.update_one(
+                {"task_id": t_id}, {"$set": {"calcs_reversed.0.bandstructure_fs_id": bfs_gfs_id}})
 
         return t_id
-
 
     def retrieve_task(self, task_id):
         """
@@ -161,7 +163,7 @@ class VaspCalcDb(CalcDb):
             fs_id = fs.put(d, _id=oid, metadata={"task_id": task_id, "compression": compression_type})
         else:
             fs_id = fs.put(d, _id=oid, metadata={"compression": compression_type})
-            
+
         return fs_id, compression_type
 
     def get_band_structure(self, task_id):
