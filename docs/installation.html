@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Installing atomate &#8212; atomate 0.7.2 documentation</title>
+    <title>Installing atomate &#8212; atomate 0.7.4 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.7.2',
+        VERSION:     '0.7.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="index.html" title="atomate"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.2 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.4 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -120,11 +120,12 @@
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <blockquote>
-<div>The computers that perform the calculations must have access to your MongoDB server. Some computing resources have firewalls blocking connections. Although this is not a problem for most computing centers that allow such connections (particularly from MOM-style nodes, e.g. at NERSC, SDSC, etc.), but some of the more security-sensitive centers (e.g., LLNL, PNNL) will run into issues. If you run into connection issues later in this tutorial, some options are:</div></blockquote>
+<div>The computers that perform the calculations must have access to your MongoDB server. Some computing resources have firewalls blocking connections. Although this is not a problem for most computing centers that allow such connections (particularly from MOM-style nodes, e.g. at NERSC, SDSC, etc.), but some of the more security-sensitive centers (e.g., LLNL, PNNL, ARCHER) will run into issues. If you run into connection issues later in this tutorial, some options are:</div></blockquote>
 <ul class="last simple">
 <li>contact your computing center to review their security policy to allow connections from your MongoDB server (best resolution)</li>
 <li>set up an ssh tunnel to forward connections from allowed machines (the tunnel must be kept alive at all times you are running workflows)</li>
-<li>use <a class="reference external" href="https://materialsproject.github.io/fireworks/offline_tutorial.html">FireWorks offline mode</a>, which is a workable solution but makes the system more difficult to use and limits some features of FireWorks.</li>
+<li>host the Mongo database on a machine that you are able to securely connect to, e.g. on the supercomputing network itself (ask a system administrator for help)</li>
+<li>use <a class="reference external" href="https://materialsproject.github.io/fireworks/offline_tutorial.html">FireWorks offline mode</a>, which is a potentially workable solution but makes the system more difficult and inconvenient to use and also limits some features of FireWorks. Thus, we advocate trying the options above before this step. Please note that you may encounter problems if trying this method as the primary developers of atomate do not use or maintain this method. Some notes on usage are in <a class="reference external" href="https://groups.google.com/forum/#!topic/atomate/dggbBsK628Q">this thread</a>.</li>
 </ul>
 </div>
 </div>
@@ -652,7 +653,7 @@ located in: &lt;&lt;INSTALL_DIR&gt;&gt;/atomate_env/lib/python3.6/site-packages/
         <li class="right" >
           <a href="index.html" title="atomate"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.2 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.4 documentation</a> &#187;</li> 
       </ul>
     </div>
 

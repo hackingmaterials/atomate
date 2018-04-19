@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.vasp package &#8212; atomate 0.7.2 documentation</title>
+    <title>atomate.vasp package &#8212; atomate 0.7.4 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.7.2',
+        VERSION:     '0.7.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -37,7 +37,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.2 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.4 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -260,13 +260,13 @@ parse_bs: (bool) attempt to parse bandstructure in task_doc and insert into Grid
 <span id="atomate-vasp-drones-module"></span><h2>atomate.vasp.drones module<a class="headerlink" href="#module-atomate.vasp.drones" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="atomate.vasp.drones.VaspDrone">
-<em class="property">class </em><code class="descclassname">atomate.vasp.drones.</code><code class="descname">VaspDrone</code><span class="sig-paren">(</span><em>runs=None</em>, <em>parse_dos='auto'</em>, <em>compress_dos=False</em>, <em>bandstructure_mode='auto'</em>, <em>compress_bs=False</em>, <em>parse_locpot=True</em>, <em>additional_fields=None</em>, <em>use_full_uri=True</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">atomate.vasp.drones.</code><code class="descname">VaspDrone</code><span class="sig-paren">(</span><em>runs=None</em>, <em>parse_dos='auto'</em>, <em>bandstructure_mode='auto'</em>, <em>parse_locpot=True</em>, <em>additional_fields=None</em>, <em>use_full_uri=True</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">pymatgen.apps.borg.hive.AbstractDrone</span></code></p>
 <p>pymatgen-db VaspToDbTaskDrone with updated schema and documents processing methods.
 Please refer to matgendb.creator.VaspToDbTaskDrone documentation.</p>
 <dl class="method">
 <dt id="atomate.vasp.drones.VaspDrone.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>runs=None</em>, <em>parse_dos='auto'</em>, <em>compress_dos=False</em>, <em>bandstructure_mode='auto'</em>, <em>compress_bs=False</em>, <em>parse_locpot=True</em>, <em>additional_fields=None</em>, <em>use_full_uri=True</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>runs=None</em>, <em>parse_dos='auto'</em>, <em>bandstructure_mode='auto'</em>, <em>parse_locpot=True</em>, <em>additional_fields=None</em>, <em>use_full_uri=True</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize a Vasp drone to parse vasp outputs
 Args:</p>
 <blockquote>
@@ -276,7 +276,6 @@ Args:</p>
 </dl>
 <p>parse_dos (str or bool): Whether to parse the DOS. Can be “auto”, True or False.
 “auto” will only parse DOS if NSW = 0, so there are no ionic steps
-compress_dos (bool): Compress DOS using zlib or not
 bandstructure_mode (str or bool): How to parse the bandstructure or not. Can be “auto”,”line”, True or False.</p>
 <blockquote>
 <div><dl class="docutils">
@@ -290,8 +289,7 @@ bandstructure_mode (str or bool): How to parse the bandstructure or not. Can be 
 <dd>Dose not saves the bandstructure in the output doc.</dd>
 </dl>
 </div></blockquote>
-<p>compress_bs (bool): Compress the bandstructure using zlib or not
-parse_locpot (bool): Parses the LOCPOT file and saves the 3 axis averages
+<p>parse_locpot (bool): Parses the LOCPOT file and saves the 3 axis averages
 additional_fields (dict): dictionary of additional fields to add to output document
 use_full_uri (bool): converts the directory path to the full URI path</p>
 </div></blockquote>
@@ -410,7 +408,7 @@ and exists for easier querying of the taskdoc.</p>
 
 <dl class="attribute">
 <dt id="atomate.vasp.drones.VaspDrone.schema">
-<code class="descname">schema</code><em class="property"> = {'root': {'chemsys', 'analysis', 'nsites', 'input', 'schema', 'nelements', 'formula_anonymous', 'formula_pretty', 'run_stats', 'completed_at', 'output', 'dir_name', 'elements', 'composition_unit_cell', 'state', 'composition_reduced', 'calcs_reversed', 'formula_reduced_abc'}, 'input': {'is_hubbard', 'xc_override', 'pseudo_potential', 'is_lasph', 'potcar_spec', 'hubbards', 'structure'}, 'output': {'energy', 'vbm', 'is_metal', 'is_gap_direct', 'forces', 'spacegroup', 'cbm', 'stress', 'bandgap', 'energy_per_atom', 'structure', 'density'}, 'calcs_reversed': {'task', 'has_vasp_completed', 'vasp_version', 'run_type', 'nsites', 'input', 'nelements', 'formula_anonymous', 'formula_pretty', 'completed_at', 'output', 'dir_name', 'elements', 'composition_unit_cell', 'composition_reduced', 'formula_reduced_abc'}, 'analysis': {'delta_volume_as_percent', 'delta_volume', 'errors', 'warnings', 'max_force'}}</em><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.schema" title="Permalink to this definition">¶</a></dt>
+<code class="descname">schema</code><em class="property"> = {'root': {'nelements', 'chemsys', 'schema', 'output', 'run_stats', 'dir_name', 'formula_reduced_abc', 'completed_at', 'calcs_reversed', 'input', 'elements', 'state', 'formula_pretty', 'analysis', 'nsites', 'composition_unit_cell', 'composition_reduced', 'formula_anonymous'}, 'input': {'xc_override', 'is_hubbard', 'hubbards', 'is_lasph', 'potcar_spec', 'pseudo_potential', 'structure'}, 'output': {'forces', 'is_gap_direct', 'vbm', 'density', 'structure', 'spacegroup', 'cbm', 'is_metal', 'stress', 'energy_per_atom', 'bandgap', 'energy'}, 'calcs_reversed': {'nelements', 'has_vasp_completed', 'output', 'composition_reduced', 'task', 'dir_name', 'formula_reduced_abc', 'completed_at', 'vasp_version', 'input', 'elements', 'formula_pretty', 'nsites', 'composition_unit_cell', 'run_type', 'formula_anonymous'}, 'analysis': {'errors', 'delta_volume', 'max_force', 'warnings', 'delta_volume_as_percent'}}</em><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.schema" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="staticmethod">
@@ -906,7 +904,7 @@ require_bandstructure (bool): For MP checks, require a band structure calc</dd>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.2 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.4 documentation</a> &#187;</li> 
       </ul>
     </div>
 

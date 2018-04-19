@@ -91,11 +91,12 @@ Keep a record of your credentials - we will configure FireWorks to connect to th
 
 .. note::
 
-    The computers that perform the calculations must have access to your MongoDB server. Some computing resources have firewalls blocking connections. Although this is not a problem for most computing centers that allow such connections (particularly from MOM-style nodes, e.g. at NERSC, SDSC, etc.), but some of the more security-sensitive centers (e.g., LLNL, PNNL) will run into issues. If you run into connection issues later in this tutorial, some options are:
+    The computers that perform the calculations must have access to your MongoDB server. Some computing resources have firewalls blocking connections. Although this is not a problem for most computing centers that allow such connections (particularly from MOM-style nodes, e.g. at NERSC, SDSC, etc.), but some of the more security-sensitive centers (e.g., LLNL, PNNL, ARCHER) will run into issues. If you run into connection issues later in this tutorial, some options are:
 
   * contact your computing center to review their security policy to allow connections from your MongoDB server (best resolution)
   * set up an ssh tunnel to forward connections from allowed machines (the tunnel must be kept alive at all times you are running workflows)
-  * use `FireWorks offline mode`_, which is a workable solution but makes the system more difficult to use and limits some features of FireWorks.
+  * host the Mongo database on a machine that you are able to securely connect to, e.g. on the supercomputing network itself (ask a system administrator for help)
+  * use `FireWorks offline mode`_, which is a potentially workable solution but makes the system more difficult and inconvenient to use and also limits some features of FireWorks. Thus, we advocate trying the options above before this step. Please note that you may encounter problems if trying this method as the primary developers of atomate do not use or maintain this method. Some notes on usage are in `this thread <https://groups.google.com/forum/#!topic/atomate/dggbBsK628Q>`_.
 
 
 .. _MongoDB: https://docs.mongodb.com/manual/
