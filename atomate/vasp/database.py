@@ -83,13 +83,13 @@ class VaspCalcDb(CalcDb):
         dos = None
         bs = None
 
-        # insert dos into GridFS
+        # remove dos from doc
         if parse_dos and "calcs_reversed" in task_doc:
             if "dos" in task_doc["calcs_reversed"][0]:  # only store idx=0 DOS
                 dos = json.dumps(task_doc["calcs_reversed"][0]["dos"], cls=MontyEncoder)
                 del task_doc["calcs_reversed"][0]["dos"]
 
-        # insert band structure into GridFS
+        # remove band structure from doc
         if parse_bs and "calcs_reversed" in task_doc:
             if "bandstructure" in task_doc["calcs_reversed"][0]:  # only store idx=0 BS
                 bs = json.dumps(task_doc["calcs_reversed"][0]["bandstructure"], cls=MontyEncoder)
@@ -104,7 +104,7 @@ class VaspCalcDb(CalcDb):
             self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.dos_compression": compression_type}})
             self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.dos_fs_id": dos_gfs_id}})
 
-        # inser the bandstructure into gridfs and update the task documents
+        # insert the bandstructure into gridfs and update the task documents
         if bs:
             bfs_gfs_id, compression_type = self.insert_gridfs(bs, "bandstructure_fs", task_id=t_id)
             self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.bandstructure_compression": compression_type}})
