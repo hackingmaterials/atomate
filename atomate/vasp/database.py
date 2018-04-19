@@ -80,27 +80,38 @@ class VaspCalcDb(CalcDb):
         Returns:
             (int) - task_id of inserted document
         """
+        dos = None
+        bs = None
 
         # insert dos into GridFS
         if parse_dos and "calcs_reversed" in task_doc:
             if "dos" in task_doc["calcs_reversed"][0]:  # only store idx=0 DOS
                 dos = json.dumps(task_doc["calcs_reversed"][0]["dos"], cls=MontyEncoder)
-                gfs_id, compression_type = self.insert_gridfs(dos, "dos_fs")
-                task_doc["calcs_reversed"][0]["dos_compression"] = compression_type
-                task_doc["calcs_reversed"][0]["dos_fs_id"] = gfs_id
                 del task_doc["calcs_reversed"][0]["dos"]
 
         # insert band structure into GridFS
         if parse_bs and "calcs_reversed" in task_doc:
             if "bandstructure" in task_doc["calcs_reversed"][0]:  # only store idx=0 BS
                 bs = json.dumps(task_doc["calcs_reversed"][0]["bandstructure"], cls=MontyEncoder)
-                gfs_id, compression_type = self.insert_gridfs(bs, "bandstructure_fs")
-                task_doc["calcs_reversed"][0]["bandstructure_compression"] = compression_type
-                task_doc["calcs_reversed"][0]["bandstructure_fs_id"] = gfs_id
                 del task_doc["calcs_reversed"][0]["bandstructure"]
 
-        # insert the task document and return task_id
-        return self.insert(task_doc)
+        # insert the task document
+        t_id = self.insert(task_doc)
+
+        # insert the dos into gridfs and update the task document
+        if dos:
+            dos_gfs_id, compression_type = self.insert_gridfs(dos, "dos_fs", task_id=t_id)
+            self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.dos_compression": compression_type}})
+            self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.dos_fs_id": dos_gfs_id}})
+
+        # inser the bandstructure into gridfs and update the task documents
+        if bs:
+            bfs_gfs_id, compression_type = self.insert_gridfs(bs, "bandstructure_fs", task_id=t_id)
+            self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.bandstructure_compression": compression_type}})
+            self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.bandstructure_fs_id": bfs_gfs_id}})
+
+        return t_id
+
 
     def retrieve_task(self, task_id):
         """
