@@ -108,8 +108,8 @@ class VaspToDb(FiretaskBase):
         if task_doc["state"] != "successful":
             if self.get("defuse_unsuccessful", DEFUSE_UNSUCCESSFUL) is True:
                 defuse_children = True
-            elif self.get("defuse_unsuccessful", DEFUSE_UNSUCCESSFUL).lower() \
-                    == "fizzle":
+            elif not self.get("defuse_unsuccessful", DEFUSE_UNSUCCESSFUL) or \
+                    self.get("defuse_unsuccessful", DEFUSE_UNSUCCESSFUL).lower() == "fizzle":
                 raise RuntimeError(
                     "VaspToDb indicates that job is not successful "
                     "(perhaps your job did not converge within the "
