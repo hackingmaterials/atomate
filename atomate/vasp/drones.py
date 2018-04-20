@@ -295,7 +295,7 @@ class VaspDrone(AbstractDrone):
 
             self.set_analysis(d)
 
-            d["last_updated"] = datetime.datetime.today()
+            d["last_updated"] = datetime.datetime.utcnow()
             return d
 
         except Exception:

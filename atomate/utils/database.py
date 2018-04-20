@@ -71,7 +71,7 @@ class CalcDb(six.with_metaclass(ABCMeta)):
         """
         result = self.collection.find_one({"dir_name": d["dir_name"]}, ["dir_name", "task_id"])
         if result is None or update_duplicates:
-            d["last_updated"] = datetime.datetime.today()
+            d["last_updated"] = datetime.datetime.utcnow()
             if result is None:
                 if ("task_id" not in d) or (not d["task_id"]):
                     d["task_id"] = self.db.counter.find_one_and_update(
