@@ -95,6 +95,7 @@ Keep a record of your credentials - we will configure FireWorks to connect to th
 
   * contact your computing center to review their security policy to allow connections from your MongoDB server (best resolution)
   * set up an ssh tunnel to forward connections from allowed machines (the tunnel must be kept alive at all times you are running workflows)
+  * use a proxy service to forward connections between machines (you might try, for example, `this tool <https://github.com/bakks/mongo-proxy`_.)
   * host the Mongo database on a machine that you are able to securely connect to, e.g. on the supercomputing network itself (ask a system administrator for help)
   * use `FireWorks offline mode`_, which is a potentially workable solution but makes the system more difficult and inconvenient to use and also limits some features of FireWorks. Thus, we advocate trying the options above before this step. Please note that you may encounter problems if trying this method as the primary developers of atomate do not use or maintain this method. Some notes on usage are in `this thread <https://groups.google.com/forum/#!topic/atomate/dggbBsK628Q>`_.
 
