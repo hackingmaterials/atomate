@@ -1,5 +1,5 @@
-atomate\.vasp\.firetasks package
-================================
+atomate.vasp.firetasks package
+==============================
 
 Subpackages
 -----------
@@ -11,40 +11,40 @@ Subpackages
 Submodules
 ----------
 
-atomate\.vasp\.firetasks\.glue\_tasks module
---------------------------------------------
+atomate.vasp.firetasks.glue\_tasks module
+-----------------------------------------
 
 .. automodule:: atomate.vasp.firetasks.glue_tasks
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.vasp\.firetasks\.neb\_tasks module
--------------------------------------------
+atomate.vasp.firetasks.neb\_tasks module
+----------------------------------------
 
 .. automodule:: atomate.vasp.firetasks.neb_tasks
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.vasp\.firetasks\.parse\_outputs module
------------------------------------------------
+atomate.vasp.firetasks.parse\_outputs module
+--------------------------------------------
 
 .. automodule:: atomate.vasp.firetasks.parse_outputs
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.vasp\.firetasks\.run\_calc module
-------------------------------------------
+atomate.vasp.firetasks.run\_calc module
+---------------------------------------
 
 .. automodule:: atomate.vasp.firetasks.run_calc
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.vasp\.firetasks\.write\_inputs module
-----------------------------------------------
+atomate.vasp.firetasks.write\_inputs module
+-------------------------------------------
 
 .. automodule:: atomate.vasp.firetasks.write_inputs
     :members:

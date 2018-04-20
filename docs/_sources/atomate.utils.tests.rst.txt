@@ -1,19 +1,19 @@
-atomate\.utils\.tests package
-=============================
+atomate.utils.tests package
+===========================
 
 Submodules
 ----------
 
-atomate\.utils\.tests\.test\_loaders module
--------------------------------------------
+atomate.utils.tests.test\_loaders module
+----------------------------------------
 
 .. automodule:: atomate.utils.tests.test_loaders
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.utils\.tests\.test\_utils module
------------------------------------------
+atomate.utils.tests.test\_utils module
+--------------------------------------
 
 .. automodule:: atomate.utils.tests.test_utils
     :members:

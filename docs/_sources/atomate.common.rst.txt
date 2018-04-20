@@ -1,5 +1,5 @@
-atomate\.common package
-=======================
+atomate.common package
+======================
 
 Subpackages
 -----------

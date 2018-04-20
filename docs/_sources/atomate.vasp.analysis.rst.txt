@@ -1,11 +1,11 @@
-atomate\.vasp\.analysis package
-===============================
+atomate.vasp.analysis package
+=============================
 
 Submodules
 ----------
 
-atomate\.vasp\.analysis\.phonopy module
----------------------------------------
+atomate.vasp.analysis.phonopy module
+------------------------------------
 
 .. automodule:: atomate.vasp.analysis.phonopy
     :members:

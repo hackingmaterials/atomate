@@ -4,20 +4,12 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Customizing workflows &#8212; atomate 0.7.4 documentation</title>
+    <title>Customizing workflows &#8212; atomate 0.7.5 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.7.4',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -28,8 +20,7 @@
  
 <link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
 
-  </head>
-  <body>
+  </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -45,7 +36,7 @@
         <li class="right" >
           <a href="creating_workflows.html" title="Creating Workflows"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.5 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -59,7 +50,7 @@
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>The <a class="reference internal" href="creating_workflows.html#creating-workflows"><span class="std std-ref">Creating Workflows</span></a> guide gave details on constructing workflows. This group of tutorials will give specific examples for customizations to workflows as you create them.</p>
-<p>For some of these customizations, preset workflows <em>cannot</em> be used. Preset workflows are designed to give generically reasonable options. More full access for customizing the workflows can be achieved by using the <a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base" title="atomate.vasp.workflows.base"><code class="xref py py-mod docutils literal"><span class="pre">atomate.vasp.workflows.base</span></code></a> workflows instead of the presets.</p>
+<p>For some of these customizations, preset workflows <em>cannot</em> be used. Preset workflows are designed to give generically reasonable options. More full access for customizing the workflows can be achieved by using the <a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base" title="atomate.vasp.workflows.base"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.base</span></code></a> workflows instead of the presets.</p>
 </div>
 <div class="section" id="objectives">
 <h2>Objectives<a class="headerlink" href="#objectives" title="Permalink to this headline">¶</a></h2>
@@ -75,7 +66,7 @@
 <span id="id2"></span><h2>Powerups<a class="headerlink" href="#powerups" title="Permalink to this headline">¶</a></h2>
 <p>Powerups are all designed to be used as functions where you pass in your original workflow and other keyword arguments and get back the modified workflow. An example is shown below, but does not show all of the powerups. To see more powerups go to the powerups documentation for the package you are using, e.g. VASP is :py:mod`atomate.vasp.powerups`.</p>
 <p>An example for adding an INCAR setting to use a different force convergence criteria for the only the structure optimization in the elastic workflow is</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">atomate.vasp.workflows.presets.core</span> <span class="kn">import</span> <span class="n">wf_elastic_constant</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">atomate.vasp.workflows.presets.core</span> <span class="kn">import</span> <span class="n">wf_elastic_constant</span>
 <span class="kn">from</span> <span class="nn">atomate.vasp.powerups</span> <span class="kn">import</span> <span class="n">add_modify_incar</span>
 <span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
 
@@ -101,15 +92,15 @@
 </div>
 <div class="section" id="vasp-calculation-settings">
 <h2>VASP Calculation Settings<a class="headerlink" href="#vasp-calculation-settings" title="Permalink to this headline">¶</a></h2>
-<p>Most VASP calculation-specific settings (e.g. those from INCAR, KPOINTS, and POTCAR files) are controlled by <a class="reference external" href="http://pymatgen.org/pymatgen.io.vasp.sets.html">pymatgen’s vasp sets</a> . VASP workflows take <code class="docutils literal"><span class="pre">vasp_input_set</span></code> options and you can directly import and use them or customize them before using them in atomate workflows.</p>
+<p>Most VASP calculation-specific settings (e.g. those from INCAR, KPOINTS, and POTCAR files) are controlled by <a class="reference external" href="http://pymatgen.org/pymatgen.io.vasp.sets.html">pymatgen’s vasp sets</a> . VASP workflows take <code class="docutils literal notranslate"><span class="pre">vasp_input_set</span></code> options and you can directly import and use them or customize them before using them in atomate workflows.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Using the <code class="docutils literal"><span class="pre">vasp_input_set</span></code> or <code class="docutils literal"><span class="pre">vis</span></code> keywords in workflow constructors usually only controls the first Firework that uses that set. If you want to have multiple Fireworks use custom input sets (or just not the first one, e.g. in a bandstructure workflow) then you have to make a custom workflow yourself.</p>
+<p class="last">Using the <code class="docutils literal notranslate"><span class="pre">vasp_input_set</span></code> or <code class="docutils literal notranslate"><span class="pre">vis</span></code> keywords in workflow constructors usually only controls the first Firework that uses that set. If you want to have multiple Fireworks use custom input sets (or just not the first one, e.g. in a bandstructure workflow) then you have to make a custom workflow yourself.</p>
 </div>
 <div class="section" id="using-a-different-functional">
 <h3>Using a different functional<a class="headerlink" href="#using-a-different-functional" title="Permalink to this headline">¶</a></h3>
 <p>To use a different functional, for instance in a optimization calculation, you can do the following:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">fireworks</span> <span class="kn">import</span> <span class="n">Workflow</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">fireworks</span> <span class="kn">import</span> <span class="n">Workflow</span>
 <span class="kn">from</span> <span class="nn">atomate.vasp.fireworks.core</span> <span class="kn">import</span> <span class="n">OptimizeFW</span>
 <span class="kn">from</span> <span class="nn">pymatgen.io.vasp.sets</span> <span class="kn">import</span> <span class="n">MPRelaxSet</span>
 <span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
@@ -165,10 +156,10 @@
 <h3>Custom KPOINTS settings<a class="headerlink" href="#custom-kpoints-settings" title="Permalink to this headline">¶</a></h3>
 <p>KPOINTS settings can also be similarly customized using the above example. You can control them with the following keywords (from <a class="reference external" href="http://pymatgen.org/pymatgen.io.vasp.sets.html">pymatgen’s vasp sets</a>):</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">force_gamma</span></code>: always use gamma centered kpoint generation. Default (False) is to use Automatic Density kpoint scheme, which will use the Gamma centered generation scheme for hexagonal cells, and Monkhorst-Pack otherwise.</li>
-<li><code class="docutils literal"><span class="pre">user_kpoints_settings</span></code>: Override kpoints setting by supplying a dict. E.g., <code class="docutils literal"><span class="pre">{&quot;reciprocal_density&quot;:</span> <span class="pre">1000}</span></code>. Other options are <code class="docutils literal"><span class="pre">grid_density</span></code> or <code class="docutils literal"><span class="pre">length</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">force_gamma</span></code>: always use gamma centered kpoint generation. Default (False) is to use Automatic Density kpoint scheme, which will use the Gamma centered generation scheme for hexagonal cells, and Monkhorst-Pack otherwise.</li>
+<li><code class="docutils literal notranslate"><span class="pre">user_kpoints_settings</span></code>: Override kpoints setting by supplying a dict. E.g., <code class="docutils literal notranslate"><span class="pre">{&quot;reciprocal_density&quot;:</span> <span class="pre">1000}</span></code>. Other options are <code class="docutils literal notranslate"><span class="pre">grid_density</span></code> or <code class="docutils literal notranslate"><span class="pre">length</span></code>.</li>
 </ul>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.io.vasp.sets</span> <span class="kn">import</span> <span class="n">MPRelaxSet</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.io.vasp.sets</span> <span class="kn">import</span> <span class="n">MPRelaxSet</span>
 <span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
 
 <span class="c1"># load your structure, e.g. from a POSCAR</span>
@@ -181,8 +172,8 @@
 <span class="n">my_wf</span> <span class="o">=</span> <span class="n">get_optimize_wf</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">vasp_input_set</span><span class="o">=</span><span class="n">my_custom_input_set</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>If you need more control, create the <code class="docutils literal"><span class="pre">Kpoints</span></code> object directly with pymatgen. It is flexible and only a brief example will be shown. See the <a class="reference external" href="http://pymatgen.org/pymatgen.io.vasp.inputs.html#pymatgen.io.vasp.inputs.Kpoints">full Kpoints documentation</a> for more</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.io.vasp.sets</span> <span class="kn">import</span> <span class="n">MPRelaxSet</span>
+<p>If you need more control, create the <code class="docutils literal notranslate"><span class="pre">Kpoints</span></code> object directly with pymatgen. It is flexible and only a brief example will be shown. See the <a class="reference external" href="http://pymatgen.org/pymatgen.io.vasp.inputs.html#pymatgen.io.vasp.inputs.Kpoints">full Kpoints documentation</a> for more</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.io.vasp.sets</span> <span class="kn">import</span> <span class="n">MPRelaxSet</span>
 <span class="kn">from</span> <span class="nn">pymatgen.io.vasp.inputs</span> <span class="kn">import</span> <span class="n">Kpoints</span>
 <span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
 
@@ -217,12 +208,12 @@
 </div>
 <div class="section" id="custom-incar-settings">
 <h3>Custom INCAR settings<a class="headerlink" href="#custom-incar-settings" title="Permalink to this headline">¶</a></h3>
-<p>Custom INCAR settings can also be accomplished using <code class="docutils literal"><span class="pre">VaspInputSet</span></code> objects, but it is often more efficient to use a <a class="reference external" href="powerups">add_modify_incar Powerup</a></p>
+<p>Custom INCAR settings can also be accomplished using <code class="docutils literal notranslate"><span class="pre">VaspInputSet</span></code> objects, but it is often more efficient to use a <a class="reference external" href="powerups">add_modify_incar Powerup</a></p>
 </div>
 <div class="section" id="use-a-different-potcar">
 <h3>Use a different POTCAR<a class="headerlink" href="#use-a-different-potcar" title="Permalink to this headline">¶</a></h3>
-<p>Which POTCAR file you want to use is controlled by the input set as well. The easist way to control it is by updating the <code class="docutils literal"><span class="pre">config_dict</span></code> dictionary of your input set.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.io.vasp.sets</span> <span class="kn">import</span> <span class="n">MPRelaxSet</span>
+<p>Which POTCAR file you want to use is controlled by the input set as well. The easist way to control it is by updating the <code class="docutils literal notranslate"><span class="pre">config_dict</span></code> dictionary of your input set.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.io.vasp.sets</span> <span class="kn">import</span> <span class="n">MPRelaxSet</span>
 <span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
 
 <span class="c1"># load your structure, e.g. from a POSCAR</span>
@@ -241,7 +232,7 @@
 </div>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
-<p class="last">Make sure not to try a nested dictionary update (e.g. <code class="docutils literal"><span class="pre">my_custom_input_set.config_dict.update({'POTCAR':</span> <span class="pre">{'Mg':</span> <span class="pre">'Mg'}})</span></code> )! It will wipe out all of the other <code class="docutils literal"><span class="pre">POTCAR</span></code> entries in the dict.</p>
+<p class="last">Make sure not to try a nested dictionary update (e.g. <code class="docutils literal notranslate"><span class="pre">my_custom_input_set.config_dict.update({'POTCAR':</span> <span class="pre">{'Mg':</span> <span class="pre">'Mg'}})</span></code> )! It will wipe out all of the other <code class="docutils literal notranslate"><span class="pre">POTCAR</span></code> entries in the dict.</p>
 </div>
 </div>
 </div>
@@ -286,12 +277,14 @@
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -313,13 +306,13 @@
         <li class="right" >
           <a href="creating_workflows.html" title="Creating Workflows"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.5 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.2.
     </div>
 
   </body>

@@ -1,5 +1,5 @@
-atomate\.vasp\.workflows package
-================================
+atomate.vasp.workflows package
+==============================
 
 Subpackages
 -----------

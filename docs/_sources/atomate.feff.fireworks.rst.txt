@@ -1,5 +1,5 @@
-atomate\.feff\.fireworks package
-================================
+atomate.feff.fireworks package
+==============================
 
 Subpackages
 -----------
@@ -11,8 +11,8 @@ Subpackages
 Submodules
 ----------
 
-atomate\.feff\.fireworks\.core module
--------------------------------------
+atomate.feff.fireworks.core module
+----------------------------------
 
 .. automodule:: atomate.feff.fireworks.core
     :members:

@@ -1,11 +1,11 @@
-atomate\.feff\.firetasks\.tests package
-=======================================
+atomate.feff.firetasks.tests package
+====================================
 
 Submodules
 ----------
 
-atomate\.feff\.firetasks\.tests\.test\_tasks module
----------------------------------------------------
+atomate.feff.firetasks.tests.test\_tasks module
+-----------------------------------------------
 
 .. automodule:: atomate.feff.firetasks.tests.test_tasks
     :members:

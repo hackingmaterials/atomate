@@ -2,6 +2,13 @@
 atomate Changelog
 =================
 
+**v0.7.5**
+
+* standardize drones to datetime.utcnow() (J. Montoya)
+* fixed additional field serialization issue (J. Montoya)
+* fix defuse_unsuccessful logic, hat tip to @specter119 for pointing it out (A. Jain)
+* some doc updates (A. Jain)
+
 **v0.7.4**
 
 * fix pymatgen dep (A. Jain)
