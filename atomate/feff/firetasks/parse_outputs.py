@@ -76,7 +76,7 @@ class SpectrumToDbTask(FiretaskBase):
                "edge": self.get("edge", None),
                "metadata": self.get("metadata", None),
                "dir_name": os.path.abspath(os.getcwd()),
-               "last_updated": datetime.today()}
+               "last_updated": datetime.utcnow()}
 
         if not db_file:
             with open("feff_task.json", "w") as f:
