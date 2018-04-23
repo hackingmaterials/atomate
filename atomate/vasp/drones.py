@@ -103,7 +103,8 @@ class VaspDrone(AbstractDrone):
         self.parse_dos = parse_dos
         self.additional_fields = additional_fields or {}
         self.use_full_uri = use_full_uri
-        self.runs = runs or ["precondition"] + ["relax" + str(i + 1) for i in range(9)]  # can't auto-detect: path unknown
+        self.runs = runs or ["precondition"] + ["relax" + str(i + 1)
+                                                for i in range(9)]  # can't auto-detect: path unknown
         self.bandstructure_mode = bandstructure_mode
         self.parse_locpot = parse_locpot
 
@@ -453,17 +454,6 @@ class VaspDrone(AbstractDrone):
         max_force = None
         calc = d["calcs_reversed"][0]
         if d["state"] == "successful" and calc["input"]["parameters"].get("NSW", 0) > 0:
-            # handle the max force and max force error
-            forces = np.array(calc['output']['ionic_steps'][-1]['forces'])
-            # account for selective dynamics
-            final_structure = Structure.from_dict(calc['output']['structure'])
-            sdyn = final_structure.site_properties.get('selective_dynamics')
-            if sdyn:
-                forces[np.logical_not(sdyn)] = 0
-            max_force = max(np.linalg.norm(forces, axis=1))
-            if max_force > max_force_threshold:
-                error_msgs.append("Final max force exceeds {} eV".format(max_force_threshold))
-                d["state"] = "error"
 
             s = Structure.from_dict(d["output"]["structure"])
             if not s.is_valid():
