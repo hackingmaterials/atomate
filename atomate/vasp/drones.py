@@ -103,7 +103,8 @@ class VaspDrone(AbstractDrone):
         self.parse_dos = parse_dos
         self.additional_fields = additional_fields or {}
         self.use_full_uri = use_full_uri
-        self.runs = runs or ["precondition"] + ["relax" + str(i + 1) for i in range(9)]  # can't auto-detect: path unknown
+        self.runs = runs or ["precondition"] + ["relax" + str(i + 1)
+                                                for i in range(9)]  # can't auto-detect: path unknown
         self.bandstructure_mode = bandstructure_mode
         self.parse_locpot = parse_locpot
 
@@ -453,7 +454,7 @@ class VaspDrone(AbstractDrone):
         max_force = None
         calc = d["calcs_reversed"][0]
         if d["state"] == "successful" and calc["input"]["parameters"].get("NSW", 0) > 0:
-           
+
             s = Structure.from_dict(d["output"]["structure"])
             if not s.is_valid():
                 error_msgs.append("Bad structure (atoms are too close!)")
