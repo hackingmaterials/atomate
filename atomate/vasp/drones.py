@@ -72,8 +72,7 @@ class VaspDrone(AbstractDrone):
             'composition_unit_cell', 'completed_at', 'task', 'input', 'output',
             'has_vasp_completed'
         },
-        "analysis": {'delta_volume_as_percent', 'delta_volume', 'max_force',
-                     'errors',
+        "analysis": {'delta_volume_as_percent', 'delta_volume','errors',
                      'warnings'}
     }
 
@@ -432,7 +431,7 @@ class VaspDrone(AbstractDrone):
         return d
 
     @staticmethod
-    def set_analysis(d, max_force_threshold=0.5, volume_change_threshold=0.2):
+    def set_analysis(d, volume_change_threshold=0.2):
         """
         Adapted from matgendb.creator
 
@@ -449,8 +448,7 @@ class VaspDrone(AbstractDrone):
         if abs(percent_delta_vol) > volume_change_threshold:
             warning_msgs.append("Volume change > {}%".format(volume_change_threshold * 100))
 
-        # max force and valid structure checks
-        max_force = None
+        # valid structure checks
         calc = d["calcs_reversed"][0]
         if d["state"] == "successful" and calc["input"]["parameters"].get("NSW", 0) > 0:
 
@@ -461,7 +459,6 @@ class VaspDrone(AbstractDrone):
 
         d["analysis"] = {"delta_volume": delta_vol,
                          "delta_volume_as_percent": percent_delta_vol,
-                         "max_force": max_force,
                          "warnings": warning_msgs,
                          "errors": error_msgs}
 
