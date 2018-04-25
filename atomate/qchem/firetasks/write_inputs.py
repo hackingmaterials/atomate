@@ -2,15 +2,9 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-"""
-This module defines firetasks for writing QChem input files
-"""
+# This module defines firetasks for writing QChem input files
 
-import six
-
-from pymatgen.io.qchem_io.inputs import QCInput
 from atomate.utils.utils import load_class
-
 from fireworks import FiretaskBase, explicit_serialize
 
 __author__ = 'Brandon Wood'

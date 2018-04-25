@@ -26,7 +26,7 @@ class TestWriteInputQChem(AtomateTest):
         cls.co_opt_ref_in = QCInput.from_file(
             os.path.join(module_dir, "..", "..", "test_files", "co_qc.in"))
 
-    def setUp(self):
+    def setUp(self, lpad=False):
         super(TestWriteInputQChem, self).setUp(lpad=False)
 
     def tearDown(self):
