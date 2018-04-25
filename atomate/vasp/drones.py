@@ -337,8 +337,9 @@ class VaspDrone(AbstractDrone):
         for k, v in {"energy": "final_energy", "energy_per_atom": "final_energy_per_atom"}.items():
             d["output"][k] = d["output"].pop(v)
 
-        # parse dos if forced to or auto mode set and  0 ionic steps were performed -> static calculation
-        if self.parse_dos == True or (str(self.parse_dos).lower() == "auto" and vrun.incar.get("NSW", 1) == 0):
+        # parse dos if forced to or auto mode set and  0 ionic steps were performed -> static calculation and not DFPT
+        if self.parse_dos == True or (str(self.parse_dos).lower() == "auto" and vrun.incar.get("NSW", 0) == 0 and
+                                      vrun.incar.get("IBRION", 0) < 5):
             try:
                 d["dos"] = vrun.complete_dos.as_dict()
             except:
@@ -359,7 +360,8 @@ class VaspDrone(AbstractDrone):
                 bs = vrun.get_band_structure()
 
             # only save the bandstructure if not moving ions
-            if vrun.incar["NSW"] == 0:
+            # and not running DFPT
+            if vrun.incar.get("NSW", 0) == 0 and vrun.incar.get("IBRION", 0) < 5:
                 d["bandstructure"] = bs.as_dict()
 
         # legacy line/True behavior for bandstructure_mode
