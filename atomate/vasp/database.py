@@ -67,30 +67,27 @@ class VaspCalcDb(CalcDb):
                                           ("completed_at", DESCENDING)],
                                          background=background)
 
-    def insert_task(self, task_doc, parse_dos=False, parse_bs=False):
+    def insert_task(self, task_doc, use_gridfs=False):
         """
         Inserts a task document (e.g., as returned by Drone.assimilate()) into the database.
         Handles putting DOS and band structure into GridFS as needed.
 
         Args:
             task_doc: (dict) the task document
-            parse_dos: (bool) attempt to parse dos in task_doc and insert into Gridfs
-            parse_bs: (bool) attempt to parse bandstructure in task_doc and insert into Gridfs
-
+            use_gridfs (bool) use gridfs for  bandstructures and DOS
         Returns:
             (int) - task_id of inserted document
         """
         dos = None
         bs = None
 
-        # remove dos from doc
-        if parse_dos and "calcs_reversed" in task_doc:
+        # move dos and BS from doc to gridfs
+        if use_gridfs and "calcs_reversed" in task_doc:
+
             if "dos" in task_doc["calcs_reversed"][0]:  # only store idx=0 DOS
                 dos = json.dumps(task_doc["calcs_reversed"][0]["dos"], cls=MontyEncoder)
                 del task_doc["calcs_reversed"][0]["dos"]
 
-        # remove band structure from doc
-        if parse_bs and "calcs_reversed" in task_doc:
             if "bandstructure" in task_doc["calcs_reversed"][0]:  # only store idx=0 BS
                 bs = json.dumps(task_doc["calcs_reversed"][0]["bandstructure"], cls=MontyEncoder)
                 del task_doc["calcs_reversed"][0]["bandstructure"]
