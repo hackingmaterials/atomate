@@ -166,7 +166,10 @@ class ModifyIncar(FiretaskBase):
 
         if incar_multiply:
             for k in incar_multiply:
-                incar[k] = incar[k] * incar_multiply[k]
+                if isinstance(incar[k], list):
+                    incar[k] = list(np.multiply(incar[k], incar_multiply[k])
+                else:
+                    incar[k] = incar[k] * incar_multiply[k]
 
         if incar_dictmod:
             apply_mod(incar_dictmod, incar)
