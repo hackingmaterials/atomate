@@ -73,8 +73,7 @@ class VaspDrone(AbstractDrone):
             'composition_unit_cell', 'completed_at', 'task', 'input', 'output',
             'has_vasp_completed'
         },
-        "analysis": {'delta_volume_as_percent', 'delta_volume', 'max_force',
-                     'errors',
+        "analysis": {'delta_volume_as_percent', 'delta_volume','errors',
                      'warnings'}
     }
 
@@ -103,7 +102,8 @@ class VaspDrone(AbstractDrone):
         self.parse_dos = parse_dos
         self.additional_fields = additional_fields or {}
         self.use_full_uri = use_full_uri
-        self.runs = runs or ["precondition"] + ["relax" + str(i + 1) for i in range(9)]  # can't auto-detect: path unknown
+        self.runs = runs or ["precondition"] + ["relax" + str(i + 1)
+                                                for i in range(9)]  # can't auto-detect: path unknown
         self.bandstructure_mode = bandstructure_mode
         self.parse_locpot = parse_locpot
 
@@ -338,8 +338,9 @@ class VaspDrone(AbstractDrone):
         for k, v in {"energy": "final_energy", "energy_per_atom": "final_energy_per_atom"}.items():
             d["output"][k] = d["output"].pop(v)
 
-        # parse dos if forced to or auto mode set and  0 ionic steps were performed -> static calculation
-        if self.parse_dos == True or (str(self.parse_dos).lower() == "auto" and vrun.incar.get("NSW", 1) == 0):
+        # parse dos if forced to or auto mode set and  0 ionic steps were performed -> static calculation and not DFPT
+        if self.parse_dos == True or (str(self.parse_dos).lower() == "auto" and vrun.incar.get("NSW", 0) == 0 and
+                                      vrun.incar.get("IBRION", 0) < 5):
             try:
                 d["dos"] = vrun.complete_dos.as_dict()
             except:
@@ -360,7 +361,8 @@ class VaspDrone(AbstractDrone):
                 bs = vrun.get_band_structure()
 
             # only save the bandstructure if not moving ions
-            if vrun.incar["NSW"] == 0:
+            # and not running DFPT
+            if vrun.incar.get("NSW", 0) == 0 and vrun.incar.get("IBRION", 0) < 5:
                 d["bandstructure"] = bs.as_dict()
 
         # legacy line/True behavior for bandstructure_mode
@@ -432,7 +434,7 @@ class VaspDrone(AbstractDrone):
         return d
 
     @staticmethod
-    def set_analysis(d, max_force_threshold=0.5, volume_change_threshold=0.2):
+    def set_analysis(d, volume_change_threshold=0.2):
         """
         Adapted from matgendb.creator
 
@@ -449,21 +451,9 @@ class VaspDrone(AbstractDrone):
         if abs(percent_delta_vol) > volume_change_threshold:
             warning_msgs.append("Volume change > {}%".format(volume_change_threshold * 100))
 
-        # max force and valid structure checks
-        max_force = None
+        # valid structure checks
         calc = d["calcs_reversed"][0]
         if d["state"] == "successful" and calc["input"]["parameters"].get("NSW", 0) > 0:
-            # handle the max force and max force error
-            forces = np.array(calc['output']['ionic_steps'][-1]['forces'])
-            # account for selective dynamics
-            final_structure = Structure.from_dict(calc['output']['structure'])
-            sdyn = final_structure.site_properties.get('selective_dynamics')
-            if sdyn:
-                forces[np.logical_not(sdyn)] = 0
-            max_force = max(np.linalg.norm(forces, axis=1))
-            if max_force > max_force_threshold:
-                error_msgs.append("Final max force exceeds {} eV".format(max_force_threshold))
-                d["state"] = "error"
 
             s = Structure.from_dict(d["output"]["structure"])
             if not s.is_valid():
@@ -472,7 +462,6 @@ class VaspDrone(AbstractDrone):
 
         d["analysis"] = {"delta_volume": delta_vol,
                          "delta_volume_as_percent": percent_delta_vol,
-                         "max_force": max_force,
                          "warnings": warning_msgs,
                          "errors": error_msgs}
 
