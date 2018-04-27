@@ -166,7 +166,7 @@ class ModifyIncar(FiretaskBase):
 
         if incar_multiply:
             for k in incar_multiply:
-                if isinstance(incar[k], list):
+                if hasattr(incar[k], '__iter__'):  # is list-like
                     incar[k] = list(np.multiply(incar[k], incar_multiply[k]))
                 else:
                     incar[k] = incar[k] * incar_multiply[k]
