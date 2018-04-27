@@ -99,8 +99,9 @@ class VaspToDb(FiretaskBase):
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
             mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-            t_id = mmdb.insert_task(
-                task_doc, use_gridfs=self.get("parse_dos", False) or bool(self.get("bandstructure_mode", False)))
+            t_id = mmdb.insert_task(task_doc,
+                                    parse_dos=self.get("parse_dos", False),
+                                    parse_bs=bool(self.get("bandstructure_mode", False)))
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
         defuse_children = False
