@@ -75,6 +75,7 @@ class VaspDrone(AbstractDrone):
         },
         "analysis": {'delta_volume_as_percent', 'delta_volume', 'max_force',
                      'errors', 'warnings'}
+
     }
 
     def __init__(self, runs=None, parse_dos="auto", bandstructure_mode="auto",
@@ -338,45 +339,21 @@ class VaspDrone(AbstractDrone):
         for k, v in {"energy": "final_energy", "energy_per_atom": "final_energy_per_atom"}.items():
             d["output"][k] = d["output"].pop(v)
 
-        # parse dos if forced to or auto mode set and  0 ionic steps were performed -> static calculation and not DFPT
-        if self.parse_dos == True or (str(self.parse_dos).lower() == "auto" and vrun.incar.get("NSW", 0) == 0 and
-                                      vrun.incar.get("IBRION", 0) < 5):
-            try:
-                d["dos"] = vrun.complete_dos.as_dict()
-            except:
-                raise ValueError("No valid dos data exist in {}.".format(dir_name))
+        # Process bandstructure and DOS
+        if self.bandstructure_mode != False:
+            bs = self.process_bandstructure(vrun)
+            if bs:
+                d["bandstructure"] = bs
 
-        # Band structure parsing logic
-        if str(self.bandstructure_mode).lower() == "auto":
-            # if line mode nscf
-            if vrun.incar.get("ICHARG", 0) > 10 and vrun.kpoints.num_kpts > 0:
-                bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=True)
-                bs = bs_vrun.get_band_structure(line_mode=True)
-            # else if nscf
-            elif vrun.incar.get("ICHARG", 0) > 10:
-                bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=True)
-                bs = bs_vrun.get_band_structure()
-            # else just regular calculation
-            else:
-                bs = vrun.get_band_structure()
-
-            # only save the bandstructure if not moving ions
-            # and not running DFPT
-            if vrun.incar.get("NSW", 0) == 0 and vrun.incar.get("IBRION", 0) < 5:
-                d["bandstructure"] = bs.as_dict()
-
-        # legacy line/True behavior for bandstructure_mode
-        elif self.bandstructure_mode:
-            bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=True)
-            bs = bs_vrun.get_band_structure(line_mode=(str(self.bandstructure_mode).lower() == "line"))
-            d["bandstructure"] = bs.as_dict()
-        # parse bandstructure for vbm/cbm/bandgap but don't save
-        else:
-            bs = vrun.get_band_structure()
+        if self.parse_dos != False:
+            dos = self.process_dos(vrun)
+            if dos:
+                d["dos"] = dos
 
         # Parse electronic information if possible.
         # For certain optimizers this is broken and we don't get an efermi resulting in the bandstructure
         try:
+            bs = vrun.get_band_structure()
             bs_gap = bs.get_band_gap()
             d["output"]["vbm"] = bs.get_vbm()["energy"]
             d["output"]["cbm"] = bs.get_cbm()["energy"]
@@ -414,6 +391,45 @@ class VaspDrone(AbstractDrone):
             d["output"]["normalmode_eigenvals"] = vrun.normalmode_eigenvals.tolist()
             d["output"]["normalmode_eigenvecs"] = vrun.normalmode_eigenvecs.tolist()
         return d
+
+    def process_bandstructure(self, vrun):
+
+        vasprun_file = vrun.filename
+        # Band structure parsing logic
+        if str(self.bandstructure_mode).lower() == "auto":
+            # if NSCF calculation
+            if vrun.incar.get("ICHARG", 0) > 10:
+                bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=True)
+                try:
+                    # Try parsing line mode
+                    bs = bs_vrun.get_band_structure(line_mode=True)
+                except:
+                    # Just treat as a regular calculation
+                    bs = bs_vrun.get_band_structure()
+            # else just regular calculation
+            else:
+                bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=False)
+                bs = bs_vrun.get_band_structure()
+
+            # only save the bandstructure if not moving ions
+            if vrun.incar.get("NSW", 0) <= 1:
+                return bs.as_dict()
+
+        # legacy line/True behavior for bandstructure_mode
+        elif self.bandstructure_mode:
+            bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=True)
+            bs = bs_vrun.get_band_structure(line_mode=(str(self.bandstructure_mode).lower() == "line"))
+            return bs.as_dict()
+
+        return None
+
+    def process_dos(self, vrun):
+        # parse dos if forced to or auto mode set and  0 ionic steps were performed -> static calculation and not DFPT
+        if self.parse_dos == True or (str(self.parse_dos).lower() == "auto" and vrun.incar.get("NSW", 0) < 1):
+            try:
+                return vrun.complete_dos.as_dict()
+            except:
+                raise ValueError("No valid dos data exist")
 
     def process_raw_data(self, dir_name, taskname="standard"):
         """
