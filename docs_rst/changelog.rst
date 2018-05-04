@@ -2,6 +2,13 @@
 atomate Changelog
 =================
 
+**v0.7.6**
+
+* remove force checking in drone (S. Dwaraknath)
+* cleanups to DOS + BS parsing and insertion in GridFS (S. Dwaraknath)
+* code cleanup and bugfixes (S. Dwaraknath, specter119)
+* some more docs on offline mode (A. Jain)
+
 **v0.7.5**
 
 * standardize drones to datetime.utcnow() (J. Montoya)
