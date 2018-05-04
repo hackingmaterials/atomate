@@ -67,40 +67,50 @@ class VaspCalcDb(CalcDb):
                                           ("completed_at", DESCENDING)],
                                          background=background)
 
-    def insert_task(self, task_doc, parse_dos=False, parse_bs=False):
+    def insert_task(self, task_doc, use_gridfs=False):
         """
         Inserts a task document (e.g., as returned by Drone.assimilate()) into the database.
         Handles putting DOS and band structure into GridFS as needed.
 
         Args:
             task_doc: (dict) the task document
-            parse_dos: (bool) attempt to parse dos in task_doc and insert into Gridfs
-            parse_bs: (bool) attempt to parse bandstructure in task_doc and insert into Gridfs
-
+            use_gridfs (bool) use gridfs for  bandstructures and DOS
         Returns:
             (int) - task_id of inserted document
         """
+        dos = None
+        bs = None
 
-        # insert dos into GridFS
-        if parse_dos and "calcs_reversed" in task_doc:
+        # move dos and BS from doc to gridfs
+        if use_gridfs and "calcs_reversed" in task_doc:
+
             if "dos" in task_doc["calcs_reversed"][0]:  # only store idx=0 DOS
                 dos = json.dumps(task_doc["calcs_reversed"][0]["dos"], cls=MontyEncoder)
-                gfs_id, compression_type = self.insert_gridfs(dos, "dos_fs")
-                task_doc["calcs_reversed"][0]["dos_compression"] = compression_type
-                task_doc["calcs_reversed"][0]["dos_fs_id"] = gfs_id
                 del task_doc["calcs_reversed"][0]["dos"]
 
-        # insert band structure into GridFS
-        if parse_bs and "calcs_reversed" in task_doc:
             if "bandstructure" in task_doc["calcs_reversed"][0]:  # only store idx=0 BS
                 bs = json.dumps(task_doc["calcs_reversed"][0]["bandstructure"], cls=MontyEncoder)
-                gfs_id, compression_type = self.insert_gridfs(bs, "bandstructure_fs")
-                task_doc["calcs_reversed"][0]["bandstructure_compression"] = compression_type
-                task_doc["calcs_reversed"][0]["bandstructure_fs_id"] = gfs_id
                 del task_doc["calcs_reversed"][0]["bandstructure"]
 
-        # insert the task document and return task_id
-        return self.insert(task_doc)
+        # insert the task document
+        t_id = self.insert(task_doc)
+
+        # insert the dos into gridfs and update the task document
+        if dos:
+            dos_gfs_id, compression_type = self.insert_gridfs(dos, "dos_fs", task_id=t_id)
+            self.collection.update_one(
+                {"task_id": t_id}, {"$set": {"calcs_reversed.0.dos_compression": compression_type}})
+            self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.dos_fs_id": dos_gfs_id}})
+
+        # insert the bandstructure into gridfs and update the task documents
+        if bs:
+            bfs_gfs_id, compression_type = self.insert_gridfs(bs, "bandstructure_fs", task_id=t_id)
+            self.collection.update_one(
+                {"task_id": t_id}, {"$set": {"calcs_reversed.0.bandstructure_compression": compression_type}})
+            self.collection.update_one(
+                {"task_id": t_id}, {"$set": {"calcs_reversed.0.bandstructure_fs_id": bfs_gfs_id}})
+
+        return t_id
 
     def retrieve_task(self, task_id):
         """
@@ -123,7 +133,7 @@ class VaspCalcDb(CalcDb):
             calc["dos"] = dos.as_dict()
         return task_doc
 
-    def insert_gridfs(self, d, collection="fs", compress=True, oid=None):
+    def insert_gridfs(self, d, collection="fs", compress=True, oid=None, task_id=None):
         """
         Insert the given document into GridFS.
 
@@ -132,16 +142,26 @@ class VaspCalcDb(CalcDb):
             collection (string): the GridFS collection name
             compress (bool): Whether to compress the data or not
             oid (ObjectId()): the _id of the file; if specified, it must not already exist in GridFS
-
+            task_id(int or str): the task_id to store into the gridfs metadata
         Returns:
             file id, the type of compression used.
         """
         oid = oid or ObjectId()
+        compression_type = None
+
         if compress:
             d = zlib.compress(d.encode(), compress)
+            compression_type = "zlib"
+
         fs = gridfs.GridFS(self.db, collection)
-        fs_id = fs.put(d, _id=oid)
-        return fs_id, "zlib"
+        if task_id:
+            # Putting task id in the metadata subdocument as per mongo specs:
+            # https://github.com/mongodb/specifications/blob/master/source/gridfs/gridfs-spec.rst#terms
+            fs_id = fs.put(d, _id=oid, metadata={"task_id": task_id, "compression": compression_type})
+        else:
+            fs_id = fs.put(d, _id=oid, metadata={"compression": compression_type})
+
+        return fs_id, compression_type
 
     def get_band_structure(self, task_id):
         m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
