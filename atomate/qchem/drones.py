@@ -3,22 +3,15 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
-import re
 import datetime
 from fnmatch import fnmatch
 from collections import OrderedDict
-import json # using!
-import glob # using!
+import json
+import glob
 import traceback
 
 from monty.io import zopen
 from monty.json import jsanitize
-
-import numpy as np
-
-from pymatgen.core.composition import Composition
-from pymatgen.core.structure import Structure
-from pymatgen.core.operations import SymmOp
 from pymatgen.io.qchem_io.outputs import QCOutput
 from pymatgen.io.qchem_io.inputs import QCInput
 from pymatgen.apps.borg.hive import AbstractDrone
@@ -48,7 +41,10 @@ class QChemDrone(AbstractDrone):
 
     # Schema def of important keys and sub-keys; used in validation
     schema = {
-        "root": {"dir_name", "input", "output", "calcs_reversed", "smiles"},
+        "root": {
+            "dir_name", "input", "output", "calcs_reversed", "smiles",
+            "walltime", "cputime"
+        },
         "input": {"initial_molecule", "job_type"},
         "output": {"initial_molecule", "job_type"}
     }
@@ -62,7 +58,6 @@ class QChemDrone(AbstractDrone):
         """
         self.runs = runs
         self.additional_fields = additional_fields or {}
-
 
     def assimilate(self, path, input_file, output_file):
         """
@@ -88,7 +83,6 @@ class QChemDrone(AbstractDrone):
             raise ValueError("Either input or output not found!")
         self.validate_doc(d)
         return d
-
 
     def filter_files(self, path, file_pattern):
         """
@@ -124,16 +118,21 @@ class QChemDrone(AbstractDrone):
                     processed_files['standard'] = f
         return processed_files
 
-
     def generate_doc(self, dir_name, qcinput_files, qcoutput_files):
         try:
-
             fullpath = os.path.abspath(dir_name)
             d = jsanitize(self.additional_fields, strict=True)
-            d["schema"] = {"code": "atomate", "version": QChemDrone.__version__}
+            d["schema"] = {
+                "code": "atomate",
+                "version": QChemDrone.__version__
+            }
             d["dir_name"] = fullpath
-            d["calcs_reversed"] = [self.process_qchemrun(dir_name, taskname, qcinput_files.get(taskname), output_filename)
-                                   for taskname, output_filename in qcoutput_files.items()]
+            d["calcs_reversed"] = [
+                self.process_qchemrun(dir_name, taskname,
+                                      qcinput_files.get(taskname),
+                                      output_filename)
+                for taskname, output_filename in qcoutput_files.items()
+            ]
 
             # reverse the calculations data order so newest calc is first
             d["calcs_reversed"].reverse()
@@ -141,21 +140,47 @@ class QChemDrone(AbstractDrone):
             d_calc_init = d["calcs_reversed"][-1]
             d_calc_final = d["calcs_reversed"][0]
 
-            d["input"] = {"initial_molecule": d_calc_init["initial_molecule"],
-                          "job_type": d_calc_init["input_rem"]["job_type"]}
-            d["output"] = {"initial_molecule": d_calc_final["initial_molecule"],
-                          "job_type": d_calc_final["input_rem"]["job_type"]}
+            d["input"] = {
+                "initial_molecule": d_calc_init["initial_molecule"],
+                "job_type": d_calc_init["input_rem"]["job_type"]
+            }
+            d["output"] = {
+                "initial_molecule": d_calc_final["initial_molecule"],
+                "job_type": d_calc_final["input_rem"]["job_type"]
+            }
 
             if d["output"]["job_type"] == "opt" or d["output"]["job_type"] == "optimization":
-                d["output"]["optimized_molecule"] = d_calc_final["molecule_from_optimized_geometry"]
+                d["output"]["optimized_molecule"] = d_calc_final[
+                    "molecule_from_optimized_geometry"]
             if d["output"]["job_type"] == "freq" or d["output"]["job_type"] == "frequency":
                 d["output"]["frequencies"] = d_calc_final["frequencies"]
                 if d["input"]["job_type"] == "opt" or d["input"]["job_type"] == "optimization":
-                    d["output"]["optimized_molecule"] = d_calc_final["initial_molecule"]
+                    d["output"]["optimized_molecule"] = d_calc_final[
+                        "initial_molecule"]
 
             if "special_run_type" in d:
                 if d["special_run_type"] == "frequency_flattener":
-                    d["num_frequencies_flattened"] = (len(qcinput_files)/2)-1
+                    d["num_frequencies_flattened"] = (
+                        len(qcinput_files) / 2) - 1
+
+            total_cputime = 0.0
+            total_walltime = 0.0
+            nan_found = False
+            for calc in d["calcs_reversed"]:
+                if calc["walltime"] != 'nan':
+                    total_walltime += calc["walltime"]
+                else:
+                    nan_found = True
+                if calc["cputime"] != 'nan':
+                    total_cputime += calc["cputime"]
+                else:
+                    nan_found = True
+            if nan_found:
+                d["walltime"] = 'nan'
+                d["cputime"] = 'nan'
+            else:
+                d["walltime"] = total_walltime
+                d["cputime"] = total_cputime
 
             bb = BabelMolAdaptor(d["output"]["initial_molecule"])
             pbmol = bb.pybel_mol
@@ -167,7 +192,8 @@ class QChemDrone(AbstractDrone):
 
         except Exception:
             logger.error(traceback.format_exc())
-            logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
+            logger.error("Error in " + os.path.abspath(dir_name) + ".\n" +
+                         traceback.format_exc())
             raise
 
     def process_qchemrun(self, dir_name, taskname, input_file, output_file):
