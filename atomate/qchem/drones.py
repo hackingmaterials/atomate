@@ -59,7 +59,9 @@ class QChemDrone(AbstractDrone):
             runs (list): Naming scheme for multiple calcuations in one folder
             additional_fields (dict): dictionary of additional fields to add to output document
         """
-        self.runs = runs or list(chain.from_iterable([['opt_'+str(ii),'freq_'+str(ii)] for ii in range(9)]))
+        self.runs = runs or list(
+            chain.from_iterable([['opt_' + str(ii), 'freq_' + str(ii)]
+                                 for ii in range(9)]))
         self.additional_fields = additional_fields or {}
 
     def assimilate(self, path, input_file, output_file):
@@ -192,12 +194,13 @@ class QChemDrone(AbstractDrone):
             d["formula_pretty"] = comp.reduced_formula
             d["formula_anonymous"] = comp.anonymized_formula
             d["chemsys"] = "-".join(sorted(set(d_calc_final["species"])))
-            d["pointgroup"] = PointGroupAnalyzer(d["output"]["initial_molecule"]).sch_symbol
+            d["pointgroup"] = PointGroupAnalyzer(
+                d["output"]["initial_molecule"]).sch_symbol
 
-            # bb = BabelMolAdaptor(d["output"]["initial_molecule"])
-            # pbmol = bb.pybel_mol
-            # smiles = pbmol.write(str("smi")).split()[0]
-            # d["smiles"] = smiles
+            bb = BabelMolAdaptor(d["output"]["initial_molecule"])
+            pbmol = bb.pybel_mol
+            smiles = pbmol.write(str("smi")).split()[0]
+            d["smiles"] = smiles
 
             d["last_updated"] = datetime.datetime.utcnow()
             return d
