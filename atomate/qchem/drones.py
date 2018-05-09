@@ -9,6 +9,7 @@ from collections import OrderedDict
 import json
 import glob
 import traceback
+from itertools import chain
 
 from monty.io import zopen
 from monty.json import jsanitize
@@ -16,6 +17,7 @@ from pymatgen.io.qchem_io.outputs import QCOutput
 from pymatgen.io.qchem_io.inputs import QCInput
 from pymatgen.apps.borg.hive import AbstractDrone
 from pymatgen.io.babel import BabelMolAdaptor
+from pymatgen.symmetry.analyzer import PointGroupAnalyzer
 
 from atomate.utils.utils import get_logger
 from atomate import __version__ as atomate_version
@@ -43,20 +45,21 @@ class QChemDrone(AbstractDrone):
     schema = {
         "root": {
             "dir_name", "input", "output", "calcs_reversed", "smiles",
-            "walltime", "cputime"
+            "walltime", "cputime", "formula_pretty", "formula_anonymous",
+            "chemsys", "pointgroup"
         },
         "input": {"initial_molecule", "job_type"},
         "output": {"initial_molecule", "job_type"}
     }
 
-    def __init__(self, runs, additional_fields=None):
+    def __init__(self, runs=None, additional_fields=None):
         """
         Initialize a QChem drone to parse qchem calculations
         Args:
             runs (list): Naming scheme for multiple calcuations in one folder
             additional_fields (dict): dictionary of additional fields to add to output document
         """
-        self.runs = runs
+        self.runs = runs or list(chain.from_iterable([['opt_'+str(ii),'freq_'+str(ii)] for ii in range(9)]))
         self.additional_fields = additional_fields or {}
 
     def assimilate(self, path, input_file, output_file):
@@ -142,18 +145,21 @@ class QChemDrone(AbstractDrone):
 
             d["input"] = {
                 "initial_molecule": d_calc_init["initial_molecule"],
-                "job_type": d_calc_init["input_rem"]["job_type"]
+                "job_type": d_calc_init["input"]["rem"]["job_type"]
             }
             d["output"] = {
                 "initial_molecule": d_calc_final["initial_molecule"],
-                "job_type": d_calc_final["input_rem"]["job_type"]
+                "job_type": d_calc_final["input"]["rem"]["job_type"]
             }
 
             if d["output"]["job_type"] == "opt" or d["output"]["job_type"] == "optimization":
                 d["output"]["optimized_molecule"] = d_calc_final[
                     "molecule_from_optimized_geometry"]
+                d["output"]["final_energy"] = d_calc_final["final_energy"]
             if d["output"]["job_type"] == "freq" or d["output"]["job_type"] == "frequency":
                 d["output"]["frequencies"] = d_calc_final["frequencies"]
+                d["output"]["enthalpy"] = d_calc_final["enthalpy"]
+                d["output"]["entropy"] = d_calc_final["entropy"]
                 if d["input"]["job_type"] == "opt" or d["input"]["job_type"] == "optimization":
                     d["output"]["optimized_molecule"] = d_calc_final[
                         "initial_molecule"]
@@ -182,10 +188,16 @@ class QChemDrone(AbstractDrone):
                 d["walltime"] = total_walltime
                 d["cputime"] = total_cputime
 
-            bb = BabelMolAdaptor(d["output"]["initial_molecule"])
-            pbmol = bb.pybel_mol
-            smiles = pbmol.write(str("smi")).split()[0]
-            d["smiles"] = smiles
+            comp = d["output"]["initial_molecule"].composition
+            d["formula_pretty"] = comp.reduced_formula
+            d["formula_anonymous"] = comp.anonymized_formula
+            d["chemsys"] = "-".join(sorted(set(d_calc_final["species"])))
+            d["pointgroup"] = PointGroupAnalyzer(d["output"]["initial_molecule"]).sch_symbol
+
+            # bb = BabelMolAdaptor(d["output"]["initial_molecule"])
+            # pbmol = bb.pybel_mol
+            # smiles = pbmol.write(str("smi")).split()[0]
+            # d["smiles"] = smiles
 
             d["last_updated"] = datetime.datetime.utcnow()
             return d
@@ -204,11 +216,12 @@ class QChemDrone(AbstractDrone):
         qchem_output_file = os.path.join(dir_name, output_file)
         d = QCOutput(qchem_output_file).data
         temp_input = QCInput.from_file(qchem_input_file)
-        d["input_molecule"] = temp_input.molecule
-        d["input_rem"] = temp_input.rem
-        d["input_opt"] = temp_input.opt
-        d["input_pcm"] = temp_input.pcm
-        d["input_solvent"] = temp_input.solvent
+        d["input"] = {}
+        d["input"]["molecule"] = temp_input.molecule
+        d["input"]["rem"] = temp_input.rem
+        d["input"]["opt"] = temp_input.opt
+        d["input"]["pcm"] = temp_input.pcm
+        d["input"]["solvent"] = temp_input.solvent
         d["task"] = {"type": taskname, "name": taskname}
         return d
 
