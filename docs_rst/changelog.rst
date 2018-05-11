@@ -2,6 +2,11 @@
 atomate Changelog
 =================
 
+**v0.7.7**
+
+* allow list of ErrorHandler in RunVaspCustodian (A. Jain)
+* fix adsorption unit test (J. Montoya)
+
 **v0.7.6**
 
 * remove force checking in drone (S. Dwaraknath)
