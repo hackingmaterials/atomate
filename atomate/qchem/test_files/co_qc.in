@@ -1,0 +1,13 @@
+$molecule
+ 0 1
+ C      0.0000000000      0.0000000000      0.0000000000
+ O      1.3000000000      0.0000000000      0.0000000000
+$end
+
+$rem
+   job_type = opt
+   basis = 6-311++G*
+   max_scf_cycles = 200
+   method = wB97X-V
+   geom_opt_max_cycles = 200
+$end
