@@ -38,7 +38,8 @@ class TestWriteInputQChem(AtomateTest):
         ft = WriteInputFromIOSet({"molecule": self.co_mol, "qchem_input_set": "OptSet"})
         ft.run_task({})
         test_dict = QCInput.from_file("mol.qin").as_dict()
-        [self.assertEqual(v, test_dict[k]) for k, v in self.co_opt_ref_in.as_dict().items()]
+        for k, v in self.co_opt_ref_in.as_dict().items():
+            self.assertEqual(v, test_dict[k])
 
     def test_write_input(self):
         mol = self.co_mol
@@ -48,7 +49,8 @@ class TestWriteInputQChem(AtomateTest):
         ft = WriteInput({"qc_input": qc_input})
         ft.run_task({})
         test_dict = QCInput.from_file("mol.qin").as_dict()
-        [self.assertEqual(v, test_dict[k]) for k, v in self.co_opt_ref_in.as_dict().items()]
+        for k, v in self.co_opt_ref_in.as_dict().items():
+            self.assertEqual(v, test_dict[k])
 
 if __name__ == '__main__':
     unittest.main()
