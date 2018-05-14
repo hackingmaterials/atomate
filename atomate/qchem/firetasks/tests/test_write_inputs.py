@@ -5,7 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import os
 import unittest
 
-from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
+from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet, WriteInput
 from atomate.utils.testing import AtomateTest
 from pymatgen.core import Molecule
 from pymatgen.io.qchem_io.inputs import QCInput
@@ -30,14 +30,25 @@ class TestWriteInputQChem(AtomateTest):
         super(TestWriteInputQChem, self).setUp(lpad=False)
 
     def tearDown(self):
-        for x in ["qc.in"]:
+        for x in ["mol.qin"]:
             if os.path.exists(os.path.join(module_dir, x)):
                 os.remove(os.path.join(module_dir, x))
 
     def test_write_input_from_io_set(self):
         ft = WriteInputFromIOSet({"molecule": self.co_mol, "qchem_input_set": "OptSet"})
         ft.run_task({})
-        self.assertEqual(str(QCInput.from_file("qc.in")), str(self.co_opt_ref_in))
+        test_dict = QCInput.from_file("mol.qin").as_dict()
+        [self.assertEqual(v, test_dict[k]) for k, v in self.co_opt_ref_in.as_dict().items()]
+
+    def test_write_input(self):
+        mol = self.co_mol
+        rem = {"job_type": "opt", "basis": "6-311++G*", "max_scf_cycles": 200,
+               "method": "wB97X-V", "geom_opt_max_cycles": 200}
+        qc_input = QCInput(mol, rem)
+        ft = WriteInput({"qc_input": qc_input})
+        ft.run_task({})
+        test_dict = QCInput.from_file("mol.qin").as_dict()
+        [self.assertEqual(v, test_dict[k]) for k, v in self.co_opt_ref_in.as_dict().items()]
 
 if __name__ == '__main__':
     unittest.main()
