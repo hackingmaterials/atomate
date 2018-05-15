@@ -9,7 +9,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 if __name__ == "__main__":
     setup(
         name='atomate',
-        version='0.7.5',
+        version='0.7.7',
         description='atomate has implementations of FireWorks workflows for '
                     'Materials Science',
         long_description=open(os.path.join(module_dir, 'README.md')).read(),
@@ -20,8 +20,8 @@ if __name__ == "__main__":
         packages=find_packages(),
         package_data={'atomate.vasp.workflows.base': ['library/*']},
         zip_safe=False,
-        install_requires=['FireWorks>=1.4.0', 'pymatgen>=2018.3.23',
-                          'custodian>=2017.12.23', 'monty>=1.0.2',
+        install_requires=['FireWorks>=1.4.0', 'pymatgen>=2018.5.3',
+                          'custodian>=2018.3.10', 'monty>=1.0.2',
                           'tqdm>=4.7.4', 'six',
                           'pymatgen-diffusion>=2018.1.4'],
         extras_require={'rtransfer': ['paramiko>=1.15.0'],

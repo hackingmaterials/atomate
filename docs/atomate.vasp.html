@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.vasp package &#8212; atomate 0.7.5 documentation</title>
+    <title>atomate.vasp package &#8212; atomate 0.7.7 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.7 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -200,14 +200,15 @@ background (bool): Run in the background or not.</dd>
 
 <dl class="method">
 <dt id="atomate.vasp.database.VaspCalcDb.insert_gridfs">
-<code class="descname">insert_gridfs</code><span class="sig-paren">(</span><em>d</em>, <em>collection='fs'</em>, <em>compress=True</em>, <em>oid=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.insert_gridfs" title="Permalink to this definition">¶</a></dt>
+<code class="descname">insert_gridfs</code><span class="sig-paren">(</span><em>d</em>, <em>collection='fs'</em>, <em>compress=True</em>, <em>oid=None</em>, <em>task_id=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.insert_gridfs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Insert the given document into GridFS.</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd>d (dict): the document
 collection (string): the GridFS collection name
 compress (bool): Whether to compress the data or not
-oid (ObjectId()): the _id of the file; if specified, it must not already exist in GridFS</dd>
+oid (ObjectId()): the _id of the file; if specified, it must not already exist in GridFS
+task_id(int or str): the task_id to store into the gridfs metadata</dd>
 <dt>Returns:</dt>
 <dd>file id, the type of compression used.</dd>
 </dl>
@@ -215,14 +216,13 @@ oid (ObjectId()): the _id of the file; if specified, it must not already exist i
 
 <dl class="method">
 <dt id="atomate.vasp.database.VaspCalcDb.insert_task">
-<code class="descname">insert_task</code><span class="sig-paren">(</span><em>task_doc</em>, <em>parse_dos=False</em>, <em>parse_bs=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.insert_task" title="Permalink to this definition">¶</a></dt>
+<code class="descname">insert_task</code><span class="sig-paren">(</span><em>task_doc</em>, <em>use_gridfs=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.insert_task" title="Permalink to this definition">¶</a></dt>
 <dd><p>Inserts a task document (e.g., as returned by Drone.assimilate()) into the database.
 Handles putting DOS and band structure into GridFS as needed.</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd>task_doc: (dict) the task document
-parse_dos: (bool) attempt to parse dos in task_doc and insert into Gridfs
-parse_bs: (bool) attempt to parse bandstructure in task_doc and insert into Gridfs</dd>
+use_gridfs (bool) use gridfs for  bandstructures and DOS</dd>
 <dt>Returns:</dt>
 <dd>(int) - task_id of inserted document</dd>
 </dl>
@@ -371,6 +371,16 @@ output files need to be processed.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="atomate.vasp.drones.VaspDrone.process_bandstructure">
+<code class="descname">process_bandstructure</code><span class="sig-paren">(</span><em>vrun</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.process_bandstructure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.drones.VaspDrone.process_dos">
+<code class="descname">process_dos</code><span class="sig-paren">(</span><em>vrun</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.process_dos" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="atomate.vasp.drones.VaspDrone.process_raw_data">
 <code class="descname">process_raw_data</code><span class="sig-paren">(</span><em>dir_name</em>, <em>taskname='standard'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.process_raw_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>It is useful to store what raw data has been calculated
@@ -401,7 +411,7 @@ and exists for easier querying of the taskdoc.</p>
 
 <dl class="attribute">
 <dt id="atomate.vasp.drones.VaspDrone.schema">
-<code class="descname">schema</code><em class="property"> = {'analysis': {'max_force', 'warnings', 'delta_volume_as_percent', 'delta_volume', 'errors'}, 'calcs_reversed': {'run_type', 'composition_reduced', 'nelements', 'formula_anonymous', 'input', 'output', 'task', 'composition_unit_cell', 'formula_pretty', 'dir_name', 'has_vasp_completed', 'formula_reduced_abc', 'nsites', 'completed_at', 'elements', 'vasp_version'}, 'input': {'pseudo_potential', 'xc_override', 'is_lasph', 'structure', 'hubbards', 'potcar_spec', 'is_hubbard'}, 'output': {'forces', 'cbm', 'spacegroup', 'stress', 'is_metal', 'density', 'energy_per_atom', 'structure', 'bandgap', 'vbm', 'is_gap_direct', 'energy'}, 'root': {'composition_reduced', 'schema', 'chemsys', 'nelements', 'formula_anonymous', 'run_stats', 'input', 'output', 'composition_unit_cell', 'formula_pretty', 'dir_name', 'formula_reduced_abc', 'nsites', 'analysis', 'state', 'calcs_reversed', 'completed_at', 'elements'}}</em><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.schema" title="Permalink to this definition">¶</a></dt>
+<code class="descname">schema</code><em class="property"> = {'analysis': {'delta_volume_as_percent', 'delta_volume', 'warnings', 'errors', 'max_force'}, 'calcs_reversed': {'task', 'composition_unit_cell', 'has_vasp_completed', 'elements', 'nelements', 'run_type', 'formula_pretty', 'formula_reduced_abc', 'output', 'nsites', 'completed_at', 'input', 'vasp_version', 'formula_anonymous', 'dir_name', 'composition_reduced'}, 'input': {'potcar_spec', 'xc_override', 'hubbards', 'structure', 'is_lasph', 'is_hubbard', 'pseudo_potential'}, 'output': {'energy', 'cbm', 'is_gap_direct', 'structure', 'bandgap', 'stress', 'vbm', 'forces', 'energy_per_atom', 'density', 'spacegroup', 'is_metal'}, 'root': {'calcs_reversed', 'composition_unit_cell', 'chemsys', 'elements', 'nelements', 'formula_pretty', 'formula_reduced_abc', 'output', 'state', 'completed_at', 'nsites', 'input', 'analysis', 'run_stats', 'schema', 'formula_anonymous', 'dir_name', 'composition_reduced'}}</em><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.schema" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="staticmethod">
@@ -906,7 +916,7 @@ object during filtering.</dd>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.7 documentation</a> &#187;</li> 
       </ul>
     </div>
 

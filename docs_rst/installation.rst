@@ -95,7 +95,7 @@ Keep a record of your credentials - we will configure FireWorks to connect to th
 
     * contact your computing center to review their security policy to allow connections from your MongoDB server (best resolution)
     * host your Mongo database on a machine that you are able to securely connect to, e.g. on the supercomputing network itself (ask a system administrator for help)
-    * use a proxy service to forward connections from the MongoDB --> login node --> compute node (you might try, for example, `this tool <https://github.com/bakks/mongo-proxy`_).
+    * use a proxy service to forward connections from the MongoDB --> login node --> compute node (you might try, for example, `the mongo-proxy tool <https://github.com/bakks/mongo-proxy>`_).
     * set up an ssh tunnel to forward connections from allowed machines (the tunnel must be kept alive at all times you are running workflows)
 
 
