@@ -202,6 +202,7 @@ class QChemDrone(AbstractDrone):
             smiles = pbmol.write(str("smi")).split()[0]
             d["smiles"] = smiles
 
+            d["state"] = "successful" if d_calc_final["completion"] else "unsuccessful"
             d["last_updated"] = datetime.datetime.utcnow()
             return d
 
