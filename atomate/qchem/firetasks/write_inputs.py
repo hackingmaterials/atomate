@@ -18,9 +18,9 @@ class WriteInputFromIOSet(FiretaskBase):
     parameters are given as keys in the dictionary.
 
     required_params:
-        molecule (Molecule): molecule
         qc_input_set (QChemDictSet or str): Either a QChemDictSet object or a string
-        name for the QChem input set (e.g., "OptSet").
+        name for the QChem input set (e.g., "OptSet"). *** Note that if the molecule is to be inherited through
+        fw_spec qc_input_set must be a string name for the QChem input set. ***
 
     optional_params:
         qchem_input_params (dict): When using a string name for QChem input set, use this as a dict
@@ -30,20 +30,27 @@ class WriteInputFromIOSet(FiretaskBase):
         rather than a String.
     """
 
-    required_params = ["molecule", "qchem_input_set"]
-    optional_params = ["qchem_input_params"]
+    required_params = ["qchem_input_set"]
+    optional_params = ["molecule", "qchem_input_params"]
 
     def run_task(self, fw_spec):
         # if a full QChemDictSet object was provided
-        if hasattr(self['qchem_input_set'], 'write_file'):
-            qcin = self['qchem_input_set']
-
-        # if QCInputSet String + parameters was provided
-        else:
+        if hasattr(self["qchem_input_set"], "write_file"):
+            qcin = self["qchem_input_set"]
+            qcin.write_file("mol.qin")
+        # if a molecule is being passed through fw_spec
+        elif fw_spec.get("molecule"):
             qcin_cls = load_class("pymatgen.io.qchem_io.sets", self["qchem_input_set"])
-            qcin = qcin_cls(self["molecule"], **self.get("qchem_input_params", {}))
-        # we might need to add the filename as a required param
-        qcin.write_file("mol.qin")
+            qcin = qcin_cls(fw_spec.get("molecule"), **self.get("qchem_input_params", {}))
+            qcin.write_file("mol.qin")
+        # if a molecule is included as an optional parameter
+        elif self.get("molecule"):
+            qcin_cls = load_class("pymatgen.io.qchem_io.sets", self["qchem_input_set"])
+            qcin = qcin_cls(self.get("molecule"), **self.get("qchem_input_params", {}))
+            qcin.write_file("mol.qin")
+        # if no molecule is present raise an error
+        else:
+            raise KeyError("No molecule present, add as an optional param or check fw_spec")
 
 @explicit_serialize
 class WriteInput(FiretaskBase):
