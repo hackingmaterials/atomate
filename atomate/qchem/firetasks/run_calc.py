@@ -115,7 +115,7 @@ class RunQChemCustodian(FiretaskBase):
         output_file = self.get("output_file", "mol.qout")
         max_cores = self.get("max_cores", 32)
         qclog_file = self.get("qclog_file", "mol.qclog")
-        suffic = self.get("suffix", "")
+        suffix = self.get("suffix", "")
         scratch = env_chk(self.get("scratch"), fw_spec)
         save_scratch = self.get("save_scratch", False)
         save_name = self.get("save_name", "default_save_name")

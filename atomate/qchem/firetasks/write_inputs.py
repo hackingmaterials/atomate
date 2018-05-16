@@ -28,26 +28,31 @@ class WriteInputFromIOSet(FiretaskBase):
         to change the DFT_rung, you should provide: {"DFT_rung": ...}.
         This setting is ignored if you provide the full object representation of a QChemDictSet
         rather than a String.
+        molecule (Molecule):
+        input_file (str): Name of the QChem input file. Defaults to 
     """
 
     required_params = ["qchem_input_set"]
-    optional_params = ["molecule", "qchem_input_params"]
+    optional_params = ["molecule", "qchem_input_params", "input_file"]
 
     def run_task(self, fw_spec):
+        input_file = "mol.qin"
+        if "input_file" in self:
+            input_file = self["input_file"]
         # if a full QChemDictSet object was provided
         if hasattr(self["qchem_input_set"], "write_file"):
             qcin = self["qchem_input_set"]
-            qcin.write_file("mol.qin")
+            qcin.write_file(input_file)
         # if a molecule is being passed through fw_spec
         elif fw_spec.get("molecule"):
             qcin_cls = load_class("pymatgen.io.qchem_io.sets", self["qchem_input_set"])
             qcin = qcin_cls(fw_spec.get("molecule"), **self.get("qchem_input_params", {}))
-            qcin.write_file("mol.qin")
+            qcin.write_file(input_file)
         # if a molecule is included as an optional parameter
         elif self.get("molecule"):
             qcin_cls = load_class("pymatgen.io.qchem_io.sets", self["qchem_input_set"])
             qcin = qcin_cls(self.get("molecule"), **self.get("qchem_input_params", {}))
-            qcin.write_file("mol.qin")
+            qcin.write_file(input_file)
         # if no molecule is present raise an error
         else:
             raise KeyError("No molecule present, add as an optional param or check fw_spec")

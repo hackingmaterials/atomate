@@ -158,6 +158,8 @@ class QChemDrone(AbstractDrone):
                 d["output"]["optimized_molecule"] = d_calc_final[
                     "molecule_from_optimized_geometry"]
                 d["output"]["final_energy"] = d_calc_final["final_energy"]
+                if d_calc_final["opt_constraint"]:
+                    d["output"]["constraint"] = [d_calc_final["opt_constraint"][0],float(d_calc_final["opt_constraint"][6])]
             if d["output"]["job_type"] == "freq" or d["output"]["job_type"] == "frequency":
                 d["output"]["frequencies"] = d_calc_final["frequencies"]
                 d["output"]["enthalpy"] = d_calc_final["enthalpy"]
