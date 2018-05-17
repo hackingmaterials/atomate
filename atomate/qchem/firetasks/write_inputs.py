@@ -40,13 +40,14 @@ class WriteInputFromIOSet(FiretaskBase):
         input_file = "mol.qin"
         if "input_file" in self:
             input_file = self["input_file"]
+        # these if statements might need to be reordered at some point
         # if a full QChemDictSet object was provided
         if hasattr(self["qchem_input_set"], "write_file"):
             qcin = self["qchem_input_set"]
             qcin.write_file(input_file)
         # if a molecule is being passed through fw_spec
-        elif fw_spec.get("prev_calc_result").get("molecule"):
-            mol = Molecule.from_dict(fw_spec.get("prev_calc_result").get("molecule"))
+        elif fw_spec.get("prev_calc_molecule"):
+            mol = Molecule.from_dict(fw_spec.get("prev_calc_molecule"))
             qcin_cls = load_class("pymatgen.io.qchem_io.sets", self["qchem_input_set"])
             qcin = qcin_cls(mol, **self.get("qchem_input_params", {}))
             qcin.write_file(input_file)
