@@ -77,6 +77,11 @@ class QChemToDb(FiretaskBase):
         if self.get("fw_spec_field"):
             task_doc.update(fw_spec[self.get("fw_spec_field")])
 
+        # Update fw_spec with final/optimized structure
+        update_spec = {}
+        if task_doc.get("output").get("optimized_molecule"):
+            update_spec["prev_calc_molecule"] = task_doc["output"]["optimized_molecule"]
+
         # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
 
@@ -108,4 +113,4 @@ class QChemToDb(FiretaskBase):
 
         return FWAction(
             stored_data={"task_id": task_doc.get("task_id", None)},
-            defuse_children=defuse_children)
+            defuse_children=defuse_children, update_spec=update_spec)
