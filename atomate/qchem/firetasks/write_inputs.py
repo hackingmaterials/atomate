@@ -6,6 +6,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 from atomate.utils.utils import load_class
 from fireworks import FiretaskBase, explicit_serialize
+from pymatgen.core import Molecule
 
 __author__ = 'Brandon Wood'
 __email__ = "b.wood@berkeley.edu"
@@ -44,9 +45,10 @@ class WriteInputFromIOSet(FiretaskBase):
             qcin = self["qchem_input_set"]
             qcin.write_file(input_file)
         # if a molecule is being passed through fw_spec
-        elif fw_spec.get("molecule"):
+        elif fw_spec.get("prev_calc_result").get("molecule"):
+            mol = Molecule.from_dict(fw_spec.get("prev_calc_result").get("molecule"))
             qcin_cls = load_class("pymatgen.io.qchem_io.sets", self["qchem_input_set"])
-            qcin = qcin_cls(fw_spec.get("molecule"), **self.get("qchem_input_params", {}))
+            qcin = qcin_cls(mol, **self.get("qchem_input_params", {}))
             qcin.write_file(input_file)
         # if a molecule is included as an optional parameter
         elif self.get("molecule"):
