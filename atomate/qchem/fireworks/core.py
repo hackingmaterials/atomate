@@ -23,16 +23,16 @@ from atomate.qchem.firetasks.write_inputs import *
 class OptimizeFW(Firework):
 
     def __init__(self, 
-                 molecule, 
-                 name = "structure optimization", 
-                 qchem_cmd = "qchem", 
-                 multimode = "openmp", 
-                 input_file = "mol.qin", 
-                 output_file = "mol.qout", 
-                 max_cores = 32,
-                 qchem_input_params = None, 
-                 db_file = None, 
-                 parents = None, 
+                 molecule=None,
+                 name="structure optimization",
+                 qchem_cmd="qchem",
+                 multimode="openmp",
+                 input_file="mol.qin",
+                 output_file="mol.qout",
+                 max_cores=32,
+                 qchem_input_params=None,
+                 db_file=None,
+                 parents=None,
                  **kwargs):
         """
         Optimize the given structure.
@@ -56,20 +56,21 @@ class OptimizeFW(Firework):
         """
 
         t = []
-        t.append(WriteInputFromIOSet(molecule = molecule, 
-                                     qchem_input_set = "OptSet",
-                                     input_file = input_file,
-                                     qchem_input_params = qchem_input_params))
-        t.append(RunQChemCustodian(qchem_cmd = qchem_cmd, 
-                                   multimode = multimode, 
-                                   input_file = input_file, 
-                                   output_file = output_file,
-                                   max_cores = max_cores,
-                                   job_type = "normal"))
-        t.append(QChemToDb(db_file = db_file,
-                           input_file = input_file,
-                           output_file = output_file,
-                           additional_fields = {"task_label": name}))
-        super(OptimizeFW, self).__init__(t, parents = parents, name = "{}-{}".format(structure.composition.reduced_formula, name),**kwargs)
-
+        t.append(WriteInputFromIOSet(molecule=molecule,
+                                     qchem_input_set="OptSet",
+                                     input_file=input_file,
+                                     qchem_input_params=qchem_input_params))
+        t.append(RunQChemCustodian(qchem_cmd=qchem_cmd,
+                                   multimode=multimode,
+                                   input_file=input_file,
+                                   output_file=output_file,
+                                   max_cores=max_cores,
+                                   job_type="normal"))
+        t.append(QChemToDb(db_file=db_file,
+                           input_file=input_file,
+                           output_file=output_file,
+                           additional_fields={"task_label": name}))
+        super(OptimizeFW, self).__init__(t, parents=parents,
+                                         name="{}-{}".format(structure.composition.reduced_formula, name),
+                                         **kwargs)
 
