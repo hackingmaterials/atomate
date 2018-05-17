@@ -6,9 +6,7 @@ This module defines tasks that support running QChem in various ways.
 """
 
 import shutil
-import shlex
 import os
-import six
 import subprocess
 
 from pymatgen.io.qchem_io.inputs import QCInput
@@ -80,7 +78,7 @@ class RunQChemCustodian(FiretaskBase):
         qclog_file (str): Name of the file to redirect the standard output to. None means 
                           not to record the standard output. Defaults to None.
         suffix (str): String to append to the file in postprocess.
-        scratch (str): QCSCRATCH directory. Defaults to "/dev/shm/qcscratch/".
+        scratch_dir (str): QCSCRATCH directory. Defaults to "/dev/shm/qcscratch/".
         save_scratch (bool): Whether to save scratch directory contents. Defaults to False.
         save_name (str): Name of the saved scratch directory. Defaults to "default_save_name".
         max_errors (int): Maximum # of errors to fix before giving up (default=5)
@@ -101,7 +99,7 @@ class RunQChemCustodian(FiretaskBase):
     required_params = ["qchem_cmd"]
     optional_params = [
         "multimode", "input_file", "output_file", "max_cores", "qclog_file",
-        "suffix", "scratch", "save_scratch", "save_name", "max_errors",
+        "suffix", "scratch_dir", "save_scratch", "save_name", "max_errors",
         "max_iterations", "max_molecule_perturb_scale", "reversed_direction",
         "job_type", "handler_group", "gzipped_output"
     ]
@@ -116,7 +114,7 @@ class RunQChemCustodian(FiretaskBase):
         max_cores = self.get("max_cores", 32)
         qclog_file = self.get("qclog_file", "mol.qclog")
         suffix = self.get("suffix", "")
-        scratch = env_chk(self.get("scratch"), fw_spec)
+        scratch_dir = env_chk(self.get("scratch_dir"), fw_spec)
         save_scratch = self.get("save_scratch", False)
         save_name = self.get("save_name", "default_save_name")
         max_errors = self.get("max_errors", 5)
@@ -145,7 +143,7 @@ class RunQChemCustodian(FiretaskBase):
                     max_cores=max_cores,
                     qclog_file=qclog_file,
                     suffix=suffix,
-                    scratch=scratch,
+                    scratch_dir=scratch_dir,
                     save_scratch=save_scratch,
                     save_name=save_name)
             ]
@@ -158,7 +156,7 @@ class RunQChemCustodian(FiretaskBase):
                 qclog_file=qclog_file,
                 max_iterations=max_iterations,
                 max_molecule_perturb_scale=max_molecule_perturb_scale,
-                scratch=scratch,
+                scratch_dir=scratch_dir,
                 save_scratch=save_scratch,
                 save_name=save_name,
                 max_cores=max_cores)
