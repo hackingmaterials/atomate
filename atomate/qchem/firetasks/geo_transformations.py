@@ -42,10 +42,10 @@ class RotateTorsion(FiretaskBase):
         else:
             raise KeyError("No molecule present, add as an optional param or check fw_spec")
 
-        babe_mol = pb.Molecule(BabelMolAdaptor(start_mol).openbabel_mol)
-        babe_mol.OBMol.SetTorsion(self["atom_indexes"][0], self["atom_indexes"][1],
+        babe_mol = BabelMolAdaptor(start_mol).openbabel_mol
+        babe_mol.SetTorsion(self["atom_indexes"][0], self["atom_indexes"][1],
                                   self["atom_indexes"][2], self["atom_indexes"][3], (self["angle"] * np.pi / 180.))
-        rotated_mol = BabelMolAdaptor(babe_mol.OBMol).pymatgen_mol
+        rotated_mol = BabelMolAdaptor(babe_mol).pymatgen_mol
 
         # update the fw_spec with the rotated geometry
         update_spec = {"prev_calc_molecule": rotated_mol}
