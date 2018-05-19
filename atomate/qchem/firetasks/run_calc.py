@@ -48,14 +48,14 @@ class RunQChemDirect(FiretaskBase):
 
     def run_task(self, fw_spec):
         cmd = env_chk(self["qchem_cmd"], fw_spec)
-        scratch_dir = "/dev/shm/qcscratch/"
-        if self.get("scratch_dir"):
-            scratch_dir = self["scratch_dir"]
+        scratch_dir = env_chk(self.get("scratch_dir"), fw_spec)
+        if scratch_dir == None:
+            scratch_dir = "/dev/shm/qcscratch/"
         os.putenv("QCSCRATCH", scratch_dir)
 
         logger.info("Running command: {}".format(cmd))
         return_code = subprocess.call(cmd, shell=True)
-        logger.info("Command {} finished running with returncode: {}".format(
+        logger.info("Command {} finished running with return code: {}".format(
             cmd, return_code))
 
 
@@ -115,6 +115,8 @@ class RunQChemCustodian(FiretaskBase):
         qclog_file = self.get("qclog_file", "mol.qclog")
         suffix = self.get("suffix", "")
         scratch_dir = env_chk(self.get("scratch_dir"), fw_spec)
+        if scratch_dir == None:
+            scratch_dir = "/dev/shm/qcscratch/"
         save_scratch = self.get("save_scratch", False)
         save_name = self.get("save_name", "default_save_name")
         max_errors = self.get("max_errors", 5)
@@ -122,7 +124,7 @@ class RunQChemCustodian(FiretaskBase):
         max_molecule_perturb_scale = self.get("max_molecule_perturb_scale",
                                               0.3)
         job_type = self.get("job_type", "normal")
-        gzip_output = self.get("gzip_output", True)
+        gzipped_output = self.get("gzipped_output", True)
 
         handler_groups = {
             "default": [
@@ -171,8 +173,7 @@ class RunQChemCustodian(FiretaskBase):
             handlers,
             jobs,
             max_errors=max_errors,
-            scratch_dir=scratch_dir,
-            gzipped_output=gzip_output)
+            gzipped_output=gzipped_output)
 
         c.run()
 
@@ -208,29 +209,28 @@ class RunQChemFake(FiretaskBase):
         user_qin = QCInput.from_file(os.path.join(os.getcwd(), "mol.qin"))
 
         # Check mol.qin
-        if self.get("check_input", True):
-            ref_qin = QCInput.from_file(
-                os.path.join(self["ref_dir"], "mol.qin"))
-            if ref_qin.molecule != user_qin.molecule:
-                raise ValueError("Molecule is inconsistent!")
-            for key in ref_qin.rem:
-                if user_qin.rem.get(key) != ref_qin.rem.get(key):
-                    raise ValueError("Rem key {} is inconsistent!".format(key))
-            if ref_qin.opt != None:
-                for key in ref_qin.opt:
-                    if user_qin.opt.get(key) != ref_qin.opt.get(key):
-                        raise ValueError(
-                            "Opt key {} is inconsistent!".format(key))
-            if ref_qin.pcm != None:
-                for key in ref_qin.pcm:
-                    if user_qin.pcm.get(key) != ref_qin.pcm.get(key):
-                        raise ValueError(
-                            "PCM key {} is inconsistent!".format(key))
-            if ref_qin.solvent != None:
-                for key in ref_qin.solvent:
-                    if user_qin.solvent.get(key) != ref_qin.solvent.get(key):
-                        raise ValueError(
-                            "Solvent key {} is inconsistent!".format(key))
+        ref_qin = QCInput.from_file(
+            os.path.join(self["ref_dir"], "mol.qin"))
+        if ref_qin.molecule != user_qin.molecule:
+            raise ValueError("Molecule is inconsistent!")
+        for key in ref_qin.rem:
+            if user_qin.rem.get(key) != ref_qin.rem.get(key):
+                raise ValueError("Rem key {} is inconsistent!".format(key))
+        if ref_qin.opt != None:
+            for key in ref_qin.opt:
+                if user_qin.opt.get(key) != ref_qin.opt.get(key):
+                    raise ValueError(
+                        "Opt key {} is inconsistent!".format(key))
+        if ref_qin.pcm != None:
+            for key in ref_qin.pcm:
+                if user_qin.pcm.get(key) != ref_qin.pcm.get(key):
+                    raise ValueError(
+                        "PCM key {} is inconsistent!".format(key))
+        if ref_qin.solvent != None:
+            for key in ref_qin.solvent:
+                if user_qin.solvent.get(key) != ref_qin.solvent.get(key):
+                    raise ValueError(
+                        "Solvent key {} is inconsistent!".format(key))
 
         logger.info("RunQChemFake: verified input successfully")
 
