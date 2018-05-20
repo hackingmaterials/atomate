@@ -1,4 +1,4 @@
-# Run a GGA band structure and also an HSE line-mode band structure
+# Run a typical band structure and also an HSE line-mode band structure afterward
 fireworks:
 - fw: atomate.vasp.fireworks.core.OptimizeFW
 - fw: atomate.vasp.fireworks.core.StaticFW
