@@ -223,8 +223,9 @@ class HSEBSFW(Firework):
         bandstructure_mode = mode if mode in ["line", "uniform"] else "line"
 
         t.append(
-            VaspToDb(db_file=db_file, additional_fields={"task_label": name}),
-            parse_dos=parse_dos, bandstructure_mode=bandstructure_mode)
+            VaspToDb(db_file=db_file, additional_fields={"task_label": name},
+                     parse_dos=parse_dos,
+                     bandstructure_mode=bandstructure_mode))
         super(HSEBSFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
