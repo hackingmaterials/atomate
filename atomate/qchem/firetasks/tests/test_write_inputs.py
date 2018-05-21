@@ -46,7 +46,7 @@ class TestWriteInputQChem(AtomateTest):
         rem = {"job_type": "opt", "basis": "6-311++G*", "max_scf_cycles": 200,
                "method": "wB97X-V", "geom_opt_max_cycles": 200}
         qc_input = QCInput(mol, rem)
-        ft = WriteInput({"qc_input": qc_input})
+        ft = WriteInput(qc_input=qc_input)
         ft.run_task({})
         test_dict = QCInput.from_file("mol.qin").as_dict()
         for k, v in self.co_opt_ref_in.as_dict().items():
