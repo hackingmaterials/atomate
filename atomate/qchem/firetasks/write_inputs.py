@@ -30,7 +30,7 @@ class WriteInputFromIOSet(FiretaskBase):
         This setting is ignored if you provide the full object representation of a QChemDictSet
         rather than a String.
         molecule (Molecule):
-        input_file (str): Name of the QChem input file. Defaults to 
+        input_file (str): Name of the QChem input file. Defaults to mol.qin
     """
 
     required_params = ["qchem_input_set"]
