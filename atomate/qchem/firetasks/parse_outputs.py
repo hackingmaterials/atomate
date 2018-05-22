@@ -43,10 +43,12 @@ class QChemToDb(FiretaskBase):
             Supports env_chk. Default: write data to JSON file.
         fw_spec_field (str): if set, will update the task doc with the contents
             of this key in the fw_spec.
+        multirun (bool): Whether the job to parse includes multiple
+            calculations in one input / output pair.
     """
     optional_params = [
         "calc_dir", "calc_loc", "input_file", "output_file",
-        "additional_fields", "db_file", "fw_spec_field"
+        "additional_fields", "db_file", "fw_spec_field", "multirun"
     ]
 
     def run_task(self, fw_spec):
@@ -64,6 +66,10 @@ class QChemToDb(FiretaskBase):
         if "output_file" in self:
             output_file = self["output_file"]
 
+        multirun = False
+        if "multirun" in self:
+            multirun = self["multirun"]
+
         # parse the QChem directory
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
 
@@ -71,7 +77,7 @@ class QChemToDb(FiretaskBase):
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(
-            path=calc_dir, input_file=input_file, output_file=output_file)
+            path=calc_dir, input_file=input_file, output_file=output_file, multirun=multirun)
 
         # Check for additional keys to set based on the fw_spec
         if self.get("fw_spec_field"):
@@ -87,7 +93,7 @@ class QChemToDb(FiretaskBase):
 
         # db insertion or taskdoc dump
         if not db_file:
-            with open("task.json", "w") as f:
+            with open(os.path.join(calc_dir, "task.json"), "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
             mmdb = CalcDb.from_db_file(db_file, admin=True)
