@@ -18,7 +18,8 @@ class QChemDroneTest(unittest.TestCase):
         doc = drone.assimilate(
             path=os.path.join(module_dir, "..", "test_files", "FF_working"),
             input_file="test.qin.opt_1",
-            output_file="test.qout.opt_1")
+            output_file="test.qout.opt_1",
+            multirun=False)
         self.assertEqual(doc["input"]["job_type"], "opt")
         self.assertEqual(doc["output"]["job_type"], "opt")
         self.assertEqual(doc["output"]["final_energy"], -348.652462579636)
@@ -43,7 +44,8 @@ class QChemDroneTest(unittest.TestCase):
         doc = drone.assimilate(
             path=os.path.join(module_dir, "..", "test_files", "FF_working"),
             input_file="test.qin.freq_1",
-            output_file="test.qout.freq_1")
+            output_file="test.qout.freq_1",
+            multirun=False)
         self.assertEqual(doc["input"]["job_type"], "freq")
         self.assertEqual(doc["output"]["job_type"], "freq")
         test_freqs = np.array([
@@ -80,7 +82,8 @@ class QChemDroneTest(unittest.TestCase):
         doc = drone.assimilate(
             path=os.path.join(module_dir, "..", "test_files", "FF_working"),
             input_file="test.qin",
-            output_file="test.qout")
+            output_file="test.qout",
+            multirun=False)
         self.assertEqual(doc["special_run_type"], "frequency_flattener")
         self.assertEqual(doc["input"]["job_type"], "opt")
         self.assertEqual(doc["output"]["job_type"], "freq")
@@ -118,6 +121,42 @@ class QChemDroneTest(unittest.TestCase):
             list(doc["calcs_reversed"][1].keys()),
             list(doc["calcs_reversed"][3].keys()))
 
+    def test_multirun(self):
+        drone = QChemDrone()
+        doc = drone.assimilate(
+            path=os.path.join(module_dir, "..", "test_files", "julian_nt"),
+            input_file="julian.qin",
+            output_file="julian.qout",
+            multirun=True)
+        self.assertEqual(doc["input"]["job_type"], "optimization")
+        self.assertEqual(doc["output"]["job_type"], "frequency")
+        test_freqs = np.array([
+            -69.17, 117.81, 244.67, 257.93, 530., 579.64, 737.42, 771.1,
+            787.32, 869.29, 924.77, 962.67, 1084.55, 1117.49, 1143.1, 1196.27,
+            1378.76, 1696.26, 1860.75, 3321.43
+        ])
+        for ii, entry in enumerate(test_freqs):
+            self.assertEqual(test_freqs[ii], doc["output"]["frequencies"][ii])
+            self.assertEqual(doc["output"]["frequencies"][ii],
+                             doc["calcs_reversed"][0]["frequencies"][ii])
+        self.assertEqual(doc["output"]["enthalpy"], 36.755)
+        self.assertEqual(doc["output"]["entropy"], 74.989)
+        self.assertEqual(doc["walltime"], 684.6300000000001)
+        self.assertEqual(doc["cputime"], 4039.37)
+        self.assertEqual(doc["smiles"], "O1[C](O[Li])OC=C1")
+        self.assertEqual(doc["formula_pretty"], "LiH2(CO)3")
+        self.assertEqual(doc["formula_anonymous"], "AB2C3D3")
+        self.assertEqual(doc["chemsys"], "C-H-Li-O")
+        self.assertEqual(doc["pointgroup"], "C2")
+        self.assertIn("calcs_reversed", doc)
+        self.assertIn("initial_molecule", doc["input"])
+        self.assertIn("initial_molecule", doc["output"])
+        self.assertIn("optimized_molecule", doc["output"])
+        self.assertIn("last_updated", doc)
+        self.assertIn("dir_name", doc)
+        self.assertEqual(len(doc["calcs_reversed"]), 3)
+        self.assertEqual(doc["calcs_reversed"][0]["task"]["name"], "calc2")
+        self.assertEqual(doc["calcs_reversed"][-1]["task"]["name"], "calc0")
 
 if __name__ == "__main__":
     unittest.main()
