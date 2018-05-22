@@ -13,6 +13,7 @@ from fireworks import Firework, Workflow, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 from atomate.utils.testing import AtomateTest
 from pymatgen.core import Molecule
+from pymatgen.io.qchem_io.inputs import QCInput
 import numpy as np
 
 __author__ = 'Brandon Wood'
@@ -26,8 +27,8 @@ class TestParsePassWrite(AtomateTest):
     @classmethod
     def setUpClass(cls):
 
-        cls.act_mol = Molecule.from_file(os.path.join(module_dir, "..", "..", "test_files",
-                                                      "FF_working", "test.qin.opt_1"))
+        cls.act_mol = QCInput.from_file(os.path.join(module_dir, "..", "..", "test_files",
+                                                      "FF_working", "test.qin.opt_1")).molecule
 
     def tearDown(self):
         # this removes the scratch dir made by AtomateTest
