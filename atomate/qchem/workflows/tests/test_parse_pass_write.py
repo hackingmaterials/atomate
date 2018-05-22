@@ -27,8 +27,9 @@ class TestParsePassWrite(AtomateTest):
     @classmethod
     def setUpClass(cls):
 
-        cls.act_mol = QCInput.from_file(os.path.join(module_dir, "..", "..", "test_files",
-                                                      "FF_working", "test.qin.opt_1")).molecule
+        qin = QCInput.from_file(os.path.join(module_dir, "..", "..", "test_files",
+                                                      "FF_working", "test.qin.opt_1"))
+        cls.act_mol = qin.molecule
 
     def tearDown(self):
         # this removes the scratch dir made by AtomateTest
