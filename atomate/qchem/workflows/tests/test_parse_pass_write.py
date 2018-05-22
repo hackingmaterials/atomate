@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import os
 import unittest
+import shutil
 
 from atomate.qchem.firetasks.geo_transformations import RotateTorsion
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
