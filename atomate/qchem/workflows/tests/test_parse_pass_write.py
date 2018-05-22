@@ -25,15 +25,13 @@ class TestParsePassWrite(AtomateTest):
     @classmethod
     def setUpClass(cls):
 
-        cls.pt_mol = Molecule.from_file(os.path.join(module_dir, "..", "..",
-                                                     "test_files", "pt_gs_wb97mv_tz_initial.xyz"))
-        cls.pt_rot_90_mol = Molecule.from_file(os.path.join(module_dir, "..", "..",
-                                                            "test_files", "pt_rotated_90.0.xyz"))
-
-    def setUp(self):
-        super(TestParsePassWrite, self).setUp()
+        cls.act_mol = Molecule.from_file(os.path.join(module_dir, "..", "..", "test_files",
+                                                      "FF_working", "test.qin.opt_1"))
 
     def tearDown(self):
+        # this removes the scratch dir made by AtomateTest
+        shutil.rmtree(self.scratch_dir)
+        # this removes the file that gets written
         for x in ["mol.qin"]:
             if os.path.exists(os.path.join(module_dir, x)):
                 os.remove(os.path.join(module_dir, x))
@@ -46,19 +44,16 @@ class TestParsePassWrite(AtomateTest):
 
         p_task = QChemToDb(calc_dir=calc_dir, input_file=input, output_file=output)
         fw1 = Firework([p_task])
-        w_task = WriteInputFromIOSet(qchem_input_set="OptSet")
+        w_task = WriteInputFromIOSet(qchem_input_set="OptSet", write_to_dir=module_dir)
         fw2 = Firework([w_task], parents=fw1)
         wf = Workflow([fw1, fw2])
 
         self.lp.add_wf(wf)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
-
-        #ft = RotateTorsion({"molecule": self.pt_mol, "atom_indexes": atom_indexes, "angle": angle})
-        #rot_mol = ft.run_task({})
-        #test_mol = Molecule.from_dict(rot_mol.as_dict()["update_spec"]["prev_calc_molecule"])
-        #np.testing.assert_equal(self.pt_rot_90_mol.species, test_mol.species)
-        #np.testing.assert_allclose(self.pt_rot_90_mol.cart_coords, test_mol.cart_coords, atol=0.0001)
+        test_mol = QCInput.from_file(os.path.join(module_dir, "mol.qin"))
+        np.testing.assert_equal(self.act_mol.species, test_mol.species)
+        np.testing.assert_equal(self.act_mol.cart_coords, test_mol.cart_coords)
 
 if __name__ == '__main__':
     unittest.main()
