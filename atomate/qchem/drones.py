@@ -64,7 +64,7 @@ class QChemDrone(AbstractDrone):
                                  for ii in range(9)]))
         self.additional_fields = additional_fields or {}
 
-    def assimilate(self, path, input_file, output_file):
+    def assimilate(self, path, input_file, output_file, multirun):
         """
         Parses qchem input and output files and insert the result into the db.
 
@@ -72,6 +72,8 @@ class QChemDrone(AbstractDrone):
             path (str): Path to the directory containing output file
             input_file (str): base name of the input file(s)
             output_file (str): base name of the output file(s)
+            multirun (bool): Whether the job to parse includes multiple
+                             calculations in one input / output pair.
 
         Returns:
             d (dict): a task dictionary
@@ -82,7 +84,7 @@ class QChemDrone(AbstractDrone):
         if len(qcinput_files) != len(qcoutput_files):
             raise AssertionError('Inequal number of input and output files!')
         if len(qcinput_files) > 0 and len(qcoutput_files) > 0:
-            d = self.generate_doc(path, qcinput_files, qcoutput_files)
+            d = self.generate_doc(path, qcinput_files, qcoutput_files, multirun)
             self.post_process(path, d)
         else:
             raise ValueError("Either input or output not found!")
@@ -123,7 +125,7 @@ class QChemDrone(AbstractDrone):
                     processed_files['standard'] = f
         return processed_files
 
-    def generate_doc(self, dir_name, qcinput_files, qcoutput_files):
+    def generate_doc(self, dir_name, qcinput_files, qcoutput_files, multirun):
         try:
             fullpath = os.path.abspath(dir_name)
             d = jsanitize(self.additional_fields, strict=True)
@@ -132,12 +134,15 @@ class QChemDrone(AbstractDrone):
                 "version": QChemDrone.__version__
             }
             d["dir_name"] = fullpath
-            d["calcs_reversed"] = [
-                self.process_qchemrun(dir_name, taskname,
-                                      qcinput_files.get(taskname),
-                                      output_filename)
-                for taskname, output_filename in qcoutput_files.items()
-            ]
+            if multirun:
+                d["calcs_reversed"] = self.process_qchem_multirun(dir_name, qcinput_files, qcoutput_files)
+            else:
+                d["calcs_reversed"] = [
+                    self.process_qchemrun(dir_name, taskname,
+                                          qcinput_files.get(taskname),
+                                          output_filename)
+                    for taskname, output_filename in qcoutput_files.items()
+                ]
 
             # reverse the calculations data order so newest calc is first
             d["calcs_reversed"].reverse()
@@ -230,6 +235,32 @@ class QChemDrone(AbstractDrone):
         d["input"]["solvent"] = temp_input.solvent
         d["task"] = {"type": taskname, "name": taskname}
         return d
+
+    def process_qchem_multirun(self, dir_name, input_files, output_files):
+        """
+        Process a QChem run which is known to include multiple calculations
+        in a single input/output pair.
+        """
+        if len(input_files) != 1:
+            raise ValueError("ERROR: The drone can only process a directory containing a single input/output pair when each include multiple calculations.")
+        else:
+            for key in input_files:
+                to_return = []
+                qchem_input_file = os.path.join(dir_name, input_files.get(key))
+                qchem_output_file = os.path.join(dir_name, output_files.get(key))
+                multi_out = QCOutput.multiple_outputs_from_file(QCOutput, qchem_output_file, keep_sub_files=False)
+                multi_in = QCInput.from_multi_jobs_file(qchem_input_file)
+                for ii,out in enumerate(multi_out):
+                    d = out.data
+                    d["input"] = {}
+                    d["input"]["molecule"] = multi_in[ii].molecule
+                    d["input"]["rem"] = multi_in[ii].rem
+                    d["input"]["opt"] = multi_in[ii].opt
+                    d["input"]["pcm"] = multi_in[ii].pcm
+                    d["input"]["solvent"] = multi_in[ii].solvent
+                    d["task"] = {"type": key, "name": "calc"+str(ii)}
+                    to_return.append(d)
+            return to_return
 
     def post_process(self, dir_name, d):
         """
