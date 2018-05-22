@@ -34,7 +34,9 @@ class TestParsePassWrite(AtomateTest):
         super(TestParsePassWrite, self).setUp()
 
     def tearDown(self):
-        pass
+        for x in ["mol.qin"]:
+            if os.path.exists(os.path.join(module_dir, x)):
+                os.remove(os.path.join(module_dir, x))
 
     def test_parse_pass_write(self):
 
