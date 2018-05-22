@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import os
 import unittest
+import shutil
 
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet, WriteInput
 from atomate.utils.testing import AtomateTest
@@ -30,14 +31,22 @@ class TestWriteInputQChem(AtomateTest):
         super(TestWriteInputQChem, self).setUp(lpad=False)
 
     def tearDown(self):
+        shutil.rmtree(self.scratch_dir)
         for x in ["mol.qin"]:
             if os.path.exists(os.path.join(module_dir, x)):
                 os.remove(os.path.join(module_dir, x))
 
     def test_write_input_from_io_set(self):
-        ft = WriteInputFromIOSet({"molecule": self.co_mol, "qchem_input_set": "OptSet"})
+        ft = WriteInputFromIOSet(molecule=self.co_mol, qchem_input_set="OptSet")
         ft.run_task({})
         test_dict = QCInput.from_file("mol.qin").as_dict()
+        for k, v in self.co_opt_ref_in.as_dict().items():
+            self.assertEqual(v, test_dict[k])
+
+    def test_write_input_from_io_set_write_dir(self):
+        ft = WriteInputFromIOSet(molecule=self.co_mol, qchem_input_set="OptSet", write_to_dir=module_dir)
+        ft.run_task({})
+        test_dict = QCInput.from_file(os.path.join(module_dir, "mol.qin")).as_dict()
         for k, v in self.co_opt_ref_in.as_dict().items():
             self.assertEqual(v, test_dict[k])
 

@@ -4,6 +4,8 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 # This module defines firetasks for writing QChem input files
 
+import os
+
 from atomate.utils.utils import load_class
 from fireworks import FiretaskBase, explicit_serialize
 from pymatgen.core import Molecule
@@ -31,15 +33,20 @@ class WriteInputFromIOSet(FiretaskBase):
         rather than a String.
         molecule (Molecule):
         input_file (str): Name of the QChem input file. Defaults to mol.qin
+        write_to_dir (str): Path of the directory where the QChem input file will be written,
+        the default is to write to the current working directory
     """
 
     required_params = ["qchem_input_set"]
-    optional_params = ["molecule", "qchem_input_params", "input_file"]
+    optional_params = ["molecule", "qchem_input_params", "input_file", "write_to_dir"]
 
     def run_task(self, fw_spec):
         input_file = "mol.qin"
         if "input_file" in self:
             input_file = self["input_file"]
+        # this adds the full path to the input_file
+        if "write_to_dir" in self:
+            input_file = os.path.join(self["write_to_dir"], input_file)
         # these if statements might need to be reordered at some point
         # if a full QChemDictSet object was provided
         if hasattr(self["qchem_input_set"], "write_file"):
@@ -69,10 +76,23 @@ class WriteInput(FiretaskBase):
     required_params:
         qc_input (QCInput): QCInput object
 
+    optional_params:
+        input_file (str): Name of the QChem input file. Defaults to mol.qin
+        write_to_dir (str): Path of the directory where the QChem input file will be written,
+        the default is to write to the current working directory
+
     """
     required_params = ["qc_input"]
+    optional_params = ["input_file", "write_to_dir"]
 
     def run_task(self, fw_spec):
         # if a QCInput object is provided
+        input_file = "mol.qin"
+        if "input_file" in self:
+            input_file = self["input_file"]
+        # this adds the full path to the input_file
+        if "write_to_dir" in self:
+            input_file = os.path.join(self["write_to_dir"], input_file)
+
         qcin = self['qc_input']
-        qcin.write_file("mol.qin")
+        qcin.write_file(input_file)
