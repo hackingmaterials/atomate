@@ -27,9 +27,8 @@ class TestParsePassWrite(AtomateTest):
     @classmethod
     def setUpClass(cls):
 
-        qin = QCInput.from_file(os.path.join(module_dir, "..", "..", "test_files",
-                                                      "FF_working", "test.qin.opt_1"))
-        cls.act_mol = qin.molecule
+        cls.act_mol = QCInput.from_file(os.path.join(module_dir, "..", "..", "test_files",
+                                                     "FF_working", "test.qin.opt_1")).molecule
 
     def tearDown(self):
         # this removes the scratch dir made by AtomateTest
@@ -54,7 +53,7 @@ class TestParsePassWrite(AtomateTest):
         self.lp.add_wf(wf)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
-        test_mol = QCInput.from_file(os.path.join(module_dir, "mol.qin"))
+        test_mol = QCInput.from_file(os.path.join(module_dir, "mol.qin")).molecule
         np.testing.assert_equal(self.act_mol.species, test_mol.species)
         np.testing.assert_equal(self.act_mol.cart_coords, test_mol.cart_coords)
 

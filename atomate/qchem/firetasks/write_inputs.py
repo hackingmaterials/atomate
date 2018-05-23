@@ -54,7 +54,6 @@ class WriteInputFromIOSet(FiretaskBase):
             qcin.write_file(input_file)
         # if a molecule is being passed through fw_spec
         elif fw_spec.get("prev_calc_molecule"):
-            print(fw_spec.get("prev_calc_molecule"))
             mol = fw_spec.get("prev_calc_molecule")
             qcin_cls = load_class("pymatgen.io.qchem_io.sets", self["qchem_input_set"])
             qcin = qcin_cls(mol, **self.get("qchem_input_params", {}))
