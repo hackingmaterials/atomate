@@ -37,9 +37,8 @@ class TestAdsorptionWorkflow(AtomateTest):
         slabs = generate_all_slabs(self.struct_ir, **sgp)
         slab_100 = [slab for slab in slabs if slab.miller_index==(1, 0, 0)][0]
         sgp.pop("max_index")
-        self.wf_1 = get_wf_slab(
-            slab_100, True, sgp, [Molecule("H", [[0, 0, 0]])],
-            db_file=os.path.join(db_dir, "db.json"))
+        self.wf_1 = get_wf_slab(slab_100, True, [Molecule("H", [[0, 0, 0]])],
+                                db_file=os.path.join(db_dir, "db.json"))
 
     def _simulate_vasprun(self, wf):
         reference_dir = os.path.abspath(os.path.join(ref_dir, "adsorbate_wf"))
