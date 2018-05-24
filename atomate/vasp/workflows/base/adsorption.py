@@ -167,7 +167,7 @@ def get_wf_slab(slab, include_bulk_opt=False, adsorbates=None,
         oriented_bulk = slab.oriented_unit_cell
         vis = MVLSlabSet(oriented_bulk, bulk=True)
         fws.append(OptimizeFW(structure=oriented_bulk, vasp_input_set=vis,
-                              vasp_cmd="vasp", db_file=db_file))
+                              vasp_cmd=vasp_cmd, db_file=db_file))
         parents = fws[-1]
 
     name = slab.composition.reduced_formula
