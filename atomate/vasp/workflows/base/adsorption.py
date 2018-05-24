@@ -112,21 +112,30 @@ def get_slab_trans_params(slab):
         adsorbate_indices = [slab.index(s) for s in slab if
                              s.properties['surface_properties'] == 'adsorbate']
         slab.remove_sites(adsorbate_indices)
-    # Ensure x-y supercells are accounted for
-    a_ratio = slab.lattice.a / slab.oriented_unit_cell.lattice.a
-    b_ratio = slab.lattice.b / slab.oriented_unit_cell.lattice.b
 
-    # Get num of repeated oriented u cells in c direction
-    num_layers = slab.num_sites / (a_ratio * b_ratio)
+    # Note: this could fail if the slab is non-contiguous in the c direction,
+    # i. e. if sites are translated through the pbcs
+    heights = [np.dot(s.coords, slab.normal) for s in slab]
+    slab_thickness = np.abs(max(heights) - min(heights))
+    bulk_a, bulk_b, bulk_c = slab.oriented_unit_cell.lattice.matrix
+    bulk_normal = np.cross(bulk_a, bulk_b)
+    bulk_normal /= np.linalg.norm(bulk_normal)
+    bulk_height = np.abs(np.dot(bulk_normal, bulk_c))
+    slab_cell_height = np.abs(np.dot(slab.lattice.matrix[2], slab.normal))
 
-    # Find fraction of the lattice which corresponds to the
-    # slab and vacuum, then height of both portions relative to normal
-    frac_solid = slab.oriented_unit_cell.lattice.c * num_layers / \
-                 slab.lattice.c
-    frac_vac = 1 - frac_solid
-    c_vector = slab.lattice.matrix[2]
-    min_slab_size = np.dot(slab.normal, frac_solid * c_vector) - 0.03
-    min_vac_size = np.dot(slab.normal, frac_vac * c_vector) - 0.03
+    total_layers = slab_cell_height / bulk_height
+    slab_layers = np.ceil(slab_thickness / slab_cell_height * total_layers)
+    vac_layers = total_layers - slab_layers
+
+    min_slab_size = slab_cell_height * slab_layers / total_layers - 0.03
+    min_vac_size = slab_cell_height * vac_layers / total_layers - 0.03
+    # params = {"miller_index": [0, 0, 1], "shift": slab.shift,
+    #           "min_slab_size": min_slab_size, "min_vacuum_size": min_vac_size}
+    # trans = SlabTransformation(**params)
+    # new_slab = trans.apply_transformation(slab.oriented_unit_cell)
+    # if slab.composition.reduced_formula == "Si":
+    #     import nose; nose.tools.set_trace()
+
     return {"miller_index": [0, 0, 1], "shift": slab.shift,
             "min_slab_size": min_slab_size, "min_vacuum_size": min_vac_size}
 
