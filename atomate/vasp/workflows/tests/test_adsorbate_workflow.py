@@ -4,16 +4,20 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import os
 import unittest
+import numpy as np
 
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_fake_vasp
-from atomate.vasp.workflows.base.adsorption import get_wf_slab
+from atomate.vasp.workflows.base.adsorption import get_wf_slab, get_slab_fw, \
+    get_slab_trans_params
 from atomate.utils.testing import AtomateTest
 
 from pymatgen import Structure, Molecule, Lattice
+from pymatgen.util.testing import PymatgenTest
 from pymatgen.core.surface import generate_all_slabs
+from pymatgen.transformations.advanced_transformations import SlabTransformation
 
 __author__ = 'Kiran Mathew, Joseph Montoya'
 __email__ = 'montoyjh@lbl.gov'
@@ -34,12 +38,38 @@ class TestAdsorptionWorkflow(AtomateTest):
         self.struct_ir = Structure.from_spacegroup(
             "Fm-3m", Lattice.cubic(3.875728), ["Ir"], [[0, 0, 0]])
         sgp = {"max_index": 1, "min_slab_size": 7.0, "min_vacuum_size": 20.0}
-        slabs = generate_all_slabs(self.struct_ir, **sgp)
-        slab_100 = [slab for slab in slabs if slab.miller_index==(1, 0, 0)][0]
-        sgp.pop("max_index")
-        self.wf_1 = get_wf_slab(
-            slab_100, True, sgp, [Molecule("H", [[0, 0, 0]])],
-            db_file=os.path.join(db_dir, "db.json"))
+        self.slabs = generate_all_slabs(self.struct_ir, **sgp)
+        self.slab_100 = [slab for slab in self.slabs
+                         if slab.miller_index==(1, 0, 0)][0]
+        self.wf_1 = get_wf_slab(self.slab_100, True,
+                                [Molecule("H", [[0, 0, 0]])],
+                               db_file=os.path.join(db_dir, "db.json"))
+
+    def test_wf_functions(self):
+        # Test slab trans params generator
+        for slab in self.slabs:
+            trans_params = get_slab_trans_params(slab)
+            trans = SlabTransformation(**trans_params)
+            new_slab = trans.apply_transformation(slab.oriented_unit_cell)
+            self.assertTrue(np.allclose(new_slab.cart_coords, slab.cart_coords))
+            self.assertTrue(np.allclose(new_slab.lattice.matrix,
+                                        slab.lattice.matrix))
+
+        # Try something a bit more complicated
+        formulas = ['Si', 'Sn', 'SrTiO3', 'Li2O']
+        structs = [PymatgenTest.get_structure(s) for s in formulas]
+        for struct in structs:
+            slabs = generate_all_slabs(struct, max_index=2, min_slab_size=10,
+                                       min_vacuum_size=20)
+            for slab in slabs:
+                trans_params = get_slab_trans_params(slab)
+                trans = SlabTransformation(**trans_params)
+                new_slab = trans.apply_transformation(slab.oriented_unit_cell)
+                old_coords = np.around(slab.frac_coords, 10) % 1
+                new_coords = np.around(new_slab.frac_coords, 10) % 1
+                self.assertTrue(np.allclose(old_coords, new_coords))
+                self.assertTrue(np.allclose(new_slab.lattice.matrix,
+                                            slab.lattice.matrix))
 
     def _simulate_vasprun(self, wf):
         reference_dir = os.path.abspath(os.path.join(ref_dir, "adsorbate_wf"))
