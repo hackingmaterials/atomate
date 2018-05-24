@@ -19,7 +19,7 @@ from pymatgen.transformations.standard_transformations import SupercellTransform
 from pymatgen.io.vasp.sets import MVLSlabSet
 from pymatgen import Structure
 
-__author__ = 'Joseph Montoya'
+__author__ = 'Joseph Montoya, Richard Tran'
 __email__ = 'montoyjh@lbl.gov'
 
 
