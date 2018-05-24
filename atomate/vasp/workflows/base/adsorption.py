@@ -67,6 +67,12 @@ def get_slab_fw(slab, transmuter=False, db_file=None, vasp_input_set=None,
             round(slab.lattice.a / slab_from_bulk.lattice.a),
             round(slab.lattice.b / slab_from_bulk.lattice.b))
 
+        # Get site properties, set velocities to zero if not set to avoid
+        # custodian issue
+        site_props = slab.site_properties
+        if 'velocities' not in site_props:
+            site_props['velocities'] = [0. for s in slab]
+
         # Get adsorbates for InsertSitesTransformation
         if "adsorbate" in slab.site_properties.get("surface_properties", ""):
             ads_sites = [site for site in slab
@@ -80,7 +86,7 @@ def get_slab_fw(slab, transmuter=False, db_file=None, vasp_input_set=None,
                         {"scaling_matrix": supercell_trans.scaling_matrix},
                         {"species": [site.species_string for site in ads_sites],
                          "coords": [site.frac_coords for site in ads_sites]},
-                        {"site_properties": slab.site_properties}]
+                        {"site_properties": site_props}]
         fw = TransmuterFW(name=name, structure=oriented_bulk,
                           transformations=transformations,
                           transformation_params=trans_params,
