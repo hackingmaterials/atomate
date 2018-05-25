@@ -11,7 +11,7 @@ from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_fake_vasp
 from atomate.vasp.workflows.base.adsorption import get_wf_slab, get_slab_fw, \
-    get_slab_trans_params
+    get_slab_trans_params, MPSurfaceSet
 from atomate.utils.testing import AtomateTest
 
 from pymatgen import Structure, Molecule, Lattice
@@ -70,6 +70,42 @@ class TestAdsorptionWorkflow(AtomateTest):
                 self.assertTrue(np.allclose(old_coords, new_coords))
                 self.assertTrue(np.allclose(new_slab.lattice.matrix,
                                             slab.lattice.matrix))
+
+    def test_input_sets(self):
+        # Test bulk
+        bulk_set = MPSurfaceSet(self.struct_ir, bulk=True)
+        self.assertFalse(bulk_set.auto_dipole)
+        self.assertFalse(bulk_set.get_locpot)
+        self.assertIsNone(bulk_set.incar.get('LDIPOL'))
+        self.assertIsNone(bulk_set.incar.get('LVTOT'))
+
+        # Test slab
+        slab_set = MPSurfaceSet(self.slab_100)
+        self.assertTrue(slab_set.auto_dipole)
+        self.assertTrue(slab_set.get_locpot)
+        self.assertTrue(slab_set.incar.get('LDIPOL'))
+        self.assertTrue(slab_set.incar.get('LVTOT'))
+        banio3_slab = generate_all_slabs(
+            PymatgenTest.get_structure('BaNiO3'), 1, 7.0, 20.0)[0]
+        banio3_slab_set = MPSurfaceSet(banio3_slab)
+        self.assertTrue(banio3_slab_set.incar['LDAU'], True)
+
+        # Test adsorbates
+        fe_ads = self.wf_1.fws[-1].tasks[-1]['additional_fields']['slab'].copy()
+        fe_ads.replace_species({'H': 'O', "Ir": "Fe"})
+        fe_ads_set = MPSurfaceSet(fe_ads)
+        self.assertFalse(fe_ads_set.incar['LDAU'])
+
+        # Test interaction of adsorbates and LDAU
+        banio3_ads = banio3_slab.copy()
+        banio3_ads.add_adsorbate_atom([-1], 'O', 0.5)
+        banio3_ads.add_site_property('surface_properties', ['surface'] * len(
+            banio3_slab) + ['adsorbate'])
+        banio3_ads_set = MPSurfaceSet(banio3_ads)
+        self.assertTrue(banio3_ads_set.incar['LDAU'])
+        banio3_ads_set_noldau = MPSurfaceSet(
+            banio3_ads, user_incar_settings={'LDAU': False})
+        self.assertFalse(banio3_ads_set_noldau.incar['LDAU'])
 
     def _simulate_vasprun(self, wf):
         reference_dir = os.path.abspath(os.path.join(ref_dir, "adsorbate_wf"))
