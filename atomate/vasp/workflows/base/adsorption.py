@@ -291,3 +291,29 @@ def get_wfs_all_slabs(bulk_structure, include_bulk_opt=False,
         wfs.append(get_wf_molecules(adsorbates, db_file=db_file,
                                     vasp_cmd=vasp_cmd))
     return wfs
+
+
+# TODO: this will go in pymatgen eventually, but want to keep relevant changes
+#       in here for now to simplify sharing
+class MPSurfaceInputSet(MVLSlabSet):
+    """
+    Temporary class , mostly to change parameters
+    and defaults slightly
+    """
+    def __init__(self, structure, get_locpot=True, auto_dipole=True, **kwargs):
+        super(MPSurfaceInputSet, self).__init__(structure, **kwargs)
+
+        # Determine LDAU
+        ldau_elts = ['O', 'F']
+        if structure.site_properties.get("surface_properties"):
+            non_adsorbate_elts = [
+                s.species.element.symbol for s in structure
+                if not s.properties['surface_properties'] == 'adsorbate']
+            ldau = bool(set(non_adsorbate_elts) | set(ldau_elts))
+        else:
+            elts = [s.species.element.symbol for s in structure]
+            ldau = bool(set(elts) | set(ldau_elts))
+
+        # Should give better forces for optimization
+        self.incar.update({"EDIFFG": -0.05, "ENAUG": 4000, "IBRION": 1,
+                           "POTIM": 1.0, "LDAU": ldau, "EDIFF": 1e-5})
