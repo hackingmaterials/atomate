@@ -35,7 +35,7 @@ class RotateTorsion(FiretaskBase):
 
     def run_task(self, fw_spec):
         if fw_spec.get("prev_calc_molecule"):
-            start_mol = Molecule.from_dict(fw_spec.get("prev_calc_molecule"))
+            start_mol = fw_spec.get("prev_calc_molecule")
         # if a molecule is being passed through fw_spec
         elif self.get("molecule"):
             start_mol = self.get("molecule")
