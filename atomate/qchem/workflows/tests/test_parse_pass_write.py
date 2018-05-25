@@ -41,11 +41,11 @@ class TestParsePassWrite(AtomateTest):
 
     def test_parse_pass_write(self):
 
-        input = "test.qin.opt_1"
-        output = "test.qout.opt_1"
+        input_file = "test.qin.opt_1"
+        output_file = "test.qout.opt_1"
         calc_dir = os.path.join(module_dir, "..", "..", "test_files", "FF_working")
 
-        p_task = QChemToDb(calc_dir=calc_dir, input_file=input, output_file=output)
+        p_task = QChemToDb(calc_dir=calc_dir, input_file=input_file, output_file=output_file)
         fw1 = Firework([p_task])
         w_task = WriteInputFromIOSet(qchem_input_set="OptSet", write_to_dir=module_dir)
         fw2 = Firework([w_task], parents=fw1)
@@ -57,6 +57,30 @@ class TestParsePassWrite(AtomateTest):
         test_mol = QCInput.from_file(os.path.join(module_dir, "mol.qin")).molecule
         np.testing.assert_equal(self.act_mol.species, test_mol.species)
         np.testing.assert_equal(self.act_mol.cart_coords, test_mol.cart_coords)
+
+    def test_parse_pass_rotate_write(self):
+
+        input_file = "pt_gs_wb97mv_tz_initial.in"
+        output_file = "pt_gs_wb97mv_tz_initial_1_job.out"
+        calc_dir = os.path.join(module_dir, "..", "..", "test_files")
+
+        p_task = QChemToDb(calc_dir=calc_dir, input_file=input_file, output_file=output_file)
+        fw1 = Firework([p_task])
+        atom_indexes = [6, 8, 9, 10]
+        angle = 90.0
+        rot_task = RotateTorsion(atom_indexes=atom_indexes, angle=angle)
+        w_task = WriteInputFromIOSet(qchem_input_set="OptSet", write_to_dir=module_dir)
+        fw2 = Firework([rot_task, w_task], parents=fw1)
+        wf = Workflow([fw1, fw2])
+
+        self.lp.add_wf(wf)
+        rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
+
+        test_mol = QCInput.from_file(os.path.join(module_dir, "mol.qin")).molecule
+        act_mol = Molecule.from_file(os.path.join(module_dir, "..", "..",
+                                                            "test_files", "pt_rotated_90.0.xyz"))
+        np.testing.assert_equal(act_mol.species, test_mol.species)
+        np.testing.assert_allclose(act_mol.cart_coords, test_mol.cart_coords, atol=0.0001)
 
 if __name__ == '__main__':
     unittest.main()
