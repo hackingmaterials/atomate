@@ -2,6 +2,11 @@
 atomate Changelog
 =================
 
+**v0.7.8**
+
+* some QChem tasks and workflows (B. Wood)
+* add full HSE band structure workflow (A. Jain)
+
 **v0.7.7**
 
 * allow list of ErrorHandler in RunVaspCustodian (A. Jain)
