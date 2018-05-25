@@ -11,6 +11,7 @@ import numpy as np
 from fireworks import Workflow
 
 from atomate.vasp.fireworks.core import OptimizeFW, TransmuterFW
+from atomate.utils.utils import get_meta_from_structure
 
 from pymatgen.analysis.adsorption import AdsorbateSiteFinder
 from pymatgen.core.surface import generate_all_slabs, Slab
@@ -26,7 +27,7 @@ __email__ = 'montoyjh@lbl.gov'
 # TODO: Add functionality for reconstructions
 # TODO: Add framework for including vibrations and free energy
 def get_slab_fw(slab, transmuter=False, db_file=None, vasp_input_set=None,
-                parents=None, vasp_cmd="vasp", name=""):
+                parents=None, vasp_cmd="vasp", name="", add_slab_metadata=True):
     """
     Function to generate a a slab firework.  Returns a TransmuterFW if
     bulk_structure is specified, constructing the necessary transformations
@@ -44,6 +45,8 @@ def get_slab_fw(slab, transmuter=False, db_file=None, vasp_input_set=None,
         parents (Fireworks or list of ints): parent FWs
         db_file (string): path to database file
         vasp_cmd (string): vasp command
+        name (string): name of firework
+        add_slab_metadata (bool): whether to add slab metadata to task doc
 
     Returns:
         Firework corresponding to slab calculation
@@ -98,7 +101,12 @@ def get_slab_fw(slab, transmuter=False, db_file=None, vasp_input_set=None,
                         vasp_input_set=vasp_input_set, vasp_cmd=vasp_cmd,
                         db_file=db_file, parents=parents, job_type="normal")
     # Add slab metadata
-    fw.tasks[-1]["additional_fields"].update({"slab": slab})
+    if add_slab_metadata:
+        parent_structure_metadata = get_meta_from_structure(
+            slab.oriented_unit_cell)
+        fw.tasks[-1]["additional_fields"].update(
+            {"slab": slab, "parent_structure": slab.oriented_unit_cell,
+             "parent_structure_metadata": parent_structure_metadata})
     return fw
 
 
