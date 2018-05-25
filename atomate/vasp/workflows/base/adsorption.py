@@ -316,7 +316,12 @@ class MPSurfaceSet(MVLSlabSet):
         auto_dipole = auto_dipole or not bulk
         super(MPSurfaceSet, self).__init__(
             structure, bulk=bulk, get_locpot=get_locpot,
-            auto_dipole=auto_dipole, **kwargs)
+            auto_dipole=False, **kwargs)
+        # This is a hack, but should be fixed when this is ported over to
+        # pymatgen to account for vasp native dipole fix
+        if auto_dipole:
+            self._config_dict['INCAR'].update({"LDIPOL": True, "IDIPOL": 3})
+            self.auto_dipole = True
 
     @property
     def incar(self):
