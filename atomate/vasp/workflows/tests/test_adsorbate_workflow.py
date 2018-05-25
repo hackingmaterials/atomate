@@ -114,7 +114,8 @@ class TestAdsorptionWorkflow(AtomateTest):
                        "Ir-H1-Ir_(1, 0, 0) adsorbate optimization 0": os.path.join(reference_dir, "3"),
                        "Ir-H1-Ir_(1, 0, 0) adsorbate optimization 1": os.path.join(reference_dir, "4"),
                        "Ir-H1-Ir_(1, 0, 0) adsorbate optimization 2": os.path.join(reference_dir, "5")}
-        return use_fake_vasp(wf, ir_ref_dirs, params_to_check=["ENCUT", "ISIF", "IBRION"])
+        return use_fake_vasp(wf, ir_ref_dirs,
+                             params_to_check=["ENCUT", "ISIF"])
 
     def _check_run(self, d, mode):
         if mode not in ["H1-Ir_(1, 0, 0) adsorbate optimization 1",
@@ -137,7 +138,7 @@ class TestAdsorptionWorkflow(AtomateTest):
         # check vasp parameters for ionic relaxation
         ads_vis = [fw.tasks[1]['vasp_input_set']
                    for fw in self.wf_1.fws if "adsorbate" in fw.name]
-        assert all([vis.incar['EDIFFG']==-0.02 for vis in ads_vis])
+        assert all([vis.incar['EDIFFG']==-0.05 for vis in ads_vis])
         assert all([vis.incar['ISIF']==2 for vis in ads_vis])
         self.lp.add_wf(wf)
         rapidfire(self.lp, fworker=FWorker(
