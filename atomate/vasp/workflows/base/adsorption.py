@@ -48,7 +48,7 @@ def get_slab_fw(slab, transmuter=False, db_file=None, vasp_input_set=None,
     Returns:
         Firework corresponding to slab calculation
     """
-    vasp_input_set = vasp_input_set or MVLSlabSet(slab)
+    vasp_input_set = vasp_input_set or MPSurfaceSet(slab)
 
     # If a bulk_structure is specified, generate the set of transformations,
     # else just create an optimize FW with the slab
@@ -180,7 +180,7 @@ def get_wf_slab(slab, include_bulk_opt=False, adsorbates=None,
     # Add bulk opt firework if specified
     if include_bulk_opt:
         oriented_bulk = slab.oriented_unit_cell
-        vis = MVLSlabSet(oriented_bulk, bulk=True)
+        vis = MPSurfaceSet(oriented_bulk, bulk=True)
         fws.append(OptimizeFW(structure=oriented_bulk, vasp_input_set=vis,
                               vasp_cmd=vasp_cmd, db_file=db_file))
         parents = fws[-1]
@@ -242,7 +242,7 @@ def get_wf_molecules(molecules, vasp_input_set=None, db_file=None,
         # molecule in box
         m_struct = molecule.get_boxed_structure(10, 10, 10,
                                                 offset=np.array([5, 5, 5]))
-        vis = vasp_input_set or MVLSlabSet(m_struct)
+        vis = vasp_input_set or MPSurfaceSet(m_struct)
         fws.append(OptimizeFW(structure=molecule, job_type="normal",
                               vasp_input_set=vis, db_file=db_file,
                               vasp_cmd=vasp_cmd))
@@ -295,25 +295,38 @@ def get_wfs_all_slabs(bulk_structure, include_bulk_opt=False,
 
 # TODO: this will go in pymatgen eventually, but want to keep relevant changes
 #       in here for now to simplify sharing
-class MPSurfaceInputSet(MVLSlabSet):
+class MPSurfaceSet(MVLSlabSet):
     """
-    Temporary class , mostly to change parameters
+    Input class for MP slab calcs, mostly to change parameters
     and defaults slightly
     """
-    def __init__(self, structure, get_locpot=True, auto_dipole=True, **kwargs):
-        super(MPSurfaceInputSet, self).__init__(structure, **kwargs)
+    def __init__(self, structure, bulk=False, get_locpot=None,
+                 auto_dipole=None, **kwargs):
 
-        # Determine LDAU
-        ldau_elts = ['O', 'F']
-        if structure.site_properties.get("surface_properties"):
-            non_adsorbate_elts = [
-                s.species.element.symbol for s in structure
-                if not s.properties['surface_properties'] == 'adsorbate']
-            ldau = bool(set(non_adsorbate_elts) | set(ldau_elts))
+        # If not a bulk calc, turn get_locpot/auto_dipole on by default
+        get_locpot = get_locpot or not bulk
+        auto_dipole = auto_dipole or not bulk
+        super(MPSurfaceSet, self).__init__(
+            structure, bulk=bulk, get_locpot=get_locpot,
+            auto_dipole=auto_dipole, **kwargs)
+
+    @property
+    def incar(self):
+        incar = super(MPSurfaceSet, self).incar
+
+        # Determine LDAU based on slab chemistry without adsorbates
+        ldau_elts = {'O', 'F'}
+        if self.structure.site_properties.get("surface_properties"):
+            non_adsorbate_elts = {
+                s.specie.symbol for s in self.structure
+                if not s.properties['surface_properties'] == 'adsorbate'}
         else:
-            elts = [s.species.element.symbol for s in structure]
-            ldau = bool(set(elts) | set(ldau_elts))
+            non_adsorbate_elts = {s.specie.symbol for s in self.structure}
+        ldau = bool(non_adsorbate_elts & ldau_elts)
 
         # Should give better forces for optimization
-        self.incar.update({"EDIFFG": -0.05, "ENAUG": 4000, "IBRION": 1,
-                           "POTIM": 1.0, "LDAU": ldau, "EDIFF": 1e-5})
+        incar_config = {"EDIFFG": -0.05, "ENAUG": 4000, "IBRION": 1,
+                        "POTIM": 1.0, "LDAU": ldau, "EDIFF": 1e-5}
+        incar.update(incar_config)
+        incar.update(self.user_incar_settings)
+        return incar
