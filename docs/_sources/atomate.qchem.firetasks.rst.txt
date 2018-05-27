@@ -1,0 +1,29 @@
+atomate.qchem.firetasks package
+===============================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    atomate.qchem.firetasks.tests
+
+Submodules
+----------
+
+atomate.qchem.firetasks.write\_inputs module
+--------------------------------------------
+
+.. automodule:: atomate.qchem.firetasks.write_inputs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: atomate.qchem.firetasks
+    :members:
+    :undoc-members:
+    :show-inheritance:

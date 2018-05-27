@@ -80,8 +80,8 @@ class VaspToDb(FiretaskBase):
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
 
         drone = VaspDrone(additional_fields=self.get("additional_fields"),
-                          parse_dos=self.get("parse_dos", False), compress_dos=1,
-                          bandstructure_mode=self.get("bandstructure_mode", False), compress_bs=1)
+                          parse_dos=self.get("parse_dos", False),
+                          bandstructure_mode=self.get("bandstructure_mode", False))
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)
@@ -99,21 +99,26 @@ class VaspToDb(FiretaskBase):
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
             mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-            t_id = mmdb.insert_task(task_doc,
-                                    parse_dos=self.get("parse_dos", False),
-                                    parse_bs=bool(self.get("bandstructure_mode", False)))
+            t_id = mmdb.insert_task(
+                task_doc, use_gridfs=self.get("parse_dos", False) or bool(self.get("bandstructure_mode", False)))
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
         defuse_children = False
         if task_doc["state"] != "successful":
-            if self.get("defuse_unsuccessful", DEFUSE_UNSUCCESSFUL) is True:
+            defuse_unsuccessful = self.get("defuse_unsuccessful",
+                                           DEFUSE_UNSUCCESSFUL)
+            if defuse_unsuccessful is True:
                 defuse_children = True
-            elif self.get("defuse_unsuccessful", DEFUSE_UNSUCCESSFUL).lower() \
-                    == "fizzle":
+            elif defuse_unsuccessful is False:
+                pass
+            elif defuse_unsuccessful == "fizzle":
                 raise RuntimeError(
                     "VaspToDb indicates that job is not successful "
                     "(perhaps your job did not converge within the "
                     "limit of electronic/ionic iterations)!")
+            else:
+                raise RuntimeError("Unknown option for defuse_unsuccessful: "
+                                   "{}".format(defuse_unsuccessful))
 
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
                         defuse_children=defuse_children)

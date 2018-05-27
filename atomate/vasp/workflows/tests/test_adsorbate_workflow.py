@@ -65,7 +65,7 @@ class TestAdsorptionWorkflow(AtomateTest):
         # check vasp parameters for ionic relaxation
         ads_vis = [fw.tasks[1]['vasp_input_set']
                    for fw in self.wf_1.fws if "adsorbate" in fw.name]
-        assert all([vis.incar['EDIFFG']==-0.01 for vis in ads_vis])
+        assert all([vis.incar['EDIFFG']==-0.02 for vis in ads_vis])
         assert all([vis.incar['ISIF']==2 for vis in ads_vis])
         self.lp.add_wf(wf)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))

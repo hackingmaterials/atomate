@@ -4,20 +4,12 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Running Gibbs workflows &#8212; atomate 0.7.1 documentation</title>
+    <title>Running Gibbs workflows &#8212; atomate 0.7.8 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.7.1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -28,8 +20,7 @@
  
 <link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
 
-  </head>
-  <body>
+  </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -45,7 +36,7 @@
         <li class="right" >
           <a href="running_workflows.html" title="Running Workflows Tutorial"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.8 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -102,7 +93,7 @@ Next, create a folder on your HPC resource for this tutorial.
 It can be located anywhere.
 You’ll keep all of the files for this tutorial there.</p>
 <p>If you do not already have important prior results in your atomate environment, start fresh by running:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lpad</span> <span class="n">reset</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lpad</span> <span class="n">reset</span>
 </pre></div>
 </div>
 <div class="admonition warning">
@@ -114,13 +105,13 @@ You’ll keep all of the files for this tutorial there.</p>
 <div class="section" id="use-python-to-generate-and-add-the-workflow">
 <h3>Use Python to generate and add the workflow<a class="headerlink" href="#use-python-to-generate-and-add-the-workflow" title="Permalink to this headline">¶</a></h3>
 <p>We’ll use diamond Si as a simple example and get the structure from the Materials Project.
-This requires that you set up an API key in your <code class="docutils literal"><span class="pre">.pmgrc.yaml</span></code>.
-In the installation tutorial, you set up your <code class="docutils literal"><span class="pre">FW_config.yaml</span></code>, you indicated the atomate Fireworks can be found at <a class="reference internal" href="atomate.vasp.fireworks.html#module-atomate.vasp.fireworks" title="atomate.vasp.fireworks"><code class="xref py py-mod docutils literal"><span class="pre">atomate.vasp.fireworks</span></code></a>.
-Similarly, atomate preset workflows can be imported from <a class="reference internal" href="atomate.vasp.workflows.presets.html#module-atomate.vasp.workflows.presets.core" title="atomate.vasp.workflows.presets.core"><code class="xref py py-mod docutils literal"><span class="pre">atomate.vasp.workflows.presets.core</span></code></a>, which thinly wraps the base workflows (<a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base" title="atomate.vasp.workflows.base"><code class="xref py py-mod docutils literal"><span class="pre">atomate.vasp.workflows.base</span></code></a>) allowing for common settings to be changed with configuration dictionaries.
+This requires that you set up an API key in your <code class="docutils literal notranslate"><span class="pre">.pmgrc.yaml</span></code>.
+In the installation tutorial, you set up your <code class="docutils literal notranslate"><span class="pre">FW_config.yaml</span></code>, you indicated the atomate Fireworks can be found at <a class="reference internal" href="atomate.vasp.fireworks.html#module-atomate.vasp.fireworks" title="atomate.vasp.fireworks"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.fireworks</span></code></a>.
+Similarly, atomate preset workflows can be imported from <a class="reference internal" href="atomate.vasp.workflows.presets.html#module-atomate.vasp.workflows.presets.core" title="atomate.vasp.workflows.presets.core"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.presets.core</span></code></a>, which thinly wraps the base workflows (<a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base" title="atomate.vasp.workflows.base"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.base</span></code></a>) allowing for common settings to be changed with configuration dictionaries.
 And we can setup the workflow and add it to our LaunchPad ready to run in just a few lines of Python.</p>
 <p><strong>Create the workflow script</strong></p>
-<p>In the directory you created, make a Python script named <code class="docutils literal"><span class="pre">gibbs.py</span></code> with the following contents:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
+<p>In the directory you created, make a Python script named <code class="docutils literal notranslate"><span class="pre">gibbs.py</span></code> with the following contents:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">MPRester</span>
 <span class="kn">from</span> <span class="nn">fireworks</span> <span class="kn">import</span> <span class="n">LaunchPad</span>
@@ -155,29 +146,29 @@ And we can setup the workflow and add it to our LaunchPad ready to run in just a
 In the Debye model, the Poisson ratio controls the shape and magnitude of the elbow in the heat capacity curve.
 Typical materials are sometimes idealized to have a Poisson ratio of 0.33, but to have the most accurate ratio will give more accurate heat capacities near the low temperature limit.
 Poisson ratios can be taken from experimental references, from the Materials Project and are often comparable for chemically similar structures (alternatively, they be first calculated via the elastic tensor workflow).</p>
-<p>Since we are potentially interested in the high-temperature thermodynamic behavior of Si, we set the anharmonic contribution to <code class="docutils literal"><span class="pre">True</span></code>, so that we can properly deviate from the high-temperature limit of the Debye model of <img class="math" src="_images/math/9a58b114ed330a6575364d3a7d9aacf5e8ec4a19.png" alt="3R"/> based on the Gruneisen parameter, <img class="math" src="_images/math/0ebb67342b546ca42a1c634b1ef03c893c4cdedb.png" alt="\gamma"/>.</p>
+<p>Since we are potentially interested in the high-temperature thermodynamic behavior of Si, we set the anharmonic contribution to <code class="docutils literal notranslate"><span class="pre">True</span></code>, so that we can properly deviate from the high-temperature limit of the Debye model of <img class="math" src="_images/math/9a58b114ed330a6575364d3a7d9aacf5e8ec4a19.png" alt="3R"/> based on the Gruneisen parameter, <img class="math" src="_images/math/0ebb67342b546ca42a1c634b1ef03c893c4cdedb.png" alt="\gamma"/>.</p>
 <p><strong>Create and add the workflow to LaunchPad</strong></p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>python gibbs.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python gibbs.py
 </pre></div>
 </div>
 </div>
 <div class="section" id="running-the-workflow">
 <h3>Running the workflow<a class="headerlink" href="#running-the-workflow" title="Permalink to this headline">¶</a></h3>
-<p>The following command will submit a single job to the batch queue configured in <code class="docutils literal"><span class="pre">my_qadapter.yaml</span></code>.
+<p>The following command will submit a single job to the batch queue configured in <code class="docutils literal notranslate"><span class="pre">my_qadapter.yaml</span></code>.
 Assuming the same configuration as in the installation tutorial, the job will launch Fireworks from your LaunchPad until all of them have completed or you run out of walltime.
 This workflow should only take few minutes.</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>qlaunch singleshot
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>qlaunch singleshot
 </pre></div>
 </div>
-<p>You can go to the output files from the batch job (<code class="docutils literal"><span class="pre">*.out</span></code> and <code class="docutils literal"><span class="pre">*.error</span></code>) at the launch directories to make sure everything went well or check the LaunchPad (<code class="docutils literal"><span class="pre">lpad</span> <span class="pre">get_wflows</span></code>).</p>
+<p>You can go to the output files from the batch job (<code class="docutils literal notranslate"><span class="pre">*.out</span></code> and <code class="docutils literal notranslate"><span class="pre">*.error</span></code>) at the launch directories to make sure everything went well or check the LaunchPad (<code class="docutils literal notranslate"><span class="pre">lpad</span> <span class="pre">get_wflows</span></code>).</p>
 </div>
 </div>
 <div class="section" id="analyzing-an-equation-of-state-workflow">
 <h2>Analyzing an Equation of State Workflow<a class="headerlink" href="#analyzing-an-equation-of-state-workflow" title="Permalink to this headline">¶</a></h2>
 <p>Finally, we’ll analyze the results of our Gibbs free energy calculation.
 Here we’ll compare the heat capacity from our DFT calculation with experimental values.
-Simply add the following Python script (<code class="docutils literal"><span class="pre">gibbs-analysis.py</span></code>) to your folder and run it</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">atomate.vasp.database</span> <span class="kn">import</span> <span class="n">VaspCalcDb</span>
+Simply add the following Python script (<code class="docutils literal notranslate"><span class="pre">gibbs-analysis.py</span></code>) to your folder and run it</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">atomate.vasp.database</span> <span class="kn">import</span> <span class="n">VaspCalcDb</span>
 <span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
@@ -220,7 +211,7 @@ Simply add the following Python script (<code class="docutils literal"><span cla
 <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;Si-heat-capacity.png&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>If you open the saved figure, <code class="docutils literal"><span class="pre">Si-heat-capacity.png</span></code>, it should match the one below!</p>
+<p>If you open the saved figure, <code class="docutils literal notranslate"><span class="pre">Si-heat-capacity.png</span></code>, it should match the one below!</p>
 <div class="figure" id="id3">
 <img alt="Si heat capacity compared with experiment" src="_images/Si-heat-capacity.png" />
 <p class="caption"><span class="caption-text">Heat capacity for Si calculated with atomate and compared with experimental values.</span></p>
@@ -229,7 +220,7 @@ Simply add the following Python script (<code class="docutils literal"><span cla
 <div class="section" id="conclusion">
 <h2>Conclusion<a class="headerlink" href="#conclusion" title="Permalink to this headline">¶</a></h2>
 <p>In this tutorial we have further demonstrated the use of atomate preset workflows to easily calculate and analyze interesting materials properties.</p>
-<p>To see what other preset workflows can be run, see the documentation that includes them at <a class="reference internal" href="atomate.vasp.workflows.presets.html#module-atomate.vasp.workflows.presets" title="atomate.vasp.workflows.presets"><code class="xref py py-mod docutils literal"><span class="pre">atomate.vasp.workflows.presets</span></code></a>. They can be set up and run in exactly the same way as this tutorial, by passing in a structure and an optional configuration dictionary.</p>
+<p>To see what other preset workflows can be run, see the documentation that includes them at <a class="reference internal" href="atomate.vasp.workflows.presets.html#module-atomate.vasp.workflows.presets" title="atomate.vasp.workflows.presets"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.presets</span></code></a>. They can be set up and run in exactly the same way as this tutorial, by passing in a structure and an optional configuration dictionary.</p>
 <p>At this point, you might:</p>
 <ul class="simple">
 <li>Explore using builders to generate metadata: <a class="reference internal" href="builders.html#builders"><span class="std std-ref">Builders: creating calculation reports for data analysis</span></a>.</li>
@@ -277,12 +268,14 @@ Simply add the following Python script (<code class="docutils literal"><span cla
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -304,13 +297,13 @@ Simply add the following Python script (<code class="docutils literal"><span cla
         <li class="right" >
           <a href="running_workflows.html" title="Running Workflows Tutorial"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.8 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.2.
     </div>
 
   </body>

@@ -2,6 +2,43 @@
 atomate Changelog
 =================
 
+**v0.7.8**
+
+* some QChem tasks and workflows (B. Wood)
+* add full HSE band structure workflow (A. Jain)
+
+**v0.7.7**
+
+* allow list of ErrorHandler in RunVaspCustodian (A. Jain)
+* fix adsorption unit test (J. Montoya)
+
+**v0.7.6**
+
+* remove force checking in drone (S. Dwaraknath)
+* cleanups to DOS + BS parsing and insertion in GridFS (S. Dwaraknath)
+* code cleanup and bugfixes (S. Dwaraknath, specter119)
+* some more docs on offline mode (A. Jain)
+
+**v0.7.5**
+
+* standardize drones to datetime.utcnow() (J. Montoya)
+* fixed additional field serialization issue (J. Montoya)
+* fix defuse_unsuccessful logic, hat tip to @specter119 for pointing it out (A. Jain)
+* some doc updates (A. Jain)
+
+**v0.7.4**
+
+* fix pymatgen dep (A. Jain)
+
+**v0.7.3**
+
+* minor drones updates (S. Dwaraknath)
+* installation fix (P. Huck)
+
+**v0.7.2**
+
+* Bugfix database getter in builders (S. Dwaraknath)
+
 **v0.7.1**
 
 * update ``atwf`` to find the path to workflows better (M. Dias Costa)

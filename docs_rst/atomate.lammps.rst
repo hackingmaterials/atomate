@@ -1,5 +1,5 @@
-atomate\.lammps package
-=======================
+atomate.lammps package
+======================
 
 Subpackages
 -----------
@@ -13,24 +13,24 @@ Subpackages
 Submodules
 ----------
 
-atomate\.lammps\.database module
---------------------------------
+atomate.lammps.database module
+------------------------------
 
 .. automodule:: atomate.lammps.database
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.lammps\.drones module
-------------------------------
+atomate.lammps.drones module
+----------------------------
 
 .. automodule:: atomate.lammps.drones
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.lammps\.utils module
------------------------------
+atomate.lammps.utils module
+---------------------------
 
 .. automodule:: atomate.lammps.utils
     :members:
