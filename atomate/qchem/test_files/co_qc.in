@@ -10,4 +10,6 @@ $rem
    max_scf_cycles = 200
    method = wB97X-V
    geom_opt_max_cycles = 200
+   gen_scfman = True
+   scf_algorithm = DIIS
 $end

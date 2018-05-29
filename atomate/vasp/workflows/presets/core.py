@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import numpy as np
 
-from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
+from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet, MPHSERelaxSet
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp.inputs import Kpoints
 
@@ -53,6 +53,29 @@ def wf_bandstructure(structure, c=None):
 
     return wf
 
+def wf_bandstructure_hse(structure, c=None):
+
+    c = c or {}
+    vasp_cmd = c.get("VASP_CMD", VASP_CMD)
+    db_file = c.get("DB_FILE", DB_FILE)
+
+    wf_src_name = "bandstructure_hse_full.yaml"
+
+    wf = get_wf(structure, wf_src_name, vis=MPHSERelaxSet(structure, force_gamma=True),
+                common_params={"vasp_cmd": vasp_cmd, "db_file": db_file})
+
+    wf = add_common_powerups(wf, c)
+
+    if c.get("SMALLGAP_KPOINT_MULTIPLY", SMALLGAP_KPOINT_MULTIPLY):
+        wf = add_small_gap_multiply(wf, 0.5, 5, "static")
+
+    if c.get("STABILITY_CHECK", STABILITY_CHECK):
+        wf = add_stability_check(wf, fw_name_constraint="structure optimization")
+
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
+    return wf
 
 def wf_bandstructure_plus_hse(structure, gap_only=True, c=None):
 
