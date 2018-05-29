@@ -14,6 +14,7 @@ from atomate.qchem.firetasks.parse_outputs import *
 from atomate.qchem.firetasks.run_calc import *
 from atomate.qchem.firetasks.write_inputs import *
 
+
 class OptimizeFW(Firework):
     def __init__(self,
                  molecule=None,
@@ -70,7 +71,7 @@ class OptimizeFW(Firework):
         super(OptimizeFW, self).__init__(
             t,
             parents=parents,
-            name="{}-{}".format(structure.composition.reduced_formula, name),
+            name="{}-{}".format(molecule.formula, name),
             **kwargs)
 
 
@@ -146,5 +147,5 @@ class FrequencyFlatteningOptimizeFW(Firework):
         super(FrequencyFlatteningOptimizeFW, self).__init__(
             t,
             parents=parents,
-            name="{}-{}".format(structure.composition.reduced_formula, name),
+            name="{}-{}".format(molecule.formula, name),
             **kwargs)
