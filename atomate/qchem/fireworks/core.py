@@ -43,7 +43,7 @@ class OptimizeFW(Firework):
                                        provide: {"DFT_rung": ...}. Defaults to None.
             db_file (str): Path to file specifying db credentials to place output parsing.
             parents ([Firework]): Parents of this particular Firework.
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
         """
 
         t = []
@@ -113,7 +113,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
                                        frequency vectors. Defaults to False.
             db_file (str): Path to file specifying db credentials to place output parsing.
             parents ([Firework]): Parents of this particular Firework.
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
         """
 
         t = []

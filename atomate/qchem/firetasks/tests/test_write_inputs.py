@@ -26,6 +26,11 @@ class TestWriteInputQChem(AtomateTest):
         cls.co_mol = Molecule(co_species, co_coords)
         cls.co_opt_ref_in = QCInput.from_file(
             os.path.join(module_dir, "..", "..", "test_files", "co_qc.in"))
+        cls.opt_mol_ref_in = QCInput.from_file(
+            os.path.join(module_dir, "..", "..", "test_files", "to_opt.qin"))
+        cls.opt_mol = cls.opt_mol_ref_in.molecule
+        cls.opt_mol_pcm_ref_in = QCInput.from_file(
+            os.path.join(module_dir, "..", "..", "test_files", "to_opt_pcm.qin"))
 
     def setUp(self, lpad=False):
         super(TestWriteInputQChem, self).setUp(lpad=False)
@@ -43,6 +48,20 @@ class TestWriteInputQChem(AtomateTest):
         for k, v in self.co_opt_ref_in.as_dict().items():
             self.assertEqual(v, test_dict[k])
 
+    def test_write_input_from_io_set_diff_mol(self):
+        ft = WriteInputFromIOSet(molecule=self.opt_mol, qchem_input_set="OptSet")
+        ft.run_task({})
+        test_dict = QCInput.from_file("mol.qin").as_dict()
+        for k, v in self.opt_mol_ref_in.as_dict().items():
+            self.assertEqual(v, test_dict[k])
+
+    def test_write_input_from_io_set_diff_mol_pcm(self):
+        ft = WriteInputFromIOSet(molecule=self.opt_mol, qchem_input_set="OptSet", qchem_input_params={"pcm_dielectric": 10.0})
+        ft.run_task({})
+        test_dict = QCInput.from_file("mol.qin").as_dict()
+        for k, v in self.opt_mol_pcm_ref_in.as_dict().items():
+            self.assertEqual(v, test_dict[k])
+
     def test_write_input_from_io_set_write_dir(self):
         ft = WriteInputFromIOSet(molecule=self.co_mol, qchem_input_set="OptSet", write_to_dir=module_dir)
         ft.run_task({})
@@ -53,7 +72,8 @@ class TestWriteInputQChem(AtomateTest):
     def test_write_input(self):
         mol = self.co_mol
         rem = {"job_type": "opt", "basis": "6-311++G*", "max_scf_cycles": 200,
-               "method": "wB97X-V", "geom_opt_max_cycles": 200}
+               "method": "wB97X-V", "geom_opt_max_cycles": 200, "gen_scfman": True,
+               "scf_algorithm": "diis"}
         qc_input = QCInput(mol, rem)
         ft = WriteInput(qc_input=qc_input)
         ft.run_task({})
