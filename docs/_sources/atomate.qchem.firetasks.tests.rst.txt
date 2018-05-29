@@ -1,0 +1,22 @@
+atomate.qchem.firetasks.tests package
+=====================================
+
+Submodules
+----------
+
+atomate.qchem.firetasks.tests.test\_write\_inputs module
+--------------------------------------------------------
+
+.. automodule:: atomate.qchem.firetasks.tests.test_write_inputs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: atomate.qchem.firetasks.tests
+    :members:
+    :undoc-members:
+    :show-inheritance:

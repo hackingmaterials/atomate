@@ -1,0 +1,17 @@
+atomate.qchem package
+=====================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    atomate.qchem.firetasks
+
+Module contents
+---------------
+
+.. automodule:: atomate.qchem
+    :members:
+    :undoc-members:
+    :show-inheritance:

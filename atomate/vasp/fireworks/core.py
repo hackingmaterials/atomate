@@ -218,8 +218,14 @@ class HSEBSFW(Firework):
         t.append(WriteVaspHSEBSFromPrev(prev_calc_dir='.', mode=mode))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
+
+        parse_dos = True if mode == "uniform" else False
+        bandstructure_mode = mode if mode in ["line", "uniform"] else "line"
+
         t.append(
-            VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
+            VaspToDb(db_file=db_file, additional_fields={"task_label": name},
+                     parse_dos=parse_dos,
+                     bandstructure_mode=bandstructure_mode))
         super(HSEBSFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
