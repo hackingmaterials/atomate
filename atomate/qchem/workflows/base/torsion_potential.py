@@ -10,8 +10,9 @@ This module defines the torsion potential workflow
 import numpy as np
 
 from fireworks import Firework, Workflow
-
+from atomate.qchem.fireworks.core import OptimizeFW
 from atomate.utils.utils import get_logger, get_fws_and_tasks
+from atomate.qchem.firetasks.geo_transformations import RotateTorsion
 
 __author__ = 'Brandon Wood'
 __email__ = 'b.wood@berkeley.edu'
@@ -19,12 +20,19 @@ __email__ = 'b.wood@berkeley.edu'
 logger = get_logger(__name__)
 
 
-def get_wf_torsion_potential(molecule, name="torsion_potential"
-                            db_file=None,
-                            conventional=False, order=2, vasp_input_set=None,
-                            analysis=True,
-                            sym_reduce=False, tag='elastic',
-                            copy_vasp_outputs=False, **kwargs):
+def get_wf_torsion_potential(molecule,
+                             atom_indexes,
+                             angles,
+                             name="torsion_potential",
+                             qchem_cmd="qchem",
+                             multimode="openmp",
+                             input_file="mol.qin",
+                             output_file="mol.qout",
+                             max_cores=32,
+                             qchem_input_params=None,
+                             db_file=None,
+                             **kwargs):
+
     """
     Returns a workflow to the torsion potential for a molecule.
 
@@ -40,40 +48,44 @@ def get_wf_torsion_potential(molecule, name="torsion_potential"
 
     last Firework : add analysis code at some point
 
-    Args:
-        molecule (Molecule): input molecule to be optimized and run.
-        db_file (str): path to file containing the database credentials.
-        conventional (bool): flag to convert input structure to conventional structure,
-            defaults to False.
-        order (int): order of the tensor expansion to be determined.  Defaults to 2 and
-            currently supports up to 3.
-        vasp_input_set (VaspInputSet): vasp input set to be used.  Defaults to static
-            set with ionic relaxation parameters set.  Take care if replacing this,
-            default ensures that ionic relaxation is done and that stress is calculated
-            for each vasp run.
-        analysis (bool): flag to indicate whether analysis task should be added
-            and stresses and strains passed to that task
-        sym_reduce (bool): Whether or not to apply symmetry reductions
-        tag (str):
-        copy_vasp_outputs (bool): whether or not to copy previous vasp outputs.
-        kwargs (keyword arguments): additional kwargs to be passed to get_wf_deformations
+      Args:
+            molecule (Molecule): Input molecule (needs to be a pymatgen molecule object)
+            atom_indexes (list of ints): list of atom indexes in the torsion angle to be rotated (i.e. [6, 8, 9, 10])
+            angles (list of floats): list of all the torsion angles to run
+            name (str): Name for the workflow.
+            qchem_cmd (str): Command to run QChem. Defaults to qchem.
+            multimode (str): Parallelization scheme, either openmp or mpi.
+            input_file (str): Name of the QChem input file. Defaults to mol.qin.
+            output_file (str): Name of the QChem output file. Defaults to mol.qout.
+            max_cores (int): Maximum number of cores to parallelize over. Defaults to 32.
+            qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
+                                       For example, if you want to change the DFT_rung, you should
+                                       provide: {"DFT_rung": ...}. Defaults to None.
+            db_file (str): Path to file specifying db credentials to place output parsing.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
 
-    Returns:
-        Workflow
+    Returns: Workflow
     """
-    fws, parents = [], []
-
-    qchem_input_set = "OptSet"
+    fws = []
 
     # Optimize the starting molecule fw1
-    fws.append(OptimizeFW())
+    fw1 = OptimizeFW(molecule=molecule, name=name, qchem_cmd=qchem_cmd,
+                     multimode=multimode, input_file=input_file, output_file=output_file,
+                     max_cores=max_cores, qchem_input_params=qchem_input_params,
+                     db_file=db_file, **kwargs)
+    fws.append(fw1)
 
     # Loop to generate all the different rotated molecule optimizations
     for angle in angles:
+        rot_opt_fw = OptimizeFW(name=name, qchem_cmd=qchem_cmd,
+                                multimode=multimode, input_file=input_file, output_file=output_file,
+                                max_cores=max_cores, qchem_input_params=qchem_input_params,
+                                db_file=db_file, parents=fw1, **kwargs)
+        rot_task = RotateTorsion(atom_indexes=atom_indexes, angle=angle)
+        rot_opt_fw.tasks.insert(0, rot_task)
+        fws.append(rot_opt_fw)
 
-        fws.append(OptimizeFW())
-
-    wfname = "{}:{}".format(Molecule.formula_name, name)
+    wfname = "{}:{}".format(molecule.formula, name)
 
     return Workflow(fws, name=wfname)
     
