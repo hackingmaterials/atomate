@@ -47,6 +47,7 @@ class OptimizeFW(Firework):
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
 
+        qchem_input_params = qchem_input_params or {}
         t = []
         t.append(
             WriteInputFromIOSet(
@@ -71,14 +72,14 @@ class OptimizeFW(Firework):
         super(OptimizeFW, self).__init__(
             t,
             parents=parents,
-            name="{}-{}".format(molecule.formula, name),
+            name=name,
             **kwargs)
 
 
 class FrequencyFlatteningOptimizeFW(Firework):
     def __init__(self,
                  molecule=None,
-                 name="structure optimization",
+                 name="frequency flattening structure optimization",
                  qchem_cmd="qchem",
                  multimode="openmp",
                  input_file="mol.qin",
@@ -117,6 +118,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
 
+        qchem_input_params = qchem_input_params or {}
         t = []
         t.append(
             WriteInputFromIOSet(
@@ -147,5 +149,5 @@ class FrequencyFlatteningOptimizeFW(Firework):
         super(FrequencyFlatteningOptimizeFW, self).__init__(
             t,
             parents=parents,
-            name="{}-{}".format(molecule.formula, name),
+            name=name,
             **kwargs)
