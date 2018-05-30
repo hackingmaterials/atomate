@@ -41,6 +41,10 @@ class TestDoubleFFOpt(AtomateTest):
     #             os.remove(os.path.join(module_dir, x))
 
     def test_double_FF_opt(self):
-    	wf = get_wf_double_FF_opt(mymol, 10.0)
+    	wf = get_wf_double_FF_opt(self.act_mol, 10.0)
     	self.lp.add_wf(wf)
     	rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
+
+
+if __name__ == '__main__':
+    unittest.main()

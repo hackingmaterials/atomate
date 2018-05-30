@@ -47,6 +47,7 @@ class OptimizeFW(Firework):
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
 
+        qchem_input_params = qchem_input_params or {}
         t = []
         t.append(
             WriteInputFromIOSet(
@@ -117,6 +118,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
 
+        qchem_input_params = qchem_input_params or {}
         t = []
         t.append(
             WriteInputFromIOSet(
