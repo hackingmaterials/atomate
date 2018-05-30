@@ -6,7 +6,7 @@ import os
 import unittest
 import shutil
 
-from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet, WriteInput
+from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet, WriteInput, WriteCustomInput
 from atomate.utils.testing import AtomateTest
 from pymatgen.core import Molecule
 from pymatgen.io.qchem_io.inputs import QCInput
@@ -76,6 +76,17 @@ class TestWriteInputQChem(AtomateTest):
                "scf_algorithm": "diis"}
         qc_input = QCInput(mol, rem)
         ft = WriteInput(qc_input=qc_input)
+        ft.run_task({})
+        test_dict = QCInput.from_file("mol.qin").as_dict()
+        for k, v in self.co_opt_ref_in.as_dict().items():
+            self.assertEqual(v, test_dict[k])
+
+    def test_write_custom_input(self):
+        mol = self.co_mol
+        rem = {"job_type": "opt", "basis": "6-311++G*", "max_scf_cycles": 200,
+               "method": "wB97X-V", "geom_opt_max_cycles": 200, "gen_scfman": True,
+               "scf_algorithm": "diis"}
+        ft = WriteCustomInput(molecule=mol, rem=rem)
         ft.run_task({})
         test_dict = QCInput.from_file("mol.qin").as_dict()
         for k, v in self.co_opt_ref_in.as_dict().items():
