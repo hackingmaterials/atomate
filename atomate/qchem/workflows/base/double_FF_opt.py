@@ -11,7 +11,6 @@ in PCM. Both optimizations will include automatic frequency flattening.
 import numpy as np
 
 from fireworks import Firework, Workflow
-from pymatgen.core import Molecule
 from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
 from atomate.utils.utils import get_logger
 
@@ -55,7 +54,7 @@ def get_wf_double_FF_opt(molecule, pcm_dielectric, name="douple_FF_opt", db_file
     fw2 = FrequencyFlatteningOptimizeFW(parents=fw1, qchem_input_params={"pcm_dielectric": pcm_dielectric})
     fws = [fw1, fw2]
 
-    wfname = "{}:{}".format(Molecule.formula_name, name)
+    wfname = "{}:{}".format(molecule.composition.reduced_formula, name)
 
     return Workflow(fws, name=wfname, **kwargs)
     
