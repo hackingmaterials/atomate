@@ -11,7 +11,7 @@ in PCM. Both optimizations will include automatic frequency flattening.
 import numpy as np
 
 from fireworks import Firework, Workflow
-
+from pymatgen.core import Molecule
 from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
 from atomate.utils.utils import get_logger
 
