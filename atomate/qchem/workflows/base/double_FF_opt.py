@@ -2,10 +2,9 @@
 
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
-
 """
 This module defines a workflow for optimizing a molecule first in vacuum and then
-in PCM. Both optimizations will include automatic frequency flattening. 
+in PCM. Both optimizations will include automatic frequency flattening.
 """
 
 import numpy as np
@@ -23,7 +22,11 @@ __email__ = "samblau1@gmail.com"
 logger = get_logger(__name__)
 
 
-def get_wf_double_FF_opt(molecule, pcm_dielectric, name="douple_FF_opt", db_file=None, **kwargs):
+def get_wf_double_FF_opt(molecule,
+                         pcm_dielectric,
+                         name="douple_FF_opt",
+                         db_file=">>db_file<<",
+                         **kwargs):
     """
     Returns a workflow to the torsion potential for a molecule.
 
@@ -32,7 +35,7 @@ def get_wf_double_FF_opt(molecule, pcm_dielectric, name="douple_FF_opt", db_file
                  parse directory and insert into db,
                  pass relaxed molecule to fw_spec and on to fw2,
 
-    Firework 2 : write QChem input for an optimization in the 
+    Firework 2 : write QChem input for an optimization in the
                     presence of a PCM, using the molecule passed
                     from fw1,
                  run FF_opt QCJob,
@@ -49,14 +52,14 @@ def get_wf_double_FF_opt(molecule, pcm_dielectric, name="douple_FF_opt", db_file
     """
 
     # Optimize the molecule in vacuum
-    fw1 = FrequencyFlatteningOptimizeFW(molecule=molecule)
+    fw1 = FrequencyFlatteningOptimizeFW(molecule=molecule, db_file=db_file)
     # Optimize the molecule in PCM
-    fw2 = FrequencyFlatteningOptimizeFW(parents=fw1, qchem_input_params={"pcm_dielectric": pcm_dielectric})
+    fw2 = FrequencyFlatteningOptimizeFW(
+        parents=fw1,
+        qchem_input_params={"pcm_dielectric": pcm_dielectric},
+        db_file=db_file)
     fws = [fw1, fw2]
 
     wfname = "{}:{}".format(molecule.composition.reduced_formula, name)
 
     return Workflow(fws, name=wfname, **kwargs)
-    
-
-
