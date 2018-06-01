@@ -59,22 +59,24 @@ def get_wf_double_FF_opt(molecule,
         Workflow
     """
 
-    qchem_input_params = qchem_input_params or {}
+    first_qchem_input_params = qchem_input_params or {}
 
     # Optimize the molecule in vacuum
     fw1 = FrequencyFlatteningOptimizeFW(
         molecule=molecule,
         qchem_cmd=qchem_cmd,
         max_cores=max_cores,
-        qchem_input_params=qchem_input_params,
+        qchem_input_params=first_qchem_input_params,
         db_file=db_file)
 
     # Optimize the molecule in PCM
-    qchem_input_params["pcm_dielectric"] = pcm_dielectric
+    second_qchem_input_params = {"pcm_dielectric": pcm_dielectric}
+    for key in first_qchem_input_params:
+        second_qchem_input_params[key] = first_qchem_input_params[key]
     fw2 = FrequencyFlatteningOptimizeFW(
         qchem_cmd=qchem_cmd,
         max_cores=max_cores,
-        qchem_input_params=qchem_input_params,
+        qchem_input_params=second_qchem_input_params,
         db_file=db_file,
         parents=fw1)
     fws = [fw1, fw2]
