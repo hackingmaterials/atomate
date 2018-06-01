@@ -24,6 +24,8 @@ logger = get_logger(__name__)
 
 def get_wf_double_FF_opt(molecule,
                          pcm_dielectric,
+                         max_cores=32,
+                         qchem_input_params=None,
                          name="douple_FF_opt",
                          qchem_cmd=">>qchem_cmd<<",
                          db_file=">>db_file<<",
@@ -45,6 +47,10 @@ def get_wf_double_FF_opt(molecule,
     Args:
         molecule (Molecule): input molecule to be optimized and run.
         pcm_dielectric (float): The PCM dielectric constant.
+        max_cores (int): Maximum number of cores to parallelize over. 
+            Defaults to 32.
+        qchem_input_params (dict): Specify kwargs for instantiating 
+            the input set parameters.
         qchem_cmd (str): Command to run QChem.
         db_file (str): path to file containing the database credentials.
         kwargs (keyword arguments): additional kwargs to be passed to Workflow
@@ -53,15 +59,24 @@ def get_wf_double_FF_opt(molecule,
         Workflow
     """
 
+    qchem_input_params = qchem_input_params or {}
+
     # Optimize the molecule in vacuum
     fw1 = FrequencyFlatteningOptimizeFW(
-        molecule=molecule, qchem_cmd=qchem_cmd, db_file=db_file)
-    # Optimize the molecule in PCM
-    fw2 = FrequencyFlatteningOptimizeFW(
-        parents=fw1,
-        qchem_input_params={"pcm_dielectric": pcm_dielectric},
+        molecule=molecule,
         qchem_cmd=qchem_cmd,
+        max_cores=max_cores,
+        qchem_input_params=qchem_input_params,
         db_file=db_file)
+
+    # Optimize the molecule in PCM
+    qchem_input_params["pcm_dielectric"] = pcm_dielectric
+    fw2 = FrequencyFlatteningOptimizeFW(
+        qchem_cmd=qchem_cmd,
+        max_cores=max_cores,
+        qchem_input_params=qchem_input_params,
+        db_file=db_file,
+        parents=fw1)
     fws = [fw1, fw2]
 
     wfname = "{}:{}".format(molecule.composition.reduced_formula, name)
