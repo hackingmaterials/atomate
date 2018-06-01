@@ -25,6 +25,7 @@ logger = get_logger(__name__)
 def get_wf_double_FF_opt(molecule,
                          pcm_dielectric,
                          name="douple_FF_opt",
+                         qchem_cmd=">>qchem_cmd<<",
                          db_file=">>db_file<<",
                          **kwargs):
     """
@@ -44,6 +45,7 @@ def get_wf_double_FF_opt(molecule,
     Args:
         molecule (Molecule): input molecule to be optimized and run.
         pcm_dielectric (float): The PCM dielectric constant.
+        qchem_cmd (str): Command to run QChem.
         db_file (str): path to file containing the database credentials.
         kwargs (keyword arguments): additional kwargs to be passed to Workflow
 
@@ -52,11 +54,13 @@ def get_wf_double_FF_opt(molecule,
     """
 
     # Optimize the molecule in vacuum
-    fw1 = FrequencyFlatteningOptimizeFW(molecule=molecule, db_file=db_file)
+    fw1 = FrequencyFlatteningOptimizeFW(
+        molecule=molecule, qchem_cmd=qchem_cmd, db_file=db_file)
     # Optimize the molecule in PCM
     fw2 = FrequencyFlatteningOptimizeFW(
         parents=fw1,
         qchem_input_params={"pcm_dielectric": pcm_dielectric},
+        qchem_cmd=qchem_cmd,
         db_file=db_file)
     fws = [fw1, fw2]
 
