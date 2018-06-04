@@ -9,6 +9,7 @@ from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
 from atomate.common.firetasks.glue_tasks import get_calc_loc
+from atomate.qchem.database import QChemCalcDb
 from atomate.utils.utils import env_chk
 from atomate.utils.utils import get_logger
 from atomate.qchem.drones import QChemDrone
@@ -96,8 +97,8 @@ class QChemToDb(FiretaskBase):
             with open(os.path.join(calc_dir, "task.json"), "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
-            mmdb = CalcDb.from_db_file(db_file, admin=True)
-            t_id = mmdb.insert_task(task_doc)
+            mmdb = QChemCalcDb.from_db_file(db_file, admin=True)
+            t_id = mmdb.insert(task_doc)
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
         defuse_children = False

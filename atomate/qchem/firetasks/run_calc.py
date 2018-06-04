@@ -18,6 +18,7 @@ from custodian.qchem.new_jobs import QCJob
 from fireworks import explicit_serialize, FiretaskBase
 
 from atomate.utils.utils import env_chk, get_logger
+import numpy as np
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -211,22 +212,22 @@ class RunQChemFake(FiretaskBase):
         # Check mol.qin
         ref_qin = QCInput.from_file(
             os.path.join(self["ref_dir"], "mol.qin"))
-        if ref_qin.molecule != user_qin.molecule:
-            raise ValueError("Molecule is inconsistent!")
+        np.testing.assert_equal(ref_qin.molecule.species, user_qin.molecule.species)
+        np.testing.assert_allclose(ref_qin.molecule.cart_coords, user_qin.molecule.cart_coords, atol=0.0001)
         for key in ref_qin.rem:
             if user_qin.rem.get(key) != ref_qin.rem.get(key):
                 raise ValueError("Rem key {} is inconsistent!".format(key))
-        if ref_qin.opt != None:
+        if ref_qin.opt is not None:
             for key in ref_qin.opt:
                 if user_qin.opt.get(key) != ref_qin.opt.get(key):
                     raise ValueError(
                         "Opt key {} is inconsistent!".format(key))
-        if ref_qin.pcm != None:
+        if ref_qin.pcm is not None:
             for key in ref_qin.pcm:
                 if user_qin.pcm.get(key) != ref_qin.pcm.get(key):
                     raise ValueError(
                         "PCM key {} is inconsistent!".format(key))
-        if ref_qin.solvent != None:
+        if ref_qin.solvent is not None:
             for key in ref_qin.solvent:
                 if user_qin.solvent.get(key) != ref_qin.solvent.get(key):
                     raise ValueError(
