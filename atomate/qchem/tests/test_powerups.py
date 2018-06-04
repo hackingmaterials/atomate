@@ -37,7 +37,7 @@ class TestPowerups(AtomateTest):
         # this removes the scratch dir made by AtomateTest
         shutil.rmtree(self.scratch_dir)
         # this removes the file that gets written
-        for x in ["mol.qin"]:
+        for x in ["mol.qin", "task.json"]:
             if os.path.exists(os.path.join(module_dir, x)):
                 os.remove(os.path.join(module_dir, x))
 

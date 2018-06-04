@@ -33,7 +33,7 @@ def use_fake_qchem(original_wf, ref_dirs):
 
         Returns:
             Workflow
-        """
+    """
     for idx_fw, fw in enumerate(original_wf.fws):
         for job_type in ref_dirs.keys():
             if job_type in fw.name:
