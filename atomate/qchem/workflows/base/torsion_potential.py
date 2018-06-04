@@ -13,6 +13,7 @@ from fireworks import Firework, Workflow
 from atomate.qchem.fireworks.core import OptimizeFW
 from atomate.utils.utils import get_logger, get_fws_and_tasks
 from atomate.qchem.firetasks.geo_transformations import RotateTorsion
+from atomate.qchem.firetasks.write_inputs import WriteCustomInput
 
 __author__ = 'Brandon Wood'
 __email__ = 'b.wood@berkeley.edu'
@@ -23,13 +24,13 @@ logger = get_logger(__name__)
 def get_wf_torsion_potential(molecule,
                              atom_indexes,
                              angles,
+                             rem,
                              name="torsion_potential",
                              qchem_cmd="qchem",
                              multimode="openmp",
                              input_file="mol.qin",
                              output_file="mol.qout",
                              max_cores=32,
-                             qchem_input_params=None,
                              db_file=None,
                              **kwargs):
 
@@ -52,6 +53,8 @@ def get_wf_torsion_potential(molecule,
             molecule (Molecule): Input molecule (needs to be a pymatgen molecule object)
             atom_indexes (list of ints): list of atom indexes in the torsion angle to be rotated (i.e. [6, 8, 9, 10])
             angles (list of floats): list of all the torsion angles to run
+            rem (list of two rem dictionaries): a list with two rem dictionaries, one for the first optimization and
+            one for the second constrained optimization
             name (str): Name for the workflow.
             qchem_cmd (str): Command to run QChem. Defaults to qchem.
             multimode (str): Parallelization scheme, either openmp or mpi.
@@ -69,23 +72,31 @@ def get_wf_torsion_potential(molecule,
     fws = []
 
     # Optimize the starting molecule fw1
-    fw1 = OptimizeFW(molecule=molecule, name=name, qchem_cmd=qchem_cmd,
+    fw1 = OptimizeFW(molecule=molecule, name="initial_opt", qchem_cmd=qchem_cmd,
                      multimode=multimode, input_file=input_file, output_file=output_file,
-                     max_cores=max_cores, qchem_input_params=qchem_input_params,
-                     db_file=db_file, **kwargs)
+                     max_cores=max_cores, db_file=db_file, **kwargs)
+    for idx_t, t in enumerate(fw1.tasks):
+        if "WriteInputFromIOSet" in str(t):
+            fw1.tasks[idx_t] = WriteCustomInput(molecule=molecule, rem=rem[0])
     fws.append(fw1)
 
     # Loop to generate all the different rotated molecule optimizations
     for angle in angles:
-        rot_opt_fw = OptimizeFW(name=name, qchem_cmd=qchem_cmd,
+        rot_opt_fw = OptimizeFW(name=("opt_" + str(int(angle))), qchem_cmd=qchem_cmd,
                                 multimode=multimode, input_file=input_file, output_file=output_file,
-                                max_cores=max_cores, qchem_input_params=qchem_input_params,
-                                db_file=db_file, parents=fw1, **kwargs)
+                                max_cores=max_cores, db_file=db_file, parents=fw1, **kwargs)
         rot_task = RotateTorsion(atom_indexes=atom_indexes, angle=angle)
         rot_opt_fw.tasks.insert(0, rot_task)
+        # define opt section
+        opt_line = "tors {a} {b} {c} {d} {ang}".format(a=atom_indexes[0], b=atom_indexes[1],
+                                                       c=atom_indexes[2], d=atom_indexes[3], ang=angle)
+        opt = {"CONSTRAINT": [opt_line]}
+        for idx_t, t in enumerate(rot_opt_fw.tasks):
+            if "WriteInputFromIOSet" in str(t):
+                rot_opt_fw.tasks[idx_t] = WriteCustomInput(rem=rem[1], opt=opt)
         fws.append(rot_opt_fw)
 
-    wfname = "{}:{}".format(molecule.formula, name)
+    wfname = "{}:{}".format(molecule.composition.reduced_formula, name)
 
     return Workflow(fws, name=wfname)
     
