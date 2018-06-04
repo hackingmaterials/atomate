@@ -13,7 +13,7 @@ $end
 
 $rem
    BASIS  =  6-311++G*
-   METHOD  =  wb97x-v
+   METHOD  =  wb97xd
    JOB_TYPE  =  Opt
    gen_scfman = True
    scf_algorithm = DIIS
