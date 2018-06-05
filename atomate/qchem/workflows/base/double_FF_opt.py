@@ -64,6 +64,7 @@ def get_wf_double_FF_opt(molecule,
     # Optimize the molecule in vacuum
     fw1 = FrequencyFlatteningOptimizeFW(
         molecule=molecule,
+        name="first_FF_no_pcm",
         qchem_cmd=qchem_cmd,
         max_cores=max_cores,
         qchem_input_params=first_qchem_input_params,
@@ -74,6 +75,7 @@ def get_wf_double_FF_opt(molecule,
     for key in first_qchem_input_params:
         second_qchem_input_params[key] = first_qchem_input_params[key]
     fw2 = FrequencyFlatteningOptimizeFW(
+        name="second_FF_with_pcm",
         qchem_cmd=qchem_cmd,
         max_cores=max_cores,
         qchem_input_params=second_qchem_input_params,
