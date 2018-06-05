@@ -42,10 +42,11 @@ class TestDoubleFFOpt(AtomateTest):
         # Check the output info that gets inserted in the DB
         first_FF = self.get_task_collection().find_one({"task_label": "first_FF_no_pcm"})
         first_FF_final_mol = Molecule.from_dict(first_FF["output"]["optimized_molecule"])
-        first_FF_final_e = first_FF["output"]["final_energy"]
+        
+        second_FF = self.get_task_collection().find_one({"task_label": "second_FF_with_pcm"})
+        second_FF_initial_mol = Molecule.from_dict(second_FF["input"]["initial_molecule"])
 
-        print(first_FF_final_mol)
-        print(first_FF_final_e)
+        self.assertEqual(first_FF_final_mol, second_FF_initial_mol)
 
 
 if __name__ == '__main__':
