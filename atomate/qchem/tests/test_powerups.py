@@ -33,6 +33,9 @@ class TestPowerups(AtomateTest):
         qc_out = QCOutput(filename=out_file)
         cls.act_mol = qc_out.data["molecule_from_optimized_geometry"]
 
+    def setUp(self, lpad=False):
+        super(TestPowerups, self).setUp(lpad=False)
+
     def tearDown(self):
         # this removes the scratch dir made by AtomateTest
         shutil.rmtree(self.scratch_dir)
