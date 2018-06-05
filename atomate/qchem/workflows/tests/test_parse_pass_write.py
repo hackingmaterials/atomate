@@ -35,7 +35,7 @@ class TestParsePassWrite(AtomateTest):
         # this removes the scratch dir made by AtomateTest
         shutil.rmtree(self.scratch_dir)
         # this removes the file that gets written
-        for x in ["mol.qin", "task.json"]:
+        for x in ["mol.qin"]:
             if os.path.exists(os.path.join(module_dir, x)):
                 os.remove(os.path.join(module_dir, x))
 
@@ -45,7 +45,7 @@ class TestParsePassWrite(AtomateTest):
         output_file = "test.qout.opt_1"
         calc_dir = os.path.join(module_dir, "..", "..", "test_files", "FF_working")
 
-        p_task = QChemToDb(calc_dir=calc_dir, input_file=input_file, output_file=output_file)
+        p_task = QChemToDb(calc_dir=calc_dir, input_file=input_file, output_file=output_file, db_file=">>db_file<<")
         fw1 = Firework([p_task])
         w_task = WriteInputFromIOSet(qchem_input_set="OptSet", write_to_dir=module_dir)
         fw2 = Firework([w_task], parents=fw1)
@@ -64,7 +64,7 @@ class TestParsePassWrite(AtomateTest):
         output_file = "pt_gs_wb97mv_tz_initial_1_job.out"
         calc_dir = os.path.join(module_dir, "..", "..", "test_files")
 
-        p_task = QChemToDb(calc_dir=calc_dir, input_file=input_file, output_file=output_file)
+        p_task = QChemToDb(calc_dir=calc_dir, input_file=input_file, output_file=output_file, db_file=">>db_file<<")
         fw1 = Firework([p_task])
         atom_indexes = [6, 8, 9, 10]
         angle = 90.0
