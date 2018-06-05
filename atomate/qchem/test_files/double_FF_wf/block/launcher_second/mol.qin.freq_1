@@ -1,0 +1,36 @@
+$molecule
+ 0 2
+ O      0.9724465619     -0.1061266933     -0.0219825515
+ C      1.0080627094     -1.4455428779     -0.0060786628
+ C     -0.3592852215      0.2696966193      0.0231114402
+ O      2.0021670872     -2.1201430284     -0.0314779494
+ O     -0.2437066759     -1.9198256625      0.0466128691
+ C     -1.0953091584     -0.8290735448      0.0648402307
+ Li      4.0141562105     -1.4835925573      0.1384838426
+ H     -0.5815979546      1.3209768267      0.0176562952
+ H     -2.1516664528     -1.0209228603      0.1090307995
+$end
+
+$rem
+   job_type = freq
+   basis = 6-311++g**
+   max_scf_cycles = 200
+   gen_scfman = true
+   scf_algorithm = diis
+   method = wb97xd
+   geom_opt_max_cycles = 200
+   solvent_method = pcm
+   sym_ignore = true
+$end
+
+$pcm
+   heavypoints 194
+   hpoints 194
+   radii uff
+   theory cpcm
+   vdwscale 1.1
+$end
+
+$solvent
+   dielectric 10.0
+$end
