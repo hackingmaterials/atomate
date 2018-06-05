@@ -38,12 +38,14 @@ class TestDoubleFFOpt(AtomateTest):
         wf_test = self.lp.get_wf_by_fw_id(1)
         self.assertTrue(all([s == 'COMPLETED' for s in wf_test.fw_states.values()]))
 
-        # Checking of the inputs happens in fake_run_qchem so there is no point to retest the inputs
-        # Check the output info that gets inserted in the DB
         first_FF = self.get_task_collection().find_one({"task_label": "first_FF_no_pcm"})
+        self.assertEqual(first_FF["calcs_reversed"][0]["input"]["solvent"],{})
+        self.assertEqual(first_FF["num_frequencies_flattened"],1)
         first_FF_final_mol = Molecule.from_dict(first_FF["output"]["optimized_molecule"])
         
         second_FF = self.get_task_collection().find_one({"task_label": "second_FF_with_pcm"})
+        self.assertEqual(second_FF["calcs_reversed"][0]["input"]["solvent"],{"dielectric": 10.0})
+        self.assertEqual(second_FF["num_frequencies_flattened"],1)
         second_FF_initial_mol = Molecule.from_dict(second_FF["input"]["initial_molecule"])
 
         self.assertEqual(first_FF_final_mol, second_FF_initial_mol)
