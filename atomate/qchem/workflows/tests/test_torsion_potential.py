@@ -4,11 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import os
 import unittest
-import shutil
 
-from atomate.qchem.firetasks.geo_transformations import RotateTorsion
-from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
-from atomate.qchem.firetasks.parse_outputs import QChemToDb
 from fireworks import Firework, Workflow, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 from atomate.utils.testing import AtomateTest
@@ -24,8 +20,6 @@ __email__ = 'b.wood@berkeley.edu'
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
-
-#DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 
 
 class TestTorsionPotential(AtomateTest):
