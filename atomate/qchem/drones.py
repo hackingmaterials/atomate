@@ -172,7 +172,7 @@ class QChemDrone(AbstractDrone):
                 if d["input"]["job_type"] == "opt" or d["input"]["job_type"] == "optimization":
                     d["output"]["optimized_molecule"] = d_calc_final[
                         "initial_molecule"]
-                    d["output"]["final_energy"] = d_calc_final["final_energy"]
+                    d["output"]["final_energy"] = d["calcs_reversed"][1]["final_energy"]
 
             if "special_run_type" in d:
                 if d["special_run_type"] == "frequency_flattener":
