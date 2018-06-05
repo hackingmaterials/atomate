@@ -44,7 +44,8 @@ class RotateTorsion(FiretaskBase):
 
         babe_mol = BabelMolAdaptor(start_mol).openbabel_mol
         babe_mol.SetTorsion(self["atom_indexes"][0], self["atom_indexes"][1],
-                                  self["atom_indexes"][2], self["atom_indexes"][3], (self["angle"] * np.pi / 180.))
+                            self["atom_indexes"][2], self["atom_indexes"][3],
+                            (self["angle"] * np.pi / 180.))
         rotated_mol = BabelMolAdaptor(babe_mol).pymatgen_mol
 
         # update the fw_spec with the rotated geometry

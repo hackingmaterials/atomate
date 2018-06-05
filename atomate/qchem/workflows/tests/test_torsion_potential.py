@@ -25,10 +25,10 @@ __email__ = 'b.wood@berkeley.edu'
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 
-DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
+#DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
+
 
 class TestTorsionPotential(AtomateTest):
-
 
     def test_torsion_potential(self):
         # location of test files
@@ -83,8 +83,7 @@ class TestTorsionPotential(AtomateTest):
         # Checking of the inputs happens in fake_run_qchem so there is no point to retest the inputs
         # Check the output info that gets inserted in the DB
         init_opt = self.get_task_collection().find_one({"task_label": "initial_opt"})
-        init_opt_final_mol = init_opt["output"]["optimized_molecule"]
-        print(init_opt_final_mol)
+        init_opt_final_mol = Molecule.from_dict(init_opt["output"]["optimized_molecule"])
         init_opt_final_e = init_opt["output"]["final_energy"]
         # parse output file
         act_init_opt_out = QCOutput(os.path.join(test_tor_files, "initial_opt", "mol.qout"))
@@ -94,6 +93,46 @@ class TestTorsionPotential(AtomateTest):
         np.testing.assert_equal(act_init_opt_mol.species, init_opt_final_mol.species)
         np.testing.assert_allclose(act_init_opt_mol.cart_coords, init_opt_final_mol.cart_coords, atol=0.0001)
         np.testing.assert_equal(act_init_opt_final_e, init_opt_final_e)
+
+        # Optimization of 0 torsion
+        opt_0 = self.get_task_collection().find_one({"task_label": "opt_0"})
+        opt_0_final_mol = Molecule.from_dict(opt_0["output"]["optimized_molecule"])
+        opt_0_final_e = opt_0["output"]["final_energy"]
+        # parse output file
+        act_opt_0_out = QCOutput(os.path.join(test_tor_files, "opt_0", "mol.qout"))
+        act_opt_0_mol = act_opt_0_out.data["molecule_from_optimized_geometry"]
+        act_opt_0_final_e = act_opt_0_out.data["final_energy"]
+
+        np.testing.assert_equal(act_opt_0_mol.species, opt_0_final_mol.species)
+        np.testing.assert_allclose(act_opt_0_mol.cart_coords, opt_0_final_mol.cart_coords, atol=0.0001)
+        np.testing.assert_equal(act_opt_0_final_e, opt_0_final_e)
+
+        # Optimization of 90 torsion
+        opt_90 = self.get_task_collection().find_one({"task_label": "opt_90"})
+        opt_90_final_mol = Molecule.from_dict(opt_90["output"]["optimized_molecule"])
+        opt_90_final_e = opt_90["output"]["final_energy"]
+        # parse output file
+        act_opt_90_out = QCOutput(os.path.join(test_tor_files, "opt_90", "mol.qout"))
+        act_opt_90_mol = act_opt_90_out.data["molecule_from_optimized_geometry"]
+        act_opt_90_final_e = act_opt_90_out.data["final_energy"]
+
+        np.testing.assert_equal(act_opt_90_mol.species, opt_90_final_mol.species)
+        np.testing.assert_allclose(act_opt_90_mol.cart_coords, opt_90_final_mol.cart_coords, atol=0.0001)
+        np.testing.assert_equal(act_opt_90_final_e, opt_90_final_e)
+
+        # Optimization of 180 torsion
+        opt_180 = self.get_task_collection().find_one({"task_label": "opt_180"})
+        opt_180_final_mol = Molecule.from_dict(opt_180["output"]["optimized_molecule"])
+        opt_180_final_e = opt_180["output"]["final_energy"]
+        # parse output file
+        act_opt_180_out = QCOutput(os.path.join(test_tor_files, "opt_180", "mol.qout"))
+        act_opt_180_mol = act_opt_180_out.data["molecule_from_optimized_geometry"]
+        act_opt_180_final_e = act_opt_180_out.data["final_energy"]
+
+        np.testing.assert_equal(act_opt_180_mol.species, opt_180_final_mol.species)
+        np.testing.assert_allclose(act_opt_180_mol.cart_coords, opt_180_final_mol.cart_coords, atol=0.0001)
+        np.testing.assert_equal(act_opt_180_final_e, opt_180_final_e)
+
 
 if __name__ == '__main__':
     unittest.main()

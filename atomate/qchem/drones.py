@@ -89,7 +89,7 @@ class QChemDrone(AbstractDrone):
         else:
             raise ValueError("Either input or output not found!")
         self.validate_doc(d)
-        return d
+        return jsanitize(d, strict=True, allow_bson=True)
 
     def filter_files(self, path, file_pattern):
         """
