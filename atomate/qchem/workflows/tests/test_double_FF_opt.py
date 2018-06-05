@@ -39,7 +39,7 @@ class TestDoubleFFOpt(AtomateTest):
         self.assertTrue(all([s == 'COMPLETED' for s in wf_test.fw_states.values()]))
 
         first_FF = self.get_task_collection().find_one({"task_label": "first_FF_no_pcm"})
-        self.assertEqual(first_FF["calcs_reversed"][0]["input"]["solvent"],{})
+        self.assertEqual(first_FF["calcs_reversed"][0]["input"]["solvent"],None)
         self.assertEqual(first_FF["num_frequencies_flattened"],1)
         first_FF_final_mol = Molecule.from_dict(first_FF["output"]["optimized_molecule"])
         
