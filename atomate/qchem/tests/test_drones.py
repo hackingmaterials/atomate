@@ -75,8 +75,8 @@ class QChemDroneTest(unittest.TestCase):
     def test_assimilate_FF(self):
         drone = QChemDrone(
             runs=[
-                'opt_0', 'freq_0', 'opt_1', 'freq_1', 'opt_2', 'freq_2',
-                'opt_3', 'freq_3'
+                "opt_0", "freq_0", "opt_1", "freq_1", "opt_2", "freq_2",
+                "opt_3", "freq_3"
             ],
             additional_fields={"special_run_type": "frequency_flattener"})
         doc = drone.assimilate(

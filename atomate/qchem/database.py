@@ -18,9 +18,9 @@ from pymongo import ASCENDING, DESCENDING
 from atomate.utils.database import CalcDb
 from atomate.utils.utils import get_logger
 
-__author__ = 'Brandon Wood'
-__credits__ = 'Kiran Mathew, Anubhav Jain'
-__email__ = 'b.wood@berkeley.edu'
+__author__ = "Brandon Wood"
+__credits__ = "Kiran Mathew, Anubhav Jain"
+__email__ = "b.wood@berkeley.edu"
 
 logger = get_logger(__name__)
 

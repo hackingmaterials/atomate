@@ -8,10 +8,9 @@ import os
 
 from atomate.utils.utils import load_class
 from fireworks import FiretaskBase, explicit_serialize
-from pymatgen.core import Molecule
 from pymatgen.io.qchem_io.inputs import QCInput
 
-__author__ = 'Brandon Wood'
+__author__ = "Brandon Wood"
 __email__ = "b.wood@berkeley.edu"
 
 
@@ -141,5 +140,5 @@ class WriteInput(FiretaskBase):
         if "write_to_dir" in self:
             input_file = os.path.join(self["write_to_dir"], input_file)
 
-        qcin = self['qc_input']
+        qcin = self["qc_input"]
         qcin.write_file(input_file)

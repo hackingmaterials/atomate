@@ -17,8 +17,8 @@ from pymatgen.io.qchem_io.outputs import QCOutput
 from pymatgen.io.qchem_io.inputs import QCInput
 import numpy as np
 
-__author__ = 'Brandon Wood'
-__email__ = 'b.wood@berkeley.edu'
+__author__ = "Brandon Wood"
+__email__ = "b.wood@berkeley.edu"
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
@@ -82,5 +82,5 @@ class TestParsePassWrite(AtomateTest):
         np.testing.assert_equal(act_mol.species, test_mol.species)
         np.testing.assert_allclose(act_mol.cart_coords, test_mol.cart_coords, atol=0.0001)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

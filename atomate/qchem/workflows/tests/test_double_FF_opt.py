@@ -36,7 +36,7 @@ class TestDoubleFFOpt(AtomateTest):
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
         wf_test = self.lp.get_wf_by_fw_id(1)
-        self.assertTrue(all([s == 'COMPLETED' for s in wf_test.fw_states.values()]))
+        self.assertTrue(all([s == "COMPLETED" for s in wf_test.fw_states.values()]))
 
         first_FF = self.get_task_collection().find_one({"task_label": "first_FF_no_pcm"})
         self.assertEqual(first_FF["calcs_reversed"][0]["input"]["solvent"],None)
@@ -51,5 +51,5 @@ class TestDoubleFFOpt(AtomateTest):
         self.assertEqual(first_FF_final_mol, second_FF_initial_mol)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -196,7 +196,7 @@ class RunQChemFake(FiretaskBase):
 
      Required params:
          ref_dir (string): Path to reference qchem run directory with input file in the folder
-            named 'mol.qin' and output file in the folder named 'mol.qout'.
+            named "mol.qin" and output file in the folder named "mol.qout".
 
      """
     required_params = ["ref_dir"]

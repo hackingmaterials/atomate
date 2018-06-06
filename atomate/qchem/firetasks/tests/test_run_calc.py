@@ -91,8 +91,8 @@ class TestRunCalcQChem(AtomateTest):
                                      "co_qc.in"),
                                  output_file="mol.qout").as_dict())
             self.assertEqual(custodian_patch.call_args[1], {
-                'max_errors': 5,
-                'gzipped_output': True
+                "max_errors": 5,
+                "gzipped_output": True
             })
 
     def test_RunQChemCustodian_using_fw_spec_defaults(self):
@@ -127,8 +127,8 @@ class TestRunCalcQChem(AtomateTest):
                                  output_file="mol.qout",
                                  scratch_dir="/this/is/a/test").as_dict())
             self.assertEqual(custodian_patch.call_args[1], {
-                'max_errors': 5,
-                'gzipped_output': True
+                "max_errors": 5,
+                "gzipped_output": True
             })
 
     def test_RunQChemCustodian_basic_not_defaults(self):
@@ -167,8 +167,8 @@ class TestRunCalcQChem(AtomateTest):
                                  save_name="no_idea",
                                  scratch_dir="/this/is/a/test").as_dict())
             self.assertEqual(custodian_patch.call_args[1], {
-                'max_errors': 137,
-                'gzipped_output': False
+                "max_errors": 137,
+                "gzipped_output": False
             })
 
     def test_RunQChemCustodian_using_fw_spec_not_defaults(self):
@@ -214,8 +214,8 @@ class TestRunCalcQChem(AtomateTest):
                                  save_name="no_idea",
                                  scratch_dir="/this/is/a/test").as_dict())
             self.assertEqual(custodian_patch.call_args[1], {
-                'max_errors': 137,
-                'gzipped_output': False
+                "max_errors": 137,
+                "gzipped_output": False
             })
 
     def test_RunQChemCustodian_FF_basic_defaults(self):
@@ -246,34 +246,34 @@ class TestRunCalcQChem(AtomateTest):
                                          "FF_before_run",
                                          "test.qout")).as_dict())
                 self.assertEqual(custodian_patch.call_args[1], {
-                    'max_errors': 5,
-                    'gzipped_output': True
+                    "max_errors": 5,
+                    "gzipped_output": True
                 })
                 self.assertEqual(
                     FF_patch.call_args[1], {
-                        'qchem_command':
-                        'qchem',
-                        'multimode':
-                        'openmp',
-                        'input_file':
+                        "qchem_command":
+                        "qchem",
+                        "multimode":
+                        "openmp",
+                        "input_file":
                         os.path.join(module_dir, "..", "..", "test_files",
                                      "FF_before_run", "test.qin"),
-                        'output_file':
+                        "output_file":
                         os.path.join(module_dir, "..", "..", "test_files",
                                      "FF_before_run", "test.qout"),
-                        'qclog_file':
-                        'mol.qclog',
-                        'max_iterations':
+                        "qclog_file":
+                        "mol.qclog",
+                        "max_iterations":
                         10,
-                        'max_molecule_perturb_scale':
+                        "max_molecule_perturb_scale":
                         0.3,
-                        'scratch_dir':
-                        '/dev/shm/qcscratch/',
-                        'save_scratch':
+                        "scratch_dir":
+                        "/dev/shm/qcscratch/",
+                        "save_scratch":
                         False,
-                        'save_name':
-                        'default_save_name',
-                        'max_cores':
+                        "save_name":
+                        "default_save_name",
+                        "max_cores":
                         32
                     })
 
@@ -311,34 +311,34 @@ class TestRunCalcQChem(AtomateTest):
                                          "FF_before_run",
                                          "test.qout")).as_dict())
                 self.assertEqual(custodian_patch.call_args[1], {
-                    'max_errors': 5,
-                    'gzipped_output': True
+                    "max_errors": 5,
+                    "gzipped_output": True
                 })
                 self.assertEqual(
                     FF_patch.call_args[1], {
-                        'qchem_command':
-                        'qchem -slurm',
-                        'multimode':
-                        'openmp',
-                        'input_file':
+                        "qchem_command":
+                        "qchem -slurm",
+                        "multimode":
+                        "openmp",
+                        "input_file":
                         os.path.join(module_dir, "..", "..", "test_files",
                                      "FF_before_run", "test.qin"),
-                        'output_file':
+                        "output_file":
                         os.path.join(module_dir, "..", "..", "test_files",
                                      "FF_before_run", "test.qout"),
-                        'qclog_file':
-                        'mol.qclog',
-                        'max_iterations':
+                        "qclog_file":
+                        "mol.qclog",
+                        "max_iterations":
                         10,
-                        'max_molecule_perturb_scale':
+                        "max_molecule_perturb_scale":
                         0.3,
-                        'scratch_dir':
-                        '/this/is/a/test',
-                        'save_scratch':
+                        "scratch_dir":
+                        "/this/is/a/test",
+                        "save_scratch":
                         False,
-                        'save_name':
-                        'default_save_name',
-                        'max_cores':
+                        "save_name":
+                        "default_save_name",
+                        "max_cores":
                         32
                     })
 
@@ -373,34 +373,34 @@ class TestRunCalcQChem(AtomateTest):
                 custodian_patch.assert_called_once()
                 self.assertEqual(custodian_patch.call_args[0][0], [])
                 self.assertEqual(custodian_patch.call_args[1], {
-                    'max_errors': 137,
-                    'gzipped_output': False
+                    "max_errors": 137,
+                    "gzipped_output": False
                 })
                 self.assertEqual(
                     FF_patch.call_args[1], {
-                        'qchem_command':
-                        'qchem -slurm',
-                        'multimode':
-                        'mpi',
-                        'input_file':
+                        "qchem_command":
+                        "qchem -slurm",
+                        "multimode":
+                        "mpi",
+                        "input_file":
                         os.path.join(module_dir, "..", "..", "test_files",
                                      "FF_before_run", "test.qin"),
-                        'output_file':
+                        "output_file":
                         os.path.join(module_dir, "..", "..", "test_files",
                                      "FF_before_run", "test.qout"),
-                        'qclog_file':
-                        'this_is_a_test.qclog',
-                        'max_iterations':
+                        "qclog_file":
+                        "this_is_a_test.qclog",
+                        "max_iterations":
                         1029,
-                        'max_molecule_perturb_scale':
+                        "max_molecule_perturb_scale":
                         0.5,
-                        'scratch_dir':
-                        '/this/is/a/test',
-                        'save_scratch':
+                        "scratch_dir":
+                        "/this/is/a/test",
+                        "save_scratch":
                         True,
-                        'save_name':
-                        'no_idea',
-                        'max_cores':
+                        "save_name":
+                        "no_idea",
+                        "max_cores":
                         4
                     })
 
@@ -441,34 +441,34 @@ class TestRunCalcQChem(AtomateTest):
                 custodian_patch.assert_called_once()
                 self.assertEqual(custodian_patch.call_args[0][0], [])
                 self.assertEqual(custodian_patch.call_args[1], {
-                    'max_errors': 137,
-                    'gzipped_output': False
+                    "max_errors": 137,
+                    "gzipped_output": False
                 })
                 self.assertEqual(
                     FF_patch.call_args[1], {
-                        'qchem_command':
-                        'qchem -slurm',
-                        'multimode':
-                        'mpi',
-                        'input_file':
+                        "qchem_command":
+                        "qchem -slurm",
+                        "multimode":
+                        "mpi",
+                        "input_file":
                         os.path.join(module_dir, "..", "..", "test_files",
                                      "FF_before_run", "test.qin"),
-                        'output_file':
+                        "output_file":
                         os.path.join(module_dir, "..", "..", "test_files",
                                      "FF_before_run", "test.qout"),
-                        'qclog_file':
-                        'this_is_a_test.qclog',
-                        'max_iterations':
+                        "qclog_file":
+                        "this_is_a_test.qclog",
+                        "max_iterations":
                         1029,
-                        'max_molecule_perturb_scale':
+                        "max_molecule_perturb_scale":
                         0.5,
-                        'scratch_dir':
-                        '/this/is/a/test',
-                        'save_scratch':
+                        "scratch_dir":
+                        "/this/is/a/test",
+                        "save_scratch":
                         True,
-                        'save_name':
-                        'no_idea',
-                        'max_cores':
+                        "save_name":
+                        "no_idea",
+                        "max_cores":
                         4
                     })
 
@@ -511,5 +511,5 @@ class TestFakeRunQChem(AtomateTest):
             os.chdir(module_dir)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

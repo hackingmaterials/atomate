@@ -18,8 +18,8 @@ from pymatgen.io.qchem_io.outputs import QCOutput
 from pymatgen.io.qchem_io.inputs import QCInput
 import numpy as np
 
-__author__ = 'Brandon Wood'
-__email__ = 'b.wood@berkeley.edu'
+__author__ = "Brandon Wood"
+__email__ = "b.wood@berkeley.edu"
 
 
 def use_fake_qchem(original_wf, ref_dirs):

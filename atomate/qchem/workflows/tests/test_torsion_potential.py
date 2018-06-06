@@ -15,8 +15,8 @@ from atomate.qchem.powerups import use_fake_qchem
 from pymatgen.io.qchem_io.inputs import QCInput
 import numpy as np
 
-__author__ = 'Brandon Wood'
-__email__ = 'b.wood@berkeley.edu'
+__author__ = "Brandon Wood"
+__email__ = "b.wood@berkeley.edu"
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
@@ -72,7 +72,7 @@ class TestTorsionPotential(AtomateTest):
         rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
         wf_test = self.lp.get_wf_by_fw_id(1)
-        self.assertTrue(all([s == 'COMPLETED' for s in wf_test.fw_states.values()]))
+        self.assertTrue(all([s == "COMPLETED" for s in wf_test.fw_states.values()]))
 
         # Checking of the inputs happens in fake_run_qchem so there is no point to retest the inputs
         # Check the output info that gets inserted in the DB
@@ -128,5 +128,5 @@ class TestTorsionPotential(AtomateTest):
         np.testing.assert_equal(act_opt_180_final_e, opt_180_final_e)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

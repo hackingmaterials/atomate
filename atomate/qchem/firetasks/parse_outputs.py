@@ -90,7 +90,7 @@ class QChemToDb(FiretaskBase):
             update_spec["prev_calc_molecule"] = task_doc["output"]["optimized_molecule"]
 
         # get the database connection
-        db_file = env_chk(self.get('db_file'), fw_spec)
+        db_file = env_chk(self.get("db_file"), fw_spec)
 
         # db insertion or taskdoc dump
         if not db_file:

@@ -5,12 +5,10 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 # This module defines firetasks for writing QChem input files
 
 from fireworks import FiretaskBase, explicit_serialize, FWAction
-from pymatgen.core import Molecule
 from pymatgen.io.babel import BabelMolAdaptor
-import pybel as pb
 import numpy as np
 
-__author__ = 'Brandon Wood'
+__author__ = "Brandon Wood"
 __email__ = "b.wood@berkeley.edu"
 
 

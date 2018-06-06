@@ -11,8 +11,8 @@ from atomate.utils.testing import AtomateTest
 from pymatgen.core import Molecule
 from pymatgen.io.qchem_io.inputs import QCInput
 
-__author__ = 'Brandon Wood'
-__email__ = 'b.wood@berkeley.edu'
+__author__ = "Brandon Wood"
+__email__ = "b.wood@berkeley.edu"
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
@@ -21,7 +21,7 @@ class TestWriteInputQChem(AtomateTest):
     @classmethod
     def setUpClass(cls):
 
-        co_species = ['C', 'O']
+        co_species = ["C", "O"]
         co_coords = [[0.0, 0.0, 0.0], [1.3, 0.0, 0.0]]
         cls.co_mol = Molecule(co_species, co_coords)
         cls.co_opt_ref_in = QCInput.from_file(
@@ -92,5 +92,5 @@ class TestWriteInputQChem(AtomateTest):
         for k, v in self.co_opt_ref_in.as_dict().items():
             self.assertEqual(v, test_dict[k])
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

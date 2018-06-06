@@ -10,8 +10,8 @@ from atomate.utils.testing import AtomateTest
 from pymatgen.core import Molecule
 import numpy as np
 
-__author__ = 'Brandon Wood'
-__email__ = 'b.wood@berkeley.edu'
+__author__ = "Brandon Wood"
+__email__ = "b.wood@berkeley.edu"
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
@@ -40,5 +40,5 @@ class TestGeoTransformations(AtomateTest):
         np.testing.assert_equal(self.pt_rot_90_mol.species, test_mol.species)
         np.testing.assert_allclose(self.pt_rot_90_mol.cart_coords, test_mol.cart_coords, atol=0.0001)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

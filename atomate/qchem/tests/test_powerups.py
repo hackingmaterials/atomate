@@ -19,8 +19,8 @@ from pymatgen.io.qchem_io.inputs import QCInput
 import numpy as np
 from atomate.qchem.powerups import use_fake_qchem
 
-__author__ = 'Brandon Wood'
-__email__ = 'b.wood@berkeley.edu'
+__author__ = "Brandon Wood"
+__email__ = "b.wood@berkeley.edu"
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
@@ -67,5 +67,5 @@ class TestPowerups(AtomateTest):
                         test_fake_run = True
         self.assertTrue(test_fake_run)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -60,7 +60,7 @@ class QChemDrone(AbstractDrone):
             additional_fields (dict): dictionary of additional fields to add to output document
         """
         self.runs = runs or list(
-            chain.from_iterable([['opt_' + str(ii), 'freq_' + str(ii)]
+            chain.from_iterable([["opt_" + str(ii), "freq_" + str(ii)]
                                  for ii in range(9)]))
         self.additional_fields = additional_fields or {}
 
@@ -82,7 +82,7 @@ class QChemDrone(AbstractDrone):
         qcinput_files = self.filter_files(path, file_pattern=input_file)
         qcoutput_files = self.filter_files(path, file_pattern=output_file)
         if len(qcinput_files) != len(qcoutput_files):
-            raise AssertionError('Inequal number of input and output files!')
+            raise AssertionError("Inequal number of input and output files!")
         if len(qcinput_files) > 0 and len(qcoutput_files) > 0:
             d = self.generate_doc(path, qcinput_files, qcoutput_files, multirun)
             self.post_process(path, d)
@@ -122,7 +122,7 @@ class QChemDrone(AbstractDrone):
             # get any matching file from the folder
             for f in files:
                 if fnmatch(f, "{}*".format(file_pattern)):
-                    processed_files['standard'] = f
+                    processed_files["standard"] = f
         return processed_files
 
     def generate_doc(self, dir_name, qcinput_files, qcoutput_files, multirun):
@@ -183,17 +183,17 @@ class QChemDrone(AbstractDrone):
             total_walltime = 0.0
             nan_found = False
             for calc in d["calcs_reversed"]:
-                if calc["walltime"] != 'nan':
+                if calc["walltime"] != "nan":
                     total_walltime += calc["walltime"]
                 else:
                     nan_found = True
-                if calc["cputime"] != 'nan':
+                if calc["cputime"] != "nan":
                     total_cputime += calc["cputime"]
                 else:
                     nan_found = True
             if nan_found:
-                d["walltime"] = 'nan'
-                d["cputime"] = 'nan'
+                d["walltime"] = "nan"
+                d["cputime"] = "nan"
             else:
                 d["walltime"] = total_walltime
                 d["cputime"] = total_cputime

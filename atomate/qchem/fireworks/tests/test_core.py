@@ -181,5 +181,5 @@ class TestCore(AtomateTest):
                          "special frequency flattening structure optimization")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

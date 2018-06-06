@@ -15,8 +15,8 @@ from atomate.utils.utils import get_logger, get_fws_and_tasks
 from atomate.qchem.firetasks.geo_transformations import RotateTorsion
 from atomate.qchem.firetasks.write_inputs import WriteCustomInput
 
-__author__ = 'Brandon Wood'
-__email__ = 'b.wood@berkeley.edu'
+__author__ = "Brandon Wood"
+__email__ = "b.wood@berkeley.edu"
 
 logger = get_logger(__name__)
 
@@ -65,7 +65,7 @@ def get_wf_torsion_potential(molecule,
                                        For example, if you want to change the DFT_rung, you should
                                        provide: {"DFT_rung": ...}. Defaults to None.
             db_file (str): Path to file specifying db credentials to place output parsing.
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
 
     Returns: Workflow
     """
