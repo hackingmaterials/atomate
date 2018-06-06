@@ -2,7 +2,6 @@
 
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
-
 """
 This module defines the torsion potential workflow
 """
@@ -33,7 +32,6 @@ def get_wf_torsion_potential(molecule,
                              max_cores=32,
                              db_file=None,
                              **kwargs):
-
     """
     Returns a workflow to the torsion potential for a molecule.
 
@@ -72,9 +70,16 @@ def get_wf_torsion_potential(molecule,
     fws = []
 
     # Optimize the starting molecule fw1
-    fw1 = OptimizeFW(molecule=molecule, name="initial_opt", qchem_cmd=qchem_cmd,
-                     multimode=multimode, input_file=input_file, output_file=output_file,
-                     max_cores=max_cores, db_file=db_file, **kwargs)
+    fw1 = OptimizeFW(
+        molecule=molecule,
+        name="initial_opt",
+        qchem_cmd=qchem_cmd,
+        multimode=multimode,
+        input_file=input_file,
+        output_file=output_file,
+        max_cores=max_cores,
+        db_file=db_file,
+        **kwargs)
     for idx_t, t in enumerate(fw1.tasks):
         if "WriteInputFromIOSet" in str(t):
             fw1.tasks[idx_t] = WriteCustomInput(molecule=molecule, rem=rem[0])
@@ -82,14 +87,25 @@ def get_wf_torsion_potential(molecule,
 
     # Loop to generate all the different rotated molecule optimizations
     for angle in angles:
-        rot_opt_fw = OptimizeFW(name=("opt_" + str(int(angle))), qchem_cmd=qchem_cmd,
-                                multimode=multimode, input_file=input_file, output_file=output_file,
-                                max_cores=max_cores, db_file=db_file, parents=fw1, **kwargs)
+        rot_opt_fw = OptimizeFW(
+            name=("opt_" + str(int(angle))),
+            qchem_cmd=qchem_cmd,
+            multimode=multimode,
+            input_file=input_file,
+            output_file=output_file,
+            max_cores=max_cores,
+            db_file=db_file,
+            parents=fw1,
+            **kwargs)
         rot_task = RotateTorsion(atom_indexes=atom_indexes, angle=angle)
         rot_opt_fw.tasks.insert(0, rot_task)
         # define opt section
-        opt_line = "tors {a} {b} {c} {d} {ang}".format(a=atom_indexes[0], b=atom_indexes[1],
-                                                       c=atom_indexes[2], d=atom_indexes[3], ang=angle)
+        opt_line = "tors {a} {b} {c} {d} {ang}".format(
+            a=atom_indexes[0],
+            b=atom_indexes[1],
+            c=atom_indexes[2],
+            d=atom_indexes[3],
+            ang=angle)
         opt = {"CONSTRAINT": [opt_line]}
         for idx_t, t in enumerate(rot_opt_fw.tasks):
             if "WriteInputFromIOSet" in str(t):
@@ -99,6 +115,3 @@ def get_wf_torsion_potential(molecule,
     wfname = "{}:{}".format(molecule.composition.reduced_formula, name)
 
     return Workflow(fws, name=wfname)
-    
-
-

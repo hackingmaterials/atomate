@@ -38,7 +38,9 @@ class RotateTorsion(FiretaskBase):
         elif self.get("molecule"):
             start_mol = self.get("molecule")
         else:
-            raise KeyError("No molecule present, add as an optional param or check fw_spec")
+            raise KeyError(
+                "No molecule present, add as an optional param or check fw_spec"
+            )
 
         babe_mol = BabelMolAdaptor(start_mol).openbabel_mol
         babe_mol.SetTorsion(self["atom_indexes"][0], self["atom_indexes"][1],
@@ -50,6 +52,3 @@ class RotateTorsion(FiretaskBase):
         update_spec = {"prev_calc_molecule": rotated_mol}
 
         return FWAction(update_spec=update_spec)
-
-
-

@@ -78,7 +78,10 @@ class QChemToDb(FiretaskBase):
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(
-            path=calc_dir, input_file=input_file, output_file=output_file, multirun=multirun)
+            path=calc_dir,
+            input_file=input_file,
+            output_file=output_file,
+            multirun=multirun)
 
         # Check for additional keys to set based on the fw_spec
         if self.get("fw_spec_field"):
@@ -87,7 +90,8 @@ class QChemToDb(FiretaskBase):
         # Update fw_spec with final/optimized structure
         update_spec = {}
         if task_doc.get("output").get("optimized_molecule"):
-            update_spec["prev_calc_molecule"] = task_doc["output"]["optimized_molecule"]
+            update_spec["prev_calc_molecule"] = task_doc["output"][
+                "optimized_molecule"]
 
         # get the database connection
         db_file = env_chk(self.get("db_file"), fw_spec)
@@ -120,4 +124,5 @@ class QChemToDb(FiretaskBase):
 
         return FWAction(
             stored_data={"task_id": task_doc.get("task_id", None)},
-            defuse_children=defuse_children, update_spec=update_spec)
+            defuse_children=defuse_children,
+            update_spec=update_spec)

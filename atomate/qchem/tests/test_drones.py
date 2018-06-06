@@ -158,5 +158,6 @@ class QChemDroneTest(unittest.TestCase):
         self.assertEqual(doc["calcs_reversed"][0]["task"]["name"], "calc2")
         self.assertEqual(doc["calcs_reversed"][-1]["task"]["name"], "calc0")
 
+
 if __name__ == "__main__":
     unittest.main()

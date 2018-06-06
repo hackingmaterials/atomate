@@ -210,23 +210,24 @@ class RunQChemFake(FiretaskBase):
         user_qin = QCInput.from_file(os.path.join(os.getcwd(), "mol.qin"))
 
         # Check mol.qin
-        ref_qin = QCInput.from_file(
-            os.path.join(self["ref_dir"], "mol.qin"))
-        np.testing.assert_equal(ref_qin.molecule.species, user_qin.molecule.species)
-        np.testing.assert_allclose(ref_qin.molecule.cart_coords, user_qin.molecule.cart_coords, atol=0.0001)
+        ref_qin = QCInput.from_file(os.path.join(self["ref_dir"], "mol.qin"))
+        np.testing.assert_equal(ref_qin.molecule.species,
+                                user_qin.molecule.species)
+        np.testing.assert_allclose(
+            ref_qin.molecule.cart_coords,
+            user_qin.molecule.cart_coords,
+            atol=0.0001)
         for key in ref_qin.rem:
             if user_qin.rem.get(key) != ref_qin.rem.get(key):
                 raise ValueError("Rem key {} is inconsistent!".format(key))
         if ref_qin.opt is not None:
             for key in ref_qin.opt:
                 if user_qin.opt.get(key) != ref_qin.opt.get(key):
-                    raise ValueError(
-                        "Opt key {} is inconsistent!".format(key))
+                    raise ValueError("Opt key {} is inconsistent!".format(key))
         if ref_qin.pcm is not None:
             for key in ref_qin.pcm:
                 if user_qin.pcm.get(key) != ref_qin.pcm.get(key):
-                    raise ValueError(
-                        "PCM key {} is inconsistent!".format(key))
+                    raise ValueError("PCM key {} is inconsistent!".format(key))
         if ref_qin.solvent is not None:
             for key in ref_qin.solvent:
                 if user_qin.solvent.get(key) != ref_qin.solvent.get(key):

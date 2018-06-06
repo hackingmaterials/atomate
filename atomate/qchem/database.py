@@ -3,7 +3,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 from monty.json import MontyEncoder
-
 """
 This module defines the database classes.
 """
@@ -30,9 +29,15 @@ class QChemCalcDb(CalcDb):
     Class to help manage database insertions of QChem drones
     """
 
-    def __init__(self, host="localhost", port=27017, database="qchem", collection="tasks", user=None,
+    def __init__(self,
+                 host="localhost",
+                 port=27017,
+                 database="qchem",
+                 collection="tasks",
+                 user=None,
                  password=None):
-        super(QChemCalcDb, self).__init__(host, port, database, collection, user, password)
+        super(QChemCalcDb, self).__init__(host, port, database, collection,
+                                          user, password)
 
     def build_indexes(self, indexes=None, background=True):
         """
@@ -50,5 +55,3 @@ class QChemCalcDb(CalcDb):
         self.collection.delete_many({})
         self.db.counter.delete_one({"_id": "taskid"})
         self.db.counter.insert_one({"_id": "taskid", "c": 0})
-
-

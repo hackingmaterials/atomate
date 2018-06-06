@@ -38,7 +38,9 @@ class WriteInputFromIOSet(FiretaskBase):
     """
 
     required_params = ["qchem_input_set"]
-    optional_params = ["molecule", "qchem_input_params", "input_file", "write_to_dir"]
+    optional_params = [
+        "molecule", "qchem_input_params", "input_file", "write_to_dir"
+    ]
 
     def run_task(self, fw_spec):
         input_file = "mol.qin"
@@ -55,17 +57,22 @@ class WriteInputFromIOSet(FiretaskBase):
         # if a molecule is being passed through fw_spec
         elif fw_spec.get("prev_calc_molecule"):
             mol = fw_spec.get("prev_calc_molecule")
-            qcin_cls = load_class("pymatgen.io.qchem_io.sets", self["qchem_input_set"])
+            qcin_cls = load_class("pymatgen.io.qchem_io.sets",
+                                  self["qchem_input_set"])
             qcin = qcin_cls(mol, **self.get("qchem_input_params", {}))
             qcin.write_file(input_file)
         # if a molecule is included as an optional parameter
         elif self.get("molecule"):
-            qcin_cls = load_class("pymatgen.io.qchem_io.sets", self["qchem_input_set"])
-            qcin = qcin_cls(self.get("molecule"), **self.get("qchem_input_params", {}))
+            qcin_cls = load_class("pymatgen.io.qchem_io.sets",
+                                  self["qchem_input_set"])
+            qcin = qcin_cls(
+                self.get("molecule"), **self.get("qchem_input_params", {}))
             qcin.write_file(input_file)
         # if no molecule is present raise an error
         else:
-            raise KeyError("No molecule present, add as an optional param or check fw_spec")
+            raise KeyError(
+                "No molecule present, add as an optional param or check fw_spec"
+            )
 
 
 @explicit_serialize
@@ -90,7 +97,9 @@ class WriteCustomInput(FiretaskBase):
 
     required_params = ["rem"]
     # optional_params will need to be modified if more QChem sections are added QCInput
-    optional_params = ["molecule", "opt", "pcm", "solvent", "input_file", "write_to_dir"]
+    optional_params = [
+        "molecule", "opt", "pcm", "solvent", "input_file", "write_to_dir"
+    ]
 
     def run_task(self, fw_spec):
         input_file = self.get("input_file", "mol.qin")
@@ -103,14 +112,21 @@ class WriteCustomInput(FiretaskBase):
         elif fw_spec.get("prev_calc_molecule"):
             molecule = fw_spec.get("prev_calc_molecule")
         else:
-            raise KeyError("No molecule present, add as an optional param or check fw_spec")
+            raise KeyError(
+                "No molecule present, add as an optional param or check fw_spec"
+            )
         # in the current structure there needs to be a statement for every optional QChem section
         # the code below defaults the section to None if the variable is not passed
         opt = self.get("opt", None)
         pcm = self.get("pcm", None)
         solvent = self.get("solvent", None)
 
-        qcin = QCInput(molecule=molecule, rem=self["rem"], opt=opt, pcm=pcm, solvent=solvent)
+        qcin = QCInput(
+            molecule=molecule,
+            rem=self["rem"],
+            opt=opt,
+            pcm=pcm,
+            solvent=solvent)
         qcin.write_file(input_file)
 
 

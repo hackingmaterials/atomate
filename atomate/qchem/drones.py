@@ -84,7 +84,8 @@ class QChemDrone(AbstractDrone):
         if len(qcinput_files) != len(qcoutput_files):
             raise AssertionError("Inequal number of input and output files!")
         if len(qcinput_files) > 0 and len(qcoutput_files) > 0:
-            d = self.generate_doc(path, qcinput_files, qcoutput_files, multirun)
+            d = self.generate_doc(path, qcinput_files, qcoutput_files,
+                                  multirun)
             self.post_process(path, d)
         else:
             raise ValueError("Either input or output not found!")
@@ -135,7 +136,8 @@ class QChemDrone(AbstractDrone):
             }
             d["dir_name"] = fullpath
             if multirun:
-                d["calcs_reversed"] = self.process_qchem_multirun(dir_name, qcinput_files, qcoutput_files)
+                d["calcs_reversed"] = self.process_qchem_multirun(
+                    dir_name, qcinput_files, qcoutput_files)
             else:
                 d["calcs_reversed"] = [
                     self.process_qchemrun(dir_name, taskname,
@@ -164,7 +166,10 @@ class QChemDrone(AbstractDrone):
                     "molecule_from_optimized_geometry"]
                 d["output"]["final_energy"] = d_calc_final["final_energy"]
                 if d_calc_final["opt_constraint"]:
-                    d["output"]["constraint"] = [d_calc_final["opt_constraint"][0],float(d_calc_final["opt_constraint"][6])]
+                    d["output"]["constraint"] = [
+                        d_calc_final["opt_constraint"][0],
+                        float(d_calc_final["opt_constraint"][6])
+                    ]
             if d["output"]["job_type"] == "freq" or d["output"]["job_type"] == "frequency":
                 d["output"]["frequencies"] = d_calc_final["frequencies"]
                 d["output"]["enthalpy"] = d_calc_final["enthalpy"]
@@ -172,7 +177,8 @@ class QChemDrone(AbstractDrone):
                 if d["input"]["job_type"] == "opt" or d["input"]["job_type"] == "optimization":
                     d["output"]["optimized_molecule"] = d_calc_final[
                         "initial_molecule"]
-                    d["output"]["final_energy"] = d["calcs_reversed"][1]["final_energy"]
+                    d["output"]["final_energy"] = d["calcs_reversed"][1][
+                        "final_energy"]
 
             if "special_run_type" in d:
                 if d["special_run_type"] == "frequency_flattener":
@@ -210,7 +216,8 @@ class QChemDrone(AbstractDrone):
             smiles = pbmol.write(str("smi")).split()[0]
             d["smiles"] = smiles
 
-            d["state"] = "successful" if d_calc_final["completion"] else "unsuccessful"
+            d["state"] = "successful" if d_calc_final[
+                "completion"] else "unsuccessful"
             d["last_updated"] = datetime.datetime.utcnow()
             return d
 
@@ -243,15 +250,19 @@ class QChemDrone(AbstractDrone):
         in a single input/output pair.
         """
         if len(input_files) != 1:
-            raise ValueError("ERROR: The drone can only process a directory containing a single input/output pair when each include multiple calculations.")
+            raise ValueError(
+                "ERROR: The drone can only process a directory containing a single input/output pair when each include multiple calculations."
+            )
         else:
             for key in input_files:
                 to_return = []
                 qchem_input_file = os.path.join(dir_name, input_files.get(key))
-                qchem_output_file = os.path.join(dir_name, output_files.get(key))
-                multi_out = QCOutput.multiple_outputs_from_file(QCOutput, qchem_output_file, keep_sub_files=False)
+                qchem_output_file = os.path.join(dir_name,
+                                                 output_files.get(key))
+                multi_out = QCOutput.multiple_outputs_from_file(
+                    QCOutput, qchem_output_file, keep_sub_files=False)
                 multi_in = QCInput.from_multi_jobs_file(qchem_input_file)
-                for ii,out in enumerate(multi_out):
+                for ii, out in enumerate(multi_out):
                     d = out.data
                     d["input"] = {}
                     d["input"]["molecule"] = multi_in[ii].molecule
@@ -259,7 +270,7 @@ class QChemDrone(AbstractDrone):
                     d["input"]["opt"] = multi_in[ii].opt
                     d["input"]["pcm"] = multi_in[ii].pcm
                     d["input"]["solvent"] = multi_in[ii].solvent
-                    d["task"] = {"type": key, "name": "calc"+str(ii)}
+                    d["task"] = {"type": key, "name": "calc" + str(ii)}
                     to_return.append(d)
             return to_return
 

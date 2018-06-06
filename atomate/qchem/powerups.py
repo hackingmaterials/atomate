@@ -38,8 +38,9 @@ def use_fake_qchem(original_wf, ref_dirs):
         for job_type in ref_dirs.keys():
             if job_type in fw.name:
                 for idx_t, t in enumerate(fw.tasks):
-                    if "RunQChemCustodian" in str(t) or "RunQChemDirect" in str(t):
-                        original_wf.fws[idx_fw].tasks[idx_t] = RunQChemFake(ref_dir=ref_dirs[job_type])
+                    if "RunQChemCustodian" in str(
+                            t) or "RunQChemDirect" in str(t):
+                        original_wf.fws[idx_fw].tasks[idx_t] = RunQChemFake(
+                            ref_dir=ref_dirs[job_type])
 
     return original_wf
-
