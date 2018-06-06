@@ -18,6 +18,9 @@ __copyright__ = "Copyright 2018, The Materials Project"
 __version__ = "0.1"
 __maintainer__ = "Samuel Blau"
 __email__ = "samblau1@gmail.com"
+__status__ = "Alpha"
+__date__ = "5/23/18"
+__credits__ = "Brandon Wood, Shyam Dwaraknath"
 
 logger = get_logger(__name__)
 

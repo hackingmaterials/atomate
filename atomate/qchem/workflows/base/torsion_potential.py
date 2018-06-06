@@ -15,7 +15,13 @@ from atomate.qchem.firetasks.geo_transformations import RotateTorsion
 from atomate.qchem.firetasks.write_inputs import WriteCustomInput
 
 __author__ = "Brandon Wood"
+__copyright__ = "Copyright 2018, The Materials Project"
+__version__ = "0.1"
+__maintainer__ = "Brandon Wood"
 __email__ = "b.wood@berkeley.edu"
+__status__ = "Alpha"
+__date__ = "5/20/18"
+__credits__ = "Sam Blau, Shyam Dwaraknath"
 
 logger = get_logger(__name__)
 

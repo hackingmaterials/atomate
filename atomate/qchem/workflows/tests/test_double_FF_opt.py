@@ -15,6 +15,16 @@ from atomate.qchem.powerups import use_fake_qchem
 from atomate.qchem.workflows.base.double_FF_opt import get_wf_double_FF_opt
 import numpy as np
 
+__author__ = "Samuel Blau"
+__copyright__ = "Copyright 2018, The Materials Project"
+__version__ = "0.1"
+__maintainer__ = "Samuel Blau"
+__email__ = "samblau1@gmail.com"
+__status__ = "Alpha"
+__date__ = "6/1/18"
+__credits__ = "Brandon Wood, Shyam Dwaraknath"
+
+
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 

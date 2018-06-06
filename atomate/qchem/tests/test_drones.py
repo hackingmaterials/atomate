@@ -9,6 +9,15 @@ import unittest
 from atomate.qchem.drones import QChemDrone
 import numpy as np
 
+__author__ = "Samuel Blau"
+__copyright__ = "Copyright 2018, The Materials Project"
+__version__ = "0.1"
+__maintainer__ = "Samuel Blau"
+__email__ = "samblau1@gmail.com"
+__status__ = "Alpha"
+__date__ = "4/29/18"
+__credits__ = "Brandon Wood, Shyam Dwaraknath"
+
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 

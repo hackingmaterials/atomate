@@ -9,7 +9,13 @@ from pymatgen.io.babel import BabelMolAdaptor
 import numpy as np
 
 __author__ = "Brandon Wood"
+__copyright__ = "Copyright 2018, The Materials Project"
+__version__ = "0.1"
+__maintainer__ = "Brandon Wood"
 __email__ = "b.wood@berkeley.edu"
+__status__ = "Alpha"
+__date__ = "5/20/18"
+__credits__ = "Sam Blau, Shyam Dwaraknath"
 
 
 @explicit_serialize

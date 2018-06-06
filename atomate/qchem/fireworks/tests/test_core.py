@@ -13,7 +13,13 @@ from atomate.utils.testing import AtomateTest
 from pymatgen.io.qchem_io.outputs import QCOutput
 
 __author__ = "Samuel Blau"
+__copyright__ = "Copyright 2018, The Materials Project"
+__version__ = "0.1"
+__maintainer__ = "Samuel Blau"
 __email__ = "samblau1@gmail.com"
+__status__ = "Alpha"
+__date__ = "5/23/18"
+__credits__ = "Brandon Wood, Shyam Dwaraknath"
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")

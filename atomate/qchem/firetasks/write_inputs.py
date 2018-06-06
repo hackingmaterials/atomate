@@ -11,7 +11,13 @@ from fireworks import FiretaskBase, explicit_serialize
 from pymatgen.io.qchem_io.inputs import QCInput
 
 __author__ = "Brandon Wood"
+__copyright__ = "Copyright 2018, The Materials Project"
+__version__ = "0.1"
+__maintainer__ = "Brandon Wood"
 __email__ = "b.wood@berkeley.edu"
+__status__ = "Alpha"
+__date__ = "5/20/18"
+__credits__ = "Sam Blau, Shyam Dwaraknath"
 
 
 @explicit_serialize
