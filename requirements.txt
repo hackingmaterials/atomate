@@ -11,3 +11,5 @@ six==1.11.0
 pybtex==0.21
 ruamel.yaml==0.15.37
 pandas==0.22.0
+-e git://github.com/materialsproject/pymatgen#egg=pymatgen
+-e git://github.com/materialsproject/custodian#egg=custodian
