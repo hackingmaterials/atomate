@@ -11,6 +11,8 @@ jobs:
           key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
           command: |
+            echo "PMG_VASP_PSP_DIR: /root/atomate/POTCARs" > ~/.pmgrc.yaml
+            cat ~/pmgrc.yaml
             python3 -m venv venv
             . venv/bin/activate
             mkdir coverage_reports
@@ -48,6 +50,8 @@ jobs:
           key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
           command: |
+            echo "PMG_VASP_PSP_DIR: /root/atomate/POTCARs" > ~/.pmgrc.yaml
+            cat ~/pmgrc.yaml
             pip install virtualenv
             virtualenv venv
             . venv/bin/activate
