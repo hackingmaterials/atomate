@@ -8,7 +8,7 @@ import unittest
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.parse_outputs import QChemToDb
-from atomate.qchem.fireworks.core import *
+from atomate.qchem.fireworks.core import OptimizeFW FrequencyFlatteningOptimizeFW
 from atomate.utils.testing import AtomateTest
 from pymatgen.io.qchem_io.outputs import QCOutput
 

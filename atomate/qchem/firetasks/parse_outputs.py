@@ -60,16 +60,9 @@ class QChemToDb(FiretaskBase):
         elif self.get("calc_loc"):
             calc_dir = get_calc_loc(self["calc_loc"],
                                     fw_spec["calc_locs"])["path"]
-        input_file = "mol.qin"
-        output_file = "mol.qout"
-        if "input_file" in self:
-            input_file = self["input_file"]
-        if "output_file" in self:
-            output_file = self["output_file"]
-
-        multirun = False
-        if "multirun" in self:
-            multirun = self["multirun"]
+        input_file = self.get("input_file", "mol.qin")
+        output_file = self.get("output_file", "mol.qout")
+        multirun = self.get("multirun", False)
 
         # parse the QChem directory
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
