@@ -12,7 +12,7 @@ jobs:
       - run:
           command: |
             echo "PMG_VASP_PSP_DIR: /root/atomate/POTCARs" > ~/.pmgrc.yaml
-            cat ~/pmgrc.yaml
+            cat ~/.pmgrc.yaml
             python3 -m venv venv
             . venv/bin/activate
             mkdir coverage_reports
@@ -51,7 +51,7 @@ jobs:
       - run:
           command: |
             echo "PMG_VASP_PSP_DIR: /root/atomate/POTCARs" > ~/.pmgrc.yaml
-            cat ~/pmgrc.yaml
+            cat ~/.pmgrc.yaml
             pip install virtualenv
             virtualenv venv
             . venv/bin/activate
