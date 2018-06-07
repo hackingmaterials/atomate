@@ -1,3 +1,4 @@
 # A static run (only)
+# Author: Anubhav Jain (ajain@lbl.gov)
 fireworks:
 - fw: atomate.vasp.fireworks.core.StaticFW

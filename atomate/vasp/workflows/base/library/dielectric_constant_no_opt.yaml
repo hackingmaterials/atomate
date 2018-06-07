@@ -1,4 +1,5 @@
 # static dielectric constant
+# Author: Anubhav Jain (ajain@lbl.gov)
 fireworks:
 - fw: atomate.vasp.fireworks.core.LepsFW
   params:
