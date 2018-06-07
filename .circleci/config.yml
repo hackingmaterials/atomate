@@ -4,12 +4,14 @@ jobs:
     working_directory: ~/atomate
     docker:
       - image: materialsvirtuallab/circle-ci-pmg-py3:0.0.1
+      - image: circleci/mongo:3.4.15
     steps:
       - checkout
       - restore_cache:
           key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
           command: |
+            mongod
             python3 -m venv venv
             . venv/bin/activate
             mkdir coverage_reports
@@ -34,16 +36,20 @@ jobs:
           destination: tr1
       - store_test_results:
           path: coverage_reports/
+
   py2test:
     working_directory: ~/atomate
     docker:
       - image: materialsvirtuallab/circle-ci-pmg-py2:0.0.2
+      - image: circleci/mongo:3.4.15
+
     steps:
       - checkout
       - restore_cache:
           key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
           command: |
+            mongod
             pip install virtualenv
             virtualenv venv
             . venv/bin/activate
