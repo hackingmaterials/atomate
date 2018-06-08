@@ -41,7 +41,7 @@ class RunQChemDirect(FiretaskBase):
         qchem_cmd (str): The name of the full command line call to run. This should include any
                          flags for parallelization, saving scratch, etc. Supports env_chk.
     Optional params:
-        scratch_dir (str): Path to the scratch directory.
+        scratch_dir (str): Path to the scratch directory. Defaults to "/dev/shm/qcscratch/".
     """
 
     required_params = ["qchem_cmd"]
