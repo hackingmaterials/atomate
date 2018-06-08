@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Installing atomate &#8212; atomate 0.7.8 documentation</title>
+    <title>Installing atomate &#8212; atomate 0.7.9 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="index.html" title="atomate"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.8 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.9 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -139,8 +139,12 @@
 </li>
 </ol>
 </div>
-<div class="section" id="create-a-python-virtual-environment">
-<span id="id4"></span><h2>Create a Python virtual environment<a class="headerlink" href="#create-a-python-virtual-environment" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="create-a-python-3-virtual-environment">
+<span id="create-a-python-virtual-environment"></span><h2>Create a Python 3 virtual environment<a class="headerlink" href="#create-a-python-3-virtual-environment" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Make sure to create Python 3 environment (ideally Python 3.6 and higher) as recent versions of atomate only support Py3 and higher.</p>
+</div>
 <p>We highly recommended that you organize your installation of the atomate and the other Python codes using a virtual environment (e.g. <code class="docutils literal notranslate"><span class="pre">virtualenv</span></code> or similar tool such as anaconda).
 Ultimately, whether you want to use a virtual environment is optional and you don’t have to use one if you know what you are doing.
 Virtual environments allow you to keep an installation of Python and all of the installed packages separate from the installation on the system.
@@ -184,8 +188,8 @@ To set up your virtual environment:</p>
 </ol>
 </div>
 <div class="section" id="install-python-packages">
-<span id="id5"></span><h2>Install Python packages<a class="headerlink" href="#install-python-packages" title="Permalink to this headline">¶</a></h2>
-<p>You have successfully set up an environment in which to install atomate!
+<span id="id4"></span><h2>Install Python packages<a class="headerlink" href="#install-python-packages" title="Permalink to this headline">¶</a></h2>
+<p>You have successfully set up an Python 3 environment in which to install atomate!
 Next, we will download and install all of the atomate-related Python packages.</p>
 <p>You can install these packages automatically or in “development mode”. Development mode installation makes it easier to view and modify the source code to your needs, but requires a few more steps to set up and maintain.</p>
 <p>To install packages automatically, the main tool we will use is pip (unless you have an Anaconda distribution where you’d again use <a class="reference external" href="https://conda.io/docs/using/pkgs.html">conda</a>). To install the packages run:</p>
@@ -347,7 +351,7 @@ It may be worth going through the FireWorks documentation to understand the diff
 </div>
 </div>
 <div class="section" id="configure-pymatgen">
-<span id="id6"></span><h2>Configure pymatgen<a class="headerlink" href="#configure-pymatgen" title="Permalink to this headline">¶</a></h2>
+<span id="id5"></span><h2>Configure pymatgen<a class="headerlink" href="#configure-pymatgen" title="Permalink to this headline">¶</a></h2>
 <p>If you are planning to run VASP, the last configuration step is to configure pymatgen to (required) find the pseudopotentials for VASP and (optional) set up your API key from the <a class="reference external" href="https://materialsproject.org/dashboard">Materials Project</a>.</p>
 <div class="section" id="pseudopotentials">
 <h3>Pseudopotentials<a class="headerlink" href="#pseudopotentials" title="Permalink to this headline">¶</a></h3>
@@ -386,7 +390,7 @@ It may be worth going through the FireWorks documentation to understand the diff
 </div>
 </div>
 <div class="section" id="run-a-test-workflow">
-<span id="id7"></span><h2>Run a test workflow<a class="headerlink" href="#run-a-test-workflow" title="Permalink to this headline">¶</a></h2>
+<span id="id6"></span><h2>Run a test workflow<a class="headerlink" href="#run-a-test-workflow" title="Permalink to this headline">¶</a></h2>
 <p>To make sure that everything is set up correctly and in place, we’ll finally run a simple (but real) test workflow. Two methods to create workflows are (i) using atomate’s command line utility <code class="docutils literal notranslate"><span class="pre">atwf</span></code> or (ii) by creating workflows in Python. For the most part, we recommend using method (ii), the Python interface, since it is more powerful and also simple to use. However, in order to get started without any programming, we’ll stick to method (i), the command line, using <code class="docutils literal notranslate"><span class="pre">atwf</span></code> to construct a workflow. Note that we’ll discuss the Python interface more in the <a class="reference internal" href="running_workflows.html#running-workflows-tutorial"><span class="std std-ref">Running Workflows Tutorial</span></a> and provide details on writing custom workflows in the <a class="reference internal" href="creating_workflows.html#creating-workflows"><span class="std std-ref">Creating Workflows</span></a>.</p>
 <p>Ideally you set up a Materials Project API key in the <a class="reference internal" href="#configure-pymatgen">Configure pymatgen</a> section, otherwise you will need to provide a POSCAR for the structure you want to run. In addition, there are two different methods to use <code class="docutils literal notranslate"><span class="pre">atwf</span></code> - one using a library of preset functions for constructing workflows and another with a library of files for constructing workflows.</p>
 <p>This particular workflow will only run a single calculation that optimizes a crystal structure (not very exciting). In the subsequent tutorials, we’ll run more complex workflows.</p>
@@ -566,7 +570,7 @@ located in: &lt;&lt;INSTALL_DIR&gt;&gt;/atomate_env/lib/python3.6/site-packages/
 </ul>
 </li>
 <li><a class="reference internal" href="#create-a-directory-scaffold-for-atomate">Create a directory scaffold for atomate</a></li>
-<li><a class="reference internal" href="#create-a-python-virtual-environment">Create a Python virtual environment</a></li>
+<li><a class="reference internal" href="#create-a-python-3-virtual-environment">Create a Python 3 virtual environment</a></li>
 <li><a class="reference internal" href="#install-python-packages">Install Python packages</a></li>
 <li><a class="reference internal" href="#configure-database-connections-and-computing-center-parameters">Configure database connections and computing center parameters</a><ul>
 <li><a class="reference internal" href="#db-json">db.json</a></li>
@@ -645,7 +649,7 @@ located in: &lt;&lt;INSTALL_DIR&gt;&gt;/atomate_env/lib/python3.6/site-packages/
         <li class="right" >
           <a href="index.html" title="atomate"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.8 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.9 documentation</a> &#187;</li> 
       </ul>
     </div>
 

@@ -1,0 +1,180 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>atomate.qchem.fireworks package &#8212; atomate 0.7.9 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+ 
+<link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
+
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.9 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="atomate-qchem-fireworks-package">
+<h1>atomate.qchem.fireworks package<a class="headerlink" href="#atomate-qchem-fireworks-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-atomate.qchem.fireworks.core">
+<span id="atomate-qchem-fireworks-core-module"></span><h2>atomate.qchem.fireworks.core module<a class="headerlink" href="#module-atomate.qchem.fireworks.core" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.qchem.fireworks.core.FrequencyFlatteningOptimizeFW">
+<em class="property">class </em><code class="descclassname">atomate.qchem.fireworks.core.</code><code class="descname">FrequencyFlatteningOptimizeFW</code><span class="sig-paren">(</span><em>molecule=None</em>, <em>name='frequency flattening structure optimization'</em>, <em>qchem_cmd='qchem'</em>, <em>multimode='openmp'</em>, <em>input_file='mol.qin'</em>, <em>output_file='mol.qout'</em>, <em>max_cores=32</em>, <em>qchem_input_params=None</em>, <em>max_iterations=10</em>, <em>max_molecule_perturb_scale=0.3</em>, <em>reversed_direction=False</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.FrequencyFlatteningOptimizeFW" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.Firework</span></code></p>
+<dl class="method">
+<dt id="atomate.qchem.fireworks.core.FrequencyFlatteningOptimizeFW.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>molecule=None</em>, <em>name='frequency flattening structure optimization'</em>, <em>qchem_cmd='qchem'</em>, <em>multimode='openmp'</em>, <em>input_file='mol.qin'</em>, <em>output_file='mol.qout'</em>, <em>max_cores=32</em>, <em>qchem_input_params=None</em>, <em>max_iterations=10</em>, <em>max_molecule_perturb_scale=0.3</em>, <em>reversed_direction=False</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.FrequencyFlatteningOptimizeFW.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iteratively optimize the given structure and flatten imaginary frequencies to ensure that
+the resulting structure is a true minima and not a saddle point.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">molecule (Molecule): Input molecule.
+name (str): Name for the Firework.
+qchem_cmd (str): Command to run QChem. Defaults to qchem.
+multimode (str): Parallelization scheme, either openmp or mpi.
+input_file (str): Name of the QChem input file. Defaults to mol.qin.
+output_file (str): Name of the QChem output file. Defaults to mol.qout.
+max_cores (int): Maximum number of cores to parallelize over. Defaults to 32.
+qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.</p>
+<blockquote>
+<div>For example, if you want to change the DFT_rung, you should
+provide: {“DFT_rung”: …}. Defaults to None.</div></blockquote>
+<dl class="docutils">
+<dt>max_iterations (int): Number of perturbation -&gt; optimization -&gt; frequency</dt>
+<dd>iterations to perform. Defaults to 10.</dd>
+<dt>max_molecule_perturb_scale (float): The maximum scaled perturbation that can be</dt>
+<dd>applied to the molecule. Defaults to 0.3.</dd>
+<dt>reversed_direction (bool): Whether to reverse the direction of the vibrational</dt>
+<dd>frequency vectors. Defaults to False.</dd>
+</dl>
+<p class="last">db_file (str): Path to file specifying db credentials to place output parsing.
+parents ([Firework]): Parents of this particular Firework.
+<a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs: Other kwargs that are passed to Firework.__init__.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.qchem.fireworks.core.OptimizeFW">
+<em class="property">class </em><code class="descclassname">atomate.qchem.fireworks.core.</code><code class="descname">OptimizeFW</code><span class="sig-paren">(</span><em>molecule=None</em>, <em>name='structure optimization'</em>, <em>qchem_cmd='qchem'</em>, <em>multimode='openmp'</em>, <em>input_file='mol.qin'</em>, <em>output_file='mol.qout'</em>, <em>max_cores=32</em>, <em>qchem_input_params=None</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.OptimizeFW" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.Firework</span></code></p>
+<dl class="method">
+<dt id="atomate.qchem.fireworks.core.OptimizeFW.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>molecule=None</em>, <em>name='structure optimization'</em>, <em>qchem_cmd='qchem'</em>, <em>multimode='openmp'</em>, <em>input_file='mol.qin'</em>, <em>output_file='mol.qout'</em>, <em>max_cores=32</em>, <em>qchem_input_params=None</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.OptimizeFW.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optimize the given structure.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">molecule (Molecule): Input molecule.
+name (str): Name for the Firework.
+qchem_cmd (str): Command to run QChem. Defaults to qchem.
+multimode (str): Parallelization scheme, either openmp or mpi.
+input_file (str): Name of the QChem input file. Defaults to mol.qin.
+output_file (str): Name of the QChem output file. Defaults to mol.qout.
+max_cores (int): Maximum number of cores to parallelize over. Defaults to 32.
+qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.</p>
+<blockquote>
+<div>For example, if you want to change the DFT_rung, you should
+provide: {“DFT_rung”: …}. Defaults to None.</div></blockquote>
+<p class="last">db_file (str): Path to file specifying db credentials to place output parsing.
+parents ([Firework]): Parents of this particular Firework.
+<a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs: Other kwargs that are passed to Firework.__init__.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.qchem.fireworks">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.qchem.fireworks" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">atomate.qchem.fireworks package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-atomate.qchem.fireworks.core">atomate.qchem.fireworks.core module</a></li>
+<li><a class="reference internal" href="#module-atomate.qchem.fireworks">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/atomate.qchem.fireworks.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.9 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, Anubhav Jain.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.2.
+    </div>
+
+  </body>
+</html>

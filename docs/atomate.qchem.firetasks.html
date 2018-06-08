@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.qchem.firetasks package &#8212; atomate 0.7.8 documentation</title>
+    <title>atomate.qchem.firetasks package &#8212; atomate 0.7.9 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.8 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.9 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -45,6 +45,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="atomate.qchem.firetasks.tests.html">atomate.qchem.firetasks.tests package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.qchem.firetasks.tests.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.qchem.firetasks.tests.html#module-atomate.qchem.firetasks.tests.test_geo_transformations">atomate.qchem.firetasks.tests.test_geo_transformations module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.qchem.firetasks.tests.html#module-atomate.qchem.firetasks.tests.test_run_calc">atomate.qchem.firetasks.tests.test_run_calc module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.qchem.firetasks.tests.html#module-atomate.qchem.firetasks.tests.test_write_inputs">atomate.qchem.firetasks.tests.test_write_inputs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.qchem.firetasks.tests.html#module-atomate.qchem.firetasks.tests">Module contents</a></li>
 </ul>
@@ -55,8 +57,402 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
+<div class="section" id="module-atomate.qchem.firetasks.geo_transformations">
+<span id="atomate-qchem-firetasks-geo-transformations-module"></span><h2>atomate.qchem.firetasks.geo_transformations module<a class="headerlink" href="#module-atomate.qchem.firetasks.geo_transformations" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.qchem.firetasks.geo_transformations.RotateTorsion">
+<em class="property">class </em><code class="descclassname">atomate.qchem.firetasks.geo_transformations.</code><code class="descname">RotateTorsion</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.geo_transformations.RotateTorsion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Writes QChem Input files from input sets. A dictionary is passed to WriteInputFromIOSet where
+parameters are given as keys in the dictionary.</p>
+<dl class="docutils">
+<dt>required_params:</dt>
+<dd>atom_indexes (list): This should be a list of the pymatgen molecule indexes of the four atoms
+in torsion angle to be rotated
+angle (float): This is the desired torsion angle in degrees (the value should be between -180 and 180)</dd>
+<dt>optional_params:</dt>
+<dd>molecule (Molecule): Specify a pymatgen molecule to be rotated. A molecule is optional because molecules can
+be inherited from previous fireworks</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.qchem.firetasks.geo_transformations.RotateTorsion.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['molecule']</em><a class="headerlink" href="#atomate.qchem.firetasks.geo_transformations.RotateTorsion.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.qchem.firetasks.geo_transformations.RotateTorsion.required_params">
+<code class="descname">required_params</code><em class="property"> = ['atom_indexes', 'angle']</em><a class="headerlink" href="#atomate.qchem.firetasks.geo_transformations.RotateTorsion.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.geo_transformations.RotateTorsion.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.geo_transformations.RotateTorsion.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt>
+<dd>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>(FWAction)</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.qchem.firetasks.parse_outputs">
+<span id="atomate-qchem-firetasks-parse-outputs-module"></span><h2>atomate.qchem.firetasks.parse_outputs module<a class="headerlink" href="#module-atomate.qchem.firetasks.parse_outputs" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.qchem.firetasks.parse_outputs.QChemToDb">
+<em class="property">class </em><code class="descclassname">atomate.qchem.firetasks.parse_outputs.</code><code class="descname">QChemToDb</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.parse_outputs.QChemToDb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Enter a QChem run into the database. Uses current directory unless you
+specify calc_dir or calc_loc.</p>
+<dl class="docutils">
+<dt>Optional params:</dt>
+<dd><dl class="first docutils">
+<dt>calc_dir (str): path to dir (on current filesystem) that contains QChem</dt>
+<dd>input and output files. Default: use current working directory.</dd>
+<dt>calc_loc (str OR bool): if True will set most recent calc_loc. If str</dt>
+<dd>search for the most recent calc_loc with the matching name</dd>
+</dl>
+<p>input_file (str): name of the QChem input file
+output_file (str): name of the QChem output file
+additional_fields (dict): dict of additional fields to add
+db_file (str): path to file containing the database credentials.</p>
+<blockquote>
+<div>Supports env_chk. Default: write data to JSON file.</div></blockquote>
+<dl class="last docutils">
+<dt>fw_spec_field (str): if set, will update the task doc with the contents</dt>
+<dd>of this key in the fw_spec.</dd>
+<dt>multirun (bool): Whether the job to parse includes multiple</dt>
+<dd>calculations in one input / output pair.</dd>
+</dl>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.qchem.firetasks.parse_outputs.QChemToDb.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['calc_dir', 'calc_loc', 'input_file', 'output_file', 'additional_fields', 'db_file', 'fw_spec_field', 'multirun']</em><a class="headerlink" href="#atomate.qchem.firetasks.parse_outputs.QChemToDb.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.parse_outputs.QChemToDb.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.parse_outputs.QChemToDb.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt>
+<dd>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>(FWAction)</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-atomate.qchem.firetasks.run_calc">
+<span id="atomate-qchem-firetasks-run-calc-module"></span><h2>atomate.qchem.firetasks.run_calc module<a class="headerlink" href="#module-atomate.qchem.firetasks.run_calc" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.qchem.firetasks.run_calc.RunNoQChem">
+<em class="property">class </em><code class="descclassname">atomate.qchem.firetasks.run_calc.</code><code class="descname">RunNoQChem</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.run_calc.RunNoQChem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Do NOT run QChem. Do nothing.</p>
+<dl class="method">
+<dt id="atomate.qchem.firetasks.run_calc.RunNoQChem.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.run_calc.RunNoQChem.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt>
+<dd>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>(FWAction)</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.qchem.firetasks.run_calc.RunQChemCustodian">
+<em class="property">class </em><code class="descclassname">atomate.qchem.firetasks.run_calc.</code><code class="descname">RunQChemCustodian</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.run_calc.RunQChemCustodian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Run QChem using custodian “on rails”, i.e. in a simple way that supports most common options.</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd><dl class="first last docutils">
+<dt>qchem_cmd (str): the name of the full executable for running QChem. Note that this is</dt>
+<dd>explicitly different from qchem_cmd in RunQChemDirect because it does
+not include any flags and should only be the call to the executable.
+Supports env_chk.</dd>
+</dl>
+</dd>
+<dt>Optional params:</dt>
+<dd><p class="first">multimode (str): Parallelization scheme, either openmp or mpi.
+input_file (str): Name of the QChem input file.
+output_file (str): Name of the QChem output file.
+max_cores (int): Maximum number of cores to parallelize over. Defaults to 32.
+qclog_file (str): Name of the file to redirect the standard output to. None means</p>
+<blockquote>
+<div>not to record the standard output. Defaults to None.</div></blockquote>
+<p>suffix (str): String to append to the file in postprocess.
+scratch_dir (str): QCSCRATCH directory. Defaults to “/dev/shm/qcscratch/”.
+save_scratch (bool): Whether to save scratch directory contents. Defaults to False.
+save_name (str): Name of the saved scratch directory. Defaults to “default_save_name”.
+max_errors (int): Maximum # of errors to fix before giving up (default=5)
+job_type (str): Choose from “normal” (default) and “opt_with_frequency_flattener”
+handler_group (str): Group of handlers to use. See handler_groups dict in the code</p>
+<blockquote>
+<div>for the groups and complete list of handlers in each group.</div></blockquote>
+<p>gzip_output (bool): gzip output (default=T)</p>
+<p><strong>* Just for opt_with_frequency_flattener *</strong>
+max_iterations (int): Number of perturbation -&gt; optimization -&gt; frequency iterations</p>
+<blockquote>
+<div>to perform. Defaults to 10.</div></blockquote>
+<dl class="last docutils">
+<dt>max_molecule_perturb_scale (float): The maximum scaled perturbation that can be</dt>
+<dd>applied to the molecule. Defaults to 0.3.</dd>
+<dt>reversed_direction (bool): Whether to reverse the direction of the vibrational</dt>
+<dd>frequency vectors. Defaults to False.</dd>
+</dl>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.qchem.firetasks.run_calc.RunQChemCustodian.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['multimode', 'input_file', 'output_file', 'max_cores', 'qclog_file', 'suffix', 'scratch_dir', 'save_scratch', 'save_name', 'max_errors', 'max_iterations', 'max_molecule_perturb_scale', 'reversed_direction', 'job_type', 'handler_group', 'gzipped_output']</em><a class="headerlink" href="#atomate.qchem.firetasks.run_calc.RunQChemCustodian.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.qchem.firetasks.run_calc.RunQChemCustodian.required_params">
+<code class="descname">required_params</code><em class="property"> = ['qchem_cmd']</em><a class="headerlink" href="#atomate.qchem.firetasks.run_calc.RunQChemCustodian.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.run_calc.RunQChemCustodian.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.run_calc.RunQChemCustodian.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt>
+<dd>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>(FWAction)</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.qchem.firetasks.run_calc.RunQChemDirect">
+<em class="property">class </em><code class="descclassname">atomate.qchem.firetasks.run_calc.</code><code class="descname">RunQChemDirect</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.run_calc.RunQChemDirect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Execute a command directly (no custodian).</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd><dl class="first last docutils">
+<dt>qchem_cmd (str): The name of the full command line call to run. This should include any</dt>
+<dd>flags for parallelization, saving scratch, etc. Supports env_chk.</dd>
+</dl>
+</dd>
+<dt>Optional params:</dt>
+<dd>scratch_dir (str): Path to the scratch directory. Defaults to “/dev/shm/qcscratch/”.</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.qchem.firetasks.run_calc.RunQChemDirect.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['scratch_dir']</em><a class="headerlink" href="#atomate.qchem.firetasks.run_calc.RunQChemDirect.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.qchem.firetasks.run_calc.RunQChemDirect.required_params">
+<code class="descname">required_params</code><em class="property"> = ['qchem_cmd']</em><a class="headerlink" href="#atomate.qchem.firetasks.run_calc.RunQChemDirect.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.run_calc.RunQChemDirect.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.run_calc.RunQChemDirect.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt>
+<dd>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>(FWAction)</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.qchem.firetasks.run_calc.RunQChemFake">
+<em class="property">class </em><code class="descclassname">atomate.qchem.firetasks.run_calc.</code><code class="descname">RunQChemFake</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.run_calc.RunQChemFake" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>QChem Emulator</p>
+<dl class="docutils">
+<dt>Required params:</dt>
+<dd><dl class="first last docutils">
+<dt>ref_dir (string): Path to reference qchem run directory with input file in the folder</dt>
+<dd>named “mol.qin” and output file in the folder named “mol.qout”.</dd>
+</dl>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.qchem.firetasks.run_calc.RunQChemFake.required_params">
+<code class="descname">required_params</code><em class="property"> = ['ref_dir']</em><a class="headerlink" href="#atomate.qchem.firetasks.run_calc.RunQChemFake.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.run_calc.RunQChemFake.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.run_calc.RunQChemFake.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt>
+<dd>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>(FWAction)</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-atomate.qchem.firetasks.write_inputs">
 <span id="atomate-qchem-firetasks-write-inputs-module"></span><h2>atomate.qchem.firetasks.write_inputs module<a class="headerlink" href="#module-atomate.qchem.firetasks.write_inputs" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.qchem.firetasks.write_inputs.WriteCustomInput">
+<em class="property">class </em><code class="descclassname">atomate.qchem.firetasks.write_inputs.</code><code class="descname">WriteCustomInput</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.write_inputs.WriteCustomInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Writes QChem Input files from custom input sets. This firetask gives the maximum flexibility when trying
+to define custom input parameters.</p>
+<dl class="docutils">
+<dt>required_params:</dt>
+<dd>qchem_input_custom (dict): Define custom input parameters to generate a qchem input file.
+This should be a dictionary of dictionaries (i.e. {{“rem”: {“method”: “b3lyp”, basis”: “6-31*G++”, …}
+Each QChem section should be a key with its own dictionary as the value. For more details on how
+the input should be structured look at pymatgen.io.qchem_io.inputs
+<strong>*  *</strong></dd>
+<dt>optional_params:</dt>
+<dd>molecule (Molecule):
+input_file (str): Name of the QChem input file. Defaults to mol.qin
+write_to_dir (str): Path of the directory where the QChem input file will be written,
+the default is to write to the current working directory</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.qchem.firetasks.write_inputs.WriteCustomInput.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['molecule', 'opt', 'pcm', 'solvent', 'input_file', 'write_to_dir']</em><a class="headerlink" href="#atomate.qchem.firetasks.write_inputs.WriteCustomInput.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.qchem.firetasks.write_inputs.WriteCustomInput.required_params">
+<code class="descname">required_params</code><em class="property"> = ['rem']</em><a class="headerlink" href="#atomate.qchem.firetasks.write_inputs.WriteCustomInput.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.write_inputs.WriteCustomInput.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.write_inputs.WriteCustomInput.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt>
+<dd>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>(FWAction)</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="class">
 <dt id="atomate.qchem.firetasks.write_inputs.WriteInput">
 <em class="property">class </em><code class="descclassname">atomate.qchem.firetasks.write_inputs.</code><code class="descname">WriteInput</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.write_inputs.WriteInput" title="Permalink to this definition">¶</a></dt>
@@ -65,7 +461,16 @@
 <dl class="docutils">
 <dt>required_params:</dt>
 <dd>qc_input (QCInput): QCInput object</dd>
+<dt>optional_params:</dt>
+<dd>input_file (str): Name of the QChem input file. Defaults to mol.qin
+write_to_dir (str): Path of the directory where the QChem input file will be written,
+the default is to write to the current working directory</dd>
 </dl>
+<dl class="attribute">
+<dt id="atomate.qchem.firetasks.write_inputs.WriteInput.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['input_file', 'write_to_dir']</em><a class="headerlink" href="#atomate.qchem.firetasks.write_inputs.WriteInput.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="atomate.qchem.firetasks.write_inputs.WriteInput.required_params">
 <code class="descname">required_params</code><em class="property"> = ['qc_input']</em><a class="headerlink" href="#atomate.qchem.firetasks.write_inputs.WriteInput.required_params" title="Permalink to this definition">¶</a></dt>
@@ -107,24 +512,28 @@ these multiple resources.</dd>
 parameters are given as keys in the dictionary.</p>
 <dl class="docutils">
 <dt>required_params:</dt>
-<dd>molecule (Molecule): molecule
-qc_input_set (QChemDictSet or str): Either a QChemDictSet object or a string
-name for the QChem input set (e.g., “OptSet”).</dd>
+<dd>qc_input_set (QChemDictSet or str): Either a QChemDictSet object or a string
+name for the QChem input set (e.g., “OptSet”). <strong>* Note that if the molecule is to be inherited through
+fw_spec qc_input_set must be a string name for the QChem input set. *</strong></dd>
 <dt>optional_params:</dt>
 <dd>qchem_input_params (dict): When using a string name for QChem input set, use this as a dict
 to specify kwargs for instantiating the input set parameters. For example, if you want
 to change the DFT_rung, you should provide: {“DFT_rung”: …}.
 This setting is ignored if you provide the full object representation of a QChemDictSet
-rather than a String.</dd>
+rather than a String.
+molecule (Molecule):
+input_file (str): Name of the QChem input file. Defaults to mol.qin
+write_to_dir (str): Path of the directory where the QChem input file will be written,
+the default is to write to the current working directory</dd>
 </dl>
 <dl class="attribute">
 <dt id="atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet.optional_params">
-<code class="descname">optional_params</code><em class="property"> = ['qchem_input_params']</em><a class="headerlink" href="#atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet.optional_params" title="Permalink to this definition">¶</a></dt>
+<code class="descname">optional_params</code><em class="property"> = ['molecule', 'qchem_input_params', 'input_file', 'write_to_dir']</em><a class="headerlink" href="#atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet.optional_params" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet.required_params">
-<code class="descname">required_params</code><em class="property"> = ['molecule', 'qchem_input_set']</em><a class="headerlink" href="#atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet.required_params" title="Permalink to this definition">¶</a></dt>
+<code class="descname">required_params</code><em class="property"> = ['qchem_input_set']</em><a class="headerlink" href="#atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet.required_params" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -172,6 +581,9 @@ these multiple resources.</dd>
 <li><a class="reference internal" href="#">atomate.qchem.firetasks package</a><ul>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-atomate.qchem.firetasks.geo_transformations">atomate.qchem.firetasks.geo_transformations module</a></li>
+<li><a class="reference internal" href="#module-atomate.qchem.firetasks.parse_outputs">atomate.qchem.firetasks.parse_outputs module</a></li>
+<li><a class="reference internal" href="#module-atomate.qchem.firetasks.run_calc">atomate.qchem.firetasks.run_calc module</a></li>
 <li><a class="reference internal" href="#module-atomate.qchem.firetasks.write_inputs">atomate.qchem.firetasks.write_inputs module</a></li>
 <li><a class="reference internal" href="#module-atomate.qchem.firetasks">Module contents</a></li>
 </ul>
@@ -210,7 +622,7 @@ these multiple resources.</dd>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.8 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.9 documentation</a> &#187;</li> 
       </ul>
     </div>
 
