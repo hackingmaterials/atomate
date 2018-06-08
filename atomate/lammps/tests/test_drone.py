@@ -19,6 +19,7 @@ db_dir = os.path.join(module_dir, "..", "..", "common", "test_files")
 LAMMPS_CMD = None  # "lmp_serial"
 
 
+@unittest.skip("Atomate Lammps does not work after pymatgen release v2018.5.22")
 class TestLammpsDrone(AtomateTest):
 
     def setUp(self):

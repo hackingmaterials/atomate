@@ -1,0 +1,79 @@
+$molecule
+0 2
+  O    0.8010000    0.1690000   -0.0030000
+  C    1.0790000   -1.1530000   -0.0060000
+  C   -0.5330000    0.2830000    0.0020000
+  O    2.2120000   -1.6520000   -0.0110000
+  O   -0.0850000   -1.8400000   -0.0040000
+  C   -1.0690000   -0.9320000    0.0010000
+ Li    4.0510000   -2.4620000   -0.0180000
+  H   -0.9340000    1.2920000    0.0050000
+  H   -2.0840000   -1.3170000    0.0040000
+$end
+
+$rem
+   BASIS  =  6-311++G**
+   SYM_IGNORE = true
+   GUI  =  1
+   METHOD  =  wb97xd
+   JOB_TYPE  =  Optimization
+   gen_scfman = True     
+$end
+
+@@@
+
+$molecule
+read
+$end
+
+$rem
+   BASIS  =  6-311++G**
+   GUI  =  1
+   SYM_IGNORE = true
+   METHOD  =  wb97xd
+   JOB_TYPE  =  Optimization
+   SCF_CONVERGENCE = 6
+   SOLVENT_METHOD  =  PCM
+   MAX_SCF_CYCLES  =  300
+   gen_scfman = True     
+$end
+
+$pcm
+  heavypoints   194
+      hpoints   194
+        radii   uff
+       theory   cpcm
+     vdwscale   1.1
+$end
+
+$solvent
+  dielectric   10.0
+$end
+
+@@@
+
+$molecule
+read
+$end
+
+$rem
+   BASIS  =  6-311++G**
+   GUI  =  2
+   JOB_TYPE  =  Frequency
+   SCF_CONVERGENCE = 6
+   METHOD  =  wb97xd
+   SYM_IGNORE = true
+   SOLVENT_METHOD = PCM
+$end
+
+$pcm
+  heavypoints   194
+      hpoints   194
+        radii   uff
+       theory   cpcm
+     vdwscale   1.1
+$end
+
+$solvent
+  dielectric   10.0
+$end

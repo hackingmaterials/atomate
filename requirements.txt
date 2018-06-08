@@ -1,9 +1,7 @@
 numpy==1.14.3
 scipy==1.0.1
 FireWorks==1.7.3
-pymatgen==2018.5.3
 pymatgen_diffusion==2018.1.4
-custodian==2018.3.10
 monty==1.0.2
 paramiko==2.4.0
 tqdm==4.23.0
@@ -11,3 +9,5 @@ six==1.11.0
 pybtex==0.21
 ruamel.yaml==0.15.37
 pandas==0.22.0
+-e git://github.com/materialsproject/pymatgen#egg=pymatgen
+-e git://github.com/materialsproject/custodian#egg=custodian
