@@ -14,6 +14,7 @@ from atomate.utils.testing import AtomateTest
 from custodian.qchem.new_handlers import QChemErrorHandler
 from custodian.qchem.new_jobs import QCJob
 from pymatgen.io.qchem_io.outputs import QCOutput
+import numpy as np
 
 __author__ = "Samuel Blau"
 __email__ = "samblau1@gmail.com"
@@ -498,8 +499,8 @@ class TestFakeRunQChem(AtomateTest):
         for key in ref_out:
             try:
                 self.assertEqual(ref_out[key], this_out[key])
-            except:
-                pass
+            except ValueError:
+                np.testing.assert_array_equal(ref_out[key], this_out[key])
         for filename in os.listdir(
                 os.path.join(module_dir, "..", "..", "test_files",
                              "real_run")):

@@ -2,17 +2,7 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-from monty.json import MontyEncoder
-"""
-This module defines the database classes.
-"""
-
-import zlib
-import json
-from bson import ObjectId
-
-import gridfs
-from pymongo import ASCENDING, DESCENDING
+# This module defines the database classes.
 
 from atomate.utils.database import CalcDb
 from atomate.utils.utils import get_logger
@@ -51,10 +41,11 @@ class QChemCalcDb(CalcDb):
             existing indexes.
         """
         _indices = indexes or [
-            "formula_pretty", "formula_anonymous", 
-            "dir_name", "smiles", "last_updated"
+            "formula_pretty", "formula_anonymous", "dir_name", "smiles",
+            "last_updated"
         ]
-        self.collection.create_index("task_id", unique=True, background=background)
+        self.collection.create_index(
+            "task_id", unique=True, background=background)
         # build single field indexes
         for ii in _indices:
             self.collection.create_index(ii, background=background)
