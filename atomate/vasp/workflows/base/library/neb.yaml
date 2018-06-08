@@ -1,6 +1,7 @@
 # A standard CI-NEB calculation
 # Comment the item to use the default settings.
 # Note that "fireworks" is a list corresponding to the order of execution.
+# Author: Hanmei Tang (UCSD)
 fireworks:
 # Relaxation for parent structure
 - fw: atomate.vasp.fireworks.core.NEBRelaxationFW
