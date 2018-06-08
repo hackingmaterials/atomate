@@ -5,7 +5,10 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import os
 import unittest
 import shutil
-from unittest.mock import patch
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
 
 from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.run_calc import RunQChemDirect
