@@ -3,10 +3,10 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-"""
-Defines standardized Fireworks that can be chained easily to perform various
-sequences of QChem calculations.
-"""
+
+# Defines standardized Fireworks that can be chained easily to perform various
+# sequences of QChem calculations.
+
 
 from fireworks import Firework
 
@@ -49,7 +49,7 @@ class OptimizeFW(Firework):
             output_file (str): Name of the QChem output file. Defaults to mol.qout.
             max_cores (int): Maximum number of cores to parallelize over. Defaults to 32.
             qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
-                                       For example, if you want to change the DFT_rung, you should 
+                                       For example, if you want to change the DFT_rung, you should
                                        provide: {"DFT_rung": ...}. Defaults to None.
             db_file (str): Path to file specifying db credentials to place output parsing.
             parents ([Firework]): Parents of this particular Firework.

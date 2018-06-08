@@ -5,7 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import os
 import unittest
 
-from fireworks import Firework, Workflow, FWorker
+from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 from atomate.utils.testing import AtomateTest
 from pymatgen.core import Molecule

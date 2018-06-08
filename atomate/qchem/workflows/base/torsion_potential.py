@@ -2,15 +2,13 @@
 
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
-"""
-This module defines the torsion potential workflow
-"""
 
-import numpy as np
+# This module defines the torsion potential workflow
 
-from fireworks import Firework, Workflow
+
+from fireworks import Workflow
 from atomate.qchem.fireworks.core import OptimizeFW
-from atomate.utils.utils import get_logger, get_fws_and_tasks
+from atomate.utils.utils import get_logger
 from atomate.qchem.firetasks.geo_transformations import RotateTorsion
 from atomate.qchem.firetasks.write_inputs import WriteCustomInput
 

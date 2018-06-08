@@ -1,5 +1,3 @@
-import pymatgen
-import numpy as np
 from custodian import Custodian
 from custodian.qchem.new_jobs import QCJob
 from custodian.qchem.new_handlers import QChemErrorHandler

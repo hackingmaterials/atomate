@@ -40,7 +40,7 @@ class QChemCalcDb(CalcDb):
                                           user, password)
 
     def build_indexes(self, indexes=None, background=True):
-       """
+        """
         Build the indexes.
 
         Args:
@@ -50,7 +50,7 @@ class QChemCalcDb(CalcDb):
         TODO: make sure that the index building is sensible and check for
             existing indexes.
         """
-        _indices = indexes if indexes else [
+        _indices = indexes or [
             "formula_pretty", "formula_anonymous", 
             "dir_name", "smiles", "last_updated"
         ]

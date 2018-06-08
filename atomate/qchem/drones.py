@@ -36,7 +36,7 @@ logger = get_logger(__name__)
 
 class QChemDrone(AbstractDrone):
     """
-    A QChem drone to parse QChem calculations and insert an organized, searchable entry into the database. 
+    A QChem drone to parse QChem calculations and insert an organized, searchable entry into the database.
     """
 
     __version__ = atomate_version  # note: the version is inserted into the task doc
@@ -227,7 +227,8 @@ class QChemDrone(AbstractDrone):
                          traceback.format_exc())
             raise
 
-    def process_qchemrun(self, dir_name, taskname, input_file, output_file):
+    @staticmethod
+    def process_qchemrun(dir_name, taskname, input_file, output_file):
         """
         Process a QChem calculation, aka an input/output pair.
         """
@@ -244,7 +245,8 @@ class QChemDrone(AbstractDrone):
         d["task"] = {"type": taskname, "name": taskname}
         return d
 
-    def process_qchem_multirun(self, dir_name, input_files, output_files):
+    @staticmethod
+    def process_qchem_multirun(dir_name, input_files, output_files):
         """
         Process a QChem run which is known to include multiple calculations
         in a single input/output pair.
@@ -274,7 +276,8 @@ class QChemDrone(AbstractDrone):
                     to_return.append(d)
             return to_return
 
-    def post_process(self, dir_name, d):
+    @staticmethod
+    def post_process(dir_name, d):
         """
         Post-processing for various files other than the QChem input and output files.
         Currently only looks for custodian.json. Modify this if other files need to be processed.
@@ -289,12 +292,13 @@ class QChemDrone(AbstractDrone):
     def validate_doc(self, d):
         """
         Sanity check, aka make sure all the important keys are set. Note that a failure
-        to pass validation is unfortunately unlikely to be noticed by a user. 
+        to pass validation is unfortunately unlikely to be noticed by a user.
         """
         for k, v in self.schema.items():
             diff = v.difference(set(d.get(k, d).keys()))
             if diff:
                 logger.warn("The keys {0} in {1} not set".format(diff, k))
 
+    @staticmethod
     def get_valid_paths(self, path):
         return [path]

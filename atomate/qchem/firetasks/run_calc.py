@@ -1,9 +1,9 @@
 # coding: utf-8
 
 from __future__ import division, print_function, unicode_literals, absolute_import
-"""
-This module defines tasks that support running QChem in various ways.
-"""
+
+# This module defines tasks that support running QChem in various ways.
+
 
 import shutil
 import os
@@ -66,9 +66,9 @@ class RunQChemCustodian(FiretaskBase):
     Run QChem using custodian "on rails", i.e. in a simple way that supports most common options.
 
     Required params:
-        qchem_cmd (str): the name of the full executable for running QChem. Note that this is 
-                         explicitly different from qchem_cmd in RunQChemDirect because it does 
-                         not include any flags and should only be the call to the executable. 
+        qchem_cmd (str): the name of the full executable for running QChem. Note that this is
+                         explicitly different from qchem_cmd in RunQChemDirect because it does
+                         not include any flags and should only be the call to the executable.
                          Supports env_chk.
 
     Optional params:
@@ -76,7 +76,7 @@ class RunQChemCustodian(FiretaskBase):
         input_file (str): Name of the QChem input file.
         output_file (str): Name of the QChem output file.
         max_cores (int): Maximum number of cores to parallelize over. Defaults to 32.
-        qclog_file (str): Name of the file to redirect the standard output to. None means 
+        qclog_file (str): Name of the file to redirect the standard output to. None means
                           not to record the standard output. Defaults to None.
         suffix (str): String to append to the file in postprocess.
         scratch_dir (str): QCSCRATCH directory. Defaults to "/dev/shm/qcscratch/".
@@ -84,16 +84,16 @@ class RunQChemCustodian(FiretaskBase):
         save_name (str): Name of the saved scratch directory. Defaults to "default_save_name".
         max_errors (int): Maximum # of errors to fix before giving up (default=5)
         job_type (str): Choose from "normal" (default) and "opt_with_frequency_flattener"
-        handler_group (str): Group of handlers to use. See handler_groups dict in the code 
+        handler_group (str): Group of handlers to use. See handler_groups dict in the code
                              for the groups and complete list of handlers in each group.
         gzip_output (bool): gzip output (default=T)
 
         *** Just for opt_with_frequency_flattener ***
         max_iterations (int): Number of perturbation -> optimization -> frequency iterations
                               to perform. Defaults to 10.
-        max_molecule_perturb_scale (float): The maximum scaled perturbation that can be 
+        max_molecule_perturb_scale (float): The maximum scaled perturbation that can be
                                             applied to the molecule. Defaults to 0.3.
-        reversed_direction (bool): Whether to reverse the direction of the vibrational 
+        reversed_direction (bool): Whether to reverse the direction of the vibrational
                                    frequency vectors. Defaults to False.
 
     """
@@ -236,7 +236,8 @@ class RunQChemFake(FiretaskBase):
 
         logger.info("RunQChemFake: verified input successfully")
 
-    def _clear_inputs(self):
+    @staticmethod
+    def _clear_inputs():
         p = os.path.join(os.getcwd(), "mol.qin")
         if os.path.exists(p):
             os.remove(p)

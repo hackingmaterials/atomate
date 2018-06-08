@@ -486,29 +486,25 @@ class TestFakeRunQChem(AtomateTest):
         shutil.rmtree(os.path.join(module_dir, "..", "fake_run"))
 
     def test_RunQChemFake(self):
-        try:
-            os.chdir(os.path.join(module_dir, "..", "fake_run"))
-            firetask = RunQChemFake(
-                ref_dir=os.path.join(module_dir, "..", "..", "test_files",
-                                     "real_run"))
-            firetask.run_task(fw_spec={})
-            ref_out = QCOutput(
-                os.path.join(module_dir, "..", "..", "test_files", "real_run",
-                             "mol.qout")).data
-            this_out = QCOutput("mol.qout").data
-            for key in ref_out:
-                try:
-                    self.assertEqual(ref_out[key], this_out[key])
-                except:
-                    pass
-            for filename in os.listdir(
-                    os.path.join(module_dir, "..", "..", "test_files",
-                                 "real_run")):
-                self.assertEqual(os.path.isfile(filename), True)
-        except:
-            raise
-        finally:
-            os.chdir(module_dir)
+        os.chdir(os.path.join(module_dir, "..", "fake_run"))
+        firetask = RunQChemFake(
+            ref_dir=os.path.join(module_dir, "..", "..", "test_files",
+                                 "real_run"))
+        firetask.run_task(fw_spec={})
+        ref_out = QCOutput(
+            os.path.join(module_dir, "..", "..", "test_files", "real_run",
+                         "mol.qout")).data
+        this_out = QCOutput("mol.qout").data
+        for key in ref_out:
+            try:
+                self.assertEqual(ref_out[key], this_out[key])
+            except:
+                pass
+        for filename in os.listdir(
+                os.path.join(module_dir, "..", "..", "test_files",
+                             "real_run")):
+            self.assertEqual(os.path.isfile(filename), True)
+        os.chdir(module_dir)
 
 
 if __name__ == "__main__":

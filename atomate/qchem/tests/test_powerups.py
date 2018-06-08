@@ -6,17 +6,12 @@ import os
 import unittest
 import shutil
 
-from atomate.qchem.firetasks.geo_transformations import RotateTorsion
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 from atomate.qchem.firetasks.run_calc import RunQChemDirect
 from atomate.qchem.firetasks.parse_outputs import QChemToDb
-from fireworks import Firework, Workflow, FWorker
-from fireworks.core.rocket_launcher import rapidfire
+from fireworks import Firework, Workflow
 from atomate.utils.testing import AtomateTest
-from pymatgen.core import Molecule
 from pymatgen.io.qchem_io.outputs import QCOutput
-from pymatgen.io.qchem_io.inputs import QCInput
-import numpy as np
 from atomate.qchem.powerups import use_fake_qchem
 
 __author__ = "Brandon Wood"

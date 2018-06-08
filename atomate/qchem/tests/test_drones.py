@@ -62,8 +62,8 @@ class QChemDroneTest(unittest.TestCase):
             800.47, 863.15, 928.68, 969., 1092.86, 1124., 1147.64, 1209.1,
             1387.39, 1693.97, 1913.05, 3316.2, 3341.73
         ])
-        for ii, entry in enumerate(test_freqs):
-            self.assertEqual(test_freqs[ii], doc["output"]["frequencies"][ii])
+        for ii in enumerate(test_freqs):
+            self.assertEqual(test_freqs[ii[0]], doc["output"]["frequencies"][ii[0]])
         self.assertEqual(doc["output"]["enthalpy"], 37.547)
         self.assertEqual(doc["output"]["entropy"], 83.81)
         self.assertEqual(doc["walltime"], 394.45)
@@ -101,10 +101,10 @@ class QChemDroneTest(unittest.TestCase):
             800.47, 863.15, 928.68, 969., 1092.86, 1124., 1147.64, 1209.1,
             1387.39, 1693.97, 1913.05, 3316.2, 3341.73
         ])
-        for ii, entry in enumerate(test_freqs):
-            self.assertEqual(test_freqs[ii], doc["output"]["frequencies"][ii])
-            self.assertEqual(doc["output"]["frequencies"][ii],
-                             doc["calcs_reversed"][0]["frequencies"][ii])
+        for ii in enumerate(test_freqs):
+            self.assertEqual(test_freqs[ii[0]], doc["output"]["frequencies"][ii[0]])
+            self.assertEqual(doc["output"]["frequencies"][ii[0]],
+                             doc["calcs_reversed"][0]["frequencies"][ii[0]])
         self.assertEqual(doc["output"]["enthalpy"], 37.547)
         self.assertEqual(doc["output"]["entropy"], 83.81)
         self.assertEqual(doc["num_frequencies_flattened"], 1.0)
@@ -144,10 +144,10 @@ class QChemDroneTest(unittest.TestCase):
             787.32, 869.29, 924.77, 962.67, 1084.55, 1117.49, 1143.1, 1196.27,
             1378.76, 1696.26, 1860.75, 3321.43
         ])
-        for ii, entry in enumerate(test_freqs):
-            self.assertEqual(test_freqs[ii], doc["output"]["frequencies"][ii])
-            self.assertEqual(doc["output"]["frequencies"][ii],
-                             doc["calcs_reversed"][0]["frequencies"][ii])
+        for ii in enumerate(test_freqs):
+            self.assertEqual(test_freqs[ii[0]], doc["output"]["frequencies"][ii[0]])
+            self.assertEqual(doc["output"]["frequencies"][ii[0]],
+                             doc["calcs_reversed"][0]["frequencies"][ii[0]])
         self.assertEqual(doc["output"]["enthalpy"], 36.755)
         self.assertEqual(doc["output"]["entropy"], 74.989)
         self.assertEqual(doc["walltime"], 684.6300000000001)

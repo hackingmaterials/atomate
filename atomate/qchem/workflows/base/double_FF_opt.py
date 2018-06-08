@@ -2,14 +2,11 @@
 
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
-"""
-This module defines a workflow for optimizing a molecule first in vacuum and then
-in PCM. Both optimizations will include automatic frequency flattening.
-"""
 
-import numpy as np
+# This module defines a workflow for optimizing a molecule first in vacuum and then
+# in PCM. Both optimizations will include automatic frequency flattening.
 
-from fireworks import Firework, Workflow
+from fireworks import Workflow
 from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
 from atomate.utils.utils import get_logger
 
@@ -50,9 +47,9 @@ def get_wf_double_FF_opt(molecule,
     Args:
         molecule (Molecule): input molecule to be optimized and run.
         pcm_dielectric (float): The PCM dielectric constant.
-        max_cores (int): Maximum number of cores to parallelize over. 
+        max_cores (int): Maximum number of cores to parallelize over.
             Defaults to 32.
-        qchem_input_params (dict): Specify kwargs for instantiating 
+        qchem_input_params (dict): Specify kwargs for instantiating
             the input set parameters.
         qchem_cmd (str): Command to run QChem.
         db_file (str): path to file containing the database credentials.
