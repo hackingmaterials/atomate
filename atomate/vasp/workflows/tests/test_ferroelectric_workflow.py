@@ -34,7 +34,7 @@ from pymatgen.core.structure import Structure
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
-
+@unittest.skip("This workflow may require a set of POTCARs and corresponding .pmgrc.yaml file.")
 class TestFerroelectricWorkflow(AtomateTest):
 
     def setUp(self):
