@@ -9,5 +9,5 @@ six==1.11.0
 pybtex==0.21
 ruamel.yaml==0.15.37
 pandas==0.22.0
-pymatgen==2018.06.11
--e git://github.com/materialsproject/custodian#egg=custodian
+pymatgen==2018.6.11
+custodian==2018.6.11

@@ -21,7 +21,7 @@ if __name__ == "__main__":
         package_data={'atomate.vasp.workflows.base': ['library/*']},
         zip_safe=False,
         install_requires=['FireWorks>=1.4.0', 'pymatgen>=2018.6.11',
-                          'custodian>=2018.3.10', 'monty>=1.0.2',
+                          'custodian>=2018.6.11', 'monty>=1.0.2',
                           'tqdm>=4.7.4', 'six',
                           'pymatgen-diffusion>=2018.1.4'],
         extras_require={'rtransfer': ['paramiko>=1.15.0'],
