@@ -1,10 +1,10 @@
 numpy==1.14.3
-scipy==1.0.1
-FireWorks==1.7.3
+scipy==1.1.0
+FireWorks==1.7.4
 pymatgen_diffusion==2018.1.4
-monty==1.0.2
+monty==1.0.3
 paramiko==2.4.0
-tqdm==4.23.0
+tqdm==4.23.1
 six==1.11.0
 pybtex==0.21
 ruamel.yaml==0.15.37
