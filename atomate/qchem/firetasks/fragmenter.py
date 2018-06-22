@@ -31,9 +31,6 @@ __date__ = "6/13/18"
 __credits__ = "John Dagdelen, Shyam Dwaraknath"
 
 
-DEBUG = False
-
-
 @explicit_serialize
 class FragmentMolecule(FiretaskBase):
     """
@@ -41,7 +38,7 @@ class FragmentMolecule(FiretaskBase):
 
     Optional params:
         molecule (Molecule): 
-        edges (list): 
+        edges (list): List of index pairs that define graph edges, aka molecule bonds
 
     """
 
@@ -125,7 +122,7 @@ class FragmentMolecule(FiretaskBase):
         new_FWs = []
         for unique_molecule in enumerate(unique_molecules):
             new_FWs.append(FrequencyFlatteningOptimizeFW(molecule=unique_molecule))
-            
+
         return FWAction(additions=new_FWs)
 
 
