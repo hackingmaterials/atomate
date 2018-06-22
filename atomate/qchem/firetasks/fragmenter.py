@@ -102,19 +102,30 @@ class FragmentMolecule(FiretaskBase):
             if not [is_isomorphic(fragment, f) for f in unique_fragments].count(True) >= 1:
                 unique_fragments.append(fragment)
                 
-        # build molecule objects from all unique fragments
+        # build three molecule objects for each unique fragment: 
+        # original charge, original charge +1, original charge -1
         unique_molecules = []
         for fragment in unique_fragments:
-            unique_molecule = Molecule(species=[fragment.node[ii]["specie"] for ii in fragment.nodes], 
-                                       coords=[fragment.node[ii]["coords"] for ii in fragment.nodes], 
+            species = [fragment.node[ii]["specie"] for ii in fragment.nodes]
+            coords = [fragment.node[ii]["coords"] for ii in fragment.nodes]
+            unique_molecule0 = Molecule(species=species, 
+                                       coords=coords, 
                                        charge=mol.charge)
-            unique_molecules.append(unique_molecule)
+            unique_molecule1 = Molecule(species=species, 
+                                       coords=coords, 
+                                       charge=mol.charge+1)
+            unique_molecule2 = Molecule(species=species, 
+                                       coords=coords, 
+                                       charge=mol.charge-1)
+            unique_molecules.append(unique_molecule0)
+            unique_molecules.append(unique_molecule1)
+            unique_molecules.append(unique_molecule2)
 
         # build the list of new fireworks: a FrequencyFlatteningOptimizeFW for each unique fragment
         new_FWs = []
         for unique_molecule in enumerate(unique_molecules):
             new_FWs.append(FrequencyFlatteningOptimizeFW(molecule=unique_molecule))
-
+            
         return FWAction(additions=new_FWs)
 
 
