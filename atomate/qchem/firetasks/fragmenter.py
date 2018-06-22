@@ -9,7 +9,8 @@ from pymatgen.core.structure import Molecule
 from pymatgen.analysis.graphs import MoleculeGraph
 from itertools import combinations
 import networkx as nx
-from fireworks import FiretaskBase, explicit_serialize
+from fireworks import FiretaskBase, FWAction, explicit_serialize
+from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
 
 have_babel = True
 try:
@@ -27,6 +28,7 @@ __maintainer__ = "Samuel Blau"
 __email__ = "samblau1@gmail.com"
 __status__ = "Alpha"
 __date__ = "6/13/18"
+__credits__ = "John Dagdelen, Shyam Dwaraknath"
 
 
 DEBUG = False
@@ -79,9 +81,12 @@ class FragmentMolecule(FiretaskBase):
             mol_graph.add_edge(edge[0],edge[1])
         mol_graph.graph = mol_graph.graph.to_undirected()
         species = {}
+        coords = {}
         for node in mol_graph.graph:
             species[node] = mol_graph.molecule[node].specie.symbol
+            coords[node] = mol_graph.molecule[node].coords
         nx.set_node_attributes(mol_graph.graph, species, "specie")
+        nx.set_node_attributes(mol_graph.graph, coords, "coords")
 
         # find all possible fragments, aka connected induced subgraphs
         all_fragments = []
@@ -96,12 +101,22 @@ class FragmentMolecule(FiretaskBase):
         for fragment in all_fragments:
             if not [is_isomorphic(fragment, f) for f in unique_fragments].count(True) >= 1:
                 unique_fragments.append(fragment)
+                
+        # build molecule objects from all unique fragments
+        unique_molecules = []
+        for fragment in unique_fragments:
+            unique_molecule = Molecule(species=[fragment.node[ii]["specie"] for ii in fragment.nodes], 
+                                       coords=[fragment.node[ii]["coords"] for ii in fragment.nodes], 
+                                       charge=mol.charge)
+            unique_molecules.append(unique_molecule)
 
-        self.all_unique_frags = unique_fragments
+        # build the list of new fireworks: a FrequencyFlatteningOptimizeFW for each unique fragment
+        new_FWs = []
+        for unique_molecule in enumerate(unique_molecules):
+            new_FWs.append(FrequencyFlatteningOptimizeFW(molecule=unique_molecule))
 
+        return FWAction(additions=new_FWs)
 
-        # TODO insert into database
-        # TODO how am I naming things for easy referencing?
 
 def _node_match(node, othernode):
     return node["specie"] == othernode["specie"]
