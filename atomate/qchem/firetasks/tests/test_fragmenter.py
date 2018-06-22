@@ -30,26 +30,26 @@ class TestFragmentMolecule(AtomateTest):
         edges = [[5,10],[5,12],[5,11],[5,3],[3,7],[3,4],[3,0],[4,8],[4,9],[4,1],[6,1],[6,0],[6,2]]
         ft = FragmentMolecule(molecule=pc, edges=edges)
         ft.run_task({})
-        self.assertEqual(len(ft.all_unique_frags), 296)
+        self.assertEqual(len(ft.all_unique_frags), 295)
 
     def test_babel_PC(self):
         pc = Molecule.from_file(os.path.join(module_dir, "..", "..", "test_files", "PC.xyz"))
         ft = FragmentMolecule(molecule=pc)
         ft.run_task({})
-        self.assertEqual(len(ft.all_unique_frags), 296)
+        self.assertEqual(len(ft.all_unique_frags), 295)
 
     def test_edges_given_PC_frag1(self):
         pc_frag1 = Molecule.from_file(os.path.join(module_dir, "..", "..", "test_files", "PC_frag1.xyz"))
         edges = [[0,2],[4,2],[2,1],[1,3]]
         ft = FragmentMolecule(molecule=pc_frag1, edges=edges)
         ft.run_task({})
-        self.assertEqual(len(ft.all_unique_frags), 13)
+        self.assertEqual(len(ft.all_unique_frags), 12)
 
     def test_babel_PC_frag1(self):
         pc_frag1 = Molecule.from_file(os.path.join(module_dir, "..", "..", "test_files", "PC_frag1.xyz"))
         ft = FragmentMolecule(molecule=pc_frag1)
         ft.run_task({})
-        self.assertEqual(len(ft.all_unique_frags), 13)
+        self.assertEqual(len(ft.all_unique_frags), 12)
 
 if __name__ == "__main__":
     unittest.main()

@@ -85,13 +85,13 @@ class FragmentMolecule(FiretaskBase):
 
         # find all possible fragments, aka connected induced subgraphs
         all_fragments = []
-        for ii in range(1,len(mol)+1):
+        for ii in range(1,len(mol)):
             for combination in combinations(mol_graph.graph.nodes,ii):
                 subgraph = nx.subgraph(mol_graph.graph, combination)
                 if nx.is_connected(subgraph):
                     all_fragments.append(subgraph)
 
-        # narrow to all unique fragments by checking for isomorphism
+        # narrow to all unique fragments using graph isomorphism
         unique_fragments = []
         for fragment in all_fragments:
             if not [is_isomorphic(fragment, f) for f in unique_fragments].count(True) >= 1:
