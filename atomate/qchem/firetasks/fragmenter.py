@@ -10,7 +10,6 @@ from pymatgen.analysis.graphs import MoleculeGraph
 from itertools import combinations
 import networkx as nx
 from fireworks import FiretaskBase, FWAction, explicit_serialize
-from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
 
 have_babel = True
 try:
@@ -124,6 +123,7 @@ class FragmentMolecule(FiretaskBase):
             unique_molecules.append(unique_molecule1)
             unique_molecules.append(unique_molecule2)
 
+        from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
         # build the list of new fireworks: a FrequencyFlatteningOptimizeFW for each unique fragment
         new_FWs = []
         for ii,unique_molecule in enumerate(unique_molecules):
