@@ -46,8 +46,6 @@ class FragmentMolecule(FiretaskBase):
     """
 
     optional_params = ["molecule", "edges", "max_cores", "qchem_input_params"]
-    qchem_input_params = self.get("qchem_input_params", {})
-    max_cores = self.get("max_cores", 32)
 
     def run_task(self, fw_spec):
         # if a molecule is being passed through fw_spec
@@ -123,15 +121,15 @@ class FragmentMolecule(FiretaskBase):
             unique_molecules.append(unique_molecule1)
             unique_molecules.append(unique_molecule2)
 
-        from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
         # build the list of new fireworks: a FrequencyFlatteningOptimizeFW for each unique fragment
+        from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
         new_FWs = []
         for ii,unique_molecule in enumerate(unique_molecules):
             new_FWs.append(FrequencyFlatteningOptimizeFW(molecule=unique_molecule,
                                                          name="fragment_"+str(ii),
                                                          qchem_cmd=">>qchem_cmd<<",
-                                                         max_cores=max_cores,
-                                                         qchem_input_params=qchem_input_params,
+                                                         max_cores=self.get("max_cores", 32),
+                                                         qchem_input_params=self.get("qchem_input_params", {}),
                                                          db_file=">>db_file<<"))
 
         return FWAction(additions=new_FWs)
