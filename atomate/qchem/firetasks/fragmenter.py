@@ -46,8 +46,8 @@ class FragmentMolecule(FiretaskBase):
     """
 
     optional_params = ["molecule", "edges", "max_cores", "qchem_input_params"]
-    qchem_input_params = qchem_input_params or {}
-    max_cores = max_cores or 32
+    qchem_input_params = self.get("qchem_input_params", {})
+    max_cores = self.get("max_cores", 32)
 
     def run_task(self, fw_spec):
         # if a molecule is being passed through fw_spec
