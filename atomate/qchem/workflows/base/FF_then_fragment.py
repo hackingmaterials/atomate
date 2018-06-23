@@ -3,11 +3,12 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-# This module defines a workflow for optimizing a molecule first in vacuum and then
-# in PCM. Both optimizations will include automatic frequency flattening.
+# This module defines a workflow that first performs a frequency flattening
+# optimization of a molecule in vacuum and then finds all unique fragments
+# of that molecule and performs a frequency flattening optimization on each.
 
 from fireworks import Workflow
-from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
+from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW, FragmentFW
 from atomate.utils.utils import get_logger
 
 __author__ = "Samuel Blau"
@@ -16,20 +17,20 @@ __version__ = "0.1"
 __maintainer__ = "Samuel Blau"
 __email__ = "samblau1@gmail.com"
 __status__ = "Alpha"
-__date__ = "5/23/18"
+__date__ = "6/22/18"
 __credits__ = "Brandon Wood, Shyam Dwaraknath"
 
 logger = get_logger(__name__)
 
 
-def get_wf_double_FF_opt(molecule,
-                         pcm_dielectric,
-                         max_cores=32,
-                         qchem_input_params=None,
-                         name="douple_FF_opt",
-                         qchem_cmd=">>qchem_cmd<<",
-                         db_file=">>db_file<<",
-                         **kwargs):
+def get_wf_FF_then_fragment(molecule,
+                            pcm_dielectric=None,
+                            max_cores=32,
+                            qchem_input_params=None,
+                            name="FF_then_fragment",
+                            qchem_cmd=">>qchem_cmd<<",
+                            db_file=">>db_file<<",
+                            **kwargs):
     """
 
     Firework 1 : write QChem input for an FF optimization,
@@ -37,11 +38,9 @@ def get_wf_double_FF_opt(molecule,
                  parse directory and insert into db,
                  pass relaxed molecule to fw_spec and on to fw2,
 
-    Firework 2 : write QChem input for an optimization in the
-                    presence of a PCM, using the molecule passed
-                    from fw1,
-                 run FF_opt QCJob,
-                 parse directory and insert into db
+    Firework 2 : find all unique fragments of the optimized molecule 
+                 and add a frequency flattening optimize FW to the 
+                 workflow for each one
 
     Args:
         molecule (Molecule): input molecule to be optimized and run.
@@ -58,26 +57,25 @@ def get_wf_double_FF_opt(molecule,
         Workflow
     """
 
-    first_qchem_input_params = qchem_input_params or {}
+    qchem_input_params = qchem_input_params or {}
+    if pcm_dielectric != None:
+        qchem_input_params["pcm_dielectric"] = pcm_dielectric
 
-    # Optimize the molecule in vacuum
+    # Optimize the original molecule
     fw1 = FrequencyFlatteningOptimizeFW(
         molecule=molecule,
-        name="first_FF_no_pcm",
+        name="first_FF",
         qchem_cmd=qchem_cmd,
         max_cores=max_cores,
-        qchem_input_params=first_qchem_input_params,
+        qchem_input_params=qchem_input_params,
         db_file=db_file)
 
-    # Optimize the molecule in PCM
-    second_qchem_input_params = {"pcm_dielectric": pcm_dielectric}
-    for key in first_qchem_input_params:
-        second_qchem_input_params[key] = first_qchem_input_params[key]
-    fw2 = FrequencyFlatteningOptimizeFW(
-        name="second_FF_with_pcm",
+    # Fragment the optimized molecule
+    fw2 = FragmentFW(
+        name="fragment and FF_opt",
         qchem_cmd=qchem_cmd,
         max_cores=max_cores,
-        qchem_input_params=second_qchem_input_params,
+        qchem_input_params=qchem_input_params,
         db_file=db_file,
         parents=fw1)
     fws = [fw1, fw2]

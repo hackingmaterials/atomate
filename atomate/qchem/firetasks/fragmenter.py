@@ -39,10 +39,16 @@ class FragmentMolecule(FiretaskBase):
     Optional params:
         molecule (Molecule): 
         edges (list): List of index pairs that define graph edges, aka molecule bonds
+        max_cores (int): Maximum number of cores to parallelize over. Defaults to 32.
+        qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
+                                   For example, if you want to change the DFT_rung, you should
+                                   provide: {"DFT_rung": ...}. Defaults to None.
 
     """
 
-    optional_params = ["molecule", "edges"]
+    optional_params = ["molecule", "edges", "max_cores", "qchem_input_params"]
+    qchem_input_params = qchem_input_params or {}
+    max_cores = max_cores or 32
 
     def run_task(self, fw_spec):
         # if a molecule is being passed through fw_spec
@@ -120,8 +126,13 @@ class FragmentMolecule(FiretaskBase):
 
         # build the list of new fireworks: a FrequencyFlatteningOptimizeFW for each unique fragment
         new_FWs = []
-        for unique_molecule in enumerate(unique_molecules):
-            new_FWs.append(FrequencyFlatteningOptimizeFW(molecule=unique_molecule))
+        for ii,unique_molecule in enumerate(unique_molecules):
+            new_FWs.append(FrequencyFlatteningOptimizeFW(molecule=unique_molecule,
+                                                         name="fragment_"+str(ii),
+                                                         qchem_cmd=">>qchem_cmd<<",
+                                                         max_cores=max_cores,
+                                                         qchem_input_params=qchem_input_params,
+                                                         db_file=">>db_file<<"))
 
         return FWAction(additions=new_FWs)
 

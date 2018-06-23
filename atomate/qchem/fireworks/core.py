@@ -10,9 +10,10 @@ from __future__ import absolute_import, division, print_function, \
 
 from fireworks import Firework
 
-from atomate.qchem.firetasks.parse_outputs import *
-from atomate.qchem.firetasks.run_calc import *
-from atomate.qchem.firetasks.write_inputs import *
+from atomate.qchem.firetasks.parse_outputs import QChemToDb
+from atomate.qchem.firetasks.run_calc import RunQChemCustodian
+from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
+from atomate.qchem.firetasks.fragmenter import FragmentMolecule
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -156,6 +157,52 @@ class FrequencyFlatteningOptimizeFW(Firework):
                     "special_run_type": "frequency_flattener"
                 }))
         super(FrequencyFlatteningOptimizeFW, self).__init__(
+            t,
+            parents=parents,
+            name=name,
+            **kwargs)
+
+
+class FragmentFW(Firework):
+    def __init__(self,
+                 molecule=None,
+                 name="fragment and optimize",
+                 qchem_cmd="qchem",
+                 multimode="openmp",
+                 input_file="mol.qin",
+                 output_file="mol.qout",
+                 max_cores=32,
+                 qchem_input_params=None,
+                 db_file=None,
+                 parents=None,
+                 **kwargs):
+        """
+        Fragment the given structure and optimize all unique fragments
+
+        Args:
+            molecule (Molecule): Input molecule.
+            name (str): Name for the Firework.
+            qchem_cmd (str): Command to run QChem. Defaults to qchem.
+            multimode (str): Parallelization scheme, either openmp or mpi.
+            input_file (str): Name of the QChem input file. Defaults to mol.qin.
+            output_file (str): Name of the QChem output file. Defaults to mol.qout.
+            max_cores (int): Maximum number of cores to parallelize over. Defaults to 32.
+            qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
+                                       For example, if you want to change the DFT_rung, you should
+                                       provide: {"DFT_rung": ...}. Defaults to None.
+            db_file (str): Path to file specifying db credentials to place output parsing.
+            parents ([Firework]): Parents of this particular Firework.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+
+        qchem_input_params = qchem_input_params or {}
+        t = []
+        t.append(
+            FragmentMolecule(
+                molecule=molecule,
+                max_cores=max_cores,
+                qchem_input_params=qchem_input_params))
+        super(FragmentFW, self).__init__(
             t,
             parents=parents,
             name=name,
