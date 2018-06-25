@@ -7,6 +7,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 from pymatgen.core.structure import Molecule
 from pymatgen.analysis.graphs import MoleculeGraph
+from atomate.utils.utils import env_chk
 from itertools import combinations
 import networkx as nx
 from fireworks import FiretaskBase, FWAction, explicit_serialize
@@ -42,10 +43,11 @@ class FragmentMolecule(FiretaskBase):
         qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
                                    For example, if you want to change the DFT_rung, you should
                                    provide: {"DFT_rung": ...}. Defaults to None.
+        db_file (str): path to file containing the database credentials. Supports env_chk.
 
     """
 
-    optional_params = ["molecule", "edges", "max_cores", "qchem_input_params"]
+    optional_params = ["molecule", "edges", "max_cores", "qchem_input_params", "db_file"]
 
     def run_task(self, fw_spec):
         # if a molecule is being passed through fw_spec
@@ -60,33 +62,14 @@ class FragmentMolecule(FiretaskBase):
                 "No molecule present, add as an optional param or check fw_spec"
             )
         
-        # if edges are passed by the user
-        if self.get("edges"):
-            edges = self.get("edges")
-        # if not, and if we don't have babel, raise an error
-        elif not have_babel:
+        # if edges are not passed by the user and babel is not available, raise an error
+        if not self.get("edges") and not have_babel:
             raise KeyError(
                 "OpenBabel not accessible and no bonds provided! Exiting..."
             )
-        # if using babel
-        else:
-            babel_mol = BabelMolAdaptor(mol).openbabel_mol
-            edges = []
-            for obbond in ob.OBMolBondIter(babel_mol):
-                edges += [[obbond.GetBeginAtomIdx()-1,obbond.GetEndAtomIdx()-1]]
 
         # build the MoleculeGraph
-        mol_graph = MoleculeGraph.with_empty_graph(mol)
-        for edge in edges:
-            mol_graph.add_edge(edge[0],edge[1])
-        mol_graph.graph = mol_graph.graph.to_undirected()
-        species = {}
-        coords = {}
-        for node in mol_graph.graph:
-            species[node] = mol_graph.molecule[node].specie.symbol
-            coords[node] = mol_graph.molecule[node].coords
-        nx.set_node_attributes(mol_graph.graph, species, "specie")
-        nx.set_node_attributes(mol_graph.graph, coords, "coords")
+        mol_graph = build_MoleculeGraph(mol, self.get("edges", None))
 
         # find all possible fragments, aka connected induced subgraphs
         all_fragments = []
@@ -123,21 +106,70 @@ class FragmentMolecule(FiretaskBase):
 
         # build the list of new fireworks: a FrequencyFlatteningOptimizeFW for each unique fragment
         from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
+        from atomate.qchem.fireworks.core import SinglePointFW
         new_FWs = []
         for ii,unique_molecule in enumerate(unique_molecules):
-            new_FWs.append(FrequencyFlatteningOptimizeFW(molecule=unique_molecule,
-                                                         name="fragment_"+str(ii),
-                                                         qchem_cmd=">>qchem_cmd<<",
-                                                         max_cores=self.get("max_cores", 32),
-                                                         qchem_input_params=self.get("qchem_input_params", {}),
-                                                         db_file=">>db_file<<"))
+            if not_in_database(unique_molecule):
+                if len(unique_molecule) == 1:
+                    new_FWs.append(SinglePointFW(molecule=unique_molecule,
+                                                 name="fragment_"+str(ii),
+                                                 qchem_cmd=">>qchem_cmd<<",
+                                                 max_cores=self.get("max_cores", 32),
+                                                 qchem_input_params=self.get("qchem_input_params", {}),
+                                                 db_file=">>db_file<<"))
+                else:
+                    new_FWs.append(FrequencyFlatteningOptimizeFW(molecule=unique_molecule,
+                                                                 name="fragment_"+str(ii),
+                                                                 qchem_cmd=">>qchem_cmd<<",
+                                                                 max_cores=self.get("max_cores", 32),
+                                                                 qchem_input_params=self.get("qchem_input_params", {}),
+                                                                 db_file=">>db_file<<"))
 
         return FWAction(additions=new_FWs)
+        
 
+def build_MoleculeGraph(molecule, edges):
+    if edges == None:
+        babel_mol = BabelMolAdaptor(mol).openbabel_mol
+        edges = []
+        for obbond in ob.OBMolBondIter(babel_mol):
+            edges += [[obbond.GetBeginAtomIdx()-1,obbond.GetEndAtomIdx()-1]]
+    mol_graph = MoleculeGraph.with_empty_graph(mol)
+    for edge in edges:
+        mol_graph.add_edge(edge[0],edge[1])
+    mol_graph.graph = mol_graph.graph.to_undirected()
+    species = {}
+    coords = {}
+    for node in mol_graph.graph:
+        species[node] = mol_graph.molecule[node].specie.symbol
+        coords[node] = mol_graph.molecule[node].coords
+    nx.set_node_attributes(mol_graph.graph, species, "specie")
+    nx.set_node_attributes(mol_graph.graph, coords, "coords")
+    return mol_graph
 
 def _node_match(node, othernode):
     return node["specie"] == othernode["specie"]
 
 def is_isomorphic(graph1, graph2):
     return nx.is_isomorphic(graph1, graph2, node_match=_node_match)
+
+def not_in_database(molecule):
+    # get the database connection info
+    db_file = env_chk(self.get("db_file"), fw_spec)
+
+    # if we cannot connect to the database, assume fragment is not present
+    if not db_file:
+        return True
+
+    # otherwise, connect to the database
+    else:
+        mmdb = QChemCalcDb.from_db_file(db_file, admin=True)
+
+        new_mol_graph = build_MoleculeGraph(molecule, None)
+        for doc in mmdb.collection.find("formula_pretty": molecule.composition.reduced_formula):
+            old_mol_graph = build_MoleculeGraph(doc["output"]["initial_molecule"], None)
+            if nx.is_isomorphic(new_mol_graph.graph, old_mol_graph.graph):
+                return False
+        return True
+
     
