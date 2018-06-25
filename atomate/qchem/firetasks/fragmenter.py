@@ -130,11 +130,11 @@ class FragmentMolecule(FiretaskBase):
 
 def build_MoleculeGraph(molecule, edges):
     if edges == None:
-        babel_mol = BabelMolAdaptor(mol).openbabel_mol
+        babel_mol = BabelMolAdaptor(molecule).openbabel_mol
         edges = []
         for obbond in ob.OBMolBondIter(babel_mol):
             edges += [[obbond.GetBeginAtomIdx()-1,obbond.GetEndAtomIdx()-1]]
-    mol_graph = MoleculeGraph.with_empty_graph(mol)
+    mol_graph = MoleculeGraph.with_empty_graph(molecule)
     for edge in edges:
         mol_graph.add_edge(edge[0],edge[1])
     mol_graph.graph = mol_graph.graph.to_undirected()
