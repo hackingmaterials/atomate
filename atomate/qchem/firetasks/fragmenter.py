@@ -166,7 +166,7 @@ def not_in_database(molecule):
         mmdb = QChemCalcDb.from_db_file(db_file, admin=True)
 
         new_mol_graph = build_MoleculeGraph(molecule, None)
-        for doc in mmdb.collection.find("formula_pretty": molecule.composition.reduced_formula):
+        for doc in mmdb.collection.find({"formula_pretty": molecule.composition.reduced_formula}):
             old_mol_graph = build_MoleculeGraph(doc["output"]["initial_molecule"], None)
             if nx.is_isomorphic(new_mol_graph.graph, old_mol_graph.graph):
                 return False
