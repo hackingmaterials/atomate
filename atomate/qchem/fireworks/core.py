@@ -261,7 +261,8 @@ class FragmentFW(Firework):
             FragmentMolecule(
                 molecule=molecule,
                 max_cores=max_cores,
-                qchem_input_params=qchem_input_params))
+                qchem_input_params=qchem_input_params,
+                db_file=db_file))
         super(FragmentFW, self).__init__(
             t,
             parents=parents,

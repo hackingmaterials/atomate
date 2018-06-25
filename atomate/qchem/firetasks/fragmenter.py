@@ -109,7 +109,7 @@ class FragmentMolecule(FiretaskBase):
         from atomate.qchem.fireworks.core import SinglePointFW
         new_FWs = []
         for ii,unique_molecule in enumerate(unique_molecules):
-            if not_in_database(unique_molecule):
+            if not_in_database(unique_molecule, env_chk(self.get("db_file"), fw_spec)):
                 if len(unique_molecule) == 1:
                     new_FWs.append(SinglePointFW(molecule=unique_molecule,
                                                  name="fragment_"+str(ii),
@@ -153,10 +153,7 @@ def _node_match(node, othernode):
 def is_isomorphic(graph1, graph2):
     return nx.is_isomorphic(graph1, graph2, node_match=_node_match)
 
-def not_in_database(molecule):
-    # get the database connection info
-    db_file = env_chk(self.get("db_file"), fw_spec)
-
+def not_in_database(molecule, db_file):
     # if we cannot connect to the database, assume fragment is not present
     if not db_file:
         return True
