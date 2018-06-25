@@ -59,5 +59,12 @@ class TestFragmentMolecule(AtomateTest):
             ft.run_task({})
             self.assertEqual(len(FWAction_patch.call_args[1]["additions"]),12*3)
 
+    def test_babel_PC_frag1(self):
+        with patch("atomate.qchem.firetasks.fragmenter.FWAction") as FWAction_patch:
+            pc_frag1 = Molecule.from_file(os.path.join(module_dir, "..", "..", "test_files", "PC_frag1.xyz"))
+            ft = FragmentMolecule(molecule=pc_frag1, db_file="/global/homes/s/sblau/config/db.json")
+            ft.run_task({})
+            self.assertEqual(len(FWAction_patch.call_args[1]["additions"]),12*3)
+
 if __name__ == "__main__":
     unittest.main()

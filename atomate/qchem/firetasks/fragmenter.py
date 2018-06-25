@@ -8,6 +8,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 from pymatgen.core.structure import Molecule
 from pymatgen.analysis.graphs import MoleculeGraph
 from atomate.utils.utils import env_chk
+from atomate.qchem.database import QChemCalcDb
 from itertools import combinations
 import networkx as nx
 from fireworks import FiretaskBase, FWAction, explicit_serialize
@@ -167,6 +168,7 @@ def not_in_database(molecule, db_file):
             old_mol_graph = build_MoleculeGraph(doc["output"]["initial_molecule"], None)
             if nx.is_isomorphic(new_mol_graph.graph, old_mol_graph.graph):
                 return False
+                #TODO Check charge / multiplicity?
         return True
 
     
