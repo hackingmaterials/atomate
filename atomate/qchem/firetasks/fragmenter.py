@@ -140,7 +140,7 @@ def build_MoleculeGraph(molecule, edges):
 def build_unique_fragments(mol_graph):
     # find all possible fragments, aka connected induced subgraphs
     all_fragments = []
-    for ii in range(1,len(mol)):
+    for ii in range(1,len(mol_graph.molecule)):
         for combination in combinations(mol_graph.graph.nodes,ii):
             subgraph = nx.subgraph(mol_graph.graph, combination)
             if nx.is_connected(subgraph):
