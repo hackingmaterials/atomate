@@ -72,19 +72,8 @@ class FragmentMolecule(FiretaskBase):
         # build the MoleculeGraph
         mol_graph = build_MoleculeGraph(mol, self.get("edges", None))
 
-        # find all possible fragments, aka connected induced subgraphs
-        all_fragments = []
-        for ii in range(1,len(mol)):
-            for combination in combinations(mol_graph.graph.nodes,ii):
-                subgraph = nx.subgraph(mol_graph.graph, combination)
-                if nx.is_connected(subgraph):
-                    all_fragments.append(subgraph)
-
-        # narrow to all unique fragments using graph isomorphism
-        unique_fragments = []
-        for fragment in all_fragments:
-            if not [is_isomorphic(fragment, f) for f in unique_fragments].count(True) >= 1:
-                unique_fragments.append(fragment)
+        # find all unique fragments
+        unique_fragments = build_unique_fragments(mol_graph)
                 
         # build three molecule objects for each unique fragment: 
         # original charge, original charge +1, original charge -1
@@ -148,6 +137,21 @@ def build_MoleculeGraph(molecule, edges):
     nx.set_node_attributes(mol_graph.graph, coords, "coords")
     return mol_graph
 
+def build_unique_fragments(mol_graph):
+    # find all possible fragments, aka connected induced subgraphs
+    all_fragments = []
+    for ii in range(1,len(mol)):
+        for combination in combinations(mol_graph.graph.nodes,ii):
+            subgraph = nx.subgraph(mol_graph.graph, combination)
+            if nx.is_connected(subgraph):
+                all_fragments.append(subgraph)
+
+    # narrow to all unique fragments using graph isomorphism
+    unique_fragments = []
+    for fragment in all_fragments:
+        if not [is_isomorphic(fragment, f) for f in unique_fragments].count(True) >= 1:
+            unique_fragments.append(fragment)
+
 def _node_match(node, othernode):
     return node["specie"] == othernode["specie"]
 
@@ -165,11 +169,9 @@ def not_in_database(molecule, db_file):
 
         new_mol_graph = build_MoleculeGraph(molecule, None)
         for doc in mmdb.collection.find({"formula_pretty": molecule.composition.reduced_formula}):
-            # print(doc["output"]["initial_molecule"])
             old_mol_graph = build_MoleculeGraph(Molecule.from_dict(doc["output"]["initial_molecule"]), None)
-            if nx.is_isomorphic(new_mol_graph.graph, old_mol_graph.graph):
+            if nx.is_isomorphic(new_mol_graph.graph, old_mol_graph.graph) and molecule.charge == old_mol_graph.molecule.charge and molecule.spin_multiplicity == old_mol_graph.spin_multiplicity:
                 return False
-                #TODO Check charge / multiplicity?
         return True
 
     
