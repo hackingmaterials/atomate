@@ -165,8 +165,8 @@ def not_in_database(molecule, db_file):
 
         new_mol_graph = build_MoleculeGraph(molecule, None)
         for doc in mmdb.collection.find({"formula_pretty": molecule.composition.reduced_formula}):
-            print(doc["output"]["initial_molecule"])
-            old_mol_graph = build_MoleculeGraph(doc["output"]["initial_molecule"], None)
+            # print(doc["output"]["initial_molecule"])
+            old_mol_graph = build_MoleculeGraph(Molecule.from_dict(doc["output"]["initial_molecule"]), None)
             if nx.is_isomorphic(new_mol_graph.graph, old_mol_graph.graph):
                 return False
                 #TODO Check charge / multiplicity?
