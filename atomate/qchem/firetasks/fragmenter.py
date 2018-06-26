@@ -171,7 +171,7 @@ def not_in_database(molecule, db_file):
         new_mol_graph = build_MoleculeGraph(molecule, None)
         for doc in mmdb.collection.find({"formula_pretty": molecule.composition.reduced_formula}):
             old_mol_graph = build_MoleculeGraph(Molecule.from_dict(doc["output"]["initial_molecule"]), None)
-            if nx.is_isomorphic(new_mol_graph.graph, old_mol_graph.graph) and molecule.charge == old_mol_graph.molecule.charge and molecule.spin_multiplicity == old_mol_graph.spin_multiplicity:
+            if nx.is_isomorphic(new_mol_graph.graph, old_mol_graph.graph) and molecule.charge == old_mol_graph.molecule.charge and molecule.spin_multiplicity == old_mol_graph.molecule.spin_multiplicity:
                 return False
         return True
 
