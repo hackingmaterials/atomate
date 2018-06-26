@@ -90,19 +90,28 @@ class FragmentMolecule(FiretaskBase):
             unique_molecules.append(unique_molecule0)
             unique_molecules.append(unique_molecule1)
             unique_molecules.append(unique_molecule2)
-            unique_formulae.append(unique_molecule0.composition.reduced_formula)
+            unique_formulae.append(
+                unique_molecule0.composition.reduced_formula)
 
-
-        # build the list of new fireworks: a FrequencyFlatteningOptimizeFW for each unique fragment
-        from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
-        from atomate.qchem.fireworks.core import SinglePointFW
-        
+        # attempt to connect to the database to later check if a fragment has already been calculated
         db_file = env_chk(self.get("db_file"), fw_spec)
         all_relevant_docs = []
         if db_file:
             mmdb = QChemCalcDb.from_db_file(db_file, admin=True)
-            all_relevant_docs = list(mmdb.collection.find({"formula_pretty": {"$in": unique_formulae}}, {"formula_pretty": 1, "output.initial_molecule": 1}))
+            all_relevant_docs = list(
+                mmdb.collection.find({
+                    "formula_pretty": {
+                        "$in": unique_formulae
+                    }
+                }, {
+                    "formula_pretty": 1,
+                    "output.initial_molecule": 1
+                }))
 
+        # build the list of new fireworks: a FrequencyFlatteningOptimizeFW for each unique fragment
+        # unless the fragment is a single atom, in which case add a SinglePointFW instead.
+        from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
+        from atomate.qchem.fireworks.core import SinglePointFW
         new_FWs = []
         for ii, unique_molecule in enumerate(unique_molecules):
             if not_in_database(unique_molecule, all_relevant_docs):
@@ -189,7 +198,11 @@ def not_in_database(molecule, docs):
         new_mol_graph = build_MoleculeGraph(molecule, None)
         for doc in docs:
             if molecule.composition.reduced_formula == doc["formula_pretty"]:
-                old_mol_graph = build_MoleculeGraph(Molecule.from_dict(doc["output"]["initial_molecule"]), None)
-                if nx.is_isomorphic(new_mol_graph.graph, old_mol_graph.graph) and molecule.charge == old_mol_graph.molecule.charge and molecule.spin_multiplicity == old_mol_graph.molecule.spin_multiplicity:
+                old_mol_graph = build_MoleculeGraph(
+                    Molecule.from_dict(doc["output"]["initial_molecule"]),
+                    None)
+                if nx.is_isomorphic(
+                        new_mol_graph.graph, old_mol_graph.graph
+                ) and molecule.charge == old_mol_graph.molecule.charge and molecule.spin_multiplicity == old_mol_graph.molecule.spin_multiplicity:
                     return False
         return True
