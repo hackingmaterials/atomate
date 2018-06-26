@@ -77,6 +77,7 @@ class FragmentMolecule(FiretaskBase):
         # build three molecule objects for each unique fragment:
         # original charge, original charge +1, original charge -1
         unique_molecules = []
+        unique_formulae = []
         for fragment in unique_fragments:
             species = [fragment.node[ii]["specie"] for ii in fragment.nodes]
             coords = [fragment.node[ii]["coords"] for ii in fragment.nodes]
@@ -89,10 +90,19 @@ class FragmentMolecule(FiretaskBase):
             unique_molecules.append(unique_molecule0)
             unique_molecules.append(unique_molecule1)
             unique_molecules.append(unique_molecule2)
+            unique_formulae.append(unique_molecule0.composition.reduced_formula)
+
 
         # build the list of new fireworks: a FrequencyFlatteningOptimizeFW for each unique fragment
         from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
         from atomate.qchem.fireworks.core import SinglePointFW
+        
+        db_file = env_chk(self.get("db_file"), fw_spec)
+        if db_file:
+            mmdb = QChemCalcDb.from_db_file(db_file, admin=True)
+            all_relevant_docs = list(mmdb.collection.find({"formula_pretty": {"$in": unique_formulae}}, {"formula_pretty": 1, "output.initial_molecule": 1}))
+            print(all_relevant_docs)
+
         new_FWs = []
         for ii, unique_molecule in enumerate(unique_molecules):
             if not_in_database(unique_molecule,
