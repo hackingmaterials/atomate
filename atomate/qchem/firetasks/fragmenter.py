@@ -151,6 +151,7 @@ def build_unique_fragments(mol_graph):
     for fragment in all_fragments:
         if not [is_isomorphic(fragment, f) for f in unique_fragments].count(True) >= 1:
             unique_fragments.append(fragment)
+    return unique_fragments
 
 def _node_match(node, othernode):
     return node["specie"] == othernode["specie"]
