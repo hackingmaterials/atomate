@@ -108,33 +108,8 @@ class FragmentMolecule(FiretaskBase):
                     "output.initial_molecule": 1
                 }))
 
-        # build the list of new fireworks: a FrequencyFlatteningOptimizeFW for each unique fragment
-        # unless the fragment is a single atom, in which case add a SinglePointFW instead.
-        from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
-        from atomate.qchem.fireworks.core import SinglePointFW
-        new_FWs = []
-        for ii, unique_molecule in enumerate(unique_molecules):
-            if not_in_database(unique_molecule, all_relevant_docs):
-                if len(unique_molecule) == 1:
-                    new_FWs.append(
-                        SinglePointFW(
-                            molecule=unique_molecule,
-                            name="fragment_" + str(ii),
-                            qchem_cmd=">>qchem_cmd<<",
-                            max_cores=self.get("max_cores", 32),
-                            qchem_input_params=self.get(
-                                "qchem_input_params", {}),
-                            db_file=">>db_file<<"))
-                else:
-                    new_FWs.append(
-                        FrequencyFlatteningOptimizeFW(
-                            molecule=unique_molecule,
-                            name="fragment_" + str(ii),
-                            qchem_cmd=">>qchem_cmd<<",
-                            max_cores=self.get("max_cores", 32),
-                            qchem_input_params=self.get(
-                                "qchem_input_params", {}),
-                            db_file=">>db_file<<"))
+        # build the list of new fireworks
+        new_FWs = build_new_FWs(unique_molecules, all_relevant_docs, self.get("max_cores", 32), self.get("qchem_input_params", {}))
 
         return FWAction(additions=new_FWs)
 
@@ -206,3 +181,32 @@ def not_in_database(molecule, docs):
                 ) and molecule.charge == old_mol_graph.molecule.charge and molecule.spin_multiplicity == old_mol_graph.molecule.spin_multiplicity:
                     return False
         return True
+
+
+def build_new_FWs(unique_molecules, all_relevant_docs, max_cores, qchem_input_params):
+    # build the list of new fireworks: a FrequencyFlatteningOptimizeFW for each unique fragment
+    # unless the fragment is a single atom, in which case add a SinglePointFW instead.
+    from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
+    from atomate.qchem.fireworks.core import SinglePointFW
+    new_FWs = []
+    for ii, unique_molecule in enumerate(unique_molecules):
+        if not_in_database(unique_molecule, all_relevant_docs):
+            if len(unique_molecule) == 1:
+                new_FWs.append(
+                    SinglePointFW(
+                        molecule=unique_molecule,
+                        name="fragment_" + str(ii),
+                        qchem_cmd=">>qchem_cmd<<",
+                        max_cores=max_cores,
+                        qchem_input_params=qchem_input_params,
+                        db_file=">>db_file<<"))
+            else:
+                new_FWs.append(
+                    FrequencyFlatteningOptimizeFW(
+                        molecule=unique_molecule,
+                        name="fragment_" + str(ii),
+                        qchem_cmd=">>qchem_cmd<<",
+                        max_cores=max_cores,
+                        qchem_input_params=qchem_input_params,
+                        db_file=">>db_file<<"))
+    return new_FWs
