@@ -109,20 +109,24 @@ class FragmentMolecule(FiretaskBase):
                 }))
 
         # build the list of new fireworks
-        new_FWs = build_new_FWs(unique_molecules, all_relevant_docs, self.get("max_cores", 32), self.get("qchem_input_params", {}))
+        new_FWs = build_new_FWs(unique_molecules, all_relevant_docs,
+                                self.get("max_cores", 32),
+                                self.get("qchem_input_params", {}))
 
         return FWAction(additions=new_FWs)
 
 
+def edges_from_babel(molecule):
+    babel_mol = BabelMolAdaptor(molecule).openbabel_mol
+    edges = []
+    for obbond in ob.OBMolBondIter(babel_mol):
+        edges += [[obbond.GetBeginAtomIdx() - 1, obbond.GetEndAtomIdx() - 1]]
+    return edges
+
+
 def build_MoleculeGraph(molecule, edges):
     if edges == None:
-        babel_mol = BabelMolAdaptor(molecule).openbabel_mol
-        edges = []
-        for obbond in ob.OBMolBondIter(babel_mol):
-            edges += [[
-                obbond.GetBeginAtomIdx() - 1,
-                obbond.GetEndAtomIdx() - 1
-            ]]
+        edges = edges_from_babel(molecule)
     mol_graph = MoleculeGraph.with_empty_graph(molecule)
     for edge in edges:
         mol_graph.add_edge(edge[0], edge[1])
@@ -183,7 +187,8 @@ def not_in_database(molecule, docs):
         return True
 
 
-def build_new_FWs(unique_molecules, all_relevant_docs, max_cores, qchem_input_params):
+def build_new_FWs(unique_molecules, all_relevant_docs, max_cores,
+                  qchem_input_params):
     # build the list of new fireworks: a FrequencyFlatteningOptimizeFW for each unique fragment
     # unless the fragment is a single atom, in which case add a SinglePointFW instead.
     from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
