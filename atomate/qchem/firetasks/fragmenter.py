@@ -98,15 +98,14 @@ class FragmentMolecule(FiretaskBase):
         from atomate.qchem.fireworks.core import SinglePointFW
         
         db_file = env_chk(self.get("db_file"), fw_spec)
+        all_relevant_docs = []
         if db_file:
             mmdb = QChemCalcDb.from_db_file(db_file, admin=True)
             all_relevant_docs = list(mmdb.collection.find({"formula_pretty": {"$in": unique_formulae}}, {"formula_pretty": 1, "output.initial_molecule": 1}))
-            print(all_relevant_docs)
 
         new_FWs = []
         for ii, unique_molecule in enumerate(unique_molecules):
-            if not_in_database(unique_molecule,
-                               env_chk(self.get("db_file"), fw_spec)):
+            if not_in_database(unique_molecule, all_relevant_docs):
                 if len(unique_molecule) == 1:
                     new_FWs.append(
                         SinglePointFW(
@@ -180,24 +179,17 @@ def is_isomorphic(graph1, graph2):
     return nx.is_isomorphic(graph1, graph2, node_match=_node_match)
 
 
-def not_in_database(molecule, db_file):
-    # if we cannot connect to the database, assume fragment is not present
-    if not db_file:
+def not_in_database(molecule, docs):
+    # if no docs present, assume fragment is not present
+    if len(docs) == 0:
         return True
 
-    # otherwise, connect to the database
+    # otherwise, look through the docs for an equivalent entry
     else:
-        mmdb = QChemCalcDb.from_db_file(db_file, admin=True)
-
         new_mol_graph = build_MoleculeGraph(molecule, None)
-        for doc in mmdb.collection.find({
-                "formula_pretty":
-                molecule.composition.reduced_formula
-        }):
-            old_mol_graph = build_MoleculeGraph(
-                Molecule.from_dict(doc["output"]["initial_molecule"]), None)
-            if nx.is_isomorphic(
-                    new_mol_graph.graph, old_mol_graph.graph
-            ) and molecule.charge == old_mol_graph.molecule.charge and molecule.spin_multiplicity == old_mol_graph.molecule.spin_multiplicity:
-                return False
+        for doc in docs:
+            if molecule.composition.reduced_formula == doc["formula_pretty"]:
+                old_mol_graph = build_MoleculeGraph(Molecule.from_dict(doc["output"]["initial_molecule"]), None)
+                if nx.is_isomorphic(new_mol_graph.graph, old_mol_graph.graph) and molecule.charge == old_mol_graph.molecule.charge and molecule.spin_multiplicity == old_mol_graph.molecule.spin_multiplicity:
+                    return False
         return True
