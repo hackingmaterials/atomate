@@ -4,7 +4,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 # This module defines a task that returns all fragments of a molecule
 
-
 from pymatgen.core.structure import Molecule
 from pymatgen.analysis.graphs import MoleculeGraph
 from atomate.utils.utils import env_chk
@@ -20,7 +19,6 @@ try:
 except:
     print("Cannot find OpenBabel! Thus, bonds must be provided by the user.")
     have_babel = False
-
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -48,7 +46,9 @@ class FragmentMolecule(FiretaskBase):
 
     """
 
-    optional_params = ["molecule", "edges", "max_cores", "qchem_input_params", "db_file"]
+    optional_params = [
+        "molecule", "edges", "max_cores", "qchem_input_params", "db_file"
+    ]
 
     def run_task(self, fw_spec):
         # if a molecule is being passed through fw_spec
@@ -62,34 +62,30 @@ class FragmentMolecule(FiretaskBase):
             raise KeyError(
                 "No molecule present, add as an optional param or check fw_spec"
             )
-        
+
         # if edges are not passed by the user and babel is not available, raise an error
         if not self.get("edges") and not have_babel:
             raise KeyError(
-                "OpenBabel not accessible and no bonds provided! Exiting..."
-            )
+                "OpenBabel not accessible and no bonds provided! Exiting...")
 
         # build the MoleculeGraph
         mol_graph = build_MoleculeGraph(mol, self.get("edges", None))
 
         # find all unique fragments
         unique_fragments = build_unique_fragments(mol_graph)
-                
-        # build three molecule objects for each unique fragment: 
+
+        # build three molecule objects for each unique fragment:
         # original charge, original charge +1, original charge -1
         unique_molecules = []
         for fragment in unique_fragments:
             species = [fragment.node[ii]["specie"] for ii in fragment.nodes]
             coords = [fragment.node[ii]["coords"] for ii in fragment.nodes]
-            unique_molecule0 = Molecule(species=species, 
-                                       coords=coords, 
-                                       charge=mol.charge)
-            unique_molecule1 = Molecule(species=species, 
-                                       coords=coords, 
-                                       charge=mol.charge+1)
-            unique_molecule2 = Molecule(species=species, 
-                                       coords=coords, 
-                                       charge=mol.charge-1)
+            unique_molecule0 = Molecule(
+                species=species, coords=coords, charge=mol.charge)
+            unique_molecule1 = Molecule(
+                species=species, coords=coords, charge=mol.charge + 1)
+            unique_molecule2 = Molecule(
+                species=species, coords=coords, charge=mol.charge - 1)
             unique_molecules.append(unique_molecule0)
             unique_molecules.append(unique_molecule1)
             unique_molecules.append(unique_molecule2)
@@ -98,35 +94,45 @@ class FragmentMolecule(FiretaskBase):
         from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
         from atomate.qchem.fireworks.core import SinglePointFW
         new_FWs = []
-        for ii,unique_molecule in enumerate(unique_molecules):
-            if not_in_database(unique_molecule, env_chk(self.get("db_file"), fw_spec)):
+        for ii, unique_molecule in enumerate(unique_molecules):
+            if not_in_database(unique_molecule,
+                               env_chk(self.get("db_file"), fw_spec)):
                 if len(unique_molecule) == 1:
-                    new_FWs.append(SinglePointFW(molecule=unique_molecule,
-                                                 name="fragment_"+str(ii),
-                                                 qchem_cmd=">>qchem_cmd<<",
-                                                 max_cores=self.get("max_cores", 32),
-                                                 qchem_input_params=self.get("qchem_input_params", {}),
-                                                 db_file=">>db_file<<"))
+                    new_FWs.append(
+                        SinglePointFW(
+                            molecule=unique_molecule,
+                            name="fragment_" + str(ii),
+                            qchem_cmd=">>qchem_cmd<<",
+                            max_cores=self.get("max_cores", 32),
+                            qchem_input_params=self.get(
+                                "qchem_input_params", {}),
+                            db_file=">>db_file<<"))
                 else:
-                    new_FWs.append(FrequencyFlatteningOptimizeFW(molecule=unique_molecule,
-                                                                 name="fragment_"+str(ii),
-                                                                 qchem_cmd=">>qchem_cmd<<",
-                                                                 max_cores=self.get("max_cores", 32),
-                                                                 qchem_input_params=self.get("qchem_input_params", {}),
-                                                                 db_file=">>db_file<<"))
+                    new_FWs.append(
+                        FrequencyFlatteningOptimizeFW(
+                            molecule=unique_molecule,
+                            name="fragment_" + str(ii),
+                            qchem_cmd=">>qchem_cmd<<",
+                            max_cores=self.get("max_cores", 32),
+                            qchem_input_params=self.get(
+                                "qchem_input_params", {}),
+                            db_file=">>db_file<<"))
 
         return FWAction(additions=new_FWs)
-        
+
 
 def build_MoleculeGraph(molecule, edges):
     if edges == None:
         babel_mol = BabelMolAdaptor(molecule).openbabel_mol
         edges = []
         for obbond in ob.OBMolBondIter(babel_mol):
-            edges += [[obbond.GetBeginAtomIdx()-1,obbond.GetEndAtomIdx()-1]]
+            edges += [[
+                obbond.GetBeginAtomIdx() - 1,
+                obbond.GetEndAtomIdx() - 1
+            ]]
     mol_graph = MoleculeGraph.with_empty_graph(molecule)
     for edge in edges:
-        mol_graph.add_edge(edge[0],edge[1])
+        mol_graph.add_edge(edge[0], edge[1])
     mol_graph.graph = mol_graph.graph.to_undirected()
     species = {}
     coords = {}
@@ -137,11 +143,12 @@ def build_MoleculeGraph(molecule, edges):
     nx.set_node_attributes(mol_graph.graph, coords, "coords")
     return mol_graph
 
+
 def build_unique_fragments(mol_graph):
     # find all possible fragments, aka connected induced subgraphs
     all_fragments = []
-    for ii in range(1,len(mol_graph.molecule)):
-        for combination in combinations(mol_graph.graph.nodes,ii):
+    for ii in range(1, len(mol_graph.molecule)):
+        for combination in combinations(mol_graph.graph.nodes, ii):
             subgraph = nx.subgraph(mol_graph.graph, combination)
             if nx.is_connected(subgraph):
                 all_fragments.append(subgraph)
@@ -149,15 +156,19 @@ def build_unique_fragments(mol_graph):
     # narrow to all unique fragments using graph isomorphism
     unique_fragments = []
     for fragment in all_fragments:
-        if not [is_isomorphic(fragment, f) for f in unique_fragments].count(True) >= 1:
+        if not [is_isomorphic(fragment, f)
+                for f in unique_fragments].count(True) >= 1:
             unique_fragments.append(fragment)
     return unique_fragments
+
 
 def _node_match(node, othernode):
     return node["specie"] == othernode["specie"]
 
+
 def is_isomorphic(graph1, graph2):
     return nx.is_isomorphic(graph1, graph2, node_match=_node_match)
+
 
 def not_in_database(molecule, db_file):
     # if we cannot connect to the database, assume fragment is not present
@@ -169,10 +180,14 @@ def not_in_database(molecule, db_file):
         mmdb = QChemCalcDb.from_db_file(db_file, admin=True)
 
         new_mol_graph = build_MoleculeGraph(molecule, None)
-        for doc in mmdb.collection.find({"formula_pretty": molecule.composition.reduced_formula}):
-            old_mol_graph = build_MoleculeGraph(Molecule.from_dict(doc["output"]["initial_molecule"]), None)
-            if nx.is_isomorphic(new_mol_graph.graph, old_mol_graph.graph) and molecule.charge == old_mol_graph.molecule.charge and molecule.spin_multiplicity == old_mol_graph.molecule.spin_multiplicity:
+        for doc in mmdb.collection.find({
+                "formula_pretty":
+                molecule.composition.reduced_formula
+        }):
+            old_mol_graph = build_MoleculeGraph(
+                Molecule.from_dict(doc["output"]["initial_molecule"]), None)
+            if nx.is_isomorphic(
+                    new_mol_graph.graph, old_mol_graph.graph
+            ) and molecule.charge == old_mol_graph.molecule.charge and molecule.spin_multiplicity == old_mol_graph.molecule.spin_multiplicity:
                 return False
         return True
-
-    
