@@ -60,10 +60,6 @@ class TestFragmentMolecule(AtomateTest):
             ft.run_task({})
             self.assertEqual(len(FWAction_patch.call_args[1]["additions"]),12*3)
 
-    def test_edges_from_babel(self):
-        self.assertEqual(edges_from_babel(self.pc),self.pc_edges)
-        self.assertEqual(edges_from_babel(self.pc_frag1, self.pc_frag1_edges))
-
     def test_build_MoleculeGraph(self):
         mol_graph = build_MoleculeGraph(self.pc_frag1, self.pc_frag1_edges)
         # dumpfn(mol_graph.as_dict(), os.path.join(module_dir,"pc_frag1_mg.json"))
