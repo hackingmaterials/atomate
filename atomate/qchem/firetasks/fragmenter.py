@@ -184,9 +184,11 @@ def not_in_database(molecule, docs):
         new_mol_graph = build_MoleculeGraph(molecule, None)
         for doc in docs:
             if molecule.composition.reduced_formula == doc["formula_pretty"]:
-                old_mol_graph = build_MoleculeGraph(
-                    Molecule.from_dict(doc["output"]["initial_molecule"]),
-                    None)
+                try:
+                    old_mol = Molecule.from_dict(doc["output"]["initial_molecule"])
+                except TypeError:
+                    old_mol = doc["output"]["initial_molecule"]
+                old_mol_graph = build_MoleculeGraph(old_mol,None)
                 if nx.is_isomorphic(
                         new_mol_graph.graph, old_mol_graph.graph
                 ) and molecule.charge == old_mol_graph.molecule.charge and molecule.spin_multiplicity == old_mol_graph.molecule.spin_multiplicity:
