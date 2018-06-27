@@ -76,22 +76,12 @@ class FragmentMolecule(FiretaskBase):
 
         # build three molecule objects for each unique fragment:
         # original charge, original charge +1, original charge -1
-        unique_molecules = []
+        unique_molecules = build_unique_molecules(unique_fragments, mol.charge)
+
         unique_formulae = []
-        for fragment in unique_fragments:
-            species = [fragment.node[ii]["specie"] for ii in fragment.nodes]
-            coords = [fragment.node[ii]["coords"] for ii in fragment.nodes]
-            unique_molecule0 = Molecule(
-                species=species, coords=coords, charge=mol.charge)
-            unique_molecule1 = Molecule(
-                species=species, coords=coords, charge=mol.charge + 1)
-            unique_molecule2 = Molecule(
-                species=species, coords=coords, charge=mol.charge - 1)
-            unique_molecules.append(unique_molecule0)
-            unique_molecules.append(unique_molecule1)
-            unique_molecules.append(unique_molecule2)
-            unique_formulae.append(
-                unique_molecule0.composition.reduced_formula)
+        for molecule in unique_molecules:
+            if molecule.composition.reduced_formula not in unique_formulae:
+                unique_formulae.append(molecule.composition.reduced_formula)
 
         # attempt to connect to the database to later check if a fragment has already been calculated
         db_file = env_chk(self.get("db_file"), fw_spec)
@@ -157,6 +147,23 @@ def build_unique_fragments(mol_graph):
                 for f in unique_fragments].count(True) >= 1:
             unique_fragments.append(fragment)
     return unique_fragments
+
+
+def build_unique_molecules(unique_fragments, orig_charge):
+    unique_molecules = []
+    for fragment in unique_fragments:
+        species = [fragment.node[ii]["specie"] for ii in fragment.nodes]
+        coords = [fragment.node[ii]["coords"] for ii in fragment.nodes]
+        unique_molecule0 = Molecule(
+            species=species, coords=coords, charge=orig_charge)
+        unique_molecule1 = Molecule(
+            species=species, coords=coords, charge=orig_charge + 1)
+        unique_molecule2 = Molecule(
+            species=species, coords=coords, charge=orig_charge - 1)
+        unique_molecules.append(unique_molecule0)
+        unique_molecules.append(unique_molecule1)
+        unique_molecules.append(unique_molecule2)
+    return unique_molecules
 
 
 def _node_match(node, othernode):
