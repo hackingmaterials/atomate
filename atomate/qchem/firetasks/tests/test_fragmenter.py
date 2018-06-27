@@ -66,8 +66,8 @@ class TestFragmentMolecule(AtomateTest):
 
     def test_build_MoleculeGraph(self):
         mol_graph = build_MoleculeGraph(self.pc_frag1, self.pc_frag1_edges)
-        # dumpfn(mol_graph.as_dict(), os.path.join(os.path.dirname(__file__),"pc_frag1_mg.json"))
-        ref_mol_graph = loadfn(os.path.join(os.path.dirname(__file__),"pc_frag1_mg.json"))
+        # dumpfn(mol_graph.as_dict(), os.path.join(module_dir,"pc_frag1_mg.json"))
+        ref_mol_graph = loadfn(os.path.join(module_dir,"pc_frag1_mg.json"))
         self.assertEqual(mol_graph, ref_mol_graph)
         self.assertEqual(mol_graph.graph.adj, ref_mol_graph.graph.adj)
         for node in mol_graph.graph:
@@ -76,8 +76,8 @@ class TestFragmentMolecule(AtomateTest):
                 self.assertEqual(mol_graph.graph.node[node]["coords"][ii],ref_mol_graph.graph.node[node]["coords"]["data"][ii])
 
         mol_graph = build_MoleculeGraph(self.pc, self.pc_edges)
-        # dumpfn(mol_graph.as_dict(), os.path.join(os.path.dirname(__file__),"pc_mg.json"))
-        ref_mol_graph = loadfn(os.path.join(os.path.dirname(__file__),"pc_mg.json"))
+        # dumpfn(mol_graph.as_dict(), os.path.join(module_dir,"pc_mg.json"))
+        ref_mol_graph = loadfn(os.path.join(module_dir,"pc_mg.json"))
         self.assertEqual(mol_graph, ref_mol_graph)
         self.assertEqual(mol_graph.graph.adj, ref_mol_graph.graph.adj)
         for node in mol_graph.graph:
@@ -98,16 +98,16 @@ class TestFragmentMolecule(AtomateTest):
         unique_fragments = build_unique_fragments(mol_graph)
         unique_molecules = build_unique_molecules(unique_fragments, self.pc.charge)
         self.assertEqual(len(unique_molecules), 295*3)
-        # dumpfn(unique_molecules, os.path.join(os.path.dirname(__file__),"pc_mols.json"))
-        ref_mols = loadfn(os.path.join(os.path.dirname(__file__),"pc_mols.json"))
+        # dumpfn(unique_molecules, os.path.join(module_dir,"pc_mols.json"))
+        ref_mols = loadfn(os.path.join(module_dir,"pc_mols.json"))
         self.assertEqual(unique_molecules, ref_mols)
 
         mol_graph = build_MoleculeGraph(self.pc_frag1, self.pc_frag1_edges)
         unique_fragments = build_unique_fragments(mol_graph)
         unique_molecules = build_unique_molecules(unique_fragments, self.pc.charge)
         self.assertEqual(len(unique_molecules), 12*3)
-        # dumpfn(unique_molecules, os.path.join(os.path.dirname(__file__),"pc_frag1_mols.json"))
-        ref_mols = loadfn(os.path.join(os.path.dirname(__file__),"pc_frag1_mols.json"))
+        # dumpfn(unique_molecules, os.path.join(module_dir,"pc_frag1_mols.json"))
+        ref_mols = loadfn(os.path.join(module_dir,"pc_frag1_mols.json"))
         self.assertEqual(unique_molecules, ref_mols)
 
     def test_build_new_FWs(self):
@@ -116,7 +116,7 @@ class TestFragmentMolecule(AtomateTest):
         unique_molecules = build_unique_molecules(unique_fragments, self.pc.charge)
         new_FWs = build_new_FWs(unique_molecules, [], 32, {})
         self.assertEqual(len(new_FWs), 36)
-        doc = loadfn(os.path.join(os.path.dirname(__file__),"doc.json"))
+        doc = loadfn(os.path.join(module_dir,"doc.json"))
         new_FWs = build_new_FWs(unique_molecules, doc, 32, {})
         self.assertEqual(len(new_FWs), 29)
 
