@@ -32,6 +32,8 @@ class TestFragmentMolecule(AtomateTest):
         cls.pc_frag1 = Molecule.from_file(
             os.path.join(module_dir, "..", "..", "test_files", "PC_frag1.xyz"))
         cls.pc_frag1_edges = [[0, 2], [4, 2], [2, 1], [1, 3]]
+        cls.tfsi = Molecule.from_file(os.path.join(module_dir, "..", "..", "test_files", "TFSI.xyz"))
+        cls.tfsi_edges = [14,1],[1,4],[1,5],[1,7],[7,11],[7,12],[7,13],[14,0],[0,2],[0,3],[0,6],[6,8],[6,9],[6,10]
 
     def setUp(self, lpad=False):
         super(TestFragmentMolecule, self).setUp(lpad=False)
@@ -139,6 +141,21 @@ class TestFragmentMolecule(AtomateTest):
         new_FWs = build_new_FWs(unique_molecules, doc, 32, {})
         self.assertEqual(len(new_FWs), 29)
 
+    def test_edges_given_TFSI(self):
+        with patch("atomate.qchem.firetasks.fragmenter.FWAction"
+                   ) as FWAction_patch:
+            ft = FragmentMolecule(molecule=self.tfsi, edges=self.tfsi_edges)
+            ft.run_task({})
+            self.assertEqual(
+                len(FWAction_patch.call_args[1]["additions"]), 468)
+
+    def test_babel_TFSI(self):
+        with patch("atomate.qchem.firetasks.fragmenter.FWAction"
+                   ) as FWAction_patch:
+            ft = FragmentMolecule(molecule=self.tfsi)
+            ft.run_task({})
+            self.assertEqual(
+                len(FWAction_patch.call_args[1]["additions"]), 468)
 
 if __name__ == "__main__":
     unittest.main()
