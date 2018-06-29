@@ -39,7 +39,8 @@ class TestTop11(AtomateTest):
             mol_graph = build_MoleculeGraph(mol)
             unique_fragments = build_unique_fragments(mol_graph)
             print(len(unique_fragments))
-            all_fragments.append(unique_fragments)
+            for fragment in unique_fragments:
+                all_fragments.append(fragment)
 
         print()
         print(len(all_fragments))
