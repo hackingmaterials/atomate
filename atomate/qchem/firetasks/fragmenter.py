@@ -114,7 +114,7 @@ def edges_from_babel(molecule):
     return edges
 
 
-def build_MoleculeGraph(molecule, edges):
+def build_MoleculeGraph(molecule, edges=None):
     if edges == None:
         edges = edges_from_babel(molecule)
     mol_graph = MoleculeGraph.with_empty_graph(molecule)
