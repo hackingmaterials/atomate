@@ -34,7 +34,7 @@ class TestTop11(AtomateTest):
         mol_names = ["BF4-.xyz","DEC.xyz","DMC.xyz","EC.xyz","EMC.xyz","FEC.xyz","FSI-.xyz","PC.xyz","PF6-.xyz","TFSI-.xyz","VC.xyz"]
         all_fragments = []
         for name in mol_names:
-            mol = Molecule.from_file(os.path.join(module_dir, "..", "..", "test_files", name))
+            mol = Molecule.from_file(os.path.join(module_dir, "..", "..", "test_files", "top_11", name))
             mol_graph = build_MoleculeGraph(mol)
             unique_fragments = build_unique_fragments(mol_graph)
             print(len(unique_fragments))
