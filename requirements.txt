@@ -9,5 +9,6 @@ six==1.11.0
 pybtex==0.21
 ruamel.yaml==0.15.40
 pandas==0.22.0
+python-dateutil==2.7.3
 pymatgen==2018.6.11
 custodian==2018.6.11
