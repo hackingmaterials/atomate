@@ -8,7 +8,7 @@ import os
 
 from atomate.utils.utils import load_class
 from fireworks import FiretaskBase, explicit_serialize
-from pymatgen.io.qchem_io.inputs import QCInput
+from pymatgen.io.qchem.inputs import QCInput
 
 __author__ = "Brandon Wood"
 __copyright__ = "Copyright 2018, The Materials Project"

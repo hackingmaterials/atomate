@@ -9,7 +9,7 @@ import shutil
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet, WriteInput, WriteCustomInput
 from atomate.utils.testing import AtomateTest
 from pymatgen.core import Molecule
-from pymatgen.io.qchem_io.inputs import QCInput
+from pymatgen.io.qchem.inputs import QCInput
 
 __author__ = "Brandon Wood"
 __email__ = "b.wood@berkeley.edu"

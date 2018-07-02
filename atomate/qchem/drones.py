@@ -13,8 +13,8 @@ from itertools import chain
 
 from monty.io import zopen
 from monty.json import jsanitize
-from pymatgen.io.qchem_io.outputs import QCOutput
-from pymatgen.io.qchem_io.inputs import QCInput
+from pymatgen.io.qchem.outputs import QCOutput
+from pymatgen.io.qchem.inputs import QCInput
 from pymatgen.apps.borg.hive import AbstractDrone
 from pymatgen.io.babel import BabelMolAdaptor
 from pymatgen.symmetry.analyzer import PointGroupAnalyzer
