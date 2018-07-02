@@ -3,7 +3,6 @@ jobs:
   py3test:
     working_directory: ~/atomate
     docker:
-      - image: circleci/python:3.6.4
       - image: materialsvirtuallab/circle-ci-pmg-py3:0.0.2
       - image: circleci/mongo:3.4.15
     steps:
@@ -13,7 +12,7 @@ jobs:
       - run:
           command: |
             export PATH=$HOME/miniconda3/bin:$PATH
-            conda create --quiet --yes --name test_env python
+            conda create --quiet --yes --name test_env python=3.6
             source activate test_env
             conda install --quiet --yes numpy scipy matplotlib sympy pandas
             conda install --quiet --yes -c openbabel openbabel
