@@ -86,17 +86,17 @@ class FragmentMolecule(FiretaskBase):
         # attempt to connect to the database to later check if a fragment has already been calculated
         db_file = env_chk(self.get("db_file"), fw_spec)
         all_relevant_docs = []
-        if db_file:
-            mmdb = QChemCalcDb.from_db_file(db_file, admin=True)
-            all_relevant_docs = list(
-                mmdb.collection.find({
-                    "formula_pretty": {
-                        "$in": unique_formulae
-                    }
-                }, {
-                    "formula_pretty": 1,
-                    "output.initial_molecule": 1
-                }))
+        # if db_file:
+        #     mmdb = QChemCalcDb.from_db_file(db_file, admin=True)
+        #     all_relevant_docs = list(
+        #         mmdb.collection.find({
+        #             "formula_pretty": {
+        #                 "$in": unique_formulae
+        #             }
+        #         }, {
+        #             "formula_pretty": 1,
+        #             "output.initial_molecule": 1
+        #         }))
 
         # build the list of new fireworks
         new_FWs = build_new_FWs(unique_molecules, all_relevant_docs,
