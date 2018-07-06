@@ -30,6 +30,7 @@ def get_wf_FF_then_fragment(molecule,
                             name="FF_then_fragment",
                             qchem_cmd=">>qchem_cmd<<",
                             db_file=">>db_file<<",
+                            check_db=True,
                             **kwargs):
     """
 
@@ -51,6 +52,8 @@ def get_wf_FF_then_fragment(molecule,
             the input set parameters.
         qchem_cmd (str): Command to run QChem.
         db_file (str): path to file containing the database credentials.
+        check_db (bool): Whether or not to check the database for equivalent 
+            structures before adding new fragment fireworks. Defaults to True.
         kwargs (keyword arguments): additional kwargs to be passed to Workflow
 
     Returns:
@@ -77,6 +80,7 @@ def get_wf_FF_then_fragment(molecule,
         max_cores=max_cores,
         qchem_input_params=qchem_input_params,
         db_file=db_file,
+        check_db=check_db,
         parents=fw1)
     fws = [fw1, fw2]
 

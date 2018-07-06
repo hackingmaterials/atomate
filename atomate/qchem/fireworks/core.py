@@ -234,6 +234,7 @@ class FragmentFW(Firework):
                  max_cores=32,
                  qchem_input_params=None,
                  db_file=None,
+                 check_db=True,
                  parents=None,
                  **kwargs):
         """
@@ -251,6 +252,8 @@ class FragmentFW(Firework):
                                        For example, if you want to change the DFT_rung, you should
                                        provide: {"DFT_rung": ...}. Defaults to None.
             db_file (str): Path to file specifying db credentials to place output parsing.
+            check_db (bool): Whether or not to check the database for equivalent structures
+                             before adding new fragment fireworks. Defaults to True.
             parents ([Firework]): Parents of this particular Firework.
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
@@ -262,7 +265,8 @@ class FragmentFW(Firework):
                 molecule=molecule,
                 max_cores=max_cores,
                 qchem_input_params=qchem_input_params,
-                db_file=db_file))
+                db_file=db_file,
+                check_db=check_db))
         super(FragmentFW, self).__init__(
             t,
             parents=parents,
