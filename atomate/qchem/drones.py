@@ -211,10 +211,7 @@ class QChemDrone(AbstractDrone):
             d["formula_pretty"] = comp.reduced_formula
             d["formula_anonymous"] = comp.anonymized_formula
             d["chemsys"] = "-".join(sorted(set(d_calc_final["species"])))
-            try:
-                d["pointgroup"] = PointGroupAnalyzer(d["output"]["initial_molecule"]).sch_symbol
-            except ValueError:
-                d["pointgroup"] = "PGA_error"
+            d["pointgroup"] = d_calc_final["point_group"]
 
             bb = BabelMolAdaptor(d["output"]["initial_molecule"])
             pbmol = bb.pybel_mol
