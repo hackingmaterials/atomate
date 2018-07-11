@@ -16,7 +16,7 @@ $rem
    METHOD  =  wb97xd
    JOB_TYPE  =  Opt
    gen_scfman = True
-   scf_algorithm = DIIS
+   scf_algorithm = gdm
    geom_opt_max_cycles = 200
    max_scf_cycles = 200
 $end
