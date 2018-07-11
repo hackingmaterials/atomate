@@ -192,7 +192,7 @@ class QChemDrone(AbstractDrone):
                         len(qcinput_files) / 2) - 1
 
             
-            if d["output"]["final_energy"] != "unstable":
+            if d_calc_final["completion"]:
                 total_cputime = 0.0
                 total_walltime = 0.0
                 nan_found = False
