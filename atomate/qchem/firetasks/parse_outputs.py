@@ -100,5 +100,4 @@ class QChemToDb(FiretaskBase):
 
         return FWAction(
             stored_data={"task_id": task_doc.get("task_id", None)},
-            defuse_children=defuse_children,
             update_spec=update_spec)
