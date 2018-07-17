@@ -189,7 +189,7 @@ class QChemDrone(AbstractDrone):
             if "special_run_type" in d:
                 if d["special_run_type"] == "frequency_flattener":
                     d["num_frequencies_flattened"] = (
-                        len(qcinput_files) / 2) - 1
+                        int(len(qcinput_files) / 2) - 1)
 
             
             if d_calc_final["completion"]:

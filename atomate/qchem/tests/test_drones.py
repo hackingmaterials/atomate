@@ -107,7 +107,7 @@ class QChemDroneTest(unittest.TestCase):
                              doc["calcs_reversed"][0]["frequencies"][ii[0]])
         self.assertEqual(doc["output"]["enthalpy"], 37.547)
         self.assertEqual(doc["output"]["entropy"], 83.81)
-        self.assertEqual(doc["num_frequencies_flattened"], 1.0)
+        self.assertEqual(doc["num_frequencies_flattened"], 1)
         self.assertEqual(doc["walltime"], 935.29)
         self.assertEqual(doc["cputime"], 3616.6400000000003)
         self.assertEqual(doc["smiles"], "O1[C](O[Li])OC=C1")
@@ -181,7 +181,16 @@ class QChemDroneTest(unittest.TestCase):
             multirun=False)
         self.assertEqual(doc["input"]["job_type"], "opt")
         self.assertEqual(doc["output"]["job_type"], "opt")
-        print(doc)
+        self.assertEqual(doc["output"]["final_energy"], "unstable")
+        self.assertEqual(doc["smiles"], "[S](=O)[N]S[C]")
+        self.assertEqual(doc["state"], "unsuccessful")
+        self.assertEqual(doc["num_frequencies_flattened"], 0)
+        self.assertEqual(doc["walltime"], "NA")
+        self.assertEqual(doc["cputime"], "NA")
+        self.assertEqual(doc["formula_pretty"], "CS2NO")
+        self.assertEqual(doc["formula_anonymous"], "ABCD2")
+        self.assertEqual(doc["chemsys"], "C-N-O-S")
+        self.assertEqual(doc["pointgroup"], "C1")
 
 
 if __name__ == "__main__":
