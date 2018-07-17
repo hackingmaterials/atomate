@@ -11,3 +11,4 @@ ruamel.yaml==0.15.44
 pandas==0.22.0
 pymatgen==2018.7.15
 custodian==2018.6.11
+networkx==2.1
