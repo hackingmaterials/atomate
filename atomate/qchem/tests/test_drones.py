@@ -179,8 +179,8 @@ class QChemDroneTest(unittest.TestCase):
             input_file="mol.qin",
             output_file="mol.qout",
             multirun=False)
-        self.assertEqual(doc["input"]["job_type"], "optimization")
-        self.assertEqual(doc["output"]["job_type"], "optimization")
+        self.assertEqual(doc["input"]["job_type"], "opt")
+        self.assertEqual(doc["output"]["job_type"], "opt")
         print(doc)
 
 
