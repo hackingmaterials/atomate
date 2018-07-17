@@ -176,8 +176,8 @@ class QChemDroneTest(unittest.TestCase):
             additional_fields={"special_run_type": "frequency_flattener"})
         doc = drone.assimilate(
             path=os.path.join(module_dir, "..", "test_files", "2620_complete"),
-            input_file="test.qin",
-            output_file="test.qout",
+            input_file="mol.qin",
+            output_file="mol.qout",
             multirun=False)
         self.assertEqual(doc["input"]["job_type"], "optimization")
         self.assertEqual(doc["output"]["job_type"], "optimization")
