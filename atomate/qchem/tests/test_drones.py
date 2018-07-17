@@ -167,6 +167,22 @@ class QChemDroneTest(unittest.TestCase):
         self.assertEqual(doc["calcs_reversed"][0]["task"]["name"], "calc2")
         self.assertEqual(doc["calcs_reversed"][-1]["task"]["name"], "calc0")
 
+    def test_assimilate_unstable_opt(self):
+        drone = QChemDrone(
+            runs=[
+                "opt_0", "freq_0", "opt_1", "freq_1", "opt_2", "freq_2",
+                "opt_3", "freq_3"
+            ],
+            additional_fields={"special_run_type": "frequency_flattener"})
+        doc = drone.assimilate(
+            path=os.path.join(module_dir, "..", "test_files", "2620_complete"),
+            input_file="test.qin",
+            output_file="test.qout",
+            multirun=False)
+        self.assertEqual(doc["input"]["job_type"], "optimization")
+        self.assertEqual(doc["output"]["job_type"], "optimization")
+        print(doc)
+
 
 if __name__ == "__main__":
     unittest.main()
