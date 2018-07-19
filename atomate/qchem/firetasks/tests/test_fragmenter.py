@@ -157,5 +157,22 @@ class TestFragmentMolecule(AtomateTest):
             self.assertEqual(
                 len(FWAction_patch.call_args[1]["additions"]), 468)
 
+    def test_fragmenter(self):
+        mol_names = ["BF4-.xyz","DEC.xyz","DMC.xyz","EC.xyz","EMC.xyz","FEC.xyz","FSI-.xyz","PC.xyz","PF6-.xyz","TFSI-.xyz","VC.xyz"]
+        num_frags = [5, 316, 43, 69, 194, 133, 35, 295, 7, 156, 37]
+        all_fragments = []
+        for ii,name in enumerate(mol_names):
+            mol = Molecule.from_file(os.path.join(module_dir, "..", "..", "test_files", "top_11", name))
+            mol_graph = build_MoleculeGraph(mol)
+            unique_fragments = build_unique_fragments(mol_graph)
+            self.assertEqual(len(unique_fragments),num_frags[ii])
+            for fragment in unique_fragments:
+                all_fragments.append(fragment)
+        self.assertEqual(len(all_fragments),1290)
+        for fragment in all_fragments:
+            if not [is_isomorphic(fragment, f) for f in unique_fragments].count(True) >= 1:
+                unique_fragments.append(fragment)        
+        self.assertEqual(len(unique_fragments),834)
+
 if __name__ == "__main__":
     unittest.main()
