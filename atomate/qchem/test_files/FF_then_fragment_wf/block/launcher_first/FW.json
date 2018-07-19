@@ -1,0 +1,346 @@
+{
+    "spec": {
+        "_tasks": [
+            {
+                "molecule": {
+                    "@module": "pymatgen.core.structure",
+                    "@class": "Molecule",
+                    "charge": 0,
+                    "spin_multiplicity": 1,
+                    "sites": [
+                        {
+                            "name": "O",
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                -1.1022,
+                                -2.0244,
+                                0.0007
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "O",
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                1.1023,
+                                -2.0243,
+                                0.0007
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "O",
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "C",
+                            "species": [
+                                {
+                                    "element": "C",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                -2.3611,
+                                -1.3429,
+                                -0.0003
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "C",
+                            "species": [
+                                {
+                                    "element": "C",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                2.361,
+                                -1.3429,
+                                -0.0003
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "C",
+                            "species": [
+                                {
+                                    "element": "C",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                -3.476,
+                                -2.3669,
+                                -0.0003
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "C",
+                            "species": [
+                                {
+                                    "element": "C",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                3.476,
+                                -2.3669,
+                                -0.0003
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "C",
+                            "species": [
+                                {
+                                    "element": "C",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                0.0,
+                                -1.2236,
+                                0.0007
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "H",
+                            "species": [
+                                {
+                                    "element": "H",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                -2.4364,
+                                -0.7137,
+                                0.8935
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "H",
+                            "species": [
+                                {
+                                    "element": "H",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                -2.4355,
+                                -0.7147,
+                                -0.895
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "H",
+                            "species": [
+                                {
+                                    "element": "H",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                2.4354,
+                                -0.7147,
+                                -0.895
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "H",
+                            "species": [
+                                {
+                                    "element": "H",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                2.4363,
+                                -0.7136,
+                                0.8935
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "H",
+                            "species": [
+                                {
+                                    "element": "H",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                -4.4549,
+                                -1.8793,
+                                -0.0011
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "H",
+                            "species": [
+                                {
+                                    "element": "H",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                -3.4035,
+                                -3.0157,
+                                -0.8794
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "H",
+                            "species": [
+                                {
+                                    "element": "H",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                -3.4043,
+                                -3.0147,
+                                0.8796
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "H",
+                            "species": [
+                                {
+                                    "element": "H",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                4.4549,
+                                -1.8793,
+                                -0.001
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "H",
+                            "species": [
+                                {
+                                    "element": "H",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                3.4043,
+                                -3.0147,
+                                0.8797
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "H",
+                            "species": [
+                                {
+                                    "element": "H",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                3.4035,
+                                -3.0157,
+                                -0.8793
+                            ],
+                            "properties": {}
+                        }
+                    ]
+                },
+                "qchem_input_set": "OptSet",
+                "input_file": "mol.qin",
+                "qchem_input_params": {},
+                "_fw_name": "{{atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet}}"
+            },
+            {
+                "qchem_cmd": ">>qchem_cmd<<",
+                "multimode": "openmp",
+                "input_file": "mol.qin",
+                "output_file": "mol.qout",
+                "max_cores": 32,
+                "job_type": "opt_with_frequency_flattener",
+                "max_iterations": 10,
+                "max_molecule_perturb_scale": 0.3,
+                "reversed_direction": false,
+                "_fw_name": "{{atomate.qchem.firetasks.run_calc.RunQChemCustodian}}"
+            },
+            {
+                "db_file": ">>db_file<<",
+                "input_file": "mol.qin",
+                "output_file": "mol.qout",
+                "additional_fields": {
+                    "task_label": "first_FF",
+                    "special_run_type": "frequency_flattener"
+                },
+                "_fw_name": "{{atomate.qchem.firetasks.parse_outputs.QChemToDb}}"
+            }
+        ]
+    },
+    "fw_id": 2722,
+    "created_on": "2018-07-17T16:14:23.246357",
+    "updated_on": "2018-07-17T16:52:01.538847",
+    "launches": [
+        {
+            "fworker": {
+                "name": "cori_qchem_dev",
+                "category": "",
+                "query": "{}",
+                "env": {
+                    "db_file": "/global/homes/s/sblau/config/db.json",
+                    "qchem_cmd": "qchem -slurm",
+                    "scratch_dir": "/dev/shm/qcscratch/"
+                }
+            },
+            "fw_id": 2722,
+            "launch_dir": "/global/cscratch1/sd/sblau/fragment_wf/block_2018-07-10-18-45-27-601029/launcher_2018-07-17-16-46-45-560093",
+            "host": "nid00723",
+            "ip": "10.128.2.216",
+            "trackers": [],
+            "action": null,
+            "state": "RUNNING",
+            "state_history": [
+                {
+                    "state": "RUNNING",
+                    "created_on": "2018-07-17T16:52:01.537345",
+                    "updated_on": "2018-07-17T16:52:01.537352"
+                }
+            ],
+            "launch_id": 4153
+        }
+    ],
+    "state": "RUNNING",
+    "name": "first_FF"
+}
