@@ -63,7 +63,7 @@ class TestFFthenfragment(AtomateTest):
             self.assertEqual(first_FF["calcs_reversed"][0]["input"]["solvent"],
                              None)
             self.assertEqual(first_FF["num_frequencies_flattened"], 0)
-            self.assertEqual(en(FWAction_patch.call_args[1]["additions"]), 5 * 3)
+            self.assertEqual(len(FWAction_patch.call_args[1]["additions"]), 5 * 3)
 
 
 if __name__ == "__main__":
