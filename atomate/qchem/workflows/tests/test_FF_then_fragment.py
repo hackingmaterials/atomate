@@ -33,7 +33,7 @@ db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 
 class TestFFthenfragment(AtomateTest):
     def test_FF_then_fragment(self):
-        with patch("atomate.qchem.firetasks.fragmenter.FWAction") as FWAction_patch:
+        with patch("atomate.qchem.firetasks.fragmenter.build_new_FWs") as build_new_FWs_patch:
             # location of test files
             test_FF_then_fragment_files = os.path.join(module_dir, "..", "..",
                                                 "test_files", "FF_then_fragment_wf")
@@ -61,7 +61,6 @@ class TestFFthenfragment(AtomateTest):
             self.assertEqual(first_FF["calcs_reversed"][0]["input"]["solvent"],
                              None)
             self.assertEqual(first_FF["num_frequencies_flattened"], 0)
-            self.assertEqual(len(FWAction_patch.call_args[1]["additions"]), 5 * 3)
 
 
 if __name__ == "__main__":
