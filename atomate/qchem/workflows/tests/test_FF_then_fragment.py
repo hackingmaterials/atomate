@@ -56,14 +56,14 @@ class TestFFthenfragment(AtomateTest):
                 self.lp,
                 fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}), pdb_on_exception=True)
 
-            # first_FF = self.get_task_collection().find_one({
-            #     "task_label":
-            #     "first_FF"
-            # })
-            # self.assertEqual(first_FF["calcs_reversed"][0]["input"]["solvent"],
-            #                  None)
-            # self.assertEqual(first_FF["num_frequencies_flattened"], 0)
-            # self.assertEqual(len(FWAction_patch.call_args[1]["additions"]), 5 * 3)
+            first_FF = self.get_task_collection().find_one({
+                "task_label":
+                "first_FF"
+            })
+            self.assertEqual(first_FF["calcs_reversed"][0]["input"]["solvent"],
+                             None)
+            self.assertEqual(first_FF["num_frequencies_flattened"], 0)
+            self.assertEqual(len(FWAction_patch.call_args[1]["additions"]), 5 * 3 - 1)
 
 
 if __name__ == "__main__":
