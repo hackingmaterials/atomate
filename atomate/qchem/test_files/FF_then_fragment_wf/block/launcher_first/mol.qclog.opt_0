@@ -3,8 +3,8 @@ You are running Q-Chem version: 5.0.2
 #
 # job setting
 #
-local host:  nid00723
-current dir: /global/cscratch1/sd/sblau/fragment_wf/block_2018-07-10-18-45-27-601029/launcher_2018-07-17-16-46-45-560093
+local host:  nid00724
+current dir: /global/cscratch1/sd/sblau/fragment_wf/block_2018-07-10-18-45-27-601029/launcher_2018-07-17-16-49-56-452468
 input file:  mol.qin
 output file: mol.qout
 nprocs     : 1
@@ -21,14 +21,14 @@ QCMPI:       slurm
 #
 # qchem directory setting
 #
-qcrun:       qchem16420
+qcrun:       qchem22304
 QCSCRATCH:   /dev/shm/qcscratch/
 QCLOCALSCR:  /tmp
 QCTMPDIR:    /tmp
-QCFILEPREF:  /tmp/qchem16420
+QCFILEPREF:  /tmp/qchem22304
 QCSAVEDIR:   
-workdirs:    /tmp/qchem16420
-workdir0:    /tmp/qchem16420
+workdirs:    /tmp/qchem22304
+workdir0:    /tmp/qchem22304
 partmpdirs =  
 #
 # parallel setting
@@ -42,6 +42,6 @@ QCMACHINEFILE:
 # env setting
 #
 exported envs:   QC QCAUX QCSCRATCH QCRUNNAME QCFILEPREF QCPROG QCPROG_S GUIFILE
-remove work dirs /tmp/qchem16420.0 -- /tmp/qchem16420.0
-rm -rf /tmp/qchem16420.0
-rm -rf /tmp/qchem16420
+remove work dirs /tmp/qchem22304.0 -- /tmp/qchem22304.0
+rm -rf /tmp/qchem22304.0
+rm -rf /tmp/qchem22304

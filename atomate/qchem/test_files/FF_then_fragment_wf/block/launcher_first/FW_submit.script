@@ -11,7 +11,7 @@
 #SBATCH --constraint=haswell
 
 module load qchem
-cd /global/cscratch1/sd/sblau/fragment_wf/block_2018-07-10-18-45-27-601029/launcher_2018-07-17-16-46-45-560093
+cd /global/cscratch1/sd/sblau/fragment_wf/block_2018-07-10-18-45-27-601029/launcher_2018-07-17-16-49-56-452468
 rlaunch -c /global/homes/s/sblau/config singleshot
 
 # CommonAdapter (SLURM) completed writing Template
