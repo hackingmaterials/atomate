@@ -30,7 +30,7 @@ __date__ = "6/13/18"
 __credits__ = "John Dagdelen, Shyam Dwaraknath"
 
 
-# @explicit_serialize
+@explicit_serialize
 class FragmentMolecule(FiretaskBase):
     """
     Find all unique fragments of a molecule

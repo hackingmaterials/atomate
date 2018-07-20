@@ -46,9 +46,7 @@ class TestFFthenfragment(AtomateTest):
             # use powerup to replace run with fake run
             ref_dirs = {
                 "first_FF":
-                os.path.join(test_FF_then_fragment_files, "block", "launcher_first"),
-                "fragment and FF_opt":
-                os.path.join(test_FF_then_fragment_files, "block", "launcher_second")
+                os.path.join(test_FF_then_fragment_files, "block", "launcher_first")
             }
             fake_wf = use_fake_qchem(real_wf, ref_dirs)
             self.lp.add_wf(fake_wf)
