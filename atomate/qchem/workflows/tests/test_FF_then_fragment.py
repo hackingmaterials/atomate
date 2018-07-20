@@ -54,7 +54,7 @@ class TestFFthenfragment(AtomateTest):
             self.lp.add_wf(fake_wf)
             rapidfire(
                 self.lp,
-                fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}), pdb_on_exception=True)
+                fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
 
             first_FF = self.get_task_collection().find_one({
                 "task_label":
@@ -63,7 +63,7 @@ class TestFFthenfragment(AtomateTest):
             self.assertEqual(first_FF["calcs_reversed"][0]["input"]["solvent"],
                              None)
             self.assertEqual(first_FF["num_frequencies_flattened"], 0)
-            self.assertEqual(len(FWAction_patch.call_args[1]["additions"]), 5 * 3 - 1)
+            self.assertEqual(len(FWAction_patch.call_args[1]["additions"]), 5 * 3)
 
 
 if __name__ == "__main__":
