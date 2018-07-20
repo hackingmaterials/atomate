@@ -46,7 +46,8 @@ class TestDoubleFFOpt(AtomateTest):
                 "basis_set": "6-311++g**",
                 "overwrite_inputs": {
                     "rem": {
-                        "sym_ignore": "true"
+                        "sym_ignore": "true", 
+                        "scf_algorithm": "diis"
                     }
                 }
             })
