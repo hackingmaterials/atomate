@@ -54,7 +54,7 @@ class TestFFthenfragment(AtomateTest):
             self.lp.add_wf(fake_wf)
             rapidfire(
                 self.lp,
-                fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
+                fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}), pdb_on_exception=True)
 
             first_FF = self.get_task_collection().find_one({
                 "task_label":
