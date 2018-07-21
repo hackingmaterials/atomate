@@ -33,7 +33,8 @@ db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 
 class TestFFthenfragment(AtomateTest):
     def test_FF_then_fragment(self):
-        with patch("atomate.qchem.firetasks.fragmenter.build_new_FWs") as build_new_FWs_patch:
+        # with patch("atomate.qchem.firetasks.fragmenter.build_new_FWs") as build_new_FWs_patch:
+        with patch("atomate.qchem.workflows.base.FF_then_fragment.FragmentFW") as FragmentFW_patch:
             # location of test files
             test_FF_then_fragment_files = os.path.join(module_dir, "..", "..",
                                                 "test_files", "FF_then_fragment_wf")
