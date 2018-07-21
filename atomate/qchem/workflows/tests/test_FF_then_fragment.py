@@ -33,8 +33,7 @@ db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 
 class TestFFthenfragment(AtomateTest):
     def test_FF_then_fragment(self):
-        # with patch("atomate.qchem.firetasks.fragmenter.build_new_FWs") as build_new_FWs_patch:
-        with patch("atomate.qchem.workflows.base.FF_then_fragment.FragmentFW") as FragmentFW_patch:
+        with patch("atomate.qchem.firetasks.fragmenter.FWAction") as FWAction_patch:
             # location of test files
             test_FF_then_fragment_files = os.path.join(module_dir, "..", "..",
                                                 "test_files", "FF_then_fragment_wf")
@@ -47,13 +46,15 @@ class TestFFthenfragment(AtomateTest):
             # use powerup to replace run with fake run
             ref_dirs = {
                 "first_FF":
-                os.path.join(test_FF_then_fragment_files, "block", "launcher_first")
+                os.path.join(test_FF_then_fragment_files, "block", "launcher_first"),
+                "fragment and FF_opt":
+                os.path.join(test_FF_then_fragment_files, "block", "launcher_second")
             }
             fake_wf = use_fake_qchem(real_wf, ref_dirs)
             self.lp.add_wf(fake_wf)
             rapidfire(
                 self.lp,
-                fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
+                fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}), pdb_on_exception=True)
 
             first_FF = self.get_task_collection().find_one({
                 "task_label":
@@ -62,6 +63,7 @@ class TestFFthenfragment(AtomateTest):
             self.assertEqual(first_FF["calcs_reversed"][0]["input"]["solvent"],
                              None)
             self.assertEqual(first_FF["num_frequencies_flattened"], 0)
+            self.assertEqual(len(FWAction_patch.call_args[1]["additions"]), 5 * 3)
 
 
 if __name__ == "__main__":
