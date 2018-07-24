@@ -13,7 +13,7 @@ from pymatgen.io.qchem.inputs import QCInput
 from atomate.qchem.powerups import use_fake_qchem
 from atomate.qchem.workflows.base.FF_then_fragment import get_wf_FF_then_fragment
 try:
-    from unittest.mock import patch
+    from unittest.mock import patch, MagicMock
 except ImportError:
     from mock import patch
 
@@ -34,6 +34,10 @@ db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 class TestFFthenfragment(AtomateTest):
     def test_FF_then_fragment(self):
         with patch("atomate.qchem.firetasks.fragmenter.FWAction") as FWAction_patch:
+            mock_FWAction = MagicMock()
+            FWAction_patch.return_value = mock_FWAction
+            mock_FWAction.items.return_value = []
+
             # location of test files
             test_FF_then_fragment_files = os.path.join(module_dir, "..", "..",
                                                 "test_files", "FF_then_fragment_wf")
