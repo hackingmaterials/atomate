@@ -30,6 +30,7 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot
 from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
 from pymatgen.apps.borg.hive import AbstractDrone
+from pymatgen.command_line.bader_caller import bader_analysis_from_path
 
 from atomate.utils.utils import get_uri
 
@@ -390,6 +391,14 @@ class VaspDrone(AbstractDrone):
             d["output"]["force_constants"] = vrun.force_constants.tolist()
             d["output"]["normalmode_eigenvals"] = vrun.normalmode_eigenvals.tolist()
             d["output"]["normalmode_eigenvecs"] = vrun.normalmode_eigenvecs.tolist()
+
+        # Try and perform bader
+        try:
+            bader = bader_analysis_from_path(dir_name, suffix=".{}".format(taskname))
+        except Exception as e:
+            bader = "Bader analysis failed: {}".format(e)
+        d["bader"] = bader
+
         return d
 
     def process_bandstructure(self, vrun):
