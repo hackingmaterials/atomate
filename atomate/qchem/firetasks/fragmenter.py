@@ -104,8 +104,7 @@ class FragmentMolecule(FiretaskBase):
                                 self.get("max_cores", 32),
                                 self.get("qchem_input_params", {}))
 
-        print(FWAction(additions=[]).to_dict())
-        return FWAction(additions=[])
+        return FWAction(additions=new_FWs)
 
 
 def edges_from_babel(molecule):
