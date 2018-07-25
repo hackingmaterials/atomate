@@ -15,7 +15,7 @@ from atomate.qchem.workflows.base.FF_then_fragment import get_wf_FF_then_fragmen
 try:
     from unittest.mock import patch, MagicMock
 except ImportError:
-    from mock import patch
+    from mock import patch, MagicMock
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
