@@ -39,8 +39,8 @@ def get_wf_FF_then_fragment(molecule,
                  parse directory and insert into db,
                  pass relaxed molecule to fw_spec and on to fw2,
 
-    Firework 2 : find all unique fragments of the optimized molecule 
-                 and add a frequency flattening optimize FW to the 
+    Firework 2 : find all unique fragments of the optimized molecule
+                 and add a frequency flattening optimize FW to the
                  workflow for each one
 
     Args:
@@ -52,7 +52,7 @@ def get_wf_FF_then_fragment(molecule,
             the input set parameters.
         qchem_cmd (str): Command to run QChem.
         db_file (str): path to file containing the database credentials.
-        check_db (bool): Whether or not to check the database for equivalent 
+        check_db (bool): Whether or not to check the database for equivalent
             structures before adding new fragment fireworks. Defaults to True.
         kwargs (keyword arguments): additional kwargs to be passed to Workflow
 

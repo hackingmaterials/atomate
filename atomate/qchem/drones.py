@@ -190,7 +190,6 @@ class QChemDrone(AbstractDrone):
                 if d["special_run_type"] == "frequency_flattener":
                     d["num_frequencies_flattened"] = int((len(qcinput_files) / 2) - 1)
 
-            
             if d_calc_final["completion"]:
                 total_cputime = 0.0
                 total_walltime = 0.0

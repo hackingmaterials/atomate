@@ -16,7 +16,7 @@ have_babel = True
 try:
     from pymatgen.io.babel import BabelMolAdaptor
     import openbabel as ob
-except:
+except ImportError:
     print("Cannot find OpenBabel! Thus, bonds must be provided by the user.")
     have_babel = False
 
@@ -36,7 +36,7 @@ class FragmentMolecule(FiretaskBase):
     Find all unique fragments of a molecule
 
     Optional params:
-        molecule (Molecule): 
+        molecule (Molecule):
         edges (list): List of index pairs that define graph edges, aka molecule bonds
         max_cores (int): Maximum number of cores to parallelize over. Defaults to 32.
         qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.

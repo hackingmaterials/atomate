@@ -4,8 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import os
 import unittest
-import shutil
-from monty.serialization import loadfn, dumpfn
+from monty.serialization import loadfn#, dumpfn
 try:
     from unittest.mock import patch
 except ImportError:
@@ -14,7 +13,6 @@ except ImportError:
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule, build_unique_fragments, build_unique_molecules, build_new_FWs, build_MoleculeGraph, is_isomorphic
 from atomate.utils.testing import AtomateTest
 from pymatgen.core import Molecule
-from pymatgen.analysis.graphs import MoleculeGraph
 
 __author__ = "Samuel Blau"
 __email__ = "samblau1@gmail.com"
@@ -171,7 +169,7 @@ class TestFragmentMolecule(AtomateTest):
         self.assertEqual(len(all_fragments),1290)
         for fragment in all_fragments:
             if not [is_isomorphic(fragment, f) for f in unique_fragments].count(True) >= 1:
-                unique_fragments.append(fragment)        
+                unique_fragments.append(fragment)
         self.assertEqual(len(unique_fragments),834)
 
 if __name__ == "__main__":
