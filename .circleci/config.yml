@@ -3,41 +3,40 @@ jobs:
   py3test:
     working_directory: ~/atomate
     docker:
-      - image: materialsvirtuallab/circle-ci-pmg-py3:0.0.1
+      - image: materialsvirtuallab/circle-ci-pmg-py3:0.0.2
+      - image: circleci/mongo:3.4.15
     steps:
       - checkout
       - restore_cache:
           key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
           command: |
-            python3 -m venv venv
-            . venv/bin/activate
+            export PATH=$HOME/miniconda3/bin:$PATH
+            conda create --quiet --yes --name test_env python=3.6
+            source activate test_env
+            conda install --quiet --yes numpy scipy matplotlib sympy pandas
+            conda install --quiet --yes -c openbabel openbabel
+            conda install --quiet --yes -c clinicalgraphics vtk
+            conda update --quiet --all
             mkdir coverage_reports
-            apt-get -y -qq update
-            apt-get -y -qq install gfortran python-openbabel python-vtk python3-tk
-            pip install numpy
-            pip install -r requirements.txt
-            pip install -r requirements-optional.txt
-      - save_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
-          paths:
-            - "venv"
-      - run:
-          command: |
-            . venv/bin/activate
-            python3 setup.py develop
-            ls
-            echo "PATH=$PATH"
+            pip install --quiet -r requirements.txt -r requirements-optional.txt
+            # Add executables and path.
+            for EXEPATH in `pwd`/cmd_line/*/Linux_64bit; do export PATH=$PATH:$EXEPATH; done
+            pip install --quiet -e .
             nosetests --config=nose.cfg --cover-html --cover-html-dir=coverage_reports
+          no_output_timeout: 3600
       - store_artifacts:
           path: coverage_reports/
           destination: tr1
       - store_test_results:
           path: coverage_reports/
+
   py2test:
     working_directory: ~/atomate
     docker:
       - image: materialsvirtuallab/circle-ci-pmg-py2:0.0.2
+      - image: circleci/mongo:3.4.15
+
     steps:
       - checkout
       - restore_cache:
@@ -69,4 +68,3 @@ workflows:
   build_and_test:
     jobs:
       - py3test
-      - py2test

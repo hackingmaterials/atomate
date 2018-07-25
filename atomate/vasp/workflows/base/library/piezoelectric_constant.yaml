@@ -1,4 +1,5 @@
-# Structure optimize + static dielectric constant
+# Structure optimize + piezoelectric constant
+# Author: Shyam Dwaraknath (LBNL)
 fireworks:
 - fw: atomate.vasp.fireworks.core.OptimizeFW
   params:

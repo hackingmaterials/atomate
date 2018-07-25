@@ -2,6 +2,12 @@
 atomate Changelog
 =================
 
+**v0.7.9**
+
+* Overhaul and update of QChem in atomate (B. Wood, S. Blau)
+* Fix integration tests (A. Dunn)
+* Stop officially supporting Py2
+
 **v0.7.8**
 
 * some QChem tasks and workflows (B. Wood)
