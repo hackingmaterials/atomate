@@ -64,9 +64,16 @@ class VaspToDb(FiretaskBase):
             ionic). True -> mark job as COMPLETED, but defuse children.
             False --> do nothing, continue with workflow as normal. "fizzle"
             --> throw an error (mark this job as FIZZLED)
+        task_fields_to_push (dict): if set, will update the next Firework/Firetask
+            spec using fields from the task document.
+            Format: {key : path} -> fw.spec[key] = task_doc[path]
+            The path is a full mongo-style path so subdocuments can be referneced
+            using dot notation and array keys can be referenced using the index.
+            E.g "calcs_reversed.0.output.outar.run_stats"
     """
     optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
-                       "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful"]
+                       "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful",
+                       "task_fields_to_push"]
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
