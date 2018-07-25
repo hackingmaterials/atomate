@@ -120,8 +120,23 @@ class VaspToDb(FiretaskBase):
                 raise RuntimeError("Unknown option for defuse_unsuccessful: "
                                    "{}".format(defuse_unsuccessful))
 
+        task_fields_to_push = self.get("task_fields_to_push", None)
+        update_spec = {}
+        if task_fields_to_push:
+            if isinstance(task_fields_to_push, dict):
+                for key, path_in_task_doc in task_fields_to_push.items():
+                    if has(task_doc, path_in_task_doc):
+                        update_spec[key] = get(task_doc, path_in_task_doc)
+                    else:
+                        logger.warn("Could not find {} in task document. Unable to push to next firetask/firework".format(path_in_task_doc))
+            else:
+                raise RuntimeError("Inappropriate type {} for task_fields_to_push. It must be a "
+                                   "dictionary of format: {key: path} where key refers to a field "
+                                   "in the spec and path is a full mongo-style path to a "
+                                   "field in the task document".format(type(task_fields_to_push)))
+
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
-                        defuse_children=defuse_children)
+                        defuse_children=defuse_children, update_spec=update_spec)
 
 
 @explicit_serialize
