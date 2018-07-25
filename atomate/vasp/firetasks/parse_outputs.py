@@ -11,6 +11,7 @@ from datetime import datetime
 import numpy as np
 
 from monty.json import MontyEncoder, jsanitize
+from pydash.objects import has, get
 
 from atomate.vasp.config import DEFUSE_UNSUCCESSFUL
 from fireworks import FiretaskBase, FWAction, explicit_serialize
