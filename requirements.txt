@@ -10,5 +10,5 @@ pybtex==0.21
 ruamel.yaml==0.15.44
 pandas==0.22.0
 -e git://github.com/materialsproject/pymatgen#egg=pymatgen
--e git://github.com/samblau/custodian/tree/qchem#egg=custodian
+-e git://github.com/samblau/custodian@qchem#egg=custodian
 networkx==2.1
