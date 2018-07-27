@@ -2,18 +2,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-"""
-This module defines a workflow for grain boundary (gb) generation and calculation
-"""
-
 from fireworks.core.firework import Workflow
 from atomate.vasp.fireworks.core import OptimizeFW, TransmuterFW
 from atomate.vasp.powerups import add_additional_fields_to_taskdocs, add_tags
-from pymatgen.transformations.advanced_transformations import GrainBoundaryTransformation
-from pymatgen.analysis.gb.gb import Gb, GBGenerator
 from pymatgen.io.vasp.sets import MVLGBSet
-from pymatgen.io.vasp import Structure
-import json
 
 __author__ = 'Hui Zheng'
 __email__ = 'huz071@eng.ucsd.edu'
@@ -77,6 +69,14 @@ def get_gb_fw(gb, bulk_structure=None, gb_gen_params=None, gb_structure_info=Non
 def get_wf_gb(gb=None, bulk_structure=None, gb_gen_params=None, additional_info=None,
               tag=None, db_file=None, vasp_cmd="vasp"):
     """
+    This is a workflow for grain boundary (gb) generation and calculation. If a bulk_structure and
+     grain boundary (GB) generation parameters are specified, the workflow will relax the bulk structure
+     first, then generate GB based on given parameters and TransmuterFW, then relax the GB structure.
+
+    If a grain boundary structure is given, then the workflow will directly run the relaxation for
+    the given GB structure, while the related additional info could be added into the database when
+    the user specified.
+
     Args:
         gb (Structure or Gb): gb structures to calculate.
         bulk_structure (Structure): bulk structure from which generate gbs after reoptimization.
