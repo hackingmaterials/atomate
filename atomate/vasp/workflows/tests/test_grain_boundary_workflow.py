@@ -55,11 +55,12 @@ class TestGrainboundaryWorkflow(AtomateTest):
                       "Li_gb_s3_(1, 1, 1) optimization": os.path.join(reference_dir, "2")}
         return use_fake_vasp(wf, li_ref_dir, params_to_check=["ENCUT", "ISIF", "IBRION"])
 
-    @classmethod
-    def _check_run(cls, mode):
+    def _check_run(self, d, mode):
         if mode not in ["Li_gb_s3_(1, 1, 1) optimization", "Li_gb_s5_(1, 0, 0) optimization",
                         "Li-bulk-structure optimization"]:
             raise ValueError("Invalid mode!")
+        if "optimization" in mode:
+            self.assertEqual(d["formula_reduced_abc"], "Li1")
 
     def test_start_from_bulk_wf(self):
         wf = self._simulate_vasprun_start_from_bulk(self.wf_1)
@@ -88,6 +89,7 @@ class TestGrainboundaryWorkflow(AtomateTest):
 
         # check relaxation
         d = self.get_task_collection().find_one({"task_label": "Li_gb_s5_(1, 0, 0) optimization"})
+        print(d.keys(), "********test what is the keys of d *****")
         self._check_run(d, mode="Li_gb_s5_(1, 0, 0) optimization")
 
         wf = self.lp.get_wf_by_fw_id(0)
