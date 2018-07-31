@@ -190,7 +190,7 @@ def not_in_database(molecule, docs):
                 except TypeError:
                     old_mol = doc["output"]["initial_molecule"]
                 old_mol_graph = build_MoleculeGraph(old_mol,None)
-                if nx.is_isomorphic(
+                if is_isomorphic(
                         new_mol_graph.graph, old_mol_graph.graph
                 ) and molecule.charge == old_mol_graph.molecule.charge and molecule.spin_multiplicity == old_mol_graph.molecule.spin_multiplicity:
                     return False
