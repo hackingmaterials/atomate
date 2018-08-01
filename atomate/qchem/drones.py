@@ -184,7 +184,7 @@ class QChemDrone(AbstractDrone):
                         "final_energy"]
 
             if d["output"]["job_type"] == "sp":
-                d["output"]["final_energy"] = d_calc_final["SCF"][-1][0][0]
+                d["output"]["final_energy"] = d_calc_final["SCF"][0][-1][0]
 
             if "special_run_type" in d:
                 if d["special_run_type"] == "frequency_flattener":
