@@ -111,7 +111,7 @@ def get_wf_surface(slabs, molecules=[], bulk_structure=None, slab_gen_params=Non
 
     if bulk_structure:
         vis = MVLSlabSet(bulk_structure, bulk=True)
-        fws.append(OptimizeFW(structure=bulk_structure, vasp_input_set=vis, vasp_cmd="vasp", db_file=db_file))
+        fws.append(OptimizeFW(structure=bulk_structure, vasp_input_set=vis, vasp_cmd=vasp_cmd, db_file=db_file))
         parents = fws[0]
 
     for slab in slabs:
