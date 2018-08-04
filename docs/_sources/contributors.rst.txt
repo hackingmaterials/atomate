@@ -12,4 +12,4 @@ Contributions are provided by:
 * Alireza Faghaninia and A. Dunn through the research group of A. Jain at LBNL.
 * Tess Smidt through the research group of Prof. Jeff Neaton at UC Berkeley.
 * Danny Broberg through the research group of Prof. Mark Asta at UC Berkeley.
-* External contributors: specter119, M. Dias Costa
+* External contributors: specter119, M. Dias Costa, S. Torrisi
