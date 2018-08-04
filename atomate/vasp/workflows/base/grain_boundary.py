@@ -86,8 +86,12 @@ def get_wf_gb_from_bulk(bulk_structure, gb_gen_params=None, tag=None, additional
                          db_file=db_file, vasp_cmd=vasp_cmd, parents=parents))
 
     wf = Workflow(fws, name="{} gb workflow, e.g., {}".format(len(fws), fws[0].name))
-    wf_additional_info = add_additional_fields_to_taskdocs(original_wf=wf, update_dict=additional_info)
-    wf_with_tag_info = add_tags(wf_additional_info, tags_list=tag)
+    if additional_info:
+        wf_additional_info = add_additional_fields_to_taskdocs(original_wf=wf, update_dict=additional_info)
+        wf_with_tag_info = add_tags(wf_additional_info, tags_list=tag)
+    else:
+        wf_with_tag_info = add_tags(wf, tags_list=tag)
+
     return wf_with_tag_info
 
 
