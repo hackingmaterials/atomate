@@ -19,6 +19,7 @@ import traceback
 
 from monty.io import zopen
 from monty.json import jsanitize
+from monty.os.path import which
 
 import numpy as np
 
@@ -30,6 +31,7 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot
 from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
 from pymatgen.apps.borg.hive import AbstractDrone
+from pymatgen.command_line.bader_caller import bader_analysis_from_path
 
 from atomate.utils.utils import get_uri
 
@@ -43,6 +45,7 @@ __version__ = "0.1.0"
 
 logger = get_logger(__name__)
 
+bader_exe_exists = which("bader") or which("bader.exe")
 
 class VaspDrone(AbstractDrone):
     """
@@ -79,7 +82,8 @@ class VaspDrone(AbstractDrone):
     }
 
     def __init__(self, runs=None, parse_dos="auto", bandstructure_mode="auto",
-                 parse_locpot=True, additional_fields=None, use_full_uri=True):
+                 parse_locpot=True, additional_fields=None, use_full_uri=True,
+                 parse_bader=bader_exe_exists):
         """
         Initialize a Vasp drone to parse vasp outputs
         Args:
@@ -99,6 +103,7 @@ class VaspDrone(AbstractDrone):
             parse_locpot (bool): Parses the LOCPOT file and saves the 3 axis averages
             additional_fields (dict): dictionary of additional fields to add to output document
             use_full_uri (bool): converts the directory path to the full URI path
+            parse_bader (bool): Run and parse Bader charge data. Defaults to True if Bader is present
         """
         self.parse_dos = parse_dos
         self.additional_fields = additional_fields or {}
@@ -107,6 +112,7 @@ class VaspDrone(AbstractDrone):
                                                 for i in range(9)]  # can't auto-detect: path unknown
         self.bandstructure_mode = bandstructure_mode
         self.parse_locpot = parse_locpot
+        self.parse_bader = parse_bader
 
     def assimilate(self, path):
         """
@@ -390,6 +396,15 @@ class VaspDrone(AbstractDrone):
             d["output"]["force_constants"] = vrun.force_constants.tolist()
             d["output"]["normalmode_eigenvals"] = vrun.normalmode_eigenvals.tolist()
             d["output"]["normalmode_eigenvecs"] = vrun.normalmode_eigenvecs.tolist()
+
+        # Try and perform bader
+        if self.parse_bader:
+            try:
+                bader = bader_analysis_from_path(dir_name, suffix=".{}".format(taskname))
+            except Exception as e:
+                bader = "Bader analysis failed: {}".format(e)
+            d["bader"] = bader
+
         return d
 
     def process_bandstructure(self, vrun):

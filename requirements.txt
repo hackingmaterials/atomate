@@ -12,3 +12,4 @@ pandas==0.22.0
 pymatgen==2018.7.15
 custodian==2018.6.11
 networkx==2.1
+pydash==4.1.0
