@@ -9,7 +9,7 @@ from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 from atomate.utils.testing import AtomateTest
 from pymatgen.core import Molecule
-from pymatgen.io.qchem_io.inputs import QCInput
+from pymatgen.io.qchem.inputs import QCInput
 from atomate.qchem.powerups import use_fake_qchem
 from atomate.qchem.workflows.base.double_FF_opt import get_wf_double_FF_opt
 

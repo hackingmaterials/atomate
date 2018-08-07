@@ -10,7 +10,7 @@ from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.parse_outputs import QChemToDb
 from atomate.qchem.fireworks.core import OptimizeFW, FrequencyFlatteningOptimizeFW
 from atomate.utils.testing import AtomateTest
-from pymatgen.io.qchem_io.outputs import QCOutput
+from pymatgen.io.qchem.outputs import QCOutput
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"

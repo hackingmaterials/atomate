@@ -13,8 +13,8 @@ from fireworks import Firework, Workflow, FWorker
 from fireworks.core.rocket_launcher import rapidfire
 from atomate.utils.testing import AtomateTest
 from pymatgen.core import Molecule
-from pymatgen.io.qchem_io.outputs import QCOutput
-from pymatgen.io.qchem_io.inputs import QCInput
+from pymatgen.io.qchem.outputs import QCOutput
+from pymatgen.io.qchem.inputs import QCInput
 import numpy as np
 
 __author__ = "Brandon Wood"
