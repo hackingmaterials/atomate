@@ -4,7 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import os
 import unittest
 
-from pymatgen.io.lammps.sets import LammpsInputSet
+# from pymatgen.io.lammps.sets import LammpsInputSet
 from pymatgen.io.lammps.output import LammpsLog
 
 from atomate.utils.testing import AtomateTest

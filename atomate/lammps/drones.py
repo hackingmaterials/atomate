@@ -12,7 +12,7 @@ import six
 
 from pymatgen.apps.borg.hive import AbstractDrone
 from pymatgen.io.lammps.output import LammpsLog, LammpsDump, LammpsRun
-from pymatgen.io.lammps.sets import LammpsInputSet
+# from pymatgen.io.lammps.sets import LammpsInputSet
 
 from atomate.utils.utils import get_uri
 
