@@ -5,7 +5,8 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 # This module defines a task that returns all fragments of a molecule
 
 from pymatgen.core.structure import Molecule
-from pymatgen.analysis.graphs import MoleculeGraph
+from pymatgen.analysis.graphs import MoleculeGraph, build_MoleculeGraph
+from pymatgen.analysis.local_env import OpenBabelNN
 from atomate.utils.utils import env_chk
 from atomate.qchem.database import QChemCalcDb
 from itertools import combinations
@@ -69,10 +70,15 @@ class FragmentMolecule(FiretaskBase):
                 "OpenBabel not accessible and no bonds provided! Exiting...")
 
         # build the MoleculeGraph
-        mol_graph = build_MoleculeGraph(mol, self.get("edges", None))
+        edges = self.get("edges", None)
+        if edges is None:
+            mol_graph = build_MoleculeGraph(mol, strategy=OpenBabelNN,
+                                            reorder=False, extend_structure=False)
+        else:
+            mol_graph = build_MoleculeGraph(mol, edges=edges)
 
         # find all unique fragments
-        unique_fragments = build_unique_fragments(mol_graph)
+        unique_fragments = mol_graph.build_unique_fragments()
 
         # build three molecule objects for each unique fragment:
         # original charge, original charge +1, original charge -1
@@ -107,49 +113,6 @@ class FragmentMolecule(FiretaskBase):
         return FWAction(additions=new_FWs)
 
 
-def edges_from_babel(molecule):
-    babel_mol = BabelMolAdaptor(molecule).openbabel_mol
-    edges = []
-    for obbond in ob.OBMolBondIter(babel_mol):
-        edges += [[obbond.GetBeginAtomIdx() - 1, obbond.GetEndAtomIdx() - 1]]
-    return edges
-
-
-def build_MoleculeGraph(molecule, edges=None):
-    if edges == None:
-        edges = edges_from_babel(molecule)
-    mol_graph = MoleculeGraph.with_empty_graph(molecule)
-    for edge in edges:
-        mol_graph.add_edge(edge[0], edge[1])
-    mol_graph.graph = mol_graph.graph.to_undirected()
-    species = {}
-    coords = {}
-    for node in mol_graph.graph:
-        species[node] = mol_graph.molecule[node].specie.symbol
-        coords[node] = mol_graph.molecule[node].coords
-    nx.set_node_attributes(mol_graph.graph, species, "specie")
-    nx.set_node_attributes(mol_graph.graph, coords, "coords")
-    return mol_graph
-
-
-def build_unique_fragments(mol_graph):
-    # find all possible fragments, aka connected induced subgraphs
-    all_fragments = []
-    for ii in range(1, len(mol_graph.molecule)):
-        for combination in combinations(mol_graph.graph.nodes, ii):
-            subgraph = nx.subgraph(mol_graph.graph, combination)
-            if nx.is_connected(subgraph):
-                all_fragments.append(subgraph)
-
-    # narrow to all unique fragments using graph isomorphism
-    unique_fragments = []
-    for fragment in all_fragments:
-        if not [is_isomorphic(fragment, f)
-                for f in unique_fragments].count(True) >= 1:
-            unique_fragments.append(fragment)
-    return unique_fragments
-
-
 def build_unique_molecules(unique_fragments, orig_charge):
     unique_molecules = []
     for fragment in unique_fragments:
@@ -167,14 +130,6 @@ def build_unique_molecules(unique_fragments, orig_charge):
     return unique_molecules
 
 
-def _node_match(node, othernode):
-    return node["specie"] == othernode["specie"]
-
-
-def is_isomorphic(graph1, graph2):
-    return nx.is_isomorphic(graph1, graph2, node_match=_node_match)
-
-
 def not_in_database(molecule, docs):
     # if no docs present, assume fragment is not present
     if len(docs) == 0:
@@ -182,17 +137,17 @@ def not_in_database(molecule, docs):
 
     # otherwise, look through the docs for an equivalent entry
     else:
-        new_mol_graph = build_MoleculeGraph(molecule, None)
+        new_mol_graph = build_MoleculeGraph(molecule, strategy=OpenBabelNN,
+                                            reorder=False, extend_structure=False)
         for doc in docs:
             if molecule.composition.reduced_formula == doc["formula_pretty"]:
                 try:
                     old_mol = Molecule.from_dict(doc["output"]["initial_molecule"])
                 except TypeError:
                     old_mol = doc["output"]["initial_molecule"]
-                old_mol_graph = build_MoleculeGraph(old_mol,None)
-                if is_isomorphic(
-                        new_mol_graph.graph, old_mol_graph.graph
-                ) and molecule.charge == old_mol_graph.molecule.charge and molecule.spin_multiplicity == old_mol_graph.molecule.spin_multiplicity:
+                old_mol_graph = build_MoleculeGraph(old_mol, strategy=OpenBabelNN,
+                                                    reorder=False, extend_structure=False)
+                if new_mol_graph.isomorphic_to(old_mol_graph) and molecule.charge == old_mol_graph.molecule.charge and molecule.spin_multiplicity == old_mol_graph.molecule.spin_multiplicity:
                     return False
         return True
 
