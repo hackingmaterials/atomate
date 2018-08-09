@@ -5,7 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 # This module defines a task that returns all fragments of a molecule
 
 from pymatgen.core.structure import Molecule
-from pymatgen.analysis.graphs import MoleculeGraph, build_MoleculeGraph
+from pymatgen.analysis.graphs import build_MoleculeGraph
 from pymatgen.analysis.local_env import OpenBabelNN
 from atomate.utils.utils import env_chk
 from atomate.qchem.database import QChemCalcDb

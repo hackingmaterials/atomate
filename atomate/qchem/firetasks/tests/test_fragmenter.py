@@ -11,7 +11,7 @@ except ImportError:
     from mock import patch
 
 from pymatgen.core.structure import Molecule
-from pymatgen.analysis.graphs import build_MoleculeGraph, MoleculeGraph
+from pymatgen.analysis.graphs import build_MoleculeGraph
 from pymatgen.analysis.local_env import OpenBabelNN
 
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule, build_unique_molecules, build_new_FWs
