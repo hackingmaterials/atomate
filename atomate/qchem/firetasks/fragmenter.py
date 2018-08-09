@@ -9,17 +9,7 @@ from pymatgen.analysis.graphs import build_MoleculeGraph
 from pymatgen.analysis.local_env import OpenBabelNN
 from atomate.utils.utils import env_chk
 from atomate.qchem.database import QChemCalcDb
-from itertools import combinations
-import networkx as nx
 from fireworks import FiretaskBase, FWAction, explicit_serialize
-
-have_babel = True
-try:
-    from pymatgen.io.babel import BabelMolAdaptor
-    import openbabel as ob
-except ImportError:
-    print("Cannot find OpenBabel! Thus, bonds must be provided by the user.")
-    have_babel = False
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -63,11 +53,6 @@ class FragmentMolecule(FiretaskBase):
             raise KeyError(
                 "No molecule present, add as an optional param or check fw_spec"
             )
-
-        # if edges are not passed by the user and babel is not available, raise an error
-        if not self.get("edges") and not have_babel:
-            raise KeyError(
-                "OpenBabel not accessible and no bonds provided! Exiting...")
 
         # build the MoleculeGraph
         edges = self.get("edges", None)
