@@ -9,7 +9,7 @@ six==1.11.0
 pybtex==0.21
 ruamel.yaml==0.15.44
 pandas==0.22.0
-pymatgen==2018.8.7
-custodian==2018.8.10
+-e git://github.com/samblau/pymatgen@qchem#egg=pymatgen
+-e git://github.com/espottesmith/custodian@qchem#egg=custodian
 networkx==2.1
 pydash==4.1.0
