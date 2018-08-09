@@ -9,10 +9,10 @@ from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 from atomate.utils.testing import AtomateTest
 from pymatgen.core import Molecule
-from pymatgen.io.qchem_io.outputs import QCOutput
+from pymatgen.io.qchem.outputs import QCOutput
 from atomate.qchem.workflows.base.torsion_potential import get_wf_torsion_potential
 from atomate.qchem.powerups import use_fake_qchem
-from pymatgen.io.qchem_io.inputs import QCInput
+from pymatgen.io.qchem.inputs import QCInput
 import numpy as np
 
 __author__ = "Brandon Wood"

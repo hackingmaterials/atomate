@@ -31,7 +31,6 @@ def get_wf_double_FF_opt(molecule,
                          db_file=">>db_file<<",
                          **kwargs):
     """
-    Returns a workflow to the torsion potential for a molecule.
 
     Firework 1 : write QChem input for an FF optimization,
                  run FF_opt QCJob,

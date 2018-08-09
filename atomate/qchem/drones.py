@@ -13,8 +13,8 @@ from itertools import chain
 
 from monty.io import zopen
 from monty.json import jsanitize
-from pymatgen.io.qchem_io.outputs import QCOutput
-from pymatgen.io.qchem_io.inputs import QCInput
+from pymatgen.io.qchem.outputs import QCOutput
+from pymatgen.io.qchem.inputs import QCInput
 from pymatgen.apps.borg.hive import AbstractDrone
 from pymatgen.io.babel import BabelMolAdaptor
 from pymatgen.symmetry.analyzer import PointGroupAnalyzer
@@ -162,9 +162,12 @@ class QChemDrone(AbstractDrone):
             }
 
             if d["output"]["job_type"] == "opt" or d["output"]["job_type"] == "optimization":
-                d["output"]["optimized_molecule"] = d_calc_final[
-                    "molecule_from_optimized_geometry"]
-                d["output"]["final_energy"] = d_calc_final["final_energy"]
+                if "molecule_from_optimized_geometry" in d_calc_final:
+                    d["output"]["optimized_molecule"] = d_calc_final[
+                        "molecule_from_optimized_geometry"]
+                    d["output"]["final_energy"] = d_calc_final["final_energy"]
+                else:
+                    d["output"]["final_energy"] = "unstable"
                 if d_calc_final["opt_constraint"]:
                     d["output"]["constraint"] = [
                         d_calc_final["opt_constraint"][0],
@@ -180,36 +183,47 @@ class QChemDrone(AbstractDrone):
                     d["output"]["final_energy"] = d["calcs_reversed"][1][
                         "final_energy"]
 
+            if d["output"]["job_type"] == "sp":
+                d["output"]["final_energy"] = d_calc_final["SCF"][0][-1][0]
+
             if "special_run_type" in d:
                 if d["special_run_type"] == "frequency_flattener":
-                    d["num_frequencies_flattened"] = (
-                        len(qcinput_files) / 2) - 1
+                    d["num_frequencies_flattened"] = int((len(qcinput_files) / 2) - 1)
 
-            total_cputime = 0.0
-            total_walltime = 0.0
-            nan_found = False
-            for calc in d["calcs_reversed"]:
-                if calc["walltime"] != "nan":
-                    total_walltime += calc["walltime"]
+            if d_calc_final["completion"]:
+                total_cputime = 0.0
+                total_walltime = 0.0
+                nan_found = False
+                for calc in d["calcs_reversed"]:
+                    if calc["walltime"] != "nan":
+                        total_walltime += calc["walltime"]
+                    else:
+                        nan_found = True
+                    if calc["cputime"] != "nan":
+                        total_cputime += calc["cputime"]
+                    else:
+                        nan_found = True
+                if nan_found:
+                    d["walltime"] = "nan"
+                    d["cputime"] = "nan"
                 else:
-                    nan_found = True
-                if calc["cputime"] != "nan":
-                    total_cputime += calc["cputime"]
-                else:
-                    nan_found = True
-            if nan_found:
-                d["walltime"] = "nan"
-                d["cputime"] = "nan"
+                    d["walltime"] = total_walltime
+                    d["cputime"] = total_cputime
             else:
-                d["walltime"] = total_walltime
-                d["cputime"] = total_cputime
+                d["walltime"] = "NA"
+                d["cputime"] = "NA"
 
             comp = d["output"]["initial_molecule"].composition
             d["formula_pretty"] = comp.reduced_formula
             d["formula_anonymous"] = comp.anonymized_formula
             d["chemsys"] = "-".join(sorted(set(d_calc_final["species"])))
-            d["pointgroup"] = PointGroupAnalyzer(
-                d["output"]["initial_molecule"]).sch_symbol
+            if d_calc_final["point_group"] != None:
+                d["pointgroup"] = d_calc_final["point_group"]
+            else:
+                try:
+                    d["pointgroup"] = PointGroupAnalyzer(d["output"]["initial_molecule"]).sch_symbol
+                except ValueError:
+                    d["pointgroup"] = "PGA_error"
 
             bb = BabelMolAdaptor(d["output"]["initial_molecule"])
             pbmol = bb.pybel_mol

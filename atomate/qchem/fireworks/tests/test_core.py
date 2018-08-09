@@ -8,9 +8,10 @@ import unittest
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.parse_outputs import QChemToDb
-from atomate.qchem.fireworks.core import OptimizeFW, FrequencyFlatteningOptimizeFW
+from atomate.qchem.firetasks.fragmenter import FragmentMolecule
+from atomate.qchem.fireworks.core import OptimizeFW, FrequencyFlatteningOptimizeFW, FragmentFW
 from atomate.utils.testing import AtomateTest
-from pymatgen.io.qchem_io.outputs import QCOutput
+from pymatgen.io.qchem.outputs import QCOutput
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -186,6 +187,38 @@ class TestCore(AtomateTest):
         self.assertEqual(firework.name,
                          "special frequency flattening structure optimization")
 
+    def test_FragmentFW_defaults(self):
+        firework = FragmentFW(molecule=self.act_mol)
+        self.assertEqual(firework.tasks[0].as_dict(),
+                         FragmentMolecule(
+                            molecule=self.act_mol,
+                            max_cores=32,
+                            qchem_input_params={},
+                            db_file=None,
+                            check_db=True).as_dict())
+        self.assertEqual(firework.parents, [])
+        self.assertEqual(firework.name, "fragment and optimize")
+
+    def test_FragmentFW_not_defaults(self):
+        firework = FragmentFW(molecule=self.act_mol,
+                              name="fragmenting a thing",
+                              qchem_cmd="qchem -slurm",
+                              multimode="mpi",
+                              input_file="different.qin",
+                              output_file="not_default.qout",
+                              max_cores=12,
+                              qchem_input_params={"pcm_dielectric": 10.0},
+                              db_file=os.path.join(db_dir, "db.json"),
+                              check_db=False)
+        self.assertEqual(firework.tasks[0].as_dict(),
+                         FragmentMolecule(
+                            molecule=self.act_mol,
+                            max_cores=12,
+                            qchem_input_params={"pcm_dielectric": 10.0},
+                            db_file=os.path.join(db_dir, "db.json"),
+                            check_db=False).as_dict())
+        self.assertEqual(firework.parents, [])
+        self.assertEqual(firework.name, "fragmenting a thing")
 
 if __name__ == "__main__":
     unittest.main()

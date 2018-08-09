@@ -107,7 +107,7 @@ class QChemDroneTest(unittest.TestCase):
                              doc["calcs_reversed"][0]["frequencies"][ii[0]])
         self.assertEqual(doc["output"]["enthalpy"], 37.547)
         self.assertEqual(doc["output"]["entropy"], 83.81)
-        self.assertEqual(doc["num_frequencies_flattened"], 1.0)
+        self.assertEqual(doc["num_frequencies_flattened"], 1)
         self.assertEqual(doc["walltime"], 935.29)
         self.assertEqual(doc["cputime"], 3616.6400000000003)
         self.assertEqual(doc["smiles"], "O1[C](O[Li])OC=C1")
@@ -167,6 +167,55 @@ class QChemDroneTest(unittest.TestCase):
         self.assertEqual(doc["calcs_reversed"][0]["task"]["name"], "calc2")
         self.assertEqual(doc["calcs_reversed"][-1]["task"]["name"], "calc0")
 
+    def test_assimilate_unstable_opt(self):
+        drone = QChemDrone(
+            runs=[
+                "opt_0", "freq_0", "opt_1", "freq_1", "opt_2", "freq_2",
+                "opt_3", "freq_3"
+            ],
+            additional_fields={"special_run_type": "frequency_flattener"})
+        doc = drone.assimilate(
+            path=os.path.join(module_dir, "..", "test_files", "2620_complete"),
+            input_file="mol.qin",
+            output_file="mol.qout",
+            multirun=False)
+        self.assertEqual(doc["input"]["job_type"], "opt")
+        self.assertEqual(doc["output"]["job_type"], "opt")
+        self.assertEqual(doc["output"]["final_energy"], "unstable")
+        self.assertEqual(doc["smiles"], "[S](=O)[N]S[C]")
+        self.assertEqual(doc["state"], "unsuccessful")
+        self.assertEqual(doc["num_frequencies_flattened"], 0)
+        self.assertEqual(doc["walltime"], "NA")
+        self.assertEqual(doc["cputime"], "NA")
+        self.assertEqual(doc["formula_pretty"], "CS2NO")
+        self.assertEqual(doc["formula_anonymous"], "ABCD2")
+        self.assertEqual(doc["chemsys"], "C-N-O-S")
+        self.assertEqual(doc["pointgroup"], "C1")
+
+    def test_assimilate_sp(self):
+        drone = QChemDrone()
+        doc = drone.assimilate(
+            path=os.path.join(module_dir, "..", "test_files", "launcher_sp"),
+            input_file="mol.qin",
+            output_file="mol.qout",
+            multirun=False)
+        self.assertEqual(doc["input"]["job_type"], "sp")
+        self.assertEqual(doc["output"]["job_type"], "sp")
+        self.assertEqual(doc["output"]["final_energy"], -75.1151765884)
+        self.assertEqual(doc["walltime"], 4.69)
+        self.assertEqual(doc["cputime"], 134.03)
+        self.assertEqual(doc["smiles"], "[O]")
+        self.assertEqual(doc["formula_pretty"], "O2")
+        self.assertEqual(doc["formula_anonymous"], "A")
+        self.assertEqual(doc["chemsys"], "O")
+        self.assertEqual(doc["pointgroup"], "Kh")
+        self.assertIn("custodian", doc)
+        self.assertIn("calcs_reversed", doc)
+        self.assertIn("initial_molecule", doc["input"])
+        self.assertIn("initial_molecule", doc["output"])
+        self.assertIn("last_updated", doc)
+        self.assertIn("dir_name", doc)
+        self.assertEqual(len(doc["calcs_reversed"]), 1)
 
 if __name__ == "__main__":
     unittest.main()
