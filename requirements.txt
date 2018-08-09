@@ -10,6 +10,6 @@ pybtex==0.21
 ruamel.yaml==0.15.44
 pandas==0.22.0
 pymatgen==2018.8.7
--e git://github.com/materialsproject/custodian#egg=custodian
+custodian==2018.8.9
 networkx==2.1
 pydash==4.1.0
