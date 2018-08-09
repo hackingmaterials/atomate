@@ -5,7 +5,7 @@ import os
 import unittest
 
 # from pymatgen.io.lammps.sets import LammpsInputSet
-from pymatgen.io.lammps.output import LammpsLog
+# from pymatgen.io.lammps.output import LammpsLog
 
 from atomate.utils.testing import AtomateTest
 from atomate.lammps.drones import LammpsDrone

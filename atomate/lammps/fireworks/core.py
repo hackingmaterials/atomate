@@ -6,7 +6,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 Defines fireworks to be incorporated into workflows.
 """
 
-from pymatgen.io.lammps.data import Topology
+# from pymatgen.io.lammps.data import Topology
 
 from fireworks import Firework
 
