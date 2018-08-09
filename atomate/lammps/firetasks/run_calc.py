@@ -9,7 +9,7 @@ This module defines firetasks for running lammps
 import os
 import shutil
 
-from pymatgen.io.lammps.utils import PackmolRunner, LammpsRunner
+# from pymatgen.io.lammps.utils import PackmolRunner, LammpsRunner
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
