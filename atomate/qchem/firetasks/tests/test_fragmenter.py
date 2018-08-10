@@ -4,7 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import os
 import unittest
-from monty.serialization import loadfn, dumpfn
+from monty.serialization import loadfn#, dumpfn
 try:
     from unittest.mock import patch
 except ImportError:
@@ -12,6 +12,7 @@ except ImportError:
 
 from pymatgen.core.structure import Molecule
 from pymatgen.analysis.graphs import build_MoleculeGraph
+from pymatgen.io.qchem.outputs import QCOutput
 
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule
 from atomate.qchem.firetasks.parse_outputs import QChemToDb
@@ -54,6 +55,7 @@ class TestFragmentMolecule(AtomateTest):
                    ) as FWAction_patch:
             ft = FragmentMolecule(molecule=self.pc, edges=self.pc_edges)
             ft.run_task({})
+            self.assertEqual(ft.check_db,False)
             self.assertEqual(
                 len(FWAction_patch.call_args[1]["additions"]), 295 * 3)
 
@@ -62,6 +64,7 @@ class TestFragmentMolecule(AtomateTest):
                    ) as FWAction_patch:
             ft = FragmentMolecule(molecule=self.pc)
             ft.run_task({})
+            self.assertEqual(ft.check_db,False)
             self.assertEqual(
                 len(FWAction_patch.call_args[1]["additions"]), 295 * 3)
 
@@ -71,6 +74,7 @@ class TestFragmentMolecule(AtomateTest):
             ft = FragmentMolecule(
                 molecule=self.pc_frag1, edges=self.pc_frag1_edges)
             ft.run_task({})
+            self.assertEqual(ft.check_db,False)
             self.assertEqual(
                 len(FWAction_patch.call_args[1]["additions"]), 12 * 3)
 
@@ -79,6 +83,7 @@ class TestFragmentMolecule(AtomateTest):
                    ) as FWAction_patch:
             ft = FragmentMolecule(molecule=self.pc_frag1)
             ft.run_task({})
+            self.assertEqual(ft.check_db,False)
             self.assertEqual(
                 len(FWAction_patch.call_args[1]["additions"]), 12 * 3)
 
@@ -87,6 +92,7 @@ class TestFragmentMolecule(AtomateTest):
                    ) as FWAction_patch:
             ft = FragmentMolecule(molecule=self.tfsi, edges=self.tfsi_edges)
             ft.run_task({})
+            self.assertEqual(ft.check_db,False)
             self.assertEqual(
                 len(FWAction_patch.call_args[1]["additions"]), 468)
 
@@ -95,6 +101,7 @@ class TestFragmentMolecule(AtomateTest):
                    ) as FWAction_patch:
             ft = FragmentMolecule(molecule=self.tfsi)
             ft.run_task({})
+            self.assertEqual(ft.check_db,False)
             self.assertEqual(
                 len(FWAction_patch.call_args[1]["additions"]), 468)
 
@@ -103,71 +110,77 @@ class TestFragmentMolecule(AtomateTest):
                    ) as FWAction_patch:
             ft = FragmentMolecule(molecule=self.neg_tfsi)
             ft.run_task({})
+            self.assertEqual(ft.check_db,False)
             self.assertEqual(
                 len(FWAction_patch.call_args[1]["additions"]), 624)
 
     def test_build_unique_relevant_molecules(self):
-        FM = FragmentMolecule(molecule=self.pc, edges=self.pc_edges)
-        FM.mol = FM.get("molecule")
+        ft = FragmentMolecule(molecule=self.pc, edges=self.pc_edges)
+        ft.mol = ft.get("molecule")
         mol_graph = build_MoleculeGraph(self.pc, edges=self.pc_edges)
-        FM.unique_fragments = mol_graph.build_unique_fragments()
-        FM._build_unique_relevant_molecules()
-        self.assertEqual(len(FM.unique_molecules), 295 * 3)
-        # dumpfn(FM.unique_molecules, os.path.join(module_dir,"pc_mols.json"))
+        ft.unique_fragments = mol_graph.build_unique_fragments()
+        ft._build_unique_relevant_molecules()
+        self.assertEqual(len(ft.unique_molecules), 295 * 3)
+        # dumpfn(ft.unique_molecules, os.path.join(module_dir,"pc_mols.json"))
         ref_mols = loadfn(os.path.join(module_dir, "pc_mols.json"))
-        self.assertEqual(FM.unique_molecules, ref_mols)
+        self.assertEqual(ft.unique_molecules, ref_mols)
 
-        FM = FragmentMolecule(molecule=self.pos_pc, edges=self.pc_edges)
-        FM.mol = FM.get("molecule")
+        ft = FragmentMolecule(molecule=self.pos_pc, edges=self.pc_edges)
+        ft.mol = ft.get("molecule")
         mol_graph = build_MoleculeGraph(self.pos_pc, edges=self.pc_edges)
-        FM.unique_fragments = mol_graph.build_unique_fragments()
-        FM._build_unique_relevant_molecules()
-        self.assertEqual(len(FM.unique_molecules), 295 * 4)
-        # dumpfn(FM.unique_molecules, os.path.join(module_dir,"pos_pc_mols.json"))
+        ft.unique_fragments = mol_graph.build_unique_fragments()
+        ft._build_unique_relevant_molecules()
+        self.assertEqual(len(ft.unique_molecules), 295 * 4)
+        # dumpfn(ft.unique_molecules, os.path.join(module_dir,"pos_pc_mols.json"))
         ref_mols = loadfn(os.path.join(module_dir, "pos_pc_mols.json"))
-        self.assertEqual(FM.unique_molecules, ref_mols)
+        self.assertEqual(ft.unique_molecules, ref_mols)
 
-        FM = FragmentMolecule(molecule=self.pc_frag1, edges=self.pc_frag1_edges)
-        FM.mol = FM.get("molecule")
+        ft = FragmentMolecule(molecule=self.pc_frag1, edges=self.pc_frag1_edges)
+        ft.mol = ft.get("molecule")
         mol_graph = build_MoleculeGraph(self.pc_frag1, edges=self.pc_frag1_edges)
-        FM.unique_fragments = mol_graph.build_unique_fragments()
-        FM._build_unique_relevant_molecules()
-        self.assertEqual(len(FM.unique_molecules), 12 * 3)
-        # dumpfn(FM.unique_molecules, os.path.join(module_dir,"pc_frag1_mols.json"))
+        ft.unique_fragments = mol_graph.build_unique_fragments()
+        ft._build_unique_relevant_molecules()
+        self.assertEqual(len(ft.unique_molecules), 12 * 3)
+        # dumpfn(ft.unique_molecules, os.path.join(module_dir,"pc_frag1_mols.json"))
         ref_mols = loadfn(os.path.join(module_dir, "pc_frag1_mols.json"))
-        self.assertEqual(FM.unique_molecules, ref_mols)
+        self.assertEqual(ft.unique_molecules, ref_mols)
 
     def test_build_new_FWs(self):
-        FM = FragmentMolecule(molecule=self.pc_frag1, edges=self.pc_frag1_edges)
-        FM.mol = FM.get("molecule")
+        ft = FragmentMolecule(molecule=self.pc_frag1, edges=self.pc_frag1_edges)
+        ft.mol = ft.get("molecule")
         mol_graph = build_MoleculeGraph(self.pc_frag1, edges=self.pc_frag1_edges)
-        FM.unique_fragments = mol_graph.build_unique_fragments()
-        FM._build_unique_relevant_molecules()
-        FM.all_relevant_docs = list()
-        new_FWs = FM._build_new_FWs()
+        ft.unique_fragments = mol_graph.build_unique_fragments()
+        ft._build_unique_relevant_molecules()
+        ft.all_relevant_docs = list()
+        new_FWs = ft._build_new_FWs()
         self.assertEqual(len(new_FWs), 36)
 
     def test_in_database_through_build_new_FWs(self):
-        FM = FragmentMolecule(molecule=self.pc_frag1, edges=self.pc_frag1_edges)
-        FM.mol = FM.get("molecule")
+        ft = FragmentMolecule(molecule=self.pc_frag1, edges=self.pc_frag1_edges)
+        ft.mol = ft.get("molecule")
         mol_graph = build_MoleculeGraph(self.pc_frag1, edges=self.pc_frag1_edges)
-        FM.unique_fragments = mol_graph.build_unique_fragments()
-        FM._build_unique_relevant_molecules()
-        FM.all_relevant_docs = loadfn(os.path.join(module_dir, "doc.json"))
-        new_FWs = FM._build_new_FWs()
+        ft.unique_fragments = mol_graph.build_unique_fragments()
+        ft._build_unique_relevant_molecules()
+        ft.all_relevant_docs = loadfn(os.path.join(module_dir, "doc.json"))
+        new_FWs = ft._build_new_FWs()
         self.assertEqual(len(new_FWs), 29)
 
     def test_in_database_with_actual_database(self):
         db_file=os.path.join(db_dir, "db.json")
-        parse_firetask = QChemToDb(calc_dir=os.path.join(module_dir, "..", "..", "test_files", "2620_complete"), db_file=db_file)
+        dir2620=os.path.join(module_dir, "..", "..", "test_files", "2620_complete")
+        mol2620=QCOutput(os.path.join(dir2620,"mol.qout.opt_0")).data["initial_molecule"]
+        parse_firetask = QChemToDb(calc_dir=dir2620, db_file=db_file)
         parse_firetask.run_task({})
         with patch("atomate.qchem.firetasks.fragmenter.FWAction"
                    ) as FWAction_patch:
             ft = FragmentMolecule(molecule=self.neg_tfsi, db_file=db_file)
             ft.run_task({})
+            self.assertEqual(ft.check_db,True)
             self.assertEqual(
                 len(FWAction_patch.call_args[1]["additions"]), 623)
-
+            self.assertEqual(ft._in_database(mol2620),True)
+            mol2620.set_charge_and_spin(charge=0)
+            self.assertEqual(ft._in_database(mol2620),False)
 
 if __name__ == "__main__":
     unittest.main()
