@@ -42,7 +42,7 @@ class FragmentMolecule(FiretaskBase):
     where the last two are significantly less likely, but possible.
     Thus, we want to simulate charges -1, 0, 1, and 2 of each fragment, given charge=1.
     We generalize to any positive charge in _build_unique_relevant_molecules.
-    
+
     Realistic fragmentation of a negatively charged molecule (using charge=-1 as an example here)
     will almost always be one of the following:
       molecule(charge=-1) -> fragment1(charge=0) + fragment2(charge=-1)
@@ -52,7 +52,7 @@ class FragmentMolecule(FiretaskBase):
     where the last two are significantly less likely, but possible.
     Thus, we want to simulate charges -2, -1, 0, and 1 of each fragment, given charge=-1.
     We generalize to any negative charge in _build_unique_relevant_molecules.
-    
+
 
     Optional params:
         molecule (Molecule): The molecule to fragment
