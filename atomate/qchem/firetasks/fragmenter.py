@@ -64,7 +64,6 @@ class FragmentMolecule(FiretaskBase):
         db_file (str): Path to file containing the database credentials. Supports env_chk.
         check_db (bool): Whether or not to check if fragments are present in the database.
                          Defaults to true.
-
     """
 
     optional_params = [
@@ -123,8 +122,10 @@ class FragmentMolecule(FiretaskBase):
         # not already present in our database
         return FWAction(additions=self._build_new_FWs())
 
-
     def _build_unique_relevant_molecules(self):
+        # Convert unique fragment objects to unique molecule objects, where each fragment
+        # yields three or four molecules given the range of relevant charges for dissociation
+        # as explained at the top of this firetask.
         self.unique_molecules = []
         if self.mol.charge == 0:
             charges = [-1, 0, 1]
@@ -139,6 +140,8 @@ class FragmentMolecule(FiretaskBase):
                 self.unique_molecules.append(Molecule(species=species, coords=coords, charge=charge))
 
     def _in_database(self, molecule):
+        # Check if a molecule is already present in the database, which has already been
+        # queried on relevant formulae and narrowed to self.all_relevant_docs.
         # if no docs present, assume fragment is not present
         if len(self.all_relevant_docs) == 0:
             return False
