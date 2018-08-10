@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.qchem package &#8212; atomate 0.8.1 documentation</title>
+    <title>atomate.qchem package &#8212; atomate 0.8.2 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.2 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -49,7 +49,7 @@
 <li class="toctree-l4"><a class="reference internal" href="atomate.qchem.firetasks.tests.html#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.qchem.firetasks.tests.html#module-atomate.qchem.firetasks.tests.test_geo_transformations">atomate.qchem.firetasks.tests.test_geo_transformations module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.qchem.firetasks.tests.html#atomate-qchem-firetasks-tests-test-run-calc-module">atomate.qchem.firetasks.tests.test_run_calc module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="atomate.qchem.firetasks.tests.html#atomate-qchem-firetasks-tests-test-write-inputs-module">atomate.qchem.firetasks.tests.test_write_inputs module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="atomate.qchem.firetasks.tests.html#module-atomate.qchem.firetasks.tests.test_write_inputs">atomate.qchem.firetasks.tests.test_write_inputs module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.qchem.firetasks.tests.html#module-atomate.qchem.firetasks.tests">Module contents</a></li>
 </ul>
 </li>
@@ -57,9 +57,9 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.qchem.firetasks.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.qchem.firetasks.html#module-atomate.qchem.firetasks.geo_transformations">atomate.qchem.firetasks.geo_transformations module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.qchem.firetasks.html#atomate-qchem-firetasks-parse-outputs-module">atomate.qchem.firetasks.parse_outputs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.qchem.firetasks.html#module-atomate.qchem.firetasks.parse_outputs">atomate.qchem.firetasks.parse_outputs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.qchem.firetasks.html#atomate-qchem-firetasks-run-calc-module">atomate.qchem.firetasks.run_calc module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.qchem.firetasks.html#atomate-qchem-firetasks-write-inputs-module">atomate.qchem.firetasks.write_inputs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.qchem.firetasks.html#module-atomate.qchem.firetasks.write_inputs">atomate.qchem.firetasks.write_inputs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.qchem.firetasks.html#module-atomate.qchem.firetasks">Module contents</a></li>
 </ul>
 </li>
@@ -81,7 +81,7 @@
 <li class="toctree-l3"><a class="reference internal" href="atomate.qchem.workflows.tests.html">atomate.qchem.workflows.tests package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="atomate.qchem.workflows.tests.html#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.qchem.workflows.tests.html#atomate-qchem-workflows-tests-test-double-ff-opt-module">atomate.qchem.workflows.tests.test_double_FF_opt module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="atomate.qchem.workflows.tests.html#atomate-qchem-workflows-tests-test-parse-pass-write-module">atomate.qchem.workflows.tests.test_parse_pass_write module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="atomate.qchem.workflows.tests.html#module-atomate.qchem.workflows.tests.test_parse_pass_write">atomate.qchem.workflows.tests.test_parse_pass_write module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.qchem.workflows.tests.html#atomate-qchem-workflows-tests-test-torsion-potential-module">atomate.qchem.workflows.tests.test_torsion_potential module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.qchem.workflows.tests.html#module-atomate.qchem.workflows.tests">Module contents</a></li>
 </ul>
@@ -131,8 +131,118 @@ background (bool): Run in the background or not.</dd>
 </dd></dl>
 
 </div>
-<div class="section" id="atomate-qchem-drones-module">
-<h2>atomate.qchem.drones module<a class="headerlink" href="#atomate-qchem-drones-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-atomate.qchem.drones">
+<span id="atomate-qchem-drones-module"></span><h2>atomate.qchem.drones module<a class="headerlink" href="#module-atomate.qchem.drones" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.qchem.drones.QChemDrone">
+<em class="property">class </em><code class="descclassname">atomate.qchem.drones.</code><code class="descname">QChemDrone</code><span class="sig-paren">(</span><em>runs=None</em>, <em>additional_fields=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.drones.QChemDrone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.apps.borg.hive.AbstractDrone</span></code></p>
+<p>A QChem drone to parse QChem calculations and insert an organized, searchable entry into the database.</p>
+<dl class="method">
+<dt id="atomate.qchem.drones.QChemDrone.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>runs=None</em>, <em>additional_fields=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a QChem drone to parse qchem calculations
+Args:</p>
+<blockquote>
+<div>runs (list): Naming scheme for multiple calcuations in one folder
+additional_fields (dict): dictionary of additional fields to add to output document</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.drones.QChemDrone.assimilate">
+<code class="descname">assimilate</code><span class="sig-paren">(</span><em>path</em>, <em>input_file</em>, <em>output_file</em>, <em>multirun</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.assimilate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses qchem input and output files and insert the result into the db.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">path (str): Path to the directory containing output file
+input_file (str): base name of the input file(s)
+output_file (str): base name of the output file(s)
+multirun (bool): Whether the job to parse includes multiple</p>
+<blockquote class="last">
+<div>calculations in one input / output pair.</div></blockquote>
+</dd>
+<dt>Returns:</dt>
+<dd>d (dict): a task dictionary</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.drones.QChemDrone.filter_files">
+<code class="descname">filter_files</code><span class="sig-paren">(</span><em>path</em>, <em>file_pattern</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.filter_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the files that match the pattern in the given path and
+return them in an ordered dictionary. The searched for files are
+filtered by the run types defined in self.runs.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>path (string): path to the folder
+file_pattern (string): base files to be searched for</dd>
+<dt>Returns:</dt>
+<dd>OrderedDict of the names of the files to be processed further.
+The key is set from list of run types: self.runs</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.drones.QChemDrone.generate_doc">
+<code class="descname">generate_doc</code><span class="sig-paren">(</span><em>dir_name</em>, <em>qcinput_files</em>, <em>qcoutput_files</em>, <em>multirun</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.generate_doc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="atomate.qchem.drones.QChemDrone.get_valid_paths">
+<em class="property">static </em><code class="descname">get_valid_paths</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.get_valid_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if path contains valid data for assimilation, and then returns
+the valid paths. The paths returned can be a list of directory or file
+paths, depending on what kind of data you are assimilating. For
+example, if you are assimilating VASP runs, you are only interested in
+directories containing vasprun.xml files. On the other hand, if you are
+interested converting all POSCARs in a directory tree to cifs for
+example, you will want the file paths.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>path: input path as a tuple generated from os.walk, i.e.,</dt>
+<dd>(parent, subdirs, files).</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>List of valid dir/file paths for assimilation</dd>
+</dl>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="atomate.qchem.drones.QChemDrone.post_process">
+<em class="property">static </em><code class="descname">post_process</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.post_process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Post-processing for various files other than the QChem input and output files.
+Currently only looks for custodian.json. Modify this if other files need to be processed.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="atomate.qchem.drones.QChemDrone.process_qchem_multirun">
+<em class="property">static </em><code class="descname">process_qchem_multirun</code><span class="sig-paren">(</span><em>input_files</em>, <em>output_files</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.process_qchem_multirun" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a QChem run which is known to include multiple calculations
+in a single input/output pair.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="atomate.qchem.drones.QChemDrone.process_qchemrun">
+<em class="property">static </em><code class="descname">process_qchemrun</code><span class="sig-paren">(</span><em>taskname</em>, <em>input_file</em>, <em>output_file</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.process_qchemrun" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a QChem calculation, aka an input/output pair.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.qchem.drones.QChemDrone.schema">
+<code class="descname">schema</code><em class="property"> = {'input': {'job_type', 'initial_molecule'}, 'output': {'job_type', 'initial_molecule'}, 'root': {'calcs_reversed', 'smiles', 'chemsys', 'output', 'dir_name', 'formula_pretty', 'cputime', 'input', 'walltime', 'formula_anonymous', 'pointgroup'}}</em><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.schema" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.drones.QChemDrone.validate_doc">
+<code class="descname">validate_doc</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.validate_doc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sanity check, aka make sure all the important keys are set. Note that a failure
+to pass validation is unfortunately unlikely to be noticed by a user.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="atomate-qchem-powerups-module">
 <h2>atomate.qchem.powerups module<a class="headerlink" href="#atomate-qchem-powerups-module" title="Permalink to this headline">¶</a></h2>
@@ -154,7 +264,7 @@ background (bool): Run in the background or not.</dd>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#module-atomate.qchem.database">atomate.qchem.database module</a></li>
-<li><a class="reference internal" href="#atomate-qchem-drones-module">atomate.qchem.drones module</a></li>
+<li><a class="reference internal" href="#module-atomate.qchem.drones">atomate.qchem.drones module</a></li>
 <li><a class="reference internal" href="#atomate-qchem-powerups-module">atomate.qchem.powerups module</a></li>
 <li><a class="reference internal" href="#module-atomate.qchem">Module contents</a></li>
 </ul>
@@ -193,7 +303,7 @@ background (bool): Run in the background or not.</dd>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.2 documentation</a> &#187;</li> 
       </ul>
     </div>
 
