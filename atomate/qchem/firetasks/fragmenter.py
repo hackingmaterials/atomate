@@ -63,7 +63,7 @@ class FragmentMolecule(FiretaskBase):
                                    provide: {"DFT_rung": ...}. Defaults to None.
         db_file (str): Path to file containing the database credentials. Supports env_chk.
         check_db (bool): Whether or not to check if fragments are present in the database.
-                         Defaults to true.
+                         Defaults to bool(db_file), aka true if a db_file is present.
     """
 
     optional_params = [
@@ -104,7 +104,7 @@ class FragmentMolecule(FiretaskBase):
 
         # attempt to connect to the database to later check if a fragment has already been calculated
         db_file = env_chk(self.get("db_file"), fw_spec)
-        check_db = self.get("check_db", True)
+        check_db = self.get("check_db", bool(db_file))
         self.all_relevant_docs = []
         if db_file and check_db:
             mmdb = QChemCalcDb.from_db_file(db_file, admin=True)
@@ -142,7 +142,7 @@ class FragmentMolecule(FiretaskBase):
     def _in_database(self, molecule):
         # Check if a molecule is already present in the database, which has already been
         # queried on relevant formulae and narrowed to self.all_relevant_docs.
-        # if no docs present, assume fragment is not present
+        # If no docs present, assume fragment is not present
         if len(self.all_relevant_docs) == 0:
             return False
 
