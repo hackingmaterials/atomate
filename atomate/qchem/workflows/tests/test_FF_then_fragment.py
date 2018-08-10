@@ -48,7 +48,7 @@ class TestFFthenfragment(AtomateTest):
             real_wf = get_wf_FF_then_fragment(molecule=initial_mol)
             # use powerup to replace run with fake run
             ref_dirs = {
-                "first_FF":
+                "first FF":
                 os.path.join(test_FF_then_fragment_files, "block", "launcher_first"),
                 "fragment and FF_opt":
                 os.path.join(test_FF_then_fragment_files, "block", "launcher_second")
@@ -61,7 +61,7 @@ class TestFFthenfragment(AtomateTest):
 
             first_FF = self.get_task_collection().find_one({
                 "task_label":
-                "first_FF"
+                "first FF"
             })
             self.assertEqual(first_FF["calcs_reversed"][0]["input"]["solvent"],
                              None)
