@@ -193,25 +193,16 @@ class QChemDrone(AbstractDrone):
             if d_calc_final["completion"]:
                 total_cputime = 0.0
                 total_walltime = 0.0
-                nan_found = False
                 for calc in d["calcs_reversed"]:
-                    if calc["walltime"] != "nan":
+                    if calc["walltime"] is not None:
                         total_walltime += calc["walltime"]
-                    else:
-                        nan_found = True
-                    if calc["cputime"] != "nan":
+                    if calc["cputime"] is not None:
                         total_cputime += calc["cputime"]
-                    else:
-                        nan_found = True
-                if nan_found:
-                    d["walltime"] = "nan"
-                    d["cputime"] = "nan"
-                else:
-                    d["walltime"] = total_walltime
-                    d["cputime"] = total_cputime
+                d["walltime"] = total_walltime
+                d["cputime"] = total_cputime
             else:
-                d["walltime"] = "NA"
-                d["cputime"] = "NA"
+                d["walltime"] = None
+                d["cputime"] = None
 
             comp = d["output"]["initial_molecule"].composition
             d["formula_pretty"] = comp.reduced_formula
