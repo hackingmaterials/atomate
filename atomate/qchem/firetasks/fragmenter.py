@@ -63,7 +63,7 @@ class FragmentMolecule(FiretaskBase):
                                    provide: {"DFT_rung": ...}. Defaults to None.
         db_file (str): Path to file containing the database credentials. Supports env_chk.
         check_db (bool): Whether or not to check if fragments are present in the database.
-                         Defaults to true. 
+                         Defaults to true.
 
     """
 
