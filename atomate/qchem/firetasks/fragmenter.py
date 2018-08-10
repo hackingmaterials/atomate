@@ -24,8 +24,8 @@ __credits__ = "John Dagdelen, Shyam Dwaraknath"
 @explicit_serialize
 class FragmentMolecule(FiretaskBase):
     """
-    Simulate all unique fragments of a molecule relevant for realistic fragmentation 
-    of the molecule itself or of its subfragments. 
+    Simulate all unique fragments of a molecule relevant for realistic fragmentation
+    of the molecule itself or of its subfragments.
 
     Realistic fragmentation of a neutral molecule will almost always be one of the following:
       molecule(charge=0) -> fragment1(charge=0) + fragment2(charge=0)
@@ -33,35 +33,37 @@ class FragmentMolecule(FiretaskBase):
       molecule(charge=0) -> fragment1(charge=-1) + fragment2(charge=1)
     Thus, we want to simulate charges -1, 0, and 1 of each fragment.
 
-    Realistic fragmentation of a positively charged molecule (using charge=1 as an example here) 
+    Realistic fragmentation of a positively charged molecule (using charge=1 as an example here)
     will almost always be one of the following:
       molecule(charge=1) -> fragment1(charge=0) + fragment2(charge=1)
       molecule(charge=1) -> fragment1(charge=1) + fragment2(charge=0)
       molecule(charge=1) -> fragment1(charge=2) + fragment2(charge=-1)
       molecule(charge=1) -> fragment1(charge=-1) + fragment2(charge=2)
     where the last two are significantly less likely, but possible.
-    Thus, we want to simulate charges -1, 0, 1, and 2 of each fragment, given charge=1. 
+    Thus, we want to simulate charges -1, 0, 1, and 2 of each fragment, given charge=1.
     We generalize to any positive charge in _build_unique_relevant_molecules.
     
-    Realistic fragmentation of a negatively charged molecule (using charge=-1 as an example here) 
+    Realistic fragmentation of a negatively charged molecule (using charge=-1 as an example here)
     will almost always be one of the following:
       molecule(charge=-1) -> fragment1(charge=0) + fragment2(charge=-1)
       molecule(charge=-1) -> fragment1(charge=-1) + fragment2(charge=0)
       molecule(charge=-1) -> fragment1(charge=-2) + fragment2(charge=1)
       molecule(charge=-1) -> fragment1(charge=1) + fragment2(charge=-2)
     where the last two are significantly less likely, but possible.
-    Thus, we want to simulate charges -2, -1, 0, and 1 of each fragment, given charge=-1. 
+    Thus, we want to simulate charges -2, -1, 0, and 1 of each fragment, given charge=-1.
     We generalize to any negative charge in _build_unique_relevant_molecules.
     
 
     Optional params:
-        molecule (Molecule):
+        molecule (Molecule): The molecule to fragment
         edges (list): List of index pairs that define graph edges, aka molecule bonds
         max_cores (int): Maximum number of cores to parallelize over. Defaults to 32.
         qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
                                    For example, if you want to change the DFT_rung, you should
                                    provide: {"DFT_rung": ...}. Defaults to None.
-        db_file (str): path to file containing the database credentials. Supports env_chk.
+        db_file (str): Path to file containing the database credentials. Supports env_chk.
+        check_db (bool): Whether or not to check if fragments are present in the database.
+                         Defaults to true. 
 
     """
 
@@ -110,7 +112,7 @@ class FragmentMolecule(FiretaskBase):
             self.all_relevant_docs = list(
                 mmdb.collection.find({
                     "formula_pretty": {
-                        "$in": unique_formulae
+                        "$in": self.unique_formulae
                     }
                 }, {
                     "formula_pretty": 1,
@@ -118,7 +120,7 @@ class FragmentMolecule(FiretaskBase):
                 }))
 
         # Return an FWAction which includes a new additional firework for each unique, relevant molecule
-        # not already present in our database 
+        # not already present in our database
         return FWAction(additions=self._build_new_FWs())
 
 
@@ -141,7 +143,7 @@ class FragmentMolecule(FiretaskBase):
         if len(self.all_relevant_docs) == 0:
             return False
 
-        # otherwise, look through the docs for an entry with an isomorphic molecule with 
+        # otherwise, look through the docs for an entry with an isomorphic molecule with
         # equivalent charge and multiplicity
         else:
             new_mol_graph = build_MoleculeGraph(molecule, strategy=OpenBabelNN,
@@ -162,8 +164,8 @@ class FragmentMolecule(FiretaskBase):
 
     def _build_new_FWs(self):
         # Build the list of new fireworks: a FrequencyFlatteningOptimizeFW for each unique fragment
-        # molecule not already in the database, unless the fragment is a single atom, in which case 
-        # add a SinglePointFW instead.
+        # molecule, unless the fragment is a single atom, in which case add a SinglePointFW instead.
+        # If the fragment is already in the database, don't add any new firework.
         from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
         from atomate.qchem.fireworks.core import SinglePointFW
         new_FWs = []
