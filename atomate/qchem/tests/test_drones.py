@@ -130,6 +130,18 @@ class QChemDroneTest(unittest.TestCase):
             list(doc["calcs_reversed"][1].keys()),
             list(doc["calcs_reversed"][3].keys()))
 
+    def test_assimilate_bad_FF(self):
+        drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener"})
+        doc = drone.assimilate(
+            path=os.path.join(module_dir, "..", "test_files", "launcher_bad_FF"),
+            input_file="mol.qin",
+            output_file="mol.qout",
+            multirun=False)
+        self.assertEqual(doc["special_run_type"], "frequency_flattener")
+        self.assertEqual(doc["input"]["job_type"], "opt")
+        self.assertEqual(doc["output"]["job_type"], "freq")
+        self.assertEqual(doc["state"], "unsuccessful")
+
     def test_multirun(self):
         drone = QChemDrone()
         doc = drone.assimilate(

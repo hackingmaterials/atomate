@@ -61,7 +61,7 @@ class QChemDrone(AbstractDrone):
         """
         self.runs = runs or list(
             chain.from_iterable([["opt_" + str(ii), "freq_" + str(ii)]
-                                 for ii in range(9)]))
+                                 for ii in range(10)]))
         self.additional_fields = additional_fields or {}
 
     def assimilate(self, path, input_file, output_file, multirun):
@@ -186,10 +186,6 @@ class QChemDrone(AbstractDrone):
             if d["output"]["job_type"] == "sp":
                 d["output"]["final_energy"] = d_calc_final["SCF"][0][-1][0]
 
-            if "special_run_type" in d:
-                if d["special_run_type"] == "frequency_flattener":
-                    d["num_frequencies_flattened"] = int((len(qcinput_files) / 2) - 1)
-
             if d_calc_final["completion"]:
                 total_cputime = 0.0
                 total_walltime = 0.0
@@ -221,8 +217,13 @@ class QChemDrone(AbstractDrone):
             smiles = pbmol.write(str("smi")).split()[0]
             d["smiles"] = smiles
 
-            d["state"] = "successful" if d_calc_final[
-                "completion"] else "unsuccessful"
+            d["state"] = "successful" if d_calc_final["completion"] else "unsuccessful"
+            if "special_run_type" in d:
+                if d["special_run_type"] == "frequency_flattener":
+                    d["num_frequencies_flattened"] = int((len(qcinput_files) / 2) - 1)
+                    if d["state"] == "successful":
+                        if d_calc_final["frequencies"][0] < 0: # If a negative frequency remains,
+                            d["state"] = "unsuccessful" # then the flattening was unsuccessful
             d["last_updated"] = datetime.datetime.utcnow()
             return d
 
