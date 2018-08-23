@@ -184,7 +184,7 @@ class QChemDrone(AbstractDrone):
                         "final_energy"]
 
             if d["output"]["job_type"] == "sp":
-                d["output"]["final_energy"] = d_calc_final["SCF"][0][-1][0]
+                d["output"]["final_energy"] = d_calc_final["final_energy"]
 
             if d_calc_final["completion"]:
                 total_cputime = 0.0
