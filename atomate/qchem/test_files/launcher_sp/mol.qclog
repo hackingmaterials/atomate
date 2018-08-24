@@ -1,0 +1,47 @@
+You are running Q-Chem version: 5.0.2
+
+#
+# job setting
+#
+local host:  nid01651
+current dir: /scratch2/scratchdirs/sblau/fragment_wf/block_2018-07-04-03-30-43-540608/launcher_2018-07-06-17-03-13-189067
+input file:  mol.qin
+output file: mol.qout
+nprocs     : 1
+nthreads   : 32
+#
+# qchem installation setting
+#
+QC:          /global/common/edison/software/qchem/5.1beta
+QCAUX:       /global/common/edison/software/qchem/5.1beta/qcaux
+QCPROG:      /global/common/edison/software/qchem/5.1beta/exe/qcprog.exe
+QCPROG_S:    /global/common/edison/software/qchem/5.1beta/exe/qcprog.exe
+PARALLEL:    -DPARALLEL
+QCMPI:       slurm
+#
+# qchem directory setting
+#
+qcrun:       qchem1989
+QCSCRATCH:   /dev/shm/qcscratch/
+QCLOCALSCR:  /tmp
+QCTMPDIR:    /tmp
+QCFILEPREF:  /tmp/qchem1989
+QCSAVEDIR:   
+workdirs:    /tmp/qchem1989
+workdir0:    /tmp/qchem1989
+partmpdirs =  
+#
+# parallel setting
+#
+QCRSH:           ssh
+QCMPI:           slurm
+QCMPIRUN:        srun
+QCMACHINEFILE:   
+
+#
+# env setting
+#
+exported envs:   QC QCAUX QCSCRATCH QCRUNNAME QCFILEPREF QCPROG QCPROG_S GUIFILE
+remove work dirs /tmp/qchem1989.0 -- /tmp/qchem1989.0
+rm -rf /tmp/qchem1989.0
+rm -rf /tmp/qchem1989

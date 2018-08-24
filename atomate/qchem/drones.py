@@ -61,7 +61,7 @@ class QChemDrone(AbstractDrone):
         """
         self.runs = runs or list(
             chain.from_iterable([["opt_" + str(ii), "freq_" + str(ii)]
-                                 for ii in range(9)]))
+                                 for ii in range(10)]))
         self.additional_fields = additional_fields or {}
 
     def assimilate(self, path, input_file, output_file, multirun):
@@ -162,9 +162,12 @@ class QChemDrone(AbstractDrone):
             }
 
             if d["output"]["job_type"] == "opt" or d["output"]["job_type"] == "optimization":
-                d["output"]["optimized_molecule"] = d_calc_final[
-                    "molecule_from_optimized_geometry"]
-                d["output"]["final_energy"] = d_calc_final["final_energy"]
+                if "molecule_from_optimized_geometry" in d_calc_final:
+                    d["output"]["optimized_molecule"] = d_calc_final[
+                        "molecule_from_optimized_geometry"]
+                    d["output"]["final_energy"] = d_calc_final["final_energy"]
+                else:
+                    d["output"]["final_energy"] = "unstable"
                 if d_calc_final["opt_constraint"]:
                     d["output"]["constraint"] = [
                         d_calc_final["opt_constraint"][0],
@@ -180,44 +183,47 @@ class QChemDrone(AbstractDrone):
                     d["output"]["final_energy"] = d["calcs_reversed"][1][
                         "final_energy"]
 
-            if "special_run_type" in d:
-                if d["special_run_type"] == "frequency_flattener":
-                    d["num_frequencies_flattened"] = (
-                        len(qcinput_files) / 2) - 1
+            if d["output"]["job_type"] == "sp":
+                d["output"]["final_energy"] = d_calc_final["final_energy"]
 
-            total_cputime = 0.0
-            total_walltime = 0.0
-            nan_found = False
-            for calc in d["calcs_reversed"]:
-                if calc["walltime"] != "nan":
-                    total_walltime += calc["walltime"]
-                else:
-                    nan_found = True
-                if calc["cputime"] != "nan":
-                    total_cputime += calc["cputime"]
-                else:
-                    nan_found = True
-            if nan_found:
-                d["walltime"] = "nan"
-                d["cputime"] = "nan"
-            else:
+            if d_calc_final["completion"]:
+                total_cputime = 0.0
+                total_walltime = 0.0
+                for calc in d["calcs_reversed"]:
+                    if calc["walltime"] is not None:
+                        total_walltime += calc["walltime"]
+                    if calc["cputime"] is not None:
+                        total_cputime += calc["cputime"]
                 d["walltime"] = total_walltime
                 d["cputime"] = total_cputime
+            else:
+                d["walltime"] = None
+                d["cputime"] = None
 
             comp = d["output"]["initial_molecule"].composition
             d["formula_pretty"] = comp.reduced_formula
             d["formula_anonymous"] = comp.anonymized_formula
             d["chemsys"] = "-".join(sorted(set(d_calc_final["species"])))
-            d["pointgroup"] = PointGroupAnalyzer(
-                d["output"]["initial_molecule"]).sch_symbol
+            if d_calc_final["point_group"] != None:
+                d["pointgroup"] = d_calc_final["point_group"]
+            else:
+                try:
+                    d["pointgroup"] = PointGroupAnalyzer(d["output"]["initial_molecule"]).sch_symbol
+                except ValueError:
+                    d["pointgroup"] = "PGA_error"
 
             bb = BabelMolAdaptor(d["output"]["initial_molecule"])
             pbmol = bb.pybel_mol
             smiles = pbmol.write(str("smi")).split()[0]
             d["smiles"] = smiles
 
-            d["state"] = "successful" if d_calc_final[
-                "completion"] else "unsuccessful"
+            d["state"] = "successful" if d_calc_final["completion"] else "unsuccessful"
+            if "special_run_type" in d:
+                if d["special_run_type"] == "frequency_flattener":
+                    d["num_frequencies_flattened"] = int((len(qcinput_files) / 2) - 1)
+                    if d["state"] == "successful":
+                        if d_calc_final["frequencies"][0] < 0: # If a negative frequency remains,
+                            d["state"] = "unsuccessful" # then the flattening was unsuccessful
             d["last_updated"] = datetime.datetime.utcnow()
             return d
 

@@ -1,0 +1,131 @@
+{
+    "spec": {
+        "_tasks": [
+            {
+                "molecule": null,
+                "max_cores": 32,
+                "qchem_input_params": {},
+                "db_file": ">>db_file<<",
+                "check_db": true,
+                "_fw_name": "{{atomate.qchem.firetasks.fragmenter.FragmentMolecule}}"
+            }
+        ],
+        "prev_calc_molecule": {
+            "@module": "pymatgen.core.structure",
+            "@class": "Molecule",
+            "charge": 0,
+            "spin_multiplicity": 2,
+            "sites": [
+                {
+                    "name": "B",
+                    "species": [
+                        {
+                            "element": "B",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        0.2204431309,
+                        0.0001452867,
+                        0.0002017189
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "F",
+                    "species": [
+                        {
+                            "element": "F",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        0.8779959382,
+                        1.1497669999,
+                        -0.0016361515
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "F",
+                    "species": [
+                        {
+                            "element": "F",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        0.8762873267,
+                        -1.1509026413,
+                        0.0002910851
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "F",
+                    "species": [
+                        {
+                            "element": "F",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        -0.9395780116,
+                        -0.0006236716,
+                        -0.9617107632
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "F",
+                    "species": [
+                        {
+                            "element": "F",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        -0.9371736594,
+                        0.0016785982,
+                        0.9629437635
+                    ],
+                    "properties": {}
+                }
+            ]
+        }
+    },
+    "fw_id": 2723,
+    "created_on": "2018-07-17T16:14:23.281348",
+    "updated_on": "2018-07-17T17:13:18.469259",
+    "launches": [
+        {
+            "fworker": {
+                "name": "cori_qchem_dev",
+                "category": "",
+                "query": "{}",
+                "env": {
+                    "db_file": "/global/homes/s/sblau/config/db.json",
+                    "qchem_cmd": "qchem -slurm",
+                    "scratch_dir": "/dev/shm/qcscratch/"
+                }
+            },
+            "fw_id": 2723,
+            "launch_dir": "/global/cscratch1/sd/sblau/fragment_wf/block_2018-07-10-18-45-27-601029/launcher_2018-07-17-17-03-58-683413",
+            "host": "nid01375",
+            "ip": "10.128.5.106",
+            "trackers": [],
+            "action": null,
+            "state": "RUNNING",
+            "state_history": [
+                {
+                    "state": "RUNNING",
+                    "created_on": "2018-07-17T17:13:18.467841",
+                    "updated_on": "2018-07-17T17:13:18.467844"
+                }
+            ],
+            "launch_id": 4160
+        }
+    ],
+    "state": "RUNNING",
+    "name": "fragment and FF_opt"
+}

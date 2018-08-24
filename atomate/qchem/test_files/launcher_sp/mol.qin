@@ -1,0 +1,13 @@
+$molecule
+ -1 2
+ O     -0.0721167665     -0.9423525538      0.1290391903
+$end
+
+$rem
+   job_type = sp
+   basis = 6-311++g*
+   max_scf_cycles = 200
+   gen_scfman = true
+   scf_algorithm = gdm
+   method = wb97xd
+$end
