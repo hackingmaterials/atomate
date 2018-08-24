@@ -248,6 +248,28 @@ class QChemDroneTest(unittest.TestCase):
                                               extend_structure=False)
         self.assertEqual(orig_molgraph.isomorphic_to(initial_molgraph), False)
 
+    def test_assimilate_disconnected_opt(self):
+        drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener"})
+        doc = drone.assimilate(
+            path=os.path.join(module_dir, "..", "test_files", "disconnected_but_converged"),
+            input_file="mol.qin",
+            output_file="mol.qout",
+            multirun=False)
+        self.assertEqual(doc["input"]["job_type"], "opt")
+        self.assertEqual(doc["output"]["job_type"], "freq")
+        self.assertEqual(doc["output"]["final_energy"], -303.07602688705)
+        self.assertEqual(doc["smiles"], "O=C.O=C=O")
+        self.assertEqual(doc["state"], "successful")
+        self.assertEqual(doc["num_frequencies_flattened"], 0)
+        self.assertEqual(doc["walltime"], 492.42999999999995)
+        self.assertEqual(doc["cputime"], 8825.76)
+        self.assertEqual(doc["formula_pretty"], "H2C2O3")
+        self.assertEqual(doc["formula_anonymous"], "A2B2C3")
+        self.assertEqual(doc["chemsys"], "C-H-O")
+        self.assertEqual(doc["pointgroup"], "C1")
+        self.assertEqual(doc["orig"]["rem"], doc["calcs_reversed"][-1]["input"]["rem"])
+        self.assertEqual(doc["calcs_reversed"][-1]["structure_change"], "unconnected_fragments")
+
     def test_assimilate_sp(self):
         drone = QChemDrone()
         doc = drone.assimilate(
