@@ -7,7 +7,10 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import os
 import unittest
 from atomate.qchem.drones import QChemDrone
+from pymatgen.core.structure import Molecule
 import numpy as np
+from pymatgen.analysis.local_env import OpenBabelNN
+from pymatgen.analysis.graphs import build_MoleculeGraph
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -203,6 +206,47 @@ class QChemDroneTest(unittest.TestCase):
         self.assertEqual(doc["formula_anonymous"], "ABCD2")
         self.assertEqual(doc["chemsys"], "C-N-O-S")
         self.assertEqual(doc["pointgroup"], "C1")
+        self.assertEqual(doc["orig"]["rem"], doc["calcs_reversed"][-1]["input"]["rem"])
+        self.assertEqual(doc["orig"]["molecule"], doc["calcs_reversed"][-1]["input"]["molecule"])
+        orig_molgraph = build_MoleculeGraph(Molecule.from_dict(doc["orig"]["molecule"]),
+                                                strategy=OpenBabelNN,
+                                                reorder=False,
+                                                extend_structure=False)
+        initial_molgraph = build_MoleculeGraph(Molecule.from_dict(doc["input"]["initial_molecule"]),
+                                              strategy=OpenBabelNN,
+                                              reorder=False,
+                                              extend_structure=False)
+        self.assertEqual(orig_molgraph.isomorphic_to(initial_molgraph), True)
+
+    def test_assimilate_opt_with_hidden_changes_from_handler(self):
+        drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener"})
+        doc = drone.assimilate(
+            path=os.path.join(module_dir, "..", "test_files", "1746_complete"),
+            input_file="mol.qin",
+            output_file="mol.qout",
+            multirun=False)
+        self.assertEqual(doc["input"]["job_type"], "opt")
+        self.assertEqual(doc["output"]["job_type"], "freq")
+        self.assertEqual(doc["output"]["final_energy"], -303.835532370106)
+        self.assertEqual(doc["smiles"], "O1C(=CC1=O)[CH]")
+        self.assertEqual(doc["state"], "successful")
+        self.assertEqual(doc["num_frequencies_flattened"], 0)
+        self.assertEqual(doc["walltime"], 631.54)
+        self.assertEqual(doc["cputime"], 7471.17)
+        self.assertEqual(doc["formula_pretty"], "HC2O")
+        self.assertEqual(doc["formula_anonymous"], "ABC2")
+        self.assertEqual(doc["chemsys"], "C-H-O")
+        self.assertEqual(doc["pointgroup"], "C1")
+        self.assertEqual(doc["orig"]["rem"], doc["calcs_reversed"][-1]["input"]["rem"])
+        orig_molgraph = build_MoleculeGraph(Molecule.from_dict(doc["orig"]["molecule"]),
+                                                strategy=OpenBabelNN,
+                                                reorder=False,
+                                                extend_structure=False)
+        initial_molgraph = build_MoleculeGraph(Molecule.from_dict(doc["input"]["initial_molecule"]),
+                                              strategy=OpenBabelNN,
+                                              reorder=False,
+                                              extend_structure=False)
+        self.assertEqual(orig_molgraph.isomorphic_to(initial_molgraph), False)
 
     def test_assimilate_sp(self):
         drone = QChemDrone()
