@@ -10,8 +10,8 @@ parameters file)
 import six
 
 from pymatgen import Molecule
-from pymatgen.io.lammps.data import LammpsData
-from pymatgen.io.lammps.sets import LammpsInputSet
+# from pymatgen.io.lammps.data import LammpsData
+# from pymatgen.io.lammps.sets import LammpsInputSet
 
 from fireworks import FiretaskBase, explicit_serialize
 

@@ -125,8 +125,10 @@ Installing atomate includes installation of codes, configuration files, and vari
 
 .. _Create a Python virtual environment:
 
-Create a Python virtual environment
-===================================
+Create a Python 3 virtual environment
+=====================================
+
+.. note:: Make sure to create Python 3 environment (ideally Python 3.6 and higher) as recent versions of atomate only support Py3 and higher.
 
 We highly recommended that you organize your installation of the atomate and the other Python codes using a virtual environment (e.g. ``virtualenv`` or similar tool such as anaconda).
 Ultimately, whether you want to use a virtual environment is optional and you don't have to use one if you know what you are doing.
@@ -175,7 +177,7 @@ To set up your virtual environment:
 Install Python packages
 =======================
 
-You have successfully set up an environment in which to install atomate!
+You have successfully set up an Python 3 environment in which to install atomate!
 Next, we will download and install all of the atomate-related Python packages.
 
 You can install these packages automatically or in "development mode". Development mode installation makes it easier to view and modify the source code to your needs, but requires a few more steps to set up and maintain.

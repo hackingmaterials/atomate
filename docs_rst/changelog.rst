@@ -2,6 +2,23 @@
 atomate Changelog
 =================
 
+**v0.8.2**
+
+* various requirement updates, code refactorings, and bug fixes especially in Qchem and LAMMPs packages (S. Blau)
+
+**v0.8.1**
+
+* add Bader charge parsing (S. Dwaraknath)
+* parse_outputs can push fields to new FWS (S. Dwaraknath)
+* minor bug fix (S. Torrisi)
+* some testing updates (A. Faghaninia, S. Blau)
+
+**v0.7.9**
+
+* Overhaul and update of QChem in atomate (B. Wood, S. Blau)
+* Fix integration tests (A. Dunn)
+* Stop officially supporting Py2
+
 **v0.7.8**
 
 * some QChem tasks and workflows (B. Wood)

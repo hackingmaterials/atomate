@@ -1,0 +1,226 @@
+{
+    "spec": {
+        "_tasks": [
+            {
+                "molecule": null,
+                "qchem_input_set": "OptSet",
+                "input_file": "mol.qin",
+                "qchem_input_params": {
+                    "pcm_dielectric": 10.0,
+                    "basis_set": "6-311++g**",
+                    "overwrite_inputs": {
+                        "rem": {
+                            "sym_ignore": "true"
+                        }
+                    }
+                },
+                "_fw_name": "{{atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet}}"
+            },
+            {
+                "qchem_cmd": ">>qchem_cmd<<",
+                "multimode": "openmp",
+                "input_file": "mol.qin",
+                "output_file": "mol.qout",
+                "max_cores": 32,
+                "job_type": "opt_with_frequency_flattener",
+                "max_iterations": 10,
+                "max_molecule_perturb_scale": 0.3,
+                "reversed_direction": false,
+                "_fw_name": "{{atomate.qchem.firetasks.run_calc.RunQChemCustodian}}"
+            },
+            {
+                "db_file": ">>db_file<<",
+                "input_file": "mol.qin",
+                "output_file": "mol.qout",
+                "additional_fields": {
+                    "task_label": "frequency flattening structure optimization",
+                    "special_run_type": "frequency_flattener"
+                },
+                "_fw_name": "{{atomate.qchem.firetasks.parse_outputs.QChemToDb}}"
+            }
+        ],
+        "prev_calc_molecule": {
+            "@module": "pymatgen.core.structure",
+            "@class": "Molecule",
+            "charge": 0,
+            "spin_multiplicity": 2,
+            "sites": [
+                {
+                    "name": "O",
+                    "species": [
+                        {
+                            "element": "O",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        0.8779337884,
+                        0.1045304172,
+                        -0.0027678592
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "C",
+                    "species": [
+                        {
+                            "element": "C",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        1.0853313527,
+                        -1.2199936882,
+                        -0.0065929103
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "C",
+                    "species": [
+                        {
+                            "element": "C",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        -0.4866703097,
+                        0.3041532442,
+                        0.002044644
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "O",
+                    "species": [
+                        {
+                            "element": "O",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        2.1541186567,
+                        -1.7578077803,
+                        -0.0118119962
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "O",
+                    "species": [
+                        {
+                            "element": "O",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        -0.0972679529,
+                        -1.8511128514,
+                        -0.0042766824
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "C",
+                    "species": [
+                        {
+                            "element": "C",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        -1.0774970281,
+                        -0.8811613352,
+                        0.001901209
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "Li",
+                    "species": [
+                        {
+                            "element": "Li",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        4.0533658887,
+                        -2.1319067492,
+                        -0.01582898
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "H",
+                    "species": [
+                        {
+                            "element": "H",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        -0.8425954436,
+                        1.3182233094,
+                        0.0053798436
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "H",
+                    "species": [
+                        {
+                            "element": "H",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        -2.1014518465,
+                        -1.2075124896,
+                        0.0049210606
+                    ],
+                    "properties": {}
+                }
+            ]
+        }
+    },
+    "fw_id": 1,
+    "created_on": "2018-06-05T18:27:17.895106",
+    "updated_on": "2018-06-05T18:46:15.926157",
+    "launches": [
+        {
+            "fworker": {
+                "name": "cori_qchem_dev",
+                "category": "",
+                "query": "{}",
+                "env": {
+                    "db_file": "/global/homes/s/sblau/config/db.json",
+                    "qchem_cmd": "qchem -slurm",
+                    "scratch_dir": "/dev/shm/qcscratch/"
+                }
+            },
+            "fw_id": 1,
+            "launch_dir": "/global/cscratch1/sd/sblau/workflow/block_2018-06-05-18-27-36-017218/launcher_2018-06-05-18-45-01-067299",
+            "host": "nid00679",
+            "ip": "10.128.2.172",
+            "trackers": [],
+            "action": null,
+            "state": "RUNNING",
+            "state_history": [
+                {
+                    "state": "RESERVED",
+                    "created_on": "2018-06-05T18:45:01.055526",
+                    "updated_on": "2018-06-05T18:45:01.055530",
+                    "reservation_id": "13055359"
+                },
+                {
+                    "state": "RUNNING",
+                    "created_on": "2018-06-05T18:46:15.924403",
+                    "updated_on": "2018-06-05T18:46:15.924407"
+                }
+            ],
+            "launch_id": 2
+        }
+    ],
+    "state": "RUNNING",
+    "name": "frequency flattening structure optimization"
+}

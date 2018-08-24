@@ -2,6 +2,9 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
+from monty.os.path import zpath
+from monty.serialization import loadfn
+
 from atomate.vasp.config import HALF_KPOINTS_FIRST_RELAX
 
 """
@@ -26,7 +29,7 @@ from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, \
 from custodian.vasp.jobs import VaspJob, VaspNEBJob
 from custodian.vasp.validators import VasprunXMLValidator, VaspFilesValidator
 
-from fireworks import explicit_serialize, FiretaskBase
+from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 from atomate.utils.utils import env_chk, get_logger
 
@@ -199,6 +202,9 @@ class RunVaspCustodian(FiretaskBase):
                       scratch_dir=scratch_dir, gzipped_output=gzip_output)
 
         c.run()
+
+        if os.path.exists(zpath("custodian.json")):
+            return FWAction(stored_data=loadfn(zpath("custodian.json")))
 
 
 @explicit_serialize
