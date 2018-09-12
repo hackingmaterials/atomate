@@ -10,7 +10,6 @@ from pymatgen.core.structure import Molecule
 from pymatgen.analysis.graphs import build_MoleculeGraph
 from pymatgen.analysis.local_env import OpenBabelNN
 from pymatgen.analysis.fragmenter import Fragmenter
-from pymatgen.io.babel import BabelMolAdaptor
 from atomate.utils.utils import env_chk
 from atomate.qchem.database import QChemCalcDb
 from fireworks import FiretaskBase, FWAction, explicit_serialize
@@ -155,8 +154,6 @@ class FragmentMolecule(FiretaskBase):
         # not already present in our database
         return FWAction(additions=self._build_new_FWs())
 
-
-
     def _build_unique_relevant_molecules(self):
         """
         Convert unique fragments, aka molecule graph objects, into molecule objects with
@@ -252,5 +249,3 @@ class FragmentMolecule(FiretaskBase):
                             qchem_input_params=self.get("qchem_input_params", {}),
                             db_file=">>db_file<<"))
         return new_FWs
-
-

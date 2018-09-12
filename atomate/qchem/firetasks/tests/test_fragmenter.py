@@ -4,7 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import os
 import unittest
-from monty.serialization import loadfn, dumpfn
+from monty.serialization import loadfn#, dumpfn
 try:
     from unittest.mock import patch
 except ImportError:
