@@ -51,7 +51,7 @@ class TestCore(AtomateTest):
                              multimode="openmp",
                              input_file="mol.qin",
                              output_file="mol.qout",
-                             max_cores=32,
+                             max_cores=">>max_cores<<",
                              job_type="normal").as_dict())
         self.assertEqual(firework.tasks[2].as_dict(),
                          QChemToDb(
@@ -117,7 +117,7 @@ class TestCore(AtomateTest):
                              multimode="openmp",
                              input_file="mol.qin",
                              output_file="mol.qout",
-                             max_cores=32,
+                             max_cores=">>max_cores<<",
                              job_type="opt_with_frequency_flattener",
                              max_iterations=10,
                              max_molecule_perturb_scale=0.3,
@@ -193,7 +193,7 @@ class TestCore(AtomateTest):
                          FragmentMolecule(
                             molecule=self.act_mol,
                             depth=1,
-                            max_cores=32,
+                            max_cores=">>max_cores<<",
                             qchem_input_params={},
                             db_file=None,
                             check_db=True).as_dict())

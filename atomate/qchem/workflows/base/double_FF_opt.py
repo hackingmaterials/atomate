@@ -24,7 +24,7 @@ logger = get_logger(__name__)
 
 def get_wf_double_FF_opt(molecule,
                          pcm_dielectric,
-                         max_cores=32,
+                         max_cores=">>max_cores<<",
                          qchem_input_params=None,
                          name="douple_FF_opt",
                          qchem_cmd=">>qchem_cmd<<",

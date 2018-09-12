@@ -26,7 +26,7 @@ logger = get_logger(__name__)
 def get_wf_FF_then_fragment(molecule,
                             depth,
                             pcm_dielectric=None,
-                            max_cores=32,
+                            max_cores=">>max_cores<<",
                             qchem_input_params=None,
                             name="FF then fragment",
                             qchem_cmd=">>qchem_cmd<<",

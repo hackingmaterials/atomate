@@ -72,7 +72,6 @@ class FragmentMolecule(FiretaskBase):
                                                    to False.
         do_triplets (bool): Whether to simulate triplets as well as singlets for molecules with
                             an even number of electrons. Defaults to False.
-        max_cores (int): Maximum number of cores to parallelize over. Defaults to 32.
         qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
                                    For example, if you want to change the DFT_rung, you should
                                    provide: {"DFT_rung": ...}. Defaults to None.
@@ -83,7 +82,7 @@ class FragmentMolecule(FiretaskBase):
     """
 
     optional_params = [
-        "molecule", "edges", "depth", "open_rings", "opt_steps", "allow_additional_charge_separation", "do_triplets", "max_cores", "qchem_input_params", "db_file", "check_db"
+        "molecule", "edges", "depth", "open_rings", "opt_steps", "allow_additional_charge_separation", "do_triplets", "qchem_input_params", "db_file", "check_db"
     ]
 
     def run_task(self, fw_spec):
@@ -236,7 +235,7 @@ class FragmentMolecule(FiretaskBase):
                             molecule=unique_molecule,
                             name="fragment_" + str(ii),
                             qchem_cmd=">>qchem_cmd<<",
-                            max_cores=self.get("max_cores",32),
+                            max_cores=">>max_cores<<",
                             qchem_input_params=self.get("qchem_input_params", {}),
                             db_file=">>db_file<<"))
                 else:
@@ -245,7 +244,7 @@ class FragmentMolecule(FiretaskBase):
                             molecule=unique_molecule,
                             name="fragment_" + str(ii),
                             qchem_cmd=">>qchem_cmd<<",
-                            max_cores=self.get("max_cores",32),
+                            max_cores=">>max_cores<<",
                             qchem_input_params=self.get("qchem_input_params", {}),
                             db_file=">>db_file<<"))
         return new_FWs
