@@ -45,7 +45,7 @@ class TestFFthenfragment(AtomateTest):
                 os.path.join(test_FF_then_fragment_files, "block", "launcher_first",
                              "mol.qin.opt_0"))
             initial_mol = initial_qcin.molecule
-            real_wf = get_wf_FF_then_fragment(molecule=initial_mol)
+            real_wf = get_wf_FF_then_fragment(molecule=initial_mol, depth=0)
             # use powerup to replace run with fake run
             ref_dirs = {
                 "first FF":

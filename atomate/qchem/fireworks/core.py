@@ -226,6 +226,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
 class FragmentFW(Firework):
     def __init__(self,
                  molecule=None,
+                 depth=1,
                  name="fragment and optimize",
                  qchem_cmd="qchem",
                  multimode="openmp",
@@ -242,6 +243,7 @@ class FragmentFW(Firework):
 
         Args:
             molecule (Molecule): Input molecule.
+            depth (int): Fragmentation depth. Defaults to 1. See fragmenter firetask for more details.
             name (str): Name for the Firework.
             qchem_cmd (str): Command to run QChem. Defaults to qchem.
             multimode (str): Parallelization scheme, either openmp or mpi.
@@ -263,6 +265,7 @@ class FragmentFW(Firework):
         t.append(
             FragmentMolecule(
                 molecule=molecule,
+                depth=depth,
                 max_cores=max_cores,
                 qchem_input_params=qchem_input_params,
                 db_file=db_file,

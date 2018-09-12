@@ -24,6 +24,7 @@ logger = get_logger(__name__)
 
 
 def get_wf_FF_then_fragment(molecule,
+                            depth,
                             pcm_dielectric=None,
                             max_cores=32,
                             qchem_input_params=None,
@@ -75,6 +76,7 @@ def get_wf_FF_then_fragment(molecule,
 
     # Fragment the optimized molecule
     fw2 = FragmentFW(
+        depth=depth,
         name="fragment and FF_opt",
         qchem_cmd=qchem_cmd,
         max_cores=max_cores,

@@ -192,6 +192,7 @@ class TestCore(AtomateTest):
         self.assertEqual(firework.tasks[0].as_dict(),
                          FragmentMolecule(
                             molecule=self.act_mol,
+                            depth=1,
                             max_cores=32,
                             qchem_input_params={},
                             db_file=None,
@@ -201,6 +202,7 @@ class TestCore(AtomateTest):
 
     def test_FragmentFW_not_defaults(self):
         firework = FragmentFW(molecule=self.act_mol,
+                              depth=0,
                               name="fragmenting a thing",
                               qchem_cmd="qchem -slurm",
                               multimode="mpi",
@@ -213,6 +215,7 @@ class TestCore(AtomateTest):
         self.assertEqual(firework.tasks[0].as_dict(),
                          FragmentMolecule(
                             molecule=self.act_mol,
+                            depth=0,
                             max_cores=12,
                             qchem_input_params={"pcm_dielectric": 10.0},
                             db_file=os.path.join(db_dir, "db.json"),
