@@ -57,6 +57,7 @@ class TestFragmentMolecule(AtomateTest):
             ft = FragmentMolecule(molecule=self.pc, edges=self.pc_edges, depth=0, open_rings=False)
             ft.run_task({})
             self.assertEqual(ft.check_db,False)
+            self.assertEqual(ft.charges,[-1,0,1])
             self.assertEqual(
                 len(FWAction_patch.call_args[1]["additions"]), 295 * 3)
 
@@ -67,6 +68,7 @@ class TestFragmentMolecule(AtomateTest):
                 molecule=self.pc_frag1, edges=self.pc_frag1_edges, depth=0)
             ft.run_task({})
             self.assertEqual(ft.check_db,False)
+            self.assertEqual(ft.charges,[-1,0,1])
             self.assertEqual(
                 len(FWAction_patch.call_args[1]["additions"]), 12 * 3)
 
@@ -76,6 +78,7 @@ class TestFragmentMolecule(AtomateTest):
             ft = FragmentMolecule(molecule=self.pc_frag1, depth=0)
             ft.run_task({})
             self.assertEqual(ft.check_db,False)
+            self.assertEqual(ft.charges,[-1,0,1])
             self.assertEqual(
                 len(FWAction_patch.call_args[1]["additions"]), 12 * 3)
 
@@ -85,6 +88,7 @@ class TestFragmentMolecule(AtomateTest):
             ft = FragmentMolecule(molecule=self.tfsi, edges=self.tfsi_edges, depth=0)
             ft.run_task({})
             self.assertEqual(ft.check_db,False)
+            self.assertEqual(ft.charges,[-1,0,1])
             self.assertEqual(
                 len(FWAction_patch.call_args[1]["additions"]), 468)
 
@@ -94,24 +98,35 @@ class TestFragmentMolecule(AtomateTest):
             ft = FragmentMolecule(molecule=self.tfsi, depth=0)
             ft.run_task({})
             self.assertEqual(ft.check_db,False)
+            self.assertEqual(ft.charges,[-1,0,1])
             self.assertEqual(
                 len(FWAction_patch.call_args[1]["additions"]), 468)
 
-    def test_neg_TFSI_with_additional_charge_separation(self):
+    def test_neg_TFSI_with_additional_charges(self):
         with patch("atomate.qchem.firetasks.fragmenter.FWAction"
                    ) as FWAction_patch:
-            ft = FragmentMolecule(molecule=self.neg_tfsi, depth=0, allow_additional_charge_separation=True)
+            ft = FragmentMolecule(molecule=self.neg_tfsi, depth=0, additional_charges=[-2,1])
             ft.run_task({})
             self.assertEqual(ft.check_db,False)
+            self.assertEqual(ft.charges,[-1,0,-2,1])
             self.assertEqual(
                 len(FWAction_patch.call_args[1]["additions"]), 624)
 
-    def test_neg_TFSI_without_additional_charge_separation(self):
         with patch("atomate.qchem.firetasks.fragmenter.FWAction"
                    ) as FWAction_patch:
-            ft = FragmentMolecule(molecule=self.neg_tfsi, depth=0, allow_additional_charge_separation=False)
+            ft = FragmentMolecule(molecule=self.neg_tfsi, depth=0, additional_charges=[0,1])
             ft.run_task({})
             self.assertEqual(ft.check_db,False)
+            self.assertEqual(
+                len(FWAction_patch.call_args[1]["additions"]), 468)
+
+    def test_neg_TFSI(self):
+        with patch("atomate.qchem.firetasks.fragmenter.FWAction"
+                   ) as FWAction_patch:
+            ft = FragmentMolecule(molecule=self.neg_tfsi, depth=0)
+            ft.run_task({})
+            self.assertEqual(ft.check_db,False)
+            self.assertEqual(ft.charges,[-1,0])
             self.assertEqual(
                 len(FWAction_patch.call_args[1]["additions"]), 312)
 
@@ -232,9 +247,10 @@ class TestFragmentMolecule(AtomateTest):
         parse_firetask.run_task({})
         with patch("atomate.qchem.firetasks.fragmenter.FWAction"
                    ) as FWAction_patch:
-            ft = FragmentMolecule(molecule=self.neg_tfsi, db_file=db_file, depth=0, allow_additional_charge_separation=True)
+            ft = FragmentMolecule(molecule=self.neg_tfsi, db_file=db_file, depth=0, additional_charges=[-2,1])
             ft.run_task({})
             self.assertEqual(ft.check_db,True)
+            self.assertEqual(ft.charges,[-1,0,-2,1])
             self.assertEqual(
                 len(FWAction_patch.call_args[1]["additions"]), 623)
             self.assertEqual(ft._in_database(mol2620),True)

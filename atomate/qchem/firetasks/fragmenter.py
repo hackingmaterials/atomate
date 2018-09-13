@@ -40,16 +40,18 @@ class FragmentMolecule(FiretaskBase):
     will almost always be one of the following:
       molecule(charge=1) -> fragment1(charge=0) + fragment2(charge=1)
       molecule(charge=1) -> fragment1(charge=1) + fragment2(charge=0)
-    Thus, we want to simulate charges 0 and 1 of each fragment, given charge=1.
+    Thus, we want to simulate charges 0 and 1 of each fragment, given charge=1. Generalizing to
+    any positively charged principle with charge P, we simulate P and P-1.
 
     Realistic fragmentation of a negatively charged molecule (using charge=-1 as an example here)
     will almost always be one of the following:
       molecule(charge=-1) -> fragment1(charge=0) + fragment2(charge=-1)
       molecule(charge=-1) -> fragment1(charge=-1) + fragment2(charge=0)
-    Thus, we want to simulate charges -1 and 0 of each fragment, given charge=-1.
+    Thus, we want to simulate charges -1 and 0 of each fragment, given charge=-1. Generalizing to
+    any positively charged principle with charge P, we simulate P and P+1.
     
-    If considering additional charge separation is desired, the charge ranges above can be
-    extended by one in each direction by setting allow_additional_charge_separation to True.
+    If additional charges are desired by the user, they can be specified with the additional_charges
+    input parameter as described below.
 
 
     Optional params:
@@ -61,15 +63,20 @@ class FragmentMolecule(FiretaskBase):
                      one level up. Defaults to 1. However, if set to 0, instead all possible
                      fragments are generated using an alternative, non-iterative scheme. 
         open_rings (bool): Whether or not to open any rings encountered during fragmentation.
-                           Defaults to False. If true, any bond that fails to yield disconnected
+                           Defaults to True. If true, any bond that fails to yield disconnected
                            graphs when broken is instead removed and the entire structure is 
                            optimized with OpenBabel in order to obtain a good initial guess for
                            an opened geometry that can then be put back into QChem to be
                            optimized without the ring just reforming.
-        opt_steps (int): Number of optimization steps when opening rings. Defaults to 1000.
-        allow_additional_charge_separation (bool): Extend range of fragment charges by one in
-                                                   each direction, as explained above. Defaults
-                                                   to False.
+        opt_steps (int): Number of optimization steps when opening rings. Defaults to 10000.
+        additional_charges (list): List of additional charges besides the defaults described
+                                   above. For example, if a principle molecule with a +2 charge
+                                   is provided, by default all fragments will be calculated with
+                                   +1 and +2 charges as explained above. If the user includes
+                                   additional_charges=[0] then all fragments will be calculated
+                                   with 0, +1, and +2 charges. Additional charge values of 1 or 2
+                                   would not cause any new charges to be calculated as they are
+                                   already done. Defaults to [].
         do_triplets (bool): Whether to simulate triplets as well as singlets for molecules with
                             an even number of electrons. Defaults to False.
         qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
@@ -82,7 +89,7 @@ class FragmentMolecule(FiretaskBase):
     """
 
     optional_params = [
-        "molecule", "edges", "depth", "open_rings", "opt_steps", "allow_additional_charge_separation", "do_triplets", "qchem_input_params", "db_file", "check_db"
+        "molecule", "edges", "depth", "open_rings", "opt_steps", "additional_charges", "do_triplets", "qchem_input_params", "db_file", "check_db"
     ]
 
     def run_task(self, fw_spec):
@@ -99,32 +106,32 @@ class FragmentMolecule(FiretaskBase):
             )
 
         self.depth = self.get("depth", 1)
-        allow_additional_charge_separation = self.get("allow_additional_charge_separation", False)
-        self.opt_steps = self.get("opt_steps", 1000)
+        additional_charges = self.get("additional_charges", [])
+        self.opt_steps = self.get("opt_steps", 10000)
         self.do_triplets = self.get("do_triplets", False)
 
+        # Specify charges to consider based on charge of the principle molecule:
         if molecule.charge == 0:
-            if allow_additional_charge_separation:
-                self.charges = [-2, -1, 0, 1, 2]
-            else:
-                self.charges = [-1, 0, 1]
+            self.charges = [-1, 0, 1]
         elif molecule.charge > 0:
-            if allow_additional_charge_separation:
-                self.charges = [molecule.charge-2, molecule.charge-1, molecule.charge, molecule.charge+1]
-            else:
-                self.charges = [molecule.charge-1, molecule.charge]
+            self.charges = [molecule.charge-1, molecule.charge]
         else:
-            if allow_additional_charge_separation:
-                self.charges = [molecule.charge-1, molecule.charge, molecule.charge+1, molecule.charge+2]
-            else:
-                self.charges = [molecule.charge, molecule.charge+1]
+            self.charges = [molecule.charge, molecule.charge+1]
 
+        # Include any additional charges specified by the user:
+        for additional_charge in additional_charges:
+            if additional_charge not in self.charges:
+                print("Adding additional charge " + str(additional_charge))
+                self.charges.append(additional_charge)
+            else:
+                print("Charge " + str(additional_charge) + " already present!")
+
+        # Obtain fragments from Pymatgen's fragmenter:
         fragmenter = Fragmenter(molecule=molecule, edges=self.get("edges", None), depth=self.depth, open_rings=self.get("open_rings", True))
         self.unique_fragments = fragmenter.unique_fragments
         self.unique_fragments_from_ring_openings = fragmenter.unique_fragments_from_ring_openings
         
-        # Convert fragment molecule graphs into molecule objects with charges relevent for fragmentation
-        # as defined above
+        # Convert fragment molecule graphs into molecule objects with charges given in self.charges
         self._build_unique_relevant_molecules()
 
         # Then find all unique formulae in our unique molecules to facilitate easier database searching

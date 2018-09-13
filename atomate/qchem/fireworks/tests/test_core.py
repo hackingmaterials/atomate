@@ -193,6 +193,7 @@ class TestCore(AtomateTest):
                          FragmentMolecule(
                             molecule=self.act_mol,
                             depth=1,
+                            open_rings=True,
                             max_cores=">>max_cores<<",
                             qchem_input_params={},
                             db_file=None,
@@ -203,6 +204,7 @@ class TestCore(AtomateTest):
     def test_FragmentFW_not_defaults(self):
         firework = FragmentFW(molecule=self.act_mol,
                               depth=0,
+                              open_rings=False,
                               name="fragmenting a thing",
                               qchem_cmd="qchem -slurm",
                               multimode="mpi",
@@ -216,6 +218,7 @@ class TestCore(AtomateTest):
                          FragmentMolecule(
                             molecule=self.act_mol,
                             depth=0,
+                            open_rings=False,
                             max_cores=12,
                             qchem_input_params={"pcm_dielectric": 10.0},
                             db_file=os.path.join(db_dir, "db.json"),
