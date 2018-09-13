@@ -42,10 +42,10 @@ def get_fragmentation_wf(molecule,
                      where each evel will include fragments obtained by breaking
                      one bond of a fragment one level up. If set to 0, instead
                      all possible fragments are generated using an alternative,
-                     non-iterative scheme. 
+                     non-iterative scheme.
         open_rings (bool): Whether or not to open any rings encountered during fragmentation.
                            Defaults to True. If true, any bond that fails to yield disconnected
-                           graphs when broken is instead removed and the entire structure is 
+                           graphs when broken is instead removed and the entire structure is
                            optimized with OpenBabel in order to obtain a good initial guess for
                            an opened geometry that can then be put back into QChem to be
                            optimized without the ring just reforming.
