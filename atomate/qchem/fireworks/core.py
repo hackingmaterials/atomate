@@ -228,6 +228,8 @@ class FragmentFW(Firework):
                  molecule=None,
                  depth=1,
                  open_rings=True,
+                 additional_charges=[],
+                 do_triplets=True,
                  name="fragment and optimize",
                  qchem_cmd="qchem",
                  multimode="openmp",
@@ -247,6 +249,10 @@ class FragmentFW(Firework):
             depth (int): Fragmentation depth. Defaults to 1. See fragmenter firetask for more details.
             open_rings (bool): Whether or not to open any rings encountered during fragmentation.
                                Defaults to True. See fragmenter firetask for more details.
+            additional_charges (list): List of additional charges besides the defaults. See fragmenter
+                                       firetask for more details.
+            do_triplets (bool): Whether to simulate triplets as well as singlets for molecules with an
+                                even number of electrons. Defaults to True.
             name (str): Name for the Firework.
             qchem_cmd (str): Command to run QChem. Defaults to qchem.
             multimode (str): Parallelization scheme, either openmp or mpi.
@@ -270,6 +276,8 @@ class FragmentFW(Firework):
                 molecule=molecule,
                 depth=depth,
                 open_rings=open_rings,
+                additional_charges=additional_charges,
+                do_triplets=do_triplets,
                 max_cores=max_cores,
                 qchem_input_params=qchem_input_params,
                 db_file=db_file,

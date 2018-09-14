@@ -78,7 +78,7 @@ class FragmentMolecule(FiretaskBase):
                                    would not cause any new charges to be calculated as they are
                                    already done. Defaults to [].
         do_triplets (bool): Whether to simulate triplets as well as singlets for molecules with
-                            an even number of electrons. Defaults to False.
+                            an even number of electrons. Defaults to True.
         qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
                                    For example, if you want to change the DFT_rung, you should
                                    provide: {"DFT_rung": ...}. Defaults to None.
@@ -107,8 +107,7 @@ class FragmentMolecule(FiretaskBase):
 
         self.depth = self.get("depth", 1)
         additional_charges = self.get("additional_charges", [])
-        self.opt_steps = self.get("opt_steps", 10000)
-        self.do_triplets = self.get("do_triplets", False)
+        self.do_triplets = self.get("do_triplets", True)
 
         # Specify charges to consider based on charge of the principle molecule:
         if molecule.charge == 0:
@@ -127,7 +126,7 @@ class FragmentMolecule(FiretaskBase):
                 print("Charge " + str(additional_charge) + " already present!")
 
         # Obtain fragments from Pymatgen's fragmenter:
-        fragmenter = Fragmenter(molecule=molecule, edges=self.get("edges", None), depth=self.depth, open_rings=self.get("open_rings", True))
+        fragmenter = Fragmenter(molecule=molecule, edges=self.get("edges", None), depth=self.depth, open_rings=self.get("open_rings", True), opt_steps=self.get("opt_steps", 10000))
         self.unique_fragments = fragmenter.unique_fragments
         self.unique_fragments_from_ring_openings = fragmenter.unique_fragments_from_ring_openings
         

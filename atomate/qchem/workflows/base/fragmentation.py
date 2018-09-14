@@ -25,6 +25,8 @@ logger = get_logger(__name__)
 def get_fragmentation_wf(molecule,
                          depth,
                          open_rings=True,
+                         additional_charges=[],
+                         do_triplets=True,
                          pcm_dielectric=None,
                          do_optimization=True,
                          max_cores=">>max_cores<<",
@@ -49,6 +51,15 @@ def get_fragmentation_wf(molecule,
                            optimized with OpenBabel in order to obtain a good initial guess for
                            an opened geometry that can then be put back into QChem to be
                            optimized without the ring just reforming.
+        additional_charges (list): List of additional charges besides the defaults described in the
+                                   firetask. For example, if a principle molecule with a +2 charge
+                                   is provided, by default all fragments will be calculated with
+                                   +1 and +2 charges. If the user includes additional_charges=[0]
+                                   then all fragments will be calculated with 0, +1, and +2 charges.
+                                   Additional charge values of 1 or 2 would not cause any new charges
+                                   to be calculated as they are already done. Defaults to [].
+        do_triplets (bool): Whether to simulate triplets as well as singlets for molecules with
+                            an even number of electrons. Defaults to True.
         pcm_dielectric (float): The PCM dielectric constant.
         do_optimization (bool): Whether or not to optimize the given molecule
                                 before fragmentation. Defaults to True.
@@ -97,6 +108,8 @@ def get_fragmentation_wf(molecule,
         fw2 = FragmentFW(
             depth=depth,
             open_rings=open_rings,
+            additional_charges=additional_charges,
+            do_triplets=do_triplets,
             name="fragment and FF_opt",
             qchem_cmd=qchem_cmd,
             max_cores=max_cores,
@@ -112,6 +125,8 @@ def get_fragmentation_wf(molecule,
             molecule=molecule,
             depth=depth,
             open_rings=open_rings,
+            additional_charges=additional_charges,
+            do_triplets=do_triplets,
             name="fragment and FF_opt",
             qchem_cmd=qchem_cmd,
             max_cores=max_cores,
