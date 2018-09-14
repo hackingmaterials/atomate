@@ -295,5 +295,31 @@ class QChemDroneTest(unittest.TestCase):
         self.assertIn("dir_name", doc)
         self.assertEqual(len(doc["calcs_reversed"]), 1)
 
+    def test_sp_with_orig(self):
+        drone = QChemDrone()
+        doc = drone.assimilate(
+            path=os.path.join(module_dir, "..", "test_files", "launcher_bad_sp"),
+            input_file="mol.qin",
+            output_file="mol.qout",
+            multirun=False)
+        self.assertEqual(doc["input"]["job_type"], "sp")
+        self.assertEqual(doc["output"]["job_type"], "sp")
+        self.assertEqual(doc["output"]["final_energy"], -74.540726551)
+        self.assertEqual(doc["walltime"], 3.9)
+        self.assertEqual(doc["cputime"], 113.27)
+        self.assertEqual(doc["smiles"], "[O]")
+        self.assertEqual(doc["formula_pretty"], "O2")
+        self.assertEqual(doc["formula_anonymous"], "A")
+        self.assertEqual(doc["chemsys"], "O")
+        self.assertEqual(doc["pointgroup"], "Kh")
+        self.assertIn("custodian", doc)
+        self.assertIn("calcs_reversed", doc)
+        self.assertIn("initial_molecule", doc["input"])
+        self.assertIn("initial_molecule", doc["output"])
+        self.assertIn("last_updated", doc)
+        self.assertIn("dir_name", doc)
+        self.assertEqual(len(doc["calcs_reversed"]), 1)
+
+
 if __name__ == "__main__":
     unittest.main()

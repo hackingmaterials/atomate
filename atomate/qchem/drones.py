@@ -124,7 +124,7 @@ class QChemDrone(AbstractDrone):
                 for f in files:
                     if fnmatch(f, "{}.{}*".format(file_pattern, r)):
                         processed_files[r] = f
-        if len(processed_files) == 0:
+        if len(processed_files) == 0 or (len(processed_files)==1 and "orig" in processed_files):
             # get any matching file from the folder
             for f in files:
                 if fnmatch(f, "{}*".format(file_pattern)):
