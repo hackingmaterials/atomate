@@ -9,7 +9,7 @@ import time
 from pymatgen.core.structure import Molecule
 from pymatgen.analysis.graphs import build_MoleculeGraph
 from pymatgen.analysis.local_env import OpenBabelNN
-from pymatgen.io.babel import BabelMolAdaptor
+from pymatgen.analysis.fragmenter import Fragmenter
 from atomate.utils.utils import env_chk
 from atomate.qchem.database import QChemCalcDb
 from fireworks import FiretaskBase, FWAction, explicit_serialize
@@ -40,16 +40,18 @@ class FragmentMolecule(FiretaskBase):
     will almost always be one of the following:
       molecule(charge=1) -> fragment1(charge=0) + fragment2(charge=1)
       molecule(charge=1) -> fragment1(charge=1) + fragment2(charge=0)
-    Thus, we want to simulate charges 0 and 1 of each fragment, given charge=1.
+    Thus, we want to simulate charges 0 and 1 of each fragment, given charge=1. Generalizing to
+    any positively charged principle with charge P, we simulate P and P-1.
 
     Realistic fragmentation of a negatively charged molecule (using charge=-1 as an example here)
     will almost always be one of the following:
       molecule(charge=-1) -> fragment1(charge=0) + fragment2(charge=-1)
       molecule(charge=-1) -> fragment1(charge=-1) + fragment2(charge=0)
-    Thus, we want to simulate charges -1 and 0 of each fragment, given charge=-1.
+    Thus, we want to simulate charges -1 and 0 of each fragment, given charge=-1. Generalizing to
+    any positively charged principle with charge P, we simulate P and P+1.
     
-    If considering additional charge separation is desired, the charge ranges above can be
-    extended by one in each direction by setting allow_additional_charge_separation to True.
+    If additional charges are desired by the user, they can be specified with the additional_charges
+    input parameter as described below.
 
 
     Optional params:
@@ -61,16 +63,22 @@ class FragmentMolecule(FiretaskBase):
                      one level up. Defaults to 1. However, if set to 0, instead all possible
                      fragments are generated using an alternative, non-iterative scheme. 
         open_rings (bool): Whether or not to open any rings encountered during fragmentation.
-                           Defaults to False. If true, any bond that fails to yield disconnected
+                           Defaults to True. If true, any bond that fails to yield disconnected
                            graphs when broken is instead removed and the entire structure is 
                            optimized with OpenBabel in order to obtain a good initial guess for
                            an opened geometry that can then be put back into QChem to be
                            optimized without the ring just reforming.
-        opt_steps (int): Number of optimization steps when opening rings. Defaults to 1000.
-        allow_additional_charge_separation (bool): Extend range of fragment charges by one in
-                                                   each direction, as explained above. Defaults
-                                                   to False.
-        max_cores (int): Maximum number of cores to parallelize over. Defaults to 32.
+        opt_steps (int): Number of optimization steps when opening rings. Defaults to 10000.
+        additional_charges (list): List of additional charges besides the defaults described
+                                   above. For example, if a principle molecule with a +2 charge
+                                   is provided, by default all fragments will be calculated with
+                                   +1 and +2 charges as explained above. If the user includes
+                                   additional_charges=[0] then all fragments will be calculated
+                                   with 0, +1, and +2 charges. Additional charge values of 1 or 2
+                                   would not cause any new charges to be calculated as they are
+                                   already done. Defaults to [].
+        do_triplets (bool): Whether to simulate triplets as well as singlets for molecules with
+                            an even number of electrons. Defaults to True.
         qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
                                    For example, if you want to change the DFT_rung, you should
                                    provide: {"DFT_rung": ...}. Defaults to None.
@@ -81,7 +89,7 @@ class FragmentMolecule(FiretaskBase):
     """
 
     optional_params = [
-        "molecule", "edges", "depth", "open_rings", "opt_steps", "allow_additional_charge_separation", "max_cores", "qchem_input_params", "db_file", "check_db"
+        "molecule", "edges", "depth", "open_rings", "opt_steps", "additional_charges", "do_triplets", "qchem_input_params", "db_file", "check_db"
     ]
 
     def run_task(self, fw_spec):
@@ -98,65 +106,31 @@ class FragmentMolecule(FiretaskBase):
             )
 
         self.depth = self.get("depth", 1)
-        allow_additional_charge_separation = self.get("allow_additional_charge_separation", False)
-        self.open_rings = self.get("open_rings", True)
-        self.opt_steps = self.get("opt_steps", 1000)
+        additional_charges = self.get("additional_charges", [])
+        self.do_triplets = self.get("do_triplets", True)
 
+        # Specify charges to consider based on charge of the principle molecule:
         if molecule.charge == 0:
-            if allow_additional_charge_separation:
-                self.charges = [-2, -1, 0, 1, 2]
-            else:
-                self.charges = [-1, 0, 1]
+            self.charges = [-1, 0, 1]
         elif molecule.charge > 0:
-            if allow_additional_charge_separation:
-                self.charges = [molecule.charge-2, molecule.charge-1, molecule.charge, molecule.charge+1]
-            else:
-                self.charges = [molecule.charge-1, molecule.charge]
+            self.charges = [molecule.charge-1, molecule.charge]
         else:
-            if allow_additional_charge_separation:
-                self.charges = [molecule.charge-1, molecule.charge, molecule.charge+1, molecule.charge+2]
+            self.charges = [molecule.charge, molecule.charge+1]
+
+        # Include any additional charges specified by the user:
+        for additional_charge in additional_charges:
+            if additional_charge not in self.charges:
+                print("Adding additional charge " + str(additional_charge))
+                self.charges.append(additional_charge)
             else:
-                self.charges = [molecule.charge, molecule.charge+1]
+                print("Charge " + str(additional_charge) + " already present!")
 
-        # build the MoleculeGraph
-        edges = self.get("edges", None)
-        if edges is None:
-            self.mol_graph = build_MoleculeGraph(molecule, strategy=OpenBabelNN,
-                                            reorder=False, extend_structure=False)
-        else:
-            self.mol_graph = build_MoleculeGraph(molecule, edges=edges)
-
-        self.unique_fragments = []
-        self.unique_fragments_from_ring_openings = []
-
-        if self.depth == 0: # Non-iterative, find all possible fragments:
-
-            # Find all unique fragments besides those involving ring opening
-            self.unique_fragments = self.mol_graph.build_unique_fragments()
-
-            # Then, if self.open_rings is True, open all rings present in self.unique_fragments
-            # in order to capture all unique fragments that require ring opening.
-            if self.open_rings:
-                self._open_all_rings()
-
-        else: # Iterative fragment generation:
-            self.fragments_by_level = {}
-
-            # Loop through the number of levels,
-            for level in range(self.depth):
-                # If on the first level, perform one level of fragmentation on the principle molecule graph:
-                if level == 0:
-                    self.fragments_by_level["0"] = self._fragment_one_level([self.mol_graph])
-                else:
-                    if len(self.fragments_by_level[str(level-1)]) == 0:
-                        # Nothing left to fragment, so exit the loop:
-                        break
-                    else: # If not on the first level, and there are fragments present in the previous level, then
-                          # perform one level of fragmentation on all fragments present in the previous level:
-                        self.fragments_by_level[str(level)] = self._fragment_one_level(self.fragments_by_level[str(level-1)])
-
-        # Convert fragment molecule graphs into molecule objects with charges relevent for fragmentation
-        # as defined above
+        # Obtain fragments from Pymatgen's fragmenter:
+        fragmenter = Fragmenter(molecule=molecule, edges=self.get("edges", None), depth=self.depth, open_rings=self.get("open_rings", True), opt_steps=self.get("opt_steps", 10000))
+        self.unique_fragments = fragmenter.unique_fragments
+        self.unique_fragments_from_ring_openings = fragmenter.unique_fragments_from_ring_openings
+        
+        # Convert fragment molecule graphs into molecule objects with charges given in self.charges
         self._build_unique_relevant_molecules()
 
         # Then find all unique formulae in our unique molecules to facilitate easier database searching
@@ -184,44 +158,6 @@ class FragmentMolecule(FiretaskBase):
         # Return an FWAction which includes a new additional firework for each unique, relevant molecule
         # not already present in our database
         return FWAction(additions=self._build_new_FWs())
-
-    def _fragment_one_level(self, mol_graphs):
-        """
-        Perform one step of iterative fragmentation on a list of molecule graphs. Loop through the graphs,
-        then loop through each graph's edges and attempt to remove that edge in order to obtain two
-        disconnected subgraphs, aka two new fragments. If successful, check to see if the new fragments
-        are already present in self.unique_fragments, and append them if not. If unsucessful, we know
-        that edge belongs to a ring. If we are opening rings, do so with that bond, and then again
-        check if the resulting fragment is present in self.unique_fragments and add it if it is not.
-        """
-        unique_fragments_on_this_level = []
-        for mol_graph in mol_graphs:
-            for edge in mol_graph.graph.edges:
-                bond = [(edge[0],edge[1])]
-                try:
-                    fragments = mol_graph.split_molecule_subgraphs(bond, allow_reverse=True)
-                    for fragment in fragments:
-                        found = False
-                        for unique_fragment in self.unique_fragments:
-                            if unique_fragment.isomorphic_to(fragment):
-                                found = True
-                                break
-                        if not found:
-                            self.unique_fragments.append(fragment)
-                            unique_fragments_on_this_level.append(fragment)
-                except RuntimeError:
-                    if self.open_rings:
-                        fragment = self._open_ring(mol_graph, bond)
-                        found = False
-                        for unique_fragment in self.unique_fragments:
-                            if unique_fragment.isomorphic_to(fragment):
-                                found = True
-                                break
-                        if not found:
-                            self.unique_fragments.append(fragment)
-                            self.unique_fragments_from_ring_openings.append(fragment)
-                            unique_fragments_on_this_level.append(fragment)
-        return unique_fragments_on_this_level
 
     def _build_unique_relevant_molecules(self):
         """
@@ -256,6 +192,12 @@ class FragmentMolecule(FiretaskBase):
                     this_molecule = copy.deepcopy(unique_fragment.molecule)
                     this_molecule.set_charge_and_spin(charge=charge)
                     self.unique_molecules.append(this_molecule)
+        if self.do_triplets:
+            for unique_molecule in self.unique_molecules:
+                if unique_molecule.spin_multiplicity == 1:
+                    this_molecule = copy.deepcopy(unique_molecule)
+                    this_molecule.set_charge_and_spin(charge=this_molecule.charge, spin_multiplicity=3)
+                    self.unique_molecules.append(this_molecule)
 
     def _in_database(self, molecule):
         """
@@ -273,10 +215,7 @@ class FragmentMolecule(FiretaskBase):
                                                 reorder=False, extend_structure=False)
             for doc in self.all_relevant_docs:
                 if molecule.composition.reduced_formula == doc["formula_pretty"]:
-                    try:
-                        old_mol = Molecule.from_dict(doc["output"]["initial_molecule"])
-                    except TypeError:
-                        old_mol = doc["output"]["initial_molecule"]
+                    old_mol = Molecule.from_dict(doc["output"]["initial_molecule"])
                     old_mol_graph = build_MoleculeGraph(old_mol, strategy=OpenBabelNN,
                                                         reorder=False, extend_structure=False)
                     # If such an equivalent molecule is found, return true
@@ -302,7 +241,7 @@ class FragmentMolecule(FiretaskBase):
                             molecule=unique_molecule,
                             name="fragment_" + str(ii),
                             qchem_cmd=">>qchem_cmd<<",
-                            max_cores=self.get("max_cores",32),
+                            max_cores=">>max_cores<<",
                             qchem_input_params=self.get("qchem_input_params", {}),
                             db_file=">>db_file<<"))
                 else:
@@ -311,45 +250,7 @@ class FragmentMolecule(FiretaskBase):
                             molecule=unique_molecule,
                             name="fragment_" + str(ii),
                             qchem_cmd=">>qchem_cmd<<",
-                            max_cores=self.get("max_cores",32),
+                            max_cores=">>max_cores<<",
                             qchem_input_params=self.get("qchem_input_params", {}),
                             db_file=">>db_file<<"))
         return new_FWs
-
-    def _open_all_rings(self):
-        """
-        Having already generated all unique fragments that did not require ring opening,
-        now we want to also obtain fragments that do require opening. We achieve this by
-        looping through all unique fragments and opening each bond present in any ring
-        we find. We also temporarily add the principle molecule graph to self.unique_fragments
-        so that its rings are opened as well.
-        """
-        self.unique_fragments.insert(0, self.mol_graph)
-        for fragment in self.unique_fragments:
-            ring_edges = fragment.find_rings()
-            if ring_edges != []:
-                for bond in ring_edges[0]:
-                    new_fragment = self._open_ring(fragment, [bond])
-                    found = False
-                    for unique_fragment in self.unique_fragments:
-                        if unique_fragment.isomorphic_to(new_fragment):
-                            found = True
-                            break
-                    if not found:
-                        self.unique_fragments_from_ring_openings.append(new_fragment)
-                        self.unique_fragments.append(new_fragment)
-        # Finally, remove the principle molecule graph:
-        self.unique_fragments.pop(0)
-
-    def _open_ring(self, mol_graph, bond):
-        """
-        Function to actually open a ring using OpenBabel's local opt. Given a molecule
-        graph and a bond, convert the molecule graph into an OpenBabel molecule, remove
-        the given bond, perform the local opt with the number of steps determined by
-        self.steps, and then convert the resulting structure back into a molecule graph
-        to be returned.
-        """
-        obmol = BabelMolAdaptor.from_molecule_graph(mol_graph)
-        obmol.remove_bond(bond[0][0]+1, bond[0][1]+1)
-        obmol.localopt(steps=self.opt_steps)
-        return build_MoleculeGraph(obmol.pymatgen_mol, strategy=OpenBabelNN, reorder=False, extend_structure=False)
