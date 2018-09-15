@@ -10,7 +10,7 @@ from fireworks.core.rocket_launcher import rapidfire
 from atomate.utils.testing import AtomateTest
 from pymatgen.io.qchem.inputs import QCInput
 from atomate.qchem.powerups import use_fake_qchem
-from atomate.qchem.workflows.base.FF_then_fragment import get_wf_FF_then_fragment
+from atomate.qchem.workflows.base.fragmentation import get_fragmentation_wf
 try:
     from unittest.mock import patch, MagicMock
 except ImportError:
@@ -30,8 +30,8 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 
 
-class TestFFthenfragment(AtomateTest):
-    def test_FF_then_fragment(self):
+class TestFragmentation(AtomateTest):
+    def test_Fragmentation(self):
         with patch("atomate.qchem.firetasks.fragmenter.FWAction") as FWAction_patch:
             mock_FWAction = MagicMock()
             FWAction_patch.return_value = mock_FWAction
@@ -45,7 +45,7 @@ class TestFFthenfragment(AtomateTest):
                 os.path.join(test_FF_then_fragment_files, "block", "launcher_first",
                              "mol.qin.opt_0"))
             initial_mol = initial_qcin.molecule
-            real_wf = get_wf_FF_then_fragment(molecule=initial_mol)
+            real_wf = get_fragmentation_wf(molecule=initial_mol, depth=0, do_triplets=False)
             # use powerup to replace run with fake run
             ref_dirs = {
                 "first FF":
@@ -57,7 +57,7 @@ class TestFFthenfragment(AtomateTest):
             self.lp.add_wf(fake_wf)
             rapidfire(
                 self.lp,
-                fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}), pdb_on_exception=True)
+                fworker=FWorker(env={"max_cores": 32, "db_file": os.path.join(db_dir, "db.json")}), pdb_on_exception=True)
 
             first_FF = self.get_task_collection().find_one({
                 "task_label":

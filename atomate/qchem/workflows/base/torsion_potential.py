@@ -33,7 +33,7 @@ def get_wf_torsion_potential(molecule,
                              multimode="openmp",
                              input_file="mol.qin",
                              output_file="mol.qout",
-                             max_cores=32,
+                             max_cores=">>max_cores<<",
                              db_file=None,
                              **kwargs):
     """

@@ -75,7 +75,7 @@ class RunQChemCustodian(FiretaskBase):
         multimode (str): Parallelization scheme, either openmp or mpi.
         input_file (str): Name of the QChem input file.
         output_file (str): Name of the QChem output file.
-        max_cores (int): Maximum number of cores to parallelize over. Defaults to 32.
+        max_cores (int): Maximum number of cores to parallelize over. Supports env_chk.
         qclog_file (str): Name of the file to redirect the standard output to. None means
                           not to record the standard output. Defaults to None.
         suffix (str): String to append to the file in postprocess.
@@ -112,7 +112,7 @@ class RunQChemCustodian(FiretaskBase):
         multimode = self.get("multimode", "openmp")
         input_file = self.get("input_file", "mol.qin")
         output_file = self.get("output_file", "mol.qout")
-        max_cores = self.get("max_cores", 32)
+        max_cores = env_chk(self["max_cores"], fw_spec)
         qclog_file = self.get("qclog_file", "mol.qclog")
         suffix = self.get("suffix", "")
         scratch_dir = env_chk(self.get("scratch_dir"), fw_spec)
@@ -140,10 +140,10 @@ class RunQChemCustodian(FiretaskBase):
             jobs = [
                 QCJob(
                     qchem_command=qchem_cmd,
+                    max_cores=max_cores,
                     multimode=multimode,
                     input_file=input_file,
                     output_file=output_file,
-                    max_cores=max_cores,
                     qclog_file=qclog_file,
                     suffix=suffix,
                     scratch_dir=scratch_dir,
