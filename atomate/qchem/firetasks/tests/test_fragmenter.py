@@ -17,7 +17,6 @@ from pymatgen.io.qchem.outputs import QCOutput
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule
 from atomate.qchem.firetasks.parse_outputs import QChemToDb
 from atomate.utils.testing import AtomateTest
-from pymatgen.analysis.local_env import OpenBabelNN
 
 
 __author__ = "Samuel Blau"
@@ -136,11 +135,12 @@ class TestFragmentMolecule(AtomateTest):
         ft.depth = ft.get("depth")
         ft.charges = [-1, 0, 1]
         ft.do_triplets = False
-        mol_graph = build_MoleculeGraph(self.pc, edges=self.pc_edges)
+        edges = [(e[0], e[1], {}) for e in self.pc_edges]
+        mol_graph = build_MoleculeGraph(self.pc, edges=edges)
         ft.unique_fragments = mol_graph.build_unique_fragments()
         ft._build_unique_relevant_molecules()
         self.assertEqual(len(ft.unique_molecules), 295 * 3)
-        # dumpfn(ft.unique_molecules, os.path.join(module_dir,"pc_mols.json"))
+        #dumpfn(ft.unique_molecules, os.path.join(module_dir,"pc_mols.json"))
         ref_mols = loadfn(os.path.join(module_dir, "pc_mols.json"))
         self.assertEqual(ft.unique_molecules, ref_mols)
 
@@ -149,11 +149,11 @@ class TestFragmentMolecule(AtomateTest):
         ft.depth = ft.get("depth")
         ft.charges = [-1, 0, 1, 2]
         ft.do_triplets = False
-        mol_graph = build_MoleculeGraph(self.pos_pc, edges=self.pc_edges)
+        mol_graph = build_MoleculeGraph(self.pos_pc, edges=edges)
         ft.unique_fragments = mol_graph.build_unique_fragments()
         ft._build_unique_relevant_molecules()
         self.assertEqual(len(ft.unique_molecules), 295 * 4)
-        # dumpfn(ft.unique_molecules, os.path.join(module_dir,"pos_pc_mols.json"))
+        #dumpfn(ft.unique_molecules, os.path.join(module_dir,"pos_pc_mols.json"))
         ref_mols = loadfn(os.path.join(module_dir, "pos_pc_mols.json"))
         self.assertEqual(ft.unique_molecules, ref_mols)
 
@@ -162,11 +162,12 @@ class TestFragmentMolecule(AtomateTest):
         ft.depth = ft.get("depth")
         ft.charges = [-1, 0, 1]
         ft.do_triplets = False
-        mol_graph = build_MoleculeGraph(self.pc_frag1, edges=self.pc_frag1_edges)
+        pc_frag1_edges = [(e[0], e[1], {}) for e in self.pc_frag1_edges]
+        mol_graph = build_MoleculeGraph(self.pc_frag1, edges=pc_frag1_edges)
         ft.unique_fragments = mol_graph.build_unique_fragments()
         ft._build_unique_relevant_molecules()
         self.assertEqual(len(ft.unique_molecules), 12 * 3)
-        # dumpfn(ft.unique_molecules, os.path.join(module_dir,"pc_frag1_mols.json"))
+        #dumpfn(ft.unique_molecules, os.path.join(module_dir,"pc_frag1_mols.json"))
         ref_mols = loadfn(os.path.join(module_dir, "pc_frag1_mols.json"))
         self.assertEqual(ft.unique_molecules, ref_mols)
 
@@ -176,11 +177,12 @@ class TestFragmentMolecule(AtomateTest):
         ft.depth = ft.get("depth")
         ft.charges = [-1, 0, 1]
         ft.do_triplets = True
-        mol_graph = build_MoleculeGraph(self.pc, edges=self.pc_edges)
+        edges = [(e[0], e[1], {}) for e in self.pc_edges]
+        mol_graph = build_MoleculeGraph(self.pc, edges=edges)
         ft.unique_fragments = mol_graph.build_unique_fragments()
         ft._build_unique_relevant_molecules()
         self.assertEqual(len(ft.unique_molecules), 1323)
-        # dumpfn(ft.unique_molecules, os.path.join(module_dir,"pc_mols_with_trips.json"))
+        #dumpfn(ft.unique_molecules, os.path.join(module_dir,"pc_mols_with_trips.json"))
         ref_mols = loadfn(os.path.join(module_dir, "pc_mols_with_trips.json"))
         self.assertEqual(ft.unique_molecules, ref_mols)
 
@@ -189,11 +191,11 @@ class TestFragmentMolecule(AtomateTest):
         ft.depth = ft.get("depth")
         ft.charges = [-1, 0, 1, 2]
         ft.do_triplets = True
-        mol_graph = build_MoleculeGraph(self.pos_pc, edges=self.pc_edges)
+        mol_graph = build_MoleculeGraph(self.pos_pc, edges=edges)
         ft.unique_fragments = mol_graph.build_unique_fragments()
         ft._build_unique_relevant_molecules()
         self.assertEqual(len(ft.unique_molecules), 1770)
-        # dumpfn(ft.unique_molecules, os.path.join(module_dir,"pos_pc_mols_with_trips.json"))
+        #dumpfn(ft.unique_molecules, os.path.join(module_dir,"pos_pc_mols_with_trips.json"))
         ref_mols = loadfn(os.path.join(module_dir, "pos_pc_mols_with_trips.json"))
         self.assertEqual(ft.unique_molecules, ref_mols)
 
@@ -202,11 +204,12 @@ class TestFragmentMolecule(AtomateTest):
         ft.depth = ft.get("depth")
         ft.charges = [-1, 0, 1]
         ft.do_triplets = True
-        mol_graph = build_MoleculeGraph(self.pc_frag1, edges=self.pc_frag1_edges)
+        pc_frag1_edges = [(e[0], e[1], {}) for e in self.pc_frag1_edges]
+        mol_graph = build_MoleculeGraph(self.pc_frag1, edges=pc_frag1_edges)
         ft.unique_fragments = mol_graph.build_unique_fragments()
         ft._build_unique_relevant_molecules()
         self.assertEqual(len(ft.unique_molecules), 54)
-        # dumpfn(ft.unique_molecules, os.path.join(module_dir,"pc_frag1_mols_with_trips.json"))
+        #dumpfn(ft.unique_molecules, os.path.join(module_dir,"pc_frag1_mols_with_trips.json"))
         ref_mols = loadfn(os.path.join(module_dir, "pc_frag1_mols_with_trips.json"))
         self.assertEqual(ft.unique_molecules, ref_mols)
 
@@ -216,7 +219,8 @@ class TestFragmentMolecule(AtomateTest):
         ft.depth = ft.get("depth")
         ft.charges = [-1, 0, 1]
         ft.do_triplets = False
-        mol_graph = build_MoleculeGraph(self.pc_frag1, edges=self.pc_frag1_edges)
+        pc_frag1_edges = [(e[0], e[1], {}) for e in self.pc_frag1_edges]
+        mol_graph = build_MoleculeGraph(self.pc_frag1, edges=pc_frag1_edges)
         ft.unique_fragments = mol_graph.build_unique_fragments()
         ft._build_unique_relevant_molecules()
         ft.all_relevant_docs = list()
@@ -229,7 +233,8 @@ class TestFragmentMolecule(AtomateTest):
         ft.depth = ft.get("depth")
         ft.charges = [-1, 0, 1]
         ft.do_triplets = False
-        mol_graph = build_MoleculeGraph(self.pc_frag1, edges=self.pc_frag1_edges)
+        pc_frag1_edges = [(e[0], e[1], {}) for e in self.pc_frag1_edges]
+        mol_graph = build_MoleculeGraph(self.pc_frag1, edges=pc_frag1_edges)
         ft.unique_fragments = mol_graph.build_unique_fragments()
         ft._build_unique_relevant_molecules()
         docs = loadfn(os.path.join(module_dir, "doc.json"))
