@@ -44,6 +44,9 @@ class TestFragmentMolecule(AtomateTest):
         cls.neg_tfsi = Molecule.from_file(os.path.join(module_dir, "..", "..", "test_files", "TFSI.xyz"))
         cls.neg_tfsi.set_charge_and_spin(charge=-1)
         cls.tfsi_edges = [14,1],[1,4],[1,5],[1,7],[7,11],[7,12],[7,13],[14,0],[0,2],[0,3],[0,6],[6,8],[6,9],[6,10]
+        cls.neg_ec = Molecule.from_file(
+            os.path.join(module_dir, "..", "..", "test_files", "top_11", "EC.xyz"))
+        cls.neg_ec.set_charge_and_spin(charge=-1)
 
     def setUp(self, lpad=False):
         super(TestFragmentMolecule, self).setUp(lpad=False)
@@ -313,6 +316,17 @@ class TestFragmentMolecule(AtomateTest):
                 if fragment0.isomorphic_to(fragment10):
                     found = True
             self.assertEqual(found, True)
+
+    def test_EC_neg(self):
+        with patch("atomate.qchem.firetasks.fragmenter.FWAction"
+                   ) as FWAction_patch:
+            ft = FragmentMolecule(molecule=self.neg_ec, depth=1, check_db=False)
+            ft.run_task({})
+            self.assertEqual(ft.check_db,False)
+            frags = ft.unique_fragments
+            self.assertEqual(len(frags), 7)
+            self.assertEqual(
+                len(FWAction_patch.call_args[1]["additions"]), 15)
 
 
 if __name__ == "__main__":

@@ -184,7 +184,7 @@ class FragmentMolecule(FiretaskBase):
                 if found:
                     this_molecule = copy.deepcopy(unique_fragment.molecule)
                     this_molecule.set_charge_and_spin(charge=self.principle_charge)
-                    self.unique_molecules.append(unique_fragment.molecule)
+                    self.unique_molecules.append(this_molecule)
                 else:
                     for charge in self.charges:
                         this_molecule = copy.deepcopy(unique_fragment.molecule)
