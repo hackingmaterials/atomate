@@ -116,6 +116,7 @@ class FragmentMolecule(FiretaskBase):
             self.charges = [molecule.charge-1, molecule.charge]
         else:
             self.charges = [molecule.charge, molecule.charge+1]
+        self.principle_charge = molecule.charge
 
         # Include any additional charges specified by the user:
         for additional_charge in additional_charges:
@@ -181,7 +182,9 @@ class FragmentMolecule(FiretaskBase):
                     if fragment.isomorphic_to(unique_fragment):
                         found = True
                 if found:
-                    self.unique_molecules.append(unique_fragment.molecule)
+                    this_molecule = copy.deepcopy(unique_fragment.molecule)
+                    this_molecule.set_charge_and_spin(charge=self.principle_charge)
+                    self.unique_molecules.append(this_molecule)
                 else:
                     for charge in self.charges:
                         this_molecule = copy.deepcopy(unique_fragment.molecule)
