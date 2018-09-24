@@ -11,5 +11,5 @@ $rem
    method = wB97xd
    geom_opt_max_cycles = 200
    gen_scfman = True
-   scf_algorithm = DIIS
+   scf_algorithm = gdm
 $end

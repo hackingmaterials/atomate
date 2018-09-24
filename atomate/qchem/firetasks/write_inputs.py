@@ -8,7 +8,7 @@ import os
 
 from atomate.utils.utils import load_class
 from fireworks import FiretaskBase, explicit_serialize
-from pymatgen.io.qchem_io.inputs import QCInput
+from pymatgen.io.qchem.inputs import QCInput
 
 __author__ = "Brandon Wood"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -57,12 +57,12 @@ class WriteInputFromIOSet(FiretaskBase):
         # if a molecule is being passed through fw_spec
         elif fw_spec.get("prev_calc_molecule"):
             mol = fw_spec.get("prev_calc_molecule")
-            qcin_cls = load_class("pymatgen.io.qchem_io.sets",
+            qcin_cls = load_class("pymatgen.io.qchem.sets",
                                   self["qchem_input_set"])
             qcin = qcin_cls(mol, **self.get("qchem_input_params", {}))
         # if a molecule is included as an optional parameter
         elif self.get("molecule"):
-            qcin_cls = load_class("pymatgen.io.qchem_io.sets",
+            qcin_cls = load_class("pymatgen.io.qchem.sets",
                                   self["qchem_input_set"])
             qcin = qcin_cls(
                 self.get("molecule"), **self.get("qchem_input_params", {}))
@@ -84,7 +84,7 @@ class WriteCustomInput(FiretaskBase):
             qchem_input_custom (dict): Define custom input parameters to generate a qchem input file.
             This should be a dictionary of dictionaries (i.e. {{"rem": {"method": "b3lyp", basis": "6-31*G++", ...}
             Each QChem section should be a key with its own dictionary as the value. For more details on how
-            the input should be structured look at pymatgen.io.qchem_io.inputs
+            the input should be structured look at pymatgen.io.qchem.inputs
             ***  ***
 
         optional_params:

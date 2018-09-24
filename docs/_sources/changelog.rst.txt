@@ -2,6 +2,10 @@
 atomate Changelog
 =================
 
+**v0.8.2**
+
+* various requirement updates, code refactorings, and bug fixes especially in Qchem and LAMMPs packages (S. Blau)
+
 **v0.8.1**
 
 * add Bader charge parsing (S. Dwaraknath)

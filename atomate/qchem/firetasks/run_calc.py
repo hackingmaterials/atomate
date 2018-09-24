@@ -9,11 +9,11 @@ import shutil
 import os
 import subprocess
 
-from pymatgen.io.qchem_io.inputs import QCInput
+from pymatgen.io.qchem.inputs import QCInput
 
 from custodian import Custodian
-from custodian.qchem.new_handlers import QChemErrorHandler
-from custodian.qchem.new_jobs import QCJob
+from custodian.qchem.handlers import QChemErrorHandler
+from custodian.qchem.jobs import QCJob
 
 from fireworks import explicit_serialize, FiretaskBase
 

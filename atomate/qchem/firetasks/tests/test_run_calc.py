@@ -14,9 +14,9 @@ from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.run_calc import RunQChemDirect
 from atomate.qchem.firetasks.run_calc import RunQChemFake
 from atomate.utils.testing import AtomateTest
-from custodian.qchem.new_handlers import QChemErrorHandler
-from custodian.qchem.new_jobs import QCJob
-from pymatgen.io.qchem_io.outputs import QCOutput
+from custodian.qchem.handlers import QChemErrorHandler
+from custodian.qchem.jobs import QCJob
+from pymatgen.io.qchem.outputs import QCOutput
 import numpy as np
 
 __author__ = "Samuel Blau"
