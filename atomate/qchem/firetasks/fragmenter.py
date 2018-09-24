@@ -108,6 +108,7 @@ class FragmentMolecule(FiretaskBase):
         self.depth = self.get("depth", 1)
         additional_charges = self.get("additional_charges", [])
         self.do_triplets = self.get("do_triplets", True)
+        self.qchem_input_params = self.get("qchem_input_params", {})
 
         # Specify charges to consider based on charge of the principle molecule:
         if molecule.charge == 0:
@@ -141,17 +142,16 @@ class FragmentMolecule(FiretaskBase):
                 self.unique_formulae.append(molecule.composition.reduced_formula)
 
         # attempt to connect to the database to later check if a fragment has already been calculated
+        find_dict = {"formula_pretty": {"$in": self.unique_formulae}}
+        if "pcm_dielectric" in self.qchem_input_params:
+            find_dict["calcs_reversed.input.solvent.dielectric"] = self.qchem_input_params["pcm_dielectric"]
         db_file = env_chk(self.get("db_file"), fw_spec)
         self.check_db = self.get("check_db", bool(db_file))
         self.all_relevant_docs = []
         if db_file and self.check_db:
             mmdb = QChemCalcDb.from_db_file(db_file, admin=True)
             self.all_relevant_docs = list(
-                mmdb.collection.find({
-                    "formula_pretty": {
-                        "$in": self.unique_formulae
-                    }
-                }, {
+                mmdb.collection.find(find_dict, {
                     "formula_pretty": 1,
                     "output.initial_molecule": 1
                 }))
@@ -245,7 +245,7 @@ class FragmentMolecule(FiretaskBase):
                             name="fragment_" + str(ii),
                             qchem_cmd=">>qchem_cmd<<",
                             max_cores=">>max_cores<<",
-                            qchem_input_params=self.get("qchem_input_params", {}),
+                            qchem_input_params=self.qchem_input_params,
                             db_file=">>db_file<<"))
                 else:
                     new_FWs.append(
@@ -254,6 +254,6 @@ class FragmentMolecule(FiretaskBase):
                             name="fragment_" + str(ii),
                             qchem_cmd=">>qchem_cmd<<",
                             max_cores=">>max_cores<<",
-                            qchem_input_params=self.get("qchem_input_params", {}),
+                            qchem_input_params=self.qchem_input_params,
                             db_file=">>db_file<<"))
         return new_FWs
