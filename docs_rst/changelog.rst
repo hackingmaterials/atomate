@@ -2,6 +2,40 @@
 atomate Changelog
 =================
 
+**v0.8.2**
+
+* various requirement updates, code refactorings, and bug fixes especially in Qchem and LAMMPs packages (S. Blau)
+
+**v0.8.1**
+
+* add Bader charge parsing (S. Dwaraknath)
+* parse_outputs can push fields to new FWS (S. Dwaraknath)
+* minor bug fix (S. Torrisi)
+* some testing updates (A. Faghaninia, S. Blau)
+
+**v0.7.9**
+
+* Overhaul and update of QChem in atomate (B. Wood, S. Blau)
+* Fix integration tests (A. Dunn)
+* Stop officially supporting Py2
+
+**v0.7.8**
+
+* some QChem tasks and workflows (B. Wood)
+* add full HSE band structure workflow (A. Jain)
+
+**v0.7.7**
+
+* allow list of ErrorHandler in RunVaspCustodian (A. Jain)
+* fix adsorption unit test (J. Montoya)
+
+**v0.7.6**
+
+* remove force checking in drone (S. Dwaraknath)
+* cleanups to DOS + BS parsing and insertion in GridFS (S. Dwaraknath)
+* code cleanup and bugfixes (S. Dwaraknath, specter119)
+* some more docs on offline mode (A. Jain)
+
 **v0.7.5**
 
 * standardize drones to datetime.utcnow() (J. Montoya)

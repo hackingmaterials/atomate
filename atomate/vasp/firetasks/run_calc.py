@@ -2,6 +2,9 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
+from monty.os.path import zpath
+from monty.serialization import loadfn
+
 from atomate.vasp.config import HALF_KPOINTS_FIRST_RELAX
 
 """
@@ -26,7 +29,7 @@ from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, \
 from custodian.vasp.jobs import VaspJob, VaspNEBJob
 from custodian.vasp.validators import VasprunXMLValidator, VaspFilesValidator
 
-from fireworks import explicit_serialize, FiretaskBase
+from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 from atomate.utils.utils import env_chk, get_logger
 
@@ -71,8 +74,9 @@ class RunVaspCustodian(FiretaskBase):
     Optional params:
         job_type: (str) - choose from "normal" (default), "double_relaxation_run" (two consecutive 
             jobs), "full_opt_run" (multiple optimizations), and "neb"
-        handler_group: (str) - group of handlers to use. See handler_groups dict in the code for 
-            the groups and complete list of handlers in each group.
+        handler_group: (str or [ErrorHandler]) - group of handlers to use. See handler_groups dict in the code for
+            the groups and complete list of handlers in each group. Alternatively, you can
+            specify a list of ErrorHandler objects.
         max_force_threshold: (float) - if >0, adds MaxForceErrorHandler. Not recommended for 
             nscf runs.
         scratch_dir: (str) - if specified, uses this directory as the root scratch dir. 
@@ -176,7 +180,12 @@ class RunVaspCustodian(FiretaskBase):
             raise ValueError("Unsupported job type: {}".format(job_type))
 
         # construct handlers
-        handlers = handler_groups[self.get("handler_group", "default")]
+
+        handler_group = self.get("handler_group", "default")
+        if isinstance(handler_group, six.string_types):
+            handlers = handler_groups[handler_group]
+        else:
+            handlers = handler_group
 
         if self.get("max_force_threshold"):
             handlers.append(MaxForceErrorHandler(max_force_threshold=self["max_force_threshold"]))
@@ -193,6 +202,9 @@ class RunVaspCustodian(FiretaskBase):
                       scratch_dir=scratch_dir, gzipped_output=gzip_output)
 
         c.run()
+
+        if os.path.exists(zpath("custodian.json")):
+            return FWAction(stored_data=loadfn(zpath("custodian.json")))
 
 
 @explicit_serialize

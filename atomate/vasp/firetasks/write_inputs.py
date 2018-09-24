@@ -166,7 +166,10 @@ class ModifyIncar(FiretaskBase):
 
         if incar_multiply:
             for k in incar_multiply:
-                incar[k] = incar[k] * incar_multiply[k]
+                if hasattr(incar[k], '__iter__'):  # is list-like
+                    incar[k] = list(np.multiply(incar[k], incar_multiply[k]))
+                else:
+                    incar[k] = incar[k] * incar_multiply[k]
 
         if incar_dictmod:
             apply_mod(incar_dictmod, incar)
@@ -323,16 +326,13 @@ class WriteVaspSOCFromPrev(FiretaskBase):
     Writes input files for a spinorbit coupling calculation.
 
     Required params:
-        prev_calc_dir: path to previous calculation
         magmom (list): magnetic moment values for each site in the structure.
         saxis (list): magnetic field direction
 
-    Optional params:
-        (none)
     """
     required_params = ["magmom", "saxis"]
 
-    optional_params = ["copy_chgcar", "nbands_factor", "reciprocal_density", "small_gap_multiply",
+    optional_params = ["prev_calc_dir", "copy_chgcar", "nbands_factor", "reciprocal_density", "small_gap_multiply",
                        "standardize", "sym_prec", "international_monoclinic", "other_params"]
 
     def run_task(self, fw_spec):

@@ -93,10 +93,10 @@ Keep a record of your credentials - we will configure FireWorks to connect to th
 
     The computers that perform the calculations must have access to your MongoDB server. Some computing resources have firewalls blocking connections. Although this is not a problem for most computing centers that allow such connections (particularly from MOM-style nodes, e.g. at NERSC, SDSC, etc.), but some of the more security-sensitive centers (e.g., LLNL, PNNL, ARCHER) will run into issues. If you run into connection issues later in this tutorial, some options are:
 
-  * contact your computing center to review their security policy to allow connections from your MongoDB server (best resolution)
-  * set up an ssh tunnel to forward connections from allowed machines (the tunnel must be kept alive at all times you are running workflows)
-  * host the Mongo database on a machine that you are able to securely connect to, e.g. on the supercomputing network itself (ask a system administrator for help)
-  * use `FireWorks offline mode`_, which is a potentially workable solution but makes the system more difficult and inconvenient to use and also limits some features of FireWorks. Thus, we advocate trying the options above before this step. Please note that you may encounter problems if trying this method as the primary developers of atomate do not use or maintain this method. Some notes on usage are in `this thread <https://groups.google.com/forum/#!topic/atomate/dggbBsK628Q>`_.
+    * contact your computing center to review their security policy to allow connections from your MongoDB server (best resolution)
+    * host your Mongo database on a machine that you are able to securely connect to, e.g. on the supercomputing network itself (ask a system administrator for help)
+    * use a proxy service to forward connections from the MongoDB --> login node --> compute node (you might try, for example, `the mongo-proxy tool <https://github.com/bakks/mongo-proxy>`_).
+    * set up an ssh tunnel to forward connections from allowed machines (the tunnel must be kept alive at all times you are running workflows)
 
 
 .. _MongoDB: https://docs.mongodb.com/manual/
@@ -125,8 +125,10 @@ Installing atomate includes installation of codes, configuration files, and vari
 
 .. _Create a Python virtual environment:
 
-Create a Python virtual environment
-===================================
+Create a Python 3 virtual environment
+=====================================
+
+.. note:: Make sure to create Python 3 environment (ideally Python 3.6 and higher) as recent versions of atomate only support Py3 and higher.
 
 We highly recommended that you organize your installation of the atomate and the other Python codes using a virtual environment (e.g. ``virtualenv`` or similar tool such as anaconda).
 Ultimately, whether you want to use a virtual environment is optional and you don't have to use one if you know what you are doing.
@@ -175,7 +177,7 @@ To set up your virtual environment:
 Install Python packages
 =======================
 
-You have successfully set up an environment in which to install atomate!
+You have successfully set up an Python 3 environment in which to install atomate!
 Next, we will download and install all of the atomate-related Python packages.
 
 You can install these packages automatically or in "development mode". Development mode installation makes it easier to view and modify the source code to your needs, but requires a few more steps to set up and maintain.
