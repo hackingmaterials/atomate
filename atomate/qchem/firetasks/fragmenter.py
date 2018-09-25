@@ -153,7 +153,7 @@ class FragmentMolecule(FiretaskBase):
             self.all_relevant_docs = list(
                 mmdb.collection.find(find_dict, {
                     "formula_pretty": 1,
-                    "output.initial_molecule": 1
+                    "input.initial_molecule": 1
                 }))
 
         # Return an FWAction which includes a new additional firework for each unique, relevant molecule
@@ -218,7 +218,7 @@ class FragmentMolecule(FiretaskBase):
                                                 reorder=False, extend_structure=False)
             for doc in self.all_relevant_docs:
                 if molecule.composition.reduced_formula == doc["formula_pretty"]:
-                    old_mol = Molecule.from_dict(doc["output"]["initial_molecule"])
+                    old_mol = Molecule.from_dict(doc["input"]["initial_molecule"])
                     old_mol_graph = build_MoleculeGraph(old_mol, strategy=OpenBabelNN,
                                                         reorder=False, extend_structure=False)
                     # If such an equivalent molecule is found, return true

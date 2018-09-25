@@ -244,7 +244,7 @@ class TestFragmentMolecule(AtomateTest):
         ft._build_unique_relevant_molecules()
         docs = loadfn(os.path.join(module_dir, "doc.json"))
         for doc in docs:
-            doc["output"]["initial_molecule"] = doc["output"]["initial_molecule"].as_dict()
+            doc["input"]["initial_molecule"] = doc["input"]["initial_molecule"].as_dict()
         ft.all_relevant_docs = docs
         new_FWs = ft._build_new_FWs()
         self.assertEqual(len(new_FWs), 29)
@@ -252,13 +252,13 @@ class TestFragmentMolecule(AtomateTest):
     def test_in_database_through_build_new_FWs(self):
         with patch("atomate.qchem.firetasks.fragmenter.FWAction"
                    ) as FWAction_patch:
-            ft = FragmentMolecule(molecule=self.neg_ec, depth=1, pcm_dielectric=40.0, check_db=True)
+            ft = FragmentMolecule(molecule=self.neg_ec, depth=1, pcm_dielectric=40.0, check_db=True, db_file="/global/homes/s/sblau/config_edison/db.json")
             ft.run_task({})
             self.assertEqual(ft.check_db,True)
             frags = ft.unique_fragments
             self.assertEqual(len(frags), 7)
             self.assertEqual(
-                len(FWAction_patch.call_args[1]["additions"]), 15)
+                len(FWAction_patch.call_args[1]["additions"]), 0)
 
     def _test_in_database_with_actual_database(self):
         db_file=os.path.join(db_dir, "db.json")
