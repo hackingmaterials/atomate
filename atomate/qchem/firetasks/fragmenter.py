@@ -145,6 +145,8 @@ class FragmentMolecule(FiretaskBase):
         find_dict = {"formula_pretty": {"$in": self.unique_formulae}}
         if "pcm_dielectric" in self.qchem_input_params:
             find_dict["calcs_reversed.input.solvent.dielectric"] = self.qchem_input_params["pcm_dielectric"]
+        print(find_dict)
+        print()
         db_file = env_chk(self.get("db_file"), fw_spec)
         self.check_db = self.get("check_db", bool(db_file))
         self.all_relevant_docs = []
@@ -155,6 +157,8 @@ class FragmentMolecule(FiretaskBase):
                     "formula_pretty": 1,
                     "input.initial_molecule": 1
                 }))
+        print(self.all_relevant_docs)
+        print()
 
         # Return an FWAction which includes a new additional firework for each unique, relevant molecule
         # not already present in our database
