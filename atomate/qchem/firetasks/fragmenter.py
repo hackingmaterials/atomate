@@ -144,7 +144,7 @@ class FragmentMolecule(FiretaskBase):
         # attempt to connect to the database to later check if a fragment has already been calculated
         find_dict = {"formula_pretty": {"$in": self.unique_formulae}}
         if "pcm_dielectric" in self.qchem_input_params:
-            find_dict["calcs_reversed.input.solvent.dielectric"] = self.qchem_input_params["pcm_dielectric"]
+            find_dict["calcs_reversed.input.solvent.dielectric"] = str(self.qchem_input_params["pcm_dielectric"])
         print(find_dict)
         print()
         db_file = env_chk(self.get("db_file"), fw_spec)
