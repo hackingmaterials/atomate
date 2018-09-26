@@ -82,7 +82,7 @@ class TestFragmentation(AtomateTest):
             self.lp.add_wf(wf)
             rapidfire(
                 self.lp,
-                fworker=FWorker(env={"max_cores": 24, "db_file": "/global/homes/s/sblau/config_edison/db.json"}), pdb_on_exception=True)
+                fworker=FWorker(env={"max_cores": 24, "db_file": "/global/homes/s/sblau/config/db.json"}), pdb_on_exception=True)
                 # fworker=FWorker(env={"max_cores": 24, "db_file": os.path.join(db_dir, "db.json")}), pdb_on_exception=True)
 
             self.assertEqual(len(FWAction_patch.call_args[1]["additions"]), 0)
