@@ -157,7 +157,7 @@ class FragmentMolecule(FiretaskBase):
                     "formula_pretty": 1,
                     "input.initial_molecule": 1
                 }))
-        print(self.all_relevant_docs)
+        print(len(self.all_relevant_docs))
         print()
 
         # Return an FWAction which includes a new additional firework for each unique, relevant molecule
