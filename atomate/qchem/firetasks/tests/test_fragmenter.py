@@ -252,7 +252,7 @@ class TestFragmentMolecule(AtomateTest):
     def test_in_database_through_build_new_FWs(self):
         with patch("atomate.qchem.firetasks.fragmenter.FWAction"
                    ) as FWAction_patch:
-            ft = FragmentMolecule(molecule=self.neg_ec, depth=1, pcm_dielectric=40.0, check_db=True, db_file="/global/homes/s/sblau/config/db.json")
+            ft = FragmentMolecule(molecule=self.neg_ec, depth=1, qchem_input_params={"pcm_dielectric": 40.0}, check_db=True, db_file="/global/homes/s/sblau/config/db.json")
             ft.run_task({})
             self.assertEqual(ft.check_db,True)
             frags = ft.unique_fragments
