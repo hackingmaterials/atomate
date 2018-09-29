@@ -16,7 +16,6 @@ from collections import OrderedDict
 import json
 import glob
 import traceback
-import gzip
 
 from monty.io import zopen
 from monty.json import jsanitize
@@ -434,10 +433,11 @@ class VaspDrone(AbstractDrone):
 
         return d
 
-    def process_chgcar(self, chg_file):
+    @classmethod
+    def process_chgcar(cls, chg_file):
         try:
             chgcar = Chgcar.from_file(chg_file)
-        except IOError as e:
+        except IOError:
             raise ValueError("Unable to open CHGCAR/AECCAR file" )
         return chgcar
 
