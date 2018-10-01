@@ -9,7 +9,7 @@ from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.parse_outputs import QChemToDb
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule
-from atomate.qchem.fireworks.core import OptimizeFW, FrequencyFlatteningOptimizeFW, FragmentFW
+from atomate.qchem.fireworks.core import OptimizeFW, FrequencyFlatteningOptimizeFW, FragmentFW, SinglePointFW
 from atomate.utils.testing import AtomateTest
 from pymatgen.io.qchem.outputs import QCOutput
 
@@ -36,6 +36,72 @@ class TestCore(AtomateTest):
 
     def tearDown(self):
         pass
+
+    def test_SinglePointFW_defaults(self):
+        firework = SinglePointFW(molecule=self.act_mol)
+        self.assertEqual(firework.tasks[0].as_dict(),
+                         WriteInputFromIOSet(
+                             molecule=self.act_mol,
+                             qchem_input_set="SinglePointSet",
+                             input_file="mol.qin",
+                             qchem_input_params={}).as_dict())
+        self.assertEqual(firework.tasks[1].as_dict(),
+                         RunQChemCustodian(
+                             qchem_cmd="qchem",
+                             multimode="openmp",
+                             input_file="mol.qin",
+                             output_file="mol.qout",
+                             max_cores=">>max_cores<<",
+                             job_type="normal").as_dict())
+        self.assertEqual(firework.tasks[2].as_dict(),
+                         QChemToDb(
+                             db_file=None,
+                             input_file="mol.qin",
+                             output_file="mol.qout",
+                             additional_fields={
+                                 "task_label": "single point"
+                             }).as_dict())
+        self.assertEqual(firework.parents, [])
+        self.assertEqual(firework.name, "single point")
+
+    def test_SinglePointFW_not_defaults(self):
+        firework = SinglePointFW(
+            molecule=self.act_mol,
+            name="special single point",
+            qchem_cmd="qchem -slurm",
+            multimode="mpi",
+            input_file="different.qin",
+            output_file="not_default.qout",
+            max_cores=12,
+            qchem_input_params={"pcm_dielectric": 10.0},
+            db_file=os.path.join(db_dir, "db.json"),
+            parents=None)
+        self.assertEqual(firework.tasks[0].as_dict(),
+                         WriteInputFromIOSet(
+                             molecule=self.act_mol,
+                             qchem_input_set="SinglePointSet",
+                             input_file="different.qin",
+                             qchem_input_params={
+                                 "pcm_dielectric": 10.0
+                             }).as_dict())
+        self.assertEqual(firework.tasks[1].as_dict(),
+                         RunQChemCustodian(
+                             qchem_cmd="qchem -slurm",
+                             multimode="mpi",
+                             input_file="different.qin",
+                             output_file="not_default.qout",
+                             max_cores=12,
+                             job_type="normal").as_dict())
+        self.assertEqual(firework.tasks[2].as_dict(),
+                         QChemToDb(
+                             db_file=os.path.join(db_dir, "db.json"),
+                             input_file="different.qin",
+                             output_file="not_default.qout",
+                             additional_fields={
+                                 "task_label": "special single point"
+                             }).as_dict())
+        self.assertEqual(firework.parents, [])
+        self.assertEqual(firework.name, "special single point")
 
     def test_OptimizeFW_defaults(self):
         firework = OptimizeFW(molecule=self.act_mol)
