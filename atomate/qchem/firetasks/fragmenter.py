@@ -80,8 +80,23 @@ class FragmentMolecule(FiretaskBase):
         do_triplets (bool): Whether to simulate triplets as well as singlets for molecules with
                             an even number of electrons. Defaults to True.
         qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
-                                   For example, if you want to change the DFT_rung, you should
-                                   provide: {"DFT_rung": ...}. Defaults to None.
+                                   Basic uses would be to modify the default inputs of the set,
+                                   such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
+                                   or max_scf_cycles. See pymatgen/io/qchem/sets.py for default
+                                   values of all input parameters. For instance, if a user wanted
+                                   to use a more advanced DFT functional, include a pcm with a
+                                   dielectric of 30, and use a larger basis, the user would set
+                                   qchem_input_params = {"dft_rung": 5, "pcm_dielectric": 30,
+                                   "basis_set": "6-311++g**"}. However, more advanced customization
+                                   of the input is also possible through the overwrite_inputs key
+                                   which allows the user to directly modify the rem, pcm, smd, and
+                                   solvent dictionaries that QChemDictSet passes to inputs.py to
+                                   print an actual input file. For instance, if a user wanted to
+                                   set the sym_ignore flag in the rem section of the input file
+                                   to true, then they would set qchem_input_params = {"overwrite_inputs":
+                                   "rem": {"sym_ignore": "true"}}. Of course, overwrite_inputs
+                                   could be used in conjuction with more typical modifications,
+                                   as seen in the test_double_FF_opt workflow test.
         db_file (str): Path to file containing the database credentials. Supports env_chk.
         check_db (bool): Whether or not to check if fragments are present in the database.
                          Defaults to bool(db_file), aka true if a db_file is present and
