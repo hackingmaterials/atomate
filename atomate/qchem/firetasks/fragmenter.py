@@ -145,7 +145,7 @@ class FragmentMolecule(FiretaskBase):
         fragmenter = Fragmenter(molecule=molecule, edges=self.get("edges", None), depth=self.depth, open_rings=self.get("open_rings", True), opt_steps=self.get("opt_steps", 10000))
         self.unique_fragments = fragmenter.unique_fragments
         self.unique_fragments_from_ring_openings = fragmenter.unique_fragments_from_ring_openings
-        
+
         # Convert fragment molecule graphs into molecule objects with charges given in self.charges
         self._build_unique_relevant_molecules()
 
