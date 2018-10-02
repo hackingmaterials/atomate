@@ -273,7 +273,7 @@ class FragmentFW(Firework):
                  molecule=None,
                  depth=1,
                  open_rings=True,
-                 additional_charges=[],
+                 additional_charges=None,
                  do_triplets=True,
                  name="fragment and optimize",
                  qchem_cmd="qchem",
@@ -330,6 +330,7 @@ class FragmentFW(Firework):
         """
 
         qchem_input_params = qchem_input_params or {}
+        additional_charges = additional_charges or []
         t = []
         t.append(
             FragmentMolecule(

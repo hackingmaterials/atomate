@@ -5,7 +5,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 # This module defines a task that returns all fragments of a molecule
 
 import copy
-import time
 from pymatgen.core.structure import Molecule
 from pymatgen.analysis.graphs import build_MoleculeGraph
 from pymatgen.analysis.local_env import OpenBabelNN
@@ -49,7 +48,7 @@ class FragmentMolecule(FiretaskBase):
       molecule(charge=-1) -> fragment1(charge=-1) + fragment2(charge=0)
     Thus, we want to simulate charges -1 and 0 of each fragment, given charge=-1. Generalizing to
     any positively charged principle with charge P, we simulate P and P+1.
-    
+
     If additional charges are desired by the user, they can be specified with the additional_charges
     input parameter as described below.
 
@@ -61,10 +60,10 @@ class FragmentMolecule(FiretaskBase):
         depth (int): The number of levels of iterative fragmentation to perform, where each
                      level will include fragments obtained by breaking one bond of a fragment
                      one level up. Defaults to 1. However, if set to 0, instead all possible
-                     fragments are generated using an alternative, non-iterative scheme. 
+                     fragments are generated using an alternative, non-iterative scheme.
         open_rings (bool): Whether or not to open any rings encountered during fragmentation.
                            Defaults to True. If true, any bond that fails to yield disconnected
-                           graphs when broken is instead removed and the entire structure is 
+                           graphs when broken is instead removed and the entire structure is
                            optimized with OpenBabel in order to obtain a good initial guess for
                            an opened geometry that can then be put back into QChem to be
                            optimized without the ring just reforming.
@@ -187,7 +186,7 @@ class FragmentMolecule(FiretaskBase):
         no charge separation will occur due to fragmentation since only one molecule remains
         after bond breakage. Regardless, when using the non-iterative scheme, we do include
         all charges of fragments generated from ring opening given the user's desire for
-        absolute coverage of all potential reactions that may occur during fragmentation. 
+        absolute coverage of all potential reactions that may occur during fragmentation.
         """
         self.unique_molecules = []
         for unique_fragment in self.unique_fragments:

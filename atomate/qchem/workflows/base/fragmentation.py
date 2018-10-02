@@ -25,7 +25,7 @@ logger = get_logger(__name__)
 def get_fragmentation_wf(molecule,
                          depth,
                          open_rings=True,
-                         additional_charges=[],
+                         additional_charges=None,
                          do_triplets=True,
                          pcm_dielectric=None,
                          do_optimization=True,
@@ -107,6 +107,7 @@ def get_fragmentation_wf(molecule,
     """
 
     qchem_input_params = qchem_input_params or {}
+    additional_charges = additional_charges or []
     if pcm_dielectric != None:
         qchem_input_params["pcm_dielectric"] = pcm_dielectric
 
