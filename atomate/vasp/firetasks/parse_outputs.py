@@ -74,7 +74,7 @@ class VaspToDb(FiretaskBase):
     """
     optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
                        "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful",
-                       "task_fields_to_push"]
+                       "task_fields_to_push", "parse_chgcar", "parse_aeccar"]
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
@@ -89,7 +89,9 @@ class VaspToDb(FiretaskBase):
 
         drone = VaspDrone(additional_fields=self.get("additional_fields"),
                           parse_dos=self.get("parse_dos", False),
-                          bandstructure_mode=self.get("bandstructure_mode", False))
+                          bandstructure_mode=self.get("bandstructure_mode", False),
+                          parse_chgcar=self.get("parse_chgcar", False),
+                          parse_aeccar=self.get("parse_aeccar", False))
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)
@@ -108,7 +110,10 @@ class VaspToDb(FiretaskBase):
         else:
             mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
             t_id = mmdb.insert_task(
-                task_doc, use_gridfs=self.get("parse_dos", False) or bool(self.get("bandstructure_mode", False)))
+                task_doc, use_gridfs=self.get("parse_dos", False)
+                or bool(self.get("bandstructure_mode", False))
+                or self.get("parse_chgcar", False)
+                or self.get("parse_aeccar", False))
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
         defuse_children = False
