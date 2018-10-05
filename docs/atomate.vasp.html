@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.vasp package &#8212; atomate 0.8.2 documentation</title>
+    <title>atomate.vasp package &#8212; atomate 0.8.3 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.2 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.3 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -189,8 +189,39 @@ background (bool): Run in the background or not.</dd>
 </dd></dl>
 
 <dl class="method">
+<dt id="atomate.vasp.database.VaspCalcDb.get_aeccar">
+<code class="descname">get_aeccar</code><span class="sig-paren">(</span><em>task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.get_aeccar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the AECCAR0 + AECCAR2 grid_fs data into a Chgcar object
+Args:</p>
+<blockquote>
+<div>task_id(int or str): the task_id containing the gridfs metadata</div></blockquote>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>(aeccar0, aeccar2): Chgcar objects</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="atomate.vasp.database.VaspCalcDb.get_band_structure">
 <code class="descname">get_band_structure</code><span class="sig-paren">(</span><em>task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.get_band_structure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.database.VaspCalcDb.get_chgcar">
+<code class="descname">get_chgcar</code><span class="sig-paren">(</span><em>task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.get_chgcar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the CHGCAR grid_fs data into a Chgcar object
+Args:</p>
+<blockquote>
+<div>task_id(int or str): the task_id containing the gridfs metadata</div></blockquote>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>chgcar: Chgcar object</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.database.VaspCalcDb.get_chgcar_string">
+<code class="descname">get_chgcar_string</code><span class="sig-paren">(</span><em>task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.get_chgcar_string" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -252,13 +283,13 @@ use_gridfs (bool) use gridfs for  bandstructures and DOS</dd>
 <span id="atomate-vasp-drones-module"></span><h2>atomate.vasp.drones module<a class="headerlink" href="#module-atomate.vasp.drones" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="atomate.vasp.drones.VaspDrone">
-<em class="property">class </em><code class="descclassname">atomate.vasp.drones.</code><code class="descname">VaspDrone</code><span class="sig-paren">(</span><em>runs=None</em>, <em>parse_dos='auto'</em>, <em>bandstructure_mode='auto'</em>, <em>parse_locpot=True</em>, <em>additional_fields=None</em>, <em>use_full_uri=True</em>, <em>parse_bader=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">atomate.vasp.drones.</code><code class="descname">VaspDrone</code><span class="sig-paren">(</span><em>runs=None</em>, <em>parse_dos='auto'</em>, <em>bandstructure_mode='auto'</em>, <em>parse_locpot=True</em>, <em>additional_fields=None</em>, <em>use_full_uri=True</em>, <em>parse_bader=None</em>, <em>parse_chgcar=False</em>, <em>parse_aeccar=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.apps.borg.hive.AbstractDrone</span></code></p>
 <p>pymatgen-db VaspToDbTaskDrone with updated schema and documents processing methods.
 Please refer to matgendb.creator.VaspToDbTaskDrone documentation.</p>
 <dl class="method">
 <dt id="atomate.vasp.drones.VaspDrone.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>runs=None</em>, <em>parse_dos='auto'</em>, <em>bandstructure_mode='auto'</em>, <em>parse_locpot=True</em>, <em>additional_fields=None</em>, <em>use_full_uri=True</em>, <em>parse_bader=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>runs=None</em>, <em>parse_dos='auto'</em>, <em>bandstructure_mode='auto'</em>, <em>parse_locpot=True</em>, <em>additional_fields=None</em>, <em>use_full_uri=True</em>, <em>parse_bader=None</em>, <em>parse_chgcar=False</em>, <em>parse_aeccar=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize a Vasp drone to parse vasp outputs
 Args:</p>
 <blockquote>
@@ -284,7 +315,9 @@ bandstructure_mode (str or bool): How to parse the bandstructure or not. Can be 
 <p>parse_locpot (bool): Parses the LOCPOT file and saves the 3 axis averages
 additional_fields (dict): dictionary of additional fields to add to output document
 use_full_uri (bool): converts the directory path to the full URI path
-parse_bader (bool): Run and parse Bader charge data. Defaults to True if Bader is present</p>
+parse_bader (bool): Run and parse Bader charge data. Defaults to True if Bader is present
+parse_chgcar (bool): Run and parse CHGCAR file
+parse_aeccar (bool): Run and parse AECCAR0 and AECCAR2 files</p>
 </div></blockquote>
 </dd></dl>
 
@@ -376,6 +409,11 @@ output files need to be processed.</p>
 <code class="descname">process_bandstructure</code><span class="sig-paren">(</span><em>vrun</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.process_bandstructure" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="classmethod">
+<dt id="atomate.vasp.drones.VaspDrone.process_chgcar">
+<em class="property">classmethod </em><code class="descname">process_chgcar</code><span class="sig-paren">(</span><em>chg_file</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.process_chgcar" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="atomate.vasp.drones.VaspDrone.process_dos">
 <code class="descname">process_dos</code><span class="sig-paren">(</span><em>vrun</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.process_dos" title="Permalink to this definition">¶</a></dt>
@@ -412,7 +450,7 @@ and exists for easier querying of the taskdoc.</p>
 
 <dl class="attribute">
 <dt id="atomate.vasp.drones.VaspDrone.schema">
-<code class="descname">schema</code><em class="property"> = {'analysis': {'errors', 'warnings', 'delta_volume_as_percent', 'max_force', 'delta_volume'}, 'calcs_reversed': {'elements', 'vasp_version', 'dir_name', 'formula_pretty', 'nelements', 'output', 'input', 'composition_reduced', 'composition_unit_cell', 'task', 'nsites', 'completed_at', 'has_vasp_completed', 'formula_anonymous', 'run_type', 'formula_reduced_abc'}, 'input': {'pseudo_potential', 'structure', 'is_hubbard', 'is_lasph', 'xc_override', 'hubbards', 'potcar_spec'}, 'output': {'forces', 'is_gap_direct', 'vbm', 'energy_per_atom', 'is_metal', 'stress', 'structure', 'energy', 'spacegroup', 'cbm', 'density', 'bandgap'}, 'root': {'calcs_reversed', 'chemsys', 'schema', 'dir_name', 'formula_pretty', 'nelements', 'output', 'input', 'composition_reduced', 'composition_unit_cell', 'completed_at', 'nsites', 'state', 'analysis', 'formula_anonymous', 'run_stats', 'elements', 'formula_reduced_abc'}}</em><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.schema" title="Permalink to this definition">¶</a></dt>
+<code class="descname">schema</code><em class="property"> = {'analysis': {'warnings', 'errors', 'delta_volume', 'max_force', 'delta_volume_as_percent'}, 'calcs_reversed': {'nelements', 'composition_unit_cell', 'formula_anonymous', 'completed_at', 'input', 'task', 'has_vasp_completed', 'formula_pretty', 'output', 'nsites', 'vasp_version', 'formula_reduced_abc', 'dir_name', 'composition_reduced', 'run_type', 'elements'}, 'input': {'potcar_spec', 'hubbards', 'xc_override', 'structure', 'pseudo_potential', 'is_lasph', 'is_hubbard'}, 'output': {'energy', 'is_gap_direct', 'stress', 'energy_per_atom', 'structure', 'vbm', 'cbm', 'forces', 'density', 'spacegroup', 'is_metal', 'bandgap'}, 'root': {'nelements', 'composition_unit_cell', 'formula_anonymous', 'completed_at', 'input', 'run_stats', 'chemsys', 'state', 'formula_pretty', 'calcs_reversed', 'output', 'nsites', 'formula_reduced_abc', 'dir_name', 'analysis', 'schema', 'composition_reduced', 'elements'}}</em><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.schema" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="staticmethod">
@@ -553,7 +591,7 @@ object during filtering.</dd>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.2 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.3 documentation</a> &#187;</li> 
       </ul>
     </div>
 
