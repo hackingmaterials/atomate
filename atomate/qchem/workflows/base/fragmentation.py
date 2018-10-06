@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 
 
 def get_fragmentation_wf(molecule,
-                         depth,
+                         depth=1,
                          open_rings=True,
                          additional_charges=None,
                          do_triplets=True,
@@ -44,7 +44,7 @@ def get_fragmentation_wf(molecule,
                      where each evel will include fragments obtained by breaking
                      one bond of a fragment one level up. If set to 0, instead
                      all possible fragments are generated using an alternative,
-                     non-iterative scheme.
+                     non-iterative scheme. Defaults to 1.
         open_rings (bool): Whether or not to open any rings encountered during fragmentation.
                            Defaults to True. If true, any bond that fails to yield disconnected
                            graphs when broken is instead removed and the entire structure is
@@ -83,7 +83,7 @@ def get_fragmentation_wf(molecule,
                                    "rem": {"sym_ignore": "true"}}. Of course, overwrite_inputs
                                    could be used in conjuction with more typical modifications,
                                    as seen in the test_double_FF_opt workflow test.
-        qchem_cmd (str): Command to run QChem.
+        qchem_cmd (str): Command to run QChem. Supports env_chk.
         db_file (str): path to file containing the database credentials.
         check_db (bool): Whether or not to check the database for equivalent
                          structures before adding new fragment fireworks.

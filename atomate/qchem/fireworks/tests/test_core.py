@@ -47,8 +47,8 @@ class TestCore(AtomateTest):
                              qchem_input_params={}).as_dict())
         self.assertEqual(firework.tasks[1].as_dict(),
                          RunQChemCustodian(
-                             qchem_cmd="qchem",
-                             multimode="openmp",
+                             qchem_cmd=">>qchem_cmd<<",
+                             multimode=">>multimode<<",
                              input_file="mol.qin",
                              output_file="mol.qout",
                              max_cores=">>max_cores<<",
@@ -70,8 +70,6 @@ class TestCore(AtomateTest):
             name="special single point",
             qchem_cmd="qchem -slurm",
             multimode="mpi",
-            input_file="different.qin",
-            output_file="not_default.qout",
             max_cores=12,
             qchem_input_params={"pcm_dielectric": 10.0},
             db_file=os.path.join(db_dir, "db.json"),
@@ -80,7 +78,7 @@ class TestCore(AtomateTest):
                          WriteInputFromIOSet(
                              molecule=self.act_mol,
                              qchem_input_set="SinglePointSet",
-                             input_file="different.qin",
+                             input_file="mol.qin",
                              qchem_input_params={
                                  "pcm_dielectric": 10.0
                              }).as_dict())
@@ -88,15 +86,15 @@ class TestCore(AtomateTest):
                          RunQChemCustodian(
                              qchem_cmd="qchem -slurm",
                              multimode="mpi",
-                             input_file="different.qin",
-                             output_file="not_default.qout",
+                             input_file="mol.qin",
+                             output_file="mol.qout",
                              max_cores=12,
                              job_type="normal").as_dict())
         self.assertEqual(firework.tasks[2].as_dict(),
                          QChemToDb(
                              db_file=os.path.join(db_dir, "db.json"),
-                             input_file="different.qin",
-                             output_file="not_default.qout",
+                             input_file="mol.qin",
+                             output_file="mol.qout",
                              additional_fields={
                                  "task_label": "special single point"
                              }).as_dict())
@@ -113,8 +111,8 @@ class TestCore(AtomateTest):
                              qchem_input_params={}).as_dict())
         self.assertEqual(firework.tasks[1].as_dict(),
                          RunQChemCustodian(
-                             qchem_cmd="qchem",
-                             multimode="openmp",
+                             qchem_cmd=">>qchem_cmd<<",
+                             multimode=">>multimode<<",
                              input_file="mol.qin",
                              output_file="mol.qout",
                              max_cores=">>max_cores<<",
@@ -136,8 +134,6 @@ class TestCore(AtomateTest):
             name="special structure optimization",
             qchem_cmd="qchem -slurm",
             multimode="mpi",
-            input_file="different.qin",
-            output_file="not_default.qout",
             max_cores=12,
             qchem_input_params={"pcm_dielectric": 10.0},
             db_file=os.path.join(db_dir, "db.json"),
@@ -146,7 +142,7 @@ class TestCore(AtomateTest):
                          WriteInputFromIOSet(
                              molecule=self.act_mol,
                              qchem_input_set="OptSet",
-                             input_file="different.qin",
+                             input_file="mol.qin",
                              qchem_input_params={
                                  "pcm_dielectric": 10.0
                              }).as_dict())
@@ -154,15 +150,15 @@ class TestCore(AtomateTest):
                          RunQChemCustodian(
                              qchem_cmd="qchem -slurm",
                              multimode="mpi",
-                             input_file="different.qin",
-                             output_file="not_default.qout",
+                             input_file="mol.qin",
+                             output_file="mol.qout",
                              max_cores=12,
                              job_type="normal").as_dict())
         self.assertEqual(firework.tasks[2].as_dict(),
                          QChemToDb(
                              db_file=os.path.join(db_dir, "db.json"),
-                             input_file="different.qin",
-                             output_file="not_default.qout",
+                             input_file="mol.qin",
+                             output_file="mol.qout",
                              additional_fields={
                                  "task_label": "special structure optimization"
                              }).as_dict())
@@ -179,8 +175,8 @@ class TestCore(AtomateTest):
                              qchem_input_params={}).as_dict())
         self.assertEqual(firework.tasks[1].as_dict(),
                          RunQChemCustodian(
-                             qchem_cmd="qchem",
-                             multimode="openmp",
+                             qchem_cmd=">>qchem_cmd<<",
+                             multimode=">>multimode<<",
                              input_file="mol.qin",
                              output_file="mol.qout",
                              max_cores=">>max_cores<<",
@@ -209,8 +205,6 @@ class TestCore(AtomateTest):
             name="special frequency flattening structure optimization",
             qchem_cmd="qchem -slurm",
             multimode="mpi",
-            input_file="different.qin",
-            output_file="not_default.qout",
             max_cores=12,
             qchem_input_params={"pcm_dielectric": 10.0},
             max_iterations=5,
@@ -222,7 +216,7 @@ class TestCore(AtomateTest):
                          WriteInputFromIOSet(
                              molecule=self.act_mol,
                              qchem_input_set="OptSet",
-                             input_file="different.qin",
+                             input_file="mol.qin",
                              qchem_input_params={
                                  "pcm_dielectric": 10.0
                              }).as_dict())
@@ -230,8 +224,8 @@ class TestCore(AtomateTest):
                          RunQChemCustodian(
                              qchem_cmd="qchem -slurm",
                              multimode="mpi",
-                             input_file="different.qin",
-                             output_file="not_default.qout",
+                             input_file="mol.qin",
+                             output_file="mol.qout",
                              max_cores=12,
                              job_type="opt_with_frequency_flattener",
                              max_iterations=5,
@@ -241,8 +235,8 @@ class TestCore(AtomateTest):
             firework.tasks[2].as_dict(),
             QChemToDb(
                 db_file=os.path.join(db_dir, "db.json"),
-                input_file="different.qin",
-                output_file="not_default.qout",
+                input_file="mol.qin",
+                output_file="mol.qout",
                 additional_fields={
                     "task_label":
                     "special frequency flattening structure optimization",
@@ -278,8 +272,6 @@ class TestCore(AtomateTest):
                               name="fragmenting a thing",
                               qchem_cmd="qchem -slurm",
                               multimode="mpi",
-                              input_file="different.qin",
-                              output_file="not_default.qout",
                               max_cores=12,
                               qchem_input_params={"pcm_dielectric": 10.0},
                               db_file=os.path.join(db_dir, "db.json"),

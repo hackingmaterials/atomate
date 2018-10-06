@@ -29,10 +29,8 @@ class SinglePointFW(Firework):
     def __init__(self,
                  molecule=None,
                  name="single point",
-                 qchem_cmd="qchem",
-                 multimode="openmp",
-                 input_file="mol.qin",
-                 output_file="mol.qout",
+                 qchem_cmd=">>qchem_cmd<<",
+                 multimode=">>multimode<<",
                  max_cores=">>max_cores<<",
                  qchem_input_params=None,
                  db_file=None,
@@ -43,11 +41,9 @@ class SinglePointFW(Firework):
         Args:
             molecule (Molecule): Input molecule.
             name (str): Name for the Firework.
-            qchem_cmd (str): Command to run QChem. Defaults to qchem.
-            multimode (str): Parallelization scheme, either openmp or mpi.
-            input_file (str): Name of the QChem input file. Defaults to mol.qin.
-            output_file (str): Name of the QChem output file. Defaults to mol.qout.
-            max_cores (int): Maximum number of cores to parallelize over. Defaults to 32.
+            qchem_cmd (str): Command to run QChem. Supports env_chk.
+            multimode (str): Parallelization scheme, either openmp or mpi. Supports env_chk.
+            max_cores (int): Maximum number of cores to parallelize over. Supports env_chk.
             qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
                                        Basic uses would be to modify the default inputs of the set,
                                        such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
@@ -72,6 +68,8 @@ class SinglePointFW(Firework):
         """
 
         qchem_input_params = qchem_input_params or {}
+        input_file="mol.qin"
+        output_file="mol.qout"
         t = []
         t.append(
             WriteInputFromIOSet(
@@ -104,10 +102,8 @@ class OptimizeFW(Firework):
     def __init__(self,
                  molecule=None,
                  name="structure optimization",
-                 qchem_cmd="qchem",
-                 multimode="openmp",
-                 input_file="mol.qin",
-                 output_file="mol.qout",
+                 qchem_cmd=">>qchem_cmd<<",
+                 multimode=">>multimode<<",
                  max_cores=">>max_cores<<",
                  qchem_input_params=None,
                  db_file=None,
@@ -119,11 +115,9 @@ class OptimizeFW(Firework):
         Args:
             molecule (Molecule): Input molecule.
             name (str): Name for the Firework.
-            qchem_cmd (str): Command to run QChem. Defaults to qchem.
-            multimode (str): Parallelization scheme, either openmp or mpi.
-            input_file (str): Name of the QChem input file. Defaults to mol.qin.
-            output_file (str): Name of the QChem output file. Defaults to mol.qout.
-            max_cores (int): Maximum number of cores to parallelize over. Defaults to 32.
+            qchem_cmd (str): Command to run QChem. Supports env_chk.
+            multimode (str): Parallelization scheme, either openmp or mpi. Defaults to openmp.
+            max_cores (int): Maximum number of cores to parallelize over. Supports env_chk.
             qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
                                        Basic uses would be to modify the default inputs of the set,
                                        such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
@@ -148,6 +142,8 @@ class OptimizeFW(Firework):
         """
 
         qchem_input_params = qchem_input_params or {}
+        input_file="mol.qin"
+        output_file="mol.qout"
         t = []
         t.append(
             WriteInputFromIOSet(
@@ -180,10 +176,8 @@ class FrequencyFlatteningOptimizeFW(Firework):
     def __init__(self,
                  molecule=None,
                  name="frequency flattening structure optimization",
-                 qchem_cmd="qchem",
-                 multimode="openmp",
-                 input_file="mol.qin",
-                 output_file="mol.qout",
+                 qchem_cmd=">>qchem_cmd<<",
+                 multimode=">>multimode<<",
                  max_cores=">>max_cores<<",
                  qchem_input_params=None,
                  max_iterations=10,
@@ -199,11 +193,9 @@ class FrequencyFlatteningOptimizeFW(Firework):
         Args:
             molecule (Molecule): Input molecule.
             name (str): Name for the Firework.
-            qchem_cmd (str): Command to run QChem. Defaults to qchem.
-            multimode (str): Parallelization scheme, either openmp or mpi.
-            input_file (str): Name of the QChem input file. Defaults to mol.qin.
-            output_file (str): Name of the QChem output file. Defaults to mol.qout.
-            max_cores (int): Maximum number of cores to parallelize over. Defaults to 32.
+            qchem_cmd (str): Command to run QChem. Supports env_chk.
+            multimode (str): Parallelization scheme, either openmp or mpi. Supports env_chk.
+            max_cores (int): Maximum number of cores to parallelize over. Supports env_chk.
             qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
                                        Basic uses would be to modify the default inputs of the set,
                                        such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
@@ -234,6 +226,8 @@ class FrequencyFlatteningOptimizeFW(Firework):
         """
 
         qchem_input_params = qchem_input_params or {}
+        input_file="mol.qin"
+        output_file="mol.qout"
         t = []
         t.append(
             WriteInputFromIOSet(
@@ -276,10 +270,8 @@ class FragmentFW(Firework):
                  additional_charges=None,
                  do_triplets=True,
                  name="fragment and optimize",
-                 qchem_cmd="qchem",
-                 multimode="openmp",
-                 input_file="mol.qin",
-                 output_file="mol.qout",
+                 qchem_cmd=">>qchem_cmd<<",
+                 multimode=">>multimode<<",
                  max_cores=">>max_cores<<",
                  qchem_input_params=None,
                  db_file=None,
@@ -299,11 +291,9 @@ class FragmentFW(Firework):
             do_triplets (bool): Whether to simulate triplets as well as singlets for molecules with an
                                 even number of electrons. Defaults to True.
             name (str): Name for the Firework.
-            qchem_cmd (str): Command to run QChem. Defaults to qchem.
-            multimode (str): Parallelization scheme, either openmp or mpi.
-            input_file (str): Name of the QChem input file. Defaults to mol.qin.
-            output_file (str): Name of the QChem output file. Defaults to mol.qout.
-            max_cores (int): Maximum number of cores to parallelize over. Defaults to 32.
+            qchem_cmd (str): Command to run QChem. Supports env_chk.
+            multimode (str): Parallelization scheme, either openmp or mpi. Supports env_chk.
+            max_cores (int): Maximum number of cores to parallelize over. Supports env_chk.
             qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
                                        Basic uses would be to modify the default inputs of the set,
                                        such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
