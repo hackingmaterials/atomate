@@ -10,7 +10,7 @@ from atomate.qchem.drones import QChemDrone
 from pymatgen.core.structure import Molecule
 import numpy as np
 from pymatgen.analysis.local_env import OpenBabelNN
-from pymatgen.analysis.graphs import build_MoleculeGraph
+from pymatgen.analysis.graphs import MoleculeGraph
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -208,14 +208,14 @@ class QChemDroneTest(unittest.TestCase):
         self.assertEqual(doc["pointgroup"], "C1")
         self.assertEqual(doc["orig"]["rem"], doc["calcs_reversed"][-1]["input"]["rem"])
         self.assertEqual(doc["orig"]["molecule"], doc["calcs_reversed"][-1]["input"]["molecule"])
-        orig_molgraph = build_MoleculeGraph(Molecule.from_dict(doc["orig"]["molecule"]),
-                                                strategy=OpenBabelNN,
-                                                reorder=False,
-                                                extend_structure=False)
-        initial_molgraph = build_MoleculeGraph(Molecule.from_dict(doc["input"]["initial_molecule"]),
-                                              strategy=OpenBabelNN,
-                                              reorder=False,
-                                              extend_structure=False)
+        orig_molgraph = MoleculeGraph.with_local_env_strategy(Molecule.from_dict(doc["orig"]["molecule"]),
+                                                              OpenBabelNN(),
+                                                              reorder=False,
+                                                              extend_structure=False)
+        initial_molgraph = MoleculeGraph.with_local_env_strategy(Molecule.from_dict(doc["input"]["initial_molecule"]),
+                                                                 OpenBabelNN(),
+                                                                 reorder=False,
+                                                                 extend_structure=False)
         self.assertEqual(orig_molgraph.isomorphic_to(initial_molgraph), True)
 
     def test_assimilate_opt_with_hidden_changes_from_handler(self):
@@ -238,14 +238,14 @@ class QChemDroneTest(unittest.TestCase):
         self.assertEqual(doc["chemsys"], "C-H-O")
         self.assertEqual(doc["pointgroup"], "C1")
         self.assertEqual(doc["orig"]["rem"], doc["calcs_reversed"][-1]["input"]["rem"])
-        orig_molgraph = build_MoleculeGraph(Molecule.from_dict(doc["orig"]["molecule"]),
-                                                strategy=OpenBabelNN,
-                                                reorder=False,
-                                                extend_structure=False)
-        initial_molgraph = build_MoleculeGraph(Molecule.from_dict(doc["input"]["initial_molecule"]),
-                                              strategy=OpenBabelNN,
-                                              reorder=False,
-                                              extend_structure=False)
+        orig_molgraph = MoleculeGraph.with_local_env_strategy(Molecule.from_dict(doc["orig"]["molecule"]),
+                                                              OpenBabelNN(),
+                                                              reorder=False,
+                                                              extend_structure=False)
+        initial_molgraph = MoleculeGraph.with_local_env_strategy(Molecule.from_dict(doc["input"]["initial_molecule"]),
+                                                                 OpenBabelNN(),
+                                                                 reorder=False,
+                                                                 extend_structure=False)
         self.assertEqual(orig_molgraph.isomorphic_to(initial_molgraph), False)
 
     def test_assimilate_disconnected_opt(self):
