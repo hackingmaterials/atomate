@@ -12,7 +12,7 @@ except ImportError:
     from mock import patch
 
 from pymatgen.core.structure import Molecule
-from pymatgen.analysis.graphs import build_MoleculeGraph
+from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.io.qchem.outputs import QCOutput
 
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule
@@ -140,8 +140,8 @@ class TestFragmentMolecule(AtomateTest):
         ft.depth = ft.get("depth")
         ft.charges = [-1, 0, 1]
         ft.do_triplets = False
-        edges = [(e[0], e[1], {}) for e in self.pc_edges]
-        mol_graph = build_MoleculeGraph(self.pc, edges=edges)
+        edges = {(e[0], e[1]): None for e in self.pc_edges}
+        mol_graph = MoleculeGraph.with_edges(self.pc, edges)
         ft.unique_fragments = mol_graph.build_unique_fragments()
         ft._build_unique_relevant_molecules()
         self.assertEqual(len(ft.unique_molecules), 295 * 3)
@@ -154,7 +154,7 @@ class TestFragmentMolecule(AtomateTest):
         ft.depth = ft.get("depth")
         ft.charges = [-1, 0, 1, 2]
         ft.do_triplets = False
-        mol_graph = build_MoleculeGraph(self.pos_pc, edges=edges)
+        mol_graph = MoleculeGraph.with_edges(self.pos_pc, edges)
         ft.unique_fragments = mol_graph.build_unique_fragments()
         ft._build_unique_relevant_molecules()
         self.assertEqual(len(ft.unique_molecules), 295 * 4)
@@ -167,8 +167,8 @@ class TestFragmentMolecule(AtomateTest):
         ft.depth = ft.get("depth")
         ft.charges = [-1, 0, 1]
         ft.do_triplets = False
-        pc_frag1_edges = [(e[0], e[1], {}) for e in self.pc_frag1_edges]
-        mol_graph = build_MoleculeGraph(self.pc_frag1, edges=pc_frag1_edges)
+        pc_frag1_edges = {(e[0], e[1]): None for e in self.pc_frag1_edges}
+        mol_graph = MoleculeGraph.with_edges(self.pc_frag1, pc_frag1_edges)
         ft.unique_fragments = mol_graph.build_unique_fragments()
         ft._build_unique_relevant_molecules()
         self.assertEqual(len(ft.unique_molecules), 12 * 3)
@@ -182,8 +182,8 @@ class TestFragmentMolecule(AtomateTest):
         ft.depth = ft.get("depth")
         ft.charges = [-1, 0, 1]
         ft.do_triplets = True
-        edges = [(e[0], e[1], {}) for e in self.pc_edges]
-        mol_graph = build_MoleculeGraph(self.pc, edges=edges)
+        edges = {(e[0], e[1]): None for e in self.pc_edges}
+        mol_graph = MoleculeGraph.with_edges(self.pc, edges)
         ft.unique_fragments = mol_graph.build_unique_fragments()
         ft._build_unique_relevant_molecules()
         self.assertEqual(len(ft.unique_molecules), 1323)
@@ -196,7 +196,7 @@ class TestFragmentMolecule(AtomateTest):
         ft.depth = ft.get("depth")
         ft.charges = [-1, 0, 1, 2]
         ft.do_triplets = True
-        mol_graph = build_MoleculeGraph(self.pos_pc, edges=edges)
+        mol_graph = MoleculeGraph.with_edges(self.pos_pc, edges)
         ft.unique_fragments = mol_graph.build_unique_fragments()
         ft._build_unique_relevant_molecules()
         self.assertEqual(len(ft.unique_molecules), 1770)
@@ -209,8 +209,8 @@ class TestFragmentMolecule(AtomateTest):
         ft.depth = ft.get("depth")
         ft.charges = [-1, 0, 1]
         ft.do_triplets = True
-        pc_frag1_edges = [(e[0], e[1], {}) for e in self.pc_frag1_edges]
-        mol_graph = build_MoleculeGraph(self.pc_frag1, edges=pc_frag1_edges)
+        pc_frag1_edges = {(e[0], e[1]): None for e in self.pc_frag1_edges}
+        mol_graph = MoleculeGraph.with_edges(self.pc_frag1, pc_frag1_edges)
         ft.unique_fragments = mol_graph.build_unique_fragments()
         ft._build_unique_relevant_molecules()
         self.assertEqual(len(ft.unique_molecules), 54)
@@ -225,8 +225,8 @@ class TestFragmentMolecule(AtomateTest):
         ft.charges = [-1, 0, 1]
         ft.do_triplets = False
         ft.qchem_input_params = {}
-        pc_frag1_edges = [(e[0], e[1], {}) for e in self.pc_frag1_edges]
-        mol_graph = build_MoleculeGraph(self.pc_frag1, edges=pc_frag1_edges)
+        pc_frag1_edges = {(e[0], e[1]): None for e in self.pc_frag1_edges}
+        mol_graph = MoleculeGraph.with_edges(self.pc_frag1, pc_frag1_edges)
         ft.unique_fragments = mol_graph.build_unique_fragments()
         ft._build_unique_relevant_molecules()
         ft.all_relevant_docs = list()
@@ -240,8 +240,8 @@ class TestFragmentMolecule(AtomateTest):
         ft.charges = [-1, 0, 1]
         ft.do_triplets = False
         ft.qchem_input_params = {}
-        pc_frag1_edges = [(e[0], e[1], {}) for e in self.pc_frag1_edges]
-        mol_graph = build_MoleculeGraph(self.pc_frag1, edges=pc_frag1_edges)
+        pc_frag1_edges = {(e[0], e[1]): None for e in self.pc_frag1_edges}
+        mol_graph = MoleculeGraph.with_edges(self.pc_frag1, pc_frag1_edges)
         ft.unique_fragments = mol_graph.build_unique_fragments()
         ft._build_unique_relevant_molecules()
         docs = loadfn(os.path.join(module_dir, "doc.json"))
