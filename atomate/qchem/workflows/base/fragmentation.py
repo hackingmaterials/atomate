@@ -23,9 +23,9 @@ logger = get_logger(__name__)
 
 
 def get_fragmentation_wf(molecule,
-                         depth,
+                         depth=1,
                          open_rings=True,
-                         additional_charges=[],
+                         additional_charges=None,
                          do_triplets=True,
                          pcm_dielectric=None,
                          do_optimization=True,
@@ -44,7 +44,7 @@ def get_fragmentation_wf(molecule,
                      where each evel will include fragments obtained by breaking
                      one bond of a fragment one level up. If set to 0, instead
                      all possible fragments are generated using an alternative,
-                     non-iterative scheme.
+                     non-iterative scheme. Defaults to 1.
         open_rings (bool): Whether or not to open any rings encountered during fragmentation.
                            Defaults to True. If true, any bond that fails to yield disconnected
                            graphs when broken is instead removed and the entire structure is
@@ -65,9 +65,25 @@ def get_fragmentation_wf(molecule,
                                 before fragmentation. Defaults to True.
         max_cores (int): Maximum number of cores to parallelize over.
                          Value obtained from the environment by default.
-        qchem_input_params (dict): Specify kwargs for instantiating
-                                   the input set parameters.
-        qchem_cmd (str): Command to run QChem.
+        qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
+                                   Basic uses would be to modify the default inputs of the set,
+                                   such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
+                                   or max_scf_cycles. See pymatgen/io/qchem/sets.py for default
+                                   values of all input parameters. For instance, if a user wanted
+                                   to use a more advanced DFT functional, include a pcm with a
+                                   dielectric of 30, and use a larger basis, the user would set
+                                   qchem_input_params = {"dft_rung": 5, "pcm_dielectric": 30,
+                                   "basis_set": "6-311++g**"}. However, more advanced customization
+                                   of the input is also possible through the overwrite_inputs key
+                                   which allows the user to directly modify the rem, pcm, smd, and
+                                   solvent dictionaries that QChemDictSet passes to inputs.py to
+                                   print an actual input file. For instance, if a user wanted to
+                                   set the sym_ignore flag in the rem section of the input file
+                                   to true, then they would set qchem_input_params = {"overwrite_inputs":
+                                   "rem": {"sym_ignore": "true"}}. Of course, overwrite_inputs
+                                   could be used in conjuction with more typical modifications,
+                                   as seen in the test_double_FF_opt workflow test.
+        qchem_cmd (str): Command to run QChem. Supports env_chk.
         db_file (str): path to file containing the database credentials.
         check_db (bool): Whether or not to check the database for equivalent
                          structures before adding new fragment fireworks.
@@ -91,6 +107,7 @@ def get_fragmentation_wf(molecule,
     """
 
     qchem_input_params = qchem_input_params or {}
+    additional_charges = additional_charges or []
     if pcm_dielectric != None:
         qchem_input_params["pcm_dielectric"] = pcm_dielectric
 

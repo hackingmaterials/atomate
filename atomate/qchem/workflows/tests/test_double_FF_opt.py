@@ -43,10 +43,10 @@ class TestDoubleFFOpt(AtomateTest):
             pcm_dielectric=10.0,
             qchem_input_params={
                 "basis_set": "6-311++g**",
+                "scf_algorithm": "diis",
                 "overwrite_inputs": {
                     "rem": {
-                        "sym_ignore": "true",
-                        "scf_algorithm": "diis"
+                        "sym_ignore": "true"
                     }
                 }
             })

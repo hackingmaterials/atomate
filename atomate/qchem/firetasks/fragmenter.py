@@ -5,7 +5,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 # This module defines a task that returns all fragments of a molecule
 
 import copy
-import time
 from pymatgen.core.structure import Molecule
 from pymatgen.analysis.graphs import build_MoleculeGraph
 from pymatgen.analysis.local_env import OpenBabelNN
@@ -49,7 +48,7 @@ class FragmentMolecule(FiretaskBase):
       molecule(charge=-1) -> fragment1(charge=-1) + fragment2(charge=0)
     Thus, we want to simulate charges -1 and 0 of each fragment, given charge=-1. Generalizing to
     any positively charged principle with charge P, we simulate P and P+1.
-    
+
     If additional charges are desired by the user, they can be specified with the additional_charges
     input parameter as described below.
 
@@ -61,10 +60,10 @@ class FragmentMolecule(FiretaskBase):
         depth (int): The number of levels of iterative fragmentation to perform, where each
                      level will include fragments obtained by breaking one bond of a fragment
                      one level up. Defaults to 1. However, if set to 0, instead all possible
-                     fragments are generated using an alternative, non-iterative scheme. 
+                     fragments are generated using an alternative, non-iterative scheme.
         open_rings (bool): Whether or not to open any rings encountered during fragmentation.
                            Defaults to True. If true, any bond that fails to yield disconnected
-                           graphs when broken is instead removed and the entire structure is 
+                           graphs when broken is instead removed and the entire structure is
                            optimized with OpenBabel in order to obtain a good initial guess for
                            an opened geometry that can then be put back into QChem to be
                            optimized without the ring just reforming.
@@ -80,8 +79,23 @@ class FragmentMolecule(FiretaskBase):
         do_triplets (bool): Whether to simulate triplets as well as singlets for molecules with
                             an even number of electrons. Defaults to True.
         qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
-                                   For example, if you want to change the DFT_rung, you should
-                                   provide: {"DFT_rung": ...}. Defaults to None.
+                                   Basic uses would be to modify the default inputs of the set,
+                                   such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
+                                   or max_scf_cycles. See pymatgen/io/qchem/sets.py for default
+                                   values of all input parameters. For instance, if a user wanted
+                                   to use a more advanced DFT functional, include a pcm with a
+                                   dielectric of 30, and use a larger basis, the user would set
+                                   qchem_input_params = {"dft_rung": 5, "pcm_dielectric": 30,
+                                   "basis_set": "6-311++g**"}. However, more advanced customization
+                                   of the input is also possible through the overwrite_inputs key
+                                   which allows the user to directly modify the rem, pcm, smd, and
+                                   solvent dictionaries that QChemDictSet passes to inputs.py to
+                                   print an actual input file. For instance, if a user wanted to
+                                   set the sym_ignore flag in the rem section of the input file
+                                   to true, then they would set qchem_input_params = {"overwrite_inputs":
+                                   "rem": {"sym_ignore": "true"}}. Of course, overwrite_inputs
+                                   could be used in conjuction with more typical modifications,
+                                   as seen in the test_double_FF_opt workflow test.
         db_file (str): Path to file containing the database credentials. Supports env_chk.
         check_db (bool): Whether or not to check if fragments are present in the database.
                          Defaults to bool(db_file), aka true if a db_file is present and
@@ -108,6 +122,7 @@ class FragmentMolecule(FiretaskBase):
         self.depth = self.get("depth", 1)
         additional_charges = self.get("additional_charges", [])
         self.do_triplets = self.get("do_triplets", True)
+        self.qchem_input_params = self.get("qchem_input_params", {})
 
         # Specify charges to consider based on charge of the principle molecule:
         if molecule.charge == 0:
@@ -130,7 +145,7 @@ class FragmentMolecule(FiretaskBase):
         fragmenter = Fragmenter(molecule=molecule, edges=self.get("edges", None), depth=self.depth, open_rings=self.get("open_rings", True), opt_steps=self.get("opt_steps", 10000))
         self.unique_fragments = fragmenter.unique_fragments
         self.unique_fragments_from_ring_openings = fragmenter.unique_fragments_from_ring_openings
-        
+
         # Convert fragment molecule graphs into molecule objects with charges given in self.charges
         self._build_unique_relevant_molecules()
 
@@ -141,19 +156,18 @@ class FragmentMolecule(FiretaskBase):
                 self.unique_formulae.append(molecule.composition.reduced_formula)
 
         # attempt to connect to the database to later check if a fragment has already been calculated
+        find_dict = {"formula_pretty": {"$in": self.unique_formulae}}
+        if "pcm_dielectric" in self.qchem_input_params:
+            find_dict["calcs_reversed.input.solvent.dielectric"] = str(self.qchem_input_params["pcm_dielectric"])
         db_file = env_chk(self.get("db_file"), fw_spec)
         self.check_db = self.get("check_db", bool(db_file))
         self.all_relevant_docs = []
         if db_file and self.check_db:
             mmdb = QChemCalcDb.from_db_file(db_file, admin=True)
             self.all_relevant_docs = list(
-                mmdb.collection.find({
-                    "formula_pretty": {
-                        "$in": self.unique_formulae
-                    }
-                }, {
+                mmdb.collection.find(find_dict, {
                     "formula_pretty": 1,
-                    "output.initial_molecule": 1
+                    "input.initial_molecule": 1
                 }))
 
         # Return an FWAction which includes a new additional firework for each unique, relevant molecule
@@ -172,7 +186,7 @@ class FragmentMolecule(FiretaskBase):
         no charge separation will occur due to fragmentation since only one molecule remains
         after bond breakage. Regardless, when using the non-iterative scheme, we do include
         all charges of fragments generated from ring opening given the user's desire for
-        absolute coverage of all potential reactions that may occur during fragmentation. 
+        absolute coverage of all potential reactions that may occur during fragmentation.
         """
         self.unique_molecules = []
         for unique_fragment in self.unique_fragments:
@@ -218,7 +232,7 @@ class FragmentMolecule(FiretaskBase):
                                                 reorder=False, extend_structure=False)
             for doc in self.all_relevant_docs:
                 if molecule.composition.reduced_formula == doc["formula_pretty"]:
-                    old_mol = Molecule.from_dict(doc["output"]["initial_molecule"])
+                    old_mol = Molecule.from_dict(doc["input"]["initial_molecule"])
                     old_mol_graph = build_MoleculeGraph(old_mol, strategy=OpenBabelNN,
                                                         reorder=False, extend_structure=False)
                     # If such an equivalent molecule is found, return true
@@ -245,7 +259,7 @@ class FragmentMolecule(FiretaskBase):
                             name="fragment_" + str(ii),
                             qchem_cmd=">>qchem_cmd<<",
                             max_cores=">>max_cores<<",
-                            qchem_input_params=self.get("qchem_input_params", {}),
+                            qchem_input_params=self.qchem_input_params,
                             db_file=">>db_file<<"))
                 else:
                     new_FWs.append(
@@ -254,6 +268,6 @@ class FragmentMolecule(FiretaskBase):
                             name="fragment_" + str(ii),
                             qchem_cmd=">>qchem_cmd<<",
                             max_cores=">>max_cores<<",
-                            qchem_input_params=self.get("qchem_input_params", {}),
+                            qchem_input_params=self.qchem_input_params,
                             db_file=">>db_file<<"))
         return new_FWs

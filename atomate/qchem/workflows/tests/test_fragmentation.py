@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import os
 import unittest
+import json
 
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
@@ -11,6 +12,8 @@ from atomate.utils.testing import AtomateTest
 from pymatgen.io.qchem.inputs import QCInput
 from atomate.qchem.powerups import use_fake_qchem
 from atomate.qchem.workflows.base.fragmentation import get_fragmentation_wf
+from atomate.qchem.database import QChemCalcDb
+from pymatgen.core import Molecule
 try:
     from unittest.mock import patch, MagicMock
 except ImportError:
@@ -67,6 +70,30 @@ class TestFragmentation(AtomateTest):
                              None)
             self.assertEqual(first_FF["num_frequencies_flattened"], 0)
             self.assertEqual(len(FWAction_patch.call_args[1]["additions"]), 5 * 3)
+
+    def test_no_opt_Fragmentation(self):
+        db_file = os.path.join(db_dir, "db.json")
+        mmdb = QChemCalcDb.from_db_file(db_file, admin=True)
+        with open(os.path.join(module_dir, "..", "..", "test_files","sb40.json")) as f:
+            tmp = json.load(f)
+            for entry in tmp:
+                mmdb.insert(entry)
+        with patch("atomate.qchem.firetasks.fragmenter.FWAction") as FWAction_patch:
+            mock_FWAction = MagicMock()
+            FWAction_patch.return_value = mock_FWAction
+            mock_FWAction.as_dict.return_value = {'stored_data': {}, 'exit': False, 'update_spec': {}, 'mod_spec': [], 'additions': [], 'detours': [], 'defuse_children': False, 'defuse_workflow': False}
+
+            # define starting molecule and workflow object
+            initial_mol = Molecule.from_file(os.path.join(module_dir, "..", "..", "test_files", "top_11", "EC.xyz"))
+            initial_mol.set_charge_and_spin(charge=-1)
+            wf = get_fragmentation_wf(molecule=initial_mol, depth=1, pcm_dielectric=40.0, do_optimization=False, check_db=True)
+            self.lp.add_wf(wf)
+            rapidfire(
+                self.lp,
+                fworker=FWorker(env={"max_cores": 24, "db_file": db_file}), pdb_on_exception=True)
+
+            self.assertEqual(len(FWAction_patch.call_args[1]["additions"]), 0)
+        mmdb.reset()
 
 
 if __name__ == "__main__":
