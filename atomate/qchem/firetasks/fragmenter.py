@@ -6,7 +6,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import copy
 from pymatgen.core.structure import Molecule
-from pymatgen.analysis.graphs import build_MoleculeGraph
+from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.analysis.local_env import OpenBabelNN
 from pymatgen.analysis.fragmenter import Fragmenter
 from atomate.utils.utils import env_chk
@@ -228,13 +228,13 @@ class FragmentMolecule(FiretaskBase):
         # otherwise, look through the docs for an entry with an isomorphic molecule with
         # equivalent charge and multiplicity
         else:
-            new_mol_graph = build_MoleculeGraph(molecule, strategy=OpenBabelNN,
-                                                reorder=False, extend_structure=False)
+            new_mol_graph = MoleculeGraph.with_local_env_strategy(molecule, OpenBabelNN(),
+                                                                  reorder=False, extend_structure=False)
             for doc in self.all_relevant_docs:
                 if molecule.composition.reduced_formula == doc["formula_pretty"]:
                     old_mol = Molecule.from_dict(doc["input"]["initial_molecule"])
-                    old_mol_graph = build_MoleculeGraph(old_mol, strategy=OpenBabelNN,
-                                                        reorder=False, extend_structure=False)
+                    old_mol_graph = MoleculeGraph.with_local_env_strategy(old_mol, OpenBabelNN(),
+                                                                          reorder=False, extend_structure=False)
                     # If such an equivalent molecule is found, return true
                     if new_mol_graph.isomorphic_to(old_mol_graph) and molecule.charge == old_mol_graph.molecule.charge and molecule.spin_multiplicity == old_mol_graph.molecule.spin_multiplicity:
                         return True
