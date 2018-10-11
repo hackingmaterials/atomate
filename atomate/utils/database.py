@@ -108,7 +108,7 @@ class CalcDb(six.with_metaclass(ABCMeta)):
             MMDb object
         """
         creds = loadfn(db_file)
-        
+
         if admin and "admin_user" not in creds and "readonly_user" in creds:
             raise ValueError("Trying to use admin credentials, "
                              "but no admin credentials are defined. "
