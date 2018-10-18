@@ -4,11 +4,11 @@ fireworks:
 - fw: atomate.vasp.fireworks.core.OptimizeFW
   params:
     ediffg: -0.05
-- fw: atomate.vasp.fireworks.core.NMRFW
+- fw: atomate.vasp.fireworks.nmr.NMRFW
   params:
     parents: 0
     mode: "cs"
-- fw: atomate.vasp.fireworks.core.NMRFW
+- fw: atomate.vasp.fireworks.nmr.NMRFW
   params:
     parents: 0
     mode: "efg"
