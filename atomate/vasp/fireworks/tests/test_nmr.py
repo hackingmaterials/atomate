@@ -5,13 +5,12 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import os
 import unittest
 
-
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.structure import Structure
 
 from atomate.vasp.fireworks.nmr import *
 
-from atomate.vasp.firetasks.write_inputs import  WriteVaspNMRFromPrev, WriteVaspFromIOSet
+from atomate.vasp.firetasks.write_inputs import WriteVaspNMRFromPrev, WriteVaspFromIOSet
 
 __author__ = 'Shyam Dwaraknath'
 __email__ = 'shyamd@lbl.gov'
@@ -33,22 +32,20 @@ class TestNMRFireworks(unittest.TestCase):
 
     def testNMRFW(self):
         self.assertEqual(NMRFW(structure=self.structure).name, "Si-nmr tensor")
-        
+
         # Ensure correct Fireworks structure based on input type
         # Simple structure input
         self.assertEqual(type(NMRFW(structure=self.structure).tasks[0]), WriteVaspFromIOSet)
-        
+
         # Previous calc dir input
         self.assertEqual(type(NMRFW(prev_calc_dir="/tmp").tasks[1]), WriteVaspNMRFromPrev)
         self.assertEqual(NMRFW(prev_calc_dir="/tmp").tasks[0]["calc_dir"], "/tmp")
 
         # Direct to parent calculations
-        self.assertEqual(type(NMRFW(copy_vasp_outputs=True,parents=[None]).tasks[1]), WriteVaspNMRFromPrev)
-        self.assertEqual(NMRFW(copy_vasp_outputs=True,parents=[None]).tasks[0]["calc_loc"], True)
-
+        self.assertEqual(type(NMRFW(copy_vasp_outputs=True, parents=[None]).tasks[1]), WriteVaspNMRFromPrev)
+        self.assertEqual(NMRFW(copy_vasp_outputs=True, parents=[None]).tasks[0]["calc_loc"], True)
 
         self.assertRaises(ValueError, NMRFW)
-       
 
 
 if __name__ == "__main__":
