@@ -2,10 +2,6 @@
 
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
-"""
-Defines NMR Fireworks that can be chained easily to perform various
-sequences of VASP calculations.
-"""
 
 from fireworks import Firework
 
@@ -34,7 +30,7 @@ class NMRFW(Firework):
         Firework for NMR tensor calculations
 
         Args:
-            structure (Structure): Input structure. If copy_vasp_outputs, used only to set the 
+            structure (Structure): Input structure. If copy_vasp_outputs, used only to set the
                 name of the FW.
             mode (str): the NMR calculation type: cs or efg, default is cs
             isotopes (list): list of isotopes to include, default is to include the

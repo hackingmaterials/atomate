@@ -38,8 +38,8 @@ class TestNMRFireworks(unittest.TestCase):
         self.assertEqual(type(NMRFW(structure=self.structure).tasks[0]), WriteVaspFromIOSet)
 
         # Previous calc dir input
-        self.assertEqual(type(NMRFW(prev_calc_dir="/tmp").tasks[1]), WriteVaspNMRFromPrev)
-        self.assertEqual(NMRFW(prev_calc_dir="/tmp").tasks[0]["calc_dir"], "/tmp")
+        self.assertEqual(type(NMRFW(prev_calc_dir="/some_random_dir").tasks[1]), WriteVaspNMRFromPrev)
+        self.assertEqual(NMRFW(prev_calc_dir="/some_random_dir").tasks[0]["calc_dir"], "/some_random_dir")
 
         # Direct to parent calculations
         self.assertEqual(type(NMRFW(copy_vasp_outputs=True, parents=[None]).tasks[1]), WriteVaspNMRFromPrev)
