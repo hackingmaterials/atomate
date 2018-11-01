@@ -260,6 +260,93 @@ class BoltztrapToDb(FiretaskBase):
 
 
 @explicit_serialize
+class AmsetToDb(FiretaskBase):
+    """
+    Enter an Amset run into the database. Note that this assumes you are in a
+    current directory that has the data with a sub-directory called "run_data"
+    containing the "amsetrun.json.gz" file (Amset run default filename).
+
+    Optional params:
+        db_file (str): path to file containing the database credentials.
+            Supports env_chk. Default: write data to JSON file.
+        additional_fields (dict): fields added to the document such as user-defined tags or name, ids, etc
+    """
+
+    optional_params = ["db_file", "filename", "additional_fields"]
+
+    def run_task(self, fw_spec):
+        from amset.core import Amset
+        amset = Amset.from_file()
+        additional_fields = self.get("additional_fields", {})
+
+        # pass the additional_fields first to avoid overriding BoltztrapAnalyzer items
+        d = additional_fields.copy()
+        d.update(amset.as_dict())
+        for key in ["kgrid0", "egrid0"]:
+            d.pop(key, None)
+        d["dir_name"] = os.path.join(os.getcwd())
+        for tp in ["n", "p"]:
+            d["mobility"][tp].pop('J_th', None)
+        if "cbm_vbm" in d:
+            d["cbm"] = d["cbm_vbm"]["n"]
+            d["vbm"] = d["cbm_vbm"]["p"]
+            d.pop("cbm_vbm")
+        # add the structure
+        v, o = get_vasprun_outcar(d["dir_name"], parse_eigen=False, parse_dos=False)
+        structure = v.final_structure
+        d["structure"] = structure.as_dict()
+        d["formula_pretty"] = structure.composition.reduced_formula
+        d.update(get_meta_from_structure(structure))
+
+        # add the spacegroup
+        sg = SpacegroupAnalyzer(Structure.from_dict(d["structure"]), 0.1)
+        d["spacegroup"] = {"symbol": sg.get_space_group_symbol(),
+                           "number": sg.get_space_group_number(),
+                           "point_group": sg.get_point_group_symbol(),
+                           "source": "spglib",
+                           "crystal_system": sg.get_crystal_system(),
+                           "hall": sg.get_hall()}
+        d["created_at"] = datetime.utcnow()
+        d["tags"] = list(set(d.get("tags", []) + fw_spec.get("tags", [])))
+
+        # transform mobility and Seebeck coefficient to list of dicts:
+        mobility = {}
+        seebeck = []
+        for itp, tp in enumerate(["p", "n"]):
+            sgn = (-1.0)**itp
+            for mu in d["mobility"][tp]:
+                mus_list = []
+                for c in d["mobility"][tp][mu]:
+                    if np.sign(int(c)) * sgn > 0: #store the relevant type (c<0 <-> n)
+                        for T in d["mobility"][tp][mu][c]:
+                            mus_list.append({
+                                "c": float(c),
+                                "T": float(T),
+                                "vec": d["mobility"][tp][mu][c][T],
+                                "avg": np.mean(d["mobility"][tp][mu][c][T])
+                            })
+                mobility[mu] = mobility.get(mu, []) + mus_list
+            for c in d["seebeck"][tp]:
+                if np.sign(int(c)) * sgn > 0: # store the relevant type (c<0 <-> n)
+                    for T in d["seebeck"][tp][c]:
+                        seebeck.append({
+                            "c": float(c),
+                            "T": float(T),
+                            "vec": d["seebeck"][tp][c][T],
+                            "avg": np.mean(d["seebeck"][tp][c][T])
+                        })
+        d["mobility"] = mobility
+        d["seebeck"] = seebeck
+        db_file = env_chk(self.get('db_file'), fw_spec)
+        if not db_file:
+            with open(os.path.join(d["dir_name"], "amset_entry.json"), "w") as f:
+                f.write(json.dumps(d, default=DATETIME_HANDLER))
+        else:
+            mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
+            mmdb.db.amset.insert(d)
+
+
+@explicit_serialize
 class ElasticTensorToDb(FiretaskBase):
     """
     Analyzes the stress/strain data of an elastic workflow to produce
