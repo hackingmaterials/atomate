@@ -292,7 +292,7 @@ class AmsetToDb(FiretaskBase):
             d["vbm"] = d["cbm_vbm"]["p"]
             d.pop("cbm_vbm")
         # add the structure
-        v, o = get_vasprun_outcar(d["dir_name"], parse_eigen=False, parse_dos=False)
+        v, _ = get_vasprun_outcar(d["dir_name"], parse_eigen=False, parse_dos=False)
         structure = v.final_structure
         d["structure"] = structure.as_dict()
         d["formula_pretty"] = structure.composition.reduced_formula

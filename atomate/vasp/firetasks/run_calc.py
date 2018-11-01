@@ -8,7 +8,7 @@ from monty.serialization import loadfn
 from atomate.vasp.config import HALF_KPOINTS_FIRST_RELAX
 
 """
-This module defines tasks that support running vasp in various ways or run 
+This module defines tasks that support running vasp in various ways or run
 other software packages that require vasp outputs: BoltzTraP, AMSET.
 """
 
