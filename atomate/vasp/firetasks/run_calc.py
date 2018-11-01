@@ -259,13 +259,13 @@ class RunAmset(FiretaskBase):
         temperatures ([float]): the temperatures (in Kelvin)
         doping: ([float]) doping levels you want to compute
     """
-    from amset.core import Amset
     required_params = ["material_params"]
     optional_params = ["model_params", "performance_params",
                        "temperatures", "dopings", "coeff_file",
                        "kgrid_tp", "write_outputs", "write_inputs"]
 
     def run_task(self, fw_spec):
+        from amset.core import Amset
         material_params = self.get("material_params")
         model_params = self.get("model_params", None)
         perfs = self.get("performance_params", {})
