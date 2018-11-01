@@ -719,7 +719,7 @@ class AmsetFW(Firework):
     def __init__(self, material_params, performance_params=None, model_params=None,
                  parents=None, structure=None, name="amset", db_file=None,
                  dopings=None, temperatures=None,  kgrid_tp="coarse",
-                 prev_calc_dir=None, additional_fields=None, timeout=10,
+                 prev_calc_dir=None, additional_fields=None, timeout=24,
                  **kwargs):
         """
         Run Amset (electronic transport calculation package)
