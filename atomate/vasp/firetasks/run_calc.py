@@ -8,7 +8,8 @@ from monty.serialization import loadfn
 from atomate.vasp.config import HALF_KPOINTS_FIRST_RELAX
 
 """
-This module defines tasks that support running vasp in various ways.
+This module defines tasks that support running vasp in various ways or run 
+other software packages that require vasp outputs: BoltzTraP, AMSET.
 """
 
 import shutil
@@ -239,6 +240,60 @@ class RunBoltztrap(FiretaskBase):
                                  tgrid=tgrid, soc=soc)
 
         runner.run(path_dir=os.getcwd())
+
+
+@explicit_serialize
+class RunAmset(FiretaskBase):
+    """
+    Run Amset directly. Requires vasprun.xml to be in current dir.
+
+    Required params:
+        material_params (dict): the static dielectric constant (epsilon_s) is
+            mandatory.
+
+    Optional params:
+        model_params (dict): parameters related to the model used and the level
+            of theory. See Amset documentation for key options.
+        performance_params (dict): parameters related to convergence, speed,
+            etc. See Amset documentation for key options
+        temperatures ([float]): the temperatures (in Kelvin)
+        doping: ([float]) doping levels you want to compute
+    """
+    from amset.core import Amset
+    required_params = ["material_params"]
+    optional_params = ["model_params", "performance_params",
+                       "temperatures", "dopings", "coeff_file",
+                       "kgrid_tp", "write_outputs", "write_inputs"]
+
+    def run_task(self, fw_spec):
+        material_params = self.get("material_params")
+        model_params = self.get("model_params", None)
+        perfs = self.get("performance_params", {})
+        perfs["max_nvalleys"] = perfs.get("max_nvalleys", 3)
+        perfs["max_nbands"] = perfs.get("max_nbands", 1)
+        temperatures = self.get("temperatures", None)
+        dopings = self.get("dopings", None)
+        coeff_file = self.get("coeff_file", None)
+        kgrid_tp = self.get("kgrid_tp", "coarse")
+        write_outputs = self.get("write_outputs", True)
+        write_inputs = self.get("write_inputs", True)
+        timeout = self.get("timeout", 10)
+
+        runner = Amset(calc_dir='.',
+                       material_params=material_params,
+                       model_params=model_params,
+                       performance_params=perfs,
+                       dopings=dopings,
+                       temperatures=temperatures,
+                       timeout=timeout)
+        runner.run_profiled(coeff_file=coeff_file,
+                            kgrid_tp=kgrid_tp)
+        if write_outputs:
+            runner.to_file()
+            runner.to_csv()
+            runner.to_json(max_ndata=100)
+        if write_inputs:
+            runner.write_input_files()
 
 
 @explicit_serialize
