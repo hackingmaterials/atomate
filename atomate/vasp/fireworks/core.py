@@ -21,8 +21,10 @@ from pymatgen.io.vasp.sets import MPRelaxSet, MITMDSet, MITRelaxSet, \
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, pass_vasp_result
 from atomate.vasp.firetasks.neb_tasks import TransferNEBTask
-from atomate.vasp.firetasks.parse_outputs import VaspToDb, BoltztrapToDb
-from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunBoltztrap
+from atomate.vasp.firetasks.parse_outputs import VaspToDb, BoltztrapToDb, \
+    AmsetToDb
+from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunBoltztrap, \
+    RunAmset
 from atomate.vasp.firetasks.write_inputs import WriteNormalmodeDisplacedPoscar, \
     WriteTransmutedStructureIOSet, WriteVaspFromIOSet, WriteVaspHSEBSFromPrev, \
     WriteVaspNSCFFromPrev, WriteVaspSOCFromPrev, WriteVaspStaticFromPrev, \
@@ -710,6 +712,63 @@ class BoltztrapFW(Firework):
                   PassCalcLocs(name=name)])
 
         super(BoltztrapFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+
+
+class AmsetFW(Firework):
+
+    def __init__(self, material_params, performance_params=None, model_params=None,
+                 parents=None, structure=None, name="amset", db_file=None,
+                 dopings=None, temperatures=None,  kgrid_tp="coarse",
+                 prev_calc_dir=None, additional_fields=None, timeout=10,
+                 **kwargs):
+        """
+        Run Amset (electronic transport calculation package)
+        you have a previous FW with the calc_locs passed into the current FW.
+
+        Args:
+            material_params (dict): see Amset documentation
+            performance_params (dict): see Amset documentation
+            model_params (dict): see Amset documentation
+            structure (Structure): - only used for setting name of FW
+            name (str): name of this FW
+            db_file (str): path to the db file
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            prev_calc_dir (str): Path to a previous calculation to copy from
+            dopings ([float]): doping levels you want to compute
+            temperatures ([float]): the temperatures (in Kelvin)
+            kgrid_tp (str): determines how fine the k-point mesh is see Amset
+                documentation for options.
+            additional_fields (dict): fields added to the document such as
+                user-defined tags or name, ids, etc
+            timeout (float): time limit (in hours) to prevent wasting CPU hours
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+        fw_name = "{}-{}".format(structure.composition.reduced_formula if structure else "unknown", name)
+
+        additional_fields = additional_fields or {}
+
+        t = []
+
+        # to get the vasprun.xml file
+        if prev_calc_dir:
+            t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, contcar_to_poscar=True))
+        else:
+            t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
+
+
+        t.extend([RunAmset(material_params=material_params,
+                           model_params=model_params,
+                           performance_params=performance_params,
+                           temperatures=temperatures,
+                           dopings=dopings,
+                           kgrid_tp=kgrid_tp,
+                           timeout=timeout
+                           ),
+                  AmsetToDb(db_file=db_file,
+                            additional_fields=additional_fields),
+                  PassCalcLocs(name=name)])
+
+        super(AmsetFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class NEBRelaxationFW(Firework):
