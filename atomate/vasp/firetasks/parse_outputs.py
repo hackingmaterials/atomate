@@ -335,12 +335,11 @@ class AmsetToDb(FiretaskBase):
             amset_dict (dict): the output of Amset.from_file() method
 
         Returns (({[dict]}, [dict]):
-            For mobility (the first output): it is a dictionary containing
-                list of dicts for mobility vectors limited by various types of
-                scattering phenomena and the "overall" mobility at various
-                carrier concentration, c, and temperatures, T. The second
-                output is a list of dicts for seebeck coefficient also at
-                various c and T.
+            The first output (mobility) is a dictionary containing list of
+            dicts for mobility vectors limited by various types of scattering
+            phenomena and the "overall" mobility at various carrier
+            concentration, c, and temperatures, T. The second output is a list
+            of dicts for seebeck coefficient also at various c and T.
         """
         mobility = {}
         seebeck = []
