@@ -269,14 +269,18 @@ class AmsetToDb(FiretaskBase):
     Optional params:
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
-        additional_fields (dict): fields added to the document such as user-defined tags or name, ids, etc
+        filename (str): the json filename from which the Amset run is loaded
+            via the from_file method.
+        additional_fields (dict): fields added to the document such as
+            user-defined tags or name, ids, etc
     """
 
     optional_params = ["db_file", "filename", "additional_fields"]
 
     def run_task(self, fw_spec):
         from amset.core import Amset
-        amset = Amset.from_file()
+        filename = self.get("filename", "amsetrun.json")
+        amset = Amset.from_file(filename=filename)
         additional_fields = self.get("additional_fields", {})
 
         # pass the additional_fields first to avoid overriding BoltztrapAnalyzer items
