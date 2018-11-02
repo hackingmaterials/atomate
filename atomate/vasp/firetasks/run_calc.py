@@ -271,11 +271,14 @@ class RunAmset(FiretaskBase):
         write_inputs (bool): whether to write the 3 *_params dict inputs to
             json files so that one can later examine the inputs used for a
             completed run.
+        timeout_hours (int): the maximum allowed time for Amset calculations
+            in hours. The calculations would be force stopped after this time
+            if not yet completed.
     """
     required_params = ["material_params"]
     optional_params = ["calc_dir", "model_params", "performance_params",
-                       "temperatures", "dopings",
-                       "kgrid_tp", "write_outputs", "write_inputs"]
+                       "temperatures", "dopings", "kgrid_tp", "write_outputs",
+                       "write_inputs", "timeout_hours"]
 
     def run_task(self, fw_spec):
         from amset.core import Amset
@@ -288,7 +291,7 @@ class RunAmset(FiretaskBase):
         kgrid_tp = self.get("kgrid_tp", "coarse")
         write_outputs = self.get("write_outputs", True)
         write_inputs = self.get("write_inputs", True)
-        timeout = self.get("timeout", 10)
+        timeout_hours = self.get("timeout_hours", 24)
 
         runner = Amset(calc_dir=calc_dir,
                        material_params=material_params,
@@ -296,7 +299,7 @@ class RunAmset(FiretaskBase):
                        performance_params=performance_params,
                        dopings=dopings,
                        temperatures=temperatures,
-                       timeout=timeout)
+                       timeout_hours=timeout_hours)
         runner.run_profiled(kgrid_tp=kgrid_tp)
         if write_outputs:
             runner.to_file()
