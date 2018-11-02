@@ -245,7 +245,9 @@ class RunBoltztrap(FiretaskBase):
 @explicit_serialize
 class RunAmset(FiretaskBase):
     """
-    Run Amset directly.
+    Run Amset directly. For more information on input parameters, particularly
+    the options available in *_params dictionary see the documentations for
+    Amset: https://github.com/hackingmaterials/amset
 
     Required params:
         material_params (dict): the static dielectric constant (epsilon_s) is
