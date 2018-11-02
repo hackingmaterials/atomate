@@ -264,23 +264,26 @@ class AmsetToDb(FiretaskBase):
     """
     Enter an Amset run into the database. Note that this assumes you are in a
     current directory that has the data with a sub-directory called "run_data"
-    containing the "amsetrun.json.gz" file (Amset run default filename).
+    containing the "amsetrun.json" file (Amset run default filename).
 
     Optional params:
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
+        dir_path (str): path to the folder where the amsetrun.json is present
+            defaults to None which is the current directory
         filename (str): the json filename from which the Amset run is loaded
             via the from_file method.
         additional_fields (dict): fields added to the document such as
             user-defined tags or name, ids, etc
     """
 
-    optional_params = ["db_file", "filename", "additional_fields"]
+    optional_params = ["db_file", "dir_path", "filename", "additional_fields"]
 
     def run_task(self, fw_spec):
         from amset.core import Amset
         filename = self.get("filename", "amsetrun.json")
-        amset = Amset.from_file(filename=filename)
+        dir_path = self.get("dir_path", None)
+        amset = Amset.from_file(path=dir_path, filename=filename)
         additional_fields = self.get("additional_fields", {})
 
         # pass the additional_fields first to avoid overriding BoltztrapAnalyzer items
