@@ -343,7 +343,7 @@ class AmsetToDb(FiretaskBase):
                             "vec": d["seebeck"][tp][c][T],
                             "avg": np.mean(d["seebeck"][tp][c][T])
                         })
-        
+
         d["mobility"] = mobility
         d["seebeck"] = seebeck
         db_file = env_chk(self.get('db_file'), fw_spec)
