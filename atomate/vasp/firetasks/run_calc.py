@@ -262,6 +262,15 @@ class RunAmset(FiretaskBase):
             etc. See Amset documentation for key options
         temperatures ([float]): the temperatures (in Kelvin)
         doping: ([float]) doping levels you want to compute
+        kgrid_tp (str): determines how fine the k-point mesh is see Amset
+                documentation for options.
+        write_outputs (bool): whether to write various output files that Amset
+            generates such as .csv containing mobility and Seebeck coefficient,
+            the .json file containing all the run data and finally kgrid.json
+            and egrid.json.
+        write_inputs (bool): whether to write the 3 *_params dict inputs to
+            json files so that one can later examine the inputs used for a
+            completed run.
     """
     required_params = ["material_params"]
     optional_params = ["calc_dir", "model_params", "performance_params",
