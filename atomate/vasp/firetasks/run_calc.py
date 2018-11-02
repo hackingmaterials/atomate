@@ -265,7 +265,7 @@ class RunAmset(FiretaskBase):
     """
     required_params = ["material_params"]
     optional_params = ["calc_dir", "model_params", "performance_params",
-                       "temperatures", "dopings", "coeff_file",
+                       "temperatures", "dopings",
                        "kgrid_tp", "write_outputs", "write_inputs"]
 
     def run_task(self, fw_spec):
@@ -278,7 +278,6 @@ class RunAmset(FiretaskBase):
         perfs["max_nbands"] = perfs.get("max_nbands", 1)
         temperatures = self.get("temperatures", None)
         dopings = self.get("dopings", None)
-        coeff_file = self.get("coeff_file", None)
         kgrid_tp = self.get("kgrid_tp", "coarse")
         write_outputs = self.get("write_outputs", True)
         write_inputs = self.get("write_inputs", True)
@@ -291,8 +290,7 @@ class RunAmset(FiretaskBase):
                        dopings=dopings,
                        temperatures=temperatures,
                        timeout=timeout)
-        runner.run_profiled(coeff_file=coeff_file,
-                            kgrid_tp=kgrid_tp)
+        runner.run_profiled(kgrid_tp=kgrid_tp)
         if write_outputs:
             runner.to_file()
             runner.to_csv()
