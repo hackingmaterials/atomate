@@ -30,7 +30,7 @@ class TestNMRFireworks(unittest.TestCase):
                            [0.00, -2.2171384943, 3.1355090603]])
         self.structure = Structure(lattice, ["Si", "Si"], coords)
 
-    def testNMRFW(self):
+    def test_NMRFW(self):
         self.assertEqual(NMRFW(structure=self.structure).name, "Si-nmr tensor")
 
         # Ensure correct Fireworks structure based on input type
