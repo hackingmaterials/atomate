@@ -317,35 +317,8 @@ class AmsetToDb(FiretaskBase):
         d["tags"] = list(set(d.get("tags", []) + fw_spec.get("tags", [])))
 
         # transform mobility and Seebeck coefficient to list of dicts:
-        # TODO: move this part to Amset for clearer input/output
-        mobility = {}
-        seebeck = []
-        for itp, tp in enumerate(["p", "n"]):
-            sgn = (-1.0)**itp
-            for mu in d["mobility"][tp]:
-                mus_list = []
-                for c in d["mobility"][tp][mu]:
-                    if np.sign(int(c)) * sgn > 0: #store the relevant type (c<0 <-> n)
-                        for T in d["mobility"][tp][mu][c]:
-                            mus_list.append({
-                                "c": float(c),
-                                "T": float(T),
-                                "vec": d["mobility"][tp][mu][c][T],
-                                "avg": np.mean(d["mobility"][tp][mu][c][T])
-                            })
-                mobility[mu] = mobility.get(mu, []) + mus_list
-            for c in d["seebeck"][tp]:
-                if np.sign(int(c)) * sgn > 0: # store the relevant type (c<0 <-> n)
-                    for T in d["seebeck"][tp][c]:
-                        seebeck.append({
-                            "c": float(c),
-                            "T": float(T),
-                            "vec": d["seebeck"][tp][c][T],
-                            "avg": np.mean(d["seebeck"][tp][c][T])
-                        })
+        d["mobility"], d["seebeck"] = self.reformat_mobility_seebeck(d)
 
-        d["mobility"] = mobility
-        d["seebeck"] = seebeck
         db_file = env_chk(self.get('db_file'), fw_spec)
         if not db_file:
             with open(os.path.join(d["dir_name"], "amset_entry.json"), "w") as f:
@@ -353,6 +326,50 @@ class AmsetToDb(FiretaskBase):
         else:
             mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
             mmdb.db.amset.insert(d)
+
+    def reformat_mobility_seebeck(self, amset_dict):
+        """
+        Transforms mobility and Seebeck coefficient to list of dicts
+
+        Args:
+            amset_dict (dict): the output of Amset.from_file() method
+
+        Returns (({[dict]}, [dict]):
+            For mobility (the first output): it is a dictionary containing
+                list of dicts for mobility vectors limited by various types of
+                scattering phenomena and the "overall" mobility at various
+                carrier concentration, c, and temperatures, T. The second
+                output is a list of dicts for seebeck coefficient also at
+                various c and T.
+        """
+        mobility = {}
+        seebeck = []
+        for itp, tp in enumerate(["p", "n"]):
+            sgn = (-1.0) ** itp
+            for mu in amset_dict["mobility"][tp]:
+                mus_list = []
+                for c in amset_dict["mobility"][tp][mu]:
+                    if np.sign(int(
+                            c)) * sgn > 0:  # store the relevant type (c<0 <-> n)
+                        for T in amset_dict["mobility"][tp][mu][c]:
+                            mus_list.append({
+                                "c": float(c),
+                                "T": float(T),
+                                "vec": amset_dict["mobility"][tp][mu][c][T],
+                                "avg": np.mean(amset_dict["mobility"][tp][mu][c][T])
+                            })
+                mobility[mu] = mobility.get(mu, []) + mus_list
+            for c in amset_dict["seebeck"][tp]:
+                if np.sign(int(
+                        c)) * sgn > 0:  # store the relevant type (c<0 <-> n)
+                    for T in amset_dict["seebeck"][tp][c]:
+                        seebeck.append({
+                            "c": float(c),
+                            "T": float(T),
+                            "vec": amset_dict["seebeck"][tp][c][T],
+                            "avg": np.mean(amset_dict["seebeck"][tp][c][T])
+                        })
+        return mobility, seebeck
 
 
 @explicit_serialize
