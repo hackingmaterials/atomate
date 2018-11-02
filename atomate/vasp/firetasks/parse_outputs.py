@@ -317,6 +317,7 @@ class AmsetToDb(FiretaskBase):
         d["tags"] = list(set(d.get("tags", []) + fw_spec.get("tags", [])))
 
         # transform mobility and Seebeck coefficient to list of dicts:
+        # TODO: move this part to Amset for clearer input/output
         mobility = {}
         seebeck = []
         for itp, tp in enumerate(["p", "n"]):
@@ -342,6 +343,7 @@ class AmsetToDb(FiretaskBase):
                             "vec": d["seebeck"][tp][c][T],
                             "avg": np.mean(d["seebeck"][tp][c][T])
                         })
+        
         d["mobility"] = mobility
         d["seebeck"] = seebeck
         db_file = env_chk(self.get('db_file'), fw_spec)
