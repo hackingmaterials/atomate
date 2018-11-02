@@ -327,7 +327,8 @@ class AmsetToDb(FiretaskBase):
             mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
             mmdb.db.amset.insert(d)
 
-    def reformat_mobility_seebeck(self, amset_dict):
+    @staticmethod
+    def reformat_mobility_seebeck(amset_dict):
         """
         Transforms mobility and Seebeck coefficient to list of dicts
 
