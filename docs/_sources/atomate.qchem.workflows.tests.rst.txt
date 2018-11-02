@@ -12,6 +12,14 @@ atomate.qchem.workflows.tests.test\_double\_FF\_opt module
     :undoc-members:
     :show-inheritance:
 
+atomate.qchem.workflows.tests.test\_fragmentation module
+--------------------------------------------------------
+
+.. automodule:: atomate.qchem.workflows.tests.test_fragmentation
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 atomate.qchem.workflows.tests.test\_parse\_pass\_write module
 -------------------------------------------------------------
 
