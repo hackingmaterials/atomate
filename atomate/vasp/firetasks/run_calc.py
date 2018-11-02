@@ -282,9 +282,7 @@ class RunAmset(FiretaskBase):
         calc_dir = self.get("calc_dir", ".")
         material_params = self.get("material_params")
         model_params = self.get("model_params", None)
-        perfs = self.get("performance_params", {})
-        perfs["max_nvalleys"] = perfs.get("max_nvalleys", 3)
-        perfs["max_nbands"] = perfs.get("max_nbands", 1)
+        performance_params = self.get("performance_params", None)
         temperatures = self.get("temperatures", None)
         dopings = self.get("dopings", None)
         kgrid_tp = self.get("kgrid_tp", "coarse")
@@ -295,7 +293,7 @@ class RunAmset(FiretaskBase):
         runner = Amset(calc_dir=calc_dir,
                        material_params=material_params,
                        model_params=model_params,
-                       performance_params=perfs,
+                       performance_params=performance_params,
                        dopings=dopings,
                        temperatures=temperatures,
                        timeout=timeout)
