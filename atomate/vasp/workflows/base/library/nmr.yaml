@@ -1,5 +1,5 @@
 # Structure optimize + NMR Calculations
-# Author: Anubhav Jain (ajain@lbl.gov)
+# Author: Shyam Dwarknath (shyamd@lbl.gov)
 fireworks:
 - fw: atomate.vasp.fireworks.core.OptimizeFW
   params:
