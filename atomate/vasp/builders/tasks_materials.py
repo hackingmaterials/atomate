@@ -33,7 +33,7 @@ There is lots of config for this builder in the accompanying "tasks_materials_se
 
 class TasksMaterialsBuilder(AbstractBuilder):
     def __init__(self, materials_write, counter_write, tasks_read, tasks_prefix="t",
-                 materials_prefix="m", query=None):
+                 materials_prefix="m", query=None, settings_file=None):
         """
         Create a materials collection from a tasks collection.
 
@@ -44,8 +44,12 @@ class TasksMaterialsBuilder(AbstractBuilder):
             tasks_prefix (str): a string prefix for tasks, e.g. "t" gives a task_id like "t-132"
             materials_prefix (str): a string prefix to prepend to material_ids
             query (dict): a pymongo query on tasks_read for which tasks to include in the builder
+            settings_file (str): filepath to a custom settings path
         """
-        x = loadfn(os.path.join(module_dir, "tasks_materials_settings.yaml"))
+
+        settings_file = settings_file or os.path.join(
+            module_dir, "tasks_materials_settings.yaml")
+        x = loadfn(settings_file)
         self.supported_task_labels = x['supported_task_labels']
         self.property_settings = x['property_settings']
         self.indexes = x.get('indexes', [])
