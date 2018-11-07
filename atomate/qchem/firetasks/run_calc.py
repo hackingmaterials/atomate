@@ -39,16 +39,19 @@ class RunQChemDirect(FiretaskBase):
 
     Required params:
         qchem_cmd (str): The name of the full command line call to run. This should include any
-                         flags for parallelization, saving scratch, etc. Supports env_chk.
+                         flags for parallelization, saving scratch, and input / output files.
+                         Does NOT support env_chk.
     Optional params:
         scratch_dir (str): Path to the scratch directory. Defaults to "/dev/shm/qcscratch/".
+                           Supports env_chk.
+
     """
 
     required_params = ["qchem_cmd"]
     optional_params = ["scratch_dir"]
 
     def run_task(self, fw_spec):
-        cmd = env_chk(self["qchem_cmd"], fw_spec)
+        cmd = self.get("qchem_cmd")
         scratch_dir = env_chk(self.get("scratch_dir"), fw_spec)
         if scratch_dir == None:
             scratch_dir = "/dev/shm/qcscratch/"
@@ -66,20 +69,22 @@ class RunQChemCustodian(FiretaskBase):
     Run QChem using custodian "on rails", i.e. in a simple way that supports most common options.
 
     Required params:
-        qchem_cmd (str): the name of the full executable for running QChem. Note that this is
+        qchem_cmd (str): The name of the full executable for running QChem. Note that this is
                          explicitly different from qchem_cmd in RunQChemDirect because it does
                          not include any flags and should only be the call to the executable.
                          Supports env_chk.
 
     Optional params:
-        multimode (str): Parallelization scheme, either openmp or mpi.
-        input_file (str): Name of the QChem input file.
-        output_file (str): Name of the QChem output file.
-        max_cores (int): Maximum number of cores to parallelize over. Defaults to 32.
+        multimode (str): Parallelization scheme, either openmp or mpi. Defaults to openmp.
+                         Supports env_chk.
+        input_file (str): Name of the QChem input file. Defaults to "mol.qin".
+        output_file (str): Name of the QChem output file. Defaults to "mol.qout"
+        max_cores (int): Maximum number of cores to parallelize over. Supports env_chk.
         qclog_file (str): Name of the file to redirect the standard output to. None means
                           not to record the standard output. Defaults to None.
         suffix (str): String to append to the file in postprocess.
         scratch_dir (str): QCSCRATCH directory. Defaults to "/dev/shm/qcscratch/".
+                           Supports env_chk.
         save_scratch (bool): Whether to save scratch directory contents. Defaults to False.
         save_name (str): Name of the saved scratch directory. Defaults to "default_save_name".
         max_errors (int): Maximum # of errors to fix before giving up (default=5)
@@ -109,10 +114,12 @@ class RunQChemCustodian(FiretaskBase):
 
         # initialize variables
         qchem_cmd = env_chk(self["qchem_cmd"], fw_spec)
-        multimode = self.get("multimode", "openmp")
+        multimode = env_chk(self.get("multimode"), fw_spec)
+        if multimode == None:
+            multimode = "openmp"
         input_file = self.get("input_file", "mol.qin")
         output_file = self.get("output_file", "mol.qout")
-        max_cores = self.get("max_cores", 32)
+        max_cores = env_chk(self["max_cores"], fw_spec)
         qclog_file = self.get("qclog_file", "mol.qclog")
         suffix = self.get("suffix", "")
         scratch_dir = env_chk(self.get("scratch_dir"), fw_spec)
@@ -140,10 +147,10 @@ class RunQChemCustodian(FiretaskBase):
             jobs = [
                 QCJob(
                     qchem_command=qchem_cmd,
+                    max_cores=max_cores,
                     multimode=multimode,
                     input_file=input_file,
                     output_file=output_file,
-                    max_cores=max_cores,
                     qclog_file=qclog_file,
                     suffix=suffix,
                     scratch_dir=scratch_dir,

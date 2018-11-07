@@ -1,6 +1,6 @@
 from custodian import Custodian
-from custodian.qchem.new_jobs import QCJob
-from custodian.qchem.new_handlers import QChemErrorHandler
+from custodian.qchem.jobs import QCJob
+from custodian.qchem.handlers import QChemErrorHandler
 
 my_input = "mol.qin"
 my_output = "mol.qout"

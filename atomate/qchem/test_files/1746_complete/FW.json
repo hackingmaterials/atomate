@@ -1,0 +1,338 @@
+{
+    "spec": {
+        "_tasks": [
+            {
+                "molecule": {
+                    "@module": "pymatgen.core.structure",
+                    "@class": "Molecule",
+                    "charge": 0,
+                    "spin_multiplicity": 1,
+                    "sites": [
+                        {
+                            "name": "O",
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                -0.0721167665,
+                                -0.9423525538,
+                                0.1290391903
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "O",
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                -2.2899395558,
+                                -0.6718014746,
+                                -0.131486779
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "C",
+                            "species": [
+                                {
+                                    "element": "C",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                1.0295613906,
+                                -0.073525918,
+                                0.4243446514
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "C",
+                            "species": [
+                                {
+                                    "element": "C",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                0.4993856923,
+                                1.2773171897,
+                                -0.0556605261
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "C",
+                            "species": [
+                                {
+                                    "element": "C",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                2.2823788219,
+                                -0.5560560675,
+                                -0.265032635
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "C",
+                            "species": [
+                                {
+                                    "element": "C",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                -1.200688218,
+                                -0.2179911101,
+                                -0.0198713747
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "H",
+                            "species": [
+                                {
+                                    "element": "H",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                0.7641180937,
+                                2.1082352257,
+                                0.5964293538
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "H",
+                            "species": [
+                                {
+                                    "element": "H",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                2.5706747276,
+                                -1.5425688185,
+                                0.1009152216
+                            ],
+                            "properties": {}
+                        }
+                    ]
+                },
+                "qchem_input_set": "OptSet",
+                "input_file": "mol.qin",
+                "qchem_input_params": {},
+                "_fw_name": "{{atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet}}"
+            },
+            {
+                "qchem_cmd": ">>qchem_cmd<<",
+                "multimode": "openmp",
+                "input_file": "mol.qin",
+                "output_file": "mol.qout",
+                "max_cores": 32,
+                "job_type": "opt_with_frequency_flattener",
+                "max_iterations": 10,
+                "max_molecule_perturb_scale": 0.3,
+                "reversed_direction": false,
+                "_fw_name": "{{atomate.qchem.firetasks.run_calc.RunQChemCustodian}}"
+            },
+            {
+                "db_file": ">>db_file<<",
+                "input_file": "mol.qin",
+                "output_file": "mol.qout",
+                "additional_fields": {
+                    "task_label": "fragment_492",
+                    "special_run_type": "frequency_flattener"
+                },
+                "_fw_name": "{{atomate.qchem.firetasks.parse_outputs.QChemToDb}}"
+            }
+        ]
+    },
+    "fw_id": 1746,
+    "created_on": "2018-07-06T17:02:17.662373",
+    "updated_on": "2018-07-12T00:36:41.330389",
+    "launches": [
+        {
+            "fworker": {
+                "name": "edison_qchem_dev",
+                "category": "",
+                "query": "{}",
+                "env": {
+                    "db_file": "/global/homes/s/sblau/config_edison/db.json",
+                    "qchem_cmd": "qchem -slurm",
+                    "scratch_dir": "/dev/shm/qcscratch/"
+                }
+            },
+            "fw_id": 1746,
+            "launch_dir": "/scratch2/scratchdirs/sblau/fragment_wf/block_2018-07-09-23-50-25-765742/launcher_2018-07-12-00-36-13-562248",
+            "host": "nid02699",
+            "ip": "10.128.10.160",
+            "trackers": [],
+            "action": null,
+            "state": "RUNNING",
+            "state_history": [
+                {
+                    "state": "RUNNING",
+                    "created_on": "2018-07-12T00:36:41.328470",
+                    "updated_on": "2018-07-12T00:36:41.328474"
+                }
+            ],
+            "launch_id": 4096
+        }
+    ],
+    "archived_launches": [
+        {
+            "fworker": {
+                "name": "cori_qchem_dev",
+                "category": "",
+                "query": "{}",
+                "env": {
+                    "db_file": "/global/homes/s/sblau/config/db.json",
+                    "qchem_cmd": "qchem -slurm",
+                    "scratch_dir": "/dev/shm/qcscratch/"
+                }
+            },
+            "fw_id": 1746,
+            "launch_dir": "/global/cscratch1/sd/sblau/fragment_wf/block_2018-07-08-04-34-46-956497/launcher_2018-07-08-15-58-11-435619",
+            "host": "nid01970",
+            "ip": "10.128.7.193",
+            "trackers": [],
+            "action": {
+                "stored_data": {
+                    "_message": "runtime error during task",
+                    "_task": {
+                        "qchem_cmd": ">>qchem_cmd<<",
+                        "multimode": "openmp",
+                        "input_file": "mol.qin",
+                        "output_file": "mol.qout",
+                        "max_cores": 32,
+                        "job_type": "opt_with_frequency_flattener",
+                        "max_iterations": 10,
+                        "max_molecule_perturb_scale": 0.3,
+                        "reversed_direction": false,
+                        "_fw_name": "{{atomate.qchem.firetasks.run_calc.RunQChemCustodian}}"
+                    },
+                    "_exception": {
+                        "_stacktrace": "Traceback (most recent call last):\n  File \"/global/u2/s/sblau/custodian/custodian/custodian.py\", line 320, in run\n    self._run_job(job_n, job)\n  File \"/global/u2/s/sblau/custodian/custodian/custodian.py\", line 446, in _run_job\n    raise CustodianError(s, True, x[\"handler\"])\ncustodian.custodian.CustodianError: (CustodianError(...), 'Unrecoverable error for handler: <custodian.qchem.handlers.QChemErrorHandler object at 0x2aaab2d60f98>. Raising RuntimeError')\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/global/homes/s/sblau/miniconda3/lib/python3.6/site-packages/fireworks/core/rocket.py\", line 260, in run\n    m_action = t.run_task(my_spec)\n  File \"/global/u2/s/sblau/atomate/atomate/qchem/firetasks/run_calc.py\", line 179, in run_task\n    c.run()\n  File \"/global/u2/s/sblau/custodian/custodian/custodian.py\", line 330, in run\n    .format(self.total_errors, ex))\nRuntimeError: 1 errors reached: (CustodianError(...), 'Unrecoverable error for handler: <custodian.qchem.handlers.QChemErrorHandler object at 0x2aaab2d60f98>. Raising RuntimeError'). Exited...\n",
+                        "_details": null
+                    }
+                },
+                "exit": true,
+                "update_spec": {},
+                "mod_spec": [],
+                "additions": [],
+                "detours": [],
+                "defuse_children": false,
+                "defuse_workflow": false
+            },
+            "state": "FIZZLED",
+            "state_history": [
+                {
+                    "state": "RUNNING",
+                    "created_on": "2018-07-08T16:06:13.635033",
+                    "updated_on": "2018-07-08T16:24:26.652496",
+                    "checkpoint": {
+                        "_task_n": 1,
+                        "_all_stored_data": {},
+                        "_all_update_spec": {},
+                        "_all_mod_spec": []
+                    }
+                },
+                {
+                    "state": "FIZZLED",
+                    "created_on": "2018-07-08T16:24:26.655297",
+                    "checkpoint": {
+                        "_task_n": 1,
+                        "_all_stored_data": {},
+                        "_all_update_spec": {},
+                        "_all_mod_spec": []
+                    }
+                }
+            ],
+            "launch_id": 3216
+        },
+        {
+            "fworker": {
+                "name": "edison_qchem_dev",
+                "category": "",
+                "query": "{}",
+                "env": {
+                    "db_file": "/global/homes/s/sblau/config_edison/db.json",
+                    "qchem_cmd": "qchem -slurm",
+                    "scratch_dir": "/dev/shm/qcscratch/"
+                }
+            },
+            "fw_id": 1746,
+            "launch_dir": "/scratch2/scratchdirs/sblau/fragment_wf/block_2018-07-09-23-50-25-765742/launcher_2018-07-11-22-05-46-178568",
+            "host": "nid04263",
+            "ip": "10.128.16.200",
+            "trackers": [],
+            "action": {
+                "stored_data": {
+                    "_message": "runtime error during task",
+                    "_task": {
+                        "qchem_cmd": ">>qchem_cmd<<",
+                        "multimode": "openmp",
+                        "input_file": "mol.qin",
+                        "output_file": "mol.qout",
+                        "max_cores": 32,
+                        "job_type": "opt_with_frequency_flattener",
+                        "max_iterations": 10,
+                        "max_molecule_perturb_scale": 0.3,
+                        "reversed_direction": false,
+                        "_fw_name": "{{atomate.qchem.firetasks.run_calc.RunQChemCustodian}}"
+                    },
+                    "_exception": {
+                        "_stacktrace": "Traceback (most recent call last):\n  File \"/global/homes/s/sblau/miniconda3/lib/python3.6/site-packages/fireworks/core/rocket.py\", line 260, in run\n    m_action = t.run_task(my_spec)\n  File \"/global/u2/s/sblau/atomate/atomate/qchem/firetasks/run_calc.py\", line 179, in run_task\n    c.run()\n  File \"/global/u2/s/sblau/custodian/custodian/custodian.py\", line 319, in run\n    self.restart, None):\n  File \"/global/u2/s/sblau/custodian/custodian/qchem/jobs.py\", line 189, in opt_with_frequency_flattener\n    solvent=orig_opt_input.solvent)\n  File \"/global/u2/s/sblau/pymatgen/pymatgen/io/qchem/inputs.py\", line 64, in __init__\n    \"The molecule must either be the string 'read' or be a pymatgen Molecule object\"\nValueError: The molecule must either be the string 'read' or be a pymatgen Molecule object\n",
+                        "_details": null
+                    }
+                },
+                "exit": true,
+                "update_spec": {},
+                "mod_spec": [],
+                "additions": [],
+                "detours": [],
+                "defuse_children": false,
+                "defuse_workflow": false
+            },
+            "state": "FIZZLED",
+            "state_history": [
+                {
+                    "state": "RUNNING",
+                    "created_on": "2018-07-11T22:06:18.868853",
+                    "updated_on": "2018-07-11T22:29:07.011869",
+                    "checkpoint": {
+                        "_task_n": 1,
+                        "_all_stored_data": {},
+                        "_all_update_spec": {},
+                        "_all_mod_spec": []
+                    }
+                },
+                {
+                    "state": "FIZZLED",
+                    "created_on": "2018-07-11T22:29:07.015201",
+                    "checkpoint": {
+                        "_task_n": 1,
+                        "_all_stored_data": {},
+                        "_all_update_spec": {},
+                        "_all_mod_spec": []
+                    }
+                }
+            ],
+            "launch_id": 4086
+        }
+    ],
+    "state": "RUNNING",
+    "name": "fragment_492"
+}

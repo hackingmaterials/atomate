@@ -1,0 +1,223 @@
+{
+    "spec": {
+        "_tasks": [
+            {
+                "molecule": {
+                    "@module": "pymatgen.core.structure",
+                    "@class": "Molecule",
+                    "charge": -2,
+                    "spin_multiplicity": 2,
+                    "sites": [
+                        {
+                            "name": "S",
+                            "species": [
+                                {
+                                    "element": "S",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                -1.1408748192,
+                                0.8527464235,
+                                -0.0736155869
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "S",
+                            "species": [
+                                {
+                                    "element": "S",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                1.140827858,
+                                -0.8526870677,
+                                -0.0736168858
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "O",
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                -1.623763636,
+                                1.8516556037,
+                                -1.0049437043
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "C",
+                            "species": [
+                                {
+                                    "element": "C",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                2.5517736501,
+                                0.3739697416,
+                                0.0238707855
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "N",
+                            "species": [
+                                {
+                                    "element": "N",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                -3.06574e-05,
+                                1.38173e-05,
+                                -0.7905593654
+                            ],
+                            "properties": {}
+                        }
+                    ]
+                },
+                "qchem_input_set": "OptSet",
+                "input_file": "mol.qin",
+                "qchem_input_params": {},
+                "_fw_name": "{{atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet}}"
+            },
+            {
+                "qchem_cmd": ">>qchem_cmd<<",
+                "multimode": "openmp",
+                "input_file": "mol.qin",
+                "output_file": "mol.qout",
+                "max_cores": 24,
+                "job_type": "opt_with_frequency_flattener",
+                "max_iterations": 10,
+                "max_molecule_perturb_scale": 0.3,
+                "reversed_direction": false,
+                "_fw_name": "{{atomate.qchem.firetasks.run_calc.RunQChemCustodian}}"
+            },
+            {
+                "db_file": ">>db_file<<",
+                "input_file": "mol.qin",
+                "output_file": "mol.qout",
+                "additional_fields": {
+                    "task_label": "fragment_86",
+                    "special_run_type": "frequency_flattener"
+                },
+                "_fw_name": "{{atomate.qchem.firetasks.parse_outputs.QChemToDb}}"
+            }
+        ]
+    },
+    "fw_id": 2620,
+    "created_on": "2018-07-06T18:04:27.079816",
+    "updated_on": "2018-07-16T21:57:49.225318",
+    "launches": [
+        {
+            "fworker": {
+                "name": "edison_qchem_dev",
+                "category": "",
+                "query": "{}",
+                "env": {
+                    "db_file": "/global/homes/s/sblau/config_edison/db.json",
+                    "qchem_cmd": "qchem -slurm",
+                    "scratch_dir": "/dev/shm/qcscratch/"
+                }
+            },
+            "fw_id": 2620,
+            "launch_dir": "/scratch2/scratchdirs/sblau/fragment_wf/block_2018-07-09-23-50-25-765742/launcher_2018-07-16-21-54-12-831723",
+            "host": "nid05740",
+            "ip": "10.128.22.153",
+            "trackers": [],
+            "action": null,
+            "state": "RUNNING",
+            "state_history": [
+                {
+                    "state": "RUNNING",
+                    "created_on": "2018-07-16T21:57:49.223451",
+                    "updated_on": "2018-07-16T21:57:49.223456"
+                }
+            ],
+            "launch_id": 4116
+        }
+    ],
+    "archived_launches": [
+        {
+            "fworker": {
+                "name": "edison_qchem_dev",
+                "category": "",
+                "query": "{}",
+                "env": {
+                    "db_file": "/global/homes/s/sblau/config_edison/db.json",
+                    "qchem_cmd": "qchem -slurm",
+                    "scratch_dir": "/dev/shm/qcscratch/"
+                }
+            },
+            "fw_id": 2620,
+            "launch_dir": "/scratch2/scratchdirs/sblau/fragment_wf/block_2018-07-04-03-30-43-540608/launcher_2018-07-09-18-37-34-935575",
+            "host": "nid06038",
+            "ip": "10.128.23.197",
+            "trackers": [],
+            "action": {
+                "stored_data": {
+                    "_message": "runtime error during task",
+                    "_task": {
+                        "qchem_cmd": ">>qchem_cmd<<",
+                        "multimode": "openmp",
+                        "input_file": "mol.qin",
+                        "output_file": "mol.qout",
+                        "max_cores": 24,
+                        "job_type": "opt_with_frequency_flattener",
+                        "max_iterations": 10,
+                        "max_molecule_perturb_scale": 0.3,
+                        "reversed_direction": false,
+                        "_fw_name": "{{atomate.qchem.firetasks.run_calc.RunQChemCustodian}}"
+                    },
+                    "_exception": {
+                        "_stacktrace": "Traceback (most recent call last):\n  File \"/global/u2/s/sblau/custodian/custodian/custodian.py\", line 320, in run\n    self._run_job(job_n, job)\n  File \"/global/u2/s/sblau/custodian/custodian/custodian.py\", line 446, in _run_job\n    raise CustodianError(s, True, x[\"handler\"])\ncustodian.custodian.CustodianError: (CustodianError(...), 'Unrecoverable error for handler: <custodian.qchem.handlers.QChemErrorHandler object at 0x2aaab2d5ef98>. Raising RuntimeError')\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/global/homes/s/sblau/miniconda3/lib/python3.6/site-packages/fireworks/core/rocket.py\", line 260, in run\n    m_action = t.run_task(my_spec)\n  File \"/global/u2/s/sblau/atomate/atomate/qchem/firetasks/run_calc.py\", line 179, in run_task\n    c.run()\n  File \"/global/u2/s/sblau/custodian/custodian/custodian.py\", line 330, in run\n    .format(self.total_errors, ex))\nRuntimeError: 1 errors reached: (CustodianError(...), 'Unrecoverable error for handler: <custodian.qchem.handlers.QChemErrorHandler object at 0x2aaab2d5ef98>. Raising RuntimeError'). Exited...\n",
+                        "_details": null
+                    }
+                },
+                "exit": true,
+                "update_spec": {},
+                "mod_spec": [],
+                "additions": [],
+                "detours": [],
+                "defuse_children": false,
+                "defuse_workflow": false
+            },
+            "state": "FIZZLED",
+            "state_history": [
+                {
+                    "state": "RUNNING",
+                    "created_on": "2018-07-09T20:57:08.842837",
+                    "updated_on": "2018-07-09T21:55:48.333119",
+                    "checkpoint": {
+                        "_task_n": 1,
+                        "_all_stored_data": {},
+                        "_all_update_spec": {},
+                        "_all_mod_spec": []
+                    }
+                },
+                {
+                    "state": "FIZZLED",
+                    "created_on": "2018-07-09T21:55:48.336524",
+                    "checkpoint": {
+                        "_task_n": 1,
+                        "_all_stored_data": {},
+                        "_all_update_spec": {},
+                        "_all_mod_spec": []
+                    }
+                }
+            ],
+            "launch_id": 3704
+        }
+    ],
+    "state": "RUNNING",
+    "name": "fragment_86"
+}

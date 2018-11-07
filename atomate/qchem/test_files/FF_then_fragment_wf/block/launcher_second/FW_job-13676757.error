@@ -1,0 +1,9 @@
+/global/u2/s/sblau/pymatgen/pymatgen/io/cif.py:44: UserWarning: Please install optional dependency pybtex if youwant to extract references from CIF files.
+  warnings.warn("Please install optional dependency pybtex if you"
+DEBUG:launchpad:FW with id: 2723 is unique!
+DEBUG:launchpad:Created/updated Launch with launch_id: 4160
+DEBUG:launchpad:RUNNING FW with id: 2723
+INFO:rocket.launcher:RUNNING fw_id: 2723 in directory: /global/cscratch1/sd/sblau/fragment_wf/block_2018-07-10-18-45-27-601029/launcher_2018-07-17-17-03-58-683413
+INFO:rocket.launcher:Task started: {{atomate.qchem.firetasks.fragmenter.FragmentMolecule}}.
+INFO:rocket.launcher:Task completed: {{atomate.qchem.firetasks.fragmenter.FragmentMolecule}} 
+INFO:rocket.launcher:Rocket finished

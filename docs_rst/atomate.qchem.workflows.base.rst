@@ -12,6 +12,14 @@ atomate.qchem.workflows.base.double\_FF\_opt module
     :undoc-members:
     :show-inheritance:
 
+atomate.qchem.workflows.base.fragmentation module
+-------------------------------------------------
+
+.. automodule:: atomate.qchem.workflows.base.fragmentation
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 atomate.qchem.workflows.base.torsion\_potential module
 ------------------------------------------------------
 

@@ -2,6 +2,13 @@
 atomate Changelog
 =================
 
+**v0.8.4**
+
+* add some QChem functionality! (S. Blau, E. Spotte-Smith)
+* better credential parsing in CalcDB (A. Rutt)
+* update paramiko for better security (A. Jain)
+* add tasks_settings.yaml to site-packages (A. Jain)
+
 **v0.8.3**
 
 * add CHGCAR and AECAR storage options (J. Shen)
