@@ -72,6 +72,9 @@ class PlaceIon(FiretaskBase):
         self.new_molecules = []
         for point in self.ion_positions:
             mol = copy.deepcopy(self.mol)
+            mol.remove_site_property("charge")
+            if mol.spin_multiplicity != 1:
+                mol.remove_site_property("spin")
             mol.append(self.ion, point)
             for charge in self.charges:
                 new_mol = copy.deepcopy(mol)
