@@ -61,7 +61,7 @@ class PlaceIon(FiretaskBase):
         self.ion_positions = IonPlacer(molecule=self.mol, ion=self.ion, stop_num=self.get("stop_num", 10000)).accepted_points
         self._build_molecules()
 
-        return FWAction(additions=self._build_new_FWs())
+        return FWAction(detours=self._build_new_FWs())
 
     def _build_molecules(self):
         """

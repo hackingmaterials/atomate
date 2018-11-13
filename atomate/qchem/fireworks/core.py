@@ -14,6 +14,7 @@ from atomate.qchem.firetasks.parse_outputs import QChemToDb
 from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule
+from atomate.qchem.firetasks.ion_placer import PlaceIon
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -270,9 +271,6 @@ class FragmentFW(Firework):
                  additional_charges=None,
                  do_triplets=True,
                  name="fragment and optimize",
-                 qchem_cmd=">>qchem_cmd<<",
-                 multimode=">>multimode<<",
-                 max_cores=">>max_cores<<",
                  qchem_input_params=None,
                  db_file=None,
                  check_db=True,
@@ -291,9 +289,6 @@ class FragmentFW(Firework):
             do_triplets (bool): Whether to simulate triplets as well as singlets for molecules with an
                                 even number of electrons. Defaults to True.
             name (str): Name for the Firework.
-            qchem_cmd (str): Command to run QChem. Supports env_chk.
-            multimode (str): Parallelization scheme, either openmp or mpi. Supports env_chk.
-            max_cores (int): Maximum number of cores to parallelize over. Supports env_chk.
             qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
                                        Basic uses would be to modify the default inputs of the set,
                                        such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
@@ -334,6 +329,42 @@ class FragmentFW(Firework):
                 db_file=db_file,
                 check_db=check_db))
         super(FragmentFW, self).__init__(
+            t,
+            parents=parents,
+            name=name,
+            **kwargs)
+
+
+class PlaceIonFW(Firework):
+    def __init__(self,
+                 molecule=None,
+                 mulliken=None,
+                 ion=None,
+                 charges=None,
+                 stop_num=None,
+                 do_triplets=True,
+                 name="place ions and optimize",
+                 qchem_input_params=None,
+                 parents=None,
+                 **kwargs):
+        """
+        """
+
+        qchem_input_params = qchem_input_params or {}
+        charges = charges or [0]
+        ion = ion or "Li"
+        stop_num = stop_num or 10000
+        t = []
+        t.append(
+            PlaceIon(
+                molecule=molecule,
+                mulliken=mulliken,
+                ion=ion,
+                charges=charges,
+                stop_num=stop_num,
+                do_triplets=do_triplets,
+                qchem_input_params=qchem_input_params))
+        super(PlaceIonFW, self).__init__(
             t,
             parents=parents,
             name=name,

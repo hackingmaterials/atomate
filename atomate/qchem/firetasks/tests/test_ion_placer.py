@@ -43,7 +43,7 @@ class TestPlaceIon(AtomateTest):
         with patch("atomate.qchem.firetasks.ion_placer.FWAction") as FWAction_patch:
             ft = PlaceIon(molecule=self.ec_neg2_data["initial_molecule"], mulliken=self.ec_neg2_data["Mulliken"])
             ft.run_task({})
-            self.assertEqual(len(ft.ion_positions),len(FWAction_patch.call_args[1]["additions"]))
+            self.assertEqual(len(ft.ion_positions),len(FWAction_patch.call_args[1]["detours"]))
 
         mol = self.ec_neg2_data["initial_molecule"]
         mol.add_site_property("charge",self.ec_neg2_data["Mulliken"][0][::,0])
@@ -52,19 +52,19 @@ class TestPlaceIon(AtomateTest):
         with patch("atomate.qchem.firetasks.ion_placer.FWAction") as FWAction_patch:
             ft = PlaceIon(molecule=mol)
             ft.run_task({})
-            self.assertEqual(len(ft.ion_positions),len(FWAction_patch.call_args[1]["additions"]))
+            self.assertEqual(len(ft.ion_positions),len(FWAction_patch.call_args[1]["detours"]))
 
         with patch("atomate.qchem.firetasks.ion_placer.FWAction") as FWAction_patch:
             ft = PlaceIon(molecule=mol, charges=[-1,0,1])
             ft.run_task({})
-            self.assertEqual(len(ft.ion_positions)*5,len(FWAction_patch.call_args[1]["additions"]))
+            self.assertEqual(len(ft.ion_positions)*5,len(FWAction_patch.call_args[1]["detours"]))
 
 
     def test_PC_neut_singlet(self):
         with patch("atomate.qchem.firetasks.ion_placer.FWAction") as FWAction_patch:
             ft = PlaceIon(molecule=self.pc_neut1_data["initial_molecule"], mulliken=self.pc_neut1_data["Mulliken"])
             ft.run_task({})
-            self.assertEqual(len(ft.ion_positions),len(FWAction_patch.call_args[1]["additions"]))
+            self.assertEqual(len(ft.ion_positions),len(FWAction_patch.call_args[1]["detours"]))
 
         mol = self.pc_neut1_data["initial_molecule"]
         mol.add_site_property("charge",self.pc_neut1_data["Mulliken"][0])
@@ -72,12 +72,12 @@ class TestPlaceIon(AtomateTest):
         with patch("atomate.qchem.firetasks.ion_placer.FWAction") as FWAction_patch:
             ft = PlaceIon(molecule=mol)
             ft.run_task({})
-            self.assertEqual(len(ft.ion_positions),len(FWAction_patch.call_args[1]["additions"]))
+            self.assertEqual(len(ft.ion_positions),len(FWAction_patch.call_args[1]["detours"]))
 
         with patch("atomate.qchem.firetasks.ion_placer.FWAction") as FWAction_patch:
             ft = PlaceIon(molecule=mol, charges=[-1,0,1])
             ft.run_task({})
-            self.assertEqual(len(ft.ion_positions)*5,len(FWAction_patch.call_args[1]["additions"]))
+            self.assertEqual(len(ft.ion_positions)*5,len(FWAction_patch.call_args[1]["detours"]))
 
 
 if __name__ == "__main__":
