@@ -59,11 +59,9 @@ class PlaceIon(FiretaskBase):
         self.do_triplets = self.get("do_triplets", True)
         self.qchem_input_params = self.get("qchem_input_params", {})
         self.ion_positions = IonPlacer(molecule=self.mol, ion=self.ion, stop_num=self.get("stop_num", 10000)).accepted_points
-        print(str(len(self.ion_positions))+ " ion positions found!")
         self._build_molecules()
-        print(str(len(self.new_molecules))+ " new molecules ready to optimize!")
 
-        return FWAction(additions=self._build_new_FWs())
+        return FWAction(detours=self._build_new_FWs())
 
     def _build_molecules(self):
         """
@@ -73,6 +71,7 @@ class PlaceIon(FiretaskBase):
         for point in self.ion_positions:
             mol = copy.deepcopy(self.mol)
             mol.remove_site_property("charge")
+            mol.remove_site_property("reactivity")
             if mol.spin_multiplicity != 1:
                 mol.remove_site_property("spin")
             mol.append(self.ion, point)
