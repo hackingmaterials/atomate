@@ -177,7 +177,8 @@ class QChemDrone(AbstractDrone):
             }
             d["output"] = {
                 "initial_molecule": d_calc_final["initial_molecule"],
-                "job_type": d_calc_final["input"]["rem"]["job_type"]
+                "job_type": d_calc_final["input"]["rem"]["job_type"],
+                "mulliken": d_calc_final["Mulliken"][-1]
             }
 
             if d["output"]["job_type"] == "opt" or d["output"]["job_type"] == "optimization":
@@ -238,11 +239,17 @@ class QChemDrone(AbstractDrone):
 
             d["state"] = "successful" if d_calc_final["completion"] else "unsuccessful"
             if "special_run_type" in d:
-                if d["special_run_type"] == "frequency_flattener":
-                    d["num_frequencies_flattened"] = int((len(qcinput_files) / 2) - 1)
-                    if d["state"] == "successful":
-                        if d_calc_final["frequencies"][0] < 0: # If a negative frequency remains,
-                            d["state"] = "unsuccessful" # then the flattening was unsuccessful
+                if d["special_run_type"] == "frequency_flattener" and d["state"] == "successful":
+                    orig_num_neg_freq = sum(1 for freq in d["calcs_reversed"][-2]["frequencies"] if freq < 0)
+                    orig_energy = d_calc_init["final_energy"]
+                    final_num_neg_freq = sum(1 for freq in d_calc_final["frequencies"] if freq < 0)
+                    final_energy = d["calcs_reversed"][1]["final_energy"]
+                    d["num_frequencies_flattened"] = orig_num_neg_freq - final_num_neg_freq
+                    if final_num_neg_freq > 0: # If a negative frequency remains,
+                        d["state"] = "unsuccessful" # then the flattening was unsuccessful
+                    if final_energy > orig_energy:
+                        d["warning"] = "energy_increased"
+
             d["last_updated"] = datetime.datetime.utcnow()
             return d
 

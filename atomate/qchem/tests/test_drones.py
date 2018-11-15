@@ -199,7 +199,6 @@ class QChemDroneTest(unittest.TestCase):
         self.assertEqual(doc["output"]["final_energy"], "unstable")
         self.assertEqual(doc["smiles"], "[S](=O)[N]S[C]")
         self.assertEqual(doc["state"], "unsuccessful")
-        self.assertEqual(doc["num_frequencies_flattened"], 0)
         self.assertEqual(doc["walltime"], None)
         self.assertEqual(doc["cputime"], None)
         self.assertEqual(doc["formula_pretty"], "CS2NO")
@@ -319,6 +318,19 @@ class QChemDroneTest(unittest.TestCase):
         self.assertIn("last_updated", doc)
         self.assertIn("dir_name", doc)
         self.assertEqual(len(doc["calcs_reversed"]), 1)
+
+    def test_FF_switching(self):
+        drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener"})
+        doc = drone.assimilate(
+            path=os.path.join(module_dir, "..", "test_files", "FF_switching"),
+            input_file="mol.qin",
+            output_file="mol.qout",
+            multirun=False)
+        self.assertEqual(doc["special_run_type"], "frequency_flattener")
+        self.assertEqual(doc["input"]["job_type"], "opt")
+        self.assertEqual(doc["output"]["job_type"], "freq")
+        self.assertEqual(doc["num_frequencies_flattened"], 1)
+        self.assertEqual(doc["warning"], "energy_increased")
 
 
 if __name__ == "__main__":
