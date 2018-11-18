@@ -224,6 +224,7 @@ class TestFragmentMolecule(AtomateTest):
         ft.depth = ft.get("depth")
         ft.charges = [-1, 0, 1]
         ft.do_triplets = False
+        ft.linked = False
         ft.qchem_input_params = {}
         pc_frag1_edges = {(e[0], e[1]): None for e in self.pc_frag1_edges}
         mol_graph = MoleculeGraph.with_edges(self.pc_frag1, pc_frag1_edges)
@@ -239,6 +240,7 @@ class TestFragmentMolecule(AtomateTest):
         ft.depth = ft.get("depth")
         ft.charges = [-1, 0, 1]
         ft.do_triplets = False
+        ft.linked = False
         ft.qchem_input_params = {}
         pc_frag1_edges = {(e[0], e[1]): None for e in self.pc_frag1_edges}
         mol_graph = MoleculeGraph.with_edges(self.pc_frag1, pc_frag1_edges)

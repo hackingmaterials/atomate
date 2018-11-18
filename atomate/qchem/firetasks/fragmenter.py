@@ -103,7 +103,7 @@ class FragmentMolecule(FiretaskBase):
     """
 
     optional_params = [
-        "molecule", "edges", "depth", "open_rings", "opt_steps", "additional_charges", "do_triplets", "qchem_input_params", "db_file", "check_db"
+        "molecule", "edges", "depth", "open_rings", "opt_steps", "additional_charges", "do_triplets", "linked", "qchem_input_params", "db_file", "check_db"
     ]
 
     def run_task(self, fw_spec):
@@ -122,6 +122,7 @@ class FragmentMolecule(FiretaskBase):
         self.depth = self.get("depth", 1)
         additional_charges = self.get("additional_charges", [])
         self.do_triplets = self.get("do_triplets", True)
+        self.linked = self.get("linked", False)
         self.qchem_input_params = self.get("qchem_input_params", {})
 
         # Specify charges to consider based on charge of the principle molecule:
@@ -269,5 +270,6 @@ class FragmentMolecule(FiretaskBase):
                             qchem_cmd=">>qchem_cmd<<",
                             max_cores=">>max_cores<<",
                             qchem_input_params=self.qchem_input_params,
+                            linked=self.linked,
                             db_file=">>db_file<<"))
         return new_FWs

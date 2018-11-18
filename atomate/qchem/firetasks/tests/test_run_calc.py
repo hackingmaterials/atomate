@@ -279,6 +279,8 @@ class TestRunCalcQChem(AtomateTest):
                         10,
                         "max_molecule_perturb_scale":
                         0.3,
+                        "linked":
+                        False,
                         "scratch_dir":
                         "/dev/shm/qcscratch/",
                         "save_scratch":
@@ -348,6 +350,8 @@ class TestRunCalcQChem(AtomateTest):
                         10,
                         "max_molecule_perturb_scale":
                         0.3,
+                        "linked":
+                        False,
                         "scratch_dir":
                         "/this/is/a/test",
                         "save_scratch":
@@ -410,6 +414,8 @@ class TestRunCalcQChem(AtomateTest):
                         1029,
                         "max_molecule_perturb_scale":
                         0.5,
+                        "linked":
+                        False,
                         "scratch_dir":
                         "/this/is/a/test",
                         "save_scratch":
@@ -480,6 +486,8 @@ class TestRunCalcQChem(AtomateTest):
                         1029,
                         "max_molecule_perturb_scale":
                         0.5,
+                        "linked":
+                        False,
                         "scratch_dir":
                         "/this/is/a/test",
                         "save_scratch":

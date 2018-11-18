@@ -183,7 +183,7 @@ class TestCore(AtomateTest):
                              job_type="opt_with_frequency_flattener",
                              max_iterations=10,
                              max_molecule_perturb_scale=0.3,
-                             reversed_direction=False).as_dict())
+                             linked=False).as_dict())
         self.assertEqual(firework.tasks[2].as_dict(),
                          QChemToDb(
                              db_file=None,
@@ -193,7 +193,9 @@ class TestCore(AtomateTest):
                                  "task_label":
                                  "frequency flattening structure optimization",
                                  "special_run_type":
-                                 "frequency_flattener"
+                                 "frequency_flattener",
+                                 "linked":
+                                 False
                              }).as_dict())
         self.assertEqual(firework.parents, [])
         self.assertEqual(firework.name,
@@ -209,7 +211,7 @@ class TestCore(AtomateTest):
             qchem_input_params={"pcm_dielectric": 10.0},
             max_iterations=5,
             max_molecule_perturb_scale=0.2,
-            reversed_direction=True,
+            linked=True,
             db_file=os.path.join(db_dir, "db.json"),
             parents=None)
         self.assertEqual(firework.tasks[0].as_dict(),
@@ -230,7 +232,7 @@ class TestCore(AtomateTest):
                              job_type="opt_with_frequency_flattener",
                              max_iterations=5,
                              max_molecule_perturb_scale=0.2,
-                             reversed_direction=True).as_dict())
+                             linked=True).as_dict())
         self.assertEqual(
             firework.tasks[2].as_dict(),
             QChemToDb(
@@ -241,7 +243,8 @@ class TestCore(AtomateTest):
                     "task_label":
                     "special frequency flattening structure optimization",
                     "special_run_type":
-                    "frequency_flattener"
+                    "frequency_flattener",
+                    "linked": True
                 }).as_dict())
         self.assertEqual(firework.parents, [])
         self.assertEqual(firework.name,
@@ -256,7 +259,7 @@ class TestCore(AtomateTest):
                             open_rings=True,
                             additional_charges=[],
                             do_triplets=True,
-                            max_cores=">>max_cores<<",
+                            linked=False,
                             qchem_input_params={},
                             db_file=None,
                             check_db=True).as_dict())
@@ -269,10 +272,8 @@ class TestCore(AtomateTest):
                               open_rings=False,
                               additional_charges=[2],
                               do_triplets=False,
+                              linked=True,
                               name="fragmenting a thing",
-                              qchem_cmd="qchem -slurm",
-                              multimode="mpi",
-                              max_cores=12,
                               qchem_input_params={"pcm_dielectric": 10.0},
                               db_file=os.path.join(db_dir, "db.json"),
                               check_db=False)
@@ -283,7 +284,7 @@ class TestCore(AtomateTest):
                             open_rings=False,
                             additional_charges=[2],
                             do_triplets=False,
-                            max_cores=12,
+                            linked=True,
                             qchem_input_params={"pcm_dielectric": 10.0},
                             db_file=os.path.join(db_dir, "db.json"),
                             check_db=False).as_dict())

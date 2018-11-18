@@ -15,6 +15,7 @@ from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule
 from atomate.qchem.firetasks.ion_placer import PlaceIon
+from atomate.qchem.firetasks.gather_geoms import GatherGeometries
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -183,7 +184,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
                  qchem_input_params=None,
                  max_iterations=10,
                  max_molecule_perturb_scale=0.3,
-                 reversed_direction=False,
+                 linked=False,
                  db_file=None,
                  parents=None,
                  **kwargs):
@@ -219,8 +220,6 @@ class FrequencyFlatteningOptimizeFW(Firework):
                                   iterations to perform. Defaults to 10.
             max_molecule_perturb_scale (float): The maximum scaled perturbation that can be
                                                 applied to the molecule. Defaults to 0.3.
-            reversed_direction (bool): Whether to reverse the direction of the vibrational
-                                       frequency vectors. Defaults to False.
             db_file (str): Path to file specifying db credentials to place output parsing.
             parents ([Firework]): Parents of this particular Firework.
             **kwargs: Other kwargs that are passed to Firework.__init__.
@@ -246,7 +245,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
                 job_type="opt_with_frequency_flattener",
                 max_iterations=max_iterations,
                 max_molecule_perturb_scale=max_molecule_perturb_scale,
-                reversed_direction=reversed_direction))
+                linked=linked))
         t.append(
             QChemToDb(
                 db_file=db_file,
@@ -254,7 +253,8 @@ class FrequencyFlatteningOptimizeFW(Firework):
                 output_file=output_file,
                 additional_fields={
                     "task_label": name,
-                    "special_run_type": "frequency_flattener"
+                    "special_run_type": "frequency_flattener",
+                    "linked": linked
                 }))
         super(FrequencyFlatteningOptimizeFW, self).__init__(
             t,
@@ -270,6 +270,7 @@ class FragmentFW(Firework):
                  open_rings=True,
                  additional_charges=None,
                  do_triplets=True,
+                 linked=False,
                  name="fragment and optimize",
                  qchem_input_params=None,
                  db_file=None,
@@ -324,7 +325,7 @@ class FragmentFW(Firework):
                 open_rings=open_rings,
                 additional_charges=additional_charges,
                 do_triplets=do_triplets,
-                max_cores=max_cores,
+                linked=linked,
                 qchem_input_params=qchem_input_params,
                 db_file=db_file,
                 check_db=check_db))
@@ -343,8 +344,11 @@ class PlaceIonFW(Firework):
                  charges=None,
                  stop_num=None,
                  do_triplets=True,
+                 linked=False,
                  name="place ions and optimize",
                  qchem_input_params=None,
+                 test_positions=None,
+                 ref_dirs=None,
                  parents=None,
                  **kwargs):
         """
@@ -363,8 +367,34 @@ class PlaceIonFW(Firework):
                 charges=charges,
                 stop_num=stop_num,
                 do_triplets=do_triplets,
-                qchem_input_params=qchem_input_params))
+                linked=linked,
+                qchem_input_params=qchem_input_params,
+                test_positions=test_positions,
+                ref_dirs=ref_dirs))
         super(PlaceIonFW, self).__init__(
+            t,
+            parents=parents,
+            name=name,
+            **kwargs)
+
+
+class GatherGeomsFW(Firework):
+    def __init__(self,
+                 prefix,
+                 diff_cutoff=None,
+                 db_file=">>db_file<<",
+                 name="gather geometries",
+                 parents=None,
+                 **kwargs):
+        """
+        """
+        t = []
+        t.append(
+            GatherGeometries(
+                prefix=prefix,
+                diff_cutoff=diff_cutoff,
+                db_file=db_file))
+        super(GatherGeomsFW, self).__init__(
             t,
             parents=parents,
             name=name,

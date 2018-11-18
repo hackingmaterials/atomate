@@ -8,6 +8,7 @@ import copy
 from pymatgen.core.structure import Molecule
 from pymatgen.analysis.ion_placer import IonPlacer
 from atomate.utils.utils import env_chk
+from atomate.qchem.powerups import use_fake_qchem
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 
 __author__ = "Samuel Blau"
@@ -25,7 +26,7 @@ class PlaceIon(FiretaskBase):
     """
 
     optional_params = [
-        "molecule", "mulliken", "ion", "charges", "stop_num", "do_triplets", "qchem_input_params"
+        "molecule", "mulliken", "ion", "charges", "stop_num", "do_triplets", "linked", "qchem_input_params", "test_positions", "ref_dirs"
     ]
 
     def run_task(self, fw_spec):
@@ -54,11 +55,18 @@ class PlaceIon(FiretaskBase):
         else:
             self.mol.add_site_property("charge",mulliken[0])
 
+
         self.charges = self.get("charges", [0])
         self.ion = self.get("ion", "Li")
         self.do_triplets = self.get("do_triplets", True)
+        self.linked = self.get("linked", False)
         self.qchem_input_params = self.get("qchem_input_params", {})
-        self.ion_positions = IonPlacer(molecule=self.mol, ion=self.ion, stop_num=self.get("stop_num", 10000)).accepted_points
+        if self.get("test_positions") and self.get("ref_dirs"):
+            self.testing = True
+            self.ion_positions = self.get("test_positions")
+        else:
+            self.testing = False
+            self.ion_positions = IonPlacer(molecule=self.mol, ion=self.ion, stop_num=self.get("stop_num", 10000)).accepted_points
         self._build_molecules()
 
         return FWAction(detours=self._build_new_FWs())
@@ -100,5 +108,13 @@ class PlaceIon(FiretaskBase):
                     qchem_cmd=">>qchem_cmd<<",
                     max_cores=">>max_cores<<",
                     qchem_input_params=self.qchem_input_params,
+                    linked=self.linked,
                     db_file=">>db_file<<"))
+        # Extremely jank, but its very hard to test dynamic workflows:
+        if self.testing:
+            print("testing!")
+            from fireworks import Workflow
+            tmp_wf = Workflow(new_FWs, name="tmp")
+            fake_wf = use_fake_qchem(tmp_wf,self.get("ref_dirs"),"mol.qin.orig.gz")
+            new_FWs = fake_wf.fws
         return new_FWs

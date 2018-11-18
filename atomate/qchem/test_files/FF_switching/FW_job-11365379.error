@@ -1,0 +1,27 @@
+/global/u2/s/sblau/pymatgen/pymatgen/io/cif.py:44: UserWarning: Please install optional dependency pybtex if youwant to extract references from CIF files.
+  warnings.warn("Please install optional dependency pybtex if you"
+DEBUG:launchpad:FW with id: 3753 is unique!
+DEBUG:launchpad:Created/updated Launch with launch_id: 7662
+DEBUG:launchpad:RUNNING FW with id: 3753
+INFO:rocket.launcher:RUNNING fw_id: 3753 in directory: /scratch2/scratchdirs/sblau/ion_placement/block_2018-11-13-02-29-44-974177/launcher_2018-11-13-22-17-41-574824
+INFO:rocket.launcher:Task started: {{atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet}}.
+INFO:rocket.launcher:Task completed: {{atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet}} 
+INFO:rocket.launcher:Task started: {{atomate.qchem.firetasks.run_calc.RunQChemCustodian}}.
+INFO:custodian.custodian:Run started at 2018-11-13 14:21:30.618911 in /scratch2/scratchdirs/sblau/ion_placement/block_2018-11-13-02-29-44-974177/launcher_2018-11-13-22-17-41-574824.
+INFO:custodian.custodian:Custodian running on Python version 3.6.4 |Anaconda, Inc.| (default, Jan 16 2018, 18:10:19)  [GCC 7.2.0]
+INFO:custodian.custodian:Hostname: nid03485, Cluster: unknown
+INFO:custodian.custodian:Starting job no. 1 (QCJob) attempt no. 1. Total errors and errors in job thus far = 0, 0.
+INFO:custodian.custodian:QCJob.run has completed. Checking remaining handlers
+INFO:custodian.custodian:Starting job no. 2 (QCJob) attempt no. 1. Total errors and errors in job thus far = 0, 0.
+INFO:custodian.custodian:QCJob.run has completed. Checking remaining handlers
+INFO:custodian.custodian:Starting job no. 3 (QCJob) attempt no. 1. Total errors and errors in job thus far = 0, 0.
+INFO:custodian.custodian:QCJob.run has completed. Checking remaining handlers
+INFO:custodian.custodian:Starting job no. 4 (QCJob) attempt no. 1. Total errors and errors in job thus far = 0, 0.
+INFO:custodian.custodian:QCJob.run has completed. Checking remaining handlers
+INFO:custodian.custodian:Starting job no. 5 (QCJob) attempt no. 1. Total errors and errors in job thus far = 0, 0.
+INFO:custodian.custodian:QCJob.run has completed. Checking remaining handlers
+INFO:custodian.custodian:Starting job no. 6 (QCJob) attempt no. 1. Total errors and errors in job thus far = 0, 0.
+INFO:custodian.custodian:QCJob.run has completed. Checking remaining handlers
+INFO:custodian.custodian:Logging to custodian.json...
+INFO:custodian.custodian:Run ended at 2018-11-13 15:34:01.074515.
+INFO:custodian.custodian:Run completed. Total time taken = 1:12:30.455604.

@@ -86,15 +86,13 @@ class QChemToDb(FiretaskBase):
         update_spec = {}
         if task_doc.get("output").get("optimized_molecule"):
             if additional_fields["task_label"][0:7] == "ion_pos":
-                if fw_spec.get("ion_placement"):
-                    tmp = fw_spec.get("ion_placement")
-                else:
-                    tmp = {}
-                tmp[additional_fields["task_label"][8:]] = {}
-                tmp[additional_fields["task_label"][8:]]["molecule"] = task_doc["output"]["optimized_molecule"]
-                tmp[additional_fields["task_label"][8:]]["mulliken"] = task_doc["output"]["mulliken"]
-                tmp[additional_fields["task_label"][8:]]["energy"] = task_doc["output"]["final_energy"]
-                update_spec["ion_placement"] = tmp
+                tmp = {}
+                tmp["molecule"] = task_doc["output"]["optimized_molecule"]
+                tmp["mulliken"] = task_doc["output"]["mulliken"]
+                tmp["energy"] = task_doc["output"]["final_energy"]
+                tmp["calc_dir"] = calc_dir
+                tmp["linked"] = task_doc["linked"]
+                update_spec[additional_fields["task_label"]] = tmp
             else:
                 update_spec["prev_calc_molecule"] = task_doc["output"]["optimized_molecule"]
                 update_spec["prev_calc_mulliken"] = task_doc["output"]["mulliken"]

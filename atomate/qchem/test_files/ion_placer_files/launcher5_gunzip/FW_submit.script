@@ -1,0 +1,17 @@
+#!/bin/bash -l
+
+#SBATCH --nodes=1
+#SBATCH --qos=premium
+#SBATCH --time=04:00:00
+#SBATCH --partition=regular
+#SBATCH --account=jcesr
+#SBATCH --job-name=FW_job
+#SBATCH --output=FW_job-%j.out
+#SBATCH --error=FW_job-%j.error
+#SBATCH --constraint=haswell
+
+module load qchem/5.1
+cd /global/cscratch1/sd/sblau/pcm_scan/block_2018-10-25-22-33-28-239272/launcher_2018-11-13-22-17-39-260594
+rlaunch -c /global/homes/s/sblau/config singleshot
+
+# CommonAdapter (SLURM) completed writing Template

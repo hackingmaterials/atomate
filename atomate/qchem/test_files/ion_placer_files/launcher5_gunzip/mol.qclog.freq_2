@@ -1,0 +1,48 @@
+You are running Q-Chem version: 5.1.0
+
+#
+# job setting
+#
+local host:  nid01333
+current dir: /global/cscratch1/sd/sblau/pcm_scan/block_2018-10-25-22-33-28-239272/launcher_2018-11-13-22-17-39-260594
+input file:  mol.qin
+output file: mol.qout
+nprocs     : 1
+nthreads   : 32
+#
+# qchem installation setting
+#
+QC:          /global/common/cori/software/qchem/5.1
+QCAUX:       /global/common/cori/software/qchem/5.1/qcaux
+QCPROG:      /global/common/cori/software/qchem/5.1/exe/qcprog.exe
+QCPROG_S:    /global/common/cori/software/qchem/5.1/exe/qcprog.exe
+PARALLEL:    FALSE
+QCMPI:       slurm
+#
+# qchem directory setting
+#
+qcrun:       qchem50921
+QCSCRATCH:   /dev/shm/qcscratch/
+QCLOCALSCR:  /tmp
+QCTMPDIR:    /tmp
+QCFILEPREF:  /tmp/qchem50921
+QCSAVEDIR:   
+workdirs:    /tmp/qchem50921
+workdir0:    /tmp/qchem50921
+partmpdirs =  
+#
+# parallel setting
+#
+QCRSH:           ssh
+QCMPI:           slurm
+QCMPIRUN:        srun
+QCMACHINEFILE:   nid01333
+QCMACHINEFILE nid01333 cannot be found
+
+#
+# env setting
+#
+exported envs:   QC QCAUX QCSCRATCH QCRUNNAME QCFILEPREF QCPROG QCPROG_S GUIFILE
+remove work dirs /tmp/qchem50921.0 -- /tmp/qchem50921.0
+rm -rf /tmp/qchem50921.0
+rm -rf /tmp/qchem50921
