@@ -24,7 +24,6 @@ def get_ion_placement_wf(molecule,
                          charges=None,
                          stop_num=None,
                          do_triplets=True,
-                         diff_cutoff=None,
                          pcm_dielectric=None,
                          do_optimization=True,
                          linked=False,
@@ -68,7 +67,6 @@ def get_ion_placement_wf(molecule,
         # Gather all optimized ion+mol structures and identify the unique minima
         fw3 = GatherGeomsFW(
             prefix="ion_pos_",
-            diff_cutoff=diff_cutoff,
             db_file=db_file,
             name="gather geometries",
             parents=fw2)
@@ -93,7 +91,6 @@ def get_ion_placement_wf(molecule,
         # Gather all optimized ion+mol structures and identify the unique minima
         fw2 = GatherGeomsFW(
             prefix="ion_pos_",
-            diff_cutoff=diff_cutoff,
             db_file=db_file,
             name="gather geometries",
             parents=fw1)

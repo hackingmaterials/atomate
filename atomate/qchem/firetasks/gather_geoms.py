@@ -11,6 +11,7 @@ from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from pymatgen.io.babel import BabelMolAdaptor
 from monty.serialization import dumpfn
+from monty.json import jsanitize
 
 from atomate.qchem.database import QChemCalcDb
 from atomate.utils.utils import env_chk
@@ -32,10 +33,10 @@ class GatherGeometries(FiretaskBase):
     """
     """
     required_params = ["prefix"]
-    optional_params = ["diff_cutoff", "db_file"]
+    optional_params = ["db_file"]
 
     def run_task(self, fw_spec):
-        
+
         data = []
         for key in fw_spec:
             if len(key) > len(self["prefix"]):
@@ -63,6 +64,7 @@ class GatherGeometries(FiretaskBase):
         smiles = pbmol.write(str("smi")).split()[0]
         task_doc["smiles"] = smiles
         task_doc["last_updated"] = datetime.datetime.utcnow()
+        task_doc = jsanitize(task_doc, strict=True, allow_bson=True)
 
         db_file = env_chk(self.get("db_file"), fw_spec)
 

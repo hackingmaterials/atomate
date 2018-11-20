@@ -357,7 +357,7 @@ class PlaceIonFW(Firework):
         qchem_input_params = qchem_input_params or {}
         charges = charges or [0]
         ion = ion or "Li"
-        stop_num = stop_num or 10000
+        stop_num = stop_num or 100000
         t = []
         t.append(
             PlaceIon(
@@ -381,7 +381,6 @@ class PlaceIonFW(Firework):
 class GatherGeomsFW(Firework):
     def __init__(self,
                  prefix,
-                 diff_cutoff=None,
                  db_file=">>db_file<<",
                  name="gather geometries",
                  parents=None,
@@ -392,7 +391,6 @@ class GatherGeomsFW(Firework):
         t.append(
             GatherGeometries(
                 prefix=prefix,
-                diff_cutoff=diff_cutoff,
                 db_file=db_file))
         super(GatherGeomsFW, self).__init__(
             t,

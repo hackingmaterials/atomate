@@ -66,7 +66,8 @@ class PlaceIon(FiretaskBase):
             self.ion_positions = self.get("test_positions")
         else:
             self.testing = False
-            self.ion_positions = IonPlacer(molecule=self.mol, ion=self.ion, stop_num=self.get("stop_num", 10000)).accepted_points
+            self.ion_positions = IonPlacer(molecule=self.mol, ion=self.ion, stop_num=self.get("stop_num", 100000)).accepted_points
+        print(self.ion_positions)
         self._build_molecules()
 
         return FWAction(detours=self._build_new_FWs())
