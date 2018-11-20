@@ -10,7 +10,7 @@ This module defines the elastic workflow
 import numpy as np
 
 from pymatgen.analysis.elasticity.strain import Deformation, Strain
-from pymatgen.analysis.elasticity.tensors import symmetry_reduce, get_tkd_value
+from pymatgen.core.tensors import symmetry_reduce, get_tkd_value
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp.sets import MPStaticSet
 
