@@ -157,29 +157,30 @@ class RunQChemCustodian(FiretaskBase):
                     save_name=save_name)
             ]
         elif job_type == "opt_with_frequency_flattener":
-            jobs = QCJob.opt_with_frequency_flattener(
-                qchem_command=qchem_cmd,
-                multimode=multimode,
-                input_file=input_file,
-                output_file=output_file,
-                qclog_file=qclog_file,
-                max_iterations=max_iterations,
-                linked=linked,
-                max_molecule_perturb_scale=max_molecule_perturb_scale,
-                scratch_dir=scratch_dir,
-                save_scratch=save_scratch,
-                save_name=save_name,
-                max_cores=max_cores)
-            
-        elif job_type == "chained_freq_opt":
-            jobs = QCJob.chained_freq_opt(
-                qchem_command=qchem_cmd,
-                multimode=multimode,
-                input_file=input_file,
-                output_file=output_file,
-                qclog_file=qclog_file,
-                max_iterations=max_iterations,
-                max_cores=max_cores)
+            if linked:
+                jobs = QCJob.opt_with_frequency_flattener(
+                    qchem_command=qchem_cmd,
+                    multimode=multimode,
+                    input_file=input_file,
+                    output_file=output_file,
+                    qclog_file=qclog_file,
+                    max_iterations=max_iterations,
+                    linked=linked,
+                    max_cores=max_cores)
+            else:
+                jobs = QCJob.opt_with_frequency_flattener(
+                    qchem_command=qchem_cmd,
+                    multimode=multimode,
+                    input_file=input_file,
+                    output_file=output_file,
+                    qclog_file=qclog_file,
+                    max_iterations=max_iterations,
+                    linked=linked,
+                    max_molecule_perturb_scale=max_molecule_perturb_scale,
+                    scratch_dir=scratch_dir,
+                    save_scratch=save_scratch,
+                    save_name=save_name,
+                    max_cores=max_cores)
 
         else:
             raise ValueError("Unsupported job type: {}".format(job_type))
