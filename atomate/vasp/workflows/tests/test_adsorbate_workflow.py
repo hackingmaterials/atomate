@@ -75,14 +75,12 @@ class TestAdsorptionWorkflow(AtomateTest):
         # Test bulk
         bulk_set = MPSurfaceSet(self.struct_ir, bulk=True)
         self.assertFalse(bulk_set.auto_dipole)
-        self.assertFalse(bulk_set.get_locpot)
         self.assertIsNone(bulk_set.incar.get('LDIPOL'))
         self.assertIsNone(bulk_set.incar.get('LVTOT'))
 
         # Test slab
         slab_set = MPSurfaceSet(self.slab_100)
         self.assertTrue(slab_set.auto_dipole)
-        self.assertTrue(slab_set.get_locpot)
         self.assertTrue(slab_set.incar.get('LDIPOL'))
         self.assertTrue(slab_set.incar.get('LVTOT'))
         banio3_slab = generate_all_slabs(
