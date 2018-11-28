@@ -1,0 +1,16 @@
+#!/bin/bash -l
+
+#SBATCH --nodes=1
+#SBATCH --time=00:30:00
+#SBATCH --partition=debug
+#SBATCH --account=jcesr
+#SBATCH --job-name=frequency_flattening
+#SBATCH --output=frequency_flattening-%j.out
+#SBATCH --error=frequency_flattening-%j.error
+#SBATCH --constraint=haswell
+
+module load qchem
+cd /global/cscratch1/sd/sblau/workflow/block_2018-06-05-18-27-36-017218/launcher_2018-06-05-18-45-01-067299
+rlaunch -c /global/homes/s/sblau/config singleshot --fw_id 1
+
+# CommonAdapter (SLURM) completed writing Template

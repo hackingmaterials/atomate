@@ -1,0 +1,22 @@
+[
+    {
+        "job": {
+            "@module": "custodian.qchem.jobs",
+            "@class": "QCJob",
+            "qchem_command": [
+                "qchem",
+                "-slurm"
+            ],
+            "multimode": "openmp",
+            "input_file": "mol.qin",
+            "output_file": "mol.qout",
+            "max_cores": 32,
+            "qclog_file": "mol.qclog",
+            "suffix": "",
+            "scratch_dir": "/dev/shm/qcscratch/",
+            "save_scratch": false,
+            "save_name": "default_save_name"
+        },
+        "corrections": []
+    }
+]

@@ -109,6 +109,12 @@ class CalcDb(six.with_metaclass(ABCMeta)):
         """
         creds = loadfn(db_file)
 
+        if admin and "admin_user" not in creds and "readonly_user" in creds:
+            raise ValueError("Trying to use admin credentials, "
+                             "but no admin credentials are defined. "
+                             "Use admin=False if only read_only "
+                             "credentials are available.")
+
         if admin:
             user = creds.get("admin_user")
             password = creds.get("admin_password")

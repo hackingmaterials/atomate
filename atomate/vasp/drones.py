@@ -19,6 +19,7 @@ import traceback
 
 from monty.io import zopen
 from monty.json import jsanitize
+from monty.os.path import which
 
 import numpy as np
 
@@ -27,9 +28,10 @@ from pymatgen.core.structure import Structure
 from pymatgen.core.operations import SymmOp
 from pymatgen.electronic_structure.bandstructure import BandStructureSymmLine
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot
+from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot, Chgcar
 from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
 from pymatgen.apps.borg.hive import AbstractDrone
+from pymatgen.command_line.bader_caller import bader_analysis_from_path
 
 from atomate.utils.utils import get_uri
 
@@ -43,6 +45,7 @@ __version__ = "0.1.0"
 
 logger = get_logger(__name__)
 
+bader_exe_exists = which("bader") or which("bader.exe")
 
 class VaspDrone(AbstractDrone):
     """
@@ -79,7 +82,8 @@ class VaspDrone(AbstractDrone):
     }
 
     def __init__(self, runs=None, parse_dos="auto", bandstructure_mode="auto",
-                 parse_locpot=True, additional_fields=None, use_full_uri=True):
+                 parse_locpot=True, additional_fields=None, use_full_uri=True,
+                 parse_bader=bader_exe_exists, parse_chgcar=False, parse_aeccar=False):
         """
         Initialize a Vasp drone to parse vasp outputs
         Args:
@@ -99,6 +103,9 @@ class VaspDrone(AbstractDrone):
             parse_locpot (bool): Parses the LOCPOT file and saves the 3 axis averages
             additional_fields (dict): dictionary of additional fields to add to output document
             use_full_uri (bool): converts the directory path to the full URI path
+            parse_bader (bool): Run and parse Bader charge data. Defaults to True if Bader is present
+            parse_chgcar (bool): Run and parse CHGCAR file
+            parse_aeccar (bool): Run and parse AECCAR0 and AECCAR2 files
         """
         self.parse_dos = parse_dos
         self.additional_fields = additional_fields or {}
@@ -107,6 +114,9 @@ class VaspDrone(AbstractDrone):
                                                 for i in range(9)]  # can't auto-detect: path unknown
         self.bandstructure_mode = bandstructure_mode
         self.parse_locpot = parse_locpot
+        self.parse_bader = parse_bader
+        self.parse_chgcar = parse_chgcar
+        self.parse_aeccar = parse_aeccar
 
     def assimilate(self, path):
         """
@@ -385,12 +395,51 @@ class VaspDrone(AbstractDrone):
             locpot = Locpot.from_file(os.path.join(dir_name, d["output_file_paths"]["locpot"]))
             d["output"]["locpot"] = {i: locpot.get_average_along_axis(i) for i in range(3)}
 
+        if self.parse_chgcar != False:
+            # parse CHGCAR file only for static calculations
+            # TODO require static run later
+            # if self.parse_chgcar == True and vrun.incar.get("NSW", 0) < 1:
+            try:
+                chgcar = self.process_chgcar(os.path.join(dir_name, d["output_file_paths"]["chgcar"]))
+            except:
+                raise ValueError("No valid charge data exist")
+            d["chgcar"] = chgcar
+
+        if self.parse_aeccar != False:
+            try:
+                chgcar = self.process_chgcar(os.path.join(dir_name, d["output_file_paths"]["aeccar0"]))
+            except:
+                raise ValueError("No valid charge data exist")
+            d["aeccar0"] = chgcar
+            try:
+                chgcar = self.process_chgcar(os.path.join(dir_name, d["output_file_paths"]["aeccar2"]))
+            except:
+                raise ValueError("No valid charge data exist")
+            d["aeccar2"] = chgcar
+
         # parse force constants
         if hasattr(vrun, "force_constants"):
             d["output"]["force_constants"] = vrun.force_constants.tolist()
             d["output"]["normalmode_eigenvals"] = vrun.normalmode_eigenvals.tolist()
             d["output"]["normalmode_eigenvecs"] = vrun.normalmode_eigenvecs.tolist()
+
+        # Try and perform bader
+        if self.parse_bader:
+            try:
+                bader = bader_analysis_from_path(dir_name, suffix=".{}".format(taskname))
+            except Exception as e:
+                bader = "Bader analysis failed: {}".format(e)
+            d["bader"] = bader
+
         return d
+
+    @classmethod
+    def process_chgcar(cls, chg_file):
+        try:
+            chgcar = Chgcar.from_file(chg_file)
+        except IOError:
+            raise ValueError("Unable to open CHGCAR/AECCAR file" )
+        return chgcar
 
     def process_bandstructure(self, vrun):
 
