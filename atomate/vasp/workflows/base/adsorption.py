@@ -130,7 +130,9 @@ def get_slab_trans_params(slab):
     # Note: this could fail if the slab is non-contiguous in the c direction,
     # i. e. if sites are translated through the pbcs
     heights = [np.dot(s.coords, slab.normal) for s in slab]
-    slab_thickness = np.abs(max(heights) - min(heights))
+
+    # Pad the slab thickness a bit
+    slab_thickness = np.abs(max(heights) - min(heights)) + 0.001
     bulk_a, bulk_b, bulk_c = slab.oriented_unit_cell.lattice.matrix
     bulk_normal = np.cross(bulk_a, bulk_b)
     bulk_normal /= np.linalg.norm(bulk_normal)
@@ -141,8 +143,8 @@ def get_slab_trans_params(slab):
     slab_layers = np.ceil(slab_thickness / slab_cell_height * total_layers)
     vac_layers = total_layers - slab_layers
 
-    min_slab_size = slab_cell_height * slab_layers / total_layers - 0.03
-    min_vac_size = slab_cell_height * vac_layers / total_layers - 0.03
+    min_slab_size = slab_cell_height * slab_layers / total_layers - 0.001
+    min_vac_size = slab_cell_height * vac_layers / total_layers - 0.001
     # params = {"miller_index": [0, 0, 1], "shift": slab.shift,
     #           "min_slab_size": min_slab_size, "min_vacuum_size": min_vac_size}
     # trans = SlabTransformation(**params)
