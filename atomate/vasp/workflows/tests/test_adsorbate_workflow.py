@@ -10,7 +10,7 @@ from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.powerups import use_fake_vasp
-from atomate.vasp.workflows.base.adsorption import get_wf_slab, get_slab_fw, \
+from atomate.vasp.workflows.base.adsorption import get_wf_slab, \
     get_slab_trans_params, MPSurfaceSet
 from atomate.utils.testing import AtomateTest
 
@@ -136,8 +136,9 @@ class TestAdsorptionWorkflow(AtomateTest):
         # check vasp parameters for ionic relaxation
         ads_vis = [fw.tasks[1]['vasp_input_set']
                    for fw in self.wf_1.fws if "adsorbate" in fw.name]
-        assert all([vis.incar['EDIFFG']==-0.05 for vis in ads_vis])
-        assert all([vis.incar['ISIF']==2 for vis in ads_vis])
+        for vis in ads_vis:
+            self.assertEqual(vis.incar['EDIFFG'], -0.05)
+            self.assertEqual(vis.incar['ISIF'], 2)
         self.lp.add_wf(wf)
         rapidfire(self.lp, fworker=FWorker(
             env={"db_file": os.path.join(db_dir, "db.json")}))
