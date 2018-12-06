@@ -452,11 +452,11 @@ m (str): name of “materials” collection
 <span id="atomate-vasp-builders-tasks-materials-module"></span><h2>atomate.vasp.builders.tasks_materials module<a class="headerlink" href="#module-atomate.vasp.builders.tasks_materials" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder">
-<em class="property">class </em><code class="descclassname">atomate.vasp.builders.tasks_materials.</code><code class="descname">TasksMaterialsBuilder</code><span class="sig-paren">(</span><em>materials_write</em>, <em>counter_write</em>, <em>tasks_read</em>, <em>tasks_prefix='t'</em>, <em>materials_prefix='m'</em>, <em>query=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">atomate.vasp.builders.tasks_materials.</code><code class="descname">TasksMaterialsBuilder</code><span class="sig-paren">(</span><em>materials_write</em>, <em>counter_write</em>, <em>tasks_read</em>, <em>tasks_prefix='t'</em>, <em>materials_prefix='m'</em>, <em>query=None</em>, <em>settings_file=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#atomate.vasp.builders.base.AbstractBuilder" title="atomate.vasp.builders.base.AbstractBuilder"><code class="xref py py-class docutils literal notranslate"><span class="pre">atomate.vasp.builders.base.AbstractBuilder</span></code></a></p>
 <dl class="method">
 <dt id="atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>materials_write</em>, <em>counter_write</em>, <em>tasks_read</em>, <em>tasks_prefix='t'</em>, <em>materials_prefix='m'</em>, <em>query=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>materials_write</em>, <em>counter_write</em>, <em>tasks_read</em>, <em>tasks_prefix='t'</em>, <em>materials_prefix='m'</em>, <em>query=None</em>, <em>settings_file=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.TasksMaterialsBuilder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a materials collection from a tasks collection.</p>
 <dl class="docutils">
 <dt>Args:</dt>
@@ -465,7 +465,8 @@ counter_write (pymongo.collection): mongodb collection for counter (write access
 tasks_read (pymongo.collection): mongodb collection for tasks (suggest read-only for safety)
 tasks_prefix (str): a string prefix for tasks, e.g. “t” gives a task_id like “t-132”
 materials_prefix (str): a string prefix to prepend to material_ids
-query (dict): a pymongo query on tasks_read for which tasks to include in the builder</dd>
+query (dict): a pymongo query on tasks_read for which tasks to include in the builder
+settings_file (str): filepath to a custom settings path</dd>
 </dl>
 </dd></dl>
 
@@ -499,7 +500,7 @@ t (str): name of “tasks” collection
 
 <dl class="data">
 <dt id="atomate.vasp.builders.tasks_materials.module_dir">
-<code class="descclassname">atomate.vasp.builders.tasks_materials.</code><code class="descname">module_dir</code><em class="property"> = '/Users/ajain/Documents/code_matgen/atomate/atomate/vasp/builders'</em><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.module_dir" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">atomate.vasp.builders.tasks_materials.</code><code class="descname">module_dir</code><em class="property"> = '/Users/ardunn/alex/lbl/projects/common_env/dev_codes/atomate/atomate/vasp/builders'</em><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.module_dir" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class collects all “tasks” (individual calculations) on a single compound and produces a 
 summary report in a new collection (“materials”). The tasks are matched based on having the same 
 crystal structure, with some options for overriding this.</p>
