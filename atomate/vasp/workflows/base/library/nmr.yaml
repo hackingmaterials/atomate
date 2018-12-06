@@ -8,7 +8,9 @@ fireworks:
   params:
     parents: 0
     mode: "cs"
+    name: "cs tensor"
 - fw: atomate.vasp.fireworks.nmr.NMRFW
   params:
     parents: 0
     mode: "efg"
+    name: "efg tensor"
