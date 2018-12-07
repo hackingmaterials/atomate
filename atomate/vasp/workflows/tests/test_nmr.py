@@ -87,10 +87,15 @@ class TestNMRWorkflow(AtomateTest):
         self.assertEqual(d["nelements"], 4)
         self.assertEqual(d["state"], "successful")
 
-        if mode in ["structure optimization"]:
+        if mode == "structure optimization":
             self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["a"], 5.297, 2)
             self.assertAlmostEqual(d["output"]["energy_per_atom"], -7.226, 2)
 
+        if mode == "cs tensor":
+            cs = d["calcs_reversed"][0]["output"]["outcar"]["nmr_cs"]
+            print(cs)
+            np.testing.assert_allclose(cs,[0])
+            raise
 
 
 if __name__ == "__main__":
