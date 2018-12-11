@@ -93,9 +93,22 @@ class TestNMRWorkflow(AtomateTest):
 
         if mode == "cs tensor":
             cs = d["calcs_reversed"][0]["output"]["outcar"]["nmr_cs"]
-            print(cs)
-            np.testing.assert_allclose(cs,[0])
-            raise
+            np.testing.assert_allclose(
+                cs["g0"],
+                [[-3.896026, 0.008131, 0.004022], [0.010171, -4.303434, 0.007171], [0.013091, 0.007672, -4.478203]])
+            np.testing.assert_allclose(cs["raw"][0],
+                                       [[-56.972805, -0.000285, -0.000021], [-0.000354, -47.358647, 0.000055],
+                                        [-0.000065, 0.000144, -47.036531]])
+
+            np.testing.assert_allclose(cs["raw"][-1],
+                                       [[-13.001104, -20.568634, 19.91829], [-25.384874, -37.953075, 28.781717],
+                                        [24.920975, 29.464446, -29.6856]])
+        elif mode == "efg tensor":
+            efg = d["calcs_reversed"][0]["output"]["outcar"]["nmr_efg"]
+            np.testing.assert_allclose(efg["raw"][0],
+                                       [[-0.428, -0.105, -0.0], [-0.105, 0.388, -0.0], [-0.0, -0.0, 0.041]])
+            np.testing.assert_allclose(
+                efg["raw"][-1], [[3.145, 29.549, -26.609], [29.549, 4.044, -38.683], [-26.609, -38.683, -7.188]])
 
 
 if __name__ == "__main__":
