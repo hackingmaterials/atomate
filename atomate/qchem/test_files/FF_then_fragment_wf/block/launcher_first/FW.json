@@ -1,0 +1,151 @@
+{
+    "spec": {
+        "_tasks": [
+            {
+                "molecule": {
+                    "@module": "pymatgen.core.structure",
+                    "@class": "Molecule",
+                    "charge": 0,
+                    "spin_multiplicity": 2,
+                    "sites": [
+                        {
+                            "name": "B",
+                            "species": [
+                                {
+                                    "element": "B",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                1.5524,
+                                -0.10808,
+                                -0.01454
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "F",
+                            "species": [
+                                {
+                                    "element": "F",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                1.0165,
+                                0.01335,
+                                -1.36048
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "F",
+                            "species": [
+                                {
+                                    "element": "F",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                1.04169,
+                                -1.32099,
+                                0.60304
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "F",
+                            "species": [
+                                {
+                                    "element": "F",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                1.14808,
+                                1.0446,
+                                0.77395
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "F",
+                            "species": [
+                                {
+                                    "element": "F",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                3.00389,
+                                -0.16862,
+                                -0.07437
+                            ],
+                            "properties": {}
+                        }
+                    ]
+                },
+                "qchem_input_set": "OptSet",
+                "input_file": "mol.qin",
+                "qchem_input_params": {},
+                "_fw_name": "{{atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet}}"
+            },
+            {
+                "qchem_cmd": ">>qchem_cmd<<",
+                "multimode": "openmp",
+                "input_file": "mol.qin",
+                "output_file": "mol.qout",
+                "max_cores": 32,
+                "job_type": "opt_with_frequency_flattener",
+                "max_iterations": 10,
+                "max_molecule_perturb_scale": 0.3,
+                "reversed_direction": false,
+                "_fw_name": "{{atomate.qchem.firetasks.run_calc.RunQChemCustodian}}"
+            },
+            {
+                "db_file": ">>db_file<<",
+                "input_file": "mol.qin",
+                "output_file": "mol.qout",
+                "additional_fields": {
+                    "task_label": "first_FF",
+                    "special_run_type": "frequency_flattener"
+                },
+                "_fw_name": "{{atomate.qchem.firetasks.parse_outputs.QChemToDb}}"
+            }
+        ]
+    },
+    "fw_id": 2724,
+    "created_on": "2018-07-17T16:14:23.281333",
+    "updated_on": "2018-07-17T16:52:15.630273",
+    "launches": [
+        {
+            "fworker": {
+                "name": "cori_qchem_dev",
+                "category": "",
+                "query": "{}",
+                "env": {
+                    "db_file": "/global/homes/s/sblau/config/db.json",
+                    "qchem_cmd": "qchem -slurm",
+                    "scratch_dir": "/dev/shm/qcscratch/"
+                }
+            },
+            "fw_id": 2724,
+            "launch_dir": "/global/cscratch1/sd/sblau/fragment_wf/block_2018-07-10-18-45-27-601029/launcher_2018-07-17-16-49-56-452468",
+            "host": "nid00724",
+            "ip": "10.128.2.217",
+            "trackers": [],
+            "action": null,
+            "state": "RUNNING",
+            "state_history": [
+                {
+                    "state": "RUNNING",
+                    "created_on": "2018-07-17T16:52:15.628825",
+                    "updated_on": "2018-07-17T16:52:15.628828"
+                }
+            ],
+            "launch_id": 4154
+        }
+    ],
+    "state": "RUNNING",
+    "name": "first_FF"
+}

@@ -74,7 +74,7 @@ Note that there are various tools to query this information later, ranging from 
 
 MongoDB must be running and available to accept connections whenever you are running workflows. Thus, it is strongly recommended that you have a server to run MongoDB or (simpler) use a hosting service. Your options are:
 
-* use a commercial service to host your MongoDB instance. These are typically the easiest to use and offer high quality service but require payment for larger databases. mLab_ offers free 500 MB databases with payment required for larger databases or support/backup; another similar option is `MongoDB Atlas <https://www.mongodb.com/cloud/atlas>`_. The free tiers of these commercial services are certainly enough to get started for small to medium size projects.
+* use a commercial service to host your MongoDB instance. These are typically the easiest to use and offer high quality service but require payment for larger databases. `MongoDB Atlas <https://www.mongodb.com/cloud/atlas>`_ offers free 500 MB databases with payment required for larger databases; the free tier is certainly enough to get started for small to medium size projects, and it is easy to upgrade or migrate your database if you do exceed the free allocation.
 * contact your supercomputing center to see if they offer MongoDB hosting (e.g., NERSC has this, Google "request NERSC MongoDB database")
 * self-host a MongoDB server
 
@@ -100,7 +100,6 @@ Keep a record of your credentials - we will configure FireWorks to connect to th
 
 
 .. _MongoDB: https://docs.mongodb.com/manual/
-.. _mLab: https://mlab.com
 .. _FireWorks offline mode: https://materialsproject.github.io/fireworks/offline_tutorial.html
 
 

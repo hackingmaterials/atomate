@@ -4,6 +4,14 @@ atomate.qchem.firetasks.tests package
 Submodules
 ----------
 
+atomate.qchem.firetasks.tests.test\_fragmenter module
+-----------------------------------------------------
+
+.. automodule:: atomate.qchem.firetasks.tests.test_fragmenter
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 atomate.qchem.firetasks.tests.test\_geo\_transformations module
 ---------------------------------------------------------------
 

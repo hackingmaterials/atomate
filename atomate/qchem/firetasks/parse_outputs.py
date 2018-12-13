@@ -98,24 +98,6 @@ class QChemToDb(FiretaskBase):
             t_id = mmdb.insert(task_doc)
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
-        defuse_children = False
-        if task_doc["state"] != "successful":
-            defuse_unsuccessful = self.get("defuse_unsuccessful",
-                                           DEFUSE_UNSUCCESSFUL)
-            if defuse_unsuccessful is True:
-                defuse_children = True
-            elif defuse_unsuccessful is False:
-                pass
-            elif defuse_unsuccessful == "fizzle":
-                raise RuntimeError(
-                    "QChemToDb indicates that job is not successful "
-                    "(perhaps your job did not converge within the "
-                    "limit of electronic iterations)!")
-            else:
-                raise RuntimeError("Unknown option for defuse_unsuccessful: "
-                                   "{}".format(defuse_unsuccessful))
-
         return FWAction(
             stored_data={"task_id": task_doc.get("task_id", None)},
-            defuse_children=defuse_children,
             update_spec=update_spec)
