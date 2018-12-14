@@ -1,0 +1,16 @@
+# Structure optimize + NMR Calculations
+# Author: Shyam Dwaraknath (shyamd@lbl.gov)
+fireworks:
+- fw: atomate.vasp.fireworks.core.OptimizeFW
+  params:
+    ediffg: -0.05
+- fw: atomate.vasp.fireworks.nmr.NMRFW
+  params:
+    parents: 0
+    mode: "cs"
+    name: "cs tensor"
+- fw: atomate.vasp.fireworks.nmr.NMRFW
+  params:
+    parents: 0
+    mode: "efg"
+    name: "efg tensor"
