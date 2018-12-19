@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.qchem.firetasks.tests package &#8212; atomate 0.8.3 documentation</title>
+    <title>atomate.qchem.firetasks.tests package &#8212; atomate 0.8.5 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.5 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -41,6 +41,114 @@
 <h1>atomate.qchem.firetasks.tests package<a class="headerlink" href="#atomate-qchem-firetasks-tests-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-atomate.qchem.firetasks.tests.test_fragmenter">
+<span id="atomate-qchem-firetasks-tests-test-fragmenter-module"></span><h2>atomate.qchem.firetasks.tests.test_fragmenter module<a class="headerlink" href="#module-atomate.qchem.firetasks.tests.test_fragmenter" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule">
+<em class="property">class </em><code class="descclassname">atomate.qchem.firetasks.tests.test_fragmenter.</code><code class="descname">TestFragmentMolecule</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="atomate.utils.html#atomate.utils.testing.AtomateTest" title="atomate.utils.testing.AtomateTest"><code class="xref py py-class docutils literal notranslate"><span class="pre">atomate.utils.testing.AtomateTest</span></code></a></p>
+<dl class="method">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.setUp">
+<code class="descname">setUp</code><span class="sig-paren">(</span><em>lpad=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.setUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create scratch directory(removes the old one if there is one) and change to it.
+Also initialize launchpad.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.setUpClass">
+<em class="property">classmethod </em><code class="descname">setUpClass</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.setUpClass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook method for setting up class fixture before running tests in the class.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.tearDown">
+<code class="descname">tearDown</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.tearDown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the scratch directory and teardown the test db.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_EC_neg">
+<code class="descname">test_EC_neg</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_EC_neg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_babel_PC_depth_0_vs_depth_10">
+<code class="descname">test_babel_PC_depth_0_vs_depth_10</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_babel_PC_depth_0_vs_depth_10" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_babel_PC_frag1">
+<code class="descname">test_babel_PC_frag1</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_babel_PC_frag1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_babel_PC_with_RO_depth_0_vs_depth_10">
+<code class="descname">test_babel_PC_with_RO_depth_0_vs_depth_10</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_babel_PC_with_RO_depth_0_vs_depth_10" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_babel_TFSI">
+<code class="descname">test_babel_TFSI</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_babel_TFSI" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_build_new_FWs">
+<code class="descname">test_build_new_FWs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_build_new_FWs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_build_unique_relevant_molecules">
+<code class="descname">test_build_unique_relevant_molecules</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_build_unique_relevant_molecules" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_build_unique_relevant_molecules_with_triplets">
+<code class="descname">test_build_unique_relevant_molecules_with_triplets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_build_unique_relevant_molecules_with_triplets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_edges_given_PC">
+<code class="descname">test_edges_given_PC</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_edges_given_PC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_edges_given_PC_frag1">
+<code class="descname">test_edges_given_PC_frag1</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_edges_given_PC_frag1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_edges_given_TFSI">
+<code class="descname">test_edges_given_TFSI</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_edges_given_TFSI" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_in_database_and_EC_neg_frag">
+<code class="descname">test_in_database_and_EC_neg_frag</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_in_database_and_EC_neg_frag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_in_database_through_build_new_FWs">
+<code class="descname">test_in_database_through_build_new_FWs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_in_database_through_build_new_FWs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_in_database_with_actual_database">
+<code class="descname">test_in_database_with_actual_database</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_in_database_with_actual_database" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_neg_TFSI">
+<code class="descname">test_neg_TFSI</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_neg_TFSI" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_neg_TFSI_with_additional_charges">
+<code class="descname">test_neg_TFSI_with_additional_charges</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.tests.test_fragmenter.TestFragmentMolecule.test_neg_TFSI_with_additional_charges" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-atomate.qchem.firetasks.tests.test_geo_transformations">
 <span id="atomate-qchem-firetasks-tests-test-geo-transformations-module"></span><h2>atomate.qchem.firetasks.tests.test_geo_transformations module<a class="headerlink" href="#module-atomate.qchem.firetasks.tests.test_geo_transformations" title="Permalink to this headline">¶</a></h2>
@@ -151,6 +259,7 @@ Also initialize launchpad.</p>
   <ul>
 <li><a class="reference internal" href="#">atomate.qchem.firetasks.tests package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-atomate.qchem.firetasks.tests.test_fragmenter">atomate.qchem.firetasks.tests.test_fragmenter module</a></li>
 <li><a class="reference internal" href="#module-atomate.qchem.firetasks.tests.test_geo_transformations">atomate.qchem.firetasks.tests.test_geo_transformations module</a></li>
 <li><a class="reference internal" href="#atomate-qchem-firetasks-tests-test-run-calc-module">atomate.qchem.firetasks.tests.test_run_calc module</a></li>
 <li><a class="reference internal" href="#module-atomate.qchem.firetasks.tests.test_write_inputs">atomate.qchem.firetasks.tests.test_write_inputs module</a></li>
@@ -191,7 +300,7 @@ Also initialize launchpad.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.5 documentation</a> &#187;</li> 
       </ul>
     </div>
 

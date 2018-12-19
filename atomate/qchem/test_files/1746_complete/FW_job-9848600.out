@@ -1,0 +1,7 @@
+foobar
+2018-07-11 17:36:37,875 INFO Hostname/IP lookup (this will take a few seconds)
+2018-07-11 17:36:37,878 INFO Launching Rocket
+2018-07-11 17:36:42,293 INFO RUNNING fw_id: 1746 in directory: /scratch2/scratchdirs/sblau/fragment_wf/block_2018-07-09-23-50-25-765742/launcher_2018-07-12-00-36-13-562248
+2018-07-11 17:36:42,318 INFO Task started: {{atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet}}.
+2018-07-11 17:36:42,324 INFO Task completed: {{atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet}} 
+2018-07-11 17:36:42,327 INFO Task started: {{atomate.qchem.firetasks.run_calc.RunQChemCustodian}}.

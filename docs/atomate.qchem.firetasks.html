@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.qchem.firetasks package &#8212; atomate 0.8.3 documentation</title>
+    <title>atomate.qchem.firetasks package &#8212; atomate 0.8.5 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.5 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -45,6 +45,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="atomate.qchem.firetasks.tests.html">atomate.qchem.firetasks.tests package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.qchem.firetasks.tests.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.qchem.firetasks.tests.html#module-atomate.qchem.firetasks.tests.test_fragmenter">atomate.qchem.firetasks.tests.test_fragmenter module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.qchem.firetasks.tests.html#module-atomate.qchem.firetasks.tests.test_geo_transformations">atomate.qchem.firetasks.tests.test_geo_transformations module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.qchem.firetasks.tests.html#atomate-qchem-firetasks-tests-test-run-calc-module">atomate.qchem.firetasks.tests.test_run_calc module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.qchem.firetasks.tests.html#module-atomate.qchem.firetasks.tests.test_write_inputs">atomate.qchem.firetasks.tests.test_write_inputs module</a></li>
@@ -56,6 +57,128 @@
 </div>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-atomate.qchem.firetasks.fragmenter">
+<span id="atomate-qchem-firetasks-fragmenter-module"></span><h2>atomate.qchem.firetasks.fragmenter module<a class="headerlink" href="#module-atomate.qchem.firetasks.fragmenter" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.qchem.firetasks.fragmenter.FragmentMolecule">
+<em class="property">class </em><code class="descclassname">atomate.qchem.firetasks.fragmenter.</code><code class="descname">FragmentMolecule</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.fragmenter.FragmentMolecule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Simulate all unique fragments of a molecule relevant for realistic fragmentation
+of the molecule itself or of its subfragments.</p>
+<dl class="docutils">
+<dt>Realistic fragmentation of a neutral molecule will almost always be one of the following:</dt>
+<dd>molecule(charge=0) -&gt; fragment1(charge=0) + fragment2(charge=0)
+molecule(charge=0) -&gt; fragment1(charge=1) + fragment2(charge=-1)
+molecule(charge=0) -&gt; fragment1(charge=-1) + fragment2(charge=1)</dd>
+</dl>
+<p>Thus, we want to simulate charges -1, 0, and 1 of each fragment.</p>
+<p>Realistic fragmentation of a positively charged molecule (using charge=1 as an example here)
+will almost always be one of the following:</p>
+<blockquote>
+<div>molecule(charge=1) -&gt; fragment1(charge=0) + fragment2(charge=1)
+molecule(charge=1) -&gt; fragment1(charge=1) + fragment2(charge=0)</div></blockquote>
+<p>Thus, we want to simulate charges 0 and 1 of each fragment, given charge=1. Generalizing to
+any positively charged principle with charge P, we simulate P and P-1.</p>
+<p>Realistic fragmentation of a negatively charged molecule (using charge=-1 as an example here)
+will almost always be one of the following:</p>
+<blockquote>
+<div>molecule(charge=-1) -&gt; fragment1(charge=0) + fragment2(charge=-1)
+molecule(charge=-1) -&gt; fragment1(charge=-1) + fragment2(charge=0)</div></blockquote>
+<p>Thus, we want to simulate charges -1 and 0 of each fragment, given charge=-1. Generalizing to
+any positively charged principle with charge P, we simulate P and P+1.</p>
+<p>If additional charges are desired by the user, they can be specified with the additional_charges
+input parameter as described below.</p>
+<dl class="docutils">
+<dt>Optional params:</dt>
+<dd><p class="first">molecule (Molecule): The molecule to fragment
+edges (list): List of index pairs that define graph edges, aka molecule bonds. If not</p>
+<blockquote>
+<div>set, edges will be determined with OpenBabel.</div></blockquote>
+<dl class="docutils">
+<dt>depth (int): The number of levels of iterative fragmentation to perform, where each</dt>
+<dd>level will include fragments obtained by breaking one bond of a fragment
+one level up. Defaults to 1. However, if set to 0, instead all possible
+fragments are generated using an alternative, non-iterative scheme.</dd>
+<dt>open_rings (bool): Whether or not to open any rings encountered during fragmentation.</dt>
+<dd>Defaults to True. If true, any bond that fails to yield disconnected
+graphs when broken is instead removed and the entire structure is
+optimized with OpenBabel in order to obtain a good initial guess for
+an opened geometry that can then be put back into QChem to be
+optimized without the ring just reforming.</dd>
+</dl>
+<p>opt_steps (int): Number of optimization steps when opening rings. Defaults to 10000.
+additional_charges (list): List of additional charges besides the defaults described</p>
+<blockquote>
+<div>above. For example, if a principle molecule with a +2 charge
+is provided, by default all fragments will be calculated with
++1 and +2 charges as explained above. If the user includes
+additional_charges=[0] then all fragments will be calculated
+with 0, +1, and +2 charges. Additional charge values of 1 or 2
+would not cause any new charges to be calculated as they are
+already done. Defaults to [].</div></blockquote>
+<dl class="docutils">
+<dt>do_triplets (bool): Whether to simulate triplets as well as singlets for molecules with</dt>
+<dd>an even number of electrons. Defaults to True.</dd>
+<dt>qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.</dt>
+<dd>Basic uses would be to modify the default inputs of the set,
+such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
+or max_scf_cycles. See pymatgen/io/qchem/sets.py for default
+values of all input parameters. For instance, if a user wanted
+to use a more advanced DFT functional, include a pcm with a
+dielectric of 30, and use a larger basis, the user would set
+qchem_input_params = {“dft_rung”: 5, “pcm_dielectric”: 30,
+“basis_set”: “6-311++g**”}. However, more advanced customization
+of the input is also possible through the overwrite_inputs key
+which allows the user to directly modify the rem, pcm, smd, and
+solvent dictionaries that QChemDictSet passes to inputs.py to
+print an actual input file. For instance, if a user wanted to
+set the sym_ignore flag in the rem section of the input file
+to true, then they would set qchem_input_params = {“overwrite_inputs”:
+“rem”: {“sym_ignore”: “true”}}. Of course, overwrite_inputs
+could be used in conjuction with more typical modifications,
+as seen in the test_double_FF_opt workflow test.</dd>
+</dl>
+<p>db_file (str): Path to file containing the database credentials. Supports env_chk.
+check_db (bool): Whether or not to check if fragments are present in the database.</p>
+<blockquote class="last">
+<div>Defaults to bool(db_file), aka true if a db_file is present and
+false if db_file is None.</div></blockquote>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.qchem.firetasks.fragmenter.FragmentMolecule.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['molecule', 'edges', 'depth', 'open_rings', 'opt_steps', 'additional_charges', 'do_triplets', 'qchem_input_params', 'db_file', 'check_db']</em><a class="headerlink" href="#atomate.qchem.firetasks.fragmenter.FragmentMolecule.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.qchem.firetasks.fragmenter.FragmentMolecule.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.fragmenter.FragmentMolecule.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt>
+<dd>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>(FWAction)</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-atomate.qchem.firetasks.geo_transformations">
 <span id="atomate-qchem-firetasks-geo-transformations-module"></span><h2>atomate.qchem.firetasks.geo_transformations module<a class="headerlink" href="#module-atomate.qchem.firetasks.geo_transformations" title="Permalink to this headline">¶</a></h2>
@@ -302,15 +425,32 @@ parameters are given as keys in the dictionary.</p>
 name for the QChem input set (e.g., “OptSet”). <strong>* Note that if the molecule is to be inherited through
 fw_spec qc_input_set must be a string name for the QChem input set. *</strong></dd>
 <dt>optional_params:</dt>
-<dd>qchem_input_params (dict): When using a string name for QChem input set, use this as a dict
-to specify kwargs for instantiating the input set parameters. For example, if you want
-to change the DFT_rung, you should provide: {“DFT_rung”: …}.
-This setting is ignored if you provide the full object representation of a QChemDictSet
-rather than a String.
-molecule (Molecule):
+<dd><dl class="first docutils">
+<dt>qchem_input_params (dict): When using a string name for QChem input set, use this as a dict</dt>
+<dd>to specify kwargs for instantiating the input set parameters. This
+setting is ignored if you provide the full object representation of
+a QChemDictSet. Basic uses would be to modify the default inputs of
+the set, such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
+or max_scf_cycles. See pymatgen/io/qchem/sets.py for default values
+of all input parameters. For instance, if a user wanted to use a more
+advanced DFT functional, include a pcm with a dielectric of 30, and
+use a larger basis, the user would set qchem_input_params = {“dft_rung”:
+5, “pcm_dielectric”: 30, “basis_set”: “6-311++g**”}. However, more
+advanced customization of the input is also possible through the
+overwrite_inputs key which allows the user to directly modify the rem,
+pcm, smd, and solvent dictionaries that QChemDictSet passes to inputs.py
+to print an actual input file. For instance, if a user wanted to set the
+sym_ignore flag in the rem section of the input file to true, then they
+would set qchem_input_params = {“overwrite_inputs”: “rem”: {“sym_ignore”:
+“true”}}. Of course, overwrite_inputs could be used in conjuction with
+more typical modifications, as seen in the test_double_FF_opt workflow
+test.</dd>
+</dl>
+<p class="last">molecule (Molecule):
 input_file (str): Name of the QChem input file. Defaults to mol.qin
 write_to_dir (str): Path of the directory where the QChem input file will be written,
-the default is to write to the current working directory</dd>
+the default is to write to the current working directory</p>
+</dd>
 </dl>
 <dl class="attribute">
 <dt id="atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet.optional_params">
@@ -367,6 +507,7 @@ these multiple resources.</dd>
 <li><a class="reference internal" href="#">atomate.qchem.firetasks package</a><ul>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-atomate.qchem.firetasks.fragmenter">atomate.qchem.firetasks.fragmenter module</a></li>
 <li><a class="reference internal" href="#module-atomate.qchem.firetasks.geo_transformations">atomate.qchem.firetasks.geo_transformations module</a></li>
 <li><a class="reference internal" href="#module-atomate.qchem.firetasks.parse_outputs">atomate.qchem.firetasks.parse_outputs module</a></li>
 <li><a class="reference internal" href="#atomate-qchem-firetasks-run-calc-module">atomate.qchem.firetasks.run_calc module</a></li>
@@ -408,7 +549,7 @@ these multiple resources.</dd>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.5 documentation</a> &#187;</li> 
       </ul>
     </div>
 

@@ -11,6 +11,14 @@ Subpackages
 Submodules
 ----------
 
+atomate.qchem.firetasks.fragmenter module
+-----------------------------------------
+
+.. automodule:: atomate.qchem.firetasks.fragmenter
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 atomate.qchem.firetasks.geo\_transformations module
 ---------------------------------------------------
 
