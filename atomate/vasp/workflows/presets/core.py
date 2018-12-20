@@ -221,6 +221,22 @@ def wf_piezoelectric_constant(structure, c=None):
 
     return wf
 
+def wf_nmr(structure, c=None):
+
+    c = c or {}
+    vasp_cmd = c.get("VASP_CMD", VASP_CMD)
+    db_file = c.get("DB_FILE", DB_FILE)
+
+    wf = get_wf(structure, "nmr.yaml",
+                common_params={"vasp_cmd": vasp_cmd, "db_file": db_file})
+
+    wf = add_common_powerups(wf, c)
+
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
+    return wf
+
 
 def wf_elastic_constant(structure, c=None, order=2, sym_reduce=False):
 
