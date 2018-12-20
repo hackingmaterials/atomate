@@ -127,7 +127,7 @@ Installing atomate includes installation of codes, configuration files, and vari
 Create a Python 3 virtual environment
 =====================================
 
-.. note:: Make sure to create Python 3 environment (ideally Python 3.6 and higher) as recent versions of atomate only support Py3 and higher.
+.. note:: Make sure to create Python 3.6+ environment as recent versions of atomate only support Python 3.6 and higher.
 
 We highly recommended that you organize your installation of the atomate and the other Python codes using a virtual environment (e.g. ``virtualenv`` or similar tool such as anaconda).
 Ultimately, whether you want to use a virtual environment is optional and you don't have to use one if you know what you are doing.
