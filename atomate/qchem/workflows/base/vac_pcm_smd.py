@@ -55,7 +55,7 @@ def get_wf_vac_pcm_smd(molecule,
         pcm_qchem_input_params[key] = orig_qchem_input_params[key]
 
     fw2 = FrequencyFW(
-        name=name="{}:{}".format(molecule.composition.reduced_formula, "freq_pcm_vac_geom"+suffix),
+        name="{}:{}".format(molecule.composition.reduced_formula, "freq_pcm_vac_geom"+suffix),
         qchem_cmd=">>qchem_cmd<<",
         max_cores=">>max_cores<<",
         qchem_input_params=pcm_qchem_input_params,
@@ -68,7 +68,7 @@ def get_wf_vac_pcm_smd(molecule,
         smd_qchem_input_params[key] = orig_qchem_input_params[key]
 
     fw3 = FrequencyFW(
-        name=name="{}:{}".format(molecule.composition.reduced_formula, "freq_smd_vac_geom"+suffix),
+        name="{}:{}".format(molecule.composition.reduced_formula, "freq_smd_vac_geom"+suffix),
         qchem_cmd=">>qchem_cmd<<",
         max_cores=">>max_cores<<",
         qchem_input_params=smd_qchem_input_params,
