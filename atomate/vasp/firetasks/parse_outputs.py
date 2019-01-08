@@ -11,6 +11,7 @@ from datetime import datetime
 import numpy as np
 
 from monty.json import MontyEncoder, jsanitize
+from pydash.objects import has, get
 
 from atomate.vasp.config import DEFUSE_UNSUCCESSFUL
 from fireworks import FiretaskBase, FWAction, explicit_serialize
@@ -64,9 +65,16 @@ class VaspToDb(FiretaskBase):
             ionic). True -> mark job as COMPLETED, but defuse children.
             False --> do nothing, continue with workflow as normal. "fizzle"
             --> throw an error (mark this job as FIZZLED)
+        task_fields_to_push (dict): if set, will update the next Firework/Firetask
+            spec using fields from the task document.
+            Format: {key : path} -> fw.spec[key] = task_doc[path]
+            The path is a full mongo-style path so subdocuments can be referneced
+            using dot notation and array keys can be referenced using the index.
+            E.g "calcs_reversed.0.output.outar.run_stats"
     """
     optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
-                       "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful"]
+                       "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful",
+                       "task_fields_to_push", "parse_chgcar", "parse_aeccar"]
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
@@ -81,7 +89,9 @@ class VaspToDb(FiretaskBase):
 
         drone = VaspDrone(additional_fields=self.get("additional_fields"),
                           parse_dos=self.get("parse_dos", False),
-                          bandstructure_mode=self.get("bandstructure_mode", False))
+                          bandstructure_mode=self.get("bandstructure_mode", False),
+                          parse_chgcar=self.get("parse_chgcar", False),
+                          parse_aeccar=self.get("parse_aeccar", False))
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)
@@ -100,7 +110,10 @@ class VaspToDb(FiretaskBase):
         else:
             mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
             t_id = mmdb.insert_task(
-                task_doc, use_gridfs=self.get("parse_dos", False) or bool(self.get("bandstructure_mode", False)))
+                task_doc, use_gridfs=self.get("parse_dos", False)
+                or bool(self.get("bandstructure_mode", False))
+                or self.get("parse_chgcar", False)
+                or self.get("parse_aeccar", False))
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
         defuse_children = False
@@ -120,8 +133,23 @@ class VaspToDb(FiretaskBase):
                 raise RuntimeError("Unknown option for defuse_unsuccessful: "
                                    "{}".format(defuse_unsuccessful))
 
+        task_fields_to_push = self.get("task_fields_to_push", None)
+        update_spec = {}
+        if task_fields_to_push:
+            if isinstance(task_fields_to_push, dict):
+                for key, path_in_task_doc in task_fields_to_push.items():
+                    if has(task_doc, path_in_task_doc):
+                        update_spec[key] = get(task_doc, path_in_task_doc)
+                    else:
+                        logger.warn("Could not find {} in task document. Unable to push to next firetask/firework".format(path_in_task_doc))
+            else:
+                raise RuntimeError("Inappropriate type {} for task_fields_to_push. It must be a "
+                                   "dictionary of format: {key: path} where key refers to a field "
+                                   "in the spec and path is a full mongo-style path to a "
+                                   "field in the task document".format(type(task_fields_to_push)))
+
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
-                        defuse_children=defuse_children)
+                        defuse_children=defuse_children, update_spec=update_spec)
 
 
 @explicit_serialize

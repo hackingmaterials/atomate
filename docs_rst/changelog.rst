@@ -2,6 +2,45 @@
 atomate Changelog
 =================
 
+**v0.8.5**
+
+* add NMR workflow (S. Dwaraknath)
+* surface workflow refactor (J. Montoya)
+* update elasticity package for latest pymatgen (J. Montoya)
+
+**v0.8.4**
+
+* add some QChem functionality! (S. Blau, E. Spotte-Smith)
+* better credential parsing in CalcDB (A. Rutt)
+* update paramiko for better security (A. Jain)
+* add tasks_settings.yaml to site-packages (A. Jain)
+
+**v0.8.3**
+
+* add CHGCAR and AECAR storage options (J. Shen)
+
+**v0.8.2**
+
+* various requirement updates, code refactorings, and bug fixes especially in Qchem and LAMMPs packages (S. Blau)
+
+**v0.8.1**
+
+* add Bader charge parsing (S. Dwaraknath)
+* parse_outputs can push fields to new FWS (S. Dwaraknath)
+* minor bug fix (S. Torrisi)
+* some testing updates (A. Faghaninia, S. Blau)
+
+**v0.7.9**
+
+* Overhaul and update of QChem in atomate (B. Wood, S. Blau)
+* Fix integration tests (A. Dunn)
+* Stop officially supporting Py2
+
+**v0.7.8**
+
+* some QChem tasks and workflows (B. Wood)
+* add full HSE band structure workflow (A. Jain)
+
 **v0.7.7**
 
 * allow list of ErrorHandler in RunVaspCustodian (A. Jain)

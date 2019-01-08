@@ -10,7 +10,7 @@ This module defines the elastic workflow
 import numpy as np
 
 from pymatgen.analysis.elasticity.strain import Deformation, Strain
-from pymatgen.analysis.elasticity.tensors import symmetry_reduce, get_tkd_value
+from pymatgen.core.tensors import symmetry_reduce
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp.sets import MPStaticSet
 
@@ -100,9 +100,11 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None,
         # TODO: check for sufficiency of input for nth order
         raise ValueError("Strain list is insufficient to fit an elastic tensor")
 
-    deformations = [s.deformation_matrix for s in strains]
+    deformations = [s.get_deformation_matrix() for s in strains]
 
     if sym_reduce:
+        # Note this casts deformations to a TensorMapping
+        # with unique deformations as keys to symmops
         deformations = symmetry_reduce(deformations, structure)
 
     wf_elastic = get_wf_deformations(structure, deformations, tag=tag,
@@ -123,7 +125,7 @@ def get_wf_elastic_constant(structure, strain_states=None, stencils=None,
                 'stress': '>>output.ionic_steps.-1.stress',
                 'deformation_matrix': defo}
             if sym_reduce:
-                pass_dict.update({'symmops': get_tkd_value(deformations, defo)})
+                pass_dict.update({'symmops': deformations[defo]})
 
             mod_spec_key = "deformation_tasks->{}".format(idx_fw)
             pass_task = pass_vasp_result(pass_dict=pass_dict,

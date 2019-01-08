@@ -88,7 +88,7 @@ class OptimizeFW(Firework):
 class StaticFW(Firework):
 
     def __init__(self, structure=None, name="static", vasp_input_set=None, vasp_input_set_params=None,
-                 vasp_cmd="vasp", prev_calc_loc=True, prev_calc_dir=None, db_file=None, parents=None, **kwargs):
+                 vasp_cmd="vasp", prev_calc_loc=True, prev_calc_dir=None, db_file=None, vasptodb_kwargs={}, parents=None, **kwargs):
         """
         Standard static calculation Firework - either from a previous location or from a structure.
 
@@ -134,7 +134,7 @@ class StaticFW(Firework):
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
         t.append(
-            VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
+            VaspToDb(db_file=db_file, additional_fields={"task_label": name}, **vasptodb_kwargs))
         super(StaticFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
@@ -218,8 +218,14 @@ class HSEBSFW(Firework):
         t.append(WriteVaspHSEBSFromPrev(prev_calc_dir='.', mode=mode))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
         t.append(PassCalcLocs(name=name))
+
+        parse_dos = True if mode == "uniform" else False
+        bandstructure_mode = mode if mode in ["line", "uniform"] else "line"
+
         t.append(
-            VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
+            VaspToDb(db_file=db_file, additional_fields={"task_label": name},
+                     parse_dos=parse_dos,
+                     bandstructure_mode=bandstructure_mode))
         super(HSEBSFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
 
 

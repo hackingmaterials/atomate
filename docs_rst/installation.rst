@@ -74,7 +74,7 @@ Note that there are various tools to query this information later, ranging from 
 
 MongoDB must be running and available to accept connections whenever you are running workflows. Thus, it is strongly recommended that you have a server to run MongoDB or (simpler) use a hosting service. Your options are:
 
-* use a commercial service to host your MongoDB instance. These are typically the easiest to use and offer high quality service but require payment for larger databases. mLab_ offers free 500 MB databases with payment required for larger databases or support/backup; another similar option is `MongoDB Atlas <https://www.mongodb.com/cloud/atlas>`_. The free tiers of these commercial services are certainly enough to get started for small to medium size projects.
+* use a commercial service to host your MongoDB instance. These are typically the easiest to use and offer high quality service but require payment for larger databases. `MongoDB Atlas <https://www.mongodb.com/cloud/atlas>`_ offers free 500 MB databases with payment required for larger databases; the free tier is certainly enough to get started for small to medium size projects, and it is easy to upgrade or migrate your database if you do exceed the free allocation.
 * contact your supercomputing center to see if they offer MongoDB hosting (e.g., NERSC has this, Google "request NERSC MongoDB database")
 * self-host a MongoDB server
 
@@ -100,7 +100,6 @@ Keep a record of your credentials - we will configure FireWorks to connect to th
 
 
 .. _MongoDB: https://docs.mongodb.com/manual/
-.. _mLab: https://mlab.com
 .. _FireWorks offline mode: https://materialsproject.github.io/fireworks/offline_tutorial.html
 
 
@@ -125,8 +124,10 @@ Installing atomate includes installation of codes, configuration files, and vari
 
 .. _Create a Python virtual environment:
 
-Create a Python virtual environment
-===================================
+Create a Python 3 virtual environment
+=====================================
+
+.. note:: Make sure to create Python 3.6+ environment as recent versions of atomate only support Python 3.6 and higher.
 
 We highly recommended that you organize your installation of the atomate and the other Python codes using a virtual environment (e.g. ``virtualenv`` or similar tool such as anaconda).
 Ultimately, whether you want to use a virtual environment is optional and you don't have to use one if you know what you are doing.
@@ -175,7 +176,7 @@ To set up your virtual environment:
 Install Python packages
 =======================
 
-You have successfully set up an environment in which to install atomate!
+You have successfully set up an Python 3 environment in which to install atomate!
 Next, we will download and install all of the atomate-related Python packages.
 
 You can install these packages automatically or in "development mode". Development mode installation makes it easier to view and modify the source code to your needs, but requires a few more steps to set up and maintain.
