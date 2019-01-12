@@ -433,6 +433,10 @@ class PlaceIonFW(Firework):
         ion = ion or "Li"
         stop_num = stop_num or 100000
         t = []
+        if name == "place ions and optimize":
+          append_name = ""
+        else:
+          append_name = name
         t.append(
             PlaceIon(
                 molecule=molecule,
@@ -444,7 +448,8 @@ class PlaceIonFW(Firework):
                 linked=linked,
                 qchem_input_params=qchem_input_params,
                 test_positions=test_positions,
-                ref_dirs=ref_dirs))
+                ref_dirs=ref_dirs,
+                fw_name=append_name))
         super(PlaceIonFW, self).__init__(
             t,
             parents=parents,

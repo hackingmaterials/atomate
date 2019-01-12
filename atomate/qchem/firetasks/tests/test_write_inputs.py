@@ -88,7 +88,8 @@ class TestWriteInputQChem(AtomateTest):
             "method": "wB97xd",
             "geom_opt_max_cycles": 200,
             "gen_scfman": True,
-            "scf_algorithm": "gdm"
+            "scf_algorithm": "diis_gdm",
+            "xc_grid": 3
         }
         qc_input = QCInput(mol, rem)
         ft = WriteInput(qc_input=qc_input)
@@ -106,7 +107,8 @@ class TestWriteInputQChem(AtomateTest):
             "method": "wB97xd",
             "geom_opt_max_cycles": 200,
             "gen_scfman": True,
-            "scf_algorithm": "gdm"
+            "scf_algorithm": "diis_gdm",
+            "xc_grid": 3
         }
         ft = WriteCustomInput(molecule=mol, rem=rem)
         ft.run_task({})

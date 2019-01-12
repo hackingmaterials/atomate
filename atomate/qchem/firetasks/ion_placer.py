@@ -26,7 +26,7 @@ class PlaceIon(FiretaskBase):
     """
 
     optional_params = [
-        "molecule", "mulliken", "ion", "charges", "stop_num", "do_triplets", "linked", "qchem_input_params", "test_positions", "ref_dirs"
+        "molecule", "mulliken", "ion", "charges", "stop_num", "do_triplets", "linked", "qchem_input_params", "test_positions", "ref_dirs", "fw_name"
     ]
 
     def run_task(self, fw_spec):
@@ -61,6 +61,7 @@ class PlaceIon(FiretaskBase):
         self.do_triplets = self.get("do_triplets", True)
         self.linked = self.get("linked", False)
         self.qchem_input_params = self.get("qchem_input_params", {})
+        self.fw_name = self.get("fw_name", "")
         if self.get("test_positions") and self.get("ref_dirs"):
             self.testing = True
             self.ion_positions = self.get("test_positions")
@@ -105,7 +106,7 @@ class PlaceIon(FiretaskBase):
             new_FWs.append(
                 FrequencyFlatteningOptimizeFW(
                     molecule=molecule,
-                    name="ion_pos_" + str(ii),
+                    name="ion_pos_" + str(ii) + "_" + self.fw_name,
                     qchem_cmd=">>qchem_cmd<<",
                     max_cores=">>max_cores<<",
                     qchem_input_params=self.qchem_input_params,
