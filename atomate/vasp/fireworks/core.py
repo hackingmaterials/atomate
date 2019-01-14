@@ -106,7 +106,7 @@ class StaticFW(Firework):
             prev_calc_dir (str): Path to a previous calculation to copy from
             db_file (str): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
-            vasp_to_db_kwargs (dict): kwargs to pass to VaspToDb
+            vasptodb_kwargs (dict): kwargs to pass to VaspToDb
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         t = []
