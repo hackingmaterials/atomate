@@ -10,7 +10,9 @@ from random import randint
 from time import time
 
 import six
+from pymongo import MongoClient
 from monty.json import MontyDecoder
+from monty.serialization import loadfn
 from pymatgen import Composition
 
 from fireworks import Workflow
@@ -32,7 +34,7 @@ def env_chk(val, fw_spec, strict=True, default=None):
     ">>ENV_KEY<<"
     to the contents of:
     fw_spec["_fw_env"][ENV_KEY]
-    
+
     Otherwise, the string "val" is interpreted literally and passed-through as is.
 
     The fw_spec["_fw_env"] is in turn set by the FWorker. For more details,
@@ -114,22 +116,21 @@ def recursive_get_result(d, result):
         if callable(attribute):
             attribute = attribute()
         return attribute
-    
+
     elif isinstance(d, dict):
         return {k: recursive_get_result(v, result) for k, v in d.items()}
-    
+
     elif isinstance(d, (list, tuple)):
-        return [recursive_get_result(i, result) for i in d] 
-    
+        return [recursive_get_result(i, result) for i in d]
+
     else:
         return d
 
 
-def get_logger(name, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(message)s',
-               stream=sys.stdout):
+def get_logger(name, level=logging.DEBUG, log_format='%(asctime)s %(levelname)s %(name)s %(message)s', stream=sys.stdout):
     logger = logging.getLogger(name)
     logger.setLevel(level)
-    formatter = logging.Formatter(format)
+    formatter = logging.Formatter(log_format)
     sh = logging.StreamHandler(stream=stream)
     sh.setFormatter(formatter)
     logger.addHandler(sh)
@@ -269,7 +270,7 @@ def get_wf_from_spec_dict(structure, wfspec, common_param_updates=None):
                 for parent_idx in params["parents"]:
                     p.append(fws[parent_idx])
                 params["parents"] = p
-        fws.append(cls_(structure, **params))
+        fws.append(cls_(structure=structure, **params))
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, wfspec["name"]) if \
         wfspec.get("name") else structure.composition.reduced_formula
@@ -291,6 +292,7 @@ def load_class(modulepath, classname):
     mod = __import__(modulepath, globals(), locals(), [classname], 0)
     return getattr(mod, classname)
 
+
 def recursive_update(d, u):
     """
     Recursive updates d with values from u
@@ -311,7 +313,7 @@ def recursive_update(d, u):
 
 def get_a_unique_id():
     ts = "{:.4f}".format(time())
-    ts += str(randint(0,9999)).zfill(4)
+    ts += str(randint(0, 9999)).zfill(4)
     return ts
 
 
@@ -333,9 +335,8 @@ def get_uri(dir_name):
     return "{}:{}".format(hostname, fullpath)
 
 
-
 def get_database(config_file=None, settings=None, admin=False, **kwargs):
-    d = get_settings(config_file) if settings is None else settings
+    d = loadfn(config_file) if settings is None else settings
     conn = MongoClient(host=d["host"], port=d["port"], **kwargs)
     db = conn[d["database"]]
     try:
@@ -343,6 +344,9 @@ def get_database(config_file=None, settings=None, admin=False, **kwargs):
         passwd = d["admin_password"] if admin else d["readonly_password"]
         db.authenticate(user, passwd)
     except (KeyError, TypeError, ValueError):
-        _log.warn("No {admin,readonly}_user/password found in config. file, "
-                  "accessing DB without authentication")
+        logger.warn("No {admin,readonly}_user/password found in config. file, "
+            "accessing DB without authentication")
     return db
+
+
+logger = get_logger(__name__)

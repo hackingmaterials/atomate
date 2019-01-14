@@ -71,7 +71,7 @@ class CalcDb(six.with_metaclass(ABCMeta)):
         """
         result = self.collection.find_one({"dir_name": d["dir_name"]}, ["dir_name", "task_id"])
         if result is None or update_duplicates:
-            d["last_updated"] = datetime.datetime.today()
+            d["last_updated"] = datetime.datetime.utcnow()
             if result is None:
                 if ("task_id" not in d) or (not d["task_id"]):
                     d["task_id"] = self.db.counter.find_one_and_update(
@@ -108,6 +108,12 @@ class CalcDb(six.with_metaclass(ABCMeta)):
             MMDb object
         """
         creds = loadfn(db_file)
+
+        if admin and "admin_user" not in creds and "readonly_user" in creds:
+            raise ValueError("Trying to use admin credentials, "
+                             "but no admin credentials are defined. "
+                             "Use admin=False if only read_only "
+                             "credentials are available.")
 
         if admin:
             user = creds.get("admin_user")

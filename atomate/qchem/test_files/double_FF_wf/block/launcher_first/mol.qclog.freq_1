@@ -1,0 +1,47 @@
+You are running Q-Chem version: 5.0.2
+
+#
+# job setting
+#
+local host:  nid00693
+current dir: /global/cscratch1/sd/sblau/workflow/block_2018-06-05-18-27-36-017218/launcher_2018-06-05-18-27-36-075310
+input file:  mol.qin
+output file: mol.qout
+nprocs     : 1
+nthreads   : 32
+#
+# qchem installation setting
+#
+QC:          /global/common/cori/software/qchem/5.1beta
+QCAUX:       /global/common/cori/software/qchem/5.1beta/qcaux
+QCPROG:      /global/common/cori/software/qchem/5.1beta/exe/qcprog.exe
+QCPROG_S:    /global/common/cori/software/qchem/5.1beta/exe/qcprog.exe
+PARALLEL:    -DPARALLEL
+QCMPI:       slurm
+#
+# qchem directory setting
+#
+qcrun:       qchem6928
+QCSCRATCH:   /dev/shm/qcscratch/
+QCLOCALSCR:  /tmp
+QCTMPDIR:    /tmp
+QCFILEPREF:  /tmp/qchem6928
+QCSAVEDIR:   
+workdirs:    /tmp/qchem6928
+workdir0:    /tmp/qchem6928
+partmpdirs =  
+#
+# parallel setting
+#
+QCRSH:           ssh
+QCMPI:           slurm
+QCMPIRUN:        srun
+QCMACHINEFILE:   
+
+#
+# env setting
+#
+exported envs:   QC QCAUX QCSCRATCH QCRUNNAME QCFILEPREF QCPROG QCPROG_S GUIFILE
+remove work dirs /tmp/qchem6928.0 -- /tmp/qchem6928.0
+rm -rf /tmp/qchem6928.0
+rm -rf /tmp/qchem6928

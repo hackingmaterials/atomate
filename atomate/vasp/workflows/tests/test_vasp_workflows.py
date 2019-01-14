@@ -17,8 +17,11 @@ from atomate.vasp.powerups import use_custodian, add_namefile, use_fake_vasp, ad
     add_bandgap_check
 from atomate.vasp.workflows.base.core import get_wf
 from atomate.utils.testing import AtomateTest
+from atomate.vasp.firetasks.parse_outputs import VaspDrone
+from atomate.vasp.database import VaspCalcDb
 
-from pymatgen.io.vasp.sets import MPRelaxSet
+
+from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
 from pymatgen.util.testing import PymatgenTest
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
@@ -44,7 +47,8 @@ class TestVaspWorkflows(AtomateTest):
         self.struct_si = PymatgenTest.get_structure("Si")
 
     def _check_run(self, d, mode):
-        if mode not in ["structure optimization", "static", "nscf uniform", "nscf line"]:
+        if mode not in ["structure optimization", "static", "nscf uniform",
+                        "nscf line", "additional field"]:
             raise ValueError("Invalid mode!")
 
         self.assertEqual(d["formula_pretty"], "Si")
@@ -57,6 +61,9 @@ class TestVaspWorkflows(AtomateTest):
         if mode in ["structure optimization", "static"]:
             self.assertAlmostEqual(d["output"]["energy"], -10.850, 2)
             self.assertAlmostEqual(d["output"]["energy_per_atom"], -5.425, 2)
+
+        if mode == "additional field":
+            self.assertAlmostEqual(d["test_additional_field"]["lattice"]["a"], 3.8401979337)
 
         elif mode in ["ncsf uniform"]:
             self.assertAlmostEqual(d["output"]["energy"], -10.828, 2)
@@ -153,7 +160,12 @@ class TestVaspWorkflows(AtomateTest):
             my_wf = use_fake_vasp(my_wf, ref_dirs_si)
         else:
             my_wf = use_custodian(my_wf)
+
+        # add an msonable object to additional fields
+        my_wf.fws[0].tasks[-1]['additional_fields'].update(
+            {"test_additional_field": self.struct_si})
         self.lp.add_wf(my_wf)
+
 
         # run the workflow
         # set the db_file variable
@@ -161,6 +173,7 @@ class TestVaspWorkflows(AtomateTest):
 
         d = self.get_task_collection().find_one()
         self._check_run(d, mode="structure optimization")
+        self._check_run(d, mode="additional field")
 
         wf = self.lp.get_wf_by_fw_id(1)
         self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
@@ -261,6 +274,65 @@ class TestVaspWorkflows(AtomateTest):
         wf = self.lp.get_wf_by_fw_id(1)
         self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
 
+
+    def test_chgcar_db_read_write(self):
+        # generate a doc from the test folder
+        drone = VaspDrone(parse_chgcar=True, parse_aeccar=True)
+        print(ref_dirs_si['static'])
+        doc = drone.assimilate(ref_dirs_si['static']+'/outputs')
+        # insert the doc make sure that the
+        cc = doc['calcs_reversed'][0]['chgcar']
+        self.assertAlmostEqual(cc.data['total'].sum()/cc.ngridpts, 8.0, 4)
+        cc = doc['calcs_reversed'][0]['aeccar0']
+        self.assertAlmostEqual(cc.data['total'].sum()/cc.ngridpts, 23.253588293583313, 4)
+        cc = doc['calcs_reversed'][0]['aeccar2']
+        self.assertAlmostEqual(cc.data['total'].sum()/cc.ngridpts, 8.01314480789829, 4)
+        mmdb = VaspCalcDb.from_db_file(os.path.join(db_dir, "db.json"))
+        t_id = mmdb.insert_task(doc, use_gridfs=True)
+        # space is freed up after uploading the document
+        self.assertRaises(KeyError, lambda: doc['calcs_reversed'][0]['chgcar'])
+        self.assertRaises(KeyError, lambda: doc['calcs_reversed'][0]['aeccar0'])
+        self.assertRaises(KeyError, lambda: doc['calcs_reversed'][0]['aeccar2'])
+        cc = mmdb.get_chgcar(task_id=t_id)
+        self.assertAlmostEqual(cc.data['total'].sum()/cc.ngridpts, 8.0, 4)
+        dcc = mmdb.get_aeccar(task_id=t_id)
+        self.assertAlmostEqual(dcc['aeccar0'].data['total'].sum()/cc.ngridpts, 23.253588293583313, 4)
+        self.assertAlmostEqual(dcc['aeccar2'].data['total'].sum()/cc.ngridpts, 8.01314480789829, 4)
+
+    def test_chgcar_db_read(self):
+        # add the workflow
+        structure = self.struct_si
+        # instructs to use db_file set by FWorker, see env_chk
+        my_wf = get_wf(structure, "static_only.yaml", vis=MPStaticSet(structure, force_gamma=True),
+                       common_params={"vasp_cmd": VASP_CMD,
+                                      "db_file": ">>db_file<<"})
+        if not VASP_CMD:
+            my_wf = use_fake_vasp(my_wf, ref_dirs_si)
+        else:
+            my_wf = use_custodian(my_wf)
+
+        # set the flags for storing charge densties
+        my_wf.fws[0].tasks[-1]["parse_chgcar"] = True
+        my_wf.fws[0].tasks[-1]["parse_aeccar"] = True
+        self.lp.add_wf(my_wf)
+
+        # run the workflow
+        # set the db_file variable
+        rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
+
+        d = self.get_task_collection().find_one()
+        self._check_run(d, mode="static")
+
+        wf = self.lp.get_wf_by_fw_id(1)
+        self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
+
+        chgcar_fs_id = d["calcs_reversed"][0]["chgcar_fs_id"]
+        accar0_fs_id = d["calcs_reversed"][0]["aeccar0_fs_id"]
+        accar2_fs_id = d["calcs_reversed"][0]["aeccar2_fs_id"]
+
+        self.assertTrue(bool(chgcar_fs_id))
+        self.assertTrue(bool(accar0_fs_id))
+        self.assertTrue(bool(accar2_fs_id))
 
 if __name__ == "__main__":
     unittest.main()

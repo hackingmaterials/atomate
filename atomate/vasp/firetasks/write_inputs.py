@@ -12,6 +12,8 @@ from importlib import import_module
 
 import numpy as np
 
+from monty.serialization import dumpfn
+
 from fireworks import FiretaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
 
@@ -19,7 +21,7 @@ from pymatgen.core.structure import Structure
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
 from pymatgen.io.vasp import Incar, Poscar, Potcar, PotcarSingle
-from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, MPHSEBSSet
+from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, MPHSEBSSet, MPNMRSet
 
 from atomate.utils.utils import env_chk, load_class
 from atomate.vasp.firetasks.glue_tasks import GetInterpolatedPOSCAR
@@ -60,6 +62,7 @@ class WriteVaspFromIOSet(FiretaskBase):
             vis_cls = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])
             vis = vis_cls(self["structure"], **self.get("vasp_input_params", {}))
         vis.write_input(".")
+
 
 @explicit_serialize
 class WriteVaspFromIOSetFromInterpolatedPOSCAR(GetInterpolatedPOSCAR):
@@ -163,7 +166,10 @@ class ModifyIncar(FiretaskBase):
 
         if incar_multiply:
             for k in incar_multiply:
-                incar[k] = incar[k] * incar_multiply[k]
+                if hasattr(incar[k], '__iter__'):  # is list-like
+                    incar[k] = list(np.multiply(incar[k], incar_multiply[k]))
+                else:
+                    incar[k] = incar[k] * incar_multiply[k]
 
         if incar_dictmod:
             apply_mod(incar_dictmod, incar)
@@ -187,14 +193,14 @@ class ModifyPotcar(FiretaskBase):
 
     required_params = ["potcar_symbols"]
     optional_params = ["functional", "input_filename", "output_filename"]
-    
+
     def run_task(self, fw_spec):
         potcar_symbols = env_chk(self.get("potcar_symbols"), fw_spec)
         functional = self.get("functional", None)
         potcar_name = self.get("input_filename", "POTCAR")
         potcar = Potcar.from_file(potcar_name)
 
-        # Replace PotcarSingles corresponding to elements 
+        # Replace PotcarSingles corresponding to elements
         # contained in potcar_symbols
         for n, psingle in enumerate(potcar):
             if psingle.element in potcar_symbols:
@@ -320,16 +326,13 @@ class WriteVaspSOCFromPrev(FiretaskBase):
     Writes input files for a spinorbit coupling calculation.
 
     Required params:
-        prev_calc_dir: path to previous calculation
         magmom (list): magnetic moment values for each site in the structure.
         saxis (list): magnetic field direction
 
-    Optional params:
-        (none)
     """
     required_params = ["magmom", "saxis"]
 
-    optional_params = ["copy_chgcar", "nbands_factor", "reciprocal_density", "small_gap_multiply",
+    optional_params = ["prev_calc_dir", "copy_chgcar", "nbands_factor", "reciprocal_density", "small_gap_multiply",
                        "standardize", "sym_prec", "international_monoclinic", "other_params"]
 
     def run_task(self, fw_spec):
@@ -348,6 +351,31 @@ class WriteVaspSOCFromPrev(FiretaskBase):
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
             international_monoclinic=self.get("international_monoclinic", True),
+            **self.get("other_params", {}))
+        vis.write_input(".")
+
+
+@explicit_serialize
+class WriteVaspNMRFromPrev(FiretaskBase):
+    """
+    Writes input files for a NMR calculation
+
+    Optional params::
+        prev_calc_dir: path to previous calculation, else current directory
+        mode (str): the NMR calculation type: cs or efg, default is cs
+        isotopes (list): list of isotopes to include, default is to include the
+                         lowest mass quadrupolar isotope for all applicable elements
+        reciprocol_density (int): the reciprocol density for the kpoint mesh, defaults to 100
+        other_aprams (dict) : any other params passsed to MPNMRSet as a dictionary
+    """
+    optional_params = ["mode", "isotopes", "reciprocal_density", "other_params"]
+
+    def run_task(self, fw_spec):
+        vis = MPNMRSet.from_prev_calc(
+            prev_calc_dir=self.get("prev_calc_dir", "."),
+            mode=self.get("mode", "cs"),
+            isotopes=self.get("isotopes", None),
+            reciprocal_density=self.get("reciprocal_density", 100),
             **self.get("other_params", {}))
         vis.write_input(".")
 
@@ -395,11 +423,11 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
                 found = True
             if not found:
                 raise ValueError("Could not find transformation: {}".format(t))
-        
+
         # TODO: @matk86 - should prev_calc_dir use CONTCAR instead of POSCAR? Note that if
         # current dir, maybe it is POSCAR indeed best ... -computron
         structure = self['structure'] if not self.get('prev_calc_dir', None) else \
-                Poscar.from_file(os.path.join(self['prev_calc_dir'], 'POSCAR')).structure
+            Poscar.from_file(os.path.join(self['prev_calc_dir'], 'POSCAR')).structure
         ts = TransformedStructure(structure)
         transmuter = StandardTransmuter([ts], transformations)
         final_structure = transmuter.transformed_structures[-1].final_structure.copy()
@@ -409,6 +437,8 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
         vis_dict.update(self.get("override_default_vasp_params", {}) or {})
         vis = vis_orig.__class__.from_dict(vis_dict)
         vis.write_input(".")
+
+        dumpfn(transmuter.transformed_structures[-1], "transformations.json")
 
 
 @explicit_serialize

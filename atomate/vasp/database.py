@@ -2,7 +2,7 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-from monty.json import MontyEncoder
+from monty.json import MontyEncoder, MontyDecoder
 
 """
 This module defines the database classes.
@@ -67,40 +67,84 @@ class VaspCalcDb(CalcDb):
                                           ("completed_at", DESCENDING)],
                                          background=background)
 
-    def insert_task(self, task_doc, parse_dos=False, parse_bs=False):
+    def insert_task(self, task_doc, use_gridfs=False):
         """
         Inserts a task document (e.g., as returned by Drone.assimilate()) into the database.
         Handles putting DOS and band structure into GridFS as needed.
 
         Args:
             task_doc: (dict) the task document
-            parse_dos: (bool) attempt to parse dos in task_doc and insert into Gridfs
-            parse_bs: (bool) attempt to parse bandstructure in task_doc and insert into Gridfs
-
+            use_gridfs (bool) use gridfs for  bandstructures and DOS
         Returns:
             (int) - task_id of inserted document
         """
+        dos = None
+        bs = None
+        chgcar = None
+        aeccar0 = None
 
-        # insert dos into GridFS
-        if parse_dos and "calcs_reversed" in task_doc:
-            if "dos" in task_doc["calcs_reversed"][0]:  # only store idx=0 DOS
+        # move dos BS and CHGCAR from doc to gridfs
+        if use_gridfs and "calcs_reversed" in task_doc:
+
+            if "dos" in task_doc["calcs_reversed"][0]:  # only store idx=0 (last step)
                 dos = json.dumps(task_doc["calcs_reversed"][0]["dos"], cls=MontyEncoder)
-                gfs_id, compression_type = self.insert_gridfs(dos, "dos_fs")
-                task_doc["calcs_reversed"][0]["dos_compression"] = compression_type
-                task_doc["calcs_reversed"][0]["dos_fs_id"] = gfs_id
                 del task_doc["calcs_reversed"][0]["dos"]
 
-        # insert band structure into GridFS
-        if parse_bs and "calcs_reversed" in task_doc:
-            if "bandstructure" in task_doc["calcs_reversed"][0]:  # only store idx=0 BS
+            if "bandstructure" in task_doc["calcs_reversed"][0]:  # only store idx=0 (last step)
                 bs = json.dumps(task_doc["calcs_reversed"][0]["bandstructure"], cls=MontyEncoder)
-                gfs_id, compression_type = self.insert_gridfs(bs, "bandstructure_fs")
-                task_doc["calcs_reversed"][0]["bandstructure_compression"] = compression_type
-                task_doc["calcs_reversed"][0]["bandstructure_fs_id"] = gfs_id
                 del task_doc["calcs_reversed"][0]["bandstructure"]
 
-        # insert the task document and return task_id
-        return self.insert(task_doc)
+            if "chgcar" in task_doc["calcs_reversed"][0]:  # only store idx=0 DOS
+                chgcar = json.dumps(task_doc["calcs_reversed"][0]["chgcar"], cls=MontyEncoder)
+                del task_doc["calcs_reversed"][0]["chgcar"]
+
+            if "aeccar0" in task_doc["calcs_reversed"][0]:  # only store idx=0 DOS
+                aeccar0 = task_doc["calcs_reversed"][0]["aeccar0"]
+                aeccar0 = json.dumps(task_doc["calcs_reversed"][0]["aeccar0"], cls=MontyEncoder)
+                del task_doc["calcs_reversed"][0]["aeccar0"]
+                try:
+                    # aeccar2 should also be in the task_doc
+                    aeccar2 = json.dumps(task_doc["calcs_reversed"][0]["aeccar2"], cls=MontyEncoder)
+                except:
+                    raise KeyError('aeccar2 data is missing from task_doc')
+                del task_doc["calcs_reversed"][0]["aeccar2"]
+
+        # insert the task document
+        t_id = self.insert(task_doc)
+
+        # insert the dos into gridfs and update the task document
+        if dos:
+            dos_gfs_id, compression_type = self.insert_gridfs(dos, "dos_fs", task_id=t_id)
+            self.collection.update_one(
+                {"task_id": t_id}, {"$set": {"calcs_reversed.0.dos_compression": compression_type}})
+            self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.dos_fs_id": dos_gfs_id}})
+
+        # insert the bandstructure into gridfs and update the task documents
+        if bs:
+            bfs_gfs_id, compression_type = self.insert_gridfs(bs, "bandstructure_fs", task_id=t_id)
+            self.collection.update_one(
+                {"task_id": t_id}, {"$set": {"calcs_reversed.0.bandstructure_compression": compression_type}})
+            self.collection.update_one(
+                {"task_id": t_id}, {"$set": {"calcs_reversed.0.bandstructure_fs_id": bfs_gfs_id}})
+
+        # insert the CHGCAR file into gridfs and update the task documents
+        if chgcar:
+            chgcar_gfs_id, compression_type = self.insert_gridfs(chgcar, "chgcar_fs", task_id=t_id)
+            self.collection.update_one(
+                {"task_id": t_id}, {"$set": {"calcs_reversed.0.chgcar_compression": compression_type}})
+            self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.chgcar_fs_id": chgcar_gfs_id}})
+
+        # insert the AECCARs file into gridfs and update the task documents
+        if aeccar0:
+            aeccar0_gfs_id, compression_type = self.insert_gridfs(aeccar0, "aeccar0_fs", task_id=t_id)
+            self.collection.update_one(
+                {"task_id": t_id}, {"$set": {"calcs_reversed.0.aeccar0_compression": compression_type}})
+            self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.aeccar0_fs_id": aeccar0_gfs_id}})
+            aeccar2_gfs_id, compression_type = self.insert_gridfs(aeccar2, "aeccar2_fs", task_id=t_id)
+            self.collection.update_one(
+                {"task_id": t_id}, {"$set": {"calcs_reversed.0.aeccar2_compression": compression_type}})
+            self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.aeccar2_fs_id": aeccar2_gfs_id}})
+        return t_id
 
     def retrieve_task(self, task_id):
         """
@@ -121,9 +165,12 @@ class VaspCalcDb(CalcDb):
         if 'dos_fs_id' in calc:
             dos = self.get_dos(task_id)
             calc["dos"] = dos.as_dict()
+        if 'chgcar_fs_id' in calc:
+            chgcar = self.get_chgcar(task_id)
+            calc["chgcar"] = chgcar
         return task_doc
 
-    def insert_gridfs(self, d, collection="fs", compress=True, oid=None):
+    def insert_gridfs(self, d, collection="fs", compress=True, oid=None, task_id=None):
         """
         Insert the given document into GridFS.
 
@@ -132,16 +179,26 @@ class VaspCalcDb(CalcDb):
             collection (string): the GridFS collection name
             compress (bool): Whether to compress the data or not
             oid (ObjectId()): the _id of the file; if specified, it must not already exist in GridFS
-
+            task_id(int or str): the task_id to store into the gridfs metadata
         Returns:
             file id, the type of compression used.
         """
         oid = oid or ObjectId()
+        compression_type = None
+
         if compress:
             d = zlib.compress(d.encode(), compress)
+            compression_type = "zlib"
+
         fs = gridfs.GridFS(self.db, collection)
-        fs_id = fs.put(d, _id=oid)
-        return fs_id, "zlib"
+        if task_id:
+            # Putting task id in the metadata subdocument as per mongo specs:
+            # https://github.com/mongodb/specifications/blob/master/source/gridfs/gridfs-spec.rst#terms
+            fs_id = fs.put(d, _id=oid, metadata={"task_id": task_id, "compression": compression_type})
+        else:
+            fs_id = fs.put(d, _id=oid, metadata={"compression": compression_type})
+
+        return fs_id, compression_type
 
     def get_band_structure(self, task_id):
         m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
@@ -163,6 +220,48 @@ class VaspCalcDb(CalcDb):
         dos_json = zlib.decompress(fs.get(fs_id).read())
         dos_dict = json.loads(dos_json.decode())
         return CompleteDos.from_dict(dos_dict)
+
+    def get_chgcar_string(self, task_id):
+        # Not really used now, consier deleting
+        m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
+        fs_id = m_task['calcs_reversed'][0]['chgcar_fs_id']
+        fs = gridfs.GridFS(self.db, 'chgcar_fs')
+        return zlib.decompress(fs.get(fs_id).read())
+
+    def get_chgcar(self, task_id):
+        """
+        Read the CHGCAR grid_fs data into a Chgcar object
+        Args:
+            task_id(int or str): the task_id containing the gridfs metadata
+        Returns:
+            chgcar: Chgcar object
+        """
+        m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
+        fs_id = m_task['calcs_reversed'][0]['chgcar_fs_id']
+        fs = gridfs.GridFS(self.db, 'chgcar_fs')
+        chgcar_json = zlib.decompress(fs.get(fs_id).read())
+        chgcar= json.loads(chgcar_json, cls=MontyDecoder)
+        return chgcar
+
+    def get_aeccar(self, task_id):
+        """
+        Read the AECCAR0 + AECCAR2 grid_fs data into a Chgcar object
+        Args:
+            task_id(int or str): the task_id containing the gridfs metadata
+        Returns:
+            (aeccar0, aeccar2): Chgcar objects
+        """
+        m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
+        fs_id = m_task['calcs_reversed'][0]['aeccar0_fs_id']
+        fs = gridfs.GridFS(self.db, 'aeccar0_fs')
+        aeccar_json = zlib.decompress(fs.get(fs_id).read())
+        aeccar0 = json.loads(aeccar_json, cls=MontyDecoder)
+        fs_id = m_task['calcs_reversed'][0]['aeccar2_fs_id']
+        fs = gridfs.GridFS(self.db, 'aeccar2_fs')
+        aeccar_json = zlib.decompress(fs.get(fs_id).read())
+        aeccar2 = json.loads(aeccar_json, cls=MontyDecoder)
+
+        return {'aeccar0': aeccar0, 'aeccar2': aeccar2}
 
     def reset(self):
         self.collection.delete_many({})

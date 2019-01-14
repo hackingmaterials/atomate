@@ -1,5 +1,5 @@
-atomate\.utils package
-======================
+atomate.utils package
+=====================
 
 Subpackages
 -----------
@@ -11,32 +11,32 @@ Subpackages
 Submodules
 ----------
 
-atomate\.utils\.database module
--------------------------------
+atomate.utils.database module
+-----------------------------
 
 .. automodule:: atomate.utils.database
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.utils\.fileio module
------------------------------
+atomate.utils.fileio module
+---------------------------
 
 .. automodule:: atomate.utils.fileio
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.utils\.testing module
-------------------------------
+atomate.utils.testing module
+----------------------------
 
 .. automodule:: atomate.utils.testing
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.utils\.utils module
-----------------------------
+atomate.utils.utils module
+--------------------------
 
 .. automodule:: atomate.utils.utils
     :members:

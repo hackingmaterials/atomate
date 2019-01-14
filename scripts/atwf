@@ -39,7 +39,7 @@ common_params:
   db_file: None
 """
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+presets_dir = os.path.join(os.path.dirname(os.path.abspath(core.__file__)))
 lpad = LaunchPad.auto_load()
 
 
@@ -61,8 +61,7 @@ def _get_wf(args, structure):
         spec_path = args.spec_file
         if args.library:
             if args.library.lower() == "vasp":
-                spec_path = os.path.join(module_dir, "..", "atomate",
-                                         "vasp", "workflows", "base",
+                spec_path = os.path.join(presets_dir, "..", "base",
                                          "library", spec_path)
             else:
                 raise ValueError("Unknown library: {}".format(args.library))

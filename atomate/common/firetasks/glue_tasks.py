@@ -3,7 +3,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
-
 import six
 import monty
 import shutil
@@ -13,7 +12,7 @@ from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 from atomate.utils.utils import env_chk, load_class, recursive_get_result
 from atomate.utils.fileio import FileClient
-from boltons.fileutils import copytree
+from monty.shutil import copy_r
 
 __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
@@ -115,7 +114,7 @@ class CopyFilesFromCalcLoc(FiretaskBase):
         elif '$ALL' in filenames:
             if self.get('name_prepend') or self.get('name_append'):
                 raise ValueError('name_prepend or name_append options not compatible with "$ALL" option')
-            copytree(calc_dir, os.getcwd())
+            copy_r(calc_dir, os.getcwd())
             return
         else:
             files_to_copy = filenames

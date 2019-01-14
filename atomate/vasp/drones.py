@@ -15,8 +15,11 @@ from fnmatch import fnmatch
 from collections import OrderedDict
 import json
 import glob
+import traceback
 
 from monty.io import zopen
+from monty.json import jsanitize
+from monty.os.path import which
 
 import numpy as np
 
@@ -25,9 +28,10 @@ from pymatgen.core.structure import Structure
 from pymatgen.core.operations import SymmOp
 from pymatgen.electronic_structure.bandstructure import BandStructureSymmLine
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot
+from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot, Chgcar
 from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
 from pymatgen.apps.borg.hive import AbstractDrone
+from pymatgen.command_line.bader_caller import bader_analysis_from_path
 
 from atomate.utils.utils import get_uri
 
@@ -41,6 +45,7 @@ __version__ = "0.1.0"
 
 logger = get_logger(__name__)
 
+bader_exe_exists = which("bader") or which("bader.exe")
 
 class VaspDrone(AbstractDrone):
     """
@@ -63,7 +68,7 @@ class VaspDrone(AbstractDrone):
                   'hubbards', 'structure', 'pseudo_potential'},
         "output": {'structure', 'spacegroup', 'density', 'energy',
                    'energy_per_atom', 'is_gap_direct', 'bandgap', 'vbm',
-                   'cbm', 'is_metal'},
+                   'cbm', 'is_metal', 'forces', 'stress'},
         "calcs_reversed": {
             'dir_name', 'run_type', 'elements', 'nelements',
             'formula_pretty', 'formula_reduced_abc', 'composition_reduced',
@@ -72,12 +77,13 @@ class VaspDrone(AbstractDrone):
             'has_vasp_completed'
         },
         "analysis": {'delta_volume_as_percent', 'delta_volume', 'max_force',
-                     'errors',
-                     'warnings'}
+                     'errors', 'warnings'}
+
     }
 
-    def __init__(self, runs=None, parse_dos="auto", compress_dos=False, bandstructure_mode="auto",
-                 compress_bs=False, parse_locpot=True, additional_fields=None, use_full_uri=True):
+    def __init__(self, runs=None, parse_dos="auto", bandstructure_mode="auto",
+                 parse_locpot=True, additional_fields=None, use_full_uri=True,
+                 parse_bader=bader_exe_exists, parse_chgcar=False, parse_aeccar=False):
         """
         Initialize a Vasp drone to parse vasp outputs
         Args:
@@ -85,7 +91,6 @@ class VaspDrone(AbstractDrone):
              Can be subfolder or extension
             parse_dos (str or bool): Whether to parse the DOS. Can be "auto", True or False.
             "auto" will only parse DOS if NSW = 0, so there are no ionic steps
-            compress_dos (bool): Compress DOS using zlib or not
             bandstructure_mode (str or bool): How to parse the bandstructure or not. Can be "auto","line", True or False.
              "auto" will parse the bandstructure with projections for NSCF calcs and decide automatically
               if it's line mode or uniform. Saves the bandstructure in the output doc.
@@ -95,19 +100,23 @@ class VaspDrone(AbstractDrone):
               Saves the bandstructure in the output doc.
              False will parse the bandstructure without projections to calculate vbm, cbm, band_gap, is_metal and efermi
               Dose not saves the bandstructure in the output doc.
-            compress_bs (bool): Compress the bandstructure using zlib or not
             parse_locpot (bool): Parses the LOCPOT file and saves the 3 axis averages
             additional_fields (dict): dictionary of additional fields to add to output document
             use_full_uri (bool): converts the directory path to the full URI path
+            parse_bader (bool): Run and parse Bader charge data. Defaults to True if Bader is present
+            parse_chgcar (bool): Run and parse CHGCAR file
+            parse_aeccar (bool): Run and parse AECCAR0 and AECCAR2 files
         """
         self.parse_dos = parse_dos
-        self.compress_dos = compress_dos
         self.additional_fields = additional_fields or {}
         self.use_full_uri = use_full_uri
-        self.runs = runs or ["precondition"] + ["relax" + str(i + 1) for i in range(9)]  # can't auto-detect: path unknown
+        self.runs = runs or ["precondition"] + ["relax" + str(i + 1)
+                                                for i in range(9)]  # can't auto-detect: path unknown
         self.bandstructure_mode = bandstructure_mode
-        self.compress_bs = compress_bs
         self.parse_locpot = parse_locpot
+        self.parse_bader = parse_bader
+        self.parse_chgcar = parse_chgcar
+        self.parse_aeccar = parse_aeccar
 
     def assimilate(self, path):
         """
@@ -177,7 +186,7 @@ class VaspDrone(AbstractDrone):
         try:
             # basic properties, incl. calcs_reversed and run_stats
             fullpath = os.path.abspath(dir_name)
-            d = {k: v for k, v in self.additional_fields.items()}
+            d = jsanitize(self.additional_fields, strict=True)
             d["schema"] = {"code": "atomate", "version": VaspDrone.__version__}
             d["dir_name"] = fullpath
             d["calcs_reversed"] = [self.process_vasprun(dir_name, taskname, filename)
@@ -241,7 +250,9 @@ class VaspDrone(AbstractDrone):
                 "structure": d_calc_final["output"]["structure"],
                 "density": d_calc_final.pop("density"),
                 "energy": d_calc_final["output"]["energy"],
-                "energy_per_atom": d_calc_final["output"]["energy_per_atom"]}
+                "energy_per_atom": d_calc_final["output"]["energy_per_atom"],
+                "forces": d_calc_final["output"]["ionic_steps"][-1].get("forces"),
+                "stress": d_calc_final["output"]["ionic_steps"][-1].get("stress")}
 
             # patch calculated magnetic moments into final structure
             if len(d_calc_final["output"]["outcar"]["magnetization"]) != 0:
@@ -252,12 +263,13 @@ class VaspDrone(AbstractDrone):
 
             calc = d["calcs_reversed"][0]
 
+            # copy band gap and properties into output
+            d["output"].update({"bandgap": calc["output"]["bandgap"],
+                                "cbm": calc["output"]["cbm"],
+                                "vbm": calc["output"]["vbm"],
+                                "is_gap_direct": calc["output"]["is_gap_direct"]})
             try:
-                d["output"].update({"bandgap": calc["output"]["bandgap"],
-                                    "cbm": calc["output"]["cbm"],
-                                    "vbm": calc["output"]["vbm"],
-                                    "is_gap_direct": calc["output"]["is_gap_direct"],
-                                    "is_metal": calc["output"]["is_metal"]})
+                d["output"].update({"is_metal": calc["output"]["is_metal"]})
                 if not calc["output"]["is_gap_direct"]:
                     d["output"]["direct_gap"] = calc["output"]["direct_gap"]
                 if "transition" in calc["output"]:
@@ -265,11 +277,11 @@ class VaspDrone(AbstractDrone):
 
             except Exception:
                 if self.bandstructure_mode is True:
-                    import traceback
                     logger.error(traceback.format_exc())
                     logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
                     raise
 
+            # Store symmetry information
             sg = SpacegroupAnalyzer(Structure.from_dict(d_calc_final["output"]["structure"]), 0.1)
             if not sg.get_symmetry_dataset():
                 sg = SpacegroupAnalyzer(Structure.from_dict(d_calc_final["output"]["structure"]),
@@ -281,6 +293,8 @@ class VaspDrone(AbstractDrone):
                 "point_group": sg.get_point_group_symbol(),
                 "crystal_system": sg.get_crystal_system(),
                 "hall": sg.get_hall()}
+
+            # store dieelctric and piezo information
             if d["input"]["parameters"].get("LEPSILON"):
                 for k in ['epsilon_static', 'epsilon_static_wolfe', 'epsilon_ionic']:
                     d["output"][k] = d_calc_final["output"][k]
@@ -292,11 +306,10 @@ class VaspDrone(AbstractDrone):
 
             self.set_analysis(d)
 
-            d["last_updated"] = datetime.datetime.today()
+            d["last_updated"] = datetime.datetime.utcnow()
             return d
 
         except Exception:
-            import traceback
             logger.error(traceback.format_exc())
             logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
             raise
@@ -336,41 +349,21 @@ class VaspDrone(AbstractDrone):
         for k, v in {"energy": "final_energy", "energy_per_atom": "final_energy_per_atom"}.items():
             d["output"][k] = d["output"].pop(v)
 
-        if self.parse_dos == True or (str(self.parse_dos).lower() == "auto" and vrun.incar.get("NSW", 1) == 0):
-            try:
-                d["dos"] = vrun.complete_dos.as_dict()
-            except:
-                raise ValueError("No valid dos data exist in {}.".format(dir_name))
+        # Process bandstructure and DOS
+        if self.bandstructure_mode != False:
+            bs = self.process_bandstructure(vrun)
+            if bs:
+                d["bandstructure"] = bs
 
-        # Band structure parsing logic
-        if str(self.bandstructure_mode).lower() == "auto":
-            # if line mode nscf
-            if vrun.incar.get("ICHARG", 0) > 10 and vrun.kpoints.num_kpts > 0:
-                bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=True)
-                bs = bs_vrun.get_band_structure(line_mode=True)
-            # else if nscf
-            elif vrun.incar.get("ICHARG", 0) > 10:
-                bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=True)
-                bs = bs_vrun.get_band_structure()
-            # else just regular calculation
-            else:
-                bs = vrun.get_band_structure()
-
-            # only save the bandstructure if not moving ions
-            if vrun.incar["NSW"] == 0:
-                d["bandstructure"] = bs.as_dict()
-        # legacy line/True behavior for bandstructure_mode
-        elif self.bandstructure_mode:
-            bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=True)
-            bs = bs_vrun.get_band_structure(line_mode=(str(self.bandstructure_mode).lower() == "line"))
-            d["bandstructure"] = bs.as_dict()
-        # parse bandstructure for vbm/cbm/bandgap but don't save
-        else:
-            bs = vrun.get_band_structure()
+        if self.parse_dos != False:
+            dos = self.process_dos(vrun)
+            if dos:
+                d["dos"] = dos
 
         # Parse electronic information if possible.
         # For certain optimizers this is broken and we don't get an efermi resulting in the bandstructure
         try:
+            bs = vrun.get_band_structure()
             bs_gap = bs.get_band_gap()
             d["output"]["vbm"] = bs.get_vbm()["energy"]
             d["output"]["cbm"] = bs.get_cbm()["energy"]
@@ -383,29 +376,109 @@ class VaspDrone(AbstractDrone):
                 d["output"]["transition"] = bs_gap["transition"]
 
         except Exception:
-            if self.bandstructure_mode is True:
-                import traceback
-                logger.error(traceback.format_exc())
-                logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
-                raise
             logger.warning("Error in parsing bandstructure")
             if vrun.incar["IBRION"] == 1:
                 logger.warning("Vasp doesn't properly output efermi for IBRION == 1")
+            if self.bandstructure_mode is True:
+                logger.error(traceback.format_exc())
+                logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
+                raise
 
+        # store run name and location ,e.g. relax1, relax2, etc.
         d["task"] = {"type": taskname, "name": taskname}
 
+        # include output file names
         d["output_file_paths"] = self.process_raw_data(dir_name, taskname=taskname)
 
+        # parse axially averaged locpot
         if "locpot" in d["output_file_paths"] and self.parse_locpot:
             locpot = Locpot.from_file(os.path.join(dir_name, d["output_file_paths"]["locpot"]))
             d["output"]["locpot"] = {i: locpot.get_average_along_axis(i) for i in range(3)}
 
+        if self.parse_chgcar != False:
+            # parse CHGCAR file only for static calculations
+            # TODO require static run later
+            # if self.parse_chgcar == True and vrun.incar.get("NSW", 0) < 1:
+            try:
+                chgcar = self.process_chgcar(os.path.join(dir_name, d["output_file_paths"]["chgcar"]))
+            except:
+                raise ValueError("No valid charge data exist")
+            d["chgcar"] = chgcar
+
+        if self.parse_aeccar != False:
+            try:
+                chgcar = self.process_chgcar(os.path.join(dir_name, d["output_file_paths"]["aeccar0"]))
+            except:
+                raise ValueError("No valid charge data exist")
+            d["aeccar0"] = chgcar
+            try:
+                chgcar = self.process_chgcar(os.path.join(dir_name, d["output_file_paths"]["aeccar2"]))
+            except:
+                raise ValueError("No valid charge data exist")
+            d["aeccar2"] = chgcar
+
+        # parse force constants
         if hasattr(vrun, "force_constants"):
-            # phonon-dfpt
             d["output"]["force_constants"] = vrun.force_constants.tolist()
             d["output"]["normalmode_eigenvals"] = vrun.normalmode_eigenvals.tolist()
             d["output"]["normalmode_eigenvecs"] = vrun.normalmode_eigenvecs.tolist()
+
+        # Try and perform bader
+        if self.parse_bader:
+            try:
+                bader = bader_analysis_from_path(dir_name, suffix=".{}".format(taskname))
+            except Exception as e:
+                bader = "Bader analysis failed: {}".format(e)
+            d["bader"] = bader
+
         return d
+
+    @classmethod
+    def process_chgcar(cls, chg_file):
+        try:
+            chgcar = Chgcar.from_file(chg_file)
+        except IOError:
+            raise ValueError("Unable to open CHGCAR/AECCAR file" )
+        return chgcar
+
+    def process_bandstructure(self, vrun):
+
+        vasprun_file = vrun.filename
+        # Band structure parsing logic
+        if str(self.bandstructure_mode).lower() == "auto":
+            # if NSCF calculation
+            if vrun.incar.get("ICHARG", 0) > 10:
+                bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=True)
+                try:
+                    # Try parsing line mode
+                    bs = bs_vrun.get_band_structure(line_mode=True)
+                except:
+                    # Just treat as a regular calculation
+                    bs = bs_vrun.get_band_structure()
+            # else just regular calculation
+            else:
+                bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=False)
+                bs = bs_vrun.get_band_structure()
+
+            # only save the bandstructure if not moving ions
+            if vrun.incar.get("NSW", 0) <= 1:
+                return bs.as_dict()
+
+        # legacy line/True behavior for bandstructure_mode
+        elif self.bandstructure_mode:
+            bs_vrun = BSVasprun(vasprun_file, parse_projected_eigen=True)
+            bs = bs_vrun.get_band_structure(line_mode=(str(self.bandstructure_mode).lower() == "line"))
+            return bs.as_dict()
+
+        return None
+
+    def process_dos(self, vrun):
+        # parse dos if forced to or auto mode set and  0 ionic steps were performed -> static calculation and not DFPT
+        if self.parse_dos == True or (str(self.parse_dos).lower() == "auto" and vrun.incar.get("NSW", 0) < 1):
+            try:
+                return vrun.complete_dos.as_dict()
+            except:
+                raise ValueError("No valid dos data exist")
 
     def process_raw_data(self, dir_name, taskname="standard"):
         """
@@ -447,11 +520,15 @@ class VaspDrone(AbstractDrone):
         max_force = None
         calc = d["calcs_reversed"][0]
         if d["state"] == "successful" and calc["input"]["parameters"].get("NSW", 0) > 0:
-            # handle the max force and max force error
-            max_force = max([np.linalg.norm(a) for a in calc["output"]["ionic_steps"][-1]["forces"]])
-            if max_force > max_force_threshold:
-                error_msgs.append("Final max force exceeds {} eV".format(max_force_threshold))
-                d["state"] = "error"
+
+            # calculate max forces
+            forces = np.array(calc['output']['ionic_steps'][-1]['forces'])
+            # account for selective dynamics
+            final_structure = Structure.from_dict(calc['output']['structure'])
+            sdyn = final_structure.site_properties.get('selective_dynamics')
+            if sdyn:
+                forces[np.logical_not(sdyn)] = 0
+            max_force = max(np.linalg.norm(forces, axis=1))
 
             s = Structure.from_dict(d["output"]["structure"])
             if not s.is_valid():
@@ -582,9 +659,7 @@ class VaspDrone(AbstractDrone):
     def as_dict(self):
         init_args = {
             "parse_dos": self.parse_dos,
-            "compress_dos": self.compress_dos,
             "bandstructure_mode": self.bandstructure_mode,
-            "compress_bs": self.compress_bs,
             "additional_fields": self.additional_fields,
             "use_full_uri": self.use_full_uri,
             "runs": self.runs}

@@ -4,20 +4,12 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate Changelog &#8212; atomate 0.6.9 documentation</title>
+    <title>atomate Changelog &#8212; atomate 0.8.5 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.6.9',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -28,8 +20,7 @@
  
 <link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
 
-  </head>
-  <body>
+  </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -45,7 +36,7 @@
         <li class="right" >
           <a href="customizing_workflows.html" title="Customizing Workflows"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.9 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.5 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -56,6 +47,90 @@
             
   <div class="section" id="atomate-changelog">
 <h1>atomate Changelog<a class="headerlink" href="#atomate-changelog" title="Permalink to this headline">¶</a></h1>
+<p><strong>v0.8.5</strong></p>
+<ul class="simple">
+<li>add NMR workflow (S. Dwaraknath)</li>
+<li>surface workflow refactor (J. Montoya)</li>
+<li>update elasticity package for latest pymatgen (J. Montoya)</li>
+</ul>
+<p><strong>v0.8.4</strong></p>
+<ul class="simple">
+<li>add some QChem functionality! (S. Blau, E. Spotte-Smith)</li>
+<li>better credential parsing in CalcDB (A. Rutt)</li>
+<li>update paramiko for better security (A. Jain)</li>
+<li>add tasks_settings.yaml to site-packages (A. Jain)</li>
+</ul>
+<p><strong>v0.8.3</strong></p>
+<ul class="simple">
+<li>add CHGCAR and AECAR storage options (J. Shen)</li>
+</ul>
+<p><strong>v0.8.2</strong></p>
+<ul class="simple">
+<li>various requirement updates, code refactorings, and bug fixes especially in Qchem and LAMMPs packages (S. Blau)</li>
+</ul>
+<p><strong>v0.8.1</strong></p>
+<ul class="simple">
+<li>add Bader charge parsing (S. Dwaraknath)</li>
+<li>parse_outputs can push fields to new FWS (S. Dwaraknath)</li>
+<li>minor bug fix (S. Torrisi)</li>
+<li>some testing updates (A. Faghaninia, S. Blau)</li>
+</ul>
+<p><strong>v0.7.9</strong></p>
+<ul class="simple">
+<li>Overhaul and update of QChem in atomate (B. Wood, S. Blau)</li>
+<li>Fix integration tests (A. Dunn)</li>
+<li>Stop officially supporting Py2</li>
+</ul>
+<p><strong>v0.7.8</strong></p>
+<ul class="simple">
+<li>some QChem tasks and workflows (B. Wood)</li>
+<li>add full HSE band structure workflow (A. Jain)</li>
+</ul>
+<p><strong>v0.7.7</strong></p>
+<ul class="simple">
+<li>allow list of ErrorHandler in RunVaspCustodian (A. Jain)</li>
+<li>fix adsorption unit test (J. Montoya)</li>
+</ul>
+<p><strong>v0.7.6</strong></p>
+<ul class="simple">
+<li>remove force checking in drone (S. Dwaraknath)</li>
+<li>cleanups to DOS + BS parsing and insertion in GridFS (S. Dwaraknath)</li>
+<li>code cleanup and bugfixes (S. Dwaraknath, specter119)</li>
+<li>some more docs on offline mode (A. Jain)</li>
+</ul>
+<p><strong>v0.7.5</strong></p>
+<ul class="simple">
+<li>standardize drones to datetime.utcnow() (J. Montoya)</li>
+<li>fixed additional field serialization issue (J. Montoya)</li>
+<li>fix defuse_unsuccessful logic, hat tip to &#64;specter119 for pointing it out (A. Jain)</li>
+<li>some doc updates (A. Jain)</li>
+</ul>
+<p><strong>v0.7.4</strong></p>
+<ul class="simple">
+<li>fix pymatgen dep (A. Jain)</li>
+</ul>
+<p><strong>v0.7.3</strong></p>
+<ul class="simple">
+<li>minor drones updates (S. Dwaraknath)</li>
+<li>installation fix (P. Huck)</li>
+</ul>
+<p><strong>v0.7.2</strong></p>
+<ul class="simple">
+<li>Bugfix database getter in builders (S. Dwaraknath)</li>
+</ul>
+<p><strong>v0.7.1</strong></p>
+<ul class="simple">
+<li>update <code class="docutils literal notranslate"><span class="pre">atwf</span></code> to find the path to workflows better (M. Dias Costa)</li>
+<li>better surface workflow naming (A. Jain)</li>
+</ul>
+<p><strong>v0.7.0</strong></p>
+<ul class="simple">
+<li>change default behavior when a run looks OK but is unconverged (A. Jain)</li>
+<li>Some test and code cleanups (S. Dwaraknath, J. Montoya)</li>
+<li>update to FW names when no structure provided (S. Dwaraknath)</li>
+<li>remove boltons dependency (A. Faghaninia)</li>
+<li>fix max_force check for selective dynamics (J. Montoya)</li>
+</ul>
 <p><strong>v0.6.9</strong></p>
 <ul class="simple">
 <li>update requirements to include boltons</li>
@@ -214,7 +289,7 @@
 <p><strong>v0.4.2</strong></p>
 <div class="admonition caution">
 <p class="first admonition-title">Caution</p>
-<p class="last">The <code class="docutils literal"><span class="pre">tags_fws</span></code> powerup now has different default parameters!</p>
+<p class="last">The <code class="docutils literal notranslate"><span class="pre">tags_fws</span></code> powerup now has different default parameters!</p>
 </div>
 <ul class="simple">
 <li>updates to piezo workflow (S. Dwaraknath)</li>
@@ -302,12 +377,14 @@
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -329,13 +406,13 @@
         <li class="right" >
           <a href="customizing_workflows.html" title="Customizing Workflows"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.6.9 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.5 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.2.
     </div>
 
   </body>

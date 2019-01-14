@@ -37,6 +37,8 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
         self.assertEqual(doc["composition_reduced"], {'Si': 1.0})
         self.assertEqual(doc["composition_unit_cell"], {'Si': 2.0})
         self.assertAlmostEqual(doc["output"]["energy"], -10.84671647)
+        self.assertTrue(np.allclose(doc["output"]["forces"], [[0, 0, 0], [0, 0, 0]]))
+        self.assertAlmostEqual(doc['output']['stress'][0][0], -0.08173155)
         self.assertEqual(doc["formula_pretty"], 'Si')
         self.assertEqual(doc["formula_anonymous"], 'A')
         self.assertEqual(doc["calcs_reversed"][0]["output"]["energy"], doc["output"]["energy"])
@@ -145,6 +147,17 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
         self.assertAlmostEqual(np.sum(doc['calcs_reversed'][0]['output']['locpot'][0]),0)
         self.assertAlmostEqual(np.sum(doc['calcs_reversed'][0]['output']['locpot'][1]),0)
         self.assertAlmostEqual(np.sum(doc['calcs_reversed'][0]['output']['locpot'][2]),0)
+
+    def test_parse_chrgcar(self):
+        drone = VaspDrone(parse_chgcar=True, parse_aeccar=True)
+        doc = drone.assimilate(self.Si_static)
+        cc = doc['calcs_reversed'][0]['chgcar']
+        self.assertAlmostEqual(cc.data['total'].sum()/cc.ngridpts, 8.0, 4)
+        cc = doc['calcs_reversed'][0]['aeccar0']
+        self.assertAlmostEqual(cc.data['total'].sum()/cc.ngridpts, 23.253588293583313, 4)
+        cc = doc['calcs_reversed'][0]['aeccar2']
+        self.assertAlmostEqual(cc.data['total'].sum()/cc.ngridpts, 8.01314480789829, 4)
+
 
 if __name__ == "__main__":
     unittest.main()

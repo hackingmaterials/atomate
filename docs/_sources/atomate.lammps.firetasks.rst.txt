@@ -1,35 +1,35 @@
-atomate\.lammps\.firetasks package
-==================================
+atomate.lammps.firetasks package
+================================
 
 Submodules
 ----------
 
-atomate\.lammps\.firetasks\.glue\_tasks module
-----------------------------------------------
+atomate.lammps.firetasks.glue\_tasks module
+-------------------------------------------
 
 .. automodule:: atomate.lammps.firetasks.glue_tasks
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.lammps\.firetasks\.parse\_outputs module
--------------------------------------------------
+atomate.lammps.firetasks.parse\_outputs module
+----------------------------------------------
 
 .. automodule:: atomate.lammps.firetasks.parse_outputs
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.lammps\.firetasks\.run\_calc module
---------------------------------------------
+atomate.lammps.firetasks.run\_calc module
+-----------------------------------------
 
 .. automodule:: atomate.lammps.firetasks.run_calc
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.lammps\.firetasks\.write\_inputs module
-------------------------------------------------
+atomate.lammps.firetasks.write\_inputs module
+---------------------------------------------
 
 .. automodule:: atomate.lammps.firetasks.write_inputs
     :members:

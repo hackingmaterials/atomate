@@ -11,8 +11,8 @@ from datetime import datetime
 import six
 
 from pymatgen.apps.borg.hive import AbstractDrone
-from pymatgen.io.lammps.output import LammpsLog, LammpsDump, LammpsRun
-from pymatgen.io.lammps.sets import LammpsInputSet
+# from pymatgen.io.lammps.output import LammpsLog, LammpsDump, LammpsRun
+# from pymatgen.io.lammps.sets import LammpsInputSet
 
 from atomate.utils.utils import get_uri
 
@@ -127,7 +127,7 @@ class LammpsDrone(AbstractDrone):
             d["schema"] = {"code": "atomate", "version": LammpsDrone.__version__}
             d["completed_at"] = str(datetime.fromtimestamp(os.path.getmtime(log.log_file)))
             d["dir_name"] = fullpath
-            d["last_updated"] = datetime.today()
+            d["last_updated"] = datetime.utcnow()
             d["input"] = lmps_input.as_dict()
             d["output"] = {"log": log.as_dict()}
             d["output"]["dumps"] = dict([(dump_fname, dmp.as_dict()) for dump_fname, dmp in dumps])

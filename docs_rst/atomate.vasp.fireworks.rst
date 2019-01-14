@@ -1,19 +1,27 @@
-atomate\.vasp\.fireworks package
-================================
+atomate.vasp.fireworks package
+==============================
 
 Submodules
 ----------
 
-atomate\.vasp\.fireworks\.core module
--------------------------------------
+atomate.vasp.fireworks.core module
+----------------------------------
 
 .. automodule:: atomate.vasp.fireworks.core
     :members:
     :undoc-members:
     :show-inheritance:
 
-atomate\.vasp\.fireworks\.polarization module
----------------------------------------------
+atomate.vasp.fireworks.nmr module
+---------------------------------
+
+.. automodule:: atomate.vasp.fireworks.nmr
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+atomate.vasp.fireworks.polarization module
+------------------------------------------
 
 .. automodule:: atomate.vasp.fireworks.polarization
     :members:

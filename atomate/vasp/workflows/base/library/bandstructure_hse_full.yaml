@@ -1,0 +1,16 @@
+# Run a band structure with HSE functional.
+# Should be called with vaspinputset set to MPHSERelaxSet or similar.
+# Author: Anubhav Jain (ajain@lbl.gov)
+fireworks:
+- fw: atomate.vasp.fireworks.core.OptimizeFW
+- fw: atomate.vasp.fireworks.core.StaticFW
+  params:
+    parents: 0
+- fw: atomate.vasp.fireworks.core.HSEBSFW
+  params:
+    parents: 1
+    mode: uniform
+- fw: atomate.vasp.fireworks.core.HSEBSFW
+  params:
+    parents: 1
+    mode: line

@@ -2,6 +2,90 @@
 atomate Changelog
 =================
 
+**v0.8.5**
+
+* add NMR workflow (S. Dwaraknath)
+* surface workflow refactor (J. Montoya)
+* update elasticity package for latest pymatgen (J. Montoya)
+
+**v0.8.4**
+
+* add some QChem functionality! (S. Blau, E. Spotte-Smith)
+* better credential parsing in CalcDB (A. Rutt)
+* update paramiko for better security (A. Jain)
+* add tasks_settings.yaml to site-packages (A. Jain)
+
+**v0.8.3**
+
+* add CHGCAR and AECAR storage options (J. Shen)
+
+**v0.8.2**
+
+* various requirement updates, code refactorings, and bug fixes especially in Qchem and LAMMPs packages (S. Blau)
+
+**v0.8.1**
+
+* add Bader charge parsing (S. Dwaraknath)
+* parse_outputs can push fields to new FWS (S. Dwaraknath)
+* minor bug fix (S. Torrisi)
+* some testing updates (A. Faghaninia, S. Blau)
+
+**v0.7.9**
+
+* Overhaul and update of QChem in atomate (B. Wood, S. Blau)
+* Fix integration tests (A. Dunn)
+* Stop officially supporting Py2
+
+**v0.7.8**
+
+* some QChem tasks and workflows (B. Wood)
+* add full HSE band structure workflow (A. Jain)
+
+**v0.7.7**
+
+* allow list of ErrorHandler in RunVaspCustodian (A. Jain)
+* fix adsorption unit test (J. Montoya)
+
+**v0.7.6**
+
+* remove force checking in drone (S. Dwaraknath)
+* cleanups to DOS + BS parsing and insertion in GridFS (S. Dwaraknath)
+* code cleanup and bugfixes (S. Dwaraknath, specter119)
+* some more docs on offline mode (A. Jain)
+
+**v0.7.5**
+
+* standardize drones to datetime.utcnow() (J. Montoya)
+* fixed additional field serialization issue (J. Montoya)
+* fix defuse_unsuccessful logic, hat tip to @specter119 for pointing it out (A. Jain)
+* some doc updates (A. Jain)
+
+**v0.7.4**
+
+* fix pymatgen dep (A. Jain)
+
+**v0.7.3**
+
+* minor drones updates (S. Dwaraknath)
+* installation fix (P. Huck)
+
+**v0.7.2**
+
+* Bugfix database getter in builders (S. Dwaraknath)
+
+**v0.7.1**
+
+* update ``atwf`` to find the path to workflows better (M. Dias Costa)
+* better surface workflow naming (A. Jain)
+
+**v0.7.0**
+
+* change default behavior when a run looks OK but is unconverged (A. Jain)
+* Some test and code cleanups (S. Dwaraknath, J. Montoya)
+* update to FW names when no structure provided (S. Dwaraknath)
+* remove boltons dependency (A. Faghaninia)
+* fix max_force check for selective dynamics (J. Montoya)
+
 **v0.6.9**
 
 * update requirements to include boltons
