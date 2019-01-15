@@ -32,20 +32,23 @@ logger = get_logger(__name__)
 class GatherGeometries(FiretaskBase):
     """
     """
-    required_params = ["prefix"]
+    required_params = ["prefix", "suffix"]
     optional_params = ["db_file"]
 
     def run_task(self, fw_spec):
 
         data = []
         for key in fw_spec:
-            if len(key) > len(self["prefix"]):
+            if len(key) > len(self["prefix"])+len(self["suffix"]):
                 if key[0:len(self["prefix"])] == self["prefix"]:
                     to_add = copy.deepcopy(fw_spec[key])
-                    to_add["index"] = key[len(self["prefix"]):]
+                    if len(self["suffix"]) == 0:
+                        to_add["index"] = key[len(self["prefix"]):]
+                    else:
+                        to_add["index"] = key[len(self["prefix"]):-len(self["suffix"])]
                     data.append(to_add)
         if len(data) == 0:
-            raise KeyError("ERROR: fw_spec does not contain any keys with the given prefix! Exiting...")
+            raise KeyError("ERROR: fw_spec does not contain any keys with the given prefix / suffix! Exiting...")
         else:
             sorted_data = sorted(data, key=lambda k: k["energy"])
 
@@ -55,7 +58,7 @@ class GatherGeometries(FiretaskBase):
         task_doc = {}
         task_doc["sorted_data"] = sorted_data
         task_doc["dir_name"] = os.getcwd()
-        task_doc["task_label"] = "gather_geoms"
+        task_doc["task_label"] = "gather_geoms" + self["suffix"]
         comp = sorted_data[0]["molecule"].composition
         task_doc["formula_pretty"] = comp.reduced_formula
         task_doc["formula_anonymous"] = comp.anonymized_formula

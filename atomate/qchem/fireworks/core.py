@@ -436,7 +436,7 @@ class PlaceIonFW(Firework):
         if name == "place ions and optimize":
           append_name = ""
         else:
-          append_name = name
+          append_name = "_" + name
         t.append(
             PlaceIon(
                 molecule=molecule,
@@ -449,7 +449,7 @@ class PlaceIonFW(Firework):
                 qchem_input_params=qchem_input_params,
                 test_positions=test_positions,
                 ref_dirs=ref_dirs,
-                fw_name=append_name))
+                append_name=append_name))
         super(PlaceIonFW, self).__init__(
             t,
             parents=parents,
@@ -467,9 +467,14 @@ class GatherGeomsFW(Firework):
         """
         """
         t = []
+        if name == "gather geometries":
+          suffix = ""
+        else:
+          suffix = name
         t.append(
             GatherGeometries(
                 prefix=prefix,
+                suffix=suffix,
                 db_file=db_file))
         super(GatherGeomsFW, self).__init__(
             t,

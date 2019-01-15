@@ -96,7 +96,7 @@ class QChemToDb(FiretaskBase):
                         tmp["energy"] = task_doc["output"]["final_energy"]
                         tmp["calc_dir"] = calc_dir
                         tmp["linked"] = task_doc["linked"]
-                        # add rem, solvent?
+                        tmp["orig"] = task_doc["orig"]
                         update_spec[additional_fields["task_label"]] = tmp
             if not is_ion_pos:
                 update_spec["prev_calc_molecule"] = task_doc["output"]["optimized_molecule"]
