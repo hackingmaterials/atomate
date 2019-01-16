@@ -2,6 +2,12 @@
 atomate Changelog
 =================
 
+**v0.8.5**
+
+* add NMR workflow (S. Dwaraknath)
+* surface workflow refactor (J. Montoya)
+* update elasticity package for latest pymatgen (J. Montoya)
+
 **v0.8.4**
 
 * add some QChem functionality! (S. Blau, E. Spotte-Smith)

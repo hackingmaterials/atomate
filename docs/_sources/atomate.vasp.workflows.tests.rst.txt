@@ -44,6 +44,14 @@ atomate.vasp.workflows.tests.test\_neb\_workflow module
     :undoc-members:
     :show-inheritance:
 
+atomate.vasp.workflows.tests.test\_nmr module
+---------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.tests.test_nmr
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 atomate.vasp.workflows.tests.test\_raman\_workflow module
 ---------------------------------------------------------
 
