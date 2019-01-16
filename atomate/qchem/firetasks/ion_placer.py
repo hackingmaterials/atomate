@@ -50,10 +50,10 @@ class PlaceIon(FiretaskBase):
                 if "charge" not in site.properties:
                     raise KeyError("If mulliken not set, each site in the input molecule must already have the charge property! Exiting...")
         elif self.mol.spin_multiplicity != 1:
-            self.mol.add_site_property("charge",mulliken[0][::,0])
-            self.mol.add_site_property("spin",mulliken[0][::,1])
+            self.mol.add_site_property("charge",[entry[0] for entry in mulliken])
+            self.mol.add_site_property("spin",[entry[1] for entry in mulliken])
         else:
-            self.mol.add_site_property("charge",mulliken[0])
+            self.mol.add_site_property("charge",mulliken)
 
 
         self.charges = self.get("charges", [0])

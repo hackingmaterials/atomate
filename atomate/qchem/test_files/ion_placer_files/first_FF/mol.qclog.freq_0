@@ -1,0 +1,46 @@
+You are running Q-Chem version: 5.1.0
+
+#
+# job setting
+#
+local host:  nid12957
+current dir: /global/cscratch1/sd/xxw0407/ion_placement/block_2019-01-15-01-45-12-634712/launcher_2019-01-15-01-45-13-553405
+input file:  mol.qin
+output file: mol.qout
+nprocs     : 1
+nthreads   : 32
+#
+# qchem installation setting
+#
+QC:          /global/common/cori/software/qchem/5.1
+QCAUX:       /global/common/cori/software/qchem/5.1/qcaux
+QCPROG:      /global/common/cori/software/qchem/5.1/exe/qcprog.exe
+QCPROG_S:    /global/common/cori/software/qchem/5.1/exe/qcprog.exe
+PARALLEL:    FALSE
+QCMPI:       slurm
+#
+# qchem directory setting
+#
+qcrun:       chain_scratch
+QCSCRATCH:   /global/cscratch1/sd/xxw0407/ion_placement/block_2019-01-15-01-45-12-634712/launcher_2019-01-15-01-45-13-553405
+QCLOCALSCR:  /tmp
+QCTMPDIR:    /tmp
+QCFILEPREF:  /tmp/chain_scratch
+QCSAVEDIR:   /global/cscratch1/sd/xxw0407/ion_placement/block_2019-01-15-01-45-12-634712/launcher_2019-01-15-01-45-13-553405/chain_scratch
+workdirs:    /tmp/chain_scratch
+workdir0:    /tmp/chain_scratch
+partmpdirs =  /tmp/chain_scratch.0 
+#
+# parallel setting
+#
+QCRSH:           ssh
+QCMPI:           slurm
+QCMPIRUN:        srun
+QCMACHINEFILE:   nid12957
+QCMACHINEFILE nid12957 cannot be found
+
+#
+# env setting
+#
+exported envs:   QC QCAUX QCSCRATCH QCRUNNAME QCFILEPREF QCPROG QCPROG_S GUIFILE
+copy savedir ...

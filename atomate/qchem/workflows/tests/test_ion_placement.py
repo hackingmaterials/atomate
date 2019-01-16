@@ -10,6 +10,8 @@ from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 from atomate.utils.testing import AtomateTest
 from pymatgen.io.qchem.outputs import QCOutput
+from pymatgen.io.qchem.inputs import QCInput
+from atomate.qchem.powerups import use_fake_qchem
 from atomate.qchem.workflows.base.ion_placement import get_ion_placement_wf
 from atomate.qchem.database import QChemCalcDb
 from pymatgen.core import Molecule
@@ -62,7 +64,7 @@ class TestIonPlacement(AtomateTest):
         self.assertEqual(target_entries[0]["sorted_data"][0]["energy"],-349.947920236903)
         mmdb.reset()
 
-    def _test_Ion_Placement_with_suffix(self):
+    def test_Ion_Placement_with_suffix(self):
         ec_out = QCOutput(os.path.join(test_file_dir,"EC-12.qout")).data
         mol = ec_out['initial_molecule']
         mol.add_site_property("charge",ec_out['Mulliken'][0][::,0])
@@ -93,6 +95,31 @@ class TestIonPlacement(AtomateTest):
         target_entries = list(mmdb.collection.find({"task_label": "gather_geoms_"+myname}))
         self.assertEqual(target_entries[0]["sorted_data"][0]["energy"],-349.947920236903)
         mmdb.reset()
+
+    def test_ion_placement_after_opt(self):
+        with patch("atomate.qchem.firetasks.ion_placer.FWAction") as FWAction_patch:
+            mock_FWAction = MagicMock()
+            FWAction_patch.return_value = mock_FWAction
+            mock_FWAction.as_dict.return_value = {'stored_data': {}, 'exit': False, 'update_spec': {}, 'mod_spec': [], 'additions': [], 'detours': [], 'defuse_children': False, 'defuse_workflow': False}
+
+            # location of test files
+            test_files = os.path.join(module_dir, "..", "..","test_files", "ion_placer_files", "first_FF")
+            # define starting molecule and workflow object
+            initial_qcin = QCInput.from_file(
+                os.path.join(test_files, "mol.qin.opt_0"))
+            initial_mol = initial_qcin.molecule
+            real_wf = get_ion_placement_wf(molecule=initial_mol,
+                                           ion="Li",
+                                           do_triplets=False,
+                                           linked=True,
+                                           qchem_input_params={"pcm_dielectric": 5.0})
+            # use powerup to replace run with fake run
+            ref_dirs = {"first FF": test_files}
+            fake_wf = use_fake_qchem(real_wf, ref_dirs)
+            self.lp.add_wf(fake_wf)
+            rapidfire(
+                self.lp,
+                fworker=FWorker(env={"max_cores": 32, "db_file": os.path.join(db_dir, "db.json")}), pdb_on_exception=True)
 
 
 if __name__ == "__main__":

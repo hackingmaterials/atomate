@@ -1,0 +1,19 @@
+#!/bin/bash -l
+
+#SBATCH --nodes=1
+#SBATCH --time=03:00:00
+#SBATCH --partition=regular
+#SBATCH --account=jcesr
+#SBATCH --job-name=FW_job
+#SBATCH --output=FW_job-%j.out
+#SBATCH --error=FW_job-%j.error
+#SBATCH --constraint=haswell
+
+
+source activate cms
+module load qchem/5.1
+
+cd /global/cscratch1/sd/xxw0407/ion_placement/block_2019-01-15-01-45-12-634712/launcher_2019-01-15-01-45-13-553405
+rlaunch -c /global/homes/x/xxw0407/config singleshot
+
+# CommonAdapter (SLURM) completed writing Template
