@@ -332,6 +332,18 @@ class QChemDroneTest(unittest.TestCase):
         self.assertEqual(doc["num_frequencies_flattened"], 1)
         self.assertEqual(doc["warning"], "energy_increased")
 
+    def test_FF_with_error_correction(self):
+        drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener", "linked": True})
+        doc = drone.assimilate(
+            path=os.path.join(module_dir, "..", "test_files", "LiH4C2SO4"),
+            input_file="mol.qin",
+            output_file="mol.qout",
+            multirun=False)
+        self.assertEqual(doc["opt_trajectory"]["discontinuity"], {'structure': [[1, 2]], 'scf_energy': [[1, 2]], 'total_energy': [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6]]})
+        self.assertEqual(doc["opt_trajectory"]["energy_increase"], [[1, 2, 0.00011567800004286255], [4, 2.779800001917465e-05], [3, 4, 2.8762000056303805e-05], [5, 2.2528000044985674e-05], [4, 5, 2.1631999970850302e-05]])
+        self.assertEqual(doc["opt_trajectory"]["structure_change"], [[0, 'no_change'], [1, 'no_change'], [2, 'no_change'], [3, 'no_change'], [4, 'no_change'], [5, 'no_change'], [6, 'no_change']])
+        self.assertEqual(doc["warnings"], {'missing_analytical_derivates': True, 'mkl': True, 'hessian_local_structure': True, 'internal_coordinates': True, 'diagonalizing_BBt': True, 'eigenvalue_magnitude': True, 'positive_definiteness_endangered': True, 'linked_structure_discontinuity': True, 'energy_increased': True})
+
 
 if __name__ == "__main__":
     unittest.main()

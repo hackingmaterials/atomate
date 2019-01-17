@@ -13,7 +13,7 @@ from itertools import chain
 
 from monty.io import zopen
 from monty.json import jsanitize
-from pymatgen.io.qchem.outputs import QCOutput
+from pymatgen.io.qchem.outputs import QCOutput, check_for_structure_changes
 from pymatgen.io.qchem.inputs import QCInput
 from pymatgen.apps.borg.hive import AbstractDrone
 from pymatgen.io.babel import BabelMolAdaptor
@@ -168,6 +168,15 @@ class QChemDrone(AbstractDrone):
             # reverse the calculations data order so newest calc is first
             d["calcs_reversed"].reverse()
 
+            d["warnings"] = {}
+            for entry in d["calcs_reversed"]:
+                if "structure_change" in entry and "structure_change" not in d["warnings"]:
+                    if entry["structure_change"] != "no_change":
+                        d["warnings"]["structure_change"] = True
+                for key in entry["warnings"]:
+                    if key not in d["warnings"]:
+                        d["warnings"][key] = True
+
             d_calc_init = d["calcs_reversed"][-1]
             d_calc_final = d["calcs_reversed"][0]
 
@@ -239,16 +248,55 @@ class QChemDrone(AbstractDrone):
 
             d["state"] = "successful" if d_calc_final["completion"] else "unsuccessful"
             if "special_run_type" in d:
-                if d["special_run_type"] == "frequency_flattener" and d["state"] == "successful":
-                    orig_num_neg_freq = sum(1 for freq in d["calcs_reversed"][-2]["frequencies"] if freq < 0)
-                    orig_energy = d_calc_init["final_energy"]
-                    final_num_neg_freq = sum(1 for freq in d_calc_final["frequencies"] if freq < 0)
-                    final_energy = d["calcs_reversed"][1]["final_energy"]
-                    d["num_frequencies_flattened"] = orig_num_neg_freq - final_num_neg_freq
-                    if final_num_neg_freq > 0: # If a negative frequency remains,
-                        d["state"] = "unsuccessful" # then the flattening was unsuccessful
-                    if final_energy > orig_energy:
-                        d["warning"] = "energy_increased"
+                if d["special_run_type"] == "frequency_flattener":
+                    opt_traj = []
+                    for entry in d["calcs_reversed"]:
+                        if entry["input"]["rem"]["job_type"] == "opt" or entry["input"]["rem"]["job_type"] == "optimization":
+                            doc = {"initial": {}, "final": {}}
+                            doc["initial"]["molecule"] = entry["initial_molecule"]
+                            doc["final"]["molecule"] = entry["molecule_from_last_geometry"]
+                            doc["initial"]["total_energy"] = entry["energy_trajectory"][0]
+                            doc["final"]["total_energy"] = entry["energy_trajectory"][-1]
+                            doc["initial"]["scf_energy"] = entry["SCF"][0][-1][0]
+                            doc["final"]["scf_energy"] = entry["SCF"][-1][-1][0]
+                            doc["structure_change"] = entry["structure_change"]
+                            opt_traj.append(doc)
+                    opt_traj.reverse()
+                    opt_trajectory = {"trajectory": opt_traj, "structure_change": [[ii, entry["structure_change"]] for ii,entry in enumerate(opt_traj)], "energy_increase": []}
+                    for ii, entry in enumerate(opt_traj):
+                        if entry["final"]["total_energy"] > entry["initial"]["total_energy"]:
+                            opt_trajectory["energy_increase"].append([ii, entry["final"]["total_energy"]-entry["initial"]["total_energy"]])
+                        if ii != 0:
+                            if entry["final"]["total_energy"] > opt_traj[ii-1]["final"]["total_energy"]:
+                                opt_trajectory["energy_increase"].append([ii-1, ii, entry["final"]["total_energy"]-opt_traj[ii-1]["final"]["total_energy"]])
+                            struct_change = check_for_structure_changes(opt_traj[ii-1]["final"]["molecule"], entry["final"]["molecule"])
+                            if struct_change != entry["structure_change"]:
+                                opt_trajectory["structure_change"].append([ii-1, ii, struct_change])
+                                d["warnings"]["between_iteration_structure_change"] = True
+                    if "linked" in d:
+                        if d["linked"] == True:
+                            opt_trajectory["discontinuity"] = {"structure": [], "scf_energy": [], "total_energy": []}
+                            for ii, entry in enumerate(opt_traj):
+                                if ii != 0:
+                                    if entry["initial"]["molecule"] != opt_traj[ii-1]["final"]["molecule"]:
+                                        opt_trajectory["discontinuity"]["structure"].append([ii-1,ii])
+                                        d["warnings"]["linked_structure_discontinuity"] = True
+                                    if entry["initial"]["total_energy"] != opt_traj[ii-1]["final"]["total_energy"]:
+                                        opt_trajectory["discontinuity"]["total_energy"].append([ii-1,ii])
+                                    if entry["initial"]["scf_energy"] != opt_traj[ii-1]["final"]["scf_energy"]:
+                                        opt_trajectory["discontinuity"]["scf_energy"].append([ii-1,ii])
+                    d["opt_trajectory"] = opt_trajectory
+
+                    if d["state"] == "successful":
+                        orig_num_neg_freq = sum(1 for freq in d["calcs_reversed"][-2]["frequencies"] if freq < 0)
+                        orig_energy = d_calc_init["final_energy"]
+                        final_num_neg_freq = sum(1 for freq in d_calc_final["frequencies"] if freq < 0)
+                        final_energy = d["calcs_reversed"][1]["final_energy"]
+                        d["num_frequencies_flattened"] = orig_num_neg_freq - final_num_neg_freq
+                        if final_num_neg_freq > 0: # If a negative frequency remains,
+                            d["state"] = "unsuccessful" # then the flattening was unsuccessful
+                        if final_energy > orig_energy:
+                            d["warnings"]["energy_increased"] = True
 
             d["last_updated"] = datetime.datetime.utcnow()
             return d
