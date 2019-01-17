@@ -113,6 +113,7 @@ class TestIonPlacement(AtomateTest):
                                            do_triplets=False,
                                            linked=True,
                                            qchem_input_params={"pcm_dielectric": 5.0})
+            real_wf.remove_fws([-3])
             # use powerup to replace run with fake run
             ref_dirs = {"first FF": test_files}
             fake_wf = use_fake_qchem(real_wf, ref_dirs)
@@ -120,7 +121,7 @@ class TestIonPlacement(AtomateTest):
             rapidfire(
                 self.lp,
                 fworker=FWorker(env={"max_cores": 32, "db_file": os.path.join(db_dir, "db.json")}), pdb_on_exception=True)
-
+            self.assertEqual(len(FWAction_patch.call_args[1]["detours"]) > 10, True)
 
 if __name__ == "__main__":
     unittest.main()

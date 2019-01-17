@@ -330,7 +330,7 @@ class QChemDroneTest(unittest.TestCase):
         self.assertEqual(doc["input"]["job_type"], "opt")
         self.assertEqual(doc["output"]["job_type"], "freq")
         self.assertEqual(doc["num_frequencies_flattened"], 1)
-        self.assertEqual(doc["warning"], "energy_increased")
+        self.assertEqual(doc["warnings"]["energy_increased"], True)
 
     def test_FF_with_error_correction(self):
         drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener", "linked": True})
