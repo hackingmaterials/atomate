@@ -26,7 +26,6 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 
 
-# Still need to test _build_molecules and _build_new_FWs
 class TestPlaceIon(AtomateTest):
     @classmethod
     def setUpClass(cls):

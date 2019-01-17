@@ -41,20 +41,16 @@ class PlaceIon(FiretaskBase):
 
         mulliken = None
         if fw_spec.get("prev_calc_mulliken"):
-            mulliken = fw_spec.get("prev_calc_mulliken")
+            self._set_properties(fw_spec.get("prev_calc_mulliken"))
         elif self.get("mulliken"):
-            mulliken = self.get("mulliken")
-
-        if mulliken == None:
+            self._set_properties(self.get("mulliken")[0])
+        else:
             for site in self.mol:
                 if "charge" not in site.properties:
                     raise KeyError("If mulliken not set, each site in the input molecule must already have the charge property! Exiting...")
-        elif self.mol.spin_multiplicity != 1:
-            self.mol.add_site_property("charge",[entry[0] for entry in mulliken])
-            self.mol.add_site_property("spin",[entry[1] for entry in mulliken])
-        else:
-            self.mol.add_site_property("charge",mulliken)
-
+                if self.mol.spin_multiplicity != 1:
+                    if "spin" not in site.properties:
+                        raise KeyError("If mulliken not set and the molecule isn't a singlet, each site in the input molecule must already have the spin property! Exiting...")
 
         self.charges = self.get("charges", [0])
         self.ion = self.get("ion", "Li")
@@ -72,6 +68,13 @@ class PlaceIon(FiretaskBase):
         self._build_molecules()
 
         return FWAction(detours=self._build_new_FWs())
+
+    def _set_properties(self, mulliken):
+        if self.mol.spin_multiplicity != 1:
+            self.mol.add_site_property("charge",[entry[0] for entry in mulliken])
+            self.mol.add_site_property("spin",[entry[1] for entry in mulliken])
+        else:
+            self.mol.add_site_property("charge",mulliken)
 
     def _build_molecules(self):
         """

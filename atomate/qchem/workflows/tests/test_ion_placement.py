@@ -113,7 +113,7 @@ class TestIonPlacement(AtomateTest):
                                            do_triplets=False,
                                            linked=True,
                                            qchem_input_params={"pcm_dielectric": 5.0})
-            real_wf.remove_fws([-3])
+            real_wf.remove_fws([real_wf.fws[-1].to_dict()["fw_id"]])
             # use powerup to replace run with fake run
             ref_dirs = {"first FF": test_files}
             fake_wf = use_fake_qchem(real_wf, ref_dirs)
