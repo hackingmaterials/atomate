@@ -32,7 +32,7 @@ from pymatgen.core.structure import Structure
 DEBUG_MODE = True  # If true, retains the database and output dirs at the end of the test
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
-@unittest.skip()
+@unittest.skip("Because this test is frustrating me")
 class TestFerroelectricWorkflow(AtomateTest):
 
     def test_polarizationtodb(self):
