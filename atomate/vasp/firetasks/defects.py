@@ -342,7 +342,7 @@ class DefectSetupFiretask(FiretaskBase):
                         charges = get_charges_from_inter( inter)
                         def_structs.append({'charges': charges, 'defect': inter.copy()})
                 else:
-                    charges = get_charges_from_inter( elt_type)
+                    charges = get_charges_from_inter( elt_val)
                     def_structs.append({'charges': charges, 'defect': elt_val.copy()})
 
         stdrd_defect_incar_settings = {"EDIFF": 0.0001, "EDIFFG": 0.001, "IBRION":2, "ISMEAR":0, "SIGMA":0.05,

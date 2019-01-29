@@ -59,9 +59,10 @@ class TestDefectSetupFiretask(PymatgenTest):
 
         #default incar settings used for bulk and defect calcs
         incar = {"EDIFF":.0001, "EDIFFG": 0.001, "ISMEAR":0, "SIGMA":0.05, "ISIF": 2,
-                         "ISPIN":2,  "ISYM":2, "LVHAR":True, "LVTOT":True, "LAECHG":False, "LWAVE": True}
+                         "ISPIN":2,  "ISYM":2, "LVHAR":True, "LVTOT":True, "LWAVE": True}
+
         if is_defect:
-            incar.update( {"NSW": 100, "LAECHG":False, "ADDGRID": True})
+            incar.update( {"NSW": 100, "LAECHG":False})
             self.assertEqual( setuptask['vasp_input_set']['structure']['charge'], charge)
             self.assertTrue( setuptask['vasp_input_set']['use_structure_charge'])
         else:
@@ -298,7 +299,7 @@ class TestDefectSetupFiretask(PymatgenTest):
                                  interstitials=[['H', 'InFit']], initial_charges={})
 
         def_set = ft.run_task({}).as_dict()['detours']
-        self.assertEqual( len(def_set), 4)
+        self.assertEqual( len(def_set), 2)
         def_task_list = []
         for d in def_set:
             setuptask = d['spec']['_tasks'][0]
@@ -313,9 +314,7 @@ class TestDefectSetupFiretask(PymatgenTest):
                                     user_incar_settings={}, charge=charge,
                                     is_defect=defect_flag)
 
-        expected_defects = [ ['Interstitial', 'H', None, 0],
-                             ['Interstitial', 'H', None, 0],
-                             ['Interstitial', 'H', None, 0]]
+        expected_defects = [ ['Interstitial', 'H', None, 0]]
         self._verify_defect_list( def_task_list, expected_defects)
 
 
