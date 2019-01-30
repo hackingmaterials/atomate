@@ -847,7 +847,7 @@ class MagneticOrderingsToDB(FiretaskBase):
             task_label = d["task_label"].split(' ')
             ordering_index = task_label.index('ordering')
             ordering_index = int(task_label[ordering_index + 1])
-            if self["origins"]:
+            if self.get("origins", None):
                 ordering_origin = self["origins"][ordering_index]
             else:
                 ordering_origin = None

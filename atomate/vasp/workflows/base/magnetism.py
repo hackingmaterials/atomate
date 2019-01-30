@@ -77,9 +77,11 @@ def get_wf_magnetic_deformation(structure, c=None, vis=None):
     # in a similar way to other workflows
     uuid = str(uuid4())
 
-    c = {"vasp_cmd": VASP_CMD, "db_file": DB_FILE}
+    c_defaults = {"vasp_cmd": VASP_CMD, "db_file": DB_FILE}
     if c:
-        c.update(c)
+        c.update(c_defaults)
+    else:
+        c = c_defaults
 
     wf = get_wf(structure, "magnetic_deformation.yaml", common_params=c, vis=vis)
 
@@ -400,7 +402,7 @@ class MagneticOrderingsWF:
 
             constraint = MagOrderParameterConstraint(
                 0.5,
-                # TODO: this list(map(str...)) can probably be removed
+                # TODO: update MagOrderParameterConstraint in pymatgen to take types_mag_species directly
                 species_constraints=list(map(str, types_mag_species)),
             )
             all_constraints["afm"] = [constraint]
