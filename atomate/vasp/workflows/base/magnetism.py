@@ -163,20 +163,21 @@ class MagneticOrderingsWF:
                a magnetic structure obtained by experiment, to measure
                the performance of the workflow.
 
-        :param structure: input structure
-        :param default_magmoms: (optional, defaults provided) dict of
+        Args:
+            structure: input structure
+            default_magmoms: (optional, defaults provided) dict of
         magnetic elements to their initial magnetic moments in µB, generally
         these are chosen to be high-spin since they can relax to a low-spin
         configuration during a DFT electronic configuration
-        :param strategies: different ordering strategies to use, choose from:
+            strategies: different ordering strategies to use, choose from:
         ferromagnetic, antiferromagnetic, antiferromagnetic_by_motif,
         ferrimagnetic_by_motif and ferrimagnetic_by_species (here, "motif",
         means to use a different ordering parameter for symmetry inequivalent
         sites)
-        :param automatic: if True, will automatically choose sensible strategies
-        :param truncate_by_symmetry: if True, will remove very unsymmetrical
-        orderings that are physically implausible
-        :param transformation_kwargs: keyword arguments to pass to
+            automatic: if True, will automatically choose sensible strategies
+            truncate_by_symmetry: if True, will remove very unsymmetrical
+        orderings that are likely physically implausible
+            transformation_kwargs: keyword arguments to pass to
         MagOrderingTransformation, to change automatic cell size limits, etc.
         """
 
@@ -251,6 +252,11 @@ class MagneticOrderingsWF:
         """
         Sanitize our input structure by removing magnetic information
         and making primitive.
+
+        Args:
+            input_structure: Structure
+
+        Returns: Structure
         """
 
         input_structure = input_structure.copy()
@@ -280,6 +286,12 @@ class MagneticOrderingsWF:
         and later discard any duplicates that might be found by multiple
         strategies. This approach is not ideal, but has been found to be
         relatively robust over a wide range of magnetic structures.
+
+        Args:
+            structure: A sanitized input structure (_sanitize_input_structure)
+
+        Returns: A dict of a transformation class instance (values) and name of
+        enumeration strategy (keys)
         """
 
         formula = structure.composition.reduced_formula
@@ -497,6 +509,17 @@ class MagneticOrderingsWF:
         Apply our input structure to our list of transformations and output a list
         of ordered structures that have been pruned for duplicates and for those
         with low symmetry (optional).
+
+        Args:
+            sanitized_input_structure: A sanitized input structure
+            (_sanitize_input_structure)
+            transformations: A dict of transformations (values) and name of
+            enumeration strategy (key), the enumeration strategy name is just
+            for record keeping
+
+        Returns: None (sets self.ordered_structures
+        and self.ordered_structures_origins instance variables)
+
         """
 
         ordered_structures = self.ordered_structures
@@ -654,28 +677,26 @@ class MagneticOrderingsWF:
         self.ordered_structures = ordered_structures
         self.ordered_structure_origins = ordered_structures_origins
 
-        return
-
     def get_wf(
         self, scan=False, perform_bader=True, num_orderings_hard_limit=16, c=None
     ):
         """
         Retrieve the FireWorks workflow.
 
-        :param scan: if True, use the SCAN functional instead of GGA+U, since
+        Args:
+            scan: if True, use the SCAN functional instead of GGA+U, since
         the SCAN functional has shown to have improved performance for
         magnetic systems in some cases
-        :param perform_bader: if True, make sure the "bader" binary is in your
+            perform_bader: if True, make sure the "bader" binary is in your
         path, will use Bader analysis to calculate atom-projected magnetic
         moments
-        :param num_orderings_soft_limit: will make sure total number of magnetic
-        orderings does not exceed this number, unless there are extra magnetic
-        orderings of equivalent symmetry
-        :param num_orderings_hard_limit: will make sure total number of magnetic
+            num_orderings_hard_limit: will make sure total number of magnetic
         orderings does not exceed this number even if there are extra orderings
         of equivalent symmetry
-        :param c: additional config dict (as in elsewhere in atomate)
-        :return:
+            c: additional config dict (as used elsewhere in atomate)
+
+        Returns: FireWorks Workflow
+
         """
 
         c = c or {"VASP_CMD": VASP_CMD, "DB_FILE": DB_FILE}
