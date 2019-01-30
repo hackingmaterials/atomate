@@ -20,6 +20,7 @@ from pymatgen.transformations.advanced_transformations import (
     MagOrderParameterConstraint,
     MagOrderingTransformation,
 )
+from pymatgen.alchemy.materials import TransformedStructure
 
 from atomate.utils.utils import get_logger
 
@@ -198,6 +199,13 @@ class MagneticOrderingsWF:
         self.num_orderings = 64
         self.max_unique_sites = 8
 
+        self.uuid = str(uuid4())
+        self.wf_meta = {
+            "wf_uuid": self.uuid,
+            "wf_name": self.__class__.__name__,
+            "wf_version": __magnetic_ordering_wf_version__,
+        }
+
         # kwargs to pass to transformation (ultimately to enumlib)
         default_transformation_kwargs = {"check_ordered_symmetry": False, "timeout": 5}
         transformation_kwargs = transformation_kwargs or {}
@@ -248,7 +256,7 @@ class MagneticOrderingsWF:
         )
 
     @staticmethod
-    def _sanitize_input_structure( input_structure):
+    def _sanitize_input_structure(input_structure):
         """
         Sanitize our input structure by removing magnetic information
         and making primitive.
@@ -565,6 +573,24 @@ class MagneticOrderingsWF:
                 origin=origin,
             )
 
+        def _add_metadata(structure):
+            """
+            For book-keeping, store useful metadata with the Structure
+            object for later database ingestion.
+
+            Args:
+                structure: Structure
+
+            Returns: TransformedStructure
+            """
+            # this could be further improved by storing full transformation
+            # history, but would require an improved transformation pipeline
+            return TransformedStructure(
+                structure, other_parameters={"wf_meta": self.wf_meta}
+            )
+
+        ordered_structures = [_add_metadata(struct) for struct in ordered_structures]
+
         # in case we've introduced duplicates, let's remove them
         logger.info("Pruning duplicate structures.")
         structures_to_remove = []
@@ -791,11 +817,10 @@ class MagneticOrderingsWF:
 
             analysis_parents.append(fws[-1])
 
-        uuid = str(uuid4())
         fw_analysis = Firework(
             MagneticOrderingsToDB(
                 db_file=c["DB_FILE"],
-                wf_uuid=uuid,
+                wf_uuid=self.uuid,
                 auto_generated=False,
                 name="MagneticOrderingsToDB",
                 parent_structure=self.sanitized_structure,
@@ -816,18 +841,9 @@ class MagneticOrderingsWF:
             wf_name += " - SCAN"
         wf = Workflow(fws, name=wf_name)
 
-        wf = add_additional_fields_to_taskdocs(
-            wf,
-            {
-                "wf_meta": {
-                    "wf_uuid": uuid,
-                    "wf_name": "magnetic_orderings",
-                    "wf_version": __magnetic_ordering_wf_version__,
-                }
-            },
-        )
+        wf = add_additional_fields_to_taskdocs(wf, {"wf_meta": self.wf_meta})
 
-        tag = "magnetic_orderings group: >>{}<<".format(uuid)
+        tag = "magnetic_orderings group: >>{}<<".format(self.uuid)
         wf = add_tags(wf, [tag, ordered_structure_origins])
 
         self._wf = wf
