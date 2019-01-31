@@ -21,7 +21,6 @@ from atomate.vasp.fireworks.core import OptimizeFW, StaticFW, HSEBSFW, DFPTFW
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 
 from atomate.vasp.firetasks.defects import DefectSetupFiretask
-from atomate.vasp.fireworks.defects import DefectAnalysisFW
 
 logger = get_logger(__name__)
 
