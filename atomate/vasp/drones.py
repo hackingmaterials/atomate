@@ -29,7 +29,7 @@ from pymatgen.core.structure import Structure
 from pymatgen.core.operations import SymmOp
 from pymatgen.electronic_structure.bandstructure import BandStructureSymmLine
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.io.vasp.outputs import BSVasprun, Vasprun, Outcar, Locpot, Chgcar, \
+from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot, Chgcar, \
     parse_defect_states, Procar, Wavecar
 from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
 from pymatgen.apps.borg.hive import AbstractDrone
