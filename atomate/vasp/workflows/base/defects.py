@@ -20,17 +20,17 @@ from atomate.utils.utils import get_logger
 from atomate.vasp.fireworks.core import OptimizeFW, StaticFW, HSEBSFW, DFPTFW
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 
-from atomate.vasp.firetasks.defects import DefectSetupFiretask
+from atomate.vasp.firetasks.defects import DefectSetupFiretask, get_fw_from_defect
 
 logger = get_logger(__name__)
 
 
-def get_wf_chg_defects(structure, mpid=None, name="chg_defect_wf", user_incar_settings={},
+def get_wf_chg_defects(structure, name="chg_defect_wf", user_incar_settings={},
                         vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
                         conventional=True, diel_flag=True, n_max=128,
                         vacancies=[], substitutions={}, interstitials={},
                         initial_charges={}, rerelax_flag=False, hybrid_run_for_gap_corr=True,
-                        run_analysis=False, user_kpoints_settings={}):
+                        user_kpoints_settings={}):
     """
     Returns a charged defect workflow
 
@@ -45,7 +45,6 @@ def get_wf_chg_defects(structure, mpid=None, name="chg_defect_wf", user_incar_se
 
     Args:
         structure (Structure): input structure to have defects run on
-        mpid (str): Materials Project id number to be used (for storage in metadata).
         name (str): some appropriate name for the workflow.
         user_incar_settings (dict):
             a dictionary of incar settings specified by user for both bulk and defect supercells
@@ -176,3 +175,96 @@ def get_wf_chg_defects(structure, mpid=None, name="chg_defect_wf", user_incar_se
 
     return final_wf
 
+
+def run_defect_resubmissions( dpd, name="chg_defect_wf", consider_charges=True,
+                              consider_supercells=False, user_incar_settings={},
+                              vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
+                              n_max=400, hybrid_run_for_gap_corr=False,
+                              user_kpoints_settings={}):
+    """
+    This takes a DefectPhaseDiagram object and resubmits additional Defect calculations as needed.
+    Also useful for resubmitting a hybrid calculation and band edge considerations.
+
+    It can do this in two ways:
+        (a) Extra Charge submissions: run any charges suggested for followup by DefectPhaseDiagram
+        (b) Larger supercell submissions: run larger supercells for certain charges as suggested by DefectPhaseDiagram
+
+    Args:
+        dpd (DefectPhaseDiagram): phase diagram to consider for analysis of resubmission jobs
+        name (str): some appropriate name for the workflow.
+        consider_charges (bool): Whether to consider rerunning additional charge states
+            Defaults to True (fireworks generated for additional charge states)
+        consider_supercells (bool): Whether to consider submitting additional supercell sizes
+            Note that when this is True, if there is no bulk_supercell that matches the supercell sizes
+            being submitted, a bulk supercell calculation is also submitted.
+            Defaults to False (will not generate fireworks for additional supercell sizes)
+        user_incar_settings (dict):
+            a dictionary of incar settings specified by user for both bulk and defect supercells
+        vasp_cmd (str): Command to run vasp.
+        db_file (str): path to file containing the database credentials.
+        n_max (int): maximum supercell size to consider for consider_supercells supercell routine
+        hybrid_run_for_gap_corr (bool):
+            Flag to run a single small hybrid bulk structure for band edge shifting correction.
+            Useful if you forgot to run the hybrid in your first
+            Default is False (Hybrid will be calculated)
+        user_kpoints_settings (dict or Kpoints pmg object):
+            a dictionary of kpoint settings specific by user OR an Actual Kpoint set to be used for the
+            supercell calculations
+
+    Returns:
+        Workflow
+    :return:
+    """
+    if not consider_charges and not consider_supercells and not hybrid_run_for_gap_corr:
+        raise ValueError("Ony makes since to run get_defect_resubmissions for resubmissions of "
+                         "charges, supercells or hybrids.")
+
+    fws = []
+
+    if consider_charges:
+        rec_dict = dpd.suggest_charges()
+        for defname, charge_list in rec_dict.items():
+            defect_template = dpd.finished_charges[ defname][0].defect.copy()
+            if "scaling_matrix" in dpd.finished_charges[defname][0].parameters:
+                supercell_size = dpd.finished_charges[defname][0].parameters['scaling_matrix']
+            else:
+                raise ValueError("No scaling_matrix available in {} defect entry! "
+                                 "Cannot submit additional charged defects.".format( defname))
+
+            for charge in charge_list:
+                defect = defect_template.copy()
+                defect.set_charge( charge)
+
+                fw = get_fw_from_defect( defect, supercell_size,
+                                         user_kpoints_settings = user_kpoints_settings,
+                                         user_incar_settings = user_incar_settings,
+                                         db_file=db_file, vasp_cmd=vasp_cmd)
+                fws.append( fw)
+
+    if consider_supercells:
+        rec_dict = dpd.suggest_larger_supercells()
+        for defname, charge_list in rec_dict.items():
+            defect_template = dpd.finished_charges[ defname][0].defect.copy()
+
+            #TODO -> consider next sized supercell size..
+            supercell_size = ?
+
+            for charge in charge_list:
+                defect = defect_template.copy()
+                defect.set_charge( charge)
+
+                fw = get_fw_from_defect( defect, supercell_size,
+                                         user_kpoints_settings = user_kpoints_settings,
+                                         user_incar_settings = user_incar_settings,
+                                         db_file=db_file, vasp_cmd=vasp_cmd)
+                fws.append( fw)
+
+    if not len(fws):
+        print("No fireworks generated from defect resubmission scheme")
+        return None
+    else:
+        bs_struct = dpd.entries[0].defect.bulk_structure.copy()
+        wfname = "{}:{}".format(bs_struct.composition.reduced_formula, name)
+        final_wf = Workflow(fws, name=wfname)
+
+        return final_wf

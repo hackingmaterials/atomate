@@ -235,7 +235,6 @@ class DefectSetupFiretask(FiretaskBase):
                     charges = [v.charge for v in SCG]
 
                 def_structs.append({'charges': charges, 'defect': vac.copy()})
-
         else:
             #only create vacancies of interest...
             for elt_type in vacancies:
@@ -345,55 +344,80 @@ class DefectSetupFiretask(FiretaskBase):
                     charges = get_charges_from_inter( elt_val)
                     def_structs.append({'charges': charges, 'defect': elt_val.copy()})
 
-        stdrd_defect_incar_settings = {"EDIFF": 0.0001, "EDIFFG": 0.001, "IBRION":2, "ISMEAR":0, "SIGMA":0.05,
-                                       "ISPIN":2,  "ISYM":2, "LVHAR":True, "LVTOT":True, "NSW": 100,
-                                       "NELM": 60, "ISIF": 2, "LAECHG":False, "LWAVE": True}
-        stdrd_defect_incar_settings.update( user_incar_settings)
 
         # now that def_structs is assembled, set up Transformation FW for all defect + charge combinations
         for defcalc in def_structs:
-            #get defect supercell and defect site for parsing purposes
-            defect = defcalc['defect'].copy()
-            defect_sc = defect.generate_defect_structure( supercell = supercell_size)
-            struct_for_defect_site = Structure(defect.bulk_structure.copy().lattice,
-                                               [defect.site.specie],
-                                               [defect.site.frac_coords],
-                                               to_unit_cell=True, coords_are_cartesian=False)
-            struct_for_defect_site.make_supercell(supercell_size)
-            defect_site = struct_for_defect_site[0]
-
             #iterate over all charges to be run
             for charge in defcalc['charges']:
-                chgdstruct = defect_sc.copy()
-                chgdstruct.set_charge(charge)  #NOTE that the charge will be reflected in NELECT of INCAR because use_structure_charge=True
+                defect = defcalc['defect'].copy()
+                defect.set_charge(charge)
 
-                reciprocal_density = 100
-                kpoints_settings = user_kpoints_settings if user_kpoints_settings else {"reciprocal_density": reciprocal_density}
-                defect_input_set = MPRelaxSet( chgdstruct,
-                                               user_incar_settings=stdrd_defect_incar_settings.copy(),
-                                               user_kpoints_settings=kpoints_settings,
-                                               use_structure_charge=True)
-
-                defect_for_trans_param = defect.copy()
-                defect_for_trans_param.set_charge(charge)
-                chgdef_trans = ["DefectTransformation"]
-                chgdef_trans_params = [{"scaling_matrix": supercell_size,
-                                        "defect": defect_for_trans_param}]
-                if structure != defect_for_trans_param.bulk_structure:
-                    raise ValueError("Defect bulk_structure is not the same as input structure.")
-
-                def_tag = "{}:{}_{}_{}atoms".format(structure.composition.reduced_formula,
-                                                      defect.name, charge, num_atoms)
-                fw = TransmuterFW( name = def_tag, structure=structure,
-                                   transformations=chgdef_trans,
-                                   transformation_params=chgdef_trans_params,
-                                   vasp_input_set=defect_input_set,
-                                   vasp_cmd=self.get("vasp_cmd", ">>vasp_cmd<<"),
-                                   copy_vasp_outputs=False,
-                                   db_file=self.get("db_file", ">>db_file<<"),
-                                   bandstructure_mode="auto",
-                                   defect_wf_parsing=defect_site)
+                fw = get_fw_from_defect( defect, supercell_size,
+                                         user_kpoints_settings = user_kpoints_settings,
+                                         user_incar_settings = user_incar_settings
+                                         )
 
                 fws.append(fw)
 
         return FWAction(detours=fws)
+
+
+
+def get_fw_from_defect( defect, supercell_size, user_kpoints_settings = {},
+                        user_incar_settings = {},
+                        db_file='>>db_file<<', vasp_cmd='>>vasp_cmd<<'):
+    """
+    Simple function for grabbing fireworks for a defect, given a supercell_size
+    :param defect:
+    :param supercell_size:
+    :param user_kpoints_settings:
+    :param db_file:
+    :param vasp_cmd:
+    :return:
+    """
+    chgd_sc_struct = defect.generate_defect_structure(supercell=supercell_size)
+
+    reciprocal_density = 100
+
+    kpoints_settings = user_kpoints_settings if user_kpoints_settings else {"reciprocal_density": reciprocal_density}
+
+    # NOTE that the charge will be reflected in NELECT of INCAR because use_structure_charge=True
+    stdrd_defect_incar_settings = {"EDIFF": 0.0001, "EDIFFG": 0.001, "IBRION": 2, "ISMEAR": 0, "SIGMA": 0.05,
+                                   "ISPIN": 2, "ISYM": 2, "LVHAR": True, "LVTOT": True, "NSW": 100,
+                                   "NELM": 60, "ISIF": 2, "LAECHG": False, "LWAVE": True}
+    stdrd_defect_incar_settings.update(user_incar_settings)
+    defect_input_set = MPRelaxSet(chgd_sc_struct,
+                                  user_incar_settings=stdrd_defect_incar_settings.copy(),
+                                  user_kpoints_settings=kpoints_settings,
+                                  use_structure_charge=True)
+
+    # get defect site for parsing purposes
+    struct_for_defect_site = Structure(defect.bulk_structure.copy().lattice,
+                                       [defect.site.specie],
+                                       [defect.site.frac_coords],
+                                       to_unit_cell=True, coords_are_cartesian=False)
+    struct_for_defect_site.make_supercell(supercell_size)
+    defect_site = struct_for_defect_site[0]
+
+    bulk_sc = defect.bulk_structure.copy()
+    bulk_sc.make_supercell( supercell_size)
+    num_atoms = len(bulk_sc)
+
+    chgdef_trans = ["DefectTransformation"]
+    chgdef_trans_params = [{"scaling_matrix": supercell_size,
+                            "defect": defect.copy()}]
+
+    def_tag = "{}:{}_{}_{}atoms".format(defect.bulk_structure.composition.reduced_formula,
+                                        defect.name, defect.charge, num_atoms)
+    fw = TransmuterFW(name=def_tag, structure=defect.bulk_structure,
+                      transformations=chgdef_trans,
+                      transformation_params=chgdef_trans_params,
+                      vasp_input_set=defect_input_set,
+                      vasp_cmd=vasp_cmd,
+                      copy_vasp_outputs=False,
+                      db_file=db_file,
+                      bandstructure_mode="auto",
+                      defect_wf_parsing=defect_site)
+
+    return fw
+
