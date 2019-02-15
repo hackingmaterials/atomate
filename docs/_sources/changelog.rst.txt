@@ -2,6 +2,10 @@
 atomate Changelog
 =================
 
+**v0.8.6**
+
+* add bandstructure no-opt workflow preset (A. Ganose)
+
 **v0.8.5**
 
 * add NMR workflow (S. Dwaraknath)
