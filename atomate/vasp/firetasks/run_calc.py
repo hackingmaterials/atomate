@@ -204,7 +204,8 @@ class RunVaspCustodian(FiretaskBase):
         c.run()
 
         if os.path.exists(zpath("custodian.json")):
-            return FWAction(stored_data=loadfn(zpath("custodian.json")))
+            stored_custodian_data = {"custodian": loadfn(zpath("custodian.json"))}
+            return FWAction(stored_data=stored_custodian_data)
 
 
 @explicit_serialize
