@@ -2,6 +2,10 @@
 atomate Changelog
 =================
 
+**v0.8.7**
+
+* store custodian data in its own key in FWAction (E. Sivonxay)
+
 **v0.8.6**
 
 * add bandstructure no-opt workflow preset (A. Ganose)
