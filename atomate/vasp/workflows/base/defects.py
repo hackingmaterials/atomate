@@ -224,9 +224,10 @@ def run_defect_resubmissions( dpd, name="chg_defect_wf", consider_charges=True,
     if consider_charges:
         rec_dict = dpd.suggest_charges()
         for defname, charge_list in rec_dict.items():
-            defect_template = dpd.finished_charges[ defname][0].defect.copy()
-            if "scaling_matrix" in dpd.finished_charges[defname][0].parameters:
-                supercell_size = dpd.finished_charges[defname][0].parameters['scaling_matrix']
+            tmp_ind = int(defname.split('@')[-1].split('-')[0])
+            defect_template = dpd.entries[ tmp_ind].defect.copy()
+            if "scaling_matrix" in dpd.entries[ tmp_ind].parameters:
+                supercell_size = dpd.entries[ tmp_ind].parameters['scaling_matrix']
             else:
                 raise ValueError("No scaling_matrix available in {} defect entry! "
                                  "Cannot submit additional charged defects.".format( defname))
@@ -247,7 +248,7 @@ def run_defect_resubmissions( dpd, name="chg_defect_wf", consider_charges=True,
             defect_template = dpd.finished_charges[ defname][0].defect.copy()
 
             #TODO -> consider next sized supercell size..
-            supercell_size = ?
+            # supercell_size = ?
 
             for charge in charge_list:
                 defect = defect_template.copy()
