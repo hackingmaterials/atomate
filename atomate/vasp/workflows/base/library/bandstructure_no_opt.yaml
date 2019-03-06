@@ -1,0 +1,12 @@
+# A typical band structure
+# Author: Alex Ganose (aganose@lbl.gov)
+fireworks:
+- fw: atomate.vasp.fireworks.core.StaticFW
+- fw: atomate.vasp.fireworks.core.NonSCFFW
+  params:
+    parents: 0
+    mode: uniform
+- fw: atomate.vasp.fireworks.core.NonSCFFW
+  params:
+    parents: 0
+    mode: line
