@@ -6,10 +6,10 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.vasp.fireworks package &#8212; atomate 0.7.9 documentation</title>
+    <title>atomate.vasp.fireworks package &#8212; atomate 0.8.7 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.9 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.7 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -400,11 +400,11 @@ parents (Firework): Parents of this particular Firework.</p>
 
 <dl class="class">
 <dt id="atomate.vasp.fireworks.core.StaticFW">
-<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">StaticFW</code><span class="sig-paren">(</span><em>structure=None</em>, <em>name='static'</em>, <em>vasp_input_set=None</em>, <em>vasp_input_set_params=None</em>, <em>vasp_cmd='vasp'</em>, <em>prev_calc_loc=True</em>, <em>prev_calc_dir=None</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.StaticFW" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.core.</code><code class="descname">StaticFW</code><span class="sig-paren">(</span><em>structure=None</em>, <em>name='static'</em>, <em>vasp_input_set=None</em>, <em>vasp_input_set_params=None</em>, <em>vasp_cmd='vasp'</em>, <em>prev_calc_loc=True</em>, <em>prev_calc_dir=None</em>, <em>db_file=None</em>, <em>vasptodb_kwargs={}</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.StaticFW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.Firework</span></code></p>
 <dl class="method">
 <dt id="atomate.vasp.fireworks.core.StaticFW.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>structure=None</em>, <em>name='static'</em>, <em>vasp_input_set=None</em>, <em>vasp_input_set_params=None</em>, <em>vasp_cmd='vasp'</em>, <em>prev_calc_loc=True</em>, <em>prev_calc_dir=None</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.StaticFW.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>structure=None</em>, <em>name='static'</em>, <em>vasp_input_set=None</em>, <em>vasp_input_set_params=None</em>, <em>vasp_cmd='vasp'</em>, <em>prev_calc_loc=True</em>, <em>prev_calc_dir=None</em>, <em>db_file=None</em>, <em>vasptodb_kwargs={}</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.StaticFW.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Standard static calculation Firework - either from a previous location or from a structure.</p>
 <dl class="docutils">
 <dt>Args:</dt>
@@ -504,6 +504,44 @@ override_default_vasp_params (dict): additional user input settings for vasp_inp
 </dd></dl>
 
 </div>
+<div class="section" id="module-atomate.vasp.fireworks.nmr">
+<span id="atomate-vasp-fireworks-nmr-module"></span><h2>atomate.vasp.fireworks.nmr module<a class="headerlink" href="#module-atomate.vasp.fireworks.nmr" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.fireworks.nmr.NMRFW">
+<em class="property">class </em><code class="descclassname">atomate.vasp.fireworks.nmr.</code><code class="descname">NMRFW</code><span class="sig-paren">(</span><em>structure=None</em>, <em>mode='cs'</em>, <em>isotopes=None</em>, <em>name='nmr tensor'</em>, <em>prev_calc_dir=None</em>, <em>vasp_cmd='vasp'</em>, <em>copy_vasp_outputs=True</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.nmr.NMRFW" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.Firework</span></code></p>
+<dl class="method">
+<dt id="atomate.vasp.fireworks.nmr.NMRFW.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>structure=None</em>, <em>mode='cs'</em>, <em>isotopes=None</em>, <em>name='nmr tensor'</em>, <em>prev_calc_dir=None</em>, <em>vasp_cmd='vasp'</em>, <em>copy_vasp_outputs=True</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.nmr.NMRFW.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Firework for NMR tensor calculations</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first docutils">
+<dt>structure (Structure): Input structure. If copy_vasp_outputs, used only to set the</dt>
+<dd>name of the FW.</dd>
+</dl>
+<p>mode (str): the NMR calculation type: cs or efg, default is cs
+isotopes (list): list of isotopes to include, default is to include the</p>
+<blockquote>
+<div>lowest mass quadrupolar isotope for all applicable elements</div></blockquote>
+<p>name (str): Name for the Firework.
+prev_calc_dir (str): Path to a previous calculation to copy from
+vasp_cmd (str): Command to run vasp.
+copy_vasp_outputs (bool): Whether to copy outputs from previous</p>
+<blockquote>
+<div>run. Defaults to True.</div></blockquote>
+<p>db_file (str): Path to file specifying db credentials.
+parents (Firework): Parents of this particular Firework.</p>
+<blockquote>
+<div>FW or list of FWS.</div></blockquote>
+<p class="last">kwargs: Other kwargs that are passed to Firework.__init__.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-atomate.vasp.fireworks.polarization">
 <span id="atomate-vasp-fireworks-polarization-module"></span><h2>atomate.vasp.fireworks.polarization module<a class="headerlink" href="#module-atomate.vasp.fireworks.polarization" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
@@ -574,11 +612,12 @@ nimages (int): number of interpolations between CONTCAR structures from calculat
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
+  <h3><a href="index.html">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">atomate.vasp.fireworks package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.fireworks.core">atomate.vasp.fireworks.core module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.fireworks.nmr">atomate.vasp.fireworks.nmr module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.fireworks.polarization">atomate.vasp.fireworks.polarization module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.fireworks">Module contents</a></li>
 </ul>
@@ -617,13 +656,13 @@ nimages (int): number of interpolations between CONTCAR structures from calculat
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.9 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.7 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
     </div>
 
   </body>

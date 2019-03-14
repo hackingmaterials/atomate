@@ -6,10 +6,10 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.vasp.workflows.base package &#8212; atomate 0.7.9 documentation</title>
+    <title>atomate.vasp.workflows.base package &#8212; atomate 0.8.7 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.9 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.7 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -44,54 +44,102 @@
 </div>
 <div class="section" id="module-atomate.vasp.workflows.base.adsorption">
 <span id="atomate-vasp-workflows-base-adsorption-module"></span><h2>atomate.vasp.workflows.base.adsorption module<a class="headerlink" href="#module-atomate.vasp.workflows.base.adsorption" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.workflows.base.adsorption.MPSurfaceSet">
+<em class="property">class </em><code class="descclassname">atomate.vasp.workflows.base.adsorption.</code><code class="descname">MPSurfaceSet</code><span class="sig-paren">(</span><em>structure</em>, <em>bulk=False</em>, <em>auto_dipole=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.MPSurfaceSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.vasp.sets.MVLSlabSet</span></code></p>
+<p>Input class for MP slab calcs, mostly to change parameters
+and defaults slightly</p>
+<dl class="method">
+<dt id="atomate.vasp.workflows.base.adsorption.MPSurfaceSet.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>structure</em>, <em>bulk=False</em>, <em>auto_dipole=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.MPSurfaceSet.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.workflows.base.adsorption.MPSurfaceSet.incar">
+<code class="descname">incar</code><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.MPSurfaceSet.incar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Incar object</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="function">
 <dt id="atomate.vasp.workflows.base.adsorption.get_slab_fw">
-<code class="descclassname">atomate.vasp.workflows.base.adsorption.</code><code class="descname">get_slab_fw</code><span class="sig-paren">(</span><em>slab</em>, <em>bulk_structure=None</em>, <em>slab_gen_params={}</em>, <em>db_file=None</em>, <em>vasp_input_set=None</em>, <em>parents=None</em>, <em>vasp_cmd='vasp'</em>, <em>name=''</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.get_slab_fw" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function to generate a a slab firework.  Returns a TransmuterFW if bulk_structure is specified,
-constructing the necessary transformations from the slab and slab generator parameters,
-or an OptimizeFW if only a slab is specified.</p>
+<code class="descclassname">atomate.vasp.workflows.base.adsorption.</code><code class="descname">get_slab_fw</code><span class="sig-paren">(</span><em>slab</em>, <em>transmuter=False</em>, <em>db_file=None</em>, <em>vasp_input_set=None</em>, <em>parents=None</em>, <em>vasp_cmd='vasp'</em>, <em>name=''</em>, <em>add_slab_metadata=True</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.get_slab_fw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to generate a a slab firework.  Returns a TransmuterFW if
+bulk_structure is specified, constructing the necessary transformations
+from the slab and slab generator parameters, or an OptimizeFW if only a
+slab is specified.</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd><dl class="first docutils">
 <dt>slab (Slab or Structure): structure or slab corresponding</dt>
 <dd>to the slab to be calculated</dd>
-<dt>bulk_structure (Structure): bulk structure corresponding to slab, if</dt>
-<dd>provided, slab firework is constructed as a TransmuterFW using
-the necessary transformations to get the slab from the bulk</dd>
-<dt>slab_gen_params (dict): dictionary of slab generation parameters</dt>
-<dd>used to generate the slab, necessary to get the slab
-that corresponds to the bulk structure</dd>
+<dt>transmuter (bool): whether or not to use a TransmuterFW based</dt>
+<dd>on slab params, if this option is selected, input slab must
+be a Slab object (as opposed to Structure)</dd>
 <dt>vasp_input_set (VaspInputSet): vasp_input_set corresponding to</dt>
 <dd>the slab calculation</dd>
 </dl>
 <p class="last">parents (Fireworks or list of ints): parent FWs
 db_file (string): path to database file
-vasp_cmd (string): vasp command</p>
+vasp_cmd (string): vasp command
+name (string): name of firework
+add_slab_metadata (bool): whether to add slab metadata to task doc</p>
 </dd>
 <dt>Returns:</dt>
-<dd>Firework</dd>
+<dd>Firework corresponding to slab calculation</dd>
 </dl>
 </dd></dl>
 
 <dl class="function">
-<dt id="atomate.vasp.workflows.base.adsorption.get_wf_surface">
-<code class="descclassname">atomate.vasp.workflows.base.adsorption.</code><code class="descname">get_wf_surface</code><span class="sig-paren">(</span><em>slabs</em>, <em>molecules=[]</em>, <em>bulk_structure=None</em>, <em>slab_gen_params=None</em>, <em>vasp_cmd='vasp'</em>, <em>db_file=None</em>, <em>ads_structures_params={}</em>, <em>add_molecules_in_box=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.get_wf_surface" title="Permalink to this definition">¶</a></dt>
+<dt id="atomate.vasp.workflows.base.adsorption.get_slab_trans_params">
+<code class="descclassname">atomate.vasp.workflows.base.adsorption.</code><code class="descname">get_slab_trans_params</code><span class="sig-paren">(</span><em>slab</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.get_slab_trans_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a set of slab transformation params</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>slab (Slab): slab to find transformation params from</dd>
+<dt>Returns (SlabTransformation):</dt>
+<dd>Transformation for a transformation that will transform
+the oriented unit cell to the slab</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.base.adsorption.get_wf_molecules">
+<code class="descclassname">atomate.vasp.workflows.base.adsorption.</code><code class="descname">get_wf_molecules</code><span class="sig-paren">(</span><em>molecules</em>, <em>vasp_input_set=None</em>, <em>db_file=None</em>, <em>vasp_cmd='vasp'</em>, <em>name=''</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.get_wf_molecules" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Args:</dt>
-<dd><p class="first">slabs (list of Slabs or Structures): slabs to calculate
-molecules (list of Molecules): molecules to place as adsorbates
-bulk_structure (Structure): bulk structure from which generate slabs</p>
-<blockquote>
-<div>after reoptimization.  If supplied, workflow will begin with
-bulk structure optimization.</div></blockquote>
+<dd>molecules (Molecules): list of molecules to calculate
+vasp_input_set (DictSet): VaspInputSet for molecules
+db_file (string): database file path
+vasp_cmd (string): VASP command
+name (string): name for workflow</dd>
+<dt>Returns:</dt>
+<dd>workflow consisting of molecule calculations</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.base.adsorption.get_wf_slab">
+<code class="descclassname">atomate.vasp.workflows.base.adsorption.</code><code class="descname">get_wf_slab</code><span class="sig-paren">(</span><em>slab</em>, <em>include_bulk_opt=False</em>, <em>adsorbates=None</em>, <em>ads_structures_params=None</em>, <em>vasp_cmd='vasp'</em>, <em>db_file=None</em>, <em>add_molecules_in_box=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.get_wf_slab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a workflow corresponding to a slab calculation along with optional
+adsorbate calcs and precursor oriented unit cell optimization</p>
 <dl class="docutils">
-<dt>slab_gen_params (dict): dictionary of slab generation parameters</dt>
-<dd>used to generate the slab, necessary to get the slab
-that corresponds to the bulk structure if in that mode</dd>
-<dt>ads_structures_params (dict): parameters to be supplied as</dt>
-<dd>kwargs to AdsorbateSiteFinder.generate_adsorption_structures</dd>
-<dt>add_molecules_in_box (boolean): flag to add calculation of molecule</dt>
-<dd>energies to the workflow</dd>
+<dt>Args:</dt>
+<dd><p class="first">slabs (list of Slabs or Structures): slabs to calculate
+include_bulk_opt (bool): whether to include bulk optimization,</p>
+<blockquote>
+<div>this flag sets the slab fireworks to be TransmuterFWs based
+on bulk optimization of oriented unit cells</div></blockquote>
+<p>adsorbates ([Molecule]): list of molecules to place as adsorbates
+ads_structures_params (dict): parameters to be supplied as</p>
+<blockquote>
+<div>kwargs to AdsorbateSiteFinder.generate_adsorption_structures</div></blockquote>
+<dl class="docutils">
+<dt>add_molecules_in_box (boolean): flag to add calculation of</dt>
+<dd>adsorbate molecule energies to the workflow</dd>
 </dl>
 <p class="last">db_file (string): path to database file
 vasp_cmd (string): vasp command</p>
@@ -102,19 +150,31 @@ vasp_cmd (string): vasp command</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="atomate.vasp.workflows.base.adsorption.get_wf_surface_all_slabs">
-<code class="descclassname">atomate.vasp.workflows.base.adsorption.</code><code class="descname">get_wf_surface_all_slabs</code><span class="sig-paren">(</span><em>bulk_structure</em>, <em>molecules</em>, <em>max_index=1</em>, <em>slab_gen_params=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.get_wf_surface_all_slabs" title="Permalink to this definition">¶</a></dt>
+<dt id="atomate.vasp.workflows.base.adsorption.get_wfs_all_slabs">
+<code class="descclassname">atomate.vasp.workflows.base.adsorption.</code><code class="descname">get_wfs_all_slabs</code><span class="sig-paren">(</span><em>bulk_structure</em>, <em>include_bulk_opt=False</em>, <em>adsorbates=None</em>, <em>max_index=1</em>, <em>slab_gen_params=None</em>, <em>ads_structures_params=None</em>, <em>vasp_cmd='vasp'</em>, <em>db_file=None</em>, <em>add_molecules_in_box=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.get_wfs_all_slabs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convenience constructor that allows a user to construct a workflow
 that finds all adsorption configurations (or slabs) for a given
 max miller index.</p>
 <dl class="docutils">
 <dt>Args:</dt>
-<dd>bulk_structure (Structure): bulk structure from which to construct slabs
-molecules (list of Molecules): adsorbates to place on surfaces
+<dd><p class="first">bulk_structure (Structure): bulk structure from which to construct slabs
+include_bulk_opt (bool): whether to include bulk optimization</p>
+<blockquote>
+<div>of oriented unit cells</div></blockquote>
+<p>adsorbates ([Molecule]): adsorbates to place on surfaces
 max_index (int): max miller index
-slab_gen_params (dict): dictionary of kwargs for generate_all_slabs</dd>
+slab_gen_params (dict): dictionary of kwargs for generate_all_slabs
+ads_structures_params (dict): dictionary of kwargs for generating</p>
+<blockquote>
+<div>of adsorption structures via AdsorptionSiteFinder</div></blockquote>
+<p>vasp_cmd (str): vasp command
+db_file (str): location of db file
+add_molecules_in_box (bool): whether to add molecules in a box</p>
+<blockquote class="last">
+<div>for the entire workflow</div></blockquote>
+</dd>
 <dt>Returns:</dt>
-<dd>Workflow</dd>
+<dd>list of slab-specific Workflows</dd>
 </dl>
 </dd></dl>
 
@@ -536,7 +596,7 @@ tag (str): something unique to identify the tasks in this workflow. If None a ra
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
+  <h3><a href="index.html">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">atomate.vasp.workflows.base package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
@@ -587,13 +647,13 @@ tag (str): something unique to identify the tasks in this workflow. If None a ra
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.9 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.7 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
     </div>
 
   </body>

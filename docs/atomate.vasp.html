@@ -6,10 +6,10 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.vasp package &#8212; atomate 0.7.9 documentation</title>
+    <title>atomate.vasp package &#8212; atomate 0.8.7 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.9 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.7 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -100,6 +100,7 @@
 <li class="toctree-l1"><a class="reference internal" href="atomate.vasp.fireworks.html">atomate.vasp.fireworks package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.fireworks.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.fireworks.html#module-atomate.vasp.fireworks.core">atomate.vasp.fireworks.core module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.fireworks.html#module-atomate.vasp.fireworks.nmr">atomate.vasp.fireworks.nmr module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.fireworks.html#module-atomate.vasp.fireworks.polarization">atomate.vasp.fireworks.polarization module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.fireworks.html#module-atomate.vasp.fireworks">Module contents</a></li>
 </ul>
@@ -143,6 +144,7 @@
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_elastic_workflow">atomate.vasp.workflows.tests.test_elastic_workflow module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_ferroelectric_workflow">atomate.vasp.workflows.tests.test_ferroelectric_workflow module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_neb_workflow">atomate.vasp.workflows.tests.test_neb_workflow module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_nmr">atomate.vasp.workflows.tests.test_nmr module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_raman_workflow">atomate.vasp.workflows.tests.test_raman_workflow module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_vasp_workflows">atomate.vasp.workflows.tests.test_vasp_workflows module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests">Module contents</a></li>
@@ -189,8 +191,39 @@ background (bool): Run in the background or not.</dd>
 </dd></dl>
 
 <dl class="method">
+<dt id="atomate.vasp.database.VaspCalcDb.get_aeccar">
+<code class="descname">get_aeccar</code><span class="sig-paren">(</span><em>task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.get_aeccar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the AECCAR0 + AECCAR2 grid_fs data into a Chgcar object
+Args:</p>
+<blockquote>
+<div>task_id(int or str): the task_id containing the gridfs metadata</div></blockquote>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>(aeccar0, aeccar2): Chgcar objects</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="atomate.vasp.database.VaspCalcDb.get_band_structure">
 <code class="descname">get_band_structure</code><span class="sig-paren">(</span><em>task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.get_band_structure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.database.VaspCalcDb.get_chgcar">
+<code class="descname">get_chgcar</code><span class="sig-paren">(</span><em>task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.get_chgcar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the CHGCAR grid_fs data into a Chgcar object
+Args:</p>
+<blockquote>
+<div>task_id(int or str): the task_id containing the gridfs metadata</div></blockquote>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>chgcar: Chgcar object</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.database.VaspCalcDb.get_chgcar_string">
+<code class="descname">get_chgcar_string</code><span class="sig-paren">(</span><em>task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.get_chgcar_string" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -252,13 +285,13 @@ use_gridfs (bool) use gridfs for  bandstructures and DOS</dd>
 <span id="atomate-vasp-drones-module"></span><h2>atomate.vasp.drones module<a class="headerlink" href="#module-atomate.vasp.drones" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="atomate.vasp.drones.VaspDrone">
-<em class="property">class </em><code class="descclassname">atomate.vasp.drones.</code><code class="descname">VaspDrone</code><span class="sig-paren">(</span><em>runs=None</em>, <em>parse_dos='auto'</em>, <em>bandstructure_mode='auto'</em>, <em>parse_locpot=True</em>, <em>additional_fields=None</em>, <em>use_full_uri=True</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">atomate.vasp.drones.</code><code class="descname">VaspDrone</code><span class="sig-paren">(</span><em>runs=None</em>, <em>parse_dos='auto'</em>, <em>bandstructure_mode='auto'</em>, <em>parse_locpot=True</em>, <em>additional_fields=None</em>, <em>use_full_uri=True</em>, <em>parse_bader=None</em>, <em>parse_chgcar=False</em>, <em>parse_aeccar=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.apps.borg.hive.AbstractDrone</span></code></p>
 <p>pymatgen-db VaspToDbTaskDrone with updated schema and documents processing methods.
 Please refer to matgendb.creator.VaspToDbTaskDrone documentation.</p>
 <dl class="method">
 <dt id="atomate.vasp.drones.VaspDrone.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>runs=None</em>, <em>parse_dos='auto'</em>, <em>bandstructure_mode='auto'</em>, <em>parse_locpot=True</em>, <em>additional_fields=None</em>, <em>use_full_uri=True</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>runs=None</em>, <em>parse_dos='auto'</em>, <em>bandstructure_mode='auto'</em>, <em>parse_locpot=True</em>, <em>additional_fields=None</em>, <em>use_full_uri=True</em>, <em>parse_bader=None</em>, <em>parse_chgcar=False</em>, <em>parse_aeccar=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize a Vasp drone to parse vasp outputs
 Args:</p>
 <blockquote>
@@ -283,7 +316,10 @@ bandstructure_mode (str or bool): How to parse the bandstructure or not. Can be 
 </div></blockquote>
 <p>parse_locpot (bool): Parses the LOCPOT file and saves the 3 axis averages
 additional_fields (dict): dictionary of additional fields to add to output document
-use_full_uri (bool): converts the directory path to the full URI path</p>
+use_full_uri (bool): converts the directory path to the full URI path
+parse_bader (bool): Run and parse Bader charge data. Defaults to True if Bader is present
+parse_chgcar (bool): Run and parse CHGCAR file
+parse_aeccar (bool): Run and parse AECCAR0 and AECCAR2 files</p>
 </div></blockquote>
 </dd></dl>
 
@@ -375,6 +411,11 @@ output files need to be processed.</p>
 <code class="descname">process_bandstructure</code><span class="sig-paren">(</span><em>vrun</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.process_bandstructure" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="classmethod">
+<dt id="atomate.vasp.drones.VaspDrone.process_chgcar">
+<em class="property">classmethod </em><code class="descname">process_chgcar</code><span class="sig-paren">(</span><em>chg_file</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.process_chgcar" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="atomate.vasp.drones.VaspDrone.process_dos">
 <code class="descname">process_dos</code><span class="sig-paren">(</span><em>vrun</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.process_dos" title="Permalink to this definition">¶</a></dt>
@@ -411,12 +452,12 @@ and exists for easier querying of the taskdoc.</p>
 
 <dl class="attribute">
 <dt id="atomate.vasp.drones.VaspDrone.schema">
-<code class="descname">schema</code><em class="property"> = {'analysis': {'max_force', 'delta_volume_as_percent', 'delta_volume', 'warnings', 'errors'}, 'calcs_reversed': {'elements', 'formula_pretty', 'run_type', 'completed_at', 'composition_reduced', 'input', 'dir_name', 'formula_reduced_abc', 'task', 'composition_unit_cell', 'vasp_version', 'nsites', 'output', 'has_vasp_completed', 'nelements', 'formula_anonymous'}, 'input': {'hubbards', 'potcar_spec', 'xc_override', 'structure', 'is_hubbard', 'pseudo_potential', 'is_lasph'}, 'output': {'is_metal', 'is_gap_direct', 'stress', 'structure', 'bandgap', 'energy_per_atom', 'energy', 'vbm', 'cbm', 'forces', 'density', 'spacegroup'}, 'root': {'formula_pretty', 'elements', 'analysis', 'completed_at', 'composition_reduced', 'chemsys', 'schema', 'dir_name', 'formula_reduced_abc', 'input', 'state', 'composition_unit_cell', 'calcs_reversed', 'nsites', 'output', 'run_stats', 'nelements', 'formula_anonymous'}}</em><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.schema" title="Permalink to this definition">¶</a></dt>
+<code class="descname">schema</code><em class="property"> = {'analysis': {'delta_volume', 'delta_volume_as_percent', 'errors', 'max_force', 'warnings'}, 'calcs_reversed': {'completed_at', 'composition_reduced', 'composition_unit_cell', 'dir_name', 'elements', 'formula_anonymous', 'formula_pretty', 'formula_reduced_abc', 'has_vasp_completed', 'input', 'nelements', 'nsites', 'output', 'run_type', 'task', 'vasp_version'}, 'input': {'hubbards', 'is_hubbard', 'is_lasph', 'potcar_spec', 'pseudo_potential', 'structure', 'xc_override'}, 'output': {'bandgap', 'cbm', 'density', 'energy', 'energy_per_atom', 'forces', 'is_gap_direct', 'is_metal', 'spacegroup', 'stress', 'structure', 'vbm'}, 'root': {'analysis', 'calcs_reversed', 'chemsys', 'completed_at', 'composition_reduced', 'composition_unit_cell', 'dir_name', 'elements', 'formula_anonymous', 'formula_pretty', 'formula_reduced_abc', 'input', 'nelements', 'nsites', 'output', 'run_stats', 'schema', 'state'}}</em><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.schema" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="staticmethod">
 <dt id="atomate.vasp.drones.VaspDrone.set_analysis">
-<em class="property">static </em><code class="descname">set_analysis</code><span class="sig-paren">(</span><em>max_force_threshold=0.5</em>, <em>volume_change_threshold=0.2</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.set_analysis" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">set_analysis</code><span class="sig-paren">(</span><em>d</em>, <em>max_force_threshold=0.5</em>, <em>volume_change_threshold=0.2</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.set_analysis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adapted from matgendb.creator</p>
 <p>set the ‘analysis’ key</p>
 </dd></dl>
@@ -867,7 +908,7 @@ object during filtering.</dd>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
+  <h3><a href="index.html">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">atomate.vasp package</a><ul>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
@@ -916,13 +957,13 @@ object during filtering.</dd>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.7.9 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.7 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
     </div>
 
   </body>

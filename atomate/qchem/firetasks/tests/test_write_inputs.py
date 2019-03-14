@@ -9,7 +9,7 @@ import shutil
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet, WriteInput, WriteCustomInput
 from atomate.utils.testing import AtomateTest
 from pymatgen.core import Molecule
-from pymatgen.io.qchem_io.inputs import QCInput
+from pymatgen.io.qchem.inputs import QCInput
 
 __author__ = "Brandon Wood"
 __email__ = "b.wood@berkeley.edu"
@@ -88,7 +88,7 @@ class TestWriteInputQChem(AtomateTest):
             "method": "wB97xd",
             "geom_opt_max_cycles": 200,
             "gen_scfman": True,
-            "scf_algorithm": "diis"
+            "scf_algorithm": "gdm"
         }
         qc_input = QCInput(mol, rem)
         ft = WriteInput(qc_input=qc_input)
@@ -106,7 +106,7 @@ class TestWriteInputQChem(AtomateTest):
             "method": "wB97xd",
             "geom_opt_max_cycles": 200,
             "gen_scfman": True,
-            "scf_algorithm": "diis"
+            "scf_algorithm": "gdm"
         }
         ft = WriteCustomInput(molecule=mol, rem=rem)
         ft.run_task({})

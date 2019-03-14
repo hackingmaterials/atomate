@@ -9,7 +9,7 @@ from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 from atomate.utils.testing import AtomateTest
 from pymatgen.core import Molecule
-from pymatgen.io.qchem_io.inputs import QCInput
+from pymatgen.io.qchem.inputs import QCInput
 from atomate.qchem.powerups import use_fake_qchem
 from atomate.qchem.workflows.base.double_FF_opt import get_wf_double_FF_opt
 
@@ -41,9 +41,9 @@ class TestDoubleFFOpt(AtomateTest):
         real_wf = get_wf_double_FF_opt(
             molecule=initial_mol,
             pcm_dielectric=10.0,
-            max_cores=32,
             qchem_input_params={
                 "basis_set": "6-311++g**",
+                "scf_algorithm": "diis",
                 "overwrite_inputs": {
                     "rem": {
                         "sym_ignore": "true"
@@ -61,7 +61,7 @@ class TestDoubleFFOpt(AtomateTest):
         self.lp.add_wf(fake_wf)
         rapidfire(
             self.lp,
-            fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
+            fworker=FWorker(env={"max_cores": 32, "db_file": os.path.join(db_dir, "db.json")}))
 
         wf_test = self.lp.get_wf_by_fw_id(1)
         self.assertTrue(

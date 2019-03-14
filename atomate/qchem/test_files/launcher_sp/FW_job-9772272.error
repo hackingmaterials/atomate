@@ -1,0 +1,17 @@
+/global/u2/s/sblau/pymatgen/pymatgen/io/cif.py:44: UserWarning: Please install optional dependency pybtex if youwant to extract references from CIF files.
+  warnings.warn("Please install optional dependency pybtex if you"
+DEBUG:launchpad:FW with id: 2236 is unique!
+DEBUG:launchpad:Created/updated Launch with launch_id: 2718
+DEBUG:launchpad:RUNNING FW with id: 2236
+INFO:rocket.launcher:RUNNING fw_id: 2236 in directory: /scratch2/scratchdirs/sblau/fragment_wf/block_2018-07-04-03-30-43-540608/launcher_2018-07-06-17-03-13-189067
+INFO:rocket.launcher:Task started: {{atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet}}.
+INFO:rocket.launcher:Task completed: {{atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet}} 
+INFO:rocket.launcher:Task started: {{atomate.qchem.firetasks.run_calc.RunQChemCustodian}}.
+INFO:custodian.custodian:Run started at 2018-07-06 10:15:59.862537 in /scratch2/scratchdirs/sblau/fragment_wf/block_2018-07-04-03-30-43-540608/launcher_2018-07-06-17-03-13-189067.
+INFO:custodian.custodian:Custodian running on Python version 3.6.4 |Anaconda, Inc.| (default, Jan 16 2018, 18:10:19)  [GCC 7.2.0]
+INFO:custodian.custodian:Hostname: nid01651, Cluster: unknown
+INFO:custodian.custodian:Starting job no. 1 (QCJob) attempt no. 1. Total errors and errors in job thus far = 0, 0.
+INFO:custodian.custodian:QCJob.run has completed. Checking remaining handlers
+INFO:custodian.custodian:Logging to custodian.json...
+INFO:custodian.custodian:Run ended at 2018-07-06 10:16:08.587104.
+INFO:custodian.custodian:Run completed. Total time taken = 0:00:08.724567.
