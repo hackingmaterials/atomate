@@ -307,14 +307,14 @@ class WriteVaspNSCFFromPrev(FiretaskBase):
             prev_calc_dir=self.get("prev_calc_dir", "."),
             copy_chgcar=self.get("copy_chgcar", False),
             nbands_factor=self.get("nbands_factor", 1.2),
-            reciprocal_density=self.get("reciprocal_density", 100),
+            reciprocal_density=self.get("reciprocal_density", 1000),
             kpoints_line_density=self.get("kpoints_line_density", 20),
             small_gap_multiply=self.get("small_gap_multiply", None),
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
             international_monoclinic=self.get("international_monoclinic", True),
             mode=self.get("mode", "uniform"),
-            nedos=self.get("nedos", 601),
+            nedos=self.get("nedos", 2001),
             optics=self.get("optics", False),
             **self.get("other_params", {}))
         vis.write_input(".")
