@@ -307,7 +307,7 @@ class WriteVaspNSCFFromPrev(FiretaskBase):
             prev_calc_dir=self.get("prev_calc_dir", "."),
             copy_chgcar=self.get("copy_chgcar", False),
             nbands_factor=self.get("nbands_factor", 1.2),
-            reciprocal_density=self.get("reciprocal_density", 1000),
+            reciprocal_density=self.get("reciprocal_density", 100),
             kpoints_line_density=self.get("kpoints_line_density", 20),
             small_gap_multiply=self.get("small_gap_multiply", None),
             standardize=self.get("standardize", False),
