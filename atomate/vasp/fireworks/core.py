@@ -255,7 +255,7 @@ class NonSCFFW(Firework):
                 allows a user to modify the default values of the input set.
                 For example, passing the key value pair
                     {'reciprocal_density': 1000}
-                will override default k-point meshes for uniform claculations.
+                will override default k-point meshes for uniform calculations.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         input_set_overrides = input_set_overrides or {}
