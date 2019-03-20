@@ -314,7 +314,7 @@ class WriteVaspNSCFFromPrev(FiretaskBase):
             sym_prec=self.get("sym_prec", 0.1),
             international_monoclinic=self.get("international_monoclinic", True),
             mode=self.get("mode", "uniform"),
-            nedos=self.get("nedos", 601),
+            nedos=self.get("nedos", 2001),
             optics=self.get("optics", False),
             **self.get("other_params", {}))
         vis.write_input(".")
