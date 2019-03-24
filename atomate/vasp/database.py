@@ -14,7 +14,6 @@ from bson import ObjectId
 
 from pymatgen.electronic_structure.bandstructure import BandStructure, BandStructureSymmLine
 from pymatgen.electronic_structure.dos import CompleteDos
-from pymatgen.io.vasp import Chgcar
 
 import gridfs
 from pymongo import ASCENDING, DESCENDING

@@ -16,7 +16,6 @@ from collections import OrderedDict
 import json
 import glob
 import traceback
-import gzip
 
 from monty.io import zopen
 from monty.json import jsanitize
