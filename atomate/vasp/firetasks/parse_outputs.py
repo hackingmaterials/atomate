@@ -843,7 +843,7 @@ class PolarizationToDb(FiretaskBase):
         def split_abc(var, var_name):
             d = {}
             for i, j in enumerate('abc'):
-                d.update({var_name + "_{}".format(j): var[:, i].A1.tolist()})
+                d.update({var_name + "_{}".format(j): np.ravel(var[:, i]).tolist()})
             return d
 
         # Add some sort of id for the structures? Like cid but more general?
