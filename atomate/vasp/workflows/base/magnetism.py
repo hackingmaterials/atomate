@@ -234,7 +234,9 @@ class MagneticOrderingsWF:
         def _add_metadata(structure):
             """
             For book-keeping, store useful metadata with the Structure
-            object for later database ingestion.
+            object for later database ingestion including workflow
+            version and a UUID for easier querying of all tasks generated
+            from the workflow.
 
             Args:
                 structure: Structure
