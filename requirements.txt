@@ -1,4 +1,4 @@
-numpy==1.16.1
+numpy==1.16.2
 scipy==1.2.0
 FireWorks==1.8.7
 pymatgen_diffusion==2019.2.28
