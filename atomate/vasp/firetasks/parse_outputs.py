@@ -26,7 +26,7 @@ from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.analysis.ferroelectricity.polarization import Polarization, get_total_ionic_dipole, \
     EnergyTrend
-from pymatgen.analysis.magnetism import CollinearMagneticStructureAnalyzer, Ordering
+from pymatgen.analysis.magnetism import CollinearMagneticStructureAnalyzer, Ordering, magnetic_deformation
 from pymatgen.command_line.bader_caller import bader_analysis_from_path
 
 from atomate.common.firetasks.glue_tasks import get_calc_loc
@@ -950,23 +950,6 @@ class MagneticDeformationToDB(FiretaskBase):
     required_params = ["db_file", "wf_uuid"]
     optional_params = ["to_db"]
 
-    @staticmethod
-    def magnetic_deformation(nm_struct, m_struct):
-        """ Calculates 'magnetic deformation proxy',
-        a measure of deformation (norm of finite strain)
-        between 'non-magnetic' (non-spin-polarized) and
-        ferromagnetic structures.
-        Adapted from Bocarsly et al. 2017,
-        doi: 10.1021/acs.chemmater.6b04729"""
-        lmn = nm_struct.lattice.matrix.T
-        lm = m_struct.lattice.matrix.T
-        lmn_i = np.linalg.inv(lmn)
-        p = np.dot(lmn_i, lm)
-        eta = 0.5 * (np.dot(p.T, p) - np.identity(3))
-        w, _ = np.linalg.eig(eta)
-        deformation = 100 * (1. / 3.) * np.sqrt(w[0] ** 2 + w[1] ** 2 + w[2] ** 2)
-        return deformation
-
     def run_task(self, fw_spec):
 
         uuid = self["wf_uuid"]
@@ -995,7 +978,7 @@ class MagneticDeformationToDB(FiretaskBase):
         success = False if msa.ordering == Ordering.NM else True
 
         # calculate magnetic deformation
-        magnetic_deformation = self.magnetic_deformation(nm_structure, m_structure)
+        mag_def = magnetic_deformation(nm_structure, m_structure).deformation
 
         # get run stats (mostly used for benchmarking)
         # using same approach as VaspDrone
@@ -1012,7 +995,7 @@ class MagneticDeformationToDB(FiretaskBase):
         summary = {
             "formula": nm_structure.composition.reduced_formula,
             "success": success,
-            "magnetic_deformation": magnetic_deformation,
+            "magnetic_deformation": mag_def,
             "non_magnetic_task_id": d_nm["task_id"],
             "non_magnetic_structure": nm_structure.as_dict(),
             "magnetic_task_id": d_m["task_id"],
@@ -1021,7 +1004,6 @@ class MagneticDeformationToDB(FiretaskBase):
             "created_at": datetime.utcnow()
         }
 
-        # TODO: find a better way for passing tags of the entire workflow to db - albalu
         if fw_spec.get("tags", None):
             summary["tags"] = fw_spec["tags"]
 
