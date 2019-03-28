@@ -53,6 +53,29 @@ def wf_bandstructure(structure, c=None):
 
     return wf
 
+
+def wf_bandstructure_no_opt(structure, c=None):
+
+    c = c or {}
+    vasp_cmd = c.get("VASP_CMD", VASP_CMD)
+    db_file = c.get("DB_FILE", DB_FILE)
+
+    wf = get_wf(structure, "bandstructure_no_opt.yaml",
+                vis=MPStaticSet(structure, force_gamma=True),
+                common_params={"vasp_cmd": vasp_cmd, "db_file": db_file})
+
+    wf = add_common_powerups(wf, c)
+
+    if c.get("SMALLGAP_KPOINT_MULTIPLY", SMALLGAP_KPOINT_MULTIPLY):
+        wf = add_small_gap_multiply(wf, 0.5, 5, "static")
+        wf = add_small_gap_multiply(wf, 0.5, 5, "nscf")
+
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
+    return wf
+
+
 def wf_bandstructure_hse(structure, c=None):
 
     c = c or {}
