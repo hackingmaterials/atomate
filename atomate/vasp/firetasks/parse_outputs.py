@@ -828,7 +828,7 @@ class PolarizationToDb(FiretaskBase):
 
         polarization = Polarization(p_elecs, p_ions, structures)
 
-        p_change = polarization.get_polarization_change().A1.tolist()
+        p_change = np.ravel(polarization.get_polarization_change()).tolist()
         p_norm = polarization.get_polarization_change_norm()
         polarization_max_spline_jumps = polarization.max_spline_jumps()
         same_branch = polarization.get_same_branch_polarization_data(convert_to_muC_per_cm2=True)
@@ -843,7 +843,7 @@ class PolarizationToDb(FiretaskBase):
         def split_abc(var, var_name):
             d = {}
             for i, j in enumerate('abc'):
-                d.update({var_name + "_{}".format(j): var[:, i].A1.tolist()})
+                d.update({var_name + "_{}".format(j): np.ravel(var[:, i]).tolist()})
             return d
 
         # Add some sort of id for the structures? Like cid but more general?
