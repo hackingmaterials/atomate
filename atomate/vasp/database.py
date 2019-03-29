@@ -262,7 +262,7 @@ class VaspCalcDb(CalcDb):
             task_id(int or str): the task_id containing the gridfs metadata
             check_valid (bool): make sure that the aeccar is positive definite
         Returns:
-            (aeccar0, aeccar2): Chgcar objects
+            {"aeccar0" : Chgcar, "aeccar2" : Chgcar}: dict of Chgcar objects
         """
         m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
         fs_id = m_task['calcs_reversed'][0]['aeccar0_fs_id']
