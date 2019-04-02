@@ -60,6 +60,14 @@ atomate.vasp.workflows.base.gibbs module
     :undoc-members:
     :show-inheritance:
 
+atomate.vasp.workflows.base.magnetism module
+--------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.base.magnetism
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 atomate.vasp.workflows.base.neb module
 --------------------------------------
 

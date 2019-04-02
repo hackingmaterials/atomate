@@ -2,7 +2,7 @@
 Contributors
 ============
 
-atomate development is led by the Hacking Materials research group led by Anubhav Jain at Lawrence Berkeley National Lab, using primarily research funding from U.S. Department of Energy Early Career program.
+atomate development is led by the Hacking Materials research group led by Anubhav Jain at Lawrence Berkeley National Lab, using primarily research funding from U.S. Department of Energy Early Career program; additional support and funding is from the U.S. Department of Energy Materials Project program.
 
 Contributions are provided by:
 
@@ -12,4 +12,4 @@ Contributions are provided by:
 * Brandon Bocklund, who led the atomate documentation effort, through the research group of Prof. Zi-Kiu Liu at Penn State.
 * Tess Smidt through the research group of Prof. Jeff Neaton at UC Berkeley.
 * Danny Broberg through the research group of Prof. Mark Asta at UC Berkeley.
-* External contributors: specter119, M. Dias Costa, S. Torrisi
+* External contributors: specter119, M. Dias Costa, S. Torrisi, Max Dylla
