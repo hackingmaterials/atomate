@@ -298,6 +298,14 @@ class TestVaspWorkflows(AtomateTest):
         dcc = mmdb.get_aeccar(task_id=t_id)
         self.assertAlmostEqual(dcc['aeccar0'].data['total'].sum()/cc.ngridpts, 23.253588293583313, 4)
         self.assertAlmostEqual(dcc['aeccar2'].data['total'].sum()/cc.ngridpts, 8.01314480789829, 4)
+        # check the retrieve_task function for the same fake calculation
+        ret_task = mmdb.retrieve_task(t_id)
+        ret_chgcar = ret_task['calcs_reversed'][0]['chgcar']
+        ret_aeccar0 = ret_task['calcs_reversed'][0]['aeccar0']
+        ret_aeccar2 = ret_task['calcs_reversed'][0]['aeccar2']
+        ret_aeccar = ret_aeccar0 + ret_aeccar2
+        self.assertAlmostEqual(ret_chgcar.data['total'].sum()/ret_chgcar.ngridpts, 8.0, 4)
+        self.assertAlmostEqual(ret_aeccar.data['total'].sum()/ret_aeccar.ngridpts, 31.2667331015, 4)
 
     def test_chgcar_db_read(self):
         # add the workflow

@@ -36,6 +36,14 @@ atomate.vasp.workflows.tests.test\_ferroelectric\_workflow module
     :undoc-members:
     :show-inheritance:
 
+atomate.vasp.workflows.tests.test\_magnetism\_workflow module
+-------------------------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.tests.test_magnetism_workflow
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 atomate.vasp.workflows.tests.test\_neb\_workflow module
 -------------------------------------------------------
 

@@ -1,0 +1,15 @@
+# Structure optimize + static with spin polarization on and off
+# for minimal magnetic deformation workflow
+fireworks:
+- fw: atomate.vasp.fireworks.core.OptimizeFW
+  params:
+    name: "magnetic deformation optimize non-magnetic"
+    override_default_vasp_params:
+      user_incar_settings:
+        ISPIN: 1
+- fw: atomate.vasp.fireworks.core.OptimizeFW
+  params:
+    name: "magnetic deformation optimize magnetic"
+    override_default_vasp_params:
+      user_incar_settings:
+        ISPIN: 2
