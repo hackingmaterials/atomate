@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.vasp.firetasks package &#8212; atomate 0.8.7 documentation</title>
+    <title>atomate.vasp.firetasks package &#8212; atomate 0.8.8 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.7 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.8 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -914,6 +914,120 @@ these multiple resources.</dd>
 <dt id="atomate.vasp.firetasks.parse_outputs.JsonToDbTask">
 <em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.parse_outputs.</code><code class="descname">JsonToDbTask</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.JsonToDbTask" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#atomate.vasp.firetasks.parse_outputs.JsonToDb" title="atomate.vasp.firetasks.parse_outputs.JsonToDb"><code class="xref py py-class docutils literal notranslate"><span class="pre">atomate.vasp.firetasks.parse_outputs.JsonToDb</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.parse_outputs.MagneticDeformationToDB">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.parse_outputs.</code><code class="descname">MagneticDeformationToDB</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.MagneticDeformationToDB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Used to calculate magnetic deformation from
+get_wf_magnetic_deformation workflow. See docstring
+for that workflow for more information.
+Required parameters:</p>
+<blockquote>
+<div>db_file (str): path to the db file that holds your tasks
+collection and that you want to hold the magnetic_orderings
+collection
+wf_uuid (str): auto-generated from get_wf_magnetic_orderings,
+used to make it easier to retrieve task docs</div></blockquote>
+<dl class="docutils">
+<dt>Optional parameters:</dt>
+<dd>to_db (bool): if True, the data will be inserted into
+dedicated collection in database, otherwise, will be dumped
+to a .json file.</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.parse_outputs.MagneticDeformationToDB.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['to_db']</em><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.MagneticDeformationToDB.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.parse_outputs.MagneticDeformationToDB.required_params">
+<code class="descname">required_params</code><em class="property"> = ['db_file', 'wf_uuid']</em><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.MagneticDeformationToDB.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.parse_outputs.MagneticDeformationToDB.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.MagneticDeformationToDB.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt>
+<dd>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>(FWAction)</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.parse_outputs.MagneticOrderingsToDB">
+<em class="property">class </em><code class="descclassname">atomate.vasp.firetasks.parse_outputs.</code><code class="descname">MagneticOrderingsToDB</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.MagneticOrderingsToDB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Used to aggregate tasks docs from magnetic ordering workflow.
+For large-scale/high-throughput use, would recommend a specific
+builder, this is intended for easy, automated use for calculating
+magnetic orderings directly from the get_wf_magnetic_orderings
+workflow. It’s unlikely you will want to call this directly.
+Required parameters:</p>
+<blockquote>
+<div>db_file (str): path to the db file that holds your tasks
+collection and that you want to hold the magnetic_orderings
+collection
+wf_uuid (str): auto-generated from get_wf_magnetic_orderings,
+used to make it easier to retrieve task docs
+parent_structure: Structure of parent crystal (not magnetically
+ordered)</div></blockquote>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.parse_outputs.MagneticOrderingsToDB.optional_params">
+<code class="descname">optional_params</code><em class="property"> = ['origins', 'input_index']</em><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.MagneticOrderingsToDB.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.parse_outputs.MagneticOrderingsToDB.required_params">
+<code class="descname">required_params</code><em class="property"> = ['db_file', 'wf_uuid', 'parent_structure', 'perform_bader', 'scan']</em><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.MagneticOrderingsToDB.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.parse_outputs.MagneticOrderingsToDB.run_task">
+<code class="descname">run_task</code><span class="sig-paren">(</span><em>fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.parse_outputs.MagneticOrderingsToDB.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt>
+<dd>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>(FWAction)</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -2117,7 +2231,7 @@ these multiple resources.</dd>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.7 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.8 documentation</a> &#187;</li> 
       </ul>
     </div>
 

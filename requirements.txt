@@ -1,15 +1,7 @@
-numpy==1.15.4
-scipy==1.1.0
-FireWorks==1.8.2
-pymatgen_diffusion==2018.11.17
-monty==1.0.4
+numpy==1.16.2
 paramiko==2.4.2
-tqdm==4.28.1
-six==1.11.0
-pybtex==0.21
-ruamel.yaml==0.15.61
 pandas==0.23.4
+networkx==2.2
 -e git://github.com/samblau/pymatgen@qchem#egg=pymatgen
 -e git://github.com/samblau/custodian@qchem#egg=custodian
-networkx==2.1
 pydash==4.7.3

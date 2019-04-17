@@ -60,7 +60,7 @@ class TestFerroelectricWorkflow(AtomateTest):
         # Check recovered change in polarization
         coll = self.get_task_collection("polarization_tasks")
         d = coll.find_one()
-        self.assertAlmostEqual(d['polarization_change_norm'], 46.288752795325244)
+        self.assertAlmostEqual(d['polarization_change_norm'], 46.288752795325244, 5)
 
 
 
