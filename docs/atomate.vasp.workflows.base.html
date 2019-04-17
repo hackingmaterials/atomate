@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.vasp.workflows.base package &#8212; atomate 0.8.7 documentation</title>
+    <title>atomate.vasp.workflows.base package &#8212; atomate 0.8.8 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.7 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.8 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -403,6 +403,124 @@ tag (str): something unique to identify the tasks in this workflow. If None a ra
 </dd></dl>
 
 </div>
+<div class="section" id="module-atomate.vasp.workflows.base.magnetism">
+<span id="atomate-vasp-workflows-base-magnetism-module"></span><h2>atomate.vasp.workflows.base.magnetism module<a class="headerlink" href="#module-atomate.vasp.workflows.base.magnetism" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF">
+<em class="property">class </em><code class="descclassname">atomate.vasp.workflows.base.magnetism.</code><code class="descname">MagneticOrderingsWF</code><span class="sig-paren">(</span><em>structure</em>, <em>default_magmoms=None</em>, <em>strategies=('ferromagnetic'</em>, <em>'antiferromagnetic')</em>, <em>automatic=True</em>, <em>truncate_by_symmetry=True</em>, <em>transformation_kwargs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>structure</em>, <em>default_magmoms=None</em>, <em>strategies=('ferromagnetic'</em>, <em>'antiferromagnetic')</em>, <em>automatic=True</em>, <em>truncate_by_symmetry=True</em>, <em>transformation_kwargs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>This workflow will try several different collinear
+magnetic orderings for a given input structure,
+and output a summary to a dedicated database
+collection, magnetic_orderings, in the supplied
+db_file.</p>
+<p>If the input structure has magnetic moments defined, it
+is possible to use these as a hint as to which elements are
+magnetic, otherwise magnetic elements will be guessed
+(this can be changed using default_magmoms kwarg).</p>
+<dl class="docutils">
+<dt>A brief description on how this workflow works:</dt>
+<dd><ol class="first last arabic simple">
+<li>We make a note of the input structure, and then
+sanitize it (make it ferromagnetic, primitive)</li>
+<li>We gather information on which sites are likely
+magnetic, how many unique magnetic sites there
+are (whether one species is in several unique
+environments, e.g. tetrahedral/octahedra as Fe
+in a spinel)</li>
+<li>We generate ordered magnetic structures, first
+antiferromagnetic, and then, if appropriate,
+ferrimagnetic_Cr2NiO4 structures either by species or
+by environment – this makes use of some new
+additions to MagOrderingTransformation to allow
+the spins of different species to be coupled together
+(e.g. all one species spin up, all other species spin
+down, with an overall order parameter of 0.5)</li>
+<li>For each ordered structure, we perform a relaxation
+and static calculation. Then an aggregation is performed
+which finds which ordering is the ground state (of
+those attempted in this specific workflow). For
+high-throughput studies, a dedicated builder is
+recommended.</li>
+<li>For book-keeping, a record is kept of whether the
+input structure is enumerated by the algorithm or
+not. This is useful when supplying the workflow with
+a magnetic structure obtained by experiment, to measure
+the performance of the workflow.</li>
+</ol>
+</dd>
+<dt>Args:</dt>
+<dd>structure: input structure
+default_magmoms: (optional, defaults provided) dict of</dd>
+</dl>
+<p>magnetic elements to their initial magnetic moments in µB, generally
+these are chosen to be high-spin since they can relax to a low-spin
+configuration during a DFT electronic configuration</p>
+<blockquote>
+<div>strategies: different ordering strategies to use, choose from:</div></blockquote>
+<p>ferromagnetic, antiferromagnetic, antiferromagnetic_by_motif,
+ferrimagnetic_by_motif and ferrimagnetic_by_species (here, “motif”,
+means to use a different ordering parameter for symmetry inequivalent
+sites)</p>
+<blockquote>
+<div>automatic: if True, will automatically choose sensible strategies
+truncate_by_symmetry: if True, will remove very unsymmetrical</div></blockquote>
+<dl class="docutils">
+<dt>orderings that are likely physically implausible</dt>
+<dd>transformation_kwargs: keyword arguments to pass to</dd>
+</dl>
+<p>MagOrderingTransformation, to change automatic cell size limits, etc.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF.get_wf">
+<code class="descname">get_wf</code><span class="sig-paren">(</span><em>scan=False</em>, <em>perform_bader=True</em>, <em>num_orderings_hard_limit=16</em>, <em>c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF.get_wf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the FireWorks workflow.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>scan: if True, use the SCAN functional instead of GGA+U, since</dd>
+</dl>
+<p>the SCAN functional has shown to have improved performance for
+magnetic systems in some cases</p>
+<blockquote>
+<div>perform_bader: if True, make sure the “bader” binary is in your</div></blockquote>
+<p>path, will use Bader analysis to calculate atom-projected magnetic
+moments</p>
+<blockquote>
+<div>num_orderings_hard_limit: will make sure total number of magnetic</div></blockquote>
+<p>orderings does not exceed this number even if there are extra orderings
+of equivalent symmetry</p>
+<blockquote>
+<div>c: additional config dict (as used elsewhere in atomate)</div></blockquote>
+<p>Returns: FireWorks Workflow</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.base.magnetism.get_wf_magnetic_deformation">
+<code class="descclassname">atomate.vasp.workflows.base.magnetism.</code><code class="descname">get_wf_magnetic_deformation</code><span class="sig-paren">(</span><em>structure</em>, <em>c=None</em>, <em>vis=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.magnetism.get_wf_magnetic_deformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Minimal workflow to obtain magnetic deformation proxy, as
+defined by Bocarsly et al. 2017, doi: 10.1021/acs.chemmater.6b04729</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>structure: input structure, must be structure with magnetic</dd>
+</dl>
+<p>elements, such that pymatgen will initalize ferromagnetic input by
+default – see MPRelaxSet.yaml for list of default elements</p>
+<blockquote>
+<div>c: Workflow config dict, in the same format</div></blockquote>
+<dl class="docutils">
+<dt>as in presets/core.py and elsewhere in atomate</dt>
+<dd>vis: A VaspInputSet to use for the first FW</dd>
+</dl>
+<p>Returns: Workflow</p>
+</dd></dl>
+
+</div>
 <div class="section" id="module-atomate.vasp.workflows.base.neb">
 <span id="atomate-vasp-workflows-base-neb-module"></span><h2>atomate.vasp.workflows.base.neb module<a class="headerlink" href="#module-atomate.vasp.workflows.base.neb" title="Permalink to this headline">¶</a></h2>
 <p>This module defines the Nudged Elastic Band (NEB) workflow.</p>
@@ -607,6 +725,7 @@ tag (str): something unique to identify the tasks in this workflow. If None a ra
 <li><a class="reference internal" href="#module-atomate.vasp.workflows.base.elastic">atomate.vasp.workflows.base.elastic module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.workflows.base.ferroelectric">atomate.vasp.workflows.base.ferroelectric module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.workflows.base.gibbs">atomate.vasp.workflows.base.gibbs module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.workflows.base.magnetism">atomate.vasp.workflows.base.magnetism module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.workflows.base.neb">atomate.vasp.workflows.base.neb module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.workflows.base.raman">atomate.vasp.workflows.base.raman module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.workflows.base.thermal_expansion">atomate.vasp.workflows.base.thermal_expansion module</a></li>
@@ -647,7 +766,7 @@ tag (str): something unique to identify the tasks in this workflow. If None a ra
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.7 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.8 documentation</a> &#187;</li> 
       </ul>
     </div>
 

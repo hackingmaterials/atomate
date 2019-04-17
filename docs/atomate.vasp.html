@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.vasp package &#8212; atomate 0.8.7 documentation</title>
+    <title>atomate.vasp package &#8212; atomate 0.8.8 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.7 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.8 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -124,6 +124,7 @@
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base.elastic">atomate.vasp.workflows.base.elastic module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base.ferroelectric">atomate.vasp.workflows.base.ferroelectric module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base.gibbs">atomate.vasp.workflows.base.gibbs module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base.magnetism">atomate.vasp.workflows.base.magnetism module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base.neb">atomate.vasp.workflows.base.neb module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base.raman">atomate.vasp.workflows.base.raman module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base.thermal_expansion">atomate.vasp.workflows.base.thermal_expansion module</a></li>
@@ -143,6 +144,7 @@
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_bulk_modulus_workflow">atomate.vasp.workflows.tests.test_bulk_modulus_workflow module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_elastic_workflow">atomate.vasp.workflows.tests.test_elastic_workflow module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_ferroelectric_workflow">atomate.vasp.workflows.tests.test_ferroelectric_workflow module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_magnetism_workflow">atomate.vasp.workflows.tests.test_magnetism_workflow module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_neb_workflow">atomate.vasp.workflows.tests.test_neb_workflow module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_nmr">atomate.vasp.workflows.tests.test_nmr module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#module-atomate.vasp.workflows.tests.test_raman_workflow">atomate.vasp.workflows.tests.test_raman_workflow module</a></li>
@@ -192,14 +194,15 @@ background (bool): Run in the background or not.</dd>
 
 <dl class="method">
 <dt id="atomate.vasp.database.VaspCalcDb.get_aeccar">
-<code class="descname">get_aeccar</code><span class="sig-paren">(</span><em>task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.get_aeccar" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_aeccar</code><span class="sig-paren">(</span><em>task_id</em>, <em>check_valid=True</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.get_aeccar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read the AECCAR0 + AECCAR2 grid_fs data into a Chgcar object
 Args:</p>
 <blockquote>
-<div>task_id(int or str): the task_id containing the gridfs metadata</div></blockquote>
+<div>task_id(int or str): the task_id containing the gridfs metadata
+check_valid (bool): make sure that the aeccar is positive definite</div></blockquote>
 <dl class="docutils">
 <dt>Returns:</dt>
-<dd>(aeccar0, aeccar2): Chgcar objects</dd>
+<dd>{“aeccar0” : Chgcar, “aeccar2” : Chgcar}: dict of Chgcar objects</dd>
 </dl>
 </dd></dl>
 
@@ -251,7 +254,9 @@ task_id(int or str): the task_id to store into the gridfs metadata</dd>
 <dt id="atomate.vasp.database.VaspCalcDb.insert_task">
 <code class="descname">insert_task</code><span class="sig-paren">(</span><em>task_doc</em>, <em>use_gridfs=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.insert_task" title="Permalink to this definition">¶</a></dt>
 <dd><p>Inserts a task document (e.g., as returned by Drone.assimilate()) into the database.
-Handles putting DOS and band structure into GridFS as needed.</p>
+Handles putting DOS, band structure and charge density into GridFS as needed.
+During testing, a percentage of runs on some clusters had corrupted AECCAR files when even if everything else about the calculation looked OK.
+So we do a quick check here and only record the AECCARs if they are valid</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd>task_doc: (dict) the task document
@@ -957,7 +962,7 @@ object during filtering.</dd>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.7 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.8 documentation</a> &#187;</li> 
       </ul>
     </div>
 

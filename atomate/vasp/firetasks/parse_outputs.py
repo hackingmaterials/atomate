@@ -26,6 +26,8 @@ from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.analysis.ferroelectricity.polarization import Polarization, get_total_ionic_dipole, \
     EnergyTrend
+from pymatgen.analysis.magnetism import CollinearMagneticStructureAnalyzer, Ordering, magnetic_deformation
+from pymatgen.command_line.bader_caller import bader_analysis_from_path
 
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk, get_meta_from_structure
@@ -754,6 +756,269 @@ class ThermalExpansionCoeffToDb(FiretaskBase):
 
 
 @explicit_serialize
+class MagneticOrderingsToDB(FiretaskBase):
+    """
+    Used to aggregate tasks docs from magnetic ordering workflow.
+    For large-scale/high-throughput use, would recommend a specific
+    builder, this is intended for easy, automated use for calculating
+    magnetic orderings directly from the get_wf_magnetic_orderings
+    workflow. It's unlikely you will want to call this directly.
+    Required parameters:
+        db_file (str): path to the db file that holds your tasks
+        collection and that you want to hold the magnetic_orderings
+        collection
+        wf_uuid (str): auto-generated from get_wf_magnetic_orderings,
+        used to make it easier to retrieve task docs
+        parent_structure: Structure of parent crystal (not magnetically
+        ordered)
+    """
+
+    required_params = ["db_file", "wf_uuid", "parent_structure",
+                       "perform_bader", "scan"]
+    optional_params = ["origins", "input_index"]
+
+    def run_task(self, fw_spec):
+
+        uuid = self["wf_uuid"]
+        db_file = env_chk(self.get("db_file"), fw_spec)
+        to_db = self.get("to_db", True)
+
+        mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
+
+        formula = self["parent_structure"].formula
+        formula_pretty = self["parent_structure"].composition.reduced_formula
+
+        # get ground state energy
+        task_label_regex = 'static' if not self['scan'] else 'optimize'
+        docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid,
+                                          "task_label": {"$regex": task_label_regex}},
+                                         ["task_id", "output.energy_per_atom"]))
+
+        energies = [d["output"]["energy_per_atom"] for d in docs]
+        ground_state_energy = min(energies)
+        idx = energies.index(ground_state_energy)
+        ground_state_task_id = docs[idx]["task_id"]
+        if energies.count(ground_state_energy) > 1:
+            logger.warn("Multiple identical energies exist, "
+                        "duplicate calculations for {}?".format(formula))
+
+        # get results for different orderings
+        docs = list(mmdb.collection.find({
+            "task_label": {"$regex": task_label_regex},
+            "wf_meta.wf_uuid": uuid
+        }))
+
+        summaries = []
+
+        for d in docs:
+
+            optimize_task_label = d["task_label"].replace("static", "optimize")
+            optimize_task = dict(mmdb.collection.find_one({
+                "wf_meta.wf_uuid": uuid,
+                "task_label": optimize_task_label
+            }))
+            input_structure = Structure.from_dict(optimize_task['input']['structure'])
+            input_magmoms = optimize_task['input']['incar']['MAGMOM']
+            input_structure.add_site_property('magmom', input_magmoms)
+
+            final_structure = Structure.from_dict(d["output"]["structure"])
+
+            # picking a fairly large threshold so that default 0.6 µB magmoms don't
+            # cause problems with analysis, this is obviously not approriate for
+            # some magnetic structures with small magnetic moments (e.g. CuO)
+            input_analyzer = CollinearMagneticStructureAnalyzer(input_structure, threshold=0.61)
+            final_analyzer = CollinearMagneticStructureAnalyzer(final_structure, threshold=0.61)
+
+            if d["task_id"] == ground_state_task_id:
+                stable = True
+                decomposes_to = None
+            else:
+                stable = False
+                decomposes_to = ground_state_task_id
+            energy_above_ground_state_per_atom = d["output"]["energy_per_atom"] \
+                                                 - ground_state_energy
+            energy_diff_relax_static = optimize_task["output"]["energy_per_atom"] \
+                                       - d["output"]["energy_per_atom"]
+
+            # tells us the order in which structure was guessed
+            # 1 is FM, then AFM..., -1 means it was entered manually
+            # useful to give us statistics about how many orderings
+            # we actually need to calculate
+            task_label = d["task_label"].split(' ')
+            ordering_index = task_label.index('ordering')
+            ordering_index = int(task_label[ordering_index + 1])
+            if self.get("origins", None):
+                ordering_origin = self["origins"][ordering_index]
+            else:
+                ordering_origin = None
+
+            final_magmoms = final_structure.site_properties["magmom"]
+            magmoms = {"vasp": final_magmoms}
+            if self["perform_bader"]:
+                # if bader has already been run during task ingestion,
+                # use existing analysis
+                if "bader" in d:
+                    magmoms["bader"] = d["bader"]["magmom"]
+                # else try to run it
+                else:
+                    try:
+                        dir_name = d["dir_name"]
+                        # strip hostname if present, implicitly assumes
+                        # ToDB task has access to appropriate dir
+                        if ":" in dir_name:
+                            dir_name = dir_name.split(":")[1]
+                        magmoms["bader"] = bader_analysis_from_path(dir_name)["magmom"]
+                        # prefer bader magmoms if we have them
+                        final_magmoms = magmoms["bader"]
+                    except Exception as e:
+                        magmoms["bader"] = "Bader analysis failed: {}".format(e)
+
+            input_order_check = [0 if abs(m) < 0.61 else m for m in input_magmoms]
+            final_order_check = [0 if abs(m) < 0.61 else m for m in final_magmoms]
+            ordering_changed = not np.array_equal(np.sign(input_order_check),
+                                                  np.sign(final_order_check))
+
+            symmetry_changed = (final_structure.get_space_group_info()[0]
+                                != input_structure.get_space_group_info()[0])
+
+            total_magnetization = abs(d["calcs_reversed"][0]["output"]["outcar"]["total_magnetization"])
+            num_formula_units = sum(d["calcs_reversed"][0]["composition_reduced"].values())/\
+                                sum(d["calcs_reversed"][0]["composition_unit_cell"].values())
+            total_magnetization_per_formula_unit = total_magnetization/num_formula_units
+            total_magnetization_per_unit_volume = total_magnetization/final_structure.volume
+
+            summary = {
+                "formula": formula,
+                "formula_pretty": formula_pretty,
+                "parent_structure": self["parent_structure"].as_dict(),
+                "wf_meta": d["wf_meta"],  # book-keeping
+                "task_id": d["task_id"],
+                "structure": final_structure.as_dict(),
+                "magmoms": magmoms,
+                "input": {
+                    "structure": input_structure.as_dict(),
+                    "ordering": input_analyzer.ordering.value,
+                    "symmetry": input_structure.get_space_group_info()[0],
+                    "index": ordering_index,
+                    "origin": ordering_origin,
+                    "input_index": self.get("input_index", None)
+                },
+                "total_magnetization": total_magnetization,
+                "total_magnetization_per_formula_unit": total_magnetization_per_formula_unit,
+                "total_magnetization_per_unit_volume": total_magnetization_per_unit_volume,
+                "ordering": final_analyzer.ordering.value,
+                "ordering_changed": ordering_changed,
+                "symmetry": final_structure.get_space_group_info()[0],
+                "symmetry_changed": symmetry_changed,
+                "energy_per_atom": d["output"]["energy_per_atom"],
+                "stable": stable,
+                "decomposes_to": decomposes_to,
+                "energy_above_ground_state_per_atom": energy_above_ground_state_per_atom,
+                "energy_diff_relax_static": energy_diff_relax_static,
+                "created_at": datetime.utcnow()
+            }
+
+            if fw_spec.get("tags", None):
+                summary["tags"] = fw_spec["tags"]
+
+            summaries.append(summary)
+
+        mmdb.collection = mmdb.db["magnetic_orderings"]
+        mmdb.collection.insert(summaries)
+
+        logger.info("Magnetic orderings calculation complete.")
+
+
+@explicit_serialize
+class MagneticDeformationToDB(FiretaskBase):
+    """
+    Used to calculate magnetic deformation from
+    get_wf_magnetic_deformation workflow. See docstring
+    for that workflow for more information.
+    Required parameters:
+        db_file (str): path to the db file that holds your tasks
+        collection and that you want to hold the magnetic_orderings
+        collection
+        wf_uuid (str): auto-generated from get_wf_magnetic_orderings,
+        used to make it easier to retrieve task docs
+    Optional parameters:
+        to_db (bool): if True, the data will be inserted into
+        dedicated collection in database, otherwise, will be dumped
+        to a .json file.
+    """
+
+    required_params = ["db_file", "wf_uuid"]
+    optional_params = ["to_db"]
+
+    def run_task(self, fw_spec):
+
+        uuid = self["wf_uuid"]
+        db_file = env_chk(self.get("db_file"), fw_spec)
+        to_db = self.get("to_db", True)
+
+        mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
+
+        # get the non-magnetic structure
+        d_nm = mmdb.collection.find_one({
+            "task_label": "magnetic deformation optimize non-magnetic",
+            "wf_meta.wf_uuid": uuid
+        })
+        nm_structure = Structure.from_dict(d_nm["output"]["structure"])
+        nm_run_stats = d_nm["run_stats"]["overall"]
+
+        # get the magnetic structure
+        d_m = mmdb.collection.find_one({
+            "task_label": "magnetic deformation optimize magnetic",
+            "wf_meta.wf_uuid": uuid
+        })
+        m_structure = Structure.from_dict(d_m["output"]["structure"])
+        m_run_stats = d_m["run_stats"]["overall"]
+
+        msa = CollinearMagneticStructureAnalyzer(m_structure)
+        success = False if msa.ordering == Ordering.NM else True
+
+        # calculate magnetic deformation
+        mag_def = magnetic_deformation(nm_structure, m_structure).deformation
+
+        # get run stats (mostly used for benchmarking)
+        # using same approach as VaspDrone
+        try:
+            run_stats = {'nm': nm_run_stats, 'm': m_run_stats}
+            overall_run_stats = {}
+            for key in ["Total CPU time used (sec)", "User time (sec)", "System time (sec)",
+                        "Elapsed time (sec)"]:
+                overall_run_stats[key] = sum([v[key] for v in run_stats.values()])
+        except:
+            logger.error("Bad run stats for {}.".format(uuid))
+            overall_run_stats = "Bad run stats"
+
+        summary = {
+            "formula": nm_structure.composition.reduced_formula,
+            "success": success,
+            "magnetic_deformation": mag_def,
+            "non_magnetic_task_id": d_nm["task_id"],
+            "non_magnetic_structure": nm_structure.as_dict(),
+            "magnetic_task_id": d_m["task_id"],
+            "magnetic_structure": m_structure.as_dict(),
+            "run_stats": overall_run_stats,
+            "created_at": datetime.utcnow()
+        }
+
+        if fw_spec.get("tags", None):
+            summary["tags"] = fw_spec["tags"]
+
+        # db_file itself is required but the user can choose to pass the results to db or not
+        if to_db:
+            mmdb.collection = mmdb.db["magnetic_deformation"]
+            mmdb.collection.insert_one(summary)
+        else:
+            with open("magnetic_deformation.json", "w") as f:
+                f.write(json.dumps(summary, default=DATETIME_HANDLER))
+
+        logger.info("Magnetic deformation calculation complete.")
+
+
+@explicit_serialize
 class PolarizationToDb(FiretaskBase):
     """
     Recovers the same branch polarization and spontaneous polarization
@@ -828,7 +1093,7 @@ class PolarizationToDb(FiretaskBase):
 
         polarization = Polarization(p_elecs, p_ions, structures)
 
-        p_change = polarization.get_polarization_change().A1.tolist()
+        p_change = np.ravel(polarization.get_polarization_change()).tolist()
         p_norm = polarization.get_polarization_change_norm()
         polarization_max_spline_jumps = polarization.max_spline_jumps()
         same_branch = polarization.get_same_branch_polarization_data(convert_to_muC_per_cm2=True)
@@ -843,7 +1108,7 @@ class PolarizationToDb(FiretaskBase):
         def split_abc(var, var_name):
             d = {}
             for i, j in enumerate('abc'):
-                d.update({var_name + "_{}".format(j): var[:, i].A1.tolist()})
+                d.update({var_name + "_{}".format(j): np.ravel(var[:, i]).tolist()})
             return d
 
         # Add some sort of id for the structures? Like cid but more general?
