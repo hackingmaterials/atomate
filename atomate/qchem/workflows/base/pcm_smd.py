@@ -35,6 +35,14 @@ def get_wf_pcm_smd(molecule,
     """
 
     orig_qchem_input_params = qchem_input_params or {}
+    if smd_solvent == "custom" or smd_solvent == "other":
+        if "custom_smd" not in orig_qchem_input_params:
+            raise RuntimeError(
+                'Custom SMD parameters must be provided in qchem_input_params' +
+                '["custom_smd"] as a string of seven comma separated values in the ' +
+                'following order: dielectric, refractive index, acidity, basicity, ' +
+                'surface tension, aromaticity, electronegative halogenicity'
+                )
 
     # Calculate frequencies with the vacuum optimized geometry and the pcm
     pcm_qchem_input_params = {"pcm_dielectric": pcm_dielectric}

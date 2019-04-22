@@ -85,7 +85,7 @@ class WriteInputFromIOSet(FiretaskBase):
             raise KeyError(
                 "No molecule present, add as an optional param or check fw_spec"
             )
-        qcin.write_file(input_file)
+        qcin.write(input_file)
 
 
 @explicit_serialize

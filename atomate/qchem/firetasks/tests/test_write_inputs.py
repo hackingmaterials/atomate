@@ -32,6 +32,9 @@ class TestWriteInputQChem(AtomateTest):
         cls.opt_mol_pcm_ref_in = QCInput.from_file(
             os.path.join(module_dir, "..", "..", "test_files",
                          "to_opt_pcm.qin"))
+        cls.opt_mol_smd_ref_in = QCInput.from_file(
+            os.path.join(module_dir, "..", "..", "test_files",
+                         "to_opt_smd.qin"))
 
     def setUp(self, lpad=False):
         super(TestWriteInputQChem, self).setUp(lpad=False)
@@ -67,6 +70,20 @@ class TestWriteInputQChem(AtomateTest):
         test_dict = QCInput.from_file("mol.qin").as_dict()
         for k, v in self.opt_mol_pcm_ref_in.as_dict().items():
             self.assertEqual(v, test_dict[k])
+
+    def test_write_input_from_io_custom_smd(self):
+        ft = WriteInputFromIOSet(
+            molecule=self.opt_mol,
+            qchem_input_set="OptSet",
+            qchem_input_params={"smd_solvent": "custom", "custom_smd": "90.00,1.415,0.00,0.735,20.2,0.00,0.00"})
+        ft.run_task({})
+        test_dict = QCInput.from_file("mol.qin").as_dict()
+        for k, v in self.opt_mol_smd_ref_in.as_dict().items():
+            self.assertEqual(v, test_dict[k])
+        with open("solvent_data") as sd:
+            lines = sd.readlines()
+            self.assertEqual(lines[0],"90.00,1.415,0.00,0.735,20.2,0.00,0.00")
+        os.remove("solvent_data")
 
     def test_write_input_from_io_set_write_dir(self):
         ft = WriteInputFromIOSet(
