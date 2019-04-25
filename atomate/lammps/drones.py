@@ -11,8 +11,9 @@ from datetime import datetime
 import six
 
 from pymatgen.apps.borg.hive import AbstractDrone
-# from pymatgen.io.lammps.output import LammpsLog, LammpsDump, LammpsRun
-# from pymatgen.io.lammps.sets import LammpsInputSet
+from pymatgen.io.lammps.outputs import LammpsDump, LammpsLog
+from pymatgen.io.lammps.utils import LammpsRunner, PackmolRunner
+from pymatgen.io.lammps.inputs import LammpsInputSet
 
 from atomate.utils.utils import get_uri
 
@@ -46,7 +47,7 @@ class LammpsDrone(AbstractDrone):
         self.runs = []
         self.diffusion_params = diffusion_params
 
-    def assimilate(self, path, input_filename, log_filename="log.lammps",  is_forcefield=False,
+    def assimilate(self, path, lammps_input_set, input_filename, log_filename="log.lammps",  is_forcefield=False,
                    data_filename=None, dump_files=None):
         """
         Parses lammps input, data and log files and insert the result into the db.
@@ -68,9 +69,10 @@ class LammpsDrone(AbstractDrone):
         log_file = os.path.join(path, log_filename)
         dump_files = dump_files or []
         dump_files = [dump_files] if isinstance(dump_files, six.string_types) else dump_files
+        atom_style = lammps_input_set.config_dict.get('atom_style', 'full')
 
         # input set
-        lmps_input = LammpsInputSet.from_file("lammps", input_file, {}, data_file, data_filename)
+        lmps_input = LammpsInputSet.from_file(input_file, {'atom_style': atom_style}, data_file)
 
         # dumps
         dumps = []
@@ -79,7 +81,7 @@ class LammpsDrone(AbstractDrone):
                 dumps.append((df, LammpsDump.from_file(os.path.join(path, df))))
 
         # log
-        log = LammpsLog(log_file=log_file)
+        log = LammpsLog.from_file(log_file=log_file)
 
         logger.info("Getting task doc for base dir :{}".format(path))
         d = self.generate_doc(path, lmps_input, log, dumps)
@@ -120,6 +122,10 @@ class LammpsDrone(AbstractDrone):
             dict
         """
         try:
+            print("dir_name is ", dir_name)
+            print("lmps_input is ", lmps_input)
+            print("log is ", log)
+            print("dumps are ", dumps)
             fullpath = os.path.abspath(dir_name)
             if self.use_full_uri:
                 fullpath = get_uri(dir_name)

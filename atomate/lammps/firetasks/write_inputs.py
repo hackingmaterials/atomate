@@ -10,8 +10,8 @@ parameters file)
 import six
 
 from pymatgen import Molecule
-# from pymatgen.io.lammps.data import LammpsData
-# from pymatgen.io.lammps.sets import LammpsInputSet
+from pymatgen.io.lammps.data import LammpsData
+from pymatgen.io.lammps.inputs import LammpsInputSet
 
 from fireworks import FiretaskBase, explicit_serialize
 
@@ -34,16 +34,15 @@ class WriteInputFromIOSet(FiretaskBase):
 
     required_params = ["lammps_input_set", "input_filename"]
 
-    optional_params = ["data_filename"]
+    optional_params = ["data_filename", "output_dir"]
 
     def run_task(self, fw_spec):
 
         lammps_input_set = self["lammps_input_set"]
         input_filename = self["input_filename"]
-        data_filename = self.get("data_filename", None)
-        if isinstance(lammps_input_set.lammps_data, dict):
-            lammps_input_set.lammps_data = LammpsData.from_dict(lammps_input_set.lammps_data)
-        lammps_input_set.write_input(input_filename, data_filename)
+        data_filename = self.get("data_filename", "lammps.data")
+        output_dir = self.get("output_dir", '.')
+        lammps_input_set.write_input(input_filename=input_filename, output_dir=output_dir, data_filename=data_filename)
 
 
 @explicit_serialize

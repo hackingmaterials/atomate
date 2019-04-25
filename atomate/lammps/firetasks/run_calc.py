@@ -12,7 +12,7 @@ import shutil
 # from pymatgen.io.lammps.utils import PackmolRunner, LammpsRunner
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
-from pymatgen.io.lammps.utils import PackmolRunner
+from pymatgen.io.lammps.utils import PackmolRunner, LammpsRunner
 from atomate.utils.utils import get_logger
 
 __author__ = 'Kiran Mathew'
