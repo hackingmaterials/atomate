@@ -2,6 +2,20 @@
 atomate Changelog
 =================
 
+**v0.8.8**
+
+* magnetic ordering workflows (M. Horton)
+* better checks for AECAR storage (J. Shen)
+* update VASP NCF set NEDOS (M. Dylla)
+
+**v0.8.7**
+
+* store custodian data in its own key in FWAction (E. Sivonxay)
+
+**v0.8.6**
+
+* add bandstructure no-opt workflow preset (A. Ganose)
+
 **v0.8.5**
 
 * add NMR workflow (S. Dwaraknath)

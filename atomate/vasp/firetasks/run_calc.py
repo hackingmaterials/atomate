@@ -32,6 +32,7 @@ from custodian.vasp.validators import VasprunXMLValidator, VaspFilesValidator
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 from atomate.utils.utils import env_chk, get_logger
+from atomate.vasp.config import CUSTODIAN_MAX_ERRORS
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 __credits__ = 'Shyue Ping Ong <ong.sp>'
@@ -121,7 +122,7 @@ class RunVaspCustodian(FiretaskBase):
         job_type = self.get("job_type", "normal")
         scratch_dir = env_chk(self.get("scratch_dir"), fw_spec)
         gzip_output = self.get("gzip_output", True)
-        max_errors = self.get("max_errors", 5)
+        max_errors = self.get("max_errors", CUSTODIAN_MAX_ERRORS)
         auto_npar = env_chk(self.get("auto_npar"), fw_spec, strict=False, default=False)
         gamma_vasp_cmd = env_chk(self.get("gamma_vasp_cmd"), fw_spec, strict=False, default=None)
         if gamma_vasp_cmd:
@@ -204,7 +205,8 @@ class RunVaspCustodian(FiretaskBase):
         c.run()
 
         if os.path.exists(zpath("custodian.json")):
-            return FWAction(stored_data=loadfn(zpath("custodian.json")))
+            stored_custodian_data = {"custodian": loadfn(zpath("custodian.json"))}
+            return FWAction(stored_data=stored_custodian_data)
 
 
 @explicit_serialize

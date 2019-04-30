@@ -6,10 +6,10 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.qchem package &#8212; atomate 0.8.5 documentation</title>
+    <title>atomate.qchem package &#8212; atomate 0.8.8 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.8 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -193,7 +193,7 @@ The key is set from list of run types: self.runs</dd>
 
 <dl class="staticmethod">
 <dt id="atomate.qchem.drones.QChemDrone.get_valid_paths">
-<em class="property">static </em><code class="descname">get_valid_paths</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.get_valid_paths" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">get_valid_paths</code><span class="sig-paren">(</span><em>self</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.get_valid_paths" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks if path contains valid data for assimilation, and then returns
 the valid paths. The paths returned can be a list of directory or file
 paths, depending on what kind of data you are assimilating. For
@@ -215,27 +215,27 @@ example, you will want the file paths.</p>
 
 <dl class="staticmethod">
 <dt id="atomate.qchem.drones.QChemDrone.post_process">
-<em class="property">static </em><code class="descname">post_process</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.post_process" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">post_process</code><span class="sig-paren">(</span><em>dir_name</em>, <em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.post_process" title="Permalink to this definition">¶</a></dt>
 <dd><p>Post-processing for various files other than the QChem input and output files.
 Currently only looks for custodian.json. Modify this if other files need to be processed.</p>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="atomate.qchem.drones.QChemDrone.process_qchem_multirun">
-<em class="property">static </em><code class="descname">process_qchem_multirun</code><span class="sig-paren">(</span><em>input_files</em>, <em>output_files</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.process_qchem_multirun" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">process_qchem_multirun</code><span class="sig-paren">(</span><em>dir_name</em>, <em>input_files</em>, <em>output_files</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.process_qchem_multirun" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process a QChem run which is known to include multiple calculations
 in a single input/output pair.</p>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="atomate.qchem.drones.QChemDrone.process_qchemrun">
-<em class="property">static </em><code class="descname">process_qchemrun</code><span class="sig-paren">(</span><em>taskname</em>, <em>input_file</em>, <em>output_file</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.process_qchemrun" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">process_qchemrun</code><span class="sig-paren">(</span><em>dir_name</em>, <em>taskname</em>, <em>input_file</em>, <em>output_file</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.process_qchemrun" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process a QChem calculation, aka an input/output pair.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="atomate.qchem.drones.QChemDrone.schema">
-<code class="descname">schema</code><em class="property"> = {'input': {'job_type', 'initial_molecule'}, 'output': {'job_type', 'initial_molecule'}, 'root': {'chemsys', 'cputime', 'input', 'output', 'dir_name', 'smiles', 'calcs_reversed', 'walltime', 'pointgroup', 'formula_anonymous', 'formula_pretty'}}</em><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.schema" title="Permalink to this definition">¶</a></dt>
+<code class="descname">schema</code><em class="property"> = {'input': {'initial_molecule', 'job_type'}, 'output': {'initial_molecule', 'job_type'}, 'root': {'calcs_reversed', 'chemsys', 'cputime', 'dir_name', 'formula_anonymous', 'formula_pretty', 'input', 'output', 'pointgroup', 'smiles', 'walltime'}}</em><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.schema" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -262,7 +262,7 @@ to pass validation is unfortunately unlikely to be noticed by a user.</p>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
+  <h3><a href="index.html">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">atomate.qchem package</a><ul>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
@@ -307,13 +307,13 @@ to pass validation is unfortunately unlikely to be noticed by a user.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.8 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
     </div>
 
   </body>

@@ -6,10 +6,10 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Creating workflows &#8212; atomate 0.8.5 documentation</title>
+    <title>Creating workflows &#8212; atomate 0.8.8 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="builders.html" title="Builders: creating calculation reports for data analysis"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.8 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -103,7 +103,7 @@
 </div>
 <div class="section" id="finding-fireworks">
 <h3>Finding Fireworks<a class="headerlink" href="#finding-fireworks" title="Permalink to this headline">¶</a></h3>
-<p>Once you have identified each calculation or analysis step as a Firework in our graph, we must determine which Fireworks correspond to each node in our graph. The full Python documentation for each of the atomate Fireworks can be found in the <code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.fireworks</span> <span class="pre">module</span></code> documentation or the corresponding documentation page for the software you want to use. Currently FEFF, LAMMPS, and VASP are supported. Some available VASP Fireworks are</p>
+<p>Once you have identified each calculation or analysis step as a Firework in our graph, we must determine which Fireworks correspond to each node in our graph. The full Python documentation for each of the atomate Fireworks can be found in the <a class="reference internal" href="atomate.vasp.fireworks.html#module-atomate.vasp.fireworks" title="atomate.vasp.fireworks"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.fireworks</span> <span class="pre">module</span></code></a> documentation or the corresponding documentation page for the software you want to use. Currently FEFF, LAMMPS, and VASP are supported. Some available VASP Fireworks are</p>
 <ul class="simple">
 <li>OptimizeFW</li>
 <li>StaticFW</li>
@@ -132,12 +132,12 @@
 <li>PerturbStructureTransformation: Applies a perturbation of a specified amplitude to each site</li>
 <li>DeformStructureTransformation: Apply a deformation matrix to the lattice matrix of the structure</li>
 </ul>
-<p>You’ll notice that more generic Fireworks and Fireworks for analysis tasks are not in this list. Because they are intended to be simple and modular, these Fireworks are actually written as plain Firetasks that will get wrapped into a Firework when the Workflow is constructed. We’ll cover how to use them as Fireworks in the next section, but know that they can be found at places like <a class="reference internal" href="atomate.common.firetasks.html#module-atomate.common.firetasks" title="atomate.common.firetasks"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.common.firetasks</span> <span class="pre">module</span></code></a> for software-agnostic tasks such as <code class="docutils literal notranslate"><span class="pre">PassCalcLocs</span></code> or <code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.firetasks</span> <span class="pre">package</span> <span class="pre">&lt;atomate.vasp.firetasks</span></code> for some VASP specific ones, including the analysis tasks usually found in <code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.firetasks.parse_outputs</span></code>.</p>
+<p>You’ll notice that more generic Fireworks and Fireworks for analysis tasks are not in this list. Because they are intended to be simple and modular, these Fireworks are actually written as plain Firetasks that will get wrapped into a Firework when the Workflow is constructed. We’ll cover how to use them as Fireworks in the next section, but know that they can be found at places like <a class="reference internal" href="atomate.common.firetasks.html#module-atomate.common.firetasks" title="atomate.common.firetasks"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.common.firetasks</span> <span class="pre">module</span></code></a> for software-agnostic tasks such as <code class="docutils literal notranslate"><span class="pre">PassCalcLocs</span></code> or <code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.firetasks</span> <span class="pre">package</span> <span class="pre">&lt;atomate.vasp.firetasks</span></code> for some VASP specific ones, including the analysis tasks usually found in <a class="reference internal" href="atomate.vasp.firetasks.html#module-atomate.vasp.firetasks.parse_outputs" title="atomate.vasp.firetasks.parse_outputs"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.firetasks.parse_outputs</span></code></a>.</p>
 </div>
 <div class="section" id="creating-the-workflow">
 <h3>Creating the workflow<a class="headerlink" href="#creating-the-workflow" title="Permalink to this headline">¶</a></h3>
 <p>With each of the Fireworks identified for our sketched workflow, they can assemble them into a complete atomate Workflow in Python. In order to understand what’s going on here, you should be comfortable with creating instances of classes and using functions. To demonstrate how to assemble and use a workflow, we will use a slightly modified version of the Gibbs Free Energy Workflow and step through each line of code to explain what is going on.</p>
-<p>For context, the Gibbs Free Energy Workflow calculates <img class="math" src="_images/math/3e8656187474a3145c68b42dfc12efc5115aaa82.png" alt="G(P,T)"/> for a structure. Two methods for doing this are using the Debye model (see <a class="reference external" href="http://dx.doi.org/10.1016/j.comphy.2003.12.001">Blanco et al. Comput. Phys. Commun., 158, (2004)</a>) or through vibration frequencies of atoms (see <a class="reference external" href="http://dx.doi.org/10.1016/j.scriptamat.2015.07.021">Togo and Tanaka, Scr. Mater., 108 (2015)</a>. It does this by first optimizing the desired structure. Next, that optimized structure has its volume scaled and a VASP calculation that is either a static calculation or calculation with density functional perturbation theory (the <code class="docutils literal notranslate"><span class="pre">IBRION</span> <span class="pre">=</span> <span class="pre">7</span> <span class="pre">or</span> <span class="pre">8</span></code> INCAR setting) is performed depending on what type of analysis is used. In the analysis, the Debye model or a phonon calculation is used to extrapolate the from 0K to finite temperatures using the harmonic approximation, giving each structure an <img class="math" src="_images/math/88aec2489da0734cf63c2dd134a1f82301d7edac.png" alt="F(T)"/> dependence. Then each of these structures are considered together and fit to an equation of state which allows us express <img class="math" src="_images/math/ed2a0cbdcad2bc864a89ae8e66bd25d60f55957d.png" alt="F(V,T)"/> for this structure, which we can transform to <img class="math" src="_images/math/3e8656187474a3145c68b42dfc12efc5115aaa82.png" alt="G(P,T)"/> to get the Gibbs free energy of that structure. The phonopy website has a <a class="reference external" href="https://atztogo.github.io/phonopy/qha.html#phonopy-qha">good visualization for Helmholtz energies and volumes with increasing temperature</a>.</p>
+<p>For context, the Gibbs Free Energy Workflow calculates <img class="math" src="_images/math/66a97789fe1a1365e5a6db0b58fc1abec5dfeb46.png" alt="G(P,T)"/> for a structure. Two methods for doing this are using the Debye model (see <a class="reference external" href="http://dx.doi.org/10.1016/j.comphy.2003.12.001">Blanco et al. Comput. Phys. Commun., 158, (2004)</a>) or through vibration frequencies of atoms (see <a class="reference external" href="http://dx.doi.org/10.1016/j.scriptamat.2015.07.021">Togo and Tanaka, Scr. Mater., 108 (2015)</a>. It does this by first optimizing the desired structure. Next, that optimized structure has its volume scaled and a VASP calculation that is either a static calculation or calculation with density functional perturbation theory (the <code class="docutils literal notranslate"><span class="pre">IBRION</span> <span class="pre">=</span> <span class="pre">7</span> <span class="pre">or</span> <span class="pre">8</span></code> INCAR setting) is performed depending on what type of analysis is used. In the analysis, the Debye model or a phonon calculation is used to extrapolate the from 0K to finite temperatures using the harmonic approximation, giving each structure an <img class="math" src="_images/math/67be806f44b78982eb821332699a2c84e086485d.png" alt="F(T)"/> dependence. Then each of these structures are considered together and fit to an equation of state which allows us express <img class="math" src="_images/math/78763521c82d5102be5a3f148fe107a4705627c7.png" alt="F(V,T)"/> for this structure, which we can transform to <img class="math" src="_images/math/66a97789fe1a1365e5a6db0b58fc1abec5dfeb46.png" alt="G(P,T)"/> to get the Gibbs free energy of that structure. The phonopy website has a <a class="reference external" href="https://atztogo.github.io/phonopy/qha.html#phonopy-qha">good visualization for Helmholtz energies and volumes with increasing temperature</a>.</p>
 <p>The Python implementation of the modified Gibbs Free Energy Workflow is:</p>
 <div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
  2
@@ -314,7 +314,7 @@
 </td></tr></table></div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The documentation and source for the actual Gibbs Free Energy Workflow is found at <code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.base.gibbs</span></code>. Here we have simplified some of the options and explicitly added each Firework.</p>
+<p class="last">The documentation and source for the actual Gibbs Free Energy Workflow is found at <a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base.gibbs" title="atomate.vasp.workflows.base.gibbs"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.base.gibbs</span></code></a>. Here we have simplified some of the options and explicitly added each Firework.</p>
 </div>
 <p>In the above code example, we start by importing the classes and functions we’ll be using and defining our <code class="docutils literal notranslate"><span class="pre">wf_gibbs_free_energy</span></code> function with all of the parameters we’d like to control from a workflow level and the documentation for those parameters. Running the function will return a FireWorks Workflow to add to the LaunchPad.</p>
 <p>Lines 41-51 is where we define the optimization Firework. First we check if a vasp_input_set_relax parameter was passed, if not we default to MPRelaxSet and update that set if the <code class="docutils literal notranslate"><span class="pre">user_kpoints_settings</span></code> parameter was passed. It’s common to see a similar parameter for <code class="docutils literal notranslate"><span class="pre">user_incar_settings</span></code>. On line 49 we create our list of Fireworks (<code class="docutils literal notranslate"><span class="pre">fws</span></code>) with the <code class="docutils literal notranslate"><span class="pre">OptimizeFW</span></code> that we imported. Take note that this is the only Firework we pass our structure to, which allows for more flexibility. More on this later.</p>
@@ -325,7 +325,7 @@
 <div class="section" id="more-help">
 <h3>More help<a class="headerlink" href="#more-help" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Reading the source the base Workflows (<code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.base</span></code>) would be a good place to find functional examples with reasonable parameters</li>
+<li>Reading the source the base Workflows (<a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base" title="atomate.vasp.workflows.base"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.base</span></code></a>) would be a good place to find functional examples with reasonable parameters</li>
 <li>Creating workflows can also be done to some extent in YAML files. You can adapt the example along with a short explanation of the <a class="reference internal" href="workflow_yaml_reference.html#workflow-yaml-reference"><span class="std std-ref">Workflow YAML Reference</span></a>.</li>
 </ul>
 </div>
@@ -335,7 +335,7 @@
 <p>There are a few other interesting features of workflows in atomate that make writing dynamic and customizable workflows easier.</p>
 <div class="section" id="powerups">
 <h3>Powerups<a class="headerlink" href="#powerups" title="Permalink to this headline">¶</a></h3>
-<p>Powerups (<code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.powerups</span></code>) enable modifications to be made to workflows <strong>after</strong> they have been created. The benefit of these is that you can apply powerups conditionally in code or to a large list of Workflows that you’ll later add to your LaunchPad. Some powerups affect the behavior of your calculations, others simply add metadata or change how the individual Fireworks interact with the database under the hood.</p>
+<p>Powerups (<a class="reference internal" href="atomate.vasp.html#module-atomate.vasp.powerups" title="atomate.vasp.powerups"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.powerups</span></code></a>) enable modifications to be made to workflows <strong>after</strong> they have been created. The benefit of these is that you can apply powerups conditionally in code or to a large list of Workflows that you’ll later add to your LaunchPad. Some powerups affect the behavior of your calculations, others simply add metadata or change how the individual Fireworks interact with the database under the hood.</p>
 <p>Some useful powerups that affect the behavior of VASP are</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">add_modify_incar</span></code>: Update the INCAR of Fireworks specifed by (partially matched) name at runtime</li>
@@ -388,7 +388,7 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
+  <h3><a href="index.html">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Creating Workflows</a><ul>
 <li><a class="reference internal" href="#introduction">Introduction</a></li>
@@ -457,13 +457,13 @@
         <li class="right" >
           <a href="builders.html" title="Builders: creating calculation reports for data analysis"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.8 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
     </div>
 
   </body>

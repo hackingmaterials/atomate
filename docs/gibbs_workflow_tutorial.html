@@ -6,10 +6,10 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Running Gibbs workflows &#8212; atomate 0.8.5 documentation</title>
+    <title>Running Gibbs workflows &#8212; atomate 0.8.8 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="running_workflows.html" title="Running Workflows Tutorial"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.8 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -50,7 +50,7 @@
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>Standard density functional theory calculations are 0 K ground state calculations, but most materials are used and modeled at room temperature and above.
-The Debye model and phonon calculations are two commonly used methods to obtain Gibbs free energies (<img class="math" src="_images/math/ac6ca4ed0f613054aed262904cf7f1e5bde0e4d0.png" alt="G(p,T)"/>) of structures as a function of temperature.
+The Debye model and phonon calculations are two commonly used methods to obtain Gibbs free energies (<img class="math" src="_images/math/21bf7e6d55dfb97d60bdb21b0339d8b343f3ba84.png" alt="G(p,T)"/>) of structures as a function of temperature.
 Both the Debye model and phonon calculations are supported in atomate, where the Debye model analysis is based on the quasiharmonic technique presented in
 Moruzzi et al. (<a class="reference external" href="https://doi.org/10.1103/PhysRevB.37.790">Phys. Rev. B 37, 790–799 (1988).</a>) and implemented similar to Toher et al. (<a class="reference external" href="https://doi.org/10.1103/PhysRevB.90.174107">Phys. Rev. B 90, 1–14 (2014).</a>.
 Phonon calculation analysis is performed using <a class="reference external" href="https://atztogo.github.io/phonopy/">phonopy</a> (Togo &amp; Tanaka <a class="reference external" href="https://doi.org/10.1016/j.scriptamat.2015.07.021">Scr. Mater. 108, 1–5 (2015).</a>).</p>
@@ -69,14 +69,14 @@ The resulting Gibbs free energies from the calculation will be queried from your
 <h2>Gibbs Free Energy Workflows<a class="headerlink" href="#gibbs-free-energy-workflows" title="Permalink to this headline">¶</a></h2>
 <p>Gibbs free energies are calculated in DFT based on the following relation:</p>
 <div class="math">
-<p><img src="_images/math/bcf7f63fae58daaf65e375f71190f2462f5914ea.png" alt="G(p,T) = E(V) + pV + F_{\textrm{vib}}(V,T)"/></p>
-</div><p>where <img class="math" src="_images/math/fa5bdabe0a7319335db37adb0132122e92375c17.png" alt="E(V)"/> are the total energies calculated with DFT as a function of volume and <img class="math" src="_images/math/aa0695ba4ffe8720f4922d37f4de70c2db4526cd.png" alt="F_{\textrm{vib}}(V,T)"/> is the vibrational contribution to the Helmholz energy.
+<p><img src="_images/math/a2af98f30bcea97cee6215f77d3f45e87073d56d.png" alt="G(p,T) = E(V) + pV + F_{\textrm{vib}}(V,T)"/></p>
+</div><p>where <img class="math" src="_images/math/7d28b83e95abf8aa59bcd91638cd7497b0045c5f.png" alt="E(V)"/> are the total energies calculated with DFT as a function of volume and <img class="math" src="_images/math/1a4b629275000c607845a73db48e6ac7f90e2c66.png" alt="F_{\textrm{vib}}(V,T)"/> is the vibrational contribution to the Helmholz energy.
 This vibrational energy is calculated using a harmonic approximation, here via the Debye model.</p>
-<p>To calculate the Gibbs free energy, total energies are calculated for several volumes, then vibrational contributions are added for each volume over a range of temperatures to give <img class="math" src="_images/math/ed2a0cbdcad2bc864a89ae8e66bd25d60f55957d.png" alt="F(V,T)"/>.
+<p>To calculate the Gibbs free energy, total energies are calculated for several volumes, then vibrational contributions are added for each volume over a range of temperatures to give <img class="math" src="_images/math/78763521c82d5102be5a3f148fe107a4705627c7.png" alt="F(V,T)"/>.
 Then an equation of state is fit for each set of energies and volumes at each temperature.
 Several different equations of state are implemented in pymatgen and several of those are discussed in terms of the Debye model by Shang et al. (<a class="reference external" href="https://doi.org/10.1016/j.commatsci.2009.12.006">Comput. Mater. Sci. 47, 1040–1048 (2010).</a>).
-Using the fit equation of state, the volume that minimized the energy at a fixed pressure (usually, but not always <img class="math" src="_images/math/4d49240263574809f9190934407fc4495fdff52d.png" alt="p=0"/>) is found.
-Finding the minimum volume at each temperature and fixed pressure yields the conversion from <img class="math" src="_images/math/aa0695ba4ffe8720f4922d37f4de70c2db4526cd.png" alt="F_{\textrm{vib}}(V,T)"/> to <img class="math" src="_images/math/a7ba23a9afbf7968fd0c491fb943a4f230bb5c7b.png" alt="G(V,T)"/></p>
+Using the fit equation of state, the volume that minimized the energy at a fixed pressure (usually, but not always <img class="math" src="_images/math/699a37bbd7b0416548ee19df7cf0858bb9ec46b1.png" alt="p=0"/>) is found.
+Finding the minimum volume at each temperature and fixed pressure yields the conversion from <img class="math" src="_images/math/1a4b629275000c607845a73db48e6ac7f90e2c66.png" alt="F_{\textrm{vib}}(V,T)"/> to <img class="math" src="_images/math/66ebfcff6eadbfdcfbed124f9584df0c3570dc8a.png" alt="G(V,T)"/></p>
 <p>From the perspective of a workflow, the Gibbs free energy workflow is procedurally similar to the elastic tensor workflow.
 First the input structure is optimized, then volume of the optimize structure is deformed and energies calculated to yield the points for an E-V curve (or phonon calculations), finally the analysis workflow corresponding to the Debye model or phonon formalism is performed.</p>
 <div class="figure" id="id2">
@@ -106,8 +106,8 @@ You’ll keep all of the files for this tutorial there.</p>
 <h3>Use Python to generate and add the workflow<a class="headerlink" href="#use-python-to-generate-and-add-the-workflow" title="Permalink to this headline">¶</a></h3>
 <p>We’ll use diamond Si as a simple example and get the structure from the Materials Project.
 This requires that you set up an API key in your <code class="docutils literal notranslate"><span class="pre">.pmgrc.yaml</span></code>.
-In the installation tutorial, you set up your <code class="docutils literal notranslate"><span class="pre">FW_config.yaml</span></code>, you indicated the atomate Fireworks can be found at <code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.fireworks</span></code>.
-Similarly, atomate preset workflows can be imported from <code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.presets.core</span></code>, which thinly wraps the base workflows (<code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.base</span></code>) allowing for common settings to be changed with configuration dictionaries.
+In the installation tutorial, you set up your <code class="docutils literal notranslate"><span class="pre">FW_config.yaml</span></code>, you indicated the atomate Fireworks can be found at <a class="reference internal" href="atomate.vasp.fireworks.html#module-atomate.vasp.fireworks" title="atomate.vasp.fireworks"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.fireworks</span></code></a>.
+Similarly, atomate preset workflows can be imported from <a class="reference internal" href="atomate.vasp.workflows.presets.html#module-atomate.vasp.workflows.presets.core" title="atomate.vasp.workflows.presets.core"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.presets.core</span></code></a>, which thinly wraps the base workflows (<a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base" title="atomate.vasp.workflows.base"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.base</span></code></a>) allowing for common settings to be changed with configuration dictionaries.
 And we can setup the workflow and add it to our LaunchPad ready to run in just a few lines of Python.</p>
 <p><strong>Create the workflow script</strong></p>
 <p>In the directory you created, make a Python script named <code class="docutils literal notranslate"><span class="pre">gibbs.py</span></code> with the following contents:</p>
@@ -146,7 +146,7 @@ And we can setup the workflow and add it to our LaunchPad ready to run in just a
 In the Debye model, the Poisson ratio controls the shape and magnitude of the elbow in the heat capacity curve.
 Typical materials are sometimes idealized to have a Poisson ratio of 0.33, but to have the most accurate ratio will give more accurate heat capacities near the low temperature limit.
 Poisson ratios can be taken from experimental references, from the Materials Project and are often comparable for chemically similar structures (alternatively, they be first calculated via the elastic tensor workflow).</p>
-<p>Since we are potentially interested in the high-temperature thermodynamic behavior of Si, we set the anharmonic contribution to <code class="docutils literal notranslate"><span class="pre">True</span></code>, so that we can properly deviate from the high-temperature limit of the Debye model of <img class="math" src="_images/math/9a58b114ed330a6575364d3a7d9aacf5e8ec4a19.png" alt="3R"/> based on the Gruneisen parameter, <img class="math" src="_images/math/0ebb67342b546ca42a1c634b1ef03c893c4cdedb.png" alt="\gamma"/>.</p>
+<p>Since we are potentially interested in the high-temperature thermodynamic behavior of Si, we set the anharmonic contribution to <code class="docutils literal notranslate"><span class="pre">True</span></code>, so that we can properly deviate from the high-temperature limit of the Debye model of <img class="math" src="_images/math/294bfec245799ab29aace193d2a6a9ca12c107b0.png" alt="3R"/> based on the Gruneisen parameter, <img class="math" src="_images/math/3666981dc77862de77b6ecfcb64aad59b425cbaf.png" alt="\gamma"/>.</p>
 <p><strong>Create and add the workflow to LaunchPad</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python gibbs.py
 </pre></div>
@@ -235,7 +235,7 @@ Simply add the following Python script (<code class="docutils literal notranslat
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
+  <h3><a href="index.html">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Running Gibbs Workflows</a><ul>
 <li><a class="reference internal" href="#introduction">Introduction</a></li>
@@ -297,13 +297,13 @@ Simply add the following Python script (<code class="docutils literal notranslat
         <li class="right" >
           <a href="running_workflows.html" title="Running Workflows Tutorial"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.8 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
     </div>
 
   </body>

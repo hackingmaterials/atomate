@@ -6,10 +6,10 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Running workflows tutorial &#8212; atomate 0.8.5 documentation</title>
+    <title>Running workflows tutorial &#8212; atomate 0.8.8 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="developer_installation.html" title="Installing atomate in development mode"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.8 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -142,9 +142,9 @@ Since there is already one defined for a bandstructure, it is not necessary to d
 <p>The YAML version above is more efficient and clear to read and modify than a typical shell script to set up and run these calculations by hand.
 Even so, this workflow would have been tedious to type out rather than copy-paste.
 <a class="reference external" href="https://www.youtube.com/watch?v=wf-BqAjZb8M">There must be a better way!</a> Enter Python.</p>
-<p>In the installation tutorial, you set up your <code class="docutils literal notranslate"><span class="pre">FW_config.yaml</span></code>, you indicated the atomate Fireworks can be found at <code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.fireworks</span></code>.
-Similarly, atomate preset workflows can be imported from <code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.presets.core</span></code>,
-which thinly wraps the base workflows (<code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.base</span></code>) allowing for common settings to be changed with configuration dictionaries.
+<p>In the installation tutorial, you set up your <code class="docutils literal notranslate"><span class="pre">FW_config.yaml</span></code>, you indicated the atomate Fireworks can be found at <a class="reference internal" href="atomate.vasp.fireworks.html#module-atomate.vasp.fireworks" title="atomate.vasp.fireworks"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.fireworks</span></code></a>.
+Similarly, atomate preset workflows can be imported from <a class="reference internal" href="atomate.vasp.workflows.presets.html#module-atomate.vasp.workflows.presets.core" title="atomate.vasp.workflows.presets.core"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.presets.core</span></code></a>,
+which thinly wraps the base workflows (<a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base" title="atomate.vasp.workflows.base"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.base</span></code></a>) allowing for common settings to be changed with configuration dictionaries.
 We can setup the workflow and add it to our LaunchPad ready to run in just a few lines of Python.</p>
 <p><strong>Create the workflow script</strong></p>
 <p>In the same directory as the POSCAR, create a Python script named <code class="docutils literal notranslate"><span class="pre">mgo_bandstructure.py</span></code> with the following contents:</p>
@@ -249,7 +249,7 @@ Simply add the following Python script (<code class="docutils literal notranslat
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
+  <h3><a href="index.html">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Running Workflows Tutorial</a><ul>
 <li><a class="reference internal" href="#introduction">Introduction</a></li>
@@ -315,13 +315,13 @@ Simply add the following Python script (<code class="docutils literal notranslat
         <li class="right" >
           <a href="developer_installation.html" title="Installing atomate in development mode"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.8 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
     </div>
 
   </body>

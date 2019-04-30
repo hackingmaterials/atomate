@@ -6,10 +6,10 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.utils package &#8212; atomate 0.8.5 documentation</title>
+    <title>atomate.utils package &#8212; atomate 0.8.8 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.8 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -159,7 +159,7 @@ dest (str): destination file full path</dd>
 
 <dl class="staticmethod">
 <dt id="atomate.utils.fileio.FileClient.exists">
-<em class="property">static </em><code class="descname">exists</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.exists" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">exists</code><span class="sig-paren">(</span><em>sftp</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.exists" title="Permalink to this definition">¶</a></dt>
 <dd><p>os.path.exists() for paramiko’s SCP object</p>
 <dl class="docutils">
 <dt>Args:</dt>
@@ -170,7 +170,7 @@ path (str): path to check existence of</dd>
 
 <dl class="staticmethod">
 <dt id="atomate.utils.fileio.FileClient.get_ssh_connection">
-<em class="property">static </em><code class="descname">get_ssh_connection</code><span class="sig-paren">(</span><em>host</em>, <em>private_key</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.get_ssh_connection" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">get_ssh_connection</code><span class="sig-paren">(</span><em>username</em>, <em>host</em>, <em>private_key</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.get_ssh_connection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Connect to the remote host via paramiko using the private key.
 If the host key is not present it will be added automatically.</p>
 <dl class="docutils">
@@ -467,7 +467,7 @@ u (dict): updates to propogate</div></blockquote>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
+  <h3><a href="index.html">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">atomate.utils package</a><ul>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
@@ -513,13 +513,13 @@ u (dict): updates to propogate</div></blockquote>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.8.8 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
     </div>
 
   </body>
