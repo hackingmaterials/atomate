@@ -95,7 +95,6 @@ class VaspToDb(FiretaskBase):
                           parse_chgcar=self.get("parse_chgcar", False),
                           parse_aeccar=self.get("parse_aeccar", False))
 
-
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)
 
