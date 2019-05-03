@@ -16,7 +16,7 @@ from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.fireworks.polarization import LcalcpolFW
 from atomate.vasp.fireworks.core import HSEBSFW
 from atomate.vasp.firetasks.parse_outputs import PolarizationToDb
-from atomate.vasp.powerups import add_tags
+from atomate.vasp.powerups import add_tags, modify_gzip_vasp
 
 __author__ = 'Tess Smidt'
 __email__ = 'tsmidt@berkeley.edu'
@@ -139,5 +139,8 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
     # Create Workflow task and add tags to workflow
     workflow = Workflow(wf)
     workflow = add_tags(workflow, [wfid] + tags)
+
+    # Prevent gzipping from RunVaspCustodian approaches
+    workflow = modify_gzip_vasp(workflow, False)
 
     return workflow
