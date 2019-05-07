@@ -164,6 +164,11 @@ class RunVaspCustodian(FiretaskBase):
             # inside this.
             # -computron
 
+            vasp_neb = self.get("vasp_cmd", ">>vasp_neb_cmd<<")
+            jobs = [VaspNEBJob(vasp_cmd, final=False, auto_npar=auto_npar,
+                               gamma_vasp_cmd=gamma_vasp_cmd)]
+
+            """
             # Index the tag "-n" or "-np"
             index = [i for i, s in enumerate(vasp_cmd) if '-n' in s]
             ppn = int(vasp_cmd[index[0] + 1])
@@ -177,6 +182,7 @@ class RunVaspCustodian(FiretaskBase):
 
             jobs = [VaspNEBJob(vasp_cmd, final=False, auto_npar=auto_npar,
                                gamma_vasp_cmd=gamma_vasp_cmd)]
+            """
         else:
             raise ValueError("Unsupported job type: {}".format(job_type))
 

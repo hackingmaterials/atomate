@@ -847,8 +847,7 @@ class NEBFW(Firework):
         cust_args = {"job_type": "neb", "gzip_output": False,
                      "handler_group": "no_handler"}
         cust_args.update(additional_cust_args)
-        vasp_cmd     = spec.get('vasp_cmd', '>>vasp_cmd')
-        run_neb_task = RunVaspCustodian(vasp_cmd=vasp_cmd,
+        run_neb_task = RunVaspCustodian(vasp_cmd=">>vasp_neb_cmd",
                                         gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                         **cust_args)
 
