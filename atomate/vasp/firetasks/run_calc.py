@@ -165,7 +165,7 @@ class RunVaspCustodian(FiretaskBase):
             # -computron
 
             vasp_neb = self.get("vasp_cmd", ">>vasp_neb_cmd<<")
-            jobs = [VaspNEBJob(vasp_cmd, final=False, auto_npar=auto_npar,
+            jobs = [VaspNEBJob(vasp_neb, final=False, auto_npar=auto_npar,
                                gamma_vasp_cmd=gamma_vasp_cmd)]
 
             """
