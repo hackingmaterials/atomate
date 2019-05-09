@@ -9,7 +9,7 @@ six==1.12.0
 pybtex==0.22.2
 ruamel.yaml==0.15.89
 pandas==0.23.4
-pymatgen==2019.03.27
+pymatgen==2019.05.8
 custodian==2019.2.10
 networkx==2.2
 pydash==4.7.3
