@@ -21,8 +21,9 @@ logger = get_logger(__name__)
 class LammpsCalcDb(CalcDb):
 
     def __init__(self, host="localhost", port=27017, database="lammps", collection="tasks",
-                 user=None, password=None):
-        super(LammpsCalcDb, self).__init__(host, port, database, collection, user, password)
+                 user=None, password=None, **kwargs):
+        super(LammpsCalcDb, self).__init__(host, port, database, collection,
+                                           user, password, **kwargs)
 
     def build_indexes(self, indexes=None, background=True):
         indexes = indexes or []
