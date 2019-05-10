@@ -143,7 +143,7 @@ class VaspToDb(FiretaskBase):
                     if has(task_doc, path_in_task_doc):
                         update_spec[key] = get(task_doc, path_in_task_doc)
                     else:
-                        logger.warn("Could not find {} in task document. Unable to push to next firetask/firework".format(path_in_task_doc))
+                        logger.warning("Could not find {} in task document. Unable to push to next firetask/firework".format(path_in_task_doc))
             else:
                 raise RuntimeError("Inappropriate type {} for task_fields_to_push. It must be a "
                                    "dictionary of format: {key: path} where key refers to a field "
@@ -443,7 +443,7 @@ class RamanTensorToDb(FiretaskBase):
             # frequency in cm^-1
             omega = nm_frequencies[k]
             if nm_eigenvals[k] > 0:
-                logger.warn("Mode: {} is UNSTABLE. Freq(cm^-1) = {}".format(k, -omega))
+                logger.warning("Mode: {} is UNSTABLE. Freq(cm^-1) = {}".format(k, -omega))
             raman_tensor = scale * raman_tensor * np.sum(nm_norms[k]) / np.sqrt(omega)
             raman_tensor_dict[str(k)] = raman_tensor.tolist()
 
@@ -575,7 +575,7 @@ class GibbsAnalysisToDb(FiretaskBase):
         except:
             import traceback
 
-            logger.warn("Quasi-harmonic analysis failed!")
+            logger.warning("Quasi-harmonic analysis failed!")
             gibbs_dict["success"] = False
             gibbs_dict["traceback"] = traceback.format_exc()
             gibbs_dict['metadata'].update({"task_label_tag": tag})
@@ -799,7 +799,7 @@ class MagneticOrderingsToDB(FiretaskBase):
         idx = energies.index(ground_state_energy)
         ground_state_task_id = docs[idx]["task_id"]
         if energies.count(ground_state_energy) > 1:
-            logger.warn("Multiple identical energies exist, "
+            logger.warning("Multiple identical energies exist, "
                         "duplicate calculations for {}?".format(formula))
 
         # get results for different orderings

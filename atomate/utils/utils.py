@@ -344,7 +344,7 @@ def get_database(config_file=None, settings=None, admin=False, **kwargs):
         passwd = d["admin_password"] if admin else d["readonly_password"]
         db.authenticate(user, passwd)
     except (KeyError, TypeError, ValueError):
-        logger.warn("No {admin,readonly}_user/password found in config. file, "
+        logger.warning("No {admin,readonly}_user/password found in config. file, "
             "accessing DB without authentication")
     return db
 
