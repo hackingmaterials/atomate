@@ -568,3 +568,16 @@ def use_gamma_vasp(original_wf, gamma_vasp_cmd):
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="RunVaspCustodian"):
         original_wf.fws[idx_fw].tasks[idx_t]["gamma_vasp_cmd"] = gamma_vasp_cmd
     return original_wf
+
+def modify_gzip_vasp(original_wf, gzip_output):
+    """
+    For all RunVaspCustodian tasks, modify gzip_output boolean
+    Args:
+        original_wf (Workflow)
+        gzip_output (bool): Value to set gzip_output to for RunVaspCustodian
+    Returns:
+       Workflow
+    """
+    for idx_fw, idx_t in get_fws_and_tasks(original_wf, task_name_constraint="RunVaspCustodian"):
+        original_wf.fws[idx_fw].tasks[idx_t]["gzip_output"] = gzip_output
+    return original_wf
