@@ -78,9 +78,12 @@ class QChemToDb(FiretaskBase):
             output_file=output_file,
             multirun=multirun)
 
+        if "tags" in fw_spec:
+            task_doc.update({"tags": fw_spec["tags"]})
+
         # Check for additional keys to set based on the fw_spec
         if self.get("fw_spec_field"):
-            task_doc.update(fw_spec[self.get("fw_spec_field")])
+            task_doc.update({self.get("fw_spec_field"): fw_spec.get(self.get("fw_spec_field"))})
 
         # Update fw_spec with final/optimized structure
         update_spec = {}
@@ -101,7 +104,6 @@ class QChemToDb(FiretaskBase):
             if not is_ion_pos:
                 update_spec["prev_calc_molecule"] = task_doc["output"]["optimized_molecule"]
                 update_spec["prev_calc_mulliken"] = task_doc["output"]["mulliken"]
-            
 
         # get the database connection
         db_file = env_chk(self.get("db_file"), fw_spec)
