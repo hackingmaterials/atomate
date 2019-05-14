@@ -157,7 +157,7 @@ def get_slab_trans_params(slab):
 
 def get_wf_slab(slab, include_bulk_opt=False, adsorbates=None,
                 ads_structures_params=None, ads_site_finder_params=None,vasp_cmd="vasp",
-                db_file=None, add_molecules_in_box=False):
+                db_file=None, add_molecules_in_box=False, user_incar_settings=None):
     """
     Gets a workflow corresponding to a slab calculation along with optional
     adsorbate calcs and precursor oriented unit cell optimization
@@ -189,7 +189,7 @@ def get_wf_slab(slab, include_bulk_opt=False, adsorbates=None,
     # Add bulk opt firework if specified
     if include_bulk_opt:
         oriented_bulk = slab.oriented_unit_cell
-        vis = MPSurfaceSet(oriented_bulk, bulk=True)
+        vis = MPSurfaceSet(oriented_bulk, bulk=True, user_incar_settings=user_incar_settings)
         fws.append(OptimizeFW(structure=oriented_bulk, vasp_input_set=vis,
                               vasp_cmd=vasp_cmd, db_file=db_file))
         parents = fws[-1]
@@ -264,7 +264,7 @@ def get_wf_molecules(molecules, vasp_input_set=None, db_file=None,
 def get_wfs_all_slabs(bulk_structure, include_bulk_opt=False,
                       adsorbates=None, max_index=1, slab_gen_params=None,
                       ads_structures_params=None, ads_site_finder_params=None,vasp_cmd="vasp",
-                      db_file=None, add_molecules_in_box=False):
+                      db_file=None, add_molecules_in_box=False, user_incar_settings=None):
     """
     Convenience constructor that allows a user to construct a workflow
     that finds all adsorption configurations (or slabs) for a given
@@ -293,7 +293,8 @@ def get_wfs_all_slabs(bulk_structure, include_bulk_opt=False,
     wfs = []
     for slab in slabs:
         slab_wf = get_wf_slab(slab, include_bulk_opt, adsorbates,
-                              ads_structures_params, ads_site_finder_params,vasp_cmd, db_file)
+                              ads_structures_params, ads_site_finder_params,vasp_cmd,
+                              db_file, user_incar_settings=user_incar_settings)
         wfs.append(slab_wf)
 
     if add_molecules_in_box:
