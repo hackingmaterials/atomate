@@ -34,8 +34,9 @@ class VaspCalcDb(CalcDb):
     """
 
     def __init__(self, host="localhost", port=27017, database="vasp", collection="tasks", user=None,
-                 password=None):
-        super(VaspCalcDb, self).__init__(host, port, database, collection, user, password)
+                 password=None, **kwargs):
+        super(VaspCalcDb, self).__init__(host, port, database, collection, user,
+                                         password, **kwargs)
 
     def build_indexes(self, indexes=None, background=True):
         """

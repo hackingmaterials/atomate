@@ -348,7 +348,7 @@ class WriteNEBFromEndpoints(FiretaskBase):
             images = ep0.interpolate(ep1, nimages=nimages + 1, autosort_tol=sort_tol)
         except Exception as e:
             if "Unable to reliably match structures " in str(e):
-                logger.warn("Auto sorting is turned off because it is unable to match the "
+                logger.warning("Auto sorting is turned off because it is unable to match the "
                             "end-point structures!")
                 images = ep0.interpolate(ep1, nimages=nimages + 1, autosort_tol=0)
             else:

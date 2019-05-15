@@ -25,14 +25,17 @@ logger = get_logger(__name__)
 
 class CalcDb(six.with_metaclass(ABCMeta)):
 
-    def __init__(self, host, port, database, collection, user, password):
+    def __init__(self, host, port, database, collection, user, password, **kwargs):
         self.host = host
         self.db_name = database
         self.user = user
         self.password = password
         self.port = int(port)
+
         try:
-            self.connection = MongoClient(self.host, self.port)
+            self.connection = MongoClient(host=self.host, port=self.port,
+                                          username=self.user,
+                                          password=self.password, **kwargs)
             self.db = self.connection[self.db_name]
         except:
             logger.error("Mongodb connection failed")
@@ -122,5 +125,9 @@ class CalcDb(six.with_metaclass(ABCMeta)):
             user = creds.get("readonly_user")
             password = creds.get("readonly_password")
 
+        kwargs = {}
+        if "authsource" in creds:
+            kwargs["authsource"] = creds["authsource"]
+
         return cls(creds["host"], int(creds["port"]), creds["database"], creds["collection"],
-                   user, password)
+                   user, password, **kwargs)

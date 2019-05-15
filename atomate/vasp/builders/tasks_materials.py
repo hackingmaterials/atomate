@@ -134,7 +134,7 @@ class TasksMaterialsBuilder(AbstractBuilder):
             db_read = get_database(db_file, admin=False)
             db_read.collection_names()  # throw error if auth failed
         except:
-            logger.warn("Warning: could not get read-only database; using write creds")
+            logger.warning("Warning: could not get read-only database; using write creds")
             db_read = get_database(db_file, admin=True)
         return cls(db_write[m], db_write[c], db_read[t], **kwargs)
 
