@@ -337,15 +337,23 @@ def get_uri(dir_name):
 
 def get_database(config_file=None, settings=None, admin=False, **kwargs):
     d = loadfn(config_file) if settings is None else settings
-    conn = MongoClient(host=d["host"], port=d["port"], **kwargs)
-    db = conn[d["database"]]
+
     try:
         user = d["admin_user"] if admin else d["readonly_user"]
         passwd = d["admin_password"] if admin else d["readonly_password"]
-        db.authenticate(user, passwd)
     except (KeyError, TypeError, ValueError):
-        logger.warn("No {admin,readonly}_user/password found in config. file, "
+        logger.warning("No {admin,readonly}_user/password found in config. file, "
             "accessing DB without authentication")
+        user = None
+        passwd = None
+
+    if "authsource" in d and "authsource" not in kwargs:
+        kwargs["authsource"] = d["authsource"]
+
+    conn = MongoClient(host=d["host"], port=d["port"], username=user,
+                       password=passwd, **kwargs)
+    db = conn[d["database"]]
+
     return db
 
 

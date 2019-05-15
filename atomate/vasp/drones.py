@@ -635,7 +635,7 @@ class VaspDrone(AbstractDrone):
             else:
                 diff = v.difference(set(d.get(k, d).keys()))
             if diff:
-                logger.warn("The keys {0} in {1} not set".format(diff, k))
+                logger.warning("The keys {0} in {1} not set".format(diff, k))
 
     def get_valid_paths(self, path):
         """

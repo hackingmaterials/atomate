@@ -67,7 +67,7 @@ class FileMaterialsBuilder(AbstractBuilder):
         logger.info("FileMaterials Builder finished processing")
 
     def reset(self):
-        logger.warn("Cannot reset FileMaterials Builder!")
+        logger.warning("Cannot reset FileMaterials Builder!")
 
     @classmethod
     def from_file(cls, db_file, data_file=None, m="materials", **kwargs):

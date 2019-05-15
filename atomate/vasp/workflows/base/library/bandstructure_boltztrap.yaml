@@ -8,7 +8,7 @@ fireworks:
 - fw: atomate.vasp.fireworks.core.NonSCFFW
   params:
     parents: 1
-    mode: uniform
+    mode: boltztrap
 - fw: atomate.vasp.fireworks.core.NonSCFFW
   params:
     parents: 1
