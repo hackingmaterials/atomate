@@ -17,6 +17,7 @@ flow of the workflow, e.g. tasks to check stability or the gap is within a certa
 import gzip
 import os
 import re
+import pickle
 
 from pymatgen import MPRester
 from pymatgen.io.vasp.sets import get_vasprun_outcar
@@ -130,8 +131,13 @@ class CopyVaspOutputs(CopyFiles):
                 # unzip dest file
                 f = gzip.open(dest_path + gz_ext, 'rt')
                 file_content = f.read()
-                with open(dest_path, 'w') as f_out:
-                    f_out.writelines(file_content)
+                if isinstance(file_content, (bytes, bytearray)):
+                    with open(dest_path, 'wb') as f_out:
+                        f_out.writelines(file_content)
+                else:
+                    with open(dest_path, 'w') as f_out:
+                        f_out.writelines(file_content)
+
                 f.close()
                 os.remove(dest_path + gz_ext)
 
