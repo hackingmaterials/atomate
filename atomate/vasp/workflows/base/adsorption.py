@@ -26,7 +26,7 @@ __email__ = 'montoyjh@lbl.gov'
 # TODO: Add functionality for reconstructions
 # TODO: Add framework for including vibrations and free energy
 def get_slab_fw(slab, transmuter=False, db_file=None, vasp_input_set=None,
-                parents=None, vasp_cmd="vasp", name="", add_slab_metadata=True):
+                parents=None, vasp_cmd="vasp", name="", add_slab_metadata=True, user_incar_settings=None):
     """
     Function to generate a a slab firework.  Returns a TransmuterFW if
     bulk_structure is specified, constructing the necessary transformations
@@ -50,7 +50,7 @@ def get_slab_fw(slab, transmuter=False, db_file=None, vasp_input_set=None,
     Returns:
         Firework corresponding to slab calculation
     """
-    vasp_input_set = vasp_input_set or MPSurfaceSet(slab)
+    vasp_input_set = vasp_input_set or MPSurfaceSet(slab,user_incar_settings=user_incar_settings)
 
     # If a bulk_structure is specified, generate the set of transformations,
     # else just create an optimize FW with the slab
@@ -189,7 +189,7 @@ def get_wf_slab(slab, include_bulk_opt=False, adsorbates=None,
     # Add bulk opt firework if specified
     if include_bulk_opt:
         oriented_bulk = slab.oriented_unit_cell
-        vis = MPSurfaceSet(oriented_bulk, bulk=True, user_incar_settings=user_incar_settings)
+        vis = MPSurfaceSet(oriented_bulk, bulk=True)
         fws.append(OptimizeFW(structure=oriented_bulk, vasp_input_set=vis,
                               vasp_cmd=vasp_cmd, db_file=db_file))
         parents = fws[-1]
@@ -212,7 +212,7 @@ def get_wf_slab(slab, include_bulk_opt=False, adsorbates=None,
                 adsorbate.composition.formula, name, n)
             adsorbate_fw = get_slab_fw(
                 ads_slab, include_bulk_opt, db_file=db_file, vasp_cmd=vasp_cmd,
-                parents=parents, name=ads_name)
+                parents=parents, name=ads_name,user_incar_settings=user_incar_settings)
             fws.append(adsorbate_fw)
 
     if isinstance(slab, Slab):
