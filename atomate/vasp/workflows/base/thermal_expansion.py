@@ -54,7 +54,7 @@ def get_wf_thermal_expansion(structure, deformations, vasp_input_set=None, vasp_
     try:
         from phonopy import Phonopy
     except ImportError:
-        logger.warn("'phonopy' package NOT installed. Required for the final analysis step.")
+        logger.warning("'phonopy' package NOT installed. Required for the final analysis step.")
 
     tag = tag or "thermal_expansion group: >>{}<<".format(str(uuid4()))
 

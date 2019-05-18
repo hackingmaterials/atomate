@@ -57,7 +57,7 @@ class FixTasksBuilder(AbstractBuilder):
         logger.info("FixTasksBuilder finished.")
 
     def reset(self):
-        logger.warn("Cannot reset FixTasksBuilder!")
+        logger.warning("Cannot reset FixTasksBuilder!")
 
     @classmethod
     def from_file(cls, db_file, t="tasks", **kwargs):

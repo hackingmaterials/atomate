@@ -2,6 +2,12 @@
 atomate Changelog
 =================
 
+**v0.8.9**
+
+* fix NSCF run kpoint mesh and Boltztrap workflow to reflect pymatgen updates (A. Ganose)
+* allow "authsource" parameter in db.json files (A. Jain)
+* add powerup for turning off gzip (D. Broberg)
+
 **v0.8.8**
 
 * magnetic ordering workflows (M. Horton)

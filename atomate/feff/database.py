@@ -19,8 +19,9 @@ logger = get_logger(__name__)
 class FeffCalcDb(CalcDb):
 
     def __init__(self, host="localhost", port=27017, database="feff", collection="tasks", user=None,
-                 password=None):
-        super(FeffCalcDb, self).__init__(host, port, database, collection, user, password)
+                 password=None, **kwargs):
+        super(FeffCalcDb, self).__init__(host, port, database, collection,
+                                         user, password, **kwargs)
 
     def build_indexes(self, indexes=None, background=True):
         _indexes = indexes if indexes else ["structure.formula"]
