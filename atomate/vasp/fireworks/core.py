@@ -185,7 +185,7 @@ class LinearResponseUFW(Firework):
                                          contcar_to_poscar=contcar_to_poscar))
             t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
         elif structure:
-            vasp_input_set = vasp_input_set or LinearResponseUSet(structure)
+            vasp_input_set = vasp_input_set or LinearResponseUSet(structure, **vasp_input_set_params)
             t.append(WriteVaspFromIOSet(structure=structure,
                                         vasp_input_set=vasp_input_set,
                                         vasp_input_set_params=vasp_input_set_params))
