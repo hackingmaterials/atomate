@@ -6,7 +6,7 @@ from atomate.vasp.config import VASP_CMD, DB_FILE
 
 from atomate.vasp.workflows.base.approx_neb_wf_parts import *
 
-#TODO: Write approx_neb_wf_description
+# TODO: Write approx_neb_wf_description
 def approx_neb_wf(
     structure,
     working_ion,
@@ -42,9 +42,7 @@ def approx_neb_wf(
     )
 
     pass_host_lattice_fw = pass_vasp_result(
-        pass_dict={
-            "chgcar_file_path": "???",
-        }
+        pass_dict={"chgcar_file_path": "???"}
     )  # best way to pass chgcar from host lattice to PathfinderFW???
 
     if "user_incar_settings" not in approx_neb_params.keys():
@@ -52,7 +50,7 @@ def approx_neb_wf(
     approx_neb_params["user_incar_settings"]["ISIF"] = 2
     approx_neb_params["user_incar_settings"]["ISYM"] = 0
 
-     # firework of single firetask to pass output structure...
+    # firework of single firetask to pass output structure...
 
     insert_working_ion_fws = []
     for coord in insert_coords:
@@ -81,12 +79,12 @@ def approx_neb_wf(
         db_file=db_file,
         parents=[host_lattice_fw] + insert_working_ion_fws,
     )
-        # kwarg for working ion index? default = 0 in selective dynamics function
-        # list of fireworks for all images
+    # kwarg for working ion index? default = 0 in selective dynamics function
+    # list of fireworks for all images
 
     wf = Workflow(
         [host_lattice_fw] + [pass_host_lattice_fw] + insert_working_ion_fws
     )
-    #TODO: modify workflow to remove undesirable custodian handlers
-    #TODO: need unique id for workflow?
+    # TODO: modify workflow to remove undesirable custodian handlers
+    # TODO: need unique id for workflow?
     return wf

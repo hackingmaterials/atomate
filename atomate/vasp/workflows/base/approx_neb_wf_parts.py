@@ -39,7 +39,6 @@ class InsertSites(FiretaskBase):
         return structure
 
 
-
 class InsertSitesFW(Firework):
     # TODO: Write class description
     def __init__(
@@ -62,14 +61,16 @@ class InsertSitesFW(Firework):
         #   query for parent using fw_spec['_job_info'][-1]['launch_dir']
         #   get structure...
         #   structure #from parents
-        #TODO:Is pass structure needed in this FW? How to ensure pass_dict key matches?
+        # TODO:Is pass structure needed in this FW? How to ensure pass_dict key matches?
         pass_structure_fw = pass_vasp_result(
-            pass_dict={
-                "host_lattice_structure": ">>output.structure"
-            }
+            pass_dict={"host_lattice_structure": ">>output.structure"}
         )
-        structure = InsertSites(insert_specie=insert_specie,insert_coords=insert_coords)
-        vasp_input_set = vasp_input_set or MPRelaxSet(structure, **override_default_vasp_params)
+        structure = InsertSites(
+            insert_specie=insert_specie, insert_coords=insert_coords
+        )
+        vasp_input_set = vasp_input_set or MPRelaxSet(
+            structure, **override_default_vasp_params
+        )
         t = [pass_structure_fw]
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, job_type="double_relaxation_run"))
@@ -78,7 +79,7 @@ class InsertSitesFW(Firework):
 
 
 class PathFinderFW(Firework):
-    #TODO: Write PathfinderFW
+    # TODO: Write PathfinderFW
     def add_fix_two_atom_selective_dynamics(structure, fixed_index=0):
         """
         Returns structure with selective dynamics assigned to fix the position of two sites.
