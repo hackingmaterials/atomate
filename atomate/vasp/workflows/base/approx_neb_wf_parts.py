@@ -1,6 +1,6 @@
 from fireworks import Firework, FWAction, Workflow, FiretaskBase
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
-from atomate.vasp.firetasks.glue_tasks import pass_vasp_result
+from atomate.vasp.firetasks.glue_tasks import pass_vasp_result, CopyVaspOutputs
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian
 from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet
 from atomate.vasp.firetasks.parse_outputs import VaspToDb
@@ -94,21 +94,47 @@ class InsertSitesFW(Firework):
 
 class PathFinderFW(Firework):
     # TODO: Write PathfinderFW
+    # FW requires starting from a previous calc to get CHGCAR
     def __init__(
         self,
         structure,
         insert_specie,
         insert_coords,
-        name="approx neb insert working ion",
+        parents=None,
+        prev_calc_dir=None,
+        name="pathfinder",
         vasp_input_set=None,
         override_default_vasp_params=None,
         vasp_cmd=VASP_CMD,
         db_file=DB_FILE,
-        parents=None,
         **kwargs
     ):
         override_default_vasp_params = override_default_vasp_params or {}
+        t = []
+        if prev_calc_dir:
+            t.append(
+                CopyVaspOutputs(
+                    calc_dir=prev_calc_dir, additional_files=["CHGCAR"]
+                )
+            )
+        elif parents:
+            t.append(
+                CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"])
+            )
+        else:
+            raise ValueError(
+                "Must specify previous calculation to use CHGCAR for PathfinderFW"
+            )
 
+        # ToDo: Apply Pathfinder
+        task_name = name + "???"
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
+        t.append(PassCalcLocs(name=task_name))
+        t.append(
+            VaspToDb(
+                db_file=db_file, additional_fields={"task_label": task_name}
+            )
+        )
 
     def add_fix_two_atom_selective_dynamics(
         structure, fixed_index, fixed_specie
