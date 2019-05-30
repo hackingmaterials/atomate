@@ -50,12 +50,14 @@ class InsertSitesFW(Firework):
         insert_coords,
         name="approx neb insert working ion",
         vasp_input_set=None,
-        override_default_vasp_params={},
+        override_default_vasp_params=None,
         vasp_cmd=VASP_CMD,
         db_file=DB_FILE,
         parents=None,
         **kwargs
     ):
+        override_default_vasp_params = override_default_vasp_params or {}
+
         # if structure == None and parents == None:
         #   print("ERROR")
         # elif structure == None: #setting structure supercedes parents
@@ -92,6 +94,22 @@ class InsertSitesFW(Firework):
 
 class PathFinderFW(Firework):
     # TODO: Write PathfinderFW
+    def __init__(
+        self,
+        structure,
+        insert_specie,
+        insert_coords,
+        name="approx neb insert working ion",
+        vasp_input_set=None,
+        override_default_vasp_params=None,
+        vasp_cmd=VASP_CMD,
+        db_file=DB_FILE,
+        parents=None,
+        **kwargs
+    ):
+        override_default_vasp_params = override_default_vasp_params or {}
+
+
     def add_fix_two_atom_selective_dynamics(
         structure, fixed_index, fixed_specie
     ):
