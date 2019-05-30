@@ -7,7 +7,7 @@ from atomate.vasp.firetasks.parse_outputs import VaspToDb
 from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.config import VASP_CMD, DB_FILE
 from pymatgen.io.vasp.sets import MPRelaxSet
-from pymatgen import Structure
+from pymatgen import Structure, Element
 
 
 @explicit_serialize
@@ -29,7 +29,9 @@ class InsertSites(FiretaskBase):
         insert_coords = self["insert_coords"]
         insert_specie = self["insert_specie"]
 
-        if structure.site_properties != {}:  # removes site properties to avoid error
+        if (
+            structure.site_properties != {}
+        ):  # removes site properties to avoid error
             for p in structure.site_properties.keys():
                 structure.remove_site_property(p)
         for coords in sorted(insert_coords, reverse=True):
@@ -72,27 +74,51 @@ class InsertSitesFW(Firework):
             structure, **override_default_vasp_params
         )
         t = [pass_structure_fw]
-        t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
-        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, job_type="double_relaxation_run"))
+        t.append(
+            WriteVaspFromIOSet(
+                structure=structure, vasp_input_set=vasp_input_set
+            )
+        )
+        t.append(
+            RunVaspCustodian(
+                vasp_cmd=vasp_cmd, job_type="double_relaxation_run"
+            )
+        )
         t.append(PassCalcLocs(name=name))
-        t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
+        t.append(
+            VaspToDb(db_file=db_file, additional_fields={"task_label": name})
+        )
 
 
 class PathFinderFW(Firework):
     # TODO: Write PathfinderFW
-    def add_fix_two_atom_selective_dynamics(structure, fixed_index=0):
+    def add_fix_two_atom_selective_dynamics(
+        structure, fixed_index, fixed_specie
+    ):
         """
-        Returns structure with selective dynamics assigned to fix the position of two sites.
-        Two sites will be fixed: 1) the site specified by fixed_index and 2) the site positioned furthest from the specified fixed_index site.
+        Returns structure with selective dynamics assigned to fix the
+        position of two sites.
+        Two sites will be fixed: 1) the site specified by fixed_index and
+        2) the site positioned furthest from the specified fixed_index site.
 
         Args:
-            structure (Structure): Input structure (e.g. host lattice with one working ion intercalated)
-            fixed_index (int): Index of site in structure whose position will be fixed (e.g. working ion site)
+            structure (Structure): Input structure (e.g. host lattice with
+            one working ion intercalated)
+            fixed_index (int): Index of site in structure whose position
+            will be fixed (e.g. the working ion site)
+            fixed_specie (str or Element): Specie of site in structure
+            whose position will be fixed (e.g. the working ion site)
         Returns:
             Structure
         """
+        if structure[fixed_index].specie != Element(fixed_specie):
+            raise TypeError(
+                "The chosen fixed atom at index {} is not a {} atom".format(
+                    fixed_index, fixed_specie
+                )
+            )
         sd_structure = structure.copy()
-        sd_array = [[True, True, True]] * sd_structure.num_sites
+        sd_array = [[True, True, True] for i in range(sd_structure.num_sites)]
         sd_array[fixed_index] = [False, False, False]
         ref_site = sd_structure.sites[fixed_index]
         distances = [site.distance(ref_site) for site in sd_structure.sites]

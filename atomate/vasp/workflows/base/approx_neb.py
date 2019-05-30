@@ -66,7 +66,8 @@ def approx_neb_wf(
             )
         )
         # spec={}
-        # list of fireworks where one ion is inserted - assume two coords provided for now, fws can run independently
+        # list of fireworks where one ion is inserted - assume two coords
+        # provided for now, fws can run independently
 
     pathfinder_fws = PathFinderFW(
         ep1_struct="???",
