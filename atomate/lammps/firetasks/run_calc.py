@@ -8,6 +8,8 @@ This module defines firetasks for running lammps
 
 import os
 import shutil
+import six
+import shlex
 
 # from pymatgen.io.lammps.utils import PackmolRunner, LammpsRunner
 
@@ -35,6 +37,11 @@ class RunLammpsDirect(FiretaskBase):
 
     def run_task(self, fw_spec):
         lammps_cmd = env_chk(self["lammps_cmd"], fw_spec)
+
+        if isinstance(lammps_cmd, six.string_types):
+            lammps_cmd = os.path.expandvars(lammps_cmd)
+            lammps_cmd = shlex.split(lammps_cmd)
+
         input_filename = self["input_filename"]
         lmps_runner = LammpsRunner(input_filename, lammps_cmd)
         stdout, stderr = lmps_runner.run()
