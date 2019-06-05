@@ -20,8 +20,10 @@ import re
 import pickle
 
 from pymatgen import MPRester
-from pymatgen.io.vasp.sets import get_vasprun_outcar
+from pymatgen.io.lammps.data import LammpsData
+from pymatgen.io.vasp.sets import get_vasprun_outcar, MITMDSet
 from pymatgen.core.structure import Structure
+from atomate.vasp.fireworks.core import MDFW
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
@@ -329,3 +331,43 @@ def pass_vasp_result(pass_dict=None, calc_dir='.', filename="vasprun.xml.gz",
     return PassResult(pass_dict=pass_dict, calc_dir=calc_dir,
                       parse_kwargs=parse_kwargs,
                       parse_class="pymatgen.io.vasp.outputs.Vasprun", **kwargs)
+
+@explicit_serialize
+class LammpsToVaspMD(FiretaskBase):
+    _fw_name = "LammpsToVasp"
+    required_params = ["atom_style", "start_temp", "end_temp", "nsteps"]
+    optional_params = ['time_step', 'vasp_input_set', 'user_kpoints_settings', 'vasp_cmd',
+                       'copy_vasp_outputs', 'db_file', 'name', 'parents']
+
+    def run_task(self, fw_spec):
+        calc_loc = get_calc_loc(True, fw_spec["calc_locs"])
+        lammps_data = os.path.join(calc_loc, 'lammps.data')
+
+        atom_style  = fw_spec['atom_style']
+        start_temp  = fw_spec['start_temp']
+        end_temp    = fw_spec['end_temp']
+        nsteps      = fw_spec['nsteps']
+
+
+        time_step = fw_spec.get('time_step') or 1
+        vasp_cmd = fw_spec.get('vasp_cmd') or ">>vasp_cmd<<"
+        copy_vasp_outputs = fw_spec.get('copy_vasp_outputs') or False
+        db_file = fw_spec.get('db_file') or None
+        name = fw_spec.get('name') or "VaspMDFW"
+        parents = fw_spec.get('parents') or None
+
+        structure = LammpsData.from_file(lammps_data, atom_style=atom_style, sort_id=True).structure
+
+        vasp_input_set = fw_spec.get('vasp_input_set') or MITMDSet(structure, start_temp, end_temp, nsteps, time_step,
+                                                                   force_gamma=True)
+        user_kpoints_settings = fw_spec.get('user_kpoints_settings') or None
+
+        if user_kpoints_settings:
+            v = vasp_input_set.as_dict()
+            v.update({"user_kpoints_settings": user_kpoints_settings})
+            vasp_input_set = vasp_input_set.from_dict(v)
+
+        fw = MDFW(structure, start_temp, end_temp, nsteps, vasp_input_set=vasp_input_set, vasp_cmd=vasp_cmd,
+                  copy_vasp_outputs=copy_vasp_outputs, db_file=db_file, name=name, parents=parents)
+
+        return FWAction(additions=fw)
