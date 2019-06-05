@@ -23,7 +23,6 @@ from pymatgen import MPRester
 from pymatgen.io.lammps.data import LammpsData
 from pymatgen.io.vasp.sets import get_vasprun_outcar, MITMDSet
 from pymatgen.core.structure import Structure
-from atomate.vasp.fireworks.core import MDFW
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
@@ -347,7 +346,6 @@ class LammpsToVaspMD(FiretaskBase):
         start_temp  = fw_spec['start_temp']
         end_temp    = fw_spec['end_temp']
         nsteps      = fw_spec['nsteps']
-
 
         time_step = fw_spec.get('time_step') or 1
         vasp_cmd = fw_spec.get('vasp_cmd') or ">>vasp_cmd<<"
