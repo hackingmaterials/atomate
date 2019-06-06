@@ -1,4 +1,5 @@
 import os
+import random
 
 from pymatgen.io.lammps.data import LammpsData
 from pymatgen.io.vasp.sets import MITMDSet
@@ -37,8 +38,17 @@ class LammpsToVaspMD(FiretaskBase):
         db_file = self.get('db_file') or None
         name = self.get('name') or "VaspMDFW"
         parents = self.get('parents') or None
+        transmute = self.get('transmute') or None
 
         structure = LammpsData.from_file(lammps_data, atom_style=atom_style, sort_id=True).structure
+
+        if transmute:
+            sites = structure.sites
+            indices = []
+            for i, s in enumerate(sites):
+                if s.specie.symbol == transmute[0]:
+                    indices.append(i)
+            structure.replace(random.choice(indices), species=transmute[1])
 
         vasp_input_set = fw_spec.get('vasp_input_set') or MITMDSet(structure, start_temp, end_temp, nsteps, time_step,
                                                                    force_gamma=True)
