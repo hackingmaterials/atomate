@@ -38,7 +38,7 @@ class RunLammpsDirect(FiretaskBase):
         lammps_cmd = lammps_cmd + " -in {}".format(input_filename)
 
         logger.info("Running LAMMPS using exe: {}".format(lammps_cmd))
-        return_code = call(lammps_cmd, shell=True, stdout=PIPE, stderr=PIPE)
+        return_code = call(lammps_cmd, shell=True)
         logger.info("LAMMPS finished running with returncode: {}".format(return_code))
 
 @explicit_serialize
