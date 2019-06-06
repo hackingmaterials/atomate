@@ -339,20 +339,20 @@ class LammpsToVaspMD(FiretaskBase):
                        'copy_vasp_outputs', 'db_file', 'name', 'parents']
 
     def run_task(self, fw_spec):
-        calc_loc = get_calc_loc(True, fw_spec["calc_locs"])
+        calc_loc = get_calc_loc(True, fw_spec["calc_locs"])['path']
         lammps_data = os.path.join(calc_loc, 'lammps.data')
 
-        atom_style  = fw_spec['atom_style']
-        start_temp  = fw_spec['start_temp']
-        end_temp    = fw_spec['end_temp']
-        nsteps      = fw_spec['nsteps']
+        atom_style  = self.get('atom_style')
+        start_temp  = self.get('start_temp')
+        end_temp    = self.get('end_temp')
+        nsteps      = self.get('nsteps')
 
-        time_step = fw_spec.get('time_step') or 1
-        vasp_cmd = fw_spec.get('vasp_cmd') or ">>vasp_cmd<<"
-        copy_vasp_outputs = fw_spec.get('copy_vasp_outputs') or False
-        db_file = fw_spec.get('db_file') or None
-        name = fw_spec.get('name') or "VaspMDFW"
-        parents = fw_spec.get('parents') or None
+        time_step = self.get('time_step') or 1
+        vasp_cmd = self.get('vasp_cmd') or ">>vasp_cmd<<"
+        copy_vasp_outputs = self.get('copy_vasp_outputs') or False
+        db_file = self.get('db_file') or None
+        name = self.get('name') or "VaspMDFW"
+        parents = self.get('parents') or None
 
         structure = LammpsData.from_file(lammps_data, atom_style=atom_style, sort_id=True).structure
 
@@ -366,6 +366,6 @@ class LammpsToVaspMD(FiretaskBase):
             vasp_input_set = vasp_input_set.from_dict(v)
 
         fw = MDFW(structure, start_temp, end_temp, nsteps, vasp_input_set=vasp_input_set, vasp_cmd=vasp_cmd,
-                  copy_vasp_outputs=copy_vasp_outputs, db_file=db_file, name=name, parents=parents)
+                  copy_vasp_outputs=copy_vasp_outputs, db_file=db_file, name=name, parents=None)
 
         return FWAction(additions=fw)
