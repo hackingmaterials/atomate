@@ -3,6 +3,7 @@ import random
 
 from pymatgen.io.lammps.data import LammpsData
 from pymatgen.io.vasp.sets import MITMDSet
+from pymatgen.core.periodic_table import Specie
 
 from fireworks.core.firework import FiretaskBase, FWAction
 from fireworks import explicit_serialize
@@ -44,7 +45,10 @@ class LammpsToVaspMD(FiretaskBase):
             for i, s in enumerate(sites):
                 if s.specie.symbol == transmute[0]:
                     indices.append(i)
-            structure.replace(random.choice(indices), species=transmute[1])
+            index = random.choice(indices)
+            structure.replace(index, species=transmute[1],
+                              properties={'charge': Specie('H').oxi_state,
+                                          'velocities': structure.site_properties['velocities'][index]})
 
         vasp_input_set = fw_spec.get('vasp_input_set') or MITMDSet(structure, start_temp, end_temp, nsteps, time_step,
                                                                    force_gamma=True)
