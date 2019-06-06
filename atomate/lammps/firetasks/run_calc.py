@@ -10,8 +10,7 @@ import os
 import shutil
 import six
 import shlex
-
-# from pymatgen.io.lammps.utils import PackmolRunner, LammpsRunner
+import subprocess
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 from pymatgen.io.lammps.utils import PackmolRunner, LammpsRunner
@@ -37,15 +36,19 @@ class RunLammpsDirect(FiretaskBase):
 
     def run_task(self, fw_spec):
         lammps_cmd = env_chk(self["lammps_cmd"], fw_spec)
+        input_filename = self["input_filename"]
 
         if isinstance(lammps_cmd, six.string_types):
             lammps_cmd = os.path.expandvars(lammps_cmd)
             lammps_cmd = shlex.split(lammps_cmd)
 
-        input_filename = self["input_filename"]
-        lmps_runner = LammpsRunner(input_filename, lammps_cmd)
-        stdout, stderr = lmps_runner.run()
-        logger.info("LAMMPS finished running: {} \n {}".format(stdout, stderr))
+        logger.info("Running LAMMPS using exe: {}".format(lammps_cmd))
+        return_code = subprocess.call(lammps_cmd, shell=True)
+        logger.info("LAMMPS finished running with returncode: {}".format(return_code))
+
+        #lmps_runner = LammpsRunner(input_filename, lammps_cmd)
+        #stdout, stderr = lmps_runner.run()
+        #logger.info("LAMMPS finished running: {} \n {}".format(stdout, stderr))
 
 
 @explicit_serialize
