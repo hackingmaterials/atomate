@@ -29,6 +29,8 @@ class LammpsToVaspMD(FiretaskBase):
         time_step = self.get('time_step') or 1
         vasp_cmd = self.get('vasp_cmd') or ">>vasp_cmd<<"
         copy_vasp_outputs = self.get('copy_vasp_outputs') or False
+        config_dict = self.get('config_dict') or {}
+        user_kpoints_settings = self.get('user_kpoints_settings') or None
         db_file = self.get('db_file') or None
         name = self.get('name') or "VaspMDFW"
         parents = self.get('parents') or None
@@ -50,10 +52,8 @@ class LammpsToVaspMD(FiretaskBase):
                               properties={'charge': Specie(transmute[1]).oxi_state,
                                           'velocities': structure.site_properties['velocities'][index]})
 
-        vasp_input_set = fw_spec.get('vasp_input_set') or MITMDSet(structure, start_temp, end_temp, nsteps, time_step,
-                                                                   force_gamma=True)
-        user_kpoints_settings = fw_spec.get('user_kpoints_settings') or None
-
+        vasp_input_set = MITMDSet(structure, start_temp, end_temp, nsteps, time_step,
+                                  force_gamma=True, config_dict=config_dict)
         if user_kpoints_settings:
             v = vasp_input_set.as_dict()
             v.update({"user_kpoints_settings": user_kpoints_settings})
