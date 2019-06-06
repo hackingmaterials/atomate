@@ -25,7 +25,7 @@ class LammpsToVaspMD(FiretaskBase):
 
     def run_task(self, fw_spec):
         calc_loc = get_calc_loc(True, fw_spec["calc_locs"])['path']
-        lammps_data = os.path.join(calc_loc, 'lammps.data')
+        lammps_data = os.path.join(calc_loc, 'final.data')
 
         atom_style  = self.get('atom_style')
         start_temp  = self.get('start_temp')
