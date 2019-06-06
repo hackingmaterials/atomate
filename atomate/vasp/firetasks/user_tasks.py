@@ -8,7 +8,6 @@ from fireworks.core.firework import FiretaskBase, FWAction
 from fireworks import explicit_serialize
 
 from atomate.utils.utils import get_logger
-from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.vasp.fireworks.core import MDFW
 
 logger = get_logger(__name__)
@@ -24,9 +23,6 @@ class LammpsToVaspMD(FiretaskBase):
                        'copy_vasp_outputs', 'db_file', 'name', 'parents']
 
     def run_task(self, fw_spec):
-        calc_loc = get_calc_loc(True, fw_spec["calc_locs"])['path']
-        lammps_data = os.path.join(calc_loc, 'final.data')
-
         atom_style  = self.get('atom_style')
         start_temp  = self.get('start_temp')
         end_temp    = self.get('end_temp')
@@ -40,7 +36,7 @@ class LammpsToVaspMD(FiretaskBase):
         parents = self.get('parents') or None
         transmute = self.get('transmute') or None
 
-        structure = LammpsData.from_file(lammps_data, atom_style=atom_style, sort_id=True).structure
+        structure = LammpsData.from_file('final.lammps', atom_style=atom_style, sort_id=True).structure
 
         if transmute:
             sites = structure.sites
