@@ -34,8 +34,11 @@ class LammpsToVaspMD(FiretaskBase):
         transmute = self.get('transmute') or None
 
         logger.info("PARSING \"lammps.final\" to VASP.")
-        structure = LammpsData.from_file(os.path.join(os.getcwd(), self.get('final_data')),
-                                         atom_style=atom_style, sort_id=True).structure
+        data = LammpsData.from_file(os.path.join(os.getcwd(), self.get('final_data')),
+                                    atom_style=atom_style, sort_id=True)
+        data.atoms = data.atoms.sort_values(by=['type'])
+        data.structure.site_properties.pop('velocities')
+        structure = data.structure
 
         if transmute:
             sites = structure.sites
