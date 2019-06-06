@@ -8,9 +8,7 @@ This module defines firetasks for running lammps
 
 import os
 import shutil
-import six
-import shlex
-import subprocess
+from subprocess import call, PIPE
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 from pymatgen.io.lammps.utils import PackmolRunner, LammpsRunner
@@ -40,13 +38,8 @@ class RunLammpsDirect(FiretaskBase):
         lammps_cmd = lammps_cmd + " -in {}".format(input_filename)
 
         logger.info("Running LAMMPS using exe: {}".format(lammps_cmd))
-        return_code = subprocess.call(lammps_cmd, shell=True)
+        return_code = call(lammps_cmd, shell=True, stdout=PIPE, stderr=PIPE)
         logger.info("LAMMPS finished running with returncode: {}".format(return_code))
-
-        #lmps_runner = LammpsRunner(input_filename, lammps_cmd)
-        #stdout, stderr = lmps_runner.run()
-        #logger.info("LAMMPS finished running: {} \n {}".format(stdout, stderr))
-
 
 @explicit_serialize
 class RunLammpsFake(FiretaskBase):

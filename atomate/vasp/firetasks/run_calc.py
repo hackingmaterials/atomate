@@ -156,7 +156,6 @@ class RunVaspCustodian(FiretaskBase):
 
             # TODO: @shyuep @HanmeiTang - I am not sure what the code below is doing. It looks like
             # it is trying to override the number of processors. But I tried running the code
-            # below after setting "vasp_cmd = 'mpirun -n 16 vasp'" and the code fails.
             # (i) Is this expecting an array vasp_cmd rather than String? If so, that's opposite to
             # the rest of this task's convention and documentation
             # (ii) can we get rid of this hacking in the first place? e.g., allowing the user to

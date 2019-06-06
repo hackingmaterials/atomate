@@ -12,9 +12,6 @@ from atomate.vasp.fireworks.core import MDFW
 
 logger = get_logger(__name__)
 
-__author__ = 'Anubhav Jain, Kiran Mathew'
-
-
 @explicit_serialize
 class LammpsToVaspMD(FiretaskBase):
     _fw_name = "LammpsToVasp"
@@ -36,7 +33,8 @@ class LammpsToVaspMD(FiretaskBase):
         parents = self.get('parents') or None
         transmute = self.get('transmute') or None
 
-        structure = LammpsData.from_file('final.lammps', atom_style=atom_style, sort_id=True).structure
+        logger.info("PARSING \"lammps.final\" to VASP.")
+        structure = LammpsData.from_file(self.get('final_data'), atom_style=atom_style, sort_id=True).structure
 
         if transmute:
             sites = structure.sites
