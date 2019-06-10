@@ -93,7 +93,8 @@ class TestRunCalcQChem(AtomateTest):
                                  input_file=os.path.join(
                                      module_dir, "..", "..", "test_files",
                                      "co_qc.in"),
-                                 output_file="mol.qout").as_dict())
+                                 output_file="mol.qout",
+                                 scratch_dir="/dev/shm/qcscratch/").as_dict())
             self.assertEqual(custodian_patch.call_args[1], {
                 "max_errors": 5,
                 "gzipped_output": True
@@ -286,7 +287,7 @@ class TestRunCalcQChem(AtomateTest):
                         "save_scratch":
                         False,
                         "save_name":
-                        "default_save_name",
+                        "saved_scratch",
                         "max_cores":
                         32
                     })
@@ -357,7 +358,7 @@ class TestRunCalcQChem(AtomateTest):
                         "save_scratch":
                         False,
                         "save_name":
-                        "default_save_name",
+                        "saved_scratch",
                         "max_cores":
                         32
                     })

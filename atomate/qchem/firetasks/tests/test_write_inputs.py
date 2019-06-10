@@ -100,13 +100,16 @@ class TestWriteInputQChem(AtomateTest):
         mol = self.co_mol
         rem = {
             "job_type": "opt",
-            "basis": "6-311++G*",
+            "basis": "def2-tzvppd",
             "max_scf_cycles": 200,
             "method": "wB97xd",
             "geom_opt_max_cycles": 200,
             "gen_scfman": True,
-            "scf_algorithm": "diis_gdm",
-            "xc_grid": 3
+            "scf_algorithm": "diis",
+            "xc_grid": 3,
+            "sym_ignore": True,
+            "symmetry": False,
+            "resp_charges": True
         }
         qc_input = QCInput(mol, rem)
         ft = WriteInput(qc_input=qc_input)
@@ -119,13 +122,16 @@ class TestWriteInputQChem(AtomateTest):
         mol = self.co_mol
         rem = {
             "job_type": "opt",
-            "basis": "6-311++G*",
+            "basis": "def2-tzvppd",
             "max_scf_cycles": 200,
             "method": "wB97xd",
             "geom_opt_max_cycles": 200,
             "gen_scfman": True,
-            "scf_algorithm": "diis_gdm",
-            "xc_grid": 3
+            "scf_algorithm": "diis",
+            "xc_grid": 3,
+            "sym_ignore": True,
+            "symmetry": False,
+            "resp_charges": True
         }
         ft = WriteCustomInput(molecule=mol, rem=rem)
         ft.run_task({})

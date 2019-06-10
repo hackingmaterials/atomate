@@ -10,7 +10,7 @@ from atomate.qchem.drones import QChemDrone
 from pymatgen.core.structure import Molecule
 import numpy as np
 from pymatgen.analysis.local_env import OpenBabelNN
-from pymatgen.analysis.graphs import MoleculeGraph
+from pymatgen.analysis.graphs import MoleculeGraph, isomorphic
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -83,6 +83,7 @@ class QChemDroneTest(unittest.TestCase):
         self.assertIn("last_updated", doc)
         self.assertIn("dir_name", doc)
         self.assertEqual(len(doc["calcs_reversed"]), 1)
+        self.assertEqual(doc["output"]["final_energy"],-348.6524625796)
 
     def test_assimilate_FF(self):
         drone = QChemDrone(
@@ -215,7 +216,7 @@ class QChemDroneTest(unittest.TestCase):
                                                                  OpenBabelNN(),
                                                                  reorder=False,
                                                                  extend_structure=False)
-        self.assertEqual(orig_molgraph.isomorphic_to(initial_molgraph), True)
+        self.assertEqual(isomorphic(orig_molgraph.graph,initial_molgraph.graph), True)
 
     def test_assimilate_opt_with_hidden_changes_from_handler(self):
         drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener"})
@@ -245,7 +246,7 @@ class QChemDroneTest(unittest.TestCase):
                                                                  OpenBabelNN(),
                                                                  reorder=False,
                                                                  extend_structure=False)
-        self.assertEqual(orig_molgraph.isomorphic_to(initial_molgraph), False)
+        self.assertEqual(isomorphic(orig_molgraph.graph,initial_molgraph.graph), False)
 
     def test_assimilate_disconnected_opt(self):
         drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener"})

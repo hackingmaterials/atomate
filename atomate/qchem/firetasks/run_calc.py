@@ -124,7 +124,7 @@ class RunQChemCustodian(FiretaskBase):
         if scratch_dir == None:
             scratch_dir = "/dev/shm/qcscratch/"
         save_scratch = self.get("save_scratch", False)
-        save_name = self.get("save_name", "default_save_name")
+        save_name = self.get("save_name", "saved_scratch")
         max_errors = self.get("max_errors", 5)
         max_iterations = self.get("max_iterations", 10)
         linked = self.get("linked", False)

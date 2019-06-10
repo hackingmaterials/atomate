@@ -49,7 +49,7 @@ class QChemDrone(AbstractDrone):
             "chemsys", "pointgroup"
         },
         "input": {"initial_molecule", "job_type"},
-        "output": {"initial_molecule", "job_type"}
+        "output": {"initial_molecule", "job_type", "final_energy"}
     }
 
     def __init__(self, runs=None, additional_fields=None):
@@ -168,11 +168,14 @@ class QChemDrone(AbstractDrone):
             # reverse the calculations data order so newest calc is first
             d["calcs_reversed"].reverse()
 
+            d["structure_change"] = []
             d["warnings"] = {}
             for entry in d["calcs_reversed"]:
                 if "structure_change" in entry and "structure_change" not in d["warnings"]:
                     if entry["structure_change"] != "no_change":
                         d["warnings"]["structure_change"] = True
+                if "structure_change" in entry:
+                    d["structure_change"].append(entry["structure_change"])
                 for key in entry["warnings"]:
                     if key not in d["warnings"]:
                         d["warnings"][key] = True
@@ -189,6 +192,10 @@ class QChemDrone(AbstractDrone):
                 "job_type": d_calc_final["input"]["rem"]["job_type"],
                 "mulliken": d_calc_final["Mulliken"][-1]
             }
+            if "RESP" in d_calc_final:
+                d["output"]["resp"] = d_calc_final["RESP"][-1]
+            elif "ESP" in d_calc_final:
+                d["output"]["esp"] = d_calc_final["ESP"][-1]
 
             if d["output"]["job_type"] == "opt" or d["output"]["job_type"] == "optimization":
                 if "molecule_from_optimized_geometry" in d_calc_final:
@@ -212,8 +219,13 @@ class QChemDrone(AbstractDrone):
                     d["output"]["final_energy"] = d["calcs_reversed"][1][
                         "final_energy"]
 
-            if d["output"]["job_type"] == "sp":
-                d["output"]["final_energy"] = d_calc_final["final_energy"]
+            if "final_energy" not in d["output"]:
+                if d_calc_final["final_energy"] != None:
+                    d["output"]["final_energy"] = d_calc_final["final_energy"]
+                else:
+                    d["output"]["final_energy"] = d_calc_final["SCF"][-1][-1][0]
+                # else:
+                #     print(d_calc_final)
 
             if d_calc_final["completion"]:
                 total_cputime = 0.0

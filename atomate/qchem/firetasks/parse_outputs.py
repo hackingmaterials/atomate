@@ -104,6 +104,10 @@ class QChemToDb(FiretaskBase):
             if not is_ion_pos:
                 update_spec["prev_calc_molecule"] = task_doc["output"]["optimized_molecule"]
                 update_spec["prev_calc_mulliken"] = task_doc["output"]["mulliken"]
+                if "RESP" in task_doc["output"]:
+                    update_spec["prev_calc_resp"] = task_doc["output"]["RESP"]
+                elif "ESP" in task_doc["output"]:
+                    update_spec["prev_calc_esp"] = task_doc["output"]["ESP"]
 
         # get the database connection
         db_file = env_chk(self.get("db_file"), fw_spec)
