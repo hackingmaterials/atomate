@@ -134,7 +134,7 @@ class StaticFW(Firework):
             vasp_input_set = vasp_input_set or MPStaticSet(structure)
             t.append(WriteVaspFromIOSet(structure=structure,
                                         vasp_input_set=vasp_input_set,
-                                        vasp_input_set_params=vasp_input_set_params))
+                                        vasp_input_params=vasp_input_set_params))
         else:
             raise ValueError("Must specify structure or previous calculation")
 
@@ -178,7 +178,7 @@ class StaticInterpolateFW(Firework):
         t.append(WriteVaspFromIOSetFromInterpolatedPOSCAR(
             start=start, end=end, this_image=this_image, nimages=nimages,
             autosort_tol=autosort_tol, vasp_input_set=vasp_input_set,
-            vasp_input_set_params=vasp_input_set_params))
+            vasp_input_params=vasp_input_set_params))
 
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
