@@ -35,7 +35,7 @@ class RunLammpsDirect(FiretaskBase):
     def run_task(self, fw_spec):
         lammps_cmd = env_chk(self["lammps_cmd"], fw_spec)
         input_filename = self["input_filename"]
-        lammps_cmd = lammps_cmd + " -in {}".format(input_filename)
+        lammps_cmd = lammps_cmd + " < {}".format(input_filename)
 
         logger.info("Running LAMMPS using exe: {}".format(lammps_cmd))
         return_code = call(lammps_cmd, shell=True)

@@ -81,3 +81,4 @@ class WriteInputFromForceFieldAndTopology(FiretaskBase):
                                                     is_forcefield=True)
 
         lammps_input_set.write_input(input_filename, data_filename)
+
