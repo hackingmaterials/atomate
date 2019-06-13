@@ -128,6 +128,8 @@ class CalcDb(six.with_metaclass(ABCMeta)):
         kwargs = {}
         if "authsource" in creds:
             kwargs["authsource"] = creds["authsource"]
+        else:
+            kwargs["authsource"] = creds["database"]
 
         return cls(creds["host"], int(creds["port"]), creds["database"], creds["collection"],
                    user, password, **kwargs)
