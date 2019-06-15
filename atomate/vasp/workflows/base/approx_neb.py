@@ -4,7 +4,8 @@ from atomate.vasp.firetasks.run_calc import RunVaspCustodian
 from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
-from atomate.vasp.workflows.base.approx_neb_wf_parts import *
+# from atomate.vasp.workflows.base.approx_neb_wf_parts import *
+from atomate.vasp.firetasks.approx_neb_tasks import HostLatticeToDb
 
 # TODO: Write approx_neb_wf_description
 def approx_neb_wf(
@@ -31,6 +32,7 @@ def approx_neb_wf(
             "NELMIN": 4,
         }
     }
+
     host_lattice_fw = OptimizeFW(
         structure,
         name="approx neb optimize host lattice",
@@ -38,12 +40,18 @@ def approx_neb_wf(
         override_default_vasp_params=approx_neb_params.copy(),
         vasp_cmd=vasp_cmd,
         db_file=db_file,
-        vasptodb_kwargs={"parse_chgcar": True, "parse_aeccar": True},
+        vasptodb_kwargs={
+            "parse_chgcar": True,
+            "parse_aeccar": True,
+            "additional_fields": {
+                "approx_neb": {"calc_type": "host_lattice", "wf_uuids": []}
+            },
+        },
     )
 
-    pass_host_lattice_fw = pass_vasp_result(
-        pass_dict={"chgcar_file_path": "???"}
-    )  # best way to pass chgcar from host lattice to PathfinderFW???
+    pass_host_lattice_fw = Firework(
+        HostLatticeToDb(db_file=DB_FILE, host_lattice_task_id="???")
+    )
 
     if "user_incar_settings" not in approx_neb_params.keys():
         approx_neb_params = {"user_incar_settings": {}}
@@ -69,23 +77,19 @@ def approx_neb_wf(
         # list of fireworks where one ion is inserted - assume two coords
         # provided for now, fws can run independently
 
-    pathfinder_fws = PathFinderFW(
-        ep1_struct="???",
-        ep2_struct="???",
-        n_images=n_images,
-        chgcar="???",
-        vasp_input_set=vasp_input_set,
-        override_default_vasp_params=approx_neb_params.copy(),
-        vasp_cmd=vasp_cmd,
-        db_file=db_file,
-        parents=[host_lattice_fw] + insert_working_ion_fws,
-    )
-    # kwarg for working ion index? default = 0 in selective dynamics function
+    # pathfinder_fws = PathFinderFW(
+    #    ep1_struct="???",
+    #    ep2_struct="???",
+    #    n_images=n_images,
+    #    chgcar="???",
+    #    vasp_input_set=vasp_input_set,
+    #    override_default_vasp_params=approx_neb_params.copy(),
+    #    vasp_cmd=vasp_cmd,
+    #    db_file=db_file,
+    #    parents=[host_lattice_fw] + insert_working_ion_fws,
+    # )
     # list of fireworks for all images
 
-    wf = Workflow(
-        [host_lattice_fw] + [pass_host_lattice_fw] + insert_working_ion_fws
-    )
+    wf = Workflow([host_lattice_fw] + [pass_host_lattice_fw] + insert_working_ion_fws)
     # TODO: modify workflow to remove undesirable custodian handlers
-    # TODO: need unique id for workflow?
     return wf
