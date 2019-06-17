@@ -31,8 +31,7 @@ class HostLatticeToDb(FiretaskBase):
 
     def run_task(self, fw_spec):
         # get the database connection
-        # TODO: check on proper use of env_chk
-        db_file = env_chk(self.get("db_file"), fw_spec["db_file"])
+        db_file = env_chk(self["db_file"])
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         wf_uuid = str(uuid4())
 
@@ -177,8 +176,7 @@ class PassFromDb(FiretaskBase):
 
     def run_task(self, fw_spec):
         # get the database connection
-        # TODO: check on proper use of env_chk
-        db_file = env_chk(self.get("db_file"), fw_spec["db_file"])
+        db_file = env_chk(self["db_file"])
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         mmdb.collection = mmdb.db["approx_neb"]
 
@@ -222,8 +220,7 @@ class InsertSites(FiretaskBase):
 
     def run_task(self, fw_spec):
         # get the database connection
-        # TODO: check on proper use of env_chk
-        db_file = env_chk(self.get("db_file"), fw_spec["db_file"])
+        db_file = env_chk(self["db_file"])
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
         # get output structure from structure_task_id
