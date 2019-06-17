@@ -4,6 +4,7 @@ from atomate.utils.utils import env_chk
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.drones import VaspDrone
+import pydash
 import json
 from monty.json import MontyEncoder
 from uuid import uuid4
@@ -184,15 +185,13 @@ class PassFromDb(FiretaskBase):
         fields_to_pull = self["fields_to_pull"].copy()
 
         # pulls desired fields from approx_neb collection and stores in pulled_fields
+        pulled_doc = mmdb.collection.find_one({"wf_uuid": wf_uuid})
         pulled_fields = dict()
         for key in fields_to_pull.keys():
-            pulled_fields[key] = mmdb.collection.find_one(
-                {"wf_uuid": wf_uuid}, [fields_to_pull[key]]
-            )
+            pulled_fields[key] = pydash.get(pulled_doc,fields_to_pull[key])
 
         # update fw_spec with pulled fields (labeled according to fields_to_pass)
         return FWAction(update_spec=pulled_fields)
-
 
 @explicit_serialize
 class InsertSites(FiretaskBase):
