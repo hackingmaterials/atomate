@@ -223,6 +223,12 @@ class InsertSites(FiretaskBase):
         db_file = env_chk(self["db_file"])
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
+        insert_specie = self["insert_specie"]
+        insert_coords = self["insert_coords"]
+        # put in list if single coordinate provided to avoid error
+        if isinstance(insert_coords[0],(float,int)):
+            insert_coords = [insert_coords]
+
         # get output structure from structure_task_id
         t_id = self["structure_task_id"]
         try:
@@ -246,11 +252,6 @@ class InsertSites(FiretaskBase):
                 )
 
         structure = Structure.from_dict(structure_doc["output"]["structure"])
-        insert_coords = self[
-            "insert_coords"
-        ]  # TODO: Add way to check type and handle either single or list of coordinates input
-        insert_specie = self["insert_specie"]
-
         # removes site properties to avoid error
         if structure.site_properties != {}:
             for p in structure.site_properties.keys():
