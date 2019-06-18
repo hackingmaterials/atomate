@@ -4,8 +4,9 @@ from atomate.utils.utils import env_chk
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.drones import VaspDrone
-import pydash
+from pydash import get  # ,set_
 import json
+import os.path
 from monty.json import MontyEncoder
 from uuid import uuid4
 
@@ -32,7 +33,7 @@ class HostLatticeToDb(FiretaskBase):
 
     def run_task(self, fw_spec):
         # get the database connection
-        db_file = env_chk(self["db_file"],fw_spec)
+        db_file = env_chk(self["db_file"], fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         wf_uuid = str(uuid4())
 
@@ -80,74 +81,97 @@ class HostLatticeToDb(FiretaskBase):
         # and updates host lattice task doc with fs_id.
         # Note: this will not work if computer does not have access to the
         # VASP calculation directory specified by the host lattice task doc dir_name
+        # or if there is an error parsing the task doc dir_name
         if any(fs_id == None for fs_id in [chgcar_fs_id, aeccar0_fs_id, aeccar2_fs_id]):
             calc_dir = approx_neb_doc["host_lattice"]["dir_name"]
-            logger.info("CHECKING FOR CHG DENSITY FILES: {}".format(calc_dir))
+            # imperfect fix for parsing if host name is included task doc dir_name
+            if ":" in calc_dir:
+                calc_dir = calc_dir.split(":")[-1]
+
+            logger.info("APPROX NEB: CHECKING FOR CHARGE DENSITY FILES")
             drone = VaspDrone(parse_chgcar=True, parse_aeccar=True)
-            task_doc = drone.assimilate(calc_dir)
+            if os.path.exists(calc_dir):
+                task_doc = drone.assimilate(calc_dir)
 
-            # insert chgcar with GridFS
-            if chgcar_fs_id == None:
-                chgcar = json.dumps(
-                    task_doc["calcs_reversed"][0]["chgcar"], cls=MontyEncoder
-                )
-                chgcar_gfs_id, compression_type = mmdb.insert_gridfs(
-                    chgcar, "chgcar_fs", task_id=t_id
-                )
-                mmdb.collection.update_one(
-                    {"task_id": t_id},
-                    {
-                        "$set": {
-                            "calcs_reversed.0.chgcar_compression": compression_type,
-                            "calcs_reversed.0.chgcar_fs_id": chgcar_gfs_id,
-                        }
-                    },
-                )
-                gridfs_ids["dir_chgcar"] = chgcar_gfs_id
-                logger.info("CHGCAR GRIDFS INSERTION COMPLETE: {}".format(calc_dir))
+                try:
+                    # insert chgcar with GridFS
+                    if (
+                        chgcar_fs_id == None
+                        and get(task_doc, "calcs_reversed.0.chgcar") != None
+                    ):
+                        chgcar = json.dumps(
+                            task_doc["calcs_reversed"][0]["chgcar"], cls=MontyEncoder
+                        )
+                        chgcar_gfs_id, compression_type = mmdb.insert_gridfs(
+                            chgcar, "chgcar_fs", task_id=t_id
+                        )
+                        mmdb.collection.update_one(
+                            {"task_id": t_id},
+                            {
+                                "$set": {
+                                    "calcs_reversed.0.chgcar_compression": compression_type,
+                                    "calcs_reversed.0.chgcar_fs_id": chgcar_gfs_id,
+                                }
+                            },
+                        )
+                        gridfs_ids["dir_chgcar"] = chgcar_gfs_id
+                        logger.info("APPROX NEB: CHGCAR GRIDFS INSERTION COMPLETE")
 
-            # insert aeccar with GridFS
-            if aeccar0_fs_id == None or aeccar2_fs_id == None:
-                aeccar0 = task_doc["calcs_reversed"][0]["aeccar0"]
-                aeccar2 = task_doc["calcs_reversed"][0]["aeccar2"]
-                # check if the aeccar is valid before insertion
-                if (aeccar0.data["total"] + aeccar2.data["total"]).min() < 0:
-                    logger.warning(
-                        "AECCARs appear corrupted for task id {t_id} in {calc_dir}\nSkipping GridFS storage of AECCARs"
-                    )
-                else:
-                    aeccar0_gfs_id, compression_type = mmdb.insert_gridfs(
-                        aeccar0, "aeccar0_fs", task_id=t_id
-                    )
-                    mmdb.collection.update_one(
-                        {"task_id": t_id},
-                        {
-                            "$set": {
-                                "calcs_reversed.0.aeccar0_compression": compression_type,
-                                "calcs_reversed.0.aeccar0_fs_id": aeccar0_gfs_id,
-                            }
-                        },
-                    )
-                    gridfs_ids["dir_aeccar0"] = aeccar0_gfs_id
-                    aeccar2_gfs_id, compression_type = mmdb.insert_gridfs(
-                        aeccar2, "aeccar2_fs", task_id=t_id
-                    )
-                    mmdb.collection.update_one(
-                        {"task_id": t_id},
-                        {
-                            "$set": {
-                                "calcs_reversed.0.aeccar2_compression": compression_type,
-                                "calcs_reversed.0.aeccar2_fs_id": aeccar2_gfs_id,
-                            }
-                        },
-                    )
-                    gridfs_ids["dir_aeccar2"] = aeccar2_gfs_id
-                    logger.info("AECCAR GRIDFS INSERTION COMPLETE: {}".format(calc_dir))
+                    # insert aeccar with GridFS
+                    if aeccar0_fs_id == None or aeccar2_fs_id == None:
+                        if (
+                            get(task_doc, "calcs_reversed.0.aeccar0") != None
+                            and get(task_doc, "calcs_reversed.0.aeccar2") != None
+                        ):
+                            aeccar0 = task_doc["calcs_reversed"][0]["aeccar0"]
+                            aeccar2 = task_doc["calcs_reversed"][0]["aeccar2"]
+                            # check if the aeccar is valid before insertion
+                            if (
+                                aeccar0.data["total"] + aeccar2.data["total"]
+                            ).min() < 0:
+                                logger.warning(
+                                    "AECCARs appear corrupted for task id {} \nSkipping GridFS storage of AECCARs".format(
+                                        t_id
+                                    )
+                                )
+                            else:
+                                aeccar0_gfs_id, compression_type = mmdb.insert_gridfs(
+                                    aeccar0, "aeccar0_fs", task_id=t_id
+                                )
+                                mmdb.collection.update_one(
+                                    {"task_id": t_id},
+                                    {
+                                        "$set": {
+                                            "calcs_reversed.0.aeccar0_compression": compression_type,
+                                            "calcs_reversed.0.aeccar0_fs_id": aeccar0_gfs_id,
+                                        }
+                                    },
+                                )
+                                gridfs_ids["dir_aeccar0"] = aeccar0_gfs_id
+                                aeccar2_gfs_id, compression_type = mmdb.insert_gridfs(
+                                    aeccar2, "aeccar2_fs", task_id=t_id
+                                )
+                                mmdb.collection.update_one(
+                                    {"task_id": t_id},
+                                    {
+                                        "$set": {
+                                            "calcs_reversed.0.aeccar2_compression": compression_type,
+                                            "calcs_reversed.0.aeccar2_fs_id": aeccar2_gfs_id,
+                                        }
+                                    },
+                                )
+                                gridfs_ids["dir_aeccar2"] = aeccar2_gfs_id
+                                logger.info(
+                                    "APPROX NEB: AECCAR GRIDFS INSERTION COMPLETE"
+                                )
+                except:
+                    logger.warning("APPROX NEB: GRIDFS INSERTION ERROR")
 
         # Store GridFS ids in approx_neb_doc (to be stored in the approx_neb collection)
-        approx_neb_doc["chgcar_fs_id"] = chgcar_fs_id or chgcar_gfs_id
-        approx_neb_doc["aeccar0_fs_id"] = aeccar0_fs_id or aeccar0_gfs_id
-        approx_neb_doc["aeccar2_fs_id"] = aeccar2_fs_id or aeccar2_gfs_id
+        # None will be stored if no gridfs_id is found
+        approx_neb_doc["chgcar_fs_id"] = chgcar_fs_id or gridfs_ids.get("dir_chgcar")
+        approx_neb_doc["aeccar0_fs_id"] = aeccar0_fs_id or gridfs_ids.get("dir_aeccar0")
+        approx_neb_doc["aeccar2_fs_id"] = aeccar2_fs_id or gridfs_ids.get("dir_aeccar2")
         # Insert approx_neb_doc in the approx_neb collection of provided database
         mmdb.collection = mmdb.db["approx_neb"]
         mmdb.collection.insert_one(approx_neb_doc)
@@ -169,7 +193,7 @@ class PassFromDb(FiretaskBase):
         Args:
             db_file (str): path to file containing the database credentials.
             wf_uuid (str): unique identifier for approx_neb workflow record keeping
-            fields_to_pass (dict): {key_in_fw_spec: "path to desired field"}
+            fields_to_pass (dict): {"key_in_fw_spec": "path to desired approx neb database field"}
     """
 
     required_params = ["db_file", "approx_neb_wf_uuid", "fields_to_pull"]
@@ -177,21 +201,22 @@ class PassFromDb(FiretaskBase):
 
     def run_task(self, fw_spec):
         # get the database connection
-        db_file = env_chk(self["db_file"],fw_spec)
+        db_file = env_chk(self["db_file"], fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         mmdb.collection = mmdb.db["approx_neb"]
 
         wf_uuid = self["approx_neb_wf_uuid"]
-        fields_to_pull = self["fields_to_pull"].copy()
+        fields_to_pull = self["fields_to_pull"]
 
         # pulls desired fields from approx_neb collection and stores in pulled_fields
         pulled_doc = mmdb.collection.find_one({"wf_uuid": wf_uuid})
         pulled_fields = dict()
         for key in fields_to_pull.keys():
-            pulled_fields[key] = pydash.get(pulled_doc,fields_to_pull[key])
+            pulled_fields[key] = get(pulled_doc, fields_to_pull[key])
 
         # update fw_spec with pulled fields (labeled according to fields_to_pass)
         return FWAction(update_spec=pulled_fields)
+
 
 @explicit_serialize
 class InsertSites(FiretaskBase):
@@ -219,13 +244,13 @@ class InsertSites(FiretaskBase):
 
     def run_task(self, fw_spec):
         # get the database connection
-        db_file = env_chk(self["db_file"],fw_spec)
+        db_file = env_chk(self["db_file"], fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
         insert_specie = self["insert_specie"]
         insert_coords = self["insert_coords"]
         # put in list if single coordinate provided to avoid error
-        if isinstance(insert_coords[0],(float,int)):
+        if isinstance(insert_coords[0], (float, int)):
             insert_coords = [insert_coords]
 
         # get output structure from structure_task_id
