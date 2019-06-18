@@ -135,7 +135,7 @@ class CalcDb(six.with_metaclass(ABCMeta)):
 
         # Remove keys which may cause collision when calling MongoClient
         for key in list(kwargs.keys()):
-            if key not in ['ssl','ssl_ca_certs','ssl_pem_passphrase','ssl_keyfile']:
+            if key not in ['ssl','ssl_ca_certs','ssl_ca_certfile','ssl_pem_passphrase','ssl_keyfile']:
                 del kwargs[key]
         
         return cls(creds["host"], int(creds["port"]), creds["database"], creds["collection"],
