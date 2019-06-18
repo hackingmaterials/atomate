@@ -83,10 +83,12 @@ class HostLatticeToDb(FiretaskBase):
         # VASP calculation directory specified by the host lattice task doc dir_name
         # or if there is an error parsing the task doc dir_name
         if any(fs_id == None for fs_id in [chgcar_fs_id, aeccar0_fs_id, aeccar2_fs_id]):
-            calc_dir = approx_neb_doc["host_lattice"]["dir_name"].copy()
+            calc_dir = approx_neb_doc["host_lattice"]["dir_name"]
+            print(calc_dir)
             # imperfect fix for parsing if host name is included task doc dir_name
             if ":" in calc_dir:
                 calc_dir = calc_dir.split(":")[-1]
+                print(calc_dir)
 
             logger.info("APPROX NEB: CHECKING FOR CHARGE DENSITY FILES")
             drone = VaspDrone(parse_chgcar=True, parse_aeccar=True)
