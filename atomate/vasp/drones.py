@@ -395,26 +395,16 @@ class VaspDrone(AbstractDrone):
             locpot = Locpot.from_file(os.path.join(dir_name, d["output_file_paths"]["locpot"]))
             d["output"]["locpot"] = {i: locpot.get_average_along_axis(i) for i in range(3)}
 
-        if self.parse_chgcar != False:
-            # parse CHGCAR file only for static calculations
-            # TODO require static run later
-            # if self.parse_chgcar == True and vrun.incar.get("NSW", 0) < 1:
-            try:
-                chgcar = self.process_chgcar(os.path.join(dir_name, d["output_file_paths"]["chgcar"]))
-            except:
-                raise ValueError("No valid charge data exist")
+        if "chgcar" in d["output_file_paths"] and self.parse_chgcar:
+            chgcar = self.process_chgcar(os.path.join(dir_name, d["output_file_paths"]["chgcar"]))
             d["chgcar"] = chgcar
 
-        if self.parse_aeccar != False:
-            try:
-                chgcar = self.process_chgcar(os.path.join(dir_name, d["output_file_paths"]["aeccar0"]))
-            except:
-                raise ValueError("No valid charge data exist")
+        if "aeccar0" in d["output_file_paths"] and self.parse_aeccar:
+            chgcar = self.process_chgcar(os.path.join(dir_name, d["output_file_paths"]["aeccar0"]))
             d["aeccar0"] = chgcar
-            try:
-                chgcar = self.process_chgcar(os.path.join(dir_name, d["output_file_paths"]["aeccar2"]))
-            except:
-                raise ValueError("No valid charge data exist")
+
+        if "aeccar2" in d["output_file_paths"] and self.parse_aeccar:
+            chgcar = self.process_chgcar(os.path.join(dir_name, d["output_file_paths"]["aeccar2"]))
             d["aeccar2"] = chgcar
 
         # parse force constants
