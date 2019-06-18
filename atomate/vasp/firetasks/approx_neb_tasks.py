@@ -174,12 +174,16 @@ class HostLatticeToDb(FiretaskBase):
 class PassFromDb(FiretaskBase):
     """
         Search approx_neb collection of database for designated fields.
-        Pass designated fields to fw_spec.
+        Pass designated fields to fw_spec according to fields_to_pull input.
 
         Args:
             db_file (str): path to file containing the database credentials.
-            wf_uuid (str): unique identifier for approx_neb workflow record keeping
-            fields_to_pass (dict): {"key_in_fw_spec": "path to desired approx neb database field"}
+            approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
+            fields_to_pull (dict): define fields to pull from approx_neb collection
+                using pydash.get() notation (doc specified by approx_neb_wf_uuid).
+                Keys of fields_to_pull are used to name pulled fields in the
+                updated fw_spec. Example input (pull output structure into fw_spec):
+                {"host_lattice_structure":"host_lattice.output.structure"}
     """
 
     required_params = ["db_file", "approx_neb_wf_uuid", "fields_to_pull"]
