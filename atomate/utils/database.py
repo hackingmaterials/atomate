@@ -125,11 +125,19 @@ class CalcDb(six.with_metaclass(ABCMeta)):
             user = creds.get("readonly_user")
             password = creds.get("readonly_password")
 
-        kwargs = {}
+        kwargs = dict(creds)
         if "authsource" in creds:
             kwargs["authsource"] = creds["authsource"]
         else:
             kwargs["authsource"] = creds["database"]
+        if 'ssl' in creds:
+            kwargs['ssl'] = bool(creds['ssl'])
+
+        # Remove keys which may cause collision when calling MongoClient
+        for key in ['host','port','database','collection','admin_password','admin_user',
+               'readonly_user','readonly_password','password','username']:
+            if key in kwargs:
+                del kwargs[key]
 
         return cls(creds["host"], int(creds["port"]), creds["database"], creds["collection"],
                    user, password, **kwargs)
