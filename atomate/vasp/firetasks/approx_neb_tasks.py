@@ -78,96 +78,80 @@ class HostLatticeToDb(FiretaskBase):
 
         # If unable to get GridFS ids, checks task doc directory for
         # CHGCAR and/or AECCAR files. Stores files in database via GridFS
-        # and updates host lattice task doc with fs_id.
+        # and updates host lattice task doc with the created fs_id.
         # Note: this will not work if computer does not have access to the
         # VASP calculation directory specified by the host lattice task doc dir_name
         # or if there is an error parsing the task doc dir_name
         if any(fs_id == None for fs_id in [chgcar_fs_id, aeccar0_fs_id, aeccar2_fs_id]):
             calc_dir = approx_neb_doc["host_lattice"]["dir_name"]
-            print(calc_dir)
             # imperfect fix for parsing if host name is included task doc dir_name
             if ":" in calc_dir:
                 calc_dir = calc_dir.split(":")[-1]
-                print(calc_dir)
 
             logger.info("APPROX NEB: CHECKING FOR CHARGE DENSITY FILES")
             drone = VaspDrone(parse_chgcar=True, parse_aeccar=True)
             if os.path.exists(calc_dir):
                 task_doc = drone.assimilate(calc_dir)
+                output_files = task_doc["calcs_reversed"][0]["output_file_paths"].keys()
 
-                try:
-                    # insert chgcar with GridFS
-                    if (
-                        chgcar_fs_id == None
-                        and get(task_doc, "calcs_reversed.0.chgcar") != None
-                    ):
-                        chgcar = json.dumps(
-                            task_doc["calcs_reversed"][0]["chgcar"], cls=MontyEncoder
-                        )
-                        chgcar_gfs_id, compression_type = mmdb.insert_gridfs(
-                            chgcar, "chgcar_fs", task_id=t_id
-                        )
-                        mmdb.collection.update_one(
-                            {"task_id": t_id},
-                            {
-                                "$set": {
-                                    "calcs_reversed.0.chgcar_compression": compression_type,
-                                    "calcs_reversed.0.chgcar_fs_id": chgcar_gfs_id,
-                                }
-                            },
-                        )
-                        gridfs_ids["dir_chgcar"] = chgcar_gfs_id
-                        logger.info("APPROX NEB: CHGCAR GRIDFS INSERTION COMPLETE")
+                # insert CHGCAR with GridFS
+                if chgcar_fs_id == None and "chgcar" in output_files:
+                    chgcar = json.dumps(
+                        task_doc["calcs_reversed"][0]["chgcar"], cls=MontyEncoder
+                    )
+                    chgcar_gfs_id, compression_type = mmdb.insert_gridfs(
+                        chgcar, "chgcar_fs", task_id=t_id
+                    )
+                    mmdb.collection.update_one(
+                        {"task_id": t_id},
+                        {
+                            "$set": {
+                                "calcs_reversed.0.chgcar_compression": compression_type,
+                                "calcs_reversed.0.chgcar_fs_id": chgcar_gfs_id,
+                            }
+                        },
+                    )
+                    gridfs_ids["dir_chgcar"] = chgcar_gfs_id
+                    logger.info("APPROX NEB: CHGCAR GRIDFS INSERTION COMPLETE")
 
-                    # insert aeccar with GridFS
-                    if aeccar0_fs_id == None or aeccar2_fs_id == None:
-                        if (
-                            get(task_doc, "calcs_reversed.0.aeccar0") != None
-                            and get(task_doc, "calcs_reversed.0.aeccar2") != None
-                        ):
-                            aeccar0 = task_doc["calcs_reversed"][0]["aeccar0"]
-                            aeccar2 = task_doc["calcs_reversed"][0]["aeccar2"]
-                            # check if the aeccar is valid before insertion
-                            if (
-                                aeccar0.data["total"] + aeccar2.data["total"]
-                            ).min() < 0:
-                                logger.warning(
-                                    "AECCARs appear corrupted for task id {} \nSkipping GridFS storage of AECCARs".format(
-                                        t_id
-                                    )
-                                )
-                            else:
-                                aeccar0_gfs_id, compression_type = mmdb.insert_gridfs(
-                                    aeccar0, "aeccar0_fs", task_id=t_id
-                                )
-                                mmdb.collection.update_one(
-                                    {"task_id": t_id},
-                                    {
-                                        "$set": {
-                                            "calcs_reversed.0.aeccar0_compression": compression_type,
-                                            "calcs_reversed.0.aeccar0_fs_id": aeccar0_gfs_id,
-                                        }
-                                    },
-                                )
-                                gridfs_ids["dir_aeccar0"] = aeccar0_gfs_id
-                                aeccar2_gfs_id, compression_type = mmdb.insert_gridfs(
-                                    aeccar2, "aeccar2_fs", task_id=t_id
-                                )
-                                mmdb.collection.update_one(
-                                    {"task_id": t_id},
-                                    {
-                                        "$set": {
-                                            "calcs_reversed.0.aeccar2_compression": compression_type,
-                                            "calcs_reversed.0.aeccar2_fs_id": aeccar2_gfs_id,
-                                        }
-                                    },
-                                )
-                                gridfs_ids["dir_aeccar2"] = aeccar2_gfs_id
-                                logger.info(
-                                    "APPROX NEB: AECCAR GRIDFS INSERTION COMPLETE"
-                                )
-                except:
-                    logger.warning("APPROX NEB: GRIDFS INSERTION ERROR")
+                # insert AECCAR with GridFS
+                if aeccar0_fs_id == None or aeccar2_fs_id == None:
+                    if "aeccar0" in output_files and "aeccar2" in output_files:
+                        aeccar0 = task_doc["calcs_reversed"][0]["aeccar0"]
+                        aeccar2 = task_doc["calcs_reversed"][0]["aeccar2"]
+                        # check if the aeccar is valid before insertion
+                        if (aeccar0.data["total"] + aeccar2.data["total"]).min() < 0:
+                            logger.warning(
+                                "AECCARs APPEAR CORRUPTED. GridFS STORAGE SKIPPED"
+                            )
+                        else:
+                            aeccar0_gfs_id, compression_type = mmdb.insert_gridfs(
+                                aeccar0, "aeccar0_fs", task_id=t_id
+                            )
+                            mmdb.collection.update_one(
+                                {"task_id": t_id},
+                                {
+                                    "$set": {
+                                        "calcs_reversed.0.aeccar0_compression": compression_type,
+                                        "calcs_reversed.0.aeccar0_fs_id": aeccar0_gfs_id,
+                                    }
+                                },
+                            )
+                            gridfs_ids["dir_aeccar0"] = aeccar0_gfs_id
+                            aeccar2_gfs_id, compression_type = mmdb.insert_gridfs(
+                                aeccar2, "aeccar2_fs", task_id=t_id
+                            )
+                            mmdb.collection.update_one(
+                                {"task_id": t_id},
+                                {
+                                    "$set": {
+                                        "calcs_reversed.0.aeccar2_compression": compression_type,
+                                        "calcs_reversed.0.aeccar2_fs_id": aeccar2_gfs_id,
+                                    }
+                                },
+                            )
+                            gridfs_ids["dir_aeccar2"] = aeccar2_gfs_id
+                            logger.info("APPROX NEB: AECCAR GRIDFS INSERTION COMPLETE")
 
         # Store GridFS ids in approx_neb_doc (to be stored in the approx_neb collection)
         # None will be stored if no gridfs_id is found
