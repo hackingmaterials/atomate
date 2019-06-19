@@ -1,6 +1,6 @@
 from pymatgen import Structure
 from fireworks import FiretaskBase, FWAction, explicit_serialize
-from atomate.utils.utils import env_chk
+from atomate.utils.utils import env_chk, load_class
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.drones import VaspDrone
@@ -301,7 +301,63 @@ class InsertSites(FiretaskBase):
                 pulled = mmdb.collection.find_one({"wf_uuid": wf_uuid},{"stable_sites"})
                 stable_sites_index = len(pulled["stable_sites"]) - 1
                 update_spec["stable_sites_index"] = stable_sites_index
+                update_spec["structure_path"] = "stable_sites."+str(stable_sites_index)+".input_structure"
             except:
                 logger.warning("ApproxNEB: InsertSites FIRETASK STORING ERROR")
 
         return FWAction(update_spec = update_spec)
+
+
+@explicit_serialize
+class ApproxNEBWriteInput(FiretaskBase):
+    """
+    Create VASP input files using implementations of pymatgen's AbstractVaspInputSet.
+    An input set can be provided as an object or as a string/parameter combo.
+    The structure input set by the provided approx_neb_wf_uuid and structure_path
+    to get a structure object from the approx_neb collection using pydash.get().
+
+    Required params:
+        approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
+        vasp_input_set (AbstractVaspInputSet or str): Either a VaspInputSet object or a string
+            name for the VASP input set (e.g., "MPRelaxSet").
+        structure_path (str): A full mongo-style path to reference approx_neb collection
+            subdocuments using dot notation and array keys.
+            structure_path must be provided in the fw_spec or firetask inputs.
+
+    Optional params:
+        vasp_input_params (dict): When using a string name for VASP input set, use this as a dict
+            to specify kwargs for instantiating the input set parameters. For example, if you want
+            to change the user_incar_settings, you should provide: {"user_incar_settings": ...}.
+            This setting is ignored if you provide the full object representation of a VaspInputSet
+            rather than a String.
+
+    Adapted from WriteVaspFromIOSet Firetask
+    """
+
+    required_params = ["approx_neb_wf_uuid", "vasp_input_set"]
+    optional_params = ["structure_path", "vasp_input_params"]
+
+    def run_task(self, fw_spec):
+        #get database connection
+        db_file = env_chk(self["db_file"], fw_spec)
+        mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
+        mmdb.collection = mmdb.db["approx_neb"]
+
+        #get structure from approx_neb collection
+        try:
+            wf_uuid = self["approx_neb_wf_uuid"]
+            structure_path = self["structure_path"] or fw_spec["structure_path"]
+            approx_neb_doc = mmdb.collection.find_one({"wf_uuid":wf_uuid})
+            structure = Structure.from_dict(get(approx_neb_doc, structure_path))
+        except:
+            raise ValueError("Error getting structure from approx_neb collection")
+
+        # if a full VaspInputSet object was provided
+        if hasattr(self['vasp_input_set'], 'write_input'):
+            vis = self['vasp_input_set']
+
+        # if VaspInputSet String + parameters was provided
+        else:
+            vis_cls = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])
+            vis = vis_cls(structure, **self.get("vasp_input_params", {}))
+        vis.write_input(".")
