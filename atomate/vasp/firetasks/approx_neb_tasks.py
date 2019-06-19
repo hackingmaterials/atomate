@@ -8,7 +8,6 @@ from pydash import get  # ,set_
 import json
 import os.path
 from monty.json import MontyEncoder
-from uuid import uuid4
 
 logger = get_logger(__name__)
 
@@ -24,12 +23,13 @@ class HostLatticeToDb(FiretaskBase):
 
     Args:
         db_file (str): path to file containing the database credentials.
-        host_lattice_task_id (int): task_id for structure optimization of host lattice
         approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
+        host_lattice_task_id (int): task_id for structure optimization of host lattice.
+            host_lattice_task_id must be provided in the fw_spec or firetask inputs.
     """
 
-    required_params = ["db_file", "host_lattice_task_id", "approx_neb_wf_uuid"]
-    optional_params = []
+    required_params = ["db_file", "approx_neb_wf_uuid"]
+    optional_params = ["host_lattice_task_id"]
 
     def run_task(self, fw_spec):
         # get the database connection
@@ -44,7 +44,7 @@ class HostLatticeToDb(FiretaskBase):
             raise ValueError("Provided approx_neb_wf_uuid is not unique")
 
         # get host lattice task doc from host_lattice_task_id
-        t_id = self["host_lattice_task_id"]
+        t_id = self.get("host_lattice_task_id") or fw_spec.get(["host_lattice_task_id"])
         try:
             host_lattice_tasks_doc = mmdb.collection.find_one(
                 {"task_id": t_id, "approx_neb.calc_type": "host_lattice"}
@@ -186,9 +186,14 @@ class PassFromDb(FiretaskBase):
             db_file (str): path to file containing the database credentials.
             approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
             fields_to_pull (dict): define fields to pull from approx_neb collection
-             using pydash.get() notation (doc specified by approx_neb_wf_uuid).
+                using pydash.get() notation (doc specified by approx_neb_wf_uuid).
                 Keys of fields_to_pull are used to name pulled fields in the
-                updated fw_spec. Example input (pull output structure into fw_spec):
+                updated fw_spec via...
+                Format: {key : path} -> fw.spec[key] = task_doc[path]
+                The path is a full mongo-style path so subdocuments can be referneced
+                using dot notation and array keys can be referenced using the index.
+                Example for pulling host lattice structure from approx_neb collection
+                into fw_spec["host_lattice_structure"]:
                 {"host_lattice_structure":"host_lattice.output.structure"}
     """
 
