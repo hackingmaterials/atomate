@@ -16,26 +16,32 @@ logger = get_logger(__name__)
 @explicit_serialize
 class HostLatticeToDb(FiretaskBase):
     """
-    Initializes a approx_neb database entry from a host lattice task doc
-    specified by the supplied task_id.
-    Generates a unique id (wf_id) for approx_neb workflow record keeping.
-    Host lattice task doc is updated with this unique approx_neb workflow id.
+    Initializes a approx_neb collection database entry from a host lattice task doc
+    specified by the supplied task_id using the provided approx_neb_wf_uuid.
+    Host lattice task doc is updated with the provided approx_neb_wf_uuid.
     Pulls GridFS identifier (or parses and stores from files in task doc
     directory if not already stored) for accessing host lattice CHGCAR and AECCARs.
 
     Args:
         db_file (str): path to file containing the database credentials.
         host_lattice_task_id (int): task_id for structure optimization of host lattice
+        approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
     """
 
-    required_params = ["db_file", "host_lattice_task_id"]
+    required_params = ["db_file", "host_lattice_task_id", "approx_neb_wf_uuid"]
     optional_params = []
 
     def run_task(self, fw_spec):
         # get the database connection
         db_file = env_chk(self["db_file"], fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-        wf_uuid = str(uuid4())
+        wf_uuid = self["approx_neb_wf_uuid"]
+
+        # check if provided approx_neb_wf_uuid is unique
+        # e.g. not already used in approx_neb collection
+        approx_neb_db = mmdb.db["approx_neb"]
+        if approx_neb_db.count_documents({"wf_uuid":wf_uuid}) != 0:
+            raise ValueError("Provided approx_neb_wf_uuid is not unique")
 
         # get host lattice task doc from host_lattice_task_id
         t_id = self["host_lattice_task_id"]
