@@ -69,6 +69,7 @@ class HostLatticeToDb(FiretaskBase):
                 "task_id": host_lattice_tasks_doc["task_id"],
             },
             "wf_uuid": wf_uuid,
+            "stable_sites":[]
         }
 
         # Gets GridFS ids for host lattice chgcar and aeccar if stored in task_doc
@@ -290,4 +291,8 @@ class InsertSites(FiretaskBase):
                 coords_are_cartesian=self.get("coords_are_cartesian", False),
             )
 
-        return FWAction(update_spec={"modified_structure": structure.to_json()})
+        #store stable site input structures in approx_neb collection
+        if self.get("approx_neb_wf_uuid"):
+            mmdb.collection.update_one({"wf_uuid": wf_uuid}, {"$push": {"stable_sites": {"input_structure":structure.as_dict()}}})
+
+        return FWAction(update_spec={"modified_structure": structure.as_dict()})
