@@ -291,8 +291,17 @@ class InsertSites(FiretaskBase):
                 coords_are_cartesian=self.get("coords_are_cartesian", False),
             )
 
+        update_spec = {"modified_structure": structure.as_dict()}
+
         #store stable site input structures in approx_neb collection
         if self.get("approx_neb_wf_uuid"):
-            mmdb.collection.update_one({"wf_uuid": wf_uuid}, {"$push": {"stable_sites": {"input_structure":structure.as_dict()}}})
+            try:
+                mmdb.collection.update_one({"wf_uuid": wf_uuid}, {"$push": {"stable_sites": {"input_structure":structure.as_dict()}}})
+                #get stable_sites_index to update the fw_spec for easier record keeping
+                pulled = mmdb.collection.find_one({"wf_uuid": wf_uuid},{"stable_sites"})
+                stable_sites_index = len(pulled["stable_sites"]) - 1
+                update_spec["stable_sites_index"] = stable_sites_index
+            except:
+                logger.warning("ApproxNEB: InsertSites FIRETASK STORING ERROR")
 
-        return FWAction(update_spec={"modified_structure": structure.as_dict()})
+        return FWAction(update_spec = update_spec)
