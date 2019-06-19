@@ -229,21 +229,22 @@ class InsertSites(FiretaskBase):
 
     Args:
         db_file (str): path to file containing the database credentials
-        structure_task_id (int): task_id for output structure to modify and insert site
+        structure_task_id (int): task_id for output structure to modify and insert site.
+            structure_task_id must be provided in the fw_spec or firetask inputs.
         insert_specie (str): specie of site to insert in structure (e.g. "Li")
         insert_coords (1x3 array or list of 1x3 arrays): coordinates of site(s)
             to insert in structure (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]])
     Optional Parameters:
-        coords_are_cartesian (bool): Set to True if you are providing insert_coords
-            in cartesian coordinates. Otherwise assumes fractional coordinates.
         approx_neb_wf_uuid (str): Unique identifier for approx workflow record keeping.
             If provided, checks if the output structure from structure_task_id matches
             the host lattice structure stored in the approx_neb collection doc specified
             by approx_neb_wf_uuid.
+        coords_are_cartesian (bool): Set to True if you are providing insert_coords
+            in cartesian coordinates. Otherwise assumes fractional coordinates.
         """
 
-    required_params = ["db_file", "structure_task_id", "insert_specie", "insert_coords"]
-    optional_params = ["coords_are_cartesian", "approx_neb_wf_uuid"]
+    required_params = ["db_file", "insert_specie", "insert_coords"]
+    optional_params = ["structure_task_id", "approx_neb_wf_uuid", "coords_are_cartesian"]
 
     def run_task(self, fw_spec):
         # get the database connection
@@ -257,11 +258,11 @@ class InsertSites(FiretaskBase):
             insert_coords = [insert_coords]
 
         # get output structure from structure_task_id
-        t_id = self["structure_task_id"]
+        t_id = self.get(["structure_task_id"]) or fw_spec.get(["structure_task_id"])
         try:
             structure_doc = mmdb.collection.find_one({"task_id": t_id})
         except:
-            raise ValueError("Unable to find tasks doc with task_id: {}".format(t_id))
+            raise ValueError("Unable to find task doc with task_id: {}".format(t_id))
 
         # if provided, checks wf_uuid matches for approx_neb workflow record keeping
         if self.get("approx_neb_wf_uuid"):
