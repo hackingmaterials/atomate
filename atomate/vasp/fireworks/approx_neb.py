@@ -19,7 +19,7 @@ class InsertSitesFW(Firework):
         Updates the fw_spec with the empty host lattice task_id from the provided
         approx_neb_wf_uuid. Pulls the empty host lattice structure from the tasks
         collection and inserts the site(s) designated by insert_specie and insert_coords.
-        Stores the modified structure in the stable_sites field of the approx_neb collection.
+        Stores the modified structure in the stable_sites field of the approx_neb.py collection.
         Updates the fw_spec with the corresponding stable_site_index for the stored
         structure (and the modified structure).
 
@@ -60,16 +60,16 @@ class ApproxNEBLaunchFW(Firework):
                  **kwargs):
         """
         Launches a structure optimization calculation from a structure stored in
-        in the approx_neb collection. Structure input for calculation is specified
+        in the approx_neb.py collection. Structure input for calculation is specified
         by the provided approx_neb_wf_uuid and structure_path to pull the structure
-        from the approx_neb collection using pydash.get().
+        from the approx_neb.py collection using pydash.get().
 
         Adapted from OptimizeFW.
 
         Args:
             calc_type (str): Set to
             approx_neb_wf_uuid (str): Unique identifier for approx workflow record keeping.
-            structure_path (str): A full mongo-style path to reference approx_neb collection
+            structure_path (str): A full mongo-style path to reference approx_neb.py collection
                 subdocuments using dot notation and array keys.
                 By default structure_path = None which assumes fw_spec["structure_path"] is
                 set by a parent firework.
@@ -89,13 +89,13 @@ class ApproxNEBLaunchFW(Firework):
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
         additional_fields = {"task_label": name,
-                             "approx_neb":{"wf_uuids":[],
+                             "approx_neb.py":{"wf_uuids":[],
                                            "_source_wf_uuid":approx_neb_wf_uuid}}
         if calc_type == "stable_site":
-            additional_fields["approx_neb"]["calc_type"] = "stable_site"
-            additional_fields["approx_neb"]["stable_sites_indexes"]: []
+            additional_fields["approx_neb.py"]["calc_type"] = "stable_site"
+            additional_fields["approx_neb.py"]["stable_sites_indexes"]: []
         elif calc_type == "image":
-            additional_fields["approx_neb"]["calc_type"] = "image"
+            additional_fields["approx_neb.py"]["calc_type"] = "image"
 
         t = []
         t.append(WriteVaspInput(approx_neb_wf_uuid = approx_neb_wf_uuid,
