@@ -352,8 +352,8 @@ class WriteVaspInput(FiretaskBase):
             raise ValueError("Error getting structure from approx_neb collection")
 
         # get vasp input set and write files
-        override_default_vasp_params = self.get("override_default_vasp_params")
-        if self["vasp_input_set"] == None or override_default_vasp_params != None:
+        override_default_vasp_params = self.get("override_default_vasp_params", {})
+        if self["vasp_input_set"] == None or override_default_vasp_params != {}:
             vis = MPRelaxSet(structure, **override_default_vasp_params)
         elif hasattr(self['vasp_input_set'], 'write_input'):
             vis = self['vasp_input_set']
