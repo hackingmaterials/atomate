@@ -4,6 +4,7 @@ from atomate.utils.utils import env_chk, load_class
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.drones import VaspDrone
+from pymatgen.io.vasp.sets import MPRelaxSet
 from pydash import get  # ,set_
 import json
 import os.path
@@ -225,16 +226,17 @@ class InsertSites(FiretaskBase):
     """
     Insert sites into the output structure of a previous calculation
     for use of the modified structure. Updates fw_spec with
-    "modified_structure" field to pass the modified structure.
+    modified_structure to pass the modified structure. Also updates the fw_spec
+    with stable_site_index and structure_path if a approx_neb_wf_uuid is provided.
     Intended use is for inserting working ions into an empty host lattice.
 
     Args:
         db_file (str): path to file containing the database credentials
         structure_task_id (int): task_id for output structure to modify and insert site.
             structure_task_id must be provided in the fw_spec or firetask inputs.
-        insert_specie (str): specie of site to insert in structure (e.g. "Li")
+        insert_specie (str): specie of site to insert in structure (e.g. "Li").
         insert_coords (1x3 array or list of 1x3 arrays): coordinates of site(s)
-            to insert in structure (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]])
+            to insert in structure (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]]).
     Optional Parameters:
         approx_neb_wf_uuid (str): Unique identifier for approx workflow record keeping.
             If provided, checks if the output structure from structure_task_id matches
@@ -309,33 +311,30 @@ class InsertSites(FiretaskBase):
 
 
 @explicit_serialize
-class ApproxNEBWriteInput(FiretaskBase):
+class WriteVaspInput(FiretaskBase):
     """
     Create VASP input files using implementations of pymatgen's AbstractVaspInputSet.
     An input set can be provided as an object or as a string/parameter combo.
     The structure input set by the provided approx_neb_wf_uuid and structure_path
     to get a structure object from the approx_neb collection using pydash.get().
 
-    Required params:
+    Args:
         approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
-        vasp_input_set (AbstractVaspInputSet or str): Either a VaspInputSet object or a string
-            name for the VASP input set (e.g., "MPRelaxSet").
+        vasp_input_set (VaspInputSet class): can use to define VASP input parameters.
+            See pymatgen.io.vasp.sets module for more information.
+            MPRelaxSet() and override_default_vasp_params are used if vasp_input_set = None.
         structure_path (str): A full mongo-style path to reference approx_neb collection
-            subdocuments using dot notation and array keys.
+            subdocuments using dot notation and array keys (e.g. "host_lattice.output.structure").
             structure_path must be provided in the fw_spec or firetask inputs.
-
-    Optional params:
-        vasp_input_params (dict): When using a string name for VASP input set, use this as a dict
-            to specify kwargs for instantiating the input set parameters. For example, if you want
-            to change the user_incar_settings, you should provide: {"user_incar_settings": ...}.
-            This setting is ignored if you provide the full object representation of a VaspInputSet
-            rather than a String.
-
-    Adapted from WriteVaspFromIOSet Firetask
+        override_default_vasp_params (dict): if provided, vasp_input_set is disregarded and
+            the Vasp Input Set is created by passing override_default_vasp_params to
+            MPRelaxSet(). Allows for easy modification of MPRelaxSet(). For example,
+            to set ISIF=2 in the INCAR use:
+            override_default_vasp_params = {"user_incar_settings":{"ISIF":2}}
     """
 
     required_params = ["approx_neb_wf_uuid", "vasp_input_set"]
-    optional_params = ["structure_path", "vasp_input_params"]
+    optional_params = ["structure_path", "override_default_vasp_params"]
 
     def run_task(self, fw_spec):
         #get database connection
@@ -352,12 +351,12 @@ class ApproxNEBWriteInput(FiretaskBase):
         except:
             raise ValueError("Error getting structure from approx_neb collection")
 
-        # if a full VaspInputSet object was provided
-        if hasattr(self['vasp_input_set'], 'write_input'):
+        # get vasp input set and write files
+        override_default_vasp_params = self.get("override_default_vasp_params")
+        if self["vasp_input_set"] == None or override_default_vasp_params != None:
+            vis = MPRelaxSet(structure, **override_default_vasp_params)
+        elif hasattr(self['vasp_input_set'], 'write_input'):
             vis = self['vasp_input_set']
-
-        # if VaspInputSet String + parameters was provided
         else:
-            vis_cls = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])
-            vis = vis_cls(structure, **self.get("vasp_input_params", {}))
+            raise TypeError("ApproxNEB: Error using vasp_input_set")
         vis.write_input(".")
