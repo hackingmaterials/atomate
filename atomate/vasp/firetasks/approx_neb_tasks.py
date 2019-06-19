@@ -180,7 +180,7 @@ class PassFromDb(FiretaskBase):
             db_file (str): path to file containing the database credentials.
             approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
             fields_to_pull (dict): define fields to pull from approx_neb collection
-                using pydash.get() notation (doc specified by approx_neb_wf_uuid).
+             using pydash.get() notation (doc specified by approx_neb_wf_uuid).
                 Keys of fields_to_pull are used to name pulled fields in the
                 updated fw_spec. Example input (pull output structure into fw_spec):
                 {"host_lattice_structure":"host_lattice.output.structure"}
@@ -214,19 +214,21 @@ class InsertSites(FiretaskBase):
     Insert sites into the output structure of a previous calculation
     for use of the modified structure. Updates fw_spec with
     "modified_structure" field to pass the modified structure.
+    Intended use is for inserting working ions into an empty host lattice.
 
     Args:
         db_file (str): path to file containing the database credentials
         structure_task_id (int): task_id for output structure to modify and insert site
         insert_specie (str): specie of site to insert in structure (e.g. "Li")
         insert_coords (1x3 array or list of 1x3 arrays): coordinates of site(s)
-        to insert in structure (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]])
+            to insert in structure (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]])
     Optional Parameters:
-        coords_are_cartesian (bool): Set to True if you are providing
-        insert_coords in cartesian coordinates. Assumes fractional coordinates if unset.
+        coords_are_cartesian (bool): Set to True if you are providing insert_coords
+            in cartesian coordinates. Otherwise assumes fractional coordinates.
         approx_neb_wf_uuid (str): Unique identifier for approx workflow record keeping.
-        Checks if approx_neb_wf_uuid matches the wf_uuids in the host lattice task doc
-        specified by structure_task_id.
+            If provided, checks if the output structure from structure_task_id matches
+            the host lattice structure stored in the approx_neb collection doc specified
+            by approx_neb_wf_uuid.
         """
 
     required_params = ["db_file", "structure_task_id", "insert_specie", "insert_coords"]
@@ -239,7 +241,7 @@ class InsertSites(FiretaskBase):
 
         insert_specie = self["insert_specie"]
         insert_coords = self["insert_coords"]
-        # put in list if single coordinate provided to avoid error
+        # put in list if insert_coords provided as a single coordinate to avoid error
         if isinstance(insert_coords[0], (float, int)):
             insert_coords = [insert_coords]
 
@@ -252,18 +254,14 @@ class InsertSites(FiretaskBase):
 
         # if provided, checks wf_uuid matches for approx_neb workflow record keeping
         if self.get("approx_neb_wf_uuid"):
-            wf_uuid = self.get("approx_neb_wf_uuid")
-            approx_neb_doc = structure_doc.get("approx_neb")
-            if approx_neb_doc == None:
-                raise ValueError("Unable to find approx_neb field for task_id: {t_id}")
-            if approx_neb_doc.get("calc_type") != "host_lattice":
-                raise ValueError(
-                    "Unable to find approx neb host lattice with task_id: {t_id}"
-                )
-            if wf_uuid not in approx_neb_doc["wf_uuids"]:
-                raise ValueError(
-                    "Provided wf_uuid does not match approx neb host lattice with task_id: {t_id}"
-                )
+            try:
+                wf_uuid = self.get("approx_neb_wf_uuid")
+                mmdb.collection = mmdb.db["approx_neb"]
+                approx_neb_doc = mmdb.collection.find_one({"wf_uuid": wf_uuid})
+                if structure_doc["output"]["structure"] != approx_neb_doc["host_lattice"]["output"]["structure"]:
+                    raise ValueError("ApproxNEB: structure_task_id does not match approx_neb_wf_uuid host lattice")
+            except:
+                raise ValueError("ApproxNEB: Error matching structure_task_id and approx_neb_wf_uuid")
 
         structure = Structure.from_dict(structure_doc["output"]["structure"])
         # removes site properties to avoid error
