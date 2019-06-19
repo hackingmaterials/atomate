@@ -348,6 +348,7 @@ class WriteVaspInput(FiretaskBase):
             structure_path = self["structure_path"] or fw_spec["structure_path"]
             approx_neb_doc = mmdb.collection.find_one({"wf_uuid":wf_uuid})
             structure = Structure.from_dict(get(approx_neb_doc, structure_path))
+
         except:
             raise ValueError("Error getting structure from approx_neb collection")
 
@@ -360,3 +361,54 @@ class WriteVaspInput(FiretaskBase):
         else:
             raise TypeError("ApproxNEB: Error using vasp_input_set")
         vis.write_input(".")
+
+@explicit_serialize
+class StableSiteToDb(FiretaskBase):
+    """
+    Store information from stable site structure optimization in approx_neb
+    collection database entry from a the task doc specified by stable_site_task_id.
+    Also updates the tasks collection for approx neb workflow record keeping.
+
+    Args:
+        db_file (str): path to file containing the database credentials.
+        approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
+        stable_site_task_id (int): task_id for structure optimization of stable site
+            structure (empty host lattice with one working ion inserted).
+            stable_site_task_id must be provided in the fw_spec or firetask inputs.
+
+        Note fw_spec["stable_sites_index"] is required.
+    """
+
+    required_params = ["db_file", "approx_neb_wf_uuid"]
+    optional_params = ["stable_site_task_id"]
+
+    def run_task(self, fw_spec):
+        # get the database connection
+        db_file = env_chk(self["db_file"], fw_spec)
+        mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
+        wf_uuid = self["approx_neb_wf_uuid"]
+        t_id = self.get("stable_site_task_id") or fw_spec.get(["stable_site_task_id"])
+
+        # Note InsertSites firetask updates the the fw_spec with the stable_sites_index
+        index = fw_spec["stable_sites_index"]
+
+        # Store info in tasks collection for record keeping
+        mmdb.collection.update_one({"task_id": t_id, "approx_neb.calc_type": "stable_site"}, {"$push":{"approx_neb.wf_uuids":wf_uuid,
+                                                                    "stable_sites_indexes":index}})
+
+        #pull task doc to store parts in approx_neb_collection
+        task_doc = mmdb.collection.find_one({"task_id": t_id, "approx_neb.calc_type": "stable_site"})
+
+        # Store info in approx_neb collection for record keeping
+        mmdb.collection = mmdb.db["approx_neb"]
+        path = "stable_sites." + str(index) + "."
+        stable_site_output = {path + "dir_name": task_doc["dir_name"],
+                                                                 path + "formula_pretty": task_doc["formula_pretty"],
+                                                                 path + "output": task_doc["output"],
+                                                                 path + "task_id": task_doc["task_id"]}
+
+
+        mmdb.collection.update_one({"wf_uuid": wf_uuid},{"$set":stable_site_output})
+
+        return FWAction(
+            stored_data={"wf_uuid": wf_uuid, "stable_site_index":index, "stable_site_output": stable_site_output})
