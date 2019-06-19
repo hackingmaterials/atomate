@@ -1,11 +1,10 @@
-from fireworks import Firework, FWAction, Workflow, FiretaskBase
-from atomate.vasp.firetasks.glue_tasks import pass_vasp_result
-from atomate.vasp.firetasks.run_calc import RunVaspCustodian
+from fireworks import Firework, Workflow
 from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.config import VASP_CMD, DB_FILE
+from uuid import uuid4
 
-# from atomate.vasp.workflows.base.approx_neb_wf_parts import *
 from atomate.vasp.firetasks.approx_neb_tasks import HostLatticeToDb
+from atomate.vasp.fireworks.approx_neb import InsertSitesFW, ApproxNEBLaunchFW
 
 # TODO: Write approx_neb_wf_description
 def approx_neb_wf(
@@ -26,7 +25,7 @@ def approx_neb_wf(
             "ISIF": 3,
             "ISMEAR": 0,
             "LDAU": False,
-            "NSW": 400,
+            "NSW": 200,
             "ADDGRID": True,
             "ISYM": 1,
             "NELMIN": 4,
@@ -35,7 +34,7 @@ def approx_neb_wf(
 
     host_lattice_fw = OptimizeFW(
         structure,
-        name="approx neb optimize host lattice",
+        name="approx neb host lattice optimization",
         vasp_input_set=vasp_input_set,
         override_default_vasp_params=approx_neb_params.copy(),
         vasp_cmd=vasp_cmd,
@@ -44,13 +43,18 @@ def approx_neb_wf(
             "parse_chgcar": True,
             "parse_aeccar": True,
             "additional_fields": {
-                "approx_neb": {"calc_type": "host_lattice", "wf_uuids": []}
+                "approx_neb.py": {"calc_type": "host_lattice", "wf_uuids": []}
             },
+            "task_fields_to_push":{"host_lattice_task_id":"task_id"}
         },
     )
+    # TODO: check if passed host_lattice_fw task_id correctly
 
-    pass_host_lattice_fw = Firework(
-        HostLatticeToDb(db_file=DB_FILE, host_lattice_task_id="???")
+    wf_uuid = str(uuid4())
+    # TODO: how to check that fw_spec has host_lattice_task_id
+    initialize_db_fw = Firework(
+        tasks = [HostLatticeToDb(db_file=DB_FILE, approx_neb_wf_uuid=wf_uuid)],
+        parents = host_lattice_fw,
     )
 
     if "user_incar_settings" not in approx_neb_params.keys():
@@ -60,23 +64,25 @@ def approx_neb_wf(
 
     # firework of single firetask to pass output structure...
 
+
     insert_working_ion_fws = []
     for coord in insert_coords:
         insert_working_ion_fws.append(
             InsertSitesFW(
+                approx_neb_wf_uuid = wf_uuid,
                 insert_specie=working_ion,
                 insert_coords=coord,
-                vasp_input_set=vasp_input_set,
-                override_default_vasp_params=approx_neb_params.copy(),
-                vasp_cmd=vasp_cmd,
-                db_file=db_file,
-                parents=host_lattice_fw,
+                db_file = db_file,
+                parents=initialize_db_fw
             )
         )
-        # spec={}
-        # list of fireworks where one ion is inserted - assume two coords
-        # provided for now, fws can run independently
 
+    stable_site_fws = []
+    for fw in insert_working_ion_fws:
+        stable_site_fws.append(ApproxNEBLaunchFW(calc_type="stable_site",
+                                                 approx_neb_wf_uuid = wf_uuid,
+                                                 parents = fw
+                                                 ))
     # pathfinder_fws = PathFinderFW(
     #    ep1_struct="???",
     #    ep2_struct="???",
@@ -90,6 +96,10 @@ def approx_neb_wf(
     # )
     # list of fireworks for all images
 
-    wf = Workflow([host_lattice_fw] + [pass_host_lattice_fw] + insert_working_ion_fws)
+    wf = Workflow([host_lattice_fw] + [initialize_db_fw] + insert_working_ion_fws + stable_site_fws)
     # TODO: modify workflow to remove undesirable custodian handlers
+
     return wf
+
+# TODO: store WI in approx_neb.py collection
+
