@@ -45,7 +45,7 @@ def approx_neb_wf(
             "additional_fields": {
                 "approx_neb.py": {"calc_type": "host_lattice", "wf_uuids": []}
             },
-            "task_fields_to_push":{"host_lattice_task_id":"task_id"}
+            "task_fields_to_push": {"host_lattice_task_id": "task_id"},
         },
     )
     # TODO: check if passed host_lattice_fw task_id correctly
@@ -53,8 +53,8 @@ def approx_neb_wf(
     wf_uuid = str(uuid4())
     # TODO: how to check that fw_spec has host_lattice_task_id
     initialize_db_fw = Firework(
-        tasks = [HostLatticeToDb(db_file=DB_FILE, approx_neb_wf_uuid=wf_uuid)],
-        parents = host_lattice_fw,
+        tasks=[HostLatticeToDb(db_file=DB_FILE, approx_neb_wf_uuid=wf_uuid)],
+        parents=host_lattice_fw,
     )
 
     if "user_incar_settings" not in approx_neb_params.keys():
@@ -64,25 +64,25 @@ def approx_neb_wf(
 
     # firework of single firetask to pass output structure...
 
-
     insert_working_ion_fws = []
     for coord in insert_coords:
         insert_working_ion_fws.append(
             InsertSitesFW(
-                approx_neb_wf_uuid = wf_uuid,
+                approx_neb_wf_uuid=wf_uuid,
                 insert_specie=working_ion,
                 insert_coords=coord,
-                db_file = db_file,
-                parents=initialize_db_fw
+                db_file=db_file,
+                parents=initialize_db_fw,
             )
         )
 
     stable_site_fws = []
     for fw in insert_working_ion_fws:
-        stable_site_fws.append(ApproxNEBLaunchFW(calc_type="stable_site",
-                                                 approx_neb_wf_uuid = wf_uuid,
-                                                 parents = fw
-                                                 ))
+        stable_site_fws.append(
+            ApproxNEBLaunchFW(
+                calc_type="stable_site", approx_neb_wf_uuid=wf_uuid, parents=fw
+            )
+        )
     # pathfinder_fws = PathFinderFW(
     #    ep1_struct="???",
     #    ep2_struct="???",
@@ -96,10 +96,15 @@ def approx_neb_wf(
     # )
     # list of fireworks for all images
 
-    wf = Workflow([host_lattice_fw] + [initialize_db_fw] + insert_working_ion_fws + stable_site_fws)
+    wf = Workflow(
+        [host_lattice_fw]
+        + [initialize_db_fw]
+        + insert_working_ion_fws
+        + stable_site_fws
+    )
     # TODO: modify workflow to remove undesirable custodian handlers
 
     return wf
 
-# TODO: store WI in approx_neb.py collection
 
+# TODO: store WI in approx_neb.py collection

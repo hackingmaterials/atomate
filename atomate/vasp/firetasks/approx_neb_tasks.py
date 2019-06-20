@@ -41,7 +41,7 @@ class HostLatticeToDb(FiretaskBase):
         # check if provided approx_neb_wf_uuid is unique
         # e.g. not already used in approx_neb.py collection
         approx_neb_db = mmdb.db["approx_neb.py"]
-        if approx_neb_db.count_documents({"wf_uuid":wf_uuid}) != 0:
+        if approx_neb_db.count_documents({"wf_uuid": wf_uuid}) != 0:
             raise ValueError("Provided approx_neb_wf_uuid is not unique")
 
         # get host lattice task doc from host_lattice_task_id
@@ -70,7 +70,7 @@ class HostLatticeToDb(FiretaskBase):
                 "task_id": host_lattice_tasks_doc["task_id"],
             },
             "wf_uuid": wf_uuid,
-            "stable_sites":[]
+            "stable_sites": [],
         }
 
         # Gets GridFS ids for host lattice chgcar and aeccar if stored in task_doc
@@ -247,7 +247,11 @@ class InsertSites(FiretaskBase):
         """
 
     required_params = ["db_file", "insert_specie", "insert_coords"]
-    optional_params = ["structure_task_id", "approx_neb_wf_uuid", "coords_are_cartesian"]
+    optional_params = [
+        "structure_task_id",
+        "approx_neb_wf_uuid",
+        "coords_are_cartesian",
+    ]
 
     def run_task(self, fw_spec):
         # get the database connection
@@ -273,10 +277,17 @@ class InsertSites(FiretaskBase):
                 wf_uuid = self.get("approx_neb_wf_uuid")
                 mmdb.collection = mmdb.db["approx_neb.py"]
                 approx_neb_doc = mmdb.collection.find_one({"wf_uuid": wf_uuid})
-                if structure_doc["output"]["structure"] != approx_neb_doc["host_lattice"]["output"]["structure"]:
-                    raise ValueError("ApproxNEB: structure_task_id does not match approx_neb_wf_uuid host lattice")
+                if (
+                    structure_doc["output"]["structure"]
+                    != approx_neb_doc["host_lattice"]["output"]["structure"]
+                ):
+                    raise ValueError(
+                        "ApproxNEB: structure_task_id does not match approx_neb_wf_uuid host lattice"
+                    )
             except:
-                raise ValueError("ApproxNEB: Error matching structure_task_id and approx_neb_wf_uuid")
+                raise ValueError(
+                    "ApproxNEB: Error matching structure_task_id and approx_neb_wf_uuid"
+                )
 
         structure = Structure.from_dict(structure_doc["output"]["structure"])
         # removes site properties to avoid error
@@ -295,19 +306,30 @@ class InsertSites(FiretaskBase):
 
         update_spec = {"modified_structure": structure.as_dict()}
 
-        #store stable site input structures in approx_neb.py collection
+        # store stable site input structures in approx_neb.py collection
         if self.get("approx_neb_wf_uuid"):
             try:
-                mmdb.collection.update_one({"wf_uuid": wf_uuid}, {"$push": {"stable_sites": {"input_structure":structure.as_dict()}}})
-                #get stable_sites_index to update the fw_spec for easier record keeping
-                pulled = mmdb.collection.find_one({"wf_uuid": wf_uuid},{"stable_sites"})
+                mmdb.collection.update_one(
+                    {"wf_uuid": wf_uuid},
+                    {
+                        "$push": {
+                            "stable_sites": {"input_structure": structure.as_dict()}
+                        }
+                    },
+                )
+                # get stable_sites_index to update the fw_spec for easier record keeping
+                pulled = mmdb.collection.find_one(
+                    {"wf_uuid": wf_uuid}, {"stable_sites"}
+                )
                 stable_sites_index = len(pulled["stable_sites"]) - 1
                 update_spec["stable_sites_index"] = stable_sites_index
-                update_spec["structure_path"] = "stable_sites."+str(stable_sites_index)+".input_structure"
+                update_spec["structure_path"] = (
+                    "stable_sites." + str(stable_sites_index) + ".input_structure"
+                )
             except:
                 logger.warning("ApproxNEB: InsertSites FIRETASK STORING ERROR")
 
-        return FWAction(update_spec = update_spec)
+        return FWAction(update_spec=update_spec)
 
 
 @explicit_serialize
@@ -337,16 +359,16 @@ class WriteVaspInput(FiretaskBase):
     optional_params = ["structure_path", "override_default_vasp_params"]
 
     def run_task(self, fw_spec):
-        #get database connection
+        # get database connection
         db_file = env_chk(self["db_file"], fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         mmdb.collection = mmdb.db["approx_neb.py"]
 
-        #get structure from approx_neb.py collection
+        # get structure from approx_neb.py collection
         try:
             wf_uuid = self["approx_neb_wf_uuid"]
             structure_path = self["structure_path"] or fw_spec["structure_path"]
-            approx_neb_doc = mmdb.collection.find_one({"wf_uuid":wf_uuid})
+            approx_neb_doc = mmdb.collection.find_one({"wf_uuid": wf_uuid})
             structure = Structure.from_dict(get(approx_neb_doc, structure_path))
 
         except:
@@ -356,11 +378,12 @@ class WriteVaspInput(FiretaskBase):
         override_default_vasp_params = self.get("override_default_vasp_params", {})
         if self["vasp_input_set"] == None or override_default_vasp_params != {}:
             vis = MPRelaxSet(structure, **override_default_vasp_params)
-        elif hasattr(self['vasp_input_set'], 'write_input'):
-            vis = self['vasp_input_set']
+        elif hasattr(self["vasp_input_set"], "write_input"):
+            vis = self["vasp_input_set"]
         else:
             raise TypeError("ApproxNEB: Error using vasp_input_set")
         vis.write_input(".")
+
 
 @explicit_serialize
 class StableSiteToDb(FiretaskBase):
@@ -393,22 +416,37 @@ class StableSiteToDb(FiretaskBase):
         index = fw_spec["stable_sites_index"]
 
         # Store info in tasks collection for record keeping
-        mmdb.collection.update_one({"task_id": t_id, "approx_neb.py.calc_type": "stable_site"}, {"$push":{"approx_neb.py.wf_uuids":wf_uuid,
-                                                                    "stable_sites_indexes":index}})
+        mmdb.collection.update_one(
+            {"task_id": t_id, "approx_neb.py.calc_type": "stable_site"},
+            {
+                "$push": {
+                    "approx_neb.py.wf_uuids": wf_uuid,
+                    "stable_sites_indexes": index,
+                }
+            },
+        )
 
-        #pull task doc to store parts in approx_neb_collection
-        task_doc = mmdb.collection.find_one({"task_id": t_id, "approx_neb.py.calc_type": "stable_site"})
+        # pull task doc to store parts in approx_neb_collection
+        task_doc = mmdb.collection.find_one(
+            {"task_id": t_id, "approx_neb.py.calc_type": "stable_site"}
+        )
 
         # Store info in approx_neb.py collection for record keeping
         mmdb.collection = mmdb.db["approx_neb.py"]
         path = "stable_sites." + str(index) + "."
-        stable_site_output = {path + "dir_name": task_doc["dir_name"],
-                                                                 path + "formula_pretty": task_doc["formula_pretty"],
-                                                                 path + "output": task_doc["output"],
-                                                                 path + "task_id": task_doc["task_id"]}
+        stable_site_output = {
+            path + "dir_name": task_doc["dir_name"],
+            path + "formula_pretty": task_doc["formula_pretty"],
+            path + "output": task_doc["output"],
+            path + "task_id": task_doc["task_id"],
+        }
 
-
-        mmdb.collection.update_one({"wf_uuid": wf_uuid},{"$set":stable_site_output})
+        mmdb.collection.update_one({"wf_uuid": wf_uuid}, {"$set": stable_site_output})
 
         return FWAction(
-            stored_data={"wf_uuid": wf_uuid, "stable_site_index":index, "stable_site_output": stable_site_output})
+            stored_data={
+                "wf_uuid": wf_uuid,
+                "stable_site_index": index,
+                "stable_site_output": stable_site_output,
+            }
+        )
