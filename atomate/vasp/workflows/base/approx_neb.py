@@ -4,7 +4,11 @@ from atomate.vasp.config import VASP_CMD, DB_FILE
 from uuid import uuid4
 
 from atomate.vasp.firetasks.approx_neb_tasks import HostLatticeToDb
-from atomate.vasp.fireworks.approx_neb import InsertSitesFW, ApproxNEBLaunchFW
+from atomate.vasp.fireworks.approx_neb import (
+    HostLatticeFW,
+    InsertSitesFW,
+    ApproxNEBLaunchFW,
+)
 
 # TODO: Write approx_neb_wf_description
 def approx_neb_wf(
@@ -32,30 +36,17 @@ def approx_neb_wf(
         }
     }
 
-    host_lattice_fw = OptimizeFW(
+    wf_uuid = str(uuid4())
+
+    host_lattice_fw = HostLatticeFW(
         structure,
-        name="approx neb host lattice optimization",
-        vasp_input_set=vasp_input_set,
-        override_default_vasp_params=approx_neb_params.copy(),
-        vasp_cmd=vasp_cmd,
+        approx_neb_wf_uuid=wf_uuid,
         db_file=db_file,
-        vasptodb_kwargs={
-            "parse_chgcar": True,
-            "parse_aeccar": True,
-            "additional_fields": {
-                "approx_neb.py": {"calc_type": "host_lattice", "wf_uuids": []}
-            },
-            "task_fields_to_push": {"host_lattice_task_id": "task_id"},
-        },
+        vasp_input_set=vasp_input_set,
+        vasp_cmd=vasp_cmd,
+        override_default_vasp_params=approx_neb_params.copy(),
     )
     # TODO: check if passed host_lattice_fw task_id correctly
-
-    wf_uuid = str(uuid4())
-    # TODO: how to check that fw_spec has host_lattice_task_id
-    initialize_db_fw = Firework(
-        tasks=[HostLatticeToDb(db_file=DB_FILE, approx_neb_wf_uuid=wf_uuid)],
-        parents=host_lattice_fw,
-    )
 
     if "user_incar_settings" not in approx_neb_params.keys():
         approx_neb_params = {"user_incar_settings": {}}
@@ -107,4 +98,4 @@ def approx_neb_wf(
     return wf
 
 
-# TODO: store WI in approx_neb.py collection
+# TODO: store WI in approx_neb collection
