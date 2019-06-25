@@ -7,10 +7,18 @@ import numpy as np
 from pymatgen.ext.matproj import MPRester
 from pymatgen.analysis.structure_analyzer import get_max_bond_lengths
 from pymatgen.transformations.standard_transformations import SupercellTransformation
+from csld.structure import SupercellStructure
 
 """
 This module defines the Compressed Sensing Lattice Dynamics (CSLD) workflow.
+
+V3 added rounding of entries away from 0 if there are zero rows or columns in the transformation matrix.
 """
+
+
+def round_away_from_zero(x):
+    aX = abs(x)
+    return math.ceil(aX)*(aX/x) if x is not 0 else 0
 
 def gen_scaling_matrix(structure=None, max_atoms=np.Inf, min_atoms=-np.Inf, length_cutoff=5):
     """
@@ -35,8 +43,8 @@ def gen_scaling_matrix(structure=None, max_atoms=np.Inf, min_atoms=-np.Inf, leng
         latVecs = structure.lattice.matrix #lattice vectors
         bondLengths = get_max_bond_lengths(structure) #dictionary of bond lengths
         bondMatrix = structure.distance_matrix #NxN matrix of bond distances (diagonal is 0)
-        print(bondMatrix)
-        print(structure.sites)
+        # print(bondMatrix)
+        # print(structure.sites)
         np.fill_diagonal(bondMatrix, np.Inf)
         nnDist = np.amin(bondMatrix) #nearest neighbor bond length
         print("nn Dist: " + str(nnDist))
@@ -56,7 +64,37 @@ def gen_scaling_matrix(structure=None, max_atoms=np.Inf, min_atoms=-np.Inf, leng
 
             T = np.linalg.inv(latVecs) @ target_supercell
             # T = target_supercell @ np.linalg.inv(latVecs)
-            T = np.around(T)
+            print('T before rounding:')
+            print(T)
+            print('T after rounding:')
+            T_rounded = np.around(T)
+            print(T_rounded)
+
+
+            # Zero columns or rows make T singular, so make them non-singular
+            if (~T_rounded.any(axis=1)).any(): #Check for zero rows
+                zero_row_idxs = np.where(~T_rounded.any(axis=1))[0]
+                for zero_row_idx in zero_row_idxs:
+                    # print(zero_row_idx)
+                    zero_row = T[zero_row_idx, :]
+                    # print('zero row:' + str(zero_row))
+                    col_idx_to_fix = np.where(np.absolute(zero_row) == np.amax(np.absolute(zero_row)))[0]
+                    # print('amax:')
+                    # print(np.amax(np.absolute(zero_row)))
+                    # print('col idx to fix:')
+                    # print(col_idx_to_fix)
+                    for j in col_idx_to_fix:
+                        T_rounded[zero_row_idx, j] = round_away_from_zero(T[zero_row_idx, j])
+            if (~T_rounded.any(axis=1)).any(): #Check for zero columns
+                zero_col_idxs = np.where(~T_rounded.any(axis=1))[0]
+                for zero_col_idx in zero_col_idxs:
+                    zero_col = T[:, zero_col_idx]
+                    row_idx_to_fix = np.where(np.absolute(zero_col) == np.amax(np.absolute(zero_col)))[0]
+                    for i in row_idx_to_fix:
+                        T_rounded[i, zero_col_idx] = round_away_from_zero(T[i, zero_col_idx])
+
+
+            T = T_rounded
             print("proposed sc.txt:")
             print(T)
 
@@ -109,12 +147,27 @@ def parallelipipedVol(a=[1, 0, 0], b=[0, 1, 0], c=[0, 0, 1]):
     vol = np.cross(a,b).T @ c
     return vol
 
+
 def main():
     mpr = MPRester(api_key='auNIrJ23VLXCqbpl')
-    structure = mpr.get_structure_by_material_id('mp-7814')
-    print('structure loaded')
+    # structure = mpr.get_structure_by_material_id('mp-7814') #passed
+    structure = mpr.get_structure_by_material_id('mp-1101039') #passed
+    # structure = mpr.get_structure_by_material_id('mp-20012')
 
-    T = gen_scaling_matrix(structure, length_cutoff=4, min_atoms=150)
+    print('structure loaded')
+    print(structure.num_sites)
+    # print('structure')
+    # print(structure)
+    # structure.to(fmt='poscar', filename='POSCAR-tlbise2-scraped')
+
+    # # Find Primitive
+    # from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+    # sga = SpacegroupAnalyzer(structure)
+    # # print(sga.find_primitive().lattice)
+    # sga.find_primitive().to(fmt='poscar', filename='POSCAR-tlbise2-scraped-prim')
+
+
+    T = gen_scaling_matrix(structure, length_cutoff=5, min_atoms=150)
     #***my function, pymatgen's SupercellTransformation, and CSLD all yield different supercell lattice vectors
 
     print('~~~~~~~~~~~~~~~~~~~~~~~~~')
@@ -124,17 +177,21 @@ def main():
     # Pymatgen version
     superstructure = SupercellTransformation(T).apply_transformation(structure)
     print(superstructure.lattice)
-    print(superstructure.volume)
-    print(parallelipipedVol(superstructure.lattice.matrix[0],
-                            superstructure.lattice.matrix[1],
-                            superstructure.lattice.matrix[2]))
+    # print(superstructure.volume)
+    # print(parallelipipedVol(superstructure.lattice.matrix[0],
+    #                         superstructure.lattice.matrix[1],
+    #                         superstructure.lattice.matrix[2]))
     print(superstructure.num_sites)
-    superstructure.to(fmt='poscar', filename='POSCAR-scTest')
 
-    # Find Primitive
+    # # Find Primitive
     # from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
     # sga = SpacegroupAnalyzer(superstructure)
-    # print(sga.find_primitive().lattice)
+    # # print(sga.find_primitive().lattice)
+    # sga.find_primitive().to(fmt='poscar', filename='POSCAR-scTest-prim')
+
+    superstructure.to(fmt='poscar', filename='POSCAR-scTest')
+
+
 
     # # CSLD version
     # # *** Can't call CSLD Structure member functions because structure scraped is a Pymatgen Structure ***
