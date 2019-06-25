@@ -7,7 +7,6 @@ import numpy as np
 from pymatgen.ext.matproj import MPRester
 from pymatgen.analysis.structure_analyzer import get_max_bond_lengths
 from pymatgen.transformations.standard_transformations import SupercellTransformation
-from csld.structure import SupercellStructure
 
 """
 This module defines the Compressed Sensing Lattice Dynamics (CSLD) workflow.
@@ -132,8 +131,10 @@ def gen_scaling_matrix(structure=None, max_atoms=np.Inf, min_atoms=-np.Inf, leng
             cubeSide = min([length, width, height])
             print('smallest dimension of proposed SC: ' + str(cubeSide))
 
+            # Get number of atoms
             superstructure = SupercellTransformation(T).apply_transformation(structure)
             num_at = superstructure.num_sites
+
             if cubeSide >= hard_threshold and num_at >= min_atoms and num_at <= max_atoms:
                 print(T)
                 print("FINISHED")
@@ -141,6 +142,11 @@ def gen_scaling_matrix(structure=None, max_atoms=np.Inf, min_atoms=-np.Inf, leng
             else:
                 # Increase threshold until
                 target_threshold += 1
+                if num_at > max_atoms:
+                    raise AttributeError('While trying to solve for the supercell, the max'
+                                         'number of atoms was exceeded. Try lowering the number'
+                                         'of nearest neighbor distances.')
+                    return
 
 
 def parallelipipedVol(a=[1, 0, 0], b=[0, 1, 0], c=[0, 0, 1]):
@@ -167,7 +173,7 @@ def main():
     # sga.find_primitive().to(fmt='poscar', filename='POSCAR-tlbise2-scraped-prim')
 
 
-    T = gen_scaling_matrix(structure, length_cutoff=5, min_atoms=150)
+    T = gen_scaling_matrix(structure, length_cutoff=5, min_atoms=150, max_atoms=1)
     #***my function, pymatgen's SupercellTransformation, and CSLD all yield different supercell lattice vectors
 
     print('~~~~~~~~~~~~~~~~~~~~~~~~~')
