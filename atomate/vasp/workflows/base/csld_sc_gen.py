@@ -173,7 +173,7 @@ def main():
     # sga.find_primitive().to(fmt='poscar', filename='POSCAR-tlbise2-scraped-prim')
 
 
-    T = gen_scaling_matrix(structure, length_cutoff=5, min_atoms=150, max_atoms=1)
+    T = gen_scaling_matrix(structure, length_cutoff=5, min_atoms=150, max_atoms=1000)
     #***my function, pymatgen's SupercellTransformation, and CSLD all yield different supercell lattice vectors
 
     print('~~~~~~~~~~~~~~~~~~~~~~~~~')
