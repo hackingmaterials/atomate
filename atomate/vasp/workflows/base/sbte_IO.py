@@ -38,63 +38,54 @@ class ShengBTE_CONTROL_IO:
             IO reader/writer for ShengBTE's CONTROL file, composed of FORTRAN namelists
     """
 
-    def __init__(self, nelements=None, natoms=None, elements=None, types=None, positions=None, ngrid=[25, 25, 25],
-                 lfactor=0.1, lattvec1=[1, 0, 0], lattvec2=[0, 1, 0], lattvec3=[0, 0, 1], scell=[5, 5, 5],
-                 temperature=500,  scalebroad=0.5, onlyharmonic=False, isotopes=False, nonanalytic=True,
-                 nanowires=False, norientations=0):
-
-        self.nelements = nelements
-        self.natoms = natoms
-        self.ngrid = ngrid
-        self.norientations = norientations
-        self.lfactor = lfactor
-        self.lattvec1 = lattvec1
-        self.lattvec2 = lattvec2
-        self.lattvec3 = lattvec3
-        self.elements = elements
-        self.types = types
-        self.positions = positions
-        self.scell = scell
-        self.temperature = temperature
-        self.scalebroad = scalebroad
-        self.onlyharmonic = onlyharmonic
-        self.isotopes = isotopes
-        self.nonanalytic = nonanalytic
-        self.nanowires = nanowires
-
-
     def read_CONTROL(self, filename):
         nml = f90nml.read(filename)
         return nml
 
-    def write_CONTROL(self):
-        with open('CONTROL.nml', 'w') as control_file:
+    def write_CONTROL_from_dict(self, dict, filename='CONTROL'):
+        with open(filename, 'w') as control_file:
             nml = {'allocations':
-                       {'nelements': self.nelements,
-                        'natoms': self.natoms,
-                        'ngrid': self.ngrid,
-                        'norientations': self.norientations},
+                       {'nelements': dict.get('allocations', None).get('nelements', None),
+                        'natoms': dict.get('allocations', None).get('natoms', None),
+                        'ngrid': dict.get('allocations', [25, 25, 25]).get('ngrid', [25, 25, 25]),
+                        'norientations': dict.get('allocations', 0).get('norientations', 0)},
                    'crystal':
-                       {'lfactor': self.lfactor,
-                        'lattvec(:,1)': self.lattvec1,
-                        'lattvec(:,2)': self.lattvec2,
-                        'lattvec(:,3)': self.lattvec3,
-                        'elements': self.elements,
-                        'types': self.types,
-                        'scell': self.scell},
+                       {'lfactor': dict.get('crystal', 0.1).get('lfactor', 0.1),
+                        # 'lattvec(:,1)': dict.get('crystal', None).get('lattvec(:,1)', None),
+                        # 'lattvec(:,2)': dict.get('crystal', None).get('lattvec(:,2)', None),
+                        # 'lattvec(:,3)': dict.get('crystal', None).get('lattvec(:,3)', None),
+                        'lattvec': dict.get('crystal', None).get('lattvec', None),
+                        'positions': dict.get('crystal', None).get('positions', None),
+                        'elements': dict.get('crystal', None).get('elements', None),
+                        'types': dict.get('crystal', None).get('types', None),
+                        'scell': dict.get('crystal', [5, 5, 5]).get('scell', [5, 5, 5])},
                    'parameters':
-                       {'T': self.temperature,
-                        'scalebroad': self.scalebroad},
+                       {'T': dict.get('parameters', 500).get('T', 500),
+                        'scalebroad': dict.get('parameters', 0.5).get('scalebroad', 0.5)},
                    'flags':
-                       {'onlyharmonic': self.onlyharmonic,
-                        'isotopes': self.isotopes,
-                        'nonanalytic': self.nonanalytic,
-                        'nanowires': self.nanowires}}
-
-            #add positions to the dict
-            num_atoms, _ = self.positions.shape
-            for at in range(num_atoms):
-                at_position = 'positions(:,' + str(at+1) + ')'
-                nml['crystal'][at_position] = self.positions[at, :]
+                       {'onlyharmonic': dict.get('flags', False).get('onlyharmonic', False),
+                        'isotopes': dict.get('flags', False).get('isotopes', False),
+                        'nonanalytic': dict.get('flags', True).get('nonanalytic', True),
+                        'nanowires': dict.get('flags', False).get('nanowires', False)}}
 
             f90nml.write(nml, control_file, force=True) #force=True overwrites an existing file
+
+
+def main():
+    # Read the CONTROL file into a Fortran namelist object
+    sbte_io = ShengBTE_CONTROL_IO()
+    namelist = sbte_io.read_CONTROL('CONTROL')
+    print(namelist)
+    print('---------------------')
+
+    # Convert the namelist object to a dict for easy access of contents
+    dict = namelist.todict()
+    print(dict)
+    print(dict['allocations']['nelements'])
+
+    # Write the dict back into a namelist file
+    sbte_io.write_CONTROL_from_dict(dict, filename='CONTROL_test')
+
+
+if __name__ == '__main__':
+    main()
