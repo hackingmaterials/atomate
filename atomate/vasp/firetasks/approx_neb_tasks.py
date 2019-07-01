@@ -367,7 +367,7 @@ class WriteVaspInput(FiretaskBase):
         # get structure from approx_neb collection
         try:
             wf_uuid = self["approx_neb_wf_uuid"]
-            structure_path = self["structure_path"] or fw_spec["structure_path"]
+            structure_path = self.get("structure_path") or fw_spec["structure_path"]
             approx_neb_doc = mmdb.collection.find_one({"wf_uuid": wf_uuid})
             structure = Structure.from_dict(get(approx_neb_doc, structure_path))
 
