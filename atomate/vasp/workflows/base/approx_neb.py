@@ -1,9 +1,10 @@
 from fireworks import Firework, Workflow
 from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.config import VASP_CMD, DB_FILE
+from atomate.vasp.powerups import use_custodian
+from custodian.vasp.handlers import VaspErrorHandler, MeshSymmetryErrorHandler, PotimErrorHandler, FrozenJobErrorHandler, NonConvergingErrorHandler, PositiveEnergyErrorHandler, StdErrHandler
 from uuid import uuid4
 
-from atomate.vasp.firetasks.approx_neb_tasks import HostLatticeToDb
 from atomate.vasp.fireworks.approx_neb import (
     HostLatticeFW,
     InsertSitesFW,
@@ -35,25 +36,23 @@ def approx_neb_wf(
             "NELMIN": 4,
         }
     }
+    #TODO: Add LASPH: True
 
     wf_uuid = str(uuid4())
 
     host_lattice_fw = HostLatticeFW(
-        structure,
+        structure=structure,
         approx_neb_wf_uuid=wf_uuid,
         db_file=db_file,
         vasp_input_set=vasp_input_set,
         vasp_cmd=vasp_cmd,
         override_default_vasp_params=approx_neb_params.copy(),
     )
-    # TODO: check if passed host_lattice_fw task_id correctly
 
     if "user_incar_settings" not in approx_neb_params.keys():
         approx_neb_params = {"user_incar_settings": {}}
     approx_neb_params["user_incar_settings"]["ISIF"] = 2
     approx_neb_params["user_incar_settings"]["ISYM"] = 0
-
-    # firework of single firetask to pass output structure...
 
     insert_working_ion_fws = []
     for coord in insert_coords:
@@ -63,7 +62,7 @@ def approx_neb_wf(
                 insert_specie=working_ion,
                 insert_coords=coord,
                 db_file=db_file,
-                parents=initialize_db_fw,
+                parents=host_lattice_fw,
             )
         )
 
@@ -89,13 +88,17 @@ def approx_neb_wf(
 
     wf = Workflow(
         [host_lattice_fw]
-        + [initialize_db_fw]
         + insert_working_ion_fws
         + stable_site_fws
     )
-    # TODO: modify workflow to remove undesirable custodian handlers
+
+    wf = use_custodian(wf, custodian_params={'handler_group': [VaspErrorHandler(),
+                                                             MeshSymmetryErrorHandler(),
+                                                             NonConvergingErrorHandler(),
+                                                             PotimErrorHandler(),
+                                                             PositiveEnergyErrorHandler(),
+                                                             FrozenJobErrorHandler(),
+                                                             StdErrHandler()]})
 
     return wf
 
-
-# TODO: store WI in approx_neb collection
