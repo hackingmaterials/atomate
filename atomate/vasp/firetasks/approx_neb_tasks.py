@@ -227,7 +227,7 @@ class InsertSites(FiretaskBase):
     Insert sites into the output structure of a previous calculation
     for use of the modified structure. Updates fw_spec with
     modified_structure to pass the modified structure. Also updates the fw_spec
-    with stable_site_index and structure_path if a approx_neb_wf_uuid is provided.
+    with stable_sites_index and structure_path if a approx_neb_wf_uuid is provided.
     Intended use is for inserting working ions into an empty host lattice.
 
     Args:
@@ -321,10 +321,10 @@ class InsertSites(FiretaskBase):
                 pulled = mmdb.collection.find_one(
                     {"wf_uuid": wf_uuid}, {"stable_sites"}
                 )
-                stable_site_index = len(pulled["stable_sites"]) - 1
-                update_spec["stable_site_index"] = stable_site_index
+                stable_sites_index = len(pulled["stable_sites"]) - 1
+                update_spec["stable_sites_index"] = stable_sites_index
                 update_spec["structure_path"] = (
-                    "stable_sites." + str(stable_site_index) + ".input_structure"
+                    "stable_sites." + str(stable_sites_index) + ".input_structure"
                 )
             except:
                 logger.warning("ApproxNEB: InsertSites FIRETASK STORING ERROR")
@@ -441,7 +441,7 @@ class StableSiteToDb(FiretaskBase):
         return FWAction(
             stored_data={
                 "wf_uuid": wf_uuid,
-                "stable_site_index": index,
+                "stable_sites_index": index,
                 "stable_site_output": stable_site_output,
             }
         )
