@@ -321,10 +321,10 @@ class InsertSites(FiretaskBase):
                 pulled = mmdb.collection.find_one(
                     {"wf_uuid": wf_uuid}, {"stable_sites"}
                 )
-                stable_sites_index = len(pulled["stable_sites"]) - 1
-                update_spec["stable_sites_index"] = stable_sites_index
+                stable_site_index = len(pulled["stable_sites"]) - 1
+                update_spec["stable_site_index"] = stable_site_index
                 update_spec["structure_path"] = (
-                    "stable_sites." + str(stable_sites_index) + ".input_structure"
+                    "stable_sites." + str(stable_site_index) + ".input_structure"
                 )
             except:
                 logger.warning("ApproxNEB: InsertSites FIRETASK STORING ERROR")
@@ -367,7 +367,7 @@ class WriteVaspInput(FiretaskBase):
         # get structure from approx_neb collection
         try:
             wf_uuid = self["approx_neb_wf_uuid"]
-            structure_path = self.get("structure_path") or fw_spec["structure_path"]
+            structure_path = self.get("structure_path") or fw_spec.get("structure_path")
             approx_neb_doc = mmdb.collection.find_one({"wf_uuid": wf_uuid})
             structure = Structure.from_dict(get(approx_neb_doc, structure_path))
 
