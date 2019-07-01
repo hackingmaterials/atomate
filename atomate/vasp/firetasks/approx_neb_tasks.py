@@ -45,7 +45,7 @@ class HostLatticeToDb(FiretaskBase):
             raise ValueError("Provided approx_neb_wf_uuid is not unique. A unique workflow id is required for querying in the approx_neb workflow.")
 
         # get host lattice task doc from host_lattice_task_id
-        t_id = self.get("host_lattice_task_id") or fw_spec.get(["host_lattice_task_id"])
+        t_id = self.get("host_lattice_task_id") or fw_spec.get("host_lattice_task_id")
         try:
             host_lattice_tasks_doc = mmdb.collection.find_one(
                 {"task_id": t_id, "approx_neb.calc_type": "host_lattice"}
@@ -410,7 +410,7 @@ class StableSiteToDb(FiretaskBase):
         db_file = env_chk(self["db_file"], fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         wf_uuid = self["approx_neb_wf_uuid"]
-        t_id = self.get("stable_site_task_id") or fw_spec.get(["stable_site_task_id"])
+        t_id = self.get("stable_site_task_id") or fw_spec.get("stable_site_task_id")
 
         # Note InsertSites firetask updates the the fw_spec with the stable_sites_index
         index = fw_spec["stable_sites_index"]
