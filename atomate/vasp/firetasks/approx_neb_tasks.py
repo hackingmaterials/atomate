@@ -42,7 +42,7 @@ class HostLatticeToDb(FiretaskBase):
         # e.g. not already used in approx_neb collection
         approx_neb_db = mmdb.db["approx_neb"]
         if approx_neb_db.count_documents({"wf_uuid": wf_uuid}) != 0:
-            raise ValueError("Provided approx_neb_wf_uuid is not unique")
+            raise ValueError("Provided approx_neb_wf_uuid is not unique. A unique workflow id is required for querying in the approx_neb workflow.")
 
         # get host lattice task doc from host_lattice_task_id
         t_id = self.get("host_lattice_task_id") or fw_spec.get(["host_lattice_task_id"])
@@ -265,7 +265,7 @@ class InsertSites(FiretaskBase):
             insert_coords = [insert_coords]
 
         # get output structure from structure_task_id
-        t_id = self.get(["structure_task_id"]) or fw_spec.get(["structure_task_id"])
+        t_id = self.get("structure_task_id") or fw_spec.get("structure_task_id")
         try:
             structure_doc = mmdb.collection.find_one({"task_id": t_id})
         except:
