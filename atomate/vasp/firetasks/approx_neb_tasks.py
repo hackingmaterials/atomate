@@ -309,6 +309,7 @@ class InsertSites(FiretaskBase):
         # store stable site input structures in approx_neb collection
         if self.get("approx_neb_wf_uuid"):
             try:
+                #TODO: Store fw_id in approx_neb.stable_sites.input_structure
                 mmdb.collection.update_one(
                     {"wf_uuid": wf_uuid},
                     {
