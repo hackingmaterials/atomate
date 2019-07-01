@@ -418,13 +418,17 @@ class StableSiteToDb(FiretaskBase):
         # Store info in tasks collection for record keeping
         mmdb.collection.update_one(
             {"task_id": t_id, "approx_neb.calc_type": "stable_site"},
-            {"$push": {"approx_neb.wf_uuids": wf_uuid, "stable_sites_indexes": index}},
+            {"$push": {"approx_neb.wf_uuids": wf_uuid, "approx_neb.stable_sites_indexes": index}},
         )
 
         # pull task doc to store parts in approx_neb_collection
         task_doc = mmdb.collection.find_one(
             {"task_id": t_id, "approx_neb.calc_type": "stable_site"}
         )
+        if task_doc == None:
+            raise ValueError(
+                "Unable to find approx neb stable site with task_id: {}".format(t_id)
+            )
 
         # Store info in approx_neb collection for record keeping
         mmdb.collection = mmdb.db["approx_neb"]
