@@ -2,7 +2,15 @@ from fireworks import Firework, Workflow
 from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.config import VASP_CMD, DB_FILE
 from atomate.vasp.powerups import use_custodian
-from custodian.vasp.handlers import VaspErrorHandler, MeshSymmetryErrorHandler, PotimErrorHandler, FrozenJobErrorHandler, NonConvergingErrorHandler, PositiveEnergyErrorHandler, StdErrHandler
+from custodian.vasp.handlers import (
+    VaspErrorHandler,
+    MeshSymmetryErrorHandler,
+    PotimErrorHandler,
+    FrozenJobErrorHandler,
+    NonConvergingErrorHandler,
+    PositiveEnergyErrorHandler,
+    StdErrHandler,
+)
 from uuid import uuid4
 
 from atomate.vasp.fireworks.approx_neb import (
@@ -36,7 +44,7 @@ def approx_neb_wf(
             "NELMIN": 4,
         }
     }
-    #TODO: Add LASPH: True
+    # TODO: Add LASPH: True
 
     wf_uuid = str(uuid4())
 
@@ -86,19 +94,21 @@ def approx_neb_wf(
     # )
     # list of fireworks for all images
 
-    wf = Workflow(
-        [host_lattice_fw]
-        + insert_working_ion_fws
-        + stable_site_fws
+    wf = Workflow([host_lattice_fw] + insert_working_ion_fws + stable_site_fws)
+
+    wf = use_custodian(
+        wf,
+        custodian_params={
+            "handler_group": [
+                VaspErrorHandler(),
+                MeshSymmetryErrorHandler(),
+                NonConvergingErrorHandler(),
+                PotimErrorHandler(),
+                PositiveEnergyErrorHandler(),
+                FrozenJobErrorHandler(),
+                StdErrHandler(),
+            ]
+        },
     )
 
-    wf = use_custodian(wf, custodian_params={'handler_group': [VaspErrorHandler(),
-                                                             MeshSymmetryErrorHandler(),
-                                                             NonConvergingErrorHandler(),
-                                                             PotimErrorHandler(),
-                                                             PositiveEnergyErrorHandler(),
-                                                             FrozenJobErrorHandler(),
-                                                             StdErrHandler()]})
-
     return wf
-

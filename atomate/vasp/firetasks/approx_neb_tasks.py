@@ -42,7 +42,9 @@ class HostLatticeToDb(FiretaskBase):
         # e.g. not already used in approx_neb collection
         approx_neb_db = mmdb.db["approx_neb"]
         if approx_neb_db.count_documents({"wf_uuid": wf_uuid}) != 0:
-            raise ValueError("Provided approx_neb_wf_uuid is not unique. A unique workflow id is required for querying in the approx_neb workflow.")
+            raise ValueError(
+                "Provided approx_neb_wf_uuid is not unique. A unique workflow id is required for querying in the approx_neb workflow."
+            )
 
         # get host lattice task doc from host_lattice_task_id
         t_id = self.get("host_lattice_task_id") or fw_spec.get("host_lattice_task_id")
@@ -309,7 +311,7 @@ class InsertSites(FiretaskBase):
         # store stable site input structures in approx_neb collection
         if self.get("approx_neb_wf_uuid"):
             try:
-                #TODO: Store fw_id in approx_neb.stable_sites.input_structure
+                # TODO: Store fw_id in approx_neb.stable_sites.input_structure
                 mmdb.collection.update_one(
                     {"wf_uuid": wf_uuid},
                     {
@@ -419,7 +421,12 @@ class StableSiteToDb(FiretaskBase):
         # Store info in tasks collection for record keeping
         mmdb.collection.update_one(
             {"task_id": t_id, "approx_neb.calc_type": "stable_site"},
-            {"$push": {"approx_neb.wf_uuids": wf_uuid, "approx_neb.stable_sites_indexes": index}},
+            {
+                "$push": {
+                    "approx_neb.wf_uuids": wf_uuid,
+                    "approx_neb.stable_sites_indexes": index,
+                }
+            },
         )
 
         # pull task doc to store parts in approx_neb_collection
