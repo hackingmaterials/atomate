@@ -19,7 +19,7 @@ class HostLatticeFW(Firework):
         self,
         structure,
         approx_neb_wf_uuid,
-        name="approx neb host lattice optimization",
+        name="approx neb host lattice",
         db_file=DB_FILE,
         vasp_input_set=None,
         vasp_cmd=VASP_CMD,
@@ -82,7 +82,7 @@ class HostLatticeFW(Firework):
         t.append(
             HostLatticeToDb(db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid)
         )
-        super(HostLatticeFW).__init__(t, **kwargs)
+        super().__init__(tasks=t, name="{} {}".format(structure.composition.reduced_formula, name), **kwargs)
 
 
 class InsertSitesFW(Firework):
@@ -133,7 +133,7 @@ class InsertSitesFW(Firework):
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
             )
         )
-        super(InsertSitesFW).__init__(t, **kwargs)
+        super().__init__(tasks=t, name=name, parents=parents, **kwargs)
 
 
 class ApproxNEBLaunchFW(Firework):
@@ -148,6 +148,7 @@ class ApproxNEBLaunchFW(Firework):
         vasp_cmd=VASP_CMD,
         override_default_vasp_params=None,
         job_type="double_relaxation_run",
+        parents=None,
         **kwargs
     ):
         """
@@ -212,4 +213,4 @@ class ApproxNEBLaunchFW(Firework):
             t.append(
                 StableSiteToDb(db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid)
             )
-        super(ApproxNEBLaunchFW).__init__(t, **kwargs)
+        super().__init__(tasks=t, name=name, parents=parents, **kwargs)
