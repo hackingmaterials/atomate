@@ -28,27 +28,30 @@ class HostLatticeFW(Firework):
         **kwargs
     ):
         """
-        Launches a structure optimization calculation for a provided empty host lattice and
-        stores appropriate fields in the task doc for approx_neb workflow record keeping.
-        Stores initializes approx_neb collection database entry and stores relevant host
-        lattice calcuation outputs.
+        Launches a structure optimization calculation for a provided empty host
+        lattice and stores appropriate fields in the task doc for approx_neb
+        workflow record keeping. Stores initializes approx_neb collection database
+        entry and stores relevant host lattice calcuation outputs.
 
         Adapted from OptimizeFW.
 
         Args:
             structure (Structure): input structure of empty host lattice
-            approx_neb_wf_uuid (str): Unique identifier for approx workflow record keeping.
+            approx_neb_wf_uuid (str): Unique identifier for approx workflow record
+                keeping.
             name (str): name for the Firework.
-            vasp_input_set (VaspInputSet): input set to use. Defaults to MPRelaxSet() if None.
-            override_default_vasp_params (dict): If this is not None, these params are passed to
-                the default vasp_input_set, i.e., MPRelaxSet. This allows one to easily override
-                some settings, e.g., user_incar_settings, etc.
+            vasp_input_set (VaspInputSet): input set to use. Defaults to
+                MPRelaxSet() if None.
+            override_default_vasp_params (dict): If this is not None, these params
+                are passed to the default vasp_input_set, i.e., MPRelaxSet. This
+                allows one to easily override some settings (e.g.
+                user_incar_settings, etc.)
             vasp_cmd (str): Command to run vasp.
-            db_file (str): Path to file specifying db credentials to place output parsing.
+            db_file (str): Path to file specifying db credentials to store outputs.
             job_type (str): custodian job type (default "double_relaxation_run")
 
-            parents ([Firework]): Parents of this particular Firework.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            parents ([Firework]): Parents of this particular Firework.
         """
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
@@ -82,7 +85,11 @@ class HostLatticeFW(Firework):
         t.append(
             HostLatticeToDb(db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid)
         )
-        super().__init__(tasks=t, name="{} {}".format(structure.composition.reduced_formula, name), **kwargs)
+        super().__init__(
+            tasks=t,
+            name="{} {}".format(structure.composition.reduced_formula, name),
+            **kwargs
+        )
 
 
 class InsertSitesFW(Firework):
@@ -99,17 +106,18 @@ class InsertSitesFW(Firework):
         """
         Updates the fw_spec with the empty host lattice task_id from the provided
         approx_neb_wf_uuid. Pulls the empty host lattice structure from the tasks
-        collection and inserts the site(s) designated by insert_specie and insert_coords.
-        Stores the modified structure in the stable_sites field of the approx_neb collection.
-        Updates the fw_spec with the corresponding stable_site_index for the stored
-        structure (and the modified structure).
+        collection and inserts the site(s) designated by insert_specie and
+        insert_coords. Stores the modified structure in the stable_sites field of
+        the approx_neb collection. Updates the fw_spec with the corresponding
+        stable_site_index for the stored structure (and the modified structure).
 
         Args:
             db_file (str): path to file containing the database credentials
             insert_specie (str): specie of site to insert in structure (e.g. "Li")
             insert_coords (1x3 array or list of 1x3 arrays): coordinates of site(s)
                 to insert in structure (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]])
-            approx_neb_wf_uuid (str): Unique identifier for approx workflow record keeping.
+            approx_neb_wf_uuid (str): Unique identifier for approx workflow record
+                keeping.
             name (str): Name for the Firework.
             parents ([Firework]): Parents of this particular Firework.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
@@ -154,25 +162,28 @@ class ApproxNEBLaunchFW(Firework):
         """
         Launches a structure optimization calculation from a structure stored in
         in the approx_neb collection. Structure input for calculation is specified
-        by the provided approx_neb_wf_uuid and structure_path to pull the structure
-        from the approx_neb collection using pydash.get().
+        by the provided approx_neb_wf_uuid and structure_path to pull the
+        structure from the approx_neb collection using pydash.get().
 
         Adapted from OptimizeFW.
 
         Args:
-            calc_type (str): Set to
-            approx_neb_wf_uuid (str): Unique identifier for approx workflow record keeping.
-            structure_path (str): A full mongo-style path to reference approx_neb collection
-                subdocuments using dot notation and array keys.
-                By default structure_path = None which assumes fw_spec["structure_path"] is
-                set by a parent firework.
+            calc_type (str): Set to "stable_site" or "image"
+            approx_neb_wf_uuid (str): Unique identifier for approx workflow record
+                keeping.
+            structure_path (str): A full mongo-style path to reference approx_neb
+                collection subdocuments using dot notation and array keys.
+                By default structure_path = None which assumes
+                fw_spec["structure_path"] is set by a parent firework.
             name (str): Name for the Firework.
-            vasp_input_set (VaspInputSet): input set to use. Defaults to MPRelaxSet() if None.
-            override_default_vasp_params (dict): If this is not None, these params are passed to
-                the default vasp_input_set, i.e., MPRelaxSet. This allows one to easily override
-                some settings, e.g., user_incar_settings, etc.
+            vasp_input_set (VaspInputSet): input set to use. Defaults to
+                MPRelaxSet() if None.
+            override_default_vasp_params (dict): If this is not None, these params
+                are passed to the default vasp_input_set, i.e., MPRelaxSet. This
+                allows one to easily override some settings (e.g.
+                user_incar_settings, etc.)
             vasp_cmd (str): Command to run vasp.
-            db_file (str): Path to file specifying db credentials to place output parsing.
+            db_file (str): Path to file specifying db credentials to store outputs.
             job_type (str): custodian job type (default "double_relaxation_run")
 
             parents ([Firework]): Parents of this particular Firework.

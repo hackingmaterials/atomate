@@ -29,6 +29,7 @@ def approx_neb_wf(
     override_default_vasp_params=None,
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
+    name="Approx NEB",
 ):
     approx_neb_params = override_default_vasp_params or {
         "user_incar_settings": {
@@ -110,5 +111,6 @@ def approx_neb_wf(
             ]
         },
     )
+    wf.name = name
 
     return wf

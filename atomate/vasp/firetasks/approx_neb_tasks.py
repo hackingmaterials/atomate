@@ -25,8 +25,8 @@ class HostLatticeToDb(FiretaskBase):
     Args:
         db_file (str): path to file containing the database credentials.
         approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
-        host_lattice_task_id (int): task_id for structure optimization of host lattice.
-            host_lattice_task_id must be provided in the fw_spec or firetask inputs.
+        host_lattice_task_id (int): task_id for structure optimization of host
+            lattice. Must be provided in the fw_spec or firetask inputs.
     """
 
     required_params = ["db_file", "approx_neb_wf_uuid"]
@@ -188,16 +188,17 @@ class PassFromDb(FiretaskBase):
 
         Args:
             db_file (str): path to file containing the database credentials.
-            approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
+            approx_neb_wf_uuid (str): unique identifier for approx neb workflow
+                record keeping. Used for querying approx_neb collection.
             fields_to_pull (dict): define fields to pull from approx_neb collection
                 using pydash.get() notation (doc specified by approx_neb_wf_uuid).
                 Keys of fields_to_pull are used to name pulled fields in the
                 updated fw_spec via...
                 Format: {key : path} -> fw.spec[key] = task_doc[path]
-                The path is a full mongo-style path so subdocuments can be referneced
-                using dot notation and array keys can be referenced using the index.
-                Example for pulling host lattice structure from approx_neb collection
-                into fw_spec["host_lattice_structure"]:
+                The path is a full mongo-style path so subdocuments can be
+                referenced using dot notation and array keys can be referenced
+                using the index. Example for pulling host lattice structure from
+                approx_neb collection into fw_spec["host_lattice_structure"]:
                 {"host_lattice_structure":"host_lattice.output.structure"}
     """
 
@@ -234,16 +235,16 @@ class InsertSites(FiretaskBase):
 
     Args:
         db_file (str): path to file containing the database credentials
-        structure_task_id (int): task_id for output structure to modify and insert site.
-            structure_task_id must be provided in the fw_spec or firetask inputs.
+        structure_task_id (int): task_id for output structure to modify and insert
+            site. Must be provided in the fw_spec or firetask inputs.
         insert_specie (str): specie of site to insert in structure (e.g. "Li").
         insert_coords (1x3 array or list of 1x3 arrays): coordinates of site(s)
             to insert in structure (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]]).
     Optional Parameters:
-        approx_neb_wf_uuid (str): Unique identifier for approx workflow record keeping.
-            If provided, checks if the output structure from structure_task_id matches
-            the host lattice structure stored in the approx_neb collection doc specified
-            by approx_neb_wf_uuid.
+        approx_neb_wf_uuid (str): Unique identifier for approx workflow record
+            keeping. If provided, checks if the output structure from
+            structure_task_id matches the host lattice structure stored in the
+            approx_neb collection doc specified by approx_neb_wf_uuid.
         coords_are_cartesian (bool): Set to True if you are providing insert_coords
             in cartesian coordinates. Otherwise assumes fractional coordinates.
         """
@@ -338,24 +339,26 @@ class InsertSites(FiretaskBase):
 @explicit_serialize
 class WriteVaspInput(FiretaskBase):
     """
-    Create VASP input files using implementations of pymatgen's AbstractVaspInputSet.
-    An input set can be provided as an object or as a string/parameter combo.
-    The structure input set by the provided approx_neb_wf_uuid and structure_path
-    to get a structure object from the approx_neb collection using pydash.get().
+    Creates VASP input files using implementations of pymatgen's
+    AbstractVaspInputSet. Vasp input parameters can be provided as a VaspInputSet
+    object. The input structure used is set by the provided approx_neb_wf_uuid and
+    structure_path to query the approx_neb collection using pydash.get().
 
     Args:
         approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
-        vasp_input_set (VaspInputSet class): can use to define VASP input parameters.
-            See pymatgen.io.vasp.sets module for more information.
-            MPRelaxSet() and override_default_vasp_params are used if vasp_input_set = None.
-        structure_path (str): A full mongo-style path to reference approx_neb collection
-            subdocuments using dot notation and array keys (e.g. "host_lattice.output.structure").
-            structure_path must be provided in the fw_spec or firetask inputs.
-        override_default_vasp_params (dict): if provided, vasp_input_set is disregarded and
-            the Vasp Input Set is created by passing override_default_vasp_params to
-            MPRelaxSet(). Allows for easy modification of MPRelaxSet(). For example,
-            to set ISIF=2 in the INCAR use:
-            override_default_vasp_params = {"user_incar_settings":{"ISIF":2}}
+        vasp_input_set (VaspInputSet class): can use to define VASP input
+            parameters. See pymatgen.io.vasp.sets module for more information.
+            MPRelaxSet() and override_default_vasp_params are used if
+            vasp_input_set = None.
+        structure_path (str): A full mongo-style path to reference approx_neb
+            collection subdocuments using dot notation and array keys (e.g.
+            "host_lattice.output.structure"). Must be provided in the fw_spec
+            or firetask inputs.
+        override_default_vasp_params (dict): if provided, vasp_input_set is
+            disregarded and the Vasp Input Set is created by passing
+            override_default_vasp_params to MPRelaxSet(). Allows for easy
+            modification of MPRelaxSet(). For example, to set ISIF=2 in the INCAR
+            use: override_default_vasp_params = {"user_incar_settings":{"ISIF":2}}
     """
 
     required_params = ["approx_neb_wf_uuid", "vasp_input_set"]
@@ -398,8 +401,8 @@ class StableSiteToDb(FiretaskBase):
     Args:
         db_file (str): path to file containing the database credentials.
         approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
-        stable_site_task_id (int): task_id for structure optimization of stable site
-            structure (empty host lattice with one working ion inserted).
+        stable_site_task_id (int): task_id for structure optimization of stable
+            site structure (empty host lattice with one working ion inserted).
             stable_site_task_id must be provided in the fw_spec or firetask inputs.
 
         Note fw_spec["stable_sites_index"] is required.
