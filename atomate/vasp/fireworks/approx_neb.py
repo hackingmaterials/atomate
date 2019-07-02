@@ -82,6 +82,7 @@ class HostLatticeFW(Firework):
         t.append(
             HostLatticeToDb(db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid)
         )
+        super(HostLatticeFW).__init__(t, **kwargs)
 
 
 class InsertSitesFW(Firework):
@@ -132,6 +133,7 @@ class InsertSitesFW(Firework):
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
             )
         )
+        super(InsertSitesFW).__init__(t, **kwargs)
 
 
 class ApproxNEBLaunchFW(Firework):
@@ -210,3 +212,4 @@ class ApproxNEBLaunchFW(Firework):
             t.append(
                 StableSiteToDb(db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid)
             )
+        super(ApproxNEBLaunchFW).__init__(t, **kwargs)
