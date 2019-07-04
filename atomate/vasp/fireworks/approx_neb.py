@@ -205,6 +205,7 @@ class ApproxNEBLaunchFW(Firework):
         t = []
         t.append(
             WriteVaspInput(
+                db_file=db_file,
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
                 vasp_input_set=vasp_input_set,
                 structure_path=structure_path,

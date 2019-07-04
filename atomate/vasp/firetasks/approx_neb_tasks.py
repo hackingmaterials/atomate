@@ -345,6 +345,8 @@ class WriteVaspInput(FiretaskBase):
     structure_path to query the approx_neb collection using pydash.get().
 
     Args:
+        db_file (str): Path to file specifying db credentials for getting the input
+            structure from the approx_neb collection (specified by structure_path).
         approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
         vasp_input_set (VaspInputSet class): can use to define VASP input
             parameters. See pymatgen.io.vasp.sets module for more information.
@@ -361,7 +363,7 @@ class WriteVaspInput(FiretaskBase):
             use: override_default_vasp_params = {"user_incar_settings":{"ISIF":2}}
     """
 
-    required_params = ["approx_neb_wf_uuid", "vasp_input_set"]
+    required_params = ["db_file", "approx_neb_wf_uuid", "vasp_input_set"]
     optional_params = ["structure_path", "override_default_vasp_params"]
 
     def run_task(self, fw_spec):
