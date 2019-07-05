@@ -79,7 +79,7 @@ def approx_neb_wf(
     for fw in insert_working_ion_fws:
         stable_site_fws.append(
             ApproxNEBLaunchFW(
-                calc_type="stable_site", approx_neb_wf_uuid=wf_uuid, parents=fw
+                calc_type="stable_site", approx_neb_wf_uuid=wf_uuid, override_default_vasp_params=approx_neb_params, parents=fw
             )
         )
     # pathfinder_fws = PathFinderFW(

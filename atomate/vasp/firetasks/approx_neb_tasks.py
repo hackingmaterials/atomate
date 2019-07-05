@@ -379,6 +379,11 @@ class WriteVaspInput(FiretaskBase):
             approx_neb_doc = mmdb.collection.find_one({"wf_uuid": wf_uuid})
             structure = Structure.from_dict(get(approx_neb_doc, structure_path))
 
+            # removes site properties to avoid error
+            if structure.site_properties != {}:
+                for p in structure.site_properties.keys():
+                    structure.remove_site_property(p)
+
         except:
             raise ValueError("Error getting structure from approx_neb collection")
 
