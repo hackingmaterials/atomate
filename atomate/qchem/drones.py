@@ -374,7 +374,6 @@ class QChemDrone(AbstractDrone):
     def post_process(dir_name, d):
         """
         Post-processing for various files other than the QChem input and output files.
-        Currently only looks for custodian.json. Modify this if other files need to be processed.
         """
         logger.info("Post-processing dir:{}".format(dir_name))
         fullpath = os.path.abspath(dir_name)
@@ -382,6 +381,10 @@ class QChemDrone(AbstractDrone):
         if len(filenames) >= 1:
             with zopen(filenames[0], "rt") as f:
                 d["custodian"] = json.load(f)
+        filenames = glob.glob(os.path.join(fullpath, "solvent_data*"))
+        if len(filenames) >= 1:
+            with zopen(filenames[0], "rt") as f:
+                d["custom_smd"] = f.readlines()[0]
 
     def validate_doc(self, d):
         """
