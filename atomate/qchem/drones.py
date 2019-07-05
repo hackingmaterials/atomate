@@ -46,7 +46,7 @@ class QChemDrone(AbstractDrone):
         "root": {
             "dir_name", "input", "output", "calcs_reversed", "smiles",
             "walltime", "cputime", "formula_pretty", "formula_anonymous",
-            "chemsys", "pointgroup"
+            "chemsys", "pointgroup", "formula_alphabetical"
         },
         "input": {"initial_molecule", "job_type"},
         "output": {"initial_molecule", "job_type", "final_energy"}
@@ -244,6 +244,7 @@ class QChemDrone(AbstractDrone):
             comp = d["output"]["initial_molecule"].composition
             d["formula_pretty"] = comp.reduced_formula
             d["formula_anonymous"] = comp.anonymized_formula
+            d["formula_alphabetical"] = comp.alphabetical_formula
             d["chemsys"] = "-".join(sorted(set(d_calc_final["species"])))
             if d_calc_final["point_group"] != None:
                 d["pointgroup"] = d_calc_final["point_group"]
