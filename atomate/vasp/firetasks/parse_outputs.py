@@ -1933,6 +1933,9 @@ class PerformCSLDMinimization(FiretaskBase):
         submodel1_settings = ['anh 0 1 2 3']
         export_sbte_settings = ['5 5 5 2 3']
 
+        db_file = env_chk(self.get("db_file"), fw_spec)
+        mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
+        tasks = mmdb["tasks"]
         while not_converged or iter < maxIter:
             self.set_params(iter,
                             cluster_diam_settings[iter],
@@ -1941,10 +1944,7 @@ class PerformCSLDMinimization(FiretaskBase):
                             export_sbte_settings[iter])
 
             uuid = self["wf_uuid"]
-            db_file = env_chk(self.get("db_file"), fw_spec)
 
-            mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-            tasks = mmdb["tasks"]
             formula = self["parent_structure"].formula
             formula_pretty = self["parent_structure"].composition.reduced_formula
             task_label = 'static'
