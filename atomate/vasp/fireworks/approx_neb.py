@@ -19,7 +19,7 @@ class HostLatticeFW(Firework):
         self,
         structure,
         approx_neb_wf_uuid,
-        name="approx neb host lattice",
+        name="host lattice relaxation",
         db_file=DB_FILE,
         vasp_input_set=None,
         vasp_cmd=VASP_CMD,
@@ -39,7 +39,7 @@ class HostLatticeFW(Firework):
             structure (Structure): input structure of empty host lattice
             approx_neb_wf_uuid (str): Unique identifier for approx workflow record
                 keeping.
-            name (str): name for the Firework.
+            name (str): Combined with structure formula to label the firework
             vasp_input_set (VaspInputSet): input set to use. Defaults to
                 MPRelaxSet() if None.
             override_default_vasp_params (dict): If this is not None, these params
@@ -55,6 +55,7 @@ class HostLatticeFW(Firework):
         """
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
+        fw_name = "{} {}".format(structure.composition.reduced_formula, name)
         additional_fields = {
             "task_label": name,
             "approx_neb": {
@@ -87,7 +88,7 @@ class HostLatticeFW(Firework):
         )
         super().__init__(
             tasks=t,
-            name="{} {}".format(structure.composition.reduced_formula, name),
+            name=fw_name,
             **kwargs
         )
 
@@ -98,7 +99,7 @@ class InsertSitesFW(Firework):
         approx_neb_wf_uuid,
         insert_specie,
         insert_coords,
-        name="approx neb stable site",
+        name="stable site",
         db_file=DB_FILE,
         parents=None,
         **kwargs
@@ -118,10 +119,11 @@ class InsertSitesFW(Firework):
                 to insert in structure (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]])
             approx_neb_wf_uuid (str): Unique identifier for approx workflow record
                 keeping.
-            name (str): Name for the Firework.
+            name (str): Combined with insert_specie to label the firework
             parents ([Firework]): Parents of this particular Firework.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
+        fw_name = name + ": insert " + insert_specie
         t = []
         # Add structure_task_id (for empty host lattice) to fw_spec
         # structure_task_id is required for InsertSites firetask
@@ -141,7 +143,7 @@ class InsertSitesFW(Firework):
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
             )
         )
-        super().__init__(tasks=t, name=name, parents=parents, **kwargs)
+        super().__init__(tasks=t, name=fw_name, parents=parents, **kwargs)
 
 
 class ApproxNEBLaunchFW(Firework):
@@ -150,7 +152,7 @@ class ApproxNEBLaunchFW(Firework):
         calc_type,
         approx_neb_wf_uuid,
         structure_path=None,
-        name="approx neb relaxation",
+        name="relaxation",
         db_file=DB_FILE,
         vasp_input_set=None,
         vasp_cmd=VASP_CMD,
@@ -175,7 +177,7 @@ class ApproxNEBLaunchFW(Firework):
                 collection subdocuments using dot notation and array keys.
                 By default structure_path = None which assumes
                 fw_spec["structure_path"] is set by a parent firework.
-            name (str): Name for the Firework.
+            name (str): Combined with calc_type to label the firework
             vasp_input_set (VaspInputSet): input set to use. Defaults to
                 MPRelaxSet() if None.
             override_default_vasp_params (dict): If this is not None, these params
@@ -192,6 +194,7 @@ class ApproxNEBLaunchFW(Firework):
 
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
+        fw_name = calc_type + " " + calc_type
         additional_fields = {
             "task_label": name,
             "approx_neb": {"wf_uuids": [], "_source_wf_uuid": approx_neb_wf_uuid},
@@ -225,4 +228,55 @@ class ApproxNEBLaunchFW(Firework):
             t.append(
                 StableSiteToDb(db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid)
             )
+        super().__init__(tasks=t, name=fw_name, parents=parents, **kwargs)
+
+
+class PathFinderFW(Firework):
+    def __init__(
+        self,
+        approx_neb_wf_uuid,
+        n_images,
+        name="pathfinder",
+        db_file=DB_FILE,
+        parents=None,
+        **kwargs
+    ):
+        """
+        ToDo: Update description
+        Updates the fw_spec with the empty host lattice task_id from the provided
+        approx_neb_wf_uuid. Pulls the empty host lattice structure from the tasks
+        collection and inserts the site(s) designated by insert_specie and
+        insert_coords. Stores the modified structure in the stable_sites field of
+        the approx_neb collection. Updates the fw_spec with the corresponding
+        stable_site_index for the stored structure (and the modified structure).
+
+        Args:
+            db_file (str): path to file containing the database credentials
+            insert_specie (str): specie of site to insert in structure (e.g. "Li")
+            insert_coords (1x3 array or list of 1x3 arrays): coordinates of site(s)
+                to insert in structure (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]])
+            approx_neb_wf_uuid (str): Unique identifier for approx workflow record
+                keeping.
+            name (str): Name for the Firework.
+            parents ([Firework]): Parents of this particular Firework.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+        t = []
+        # Add structure_task_id (for empty host lattice) to fw_spec
+        # structure_task_id is required for InsertSites firetask
+        t.append(
+            PassFromDb(
+                db_file=db_file,
+                approx_neb_wf_uuid=approx_neb_wf_uuid,
+                fields_to_pull={"stable_sites": "stable_sites"},
+            )
+        )
+        # Insert sites into empty host lattice (specified by structure_task_id)
+        t.append(
+            PathFinder(
+                db_file=db_file,
+                n_images=n_images,
+                approx_neb_wf_uuid=approx_neb_wf_uuid,
+            )
+        )
         super().__init__(tasks=t, name=name, parents=parents, **kwargs)
