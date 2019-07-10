@@ -367,6 +367,7 @@ class WriteVaspInput(FiretaskBase):
     optional_params = ["structure_path", "override_default_vasp_params"]
 
     def run_task(self, fw_spec):
+
         # get database connection
         db_file = env_chk(self["db_file"], fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
@@ -388,9 +389,8 @@ class WriteVaspInput(FiretaskBase):
             raise ValueError("Error getting structure from approx_neb collection")
 
         # get vasp input set and write files
-        override_default_vasp_params = self.get("override_default_vasp_params", {})
+        override_default_vasp_params = self.get("override_default_vasp_params") or {}
         if self["vasp_input_set"] == None or override_default_vasp_params != {}:
-            #TODO: Write something to catch error if both vasp_input_set and override_default_vasp_params = None
             vis = MPRelaxSet(structure, **override_default_vasp_params)
         elif hasattr(self["vasp_input_set"], "write_input"):
             vis = self["vasp_input_set"]
