@@ -13,13 +13,16 @@ from fireworks import Workflow, Firework
 from atomate.utils.utils import get_logger
 from atomate.vasp.config import VASP_CMD, DB_FILE, ADD_WF_METADATA #                what is this?
 from atomate.vasp.fireworks.core import StaticFW
-from atomate.vasp.firetasks.parse_outputs import PerformCSLDMinimization
+from atomate.vasp.firetasks.parse_outputs import CSLDForceConstantsToDB
+from atomate.vasp.powerups import (
+    add_additional_fields_to_taskdocs
+)
 
 from pymatgen.io.vasp.sets import MPStaticSet
 
 # NEW THINGS TO INSTALL?
-from configparser import ConfigParser
-from scripts import csld_main_rees #csld>scripts
+# from configparser import ConfigParser
+# from scripts import csld_main_rees #csld>scripts
 
 logger = get_logger(__name__)
 
@@ -68,7 +71,7 @@ class CompressedSensingLatticeDynamicsWF:
         self.uuid = str(uuid4())
         self.wf_meta = {
             "wf_uuid": self.uuid,
-            "wf_name": self.__class__.__name__,
+            "wf_name": self.__class__.__name__, #"CompressedSensingLatticeDynamicsWF"
         }
 
     # Create supercell
@@ -115,18 +118,24 @@ class CompressedSensingLatticeDynamicsWF:
                 structure, other_parameters={"wf_meta": self.wf_meta}
             )
 
-        user_incar_settings = {"NSW": 0, "LCHARG": False, "IBRION": -1}
+        user_incar_settings = {"ADDGRID": True, #Fast Fourier Transform grid
+                               "LCHARG": False,
+                               "ENCUT": 700,
+                               "EDIFF": 1e-7, #may need to tune this
+                               "PREC": 'Accurate',
+                               "LAECHG": False,
+                               "LREAL": False,
+                               "LASPH": True}
         user_incar_settings.update(c.get("user_incar_settings", {}))
 
         for idx, perturbed_supercell in enumerate(self.perturbed_supercells):
             # Run static calculations on the perturbed supercells to compute forces on each atom
-            name = "perturbed supercell, idx: {}, disp_val: {},".format(idx, self.disps[idx])
+            name = "perturbed supercell, idx: {}, disp_val: {:.3f},".format(idx, self.disps[idx])
 
 
             vis = MPStaticSet(perturbed_supercell,
-                              user_incar_settings,
-                              reciprocal_density=1)  #@ALEX is this right/ok
-                                                    # how to run vasp_gam instead of vasp_std?
+                              user_incar_settings=user_incar_settings)
+
             fws.append(StaticFW(
                 perturbed_supercell,
                 vasp_input_set=vis,
@@ -135,24 +144,56 @@ class CompressedSensingLatticeDynamicsWF:
                 name=name + " static"
             ))
 
+        print('DISPS')
+        print(self.disps)
         # Collect force constants from the DB and output on cluster
-        fw_collect_force_constants = Firework(
-            PerformCSLDMinimization(
+        csld_fw = Firework(
+            CSLDForceConstantsToDB(
                 db_file=c["DB_FILE"], # wot
                 wf_uuid=self.uuid,
-                csld_settings=self.csld_settings,
-                csld_options=self.csld_options,
-                forces_paths=self.disp_folders,
+                name='CSLDForceConstantsToDB',
+                parent_structure=self.parent_structure,
                 trans_mat=self.trans_mat,
                 supercell_structure=self.supercell,
                 disps=self.disps
-            )
+            ),
+            name="Compressed Sensing Lattice Dynamics",
+            parents=fws[-len(self.perturbed_supercells):]
         )
-
-        # Add a firework here to check for imaginary modes
-
+        fws.append(csld_fw)
 
         formula = self.parent_structure.composition.reduced_formula
         wf_name = "{} - compressed sensing lattice dynamics".format(formula)
         wf = Workflow(fws, name=wf_name)
+
+        wf = add_additional_fields_to_taskdocs(wf,
+                                               {"wf_meta": self.wf_meta},
+                                               task_name_constraint="VaspToDb"
+                                               #may need to change this to "CSLDForceConstantsToDB"?
+                                               )
+        #tag =   #insert anything relevant to every firework in the workflow
+        # wf = add_tags(wf, [tag, <insert whatever string you'd like>])
         return wf
+
+
+if __name__ == "__main__":
+
+    from fireworks import LaunchPad
+    from pymatgen.ext.matproj import MPRester
+
+    #get a structure
+    mpr = MPRester(api_key='auNIrJ23VLXCqbpl')
+    structure = mpr.get_structure_by_material_id('mp-149')
+
+    csld_class = CompressedSensingLatticeDynamicsWF(structure)
+    # print(csld_class.disps)
+    # print(len(csld_class.disps))
+
+    wf = csld_class.get_wf()
+
+    print(wf)
+
+    lpad = LaunchPad.auto_load()
+    lpad.add_wf(wf)
+
+    #how did lpad know which database to put the wf?
