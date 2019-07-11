@@ -1141,7 +1141,7 @@ class PolarizationToDb(FiretaskBase):
         coll.insert_one(polarization_dict)
 
 @explicit_serialize
-class PerformCSLDMinimization(FiretaskBase):
+class CSLDForceConstantsToDB(FiretaskBase):
     """
     Used to aggregate atomic forces of perturbed supercells in compressed
     sensing lattice dynamics (CSLD) workflow and generate interatomic force
@@ -1154,8 +1154,6 @@ class PerformCSLDMinimization(FiretaskBase):
         wf_uuid (str): auto-generated from get_wf_magnetic_orderings,
         used to make it easier to retrieve task docs
         parent_structure (Structure): material that CSLD is being run on
-        forces_paths (list of str): paths to directories containing 'force.txt'
-            files
         csld_settings (ConfigParser): settings for running CSLD
         csld_options (dict): options for running CSLD
     # Optional parameters:
@@ -1164,7 +1162,7 @@ class PerformCSLDMinimization(FiretaskBase):
     #     to a .json file.
     """
 
-    required_params = ["db_file", "wf_uuid", "parent_structure", "forces_paths",
+    required_params = ["db_file", "wf_uuid", "parent_structure",
                        # "csld_settings", "csld_options",
 
                        "trans_mat", "supercell_structure",
@@ -1299,21 +1297,22 @@ class PerformCSLDMinimization(FiretaskBase):
             csld_options['ldff_step'] = 0
             csld_options['phonon_step'] = 1
             csld_options['phonon'] = False
-            csld_options['save_pot_step'] = 0  # WHAT DOES THIS NEED TO BE?
+            csld_options['save_pot_step'] = 1  # usual default is 0
             csld_options['pot'] = False
 
             self["csld_settings"] = csld_settings
             self["csld_options"] = csld_options
+            self["forces_paths"] = disp_folders
 
     def run_task(self, fw_spec):
 
         iter = 0
         not_converged = True
-        maxIter = 10
+        maxIter = 1
         convergence_info_dict = self["csld_settings"]["convergence_info"]
         summaries = []
 
-        #FILL THESE IN FURTHER
+        #<FILL THESE IN FURTHER WITH SETTINGS TO TRY, IN ORDER>
         cluster_diam_settings = ['11 6.5 5.0']
         max_order_settings = [3]
         submodel1_settings = ['anh 0 1 2 3']
