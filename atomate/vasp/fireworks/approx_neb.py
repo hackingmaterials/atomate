@@ -10,6 +10,7 @@ from atomate.vasp.firetasks.approx_neb_tasks import (
     InsertSites,
     WriteVaspInput,
     StableSiteToDb,
+    PathfinderImagesToDb
 )
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
@@ -242,38 +243,26 @@ class PathFinderFW(Firework):
         **kwargs
     ):
         """
-        ToDo: Update description
-        Updates the fw_spec with the empty host lattice task_id from the provided
-        approx_neb_wf_uuid. Pulls the empty host lattice structure from the tasks
-        collection and inserts the site(s) designated by insert_specie and
-        insert_coords. Stores the modified structure in the stable_sites field of
-        the approx_neb collection. Updates the fw_spec with the corresponding
-        stable_site_index for the stored structure (and the modified structure).
+        Applies NEBPathFinder (from pymatgen.analysis.path_finder) using the
+        host lattice (chgcar from the task_id stored) and output structures stored
+        in the stable_sites field of the approx_neb collection. Resulting
+        structures or images (interpolated between stable_site structures or end
+        point structures) are stored in the "images" field of the approx_neb
+        collection for future use. The provided approx_neb_wf_uuid specifies the
+        set of inputs to use.
 
         Args:
             db_file (str): path to file containing the database credentials
-            insert_specie (str): specie of site to insert in structure (e.g. "Li")
-            insert_coords (1x3 array or list of 1x3 arrays): coordinates of site(s)
-                to insert in structure (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]])
             approx_neb_wf_uuid (str): Unique identifier for approx workflow record
                 keeping.
+            n_images (int): number of images interpolated between end point structures
             name (str): Name for the Firework.
             parents ([Firework]): Parents of this particular Firework.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         t = []
-        # Add structure_task_id (for empty host lattice) to fw_spec
-        # structure_task_id is required for InsertSites firetask
         t.append(
-            PassFromDb(
-                db_file=db_file,
-                approx_neb_wf_uuid=approx_neb_wf_uuid,
-                fields_to_pull={"stable_sites": "stable_sites"},
-            )
-        )
-        # Insert sites into empty host lattice (specified by structure_task_id)
-        t.append(
-            PathFinder(
+            PathfinderImagesToDb(
                 db_file=db_file,
                 n_images=n_images,
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
