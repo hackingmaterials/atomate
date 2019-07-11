@@ -481,9 +481,13 @@ class StableSiteToDb(FiretaskBase):
 @explicit_serialize
 class PathfinderImagesToDb(FiretaskBase):
     """
-    Store information from stable site structure optimization in approx_neb
-    collection database entry from a the task doc specified by stable_site_task_id.
-    Also updates the tasks collection for approx neb workflow record keeping.
+    Applies NEBPathFinder (from pymatgen.analysis.path_finder) using the
+    host lattice (chgcar from the task_id stored) and output structures stored
+    in the stable_sites field of the approx_neb collection. Resulting
+    structures or images (interpolated between stable_site structures or end
+    point structures) are stored in the "images" field of the approx_neb
+    collection for future use. The provided approx_neb_wf_uuid specifies the
+    set of inputs to use.
 
     Args:
         db_file (str): path to file containing the database credentials.
