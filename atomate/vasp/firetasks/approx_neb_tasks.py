@@ -575,19 +575,21 @@ class PathfinderToDb(FiretaskBase):
 class AddSelectiveDynamics(FiretaskBase):
     """
     #ToDo: update description
-    Insert sites into the output structure of a previous calculation
-    for use of the modified structure. Updates fw_spec with
-    modified_structure to pass the modified structure. Also updates the fw_spec
-    with stable_sites_index and structure_path if a approx_neb_wf_uuid is provided.
-    Intended use is for inserting working ions into an empty host lattice.
+    Applies specified selective dynamics schemes (see functions specified in this
+    Firetask for descriptions) to image structures generated (and stored in
+    approx_neb collection) by PathfinderToDb Firetask. Stores image structures in
+    the approx_neb collection for as input structures for future relaxations.
 
     Args:
         db_file (str): path to file containing the database credentials
         approx_neb_wf_uuid (str): Unique identifier for approx workflow record
-            keeping. If provided, checks if the output structure from
-            structure_task_id matches the host lattice structure stored in the
-            approx_neb collection doc specified by approx_neb_wf_uuid.
-        mobile_specie (str): specie of site to insert in structure (e.g. "Li").
+            keeping. Used to specify the approx_neb collection doc from which
+            structure are pulled from the "pathfinder.images" field, modified, and
+            then stored in the "images" field.
+            images field.
+        mobile_specie (str): specie of site of interest such as the working ion
+            (e.g. "Li" if the working ion of interest is a Li). Provided  to
+            perform a built in check on the structures pulled the approx_neb doc.
         selective_dynamics_scheme (str): "fix_two_atom"
         """
 
@@ -689,7 +691,6 @@ class AddSelectiveDynamics(FiretaskBase):
         return sd_structure
 
 
-# ImagetoDb
 @explicit_serialize
 class ImageToDb(FiretaskBase):
     """
