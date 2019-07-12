@@ -102,6 +102,7 @@ def approx_neb_wf(
         approx_neb_wf_uuid=wf_uuid,
         mobile_specie=working_ion,
         selective_dynamics_scheme=selective_dynamics_scheme,
+        parents=pathfinder_fw
     )
 
     relax_image_fws = []
