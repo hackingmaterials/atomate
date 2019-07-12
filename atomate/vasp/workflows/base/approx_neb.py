@@ -61,6 +61,7 @@ def approx_neb_wf(
         override_default_vasp_params=approx_neb_params.copy(),
     )
 
+    # modifies incar settings needed for end point and image structure relaxations
     if "user_incar_settings" not in approx_neb_params.keys():
         approx_neb_params = {"user_incar_settings": {}}
     approx_neb_params["user_incar_settings"]["ISIF"] = 2
@@ -104,8 +105,8 @@ def approx_neb_wf(
     )
 
     relax_image_fws = []
-    for n in n_images:
-        path = "images.input_structure." + str(n)
+    for n in range(0,n_images):
+        path = "images." + str(n) + ".input_structure"
         relax_image_fws.append(
             ApproxNEBLaunchFW(
                 calc_type="image",
