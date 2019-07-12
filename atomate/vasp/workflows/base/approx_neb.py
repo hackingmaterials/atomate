@@ -17,6 +17,8 @@ from atomate.vasp.fireworks.approx_neb import (
     HostLatticeFW,
     InsertSitesFW,
     ApproxNEBLaunchFW,
+    PathFinderFW,
+    GetImagesFW,
 )
 
 # TODO: Write approx_neb_wf_description
@@ -27,6 +29,7 @@ def approx_neb_wf(
     n_images,
     vasp_input_set=None,
     override_default_vasp_params=None,
+    selective_dynamics_scheme="fix_two_atoms",
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     name="Approx NEB",
@@ -79,23 +82,49 @@ def approx_neb_wf(
     for fw in insert_working_ion_fws:
         stable_site_fws.append(
             ApproxNEBLaunchFW(
-                calc_type="stable_site", approx_neb_wf_uuid=wf_uuid, override_default_vasp_params=approx_neb_params, parents=fw
+                calc_type="stable_site",
+                approx_neb_wf_uuid=wf_uuid,
+                db_file=db_file,
+                override_default_vasp_params=approx_neb_params,
+                parents=fw,
             )
         )
-    # pathfinder_fws = PathFinderFW(
-    #    ep1_struct="???",
-    #    ep2_struct="???",
-    #    n_images=n_images,
-    #    chgcar="???",
-    #    vasp_input_set=vasp_input_set,
-    #    override_default_vasp_params=approx_neb_params.copy(),
-    #    vasp_cmd=vasp_cmd,
-    #    db_file=db_file,
-    #    parents=[host_lattice_fw] + insert_working_ion_fws,
-    # )
-    # list of fireworks for all images
 
-    wf = Workflow([host_lattice_fw] + insert_working_ion_fws + stable_site_fws)
+    pathfinder_fw = PathFinderFW(
+        approx_neb_wf_uuid=wf_uuid,
+        n_images=n_images,
+        db_file=db_file,
+        parents=stable_site_fws,
+    )
+
+    get_images_fw = GetImagesFW(
+        approx_neb_wf_uuid=wf_uuid,
+        mobile_specie=working_ion,
+        selective_dynamics_scheme=selective_dynamics_scheme,
+    )
+
+    relax_image_fws = []
+    for n in n_images:
+        path = "images.input_structure." + str(n)
+        relax_image_fws.append(
+            ApproxNEBLaunchFW(
+                calc_type="image",
+                approx_neb_wf_uuid=wf_uuid,
+                structure_path=path,
+                db_file=db_file,
+                override_default_vasp_params=approx_neb_params,
+                parents=get_images_fw,
+            )
+        )
+
+    wf = Workflow(
+        [host_lattice_fw]
+        + insert_working_ion_fws
+        + stable_site_fws
+        + [pathfinder_fw]
+        + [get_images_fw]
+        + relax_image_fws
+    )
 
     wf = use_custodian(
         wf,
