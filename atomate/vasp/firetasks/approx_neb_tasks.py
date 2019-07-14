@@ -515,7 +515,7 @@ class PathfinderToDb(FiretaskBase):
             {"stable_sites": 1, "host_lattice.task_id": 1, "_id": 0},
         )
         stable_sites = approx_neb_doc["stable_sites"]
-        task_id = approx_neb_doc["host_lattice.task_id"]
+        task_id = approx_neb_doc["host_lattice"]["task_id"]
 
         # get potential gradient, v, from host lattice chgcar
         host_lattice_chgcar = mmdb.get_chgcar(task_id)
