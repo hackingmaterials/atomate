@@ -29,7 +29,7 @@ def approx_neb_wf(
     n_images,
     vasp_input_set=None,
     override_default_vasp_params=None,
-    selective_dynamics_scheme="fix_two_atoms",
+    selective_dynamics_scheme="fix_two_atom",
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     name="Approx NEB",
