@@ -628,6 +628,7 @@ class AddSelectiveDynamics(FiretaskBase):
                 )
                 images.append(image)
         else:
+            raise ValueError("selective_dynamics_scheme does match any supported schemes, check input value")
             pass
             # ToDo: add radius based selective dynamics scheme
 
