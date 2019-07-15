@@ -748,7 +748,7 @@ class ImageToDb(FiretaskBase):
             )
 
         # Store info in approx_neb collection for record keeping
-        index = task_doc["approx_neb.image_index"]
+        index = task_doc["approx_neb"]["image_index"]
         mmdb.collection = mmdb.db["approx_neb"]
         path = "images." + str(index) + "."
         image_output = {
