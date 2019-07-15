@@ -192,8 +192,8 @@ Simply add the following Python script (``bs-analysis.py``) to your folder, **ch
     # Comment out the get_plot and uncomment save_plot if you have no GUI frontend to plot to.
     dos_plotter = DosPlotter()
     dos_plotter.add_dos_dict(complete_dos.get_element_dos())
-    dos_plotter.get_plot(xlim=(-10, 10), ylim=(0, 0.1))
-    #dos_plotter.save_plot('MgO-dos.pdf', img_format='pdf', xlim=(-10, 10), ylim=(0, 0.1))
+    dos_plotter.get_plot(xlim=(-10, 10))
+    #dos_plotter.save_plot('MgO-dos.pdf', img_format='pdf', xlim=(-10, 10))
 
     # print the Fermi energy and bandgap from the DOS:
     print('Fermi energy: {} eV'.format(complete_dos.efermi))

@@ -2,7 +2,21 @@
 atomate Changelog
 =================
 
+**v0.9.1**
+
+* bugfix: ``vasp_input_set_params`` --> ``vasp_input_params`` in some cases (thanks to M. Horton for pointing out)
+* add ability to put mongoclient_kwargs in CalcDB creds file (thanks to S. Torissi for pointing out the feature request)
+
+**v0.9.0**
+
+* better error message (L. Ward)
+* Fix db authentication issue in v0.8.9 (M. Siron)
+* Change default vasp_cmd and db_file to those in config.py (M. Horton)
+* update plots in docs (A. Ganose)
+
 **v0.8.9**
+
+.. caution:: this version introduced a quirk in the db authentication scheme, you might need to set authsource manually or update to v0.9.0
 
 * fix NSCF run kpoint mesh and Boltztrap workflow to reflect pymatgen updates (A. Ganose)
 * allow "authsource" parameter in db.json files (A. Jain)

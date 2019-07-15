@@ -125,9 +125,12 @@ class CalcDb(six.with_metaclass(ABCMeta)):
             user = creds.get("readonly_user")
             password = creds.get("readonly_password")
 
-        kwargs = {}
+        kwargs = creds.get("mongoclient_kwargs", {})  # any other MongoClient kwargs can go here ...
+
         if "authsource" in creds:
             kwargs["authsource"] = creds["authsource"]
+        else:
+            kwargs["authsource"] = creds["database"]
 
         return cls(creds["host"], int(creds["port"]), creds["database"], creds["collection"],
                    user, password, **kwargs)
