@@ -492,9 +492,7 @@ class PathfinderToDb(FiretaskBase):
     Args:
         db_file (str): path to file containing the database credentials.
         approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
-        stable_site_task_id (int): task_id for structure optimization of stable
-            site structure (empty host lattice with one working ion inserted).
-            stable_site_task_id must be provided in the fw_spec or firetask inputs.
+        n_images: n_images (int): number of images interpolated between end point structures
     """
 
     required_params = ["db_file", "n_images", "approx_neb_wf_uuid"]
@@ -518,9 +516,11 @@ class PathfinderToDb(FiretaskBase):
         task_id = approx_neb_doc["host_lattice"]["task_id"]
 
         # get potential gradient, v, from host lattice chgcar
+        mmdb.collection = mmdb.db["tasks"]
         host_lattice_chgcar = mmdb.get_chgcar(task_id)
         v_chgcar = ChgcarPotential(host_lattice_chgcar)
         host_lattice_v = v_chgcar.get_v()
+        mmdb.collection = mmdb.db["approx_neb"]
 
         # get end point structures from stable_sites
         end_point_structs = [
@@ -694,6 +694,7 @@ class AddSelectiveDynamics(FiretaskBase):
 @explicit_serialize
 class ImageToDb(FiretaskBase):
     """
+    ToDo: Update description
     Store information from stable site structure optimization in approx_neb
     collection database entry from a the task doc specified by stable_site_task_id.
     Also updates the tasks collection for approx neb workflow record keeping.
