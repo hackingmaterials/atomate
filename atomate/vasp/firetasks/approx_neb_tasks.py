@@ -614,18 +614,19 @@ class AddSelectiveDynamics(FiretaskBase):
         )
 
         # get structures stored in "pathfinder_images" field
-        structures = approx_neb_doc["pathfinder"]["images"]
+        structure_docs = approx_neb_doc["pathfinder"]["images"]
         fixed_index = approx_neb_doc["pathfinder"]["relax_site_indexes"]
         fixed_specie = self["mobile_specie"]
         scheme = self["selective_dynamics_scheme"]
 
         if scheme == "fix_two_atom":
-            images = [
-                self.add_fix_two_atom_selective_dynamics(
-                    structure, fixed_index, fixed_specie
+            images = []
+            for doc in structure_docs:
+                structure = Structure.from_dict(doc)
+                image = self.add_fix_two_atom_selective_dynamics(
+                    structure, fixed_index[0], fixed_specie
                 )
-                for structure in structures
-            ]
+                images.append(image)
         else:
             pass
             # ToDo: add radius based selective dynamics scheme
@@ -650,7 +651,7 @@ class AddSelectiveDynamics(FiretaskBase):
             stored_data={"wf_uuid": wf_uuid, "images_output": images_output},
         )
 
-    def add_fix_two_atom_selective_dynamics(structure, fixed_index, fixed_specie):
+    def add_fix_two_atom_selective_dynamics(self,structure, fixed_index, fixed_specie):
         """
         Returns structure with selective dynamics assigned to fix the
         position of two sites.
@@ -667,8 +668,17 @@ class AddSelectiveDynamics(FiretaskBase):
         Returns:
             Structure
         """
+
+        if isinstance(fixed_index, (list)):
+            # avoids error if single index is provided as a list
+            if len(fixed_index) == 1:
+                fixed_index = fixed_index[0]
+            else:
+                raise ValueError(
+                    "fixed_index must specify exactly one index for the fix_two_atom selective dynamics scheme")
+
         if structure[fixed_index].specie != Element(fixed_specie):
-            raise TypeError(
+            raise ValueError(
                 "The chosen fixed atom at index {} is not a {} atom".format(
                     fixed_index, fixed_specie
                 )
