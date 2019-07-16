@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import json
 import os
+import shutil
 import re
 from collections import defaultdict
 from datetime import datetime
@@ -1142,6 +1143,8 @@ class PolarizationToDb(FiretaskBase):
 
 @explicit_serialize
 class CSLDForceConstantsToDB(FiretaskBase):
+    #TODO: Update this class once a public version of CSLD is released
+    #TODO: Update this class once Junsoo has fixed the cluster generation
     """
     Used to aggregate atomic forces of perturbed supercells in compressed
     sensing lattice dynamics (CSLD) workflow and generate interatomic force
@@ -1172,7 +1175,12 @@ class CSLDForceConstantsToDB(FiretaskBase):
         from configparser import ConfigParser
         supercell_folder = self["parent_structure"].composition.reduced_formula + \
                            "_supercell_iter" + str(iteration_number)
+
+        # Remove supercell_folder if it already exists, then make a new one
+        if os.path.exists(supercell_folder) and os.path.isdir(supercell_folder):
+            shutil.rmtree(supercell_folder)
         os.mkdir(supercell_folder)
+
         np.savetxt(supercell_folder + "/sc.txt", self["trans_mat"], fmt="%.0f",
                    delimiter=" ")
         self["supercell_structure"].to("poscar", filename=supercell_folder + "/SPOSCAR")
@@ -1185,131 +1193,135 @@ class CSLDForceConstantsToDB(FiretaskBase):
             csld_traindat_disp_folders += ' ' + str(disp_folder)
             os.mkdir(disp_folder)
 
-            # Parameters for conducting CSLD
-            csld_traindat_string = supercell_folder + '/SPOSCAR'
-            csld_traindat_string += csld_traindat_disp_folders
+        self['convergence_info'] = {
+            'iteration': 0,
+            'settings_tried': {}
+        }
 
-            csld_settings = ConfigParser()
-            csld_settings['convergence_info'] = {
-                'iteration': 0,
-                'settings_tried': {}
-            }
-            csld_settings['structure'] = {
-                'prim': 'POSCAR',
-                'sym_tol': '1e-3',
-                'epsilon_inf': None,  # check how it reads 3x3 matrix
-                'born_charge': None  # check reading n_atom*9 numbers
-            }
-            csld_settings['model'] = {
-                'model_type': 'LD',
-                'cluster_in': 'clusters.out',
-                'cluster_out': 'clusters.out',
-                'symC_in': 'Cmat.mtx',
-                'symC_out': 'Cmat.mtx',
-                'max_order': max_order, #3,  # this should be variable
-                'fractional_distance': False,
-                'cluster_diameter': cluster_diam, #'11 6.5 5.0', #this should be variable
-                'cluster_filter': lambda cls: ((cls.order_uniq <= 2)
-                                               or (cls.bond_counts(2.9) >= 2))
-                                              and cls.is_small_in(
-                    supercell_folder + "/sc.txt")
-                # rewrote how it reads the trans_mat
-            }
-            csld_settings['training'] = {
-                'interface': 'VASP',
-                'corr_type': 'f',
-                'corr_in': 'Amat.mtx',
-                'corr_out': 'Amat.mtx',
-                'fval_in': 'fval.txt',
-                'fval_out': 'fval.txt',
-                'traindat1': csld_traindat_string
-                # 'fcc333/SPOSCAR fcc333/dir*0.01 fcc333/dir*0.02 fcc333/dir*0.05'
-                # Rewrote how it reads forces
-            }
-            csld_settings['fitting'] = {
-                'solution_in': 'solution_all',
-                'solution_out': 'solution_all',
-                'nsubset': 5,
-                'holdsize': 0.1,
-                ## 1 FPC 2 FPC sparse 3 split 4 sparse split
-                ## 5 split+ right preconditioning 6 sparse split + r preconditioning
-                ## 101 Bayesian CS
-                'method': 5,
+        # Parameters for conducting CSLD
+        csld_traindat_string = supercell_folder + '/SPOSCAR'
+        csld_traindat_string += csld_traindat_disp_folders
 
-                # For weight of L1 or L2 regularization
-                'mulist': '1E-5 1E-7 1E-9 1E-11',
-                'maxIter': 300,
-                'tolerance': 1E-6,
-                'subsetsize': 0.85,
-                'lambda': 0.5,
-                'uscale_list': '0.03',
-                'submodel1': submodel1, #'anh 0 1 2 3',  # this should be variable
-            }
-            csld_settings['phonon'] = {
-                'qpoint_fractional': False,
-                # 'Auto' or something like "[[10,  [0,0,0],'\\Gamma', [0.5,0.5,0.5], 'X', [0.5,0.5,0], 'K']]"
-                'wavevector': "[[25,  [0,0,0],'\Gamma', [0,0.5,0.5], 'X'],"
-                              " [25, [1,0.5,0.5], 'X', [0.75,0.375,0.375], "
-                              "'K', [0,0,0], '\Gamma', [0.5, 0.5, 0.5], 'L']]",
-                'unit': 'meV',  # THz, meV, eV, cm
+        csld_settings = ConfigParser()
+        csld_settings['convergence_info'] = {
+            'iteration': 0,
+            'settings_tried': {}
+        }
+        csld_settings['structure'] = {
+            'prim': 'POSCAR',
+            'sym_tol': '1e-3',
+            # 'epsilon_inf': None,  # check how it reads 3x3 matrix
+            # 'born_charge': None  # check reading n_atom*9 numbers
+        }
+        csld_settings['model'] = {
+            'model_type': 'LD',
+            'cluster_in': 'clusters.out',
+            'cluster_out': 'clusters.out',
+            'symC_in': 'Cmat.mtx',
+            'symC_out': 'Cmat.mtx',
+            'max_order': max_order, #3,  # this should be variable
+            'fractional_distance': False,
+            'cluster_diameter': cluster_diam, #'11 6.5 5.0', #this should be variable
+            'cluster_filter': lambda cls: ((cls.order_uniq <= 2)
+                                           or (cls.bond_counts(2.9) >= 2))
+                                          and cls.is_small_in(
+                supercell_folder + "/sc.txt")
+            # rewrote how it reads the trans_mat
+        }
+        csld_settings['training'] = {
+            'interface': 'VASP',
+            'corr_type': 'f',
+            'corr_in': 'Amat.mtx',
+            'corr_out': 'Amat.mtx',
+            'fval_in': 'fval.txt',
+            'fval_out': 'fval.txt',
+            'traindat1': csld_traindat_string
+            # 'fcc333/SPOSCAR fcc333/dir*0.01 fcc333/dir*0.02 fcc333/dir*0.05'
+            # Rewrote how it reads forces
+        }
+        csld_settings['fitting'] = {
+            'solution_in': 'solution_all',
+            'solution_out': 'solution_all',
+            'nsubset': 5,
+            'holdsize': 0.1,
+            ## 1 FPC 2 FPC sparse 3 split 4 sparse split
+            ## 5 split+ right preconditioning 6 sparse split + r preconditioning
+            ## 101 Bayesian CS
+            'method': 5,
 
-                # number of grid points
-                'dos_grid': '15 15 15',
+            # For weight of L1 or L2 regularization
+            'mulist': '1E-5 1E-7 1E-9 1E-11',
+            'maxIter': 300,
+            'tolerance': 1E-6,
+            'subsetsize': 0.85,
+            'lambda': 0.5,
+            'uscale_list': '0.03',
+            'submodel1': submodel1, #'anh 0 1 2 3',  # this should be variable
+        }
+        csld_settings['phonon'] = {
+            'qpoint_fractional': False,
+            # 'Auto' or something like "[[10,  [0,0,0],'\\Gamma', [0.5,0.5,0.5], 'X', [0.5,0.5,0], 'K']]"
+            'wavevector': "[[25,  [0,0,0],'\Gamma', [0,0.5,0.5], 'X'],"
+                          " [25, [1,0.5,0.5], 'X', [0.75,0.375,0.375], "
+                          "'K', [0,0,0], '\Gamma', [0.5, 0.5, 0.5], 'L']]",
+            'unit': 'meV',  # THz, meV, eV, cm
 
-                # number of points in DOS
-                'nE_dos': 500,
+            # number of grid points
+            'dos_grid': '15 15 15',
 
-                ## 0 (Gaussian), 1 (Lorentzian), -1 (tetrahedron method)
-                'ismear': -1,
+            # number of points in DOS
+            'nE_dos': 500,
 
-                ## width in THz of Gaussian/Lorentzian smearing
-                'epsilon': 0.05,
-                'pdos': True,
+            ## 0 (Gaussian), 1 (Lorentzian), -1 (tetrahedron method)
+            'ismear': -1,
 
-                'thermal_T_range': '50 800 50',
-                'thermal_out': 'thermal_out.txt'
-            }
-            csld_settings['export_potential'] = {
-                'export_shengbte': export_sbte, #'5 5 5 2 3'  # 5x5x5 supercell
-                # 2 and 3 orders to be considered
-                # should be variable?
-            }
-            csld_settings['prediction'] = {
-                'interface': 'VASP',
-                'corr_type': 'f',
-                'corr_in': 'Amat_pred.mtx',
-                'corr_out': 'Amat_pred.mtx',
-                'fval_in': 'fval_pred.txt',
-                'fval_out': 'fval_pred.txt',
-                'traindat0': 'fcc222/POSCAR fcc222/traj*'
-            }
-            # set default values
-            csld_settings['DEFAULT'] = {
-                "qpoint_fractional": False,
-                "true_v_fit": 'true_fit.txt',
-                'epsilon': '0.05',
-                "bcs_reweight": 'True',
-                "bcs_penalty": 'arctan',
-                "bcs_jcutoff": '1E-8'}
+            ## width in THz of Gaussian/Lorentzian smearing
+            'epsilon': 0.05,
+            'pdos': True,
 
-            csld_options = {}
-            csld_options['pdfout'] = 'plots.pdf'
-            csld_options['ldff_step'] = 0
-            csld_options['phonon_step'] = 1
-            csld_options['phonon'] = False
-            csld_options['save_pot_step'] = 1  # usual default is 0
-            csld_options['pot'] = False
+            'thermal_T_range': '50 800 50',
+            'thermal_out': 'thermal_out.txt'
+        }
+        csld_settings['export_potential'] = {
+            'export_shengbte': export_sbte, #'5 5 5 2 3'  # 5x5x5 supercell
+            # 2 and 3 orders to be considered
+            # should be variable?
+        }
+        csld_settings['prediction'] = {
+            'interface': 'VASP',
+            'corr_type': 'f',
+            'corr_in': 'Amat_pred.mtx',
+            'corr_out': 'Amat_pred.mtx',
+            'fval_in': 'fval_pred.txt',
+            'fval_out': 'fval_pred.txt',
+            'traindat0': 'fcc222/POSCAR fcc222/traj*'
+        }
+        # set default values
+        csld_settings['DEFAULT'] = {
+            "qpoint_fractional": False,
+            "true_v_fit": 'true_fit.txt',
+            'epsilon': '0.05',
+            "bcs_reweight": 'True',
+            "bcs_penalty": 'arctan',
+            "bcs_jcutoff": '1E-8'}
 
-            self["csld_settings"] = csld_settings
-            self["csld_options"] = csld_options
-            self["forces_paths"] = disp_folders
+        csld_options = {}
+        csld_options['pdfout'] = 'plots.pdf'
+        csld_options['ldff_step'] = 0
+        csld_options['phonon_step'] = 1
+        csld_options['phonon'] = False
+        csld_options['save_pot_step'] = 1  # usual default is 0
+        csld_options['pot'] = False
+
+        self["csld_settings"] = csld_settings
+        self["csld_options"] = csld_options
+        self["forces_paths"] = disp_folders
 
     def run_task(self, fw_spec):
 
         iter = 0
         not_converged = True
         maxIter = 1
-        convergence_info_dict = self["csld_settings"]["convergence_info"]
         summaries = []
 
         #<FILL THESE IN FURTHER WITH SETTINGS TO TRY, IN ORDER>
@@ -1333,7 +1345,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
             formula = self["parent_structure"].formula
             formula_pretty = self["parent_structure"].composition.reduced_formula
             task_label = 'static'
-            supercells_dicts = list(tasks.find({"wf_meta.wf_uuid": uuid,
+            supercells_dicts = list(tasks.find({"wf_meta.wf_uuid": uuid, #<insert
                                                 "task_label": {"$regex": task_label},
                                                 "formula_pretty": formula_pretty},
                                                 ['task_id', 'output.forces']))
@@ -1372,6 +1384,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
 
             #Save to DB
             summary = {
+                "date": datetime.now(),
                 "formula": formula,
                 "formula_pretty": formula_pretty,
                 "parent_structure": self["parent_structure"].as_dict(),
@@ -1384,22 +1397,23 @@ class CSLDForceConstantsToDB(FiretaskBase):
                 "submodel1": self["csld_settings"]["fitting"]["submodel1"],
                 "export_potential": self["csld_settings"]["export_potential"]["export_shengbte"],
 
-                "cross_val_error": rel_err,
-                "num_imaginary_modes": num_imaginary_bands, #number or percent?
-                "most_imaginary_freq": most_imaginary_freq
+                "cross_val_error": float(rel_err),
+                "num_imaginary_modes": int(num_imaginary_bands), #number or percent?
+                "most_imaginary_freq": float(most_imaginary_freq)
             }
-            latest_settings = {str(convergence_info_dict["iteration"]):
+            latest_settings = {str(self["convergence_info"]["iteration"]):
                                    {self["csld_settings"]["model"]["max_order"],
                                     self["csld_settings"]["fitting"]["submodel1"],
                                     self["csld_settings"]["export_potential"][
                                         "export_shengbte"]}}
-            convergence_info_dict["iteration"] += 1
-            convergence_info_dict["settings_tried"].update(latest_settings)
+            self["convergence_info"]["iteration"] += 1
+            self["convergence_info"]["settings_tried"].update(latest_settings)
 
             if fw_spec.get("tags", None):
                 summary["tags"] = fw_spec["tags"]
 
             summaries.append(summary)
+            iter = self['convergence_info']['iteration']
 
         mmdb.collection = mmdb.db["compressed_sensing_lattice_dynamics"]
         mmdb.collection.insert(summaries)
@@ -1408,7 +1422,8 @@ class CSLDForceConstantsToDB(FiretaskBase):
             logger.info("Compressed Sensing Lattice Dynamics calculation complete.")
         else:
             logger.info("Compressed Sensing Lattice Dynamics calculation failed."
-                        "Max iterations was reached.")
+                        "Max iterations of CSLD trials (each with different "
+                        "settings) was reached.")
 
 
 # the following definitions for backward compatibility
