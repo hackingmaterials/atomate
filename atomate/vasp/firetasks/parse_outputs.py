@@ -1354,19 +1354,25 @@ class CSLDForceConstantsToDB(FiretaskBase):
             #   for each supercell
 
             supercells_forces = []
-            supercells_task_ids = []
+            # supercells_task_ids = []
+            supercells_task_labels = []
             for supercell_dict in supercells_dicts:
                 #List of np.ndarrays where each np.ndarray is a matrix of forces
                 #  for a perturbed supercell
                 supercells_forces += [np.asarray(supercell_dict['output']['forces'])]
 
-                #List of task ids for each perturbed supercell
-                supercells_task_ids += [supercell_dict['task_id']]
+                # #List of task ids for each perturbed supercell
+                # supercells_task_ids += [supercell_dict['task_id']]
 
-            supercell_idx = 0
-            for supercell_forces in supercells_forces:
+                supercells_task_labels += [supercell_dict['task_label']]
+
+            supercells_zip = sorted(zip(supercells_task_labels, supercells_forces), key=lambda pair: pair[0])
+                                                        #sort by task labels
+            supercells_forces = [supercells_forces for (supercells_task_labels, supercells_forces) in supercells_zip]
+
+            for supercell_idx, supercell_force in enumerate(supercells_forces):
                 path = self["forces_paths"][supercell_idx]
-                np.savetxt(path + "/force.txt", supercell_forces, fmt='%.6f')
+                np.savetxt(path + "/force.txt", supercell_force, fmt='%.6f')
 
             #Perform csld minimization now
             import scripts.csld_main_rees as csld_main
