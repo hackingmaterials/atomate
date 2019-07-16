@@ -1166,8 +1166,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
     """
 
     required_params = ["db_file", "wf_uuid", "parent_structure",
-                       # "csld_settings", "csld_options",
-
+                        "perturbed_supercells",
                        "trans_mat", "supercell_structure",
                        "disps"]
 
@@ -1184,14 +1183,17 @@ class CSLDForceConstantsToDB(FiretaskBase):
         np.savetxt(supercell_folder + "/sc.txt", self["trans_mat"], fmt="%.0f",
                    delimiter=" ")
         self["supercell_structure"].to("poscar", filename=supercell_folder + "/SPOSCAR")
+        self["parent_structure"].to("poscar", filename=supercell_folder + "POSCAR")
 
         disp_folders = []
         csld_traindat_disp_folders = ''
-        for disp in self["disps"]:
+        for idx, disp in enumerate(self["disps"]):
             disp_folder = supercell_folder+'/disp'+str(disp)
             disp_folders += [disp_folder]
             csld_traindat_disp_folders += ' ' + str(disp_folder)
             os.mkdir(disp_folder)
+            self["perturbed_supercells"][idx].to("poscar",
+                                                 filename=disp_folder + "/POSCAR")
 
         self['convergence_info'] = {
             'iteration': 0,
@@ -1208,7 +1210,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
             'settings_tried': {}
         }
         csld_settings['structure'] = {
-            'prim': 'POSCAR',
+            'prim': supercell_folder + 'POSCAR',
             'sym_tol': '1e-3',
             # 'epsilon_inf': None,  # check how it reads 3x3 matrix
             # 'born_charge': None  # check reading n_atom*9 numbers
@@ -1222,10 +1224,9 @@ class CSLDForceConstantsToDB(FiretaskBase):
             'max_order': max_order, #3,  # this should be variable
             'fractional_distance': False,
             'cluster_diameter': cluster_diam, #'11 6.5 5.0', #this should be variable
-            'cluster_filter': lambda cls: ((cls.order_uniq <= 2)
-                                           or (cls.bond_counts(2.9) >= 2))
-                                          and cls.is_small_in(
-                supercell_folder + "/sc.txt")
+            'cluster_filter': r"lambda cls: ((cls.order_uniq <= 2) or "
+                              r"(cls.bond_counts(2.9) >= 2)) and "
+                              r"cls.is_small_in('" +supercell_folder+ "/sc.txt')"
             # rewrote how it reads the trans_mat
         }
         csld_settings['training'] = {

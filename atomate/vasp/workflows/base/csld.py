@@ -12,13 +12,13 @@ from pymatgen.transformations.advanced_transformations import (
 from fireworks import Workflow, Firework
 from atomate.utils.utils import get_logger
 from atomate.vasp.config import VASP_CMD, DB_FILE, ADD_WF_METADATA #                what is this?
-from atomate.vasp.fireworks.core import StaticFW
+from atomate.vasp.fireworks.core import StaticFW, OptimizeFW
 from atomate.vasp.firetasks.parse_outputs import CSLDForceConstantsToDB
 from atomate.vasp.powerups import (
     add_additional_fields_to_taskdocs
 )
 
-from pymatgen.io.vasp.sets import MPStaticSet
+from pymatgen.io.vasp.sets import MPStaticSet, MPRelaxSet
 
 # NEW THINGS TO INSTALL?
 # from configparser import ConfigParser
@@ -118,27 +118,46 @@ class CompressedSensingLatticeDynamicsWF:
                 structure, other_parameters={"wf_meta": self.wf_meta}
             )
 
-        user_incar_settings = {"ADDGRID": True, #Fast Fourier Transform grid
-                               "LCHARG": False,
-                               "ENCUT": 700,
-                               "EDIFF": 1e-7, #may need to tune this
-                               "PREC": 'Accurate',
-                               "LAECHG": False,
-                               "LREAL": False,
-                               "LASPH": True}
-        user_incar_settings.update(c.get("user_incar_settings", {}))
+        #TODO: Move this relaxation section elsewhere
+        # relax_user_incar_settings = {"EDIFF": 1e-8,
+        #                              "EDIFFG": -1e-5,
+        #                              }
+        # relax_vis = MPRelaxSet(self.parent_structure,
+        #                        user_incar_settings=relax_user_incar_settings)
+        # # relax
+        # fws.append(
+        #     OptimizeFW(
+        #         self.parent_structure,
+        #         vasp_input_set=relax_vis,
+        #         vasp_cmd=c["VASP_CMD"],
+        #         db_file=c["DB_FILE"],
+        #         max_force_threshold=0.05, #idk, should i change this?
+        #         half_kpts_first_relax=False, #idk what this is
+        #         name="{} - CSLD relax parent".format(self.parent_structure.composition.reduced_formula),
+        #     )
+        # )
+        #####################
+
+        static_user_incar_settings = {"ADDGRID": True,
+                                      # Fast Fourier Transform grid
+                                      "LCHARG": False,
+                                      "ENCUT": 700,
+                                      "EDIFF": 1e-7,  # may need to tune this
+                                      "PREC": 'Accurate',
+                                      "LAECHG": False,
+                                      "LREAL": False,
+                                      "LASPH": True}
+        static_user_incar_settings.update(c.get("user_incar_settings", {}))
 
         for idx, perturbed_supercell in enumerate(self.perturbed_supercells):
             # Run static calculations on the perturbed supercells to compute forces on each atom
             name = "perturbed supercell, idx: {}, disp_val: {:.3f},".format(idx, self.disps[idx])
 
-
-            vis = MPStaticSet(perturbed_supercell,
-                              user_incar_settings=user_incar_settings)
-
+            static_vis = MPStaticSet(perturbed_supercell,
+                                     user_incar_settings=static_user_incar_settings)
             fws.append(StaticFW(
                 perturbed_supercell,
-                vasp_input_set=vis,
+                vasp_input_set=static_vis,
                 vasp_cmd=c["VASP_CMD"],
                 db_file=c["DB_FILE"],
                 name=name + " static"
@@ -155,6 +174,7 @@ class CompressedSensingLatticeDynamicsWF:
                 parent_structure=self.parent_structure,
                 trans_mat=self.trans_mat,
                 supercell_structure=self.supercell,
+                perturbed_supercells=self.perturbed_supercells,
                 disps=self.disps
             ),
             name="Compressed Sensing Lattice Dynamics",
@@ -176,24 +196,34 @@ class CompressedSensingLatticeDynamicsWF:
         return wf
 
 
+# SCRIPT FOR CREATING THE WORKFLOW AND ADDING IT TO THE DATABASE
 if __name__ == "__main__":
 
     from fireworks import LaunchPad
     from pymatgen.ext.matproj import MPRester
+    from atomate.vasp.powerups import add_tags, set_execution_options
 
     #get a structure
     mpr = MPRester(api_key='auNIrJ23VLXCqbpl')
     structure = mpr.get_structure_by_material_id('mp-149')
 
     csld_class = CompressedSensingLatticeDynamicsWF(structure)
-    # print(csld_class.disps)
-    # print(len(csld_class.disps))
+    print("uuid")
+    print(csld_class.uuid)
 
     wf = csld_class.get_wf()
+    print("trans mat")
+    print(csld_class.trans_mat)
 
-    print(wf)
+    # wf = add_tags(wf, ['csld', 'v1', 'rees'])
+    # wf = set_execution_options(wf, fworker_name="rees_the_fire_worker") #need this to run the fireworks
+    # print(wf)
+    #
+    # lpad = LaunchPad.auto_load()
+    # lpad.add_wf(wf)
 
-    lpad = LaunchPad.auto_load()
-    lpad.add_wf(wf)
-
-    #how did lpad know which database to put the wf?
+    # [[4.  0. - 2.]
+    #  [-1.  4. - 1.]
+    # [0.
+    # 0.
+    # 4.]]
