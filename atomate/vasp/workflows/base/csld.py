@@ -4,6 +4,8 @@ import os
 
 import numpy as np
 from uuid import uuid4
+
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.transformations.advanced_transformations import (
     CubicSupercellTransformation,
@@ -36,6 +38,7 @@ class CompressedSensingLatticeDynamicsWF:
     def __init__(
             self,
             parent_structure,
+            symprec=0.1,
             min_atoms=-np.Inf,
             max_atoms=np.Inf,
             num_nn_dists=5,
@@ -75,7 +78,9 @@ class CompressedSensingLatticeDynamicsWF:
         }
 
     # Create supercell
-        self.parent_structure = parent_structure
+        sga = SpacegroupAnalyzer(parent_structure, symprec=symprec)
+        self.parent_structure = sga.get_primitive_standard_structure()
+
         self.min_atoms = min_atoms
         self.max_atoms = max_atoms
         self.num_nn_dists = num_nn_dists
@@ -101,7 +106,6 @@ class CompressedSensingLatticeDynamicsWF:
         # list of (non-unique) displacement values used in the perturbation (np.ndarray)
         self.disps = np.repeat(perturbed_supercells_transform.disps,
                                supercells_per_displacement_distance)
-
 
     def get_wf(
             self,
@@ -207,18 +211,33 @@ if __name__ == "__main__":
     mpr = MPRester(api_key='auNIrJ23VLXCqbpl')
     structure = mpr.get_structure_by_material_id('mp-149')
 
-    csld_class = CompressedSensingLatticeDynamicsWF(structure)
+    # prim_structure = structure.get_primitive_structure() #this method is bad
+
+    # CONVENTIONAL PRIMITIVE CELL WITH SYMMETRIZATION
+    from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+    sga = SpacegroupAnalyzer(structure, symprec=0.1)
+    prim = sga.get_primitive_standard_structure()
+    prim.to("poscar", filename="POSCAR-pmg_prim_si")
+
+    # CSLD'S POLARON MAIN-GENERATED PRIMITIVE CELL
+    # from pymatgen.core.structure import Structure
+    # prim = Structure.from_file('POSCAR_csld_primitivized')
+
+    csld_class = CompressedSensingLatticeDynamicsWF(prim, max_displacement=0.05,
+                                                    min_displacement=0.01,
+                                                    num_displacements=5)
     print("uuid")
     print(csld_class.uuid)
 
     wf = csld_class.get_wf()
     print("trans mat")
     print(csld_class.trans_mat)
+    csld_class.supercell.to("poscar", filename="POSCAR-csld_super_si")
 
-    # wf = add_tags(wf, ['csld', 'v1', 'rees'])
-    # wf = set_execution_options(wf, fworker_name="rees_the_fire_worker") #need this to run the fireworks
-    # print(wf)
-    #
+    wf = add_tags(wf, ['csld', 'v1', 'rees', 'sga primitizer'])
+    wf = set_execution_options(wf, fworker_name="rees_the_fire_worker") #need this to run the fireworks
+    print(wf)
+
     # lpad = LaunchPad.auto_load()
     # lpad.add_wf(wf)
 
