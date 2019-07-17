@@ -1183,7 +1183,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
         np.savetxt(supercell_folder + "/sc.txt", self["trans_mat"], fmt="%.0f",
                    delimiter=" ")
         self["supercell_structure"].to("poscar", filename=supercell_folder + "/SPOSCAR")
-        self["parent_structure"].to("poscar", filename=supercell_folder + "POSCAR")
+        self["parent_structure"].to("poscar", filename=supercell_folder + "/POSCAR")
 
         disp_folders = []
         csld_traindat_disp_folders = ''
@@ -1205,12 +1205,8 @@ class CSLDForceConstantsToDB(FiretaskBase):
         csld_traindat_string += csld_traindat_disp_folders
 
         csld_settings = ConfigParser()
-        csld_settings['convergence_info'] = {
-            'iteration': 0,
-            'settings_tried': {}
-        }
         csld_settings['structure'] = {
-            'prim': supercell_folder + 'POSCAR',
+            'prim': supercell_folder + '/POSCAR', #original structure poscar
             'sym_tol': '1e-3',
             # 'epsilon_inf': None,  # check how it reads 3x3 matrix
             # 'born_charge': None  # check reading n_atom*9 numbers
@@ -1236,7 +1232,8 @@ class CSLDForceConstantsToDB(FiretaskBase):
             'corr_out': 'Amat.mtx',
             'fval_in': 'fval.txt',
             'fval_out': 'fval.txt',
-            'traindat1': csld_traindat_string
+            'traindat1': csld_traindat_string #directories of unperturbed followed
+                                                #by perturbed supercell poscars
             # 'fcc333/SPOSCAR fcc333/dir*0.01 fcc333/dir*0.02 fcc333/dir*0.05'
             # Rewrote how it reads forces
         }
@@ -1334,7 +1331,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
         db_file = env_chk(self.get("db_file"), fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         tasks = mmdb["tasks"]
-        while not_converged or iter < maxIter:
+        while not_converged and iter < maxIter:
             self.set_params(iter,
                             cluster_diam_settings[iter],
                             max_order_settings[iter],
@@ -1349,7 +1346,9 @@ class CSLDForceConstantsToDB(FiretaskBase):
             supercells_dicts = list(tasks.find({"wf_meta.wf_uuid": uuid, #<insert
                                                 "task_label": {"$regex": task_label},
                                                 "formula_pretty": formula_pretty},
-                                                ['task_id', 'output.forces']))
+                                                ['task_id',
+                                                 'task_label',
+                                                 'output.forces']))
             #list of dicts where each dict contatins a task_id and a list of forces
             #   for each supercell
 
@@ -1381,8 +1380,15 @@ class CSLDForceConstantsToDB(FiretaskBase):
             freq_matrix = np.asarray(freq_matrix)
             imaginary_idx = freq_matrix < 0
             imaginary_freqs = freq_matrix[imaginary_idx]
-            num_imaginary_bands = np.any(imaginary_idx, axis=1)
-            most_imaginary_freq = np.amin(imaginary_freqs)
+            print('IMAGINARY FREQUENCIES:')
+            print(imaginary_freqs)
+            num_imaginary_bands = np.sum(np.any(imaginary_idx, axis=1))
+            print('NUMBER OF IMAGINARY BANDS:')
+            print(num_imaginary_bands)
+            if np.any(imaginary_freqs):
+                most_imaginary_freq = np.amin(imaginary_freqs)
+            else:
+                most_imaginary_freq = 0
             # For imaginary frequencies, w^2 is negative
             # code handles it as w = sign(sqrt(abs(w^2)), w^2)
 
@@ -1420,12 +1426,13 @@ class CSLDForceConstantsToDB(FiretaskBase):
                 summary["tags"] = fw_spec["tags"]
 
             summaries.append(summary)
+
             iter = self['convergence_info']['iteration']
 
         mmdb.collection = mmdb.db["compressed_sensing_lattice_dynamics"]
         mmdb.collection.insert(summaries)
 
-        if iter < maxIter:
+        if iter <= maxIter:
             logger.info("Compressed Sensing Lattice Dynamics calculation complete.")
         else:
             logger.info("Compressed Sensing Lattice Dynamics calculation failed."
