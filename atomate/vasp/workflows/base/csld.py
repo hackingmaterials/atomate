@@ -92,6 +92,7 @@ class CompressedSensingLatticeDynamicsWF:
         # supercell (Structure)
         self.supercell = supercell_transform.apply_transformation(self.parent_structure)
         self.trans_mat = supercell_transform.trans_mat
+        self.supercell_smallest_dim = supercell_transform.smallest_dim
 
     # Generate randomly perturbed supercells
         perturbed_supercells_transform = PerturbSitesTransformation(
@@ -178,6 +179,7 @@ class CompressedSensingLatticeDynamicsWF:
                 parent_structure=self.parent_structure,
                 trans_mat=self.trans_mat,
                 supercell_structure=self.supercell,
+                supercell_smallest_dim=self.supercell_smallest_dim,
                 perturbed_supercells=self.perturbed_supercells,
                 disps=self.disps
             ),
@@ -208,41 +210,42 @@ if __name__ == "__main__":
     from atomate.vasp.powerups import add_tags, set_execution_options
 
     #get a structure
-    mpr = MPRester(api_key='auNIrJ23VLXCqbpl')
-    structure = mpr.get_structure_by_material_id('mp-149')
+    # mpr = MPRester(api_key='auNIrJ23VLXCqbpl')
+    # # structure = mpr.get_structure_by_material_id('mp-149') #Si
+    # structure = mpr.get_structure_by_material_id('mp-1101039')
+    # test_trans_mat = np.linalg.inv(structure.lattice.matrix) @ (np.eye(3,3) * 20)
+    # print(test_trans_mat)
+    # print(np.linalg.det(test_trans_mat))
+    # structure_test = structure * test_trans_mat
+    # structure_test.to("poscar", filename="POSCAR-noninteger_trans_test")
 
-    # prim_structure = structure.get_primitive_structure() #this method is bad
-
-    # CONVENTIONAL PRIMITIVE CELL WITH SYMMETRIZATION
+    # # CONVENTIONAL PRIMITIVE CELL WITH SYMMETRIZATION
     from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-    sga = SpacegroupAnalyzer(structure, symprec=0.1)
-    prim = sga.get_primitive_standard_structure()
-    prim.to("poscar", filename="POSCAR-pmg_prim_si")
+    # sga = SpacegroupAnalyzer(structure, symprec=0.1)
+    # prim = sga.get_primitive_standard_structure()
 
     # CSLD'S POLARON MAIN-GENERATED PRIMITIVE CELL
-    # from pymatgen.core.structure import Structure
+    from pymatgen.core.structure import Structure
     # prim = Structure.from_file('POSCAR_csld_primitivized')
 
-    csld_class = CompressedSensingLatticeDynamicsWF(prim, max_displacement=0.05,
-                                                    min_displacement=0.01,
-                                                    num_displacements=5)
+    prim = Structure.from_file('POSCAR-well_relaxed_InSb_csld_primitivized')
+    # sga = SpacegroupAnalyzer(prim, symprec=0.1)
+    # prim2 = sga.get_primitive_standard_structure()
+    # prim2.to("poscar", 'POSCAR-InSb-standard')
+
+    csld_class = CompressedSensingLatticeDynamicsWF(prim)
     print("uuid")
     print(csld_class.uuid)
 
     wf = csld_class.get_wf()
     print("trans mat")
     print(csld_class.trans_mat)
-    csld_class.supercell.to("poscar", filename="POSCAR-csld_super_si")
-
-    wf = add_tags(wf, ['csld', 'v1', 'rees', 'sga primitizer'])
-    wf = set_execution_options(wf, fworker_name="rees_the_fire_worker") #need this to run the fireworks
-    print(wf)
-
+    print(csld_class.supercell_smallest_dim)
+    csld_class.supercell.to("poscar", filename="SPOSCAR-csld_super_InSb_standard")
+    #
+    # wf = add_tags(wf, ['csld', 'v1', 'rees', 'InSb', 'first_try'])
+    # wf = set_execution_options(wf, fworker_name="rees_the_fire_worker") #need this to run the fireworks
+    # print(wf)
+    #
     # lpad = LaunchPad.auto_load()
     # lpad.add_wf(wf)
-
-    # [[4.  0. - 2.]
-    #  [-1.  4. - 1.]
-    # [0.
-    # 0.
-    # 4.]]

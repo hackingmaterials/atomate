@@ -1168,6 +1168,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
     required_params = ["db_file", "wf_uuid", "parent_structure",
                         "perturbed_supercells",
                        "trans_mat", "supercell_structure",
+                       "supercell_smallest_dim",
                        "disps"]
 
     def set_params(self, iteration_number, cluster_diam, max_order, submodel1, export_sbte):
