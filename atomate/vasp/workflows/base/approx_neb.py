@@ -1,5 +1,5 @@
 from fireworks import Firework, Workflow
-from atomate.vasp.fireworks.core import OptimizeFW
+from copy import deepcopy
 from atomate.vasp.config import VASP_CMD, DB_FILE
 from atomate.vasp.powerups import use_custodian
 from custodian.vasp.handlers import (
@@ -53,14 +53,13 @@ def approx_neb_wf(
 
     wf_uuid = str(uuid4())
 
-    host_lattice_params = approx_neb_params.copy()
     host_lattice_fw = HostLatticeFW(
         structure=structure,
         approx_neb_wf_uuid=wf_uuid,
         db_file=db_file,
         vasp_input_set=vasp_input_set,
         vasp_cmd=vasp_cmd,
-        override_default_vasp_params=host_lattice_params,
+        override_default_vasp_params=deepcopy(approx_neb_params),
     )
 
     # modifies incar settings needed for end point and image structure relaxations
