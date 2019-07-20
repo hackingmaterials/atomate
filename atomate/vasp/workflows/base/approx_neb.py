@@ -53,13 +53,14 @@ def approx_neb_wf(
 
     wf_uuid = str(uuid4())
 
+    host_lattice_params = approx_neb_params.copy()
     host_lattice_fw = HostLatticeFW(
         structure=structure,
         approx_neb_wf_uuid=wf_uuid,
         db_file=db_file,
         vasp_input_set=vasp_input_set,
         vasp_cmd=vasp_cmd,
-        override_default_vasp_params=approx_neb_params.copy(),
+        override_default_vasp_params=host_lattice_params,
     )
 
     # modifies incar settings needed for end point and image structure relaxations
