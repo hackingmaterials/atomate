@@ -21,6 +21,7 @@ from atomate.vasp.fireworks.approx_neb import (
     GetImagesFW,
 )
 
+# ToDo: add way to provide tags/additional fields to docs in approx_neb collection
 # TODO: Write approx_neb_wf_description
 def approx_neb_wf(
     structure,
@@ -66,6 +67,9 @@ def approx_neb_wf(
         approx_neb_params = {"user_incar_settings": {}}
     approx_neb_params["user_incar_settings"]["ISIF"] = 2
     approx_neb_params["user_incar_settings"]["ISYM"] = 0
+
+    if len(insert_coords) != 2:
+        raise ValueError("insert_coords must specify exactly two sites")
 
     insert_working_ion_fws = []
     for coord in insert_coords:
