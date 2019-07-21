@@ -32,7 +32,7 @@ class HostLatticeToDb(FiretaskBase):
     """
 
     required_params = ["db_file", "approx_neb_wf_uuid"]
-    optional_params = ["host_lattice_task_id"]
+    optional_params = ["host_lattice_task_id", "additional_fields"]
 
     def run_task(self, fw_spec):
         # get the database connection
@@ -76,6 +76,40 @@ class HostLatticeToDb(FiretaskBase):
             "wf_uuid": wf_uuid,
             "stable_sites": [],
         }
+
+        # Adds additional fields to approx_neb_doc stored in the task doc
+        standard_task_doc_keys = [
+            "_id",
+            "dir_name",
+            "task_label",
+            "approx_neb",
+            "schema",
+            "calcs_reversed",
+            "run_stats",
+            "chemsys",
+            "formula_anonymous",
+            "formula_reduced_abc",
+            "completed_at",
+            "nsites",
+            "composition_unit_cell",
+            "composition_reduced",
+            "formula_pretty",
+            "elements",
+            "nelements",
+            "input",
+            "output",
+            "state",
+            "analysis",
+            "last_updated",
+            "transformations",
+            "custodian",
+            "orig_inputs",
+            "task_id",
+        ]
+        for key, value in host_lattice_tasks_doc.items():
+            if key not in standard_task_doc_keys+["approx_neb"]:
+                if key not in approx_neb_doc.keys():
+                    approx_neb_doc[key] = value
 
         # Gets GridFS ids for host lattice chgcar and aeccar if stored in task_doc
         # gridfs_ids is for record keeping to track the source of GridFS ids
@@ -623,7 +657,9 @@ class AddSelectiveDynamics(FiretaskBase):
                 )
                 images.append(image)
         else:
-            raise ValueError("selective_dynamics_scheme does match any supported schemes, check input value")
+            raise ValueError(
+                "selective_dynamics_scheme does match any supported schemes, check input value"
+            )
             pass
             # ToDo: add radius based selective dynamics scheme
 
@@ -647,7 +683,7 @@ class AddSelectiveDynamics(FiretaskBase):
             stored_data={"wf_uuid": wf_uuid, "images_output": images_output},
         )
 
-    def add_fix_two_atom_selective_dynamics(self,structure, fixed_index, fixed_specie):
+    def add_fix_two_atom_selective_dynamics(self, structure, fixed_index, fixed_specie):
         """
         Returns structure with selective dynamics assigned to fix the
         position of two sites.
@@ -671,7 +707,8 @@ class AddSelectiveDynamics(FiretaskBase):
                 fixed_index = fixed_index[0]
             else:
                 raise ValueError(
-                    "fixed_index must specify exactly one index for the fix_two_atom selective dynamics scheme")
+                    "fixed_index must specify exactly one index for the fix_two_atom selective dynamics scheme"
+                )
 
         if structure[fixed_index].specie != Element(fixed_specie):
             raise ValueError(
