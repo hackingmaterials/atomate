@@ -42,7 +42,7 @@ def approx_neb_wf(
             "IBRION": 1,
             "ISIF": 3,
             "ISMEAR": 0,
-            "LDAU": False,
+            "LDAU": True,
             "NSW": 200,
             "ADDGRID": True,
             "ISYM": 1,
@@ -67,6 +67,7 @@ def approx_neb_wf(
         approx_neb_params = {"user_incar_settings": {}}
     approx_neb_params["user_incar_settings"]["ISIF"] = 2
     approx_neb_params["user_incar_settings"]["ISYM"] = 0
+    approx_neb_params["user_incar_settings"]["LDAU"] = False
 
     if len(insert_coords) != 2:
         raise ValueError("insert_coords must specify exactly two sites")
