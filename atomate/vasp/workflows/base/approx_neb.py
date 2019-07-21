@@ -66,7 +66,7 @@ def approx_neb_wf(
     if "user_incar_settings" not in approx_neb_params.keys():
         approx_neb_params = {"user_incar_settings": {}}
     approx_neb_params["user_incar_settings"]["ISIF"] = 2
-    #approx_neb_params["user_incar_settings"]["ISYM"] = 0
+    approx_neb_params["user_incar_settings"]["ISYM"] = 0
 
     if len(insert_coords) != 2:
         raise ValueError("insert_coords must specify exactly two sites")
