@@ -307,7 +307,9 @@ class QChemDrone(AbstractDrone):
                         final_energy = d["calcs_reversed"][1]["final_energy"]
                         d["num_frequencies_flattened"] = orig_num_neg_freq - final_num_neg_freq
                         if final_num_neg_freq > 0: # If a negative frequency remains,
-                            d["state"] = "unsuccessful" # then the flattening was unsuccessful
+                            # and it's too large to ignore,
+                            if final_num_neg_freq > 1 or abs(d["output"]["frequencies"][0]) >= 15.0:
+                                d["state"] = "unsuccessful" # then the flattening was unsuccessful
                         if final_energy > orig_energy:
                             d["warnings"]["energy_increased"] = True
 
