@@ -47,9 +47,11 @@ def approx_neb_wf(
             "ADDGRID": True,
             "ISYM": 1,
             "NELMIN": 4,
+            "LAECHG": True
         }
     }
     # TODO: Add LASPH: True
+    # ToDo: Add "LAECHG": True, to all or just host lattice?
 
     wf_uuid = str(uuid4())
 

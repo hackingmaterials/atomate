@@ -201,9 +201,9 @@ class HostLatticeToDb(FiretaskBase):
 
         # Store GridFS ids in approx_neb_doc (to be stored in the approx_neb collection)
         # None will be stored if no gridfs_id is found
-        approx_neb_doc["chgcar_fs_id"] = chgcar_fs_id or gridfs_ids.get("dir_chgcar")
-        approx_neb_doc["aeccar0_fs_id"] = aeccar0_fs_id or gridfs_ids.get("dir_aeccar0")
-        approx_neb_doc["aeccar2_fs_id"] = aeccar2_fs_id or gridfs_ids.get("dir_aeccar2")
+        approx_neb_doc["host_lattice"]["chgcar_fs_id"] = chgcar_fs_id or gridfs_ids.get("dir_chgcar")
+        approx_neb_doc["host_lattice"]["aeccar0_fs_id"] = aeccar0_fs_id or gridfs_ids.get("dir_aeccar0")
+        approx_neb_doc["host_lattice"]["aeccar2_fs_id"] = aeccar2_fs_id or gridfs_ids.get("dir_aeccar2")
         # Insert approx_neb_doc in the approx_neb collection of provided database
         mmdb.collection = mmdb.db["approx_neb"]
         mmdb.collection.insert_one(approx_neb_doc)
