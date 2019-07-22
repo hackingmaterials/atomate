@@ -2,6 +2,11 @@
 atomate Changelog
 =================
 
+**v0.9.1**
+
+* bugfix: ``vasp_input_set_params`` --> ``vasp_input_params`` in some cases (thanks to M. Horton for pointing out)
+* add ability to put mongoclient_kwargs in CalcDB creds file (thanks to S. Torissi for pointing out the feature request)
+
 **v0.9.0**
 
 * better error message (L. Ward)
