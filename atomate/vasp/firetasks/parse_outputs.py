@@ -8,9 +8,15 @@ from datetime import datetime
 import numpy as np
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
+<<<<<<< HEAD
 from monty.json import MontyEncoder, jsanitize
 from monty.os.path import zpath
 from pydash.objects import get, has
+=======
+from fireworks import Firework
+
+from pymatgen import Structure
+>>>>>>> 9a28c322 (Added dynamic fireworks for possible error handling (i.e. larger displacement values))
 from pymatgen.analysis.elasticity.elastic import ElasticTensor, ElasticTensorExpansion
 from pymatgen.analysis.elasticity.strain import Deformation, Strain
 from pymatgen.analysis.elasticity.stress import Stress
@@ -29,12 +35,26 @@ from pymatgen.core.structure import Structure
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+<<<<<<< HEAD
+=======
+from pymatgen.analysis.ferroelectricity.polarization import Polarization, get_total_ionic_dipole, \
+    EnergyTrend
+from pymatgen.analysis.magnetism import CollinearMagneticStructureAnalyzer, Ordering, magnetic_deformation
+from pymatgen.command_line.bader_caller import bader_analysis_from_path
+from pymatgen.transformations.advanced_transformations import PerturbSitesTransformation
+from pymatgen.io.vasp.sets import MPStaticSet
+>>>>>>> 9a28c322 (Added dynamic fireworks for possible error handling (i.e. larger displacement values))
 
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk, get_logger, get_meta_from_structure
 from atomate.vasp.config import DEFUSE_UNSUCCESSFUL, STORE_VOLUMETRIC_DATA
 from atomate.vasp.database import VaspCalcDb
+<<<<<<< HEAD
 from atomate.vasp.drones import BADER_EXE_EXISTS, VaspDrone
+=======
+from atomate.vasp.drones import VaspDrone
+from atomate.vasp.fireworks.core import StaticFW
+>>>>>>> 9a28c322 (Added dynamic fireworks for possible error handling (i.e. larger displacement values))
 
 __author__ = "Anubhav Jain, Kiran Mathew, Shyam Dwaraknath"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov"
@@ -1779,11 +1799,16 @@ class CSLDForceConstantsToDB(FiretaskBase):
     #     to a .json file.
     """
 
-    required_params = ["db_file", "wf_uuid", "parent_structure",
-                        "perturbed_supercells",
-                       "trans_mat", "supercell_structure",
-                       "supercell_smallest_dim",
-                       "disps"]
+    logger = get_logger(__name__)
+
+    required_params = ["db_file",
+        "wf_uuid", "parent_structure",
+        "perturbed_supercells",
+        "trans_mat", "supercell_structure",
+        "supercell_smallest_dim",
+        "disps", "first_pass"]
+
+    optional_params = ["static_user_incar_settings", "env_vars"]
 
     def random_search(self, maxIter):
         """
@@ -1838,11 +1863,9 @@ class CSLDForceConstantsToDB(FiretaskBase):
 
         return cluster_diam_settings, max_order_settings, submodel1_settings
 
-    def set_params(self, iteration_number, cluster_diam, max_order, submodel1,
-                   export_sbte):
+    def set_params(self, iteration_number, cluster_diam, max_order, submodel1, export_sbte):
         from configparser import ConfigParser
-        supercell_folder = self[
-                               "parent_structure"].composition.reduced_formula + \
+        supercell_folder = self["parent_structure"].composition.reduced_formula + \
                            "_supercell_iter" + str(iteration_number)
 
         # Remove supercell_folder if it already exists, then make a new one
@@ -1854,19 +1877,16 @@ class CSLDForceConstantsToDB(FiretaskBase):
         #   POSCAR to file
         np.savetxt(supercell_folder + "/sc.txt", self["trans_mat"], fmt="%.0f",
                    delimiter=" ")
-        self["supercell_structure"].to("poscar",
-                                       filename=supercell_folder + "/SPOSCAR")
-        self["parent_structure"].to("poscar",
-                                    filename=supercell_folder + "/POSCAR")
+        self["supercell_structure"].to("poscar", filename=supercell_folder + "/SPOSCAR")
+        self["parent_structure"].to("poscar", filename=supercell_folder + "/POSCAR")
 
         # Create folders for perturbed supercell POSCARS and force.txt's
         disp_folders = []
         csld_traindat_disp_folders = ''
         for idx, disp in enumerate(self["disps"]):
             disp_folder = supercell_folder + '/disp' + str(disp)
-            disp_folders += [disp_folder]  # list of folder paths
-            csld_traindat_disp_folders += ' ' + str(
-                disp_folder)  # Create string for CSLD input
+            disp_folders += [disp_folder] # list of folder paths
+            csld_traindat_disp_folders += ' ' + str(disp_folder) # Create string for CSLD input
             if os.path.exists(disp_folder) and os.path.isdir(disp_folder):
                 shutil.rmtree(disp_folder)
             os.mkdir(disp_folder)
@@ -1889,7 +1909,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
         # Create ConfigParser of all CSLD input settings
         csld_settings = ConfigParser()
         csld_settings['structure'] = {
-            'prim': supercell_folder + '/POSCAR',  # original structure poscar
+            'prim': supercell_folder + '/POSCAR', # original structure poscar
             'sym_tol': '1e-3',
             # 'epsilon_inf': None,  # check how it reads 3x3 matrix
             # 'born_charge': None  # check reading n_atom*9 numbers
@@ -1900,10 +1920,9 @@ class CSLDForceConstantsToDB(FiretaskBase):
             'cluster_out': 'clusters.out',
             'symC_in': 'Cmat.mtx',
             'symC_out': 'Cmat.mtx',
-            'max_order': max_order,  # 3,  # this should be variable
+            'max_order': max_order, # 3,  # this should be variable
             'fractional_distance': False,
-            'cluster_diameter': cluster_diam,
-            # '11 6.5 5.0', #this should be variable
+            'cluster_diameter': cluster_diam, # '11 6.5 5.0', #this should be variable
             'cluster_filter': r"lambda cls: ((cls.order_uniq <= 2) or "
                               r"(cls.bond_counts(2.9) >= 2)) and "
                               r"cls.is_small_in('" + supercell_folder + "/sc.txt')"
@@ -1916,8 +1935,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
             'corr_out': 'Amat.mtx',
             'fval_in': 'fval.txt',
             'fval_out': 'fval.txt',
-            'traindat1': csld_traindat_string
-            # directories of unperturbed followed
+            'traindat1': csld_traindat_string # directories of unperturbed followed
             # by perturbed supercell poscars
             # 'fcc333/SPOSCAR fcc333/dir*0.01 fcc333/dir*0.02 fcc333/dir*0.05'
             # Rewrote how it reads forces
@@ -1939,7 +1957,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
             'subsetsize': 0.85,
             'lambda': 0.5,
             'uscale_list': '0.03',
-            'submodel1': submodel1,  # 'anh 0 1 2 3',  # this should be variable
+            'submodel1': submodel1, # 'anh 0 1 2 3',  # this should be variable
         }
         csld_settings['phonon'] = {
             'qpoint_fractional': False,
@@ -1966,7 +1984,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
             'thermal_out': 'thermal_out.txt'
         }
         csld_settings['export_potential'] = {
-            'export_shengbte': export_sbte,  # '5 5 5 2 3'  # 5x5x5 supercell
+            'export_shengbte': export_sbte, # '5 5 5 2 3'  # 5x5x5 supercell
             # 2 and 3 orders to be considered
             # should be variable?
         }
@@ -1993,8 +2011,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
         csld_options['ldff_step'] = 0
         csld_options['phonon_step'] = 1
         csld_options['phonon'] = False
-        csld_options[
-            'save_pot_step'] = 1  # usual default is 0. 1 means output to ShengBTE format.
+        csld_options['save_pot_step'] = 1  # usual default is 0. 1 means output to ShengBTE format.
         csld_options['pot'] = False
 
         # set default values
@@ -2025,20 +2042,25 @@ class CSLDForceConstantsToDB(FiretaskBase):
         summaries = []
 
         # <FILL THESE IN FURTHER WITH SETTINGS TO TRY, IN ORDER>
-        # cluster_diam_settings = ['11 6.5 5.0']
-        # max_order_settings = [3]
-        # submodel1_settings = ['anh 0 1 2 3']
-        # export_sbte_settings = ['5 5 5 2 3']
+        cluster_diam_settings = ['11 6.5 5.0',
+                                 '9 6.5 5.0']
+        max_order_settings = [3] * len(cluster_diam_settings)
+        submodel1_settings = ['anh 0 1 2 3'] * len(cluster_diam_settings)
+        export_sbte_settings = ['5 5 5 2 3'] * len(cluster_diam_settings)
+        if self["first_pass"] is False:
+            max_order_settings += [4] * len(cluster_diam_settings)
+            cluster_diam_settings += cluster_diam_settings
+            submodel1_settings += submodel1_settings
+            export_sbte_settings += export_sbte_settings
 
-        cluster_diam_settings, max_order_settings, submodel1_settings = self.random_search(
-            maxIter)
+        # cluster_diam_settings, max_order_settings, submodel1_settings = self.random_search(maxIter)
+        # export_sbte_settings = ['5 5 5 2 3'] * maxIter
         print('cluster_diam')
         print(cluster_diam_settings)
         print('max order')
         print(max_order_settings)
         print('submodel')
         print(submodel1_settings)
-        export_sbte_settings = ['5 5 5 2 3'] * maxIter
 
         while not_converged and iter < maxIter:
             self.set_params(iter,
@@ -2101,7 +2123,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
             #                [-1, 1, 1]] #(nbands, nkpoints)
 
             freq_matrix = np.asarray(freq_matrix)
-            imaginary_idx = freq_matrix < -0.01  # UPDATE THIS NUMBER TO HAVE SOME CUSHION
+            imaginary_idx = freq_matrix < -1  # UPDATE THIS NUMBER TO HAVE SOME CUSHION
             imaginary_freqs = freq_matrix[imaginary_idx]
             print('IMAGINARY FREQUENCIES')
             print(imaginary_freqs)
@@ -2183,9 +2205,64 @@ class CSLDForceConstantsToDB(FiretaskBase):
         else:
             #     logger.info("Compressed Sensing Lattice Dynamics calculation failed."
             #                 "Max iterations was reached.")
-            raise TimeoutError(
-                "The workflow was unable to find a solution to CSLD"
-                " for this material.")
+            if self["parent_structure"].num_sites > 5 and self["first_pass"]:
+                #     logger.info("Compressed Sensing Lattice Dynamics calculation failed."
+                #                 " Max iterations was reached. Creating larger displacements"
+                #                 " and trying again,")
+                print('placeholder')
+                new_fws = []
+
+                # Create new perturbed supercells
+                more_perturbed_supercells_transform = PerturbSitesTransformation(
+                    max_displacement=0.2,
+                    min_displacement=0.12,
+                    num_displacements=5,
+                    structures_per_displacement_distance=1,
+                    min_random_distance=None
+                )
+                more_perturbed_supercells = more_perturbed_supercells_transform.apply_transformation(self["supercell_structure"])
+                more_disps = more_perturbed_supercells_transform.disps
+
+                # Create new static FWs
+                for idx, more_perturbed_supercell in enumerate(more_perturbed_supercells):
+                    name = "perturbed supercell, idx: {}, disp_val: {:.3f},".format(idx+len(self["perturbed_supercells"]),
+                                                                                    more_disps)
+                    static_vis = MPStaticSet(more_perturbed_supercell,
+                                             user_incar_settings=self["static_user_incar_settings"])
+
+                    new_fws.append(StaticFW(
+                        more_perturbed_supercell,
+                        vasp_input_set=static_vis,
+                        vasp_cmd=self["env_vars"]["VASP_CMD"],
+                        db_file=self["env_vars"]["DB_FILE"],
+                        name=name + " static"
+                    ))
+
+                # Create new CSLD FW
+                new_csld_fw = Firework(
+                    CSLDForceConstantsToDB(
+                        db_file=self["env_vars"]["DB_FILE"],
+                        wf_uuid=self["wf_uuid"],
+                        name='CSLDForceConstantsToDB',
+                        parent_structure=self["parent_structure"],
+                        trans_mat=self["trans_mat"],
+                        supercell_structure=self["supercell_structure"],
+                        supercell_smallest_dim=self["supercell_smallest_dim"],
+                        perturbed_supercells=self["perturbed_supercells"]+more_perturbed_supercells,
+                        disps=self["disps"]+more_disps,
+                        first_pass=False
+                    ),
+                    name="Compressed Sensing Lattice Dynamics",
+                    parents=new_fws[-len(more_perturbed_supercells):]
+                )
+                new_fws.append(new_csld_fw)
+
+                # Dynamically add new fireworks to the workflow
+                return FWAction(additions=new_fws)
+
+            else:
+                raise TimeoutError("The workflow was unable to find a solution to CSLD"
+                    " for this material.")
 
 
 # the following definitions for backward compatibility
