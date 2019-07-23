@@ -181,7 +181,10 @@ class CompressedSensingLatticeDynamicsWF:
                 supercell_structure=self.supercell,
                 supercell_smallest_dim=self.supercell_smallest_dim,
                 perturbed_supercells=self.perturbed_supercells,
-                disps=self.disps
+                disps=self.disps,
+                first_pass=True,
+                static_user_incar_settings=static_user_incar_settings,
+                env_vars=c
             ),
             name="Compressed Sensing Lattice Dynamics",
             parents=fws[-len(self.perturbed_supercells):]
