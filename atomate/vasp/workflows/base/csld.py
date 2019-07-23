@@ -228,12 +228,12 @@ if __name__ == "__main__":
     from pymatgen.core.structure import Structure
     # prim = Structure.from_file('POSCAR_csld_primitivized')
 
-    prim = Structure.from_file('POSCAR-well_relaxed_InSb_csld_primitivized')
-    # sga = SpacegroupAnalyzer(prim, symprec=0.1)
-    # prim2 = sga.get_primitive_standard_structure()
-    # prim2.to("poscar", 'POSCAR-InSb-standard')
+    prim = Structure.from_file('POSCAR-well_relaxed_Sr8Sb4Au4')
 
-    csld_class = CompressedSensingLatticeDynamicsWF(prim)
+    csld_class = CompressedSensingLatticeDynamicsWF(prim,
+                                                    num_nn_dists=5,
+                                                    num_displacements=10,
+                                                    supercells_per_displacement_distance=1)
     print("uuid")
     print(csld_class.uuid)
 
@@ -241,11 +241,80 @@ if __name__ == "__main__":
     print("trans mat")
     print(csld_class.trans_mat)
     print(csld_class.supercell_smallest_dim)
-    csld_class.supercell.to("poscar", filename="SPOSCAR-csld_super_InSb_standard")
-    #
-    # wf = add_tags(wf, ['csld', 'v1', 'rees', 'InSb', 'first_try'])
-    # wf = set_execution_options(wf, fworker_name="rees_the_fire_worker") #need this to run the fireworks
-    # print(wf)
-    #
+    print(csld_class.supercell.num_sites)
+    csld_class.supercell.to("poscar", filename="SPOSCAR-csld_super_Sr8Sb4Au4")
+
+    wf = add_tags(wf, ['csld', 'v1', 'rees', 'Sr8Sb4Au4', '10disps_1each'])
+    wf = set_execution_options(wf, fworker_name="rees_the_fire_worker") #need this to run the fireworks
+    print(wf)
+
     # lpad = LaunchPad.auto_load()
     # lpad.add_wf(wf)
+
+# uuid
+# 0ff0d430-b43f-4cb5-ac8b-55c465b7867c
+# DISPS
+# [0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 ]
+# trans mat
+# [[-3.  3.  3.]
+#  [ 3. -3.  3.]
+#  [ 3.  3. -3.]]
+# 23.745154105620003
+# 432
+
+#################custom csld_main below##################
+def csld_main(options, settings):
+    """
+    Runs CSLD minimization.
+
+    Changes from original version:
+        - Made 'prim' an argument in 'phonon_step()'
+        - Moved execution files to this main() function to be called from
+          atomate
+        - Rewrote 'add_common_parameter' in 'common_main' to treat 'options' as
+          a dictionary instead of ArgumentParser
+    """
+    import matplotlib
+    matplotlib.use('Agg')
+    from matplotlib.backends.backend_pdf import PdfPages
+    import atexit
+    import csld
+    from csld.symmetry_structure import SymmetrizedStructure
+
+    from csld.lattice_dynamics import init_ld_model
+
+    from csld.common_main import upon_exit, \
+        init_training, fit_data, phonon_step, \
+        save_pot, predict
+
+    freq_matrix = None #Rees
+    pdfout = PdfPages(
+        options['pdfout'].strip()) if options['pdfout'].strip() else None
+    atexit.register(upon_exit, pdfout)
+
+    prim = SymmetrizedStructure.init_structure(settings['structure'],
+                                               options['symm_step'],
+                                               options['symm_prim'],
+                                               options['log_level'])
+    model = init_ld_model(prim, settings['model'], settings[
+        'LDFF'] if 'LDFF' in settings.sections() else {}, options['clus_step'],
+                          options['symC_step'], options['ldff_step'])
+    Amat, fval = init_training(model, settings['training'], options['train_step'])
+    ibest, solutions, rel_err = fit_data(model, Amat, fval, settings['fitting'],
+                                options['fit_step'], pdfout)
+    if settings.has_section('phonon'):
+        phonon, freq_matrix = phonon_step(model, solutions, settings['phonon'],
+                             options['phonon_step'], pdfout, prim)
+    if settings.has_section('export_potential'):
+        save_pot(model, solutions[ibest], settings['export_potential'],
+                 options['save_pot_step'], phonon)
+    if settings.has_section('prediction'):
+        predict(model, solutions, settings['prediction'], options['pred_step'])
+
+    #OUTPUT
+    # freq_matrix is (nbands, nkpoints) = frequencies. Check for negative entries
+    # rel_err is cross validation error in percent
+    return rel_err, freq_matrix #also want to return force constants
+
+
+
