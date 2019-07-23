@@ -1171,9 +1171,64 @@ class CSLDForceConstantsToDB(FiretaskBase):
                        "supercell_smallest_dim",
                        "disps"]
 
-    def set_params(self, iteration_number, cluster_diam, max_order, submodel1, export_sbte):
+    def random_search(self, maxIter):
+        """
+        -pair potential is roughly 12 Angstroms, so supercell should be safely
+        larger than that (at least 20 in each direction) so you don't get artifacts
+        from periodic boundary conditions (i.e. atoms being double-counted in the
+        pair potential)
+        -"most likely" at least 4 nearest neighbor distances is ok
+        -
+        -150+ atom-supercell
+        -for low symmetry, more atoms = finer displacement linspace (0.02 - 0.05 in
+        steps of 0.01 or 0.005)
+        -9-12 lattice parameters for pair cutoffs, triplets usually a little more than half of pairs
+        - -1 meV phonon mode is
+    	-change cutoff diameter (easiest, probably increase)
+    	-either increase supercells or relax primitive cell better (check total drift)
+
+    	CSLD CHECKS: IF FITTING IS BAD...
+        Option 1.
+        Play with cluster diameters
+            -random search? bayesopt?
+            -if tried some max number trials and still bad, pick the best one and move to Option 2
+
+        Option 2.
+        Include higher displacement supercells
+            1. If Natom>5, generate supercells at large displacements (>0.1 angstroms)
+            2. Fit up to 3rd order only with supercells perturbed <0.1 angstroms
+                -If good, run SBTE
+                -If bad, then fit including supercells >0.1 angstroms
+                    -If good, run SBTE
+                    -If bad, redo step 2 with 4th order
+        :return:
+        """
+        import random
+
+        if maxIter % 2 != 0 or maxIter <= 0:
+            raise AttributeError('maxIter must be even.')
+
+        cluster_diam_settings = []
+        for _ in range(maxIter):
+            pair_diam = random.uniform(10, 14) #self["supercell_smallest_dim"])
+            triplet_diam = random.uniform(pair_diam * 0.4, pair_diam)
+            quadruplet_diam = random.uniform(triplet_diam * 0.6, triplet_diam)
+
+            cluster_diam_settings += [
+                str(pair_diam) + ' ' + str(triplet_diam) + ' ' + str(
+                    quadruplet_diam)]
+
+        max_order_settings = [3] * int(maxIter / 2) + [4] * int(maxIter / 2)
+        submodel1_settings = ['anh 0 1 2 3'] * int(maxIter / 2) + \
+                             ['anh 0 1 2 3 4'] * int(maxIter / 2)
+
+        return cluster_diam_settings, max_order_settings, submodel1_settings
+
+    def set_params(self, iteration_number, cluster_diam, max_order, submodel1,
+                   export_sbte):
         from configparser import ConfigParser
-        supercell_folder = self["parent_structure"].composition.reduced_formula + \
+        supercell_folder = self[
+                               "parent_structure"].composition.reduced_formula + \
                            "_supercell_iter" + str(iteration_number)
 
         # Remove supercell_folder if it already exists, then make a new one
@@ -1181,33 +1236,46 @@ class CSLDForceConstantsToDB(FiretaskBase):
             shutil.rmtree(supercell_folder)
         os.mkdir(supercell_folder)
 
+        # Save transformation matrix, supercell POSCAR, and parent structure
+        #   POSCAR to file
         np.savetxt(supercell_folder + "/sc.txt", self["trans_mat"], fmt="%.0f",
                    delimiter=" ")
-        self["supercell_structure"].to("poscar", filename=supercell_folder + "/SPOSCAR")
-        self["parent_structure"].to("poscar", filename=supercell_folder + "/POSCAR")
+        self["supercell_structure"].to("poscar",
+                                       filename=supercell_folder + "/SPOSCAR")
+        self["parent_structure"].to("poscar",
+                                    filename=supercell_folder + "/POSCAR")
 
+        # Create folders for perturbed supercell POSCARS and force.txt's
         disp_folders = []
         csld_traindat_disp_folders = ''
         for idx, disp in enumerate(self["disps"]):
-            disp_folder = supercell_folder+'/disp'+str(disp)
-            disp_folders += [disp_folder]
-            csld_traindat_disp_folders += ' ' + str(disp_folder)
+            disp_folder = supercell_folder + '/disp' + str(disp)
+            disp_folders += [disp_folder]  # list of folder paths
+            csld_traindat_disp_folders += ' ' + str(
+                disp_folder)  # Create string for CSLD input
+            if os.path.exists(disp_folder) and os.path.isdir(disp_folder):
+                shutil.rmtree(disp_folder)
             os.mkdir(disp_folder)
             self["perturbed_supercells"][idx].to("poscar",
                                                  filename=disp_folder + "/POSCAR")
 
+        # Store information related to convergence of CSLD
         self['convergence_info'] = {
             'iteration': 0,
-            'settings_tried': {}
+            'settings_tried': [],
+            'cross_val_errors': [],
+            'most_imaginary_freqs': [],
+            'imaginary_freqs_sum': []
         }
 
-        # Parameters for conducting CSLD
+        # training>traindat1 setting for CSLD input
         csld_traindat_string = supercell_folder + '/SPOSCAR'
         csld_traindat_string += csld_traindat_disp_folders
 
+        # Create ConfigParser of all CSLD input settings
         csld_settings = ConfigParser()
         csld_settings['structure'] = {
-            'prim': supercell_folder + '/POSCAR', #original structure poscar
+            'prim': supercell_folder + '/POSCAR',  # original structure poscar
             'sym_tol': '1e-3',
             # 'epsilon_inf': None,  # check how it reads 3x3 matrix
             # 'born_charge': None  # check reading n_atom*9 numbers
@@ -1218,12 +1286,13 @@ class CSLDForceConstantsToDB(FiretaskBase):
             'cluster_out': 'clusters.out',
             'symC_in': 'Cmat.mtx',
             'symC_out': 'Cmat.mtx',
-            'max_order': max_order, #3,  # this should be variable
+            'max_order': max_order,  # 3,  # this should be variable
             'fractional_distance': False,
-            'cluster_diameter': cluster_diam, #'11 6.5 5.0', #this should be variable
+            'cluster_diameter': cluster_diam,
+            # '11 6.5 5.0', #this should be variable
             'cluster_filter': r"lambda cls: ((cls.order_uniq <= 2) or "
                               r"(cls.bond_counts(2.9) >= 2)) and "
-                              r"cls.is_small_in('" +supercell_folder+ "/sc.txt')"
+                              r"cls.is_small_in('" + supercell_folder + "/sc.txt')"
             # rewrote how it reads the trans_mat
         }
         csld_settings['training'] = {
@@ -1233,8 +1302,9 @@ class CSLDForceConstantsToDB(FiretaskBase):
             'corr_out': 'Amat.mtx',
             'fval_in': 'fval.txt',
             'fval_out': 'fval.txt',
-            'traindat1': csld_traindat_string #directories of unperturbed followed
-                                                #by perturbed supercell poscars
+            'traindat1': csld_traindat_string
+            # directories of unperturbed followed
+            # by perturbed supercell poscars
             # 'fcc333/SPOSCAR fcc333/dir*0.01 fcc333/dir*0.02 fcc333/dir*0.05'
             # Rewrote how it reads forces
         }
@@ -1249,13 +1319,13 @@ class CSLDForceConstantsToDB(FiretaskBase):
             'method': 5,
 
             # For weight of L1 or L2 regularization
-            'mulist': '1E-5 1E-7 1E-9 1E-11',
+            'mulist': '1E-5 1E-6 1E-7 1E-9',
             'maxIter': 300,
             'tolerance': 1E-6,
             'subsetsize': 0.85,
             'lambda': 0.5,
             'uscale_list': '0.03',
-            'submodel1': submodel1, #'anh 0 1 2 3',  # this should be variable
+            'submodel1': submodel1,  # 'anh 0 1 2 3',  # this should be variable
         }
         csld_settings['phonon'] = {
             'qpoint_fractional': False,
@@ -1282,7 +1352,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
             'thermal_out': 'thermal_out.txt'
         }
         csld_settings['export_potential'] = {
-            'export_shengbte': export_sbte, #'5 5 5 2 3'  # 5x5x5 supercell
+            'export_shengbte': export_sbte,  # '5 5 5 2 3'  # 5x5x5 supercell
             # 2 and 3 orders to be considered
             # should be variable?
         }
@@ -1305,98 +1375,136 @@ class CSLDForceConstantsToDB(FiretaskBase):
             "bcs_jcutoff": '1E-8'}
 
         csld_options = {}
-        csld_options['pdfout'] = 'plots.pdf'
+        csld_options['pdfout'] = 'plots.pdf'  # Name of pdf to output results
         csld_options['ldff_step'] = 0
         csld_options['phonon_step'] = 1
         csld_options['phonon'] = False
-        csld_options['save_pot_step'] = 1  # usual default is 0
+        csld_options[
+            'save_pot_step'] = 1  # usual default is 0. 1 means output to ShengBTE format.
         csld_options['pot'] = False
+
+        # set default values
+        csld_options['log_level'] = 1
+        csld_options['symm_step'] = 2
+        csld_options['symm_prim'] = True
+        csld_options['clus_step'] = 3
+        csld_options['symC_step'] = 3
+        csld_options['train_step'] = 3
+        csld_options['fit_step'] = 3
+        csld_options['pred_step'] = 0
+        csld_options['refit'] = False
+        csld_options['cont'] = False
+        csld_options['predict'] = False
 
         self["csld_settings"] = csld_settings
         self["csld_options"] = csld_options
-        self["forces_paths"] = disp_folders
+        self["forces_paths"] = disp_folders  # Paths to perturbed supercell folders
 
     def run_task(self, fw_spec):
-
-        iter = 0
-        not_converged = True
-        maxIter = 1
-        summaries = []
-
-        #<FILL THESE IN FURTHER WITH SETTINGS TO TRY, IN ORDER>
-        cluster_diam_settings = ['11 6.5 5.0']
-        max_order_settings = [3]
-        submodel1_settings = ['anh 0 1 2 3']
-        export_sbte_settings = ['5 5 5 2 3']
-
         db_file = env_chk(self.get("db_file"), fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         tasks = mmdb["tasks"]
+
+        iter = 0
+        not_converged = True
+        maxIter = 2
+        summaries = []
+
+        # <FILL THESE IN FURTHER WITH SETTINGS TO TRY, IN ORDER>
+        # cluster_diam_settings = ['11 6.5 5.0']
+        # max_order_settings = [3]
+        # submodel1_settings = ['anh 0 1 2 3']
+        # export_sbte_settings = ['5 5 5 2 3']
+
+        cluster_diam_settings, max_order_settings, submodel1_settings = self.random_search(
+            maxIter)
+        print('cluster_diam')
+        print(cluster_diam_settings)
+        print('max order')
+        print(max_order_settings)
+        print('submodel')
+        print(submodel1_settings)
+        export_sbte_settings = ['5 5 5 2 3'] * maxIter
+
         while not_converged and iter < maxIter:
             self.set_params(iter,
                             cluster_diam_settings[iter],
                             max_order_settings[iter],
                             submodel1_settings[iter],
                             export_sbte_settings[iter])
+            self["csld_options"]["pdfout"] = 'plots' + str(iter) + '.pdf'
 
             uuid = self["wf_uuid"]
 
             formula = self["parent_structure"].formula
-            formula_pretty = self["parent_structure"].composition.reduced_formula
+            formula_pretty = self[
+                "parent_structure"].composition.reduced_formula
             task_label = 'static'
-            supercells_dicts = list(tasks.find({"wf_meta.wf_uuid": uuid, #<insert
-                                                "task_label": {"$regex": task_label},
-                                                "formula_pretty": formula_pretty},
-                                                ['task_id',
-                                                 'task_label',
-                                                 'output.forces']))
-            #list of dicts where each dict contatins a task_id and a list of forces
+            supercells_dicts = list(
+                tasks.find({"wf_meta.wf_uuid": uuid,  # <insert
+                            "task_label": {"$regex": task_label},
+                            "formula_pretty": formula_pretty},
+                           ['task_id',
+                            'task_label',
+                            'output.forces']))
+            # list of dicts where each dict contatins a task_id and a list of forces
             #   for each supercell
 
             supercells_forces = []
             # supercells_task_ids = []
             supercells_task_labels = []
             for supercell_dict in supercells_dicts:
-                #List of np.ndarrays where each np.ndarray is a matrix of forces
+                # List of np.ndarrays where each np.ndarray is a matrix of forces
                 #  for a perturbed supercell
-                supercells_forces += [np.asarray(supercell_dict['output']['forces'])]
+                supercells_forces += [
+                    np.asarray(supercell_dict['output']['forces'])]
 
                 # #List of task ids for each perturbed supercell
                 # supercells_task_ids += [supercell_dict['task_id']]
 
                 supercells_task_labels += [supercell_dict['task_label']]
 
-            supercells_zip = sorted(zip(supercells_task_labels, supercells_forces), key=lambda pair: pair[0])
-                                                        #sort by task labels
-            supercells_forces = [supercells_forces for (supercells_task_labels, supercells_forces) in supercells_zip]
+            supercells_zip = sorted(
+                zip(supercells_task_labels, supercells_forces),
+                key=lambda pair: pair[0])
+            # sort by task labels
+            supercells_forces = [supercells_forces for
+                                 (supercells_task_labels, supercells_forces) in
+                                 supercells_zip]
 
+            # Create force.txt files for perturbed supercells
             for supercell_idx, supercell_force in enumerate(supercells_forces):
                 path = self["forces_paths"][supercell_idx]
                 np.savetxt(path + "/force.txt", supercell_force, fmt='%.6f')
 
-            #Perform csld minimization now
-            import scripts.csld_main_rees as csld_main
-            rel_err, freq_matrix = csld_main.main(self["csld_options"],
-                                                  self["csld_settings"])
+            # Perform csld minimization now
+            # import scripts.csld_main_rees as csld_main
+            from atomate.vasp.workflows.base.csld import csld_main
+            rel_err, freq_matrix = csld_main(self["csld_options"],
+                                             self["csld_settings"])
+            # rel_err = 0.01
+            # freq_matrix = [[1, -1, 1],
+            #                [-1, 1, 1]] #(nbands, nkpoints)
+
             freq_matrix = np.asarray(freq_matrix)
-            imaginary_idx = freq_matrix < 0
+            imaginary_idx = freq_matrix < -0.01  # UPDATE THIS NUMBER TO HAVE SOME CUSHION
             imaginary_freqs = freq_matrix[imaginary_idx]
-            print('IMAGINARY FREQUENCIES:')
+            print('IMAGINARY FREQUENCIES')
             print(imaginary_freqs)
             num_imaginary_bands = np.sum(np.any(imaginary_idx, axis=1))
-            print('NUMBER OF IMAGINARY BANDS:')
             print(num_imaginary_bands)
             if np.any(imaginary_freqs):
                 most_imaginary_freq = np.amin(imaginary_freqs)
             else:
                 most_imaginary_freq = 0
+            print(most_imaginary_freq)
             # For imaginary frequencies, w^2 is negative
             # code handles it as w = sign(sqrt(abs(w^2)), w^2)
 
             if num_imaginary_bands == 0:
                 not_converged = False
 
-            #Save to DB
+            # Save to DB
             summary = {
                 "date": datetime.now(),
                 "formula": formula,
@@ -1404,24 +1512,34 @@ class CSLDForceConstantsToDB(FiretaskBase):
                 "parent_structure": self["parent_structure"].as_dict(),
                 "wf_meta": {"wf_uuid": uuid},
 
-                #<store relevant CSLD settings>
+                # <store relevant CSLD settings>
                 "iteration": iter,
-                "cluster_diam": self["csld_settings"]["model"]["cluster_diameter"],
+                "cluster_diam": self["csld_settings"]["model"][
+                    "cluster_diameter"],
                 "max_order": self["csld_settings"]["model"]["max_order"],
                 "submodel1": self["csld_settings"]["fitting"]["submodel1"],
-                "export_potential": self["csld_settings"]["export_potential"]["export_shengbte"],
+                "export_potential": self["csld_settings"]["export_potential"][
+                    "export_shengbte"],
 
                 "cross_val_error": float(rel_err),
-                "num_imaginary_modes": int(num_imaginary_bands), #number or percent?
-                "most_imaginary_freq": float(most_imaginary_freq)
+                "num_imaginary_modes": int(num_imaginary_bands),
+                # number or percent?
+                "most_imaginary_freq": float(most_imaginary_freq),
+                "imaginary_freq_sum": float(sum(imaginary_freqs))
             }
             latest_settings = {str(self["convergence_info"]["iteration"]):
                                    {self["csld_settings"]["model"]["max_order"],
-                                    self["csld_settings"]["fitting"]["submodel1"],
+                                    self["csld_settings"]["fitting"][
+                                        "submodel1"],
                                     self["csld_settings"]["export_potential"][
                                         "export_shengbte"]}}
             self["convergence_info"]["iteration"] += 1
-            self["convergence_info"]["settings_tried"].update(latest_settings)
+            self["convergence_info"]["settings_tried"] += [latest_settings]
+            self["convergence_info"]["cross_val_errors"] += [rel_err]
+            self["convergence_info"]["most_imaginary_freqs"] += [
+                most_imaginary_freq]
+            self["convergence_info"]["imaginary_freqs_sum"] += [
+                sum(imaginary_freqs)]
 
             if fw_spec.get("tags", None):
                 summary["tags"] = fw_spec["tags"]
@@ -1430,15 +1548,30 @@ class CSLDForceConstantsToDB(FiretaskBase):
 
             iter = self['convergence_info']['iteration']
 
-        mmdb.collection = mmdb.db["compressed_sensing_lattice_dynamics"]
-        mmdb.collection.insert(summaries)
+        # mmdb.collection = mmdb.db["compressed_sensing_lattice_dynamics"]
+        # mmdb.collection.insert(summaries)
+        mmdb.compressed_sensing_lattice_dynamics.insert(summaries)
 
-        if iter <= maxIter:
-            logger.info("Compressed Sensing Lattice Dynamics calculation complete.")
+        best_idx = self["convergence_info"]["cross_val_errors"].index(
+            min(self["convergence_info"]["cross_val_errors"]))
+        print("The lowest error was {} percent.".format(
+            min(self["convergence_info"]["cross_val_errors"])))
+        print("The corresponding settings were: {}".format(
+            self["convergence_info"]["settings_tried"][best_idx]))
+
+        if not_converged is False:
+            #     logger.info("Compressed Sensing Lattice Dynamics calculation complete.")
+            #     from fireworks.core.firework import Firework
+            #     shengbte_fw = Firework('<shengbte firetask>, {fw_spec: dict of info to pass to next firework}')
+            #           <mpirun -n 32 ./ShengBTE 2>BTE.err >BTE.out>
+            #     return FWAction(additions=shengbte_fw)
+            raise NotImplementedError("Implement ShengBTE firework")
         else:
-            logger.info("Compressed Sensing Lattice Dynamics calculation failed."
-                        "Max iterations of CSLD trials (each with different "
-                        "settings) was reached.")
+            #     logger.info("Compressed Sensing Lattice Dynamics calculation failed."
+            #                 "Max iterations was reached.")
+            raise TimeoutError(
+                "The workflow was unable to find a solution to CSLD"
+                " for this material.")
 
 
 # the following definitions for backward compatibility
