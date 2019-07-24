@@ -209,7 +209,7 @@ class ApproxNEBLaunchFW(Firework):
             images_key = structure_path.split(".")[-3]
             if images_key != "images":
                 additional_fields["approx_neb"]["images_key"] = images_key
-                fw_name = fw_name + " " + images_key + " " + str(image_index)
+                fw_name = fw_name + " " + images_key + ": " + str(image_index)
             else:
                 fw_name = fw_name + " " + str(image_index)
 

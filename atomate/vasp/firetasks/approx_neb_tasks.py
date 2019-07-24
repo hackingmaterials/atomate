@@ -674,14 +674,14 @@ class AddSelectiveDynamics(FiretaskBase):
             all_images = self.get_images_list(structure_docs,scheme,fixed_index,fixed_specie)
         else:
             all_images = dict()
-            for key,item in approx_neb_doc["pathfinder"]:
-                structure_docs = item["images"]
-                fixed_index = item["relax_site_indexes"]
+            for key in approx_neb_doc["pathfinder"].keys():
+                structure_docs = approx_neb_doc["pathfinder"][key]["images"]
+                fixed_index = approx_neb_doc["pathfinder"][key]["relax_site_indexes"]
                 images = self.get_images_list(structure_docs,scheme,fixed_index,fixed_specie)
                 all_images[key] = images
 
         # assemble images output to be stored in approx_neb collection
-        if type(structure_docs) == list():
+        if isinstance(all_images, (list)):
             images_output = []
             for n, image in enumerate(all_images):
                 images_output.append(
@@ -691,7 +691,7 @@ class AddSelectiveDynamics(FiretaskBase):
                         "selective_dynamics_scheme": scheme,
                     }
                 )
-        elif type(structure_docs) == dict():
+        elif isinstance(all_images, (dict)):
             images_output = dict()
             for key,images in all_images.items():
                 images_output[key] = []
@@ -722,7 +722,7 @@ class AddSelectiveDynamics(FiretaskBase):
         Returns:
              list of structure objects
         """
-        if type(structure_docs) != list():
+        if isinstance(structure_docs, (list)) == False:
             raise TypeError("list input required for structure_docs")
 
         if scheme == "fix_two_atom":
