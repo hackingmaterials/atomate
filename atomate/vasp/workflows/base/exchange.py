@@ -17,6 +17,8 @@ from atomate.vasp.firetasks.parse_outputs import (
     MagneticOrderingsToDB,
 )
 
+from atomate.vasp.fireworks.exchange import HeisenbergModelFW
+
 from uuid import uuid4
 from copy import deepcopy
 from atomate.utils.utils import get_logger
@@ -43,10 +45,13 @@ class ExchangeWF:
         magnetic_structures,
         energies,
         default_magmoms=None,
+        vasp_cmd=VASP_CMD,
+        db_file=DB_FILE,
+        name='Exchange WF'
         ):
-        """Workflow for computing exchange and critical temperatures.
+        """Workflow for computing exchange parameters.
 
-        This workflow takes a set of magnetic orderings and their energies from MagneticOrderingsWF and runs static calculations of magnetic orderings in the ground state geometry. The static orderings/energies are then fit to a classical Heisenberg Hamiltonian to compute exchange parameters. The critical temperature is calculated with Monte Carlo.
+        This workflow takes a set of magnetic orderings and their energies from MagneticOrderingsWF and runs static calculations of magnetic orderings in the ground state geometry. The static orderings/energies are then fit to a classical Heisenberg Hamiltonian to compute exchange parameters. The critical temperature can then be calculated with Monte Carlo.
 
         Args:
             magnetic_structures (list): Structure objects with the 'magmom'
@@ -137,10 +142,14 @@ class ExchangeWF:
         of equivalent symmetry
             c: additional config dict (as used elsewhere in atomate)
 
-        Returns: FireWorks Workflow
+        Returns: 
+            wf (Workflow): Static magnetic orderings + Heisenberg Model + Vampire Monte Carlo.
 
         TODO:
             * Add static SCAN option
+            * Make FWs modular so the wflow can be started from any step
+            * Allow for user inputs to HeisenbergMapper and VampireCaller
+            * Update VampireCaller to take hmodel INSTEAD of structures and energies
         """
 
         c = c or {"VASP_CMD": VASP_CMD, "DB_FILE": DB_FILE}
@@ -157,17 +166,51 @@ class ExchangeWF:
         user_incar_settings.update(c.get("user_incar_settings", {}))
         c["user_incar_settings"] = user_incar_settings
 
+        static_fws = []
+        # Add static vasp calc FWs which go to 'tasks' collection
         for idx, struct in enumerate(matched_structures):
 
             cmsa = CollinearMagneticStructureAnalyzer(struct, threshold=0.0, make_primitive=False)
 
             name = " ordering {} {} -".format(idx, cmsa.ordering.value)
 
-            fws.append(StaticFW(struct, vasp_cmd=c["VASP_CMD"], db_file=c["DB_FILE"], name=name + '_static'))
+            static_fws.append(StaticFW(struct, vasp_cmd=c["VASP_CMD"], db_file=c["DB_FILE"], name=name + '_static'))
 
-            analysis_parents.append(fws[-1])
+            analysis_parents.append(static_fws[-1])
 
-        fw_analysis
+        # Magnetic ordering analysis that generates 'magnetic_orderings'
+        # collection
+        fw_analysis = Firework(
+            MagneticOrderingsToDB(
+                db_file=c["DB_FILE"],
+                wf_uuid=self.uuid,
+                name="MagneticOrderingsToDB",
+                parent_structure=self.matched_structures[0],
+                perform_bader=False,
+                scan=False,
+            ),
+            name="Magnetic Exchange Analysis",
+            parents=analysis_parents,
+            spec={"_allow_fizzled_parents": True},
+        )
+
+        # Heisenberg model mapping
+        heisenberg_model_fw = HeisenbergModelFW(exchange_wf_uuid=self.uuid, parent_structure=self.matched_structures[0], parents=[fw_analysis], db_file=c['DB_FILE'])
+
+        # Vampire Monte Carlo
+        vampire_fw = VampireCallerFW(exchange_wf_uuid=self.uuid, parent_structure=self.matched_structures[0], parents=[heisenberg_model_fw], db_file=c['DB_FILE'])
+
+        # Chain FWs together
+        fws = static_fws + [fw_analysis, heisenberg_model_fw, vampire_fw]
+        wf = Workflow(fws)
+        wf.name = "Exchange"
+
+        return wf
+
+
+
+        
+
 
 
 
