@@ -864,7 +864,7 @@ class ImageToDb(FiretaskBase):
 
 
 @explicit_serialize
-class LaunchImages(FiretaskBase):
+class GetImageFireworks(FiretaskBase):
     """
     ToDo: Update description
 
@@ -928,7 +928,6 @@ class LaunchImages(FiretaskBase):
 
     def get_and_sort_paths(self, max_n, images_key=""):
         sorted_paths = [[],[],[]]
-
         mid_n = int(max_n / 2)
         q1 = int((max_n - mid_n) / 2)  # for second screening pass
         q3 = int((max_n + mid_n) / 2)  # for second screening pass
