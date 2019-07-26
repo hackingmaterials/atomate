@@ -1655,7 +1655,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
 @explicit_serialize
 class ShengBTEToDB(FiretaskBase):
     """
-    Run ShengBTE
+    Run ShengBTE and output the lattice thermal conductivity matrix to database.
 
     Required parameters:
         db_file (str): path to the db file that holds your tasks
@@ -1751,13 +1751,13 @@ class ShengBTEToDB(FiretaskBase):
             summaries = []
             for temp in temps:
                 # xx, xy, xz, yx, yy, yz, zx, zy, zz
-                flattened_kappa = list(np.loadtxt('t'+str(temp)+'K/BTE.kappa_tensor')[1][1:])
+                flattened_kappa = list(np.loadtxt('T'+str(int(temp))+'K/BTE.kappa_tensor')[1][1:])
                 summary = {
                     "date": datetime.now(),
                     "temperature": temp,
                     "parent_structure": self["parent_structure"].as_dict(),
                     "wf_meta": {"wf_uuid": self["wf_uuid"]},
-                    "flattened_kappa": flattened_kappa
+                    str(temp)+" K": {"flattened_kappa": flattened_kappa}
                 }
                 if fw_spec.get("tags", None):
                     summary["tags"] = fw_spec["tags"]
