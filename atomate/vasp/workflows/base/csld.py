@@ -47,9 +47,7 @@ class CompressedSensingLatticeDynamicsWF:
             num_displacements=10,
             supercells_per_displacement_distance=1,
             min_random_distance=None,
-            shengbte_tmin=None,
-            shengbte_tmax=None,
-            shengbte_tstep=None
+            shengbte_t_range=False #whether to calculate 100-1000K or just 300K
             #csld input params here?
     ):
         """
@@ -111,10 +109,7 @@ class CompressedSensingLatticeDynamicsWF:
         self.disps = np.repeat(perturbed_supercells_transform.disps,
                                supercells_per_displacement_distance)
 
-        self.shengbte_tmax = shengbte_tmax
-        self.shengbte_tmin = shengbte_tmin
-        self.shengbte_tstep = shengbte_tstep
-
+        self.shengbte_t_range = shengbte_t_range
     def get_wf(
             self,
             c=None
@@ -154,7 +149,7 @@ class CompressedSensingLatticeDynamicsWF:
                                       # Fast Fourier Transform grid
                                       "LCHARG": False,
                                       "ENCUT": 700,
-                                      "EDIFF": 1e-7,  # may need to tune this
+                                      "EDIFF": 1e-8,  # may need to tune this
                                       "PREC": 'Accurate',
                                       "LAECHG": False,
                                       "LREAL": False,
@@ -191,9 +186,7 @@ class CompressedSensingLatticeDynamicsWF:
                 first_pass=True,
                 static_user_incar_settings=static_user_incar_settings,
                 env_vars=c,
-                shengbte_temps={'t_max': self.shengbte_tmax,
-                                't_min': self.shengbte_tmin,
-                                't_step': self.shengbte_tstep}
+                shengbte_t_range=self.shengbte_t_range
             ),
             name="Compressed Sensing Lattice Dynamics",
             parents=fws[-len(self.perturbed_supercells):]
