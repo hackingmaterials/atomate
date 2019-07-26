@@ -47,7 +47,10 @@ class CompressedSensingLatticeDynamicsWF:
             num_displacements=10,
             supercells_per_displacement_distance=1,
             min_random_distance=None,
-            #csld input params here
+            shengbte_tmin=None,
+            shengbte_tmax=None,
+            shengbte_tstep=None
+            #csld input params here?
     ):
         """
         This workflow will use compressed sensing lattice dynamics (CSLD)
@@ -107,6 +110,10 @@ class CompressedSensingLatticeDynamicsWF:
         # list of (non-unique) displacement values used in the perturbation (np.ndarray)
         self.disps = np.repeat(perturbed_supercells_transform.disps,
                                supercells_per_displacement_distance)
+
+        self.shengbte_tmax = shengbte_tmax
+        self.shengbte_tmin = shengbte_tmin
+        self.shengbte_tstep = shengbte_tstep
 
     def get_wf(
             self,
@@ -183,7 +190,10 @@ class CompressedSensingLatticeDynamicsWF:
                 disps=self.disps,
                 first_pass=True,
                 static_user_incar_settings=static_user_incar_settings,
-                env_vars=c
+                env_vars=c,
+                shengbte_temps={'t_max': self.shengbte_tmax,
+                                't_min': self.shengbte_tmin,
+                                't_step': self.shengbte_tstep}
             ),
             name="Compressed Sensing Lattice Dynamics",
             parents=fws[-len(self.perturbed_supercells):]
