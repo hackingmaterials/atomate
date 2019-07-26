@@ -1811,7 +1811,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
         "supercell_smallest_dim",
         "disps", "first_pass"]
 
-    optional_params = ["static_user_incar_settings", "env_vars"]
+    optional_params = ["static_user_incar_settings", "env_vars", "shengbte_temps"]
 
     def random_search(self, maxIter):
         """
@@ -2206,7 +2206,10 @@ class CSLDForceConstantsToDB(FiretaskBase):
                     parent_structure=self["parent_structure"],
                     shengbte_cmd=">>shengbte_cmd<<",
                     db_file=self["db_file"],
-                    wf_uuid=self["wf_uuid"]
+                    wf_uuid=self["wf_uuid"],
+                    t_max=self["shengbte_temps"]["t_max"],
+                    t_min=self["shengbte_temps"]["t_min"],
+                    t_step=self["shengbte_temps"]["t_step"]
                 )
             )
             shengbte_fw.spec["_fworker"] = fw_spec["_fworker"]
@@ -2307,6 +2310,7 @@ class ShengBTEToDB(FiretaskBase):
 
     required_params = ["parent_structure", "shengbte_cmd", "db_file",
                        "wf_uuid"]
+    optional_params = ["t_max", "t_min", "t_step"]
 
     def run_task(self, fw_spec):
         from atomate.utils.utils import env_chk
@@ -2349,6 +2353,10 @@ class ShengBTEToDB(FiretaskBase):
             'nonanalytic': False,
             'isotopes': False,
         }
+        if self["shengbte_tmax"] and self["shengbte_tmin"] and self["shengbte_tstep"]:
+            shengbte_control_dict['t_min'] = self["t_min"]
+            shengbte_control_dict['t_max'] = self["t_max"]
+            shengbte_control_dict['t_step'] = self["t_step"]
         io = Control.from_dict(shengbte_control_dict)
         io.to_file() #writes CONTROL file to current directory
 
