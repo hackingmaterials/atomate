@@ -175,7 +175,6 @@ class CompressedSensingLatticeDynamicsWF:
             CSLDForceConstantsToDB(
                 db_file=c["DB_FILE"], # wot
                 wf_uuid=self.uuid,
-                name='CSLDForceConstantsToDB',
                 parent_structure=self.parent_structure,
                 trans_mat=self.trans_mat,
                 supercell_structure=self.supercell,
@@ -210,7 +209,7 @@ if __name__ == "__main__":
 
     from fireworks import LaunchPad
     from pymatgen.ext.matproj import MPRester
-    from atomate.vasp.powerups import add_tags, set_execution_options
+    from atomate.vasp.powerups import add_tags, set_execution_options, add_modify_incar
 
     #get a structure
     # mpr = MPRester(api_key='auNIrJ23VLXCqbpl')
@@ -247,12 +246,16 @@ if __name__ == "__main__":
     print(csld_class.supercell.num_sites)
     csld_class.supercell.to("poscar", filename="SPOSCAR-csld_super_Sr8Sb4Au4")
 
-    wf = add_tags(wf, ['csld', 'v1', 'rees', 'Sr8Sb4Au4', '10disps_1each'])
+    wf = add_tags(wf, ['csld', 'v1', 'rees', 'Sr8Sb4Au4', '10disps_1each', '8nodes',
+                       'encut 500', 'ispin 1'])
     wf = set_execution_options(wf, fworker_name="rees_the_fire_worker") #need this to run the fireworks
+    wf = add_modify_incar(wf,
+                          modify_incar_params={'incar_update': {'ENCUT': 500,
+                                                                'ISPIN': 1}})
     print(wf)
 
-    # lpad = LaunchPad.auto_load()
-    # lpad.add_wf(wf)
+    lpad = LaunchPad.auto_load()
+    lpad.add_wf(wf)
 
 # uuid
 # 0ff0d430-b43f-4cb5-ac8b-55c465b7867c
