@@ -1,6 +1,7 @@
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 
-from atomate.utils.utils import get_logger
+from atomate.utils.utils import get_logger, env_chk
+from atomate.vasp.database import VaspCalcDb
 
 from pymatgen import Structure
 from pymatgen.analysis.magnetism.heisenberg import HeisenbergMapper
@@ -9,6 +10,7 @@ __author__ = "Nathan C. Frey"
 __email__ = "ncfrey@lbl.gov"
 
 logger = get_logger(__name__)
+
 
 @explicit_serialize
 class HeisenbergModelMapping(FiretaskBase):
@@ -20,7 +22,13 @@ class HeisenbergModelMapping(FiretaskBase):
         exchange_wf_uuid (int): Unique id for record keeping.
     """
 
-    required_params = ['db_file', 'exchange_wf_uuid', 'parent_structure', 'cutoff', 'tol']
+    required_params = [
+        "db_file",
+        "exchange_wf_uuid",
+        "parent_structure",
+        "cutoff",
+        "tol",
+    ]
     optional_params = []
 
     def run_task(self, fw_spec):
@@ -35,25 +43,37 @@ class HeisenbergModelMapping(FiretaskBase):
         formula_pretty = self["parent_structure"].composition.reduced_formula
 
         # Get documents
-        docs = list(mmdb.collection.find({"wf_meta.wf_uuid": wf_uuid},
-                                 ["task_id", "structure", "energy_per_atom"]))
+        docs = list(
+            mmdb.collection.find(
+                {"wf_meta.wf_uuid": wf_uuid},
+                ["task_id", "structure", "energy_per_atom"],
+            )
+        )
 
         # Get structures and energy / unit cell
         structures = [Structure.from_dict(s) for s in docs["structure"]]
         n_atoms = len(structures[0])
-        energies = [e*n_atoms for e in docs["energy_per_atom"]]
+        energies = [e * n_atoms for e in docs["energy_per_atom"]]
 
         # Map system to a Heisenberg Model
-        hmapper = HeisenbergMapper(structures, energies, self['cutoff'], self['tol'])
+        hmapper = HeisenbergMapper(structures, energies, self["cutoff"], self["tol"])
 
         # Get MSONable Heisenberg Model
         hmodel = hmapper.get_heisenberg_model()
-        name = 'heisenberg_model_' + str(self['cutoff'])
-        task_doc = {'wf_meta.wf_uuid': wf_uuid, 'wf_meta.analysis_task_id': docs["task_id"], 'formula_pretty': formula_pretty, 'nn_cutoff': self['cutoff'], 'nn_tol': self['tol'], 'heisenberg_model': hmodel}
+        name = "heisenberg_model_" + str(self["cutoff"])
+        task_doc = {
+            "wf_meta.wf_uuid": wf_uuid,
+            "wf_meta.analysis_task_id": docs["task_id"],
+            "formula_pretty": formula_pretty,
+            "nn_cutoff": self["cutoff"],
+            "nn_tol": self["tol"],
+            "heisenberg_model": hmodel,
+        }
 
         # Exchange collection
         mmdb.collection = mmdb.db["exchange"]
         mmdb.collection.insert(task_doc)
+
 
 @explicit_serialize
 class HeisenbergConvergence(FiretaskBase):
@@ -68,7 +88,7 @@ class HeisenbergConvergence(FiretaskBase):
 
     """
 
-    required_params = ['db_file', 'exchange_wf_uuid', 'parent_structure']
+    required_params = ["db_file", "exchange_wf_uuid", "parent_structure"]
     optional_params = []
 
     def run_task(self, fw_spec):
@@ -83,10 +103,14 @@ class HeisenbergConvergence(FiretaskBase):
         formula_pretty = self["parent_structure"].composition.reduced_formula
 
         # Get documents
-        docs = list(mmdb.collection.find({"wf_meta.wf_uuid": wf_uuid},
-                                 ["task_id", 'heisenberg_model', 'nn_cutoff']))
-        hmodels = [hmodel for hmodel in docs['heisenberg_model']]
-        cutoffs = [cutoff for cutoff in docs['nn_cutoff']]
+        docs = list(
+            mmdb.collection.find(
+                {"wf_meta.wf_uuid": wf_uuid},
+                ["task_id", "heisenberg_model", "nn_cutoff"],
+            )
+        )
+        hmodels = [hmodel for hmodel in docs["heisenberg_model"]]
+        cutoffs = [cutoff for cutoff in docs["nn_cutoff"]]
 
         # Check for J_ij convergence
         converged_list = []
@@ -96,9 +120,9 @@ class HeisenbergConvergence(FiretaskBase):
 
             # J_ij exists
             if len(ex_params) > 1:
-                E0 = abs(ex_params['E0'])
+                E0 = abs(ex_params["E0"])
                 for k, v in ex_params.items():
-                    if k != 'E0':
+                    if k != "E0":
                         if abs(v) > E0:  # |J_ij| > |E0| unphysical!
                             converged = False
             else:  # Only <J> was computed
@@ -116,7 +140,8 @@ class HeisenbergConvergence(FiretaskBase):
         # Update FW spec with converged hmodel or None
         update_spec = {"converged_heisenberg_model": hmodel}
 
-        return FWAction(update_spec=update_spec) 
+        return FWAction(update_spec=update_spec)
+
 
 @explicit_serialize
 class VampireMC(FiretaskBase):
@@ -129,7 +154,7 @@ class VampireMC(FiretaskBase):
 
     """
 
-    required_params = ['db_file', 'exchange_wf_uuid', 'parent_structure']
+    required_params = ["db_file", "exchange_wf_uuid", "parent_structure"]
     optional_params = []
 
     def run_task(self, fw_spec):
@@ -142,7 +167,7 @@ class VampireMC(FiretaskBase):
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         mmdb.collection = mmdb.db["exchange"]
 
-        task_doc = {'wf_meta.wf_uuid': wf_uuid, 'formula_pretty': formula_pretty}
+        task_doc = {"wf_meta.wf_uuid": wf_uuid, "formula_pretty": formula_pretty}
 
         # Get a converged Heisenberg model if one was found
         hmodel = fw_spec["converged_heisenberg_model"]
@@ -150,22 +175,9 @@ class VampireMC(FiretaskBase):
         if hmodel:
             vc = VampireCaller(hm=hmodel)
             vo = vc.output
-            task_doc['vampire_output'] = vo
+            task_doc["vampire_output"] = vo
         else:
-            task_doc['vampire_output'] = None
+            task_doc["vampire_output"] = None
 
         # Insert vampire output into exchange collection
         mmdb.collection.insert(task_doc)
-
-
-
-
-
-
-
-
-
-
-
-
-        
