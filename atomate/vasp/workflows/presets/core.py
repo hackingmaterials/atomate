@@ -656,3 +656,44 @@ def wf_nudged_elastic_band(structures, parent, c=None):
                                     additional_spec=spec, **kwargs)
 
     return wf
+
+
+def wf_lattice_thermal_conductivity(structure, c=None):
+    """
+    Lattice thermal conductivity workflow from the given structure and config
+    dict.
+
+    Args:
+        structure (Structure): input structure
+        c (dict): workflow config dict
+
+    Returns:
+        Workflow
+    """
+    from atomate.vasp.workflows.base.csld import CompressedSensingLatticeDynamicsWF
+    c = c or {}
+    vasp_cmd = c.get("VASP_CMD", VASP_CMD)
+    db_file = c.get("DB_FILE", DB_FILE)
+
+    optimize = {"LAECHG": False, 'ENCUT': 700,
+                'ADDGRID': True, 'EDIFFG': -5e-4,
+                'PREC': 'Accurate', "LREAL": False,
+                'EDIFF': 1e-8, "ISMEAR": 0,
+                'LCHARG': False, 'LASPH': True}
+    vis_relax = MPRelaxSet(structure, user_incar_settings=optimize)
+    wf = get_wf(structure, "optimize_only.yaml", vis=vis_relax,
+                      params=[{"vasp_cmd": vasp_cmd, "db_file": db_file,
+                               "name": "phonon structure optimization"}])
+    wf_csld = CompressedSensingLatticeDynamicsWF(structure,
+                                                 num_nn_dists=5,
+                                                 num_displacements=10,
+                                                 supercells_per_displacement_distance=1).get_wf()
+
+    wf.append(wf_csld, wf.leaf_fw_ids)
+    wf = add_common_powerups(wf, c)
+
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
+    return wf
+

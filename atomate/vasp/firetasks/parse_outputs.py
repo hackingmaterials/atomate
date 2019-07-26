@@ -1177,7 +1177,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
         "supercell_smallest_dim",
         "disps", "first_pass"]
 
-    optional_params = ["static_user_incar_settings", "env_vars", "shengbte_temps"]
+    optional_params = ["static_user_incar_settings", "env_vars", "shengbte_t_range"]
 
     def random_search(self, maxIter):
         """
@@ -1573,9 +1573,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
                     shengbte_cmd=">>shengbte_cmd<<",
                     db_file=self["db_file"],
                     wf_uuid=self["wf_uuid"],
-                    t_max=self["shengbte_temps"]["t_max"],
-                    t_min=self["shengbte_temps"]["t_min"],
-                    t_step=self["shengbte_temps"]["t_step"]
+                    t_range=self["shengbte_t_range"]
                 )
             )
             shengbte_fw.spec["_fworker"] = fw_spec["_fworker"]
@@ -1676,7 +1674,7 @@ class ShengBTEToDB(FiretaskBase):
 
     required_params = ["parent_structure", "shengbte_cmd", "db_file",
                        "wf_uuid"]
-    optional_params = ["t_max", "t_min", "t_step"]
+    optional_params = ["t_range"] #boolean for multiple temperatures
 
     def run_task(self, fw_spec):
         from atomate.utils.utils import env_chk
@@ -1719,10 +1717,10 @@ class ShengBTEToDB(FiretaskBase):
             'nonanalytic': False,
             'isotopes': False,
         }
-        if self["shengbte_tmax"] and self["shengbte_tmin"] and self["shengbte_tstep"]:
-            shengbte_control_dict['t_min'] = self["t_min"]
-            shengbte_control_dict['t_max'] = self["t_max"]
-            shengbte_control_dict['t_step'] = self["t_step"]
+        if self["t_range"]:
+            shengbte_control_dict['t_min'] = 100
+            shengbte_control_dict['t_max'] = 1000
+            shengbte_control_dict['t_step'] = 100
         io = Control.from_dict(shengbte_control_dict)
         io.to_file() #writes CONTROL file to current directory
 
@@ -1742,31 +1740,31 @@ class ShengBTEToDB(FiretaskBase):
         logger.info("Command {} finished running with returncode: {}".format(shengbte_cmd, return_code))
 
         try:
-            flattened_kappa = np.loadtxt('BTE.kappa_tensor')[1][1:] #xx, xy, xz, yx, yy, yz, zx, zy, zz
-
-            # Save to DB
             db_file = env_chk(self.get("db_file"), fw_spec)
             mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-            tasks = mmdb["tasks"]
-            summary = {
-                "date": datetime.now(),
-                "parent_structure": self["parent_structure"].as_dict(),
-                "wf_meta": {"wf_uuid": self["wf_uuid"]},
-                "kappa_xx": flattened_kappa[0],
-                "kappa_xy": flattened_kappa[1],
-                "kappa_xz": flattened_kappa[2],
-                "kappa_yx": flattened_kappa[3],
-                "kappa_yy": flattened_kappa[4],
-                "kappa_yz": flattened_kappa[5],
-                "kappa_zx": flattened_kappa[6],
-                "kappa_zy": flattened_kappa[7],
-                "kappa_zz": flattened_kappa[8]
-            }
-            if fw_spec.get("tags", None):
-                summary["tags"] = fw_spec["tags"]
+            if self["t_range"]:
+                temps = np.linspace(100, 1000, 10)
+            else:
+                temps = 300
+
+            # Save to DB
+            summaries = []
+            for temp in temps:
+                # xx, xy, xz, yx, yy, yz, zx, zy, zz
+                flattened_kappa = list(np.loadtxt('t'+str(temp)+'K/BTE.kappa_tensor')[1][1:])
+                summary = {
+                    "date": datetime.now(),
+                    "temperature": temp,
+                    "parent_structure": self["parent_structure"].as_dict(),
+                    "wf_meta": {"wf_uuid": self["wf_uuid"]},
+                    "flattened_kappa": flattened_kappa
+                }
+                if fw_spec.get("tags", None):
+                    summary["tags"] = fw_spec["tags"]
+                summaries.append(summary)
 
             mmdb.collection = mmdb.db["sheng_bte"]
-            mmdb.collection.insert(summary)
+            mmdb.collection.insert(summaries)
         except:
             raise FileNotFoundError('BTE.kappa_tensor was not output from ShengBTE.')
 
