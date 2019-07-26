@@ -38,7 +38,6 @@ from atomate.utils.utils import env_chk, get_meta_from_structure
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.drones import VaspDrone
-from atomate.vasp.fireworks.core import StaticFW
 
 __author__ = 'Anubhav Jain, Kiran Mathew, Shyam Dwaraknath'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov'
@@ -1554,9 +1553,9 @@ class CSLDForceConstantsToDB(FiretaskBase):
 
             iter = self['convergence_info']['iteration']
 
-        # mmdb.collection = mmdb.db["compressed_sensing_lattice_dynamics"]
-        # mmdb.collection.insert(summaries)
-        mmdb.compressed_sensing_lattice_dynamics.insert(summaries)
+        mmdb.collection = mmdb.db["compressed_sensing_lattice_dynamics"]
+        mmdb.collection.insert(summaries)
+        # mmdb.compressed_sensing_lattice_dynamics.insert(summaries)
 
         best_idx = self["convergence_info"]["cross_val_errors"].index(
             min(self["convergence_info"]["cross_val_errors"]))
@@ -1568,18 +1567,28 @@ class CSLDForceConstantsToDB(FiretaskBase):
         if not_converged is False:
             #     logger.info("Compressed Sensing Lattice Dynamics calculation complete.")
             #     from fireworks.core.firework import Firework
-            #     shengbte_fw = Firework('<shengbte firetask>, {fw_spec: dict of info to pass to next firework}')
-            #           <mpirun -n 32 ./ShengBTE 2>BTE.err >BTE.out>
-            #     return FWAction(additions=shengbte_fw)
-            raise NotImplementedError("Implement ShengBTE firework")
+            shengbte_fw = Firework(
+                ShengBTEToDB(
+                    parent_structure=self["parent_structure"],
+                    shengbte_cmd=">>shengbte_cmd<<",
+                    db_file=self["db_file"],
+                    wf_uuid=self["wf_uuid"]
+                )
+            )
+            shengbte_fw.spec["_fworker"] = fw_spec["_fworker"]
+            CSLD_path = self.get("path", os.getcwd())
+            shengbte_fw.spec["successful_CSLD_path"] = CSLD_path
+            if fw_spec.get("tags", None):
+                shengbte_fw.spec["tags"] = fw_spec["tags"]
+            return FWAction(additions=shengbte_fw)
+            # raise NotImplementedError("Implement ShengBTE firework")
         else:
-            #     logger.info("Compressed Sensing Lattice Dynamics calculation failed."
-            #                 "Max iterations was reached.")
+            logger.info("Compressed Sensing Lattice Dynamics calculation failed."
+                        "Max iterations was reached.")
             if self["parent_structure"].num_sites > 5 and self["first_pass"]:
-                #     logger.info("Compressed Sensing Lattice Dynamics calculation failed."
-                #                 " Max iterations was reached. Creating larger displacements"
-                #                 " and trying again,")
-                print('placeholder')
+                logger.info("Compressed Sensing Lattice Dynamics calculation failed."
+                            " Max iterations was reached. Creating larger displacements"
+                            " and trying again,")
                 new_fws = []
 
                 # Create new perturbed supercells
@@ -1600,13 +1609,18 @@ class CSLDForceConstantsToDB(FiretaskBase):
                     static_vis = MPStaticSet(more_perturbed_supercell,
                                              user_incar_settings=self["static_user_incar_settings"])
 
-                    new_fws.append(StaticFW(
+                    from atomate.vasp.fireworks.core import StaticFW
+                    new_static_fw = StaticFW(
                         more_perturbed_supercell,
                         vasp_input_set=static_vis,
                         vasp_cmd=self["env_vars"]["VASP_CMD"],
                         db_file=self["env_vars"]["DB_FILE"],
                         name=name + " static"
-                    ))
+                    )
+                    new_static_fw.spec["_fworker"] = fw_spec["_fworker"]
+                    if fw_spec.get("tags", None):
+                        new_static_fw.spec["tags"] = fw_spec["tags"]
+                    new_fws.append(new_static_fw)
 
                 # Create new CSLD FW
                 new_csld_fw = Firework(
@@ -1625,6 +1639,9 @@ class CSLDForceConstantsToDB(FiretaskBase):
                     name="Compressed Sensing Lattice Dynamics",
                     parents=new_fws[-len(more_perturbed_supercells):]
                 )
+                new_csld_fw.spec["_fworker"] = fw_spec["_fworker"]
+                if fw_spec.get("tags", None):
+                    new_csld_fw.spec["tags"] = fw_spec["tags"]
                 new_fws.append(new_csld_fw)
 
                 # Dynamically add new fireworks to the workflow
@@ -1633,6 +1650,117 @@ class CSLDForceConstantsToDB(FiretaskBase):
             else:
                 raise TimeoutError("The workflow was unable to find a solution to CSLD"
                     " for this material.")
+
+@explicit_serialize
+class ShengBTEToDB(FiretaskBase):
+    """
+    Run ShengBTE
+
+    Required parameters:
+        db_file (str): path to the db file that holds your tasks
+        collection and that you want to hold the magnetic_orderings
+        collection
+        wf_uuid (str): auto-generated from get_wf_magnetic_orderings,
+        used to make it easier to retrieve task docs
+        parent_structure (Structure): material that CSLD is being run on
+        csld_settings (ConfigParser): settings for running CSLD
+        csld_options (dict): options for running CSLD
+    # Optional parameters:
+    #     to_db (bool): if True, the data will be inserted into
+    #     dedicated collection in database, otherwise, will be dumped
+    #     to a .json file.
+    """
+
+    required_params = ["parent_structure", "shengbte_cmd", "db_file",
+                       "wf_uuid"]
+
+    def run_task(self, fw_spec):
+        from atomate.utils.utils import env_chk
+        import subprocess
+        from pymatgen.io.vasp.inputs import Kpoints
+        import six
+        import shlex
+
+        # Generate CONTROL file
+        from pymatgen.io.shengbte import Control
+        qpts = Kpoints.automatic_density(self["parent_structure"], 50000)
+        unique_elements = [
+            str(self["parent_structure"].types_of_specie[i])
+            for i in range(len(self["parent_structure"].types_of_specie))
+        ]
+        nonunique_elements_list = [
+            str(self["parent_structure"].species[i])
+            for i in range(len(self["parent_structure"].species))
+        ]
+        element_to_number = {ele: idx + 1 for (idx, ele) in
+                             enumerate(unique_elements)}
+        shengbte_control_dict = {
+            'nelements': self["parent_structure"].ntypesp,
+            'natoms': self["parent_structure"].num_sites,
+            'ngrid': qpts.qpts[0], #[25, 25, 25],  # NEED TO GENERATE THIS BY DENSITY
+            'norientations': 0,
+
+            'lfactor': 0.1,  # 0.1 nm = 1 Ang
+            'lattvec': self["parent_structure"].lattice.matrix.tolist(),
+            'elements': unique_elements,
+            'types': [element_to_number[ele] for ele in
+                      nonunique_elements_list],
+            'positions': [
+                self["parent_structure"].sites[i]._frac_coords.tolist()
+                for i in range(self["parent_structure"].num_sites)
+            ],
+            'scell': [5, 5, 5],
+            't': 300,
+            'scalebroad': 0.5,
+            'nonanalytic': False,
+            'isotopes': False,
+        }
+        io = Control.from_dict(shengbte_control_dict)
+        io.to_file() #writes CONTROL file to current directory
+
+        # Copy force constants from previous CSLD firework
+        force_constants_path = fw_spec["successful_CSLD_path"]
+        shutil.copy(force_constants_path+"/FORCE_CONSTANTS_2ND", os.getcwd())
+        shutil.copy(force_constants_path+"/FORCE_CONSTANTS_3RD", os.getcwd())
+
+        # Set up/run ShengBTE
+        shengbte_cmd = env_chk(self["shengbte_cmd"], fw_spec)
+        if isinstance(shengbte_cmd, six.string_types):
+            shengbte_cmd = os.path.expandvars(shengbte_cmd)
+            shengbte_cmd = shlex.split(shengbte_cmd)
+        shengbte_cmd = list(shengbte_cmd)
+        logger.info("Running command: {}".format(shengbte_cmd))
+        return_code = subprocess.call(shengbte_cmd) #call() waits for the process to finish
+        logger.info("Command {} finished running with returncode: {}".format(shengbte_cmd, return_code))
+
+        try:
+            flattened_kappa = np.loadtxt('BTE.kappa_tensor')[1][1:] #xx, xy, xz, yx, yy, yz, zx, zy, zz
+
+            # Save to DB
+            db_file = env_chk(self.get("db_file"), fw_spec)
+            mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
+            tasks = mmdb["tasks"]
+            summary = {
+                "date": datetime.now(),
+                "parent_structure": self["parent_structure"].as_dict(),
+                "wf_meta": {"wf_uuid": self["wf_uuid"]},
+                "kappa_xx": flattened_kappa[0],
+                "kappa_xy": flattened_kappa[1],
+                "kappa_xz": flattened_kappa[2],
+                "kappa_yx": flattened_kappa[3],
+                "kappa_yy": flattened_kappa[4],
+                "kappa_yz": flattened_kappa[5],
+                "kappa_zx": flattened_kappa[6],
+                "kappa_zy": flattened_kappa[7],
+                "kappa_zz": flattened_kappa[8]
+            }
+            if fw_spec.get("tags", None):
+                summary["tags"] = fw_spec["tags"]
+
+            mmdb.collection = mmdb.db["sheng_bte"]
+            mmdb.collection.insert(summary)
+        except:
+            raise FileNotFoundError('BTE.kappa_tensor was not output from ShengBTE.')
 
 
 # the following definitions for backward compatibility
