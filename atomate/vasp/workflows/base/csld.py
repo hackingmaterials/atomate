@@ -125,25 +125,6 @@ class CompressedSensingLatticeDynamicsWF:
                 structure, other_parameters={"wf_meta": self.wf_meta}
             )
 
-        #TODO: Move this relaxation section elsewhere
-        # relax_user_incar_settings = {"EDIFF": 1e-8,
-        #                              "EDIFFG": -1e-5,
-        #                              }
-        # relax_vis = MPRelaxSet(self.parent_structure,
-        #                        user_incar_settings=relax_user_incar_settings)
-        # # relax
-        # fws.append(
-        #     OptimizeFW(
-        #         self.parent_structure,
-        #         vasp_input_set=relax_vis,
-        #         vasp_cmd=c["VASP_CMD"],
-        #         db_file=c["DB_FILE"],
-        #         max_force_threshold=0.05, #idk, should i change this?
-        #         half_kpts_first_relax=False, #idk what this is
-        #         name="{} - CSLD relax parent".format(self.parent_structure.composition.reduced_formula),
-        #     )
-        # )
-        #####################
 
         static_user_incar_settings = {"ADDGRID": True,
                                       # Fast Fourier Transform grid
