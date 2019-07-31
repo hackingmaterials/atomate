@@ -129,8 +129,8 @@ class ExchangeWF:
         mse = MagneticStructureEnumerator(
             enum_struct,
             transformation_kwargs={
-                "min_cell_size": 1,
-                "max_cell_size": 2,
+                # "min_cell_size": 1,
+                # "max_cell_size": 2,
                 "check_ordered_symmetry": False,
             },
         )
