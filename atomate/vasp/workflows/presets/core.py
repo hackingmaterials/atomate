@@ -675,6 +675,8 @@ def wf_lattice_thermal_conductivity(structure, c=None):
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
 
+    ## DFPT AT GAMMA POINT
+
     optimize = {"LAECHG": False, 'ENCUT': 700,
                 'ADDGRID': True, 'EDIFFG': -5e-4,
                 'PREC': 'Accurate', "LREAL": False,

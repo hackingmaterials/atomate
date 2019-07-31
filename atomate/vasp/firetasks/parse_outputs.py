@@ -1604,9 +1604,9 @@ class CSLDForceConstantsToDB(FiretaskBase):
 
                 # Create new perturbed supercells
                 more_perturbed_supercells_transform = PerturbSitesTransformation(
-                    max_displacement=0.2,
-                    min_displacement=0.12,
-                    num_displacements=5,
+                    max_disp=0.2,
+                    min_disp=0.12,
+                    num_disps=5,
                     structures_per_displacement_distance=1,
                     min_random_distance=None
                 )
@@ -1708,7 +1708,7 @@ class ShengBTEToDB(FiretaskBase):
         shengbte_control_dict = {
             'nelements': self["parent_structure"].ntypesp,
             'natoms': self["parent_structure"].num_sites,
-            'ngrid': qpts.qpts[0], #[25, 25, 25],  # NEED TO GENERATE THIS BY DENSITY
+            'ngrid': qpts.kpts[0], #[25, 25, 25],  # NEED TO GENERATE THIS BY DENSITY
             'norientations': 0,
 
             'lfactor': 0.1,  # 0.1 nm = 1 Ang

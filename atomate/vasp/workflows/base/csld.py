@@ -104,7 +104,8 @@ class CompressedSensingLatticeDynamicsWF:
             min_random_distance
         )
         # list of perturbed supercell structures (list)
-        self.perturbed_supercells = perturbed_supercells_transform.apply_transformation(self.supercell)
+        self.perturbed_supercells = [d['structure'] for d in
+                                     perturbed_supercells_transform.apply_transformation(self.supercell)]
         # list of (non-unique) displacement values used in the perturbation (np.ndarray)
         self.disps = np.repeat(perturbed_supercells_transform.disps,
                                supercells_per_displacement_distance)
@@ -233,9 +234,9 @@ if __name__ == "__main__":
     wf = add_tags(wf, ['csld', 'v1', 'rees', 'Sr8Sb4Au4', '10disps_1each', '8nodes',
                        'encut 500', 'ispin 1'])
     wf = set_execution_options(wf, fworker_name="rees_the_fire_worker") #need this to run the fireworks
-    wf = add_modify_incar(wf,
-                          modify_incar_params={'incar_update': {'ENCUT': 500,
-                                                                'ISPIN': 1}})
+    # wf = add_modify_incar(wf,
+    #                       modify_incar_params={'incar_update': {'ENCUT': 500,
+    #                                                             'ISPIN': 1}})
     print(wf)
 
     lpad = LaunchPad.auto_load()
@@ -274,8 +275,10 @@ def csld_main(options, settings):
     from csld.lattice_dynamics import init_ld_model
 
     from csld.common_main import upon_exit, \
-        init_training, fit_data, phonon_step, \
-        save_pot, predict
+        init_training
+    from csld.csld_main_functions import phonon_step, \
+        save_pot, predict, fit_data
+
 
     freq_matrix = None #Rees
     pdfout = PdfPages(
@@ -294,7 +297,7 @@ def csld_main(options, settings):
                                 options['fit_step'], pdfout)
     if settings.has_section('phonon'):
         phonon, freq_matrix = phonon_step(model, solutions, settings['phonon'],
-                             options['phonon_step'], pdfout, prim)
+                             options['phonon_step'], pdfout, prim, return_eigen=True)
     if settings.has_section('export_potential'):
         save_pot(model, solutions[ibest], settings['export_potential'],
                  options['save_pot_step'], phonon)
