@@ -691,8 +691,12 @@ def wf_lattice_thermal_conductivity(structure, c=None):
                                                  num_displacements=10,
                                                  supercells_per_displacement_distance=1).get_wf()
 
-    wf.append(wf_csld, wf.leaf_fw_ids)
+    wf.append_wf(wf_csld, wf.leaf_fw_ids)
     wf = add_common_powerups(wf, c)
+
+    formula = structure.composition.reduced_formula
+    wf_name = "{} - lattice thermal conductivity preset".format(formula)
+    wf.name = wf_name
 
     if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
         wf = add_wf_metadata(wf, structure)
