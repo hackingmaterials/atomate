@@ -182,13 +182,15 @@ class CompressedSensingLatticeDynamicsWF:
 
             static_vis = MPStaticSet(perturbed_supercell,
                                      user_incar_settings=static_user_incar_settings)
-            fws.append(StaticFW(
+            static_fw = StaticFW(
                 perturbed_supercell,
                 vasp_input_set=static_vis,
                 vasp_cmd=c["VASP_CMD"],
                 db_file=c["DB_FILE"],
                 name=name + " static"
-            ))
+            )
+            static_fw.spec["displacement_value"] = self.disps[idx]
+            fws.append(static_fw)
 
         print('DISPS')
         print(self.disps)
@@ -256,9 +258,11 @@ if __name__ == "__main__":
     prim = Structure.from_file('POSCAR-well_relaxed_Si')
 
     csld_class = CompressedSensingLatticeDynamicsWF(prim,
+                                                    symmetrize=False,
                                                     num_nn_dists=5,
                                                     num_displacements=10,
                                                     supercells_per_displacement_distance=1,
+                                                    force_diagonal_transformation=True
                                                     )
     print("uuid")
     print(csld_class.uuid)
@@ -270,7 +274,9 @@ if __name__ == "__main__":
     print(csld_class.supercell.num_sites)
     csld_class.supercell.to("poscar", filename="SPOSCAR-csld_super_Si")
 
-    wf = add_tags(wf, ['csld', 'v1', 'rees', 'pre-relaxed si', 'diagonal supercell'])
+    wf = add_tags(wf, ['csld', 'v1', 'rees',
+                       'pre-relaxed si', 'diagonal supercell',
+                       'not symmetrized'])
     wf = set_execution_options(wf, fworker_name="rees_the_fire_worker") #need this to run the fireworks
     # wf = add_modify_incar(wf,
     #                       modify_incar_params={'incar_update': {'ENCUT': 500,
