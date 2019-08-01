@@ -7,9 +7,10 @@ from uuid import uuid4
 
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.alchemy.materials import TransformedStructure
+from pymatgen.transformations.standard_transformations import \
+    PerturbStructureTransformation
 from pymatgen.transformations.advanced_transformations import (
-    CubicSupercellTransformation,
-    PerturbSitesTransformation
+    CubicSupercellTransformation
 )
 from fireworks import Workflow, Firework
 from atomate.utils.utils import get_logger
@@ -42,13 +43,13 @@ class CompressedSensingLatticeDynamicsWF:
             min_atoms=-np.Inf,
             max_atoms=np.Inf,
             num_nn_dists=5,
+            force_diagonal_transformation=True,
             max_displacement=0.1,
             min_displacement=0.01,
             num_displacements=10,
-            supercells_per_displacement_distance=1,
             min_random_distance=None,
-            shengbte_t_range=False #whether to calculate 100-1000K or just 300K
-            #csld input params here?
+            supercells_per_displacement_distance=1,
+            shengbte_t_range=False
     ):
         """
         This workflow will use compressed sensing lattice dynamics (CSLD)
@@ -66,11 +67,39 @@ class CompressedSensingLatticeDynamicsWF:
             5. Output the interatomic force constants to the database.
 
         Args:
-            parent_structure (Structure):
-            min_atoms (int):
-            max_atoms (int):
-            num_nn_dists (int or float):
-            max_displacement (float)
+            parent_structure (Structure): Structure to primitize and conduct
+                CSLD on
+            symprec (float): symmetry precision parameter for
+                SpacegroupAnalyzer's 'get_primitive_standard_structure()'
+                function
+            min_atoms (int): Minimum number of atoms to constrain the supercell
+            max_atoms (int): Maximum number of atoms to constrain the supercell
+            num_nn_dists (int or float): Number of nearest neighbor distances
+                that the shortest direction of the supercell must be as long as
+            force_diagonal_transformation (bool): If True, the supercell
+                transformation will be constrained to have a diagonal
+                transformation matrix. If False, the supercell transformation
+                will not be constrained to be diagonal (resulting in a more
+                cubic supercell).
+            max_displacement (float): Maximum displacement distance for
+                perturbing the supercell structure (Angstroms)
+            min_displacement (float): Minimum displacement distance for
+                perturbing the supercell structure (Angstroms)
+            num_displacements (int): Number of unique displacement distances to
+                generate uniformly between 'min_displacement' and
+                'max_displacement'
+            min_random_distance (Optional float): If None (default), then all
+                atoms in the supercell will move the same distance from their
+                original locations. If float, then for a given supercell, the
+                distances that atoms move will be uniformly distributed from a
+                minimum distance of 'min_random_distance' to one of the
+                displacement distances uniformly sampled between
+                'min_displacement' and 'max_displacement'.
+            supercells_per_displacement_distance (int): number of supercells to
+                generate for each unique displacement distance.
+            shengbte_t_range (bool): If False (default), calculate the lattice
+                thermal conductivity with ShengBTE at 300 K. If True, do the
+                calculation from 100-1000 K with 100 K steps (much slower).
         """
         self.uuid = str(uuid4())
         self.wf_meta = {
@@ -89,28 +118,29 @@ class CompressedSensingLatticeDynamicsWF:
             self.min_atoms,
             self.max_atoms,
             self.num_nn_dists,
+            force_diagonal_transformation=force_diagonal_transformation
         )
         # supercell (Structure)
         self.supercell = supercell_transform.apply_transformation(self.parent_structure)
         self.trans_mat = supercell_transform.trans_mat
         self.supercell_smallest_dim = supercell_transform.smallest_dim
 
-    # Generate randomly perturbed supercells
-        perturbed_supercells_transform = PerturbSitesTransformation(
-            max_displacement,
-            min_displacement,
-            num_displacements,
-            supercells_per_displacement_distance,
-            min_random_distance
-        )
-        # list of perturbed supercell structures (list)
-        self.perturbed_supercells = [d['structure'] for d in
-                                     perturbed_supercells_transform.apply_transformation(self.supercell)]
+    # Generate list of perturbed supercells
         # list of (non-unique) displacement values used in the perturbation (np.ndarray)
-        self.disps = np.repeat(perturbed_supercells_transform.disps,
-                               supercells_per_displacement_distance)
+        self.disps = np.repeat(
+            np.linspace(min_displacement, max_displacement, num_displacements),
+            supercells_per_displacement_distance
+        )
+        self.min_random_distance = min_random_distance
+        self.perturbed_supercells = [] # list of perturbed supercell structures
+        for amplitude in self.disps:
+            perturb_structure_transformer = PerturbStructureTransformation(amplitude,
+                                                                           self.min_random_distance)
+            perturbed_supercell = perturb_structure_transformer.apply_transformation(self.supercell)
+            self.perturbed_supercells += [perturbed_supercell]
 
         self.shengbte_t_range = shengbte_t_range
+
     def get_wf(
             self,
             c=None
@@ -215,12 +245,13 @@ if __name__ == "__main__":
     from pymatgen.core.structure import Structure
     # prim = Structure.from_file('POSCAR_csld_primitivized')
 
-    prim = Structure.from_file('POSCAR-well_relaxed_Sr8Sb4Au4')
+    prim = Structure.from_file('POSCAR-well_relaxed_Si')
 
     csld_class = CompressedSensingLatticeDynamicsWF(prim,
                                                     num_nn_dists=5,
                                                     num_displacements=10,
-                                                    supercells_per_displacement_distance=1)
+                                                    supercells_per_displacement_distance=1,
+                                                    )
     print("uuid")
     print(csld_class.uuid)
 
@@ -229,15 +260,14 @@ if __name__ == "__main__":
     print(csld_class.trans_mat)
     print(csld_class.supercell_smallest_dim)
     print(csld_class.supercell.num_sites)
-    csld_class.supercell.to("poscar", filename="SPOSCAR-csld_super_Sr8Sb4Au4")
+    csld_class.supercell.to("poscar", filename="SPOSCAR-csld_super_Si")
 
-    wf = add_tags(wf, ['csld', 'v1', 'rees', 'Sr8Sb4Au4', '10disps_1each', '8nodes',
-                       'encut 500', 'ispin 1'])
+    wf = add_tags(wf, ['csld', 'v1', 'rees', 'pre-relaxed si'])
     wf = set_execution_options(wf, fworker_name="rees_the_fire_worker") #need this to run the fireworks
     # wf = add_modify_incar(wf,
     #                       modify_incar_params={'incar_update': {'ENCUT': 500,
     #                                                             'ISPIN': 1}})
-    print(wf)
+    # print(wf)
 
     lpad = LaunchPad.auto_load()
     lpad.add_wf(wf)
