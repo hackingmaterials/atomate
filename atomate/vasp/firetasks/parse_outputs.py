@@ -41,7 +41,6 @@ from pymatgen.analysis.ferroelectricity.polarization import Polarization, get_to
     EnergyTrend
 from pymatgen.analysis.magnetism import CollinearMagneticStructureAnalyzer, Ordering, magnetic_deformation
 from pymatgen.command_line.bader_caller import bader_analysis_from_path
-from pymatgen.transformations.standard_transformations import PerturbStructureTransformation
 from pymatgen.io.vasp.sets import MPStaticSet
 >>>>>>> 9a28c322 (Added dynamic fireworks for possible error handling (i.e. larger displacement values))
 
@@ -1885,7 +1884,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
 
         return cluster_diam_settings, max_order_settings, submodel1_settings
 
-    def set_params(self, iteration_number, cluster_diam, max_order, submodel1, export_sbte):
+    def set_params(self, disps, iteration_number, cluster_diam, max_order, submodel1, export_sbte):
         from configparser import ConfigParser
         supercell_folder = self["parent_structure"].composition.reduced_formula + \
                            "_supercell_iter" + str(iteration_number)
@@ -1905,7 +1904,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
         # Create folders for perturbed supercell POSCARS and force.txt's
         disp_folders = []
         csld_traindat_disp_folders = ''
-        for idx, disp in enumerate(self["disps"]):
+        for idx, disp in enumerate(disps):
             disp_folder = supercell_folder + '/disp' + str(disp)
             disp_folders += [disp_folder] # list of folder paths
             csld_traindat_disp_folders += ' ' + str(disp_folder) # Create string for CSLD input
@@ -2090,15 +2089,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
         print(submodel1_settings)
 
         while not_converged and iter < maxIter:
-            self.set_params(iter,
-                            cluster_diam_settings[iter],
-                            max_order_settings[iter],
-                            submodel1_settings[iter],
-                            export_sbte_settings[iter])
-            self["csld_options"]["pdfout"] = 'plots' + str(iter) + '.pdf'
-
             uuid = self["wf_uuid"]
-
             formula = self["parent_structure"].formula
             formula_pretty = self[
                 "parent_structure"].composition.reduced_formula
@@ -2106,15 +2097,18 @@ class CSLDForceConstantsToDB(FiretaskBase):
             supercells_dicts = list(
                 tasks.find({"wf_meta.wf_uuid": uuid,  # <insert
                             "task_label": {"$regex": task_label},
-                            "formula_pretty": formula_pretty},
+                            "formula_pretty": formula_pretty,
+                            "state": 'successful'},
                            ['task_id',
                             'task_label',
-                            'output.forces']))
+                            'output.forces',
+                            'displacement_value']))
             # list of dicts where each dict contatins a task_id and a list of forces
             #   for each supercell
 
             supercells_forces = []
             supercells_task_labels = []
+            successful_disps = [] #displacement values of successful static calcs
             for supercell_dict in supercells_dicts:
                 # List of np.ndarrays where each np.ndarray is a matrix of forces
                 #  for a perturbed supercell
@@ -2122,6 +2116,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
                     np.asarray(supercell_dict['output']['forces'])]
 
                 supercells_task_labels += [supercell_dict['task_label']]
+                successful_disps += supercell_dict['displacement_value']
 
             supercells_zip = sorted(
                 zip(supercells_task_labels, supercells_forces),
@@ -2130,6 +2125,14 @@ class CSLDForceConstantsToDB(FiretaskBase):
             supercells_forces = [supercells_forces for
                                  (supercells_task_labels, supercells_forces) in
                                  supercells_zip]
+
+            self.set_params(iter,
+                            successful_disps,
+                            cluster_diam_settings[iter],
+                            max_order_settings[iter],
+                            submodel1_settings[iter],
+                            export_sbte_settings[iter])
+            self["csld_options"]["pdfout"] = 'plots' + str(iter) + '.pdf'
 
             # Create force.txt files for perturbed supercells
             for supercell_idx, supercell_force in enumerate(supercells_forces):
@@ -2268,6 +2271,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
                         name=name + " static"
                     )
                     new_static_fw.spec["_fworker"] = fw_spec["_fworker"]
+                    new_static_fw.spec["displacement_value"] = more_disps[idx]
                     if fw_spec.get("tags", None):
                         new_static_fw.spec["tags"] = fw_spec["tags"]
                     new_fws.append(new_static_fw)
@@ -2283,7 +2287,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
                         supercell_structure=self["supercell_structure"],
                         supercell_smallest_dim=self["supercell_smallest_dim"],
                         perturbed_supercells=self["perturbed_supercells"]+more_perturbed_supercells,
-                        disps=self["disps"]+more_disps,
+                        disps=successful_disps+more_disps,
                         first_pass=False
                     ),
                     name="Compressed Sensing Lattice Dynamics",
