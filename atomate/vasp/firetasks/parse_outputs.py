@@ -30,7 +30,7 @@ from pymatgen.analysis.ferroelectricity.polarization import Polarization, get_to
     EnergyTrend
 from pymatgen.analysis.magnetism import CollinearMagneticStructureAnalyzer, Ordering, magnetic_deformation
 from pymatgen.command_line.bader_caller import bader_analysis_from_path
-from pymatgen.transformations.advanced_transformations import PerturbSitesTransformation
+from pymatgen.transformations.standard_transformations import PerturbStructureTransformation
 from pymatgen.io.vasp.sets import MPStaticSet
 
 from atomate.common.firetasks.glue_tasks import get_calc_loc
@@ -1435,7 +1435,10 @@ class CSLDForceConstantsToDB(FiretaskBase):
                                  '9 6.5 5.0']
         max_order_settings = [3] * len(cluster_diam_settings)
         submodel1_settings = ['anh 0 1 2 3'] * len(cluster_diam_settings)
-        export_sbte_settings = ['5 5 5 2 3'] * len(cluster_diam_settings)
+        export_sbte_string = str(self["trans_mat"][0][0]) + ' ' + \
+                             str(self["trans_mat"])[1][1] + ' ' + \
+                             str(self["trans_mat"])[2][2] + ' 2 3'
+        export_sbte_settings = [export_sbte_string] * len(cluster_diam_settings)
         if self["first_pass"] is False:
             max_order_settings += [4] * len(cluster_diam_settings)
             cluster_diam_settings += cluster_diam_settings
@@ -1529,6 +1532,8 @@ class CSLDForceConstantsToDB(FiretaskBase):
                 "formula": formula,
                 "formula_pretty": formula_pretty,
                 "parent_structure": self["parent_structure"].as_dict(),
+                "supercell_structure": self["supercell_structure"].as_dict(),
+                "supercell_transformation_matrix": self["trans_mat"].tolist(),
                 "wf_meta": {"wf_uuid": uuid},
 
                 # Store relevant CSLD settings
@@ -1540,11 +1545,13 @@ class CSLDForceConstantsToDB(FiretaskBase):
                 "export_potential": self["csld_settings"]["export_potential"][
                     "export_shengbte"],
 
+                # Store CSLD results
                 "cross_val_error": float(rel_err),
                 "num_imaginary_modes": int(num_imaginary_bands),
                 "most_imaginary_freq": float(most_imaginary_freq),
                 "imaginary_freq_sum": float(sum(imaginary_freqs))
             }
+
             latest_settings = {str(self["convergence_info"]["iteration"]):
                                    {self["csld_settings"]["model"]["max_order"],
                                     self["csld_settings"]["fitting"][
@@ -1584,7 +1591,8 @@ class CSLDForceConstantsToDB(FiretaskBase):
                     shengbte_cmd=">>shengbte_cmd<<",
                     db_file=self["db_file"],
                     wf_uuid=self["wf_uuid"],
-                    t_range=self["shengbte_t_range"]
+                    t_range=self["shengbte_t_range"],
+                    trans_mat=self["trans_mat"]
                 )
             )
             shengbte_fw.spec["_fworker"] = fw_spec["_fworker"]
@@ -1603,15 +1611,12 @@ class CSLDForceConstantsToDB(FiretaskBase):
                 new_fws = []
 
                 # Create new perturbed supercells
-                more_perturbed_supercells_transform = PerturbSitesTransformation(
-                    max_disp=0.2,
-                    min_disp=0.12,
-                    num_disps=5,
-                    structures_per_displacement_distance=1,
-                    min_random_distance=None
-                )
-                more_perturbed_supercells = more_perturbed_supercells_transform.apply_transformation(self["supercell_structure"])
-                more_disps = more_perturbed_supercells_transform.disps
+                from atomate.vasp.analysis.csld import generate_perturbed_supercells
+                more_perturbed_supercells, more_disps = generate_perturbed_supercells(self["supercell_structure"],
+                                                                                      min_displacement=0.12,
+                                                                                      max_displacement=0.2,
+                                                                                      num_displacements=5,
+                                                                                      )
 
                 # Create new static FWs
                 for idx, more_perturbed_supercell in enumerate(more_perturbed_supercells):
@@ -1682,7 +1687,7 @@ class ShengBTEToDB(FiretaskBase):
     """
 
     required_params = ["parent_structure", "shengbte_cmd", "db_file",
-                       "wf_uuid"]
+                       "wf_uuid", "trans_mat"]
     optional_params = ["t_range"] #boolean for multiple temperatures
 
     def run_task(self, fw_spec):
@@ -1720,7 +1725,9 @@ class ShengBTEToDB(FiretaskBase):
                 self["parent_structure"].sites[i]._frac_coords.tolist()
                 for i in range(self["parent_structure"].num_sites)
             ],
-            'scell': [5, 5, 5],
+            'scell': [self["trans_mat"][0][0],
+                      self["trans_mat"][1][1],
+                      self["trans_mat"][2][2]],
             't': 300,
             'scalebroad': 0.5,
             'nonanalytic': False,
