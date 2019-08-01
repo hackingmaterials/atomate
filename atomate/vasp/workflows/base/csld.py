@@ -20,6 +20,7 @@ from atomate.vasp.firetasks.parse_outputs import CSLDForceConstantsToDB
 from atomate.vasp.powerups import (
     add_additional_fields_to_taskdocs
 )
+from atomate.vasp.analysis.csld import generate_perturbed_supercells
 
 from pymatgen.io.vasp.sets import MPStaticSet, MPRelaxSet
 
@@ -39,6 +40,7 @@ class CompressedSensingLatticeDynamicsWF:
     def __init__(
             self,
             parent_structure,
+            symmetrize=False,
             symprec=0.1,
             min_atoms=-np.Inf,
             max_atoms=np.Inf,
@@ -67,8 +69,14 @@ class CompressedSensingLatticeDynamicsWF:
             5. Output the interatomic force constants to the database.
 
         Args:
-            parent_structure (Structure): Structure to primitize and conduct
-                CSLD on
+            parent_structure (Structure): Structure to conduct CSLD on
+            symmetrize (bool): If True, the parent_structure will be primitized
+                before running CSLD. Else, the parent_structure will be used
+                for CSLD as is.
+            tight_relaxation (bool): If True, run a tight relaxation step on the
+                parent_structure. Else, do not. TODO: IMPLEMENT
+            dfpt_check (bool): If True, run a DFPT calculation at the gamma
+                point to check for dynamic instabilities. TODO: IMPLEMENT
             symprec (float): symmetry precision parameter for
                 SpacegroupAnalyzer's 'get_primitive_standard_structure()'
                 function
@@ -108,8 +116,10 @@ class CompressedSensingLatticeDynamicsWF:
         }
 
     # Create supercell
-        sga = SpacegroupAnalyzer(parent_structure, symprec=symprec)
-        self.parent_structure = sga.get_primitive_standard_structure()
+        self.parent_structure = parent_structure
+        if symmetrize:
+            sga = SpacegroupAnalyzer(parent_structure, symprec=symprec)
+            self.parent_structure = sga.get_primitive_standard_structure()
 
         self.min_atoms = min_atoms
         self.max_atoms = max_atoms
@@ -126,18 +136,16 @@ class CompressedSensingLatticeDynamicsWF:
         self.supercell_smallest_dim = supercell_transform.smallest_dim
 
     # Generate list of perturbed supercells
-        # list of (non-unique) displacement values used in the perturbation (np.ndarray)
-        self.disps = np.repeat(
-            np.linspace(min_displacement, max_displacement, num_displacements),
-            supercells_per_displacement_distance
-        )
-        self.min_random_distance = min_random_distance
-        self.perturbed_supercells = [] # list of perturbed supercell structures
-        for amplitude in self.disps:
-            perturb_structure_transformer = PerturbStructureTransformation(amplitude,
-                                                                           self.min_random_distance)
-            perturbed_supercell = perturb_structure_transformer.apply_transformation(self.supercell)
-            self.perturbed_supercells += [perturbed_supercell]
+        # self.perturbed_supercells: list of perturbed supercells (list of Structures)
+        # self.disps: list of (non-unique) displacement values used in the perturbation (np.array)
+        self.perturbed_supercells, self.disps = generate_perturbed_supercells(
+            self.supercell,
+            min_displacement=min_displacement,
+            max_displacement=max_displacement,
+            num_displacements=num_displacements,
+            supercells_per_displacement_distance=supercells_per_displacement_distance,
+            min_random_distance=min_random_distance
+            )
 
         self.shengbte_t_range = shengbte_t_range
 
@@ -262,7 +270,7 @@ if __name__ == "__main__":
     print(csld_class.supercell.num_sites)
     csld_class.supercell.to("poscar", filename="SPOSCAR-csld_super_Si")
 
-    wf = add_tags(wf, ['csld', 'v1', 'rees', 'pre-relaxed si'])
+    wf = add_tags(wf, ['csld', 'v1', 'rees', 'pre-relaxed si', 'diagonal supercell'])
     wf = set_execution_options(wf, fworker_name="rees_the_fire_worker") #need this to run the fireworks
     # wf = add_modify_incar(wf,
     #                       modify_incar_params={'incar_update': {'ENCUT': 500,
