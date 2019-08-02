@@ -130,7 +130,7 @@ class ExchangeWF:
             enum_struct,
             transformation_kwargs={
                 "min_cell_size": 1,
-                "max_cell_size": 4,
+                "max_cell_size": 2,
                 "check_ordered_symmetry": False,
             },
         )
@@ -149,7 +149,10 @@ class ExchangeWF:
         )
 
         for s in mse.ordered_structures:
-            s2 = sm.get_s2_like_s1(enum_struct, s)
+            try:
+                s2 = sm.get_s2_like_s1(enum_struct, s)
+            except:
+                s2 = None
             if s2 is not None:
                 matched_structures.append(s2)
 
