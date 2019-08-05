@@ -98,6 +98,7 @@ class InsertSitesFW(Firework):
         approx_neb_wf_uuid,
         insert_specie,
         insert_coords,
+        stable_site_index,
         name="stable site",
         db_file=DB_FILE,
         parents=None,
@@ -116,6 +117,8 @@ class InsertSitesFW(Firework):
             insert_specie (str): specie of site to insert in structure (e.g. "Li")
             insert_coords (1x3 array or list of 1x3 arrays): coordinates of site(s)
                 to insert in structure (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]])
+            stable_site_index (int): index used in stable_sites field of
+                approx_neb collection for workflow record keeping
             approx_neb_wf_uuid (str): Unique identifier for approx workflow record
                 keeping.
             name (str): Combined with insert_specie to label the firework
@@ -139,6 +142,7 @@ class InsertSitesFW(Firework):
                 db_file=db_file,
                 insert_specie=insert_specie,
                 insert_coords=insert_coords,
+                stable_site_index=stable_site_index,
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
             )
         )
