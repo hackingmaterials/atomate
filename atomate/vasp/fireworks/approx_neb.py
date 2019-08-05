@@ -98,7 +98,7 @@ class InsertSitesFW(Firework):
         approx_neb_wf_uuid,
         insert_specie,
         insert_coords,
-        stable_site_index,
+        stable_sites_index,
         name="stable site",
         db_file=DB_FILE,
         parents=None,
@@ -110,14 +110,14 @@ class InsertSitesFW(Firework):
         collection and inserts the site(s) designated by insert_specie and
         insert_coords. Stores the modified structure in the stable_sites field of
         the approx_neb collection. Updates the fw_spec with the corresponding
-        stable_site_index for the stored structure (and the modified structure).
+        stable_sites_index for the stored structure (and the modified structure).
 
         Args:
             db_file (str): path to file containing the database credentials
             insert_specie (str): specie of site to insert in structure (e.g. "Li")
             insert_coords (1x3 array or list of 1x3 arrays): coordinates of site(s)
                 to insert in structure (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]])
-            stable_site_index (int): index used in stable_sites field of
+            stable_sites_index (int): index used in stable_sites field of
                 approx_neb collection for workflow record keeping
             approx_neb_wf_uuid (str): Unique identifier for approx workflow record
                 keeping.
@@ -142,7 +142,7 @@ class InsertSitesFW(Firework):
                 db_file=db_file,
                 insert_specie=insert_specie,
                 insert_coords=insert_coords,
-                stable_site_index=stable_site_index,
+                stable_sites_index=stable_sites_index,
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
             )
         )

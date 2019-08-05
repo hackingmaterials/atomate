@@ -277,7 +277,7 @@ class InsertSites(FiretaskBase):
         insert_specie (str): specie of site to insert in structure (e.g. "Li").
         insert_coords (1x3 array or list of 1x3 arrays): coordinates of site(s)
             to insert in structure (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]]).
-        stable_site_index (int): index used in stable_sites field of
+        stable_sites_index (int): index used in stable_sites field of
             approx_neb collection for workflow record keeping
     Optional Parameters:
         approx_neb_wf_uuid (str): Unique identifier for approx workflow record
@@ -288,7 +288,7 @@ class InsertSites(FiretaskBase):
             in cartesian coordinates. Otherwise assumes fractional coordinates.
         """
 
-    required_params = ["db_file", "insert_specie", "insert_coords", "stable_site_index"]
+    required_params = ["db_file", "insert_specie", "insert_coords", "stable_sites_index"]
     optional_params = [
         "structure_task_id",
         "approx_neb_wf_uuid",
