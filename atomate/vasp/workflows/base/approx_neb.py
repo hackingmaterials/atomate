@@ -203,9 +203,6 @@ def approx_neb_screening_wf(
     approx_neb_params["user_incar_settings"]["ISYM"] = 0
     approx_neb_params["user_incar_settings"]["LDAU"] = False
 
-    if len(insert_coords) != 2:
-        raise ValueError("insert_coords must specify exactly two sites")
-
     insert_working_ion_fws = []
     for coord in insert_coords:
         insert_working_ion_fws.append(
