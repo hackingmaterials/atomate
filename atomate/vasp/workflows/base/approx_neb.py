@@ -230,41 +230,41 @@ def approx_neb_screening_wf(
             )
         )
 
-    pathfinder_fw = PathFinderFW(
-        approx_neb_wf_uuid=wf_uuid,
-        n_images=n_images,
-        db_file=db_file,
-        parents=stable_site_fws,
-    )
+    #pathfinder_fw = PathFinderFW(
+    #    approx_neb_wf_uuid=wf_uuid,
+    #    n_images=n_images,
+    #    db_file=db_file,
+    #    parents=stable_site_fws,
+    #)
 
-    get_images_fw = GetImagesFW(
-        approx_neb_wf_uuid=wf_uuid,
-        mobile_specie=working_ion,
-        selective_dynamics_scheme=selective_dynamics_scheme,
-        parents=pathfinder_fw
-    )
+    #get_images_fw = GetImagesFW(
+    #    approx_neb_wf_uuid=wf_uuid,
+    #    mobile_specie=working_ion,
+    #    selective_dynamics_scheme=selective_dynamics_scheme,
+    #    parents=pathfinder_fw
+    #)
 
-    relax_image_fws = [] #ToDo: modify
-    for n in range(0,n_images):
-        path = "images." + str(n) + ".input_structure"
-        relax_image_fws.append(
-            ApproxNEBLaunchFW(
-                calc_type="image",
-                approx_neb_wf_uuid=wf_uuid,
-                structure_path=path,
-                db_file=db_file,
-                override_default_vasp_params=approx_neb_params,
-                parents=get_images_fw,
-            )
-        )
+    #relax_image_fws = [] #ToDo: modify
+    #for n in range(0,n_images):
+    #    path = "images." + str(n) + ".input_structure"
+    #    relax_image_fws.append(
+    #        ApproxNEBLaunchFW(
+    #            calc_type="image",
+    #            approx_neb_wf_uuid=wf_uuid,
+    #            structure_path=path,
+    #            db_file=db_file,
+    #            override_default_vasp_params=approx_neb_params,
+    #            parents=get_images_fw,
+    #        )
+    #    )
 
     wf = Workflow(
         [host_lattice_fw]
         + insert_working_ion_fws
-        + stable_site_fws
-        + [pathfinder_fw]
-        + [get_images_fw]
-        + relax_image_fws
+        #+ stable_site_fws
+        #+ [pathfinder_fw]
+        #+ [get_images_fw]
+        #+ relax_image_fws
     )
 
     wf = use_custodian(
