@@ -1828,9 +1828,10 @@ class CSLDForceConstantsToDB(FiretaskBase):
         "trans_mat", "supercell_structure",
         "supercell_smallest_dim",
         "disps", "first_pass",
-        "static_user_incar_settings", "env_vars"]
+        "static_user_incar_settings", "env_vars",
+        "shengbte_t_range", "shengbte_fworker"]
 
-    optional_params = ["shengbte_t_range"]
+    optional_params = []
 
     def random_search(self, maxIter):
         """
@@ -1983,9 +1984,10 @@ class CSLDForceConstantsToDB(FiretaskBase):
         csld_settings['phonon'] = {
             'qpoint_fractional': False,
             # 'Auto' or something like "[[10,  [0,0,0],'\\Gamma', [0.5,0.5,0.5], 'X', [0.5,0.5,0], 'K']]"
-            'wavevector': "[[25,  [0,0,0],'\Gamma', [0,0.5,0.5], 'X'],"
-                          " [25, [1,0.5,0.5], 'X', [0.75,0.375,0.375], "
-                          "'K', [0,0,0], '\Gamma', [0.5, 0.5, 0.5], 'L']]",
+            'wavevector': 'Auto',
+            # "[[25,  [0,0,0],'\Gamma', [0,0.5,0.5], 'X'],"
+            #               " [25, [1,0.5,0.5], 'X', [0.75,0.375,0.375], "
+            #               "'K', [0,0,0], '\Gamma', [0.5, 0.5, 0.5], 'L']]",
             'unit': 'meV',  # THz, meV, eV, cm
 
             # number of grid points
@@ -2055,7 +2057,8 @@ class CSLDForceConstantsToDB(FiretaskBase):
     def run_task(self, fw_spec):
         db_file = env_chk(self.get("db_file"), fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-        tasks = mmdb["tasks"]
+        # tasks = mmdb["tasks"]
+        tasks = mmdb.collection
 
         iter = 0
         not_converged = True
@@ -2069,8 +2072,8 @@ class CSLDForceConstantsToDB(FiretaskBase):
         max_order_settings = [3] * len(cluster_diam_settings)
         submodel1_settings = ['anh 0 1 2 3'] * len(cluster_diam_settings)
         export_sbte_string = str(self["trans_mat"][0][0]) + ' ' + \
-                             str(self["trans_mat"])[1][1] + ' ' + \
-                             str(self["trans_mat"])[2][2] + ' 2 3'
+                             str(self["trans_mat"][1][1]) + ' ' + \
+                             str(self["trans_mat"][2][2]) + ' 2 3'
         export_sbte_settings = [export_sbte_string] * len(cluster_diam_settings)
         if self["first_pass"] is False:
             max_order_settings += [4] * len(cluster_diam_settings)
@@ -2101,8 +2104,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
                             "state": 'successful'},
                            ['task_id',
                             'task_label',
-                            'output.forces',
-                            'displacement_value']))
+                            'output.forces']))
             # list of dicts where each dict contatins a task_id and a list of forces
             #   for each supercell
 
@@ -2112,11 +2114,15 @@ class CSLDForceConstantsToDB(FiretaskBase):
             for supercell_dict in supercells_dicts:
                 # List of np.ndarrays where each np.ndarray is a matrix of forces
                 #  for a perturbed supercell
+                print('SUPERCELL_DICT')
+                print(supercell_dict)
                 supercells_forces += [
                     np.asarray(supercell_dict['output']['forces'])]
 
                 supercells_task_labels += [supercell_dict['task_label']]
-                successful_disps += supercell_dict['displacement_value']
+
+                successful_disp = re.search('disp_val: (\d+.\d+)', supercell_dict['task_label'])
+                successful_disps += [successful_disp.group(1)]
 
             supercells_zip = sorted(
                 zip(supercells_task_labels, supercells_forces),
@@ -2170,7 +2176,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
                 "formula_pretty": formula_pretty,
                 "parent_structure": self["parent_structure"].as_dict(),
                 "supercell_structure": self["supercell_structure"].as_dict(),
-                "supercell_transformation_matrix": self["trans_mat"].tolist(),
+                "supercell_transformation_matrix": self["trans_mat"],
                 "wf_meta": {"wf_uuid": uuid},
 
                 # Store relevant CSLD settings
@@ -2195,7 +2201,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
                                         "submodel1"],
                                     self["csld_settings"]["export_potential"][
                                         "export_shengbte"]}}
-            self["convergence_info"]["iteration"] += 1
+            self["convergence_info"]["iteration"] = iter
             self["convergence_info"]["settings_tried"] += [latest_settings]
             self["convergence_info"]["cross_val_errors"] += [rel_err]
             self["convergence_info"]["most_imaginary_freqs"] += [
@@ -2208,7 +2214,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
 
             summaries.append(summary)
 
-            iter = self['convergence_info']['iteration']
+            iter += 1
 
         mmdb.collection = mmdb.db["compressed_sensing_lattice_dynamics"]
         mmdb.collection.insert(summaries)
@@ -2230,9 +2236,13 @@ class CSLDForceConstantsToDB(FiretaskBase):
                     wf_uuid=self["wf_uuid"],
                     t_range=self["shengbte_t_range"],
                     trans_mat=self["trans_mat"]
-                )
+                ),
+                name="ShengBTE for Lattice Thermal Conductivity"
             )
-            shengbte_fw.spec["_fworker"] = fw_spec["_fworker"]
+            if isinstance(self["shengbte_fworker"], str):
+                shengbte_fw.spec["_fworker"] = self["shengbte_fworker"]
+            else:
+                shengbte_fw.spec["_fworker"] = fw_spec.get("_fworker", None)
             CSLD_path = self.get("path", os.getcwd())
             shengbte_fw.spec["successful_CSLD_path"] = CSLD_path
             if fw_spec.get("tags", None):
@@ -2293,7 +2303,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
                     name="Compressed Sensing Lattice Dynamics",
                     parents=new_fws[-len(more_perturbed_supercells):]
                 )
-                new_csld_fw.spec["_fworker"] = fw_spec["_fworker"]
+                new_csld_fw.spec["_fworker"] = fw_spec.get("_fworker", None)
                 if fw_spec.get("tags", None):
                     new_csld_fw.spec["tags"] = fw_spec["tags"]
                 new_fws.append(new_csld_fw)
@@ -2390,8 +2400,15 @@ class ShengBTEToDB(FiretaskBase):
             shengbte_cmd = shlex.split(shengbte_cmd)
         shengbte_cmd = list(shengbte_cmd)
         logger.info("Running command: {}".format(shengbte_cmd))
-        return_code = subprocess.call(shengbte_cmd) #call() waits for the process to finish
+        # return_code = subprocess.call(shengbte_cmd) #call() waits for the process to finish
+
+        with open("shengbte.out", 'w') as f_std, \
+                open("shengbte_err.txt", "w", buffering=1) as f_err:
+            # use line buffering for stderr
+            return_code = subprocess.call(shengbte_cmd, stdout=f_std, stderr=f_err)
         logger.info("Command {} finished running with returncode: {}".format(shengbte_cmd, return_code))
+        if return_code==1:
+            raise RuntimeError("Running ShengBTE failed")
 
         try:
             db_file = env_chk(self.get("db_file"), fw_spec)
@@ -2399,13 +2416,14 @@ class ShengBTEToDB(FiretaskBase):
             if self["t_range"]:
                 temps = np.linspace(100, 1000, 10)
             else:
-                temps = 300
+                temps = [300]
 
             # Save to DB
             summaries = []
             for temp in temps:
                 # xx, xy, xz, yx, yy, yz, zx, zy, zz
-                flattened_kappa = list(np.loadtxt('T'+str(int(temp))+'K/BTE.kappa_tensor')[1][1:])
+                flattened_kappa = np.loadtxt('T'+str(int(temp))+'K/BTE.kappa_tensor')[1][1:]
+                flattened_kappa = flattened_kappa.reshape((3, 3)).tolist()
                 summary = {
                     "date": datetime.now(),
                     "temperature": temp,

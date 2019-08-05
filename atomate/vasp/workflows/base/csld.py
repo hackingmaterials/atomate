@@ -51,7 +51,8 @@ class CompressedSensingLatticeDynamicsWF:
             num_displacements=10,
             min_random_distance=None,
             supercells_per_displacement_distance=1,
-            shengbte_t_range=False
+            shengbte_t_range=False,
+            shengbte_fworker=None
     ):
         """
         This workflow will use compressed sensing lattice dynamics (CSLD)
@@ -108,7 +109,14 @@ class CompressedSensingLatticeDynamicsWF:
             shengbte_t_range (bool): If False (default), calculate the lattice
                 thermal conductivity with ShengBTE at 300 K. If True, do the
                 calculation from 100-1000 K with 100 K steps (much slower).
+            shengbte_fworker (None or str): If None, the ShengBTE firework's
+                fworker will be set to all the previous fireworks' fworker. If
+                str, the ShengBTE firework's fworker will be set to
+                shengbte_fworker.
         """
+        # if force_diagonal_transformation is True and num_nn_dists==5:
+        #     num_nn_dists = 6
+
         self.uuid = str(uuid4())
         self.wf_meta = {
             "wf_uuid": self.uuid,
@@ -132,7 +140,7 @@ class CompressedSensingLatticeDynamicsWF:
         )
         # supercell (Structure)
         self.supercell = supercell_transform.apply_transformation(self.parent_structure)
-        self.trans_mat = supercell_transform.trans_mat
+        self.trans_mat = supercell_transform.trans_mat.tolist()
         self.supercell_smallest_dim = supercell_transform.smallest_dim
 
     # Generate list of perturbed supercells
@@ -148,6 +156,7 @@ class CompressedSensingLatticeDynamicsWF:
             )
 
         self.shengbte_t_range = shengbte_t_range
+        self.shengbte_fworker = shengbte_fworker
 
     def get_wf(
             self,
@@ -208,7 +217,8 @@ class CompressedSensingLatticeDynamicsWF:
                 first_pass=True,
                 static_user_incar_settings=static_user_incar_settings,
                 env_vars=c,
-                shengbte_t_range=self.shengbte_t_range
+                shengbte_t_range=self.shengbte_t_range,
+                shengbte_fworker=self.shengbte_fworker
             ),
             name="Compressed Sensing Lattice Dynamics",
             parents=fws[-len(self.perturbed_supercells):]
@@ -255,11 +265,13 @@ if __name__ == "__main__":
     from pymatgen.core.structure import Structure
     # prim = Structure.from_file('POSCAR_csld_primitivized')
 
-    prim = Structure.from_file('POSCAR-well_relaxed_Si')
+    prim = Structure.from_file('POSCAR-Si555')
+    # prim = Structure.from_file('POSCAR-Mg3Sb2_save')
+    # print(prim)
 
     csld_class = CompressedSensingLatticeDynamicsWF(prim,
                                                     symmetrize=False,
-                                                    num_nn_dists=5,
+                                                    num_nn_dists=6,
                                                     num_displacements=10,
                                                     supercells_per_displacement_distance=1,
                                                     force_diagonal_transformation=True
@@ -270,21 +282,23 @@ if __name__ == "__main__":
     wf = csld_class.get_wf()
     print("trans mat")
     print(csld_class.trans_mat)
+    print(type(csld_class.trans_mat))
     print(csld_class.supercell_smallest_dim)
     print(csld_class.supercell.num_sites)
     csld_class.supercell.to("poscar", filename="SPOSCAR-csld_super_Si")
+    # csld_class.supercell.to("poscar", filename="SPOSCAR-Mg3Sb2")
 
     wf = add_tags(wf, ['csld', 'v1', 'rees',
                        'pre-relaxed si', 'diagonal supercell',
-                       'not symmetrized'])
+                       'not symmetrized', '555'])
     wf = set_execution_options(wf, fworker_name="rees_the_fire_worker") #need this to run the fireworks
-    # wf = add_modify_incar(wf,
-    #                       modify_incar_params={'incar_update': {'ENCUT': 500,
-    #                                                             'ISPIN': 1}})
+    wf = add_modify_incar(wf,
+                          modify_incar_params={'incar_update': {'ENCUT': 500,
+                                                                'ISPIN': 1}})
     # print(wf)
 
-    lpad = LaunchPad.auto_load()
-    lpad.add_wf(wf)
+    # lpad = LaunchPad.auto_load()
+    # lpad.add_wf(wf)
 
 # uuid
 # 0ff0d430-b43f-4cb5-ac8b-55c465b7867c
