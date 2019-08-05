@@ -204,12 +204,13 @@ def approx_neb_screening_wf(
     approx_neb_params["user_incar_settings"]["LDAU"] = False
 
     insert_working_ion_fws = []
-    for coord in insert_coords:
+    for n, coord in enumerate(insert_coords):
         insert_working_ion_fws.append(
             InsertSitesFW(
                 approx_neb_wf_uuid=wf_uuid,
                 insert_specie=working_ion,
                 insert_coords=coord,
+                stable_sites_index=n,
                 db_file=db_file,
                 parents=host_lattice_fw,
             )
