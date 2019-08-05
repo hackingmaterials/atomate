@@ -160,6 +160,7 @@ def approx_neb_screening_wf(
     working_ion,
     insert_coords,
     n_images,
+    insert_coords_combinations,
     vasp_input_set=None,
     override_default_vasp_params=None,
     selective_dynamics_scheme="fix_two_atom",
@@ -228,19 +229,31 @@ def approx_neb_screening_wf(
             )
         )
 
-    #pathfinder_fw = PathFinderFW(
-    #    approx_neb_wf_uuid=wf_uuid,
-    #    n_images=n_images,
-    #    db_file=db_file,
-    #    parents=stable_site_fws,
-    #)
+    pathfinder_fws = []
+    for stable_sites_combo in insert_coords_combinations:
+        if isinstance(stable_sites_combo, (str)):
+            combo = stable_sites_combo.split("+")
+            if len(combo) == 2:
+                c = [int(combo[0]), int(combo[-1])]
+            else:
+                ValueError("string format in insert_coords_combinations is incorrect")
 
-    #get_images_fw = GetImagesFW(
-    #    approx_neb_wf_uuid=wf_uuid,
-    #    mobile_specie=working_ion,
-    #    selective_dynamics_scheme=selective_dynamics_scheme,
-    #    parents=pathfinder_fw
-    #)
+        pathfinder_fws.append(
+            PathFinderFW(
+                approx_neb_wf_uuid=wf_uuid,
+                n_images=n_images,
+                stable_sites_combo = combo,
+                db_file=db_file,
+                parents=[stable_site_fws[c[0]],stable_site_fws[c[1]]]
+            )
+        )
+
+    get_images_fw = GetImagesFW(
+        approx_neb_wf_uuid=wf_uuid,
+        mobile_specie=working_ion,
+        selective_dynamics_scheme=selective_dynamics_scheme,
+        parents=pathfinder_fws
+    )
 
     #relax_image_fws = [] #ToDo: modify
     #for n in range(0,n_images):
@@ -260,8 +273,8 @@ def approx_neb_screening_wf(
         [host_lattice_fw]
         + insert_working_ion_fws
         + stable_site_fws
-        #+ [pathfinder_fw]
-        #+ [get_images_fw]
+        + pathfinder_fws
+        + [get_images_fw]
         #+ relax_image_fws
     )
 

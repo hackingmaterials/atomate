@@ -259,6 +259,7 @@ class PathFinderFW(Firework):
         self,
         approx_neb_wf_uuid,
         n_images,
+        stable_sites_combo = None,
         name="pathfinder",
         db_file=DB_FILE,
         parents=None,
@@ -287,6 +288,7 @@ class PathFinderFW(Firework):
             PathfinderToDb(
                 db_file=db_file,
                 n_images=n_images,
+                stable_sites_combo=stable_sites_combo,
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
             )
         )
