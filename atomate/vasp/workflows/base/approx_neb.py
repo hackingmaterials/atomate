@@ -259,7 +259,7 @@ def approx_neb_screening_wf(
     wf = Workflow(
         [host_lattice_fw]
         + insert_working_ion_fws
-        #+ stable_site_fws
+        + stable_site_fws
         #+ [pathfinder_fw]
         #+ [get_images_fw]
         #+ relax_image_fws
