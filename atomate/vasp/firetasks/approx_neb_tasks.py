@@ -525,13 +525,18 @@ class PathfinderToDb(FiretaskBase):
         db_file (str): path to file containing the database credentials.
         approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
         n_images: n_images (int): number of images interpolated between end point structures
+    Optional Parameters:
+        stable_sites_combo (str): string must have format of "0+1",
+            "0+2", etc. to specify which combination of stable_sites to use for
+            path interpolation for cases with multiple stable sites
     """
 
     required_params = ["db_file", "n_images", "approx_neb_wf_uuid"]
-    optional_params = []
+    optional_params = ["stable_sites_combo"]
 
     def run_task(self, fw_spec):
         n_images = self["n_images"]
+        stable_sites_combo = self.get("stable_sites_combo")
 
         # get the database connection
         db_file = env_chk(self["db_file"], fw_spec)
@@ -552,73 +557,63 @@ class PathfinderToDb(FiretaskBase):
         host_lattice_chgcar = mmdb.get_chgcar(task_id)
         v_chgcar = ChgcarPotential(host_lattice_chgcar)
         host_lattice_v = v_chgcar.get_v()
-        mmdb.collection = mmdb.db["approx_neb"]
 
-        # get end point structures from stable_sites
-        end_point_structs = [
-            Structure.from_dict(stable_site["output"]["structure"])
-            for stable_site in stable_sites
-        ]
-
-        # checks if all indexes match and if so, gets the inserted site indexes
-        indexes = [i["inserted_site_indexes"] for i in approx_neb_doc["stable_sites"]]
-        if all([i == indexes[0] for i in indexes]):  # if all indexes match
-            inserted_site_indexes = indexes[0]
+        # get two desired stable_sites indexes for end point structures
+        if isinstance(stable_sites_combo, (str)):
+            combo = stable_sites_combo.split("+")
+            if len(combo) == 2:
+                c = [int(combo[0]), int(combo[-1])]
+            else:
+                ValueError("stable_sites_combo string format incorrect")
+        elif len(stable_sites) == 2:
+            c = [0,1]
         else:
+            ValueError(
+                "NEBPathfinder requires at exactly two stable sites"
+            )
+
+        # get start and end point structures from stable_sites
+        start_struct = Structure.from_dict(stable_sites[c[0]]["output"]["structure"])
+        end_struct = Structure.from_dict(stable_sites[c[1]]["output"]["structure"])
+
+        # checks if inserted site indexes match
+        inserted_site_indexes = stable_sites[c[0]]["inserted_site_indexes"]
+        if inserted_site_indexes != stable_sites[c[1]]["inserted_site_indexes"]:
             ValueError(
                 "Inserted site indexes of end point structures must match for NEBPathfinder"
             )
 
         # applies NEBPathFinder to interpolate and get images to store in
-        # pathfinder_output. pathfinder_output is a unnested dictionary if
-        # there are only two end point structures. pathfinder_output will be
-        # a nested dictionary if there are more than two end point structures.
-        n_end_point_structs = len(end_point_structs)
-        if n_end_point_structs == 2:
-            neb_pf = NEBPathfinder(
-                end_point_structs[0],
-                end_point_structs[-1],
-                relax_sites=inserted_site_indexes,
-                v=host_lattice_v,
-                n_images=n_images - 1,
-            )
-            # note NEBPathfinder currently returns n_images+1 images (rather than n_images)
-
-            pathfinder_output = {
-                "images": [structure.as_dict() for structure in neb_pf.images],
-                "relax_site_indexes": inserted_site_indexes,
-            }
-        elif n_end_point_structs > 2:
-            pathfinder_output = dict()
-            for c in combinations(range(0,n_end_point_structs),2):
-                neb_pf = NEBPathfinder(
-                    end_point_structs[c[0]],
-                    end_point_structs[c[1]],
-                    relax_sites=inserted_site_indexes,
-                    v=host_lattice_v,
-                    n_images=n_images - 1,
-                )
-                key = str(c[0]) + "+" + str(c[1])
-                pathfinder_output[key] = {
-                    "images": [structure.as_dict() for structure in neb_pf.images],
-                    "relax_site_indexes": inserted_site_indexes,
-                }
-        else:
-            ValueError(
-                "NEBPathfinder requires at least two stable sites"
-            )
-            #"Firetask does not support NEBPathfinder with more than two stable sites"
-            # ToDo: handling more than two provided stable sites
+        # pathfinder_output.
+        neb_pf = NEBPathfinder(
+            start_struct,
+            end_struct,
+            relax_sites=inserted_site_indexes,
+            v=host_lattice_v,
+            n_images=n_images - 1,
+        )
+        # note NEBPathfinder currently returns n_images+1 images (rather than n_images)
+        pathfinder_output = {
+            "images": [structure.as_dict() for structure in neb_pf.images],
+            "relax_site_indexes": inserted_site_indexes,
+        }
 
         # stores images generated by NEBPathFinder in approx_neb collection
+        # pathfinder field is either an unnested dictionary if there are
+        # exactly two stable sites or a nested dictionary if there are more
+        # than two stable sites.
+        path = "pathfinder"
+        if isinstance(stable_sites_combo, (str)):
+            path = path + "." + stable_sites_combo
+        mmdb.collection = mmdb.db["approx_neb"]
         mmdb.collection.update_one(
-            {"wf_uuid": wf_uuid}, {"$set": {"pathfinder": pathfinder_output}}
+            {"wf_uuid": wf_uuid}, {"$set": {path: pathfinder_output}}
         )
 
         return FWAction(
             stored_data={
                 "wf_uuid": wf_uuid,
-                "num_end_point_structs": len(end_point_structs),
+                "stable_sites_combo": c,
                 "pathfinder": pathfinder_output,
             }
         )
