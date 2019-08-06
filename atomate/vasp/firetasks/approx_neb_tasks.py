@@ -30,10 +30,15 @@ class HostLatticeToDb(FiretaskBase):
         approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
         host_lattice_task_id (int): task_id for structure optimization of host
             lattice. Must be provided in the fw_spec or firetask inputs.
+    Optional Args:
+        additional_fields (dict): specifies more information to be stored in
+            the approx_neb collection to assist user record keeping.
+        tags (list): list of strings to be stored in the approx_neb collection
+            under the field "tags" to assist user record keeping.
     """
 
     required_params = ["db_file", "approx_neb_wf_uuid"]
-    optional_params = ["host_lattice_task_id", "additional_fields"]
+    optional_params = ["host_lattice_task_id", "additional_fields", "tags"]
 
     def run_task(self, fw_spec):
         # get the database connection
@@ -76,135 +81,30 @@ class HostLatticeToDb(FiretaskBase):
             },
             "wf_uuid": wf_uuid,
             "stable_sites": [],
+            "tags":[]
         }
 
         # Adds additional fields to approx_neb_doc stored in the task doc
-        standard_task_doc_keys = [
-            "_id",
-            "dir_name",
-            "task_label",
-            "approx_neb",
-            "schema",
-            "calcs_reversed",
-            "run_stats",
-            "chemsys",
-            "formula_anonymous",
-            "formula_reduced_abc",
-            "completed_at",
-            "nsites",
-            "composition_unit_cell",
-            "composition_reduced",
-            "formula_pretty",
-            "elements",
-            "nelements",
-            "input",
-            "output",
-            "state",
-            "analysis",
-            "last_updated",
-            "transformations",
-            "custodian",
-            "orig_inputs",
-            "task_id",
-        ]
-        for key, value in host_lattice_tasks_doc.items():
-            if key not in standard_task_doc_keys+["approx_neb"]:
-                if key not in approx_neb_doc.keys():
+        additional_fields = self.get("additional_fields")
+        if isinstance(additional_fields,(dict)):
+            for key, value in additional_fields.items():
+                if key == "tags" and isinstance(value,(list)):
+                    approx_neb_doc["tags"].extend(value)
+                elif key not in approx_neb_doc.keys():
                     approx_neb_doc[key] = value
 
-        # Gets GridFS ids for host lattice chgcar and aeccar if stored in task_doc
-        # gridfs_ids is for record keeping to track the source of GridFS ids
-        chgcar_fs_id = host_lattice_tasks_doc["calcs_reversed"][0].get("chgcar_fs_id")
-        aeccar0_fs_id = host_lattice_tasks_doc["calcs_reversed"][0].get("aeccar0_fs_id")
-        aeccar2_fs_id = host_lattice_tasks_doc["calcs_reversed"][0].get("aeccar2_fs_id")
-        gridfs_ids = {
-            "task_doc_chgcar": chgcar_fs_id,
-            "task_doc_aeccar0": aeccar0_fs_id,
-            "task_doc_aeccar2": aeccar2_fs_id,
-        }
+        # Adds additional fields to approx_neb_doc stored in the task doc
+        tags = self.get("tags")
+        if tags:
+            approx_neb_doc["tags"].extend(tags)
 
-        # If unable to get GridFS ids, checks task doc directory for
-        # CHGCAR and/or AECCAR files. Stores files in database via GridFS
-        # and updates host lattice task doc with the created fs_id.
-        # Note: this will not work if computer does not have access to the
-        # VASP calculation directory specified by the host lattice task doc dir_name
-        # or if there is an error parsing the task doc dir_name
-        if any(fs_id == None for fs_id in [chgcar_fs_id, aeccar0_fs_id, aeccar2_fs_id]):
-            calc_dir = approx_neb_doc["host_lattice"]["dir_name"]
-            # imperfect fix for parsing if host name is included task doc dir_name
-            if ":" in calc_dir:
-                calc_dir = calc_dir.split(":")[-1]
+        # Gets GridFS ids for host lattice chgcar and aeccars if stored in task_doc.
+        # Store GridFS ids in approx_neb_doc (to be stored in the approx_neb collection).
+        # None will be stored if no gridfs_id is found.
+        for key in ["chgcar_fs_id","aeccar0_fs_id","aeccar2_fs_id"]:
+            grid_fs_id = host_lattice_tasks_doc["calcs_reversed"][0].get(key)
+            approx_neb_doc["host_lattice"][key] = grid_fs_id
 
-            logger.info("APPROX NEB: CHECKING FOR CHARGE DENSITY FILES")
-            drone = VaspDrone(parse_chgcar=True, parse_aeccar=True)
-            if os.path.exists(calc_dir):
-                task_doc = drone.assimilate(calc_dir)
-                output_files = task_doc["calcs_reversed"][0]["output_file_paths"].keys()
-
-                # insert CHGCAR with GridFS
-                if chgcar_fs_id == None and "chgcar" in output_files:
-                    chgcar = json.dumps(
-                        task_doc["calcs_reversed"][0]["chgcar"], cls=MontyEncoder
-                    )
-                    chgcar_gfs_id, compression_type = mmdb.insert_gridfs(
-                        chgcar, "chgcar_fs", task_id=t_id
-                    )
-                    mmdb.collection.update_one(
-                        {"task_id": t_id},
-                        {
-                            "$set": {
-                                "calcs_reversed.0.chgcar_compression": compression_type,
-                                "calcs_reversed.0.chgcar_fs_id": chgcar_gfs_id,
-                            }
-                        },
-                    )
-                    gridfs_ids["dir_chgcar"] = chgcar_gfs_id
-                    logger.info("APPROX NEB: CHGCAR GRIDFS INSERTION COMPLETE")
-
-                # insert AECCAR with GridFS
-                if aeccar0_fs_id == None or aeccar2_fs_id == None:
-                    if "aeccar0" in output_files and "aeccar2" in output_files:
-                        aeccar0 = task_doc["calcs_reversed"][0]["aeccar0"]
-                        aeccar2 = task_doc["calcs_reversed"][0]["aeccar2"]
-                        # check if the aeccar is valid before insertion
-                        if (aeccar0.data["total"] + aeccar2.data["total"]).min() < 0:
-                            logger.warning(
-                                "AECCARs APPEAR CORRUPTED. GridFS STORAGE SKIPPED"
-                            )
-                        else:
-                            aeccar0_gfs_id, compression_type = mmdb.insert_gridfs(
-                                aeccar0, "aeccar0_fs", task_id=t_id
-                            )
-                            mmdb.collection.update_one(
-                                {"task_id": t_id},
-                                {
-                                    "$set": {
-                                        "calcs_reversed.0.aeccar0_compression": compression_type,
-                                        "calcs_reversed.0.aeccar0_fs_id": aeccar0_gfs_id,
-                                    }
-                                },
-                            )
-                            gridfs_ids["dir_aeccar0"] = aeccar0_gfs_id
-                            aeccar2_gfs_id, compression_type = mmdb.insert_gridfs(
-                                aeccar2, "aeccar2_fs", task_id=t_id
-                            )
-                            mmdb.collection.update_one(
-                                {"task_id": t_id},
-                                {
-                                    "$set": {
-                                        "calcs_reversed.0.aeccar2_compression": compression_type,
-                                        "calcs_reversed.0.aeccar2_fs_id": aeccar2_gfs_id,
-                                    }
-                                },
-                            )
-                            gridfs_ids["dir_aeccar2"] = aeccar2_gfs_id
-                            logger.info("APPROX NEB: AECCAR GRIDFS INSERTION COMPLETE")
-
-        # Store GridFS ids in approx_neb_doc (to be stored in the approx_neb collection)
-        # None will be stored if no gridfs_id is found
-        approx_neb_doc["host_lattice"]["chgcar_fs_id"] = chgcar_fs_id or gridfs_ids.get("dir_chgcar")
-        approx_neb_doc["host_lattice"]["aeccar0_fs_id"] = aeccar0_fs_id or gridfs_ids.get("dir_aeccar0")
-        approx_neb_doc["host_lattice"]["aeccar2_fs_id"] = aeccar2_fs_id or gridfs_ids.get("dir_aeccar2")
         # Insert approx_neb_doc in the approx_neb collection of provided database
         mmdb.collection = mmdb.db["approx_neb"]
         mmdb.collection.insert_one(approx_neb_doc)
@@ -212,8 +112,7 @@ class HostLatticeToDb(FiretaskBase):
         # Update fw_spec with approx_neb_doc and
         # store wf_uuid and gridfs_ids in launches collection for record keeping
         return FWAction(
-            stored_data={"wf_uuid": wf_uuid, "gridfs_ids": gridfs_ids},
-            update_spec=approx_neb_doc,
+            stored_data={"wf_uuid": wf_uuid, "approx_neb_doc": approx_neb_doc}
         )
 
 
