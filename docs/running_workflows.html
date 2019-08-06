@@ -1,18 +1,17 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Running workflows tutorial &#8212; atomate 0.9.1 documentation</title>
+    <meta charset="utf-8" />
+    <title>Running workflows tutorial &#8212; atomate 0.9.2 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Running Gibbs Workflows" href="gibbs_workflow_tutorial.html" />
@@ -36,7 +35,7 @@
         <li class="right" >
           <a href="developer_installation.html" title="Installing atomate in development mode"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.2 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -56,8 +55,8 @@ This tutorial will quickly guide you through customizing and running a preset wo
 <div class="section" id="objectives">
 <h2>Objectives<a class="headerlink" href="#objectives" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>Run an atomate preset workflow using Python</li>
-<li>Analyze the results using pymatgen</li>
+<li><p>Run an atomate preset workflow using Python</p></li>
+<li><p>Analyze the results using pymatgen</p></li>
 </ul>
 </div>
 <div class="section" id="prerequisites">
@@ -65,8 +64,8 @@ This tutorial will quickly guide you through customizing and running a preset wo
 <p>In order for you to complete this tutorial you need</p>
 <blockquote>
 <div><ul class="simple">
-<li>A working installation of atomate</li>
-<li>A text editor</li>
+<li><p>A working installation of atomate</p></li>
+<li><p>A text editor</p></li>
 </ul>
 </div></blockquote>
 </div>
@@ -77,9 +76,9 @@ Here we will use a preset workflow to calculate the bandstructure.
 A schematic of the workflow is below.
 First, the structure is optimized and a selfconsistent static calculation is performed.
 Then non-selfconsistent static calculations are completed with k-points on a path (for bandstructures) and k-points uniformly sampling the Brillouin zone.</p>
-<div class="figure" id="id3">
+<div class="figure align-default" id="id3">
 <a class="reference internal image-reference" href="_images/bandstructure_wf.png"><img alt="Electronic Bandstructure Workflow" src="_images/bandstructure_wf.png" style="width: 999.5px; height: 478.0px;" /></a>
-<p class="caption"><span class="caption-text">Atomate bandstructure workflow. An optimization and static calculation followed by uniform and line non-selfconsistent calculations.</span></p>
+<p class="caption"><span class="caption-text">Atomate bandstructure workflow. An optimization and static calculation followed by uniform and line non-selfconsistent calculations.</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="running-a-bandstructure-workflow">
@@ -92,8 +91,8 @@ Then non-selfconsistent static calculations are completed with k-points on a pat
 </pre></div>
 </div>
 <div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">This will reset all of your previous Fireworks and Workflows in your LaunchPad. Do not do this if you have actual results that you want to keep!</p>
+<p class="admonition-title">Warning</p>
+<p>This will reset all of your previous Fireworks and Workflows in your LaunchPad. Do not do this if you have actual results that you want to keep!</p>
 </div>
 <p>If you do not or want to reset your LaunchPad, you can set up a different database to use for tutorials or simply accept mixing your previous results and workflows with the contents of this tutorial in your database.</p>
 </div>
@@ -223,10 +222,10 @@ Simply add the following Python script (<code class="docutils literal notranslat
 </pre></div>
 </div>
 <p>If you open the saved figures, you should see a plot of your DOS and bandstructure!</p>
-<div class="figure">
+<div class="figure align-default">
 <img alt="MgO density of states" src="_images/MgO-dos.png" />
 </div>
-<div class="figure">
+<div class="figure align-default">
 <img alt="MgO bandstructure" src="_images/MgO-bandstructure.png" />
 </div>
 </div>
@@ -236,9 +235,9 @@ Simply add the following Python script (<code class="docutils literal notranslat
 <p>To see what preset workflows can be run, see the documentation that includes them at <a class="reference internal" href="atomate.vasp.workflows.presets.html#module-atomate.vasp.workflows.presets" title="atomate.vasp.workflows.presets"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.presets</span></code></a>. They can be set up the same way as in this tutorial.</p>
 <p>At this point, you might:</p>
 <ul class="simple">
-<li>Try another example: running a Gibbs free energy workflow: <a class="reference internal" href="gibbs_workflow_tutorial.html#running-gibbs-workflows"><span class="std std-ref">Running Gibbs Workflows</span></a>.</li>
-<li>Skip to exploring how to use builders to generate metadata: <a class="reference internal" href="builders.html#builders"><span class="std std-ref">Builders: creating calculation reports for data analysis</span></a>.</li>
-<li>Skip to learning how to create your own workflows that you can use and distribute: <a class="reference internal" href="creating_workflows.html#creating-workflows"><span class="std std-ref">Creating Workflows</span></a>.</li>
+<li><p>Try another example: running a Gibbs free energy workflow: <a class="reference internal" href="gibbs_workflow_tutorial.html#running-gibbs-workflows"><span class="std std-ref">Running Gibbs Workflows</span></a>.</p></li>
+<li><p>Skip to exploring how to use builders to generate metadata: <a class="reference internal" href="builders.html#builders"><span class="std std-ref">Builders: creating calculation reports for data analysis</span></a>.</p></li>
+<li><p>Skip to learning how to create your own workflows that you can use and distribute: <a class="reference internal" href="creating_workflows.html#creating-workflows"><span class="std std-ref">Creating Workflows</span></a>.</p></li>
 </ul>
 </div>
 </div>
@@ -285,13 +284,11 @@ Simply add the following Python script (<code class="docutils literal notranslat
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -315,13 +312,13 @@ Simply add the following Python script (<code class="docutils literal notranslat
         <li class="right" >
           <a href="developer_installation.html" title="Installing atomate in development mode"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.2 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
     </div>
 
   </body>
