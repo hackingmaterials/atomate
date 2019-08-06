@@ -254,7 +254,6 @@ class InsertSites(FiretaskBase):
         # store stable site input structures in approx_neb collection
         if self.get("approx_neb_wf_uuid"):
             try:
-                # TODO: Store fw_id in approx_neb.stable_sites.input_structure
                 mmdb.collection.update_one(
                     {"wf_uuid": wf_uuid},
                     {
@@ -542,7 +541,14 @@ class AddSelectiveDynamics(FiretaskBase):
             (e.g. "Li" if the working ion of interest is a Li). Provided  to
             perform a built in check on the structures pulled the approx_neb doc.
         selective_dynamics_scheme (str): "fix_two_atom"
-        """
+    Optional Params:
+        pathfinder_key (str): for cases with multiple paths where the approx_neb
+        pathfinder field is a nested dictionary, must specify a key
+        corresponding the pathfinder field derived from the desired
+        combination of stable sites. pathfinder_key should be a string
+        of format "0+1", "0+2", etc. matching stable_sites_combo input
+        of PathfinderToDb Firetask.
+    """
 
     required_params = [
         "db_file",
@@ -550,7 +556,7 @@ class AddSelectiveDynamics(FiretaskBase):
         "mobile_specie",
         "selective_dynamics_scheme",
     ]
-    optional_params = []
+    optional_params = ["pathfinder_key"]
 
     def run_task(self, fw_spec):
         # get the database connection to the approx_neb collection
@@ -564,50 +570,40 @@ class AddSelectiveDynamics(FiretaskBase):
             {"wf_uuid": wf_uuid}, {"pathfinder": 1}
         )
 
-        fixed_specie = self["mobile_specie"]
-        scheme = self["selective_dynamics_scheme"]
         # get structures stored in "pathfinder" field
-        # apply selective dynamics to get images
-        if "images" in approx_neb_doc["pathfinder"].keys():
+        pathfinder_key = self.get("pathfinder_key")
+        if pathfinder_key:
+            structure_docs = approx_neb_doc["pathfinder"][pathfinder_key]["images"]
+            fixed_index = approx_neb_doc["pathfinder"][pathfinder_key]["relax_site_indexes"]
+        elif "images" in approx_neb_doc["pathfinder"].keys():
             structure_docs = approx_neb_doc["pathfinder"]["images"]
             fixed_index = approx_neb_doc["pathfinder"]["relax_site_indexes"]
-            all_images = self.get_images_list(structure_docs,scheme,fixed_index,fixed_specie)
-        else:
-            all_images = dict()
-            for key in approx_neb_doc["pathfinder"].keys():
-                structure_docs = approx_neb_doc["pathfinder"][key]["images"]
-                fixed_index = approx_neb_doc["pathfinder"][key]["relax_site_indexes"]
-                images = self.get_images_list(structure_docs,scheme,fixed_index,fixed_specie)
-                all_images[key] = images
+
+        # apply selective dynamics to get images (list of pymatgen structures)
+        fixed_specie = self["mobile_specie"]
+        scheme = self["selective_dynamics_scheme"]
+        images = self.get_images_list(structure_docs,scheme,fixed_index,fixed_specie)
 
         # assemble images output to be stored in approx_neb collection
-        if isinstance(all_images, (list)):
-            images_output = []
-            for n, image in enumerate(all_images):
-                images_output.append(
-                    {
-                        "index": n,
-                        "input_structure": image.as_dict(),
-                        "selective_dynamics_scheme": scheme,
-                    }
-                )
-        elif isinstance(all_images, (dict)):
-            images_output = dict()
-            for key,images in all_images.items():
-                images_output[key] = []
-                for n, image in enumerate(images):
-                    images_output[key].append({
-                        "index": n,
-                        "input_structure": image.as_dict(),
-                        "selective_dynamics_scheme": scheme,
-                    })
+        images_output = []
+        for n, image in enumerate(images):
+            images_output.append(
+                {
+                    "index": n,
+                    "input_structure": image.as_dict(),
+                    "selective_dynamics_scheme": scheme,
+                }
+            )
 
+        # store images output in approx_neb collection
+        path = "images"
+        if pathfinder_key:
+            path = path+"."+pathfinder_key
         mmdb.collection.update_one(
-            {"wf_uuid": wf_uuid}, {"$set": {"images": images_output}}
+            {"wf_uuid": wf_uuid}, {"$set": {path: images_output}}
         )
 
         return FWAction(
-            update_spec={"images": images_output},
             stored_data={"wf_uuid": wf_uuid, "images_output": images_output},
         )
 
