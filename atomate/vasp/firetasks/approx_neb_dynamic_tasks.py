@@ -23,6 +23,7 @@ class GetImageFireworks(FiretaskBase):
         db_file (str): path to file containing the database credentials.
         approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
         launch_mode (int): "all" or "screening"
+        vasp_cmd (...): ...
     """
 
     required_params = ["db_file", "approx_neb_wf_uuid", "launch_mode", "vasp_cmd"]

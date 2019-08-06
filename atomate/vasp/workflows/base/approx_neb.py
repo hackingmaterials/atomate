@@ -20,6 +20,7 @@ from atomate.vasp.fireworks.approx_neb import (
     PathFinderFW,
     GetImagesFW,
 )
+from atomate.vasp.firetasks.approx_neb_dynamic_tasks import GetImageFireworks
 
 # ToDo: add way to provide tags/additional fields to docs in approx_neb collection
 # TODO: Write approx_neb_wf_description
@@ -164,6 +165,7 @@ def approx_neb_screening_wf(
     vasp_input_set=None,
     override_default_vasp_params=None,
     selective_dynamics_scheme="fix_two_atom",
+    launch_mode="all",
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
     name="Approx NEB",
@@ -236,7 +238,7 @@ def approx_neb_screening_wf(
             if len(combo) == 2:
                 c = [int(combo[0]), int(combo[-1])]
             else:
-                ValueError("string format in insert_coords_combinations is incorrect")
+                raise ValueError("string format in insert_coords_combinations is incorrect")
 
         pathfinder_fws.append(
             PathFinderFW(
@@ -255,19 +257,15 @@ def approx_neb_screening_wf(
         parents=pathfinder_fws
     )
 
-    #relax_image_fws = [] #ToDo: modify
-    #for n in range(0,n_images):
-    #    path = "images." + str(n) + ".input_structure"
-    #    relax_image_fws.append(
-    #        ApproxNEBLaunchFW(
-    #            calc_type="image",
-    #            approx_neb_wf_uuid=wf_uuid,
-    #            structure_path=path,
-    #            db_file=db_file,
-    #            override_default_vasp_params=approx_neb_params,
-    #            parents=get_images_fw,
-    #        )
-    #    )
+    dynamic_ft = GetImageFireworks(
+        launch_mode=launch_mode,
+        approx_neb_wf_uuid=wf_uuid,
+        vasp_cmd=vasp_cmd,
+        db_file=db_file,
+        override_default_vasp_params=approx_neb_params,
+        parents=get_images_fw
+    )
+    relax_images_fw = Firework(dynamic_ft, name="dynamic image launch", parents=get_images_fw)
 
     wf = Workflow(
         [host_lattice_fw]
@@ -275,7 +273,7 @@ def approx_neb_screening_wf(
         + stable_site_fws
         + pathfinder_fws
         + [get_images_fw]
-        #+ relax_image_fws
+        + [relax_images_fw]
     )
 
     wf = use_custodian(

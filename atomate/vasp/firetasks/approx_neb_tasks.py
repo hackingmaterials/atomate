@@ -564,13 +564,17 @@ class PathfinderToDb(FiretaskBase):
             if len(combo) == 2:
                 c = [int(combo[0]), int(combo[-1])]
             else:
-                ValueError("stable_sites_combo string format incorrect")
+                raise ValueError("stable_sites_combo string format incorrect")
         elif len(stable_sites) == 2:
             c = [0,1]
         else:
-            ValueError(
-                "NEBPathfinder requires at exactly two stable sites"
+            raise ValueError(
+                "NEBPathfinder requires exactly two stable sites"
             )
+        print(c)
+        print(stable_sites[0].keys())
+        print(stable_sites[c[0]].keys())
+        print(stable_sites[c[1]].keys())
 
         # get start and end point structures from stable_sites
         start_struct = Structure.from_dict(stable_sites[c[0]]["output"]["structure"])
@@ -579,7 +583,7 @@ class PathfinderToDb(FiretaskBase):
         # checks if inserted site indexes match
         inserted_site_indexes = stable_sites[c[0]]["inserted_site_indexes"]
         if inserted_site_indexes != stable_sites[c[1]]["inserted_site_indexes"]:
-            ValueError(
+            raise ValueError(
                 "Inserted site indexes of end point structures must match for NEBPathfinder"
             )
 

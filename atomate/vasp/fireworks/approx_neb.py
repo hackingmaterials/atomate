@@ -337,3 +337,4 @@ class GetImagesFW(Firework):
         )
 
         super().__init__(tasks=t, name=name, parents=parents, **kwargs)
+
