@@ -114,8 +114,8 @@ class CompressedSensingLatticeDynamicsWF:
                 str, the ShengBTE firework's fworker will be set to
                 shengbte_fworker.
         """
-        # if force_diagonal_transformation is True and num_nn_dists==5:
-        #     num_nn_dists = 6
+        if force_diagonal_transformation is True and num_nn_dists==5:
+            num_nn_dists = 6
 
         self.uuid = str(uuid4())
         self.wf_meta = {
@@ -138,8 +138,10 @@ class CompressedSensingLatticeDynamicsWF:
             self.num_nn_dists,
             force_diagonal_transformation=force_diagonal_transformation
         )
+
         # supercell (Structure)
         self.supercell = supercell_transform.apply_transformation(self.parent_structure)
+        self.nn_dist = supercell_transform.nn_dist
         self.trans_mat = supercell_transform.trans_mat.tolist()
         self.supercell_smallest_dim = supercell_transform.smallest_dim
 
@@ -243,31 +245,11 @@ class CompressedSensingLatticeDynamicsWF:
 if __name__ == "__main__":
 
     from fireworks import LaunchPad
-    from pymatgen.ext.matproj import MPRester
     from atomate.vasp.powerups import add_tags, set_execution_options, add_modify_incar
-
-    #get a structure
-    # mpr = MPRester(api_key='auNIrJ23VLXCqbpl')
-    # # structure = mpr.get_structure_by_material_id('mp-149') #Si
-    # structure = mpr.get_structure_by_material_id('mp-1101039')
-    # test_trans_mat = np.linalg.inv(structure.lattice.matrix) @ (np.eye(3,3) * 20)
-    # print(test_trans_mat)
-    # print(np.linalg.det(test_trans_mat))
-    # structure_test = structure * test_trans_mat
-    # structure_test.to("poscar", filename="POSCAR-noninteger_trans_test")
-
-    # # CONVENTIONAL PRIMITIVE CELL WITH SYMMETRIZATION
     from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-    # sga = SpacegroupAnalyzer(structure, symprec=0.1)
-    # prim = sga.get_primitive_standard_structure()
-
-    # CSLD'S POLARON MAIN-GENERATED PRIMITIVE CELL
     from pymatgen.core.structure import Structure
-    # prim = Structure.from_file('POSCAR_csld_primitivized')
 
-    prim = Structure.from_file('POSCAR-Si555')
-    # prim = Structure.from_file('POSCAR-Mg3Sb2_save')
-    # print(prim)
+    prim = Structure.from_file('POSCAR-well_relaxed_InSb_csld_primitivized')
 
     csld_class = CompressedSensingLatticeDynamicsWF(prim,
                                                     symmetrize=False,
@@ -282,34 +264,24 @@ if __name__ == "__main__":
     wf = csld_class.get_wf()
     print("trans mat")
     print(csld_class.trans_mat)
-    print(type(csld_class.trans_mat))
+    print("nn dist")
+    print(csld_class.nn_dist)
+    print("supercell shortest direction (Angstroms)")
     print(csld_class.supercell_smallest_dim)
+    print("supercell number of atoms")
     print(csld_class.supercell.num_sites)
-    csld_class.supercell.to("poscar", filename="SPOSCAR-csld_super_Si")
-    # csld_class.supercell.to("poscar", filename="SPOSCAR-Mg3Sb2")
+    csld_class.supercell.to("poscar", filename="SPOSCAR-InSb_diagonal")
 
     wf = add_tags(wf, ['csld', 'v1', 'rees',
-                       'pre-relaxed si', 'diagonal supercell',
-                       'not symmetrized', '555'])
+                       'pre-relaxed insb', 'diagonal supercell',
+                       'not symmetrized'])
     wf = set_execution_options(wf, fworker_name="rees_the_fire_worker") #need this to run the fireworks
-    wf = add_modify_incar(wf,
-                          modify_incar_params={'incar_update': {'ENCUT': 500,
-                                                                'ISPIN': 1}})
-    # print(wf)
+    # wf = add_modify_incar(wf,
+    #                       modify_incar_params={'incar_update': {'ENCUT': 500,
+    #                                                             'ISPIN': 1}})
 
     # lpad = LaunchPad.auto_load()
     # lpad.add_wf(wf)
-
-# uuid
-# 0ff0d430-b43f-4cb5-ac8b-55c465b7867c
-# DISPS
-# [0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 ]
-# trans mat
-# [[-3.  3.  3.]
-#  [ 3. -3.  3.]
-#  [ 3.  3. -3.]]
-# 23.745154105620003
-# 432
 
 #################custom csld_main below##################
 def csld_main(options, settings):

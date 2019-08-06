@@ -1183,7 +1183,12 @@ class CSLDForceConstantsToDB(FiretaskBase):
     Optional parameters:
         shengbte_t_range (boolean): If True, pass to the ShengBTEToDB firetask
             that lattice thermal conductivity should be calculated for 100 K to
-            1000 K in steps of 100 K. If False, only calculate at 300 K.
+            1000 K in steps of 100 K. If False (default), only calculate at
+            300 K.
+        shengbte_fworker (str): If None (default), set the ShengBTE fworker to
+            the previous f_worker. Else, set it to the specified fworker
+            (allowing the user to run ShengBTE with different Fireworks
+            configurations than used to run the VASP static calculations).
     """
 
     logger = get_logger(__name__)
@@ -1195,9 +1200,9 @@ class CSLDForceConstantsToDB(FiretaskBase):
         "supercell_smallest_dim",
         "disps", "first_pass",
         "static_user_incar_settings", "env_vars",
-        "shengbte_t_range", "shengbte_fworker"]
+        ]
 
-    optional_params = []
+    optional_params = ["shengbte_t_range", "shengbte_fworker"]
 
     def random_search(self, maxIter):
         """
@@ -1251,7 +1256,40 @@ class CSLDForceConstantsToDB(FiretaskBase):
 
         return cluster_diam_settings, max_order_settings, submodel1_settings
 
-    def set_params(self, disps, iteration_number, cluster_diam, max_order, submodel1, export_sbte):
+    def set_params(self, iteration_number, disps,
+                   cluster_diam, max_order, submodel1, export_sbte):
+        """
+        This function deals with creating all the files, directories, and input
+        parameters necessary for running CSLD.
+
+        Specifically, it will save the transformation matrix (sc.txt) and parent
+        structure (POSCAR) in the current directory, create a folder for the current
+        iteration (e.g. Si_supercell_iter0) with subdirectories (e.g. disp0.010)
+        for each perturbed supercell. POSCARs of each perturbed supercell is written
+        inside the corresponding subdirectory. Next, all of CSLD's input parameters
+        are automatically generated in a format readable by CSLD and then saved to
+        the class' dictionary.
+
+        Args:
+            disps (list of floats): list of displacement distances for perturbed
+                supercells that ran successfully
+            iteration_number (int): current iteration (0-indexed) of the CSLD
+                grid or random search
+            cluster_diam (str): Space-separated string containing the spherical
+                length cutoffs for pair, triplet, and quadruplet interactions
+                 for CSLD (e.g. '11 6.5 5.0')
+            max_order (int): Max order of interatomic force constants to
+                consider (up to 6th order)
+            submodel1 (str): Anharmonicity orders to consider (e.g.
+                'anh 0 1 2 3')
+            export_sbte (str): Space-separated parameters for exporting CSLD's
+                interatomic force constants into a format readable by ShengBTE.
+                The first 3 numbers are the size of the supercell for which
+                interatomic force constants are exported. The next numbers are
+                the force constant orders to consider. E.g. To output 2nd and
+                3rd order force constants for a 5x5x5 supercell, the
+                corresponding string must be '5 5 5 2 3'.
+        """
         from configparser import ConfigParser
         supercell_folder = self["parent_structure"].composition.reduced_formula + \
                            "_supercell_iter" + str(iteration_number)
@@ -1268,7 +1306,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
         self["supercell_structure"].to("poscar", filename=supercell_folder + "/SPOSCAR")
         self["parent_structure"].to("poscar", filename=supercell_folder + "/POSCAR")
 
-        # Create folders for perturbed supercell POSCARS and force.txt's
+        # Create folders for perturbed supercell POSCARS and force.txt's (e.g. "Si_supercell_iter0/disp0.010")
         disp_folders = []
         csld_traindat_disp_folders = ''
         for idx, disp in enumerate(disps):
@@ -1280,15 +1318,6 @@ class CSLDForceConstantsToDB(FiretaskBase):
             os.mkdir(disp_folder)
             self["perturbed_supercells"][idx].to("poscar",
                                                  filename=disp_folder + "/POSCAR")
-
-        # Store information related to convergence of CSLD
-        self['convergence_info'] = {
-            'iteration': 0,
-            'settings_tried': [],
-            'cross_val_errors': [],
-            'most_imaginary_freqs': [],
-            'imaginary_freqs_sum': []
-        }
 
         # training>traindat1 setting for CSLD input
         csld_traindat_string = supercell_folder + '/SPOSCAR'
@@ -1421,18 +1450,29 @@ class CSLDForceConstantsToDB(FiretaskBase):
         self["forces_paths"] = disp_folders  # Paths to perturbed supercell folders
 
     def run_task(self, fw_spec):
+        # Connect to the database
         db_file = env_chk(self.get("db_file"), fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         # tasks = mmdb["tasks"]
         tasks = mmdb.collection
 
+        # Store information related to convergence of CSLD
         iter = 0
         not_converged = True
         maxIter = 2
         summaries = []
+        self['convergence_info'] = {
+            'iteration': iter,
+            'settings_tried': [],
+            'cross_val_errors': [],
+            'most_imaginary_freqs': [],
+            'imaginary_freqs_sum': []
+        }
 
-        #Set list of parameter settings to try (i.e. grid search settings)
-        # <FILL THESE IN FURTHER WITH SETTINGS TO TRY, IN ORDER>
+        # Set list of parameter settings to try (i.e. grid search settings)
+        # TODO: FILL THESE IN FURTHER WITH SETTINGS TO TRY, IN THE ORDER YOU WANT
+        #  TO TRY THEM. (May want to generate this with a grid search, depending
+        #  on what settings seem to work on many materials)
         cluster_diam_settings = ['11 6.5 5.0',
                                  '9 6.5 5.0']
         max_order_settings = [3] * len(cluster_diam_settings)
@@ -1442,14 +1482,14 @@ class CSLDForceConstantsToDB(FiretaskBase):
                              str(self["trans_mat"][2][2]) + ' 2 3'
         export_sbte_settings = [export_sbte_string] * len(cluster_diam_settings)
         if self["first_pass"] is False:
+            # If we are running CSLD a second time (i.e. with larger displaced
+            #  supercells, then duplicate all the settings to try with 4th order
+            #  instead of 3rd order anharmonicity
             max_order_settings += [4] * len(cluster_diam_settings)
             cluster_diam_settings += cluster_diam_settings
             submodel1_settings += submodel1_settings
             export_sbte_settings += export_sbte_settings
 
-        ##Generate list of parameter settings to try from random search
-        # cluster_diam_settings, max_order_settings, submodel1_settings = self.random_search(maxIter)
-        # export_sbte_settings = ['5 5 5 2 3'] * maxIter
         print('cluster_diam')
         print(cluster_diam_settings)
         print('max order')
@@ -1457,47 +1497,51 @@ class CSLDForceConstantsToDB(FiretaskBase):
         print('submodel')
         print(submodel1_settings)
 
+        uuid = self["wf_uuid"]
+        formula = self["parent_structure"].formula
+        formula_pretty = self[
+            "parent_structure"].composition.reduced_formula
+        task_label = 'static'
+        supercells_dicts = list(
+            tasks.find({"wf_meta.wf_uuid": uuid,  # <insert
+                        "task_label": {"$regex": task_label},
+                        "formula_pretty": formula_pretty,
+                        "state": 'successful'},
+                       ['task_id',
+                        'task_label',
+                        'output.forces']))
+        # list of dicts where each dict contains a task_id and a list of forces
+        #   for each supercell
+
+        supercells_forces = []
+        supercells_task_labels = []
+        successful_disps = [] #displacement values of successful static calcs
+        for supercell_dict in supercells_dicts:
+            # List of np.ndarrays where each np.ndarray is a matrix of forces
+            #  for a perturbed supercell
+            supercells_forces += [
+                np.asarray(supercell_dict['output']['forces'])]
+
+            # Supercell task labels
+            # e.g. 'InSb-perturbed supercell, idx: 0, disp_val: 0.010, static'
+            supercells_task_labels += [supercell_dict['task_label']]
+
+            # Store list of displacement values whose corresponding perturbed supercells successfully ran
+            successful_disp = re.search('disp_val: (\d+.\d+)', supercell_dict['task_label'])
+            successful_disps += [successful_disp.group(1)]
+
+        # Sort the forces by their task label so CSLD correctly matches forces
+        # with their corresponding perturbed supercell
+        supercells_zip = sorted(
+            zip(supercells_task_labels, supercells_forces),
+            key=lambda pair: pair[0])
+        supercells_forces = [supercells_forces for
+                             (supercells_task_labels, supercells_forces) in
+                             supercells_zip]
+
+        # Iterate over CSLD settings until real solutions are found or max
+        # iterations is reached.
         while not_converged and iter < maxIter:
-            uuid = self["wf_uuid"]
-            formula = self["parent_structure"].formula
-            formula_pretty = self[
-                "parent_structure"].composition.reduced_formula
-            task_label = 'static'
-            supercells_dicts = list(
-                tasks.find({"wf_meta.wf_uuid": uuid,  # <insert
-                            "task_label": {"$regex": task_label},
-                            "formula_pretty": formula_pretty,
-                            "state": 'successful'},
-                           ['task_id',
-                            'task_label',
-                            'output.forces']))
-            # list of dicts where each dict contatins a task_id and a list of forces
-            #   for each supercell
-
-            supercells_forces = []
-            supercells_task_labels = []
-            successful_disps = [] #displacement values of successful static calcs
-            for supercell_dict in supercells_dicts:
-                # List of np.ndarrays where each np.ndarray is a matrix of forces
-                #  for a perturbed supercell
-                print('SUPERCELL_DICT')
-                print(supercell_dict)
-                supercells_forces += [
-                    np.asarray(supercell_dict['output']['forces'])]
-
-                supercells_task_labels += [supercell_dict['task_label']]
-
-                successful_disp = re.search('disp_val: (\d+.\d+)', supercell_dict['task_label'])
-                successful_disps += [successful_disp.group(1)]
-
-            supercells_zip = sorted(
-                zip(supercells_task_labels, supercells_forces),
-                key=lambda pair: pair[0])
-            # sort by task labels
-            supercells_forces = [supercells_forces for
-                                 (supercells_task_labels, supercells_forces) in
-                                 supercells_zip]
-
             self.set_params(iter,
                             successful_disps,
                             cluster_diam_settings[iter],
@@ -1518,6 +1562,14 @@ class CSLDForceConstantsToDB(FiretaskBase):
                                              self["csld_settings"])
 
             freq_matrix = np.asarray(freq_matrix)
+
+            # CHECK FOR IMAGINARY PHONON MODES
+            # For imaginary frequencies, w^2 is negative.
+            # CSLD handles these as w = sign(sqrt(abs(w^2)), w^2).
+            # i.e. if w < 0, it is imaginary.
+            # Here, we consider phonon frequencies < -1 meV to be imaginary
+            #  (numerical noise can sometimes make frequencies slightly negative,
+            #   so we ignore these)
             imaginary_idx = freq_matrix < -1
             imaginary_freqs = freq_matrix[imaginary_idx]
             print('IMAGINARY FREQUENCIES')
@@ -1529,8 +1581,6 @@ class CSLDForceConstantsToDB(FiretaskBase):
             else:
                 most_imaginary_freq = 0
             print(most_imaginary_freq)
-            # For imaginary frequencies, w^2 is negative.
-            # Code handles it as w = sign(sqrt(abs(w^2)), w^2)
 
             if num_imaginary_bands == 0:
                 not_converged = False
@@ -1561,6 +1611,9 @@ class CSLDForceConstantsToDB(FiretaskBase):
                 "imaginary_freq_sum": float(sum(imaginary_freqs))
             }
 
+            # Store latest CSLD input settings tried
+            # TODO: If desired, store this information in a database to keep
+            #   track of what settings work and what doesn't for different materials
             latest_settings = {str(self["convergence_info"]["iteration"]):
                                    {self["csld_settings"]["model"]["max_order"],
                                     self["csld_settings"]["fitting"][
@@ -1582,9 +1635,12 @@ class CSLDForceConstantsToDB(FiretaskBase):
 
             iter += 1
 
+        # Store the summaries in a "compressed_sensing_lattice_dynamics"
+        #  collection of the database (if it does not exist, it will be created)
         mmdb.collection = mmdb.db["compressed_sensing_lattice_dynamics"]
         mmdb.collection.insert(summaries)
 
+        # Output lowest validation error and corresponding CSLD input settings
         best_idx = self["convergence_info"]["cross_val_errors"].index(
             min(self["convergence_info"]["cross_val_errors"]))
         print("The lowest error was {} percent.".format(
@@ -1593,6 +1649,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
             self["convergence_info"]["settings_tried"][best_idx]))
 
         if not_converged is False:
+        # If CSLD converged to 0 imaginary frequencies, create the ShengBTE FW
             logger.info("Compressed Sensing Lattice Dynamics calculation complete.")
             shengbte_fw = Firework(
                 ShengBTEToDB(
@@ -1600,7 +1657,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
                     shengbte_cmd=">>shengbte_cmd<<",
                     db_file=self["db_file"],
                     wf_uuid=self["wf_uuid"],
-                    t_range=self["shengbte_t_range"],
+                    t_range=self.get("shengbte_t_range", False),
                     trans_mat=self["trans_mat"]
                 ),
                 name="ShengBTE for Lattice Thermal Conductivity"
@@ -1620,7 +1677,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
             if self["parent_structure"].num_sites > 5 and self["first_pass"]:
                 logger.info("Compressed Sensing Lattice Dynamics calculation failed."
                             " Max iterations was reached. Creating larger displacements"
-                            " and trying again,")
+                            " and trying again.")
                 new_fws = []
 
                 # Create new perturbed supercells
@@ -1702,7 +1759,7 @@ class ShengBTEToDB(FiretaskBase):
 
     required_params = ["parent_structure", "shengbte_cmd", "db_file",
                        "wf_uuid", "trans_mat"]
-    optional_params = ["t_range"] #boolean for multiple temperatures
+    optional_params = ["t_range"]
 
     def run_task(self, fw_spec):
         from atomate.utils.utils import env_chk
@@ -1711,7 +1768,7 @@ class ShengBTEToDB(FiretaskBase):
         import six
         import shlex
 
-        # Generate CONTROL file
+        # Generate CONTROL file (a FORTRAN input file for ShengBTE)
         from pymatgen.io.shengbte import Control
         qpts = Kpoints.automatic_density(self["parent_structure"], 50000)
         unique_elements = [
@@ -1759,24 +1816,24 @@ class ShengBTEToDB(FiretaskBase):
         shutil.copy(force_constants_path+"/FORCE_CONSTANTS_2ND", os.getcwd())
         shutil.copy(force_constants_path+"/FORCE_CONSTANTS_3RD", os.getcwd())
 
-        # Set up/run ShengBTE
+        # Run ShengBTE
         shengbte_cmd = env_chk(self["shengbte_cmd"], fw_spec)
         if isinstance(shengbte_cmd, six.string_types):
             shengbte_cmd = os.path.expandvars(shengbte_cmd)
             shengbte_cmd = shlex.split(shengbte_cmd)
         shengbte_cmd = list(shengbte_cmd)
         logger.info("Running command: {}".format(shengbte_cmd))
-        # return_code = subprocess.call(shengbte_cmd) #call() waits for the process to finish
-
         with open("shengbte.out", 'w') as f_std, \
                 open("shengbte_err.txt", "w", buffering=1) as f_err:
             # use line buffering for stderr
             return_code = subprocess.call(shengbte_cmd, stdout=f_std, stderr=f_err)
         logger.info("Command {} finished running with returncode: {}".format(shengbte_cmd, return_code))
         if return_code==1:
-            raise RuntimeError("Running ShengBTE failed")
+            raise RuntimeError("Running ShengBTE failed. Check 'shengbte_err.txt'"
+                               " in the launch_dir for details.")
 
         try:
+            # Store lattice thermal conductivity matrix in the database
             db_file = env_chk(self.get("db_file"), fw_spec)
             mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
             if self["t_range"]:
