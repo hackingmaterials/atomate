@@ -42,7 +42,8 @@ class CalcDb(six.with_metaclass(ABCMeta)):
             raise Exception
         try:
             if self.user:
-                self.db.authenticate(self.user, self.password)
+                self.db.authenticate(self.user, self.password,
+                                     source=kwargs.get("authsource", None))
         except:
             logger.error("Mongodb authentication failed")
             raise ValueError
