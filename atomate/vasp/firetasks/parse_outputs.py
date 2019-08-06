@@ -1163,7 +1163,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
             which CSLD is being done
         perturbed_supercells (list of Structures): list of perturbed supercell
             structures auto-generated from CompressedSensingLatticeDynamicsWF
-        trans_mat (3x3 np.ndarray): supercell transformation matrix auto-
+        trans_mat (3x3 nested list): supercell transformation matrix auto-
             generated from CompressedSensingLatticeDynamicsWF
         supercell_structure (Structure): supercell structure of parent_structure,
             auto-generated from CompressedSensingLatticeDynamicsWF
