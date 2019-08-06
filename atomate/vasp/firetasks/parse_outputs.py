@@ -1145,13 +1145,13 @@ class PolarizationToDb(FiretaskBase):
 
 @explicit_serialize
 class CSLDForceConstantsToDB(FiretaskBase):
-    #TODO: Update this class once a public version of CSLD is released
-    #TODO: Update this class once Junsoo has fixed the cluster generation
+    #TODO: Update this class once Fei's CSLD is modified correctly
     """
     Used to aggregate atomic forces of perturbed supercells in compressed
     sensing lattice dynamics (CSLD) workflow and generate/write interatomic
     force constants up to 3rd order to file. The workflow uses a CSLD software
-    implemented by Zhou et al which can be found at https://github.com/LLNL/csld.
+    implemented by Zhou et al (https://github.com/LLNL/csld) and modified for
+    use in atomate (Aug 6, 2019: https://github.com/rees-c/csld).
 
     Required parameters:
         db_file (str): path to the db file that holds your tasks
