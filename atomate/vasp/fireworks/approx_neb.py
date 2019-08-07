@@ -433,7 +433,7 @@ class StableSiteFW(Firework):
                 db_file=db_file,
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
                 vasp_input_set=vasp_input_set,
-                structure_path="stable_sites." + str(stable_sites_index) + ".output.structure",
+                structure_path="stable_sites." + str(stable_sites_index) + ".input_structure",
                 override_default_vasp_params=override_default_vasp_params,
             )
         )

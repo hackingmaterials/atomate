@@ -1,7 +1,7 @@
 from fireworks import Firework, Workflow
 from copy import deepcopy
 from atomate.vasp.config import VASP_CMD, DB_FILE
-from atomate.vasp.powerups import use_custodian, add_additional_fields_to_taskdocs, add_tags
+from atomate.vasp.powerups import use_custodian, add_tags
 from custodian.vasp.handlers import (
     VaspErrorHandler,
     MeshSymmetryErrorHandler,
@@ -407,6 +407,7 @@ def approx_neb_multipath_wf(
     )
     if isinstance(tags,(list)):
         wf = add_tags(wf, tags)
+    wf.metadata.update({"approx_neb_wf_uuid":wf_uuid})
     wf.name = name
 
     return wf
