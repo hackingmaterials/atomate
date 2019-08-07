@@ -316,6 +316,7 @@ class MagneticOrderingsWF:
                         name=name + " static",
                         prev_calc_loc=True,
                         parents=fws[-1],
+                        vasptodb_kwargs={'parse_chgcar': True, 'parse_aeccar': True}
                     )
                 )
 
@@ -337,8 +338,6 @@ class MagneticOrderingsWF:
             MagneticOrderingsToDB(
                 db_file=c["DB_FILE"],
                 wf_uuid=self.uuid,
-                auto_generated=False,
-                name="MagneticOrderingsToDB",
                 parent_structure=self.sanitized_structure,
                 origins=ordered_structure_origins,
                 input_index=self.input_index,
