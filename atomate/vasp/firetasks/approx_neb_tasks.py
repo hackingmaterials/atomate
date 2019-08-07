@@ -269,14 +269,14 @@ class InsertSites(FiretaskBase):
                 pulled = mmdb.collection.find_one(
                     {"wf_uuid": wf_uuid}, {"stable_sites"}
                 )
-                update_spec["stable_sites_index"] = stable_sites_index
+                #update_spec["stable_sites_index"] = stable_sites_index
                 update_spec["structure_path"] = (
                     "stable_sites." + str(stable_sites_index) + ".input_structure"
                 )
             except:
                 logger.warning("ApproxNEB: InsertSites FIRETASK STORING ERROR")
 
-        return FWAction(update_spec=update_spec)
+        return FWAction(update_spec={"stable_sites."+str(stable_sites_index):update_spec})
 
 
 @explicit_serialize

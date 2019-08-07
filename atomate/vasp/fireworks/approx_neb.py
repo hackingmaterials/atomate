@@ -443,7 +443,7 @@ class StableSiteFW(Firework):
             VaspToDb(
                 db_file=db_file,
                 additional_fields=additional_fields,
-                task_fields_to_push={"stable_site_task_id": "task_id"},
+                task_fields_to_push={"stable_site_task_id." + str(stable_sites_index): "task_id"},
             )
         )
         # store desired outputs from tasks doc in approx_neb collection
