@@ -9,7 +9,6 @@ from atomate.vasp.config import VASP_CMD, DB_FILE
 class EvaluatePathFW(Firework):
     def __init__(
         self,
-        calc_type,
         approx_neb_wf_uuid,
         stable_sites_combo,
         mobile_specie,
@@ -21,7 +20,6 @@ class EvaluatePathFW(Firework):
         vasp_input_set=None,
         vasp_cmd=VASP_CMD,
         override_default_vasp_params=None,
-        job_type="double_relaxation_run",
         parents=None,
         **kwargs
     ):
@@ -42,7 +40,6 @@ class EvaluatePathFW(Firework):
         The provided approx_neb_wf_uuid specifies the set of inputs to use.
 
         Args:
-            calc_type (str): Set to "stable_site" or "image"
             approx_neb_wf_uuid (str): Unique identifier for approx workflow record
                 keeping.
             stable_sites_combo (str): string must have format of "0+1",

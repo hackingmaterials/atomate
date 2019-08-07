@@ -246,7 +246,7 @@ def approx_neb_screening_wf(
             PathFinderFW(
                 approx_neb_wf_uuid=wf_uuid,
                 n_images=n_images,
-                stable_sites_combo = combo,
+                stable_sites_combo = stable_sites_combo,
                 db_file=db_file,
                 parents=[stable_site_fws[c[0]],stable_site_fws[c[1]]]
             )
@@ -300,8 +300,8 @@ def approx_neb_multipath_wf(
     structure,
     working_ion,
     insert_coords,
-    n_images,
     insert_coords_combinations,
+    n_images,
     vasp_input_set=None,
     override_default_vasp_params=None,
     selective_dynamics_scheme="fix_two_atom",
@@ -377,7 +377,7 @@ def approx_neb_multipath_wf(
         evaluate_path_fws.append(
             EvaluatePathFW(
                 approx_neb_wf_uuid=wf_uuid,
-                stable_sites_combo = combo,
+                stable_sites_combo = stable_sites_combo,
                 mobile_specie=working_ion,
                 n_images=n_images,
                 selective_dynamics_scheme=selective_dynamics_scheme,
@@ -405,8 +405,6 @@ def approx_neb_multipath_wf(
             ]
         },
     )
-    if additional_fields:
-        wf = wf.add_additional_fields_to_taskdocs(wf,update_dict=additional_fields)
     if isinstance(tags,(list)):
         wf = add_tags(wf, tags)
     wf.name = name

@@ -28,6 +28,8 @@ class HostLatticeFW(Firework):
         vasp_cmd=VASP_CMD,
         override_default_vasp_params=None,
         job_type="double_relaxation_run",
+        additional_fields=None,
+        tags=None,
         **kwargs
     ):
         """
@@ -59,7 +61,7 @@ class HostLatticeFW(Firework):
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
         fw_name = "{} {}".format(structure.composition.reduced_formula, name)
-        additional_fields = {
+        task_doc_additional_fields = {
             "task_label": name,
             "approx_neb": {
                 "calc_type": "host_lattice",
@@ -80,14 +82,14 @@ class HostLatticeFW(Firework):
         t.append(
             VaspToDb(
                 db_file=db_file,
-                additional_fields=additional_fields,
+                additional_fields=task_doc_additional_fields,
                 parse_chgcar=True,
                 parse_aeccar=True,
                 task_fields_to_push={"host_lattice_task_id": "task_id"},
             )
         )
         t.append(
-            HostLatticeToDb(db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid)
+            HostLatticeToDb(db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid, additional_fields=additional_fields, tags=tags)
         )
         super().__init__(tasks=t, name=fw_name, **kwargs)
 
