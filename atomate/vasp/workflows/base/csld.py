@@ -246,11 +246,13 @@ class CompressedSensingLatticeDynamicsWF:
 # SCRIPT FOR CREATING THE WORKFLOW AND ADDING IT TO THE DATABASE
 if __name__ == "__main__":
 
-    from atomate.vasp.powerups import add_tags, set_execution_options
+    from fireworks import LaunchPad
+    from atomate.vasp.powerups import add_tags, set_execution_options, \
+        add_modify_incar
     from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
     from pymatgen.core.structure import Structure
 
-    prim = Structure.from_file('POSCAR-well_relaxed_InSb_csld_primitivized')
+    prim = Structure.from_file('POSCAR-well_relaxed_KSnBi')
 
     csld_class = CompressedSensingLatticeDynamicsWF(
         prim,
@@ -258,7 +260,9 @@ if __name__ == "__main__":
         num_nn_dists=6,
         num_displacements=10,
         supercells_per_displacement_distance=1,
-        force_diagonal_transformation=True
+        force_diagonal_transformation=True,
+        do_shengbte=True,
+        shengbte_fworker="rees_the_fire_worker_haswell"
         )
     print("uuid")
     print(csld_class.uuid)
@@ -272,15 +276,18 @@ if __name__ == "__main__":
     print(csld_class.supercell_smallest_dim)
     print("supercell number of atoms")
     print(csld_class.supercell.num_sites)
-    csld_class.supercell.to("poscar", filename="SPOSCAR-InSb_diagonal")
+    csld_class.supercell.to("poscar", filename="SPOSCAR-KSnBi_diagonal")
 
     wf = add_tags(wf, ['csld', 'v1', 'rees',
-                       'pre-relaxed insb', 'diagonal supercell',
-                       'not symmetrized'])
+                       'pre-relaxed ksnbi', 'diagonal supercell',
+                       'not symmetrized', 'ismear manually set to 0'])
     wf = set_execution_options(wf, fworker_name="rees_the_fire_worker")
-    # wf = add_modify_incar(wf,
-    #                       modify_incar_params={'incar_update': {'ENCUT': 500,
-    #                                                             'ISPIN': 1}})
+    wf = add_modify_incar(wf,
+                          modify_incar_params={
+                              'incar_update': {
+                                  'ENCUT': 500,
+                                  'ISMEAR': 0,
+                                  'ISPIN': 1}})
 
-    # lpad = LaunchPad.auto_load()
-    # lpad.add_wf(wf)
+    lpad = LaunchPad.auto_load()
+    lpad.add_wf(wf)
