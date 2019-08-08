@@ -360,10 +360,8 @@ class StableSiteToDb(FiretaskBase):
         db_file = env_chk(self["db_file"], fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         wf_uuid = self["approx_neb_wf_uuid"]
-        t_id = self.get("stable_site_task_id") or fw_spec.get("stable_site_task_id")
-
-        # Note InsertSites firetask updates the the fw_spec with the stable_sites_index
         index = self.get("stable_sites_index") or fw_spec.get("stable_sites_index")
+        t_id = self.get("stable_site_task_id") or fw_spec.get("stable_sites_" + str(index) + "_task_id")
 
         # Store info in tasks collection for record keeping
         mmdb.collection.update_one(
