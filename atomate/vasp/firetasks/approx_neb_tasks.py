@@ -265,11 +265,7 @@ class InsertSites(FiretaskBase):
                         }
                     },
                 )
-                # get stable_sites_index to update the fw_spec for easier record keeping
-                pulled = mmdb.collection.find_one(
-                    {"wf_uuid": wf_uuid}, {"stable_sites"}
-                )
-                #update_spec["stable_sites_index"] = stable_sites_index
+                # add stable_sites_index to fw_spec for future use and record keeping
                 update_spec["structure_path"] = (
                     "stable_sites." + str(stable_sites_index) + ".input_structure"
                 )
@@ -347,15 +343,17 @@ class StableSiteToDb(FiretaskBase):
     Args:
         db_file (str): path to file containing the database credentials.
         approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
+        stable_sites_index (int): index used in stable_sites field of
+            approx_neb collection for workflow record keeping. Must be specified
+            either as a firetask input or fw_spec["stable_sites_index"]
+    Optional Params:
         stable_site_task_id (int): task_id for structure optimization of stable
             site structure (empty host lattice with one working ion inserted).
             stable_site_task_id must be provided in the fw_spec or firetask inputs.
-
-        Note fw_spec["stable_sites_index"] is required.
     """
 
     required_params = ["db_file", "approx_neb_wf_uuid"]
-    optional_params = ["stable_site_task_id"]
+    optional_params = ["stable_sites_index","stable_site_task_id"]
 
     def run_task(self, fw_spec):
         # get the database connection
@@ -365,7 +363,7 @@ class StableSiteToDb(FiretaskBase):
         t_id = self.get("stable_site_task_id") or fw_spec.get("stable_site_task_id")
 
         # Note InsertSites firetask updates the the fw_spec with the stable_sites_index
-        index = fw_spec["stable_sites_index"]
+        index = self.get("stable_sites_index") or fw_spec.get("stable_sites_index")
 
         # Store info in tasks collection for record keeping
         mmdb.collection.update_one(

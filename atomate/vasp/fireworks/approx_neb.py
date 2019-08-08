@@ -448,7 +448,7 @@ class StableSiteFW(Firework):
         )
         # store desired outputs from tasks doc in approx_neb collection
         t.append(
-            StableSiteToDb(db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid)
+            StableSiteToDb(stable_sites_index=stable_sites_index, db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid)
         )
 
         super().__init__(tasks=t, name=fw_name, parents=parents, **kwargs)
