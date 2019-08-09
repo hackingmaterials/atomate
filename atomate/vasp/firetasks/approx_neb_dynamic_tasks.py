@@ -25,13 +25,14 @@ class GetImageFireworks(FiretaskBase):
         launch_mode (int): "all" or "screening"
         vasp_cmd (...): ...
     Optional Params:
-        images_key (str): for cases with multiple paths where the approx_neb
-        images field is a nested dictionary, to only launch images for one
-        path use images_key specify a key corresponding the images field
-        derived from the desired combination of stable sites. images_key
-        should be a string of format "0+1", "0+2", etc. matching
-        stable_sites_combo input of PathfinderToDb Firetask or pathfinder_key
-        input of AddSelectiveDynamics Firetask.
+        images_key (str): for cases with multiple paths, to only launch images for
+            one path use images_key to specify a key corresponding the images field
+            derived from the desired combination of stable sites. images_key
+            should be a string of format "0+1", "0+2", etc. matching
+            stable_sites_combo input of PathfinderToDb Firetask or pathfinder_key
+            input of AddSelectiveDynamics Firetask. If images_key is not provided
+            images will be launched for all paths/keys in the approx_neb
+            collection images field.
     """
 
     required_params = ["db_file", "approx_neb_wf_uuid", "launch_mode", "vasp_cmd"]
@@ -44,19 +45,13 @@ class GetImageFireworks(FiretaskBase):
         mmdb.collection = mmdb.db["approx_neb"]
         wf_uuid = self["approx_neb_wf_uuid"]
         launch_mode = self["launch_mode"]
-        images_key = self.get("images_key")
+        images_key = self["images_key"]
 
         approx_neb_doc = mmdb.collection.find_one({"wf_uuid":wf_uuid},{"images":1})
         all_images = approx_neb_doc["images"]
 
         #get structure_path of desired images and sort into structure_paths
-        if isinstance(all_images, (list)):
-            max_n = len(all_images)
-            if launch_mode == "all":
-                structure_paths = ["images." + str(n) + ".input_structure" for n in range(0,max_n)]
-            elif launch_mode == "screening":
-                structure_paths = self.get_and_sort_paths(max_n)
-        elif images_key and isinstance(all_images, (dict)):
+        if images_key and isinstance(all_images, (dict)):
             images = all_images[images_key]
             max_n = len(images)
             if launch_mode == "all":

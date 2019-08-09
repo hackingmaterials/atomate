@@ -208,16 +208,12 @@ class ApproxNEBLaunchFW(Firework):
             additional_fields["approx_neb"]["calc_type"] = "stable_site"
             additional_fields["approx_neb"]["stable_sites_indexes"]: []
         elif calc_type == "image":
-            image_index = int(structure_path.split(".")[-2])
             additional_fields["approx_neb"]["calc_type"] = "image"
+            image_index = int(structure_path.split(".")[-2])
             additional_fields["approx_neb"]["image_index"] = image_index
-
             images_key = structure_path.split(".")[-3]
-            if images_key != "images":
-                additional_fields["approx_neb"]["images_key"] = images_key
-                fw_name = fw_name + " " + images_key + ": " + str(image_index)
-            else:
-                fw_name = fw_name + " " + str(image_index)
+            additional_fields["approx_neb"]["images_key"] = images_key
+            fw_name = fw_name + " " + images_key + ": " + str(image_index)
 
         t = []
         t.append(
