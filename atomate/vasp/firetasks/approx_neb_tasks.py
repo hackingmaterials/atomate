@@ -1,7 +1,7 @@
 from pymatgen import Element, Structure
 from pymatgen.io.vasp.outputs import Chgcar
 from pymatgen.analysis.path_finder import NEBPathfinder, ChgcarPotential
-from fireworks import FiretaskBase, FWAction, explicit_serialize
+from fireworks import FiretaskBase, FWAction, explicit_serialize, LaunchPad
 from atomate.utils.utils import env_chk, load_class
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
@@ -344,8 +344,7 @@ class StableSiteToDb(FiretaskBase):
         db_file (str): path to file containing the database credentials.
         approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
         stable_sites_index (int): index used in stable_sites field of
-            approx_neb collection for workflow record keeping. Must be specified
-            either as a firetask input or fw_spec["stable_sites_index"]
+            approx_neb collection for workflow record keeping.
     Optional Params:
         stable_site_task_id (int): task_id for structure optimization of stable
             site structure (empty host lattice with one working ion inserted).
@@ -361,7 +360,7 @@ class StableSiteToDb(FiretaskBase):
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         wf_uuid = self["approx_neb_wf_uuid"]
         index = self.get("stable_sites_index")
-        t_id = self.get("stable_site_task_id") or fw_spec.get("stable_sites_" + str(index) + "_task_id")
+        t_id = self.get("stable_site_task_id",fw_spec.get("stable_sites_" + str(index) + "_task_id"))
 
         # Store info in tasks collection for record keeping
         mmdb.collection.update_one(
