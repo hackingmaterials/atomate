@@ -129,16 +129,16 @@ class InsertSitesFW(Firework):
         """
         fw_name = name + ": insert " + insert_specie
         t = []
-        # Add structure_task_id (for empty host lattice) to fw_spec
-        # structure_task_id is required for InsertSites firetask
+        # Add host_lattice_task_id (for empty host lattice) to fw_spec
+        # host_lattice_task_id is required for InsertSites firetask
         t.append(
             PassFromDb(
                 db_file=db_file,
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
-                fields_to_pull={"structure_task_id": "host_lattice.task_id"},
+                fields_to_pull={"host_lattice_task_id": "host_lattice.task_id"},
             )
         )
-        # Insert sites into empty host lattice (specified by structure_task_id)
+        # Insert sites into empty host lattice (specified by host_lattice_task_id)
         t.append(
             InsertSites(
                 db_file=db_file,
@@ -408,16 +408,16 @@ class StableSiteFW(Firework):
         }
 
         t = []
-        # Add structure_task_id (for empty host lattice) to fw_spec
-        # structure_task_id is required for InsertSites firetask
+        # Add host_lattice_task_id (for empty host lattice) to fw_spec
+        # host_lattice_task_id is required for InsertSites firetask
         t.append(
             PassFromDb(
                 db_file=db_file,
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
-                fields_to_pull={"structure_task_id": "host_lattice.task_id"},
+                fields_to_pull={"host_lattice_task_id": "host_lattice.task_id"},
             )
         )
-        # Insert sites into empty host lattice (specified by structure_task_id)
+        # Insert sites into empty host lattice (specified by host_lattice_task_id)
         t.append(
             InsertSites(
                 db_file=db_file,

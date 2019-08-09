@@ -84,7 +84,7 @@ class HostLatticeToDb(FiretaskBase):
             "tags":[]
         }
 
-        # Adds additional fields to approx_neb_doc stored in the task doc
+        # Add additional fields to approx_neb_doc if provided (stored in approx_neb collection)
         additional_fields = self.get("additional_fields")
         if isinstance(additional_fields,(dict)):
             for key, value in additional_fields.items():
@@ -93,7 +93,7 @@ class HostLatticeToDb(FiretaskBase):
                 elif key not in approx_neb_doc.keys():
                     approx_neb_doc[key] = value
 
-        # Adds additional fields to approx_neb_doc stored in the task doc
+        # Add tags to approx_neb_doc if provided (stored in approx_neb collection)
         tags = self.get("tags")
         if tags:
             approx_neb_doc["tags"].extend(tags)
@@ -171,33 +171,28 @@ class InsertSites(FiretaskBase):
 
     Args:
         db_file (str): path to file containing the database credentials
-        structure_task_id (int): task_id for output structure to modify and insert
+        host_lattice_task_id (int): task_id for output structure to modify and insert
             site. Must be provided in the fw_spec or firetask inputs.
         insert_specie (str): specie of site to insert in structure (e.g. "Li").
         insert_coords (1x3 array or list of 1x3 arrays): coordinates of site(s)
             to insert in structure (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]]).
         stable_sites_index (int): index used in stable_sites field of
             approx_neb collection for workflow record keeping
-    Optional Parameters:
         approx_neb_wf_uuid (str): Unique identifier for approx workflow record
-            keeping. If provided, checks if the output structure from
-            structure_task_id matches the host lattice structure stored in the
-            approx_neb collection doc specified by approx_neb_wf_uuid.
+            keeping.
+    Optional Parameters:
         coords_are_cartesian (bool): Set to True if you are providing insert_coords
             in cartesian coordinates. Otherwise assumes fractional coordinates.
         """
 
-    required_params = ["db_file", "insert_specie", "insert_coords", "stable_sites_index"]
-    optional_params = [
-        "structure_task_id",
-        "approx_neb_wf_uuid",
-        "coords_are_cartesian",
-    ]
+    required_params = ["db_file", "insert_specie", "insert_coords", "stable_sites_index","approx_neb_wf_uuid"]
+    optional_params = ["host_lattice_task_id","coords_are_cartesian"]
 
     def run_task(self, fw_spec):
         # get the database connection
         db_file = env_chk(self["db_file"], fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
+        wf_uuid = self.get("approx_neb_wf_uuid")
 
         insert_specie = self["insert_specie"]
         insert_coords = self["insert_coords"]
@@ -206,30 +201,14 @@ class InsertSites(FiretaskBase):
         if isinstance(insert_coords[0], (float, int)):
             insert_coords = [insert_coords]
 
-        # get output structure from structure_task_id
-        t_id = self.get("structure_task_id",fw_spec.get("structure_task_id"))
-        try:
+        # get output structure from host_lattice_task_id
+        t_id = self.get("host_lattice_task_id",fw_spec.get("host_lattice_task_id"))
+        if t_id:
             structure_doc = mmdb.collection.find_one({"task_id": t_id})
-        except:
-            raise ValueError("Unable to find task doc with task_id: {}".format(t_id))
-
-        # if provided, checks wf_uuid matches for approx_neb workflow record keeping
-        if self.get("approx_neb_wf_uuid"):
-            try:
-                wf_uuid = self.get("approx_neb_wf_uuid")
-                mmdb.collection = mmdb.db["approx_neb"]
-                approx_neb_doc = mmdb.collection.find_one({"wf_uuid": wf_uuid})
-                if (
-                    structure_doc["output"]["structure"]
-                    != approx_neb_doc["host_lattice"]["output"]["structure"]
-                ):
-                    raise ValueError(
-                        "ApproxNEB: structure_task_id does not match approx_neb_wf_uuid host lattice"
-                    )
-            except:
-                raise ValueError(
-                    "ApproxNEB: Error matching structure_task_id and approx_neb_wf_uuid"
-                )
+        else:
+            mmdb.collection = mmdb.db["approx_neb"]
+            approx_neb_doc = mmdb.collection.find_one({"wf_uuid": wf_uuid})
+            structure_doc = approx_neb_doc["host_lattice"]["output"]["structure"]
 
         structure = Structure.from_dict(structure_doc["output"]["structure"])
         # removes site properties to avoid error
@@ -249,30 +228,25 @@ class InsertSites(FiretaskBase):
             inserted_site_indexes = [i + 1 for i in inserted_site_indexes]
             inserted_site_indexes.insert(0, 0)
 
-        update_spec = {"modified_structure": structure.as_dict()}
-
         # store stable site input structures in approx_neb collection
-        if self.get("approx_neb_wf_uuid"):
-            try:
-                mmdb.collection.update_one(
-                    {"wf_uuid": wf_uuid},
-                    {
-                        "$set": {
-                            "stable_sites."+str(stable_sites_index): {
-                                "input_structure": structure.as_dict(),
-                                "inserted_site_indexes": inserted_site_indexes,
-                            }
-                        }
-                    },
-                )
-                # add stable_sites_index to fw_spec for future use and record keeping
-                update_spec["structure_path"] = (
-                    "stable_sites." + str(stable_sites_index) + ".input_structure"
-                )
-            except:
-                logger.warning("ApproxNEB: InsertSites FIRETASK STORING ERROR")
+        mmdb.collection = mmdb.db["approx_neb"]
+        mmdb.collection.update_one(
+            {"wf_uuid": wf_uuid},
+            {
+                "$set": {
+                    "stable_sites."+str(stable_sites_index): {
+                        "input_structure": structure.as_dict(),
+                        "inserted_site_indexes": inserted_site_indexes,
+                    }
+                }
+            }
+        )
 
-        return FWAction(update_spec={"stable_sites."+str(stable_sites_index):update_spec})
+        stored_data = {"modified_structure": structure.as_dict(),
+                       "inserted_site_indexes": inserted_site_indexes,
+                       "structure_path": "stable_sites." + str(stable_sites_index) + ".input_structure"}
+
+        return FWAction(stored_data=stored_data)
 
 
 @explicit_serialize
@@ -315,7 +289,7 @@ class WriteVaspInput(FiretaskBase):
         # get structure from approx_neb collection
         try:
             wf_uuid = self["approx_neb_wf_uuid"]
-            structure_path = self.get("structure_path") or fw_spec.get("structure_path")
+            structure_path = self.get("structure_path",fw_spec.get("structure_path"))
             approx_neb_doc = mmdb.collection.find_one({"wf_uuid": wf_uuid})
             structure = Structure.from_dict(get(approx_neb_doc, structure_path))
 
