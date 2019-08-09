@@ -172,6 +172,7 @@ default_csld_settings = {
         'fval_out': 'fval_pred.txt',
         'traindat0': 'fcc222/POSCAR fcc222/traj*'
     },
+    'export_potential': {},
     'DEFAULT': {
         "qpoint_fractional": False,
         "true_v_fit": 'true_fit.txt',

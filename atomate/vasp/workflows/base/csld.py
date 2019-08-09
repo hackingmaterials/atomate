@@ -205,8 +205,8 @@ class CompressedSensingLatticeDynamicsWF:
             static_fw.spec["displacement_value"] = self.disps[idx]
             fws.append(static_fw)
 
-        logger.debug("using {} displacements".format(len(self.disps)))
-        logger.debug("displacements: {}".format(self.disps))
+        logger.debug("Using {} displacements".format(len(self.disps)))
+        logger.debug("Displacements: {}".format(self.disps))
 
         # Collect force constants from the DB and output on cluster
         csld_fw = Firework(
@@ -252,13 +252,19 @@ if __name__ == "__main__":
     from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
     from pymatgen.core.structure import Structure
 
-    prim = Structure.from_file('POSCAR-well_relaxed_KSnBi')
+    prim = Structure.from_file('POSCAR-well_relaxed_Si')
+
+    sga = SpacegroupAnalyzer(prim)
+    prim = sga.get_conventional_standard_structure()
+    prim.to("poscar", filename="POSCAR-well_relaxed_conventional_Si")
 
     csld_class = CompressedSensingLatticeDynamicsWF(
         prim,
         symmetrize=False,
         num_nn_dists=6,
-        num_displacements=10,
+        num_displacements=2,
+        min_displacement=0.02,
+        max_displacement=0.05,
         supercells_per_displacement_distance=1,
         force_diagonal_transformation=True,
         do_shengbte=True,
@@ -276,10 +282,11 @@ if __name__ == "__main__":
     print(csld_class.supercell_smallest_dim)
     print("supercell number of atoms")
     print(csld_class.supercell.num_sites)
-    csld_class.supercell.to("poscar", filename="SPOSCAR-KSnBi_diagonal")
+    csld_class.supercell.to("poscar",
+                            filename="SPOSCAR-conventional_Si_diagonal")
 
     wf = add_tags(wf, ['csld', 'v1', 'rees',
-                       'pre-relaxed ksnbi', 'diagonal supercell',
+                       'pre-relaxed conventional si', 'diagonal supercell',
                        'not symmetrized', 'ismear manually set to 0'])
     wf = set_execution_options(wf, fworker_name="rees_the_fire_worker")
     wf = add_modify_incar(wf,
@@ -288,6 +295,6 @@ if __name__ == "__main__":
                                   'ENCUT': 500,
                                   'ISMEAR': 0,
                                   'ISPIN': 1}})
-
-    lpad = LaunchPad.auto_load()
-    lpad.add_wf(wf)
+    #
+    # lpad = LaunchPad.auto_load()
+    # lpad.add_wf(wf)

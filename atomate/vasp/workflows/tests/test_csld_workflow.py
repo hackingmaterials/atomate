@@ -4,6 +4,8 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import os
 import unittest
+import numpy as np
+import shutil
 
 from pymatgen import Structure
 from atomate.vasp.workflows.base.csld import CompressedSensingLatticeDynamicsWF
@@ -25,32 +27,22 @@ __email__ = "rc564@cornell.edu"
 
 class TestCompressedSensingLatticeDynamicsWorkflow(AtomateTest):
 
-    # def test_CSLD(self):
-    #
-    #     structure = Structure.from_file(os.path.join(ref_dir, "POSCAR-well_relaxed_Si"))
-    #     wf = CompressedSensingLatticeDynamicsWF(structure,
-    #                                             symmetrize=False,
-    #                                             num_nn_dists=6,
-    #                                             num_displacements=10,
-    #                                             supercells_per_displacement_distance=1,
-    #                                             force_diagonal_transformation=True
-    #                                             )
-    #
-    #     tasks = self.get_task_collection()
-    #     with
-
-    def test_set_params(self):
-        # tasks = self.get_task_collection()
+    @staticmethod
+    def init():
         with open(os.path.join(ref_dir, "FW.json"),
                   "r") as f:
-            sample_task = json.load(f)
+            sample_task = json.load(f)[0]
         wf_uuid = sample_task["spec"]["_tasks"][0]["wf_uuid"]
         parent_structure = Structure.from_dict(
             sample_task["spec"]["_tasks"][0]["parent_structure"])
         trans_mat = sample_task["spec"]["_tasks"][0]["trans_mat"]
-        supercell_structure = sample_task["spec"]["_tasks"][0]["supercell_structure"]
+        supercell_structure = Structure.from_dict(
+            sample_task["spec"]["_tasks"][0]["supercell_structure"])
         supercell_smallest_dim = sample_task["spec"]["_tasks"][0]["supercell_smallest_dim"]
         perturbed_supercells = sample_task["spec"]["_tasks"][0]["perturbed_supercells"]
+        for i in range(len(perturbed_supercells)):
+            perturbed_supercells[i] = Structure.from_dict(
+                perturbed_supercells[i])
         disps = sample_task["spec"]["_tasks"][0]["disps"]
         first_pass = sample_task["spec"]["_tasks"][0]["first_pass"]
         static_user_incar_settings = sample_task["spec"]["_tasks"][0]["static_user_incar_settings"]
@@ -58,32 +50,123 @@ class TestCompressedSensingLatticeDynamicsWorkflow(AtomateTest):
         shengbte_t_range = sample_task["spec"]["_tasks"][0]["shengbte_t_range"]
         shengbte_fworker = sample_task["spec"]["_tasks"][0]["shengbte_fworker"]
 
-        print(wf_uuid)
-        print(parent_structure)
-        print(trans_mat)
-        print(supercell_structure)
-        print(supercell_smallest_dim)
-        print(perturbed_supercells)
-        print(disps)
-        print(first_pass)
-        print(static_user_incar_settings)
-        print(env_vars)
-        print(shengbte_t_range)
-        print(shengbte_fworker)
+        csld_firetask = CSLDForceConstantsToDB(
+            db_file=os.path.join(DB_DIR, "db.json"),
+            wf_uuid=wf_uuid,
+            parent_structure=parent_structure,
+            trans_mat=trans_mat,
+            supercell_structure=supercell_structure,
+            supercell_smallest_dim=supercell_smallest_dim,
+            perturbed_supercells=perturbed_supercells,
+            disps=disps,
+            first_pass=first_pass,
+            static_user_incar_settings=static_user_incar_settings,
+            env_vars=env_vars,
+            shengbte_t_range=shengbte_t_range,
+            shengbte_fworker=shengbte_fworker,
+            force_diagonal_transformation=True
+        )
 
-        # csld_firetask = CSLDForceConstantsToDB(
-        #     db_file=os.path.join(DB_DIR, "db.json"),  # wot
-        #     wf_uuid=wf_uuid,
-        #     parent_structure=parent_structure,
-        #     trans_mat=trans_mat,
-        #     supercell_structure=supercell_structure,
-        #     supercell_smallest_dim=supercell_smallest_dim,
-        #     perturbed_supercells=perturbed_supercells,
-        #     disps=disps,
-        #     first_pass=first_pass,
-        #     static_user_incar_settings=static_user_incar_settings,
-        #     env_vars=env_vars,
-        #     shengbte_t_range=shengbte_t_range,
-        #     shengbte_fworker=shengbte_fworker
-        # )
+        return csld_firetask
+
+    def test_collect_successful_static_calcs_results(self):
+        tasks = self.get_task_collection()
+        csld_firetask = self.init()
+        with open(os.path.join(ref_dir, "FW.json"),
+                  "r") as f:
+            sample_task = json.load(f)[1]
+        tasks.insert_one(sample_task)
+
+        supercells_forces, successful_disps = csld_firetask.collect_successful_static_calcs_results(
+            tasks)
+
+        self.assertEqual(
+            float(successful_disps[0]),
+            0.1
+        )
+        self.assertTrue(
+            isinstance(supercells_forces, list)
+        )
+        self.assertEqual(
+            supercells_forces[0][0][0],
+            0.07831190000000000373
+        )
+        self.assertEqual(
+            supercells_forces[0][0][1],
+            0.13348752999999999314
+        )
+        self.assertEqual(
+            supercells_forces[0][0][2],
+            -0.7885310199999999714
+        )
+        self.assertEqual(
+            len(supercells_forces[0]),
+            216
+        )
+
+    def test_set_params(self):
+
+        csld_firetask = self.init()
+        csld_firetask.set_params(
+            iteration_number=0,
+            disps=[0.1],
+            cluster_diam='11 6.5 5.0',
+            max_order=3,
+            submodel1='anh 0 1 2 3',
+            export_sbte='5 5 5 2 3',
+            supercells_forces=[np.eye(3)]
+        )
+
+        self.assertEqual(
+            csld_firetask["csld_settings"]["structure"]["prim"],
+            "Si_supercell_iter0/POSCAR")
+        self.assertEqual(
+            csld_firetask["csld_settings"]["model"]["max_order"],
+            '3'
+        )
+        self.assertEqual(
+            csld_firetask["csld_settings"]["model"]["cluster_diameter"],
+            '11 6.5 5.0'
+        )
+        self.assertEqual(
+            csld_firetask["csld_settings"]["model"]["cluster_filter"],
+            r"lambda cls: ((cls.order_uniq <= 2) or (cls.bond_counts(2.9) "
+            r">= 2)) and cls.is_small_in('" + "Si_supercell_iter0" + "/sc.txt')"
+        )
+        self.assertEqual(
+            csld_firetask["csld_settings"]["training"]["traindat1"],
+            'Si_supercell_iter0/SPOSCAR Si_supercell_iter0/disp0.10'
+        )
+        self.assertEqual(
+            csld_firetask["csld_settings"]["fitting"]["submodel1"],
+            'anh 0 1 2 3'
+        )
+        self.assertEqual(
+            csld_firetask["csld_settings"]["export_potential"]["export_shengbte"],
+            '5 5 5 2 3'
+        )
+        self.assertEqual(
+            csld_firetask["forces_paths"],
+            ['Si_supercell_iter0/disp0.10']
+        )
+        self.assertTrue(
+            os.path.isfile(csld_firetask["forces_paths"][0] + "/force.txt")
+        )
+        self.assertTrue(
+            os.path.isfile('Si_supercell_iter0/POSCAR')
+        )
+        self.assertTrue(
+            os.path.isfile('Si_supercell_iter0/SPOSCAR')
+        )
+        self.assertTrue(
+            os.path.isfile('Si_supercell_iter0/sc.txt')
+        )
+        shutil.rmtree('Si_supercell_iter0')
+
+    def test_run_csld(self):
+
+
+
+
+
 
