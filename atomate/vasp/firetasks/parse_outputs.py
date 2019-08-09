@@ -1447,6 +1447,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
             summary (dict): Summary of the results from CSLD
         """
         # Perform csld minimization now
+        logger.info("Running CSLD...")
         from atomate.vasp.analysis.csld import csld_main
         rel_err, freq_matrix = csld_main(self["csld_options"],
                                          self["csld_settings"])
@@ -1462,10 +1463,9 @@ class CSLDForceConstantsToDB(FiretaskBase):
         #   so we ignore these)
         imaginary_idx = freq_matrix < -1
         imaginary_freqs = freq_matrix[imaginary_idx]
-        print('IMAGINARY FREQUENCIES')
-        print(imaginary_freqs)
+        logger.info('IMAGINARY FREQUENCIES: \n{}'.format(imaginary_freqs))
         num_imaginary_bands = np.sum(np.any(imaginary_idx, axis=1))
-        print(num_imaginary_bands)
+        logger.info('Number of imaginary bands: {}'.format(num_imaginary_bands))
         if np.any(imaginary_freqs):
             most_imaginary_freq = np.amin(imaginary_freqs)
         else:
