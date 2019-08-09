@@ -1394,6 +1394,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
         # Create ConfigParser of all CSLD input settings
         csld_settings_dict = deepcopy(default_csld_settings)
 
+        # Update default settings if specified
         user_csld_settings = kwargs
         if user_csld_settings is not None:
             # recursively update settings dict
@@ -1418,7 +1419,8 @@ class CSLDForceConstantsToDB(FiretaskBase):
         csld_settings_dict['fitting']['submodel1'] = submodel1
 
         # e.g., '5 5 5 2 3' is a 5x5x5 supercell
-        csld_settings_dict['export_potential']['export_shengbte'] = export_sbte
+        csld_settings_dict['export_potential'] = {'export_shengbte':
+                                                      export_sbte}
 
         csld_settings = ConfigParser()
         csld_settings.read_dict(csld_settings_dict)
