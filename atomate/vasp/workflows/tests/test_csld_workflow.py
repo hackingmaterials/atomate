@@ -164,7 +164,7 @@ class TestCompressedSensingLatticeDynamicsWorkflow(AtomateTest):
         shutil.rmtree('Si_supercell_iter0')
 
     def test_run_csld(self):
-
+        print('hi')
 
 
 
