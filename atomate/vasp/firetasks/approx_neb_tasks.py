@@ -55,7 +55,7 @@ class HostLatticeToDb(FiretaskBase):
             )
 
         # get host lattice task doc from host_lattice_task_id
-        t_id = self.get("host_lattice_task_id") or fw_spec.get("host_lattice_task_id")
+        t_id = self.get("host_lattice_task_id",fw_spec.get("host_lattice_task_id"))
         try:
             host_lattice_tasks_doc = mmdb.collection.find_one(
                 {"task_id": t_id, "approx_neb.calc_type": "host_lattice"}
@@ -207,7 +207,7 @@ class InsertSites(FiretaskBase):
             insert_coords = [insert_coords]
 
         # get output structure from structure_task_id
-        t_id = self.get("structure_task_id") or fw_spec.get("structure_task_id")
+        t_id = self.get("structure_task_id",fw_spec.get("structure_task_id"))
         try:
             structure_doc = mmdb.collection.find_one({"task_id": t_id})
         except:
@@ -710,7 +710,7 @@ class ImageToDb(FiretaskBase):
         db_file = env_chk(self["db_file"], fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         wf_uuid = self["approx_neb_wf_uuid"]
-        t_id = self.get("image_task_id") or fw_spec.get("image_task_id")
+        t_id = self.get("image_task_id",fw_spec.get("image_task_id"))
 
         # Store info in tasks collection for record keeping
         mmdb.collection.update_one(
