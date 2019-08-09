@@ -14,6 +14,7 @@ between different Firetasks and Fireworks. This module also contains tasks that 
 flow of the workflow, e.g. tasks to check stability or the gap is within a certain range.
 """
 
+import shutil
 import gzip
 import os
 import re
@@ -128,11 +129,8 @@ class CopyVaspOutputs(CopyFiles):
             # unzip the .gz if needed
             if gz_ext in ['.gz', ".GZ"]:
                 # unzip dest file
-                f = gzip.open(dest_path + gz_ext, 'rt')
-                file_content = f.read()
-                with open(dest_path, 'w') as f_out:
-                    f_out.writelines(file_content)
-                f.close()
+                with open(dest_path, 'wb') as f_out, gzip.open(dest_path + gz_ext, 'rb') as f_in:
+                    shutil.copyfileobj(f_in, f_out)
                 os.remove(dest_path + gz_ext)
 
 
