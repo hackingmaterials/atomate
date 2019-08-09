@@ -1276,7 +1276,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
             "parent_structure"].composition.reduced_formula
         task_label = 'static'
         supercells_dicts = list(
-            tasks.find({"wf_meta.wf_uuid": uuid,  # <insert
+            tasks.find({"wf_meta.wf_uuid": uuid,
                         "task_label": {"$regex": task_label},
                         "formula_pretty": formula_pretty,
                         "state": 'successful'},
@@ -1332,8 +1332,8 @@ class CSLDForceConstantsToDB(FiretaskBase):
         format readable by CSLD and then saved to the class' dictionary.
 
         Args:
-            disps (list of floats): list of displacement distances for perturbed
-                supercells that ran successfully
+            disps (list of str or floats): list of displacement distances for
+                perturbed supercells that ran successfully
             iteration_number (int): current iteration (0-indexed) of the CSLD
                 grid or random search
             cluster_diam (str): Space-separated string containing the spherical
@@ -1368,16 +1368,19 @@ class CSLDForceConstantsToDB(FiretaskBase):
         #   POSCAR to file
         np.savetxt(supercell_folder + "/sc.txt", self["trans_mat"], fmt="%.0f",
                    delimiter=" ")
-        self["supercell_structure"].to("poscar", filename=supercell_folder + "/SPOSCAR")
-        self["parent_structure"].to("poscar", filename=supercell_folder + "/POSCAR")
+        self["supercell_structure"].to("poscar",
+                                       filename=supercell_folder + "/SPOSCAR")
+        self["parent_structure"].to("poscar",
+                                    filename=supercell_folder + "/POSCAR")
 
-        # Create folders for perturbed supercell POSCARS and force.txt's (e.g. "Si_supercell_iter0/disp0.010")
+        # Create folders for perturbed supercell POSCARS and force.txt's
+        # (e.g. "Si_supercell_iter0/disp0.010")
         disp_folders = []
         csld_traindat_disp_folders = ''
         for idx, disp in enumerate(disps):
-            disp_folder = supercell_folder + '/disp' + str(disp)
+            disp_folder = supercell_folder + '/disp{:.2f}'.format(float(disp))
             disp_folders += [disp_folder] # list of folder paths
-            csld_traindat_disp_folders += ' ' + str(disp_folder) # Create string for CSLD input
+            csld_traindat_disp_folders += ' ' + str(disp_folder)
             if os.path.exists(disp_folder) and os.path.isdir(disp_folder):
                 shutil.rmtree(disp_folder)
             os.mkdir(disp_folder)
@@ -1401,7 +1404,7 @@ class CSLDForceConstantsToDB(FiretaskBase):
         # original structure poscar
         csld_settings_dict["structure"]["prim"] = supercell_folder + '/POSCAR'
         csld_settings_dict["model"].update({
-            'max_oder': max_order,
+            'max_order': max_order,
             'cluster_diameter': cluster_diam,
             'cluster_filter':
                 r"lambda cls: ((cls.order_uniq <= 2) or (cls.bond_counts(2.9) "
@@ -1409,7 +1412,8 @@ class CSLDForceConstantsToDB(FiretaskBase):
         })
 
         # directories of unperturbed followed by perturbed supercell poscars
-        # e.g., 'fcc333/SPOSCAR fcc333/dir*0.01 fcc333/dir*0.02 fcc333/dir*0.05'
+        # e.g., 'Si_supercell_iter0/SPOSCAR Si_supercell_iter0/disp0.01
+        #           Si_supercell_iter0/disp0.05'
         csld_settings_dict["training"]['traindat1'] = csld_traindat_string
         csld_settings_dict['fitting']['submodel1'] = submodel1
 
@@ -1728,9 +1732,9 @@ class CSLDForceConstantsToDB(FiretaskBase):
         # Output lowest validation error and corresponding CSLD input settings
         best_idx = self["convergence_info"]["cross_val_errors"].index(
             min(self["convergence_info"]["cross_val_errors"]))
-        print("The lowest error was {} percent.".format(
+        logger.info("The lowest error was {} percent.".format(
             min(self["convergence_info"]["cross_val_errors"])))
-        print("The corresponding settings were: {}".format(
+        logger.info("The corresponding settings were: {}".format(
             self["convergence_info"]["settings_tried"][best_idx]))
 
         if not_converged is False:
