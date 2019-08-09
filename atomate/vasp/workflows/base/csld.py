@@ -252,19 +252,16 @@ if __name__ == "__main__":
     from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
     from pymatgen.core.structure import Structure
 
-    prim = Structure.from_file('POSCAR-well_relaxed_Si')
+    prim = Structure.from_file('POSCAR-well_relaxed_KSnBi')
 
-    sga = SpacegroupAnalyzer(prim)
-    prim = sga.get_conventional_standard_structure()
-    prim.to("poscar", filename="POSCAR-well_relaxed_conventional_Si")
+    # sga = SpacegroupAnalyzer(prim)
+    # prim = sga.get_conventional_standard_structure()
+    # prim.to("poscar", filename="POSCAR-well_relaxed_KSnBi")
 
     csld_class = CompressedSensingLatticeDynamicsWF(
         prim,
         symmetrize=False,
         num_nn_dists=6,
-        num_displacements=2,
-        min_displacement=0.02,
-        max_displacement=0.05,
         supercells_per_displacement_distance=1,
         force_diagonal_transformation=True,
         do_shengbte=True,
@@ -283,7 +280,7 @@ if __name__ == "__main__":
     print("supercell number of atoms")
     print(csld_class.supercell.num_sites)
     csld_class.supercell.to("poscar",
-                            filename="SPOSCAR-conventional_Si_diagonal")
+                            filename="SPOSCAR-KSnBi_diagonal")
 
     wf = add_tags(wf, ['csld', 'v1', 'rees',
                        'pre-relaxed conventional si', 'diagonal supercell',

@@ -3,6 +3,7 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
+from monty.os.path import which
 import unittest
 import numpy as np
 import shutil
@@ -24,6 +25,7 @@ ref_dir = os.path.join(module_dir, "..", "..", "test_files", "csld_wf")
 __author__ = "Rees Chang"
 __email__ = "rc564@cornell.edu"
 
+csld_present = which("csld_main")
 
 class TestCompressedSensingLatticeDynamicsWorkflow(AtomateTest):
 
@@ -64,7 +66,7 @@ class TestCompressedSensingLatticeDynamicsWorkflow(AtomateTest):
             env_vars=env_vars,
             shengbte_t_range=shengbte_t_range,
             shengbte_fworker=shengbte_fworker,
-            force_diagonal_transformation=True
+            force_diagonal_transformation=True,
         )
 
         return csld_firetask
@@ -163,6 +165,7 @@ class TestCompressedSensingLatticeDynamicsWorkflow(AtomateTest):
         )
         shutil.rmtree('Si_supercell_iter0')
 
+    @unittest.skipIf(not csld_present, "CSLD not present")
     def test_run_csld(self):
         print('hi')
 
