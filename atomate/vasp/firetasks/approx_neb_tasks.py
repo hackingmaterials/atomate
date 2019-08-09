@@ -352,16 +352,18 @@ class StableSiteToDb(FiretaskBase):
             stable_site_task_id must be provided in the fw_spec or firetask inputs.
     """
 
-    required_params = ["db_file", "approx_neb_wf_uuid"]
-    optional_params = ["stable_sites_index","stable_site_task_id"]
+    required_params = ["db_file", "approx_neb_wf_uuid", "stable_sites_index"]
+    optional_params = ["stable_site_task_id"]
 
     def run_task(self, fw_spec):
         # get the database connection
         db_file = env_chk(self["db_file"], fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         wf_uuid = self["approx_neb_wf_uuid"]
-        index = self.get("stable_sites_index") or fw_spec.get("stable_sites_index")
-        t_id = self.get("stable_site_task_id") or fw_spec.get("stable_sites_" + str(index) + "_task_id")
+        index = self.get("stable_sites_index")
+        t_id = self.get("stable_site_task_id") or fw_spec.get("stable_sites_task_id")
+        print("ft_self",self.get("stable_site_task_id"))
+        print("fw_spec",fw_spec.get("stable_sites_task_id"))
 
         # Store info in tasks collection for record keeping
         mmdb.collection.update_one(
