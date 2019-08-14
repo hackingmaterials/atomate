@@ -76,7 +76,7 @@ class ExchangeWF:
         }
 
         # self.matched_structures = self.magnetic_structures
-        self.matched_structures = self.get_commensurate_orderings(
+        self.matched_structures, self.input_index, self.ordered_structure_origins = self.get_commensurate_orderings(
             magnetic_structures, energies
         )
 
@@ -135,6 +135,10 @@ class ExchangeWF:
             },
         )
 
+        # Enumerator bookkeeping
+        input_index = mse.input_index
+        ordered_structure_origins = mse.ordered_structure_origins
+
         # Get commensurate supercells
         cmsa = CollinearMagneticStructureAnalyzer(
             enum_struct, threshold=0.0, make_primitive=False
@@ -156,7 +160,7 @@ class ExchangeWF:
             if s2 is not None:
                 matched_structures.append(s2)
 
-        return matched_structures
+        return matched_structures, input_index, ordered_structure_origins
 
     def get_wf(self, num_orderings_hard_limit=16, c=None):
         """Retrieve Fireworks workflow.
@@ -206,7 +210,7 @@ class ExchangeWF:
                     struct,
                     vasp_cmd=c["VASP_CMD"],
                     db_file=c["DB_FILE"],
-                    name=name + "_static",
+                    name=name + " static",
                 )
             )
 
@@ -218,8 +222,11 @@ class ExchangeWF:
             MagneticOrderingsToDB(
                 db_file=c["DB_FILE"],
                 wf_uuid=self.uuid,
+                auto_generated=False,
                 name="MagneticOrderingsToDB",
                 parent_structure=self.matched_structures[0],
+                input_index=self.input_index,
+                origins=self.ordered_structure_origins,
                 perform_bader=False,
                 scan=False,
             ),
@@ -246,8 +253,13 @@ class ExchangeWF:
 
         # Chain FWs together
         fws = static_fws + [fw_analysis, heisenberg_model_fw, vampire_fw]
+
         wf = Workflow(fws)
         wf = add_additional_fields_to_taskdocs(wf, {"wf_meta": self.wf_meta})
-        wf.name = "Exchange"
+        formula = self.matched_structures.composition.reduced_formula
+        wf.name = "{} - Exchange".format(formula)
+
+        tag = "magnetic_orderings group: >>{}<<".format(self.uuid)
+        wf = add_tags(wf, [tag, self.ordered_structure_origins])
 
         return wf
