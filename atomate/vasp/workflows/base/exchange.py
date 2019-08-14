@@ -14,7 +14,7 @@ from atomate.vasp.powerups import (
 from atomate.vasp.workflows.base.core import get_wf
 
 from atomate.vasp.fireworks.exchange import HeisenbergModelFW, VampireCallerFW
-from atomate.vasp.firetask.exchange_tasks import ExchangeToDB
+from atomate.vasp.firetasks.exchange_tasks import ExchangeToDB
 
 from uuid import uuid4
 from copy import deepcopy
