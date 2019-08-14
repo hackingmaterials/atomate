@@ -256,7 +256,7 @@ class ExchangeWF:
 
         wf = Workflow(fws)
         wf = add_additional_fields_to_taskdocs(wf, {"wf_meta": self.wf_meta})
-        formula = self.matched_structures.composition.reduced_formula
+        formula = self.matched_structures[0].composition.reduced_formula
         wf.name = "{} - Exchange".format(formula)
 
         tag = "magnetic_orderings group: >>{}<<".format(self.uuid)
