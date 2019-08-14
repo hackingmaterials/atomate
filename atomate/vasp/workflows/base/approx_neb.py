@@ -30,6 +30,7 @@ def approx_neb_wf(
     n_images,
     vasp_input_set=None,
     override_default_vasp_params=None,
+    handler_group = None,
     selective_dynamics_scheme="fix_two_atom",
     launch_mode="all",
     vasp_cmd=VASP_CMD,
@@ -55,6 +56,15 @@ def approx_neb_wf(
     }
     # TODO: Add LASPH: True
     # ToDo: Add "LAECHG": True, to all or just host lattice?
+    handler_group = handler_group or [
+            VaspErrorHandler(),
+            MeshSymmetryErrorHandler(),
+            NonConvergingErrorHandler(),
+            PotimErrorHandler(),
+            PositiveEnergyErrorHandler(),
+            FrozenJobErrorHandler(),
+            StdErrHandler(),
+        ]
 
     wf_uuid = str(uuid4())
     additional_fields = deepcopy(additional_fields)
@@ -111,6 +121,7 @@ def approx_neb_wf(
                 vasp_cmd=vasp_cmd,
                 db_file=db_file,
                 override_default_vasp_params=approx_neb_params,
+                handler_group=handler_group,
                 parents=[stable_site_fws[c[0]],stable_site_fws[c[1]]]
             )
         )
@@ -120,15 +131,7 @@ def approx_neb_wf(
     wf = use_custodian(
         wf,
         custodian_params={
-            "handler_group": [
-                VaspErrorHandler(),
-                MeshSymmetryErrorHandler(),
-                NonConvergingErrorHandler(),
-                PotimErrorHandler(),
-                PositiveEnergyErrorHandler(),
-                FrozenJobErrorHandler(),
-                StdErrHandler(),
-            ]
+            "handler_group": handler_group
         },
     )
     if isinstance(tags,(list)):

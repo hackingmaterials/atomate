@@ -106,6 +106,7 @@ class ApproxNEBLaunchFW(Firework):
         vasp_cmd=VASP_CMD,
         override_default_vasp_params=None,
         job_type="double_relaxation_run",
+        handler_group=None,
         parents=None,
         **kwargs
     ):
@@ -135,7 +136,10 @@ class ApproxNEBLaunchFW(Firework):
             vasp_cmd (str): Command to run vasp.
             db_file (str): Path to file specifying db credentials to store outputs.
             job_type (str): custodian job type (default "double_relaxation_run")
-
+            handler_group (str or [ErrorHandler]): group of handlers to use for
+                RunVaspCustodian firetask. See handler_groups dict in the code for
+                the groups and complete list of handlers in each group. Alternatively,
+                you can specify a list of ErrorHandler objects.
             parents ([Firework]): Parents of this particular Firework.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
@@ -143,6 +147,7 @@ class ApproxNEBLaunchFW(Firework):
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
         fw_name = calc_type + " " + name
+        handler_group = handler_group or {}
         additional_fields = {
             "task_label": fw_name,
             "approx_neb": {"wf_uuids": [], "_source_wf_uuid": approx_neb_wf_uuid},
@@ -168,7 +173,7 @@ class ApproxNEBLaunchFW(Firework):
                 override_default_vasp_params=override_default_vasp_params,
             )
         )
-        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, job_type=job_type))
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, job_type=job_type, handler_group=handler_group))
         t.append(PassCalcLocs(name=name))
 
         if calc_type == "stable_site":

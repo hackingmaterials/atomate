@@ -33,10 +33,14 @@ class GetImageFireworks(FiretaskBase):
             input of AddSelectiveDynamics Firetask. If images_key is not provided
             images will be launched for all paths/keys in the approx_neb
             collection images field.
+        handler_group (str or [ErrorHandler]): group of handlers to use for
+            RunVaspCustodian firetask. See handler_groups dict in the code for
+            the groups and complete list of handlers in each group. Alternatively,
+            you can specify a list of ErrorHandler objects.
     """
 
     required_params = ["db_file", "approx_neb_wf_uuid", "launch_mode", "vasp_cmd"]
-    optional_params = ["images_key", "vasp_input_set", "override_default_vasp_params"]
+    optional_params = ["images_key", "vasp_input_set", "override_default_vasp_params", "handler_group"]
 
     def run_task(self, fw_spec):
         # get the database connection
@@ -115,6 +119,7 @@ class GetImageFireworks(FiretaskBase):
             vasp_input_set=self.get("vasp_input_set"),
             vasp_cmd=self["vasp_cmd"],
             override_default_vasp_params=self.get("override_default_vasp_params"),
+            handler_group=self.get("handler_group"),
             parents = parents
         )
         return fw

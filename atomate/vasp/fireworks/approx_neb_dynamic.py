@@ -20,6 +20,7 @@ class EvaluatePathFW(Firework):
         vasp_input_set=None,
         vasp_cmd=VASP_CMD,
         override_default_vasp_params=None,
+        handler_group=None,
         parents=None,
         **kwargs
     ):
@@ -57,6 +58,10 @@ class EvaluatePathFW(Firework):
                 are passed to the default vasp_input_set, i.e., MPRelaxSet. This
                 allows one to easily override some settings (e.g.
                 user_incar_settings, etc.)
+            handler_group (str or [ErrorHandler]): group of handlers to use for
+                RunVaspCustodian firetask. See handler_groups dict in the code for
+                the groups and complete list of handlers in each group. Alternatively,
+                you can specify a list of ErrorHandler objects.
             vasp_cmd (str): Command to run vasp.
             db_file (str): Path to file specifying db credentials to store outputs.
             job_type (str): custodian job type (default "double_relaxation_run")
@@ -95,7 +100,8 @@ class EvaluatePathFW(Firework):
                 vasp_cmd=vasp_cmd,
                 db_file=db_file,
                 vasp_input_set=vasp_input_set,
-                override_default_vasp_params=override_default_vasp_params
+                override_default_vasp_params=override_default_vasp_params,
+                handler_group=handler_group
             )
         )
 
