@@ -299,7 +299,8 @@ class WriteVaspInput(FiretaskBase):
         # get vasp input set and write files
         override_default_vasp_params = self.get("override_default_vasp_params") or {}
         if self["vasp_input_set"] == None or override_default_vasp_params != {}:
-            vis = MPRelaxSet(structure, **override_default_vasp_params)
+            vis = MPRelaxSet(structure, **override_default_vasp_params, sort_structure = False)
+            # note sort_structure = False required to retain original site order of structure
         elif hasattr(self["vasp_input_set"], "write_input"):
             vis = self["vasp_input_set"]
         else:
