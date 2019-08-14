@@ -46,7 +46,7 @@ def approx_neb_wf(
             "ISIF": 3,
             "ISMEAR": 0,
             "LDAU": False,
-            "NSW": 200,
+            "NSW": 400,
             "ADDGRID": True,
             "ISYM": 1,
             "NELMIN": 4,
