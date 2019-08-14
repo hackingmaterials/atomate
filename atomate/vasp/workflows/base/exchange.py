@@ -12,12 +12,9 @@ from atomate.vasp.powerups import (
     add_common_powerups,
 )
 from atomate.vasp.workflows.base.core import get_wf
-from atomate.vasp.firetasks.parse_outputs import (
-    MagneticDeformationToDB,
-    MagneticOrderingsToDB,
-)
 
 from atomate.vasp.fireworks.exchange import HeisenbergModelFW, VampireCallerFW
+from atomate.vasp.firetask.exchange_tasks import ExchangeToDB
 
 from uuid import uuid4
 from copy import deepcopy
@@ -219,7 +216,7 @@ class ExchangeWF:
         # Magnetic ordering analysis that generates 'magnetic_orderings'
         # collection
         fw_analysis = Firework(
-            MagneticOrderingsToDB(
+            ExchangeToDB(
                 db_file=c["DB_FILE"],
                 wf_uuid=self.uuid,
                 auto_generated=False,
