@@ -4,9 +4,13 @@ from atomate.utils.utils import get_logger, env_chk
 from atomate.vasp.database import VaspCalcDb
 
 from datetime import datetime
+import numpy as np
 
 from pymatgen import Structure
+from pymatgen.command_line.bader_caller import bader_analysis_from_path
 from pymatgen.analysis.magnetism.heisenberg import HeisenbergMapper
+from pymatgen.analysis.magnetism import CollinearMagneticStructureAnalyzer, Ordering
+from pymatgen.command_line.vampire_caller import VampireCaller
 
 __author__ = "Nathan C. Frey"
 __email__ = "ncfrey@lbl.gov"
