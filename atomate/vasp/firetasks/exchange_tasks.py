@@ -8,7 +8,7 @@ import numpy as np
 
 from pymatgen import Structure
 from pymatgen.command_line.bader_caller import bader_analysis_from_path
-from pymatgen.analysis.magnetism.heisenberg import HeisenbergMapper
+from pymatgen.analysis.magnetism.heisenberg import HeisenbergMapper, HeisenbergModel
 from pymatgen.analysis.magnetism import CollinearMagneticStructureAnalyzer, Ordering
 from pymatgen.command_line.vampire_caller import VampireCaller
 
@@ -16,6 +16,7 @@ __author__ = "Nathan C. Frey"
 __email__ = "ncfrey@lbl.gov"
 
 logger = get_logger(__name__)
+
 
 @explicit_serialize
 class ExchangeToDB(FiretaskBase):
@@ -30,10 +31,15 @@ class ExchangeToDB(FiretaskBase):
         used to make it easier to retrieve task docs
         parent_structure: Structure of parent crystal (not magnetically
         ordered)
-    """    
+    """
 
-    required_params = ["db_file", "wf_uuid", "parent_structure",
-                       "perform_bader", "scan"]
+    required_params = [
+        "db_file",
+        "wf_uuid",
+        "parent_structure",
+        "perform_bader",
+        "scan",
+    ]
     optional_params = ["origins", "input_index"]
 
     def run_task(self, fw_spec):
@@ -48,42 +54,53 @@ class ExchangeToDB(FiretaskBase):
         formula_pretty = self["parent_structure"].composition.reduced_formula
 
         # get ground state energy
-        task_label_regex = 'static' if not self['scan'] else 'optimize'
-        docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid,
-                                          "task_label": {"$regex": task_label_regex}},
-                                         ["task_id", "output.energy_per_atom"]))
+        task_label_regex = "static" if not self["scan"] else "optimize"
+        docs = list(
+            mmdb.collection.find(
+                {"wf_meta.wf_uuid": uuid, "task_label": {"$regex": task_label_regex}},
+                ["task_id", "output.energy_per_atom"],
+            )
+        )
 
         energies = [d["output"]["energy_per_atom"] for d in docs]
         ground_state_energy = min(energies)
         idx = energies.index(ground_state_energy)
         ground_state_task_id = docs[idx]["task_id"]
         if energies.count(ground_state_energy) > 1:
-            logger.warning("Multiple identical energies exist, "
-                        "duplicate calculations for {}?".format(formula))
+            logger.warning(
+                "Multiple identical energies exist, "
+                "duplicate calculations for {}?".format(formula)
+            )
 
         # get results for different orderings
-        docs = list(mmdb.collection.find({
-            "task_label": {"$regex": task_label_regex},
-            "wf_meta.wf_uuid": uuid
-        }))
+        docs = list(
+            mmdb.collection.find(
+                {"task_label": {"$regex": task_label_regex}, "wf_meta.wf_uuid": uuid}
+            )
+        )
 
         summaries = []
 
         for d in docs:
 
             optimize_task_label = d["task_label"]
-            optimize_task = dict(mmdb.collection.find_one({
-                "wf_meta.wf_uuid": uuid,
-                "task_label": optimize_task_label
-            }))
-            input_structure = Structure.from_dict(optimize_task['input']['structure'])
-            input_magmoms = optimize_task['input']['incar']['MAGMOM']
-            input_structure.add_site_property('magmom', input_magmoms)
+            optimize_task = dict(
+                mmdb.collection.find_one(
+                    {"wf_meta.wf_uuid": uuid, "task_label": optimize_task_label}
+                )
+            )
+            input_structure = Structure.from_dict(optimize_task["input"]["structure"])
+            input_magmoms = optimize_task["input"]["incar"]["MAGMOM"]
+            input_structure.add_site_property("magmom", input_magmoms)
 
             final_structure = Structure.from_dict(d["output"]["structure"])
 
-            input_analyzer = CollinearMagneticStructureAnalyzer(input_structure, threshold=0.0)
-            final_analyzer = CollinearMagneticStructureAnalyzer(final_structure, threshold=0.0)
+            input_analyzer = CollinearMagneticStructureAnalyzer(
+                input_structure, threshold=0.0
+            )
+            final_analyzer = CollinearMagneticStructureAnalyzer(
+                final_structure, threshold=0.0
+            )
 
             if d["task_id"] == ground_state_task_id:
                 stable = True
@@ -91,17 +108,20 @@ class ExchangeToDB(FiretaskBase):
             else:
                 stable = False
                 decomposes_to = ground_state_task_id
-            energy_above_ground_state_per_atom = d["output"]["energy_per_atom"] \
-                                                 - ground_state_energy
-            energy_diff_relax_static = optimize_task["output"]["energy_per_atom"] \
-                                       - d["output"]["energy_per_atom"]
+            energy_above_ground_state_per_atom = (
+                d["output"]["energy_per_atom"] - ground_state_energy
+            )
+            energy_diff_relax_static = (
+                optimize_task["output"]["energy_per_atom"]
+                - d["output"]["energy_per_atom"]
+            )
 
             # tells us the order in which structure was guessed
             # 1 is FM, then AFM..., -1 means it was entered manually
             # useful to give us statistics about how many orderings
             # we actually need to calculate
-            task_label = d["task_label"].split(' ')
-            ordering_index = task_label.index('ordering')
+            task_label = d["task_label"].split(" ")
+            ordering_index = task_label.index("ordering")
             ordering_index = int(task_label[ordering_index + 1])
             if self.get("origins", None):
                 ordering_origin = self["origins"][ordering_index]
@@ -132,17 +152,27 @@ class ExchangeToDB(FiretaskBase):
             # Specify very small threshold
             input_order_check = [0 if abs(m) < 0.001 else m for m in input_magmoms]
             final_order_check = [0 if abs(m) < 0.001 else m for m in final_magmoms]
-            ordering_changed = not np.array_equal(np.sign(input_order_check),
-                                                  np.sign(final_order_check))
+            ordering_changed = not np.array_equal(
+                np.sign(input_order_check), np.sign(final_order_check)
+            )
 
-            symmetry_changed = (final_structure.get_space_group_info()[0]
-                                != input_structure.get_space_group_info()[0])
+            symmetry_changed = (
+                final_structure.get_space_group_info()[0]
+                != input_structure.get_space_group_info()[0]
+            )
 
-            total_magnetization = abs(d["calcs_reversed"][0]["output"]["outcar"]["total_magnetization"])
-            num_formula_units = sum(d["calcs_reversed"][0]["composition_reduced"].values())/\
-                                sum(d["calcs_reversed"][0]["composition_unit_cell"].values())
-            total_magnetization_per_formula_unit = total_magnetization/num_formula_units
-            total_magnetization_per_unit_volume = total_magnetization/final_structure.volume
+            total_magnetization = abs(
+                d["calcs_reversed"][0]["output"]["outcar"]["total_magnetization"]
+            )
+            num_formula_units = sum(
+                d["calcs_reversed"][0]["composition_reduced"].values()
+            ) / sum(d["calcs_reversed"][0]["composition_unit_cell"].values())
+            total_magnetization_per_formula_unit = (
+                total_magnetization / num_formula_units
+            )
+            total_magnetization_per_unit_volume = (
+                total_magnetization / final_structure.volume
+            )
 
             summary = {
                 "formula": formula,
@@ -158,7 +188,7 @@ class ExchangeToDB(FiretaskBase):
                     "symmetry": input_structure.get_space_group_info()[0],
                     "index": ordering_index,
                     "origin": ordering_origin,
-                    "input_index": self.get("input_index", None)
+                    "input_index": self.get("input_index", None),
                 },
                 "total_magnetization": total_magnetization,
                 "total_magnetization_per_formula_unit": total_magnetization_per_formula_unit,
@@ -172,7 +202,7 @@ class ExchangeToDB(FiretaskBase):
                 "decomposes_to": decomposes_to,
                 "energy_above_ground_state_per_atom": energy_above_ground_state_per_atom,
                 "energy_diff_relax_static": energy_diff_relax_static,
-                "created_at": datetime.utcnow()
+                "created_at": datetime.utcnow(),
             }
 
             if fw_spec.get("tags", None):
@@ -184,6 +214,7 @@ class ExchangeToDB(FiretaskBase):
         mmdb.collection.insert(summaries)
 
         logger.info("Magnetic orderings calculation complete.")
+
 
 @explicit_serialize
 class HeisenbergModelMapping(FiretaskBase):
@@ -235,16 +266,17 @@ class HeisenbergModelMapping(FiretaskBase):
 
         # Get MSONable Heisenberg Model
         hmodel = hmapper.get_heisenberg_model()
+        hmodel_dict = hmodel.as_dict()
         name = "heisenberg_model_" + str(self["cutoff"])
         task_ids = [d["task_id"] for d in docs]
 
-        wf_meta = {'wf_uuid': wf_uuid, 'analysis_task_ids': task_ids}
+        wf_meta = {"wf_uuid": wf_uuid, "analysis_task_ids": task_ids}
         task_doc = {
             "wf_meta": wf_meta,
             "formula_pretty": formula_pretty,
             "nn_cutoff": self["cutoff"],
             "nn_tol": self["tol"],
-            "heisenberg_model": hmodel,
+            "heisenberg_model": hmodel_dict,
         }
 
         # Exchange collection
@@ -287,7 +319,7 @@ class HeisenbergConvergence(FiretaskBase):
             )
         )
 
-        hmodels = [d["heisenberg_model"] for d in docs]
+        hmodels = [HeisenbergModel.from_dict(d["heisenberg_model"]) for d in docs]
         cutoffs = [d["nn_cutoff"] for d in docs]
 
         # Check for J_ij convergence
@@ -307,7 +339,7 @@ class HeisenbergConvergence(FiretaskBase):
                 converged = False
 
             if converged:
-                converged_list.append(hmodel)
+                converged_list.append(hmodel.as_dict())
 
         # If multiple Heisenberg Models converged, take the maximal cutoff
         if len(converged_list) > 0:
@@ -348,7 +380,7 @@ class VampireMC(FiretaskBase):
         task_doc = {"wf_meta": {"wf_uuid": wf_uuid}, "formula_pretty": formula_pretty}
 
         # Get a converged Heisenberg model if one was found
-        hmodel = fw_spec["converged_heisenberg_model"]
+        hmodel = HeisenbergModel.from_dict(fw_spec["converged_heisenberg_model"])
 
         if hmodel:
             vc = VampireCaller(hm=hmodel)
