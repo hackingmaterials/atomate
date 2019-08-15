@@ -238,9 +238,9 @@ class HeisenbergModelMapping(FiretaskBase):
         name = "heisenberg_model_" + str(self["cutoff"])
         task_ids = [d["task_id"] for d in docs]
 
+        wf_meta = {'wf_uuid': wf_uuid, 'analysis_task_ids': task_ids}
         task_doc = {
-            "wf_meta.wf_uuid": wf_uuid,
-            "wf_meta.analysis_task_ids": task_ids,
+            "wf_meta": wf_meta,
             "formula_pretty": formula_pretty,
             "nn_cutoff": self["cutoff"],
             "nn_tol": self["tol"],
@@ -345,7 +345,7 @@ class VampireMC(FiretaskBase):
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         mmdb.collection = mmdb.db["exchange"]
 
-        task_doc = {"wf_meta.wf_uuid": wf_uuid, "formula_pretty": formula_pretty}
+        task_doc = {"wf_meta": {"wf_uuid": wf_uuid}, "formula_pretty": formula_pretty}
 
         # Get a converged Heisenberg model if one was found
         hmodel = fw_spec["converged_heisenberg_model"]
