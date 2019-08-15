@@ -224,11 +224,8 @@ class HeisenbergModelMapping(FiretaskBase):
         )
 
         # Get structures and energy / unit cell
-        structures = []
-        epas = []
-        for d in docs:
-            structures.append(Structure.from_dict(d["structure"]))
-            epas.append(d["energy_per_atom"])
+        structures = [Structure.from_dict(d["structure"]) for d in docs]
+        epas = [d["energy_per_atom"] for d in docs]
 
         n_atoms = len(structures[0])
         energies = [e * n_atoms for e in epas]
@@ -239,9 +236,11 @@ class HeisenbergModelMapping(FiretaskBase):
         # Get MSONable Heisenberg Model
         hmodel = hmapper.get_heisenberg_model()
         name = "heisenberg_model_" + str(self["cutoff"])
+        task_ids = [d["task_id"] for d in docs]
+
         task_doc = {
             "wf_meta.wf_uuid": wf_uuid,
-            "wf_meta.analysis_task_id": docs["task_id"],
+            "wf_meta.analysis_task_ids": task_ids,
             "formula_pretty": formula_pretty,
             "nn_cutoff": self["cutoff"],
             "nn_tol": self["tol"],
@@ -288,11 +287,8 @@ class HeisenbergConvergence(FiretaskBase):
             )
         )
 
-        hmodels = []
-        cutoffs = []
-        for d in docs:
-            hmodels.append(d["heisenberg_model"])
-            cutoffs.append(d["nn_cutoff"])
+        hmodels = [d["heisenberg_model"] for d in docs]
+        cutoffs = [d["nn_cutoff"] for d in docs]
 
         # Check for J_ij convergence
         converged_list = []
