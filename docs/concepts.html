@@ -1,18 +1,17 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Atomate concepts &#8212; atomate 0.9.1 documentation</title>
+    <meta charset="utf-8" />
+    <title>Atomate concepts &#8212; atomate 0.9.2 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="Workflow YAML Reference" href="workflow_yaml_reference.html" />
@@ -32,7 +31,7 @@
         <li class="right" >
           <a href="workflow_yaml_reference.html" title="Workflow YAML Reference"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.2 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -57,9 +56,9 @@
 <h2>CalcLocs<a class="headerlink" href="#calclocs" title="Permalink to this headline">¶</a></h2>
 <p>If you are running multiple VASP jobs that depend on copying the outputs of previous jobs, one issue is how to pass the directory information of previous VASP jobs from Firework to Firework. It is possible to do this manually (as was done in the MPWorks codebase), or using the <code class="docutils literal notranslate"><span class="pre">pass_job_info</span></code> keyword built into Fireworks, but the standard way to do this in atomate is <em>CalcLocs</em>. Procedurally, all you need to do is add the <code class="docutils literal notranslate"><span class="pre">`PassCalcLocs</span></code> FireTask to every Firework that contains a VASP job (see <code class="docutils literal notranslate"><span class="pre">atomate.vasp.fireworks.core</span></code> for examples). Downstream jobs like <code class="docutils literal notranslate"><span class="pre">CopyVaspOutput</span></code> will have a <code class="docutils literal notranslate"><span class="pre">calc_loc</span></code> variable that can be set to True, and will automatically get the previous VASP dir parsed from before. Similar with <code class="docutils literal notranslate"><span class="pre">VaspToDbTask</span></code>. Note that a couple of advantages of this system are:</p>
 <ul class="simple">
-<li>It is a general way of passing VASP directories that works with any Firework, and doesn’t require you to code the logic of passing VASP directories inside of other functions (e.g., database insertion tasks as was done previously in MPWorks). Thus, the task of reporting and passing the VASP job location is well-separated from the other functions and can just be added in very easily. The only downside is that you have to remember to add in this FireTask.</li>
-<li>The CalcLocs maintains a running dictionary of job type to job location. If you need to grab outputs from multiple jobs (or say, from two jobs back), it is all supported within the framework. Just read the docs, e.g., of <code class="docutils literal notranslate"><span class="pre">CopyVaspOutput</span></code>.</li>
-<li>Job directories are located across different machines and require <code class="docutils literal notranslate"><span class="pre">scp</span></code> or some other complex transfer mechanism are automatically handled by this infrastructure. You don’t have to lift a finger! Just tell the parent Firework to pass the calcloc and the child firework to copy the vasp output (which supports the calcloc framework).</li>
+<li><p>It is a general way of passing VASP directories that works with any Firework, and doesn’t require you to code the logic of passing VASP directories inside of other functions (e.g., database insertion tasks as was done previously in MPWorks). Thus, the task of reporting and passing the VASP job location is well-separated from the other functions and can just be added in very easily. The only downside is that you have to remember to add in this FireTask.</p></li>
+<li><p>The CalcLocs maintains a running dictionary of job type to job location. If you need to grab outputs from multiple jobs (or say, from two jobs back), it is all supported within the framework. Just read the docs, e.g., of <code class="docutils literal notranslate"><span class="pre">CopyVaspOutput</span></code>.</p></li>
+<li><p>Job directories are located across different machines and require <code class="docutils literal notranslate"><span class="pre">scp</span></code> or some other complex transfer mechanism are automatically handled by this infrastructure. You don’t have to lift a finger! Just tell the parent Firework to pass the calcloc and the child firework to copy the vasp output (which supports the calcloc framework).</p></li>
 </ul>
 </div>
 <div class="section" id="workflow-powerups">
@@ -74,9 +73,9 @@
 based on your machine. Since the <code class="docutils literal notranslate"><span class="pre">ModifyIncar</span></code> firetask supports
 <code class="docutils literal notranslate"><span class="pre">env_chk</span></code>, these values can also be set in the fireworker config file
 (my_fworker.yaml). E.g.,</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">env</span><span class="p p-Indicator">:</span>
-  <span class="l l-Scalar l-Scalar-Plain">incar_update</span><span class="p p-Indicator">:</span>
-    <span class="l l-Scalar l-Scalar-Plain">NCORE</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">24</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">env</span><span class="p">:</span>
+  <span class="nt">incar_update</span><span class="p">:</span>
+    <span class="nt">NCORE</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">24</span>
 </pre></div>
 </div>
 <p>Note that NCORE sets the number of cores that work on a single orbital.
@@ -87,9 +86,9 @@ A good starting point might be setting NCORE equal to the square root of
 number of cores per node as per the VASP manual. The following information
 might come in handy when setting the NCORE parameter on NERSC machines:</p>
 <ul class="simple">
-<li>Edison - 24 tasks per node</li>
-<li>Cori - 32 tasks per node</li>
-<li>Matgen - 16 tasks per node</li>
+<li><p>Edison - 24 tasks per node</p></li>
+<li><p>Cori - 32 tasks per node</p></li>
+<li><p>Matgen - 16 tasks per node</p></li>
 </ul>
 <p>Thus, a good starting point is to set NCORE=4 for Matgen/Edison and NCORE=8 for
 Cori. Reduce NCORE if you want to try to increase speed at the risk of having
@@ -125,13 +124,11 @@ lower memory available per orbital.</p>
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -152,13 +149,13 @@ lower memory available per orbital.</p>
         <li class="right" >
           <a href="workflow_yaml_reference.html" title="Workflow YAML Reference"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.2 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
     </div>
 
   </body>

@@ -2,6 +2,10 @@
 atomate Changelog
 =================
 
+**v0.9.2**
+
+* fix CalcDB authentication issue (M. Bercx)
+
 **v0.9.1**
 
 * bugfix: ``vasp_input_set_params`` --> ``vasp_input_params`` in some cases (thanks to M. Horton for pointing out)

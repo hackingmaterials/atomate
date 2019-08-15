@@ -1,18 +1,17 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Running Gibbs workflows &#8212; atomate 0.9.1 documentation</title>
+    <meta charset="utf-8" />
+    <title>Running Gibbs workflows &#8212; atomate 0.9.2 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Builders: creating calculation reports for data analysis" href="builders.html" />
@@ -36,7 +35,7 @@
         <li class="right" >
           <a href="running_workflows.html" title="Running Workflows Tutorial"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.2 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -50,7 +49,7 @@
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>Standard density functional theory calculations are 0 K ground state calculations, but most materials are used and modeled at room temperature and above.
-The Debye model and phonon calculations are two commonly used methods to obtain Gibbs free energies (<img class="math" src="_images/math/21bf7e6d55dfb97d60bdb21b0339d8b343f3ba84.png" alt="G(p,T)"/>) of structures as a function of temperature.
+The Debye model and phonon calculations are two commonly used methods to obtain Gibbs free energies (<img class="math" src="_images/math/8a70e68f407c20515867e86ce3c7f9b1d8f74616.png" alt="G(p,T)"/>) of structures as a function of temperature.
 Both the Debye model and phonon calculations are supported in atomate, where the Debye model analysis is based on the quasiharmonic technique presented in
 Moruzzi et al. (<a class="reference external" href="https://doi.org/10.1103/PhysRevB.37.790">Phys. Rev. B 37, 790–799 (1988).</a>) and implemented similar to Toher et al. (<a class="reference external" href="https://doi.org/10.1103/PhysRevB.90.174107">Phys. Rev. B 90, 1–14 (2014).</a>.
 Phonon calculation analysis is performed using <a class="reference external" href="https://atztogo.github.io/phonopy/">phonopy</a> (Togo &amp; Tanaka <a class="reference external" href="https://doi.org/10.1016/j.scriptamat.2015.07.021">Scr. Mater. 108, 1–5 (2015).</a>).</p>
@@ -60,28 +59,28 @@ The resulting Gibbs free energies from the calculation will be queried from your
 <div class="section" id="objectives">
 <h2>Objectives<a class="headerlink" href="#objectives" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>Run an atomate preset workflow for the Gibbs free energy using Python</li>
-<li>Query for the calculation result in the Gibbs collection of the database</li>
-<li>Visualize the results with matplotlib</li>
+<li><p>Run an atomate preset workflow for the Gibbs free energy using Python</p></li>
+<li><p>Query for the calculation result in the Gibbs collection of the database</p></li>
+<li><p>Visualize the results with matplotlib</p></li>
 </ul>
 </div>
 <div class="section" id="gibbs-free-energy-workflows">
 <h2>Gibbs Free Energy Workflows<a class="headerlink" href="#gibbs-free-energy-workflows" title="Permalink to this headline">¶</a></h2>
 <p>Gibbs free energies are calculated in DFT based on the following relation:</p>
 <div class="math">
-<p><img src="_images/math/a2af98f30bcea97cee6215f77d3f45e87073d56d.png" alt="G(p,T) = E(V) + pV + F_{\textrm{vib}}(V,T)"/></p>
-</div><p>where <img class="math" src="_images/math/7d28b83e95abf8aa59bcd91638cd7497b0045c5f.png" alt="E(V)"/> are the total energies calculated with DFT as a function of volume and <img class="math" src="_images/math/1a4b629275000c607845a73db48e6ac7f90e2c66.png" alt="F_{\textrm{vib}}(V,T)"/> is the vibrational contribution to the Helmholz energy.
+<p><img src="_images/math/15ec8b7a278c8facb18e2385d9c54b5ddeb93f83.png" alt="G(p,T) = E(V) + pV + F_{\textrm{vib}}(V,T)"/></p>
+</div><p>where <img class="math" src="_images/math/b5df63172953a1cc84d31c5fa7d1354eddacf567.png" alt="E(V)"/> are the total energies calculated with DFT as a function of volume and <img class="math" src="_images/math/893a0496747e918d1a810978ae2ba791433377fe.png" alt="F_{\textrm{vib}}(V,T)"/> is the vibrational contribution to the Helmholz energy.
 This vibrational energy is calculated using a harmonic approximation, here via the Debye model.</p>
-<p>To calculate the Gibbs free energy, total energies are calculated for several volumes, then vibrational contributions are added for each volume over a range of temperatures to give <img class="math" src="_images/math/78763521c82d5102be5a3f148fe107a4705627c7.png" alt="F(V,T)"/>.
+<p>To calculate the Gibbs free energy, total energies are calculated for several volumes, then vibrational contributions are added for each volume over a range of temperatures to give <img class="math" src="_images/math/3db155c5e8565ef9b1c7fb856be369955109eea3.png" alt="F(V,T)"/>.
 Then an equation of state is fit for each set of energies and volumes at each temperature.
 Several different equations of state are implemented in pymatgen and several of those are discussed in terms of the Debye model by Shang et al. (<a class="reference external" href="https://doi.org/10.1016/j.commatsci.2009.12.006">Comput. Mater. Sci. 47, 1040–1048 (2010).</a>).
-Using the fit equation of state, the volume that minimized the energy at a fixed pressure (usually, but not always <img class="math" src="_images/math/699a37bbd7b0416548ee19df7cf0858bb9ec46b1.png" alt="p=0"/>) is found.
-Finding the minimum volume at each temperature and fixed pressure yields the conversion from <img class="math" src="_images/math/1a4b629275000c607845a73db48e6ac7f90e2c66.png" alt="F_{\textrm{vib}}(V,T)"/> to <img class="math" src="_images/math/66ebfcff6eadbfdcfbed124f9584df0c3570dc8a.png" alt="G(V,T)"/></p>
+Using the fit equation of state, the volume that minimized the energy at a fixed pressure (usually, but not always <img class="math" src="_images/math/992cf818704e858252c680ccf36abe9d6e03d168.png" alt="p=0"/>) is found.
+Finding the minimum volume at each temperature and fixed pressure yields the conversion from <img class="math" src="_images/math/893a0496747e918d1a810978ae2ba791433377fe.png" alt="F_{\textrm{vib}}(V,T)"/> to <img class="math" src="_images/math/aada3e2259c23a06d98be2ee457a29a8e1b73eeb.png" alt="G(V,T)"/></p>
 <p>From the perspective of a workflow, the Gibbs free energy workflow is procedurally similar to the elastic tensor workflow.
 First the input structure is optimized, then volume of the optimize structure is deformed and energies calculated to yield the points for an E-V curve (or phonon calculations), finally the analysis workflow corresponding to the Debye model or phonon formalism is performed.</p>
-<div class="figure" id="id2">
+<div class="figure align-default" id="id2">
 <a class="reference internal image-reference" href="_images/elastic_tensor.png"><img alt="Elastic Tensor Workflow" src="_images/elastic_tensor.png" style="width: 999.5px; height: 556.0px;" /></a>
-<p class="caption"><span class="caption-text">Atomate elastic tensor workflow. This uses the same pattern as the Gibbs free energy workflow, but the analysis step (final Firework) calculates the elastic tensor instead of Gibbs free energies.</span></p>
+<p class="caption"><span class="caption-text">Atomate elastic tensor workflow. This uses the same pattern as the Gibbs free energy workflow, but the analysis step (final Firework) calculates the elastic tensor instead of Gibbs free energies.</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="running-a-gibbs-free-energy-workflow">
@@ -97,8 +96,8 @@ You’ll keep all of the files for this tutorial there.</p>
 </pre></div>
 </div>
 <div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">This will reset all of your previous Fireworks and Workflows in your LaunchPad. Do not do this if you have actual results that you want to keep!</p>
+<p class="admonition-title">Warning</p>
+<p>This will reset all of your previous Fireworks and Workflows in your LaunchPad. Do not do this if you have actual results that you want to keep!</p>
 </div>
 <p>If you do not or want to reset your LaunchPad, you can set up a different database to use for tutorials or simply accept mixing your previous results and workflows with the contents of this tutorial in your database.</p>
 </div>
@@ -146,7 +145,7 @@ And we can setup the workflow and add it to our LaunchPad ready to run in just a
 In the Debye model, the Poisson ratio controls the shape and magnitude of the elbow in the heat capacity curve.
 Typical materials are sometimes idealized to have a Poisson ratio of 0.33, but to have the most accurate ratio will give more accurate heat capacities near the low temperature limit.
 Poisson ratios can be taken from experimental references, from the Materials Project and are often comparable for chemically similar structures (alternatively, they be first calculated via the elastic tensor workflow).</p>
-<p>Since we are potentially interested in the high-temperature thermodynamic behavior of Si, we set the anharmonic contribution to <code class="docutils literal notranslate"><span class="pre">True</span></code>, so that we can properly deviate from the high-temperature limit of the Debye model of <img class="math" src="_images/math/294bfec245799ab29aace193d2a6a9ca12c107b0.png" alt="3R"/> based on the Gruneisen parameter, <img class="math" src="_images/math/3666981dc77862de77b6ecfcb64aad59b425cbaf.png" alt="\gamma"/>.</p>
+<p>Since we are potentially interested in the high-temperature thermodynamic behavior of Si, we set the anharmonic contribution to <code class="docutils literal notranslate"><span class="pre">True</span></code>, so that we can properly deviate from the high-temperature limit of the Debye model of <img class="math" src="_images/math/3ea4fe9c81dae83d151d1e9628cbd4239f37f9ac.png" alt="3R"/> based on the Gruneisen parameter, <img class="math" src="_images/math/34d137cf01c787ecda732761c3f95b0f65a6c3e9.png" alt="\gamma"/>.</p>
 <p><strong>Create and add the workflow to LaunchPad</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python gibbs.py
 </pre></div>
@@ -212,9 +211,9 @@ Simply add the following Python script (<code class="docutils literal notranslat
 </pre></div>
 </div>
 <p>If you open the saved figure, <code class="docutils literal notranslate"><span class="pre">Si-heat-capacity.png</span></code>, it should match the one below!</p>
-<div class="figure" id="id3">
+<div class="figure align-default" id="id3">
 <img alt="Si heat capacity compared with experiment" src="_images/Si-heat-capacity.png" />
-<p class="caption"><span class="caption-text">Heat capacity for Si calculated with atomate and compared with experimental values.</span></p>
+<p class="caption"><span class="caption-text">Heat capacity for Si calculated with atomate and compared with experimental values.</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="conclusion">
@@ -223,8 +222,8 @@ Simply add the following Python script (<code class="docutils literal notranslat
 <p>To see what other preset workflows can be run, see the documentation that includes them at <a class="reference internal" href="atomate.vasp.workflows.presets.html#module-atomate.vasp.workflows.presets" title="atomate.vasp.workflows.presets"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.presets</span></code></a>. They can be set up and run in exactly the same way as this tutorial, by passing in a structure and an optional configuration dictionary.</p>
 <p>At this point, you might:</p>
 <ul class="simple">
-<li>Explore using builders to generate metadata: <a class="reference internal" href="builders.html#builders"><span class="std std-ref">Builders: creating calculation reports for data analysis</span></a>.</li>
-<li>Skip to learning how to create your own workflows that you can use and distribute: <a class="reference internal" href="creating_workflows.html#creating-workflows"><span class="std std-ref">Creating Workflows</span></a>.</li>
+<li><p>Explore using builders to generate metadata: <a class="reference internal" href="builders.html#builders"><span class="std std-ref">Builders: creating calculation reports for data analysis</span></a>.</p></li>
+<li><p>Skip to learning how to create your own workflows that you can use and distribute: <a class="reference internal" href="creating_workflows.html#creating-workflows"><span class="std std-ref">Creating Workflows</span></a>.</p></li>
 </ul>
 </div>
 </div>
@@ -267,13 +266,11 @@ Simply add the following Python script (<code class="docutils literal notranslat
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -297,13 +294,13 @@ Simply add the following Python script (<code class="docutils literal notranslat
         <li class="right" >
           <a href="running_workflows.html" title="Running Workflows Tutorial"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.2 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
     </div>
 
   </body>

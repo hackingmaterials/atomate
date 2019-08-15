@@ -1,18 +1,17 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Customizing workflows &#8212; atomate 0.9.1 documentation</title>
+    <meta charset="utf-8" />
+    <title>Customizing workflows &#8212; atomate 0.9.2 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="atomate Changelog" href="changelog.html" />
@@ -36,7 +35,7 @@
         <li class="right" >
           <a href="creating_workflows.html" title="Creating Workflows"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.2 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -55,7 +54,7 @@
 <div class="section" id="objectives">
 <h2>Objectives<a class="headerlink" href="#objectives" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>Provide examples for customizating workflows</li>
+<li><p>Provide examples for customizating workflows</p></li>
 </ul>
 </div>
 <div class="section" id="prerequisites">
@@ -94,8 +93,8 @@
 <h2>VASP Calculation Settings<a class="headerlink" href="#vasp-calculation-settings" title="Permalink to this headline">¶</a></h2>
 <p>Most VASP calculation-specific settings (e.g. those from INCAR, KPOINTS, and POTCAR files) are controlled by <a class="reference external" href="http://pymatgen.org/pymatgen.io.vasp.sets.html">pymatgen’s vasp sets</a> . VASP workflows take <code class="docutils literal notranslate"><span class="pre">vasp_input_set</span></code> options and you can directly import and use them or customize them before using them in atomate workflows.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Using the <code class="docutils literal notranslate"><span class="pre">vasp_input_set</span></code> or <code class="docutils literal notranslate"><span class="pre">vis</span></code> keywords in workflow constructors usually only controls the first Firework that uses that set. If you want to have multiple Fireworks use custom input sets (or just not the first one, e.g. in a bandstructure workflow) then you have to make a custom workflow yourself.</p>
+<p class="admonition-title">Note</p>
+<p>Using the <code class="docutils literal notranslate"><span class="pre">vasp_input_set</span></code> or <code class="docutils literal notranslate"><span class="pre">vis</span></code> keywords in workflow constructors usually only controls the first Firework that uses that set. If you want to have multiple Fireworks use custom input sets (or just not the first one, e.g. in a bandstructure workflow) then you have to make a custom workflow yourself.</p>
 </div>
 <div class="section" id="using-a-different-functional">
 <h3>Using a different functional<a class="headerlink" href="#using-a-different-functional" title="Permalink to this headline">¶</a></h3>
@@ -156,8 +155,8 @@
 <h3>Custom KPOINTS settings<a class="headerlink" href="#custom-kpoints-settings" title="Permalink to this headline">¶</a></h3>
 <p>KPOINTS settings can also be similarly customized using the above example. You can control them with the following keywords (from <a class="reference external" href="http://pymatgen.org/pymatgen.io.vasp.sets.html">pymatgen’s vasp sets</a>):</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">force_gamma</span></code>: always use gamma centered kpoint generation. Default (False) is to use Automatic Density kpoint scheme, which will use the Gamma centered generation scheme for hexagonal cells, and Monkhorst-Pack otherwise.</li>
-<li><code class="docutils literal notranslate"><span class="pre">user_kpoints_settings</span></code>: Override kpoints setting by supplying a dict. E.g., <code class="docutils literal notranslate"><span class="pre">{&quot;reciprocal_density&quot;:</span> <span class="pre">1000}</span></code>. Other options are <code class="docutils literal notranslate"><span class="pre">grid_density</span></code> or <code class="docutils literal notranslate"><span class="pre">length</span></code>.</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">force_gamma</span></code>: always use gamma centered kpoint generation. Default (False) is to use Automatic Density kpoint scheme, which will use the Gamma centered generation scheme for hexagonal cells, and Monkhorst-Pack otherwise.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_kpoints_settings</span></code>: Override kpoints setting by supplying a dict. E.g., <code class="docutils literal notranslate"><span class="pre">{&quot;reciprocal_density&quot;:</span> <span class="pre">1000}</span></code>. Other options are <code class="docutils literal notranslate"><span class="pre">grid_density</span></code> or <code class="docutils literal notranslate"><span class="pre">length</span></code>.</p></li>
 </ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.io.vasp.sets</span> <span class="kn">import</span> <span class="n">MPRelaxSet</span>
 <span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
@@ -231,8 +230,8 @@
 </pre></div>
 </div>
 <div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Make sure not to try a nested dictionary update (e.g. <code class="docutils literal notranslate"><span class="pre">my_custom_input_set.config_dict.update({'POTCAR':</span> <span class="pre">{'Mg':</span> <span class="pre">'Mg'}})</span></code> )! It will wipe out all of the other <code class="docutils literal notranslate"><span class="pre">POTCAR</span></code> entries in the dict.</p>
+<p class="admonition-title">Warning</p>
+<p>Make sure not to try a nested dictionary update (e.g. <code class="docutils literal notranslate"><span class="pre">my_custom_input_set.config_dict.update({'POTCAR':</span> <span class="pre">{'Mg':</span> <span class="pre">'Mg'}})</span></code> )! It will wipe out all of the other <code class="docutils literal notranslate"><span class="pre">POTCAR</span></code> entries in the dict.</p>
 </div>
 </div>
 </div>
@@ -276,13 +275,11 @@
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -306,13 +303,13 @@
         <li class="right" >
           <a href="creating_workflows.html" title="Creating Workflows"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.2 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
     </div>
 
   </body>

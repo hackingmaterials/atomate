@@ -1,18 +1,17 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Atomate developer installation &#8212; atomate 0.9.1 documentation</title>
+    <meta charset="utf-8" />
+    <title>Atomate developer installation &#8212; atomate 0.9.2 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Running Workflows Tutorial" href="running_workflows.html" />
@@ -36,7 +35,7 @@
         <li class="right" >
           <a href="installation.html" title="Installing atomate"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.2 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -60,23 +59,18 @@ It is only intended as a supplement to the main installation guide and does not 
 <p>Note that if you previously installed atomate using another tool (e.g., pip or conda), you should uninstall that first before starting this installation. Otherwise, you might have conflicts or unintended behavior resulting from the two different code installations.</p>
 <p>The steps for installing pymatgen and atomate in development mode are below.</p>
 <ol class="arabic">
-<li><p class="first">Note: you should have activated your virtual environment or conda environment before proceeding.</p>
-</li>
-<li><p class="first">Create a <code class="docutils literal notranslate"><span class="pre">codes</span></code> directory in <code class="docutils literal notranslate"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;</span></code></p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">cd</span></code> to your newly created <code class="docutils literal notranslate"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;/codes</span></code> directory.</p>
-</li>
-<li><p class="first">Clone each of the packages you want to install in development mode using git. You don’t have to know the details of how to use git for the installation, but if you are going to be developing code in Python, you should take a look at this <a class="reference external" href="http://rogerdudler.github.io/git-guide/">simple git introduction</a>. Most Linux distributions include git, so you shouldn’t have to install it on the cluster. To download the codes, use the following commands (one command per line):</p>
+<li><p>Note: you should have activated your virtual environment or conda environment before proceeding.</p></li>
+<li><p>Create a <code class="docutils literal notranslate"><span class="pre">codes</span></code> directory in <code class="docutils literal notranslate"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cd</span></code> to your newly created <code class="docutils literal notranslate"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;/codes</span></code> directory.</p></li>
+<li><p>Clone each of the packages you want to install in development mode using git. You don’t have to know the details of how to use git for the installation, but if you are going to be developing code in Python, you should take a look at this <a class="reference external" href="http://rogerdudler.github.io/git-guide/">simple git introduction</a>. Most Linux distributions include git, so you shouldn’t have to install it on the cluster. To download the codes, use the following commands (one command per line):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">materialsproject</span><span class="o">/</span><span class="n">pymatgen</span><span class="o">.</span><span class="n">git</span>
 <span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">hackingmaterials</span><span class="o">/</span><span class="n">atomate</span><span class="o">.</span><span class="n">git</span>
 </pre></div>
 </div>
 <p>Now you should have atomate and pymatgen directories in your <code class="docutils literal notranslate"><span class="pre">codes</span></code> directory.</p>
 </li>
-<li><p class="first">For each of these folders, you <code class="docutils literal notranslate"><span class="pre">cd</span></code> into the folders and <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code> (the <code class="docutils literal notranslate"><span class="pre">-e</span></code> flag installs as editable, and the <code class="docutils literal notranslate"><span class="pre">.</span></code> simply means to install from the <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> in the current directory) or use the <code class="docutils literal notranslate"><span class="pre">conda</span></code> equivalent. If you run into problems during this procedure, you may need manually install or load certain dependencies (e.g., use <code class="docutils literal notranslate"><span class="pre">module</span> <span class="pre">load</span> <span class="pre">numpy</span></code> on your system or <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">numpy</span></code> or <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">numpy</span></code>). Note that once installed, if you make changes to the code in these directories, the changes will take effect immediately without needing to reinstall. Thus, you can both view and modify the code installed in these directories.</p>
-</li>
-<li><p class="first">If you want to update these codes later on, execute <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">pull</span></code> followed by <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code> (or again, the <code class="docutils literal notranslate"><span class="pre">conda</span></code> equivalent) in the relevant directory. Note that you should update codes in the same order as installation as listed above.</p>
-</li>
+<li><p>For each of these folders, you <code class="docutils literal notranslate"><span class="pre">cd</span></code> into the folders and <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code> (the <code class="docutils literal notranslate"><span class="pre">-e</span></code> flag installs as editable, and the <code class="docutils literal notranslate"><span class="pre">.</span></code> simply means to install from the <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> in the current directory) or use the <code class="docutils literal notranslate"><span class="pre">conda</span></code> equivalent. If you run into problems during this procedure, you may need manually install or load certain dependencies (e.g., use <code class="docutils literal notranslate"><span class="pre">module</span> <span class="pre">load</span> <span class="pre">numpy</span></code> on your system or <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">numpy</span></code> or <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">numpy</span></code>). Note that once installed, if you make changes to the code in these directories, the changes will take effect immediately without needing to reinstall. Thus, you can both view and modify the code installed in these directories.</p></li>
+<li><p>If you want to update these codes later on, execute <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">pull</span></code> followed by <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code> (or again, the <code class="docutils literal notranslate"><span class="pre">conda</span></code> equivalent) in the relevant directory. Note that you should update codes in the same order as installation as listed above.</p></li>
 </ol>
 </div>
 </div>
@@ -91,8 +85,8 @@ It is only intended as a supplement to the main installation guide and does not 
 <p>If you make changes to atomate, it is a good idea to rerun the unit tests to make sure everything is still working.
 The <code class="docutils literal notranslate"><span class="pre">db.json</span></code> and <code class="docutils literal notranslate"><span class="pre">my_launchpad.yaml</span></code> in the <code class="docutils literal notranslate"><span class="pre">&lt;&lt;INSTALL_DIR&gt;&gt;/codes/atomate/atomate/common/test_files</span></code> directory control the database to use for the unit tests. The default is to use a MongoDB running on localhost. You can update these to whatever you like, e.g. a MongoDB instance in the cloud that you use for tests.</p>
 <div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Although you can re-use the same Mongo host and port as your production installation for tests, do <strong>not</strong> also use the same database as your production runs! This is why the default configuration uses a database name with <code class="docutils literal notranslate"><span class="pre">_unittest</span></code> - so that it won’t conflict with any production database. The database and LaunchPad you use in the unit tests <strong>WILL</strong> be reset frequently. <strong>DO NOT USE YOUR PRODUCTION DATABASES FOR TESTING</strong> or you will lose everything!</p>
+<p class="admonition-title">Warning</p>
+<p>Although you can re-use the same Mongo host and port as your production installation for tests, do <strong>not</strong> also use the same database as your production runs! This is why the default configuration uses a database name with <code class="docutils literal notranslate"><span class="pre">_unittest</span></code> - so that it won’t conflict with any production database. The database and LaunchPad you use in the unit tests <strong>WILL</strong> be reset frequently. <strong>DO NOT USE YOUR PRODUCTION DATABASES FOR TESTING</strong> or you will lose everything!</p>
 </div>
 <p>These unit tests are designed to run without installing VASP or other codes so you can run these on your local machine.
 Some of them start with a VASP workflow but apply the <code class="docutils literal notranslate"><span class="pre">use_fake_vasp</span></code> method to replace calling the VASP executable with a “Faker” that verifies basic properties of the inputs and copies pre-stored output files to the current directory, thus simulating the execution of VASP.</p>
@@ -143,13 +137,11 @@ Sometimes you need to toggle DEBUG on/off a couple of times if you are doing thi
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -173,13 +165,13 @@ Sometimes you need to toggle DEBUG on/off a couple of times if you are doing thi
         <li class="right" >
           <a href="installation.html" title="Installing atomate"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.2 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
     </div>
 
   </body>

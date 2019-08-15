@@ -1,18 +1,17 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.lammps.fireworks package &#8212; atomate 0.9.1 documentation</title>
+    <meta charset="utf-8" />
+    <title>atomate.lammps.fireworks package &#8212; atomate 0.9.2 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
  
@@ -28,7 +27,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.2 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -46,21 +45,21 @@
 <span id="atomate-lammps-fireworks-core-module"></span><h2>atomate.lammps.fireworks.core module<a class="headerlink" href="#module-atomate.lammps.fireworks.core" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="atomate.lammps.fireworks.core.LammpsFW">
-<em class="property">class </em><code class="descclassname">atomate.lammps.fireworks.core.</code><code class="descname">LammpsFW</code><span class="sig-paren">(</span><em>lammps_input_set</em>, <em>input_filename='lammps.in'</em>, <em>data_filename='lammps.data'</em>, <em>lammps_cmd='lammps'</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>name='LammpsFW'</em>, <em>log_filename='log.lammps'</em>, <em>dump_filename=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.fireworks.core.LammpsFW" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">atomate.lammps.fireworks.core.</code><code class="sig-name descname">LammpsFW</code><span class="sig-paren">(</span><em class="sig-param">lammps_input_set</em>, <em class="sig-param">input_filename='lammps.in'</em>, <em class="sig-param">data_filename='lammps.data'</em>, <em class="sig-param">lammps_cmd='lammps'</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">name='LammpsFW'</em>, <em class="sig-param">log_filename='log.lammps'</em>, <em class="sig-param">dump_filename=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.fireworks.core.LammpsFW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.Firework</span></code></p>
 <dl class="method">
 <dt id="atomate.lammps.fireworks.core.LammpsFW.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>lammps_input_set</em>, <em>input_filename='lammps.in'</em>, <em>data_filename='lammps.data'</em>, <em>lammps_cmd='lammps'</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>name='LammpsFW'</em>, <em>log_filename='log.lammps'</em>, <em>dump_filename=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.fireworks.core.LammpsFW.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">lammps_input_set</em>, <em class="sig-param">input_filename='lammps.in'</em>, <em class="sig-param">data_filename='lammps.data'</em>, <em class="sig-param">lammps_cmd='lammps'</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">name='LammpsFW'</em>, <em class="sig-param">log_filename='log.lammps'</em>, <em class="sig-param">dump_filename=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.fireworks.core.LammpsFW.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>write lammps inputset, run, and store the output.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><p class="first">lammps_input_set (DictLammpsInput): lammps input set
+<dl>
+<dt>Args:</dt><dd><p>lammps_input_set (DictLammpsInput): lammps input set
 input_filename (str): input file name
 data_filename (str): data file name
 lammps_cmd (str): command to run lammps (skip the input file).</p>
 <blockquote>
-<div>e.g. ‘mpirun -n 8 lmp_mpi’</div></blockquote>
-<p class="last">db_file (str): path to file specifying db credentials to place output parsing.
+<div><p>e.g. ‘mpirun -n 8 lmp_mpi’</p>
+</div></blockquote>
+<p>db_file (str): path to file specifying db credentials to place output parsing.
 parents ([Fireworks)]: parents of this particular Firework.
 name (str): descriptive name for lammps simulation
 log_filename (str)
@@ -74,23 +73,23 @@ dump_filename (str)
 
 <dl class="class">
 <dt id="atomate.lammps.fireworks.core.LammpsForceFieldFW">
-<em class="property">class </em><code class="descclassname">atomate.lammps.fireworks.core.</code><code class="descname">LammpsForceFieldFW</code><span class="sig-paren">(</span><em>input_file</em>, <em>final_molecule</em>, <em>forcefield</em>, <em>box_size</em>, <em>topologies=None</em>, <em>constituent_molecules=None</em>, <em>mols_number=None</em>, <em>user_settings=None</em>, <em>ff_site_property=None</em>, <em>input_filename='lammps.in'</em>, <em>data_filename='lammps.data'</em>, <em>lammps_cmd='lammps'</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>log_filename='log.lammps'</em>, <em>dump_filenames=None</em>, <em>name='LammpsFFFW'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.fireworks.core.LammpsForceFieldFW" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">atomate.lammps.fireworks.core.</code><code class="sig-name descname">LammpsForceFieldFW</code><span class="sig-paren">(</span><em class="sig-param">input_file</em>, <em class="sig-param">final_molecule</em>, <em class="sig-param">forcefield</em>, <em class="sig-param">box_size</em>, <em class="sig-param">topologies=None</em>, <em class="sig-param">constituent_molecules=None</em>, <em class="sig-param">mols_number=None</em>, <em class="sig-param">user_settings=None</em>, <em class="sig-param">ff_site_property=None</em>, <em class="sig-param">input_filename='lammps.in'</em>, <em class="sig-param">data_filename='lammps.data'</em>, <em class="sig-param">lammps_cmd='lammps'</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">log_filename='log.lammps'</em>, <em class="sig-param">dump_filenames=None</em>, <em class="sig-param">name='LammpsFFFW'</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.fireworks.core.LammpsForceFieldFW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.Firework</span></code></p>
 <dl class="method">
 <dt id="atomate.lammps.fireworks.core.LammpsForceFieldFW.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>input_file</em>, <em>final_molecule</em>, <em>forcefield</em>, <em>box_size</em>, <em>topologies=None</em>, <em>constituent_molecules=None</em>, <em>mols_number=None</em>, <em>user_settings=None</em>, <em>ff_site_property=None</em>, <em>input_filename='lammps.in'</em>, <em>data_filename='lammps.data'</em>, <em>lammps_cmd='lammps'</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>log_filename='log.lammps'</em>, <em>dump_filenames=None</em>, <em>name='LammpsFFFW'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.fireworks.core.LammpsForceFieldFW.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">input_file</em>, <em class="sig-param">final_molecule</em>, <em class="sig-param">forcefield</em>, <em class="sig-param">box_size</em>, <em class="sig-param">topologies=None</em>, <em class="sig-param">constituent_molecules=None</em>, <em class="sig-param">mols_number=None</em>, <em class="sig-param">user_settings=None</em>, <em class="sig-param">ff_site_property=None</em>, <em class="sig-param">input_filename='lammps.in'</em>, <em class="sig-param">data_filename='lammps.data'</em>, <em class="sig-param">lammps_cmd='lammps'</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">log_filename='log.lammps'</em>, <em class="sig-param">dump_filenames=None</em>, <em class="sig-param">name='LammpsFFFW'</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.fireworks.core.LammpsForceFieldFW.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write lammps input from forcefield and topology, run lammps, store results. Can be used
 with RunPackmol firework.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><p class="first">input_file (str): path to lammps input(or template) file.
+<dl>
+<dt>Args:</dt><dd><p>input_file (str): path to lammps input(or template) file.
 final_molecule (str/Molecule): either path to the moelcule of Molecule object.
 forcefield (ForceField): pymatgen.io.lammps.force_field.ForceField object
 box_size (list):  list of list of low and high values for each dimension [[xlow, xhigh], …]
 topologies ([Topology]): list of pymatgen.io.lammps.topology.Topology objects, one for</p>
 <blockquote>
-<div>each constituent molecule.</div></blockquote>
-<p class="last">constituent_molecules ([Molecule]): list of Molecule objects that make up the final_molecule
+<div><p>each constituent molecule.</p>
+</div></blockquote>
+<p>constituent_molecules ([Molecule]): list of Molecule objects that make up the final_molecule
 mols_number (list): list of number of each constituent moelcule.
 user_settings (dict):
 ff_site_property (str): the site property used for forcefiled mapping
@@ -111,28 +110,30 @@ name (str): firework name
 
 <dl class="class">
 <dt id="atomate.lammps.fireworks.core.PackmolFW">
-<em class="property">class </em><code class="descclassname">atomate.lammps.fireworks.core.</code><code class="descname">PackmolFW</code><span class="sig-paren">(</span><em>molecules</em>, <em>packing_config</em>, <em>tolerance=2.0</em>, <em>filetype='xyz'</em>, <em>control_params=None</em>, <em>output_file='packed.xyz'</em>, <em>copy_to_current_on_exit=False</em>, <em>site_property=None</em>, <em>parents=None</em>, <em>name='PackmolFW'</em>, <em>packmol_cmd='packmol'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.fireworks.core.PackmolFW" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">atomate.lammps.fireworks.core.</code><code class="sig-name descname">PackmolFW</code><span class="sig-paren">(</span><em class="sig-param">molecules</em>, <em class="sig-param">packing_config</em>, <em class="sig-param">tolerance=2.0</em>, <em class="sig-param">filetype='xyz'</em>, <em class="sig-param">control_params=None</em>, <em class="sig-param">output_file='packed.xyz'</em>, <em class="sig-param">copy_to_current_on_exit=False</em>, <em class="sig-param">site_property=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">name='PackmolFW'</em>, <em class="sig-param">packmol_cmd='packmol'</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.fireworks.core.PackmolFW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.Firework</span></code></p>
 <dl class="method">
 <dt id="atomate.lammps.fireworks.core.PackmolFW.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>molecules</em>, <em>packing_config</em>, <em>tolerance=2.0</em>, <em>filetype='xyz'</em>, <em>control_params=None</em>, <em>output_file='packed.xyz'</em>, <em>copy_to_current_on_exit=False</em>, <em>site_property=None</em>, <em>parents=None</em>, <em>name='PackmolFW'</em>, <em>packmol_cmd='packmol'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.fireworks.core.PackmolFW.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Args:</dt>
-<dd><p class="first">molecules (list): list of constituent molecules(Molecule objects)
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">molecules</em>, <em class="sig-param">packing_config</em>, <em class="sig-param">tolerance=2.0</em>, <em class="sig-param">filetype='xyz'</em>, <em class="sig-param">control_params=None</em>, <em class="sig-param">output_file='packed.xyz'</em>, <em class="sig-param">copy_to_current_on_exit=False</em>, <em class="sig-param">site_property=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">name='PackmolFW'</em>, <em class="sig-param">packmol_cmd='packmol'</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.fireworks.core.PackmolFW.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Args:</dt><dd><p>molecules (list): list of constituent molecules(Molecule objects)
 packing_config (list): list of dict config settings for each molecule in the</p>
 <blockquote>
-<div>molecules list. eg: config settings for a single molecule
-[{“number”: 1, “inside box”:[0,0,0,100,100,100]}]</div></blockquote>
+<div><p>molecules list. eg: config settings for a single molecule
+[{“number”: 1, “inside box”:[0,0,0,100,100,100]}]</p>
+</div></blockquote>
 <p>tolerance (float): packmol tolerance
 filetype (string): input/output structure file type
 control_params (dict): packmol control parameters dictionary. Basically all parameters</p>
 <blockquote>
-<div>other than structure/atoms.</div></blockquote>
+<div><p>other than structure/atoms.</p>
+</div></blockquote>
 <p>output_file (str): output file name. The extension will be adjusted according to the filetype.
 copy_to_current_on_exit (bool): whether or not to copy the packed molecule output file</p>
 <blockquote>
-<div>to the current directory.</div></blockquote>
-<p class="last">site_property (str): the specified site property will be restored for the final Molecule object.
+<div><p>to the current directory.</p>
+</div></blockquote>
+<p>site_property (str): the specified site property will be restored for the final Molecule object.
 parents ([Firework]): parent fireworks
 name (str): firework name
 packmol_cmd (str): path to packmol bin
@@ -173,13 +174,11 @@ packmol_cmd (str): path to packmol bin
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -197,13 +196,13 @@ packmol_cmd (str): path to packmol bin
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.2 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
     </div>
 
   </body>
