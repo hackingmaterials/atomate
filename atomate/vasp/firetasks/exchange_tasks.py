@@ -344,7 +344,7 @@ class HeisenbergConvergence(FiretaskBase):
         if len(converged_list) > 0:
             hmodel = converged_list[-1]  # Largest cutoff
         else:
-            hmodel = hmodels[-1].as_dict()
+            hmodel = None
 
         # Update FW spec with converged hmodel or None
         update_spec = {"converged_heisenberg_model": hmodel}
@@ -379,9 +379,8 @@ class VampireMC(FiretaskBase):
         task_doc = {"wf_meta": {"wf_uuid": wf_uuid}, "formula_pretty": formula_pretty}
 
         # Get a converged Heisenberg model if one was found
-        hmodel = HeisenbergModel.from_dict(fw_spec["converged_heisenberg_model"])
-
-        if hmodel:
+        if fw_spec["converged_heisenberg_model"]:
+            hmodel = HeisenbergModel.from_dict(fw_spec["converged_heisenberg_model"])
             vc = VampireCaller(hm=hmodel)
             vo = vc.output
             task_doc["vampire_output"] = vo
