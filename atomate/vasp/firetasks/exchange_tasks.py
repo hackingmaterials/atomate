@@ -268,9 +268,8 @@ class HeisenbergModelMapping(FiretaskBase):
         hmodel = hmapper.get_heisenberg_model()
         hmodel_dict = hmodel.as_dict()
         name = "heisenberg_model_" + str(self["cutoff"])
-        task_ids = [d["task_id"] for d in docs]
 
-        wf_meta = {"wf_uuid": wf_uuid, "analysis_task_ids": task_ids}
+        wf_meta = {"wf_uuid": wf_uuid}
         task_doc = {
             "wf_meta": wf_meta,
             "formula_pretty": formula_pretty,
