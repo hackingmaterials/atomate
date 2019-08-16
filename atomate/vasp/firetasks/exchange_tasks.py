@@ -314,7 +314,7 @@ class HeisenbergConvergence(FiretaskBase):
         docs = list(
             mmdb.collection.find(
                 {"wf_meta.wf_uuid": wf_uuid},
-                ["task_id", "heisenberg_model", "nn_cutoff"],
+                ["heisenberg_model", "nn_cutoff"],
             )
         )
 
@@ -344,7 +344,7 @@ class HeisenbergConvergence(FiretaskBase):
         if len(converged_list) > 0:
             hmodel = converged_list[-1]  # Largest cutoff
         else:
-            hmodel = None
+            hmodel = hmodels[-1].as_dict()
 
         # Update FW spec with converged hmodel or None
         update_spec = {"converged_heisenberg_model": hmodel}
