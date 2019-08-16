@@ -25,7 +25,7 @@ logger = get_logger(__name__)
 from atomate.vasp.config import VASP_CMD, DB_FILE, ADD_WF_METADATA
 from atomate.vasp.workflows.presets.scan import wf_scan_opt
 
-from pymatgen.io.vasp.sets import MPRelaxSet
+from pymatgen.io.vasp.sets import MPStaticSet
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 from pymatgen.analysis.magnetism.analyzer import (
     CollinearMagneticStructureAnalyzer,
@@ -162,20 +162,29 @@ class ExchangeWF:
     def get_wf(self, num_orderings_hard_limit=16, c=None):
         """Retrieve Fireworks workflow.
 
+        c is a dictionary that can contain:
+        * user_incar_settings
+        * heisenberg_settings: 
+            cutoff (float): Starting point for nearest neighbor search.
+            tol (float): Tolerance for equivalent NN bonds.
+        * mc_settings:
+            mc_box_size (float): MC simulation box size in nm.
+            equil_timesteps (int): Number of MC equilibration moves.
+            mc_timesteps (int): Number of MC moves for averaging.
+
         Args:
-            num_orderings_hard_limit: will make sure total number of magnetic
+            scan (bool): use SCAN functional.
+            num_orderings_hard_limit (int): will make sure total number of magnetic
         orderings does not exceed this number even if there are extra orderings
         of equivalent symmetry
-            c: additional config dict (as used elsewhere in atomate)
+            c (dict): additional config dict (as used elsewhere in atomate)
 
         Returns: 
             wf (Workflow): Static magnetic orderings + Heisenberg Model + Vampire Monte Carlo.
 
         TODO:
-            * Add static SCAN option
-            * Make FWs modular so the wflow can be started from any step
+            * Add static SCAN option (only optimization is available)
             * Allow for user inputs to HeisenbergMapper and VampireCaller
-            * Update VampireCaller to take hmodel INSTEAD of structures and energies
         """
 
         c = c or {"VASP_CMD": VASP_CMD, "DB_FILE": DB_FILE}
@@ -202,9 +211,11 @@ class ExchangeWF:
 
             name = " ordering {} {} -".format(idx, cmsa.ordering.value)
 
+            vis = MPStaticSet(struct, user_incar_settings=user_incar_settings)
             static_fws.append(
                 StaticFW(
                     struct,
+                    vasp_input_set=vis,
                     vasp_cmd=c["VASP_CMD"],
                     db_file=c["DB_FILE"],
                     name=name + " static",
@@ -233,19 +244,33 @@ class ExchangeWF:
         )
 
         # Heisenberg model mapping
+        heisenberg_settings = {"cutoff": 3.0, "tol": 0.04}
+        heisenberg_settings.update(c.get("heisenberg_settings", {}))
+        c["heisenberg_settings"] = heisenberg_settings
+
         heisenberg_model_fw = HeisenbergModelFW(
             exchange_wf_uuid=self.uuid,
             parent_structure=self.matched_structures[0],
             parents=[fw_analysis],
             db_file=c["DB_FILE"],
+            heisenberg_settings=c["heisenberg_settings"],
         )
 
         # Vampire Monte Carlo
+        mc_settings = {
+            "mc_box_size": 4.0,
+            "equil_timesteps": 2000,
+            "mc_timesteps": 4000,
+        }
+        mc_settings.update(c.get("mc_settings", {}))
+        c["mc_settings"] = mc_settings
+
         vampire_fw = VampireCallerFW(
             exchange_wf_uuid=self.uuid,
             parent_structure=self.matched_structures[0],
             parents=[heisenberg_model_fw],
             db_file=c["DB_FILE"],
+            mc_settings=c["mc_settings"],
         )
 
         # Chain FWs together

@@ -313,8 +313,7 @@ class HeisenbergConvergence(FiretaskBase):
         # Get documents
         docs = list(
             mmdb.collection.find(
-                {"wf_meta.wf_uuid": wf_uuid},
-                ["heisenberg_model", "nn_cutoff"],
+                {"wf_meta.wf_uuid": wf_uuid}, ["heisenberg_model", "nn_cutoff"]
             )
         )
 
@@ -360,10 +359,12 @@ class VampireMC(FiretaskBase):
     Args:
         db_file (str): path to file containing the database credentials.
         exchange_wf_uuid (int): Unique id for record keeping.
+        parent_structure (Structure): Structure object with magmoms.
+        mc_settings (dict): A configuration dict for monte carlo.
 
     """
 
-    required_params = ["db_file", "exchange_wf_uuid", "parent_structure"]
+    required_params = ["db_file", "exchange_wf_uuid", "parent_structure", "mc_settings"]
     optional_params = []
 
     def run_task(self, fw_spec):
@@ -378,10 +379,20 @@ class VampireMC(FiretaskBase):
 
         task_doc = {"wf_meta": {"wf_uuid": wf_uuid}, "formula_pretty": formula_pretty}
 
+        # Vampire monte carlo settings
+        mc_box_size = mc_settings["mc_box_size"]
+        equil_timesteps = mc_settings["equil_timesteps"]
+        mc_timesteps = mc_settings["mc_timesteps"]
+
         # Get a converged Heisenberg model if one was found
         if fw_spec["converged_heisenberg_model"]:
             hmodel = HeisenbergModel.from_dict(fw_spec["converged_heisenberg_model"])
-            vc = VampireCaller(hm=hmodel)
+            vc = VampireCaller(
+                mc_box_size=mc_box_size,
+                equil_timesteps=equil_timesteps,
+                mc_timesteps=mc_timesteps,
+                hm=hmodel,
+            )
             vo = vc.output
             task_doc["vampire_output"] = vo
         else:

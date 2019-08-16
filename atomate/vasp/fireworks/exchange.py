@@ -25,8 +25,7 @@ class HeisenbergModelFW(Firework):
         parent_structure,
         parents,
         db_file=DB_FILE,
-        cutoff=3.0,
-        tol=0.04,
+        heisenberg_settings=None,
         name="heisenberg model",
         c=None,
     ):
@@ -38,12 +37,14 @@ class HeisenbergModelFW(Firework):
             parent_structure (Structure): Magnetic ground state.
             parents (FireWorks): Parent FWs.
             db_file (str): Path to file containing db credentials.
-            cutoff (float): Starting point for nearest neighbor search.
-            tol (float): Tolerance for equivalent NN bonds.
+            heisenberg_settings (dict): A config dict for Heisenberg model mapping.
             name (str): Labels the FW.
             c (dict): Config dict.
 
         """
+
+        cutoff = heisenberg_settings["cutoff"]
+        tol = heisenberg_settings["tol"]
 
         fw_name = "%s %s" % (parent_structure.composition.reduced_formula, name)
 
@@ -57,15 +58,15 @@ class HeisenbergModelFW(Firework):
         }
 
         tasks = []
-        end_cutoff = cutoff + 15
+        end_cutoff = 15  # Larger than this is unreasonable
 
-        for c in np.linspace(cutoff, end_cutoff, 9):
+        for coff in np.linspace(cutoff, end_cutoff, 9):
             tasks.append(
                 HeisenbergModelMapping(
                     db_file=db_file,
                     exchange_wf_uuid=exchange_wf_uuid,
                     parent_structure=parent_structure,
-                    cutoff=c,
+                    cutoff=coff,
                     tol=tol,
                 )
             )
@@ -80,6 +81,7 @@ class VampireCallerFW(Firework):
         parent_structure,
         parents,
         db_file=DB_FILE,
+        mc_settings=None,
         name="vampire caller",
         c=None,
     ):
@@ -91,6 +93,7 @@ class VampireCallerFW(Firework):
             parents (FireWorks): Parent FWs.
             db_file (str): Path to file containing db credentials.
             name (str): Labels the FW.
+            mc_settings (dict): A configuration dict for monte carlo.
             c (dict): Config dict.
 
         """
@@ -120,6 +123,7 @@ class VampireCallerFW(Firework):
                 db_file=db_file,
                 exchange_wf_uuid=exchange_wf_uuid,
                 parent_structure=parent_structure,
+                mc_settings=mc_settings,
             )
         )
 
