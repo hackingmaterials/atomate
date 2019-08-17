@@ -22,6 +22,8 @@ class EvaluatePathFW(Firework):
         override_default_vasp_params=None,
         handler_group=None,
         parents=None,
+        add_additional_fields=None,
+        add_tags=None,
         **kwargs
     ):
         """
@@ -101,7 +103,9 @@ class EvaluatePathFW(Firework):
                 db_file=db_file,
                 vasp_input_set=vasp_input_set,
                 override_default_vasp_params=override_default_vasp_params,
-                handler_group=handler_group
+                handler_group=handler_group,
+                add_additional_fields=add_additional_fields,
+                add_tags=add_tags
             )
         )
 

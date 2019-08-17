@@ -10,6 +10,7 @@ from custodian.vasp.handlers import (
     NonConvergingErrorHandler,
     PositiveEnergyErrorHandler,
     StdErrHandler,
+    WalltimeHandler
 )
 from uuid import uuid4
 
@@ -35,6 +36,7 @@ def approx_neb_wf(
     launch_mode="all",
     vasp_cmd=VASP_CMD,
     db_file=DB_FILE,
+    wall_time=None,
     additional_fields = None,
     tags = None,
     name="ApproxNEB",
@@ -64,6 +66,7 @@ def approx_neb_wf(
             PositiveEnergyErrorHandler(),
             FrozenJobErrorHandler(),
             StdErrHandler(),
+            WalltimeHandler(wall_time=wall_time)
         ]
 
     wf_uuid = str(uuid4())
@@ -122,7 +125,9 @@ def approx_neb_wf(
                 db_file=db_file,
                 override_default_vasp_params=approx_neb_params,
                 handler_group=handler_group,
-                parents=[stable_site_fws[c[0]],stable_site_fws[c[1]]]
+                parents=[stable_site_fws[c[0]],stable_site_fws[c[1]]],
+                add_additional_fields=additional_fields,
+                add_tags=tags
             )
         )
 

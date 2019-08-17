@@ -108,6 +108,8 @@ class ApproxNEBLaunchFW(Firework):
         job_type="double_relaxation_run",
         handler_group=None,
         parents=None,
+        add_additional_fields=None,
+        add_tags=None,
         **kwargs
     ):
         """
@@ -152,6 +154,11 @@ class ApproxNEBLaunchFW(Firework):
             "task_label": fw_name,
             "approx_neb": {"wf_uuids": [], "_source_wf_uuid": approx_neb_wf_uuid},
         }
+        if isinstance(add_additional_fields,(dict)):
+            for key,value in add_additional_fields.items():
+                additional_fields[key] = value
+        if isinstance(add_tags,(list,dict)):
+            additional_fields["tags"] = add_tags
         if calc_type == "stable_site":
             additional_fields["approx_neb"]["calc_type"] = "stable_site"
             additional_fields["approx_neb"]["stable_sites_indexes"]: []

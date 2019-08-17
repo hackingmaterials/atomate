@@ -40,7 +40,7 @@ class GetImageFireworks(FiretaskBase):
     """
 
     required_params = ["db_file", "approx_neb_wf_uuid", "launch_mode", "vasp_cmd"]
-    optional_params = ["images_key", "vasp_input_set", "override_default_vasp_params", "handler_group"]
+    optional_params = ["images_key", "vasp_input_set", "override_default_vasp_params", "handler_group", "add_additional_fields","add_tags"]
 
     def run_task(self, fw_spec):
         # get the database connection
@@ -120,7 +120,9 @@ class GetImageFireworks(FiretaskBase):
             vasp_cmd=self["vasp_cmd"],
             override_default_vasp_params=self.get("override_default_vasp_params"),
             handler_group=self.get("handler_group"),
-            parents = parents
+            parents = parents,
+            add_additional_fields=self.get("add_additional_fields"),
+            add_tags = self.get("add_tags")
         )
         return fw
 
