@@ -111,6 +111,7 @@ class GetImageFireworks(FiretaskBase):
         return sorted_paths
 
     def get_fw(self, structure_path, parents=None):
+        add_tags = self.get("add_tags")
         fw = ApproxNEBLaunchFW(
             calc_type="image",
             approx_neb_wf_uuid=self["approx_neb_wf_uuid"],
@@ -122,8 +123,10 @@ class GetImageFireworks(FiretaskBase):
             handler_group=self.get("handler_group"),
             parents = parents,
             add_additional_fields=self.get("add_additional_fields"),
-            add_tags = self.get("add_tags")
+            add_tags = add_tags
         )
+        if add_tags:
+            fw.spec["tags"] = add_tags
         return fw
 
     def get_screening_fws(self, sorted_paths):
