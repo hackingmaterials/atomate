@@ -9,7 +9,7 @@ import os
 from atomate.utils.utils import load_class
 from fireworks import FiretaskBase, explicit_serialize
 from pymatgen.io.qchem.inputs import QCInput
-from pymatgen.analysis.graphs import MoleculeGraph, isomorphic
+from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.analysis.local_env import OpenBabelNN
 
 __author__ = "Brandon Wood"
@@ -85,7 +85,7 @@ class WriteInputFromIOSet(FiretaskBase):
                                                                        extend_structure=False)
                 # If they are isomorphic, aka a previous FW has not changed bonding,
                 # then we will use prev_calc_mol. If bonding has changed, we will use mol.
-                if isomorphic(mol_graph.graph,prev_mol_graph.graph):
+                if mol_graph.isomorphic_to(prev_mol_graph):
                     mol = prev_calc_mol
                 elif self["qchem_input_set"] != "OptSet":
                     print("WARNING: Molecule from spec is not isomorphic to passed molecule!")
@@ -140,7 +140,7 @@ class WriteCustomInput(FiretaskBase):
                                                                    OpenBabelNN(),
                                                                    reorder=False,
                                                                    extend_structure=False)
-            if not isomorphic(mol_graph.graph,prev_mol_graph.graph):
+            if not mol_graph.isomorphic_to(prev_mol_graph):
                 print("WARNING: Molecule from spec is not isomorphic to passed molecule!")
             mol = prev_calc_mol
 

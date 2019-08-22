@@ -10,7 +10,7 @@ from atomate.qchem.drones import QChemDrone
 from pymatgen.core.structure import Molecule
 import numpy as np
 from pymatgen.analysis.local_env import OpenBabelNN
-from pymatgen.analysis.graphs import MoleculeGraph, isomorphic
+from pymatgen.analysis.graphs import MoleculeGraph
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -216,7 +216,7 @@ class QChemDroneTest(unittest.TestCase):
                                                                  OpenBabelNN(),
                                                                  reorder=False,
                                                                  extend_structure=False)
-        self.assertEqual(isomorphic(orig_molgraph.graph,initial_molgraph.graph), True)
+        self.assertEqual(orig_molgraph.isomorphic_to(initial_molgraph), True)
 
     def test_assimilate_opt_with_hidden_changes_from_handler(self):
         drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener"})
