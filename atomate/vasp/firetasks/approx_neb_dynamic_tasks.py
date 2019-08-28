@@ -125,8 +125,11 @@ class GetImageFireworks(FiretaskBase):
             add_additional_fields=self.get("add_additional_fields"),
             add_tags = add_tags
         )
-        if add_tags:
-            fw.spec["tags"] = add_tags
+        if isinstance(add_tags,(list)):
+            if "tags" in fw.spec.keys():
+                fw.spec["tags"].extend(add_tags)
+            else:
+                fw.spec["tags"] = add_tags
         return fw
 
     def get_screening_fws(self, sorted_paths):

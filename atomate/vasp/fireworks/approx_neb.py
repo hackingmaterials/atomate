@@ -61,6 +61,7 @@ class HostLatticeFW(Firework):
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
         fw_name = "{} {}".format(structure.composition.reduced_formula, name)
+        self.spec["tags"] = ["approx_neb", approx_neb_wf_uuid, "host_lattice"]
         task_doc_additional_fields = {
             "task_label": name,
             "approx_neb": {
@@ -149,6 +150,7 @@ class ApproxNEBLaunchFW(Firework):
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
         fw_name = calc_type + " " + name
+        self.spec["tags"] = ["approx_neb", approx_neb_wf_uuid, calc_type]
         handler_group = handler_group or {}
         additional_fields = {
             "task_label": fw_name,
@@ -260,6 +262,7 @@ class StableSiteFW(Firework):
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         fw_name = name + ": insert " + insert_specie + " " + str(stable_sites_index)
+        self.spec["tags"] = ["approx_neb", approx_neb_wf_uuid, "stable_site"]
 
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping

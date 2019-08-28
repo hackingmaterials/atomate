@@ -72,6 +72,7 @@ class EvaluatePathFW(Firework):
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         fw_name = name + ": " + mobile_specie + " " + stable_sites_combo
+        self.spec["tags"] = ["approx_neb", approx_neb_wf_uuid, "evaluate_path"]
 
         t = []
         # apply pathfinder pymatgen function and store outputs in approx_neb collection

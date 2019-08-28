@@ -141,6 +141,7 @@ def approx_neb_wf(
     )
     if isinstance(tags,(list)):
         wf = add_tags(wf, tags)
+
     wf.metadata.update({"approx_neb_wf_uuid":wf_uuid})
     wf.name = name
 
