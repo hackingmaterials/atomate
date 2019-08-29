@@ -76,6 +76,7 @@ class HostLatticeToDb(FiretaskBase):
             "host_lattice": {
                 "dir_name": host_lattice_tasks_doc["dir_name"],
                 "formula_pretty": host_lattice_tasks_doc["formula_pretty"],
+                "input_structure": host_lattice_tasks_doc["input"]["structure"],
                 "output": host_lattice_tasks_doc["output"],
                 "task_id": host_lattice_tasks_doc["task_id"],
             },
