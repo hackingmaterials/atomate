@@ -61,7 +61,7 @@ class HostLatticeFW(Firework):
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
         fw_name = "{} {}".format(structure.composition.reduced_formula, name)
-        self.spec["tags"] = ["approx_neb", approx_neb_wf_uuid, "host_lattice"]
+        fw_spec = {"tags": ["approx_neb", approx_neb_wf_uuid, "host_lattice"]}
         task_doc_additional_fields = {
             "task_label": name,
             "approx_neb": {
@@ -92,7 +92,7 @@ class HostLatticeFW(Firework):
         t.append(
             HostLatticeToDb(db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid, additional_fields=additional_fields, tags=tags)
         )
-        super().__init__(tasks=t, name=fw_name, **kwargs)
+        super().__init__(tasks=t, spec=fw_spec, name=fw_name, **kwargs)
 
 
 class ApproxNEBLaunchFW(Firework):
@@ -150,7 +150,7 @@ class ApproxNEBLaunchFW(Firework):
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
         fw_name = calc_type + " " + name
-        self.spec["tags"] = ["approx_neb", approx_neb_wf_uuid, calc_type]
+        fw_spec = {"tags": ["approx_neb", approx_neb_wf_uuid, calc_type]}
         handler_group = handler_group or {}
         additional_fields = {
             "task_label": fw_name,
@@ -206,7 +206,7 @@ class ApproxNEBLaunchFW(Firework):
             )
             t.append(ImageToDb(db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid))
 
-        super().__init__(tasks=t, name=fw_name, parents=parents, **kwargs)
+        super().__init__(tasks=t, spec = fw_spec, name=fw_name, parents=parents, **kwargs)
 
 
 class StableSiteFW(Firework):
@@ -262,7 +262,7 @@ class StableSiteFW(Firework):
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         fw_name = name + ": insert " + insert_specie + " " + str(stable_sites_index)
-        self.spec["tags"] = ["approx_neb", approx_neb_wf_uuid, "stable_site"]
+        fw_spec = {"tags": ["approx_neb", approx_neb_wf_uuid, "stable_site"]}
 
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
@@ -320,4 +320,4 @@ class StableSiteFW(Firework):
             StableSiteToDb(stable_sites_index=stable_sites_index, db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid)
         )
 
-        super().__init__(tasks=t, name=fw_name, parents=parents, **kwargs)
+        super().__init__(tasks=t, spec = fw_spec, name=fw_name, parents=parents, **kwargs)
