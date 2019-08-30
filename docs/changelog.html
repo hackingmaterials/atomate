@@ -1,18 +1,17 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate Changelog &#8212; atomate 0.9.1 documentation</title>
+    <meta charset="utf-8" />
+    <title>atomate Changelog &#8212; atomate 0.9.3 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Contributors" href="contributors.html" />
@@ -36,7 +35,7 @@
         <li class="right" >
           <a href="customizing_workflows.html" title="Customizing Workflows"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.3 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -47,293 +46,302 @@
             
   <div class="section" id="atomate-changelog">
 <h1>atomate Changelog<a class="headerlink" href="#atomate-changelog" title="Permalink to this headline">¶</a></h1>
+<p><strong>v0.9.3</strong></p>
+<ul class="simple">
+<li><p>Minor change to enforce storing chgcars, clean up old kwargs in MagneticOrderings workflow (M. Horton)</p></li>
+<li><p>Improve speed of large file copying in CopyVaspOutputs (T.M. Boland)</p></li>
+</ul>
+<p><strong>v0.9.2</strong></p>
+<ul class="simple">
+<li><p>fix CalcDB authentication issue (M. Bercx)</p></li>
+</ul>
 <p><strong>v0.9.1</strong></p>
 <ul class="simple">
-<li>bugfix: <code class="docutils literal notranslate"><span class="pre">vasp_input_set_params</span></code> –&gt; <code class="docutils literal notranslate"><span class="pre">vasp_input_params</span></code> in some cases (thanks to M. Horton for pointing out)</li>
-<li>add ability to put mongoclient_kwargs in CalcDB creds file (thanks to S. Torissi for pointing out the feature request)</li>
+<li><p>bugfix: <code class="docutils literal notranslate"><span class="pre">vasp_input_set_params</span></code> –&gt; <code class="docutils literal notranslate"><span class="pre">vasp_input_params</span></code> in some cases (thanks to M. Horton for pointing out)</p></li>
+<li><p>add ability to put mongoclient_kwargs in CalcDB creds file (thanks to S. Torissi for pointing out the feature request)</p></li>
 </ul>
 <p><strong>v0.9.0</strong></p>
 <ul class="simple">
-<li>better error message (L. Ward)</li>
-<li>Fix db authentication issue in v0.8.9 (M. Siron)</li>
-<li>Change default vasp_cmd and db_file to those in config.py (M. Horton)</li>
-<li>update plots in docs (A. Ganose)</li>
+<li><p>better error message (L. Ward)</p></li>
+<li><p>Fix db authentication issue in v0.8.9 (M. Siron)</p></li>
+<li><p>Change default vasp_cmd and db_file to those in config.py (M. Horton)</p></li>
+<li><p>update plots in docs (A. Ganose)</p></li>
 </ul>
 <p><strong>v0.8.9</strong></p>
 <div class="admonition caution">
-<p class="first admonition-title">Caution</p>
-<p class="last">this version introduced a quirk in the db authentication scheme, you might need to set authsource manually or update to v0.9.0</p>
+<p class="admonition-title">Caution</p>
+<p>this version introduced a quirk in the db authentication scheme, you might need to set authsource manually or update to v0.9.0</p>
 </div>
 <ul class="simple">
-<li>fix NSCF run kpoint mesh and Boltztrap workflow to reflect pymatgen updates (A. Ganose)</li>
-<li>allow “authsource” parameter in db.json files (A. Jain)</li>
-<li>add powerup for turning off gzip (D. Broberg)</li>
+<li><p>fix NSCF run kpoint mesh and Boltztrap workflow to reflect pymatgen updates (A. Ganose)</p></li>
+<li><p>allow “authsource” parameter in db.json files (A. Jain)</p></li>
+<li><p>add powerup for turning off gzip (D. Broberg)</p></li>
 </ul>
 <p><strong>v0.8.8</strong></p>
 <ul class="simple">
-<li>magnetic ordering workflows (M. Horton)</li>
-<li>better checks for AECAR storage (J. Shen)</li>
-<li>update VASP NCF set NEDOS (M. Dylla)</li>
+<li><p>magnetic ordering workflows (M. Horton)</p></li>
+<li><p>better checks for AECAR storage (J. Shen)</p></li>
+<li><p>update VASP NCF set NEDOS (M. Dylla)</p></li>
 </ul>
 <p><strong>v0.8.7</strong></p>
 <ul class="simple">
-<li>store custodian data in its own key in FWAction (E. Sivonxay)</li>
+<li><p>store custodian data in its own key in FWAction (E. Sivonxay)</p></li>
 </ul>
 <p><strong>v0.8.6</strong></p>
 <ul class="simple">
-<li>add bandstructure no-opt workflow preset (A. Ganose)</li>
+<li><p>add bandstructure no-opt workflow preset (A. Ganose)</p></li>
 </ul>
 <p><strong>v0.8.5</strong></p>
 <ul class="simple">
-<li>add NMR workflow (S. Dwaraknath)</li>
-<li>surface workflow refactor (J. Montoya)</li>
-<li>update elasticity package for latest pymatgen (J. Montoya)</li>
+<li><p>add NMR workflow (S. Dwaraknath)</p></li>
+<li><p>surface workflow refactor (J. Montoya)</p></li>
+<li><p>update elasticity package for latest pymatgen (J. Montoya)</p></li>
 </ul>
 <p><strong>v0.8.4</strong></p>
 <ul class="simple">
-<li>add some QChem functionality! (S. Blau, E. Spotte-Smith)</li>
-<li>better credential parsing in CalcDB (A. Rutt)</li>
-<li>update paramiko for better security (A. Jain)</li>
-<li>add tasks_settings.yaml to site-packages (A. Jain)</li>
+<li><p>add some QChem functionality! (S. Blau, E. Spotte-Smith)</p></li>
+<li><p>better credential parsing in CalcDB (A. Rutt)</p></li>
+<li><p>update paramiko for better security (A. Jain)</p></li>
+<li><p>add tasks_settings.yaml to site-packages (A. Jain)</p></li>
 </ul>
 <p><strong>v0.8.3</strong></p>
 <ul class="simple">
-<li>add CHGCAR and AECAR storage options (J. Shen)</li>
+<li><p>add CHGCAR and AECAR storage options (J. Shen)</p></li>
 </ul>
 <p><strong>v0.8.2</strong></p>
 <ul class="simple">
-<li>various requirement updates, code refactorings, and bug fixes especially in Qchem and LAMMPs packages (S. Blau)</li>
+<li><p>various requirement updates, code refactorings, and bug fixes especially in Qchem and LAMMPs packages (S. Blau)</p></li>
 </ul>
 <p><strong>v0.8.1</strong></p>
 <ul class="simple">
-<li>add Bader charge parsing (S. Dwaraknath)</li>
-<li>parse_outputs can push fields to new FWS (S. Dwaraknath)</li>
-<li>minor bug fix (S. Torrisi)</li>
-<li>some testing updates (A. Faghaninia, S. Blau)</li>
+<li><p>add Bader charge parsing (S. Dwaraknath)</p></li>
+<li><p>parse_outputs can push fields to new FWS (S. Dwaraknath)</p></li>
+<li><p>minor bug fix (S. Torrisi)</p></li>
+<li><p>some testing updates (A. Faghaninia, S. Blau)</p></li>
 </ul>
 <p><strong>v0.7.9</strong></p>
 <ul class="simple">
-<li>Overhaul and update of QChem in atomate (B. Wood, S. Blau)</li>
-<li>Fix integration tests (A. Dunn)</li>
-<li>Stop officially supporting Py2</li>
+<li><p>Overhaul and update of QChem in atomate (B. Wood, S. Blau)</p></li>
+<li><p>Fix integration tests (A. Dunn)</p></li>
+<li><p>Stop officially supporting Py2</p></li>
 </ul>
 <p><strong>v0.7.8</strong></p>
 <ul class="simple">
-<li>some QChem tasks and workflows (B. Wood)</li>
-<li>add full HSE band structure workflow (A. Jain)</li>
+<li><p>some QChem tasks and workflows (B. Wood)</p></li>
+<li><p>add full HSE band structure workflow (A. Jain)</p></li>
 </ul>
 <p><strong>v0.7.7</strong></p>
 <ul class="simple">
-<li>allow list of ErrorHandler in RunVaspCustodian (A. Jain)</li>
-<li>fix adsorption unit test (J. Montoya)</li>
+<li><p>allow list of ErrorHandler in RunVaspCustodian (A. Jain)</p></li>
+<li><p>fix adsorption unit test (J. Montoya)</p></li>
 </ul>
 <p><strong>v0.7.6</strong></p>
 <ul class="simple">
-<li>remove force checking in drone (S. Dwaraknath)</li>
-<li>cleanups to DOS + BS parsing and insertion in GridFS (S. Dwaraknath)</li>
-<li>code cleanup and bugfixes (S. Dwaraknath, specter119)</li>
-<li>some more docs on offline mode (A. Jain)</li>
+<li><p>remove force checking in drone (S. Dwaraknath)</p></li>
+<li><p>cleanups to DOS + BS parsing and insertion in GridFS (S. Dwaraknath)</p></li>
+<li><p>code cleanup and bugfixes (S. Dwaraknath, specter119)</p></li>
+<li><p>some more docs on offline mode (A. Jain)</p></li>
 </ul>
 <p><strong>v0.7.5</strong></p>
 <ul class="simple">
-<li>standardize drones to datetime.utcnow() (J. Montoya)</li>
-<li>fixed additional field serialization issue (J. Montoya)</li>
-<li>fix defuse_unsuccessful logic, hat tip to &#64;specter119 for pointing it out (A. Jain)</li>
-<li>some doc updates (A. Jain)</li>
+<li><p>standardize drones to datetime.utcnow() (J. Montoya)</p></li>
+<li><p>fixed additional field serialization issue (J. Montoya)</p></li>
+<li><p>fix defuse_unsuccessful logic, hat tip to &#64;specter119 for pointing it out (A. Jain)</p></li>
+<li><p>some doc updates (A. Jain)</p></li>
 </ul>
 <p><strong>v0.7.4</strong></p>
 <ul class="simple">
-<li>fix pymatgen dep (A. Jain)</li>
+<li><p>fix pymatgen dep (A. Jain)</p></li>
 </ul>
 <p><strong>v0.7.3</strong></p>
 <ul class="simple">
-<li>minor drones updates (S. Dwaraknath)</li>
-<li>installation fix (P. Huck)</li>
+<li><p>minor drones updates (S. Dwaraknath)</p></li>
+<li><p>installation fix (P. Huck)</p></li>
 </ul>
 <p><strong>v0.7.2</strong></p>
 <ul class="simple">
-<li>Bugfix database getter in builders (S. Dwaraknath)</li>
+<li><p>Bugfix database getter in builders (S. Dwaraknath)</p></li>
 </ul>
 <p><strong>v0.7.1</strong></p>
 <ul class="simple">
-<li>update <code class="docutils literal notranslate"><span class="pre">atwf</span></code> to find the path to workflows better (M. Dias Costa)</li>
-<li>better surface workflow naming (A. Jain)</li>
+<li><p>update <code class="docutils literal notranslate"><span class="pre">atwf</span></code> to find the path to workflows better (M. Dias Costa)</p></li>
+<li><p>better surface workflow naming (A. Jain)</p></li>
 </ul>
 <p><strong>v0.7.0</strong></p>
 <ul class="simple">
-<li>change default behavior when a run looks OK but is unconverged (A. Jain)</li>
-<li>Some test and code cleanups (S. Dwaraknath, J. Montoya)</li>
-<li>update to FW names when no structure provided (S. Dwaraknath)</li>
-<li>remove boltons dependency (A. Faghaninia)</li>
-<li>fix max_force check for selective dynamics (J. Montoya)</li>
+<li><p>change default behavior when a run looks OK but is unconverged (A. Jain)</p></li>
+<li><p>Some test and code cleanups (S. Dwaraknath, J. Montoya)</p></li>
+<li><p>update to FW names when no structure provided (S. Dwaraknath)</p></li>
+<li><p>remove boltons dependency (A. Faghaninia)</p></li>
+<li><p>fix max_force check for selective dynamics (J. Montoya)</p></li>
 </ul>
 <p><strong>v0.6.9</strong></p>
 <ul class="simple">
-<li>update requirements to include boltons</li>
-<li>bugfix for atwf (S. Dwaraknath)</li>
+<li><p>update requirements to include boltons</p></li>
+<li><p>bugfix for atwf (S. Dwaraknath)</p></li>
 </ul>
 <p><strong>v0.6.8</strong></p>
 <ul class="simple">
-<li>New SCAN functional workflow (S. Dwaraknath)</li>
-<li>remove dependence on pymatgen-db (S. Dwaraknath)</li>
-<li>more bandgap properties parsed by drone (transition and is-direct) (S. Dwaraknath)</li>
-<li>option to clean up large output files like WAVECAR (S. Dwaraknath)</li>
-<li>option to recursively copy file tree in CopyFilesFromCalcLoc (A. Faghaninia)</li>
-<li>bugfix: apply vasp_input_set_params when StaticFW have parents (specter119)</li>
-<li>misc bugfixes (S. Dwaraknath, A. Jain)</li>
+<li><p>New SCAN functional workflow (S. Dwaraknath)</p></li>
+<li><p>remove dependence on pymatgen-db (S. Dwaraknath)</p></li>
+<li><p>more bandgap properties parsed by drone (transition and is-direct) (S. Dwaraknath)</p></li>
+<li><p>option to clean up large output files like WAVECAR (S. Dwaraknath)</p></li>
+<li><p>option to recursively copy file tree in CopyFilesFromCalcLoc (A. Faghaninia)</p></li>
+<li><p>bugfix: apply vasp_input_set_params when StaticFW have parents (specter119)</p></li>
+<li><p>misc bugfixes (S. Dwaraknath, A. Jain)</p></li>
 </ul>
 <p><strong>v0.6.7</strong></p>
 <ul class="simple">
-<li>New ferroelectrics workflow! (T. Smidt)</li>
-<li>option to parse LOCPOT in VaspDrone (S. Dwaraknath)</li>
-<li>rename set_fworker -&gt; set_execution_option</li>
-<li>more options for BoltztrapFW (A. Faghaninia)</li>
-<li>misc. bugfixes (D. Broberg, K. Mathew, P. Huck)</li>
+<li><p>New ferroelectrics workflow! (T. Smidt)</p></li>
+<li><p>option to parse LOCPOT in VaspDrone (S. Dwaraknath)</p></li>
+<li><p>rename set_fworker -&gt; set_execution_option</p></li>
+<li><p>more options for BoltztrapFW (A. Faghaninia)</p></li>
+<li><p>misc. bugfixes (D. Broberg, K. Mathew, P. Huck)</p></li>
 </ul>
 <p><strong>v0.6.6</strong></p>
 <ul class="simple">
-<li>powerup to preserve the same FWorker for all jobs in workflow (S. Dwaraknath)</li>
-<li>DriftErrorHandler in VASP custodian jobs (S. Dwaraknath)</li>
-<li>some FireTasks in anticipation of ferroelectrics workflow (T. Schmidt, A. Jain)</li>
+<li><p>powerup to preserve the same FWorker for all jobs in workflow (S. Dwaraknath)</p></li>
+<li><p>DriftErrorHandler in VASP custodian jobs (S. Dwaraknath)</p></li>
+<li><p>some FireTasks in anticipation of ferroelectrics workflow (T. Schmidt, A. Jain)</p></li>
 </ul>
 <p><strong>v0.6.5</strong></p>
 <ul class="simple">
-<li>fix delta_volume_percent, set as new key and update FixTasksBuilder (B. Bocklund, A. Jain)</li>
-<li>drone schema version reflects atomate version (M. Horton)</li>
-<li>unit test fix (J. Montoya)</li>
+<li><p>fix delta_volume_percent, set as new key and update FixTasksBuilder (B. Bocklund, A. Jain)</p></li>
+<li><p>drone schema version reflects atomate version (M. Horton)</p></li>
+<li><p>unit test fix (J. Montoya)</p></li>
 </ul>
 <p><strong>v0.6.4</strong></p>
 <ul class="simple">
-<li>add config option for half_kpts_first and max force (A. Jain, S. Dwaraknath)</li>
-<li>better logic for band structure parsing (S. Dwaraknath)</li>
-<li>misc bugfix (P. Huck)</li>
+<li><p>add config option for half_kpts_first and max force (A. Jain, S. Dwaraknath)</p></li>
+<li><p>better logic for band structure parsing (S. Dwaraknath)</p></li>
+<li><p>misc bugfix (P. Huck)</p></li>
 </ul>
 <p><strong>v0.6.3</strong></p>
 <ul class="simple">
-<li>fix Gibbs wf db insertion (A. Dunn, K. Mathew)</li>
-<li>minor doc updates &amp; fixes (A. Jain)</li>
+<li><p>fix Gibbs wf db insertion (A. Dunn, K. Mathew)</p></li>
+<li><p>minor doc updates &amp; fixes (A. Jain)</p></li>
 </ul>
 <p><strong>v0.6.2</strong></p>
 <ul class="simple">
-<li>Fix LepsFW after prev refactor (A. Jain)</li>
-<li>Doc improvements (A. Jain, B. Bocklund)</li>
+<li><p>Fix LepsFW after prev refactor (A. Jain)</p></li>
+<li><p>Doc improvements (A. Jain, B. Bocklund)</p></li>
 </ul>
 <p><strong>v0.6.1</strong></p>
 <ul class="simple">
-<li>many improvements to documentation (A. Jain, B. Bocklund)</li>
-<li>add DFPTFW (K. Mathew)</li>
-<li>simplify LepsFW - move Raman into RamanFW (K. Mathew)</li>
-<li>copy piezo tensor to output (S. Dwaraknath)</li>
+<li><p>many improvements to documentation (A. Jain, B. Bocklund)</p></li>
+<li><p>add DFPTFW (K. Mathew)</p></li>
+<li><p>simplify LepsFW - move Raman into RamanFW (K. Mathew)</p></li>
+<li><p>copy piezo tensor to output (S. Dwaraknath)</p></li>
 </ul>
 <p><strong>v0.6.0</strong></p>
 <ul class="simple">
-<li>Gibbs preset workflow and anharmonic contributions (B. Bocklund)</li>
-<li>improvements to packmol workflow (K. Mathew)</li>
-<li>modify_potcar powerup (J. Montoya)</li>
-<li>more metadata in some analysis collections (B. Bocklund)</li>
-<li>ability to specify common params in atwf (A. Jain)</li>
-<li>allow powerups in atwf (J. Montoya)</li>
-<li>many improvements to builders performance (A. Jain)</li>
-<li>updates and fixes to installation tutorial (A. Jain, B. Bocklund)</li>
-<li>unit testing updates (J. Montoya)</li>
-<li>misc fixes …</li>
+<li><p>Gibbs preset workflow and anharmonic contributions (B. Bocklund)</p></li>
+<li><p>improvements to packmol workflow (K. Mathew)</p></li>
+<li><p>modify_potcar powerup (J. Montoya)</p></li>
+<li><p>more metadata in some analysis collections (B. Bocklund)</p></li>
+<li><p>ability to specify common params in atwf (A. Jain)</p></li>
+<li><p>allow powerups in atwf (J. Montoya)</p></li>
+<li><p>many improvements to builders performance (A. Jain)</p></li>
+<li><p>updates and fixes to installation tutorial (A. Jain, B. Bocklund)</p></li>
+<li><p>unit testing updates (J. Montoya)</p></li>
+<li><p>misc fixes …</p></li>
 </ul>
 <p><strong>v0.5.8</strong></p>
 <ul class="simple">
-<li>major improvements to LAMMPS workflow (B. Wood, K. Mathew)</li>
-<li>doc updates (B. Bocklund)</li>
-<li>minor cleanups (K. Mathew)</li>
+<li><p>major improvements to LAMMPS workflow (B. Wood, K. Mathew)</p></li>
+<li><p>doc updates (B. Bocklund)</p></li>
+<li><p>minor cleanups (K. Mathew)</p></li>
 </ul>
 <p><strong>v0.5.7</strong></p>
 <ul class="simple">
-<li>VASP drone stores original inputs (S. Dwaraknath)</li>
-<li>updates to EELS workflow (K. Mathew)</li>
-<li>misc cleanups (A. Jain, S.P. Ong, K. Mathew)</li>
+<li><p>VASP drone stores original inputs (S. Dwaraknath)</p></li>
+<li><p>updates to EELS workflow (K. Mathew)</p></li>
+<li><p>misc cleanups (A. Jain, S.P. Ong, K. Mathew)</p></li>
 </ul>
 <p><strong>v0.5.6</strong></p>
 <ul class="simple">
-<li>major improvements to elastic tensor calculations and compatibility with latest pymatgen (J. Montoya, K. Mathew)</li>
+<li><p>major improvements to elastic tensor calculations and compatibility with latest pymatgen (J. Montoya, K. Mathew)</p></li>
 </ul>
 <p><strong>v0.5.5</strong></p>
 <ul class="simple">
-<li>remove PyPI download size by an order of magnitude</li>
+<li><p>remove PyPI download size by an order of magnitude</p></li>
 </ul>
 <p><strong>v0.5.4</strong></p>
 <ul class="simple">
-<li>re-attempt to fix packaging of YAML workflow library in pip</li>
+<li><p>re-attempt to fix packaging of YAML workflow library in pip</p></li>
 </ul>
 <p><strong>v0.5.3</strong></p>
 <ul class="simple">
-<li>attempt to fix packaging of YAML workflow library in pip</li>
-<li>update doc links</li>
+<li><p>attempt to fix packaging of YAML workflow library in pip</p></li>
+<li><p>update doc links</p></li>
 </ul>
 <p><strong>v0.5.2</strong></p>
 <ul class="simple">
-<li>band gap estimation builder based on dielectric constants</li>
-<li>clean up pypi packaging (S.P. Ong)</li>
-<li>link to new doc links</li>
-<li>misc bugfixes and workflow settings update/fixes (K. Mathew, A. Jain)</li>
+<li><p>band gap estimation builder based on dielectric constants</p></li>
+<li><p>clean up pypi packaging (S.P. Ong)</p></li>
+<li><p>link to new doc links</p></li>
+<li><p>misc bugfixes and workflow settings update/fixes (K. Mathew, A. Jain)</p></li>
 </ul>
 <p><strong>v0.5.1</strong></p>
 <ul class="simple">
-<li>use ruamel instead of pyyaml (S.P. Ong)</li>
-<li>add magnetic moment parsing of output (M.K. Horton)</li>
-<li>misc cleanups, bug fixes, doc improvements (K. Matthew, S. Dwaraknath, A. Jain)</li>
+<li><p>use ruamel instead of pyyaml (S.P. Ong)</p></li>
+<li><p>add magnetic moment parsing of output (M.K. Horton)</p></li>
+<li><p>misc cleanups, bug fixes, doc improvements (K. Matthew, S. Dwaraknath, A. Jain)</p></li>
 </ul>
 <p><strong>v0.5.0</strong></p>
 <div class="admonition caution">
-<p class="first admonition-title">Caution</p>
-<p class="last">pymatgen has updated its default kpoint scheme! Kpoint settings will change.</p>
+<p class="admonition-title">Caution</p>
+<p>pymatgen has updated its default kpoint scheme! Kpoint settings will change.</p>
 </div>
 <ul class="simple">
-<li>migration to new pymatgen and new kpoint settings</li>
-<li>much improved docs (B. Bocklund, A. Jain)</li>
-<li><em>major</em> code cleanup (J. Montoya, K. Mathew, A. Jain)</li>
-<li>many unit test updates (A. Faghaninia, H. Tang, S.P. Ong, A. Jain)</li>
-<li>fix automated testing on pull requests (K. Mathew)</li>
-<li>misc fixes</li>
+<li><p>migration to new pymatgen and new kpoint settings</p></li>
+<li><p>much improved docs (B. Bocklund, A. Jain)</p></li>
+<li><p><em>major</em> code cleanup (J. Montoya, K. Mathew, A. Jain)</p></li>
+<li><p>many unit test updates (A. Faghaninia, H. Tang, S.P. Ong, A. Jain)</p></li>
+<li><p>fix automated testing on pull requests (K. Mathew)</p></li>
+<li><p>misc fixes</p></li>
 </ul>
 <p><strong>v0.4.5</strong></p>
 <ul class="simple">
-<li><em>extensive</em> code review, code cleanup, and improved code docs - with some minor name refactoring</li>
-<li>new builders: dielectric, structureanalysis (currently gives dimensionality of structure)</li>
-<li>rewrite powerups as in-place with cleaner syntax</li>
-<li>improved installation tutorial (B. Bocklund)</li>
-<li>improve/fix/reorganize some unit tests</li>
-<li>bug fixes (A. Jain, H. Tang, K. Mathew, B. Bocklund)</li>
+<li><p><em>extensive</em> code review, code cleanup, and improved code docs - with some minor name refactoring</p></li>
+<li><p>new builders: dielectric, structureanalysis (currently gives dimensionality of structure)</p></li>
+<li><p>rewrite powerups as in-place with cleaner syntax</p></li>
+<li><p>improved installation tutorial (B. Bocklund)</p></li>
+<li><p>improve/fix/reorganize some unit tests</p></li>
+<li><p>bug fixes (A. Jain, H. Tang, K. Mathew, B. Bocklund)</p></li>
 </ul>
 <p><strong>v0.4.4</strong></p>
 <ul class="simple">
-<li>NEB workflow (H. Tang)</li>
-<li>adsorption workflow (J. Montoya)</li>
-<li>improvements to Gibbs workflow (K. Mathew)</li>
-<li>misc bugfixes, improvements (A. Faghaninia, A. Jain)</li>
+<li><p>NEB workflow (H. Tang)</p></li>
+<li><p>adsorption workflow (J. Montoya)</p></li>
+<li><p>improvements to Gibbs workflow (K. Mathew)</p></li>
+<li><p>misc bugfixes, improvements (A. Faghaninia, A. Jain)</p></li>
 </ul>
 <p><strong>v0.4.3</strong></p>
 <ul class="simple">
-<li>Add Gibbs energy w/volume (K. Mathew)</li>
-<li>Draft EXAFS workflow (K. Matthew)</li>
-<li>Add slater-gamma formulation to compute the Gruneisen parameter (K. Matthew)</li>
-<li>gamma vasp powerup (S. Dwaraknath)</li>
-<li>More options for elasticity WF (J. Dagdalen)</li>
-<li>Add StdErrorHandler to handlers (A. Jain)</li>
-<li>Auto-detect and remove line_mode parameter in MMVaspDB (A. Jain)</li>
-<li>added unit tests</li>
-<li>misc cleanup, refactoring, and doc udpates</li>
-<li>misc bugfixes</li>
+<li><p>Add Gibbs energy w/volume (K. Mathew)</p></li>
+<li><p>Draft EXAFS workflow (K. Matthew)</p></li>
+<li><p>Add slater-gamma formulation to compute the Gruneisen parameter (K. Matthew)</p></li>
+<li><p>gamma vasp powerup (S. Dwaraknath)</p></li>
+<li><p>More options for elasticity WF (J. Dagdalen)</p></li>
+<li><p>Add StdErrorHandler to handlers (A. Jain)</p></li>
+<li><p>Auto-detect and remove line_mode parameter in MMVaspDB (A. Jain)</p></li>
+<li><p>added unit tests</p></li>
+<li><p>misc cleanup, refactoring, and doc udpates</p></li>
+<li><p>misc bugfixes</p></li>
 </ul>
 <p><strong>v0.4.2</strong></p>
 <div class="admonition caution">
-<p class="first admonition-title">Caution</p>
-<p class="last">The <code class="docutils literal notranslate"><span class="pre">tags_fws</span></code> powerup now has different default parameters!</p>
+<p class="admonition-title">Caution</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">tags_fws</span></code> powerup now has different default parameters!</p>
 </div>
 <ul class="simple">
-<li>updates to piezo workflow (S. Dwaraknath)</li>
-<li>formation energy to Ehull builder (A. Faghaninia)</li>
-<li>tag_fws is more general (A. Faghaninia)</li>
-<li>updates for PMG naming schemes for vars (A. Jain)</li>
-<li>boltztrap runs can add tags (A. Faghaninia)</li>
-<li>can filter which tasks are used in materials builder (A. Faghaninia, A. Jain)</li>
+<li><p>updates to piezo workflow (S. Dwaraknath)</p></li>
+<li><p>formation energy to Ehull builder (A. Faghaninia)</p></li>
+<li><p>tag_fws is more general (A. Faghaninia)</p></li>
+<li><p>updates for PMG naming schemes for vars (A. Jain)</p></li>
+<li><p>boltztrap runs can add tags (A. Faghaninia)</p></li>
+<li><p>can filter which tasks are used in materials builder (A. Faghaninia, A. Jain)</p></li>
 </ul>
 <p><strong>v0.4.1</strong>
 * more fixes for elastic workflow (J. Montoya)
@@ -352,43 +360,43 @@
 * much code refactoring, cleanup, and many minor improvements (K. Matthew, A. Jain, J. Montoya, S.P. Ong, B. Bocklund, A. Faghaninia)</p>
 <p><strong>v0.3</strong></p>
 <ul class="simple">
-<li>Raman workflow (K. Mathew)</li>
-<li>Gibbs workflow (K. Mathew)</li>
-<li>More efficient task builder (S. Ong)</li>
-<li>tag workflows and add_trackers powerups (A. Jain, A. Faghaninia)</li>
-<li>refactor elastic workflow (K. Mathew)</li>
-<li>bugfixes and tools package (K. Mathew)</li>
+<li><p>Raman workflow (K. Mathew)</p></li>
+<li><p>Gibbs workflow (K. Mathew)</p></li>
+<li><p>More efficient task builder (S. Ong)</p></li>
+<li><p>tag workflows and add_trackers powerups (A. Jain, A. Faghaninia)</p></li>
+<li><p>refactor elastic workflow (K. Mathew)</p></li>
+<li><p>bugfixes and tools package (K. Mathew)</p></li>
 </ul>
 <p><strong>v0.21</strong></p>
 <ul class="simple">
-<li>Lammps workflows and packmol support (K. Mathew)</li>
-<li>Rework some of the RunVaspFake code (K. Mathew)</li>
-<li>Fixes to elastic workflow (J. Montoya)</li>
-<li>Minor refactoring (K. Mathew)</li>
-<li>Minor MD workflow updates (M. Aykol)</li>
-<li>Fix builder for HSE gap and add chemsys (A. Jain)</li>
-<li>WF metadata powerup (A. Jain)</li>
-<li>Minor bug fixes and misc. improvements (K. Mathew, J. Montoya, A. Faghaninia)</li>
+<li><p>Lammps workflows and packmol support (K. Mathew)</p></li>
+<li><p>Rework some of the RunVaspFake code (K. Mathew)</p></li>
+<li><p>Fixes to elastic workflow (J. Montoya)</p></li>
+<li><p>Minor refactoring (K. Mathew)</p></li>
+<li><p>Minor MD workflow updates (M. Aykol)</p></li>
+<li><p>Fix builder for HSE gap and add chemsys (A. Jain)</p></li>
+<li><p>WF metadata powerup (A. Jain)</p></li>
+<li><p>Minor bug fixes and misc. improvements (K. Mathew, J. Montoya, A. Faghaninia)</p></li>
 </ul>
 <p><strong>v0.2</strong></p>
 <ul class="simple">
-<li>BoltzTraP transport workflows (A. Jain)</li>
-<li>major builder improvements (merge multiple collections, progressbar, config, more…)</li>
-<li>use FrozenJobErrorHandler by default (A. Jain)</li>
-<li>add basic configuration overrides for preset workflows (A. Jain)</li>
-<li>misc improvements and bugfixes (A. Jain, K. Mathew)</li>
-<li>py3 compatibility fixes (K. Mathew)</li>
+<li><p>BoltzTraP transport workflows (A. Jain)</p></li>
+<li><p>major builder improvements (merge multiple collections, progressbar, config, more…)</p></li>
+<li><p>use FrozenJobErrorHandler by default (A. Jain)</p></li>
+<li><p>add basic configuration overrides for preset workflows (A. Jain)</p></li>
+<li><p>misc improvements and bugfixes (A. Jain, K. Mathew)</p></li>
+<li><p>py3 compatibility fixes (K. Mathew)</p></li>
 </ul>
 <p><strong>v0.1</strong></p>
 <ul class="simple">
-<li>add some builders</li>
-<li>elastic + piezo workflows (J. Montoya + S. Dwaraknath)</li>
-<li>minor doc improvements (A. Faghaninia)</li>
-<li>misc code improvements and bug fixes, plus upgrades for new pymatgen (A. Jain)</li>
+<li><p>add some builders</p></li>
+<li><p>elastic + piezo workflows (J. Montoya + S. Dwaraknath)</p></li>
+<li><p>minor doc improvements (A. Faghaninia)</p></li>
+<li><p>misc code improvements and bug fixes, plus upgrades for new pymatgen (A. Jain)</p></li>
 </ul>
 <p><strong>v0.0.3</strong></p>
 <ul class="simple">
-<li>initial release (A. Jain, S.P. Ong, K. Mathew, M. Aykol)</li>
+<li><p>initial release (A. Jain, S.P. Ong, K. Mathew, M. Aykol)</p></li>
 </ul>
 </div>
 
@@ -412,13 +420,11 @@
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -442,13 +448,13 @@
         <li class="right" >
           <a href="customizing_workflows.html" title="Customizing Workflows"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.3 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
     </div>
 
   </body>
