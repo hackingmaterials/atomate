@@ -238,6 +238,7 @@ class InsertSites(FiretaskBase):
                     "stable_sites."+str(stable_sites_index): {
                         "input_structure": structure.as_dict(),
                         "inserted_site_indexes": inserted_site_indexes,
+                        "insert_coords":insert_coords,
                     }
                 }
             }
