@@ -226,9 +226,10 @@ class FrequencyFlatteningOptimizeFW(Firework):
         """
 
         qchem_input_params = qchem_input_params or {}
-        input_file="mol.qin"
-        output_file="mol.qout"
-        t = []
+        input_file = "mol.qin"
+        output_file = "mol.qout"
+
+        t = list()
         t.append(
             WriteInputFromIOSet(
                 molecule=molecule,
@@ -262,6 +263,117 @@ class FrequencyFlatteningOptimizeFW(Firework):
             **kwargs)
 
 
+#TODO: test (actually with Q-Chem and by writing tests)
+class FrequencyFlatteningTransitionStateFW(Firework):
+    def __init__(self,
+                 molecule=None,
+                 name="frequency flattening transition state optimization",
+                 qchem_cmd=">>qchem_cmd<<",
+                 multimode=">>multimode<<",
+                 max_cores=">>max_cores<<",
+                 directory=None,
+                 qchem_input_params=None,
+                 max_iterations=10,
+                 max_molecule_perturb_scale=0.3,
+                 reversed_direction=False,
+                 db_file=None,
+                 parents=None,
+                 **kwargs):
+        """
+        First, perform a search over the potential energy surface between reactants and products in order to determine
+        a guess for the transition state. Then, iteratively optimize the transition state structure and flatten
+        imaginary frequencies to ensure that the resulting structure is a true transition state.
+
+        Args:
+            molecule (dict of Molecules): Input molecules. The dict should have two entries, "reactants" and "products".
+                Note that the order of the molecules, and the atoms of the molecules, is important. The FSM and GSM
+                methods will only work properly if the atoms in the reactants and products correspond exactly.
+            name (str): Name for the Firework.
+            qchem_cmd (str): Command to run QChem. Supports env_chk.
+            multimode (str): Parallelization scheme, either openmp or mpi. Supports env_chk.
+            max_cores (int): Maximum number of cores to parallelize over. Supports env_chk.
+            directory (str): Location where calculation should take place. Default is current working directory.
+            qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
+                                       Basic uses would be to modify the default inputs of the set,
+                                       such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
+                                       or max_scf_cycles. See pymatgen/io/qchem/sets.py for default
+                                       values of all input parameters. For instance, if a user wanted
+                                       to use a more advanced DFT functional, include a pcm with a
+                                       dielectric of 30, and use a larger basis, the user would set
+                                       qchem_input_params = {"dft_rung": 5, "pcm_dielectric": 30,
+                                       "basis_set": "6-311++g**"}. However, more advanced customization
+                                       of the input is also possible through the overwrite_inputs key
+                                       which allows the user to directly modify the rem, pcm, smd, and
+                                       solvent dictionaries that QChemDictSet passes to inputs.py to
+                                       print an actual input file. For instance, if a user wanted to
+                                       set the sym_ignore flag in the rem section of the input file
+                                       to true, then they would set qchem_input_params = {"overwrite_inputs":
+                                       "rem": {"sym_ignore": "true"}}. Of course, overwrite_inputs
+                                       could be used in conjuction with more typical modifications,
+                                       as seen in the test_double_FF_opt workflow test.
+            max_iterations (int): Number of perturbation -> optimization -> frequency
+                                  iterations to perform. Defaults to 10.
+            max_molecule_perturb_scale (float): The maximum scaled perturbation that can be
+                                                applied to the molecule. Defaults to 0.3.
+            reversed_direction (bool): Whether to reverse the direction of the vibrational
+                                       frequency vectors. Defaults to False.
+            db_file (str): Path to file specifying db credentials to place output parsing.
+            parents ([Firework]): Parents of this particular Firework.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+
+        qchem_input_params = qchem_input_params or {}
+        input_file = "mol.qin"
+        output_file = "mol.qout"
+
+        t = list()
+        t.append(
+            WriteInputFromIOSet(
+                molecule=molecule,
+                qchem_input_set="FreezingStringSet",
+                input_file=input_file,
+                qchem_input_params=qchem_input_params))
+        t.append(
+            RunQChemCustodian(
+                qchem_cmd=qchem_cmd,
+                multimode=multimode,
+                input_file=input_file,
+                output_file=output_file,
+                max_cores=max_cores,
+                job_type="ts_with_frequency_flattener",
+                max_iterations=max_iterations,
+                max_molecule_perturb_scale=max_molecule_perturb_scale,
+                reversed_direction=reversed_direction,
+                gzipped_output=False))
+        if directory is None:
+            t.append(
+                QChemToDb(
+                    db_file=db_file,
+                    input_file=input_file,
+                    output_file=output_file,
+                    additional_fields={
+                        "task_label": name,
+                        "special_run_type": "ts_frequency_flattener"
+                    }))
+        else:
+            t.append(
+                QChemToDb(
+                    db_file=db_file,
+                    calc_dir=directory,
+                    input_file="mol.qin",
+                    output_file="mol.qout",
+                    additional_fields={
+                        "task_label": name,
+                        "special_run_type": "ts_frequency_flattener"
+                    }))
+
+        super(FrequencyFlatteningTransitionStateFW, self).__init__(
+            t,
+            parents=parents,
+            name=name,
+            **kwargs)
+
+
 class FragmentFW(Firework):
     def __init__(self,
                  molecule=None,
@@ -270,8 +382,6 @@ class FragmentFW(Firework):
                  additional_charges=None,
                  do_triplets=True,
                  name="fragment and optimize",
-                 qchem_cmd=">>qchem_cmd<<",
-                 multimode=">>multimode<<",
                  max_cores=">>max_cores<<",
                  qchem_input_params=None,
                  db_file=None,
