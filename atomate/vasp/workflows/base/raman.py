@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 """
 This module defines the workflow to compute the Raman susceptibility tensor.
@@ -26,7 +25,7 @@ def get_wf_raman_spectra(structure, modes=None, step_size=0.005, vasp_cmd="vasp"
     Raman susceptibility tensor workflow:
         Calculation of phonon normal modes followed by the computation of dielectric tensor for
         structures displaced along the normal modes. Finally the dielectric tensors corresponding
-        to each mode are used to compute the Raman susceptibility tensor using finite difference 
+        to each mode are used to compute the Raman susceptibility tensor using finite difference
         (central difference scheme).
 
     Args:

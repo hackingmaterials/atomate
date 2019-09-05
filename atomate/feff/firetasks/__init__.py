@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 
 from .glue_tasks import *
 from .parse_outputs import *

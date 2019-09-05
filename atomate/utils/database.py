@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
 This module defines a base class for derived database classes that store calculation data.
@@ -8,7 +7,6 @@ This module defines a base class for derived database classes that store calcula
 
 import datetime
 from abc import ABCMeta, abstractmethod
-import six
 from pymongo import MongoClient, ReturnDocument
 
 from monty.json import jsanitize
@@ -23,7 +21,7 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
-class CalcDb(six.with_metaclass(ABCMeta)):
+class CalcDb(metaclass=ABCMeta):
 
     def __init__(self, host, port, database, collection, user, password, **kwargs):
         self.host = host

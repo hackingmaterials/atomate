@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 from tqdm import tqdm
 
@@ -77,9 +76,9 @@ class BoltztrapMaterialsBuilder(AbstractBuilder):
 
         Args:
             doc (dict): a JSON-like document
-            ltol (float): StructureMatcher tuning parameter 
-            stol (float): StructureMatcher tuning parameter 
-            angle_tol (float): StructureMatcher tuning parameter 
+            ltol (float): StructureMatcher tuning parameter
+            stol (float): StructureMatcher tuning parameter
+            angle_tol (float): StructureMatcher tuning parameter
 
         Returns:
             (int) matching material_id or None
