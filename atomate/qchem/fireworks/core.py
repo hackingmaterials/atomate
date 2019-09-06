@@ -10,8 +10,6 @@ from atomate.qchem.firetasks.parse_outputs import QChemToDb
 from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule
-from atomate.qchem.firetasks.ion_placer import PlaceIon
-from atomate.qchem.firetasks.gather_geoms import GatherGeometries
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -400,79 +398,6 @@ class FragmentFW(Firework):
                 db_file=db_file,
                 check_db=check_db))
         super(FragmentFW, self).__init__(
-            t,
-            parents=parents,
-            name=name,
-            **kwargs)
-
-
-class PlaceIonFW(Firework):
-    def __init__(self,
-                 molecule,
-                 mulliken=None,
-                 ion=None,
-                 charges=None,
-                 stop_num=None,
-                 do_triplets=True,
-                 linked=False,
-                 name="place ions and optimize",
-                 qchem_input_params=None,
-                 test_positions=None,
-                 ref_dirs=None,
-                 parents=None,
-                 **kwargs):
-        """
-        """
-
-        qchem_input_params = qchem_input_params or {}
-        charges = charges or [0]
-        ion = ion or "Li"
-        stop_num = stop_num or 100000
-        t = []
-        if name == "place ions and optimize":
-          append_name = ""
-        else:
-          append_name = "_" + name
-        t.append(
-            PlaceIon(
-                molecule=molecule,
-                mulliken=mulliken,
-                ion=ion,
-                charges=charges,
-                stop_num=stop_num,
-                do_triplets=do_triplets,
-                linked=linked,
-                qchem_input_params=qchem_input_params,
-                test_positions=test_positions,
-                ref_dirs=ref_dirs,
-                append_name=append_name))
-        super(PlaceIonFW, self).__init__(
-            t,
-            parents=parents,
-            name=name,
-            **kwargs)
-
-
-class GatherGeomsFW(Firework):
-    def __init__(self,
-                 prefix,
-                 db_file=">>db_file<<",
-                 name="gather geometries",
-                 parents=None,
-                 **kwargs):
-        """
-        """
-        t = []
-        if name == "gather geometries":
-          suffix = ""
-        else:
-          suffix = name
-        t.append(
-            GatherGeometries(
-                prefix=prefix,
-                suffix=suffix,
-                db_file=db_file))
-        super(GatherGeomsFW, self).__init__(
             t,
             parents=parents,
             name=name,
