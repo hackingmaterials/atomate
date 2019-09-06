@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 from fireworks import Workflow, FileWriteTask
 from fireworks.core.firework import Tracker
@@ -323,9 +322,9 @@ def set_execution_options(original_wf, fworker_name=None, category=None,
 
 def preserve_fworker(original_wf, fw_name_constraint=None):
     """
-    set _preserve_fworker spec of Fireworker(s) of a Workflow. Can be used to pin a workflow to 
-    the first fworker it is run with. Very useful when running on multiple machines that can't 
-    share files. fw_name_constraint can be used to only preserve fworker after a certain point 
+    set _preserve_fworker spec of Fireworker(s) of a Workflow. Can be used to pin a workflow to
+    the first fworker it is run with. Very useful when running on multiple machines that can't
+    share files. fw_name_constraint can be used to only preserve fworker after a certain point
     where file passing becomes important
 
     Args:

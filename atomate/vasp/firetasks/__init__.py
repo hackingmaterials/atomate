@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 
 from .glue_tasks import *
 from .neb_tasks import *

@@ -1,8 +1,5 @@
 # coding: utf-8
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 # This module defines a workflow that fragments a molecule and optimizes each fragment.
 # It will most often be used in order to obtain the bond dissociation energies of a molecule.
 

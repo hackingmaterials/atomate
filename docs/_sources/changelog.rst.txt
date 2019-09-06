@@ -2,6 +2,15 @@
 atomate Changelog
 =================
 
+**v0.9.3**
+
+* Minor change to enforce storing chgcars, clean up old kwargs in MagneticOrderings workflow (M. Horton)
+* Improve speed of large file copying in CopyVaspOutputs (T.M. Boland)
+
+**v0.9.2**
+
+* fix CalcDB authentication issue (M. Bercx)
+
 **v0.9.1**
 
 * bugfix: ``vasp_input_set_params`` --> ``vasp_input_params`` in some cases (thanks to M. Horton for pointing out)
