@@ -1,18 +1,17 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate (Materials Science Workflows) &#8212; atomate 0.9.1 documentation</title>
+    <meta charset="utf-8" />
+    <title>atomate (Materials Science Workflows) &#8212; atomate 0.9.3 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Installing atomate" href="installation.html" />
@@ -32,7 +31,7 @@
         <li class="right" >
           <a href="installation.html" title="Installing atomate"
              accesskey="N">next</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="#">atomate 0.9.3 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -57,43 +56,43 @@ software for performing these computations are still difficult to use, understan
 atomate makes it possible to perform complex materials science computations using
 very straightforward statements. Features of atomate include:</p>
 <ul class="simple">
-<li>It is built on top of state-of-the-art open-source libraries: <strong>pymatgen</strong>, <strong>custodian</strong>, and <strong>FireWorks</strong>. Building off these libraries means that atomate can not only serve as a simple and friendly introduction to computational materials science, but that it is powerful enough for even the most demanding of theory users that require precise control and massive execution.</li>
-<li>It is easy to get “standard” workflows for a wide variety of desired materials properties - optimized structures, band structures, electronic transport properties, dielectric constants, and much more. Just provide a crystal structure (that’s it!) and let atomate set up a complete workflow that provides the property you are interested in. You can do this for a single material, 100 materials, or 100,000 materials.</li>
-<li>One can easily change “standard workflows” - whether that is changing some of the default calculation parameters or recomposing the workflow (adding new calculations, removing steps, etc.) - using a very expressive syntax. One can compose very complex new workflows simply by chaining together pre-built calculation steps.</li>
-<li>A system of “powerups” that let you quickly decorate a bare workflow with useful special properties. Just feed the workflow through the powerup and your workflow will have the feature enabled. A config file allows you to automatically set the powerups you want to apply most often.</li>
-<li>It can build large databases of output properties that you can query, analyze, and share in a systematic way.</li>
-<li>It automatically keeps meticulous records of jobs, their directories, runtime parameters, etc.</li>
-<li>Jobs can be run on a variety of computing systems, queue systems, and architectures.</li>
-<li>atomate uses a standard interface for adding new types of calculations and workflows such that it is possible for users to contribute new features and grow the capabilities of the software over time.</li>
+<li><p>It is built on top of state-of-the-art open-source libraries: <strong>pymatgen</strong>, <strong>custodian</strong>, and <strong>FireWorks</strong>. Building off these libraries means that atomate can not only serve as a simple and friendly introduction to computational materials science, but that it is powerful enough for even the most demanding of theory users that require precise control and massive execution.</p></li>
+<li><p>It is easy to get “standard” workflows for a wide variety of desired materials properties - optimized structures, band structures, electronic transport properties, dielectric constants, and much more. Just provide a crystal structure (that’s it!) and let atomate set up a complete workflow that provides the property you are interested in. You can do this for a single material, 100 materials, or 100,000 materials.</p></li>
+<li><p>One can easily change “standard workflows” - whether that is changing some of the default calculation parameters or recomposing the workflow (adding new calculations, removing steps, etc.) - using a very expressive syntax. One can compose very complex new workflows simply by chaining together pre-built calculation steps.</p></li>
+<li><p>A system of “powerups” that let you quickly decorate a bare workflow with useful special properties. Just feed the workflow through the powerup and your workflow will have the feature enabled. A config file allows you to automatically set the powerups you want to apply most often.</p></li>
+<li><p>It can build large databases of output properties that you can query, analyze, and share in a systematic way.</p></li>
+<li><p>It automatically keeps meticulous records of jobs, their directories, runtime parameters, etc.</p></li>
+<li><p>Jobs can be run on a variety of computing systems, queue systems, and architectures.</p></li>
+<li><p>atomate uses a standard interface for adding new types of calculations and workflows such that it is possible for users to contribute new features and grow the capabilities of the software over time.</p></li>
 </ul>
 <p><strong>Note</strong>: Atomate is primarily built to work with the <a class="reference external" href="https://www.vasp.at">VASP</a> electronic structure software, but it is the intention of atomate to support a variety of software. For example, <a class="reference external" href="http://leonardo.phys.washington.edu">FEFF</a> software integration has been recently added and other calculation packages are also under development.</p>
 </div>
 <div class="section" id="workflows">
 <h1>Workflows<a class="headerlink" href="#workflows" title="Permalink to this headline">¶</a></h1>
-<div class="figure" id="id1">
+<div class="figure align-default" id="id1">
 <a class="reference internal image-reference" href="_images/example.png"><img alt="Example outputs" src="_images/example.png" style="width: 709.5px; height: 317.5px;" /></a>
-<p class="caption"><span class="caption-text">Example of GaP band structure (left) computed via atomate/VASP and La0.7Sr0.3MnO3 ELNES spectra (right) computed via atomate/FEFF.</span></p>
+<p class="caption"><span class="caption-text">Example of GaP band structure (left) computed via atomate/VASP and La0.7Sr0.3MnO3 ELNES spectra (right) computed via atomate/FEFF.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
 </div>
 <p>Some of the workflows available as of June 2017 are:</p>
 <ul class="simple">
-<li>electronic band structures</li>
-<li>BoltzTraP</li>
-<li>full elastic tensor</li>
-<li>equation of state</li>
-<li>piezoelectric tensor</li>
-<li>dielectric tensor</li>
-<li>ferroelectricity</li>
-<li>nudged elastic band</li>
-<li>Raman spectroscopy</li>
-<li>XAS and EELS spectra (FEFF package)</li>
+<li><p>electronic band structures</p></li>
+<li><p>BoltzTraP</p></li>
+<li><p>full elastic tensor</p></li>
+<li><p>equation of state</p></li>
+<li><p>piezoelectric tensor</p></li>
+<li><p>dielectric tensor</p></li>
+<li><p>ferroelectricity</p></li>
+<li><p>nudged elastic band</p></li>
+<li><p>Raman spectroscopy</p></li>
+<li><p>XAS and EELS spectra (FEFF package)</p></li>
 </ul>
 <p>One can customize any of the above workflows. Also, one can create new workflows - either from scratch, or by reusing components from the above workflows (atomate’s infrastructure makes this simple). For the VASP package, raw workflows (more parameter settings) are in <code class="docutils literal notranslate"><span class="pre">atomate/vasp/workflows/base</span></code> and preset workflows (generally only require a crystal structure) are in <code class="docutils literal notranslate"><span class="pre">atomate/vasp/workflows/presets</span></code>. Other packages should have corresponding directories.</p>
 </div>
 <div class="section" id="the-basics">
 <h1>The basics<a class="headerlink" href="#the-basics" title="Permalink to this headline">¶</a></h1>
-<div class="figure" id="id2">
+<div class="figure align-default" id="id2">
 <a class="reference internal image-reference" href="_images/bandstructure_wf.png"><img alt="Band structure workflow" src="_images/bandstructure_wf.png" style="width: 499.75px; height: 239.0px;" /></a>
-<p class="caption"><span class="caption-text">Anatomy of a band structure workflow consisting of 4 separate calculations (Fireworks) and for which each calculation has multiple steps (Firetasks). The anatomy of this workflow is covered in more detail in the atomate tutorials.</span></p>
+<p class="caption"><span class="caption-text">Anatomy of a band structure workflow consisting of 4 separate calculations (Fireworks) and for which each calculation has multiple steps (Firetasks). The anatomy of this workflow is covered in more detail in the atomate tutorials.</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
 </div>
 <div class="section" id="the-basics-of-setting-up-and-running-calculations">
 <h2>The basics of setting up and running calculations<a class="headerlink" href="#the-basics-of-setting-up-and-running-calculations" title="Permalink to this headline">¶</a></h2>
@@ -125,10 +124,10 @@ computational materials science workflows. Comput. Mater. Sci. 139,
 <span id="contributing-label"></span><h1>Contributing / Contact / Support<a class="headerlink" href="#contributing-contact-support" title="Permalink to this headline">¶</a></h1>
 <p>Want to see something added or changed? There are many ways to make that a reality! Some ways to get involved are:</p>
 <ul class="simple">
-<li>Help us improve the documentation - tell us where you got ‘stuck’ and improve the install process for everyone.</li>
-<li>Let us know if you need support for a queueing system or certain features.</li>
-<li>Point us to areas of the code that are difficult to understand or use.</li>
-<li>Contribute code! You can do this by forking <a class="reference external" href="https://github.com/hackingmaterials/atomate">atomate on Github</a> and submitting a pull request.</li>
+<li><p>Help us improve the documentation - tell us where you got ‘stuck’ and improve the install process for everyone.</p></li>
+<li><p>Let us know if you need support for a queueing system or certain features.</p></li>
+<li><p>Point us to areas of the code that are difficult to understand or use.</p></li>
+<li><p>Contribute code! You can do this by forking <a class="reference external" href="https://github.com/hackingmaterials/atomate">atomate on Github</a> and submitting a pull request.</p></li>
 </ul>
 <p>The list of contributors to atomate can be found <a class="reference internal" href="contributors.html"><span class="doc">here</span></a>.</p>
 <p>There is an <a class="reference external" href="https://groups.google.com/forum/#!forum/atomate">atomate Google Group</a> dedicated to discussion and basic support.</p>
@@ -317,9 +316,9 @@ computational materials science workflows. Comput. Mater. Sci. 139,
 <h1>Code documentation<a class="headerlink" href="#code-documentation" title="Permalink to this headline">¶</a></h1>
 <p>Autogenerated code documentation below:</p>
 <ul class="simple">
-<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
-<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
-<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
 </ul>
 </div>
 
@@ -364,13 +363,11 @@ computational materials science workflows. Comput. Mater. Sci. 139,
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -391,13 +388,13 @@ computational materials science workflows. Comput. Mater. Sci. 139,
         <li class="right" >
           <a href="installation.html" title="Installing atomate"
              >next</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="#">atomate 0.9.3 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
     </div>
 
   </body>

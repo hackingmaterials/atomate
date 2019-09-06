@@ -1,13 +1,11 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
 This module defines tasks for writing vasp input sets for various types of vasp calculations
 """
 
 import os
-from six.moves import range
 from importlib import import_module
 
 import numpy as np
@@ -33,19 +31,19 @@ __email__ = 'ajain@lbl.gov'
 @explicit_serialize
 class WriteVaspFromIOSet(FiretaskBase):
     """
-    Create VASP input files using implementations of pymatgen's AbstractVaspInputSet. An input set 
+    Create VASP input files using implementations of pymatgen's AbstractVaspInputSet. An input set
     can be provided as an object or as a String/parameter combo.
 
     Required params:
         structure (Structure): structure
-        vasp_input_set (AbstractVaspInputSet or str): Either a VaspInputSet object or a string 
+        vasp_input_set (AbstractVaspInputSet or str): Either a VaspInputSet object or a string
             name for the VASP input set (e.g., "MPRelaxSet").
 
     Optional params:
-        vasp_input_params (dict): When using a string name for VASP input set, use this as a dict 
-            to specify kwargs for instantiating the input set parameters. For example, if you want 
-            to change the user_incar_settings, you should provide: {"user_incar_settings": ...}. 
-            This setting is ignored if you provide the full object representation of a VaspInputSet 
+        vasp_input_params (dict): When using a string name for VASP input set, use this as a dict
+            to specify kwargs for instantiating the input set parameters. For example, if you want
+            to change the user_incar_settings, you should provide: {"user_incar_settings": ...}.
+            This setting is ignored if you provide the full object representation of a VaspInputSet
             rather than a String.
     """
 
@@ -213,8 +211,8 @@ class ModifyPotcar(FiretaskBase):
 @explicit_serialize
 class WriteVaspStaticFromPrev(FiretaskBase):
     """
-    Writes input files for a static run. Assumes that output files from a previous 
-    (e.g., optimization) run can be accessed in current dir or prev_calc_dir. Also allows 
+    Writes input files for a static run. Assumes that output files from a previous
+    (e.g., optimization) run can be accessed in current dir or prev_calc_dir. Also allows
     lepsilon (dielectric constant) calcs.
 
     Required params:
@@ -384,8 +382,8 @@ class WriteVaspNMRFromPrev(FiretaskBase):
 class WriteTransmutedStructureIOSet(FiretaskBase):
     """
     Apply the provided transformations to the input structure and write the
-    input set for that structure. Reads structure from POSCAR if no structure provided. Note that 
-    if a transformation yields many structures from one, only the last structure in the list is 
+    input set for that structure. Reads structure from POSCAR if no structure provided. Note that
+    if a transformation yields many structures from one, only the last structure in the list is
     used.
 
     Required params:

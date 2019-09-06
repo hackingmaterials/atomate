@@ -1,8 +1,5 @@
 # coding: utf-8
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 from fireworks import Firework
 
 from pymatgen.io.vasp.sets import MPNMRSet

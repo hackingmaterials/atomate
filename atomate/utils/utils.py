@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import logging
 import os
@@ -9,7 +8,6 @@ import socket
 from random import randint
 from time import time
 
-import six
 from pymongo import MongoClient
 from monty.json import MontyDecoder
 from monty.serialization import loadfn
@@ -54,7 +52,7 @@ def env_chk(val, fw_spec, strict=True, default=None):
     if val is None:
         return default
 
-    if isinstance(val, six.string_types) and val.startswith(">>") and val.endswith("<<"):
+    if isinstance(val, str) and val.startswith(">>") and val.endswith("<<"):
         if strict:
             return fw_spec['_fw_env'][val[2:-2]]
         return fw_spec.get('_fw_env', {}).get(val[2:-2], default)
@@ -86,9 +84,9 @@ def get_mongolike(d, key):
 
 def recursive_get_result(d, result):
     """
-    Function that gets designated keys or values of d 
-    (i. e. those that start with "d>>" or "a>>") from 
-    the corresponding entry in result_dict, similar to 
+    Function that gets designated keys or values of d
+    (i. e. those that start with "d>>" or "a>>") from
+    the corresponding entry in result_dict, similar to
     FireWorks recursive_deserialize.
 
     Note that the plain ">>" notation will get a key from
@@ -106,12 +104,12 @@ def recursive_get_result(d, result):
         recursive_get_result({"epsilon":"a>>epsilon_static", vasprun}
         --> {"epsilon":-3.4}
     """
-    if isinstance(d, six.string_types) and d[:2] == ">>":
+    if isinstance(d, str) and d[:2] == ">>":
         if hasattr(result, "as_dict"):
             result = result.as_dict()
         return get_mongolike(result, d[2:])
 
-    elif isinstance(d, six.string_types) and d[:3] == "a>>":
+    elif isinstance(d, str) and d[:3] == "a>>":
         attribute = getattr(result, d[3:])
         if callable(attribute):
             attribute = attribute()
@@ -159,7 +157,7 @@ def get_meta_from_structure(structure):
 
 def get_fws_and_tasks(workflow, fw_name_constraint=None, task_name_constraint=None):
     """
-    Helper method: given a workflow, returns back the fw_ids and task_ids that match name 
+    Helper method: given a workflow, returns back the fw_ids and task_ids that match name
     constraints. Used in developing multiple powerups.
 
     Args:
