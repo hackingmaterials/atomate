@@ -245,7 +245,7 @@ class QChemDroneTest(unittest.TestCase):
                                                                  OpenBabelNN(),
                                                                  reorder=False,
                                                                  extend_structure=False)
-        self.assertEqual(isomorphic(orig_molgraph.graph,initial_molgraph.graph), False)
+        self.assertEqual(orig_molgraph.isomorphic_to(initial_molgraph), False)
 
     def test_assimilate_disconnected_opt(self):
         drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener"})
