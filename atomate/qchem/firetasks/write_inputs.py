@@ -33,6 +33,7 @@ class WriteInputFromIOSet(FiretaskBase):
         fw_spec qc_input_set must be a string name for the QChem input set. ***
 
     optional_params:
+        molecule (Molecule): Molecule that will be subjected to an electronic structure calculation
         qchem_input_params (dict): When using a string name for QChem input set, use this as a dict
                                    to specify kwargs for instantiating the input set parameters. This
                                    setting is ignored if you provide the full object representation of
@@ -57,9 +58,9 @@ class WriteInputFromIOSet(FiretaskBase):
         the default is to write to the current working directory
     """
 
-    required_params = ["qchem_input_set", "molecule"]
+    required_params = ["qchem_input_set"]
     optional_params = [
-        "qchem_input_params", "input_file", "write_to_dir"
+        "molecule", "qchem_input_params", "input_file", "write_to_dir"
     ]
 
     def run_task(self, fw_spec):
@@ -68,11 +69,12 @@ class WriteInputFromIOSet(FiretaskBase):
         # if a full QChemDictSet object was provided
         if hasattr(self["qchem_input_set"], "write_file"):
             qcin = self["qchem_input_set"]
-        else:
-            mol = self.get("molecule")
-            # if a molecule is being passed through fw_spec
-            if fw_spec.get("prev_calc_molecule"):
-                prev_calc_mol = fw_spec.get("prev_calc_molecule")
+        # if a molecule is being passed through fw_spec
+        elif fw_spec.get("prev_calc_molecule"):
+            prev_calc_mol = fw_spec.get("prev_calc_molecule")
+            # if a molecule is also passed as an optional parameter
+            if self.get("molecule"):
+                mol = self.get("molecule")
                 # check if mol and prev_calc_mol are isomorphic
                 mol_graph = MoleculeGraph.with_local_env_strategy(mol,
                                                                   OpenBabelNN(),
@@ -95,6 +97,17 @@ class WriteInputFromIOSet(FiretaskBase):
             qcin_cls = load_class("pymatgen.io.qchem.sets",
                                   self["qchem_input_set"])
             qcin = qcin_cls(mol, **self.get("qchem_input_params", {}))
+        # if a molecule is only included as an optional parameter
+        elif self.get("molecule"):
+            qcin_cls = load_class("pymatgen.io.qchem.sets",
+                                  self["qchem_input_set"])
+            qcin = qcin_cls(
+                self.get("molecule"), **self.get("qchem_input_params", {}))
+        # if no molecule is present raise an error
+        else:
+            raise KeyError(
+                "No molecule present, add as an optional param or check fw_spec"
+            )
         qcin.write(input_file)
 
 
