@@ -93,6 +93,8 @@ class WriteInputFromIOSet(FiretaskBase):
                     mol = prev_calc_mol
                 else:
                     print("Not using prev_calc_mol as it is not isomorphic to passed molecule!")
+            else:
+              mol = prev_calc_mol
 
             qcin_cls = load_class("pymatgen.io.qchem.sets",
                                   self["qchem_input_set"])
@@ -130,32 +132,41 @@ class WriteCustomInput(FiretaskBase):
             the default is to write to the current working directory
         """
 
-    required_params = ["molecule", "rem"]
+    required_params = ["rem"]
     # optional_params will need to be modified if more QChem sections are added QCInput
     optional_params = [
-        "opt", "pcm", "solvent", "input_file", "write_to_dir"
+        "molecule", "opt", "pcm", "solvent", "input_file", "write_to_dir"
     ]
 
     def run_task(self, fw_spec):
         input_file = os.path.join(self.get("write_to_dir", ""),self.get("input_file", "mol.qin"))
-        # these if statements might need to be reordered at some point
-        mol = self.get("molecule")
         # if a molecule is being passed through fw_spec
         if fw_spec.get("prev_calc_molecule"):
             prev_calc_mol = fw_spec.get("prev_calc_molecule")
-            # check if mol and prev_calc_mol are isomorphic
-            mol_graph = MoleculeGraph.with_local_env_strategy(mol,
-                                                              OpenBabelNN(),
-                                                              reorder=False,
-                                                              extend_structure=False)
-            prev_mol_graph = MoleculeGraph.with_local_env_strategy(prev_calc_molecule,
-                                                                   OpenBabelNN(),
-                                                                   reorder=False,
-                                                                   extend_structure=False)
-            if not mol_graph.isomorphic_to(prev_mol_graph):
-                print("WARNING: Molecule from spec is not isomorphic to passed molecule!")
-            mol = prev_calc_mol
-
+            # if a molecule is also passed as an optional parameter
+            if self.get("molecule"):
+                mol = self.get("molecule")
+                # check if mol and prev_calc_mol are isomorphic
+                mol_graph = MoleculeGraph.with_local_env_strategy(mol,
+                                                                  OpenBabelNN(),
+                                                                  reorder=False,
+                                                                  extend_structure=False)
+                prev_mol_graph = MoleculeGraph.with_local_env_strategy(prev_calc_molecule,
+                                                                       OpenBabelNN(),
+                                                                       reorder=False,
+                                                                       extend_structure=False)
+                if mol_graph.isomorphic_to(prev_mol_graph):
+                    mol = prev_calc_mol
+                else:
+                    print("WARNING: Molecule from spec is not isomorphic to passed molecule!")
+            else:
+              mol = prev_calc_mol
+        elif self.get("molecule"):
+            mol = self.get("molecule")
+        else:
+            raise KeyError(
+                "No molecule present, add as an optional param or check fw_spec"
+            )
         # in the current structure there needs to be a statement for every optional QChem section
         # the code below defaults the section to None if the variable is not passed
         opt = self.get("opt", None)

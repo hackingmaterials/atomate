@@ -23,7 +23,7 @@ __credits__ = "Brandon Wood, Shyam Dwaraknath"
 
 class SinglePointFW(Firework):
     def __init__(self,
-                 molecule,
+                 molecule=None,
                  name="single point",
                  qchem_cmd=">>qchem_cmd<<",
                  multimode=">>multimode<<",
@@ -96,7 +96,7 @@ class SinglePointFW(Firework):
 
 class OptimizeFW(Firework):
     def __init__(self,
-                 molecule,
+                 molecule=None,
                  name="structure optimization",
                  qchem_cmd=">>qchem_cmd<<",
                  multimode=">>multimode<<",
@@ -170,7 +170,7 @@ class OptimizeFW(Firework):
 
 class FrequencyFW(Firework):
     def __init__(self,
-                 molecule,
+                 molecule=None,
                  name="frequency calculation",
                  qchem_cmd=">>qchem_cmd<<",
                  multimode=">>multimode<<",
@@ -244,7 +244,7 @@ class FrequencyFW(Firework):
 
 class FrequencyFlatteningOptimizeFW(Firework):
     def __init__(self,
-                 molecule,
+                 molecule=None,
                  name="frequency flattening structure optimization",
                  qchem_cmd=">>qchem_cmd<<",
                  multimode=">>multimode<<",
@@ -333,7 +333,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
 
 class FragmentFW(Firework):
     def __init__(self,
-                 molecule,
+                 molecule=None,
                  depth=1,
                  open_rings=True,
                  additional_charges=None,
