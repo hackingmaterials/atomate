@@ -16,7 +16,7 @@ jobs:
             source activate test_env
             conda install --quiet --yes numpy scipy matplotlib sympy pandas
             conda install --quiet --yes -c openbabel openbabel
-            conda install --quiet --yes -c clinicalgraphics vtk
+            # conda install --quiet --yes -c clinicalgraphics vtk
             conda install --quiet --yes -c conda-forge python-igraph
             conda update --quiet --all
             pip install --quiet -r requirements.txt -r requirements-optional.txt
