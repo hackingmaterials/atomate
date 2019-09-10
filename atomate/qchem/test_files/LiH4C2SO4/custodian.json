@@ -1,0 +1,329 @@
+[
+    {
+        "job": {
+            "@module": "custodian.qchem.jobs",
+            "@class": "QCJob",
+            "qchem_command": [
+                "qchem",
+                "-slurm"
+            ],
+            "max_cores": 32,
+            "multimode": "openmp",
+            "input_file": "mol.qin",
+            "output_file": "mol.qout",
+            "qclog_file": "mol.qclog",
+            "suffix": ".opt_0",
+            "scratch_dir": "/global/cscratch1/sd/sblau/mega_comp/block_2018-12-22-23-56-10-776797/launcher_2018-12-25-01-32-39-518583/launcher_2018-12-28-20-20-27-032082",
+            "save_scratch": true,
+            "read_scratch": false,
+            "save_name": "chain_scratch",
+            "backup": true
+        },
+        "corrections": []
+    },
+    {
+        "job": {
+            "@module": "custodian.qchem.jobs",
+            "@class": "QCJob",
+            "qchem_command": [
+                "qchem",
+                "-slurm"
+            ],
+            "max_cores": 32,
+            "multimode": "openmp",
+            "input_file": "mol.qin",
+            "output_file": "mol.qout",
+            "qclog_file": "mol.qclog",
+            "suffix": ".freq_0",
+            "scratch_dir": "/global/cscratch1/sd/sblau/mega_comp/block_2018-12-22-23-56-10-776797/launcher_2018-12-25-01-32-39-518583/launcher_2018-12-28-20-20-27-032082",
+            "save_scratch": true,
+            "read_scratch": false,
+            "save_name": "chain_scratch",
+            "backup": false
+        },
+        "corrections": []
+    },
+    {
+        "job": {
+            "@module": "custodian.qchem.jobs",
+            "@class": "QCJob",
+            "qchem_command": [
+                "qchem",
+                "-slurm"
+            ],
+            "max_cores": 32,
+            "multimode": "openmp",
+            "input_file": "mol.qin",
+            "output_file": "mol.qout",
+            "qclog_file": "mol.qclog",
+            "suffix": ".opt_1",
+            "scratch_dir": "/global/cscratch1/sd/sblau/mega_comp/block_2018-12-22-23-56-10-776797/launcher_2018-12-25-01-32-39-518583/launcher_2018-12-28-20-20-27-032082",
+            "save_scratch": true,
+            "read_scratch": false,
+            "save_name": "chain_scratch",
+            "backup": false
+        },
+        "corrections": []
+    },
+    {
+        "job": {
+            "@module": "custodian.qchem.jobs",
+            "@class": "QCJob",
+            "qchem_command": [
+                "qchem",
+                "-slurm"
+            ],
+            "max_cores": 32,
+            "multimode": "openmp",
+            "input_file": "mol.qin",
+            "output_file": "mol.qout",
+            "qclog_file": "mol.qclog",
+            "suffix": ".freq_1",
+            "scratch_dir": "/global/cscratch1/sd/sblau/mega_comp/block_2018-12-22-23-56-10-776797/launcher_2018-12-25-01-32-39-518583/launcher_2018-12-28-20-20-27-032082",
+            "save_scratch": true,
+            "read_scratch": false,
+            "save_name": "chain_scratch",
+            "backup": false
+        },
+        "corrections": []
+    },
+    {
+        "job": {
+            "@module": "custodian.qchem.jobs",
+            "@class": "QCJob",
+            "qchem_command": [
+                "qchem",
+                "-slurm"
+            ],
+            "max_cores": 32,
+            "multimode": "openmp",
+            "input_file": "mol.qin",
+            "output_file": "mol.qout",
+            "qclog_file": "mol.qclog",
+            "suffix": ".opt_2",
+            "scratch_dir": "/global/cscratch1/sd/sblau/mega_comp/block_2018-12-22-23-56-10-776797/launcher_2018-12-25-01-32-39-518583/launcher_2018-12-28-20-20-27-032082",
+            "save_scratch": true,
+            "read_scratch": false,
+            "save_name": "chain_scratch",
+            "backup": false
+        },
+        "corrections": [
+            {
+                "errors": [
+                    "out_of_opt_cycles"
+                ],
+                "actions": [
+                    {
+                        "molecule": "molecule_from_last_geometry"
+                    }
+                ],
+                "handler": {
+                    "@module": "custodian.qchem.handlers",
+                    "@class": "QChemErrorHandler",
+                    "input_file": "mol.qin",
+                    "output_file": "mol.qout",
+                    "scf_max_cycles": 200,
+                    "geom_max_cycles": 200
+                }
+            }
+        ]
+    },
+    {
+        "job": {
+            "@module": "custodian.qchem.jobs",
+            "@class": "QCJob",
+            "qchem_command": [
+                "qchem",
+                "-slurm"
+            ],
+            "max_cores": 32,
+            "multimode": "openmp",
+            "input_file": "mol.qin",
+            "output_file": "mol.qout",
+            "qclog_file": "mol.qclog",
+            "suffix": ".freq_2",
+            "scratch_dir": "/global/cscratch1/sd/sblau/mega_comp/block_2018-12-22-23-56-10-776797/launcher_2018-12-25-01-32-39-518583/launcher_2018-12-28-20-20-27-032082",
+            "save_scratch": true,
+            "read_scratch": false,
+            "save_name": "chain_scratch",
+            "backup": false
+        },
+        "corrections": []
+    },
+    {
+        "job": {
+            "@module": "custodian.qchem.jobs",
+            "@class": "QCJob",
+            "qchem_command": [
+                "qchem",
+                "-slurm"
+            ],
+            "max_cores": 32,
+            "multimode": "openmp",
+            "input_file": "mol.qin",
+            "output_file": "mol.qout",
+            "qclog_file": "mol.qclog",
+            "suffix": ".opt_3",
+            "scratch_dir": "/global/cscratch1/sd/sblau/mega_comp/block_2018-12-22-23-56-10-776797/launcher_2018-12-25-01-32-39-518583/launcher_2018-12-28-20-20-27-032082",
+            "save_scratch": true,
+            "read_scratch": false,
+            "save_name": "chain_scratch",
+            "backup": false
+        },
+        "corrections": []
+    },
+    {
+        "job": {
+            "@module": "custodian.qchem.jobs",
+            "@class": "QCJob",
+            "qchem_command": [
+                "qchem",
+                "-slurm"
+            ],
+            "max_cores": 32,
+            "multimode": "openmp",
+            "input_file": "mol.qin",
+            "output_file": "mol.qout",
+            "qclog_file": "mol.qclog",
+            "suffix": ".freq_3",
+            "scratch_dir": "/global/cscratch1/sd/sblau/mega_comp/block_2018-12-22-23-56-10-776797/launcher_2018-12-25-01-32-39-518583/launcher_2018-12-28-20-20-27-032082",
+            "save_scratch": true,
+            "read_scratch": false,
+            "save_name": "chain_scratch",
+            "backup": false
+        },
+        "corrections": []
+    },
+    {
+        "job": {
+            "@module": "custodian.qchem.jobs",
+            "@class": "QCJob",
+            "qchem_command": [
+                "qchem",
+                "-slurm"
+            ],
+            "max_cores": 32,
+            "multimode": "openmp",
+            "input_file": "mol.qin",
+            "output_file": "mol.qout",
+            "qclog_file": "mol.qclog",
+            "suffix": ".opt_4",
+            "scratch_dir": "/global/cscratch1/sd/sblau/mega_comp/block_2018-12-22-23-56-10-776797/launcher_2018-12-25-01-32-39-518583/launcher_2018-12-28-20-20-27-032082",
+            "save_scratch": true,
+            "read_scratch": false,
+            "save_name": "chain_scratch",
+            "backup": false
+        },
+        "corrections": []
+    },
+    {
+        "job": {
+            "@module": "custodian.qchem.jobs",
+            "@class": "QCJob",
+            "qchem_command": [
+                "qchem",
+                "-slurm"
+            ],
+            "max_cores": 32,
+            "multimode": "openmp",
+            "input_file": "mol.qin",
+            "output_file": "mol.qout",
+            "qclog_file": "mol.qclog",
+            "suffix": ".freq_4",
+            "scratch_dir": "/global/cscratch1/sd/sblau/mega_comp/block_2018-12-22-23-56-10-776797/launcher_2018-12-25-01-32-39-518583/launcher_2018-12-28-20-20-27-032082",
+            "save_scratch": true,
+            "read_scratch": false,
+            "save_name": "chain_scratch",
+            "backup": false
+        },
+        "corrections": []
+    },
+    {
+        "job": {
+            "@module": "custodian.qchem.jobs",
+            "@class": "QCJob",
+            "qchem_command": [
+                "qchem",
+                "-slurm"
+            ],
+            "max_cores": 32,
+            "multimode": "openmp",
+            "input_file": "mol.qin",
+            "output_file": "mol.qout",
+            "qclog_file": "mol.qclog",
+            "suffix": ".opt_5",
+            "scratch_dir": "/global/cscratch1/sd/sblau/mega_comp/block_2018-12-22-23-56-10-776797/launcher_2018-12-25-01-32-39-518583/launcher_2018-12-28-20-20-27-032082",
+            "save_scratch": true,
+            "read_scratch": false,
+            "save_name": "chain_scratch",
+            "backup": false
+        },
+        "corrections": []
+    },
+    {
+        "job": {
+            "@module": "custodian.qchem.jobs",
+            "@class": "QCJob",
+            "qchem_command": [
+                "qchem",
+                "-slurm"
+            ],
+            "max_cores": 32,
+            "multimode": "openmp",
+            "input_file": "mol.qin",
+            "output_file": "mol.qout",
+            "qclog_file": "mol.qclog",
+            "suffix": ".freq_5",
+            "scratch_dir": "/global/cscratch1/sd/sblau/mega_comp/block_2018-12-22-23-56-10-776797/launcher_2018-12-25-01-32-39-518583/launcher_2018-12-28-20-20-27-032082",
+            "save_scratch": true,
+            "read_scratch": false,
+            "save_name": "chain_scratch",
+            "backup": false
+        },
+        "corrections": []
+    },
+    {
+        "job": {
+            "@module": "custodian.qchem.jobs",
+            "@class": "QCJob",
+            "qchem_command": [
+                "qchem",
+                "-slurm"
+            ],
+            "max_cores": 32,
+            "multimode": "openmp",
+            "input_file": "mol.qin",
+            "output_file": "mol.qout",
+            "qclog_file": "mol.qclog",
+            "suffix": ".opt_6",
+            "scratch_dir": "/global/cscratch1/sd/sblau/mega_comp/block_2018-12-22-23-56-10-776797/launcher_2018-12-25-01-32-39-518583/launcher_2018-12-28-20-20-27-032082",
+            "save_scratch": true,
+            "read_scratch": false,
+            "save_name": "chain_scratch",
+            "backup": false
+        },
+        "corrections": []
+    },
+    {
+        "job": {
+            "@module": "custodian.qchem.jobs",
+            "@class": "QCJob",
+            "qchem_command": [
+                "qchem",
+                "-slurm"
+            ],
+            "max_cores": 32,
+            "multimode": "openmp",
+            "input_file": "mol.qin",
+            "output_file": "mol.qout",
+            "qclog_file": "mol.qclog",
+            "suffix": ".freq_6",
+            "scratch_dir": "/global/cscratch1/sd/sblau/mega_comp/block_2018-12-22-23-56-10-776797/launcher_2018-12-25-01-32-39-518583/launcher_2018-12-28-20-20-27-032082",
+            "save_scratch": true,
+            "read_scratch": false,
+            "save_name": "chain_scratch",
+            "backup": false
+        },
+        "corrections": []
+    }
+]
