@@ -23,7 +23,7 @@ jobs:
             # Add executables and path.
             for EXEPATH in `pwd`/cmd_line/*/Linux_64bit; do export PATH=$PATH:$EXEPATH; done
             pip install --quiet -e .
-            pytest --cov=atomate --cov-report html:coverage_reports atomate
+            pytest --ignore=atomate/qchem/test_files --cov=atomate --cov-report html:coverage_reports atomate
           no_output_timeout: 3600
       - store_artifacts:
           path: coverage_reports/
