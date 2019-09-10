@@ -1,0 +1,330 @@
+{
+    "spec": {
+        "_priority": 30000,
+        "_tasks": [
+            {
+                "molecule": null,
+                "qchem_input_set": "OptSet",
+                "input_file": "mol.qin",
+                "qchem_input_params": {
+                    "smd_solvent": "acetonitrile",
+                    "basis_set": "6-31++g**",
+                    "overwrite_inputs": {
+                        "rem": {
+                            "method": "wb97xd"
+                        }
+                    }
+                },
+                "_fw_name": "{{atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet}}"
+            },
+            {
+                "qchem_cmd": ">>qchem_cmd<<",
+                "multimode": ">>multimode<<",
+                "input_file": "mol.qin",
+                "output_file": "mol.qout",
+                "max_cores": ">>max_cores<<",
+                "job_type": "opt_with_frequency_flattener",
+                "max_iterations": 10,
+                "max_molecule_perturb_scale": 0.3,
+                "linked": true,
+                "_fw_name": "{{atomate.qchem.firetasks.run_calc.RunQChemCustodian}}"
+            },
+            {
+                "db_file": ">>db_file<<",
+                "input_file": "mol.qin",
+                "output_file": "mol.qout",
+                "additional_fields": {
+                    "task_label": "LiH4C2SO4:smd_FFopt_LiDTD_1_6-31++g**_wb97xd_acetonitrile",
+                    "special_run_type": "frequency_flattener",
+                    "linked": true
+                },
+                "_fw_name": "{{atomate.qchem.firetasks.parse_outputs.QChemToDb}}"
+            }
+        ],
+        "prev_calc_molecule": {
+            "@module": "pymatgen.core.structure",
+            "@class": "Molecule",
+            "charge": 1,
+            "spin_multiplicity": 1,
+            "sites": [
+                {
+                    "name": "Li",
+                    "species": [
+                        {
+                            "element": "Li",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        3.0905874227,
+                        3.99416e-05,
+                        -0.0003779723
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "C",
+                    "species": [
+                        {
+                            "element": "C",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        -1.853222171,
+                        0.7622926194,
+                        -0.009957384
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "O",
+                    "species": [
+                        {
+                            "element": "O",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        -0.5064124,
+                        1.1089155069,
+                        0.4370123849
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "C",
+                    "species": [
+                        {
+                            "element": "C",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        -1.8532399288,
+                        -0.7622730053,
+                        0.0098193115
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "S",
+                    "species": [
+                        {
+                            "element": "S",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        0.526814628,
+                        -5.5942e-06,
+                        6.4018e-05
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "O",
+                    "species": [
+                        {
+                            "element": "O",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        -0.5063921542,
+                        -1.1089379906,
+                        -0.4369490496
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "O",
+                    "species": [
+                        {
+                            "element": "O",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        1.3571519531,
+                        0.3847638021,
+                        -1.1368852448
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "O",
+                    "species": [
+                        {
+                            "element": "O",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        1.3571509861,
+                        -0.3847699331,
+                        1.1369871845
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "H",
+                    "species": [
+                        {
+                            "element": "H",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        -2.5377956272,
+                        1.2076186487,
+                        0.7090790769
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "H",
+                    "species": [
+                        {
+                            "element": "H",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        -1.9991444265,
+                        1.1788101697,
+                        -1.0080464829
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "H",
+                    "species": [
+                        {
+                            "element": "H",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        -1.9993327218,
+                        -1.1787753336,
+                        1.0078901404
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "H",
+                    "species": [
+                        {
+                            "element": "H",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        -2.5377380217,
+                        -1.2075725699,
+                        -0.7093068716
+                    ],
+                    "properties": {}
+                }
+            ]
+        },
+        "prev_calc_mulliken": [
+            0.716441,
+            -0.141959,
+            -0.505987,
+            -0.141981,
+            1.79551,
+            -0.505995,
+            -0.561798,
+            -0.561761,
+            0.236301,
+            0.217467,
+            0.217466,
+            0.236296
+        ]
+    },
+    "fw_id": 15396,
+    "created_on": "2018-12-24T02:30:42.057875",
+    "updated_on": "2018-12-28T20:20:27.053645",
+    "launches": [
+        {
+            "fworker": {
+                "name": "cori_qchem_dev",
+                "category": "",
+                "query": "{}",
+                "env": {
+                    "db_file": "/global/homes/s/sblau/config/db.json",
+                    "qchem_cmd": "qchem -slurm",
+                    "scratch_dir": "/dev/shm/qcscratch/",
+                    "max_cores": 32,
+                    "multimode": "openmp"
+                }
+            },
+            "fw_id": 15396,
+            "launch_dir": "/global/cscratch1/sd/sblau/mega_comp/block_2018-12-22-23-56-10-776797/launcher_2018-12-25-01-32-39-518583/launcher_2018-12-28-20-20-27-032082",
+            "host": "nid01014",
+            "ip": "10.128.3.253",
+            "trackers": [],
+            "action": null,
+            "state": "RUNNING",
+            "state_history": [
+                {
+                    "state": "RUNNING",
+                    "created_on": "2018-12-28T20:20:27.052099",
+                    "updated_on": "2018-12-28T20:20:27.052102"
+                }
+            ],
+            "launch_id": 18602
+        }
+    ],
+    "archived_launches": [
+        {
+            "fworker": {
+                "name": "cori_qchem_dev",
+                "category": "",
+                "query": "{}",
+                "env": {
+                    "db_file": "/global/homes/s/sblau/config/db.json",
+                    "qchem_cmd": "qchem -slurm",
+                    "scratch_dir": "/dev/shm/qcscratch/",
+                    "max_cores": 32,
+                    "multimode": "openmp"
+                }
+            },
+            "fw_id": 15396,
+            "launch_dir": "/global/cscratch1/sd/sblau/mega_comp/block_2018-12-22-23-56-10-776797/launcher_2018-12-24-02-32-50-650933/launcher_2018-12-25-01-25-58-574772",
+            "host": "nid01023",
+            "ip": "10.128.4.8",
+            "trackers": [],
+            "action": null,
+            "state": "FIZZLED",
+            "state_history": [
+                {
+                    "state": "RUNNING",
+                    "created_on": "2018-12-25T01:25:58.584971",
+                    "updated_on": "2018-12-25T01:25:58.648240",
+                    "checkpoint": {
+                        "_task_n": 1,
+                        "_all_stored_data": {},
+                        "_all_update_spec": {},
+                        "_all_mod_spec": []
+                    }
+                },
+                {
+                    "state": "FIZZLED",
+                    "created_on": "2018-12-27T05:19:50.760233",
+                    "checkpoint": {
+                        "_task_n": 1,
+                        "_all_stored_data": {},
+                        "_all_update_spec": {},
+                        "_all_mod_spec": []
+                    }
+                }
+            ],
+            "launch_id": 17788
+        }
+    ],
+    "state": "RUNNING",
+    "name": "LiH4C2SO4:smd_FFopt_LiDTD_1_6-31++g**_wb97xd_acetonitrile"
+}
