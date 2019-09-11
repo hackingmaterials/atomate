@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
 This module defines a base class for derived database classes that store calculation data.
@@ -8,7 +7,6 @@ This module defines a base class for derived database classes that store calcula
 
 import datetime
 from abc import ABCMeta, abstractmethod
-import six
 from pymongo import MongoClient, ReturnDocument
 
 from monty.json import jsanitize
@@ -23,23 +21,27 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
-class CalcDb(six.with_metaclass(ABCMeta)):
+class CalcDb(metaclass=ABCMeta):
 
-    def __init__(self, host, port, database, collection, user, password):
+    def __init__(self, host, port, database, collection, user, password, **kwargs):
         self.host = host
         self.db_name = database
         self.user = user
         self.password = password
         self.port = int(port)
+
         try:
-            self.connection = MongoClient(self.host, self.port)
+            self.connection = MongoClient(host=self.host, port=self.port,
+                                          username=self.user,
+                                          password=self.password, **kwargs)
             self.db = self.connection[self.db_name]
         except:
             logger.error("Mongodb connection failed")
             raise Exception
         try:
             if self.user:
-                self.db.authenticate(self.user, self.password)
+                self.db.authenticate(self.user, self.password,
+                                     source=kwargs.get("authsource", None))
         except:
             logger.error("Mongodb authentication failed")
             raise ValueError
@@ -122,5 +124,12 @@ class CalcDb(six.with_metaclass(ABCMeta)):
             user = creds.get("readonly_user")
             password = creds.get("readonly_password")
 
+        kwargs = creds.get("mongoclient_kwargs", {})  # any other MongoClient kwargs can go here ...
+
+        if "authsource" in creds:
+            kwargs["authsource"] = creds["authsource"]
+        else:
+            kwargs["authsource"] = creds["database"]
+
         return cls(creds["host"], int(creds["port"]), creds["database"], creds["collection"],
-                   user, password)
+                   user, password, **kwargs)

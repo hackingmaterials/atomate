@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 from monty.os.path import zpath
 from monty.serialization import loadfn
@@ -14,7 +13,6 @@ This module defines tasks that support running vasp in various ways.
 import shutil
 import shlex
 import os
-import six
 import subprocess
 
 from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
@@ -32,6 +30,7 @@ from custodian.vasp.validators import VasprunXMLValidator, VaspFilesValidator
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 from atomate.utils.utils import env_chk, get_logger
+from atomate.vasp.config import CUSTODIAN_MAX_ERRORS
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 __credits__ = 'Shyue Ping Ong <ong.sp>'
@@ -72,14 +71,14 @@ class RunVaspCustodian(FiretaskBase):
         vasp_cmd (str): the name of the full executable for running VASP. Supports env_chk.
 
     Optional params:
-        job_type: (str) - choose from "normal" (default), "double_relaxation_run" (two consecutive 
+        job_type: (str) - choose from "normal" (default), "double_relaxation_run" (two consecutive
             jobs), "full_opt_run" (multiple optimizations), and "neb"
         handler_group: (str or [ErrorHandler]) - group of handlers to use. See handler_groups dict in the code for
             the groups and complete list of handlers in each group. Alternatively, you can
             specify a list of ErrorHandler objects.
-        max_force_threshold: (float) - if >0, adds MaxForceErrorHandler. Not recommended for 
+        max_force_threshold: (float) - if >0, adds MaxForceErrorHandler. Not recommended for
             nscf runs.
-        scratch_dir: (str) - if specified, uses this directory as the root scratch dir. 
+        scratch_dir: (str) - if specified, uses this directory as the root scratch dir.
             Supports env_chk.
         gzip_output: (bool) - gzip output (default=T)
         max_errors: (int) - maximum # of errors to fix before giving up (default=5)
@@ -113,7 +112,7 @@ class RunVaspCustodian(FiretaskBase):
 
         vasp_cmd = env_chk(self["vasp_cmd"], fw_spec)
 
-        if isinstance(vasp_cmd, six.string_types):
+        if isinstance(vasp_cmd, str):
             vasp_cmd = os.path.expandvars(vasp_cmd)
             vasp_cmd = shlex.split(vasp_cmd)
 
@@ -121,7 +120,7 @@ class RunVaspCustodian(FiretaskBase):
         job_type = self.get("job_type", "normal")
         scratch_dir = env_chk(self.get("scratch_dir"), fw_spec)
         gzip_output = self.get("gzip_output", True)
-        max_errors = self.get("max_errors", 5)
+        max_errors = self.get("max_errors", CUSTODIAN_MAX_ERRORS)
         auto_npar = env_chk(self.get("auto_npar"), fw_spec, strict=False, default=False)
         gamma_vasp_cmd = env_chk(self.get("gamma_vasp_cmd"), fw_spec, strict=False, default=None)
         if gamma_vasp_cmd:
@@ -182,7 +181,7 @@ class RunVaspCustodian(FiretaskBase):
         # construct handlers
 
         handler_group = self.get("handler_group", "default")
-        if isinstance(handler_group, six.string_types):
+        if isinstance(handler_group, str):
             handlers = handler_groups[handler_group]
         else:
             handlers = handler_group
@@ -204,7 +203,8 @@ class RunVaspCustodian(FiretaskBase):
         c.run()
 
         if os.path.exists(zpath("custodian.json")):
-            return FWAction(stored_data=loadfn(zpath("custodian.json")))
+            stored_custodian_data = {"custodian": loadfn(zpath("custodian.json"))}
+            return FWAction(stored_data=stored_custodian_data)
 
 
 @explicit_serialize

@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
 Lammps Drones.
@@ -8,7 +7,6 @@ Lammps Drones.
 
 import os
 from datetime import datetime
-import six
 
 from pymatgen.apps.borg.hive import AbstractDrone
 # from pymatgen.io.lammps.output import LammpsLog, LammpsDump, LammpsRun
@@ -67,7 +65,7 @@ class LammpsDrone(AbstractDrone):
         data_file = os.path.join(path, data_filename) if data_filename else None
         log_file = os.path.join(path, log_filename)
         dump_files = dump_files or []
-        dump_files = [dump_files] if isinstance(dump_files, six.string_types) else dump_files
+        dump_files = [dump_files] if isinstance(dump_files, str) else dump_files
 
         # input set
         lmps_input = LammpsInputSet.from_file("lammps", input_file, {}, data_file, data_filename)

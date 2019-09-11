@@ -1,13 +1,11 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
 This module defines tasks for writing vasp input sets for various types of vasp calculations
 """
 
 import os
-from six.moves import range
 from importlib import import_module
 
 import numpy as np
@@ -21,7 +19,7 @@ from pymatgen.core.structure import Structure
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
 from pymatgen.io.vasp import Incar, Poscar, Potcar, PotcarSingle
-from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, MPHSEBSSet
+from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, MPHSEBSSet, MPNMRSet
 
 from atomate.utils.utils import env_chk, load_class
 from atomate.vasp.firetasks.glue_tasks import GetInterpolatedPOSCAR
@@ -33,19 +31,19 @@ __email__ = 'ajain@lbl.gov'
 @explicit_serialize
 class WriteVaspFromIOSet(FiretaskBase):
     """
-    Create VASP input files using implementations of pymatgen's AbstractVaspInputSet. An input set 
+    Create VASP input files using implementations of pymatgen's AbstractVaspInputSet. An input set
     can be provided as an object or as a String/parameter combo.
 
     Required params:
         structure (Structure): structure
-        vasp_input_set (AbstractVaspInputSet or str): Either a VaspInputSet object or a string 
+        vasp_input_set (AbstractVaspInputSet or str): Either a VaspInputSet object or a string
             name for the VASP input set (e.g., "MPRelaxSet").
 
     Optional params:
-        vasp_input_params (dict): When using a string name for VASP input set, use this as a dict 
-            to specify kwargs for instantiating the input set parameters. For example, if you want 
-            to change the user_incar_settings, you should provide: {"user_incar_settings": ...}. 
-            This setting is ignored if you provide the full object representation of a VaspInputSet 
+        vasp_input_params (dict): When using a string name for VASP input set, use this as a dict
+            to specify kwargs for instantiating the input set parameters. For example, if you want
+            to change the user_incar_settings, you should provide: {"user_incar_settings": ...}.
+            This setting is ignored if you provide the full object representation of a VaspInputSet
             rather than a String.
     """
 
@@ -213,8 +211,8 @@ class ModifyPotcar(FiretaskBase):
 @explicit_serialize
 class WriteVaspStaticFromPrev(FiretaskBase):
     """
-    Writes input files for a static run. Assumes that output files from a previous 
-    (e.g., optimization) run can be accessed in current dir or prev_calc_dir. Also allows 
+    Writes input files for a static run. Assumes that output files from a previous
+    (e.g., optimization) run can be accessed in current dir or prev_calc_dir. Also allows
     lepsilon (dielectric constant) calcs.
 
     Required params:
@@ -314,7 +312,7 @@ class WriteVaspNSCFFromPrev(FiretaskBase):
             sym_prec=self.get("sym_prec", 0.1),
             international_monoclinic=self.get("international_monoclinic", True),
             mode=self.get("mode", "uniform"),
-            nedos=self.get("nedos", 601),
+            nedos=self.get("nedos", 2001),
             optics=self.get("optics", False),
             **self.get("other_params", {}))
         vis.write_input(".")
@@ -356,11 +354,36 @@ class WriteVaspSOCFromPrev(FiretaskBase):
 
 
 @explicit_serialize
+class WriteVaspNMRFromPrev(FiretaskBase):
+    """
+    Writes input files for a NMR calculation
+
+    Optional params::
+        prev_calc_dir: path to previous calculation, else current directory
+        mode (str): the NMR calculation type: cs or efg, default is cs
+        isotopes (list): list of isotopes to include, default is to include the
+                         lowest mass quadrupolar isotope for all applicable elements
+        reciprocol_density (int): the reciprocol density for the kpoint mesh, defaults to 100
+        other_aprams (dict) : any other params passsed to MPNMRSet as a dictionary
+    """
+    optional_params = ["mode", "isotopes", "reciprocal_density", "other_params"]
+
+    def run_task(self, fw_spec):
+        vis = MPNMRSet.from_prev_calc(
+            prev_calc_dir=self.get("prev_calc_dir", "."),
+            mode=self.get("mode", "cs"),
+            isotopes=self.get("isotopes", None),
+            reciprocal_density=self.get("reciprocal_density", 100),
+            **self.get("other_params", {}))
+        vis.write_input(".")
+
+
+@explicit_serialize
 class WriteTransmutedStructureIOSet(FiretaskBase):
     """
     Apply the provided transformations to the input structure and write the
-    input set for that structure. Reads structure from POSCAR if no structure provided. Note that 
-    if a transformation yields many structures from one, only the last structure in the list is 
+    input set for that structure. Reads structure from POSCAR if no structure provided. Note that
+    if a transformation yields many structures from one, only the last structure in the list is
     used.
 
     Required params:

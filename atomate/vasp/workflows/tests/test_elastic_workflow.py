@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
 import unittest
@@ -64,12 +63,12 @@ class TestElasticWorkflow(AtomateTest):
         self.minimal_wf = add_modify_incar(self.minimal_wf, ec_incar_update)
 
         # TOEC WF (minimal)
-        self.toec_wf = wf_elastic_constant_minimal(self.struct_si, order=3) 
+        self.toec_wf = wf_elastic_constant_minimal(self.struct_si, order=3)
         self.toec_wf = add_modify_incar(self.toec_wf, ec_incar_update)
         toec_data = loadfn(os.path.join(self.tf_loc, 'toec_data.json'))
         # Rather than run entire workflow, preload the spec to test the analysis
-        toec_analysis = Firework([ElasticTensorToDb(structure=self.struct_si, order=3, 
-                                                    db_file=">>db_file<<")], 
+        toec_analysis = Firework([ElasticTensorToDb(structure=self.struct_si, order=3,
+                                                    db_file=">>db_file<<")],
                                  spec={"deformation_tasks": toec_data['deformation_tasks']})
         self.toec_analysis = Workflow([toec_analysis])
         # Check 4th order to see if constructed correctly
@@ -100,7 +99,7 @@ class TestElasticWorkflow(AtomateTest):
             self.assertEqual(d["formula_anonymous"], "A")
             self.assertEqual(d["nelements"], 1)
             self.assertEqual(d["state"], "successful")
-        
+
         if mode in ["structure optimization"]:
             self.assertAlmostEqual(d["calcs_reversed"][0]["output"]["structure"]["lattice"]["a"], 5.469, 2)
             self.assertAlmostEqual(d["output"]["energy_per_atom"], -5.423, 2)
@@ -138,15 +137,15 @@ class TestElasticWorkflow(AtomateTest):
         self.assertEqual(len(self.foec_wf.fws), 49)
 
         # check vasp parameters for ionic relaxation
-        defo_vis = [fw.tasks[1]['vasp_input_set'] 
+        defo_vis = [fw.tasks[1]['vasp_input_set']
                     for fw in self.base_wf.fws if "deform" in fw.name]
         assert all([vis.user_incar_settings['NSW'] == 99 for vis in defo_vis])
         assert all([vis.user_incar_settings['IBRION'] == 2 for vis in defo_vis])
         # check preset parameters
-        defo_vis = [fw.tasks[2]['vasp_input_set'] 
+        defo_vis = [fw.tasks[2]['vasp_input_set']
                     for fw in self.preset_wf.fws if "deform" in fw.name]
         assert all([vis.user_incar_settings['ENCUT'] == 700 for vis in defo_vis])
-        assert all([vis.user_kpoints_settings.get('grid_density') == 7000 
+        assert all([vis.user_kpoints_settings.get('grid_density') == 7000
                     for vis in defo_vis])
 
         self.lp.add_wf(self.base_wf)
@@ -161,7 +160,7 @@ class TestElasticWorkflow(AtomateTest):
         # check two of the deformation calculations
         d = self.get_task_collection().find_one({"task_label": "elastic deformation 0"})
         self._check_run(d, mode="elastic deformation 0")
-        
+
         d = self.get_task_collection().find_one({"task_label": "elastic deformation 3"})
         self._check_run(d, mode="elastic deformation 3")
 

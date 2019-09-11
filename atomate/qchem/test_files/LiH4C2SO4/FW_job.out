@@ -1,0 +1,6 @@
+/global/u2/s/sblau/pymatgen/pymatgen/io/cif.py:37: UserWarning: Please install optional dependency pybtex if youwant to extract references from CIF files.
+  warnings.warn("Please install optional dependency pybtex if you"
+ERROR:custodian.custodian:
+{ 'actions': [ { 'molecule': 'molecule_from_last_geometry'}],
+  'errors': [ 'out_of_opt_cycles'],
+  'handler': <custodian.qchem.handlers.QChemErrorHandler object at 0x2aaaba048828>}

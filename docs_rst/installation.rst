@@ -74,7 +74,7 @@ Note that there are various tools to query this information later, ranging from 
 
 MongoDB must be running and available to accept connections whenever you are running workflows. Thus, it is strongly recommended that you have a server to run MongoDB or (simpler) use a hosting service. Your options are:
 
-* use a commercial service to host your MongoDB instance. These are typically the easiest to use and offer high quality service but require payment for larger databases. `MongoDB Atlas <https://www.mongodb.com/cloud/atlas>`_ offers free 500 MB databases with payment required for larger databases; the free tier is certainly enough to get started for small to medium size projects, and it is easy to upgrade or migrate your database if you do exceed the free allocation.
+* use a commercial service to host your MongoDB instance. These are typically the easiest to use and offer high quality service but require payment for larger databases. `mLab <http://mlab.com/>`_ and `MongoDB Atlas <https://www.mongodb.com/cloud/atlas>`_ offer free 500 MB databases with payment required for larger databases; the free tier is certainly enough to get started for small to medium size projects, and it is easy to upgrade or migrate your database if you do exceed the free allocation.
 * contact your supercomputing center to see if they offer MongoDB hosting (e.g., NERSC has this, Google "request NERSC MongoDB database")
 * self-host a MongoDB server
 
@@ -127,7 +127,7 @@ Installing atomate includes installation of codes, configuration files, and vari
 Create a Python 3 virtual environment
 =====================================
 
-.. note:: Make sure to create Python 3 environment (ideally Python 3.6 and higher) as recent versions of atomate only support Py3 and higher.
+.. note:: Make sure to create Python 3.6+ environment as recent versions of atomate only support Python 3.6 and higher.
 
 We highly recommended that you organize your installation of the atomate and the other Python codes using a virtual environment (e.g. ``virtualenv`` or similar tool such as anaconda).
 Ultimately, whether you want to use a virtual environment is optional and you don't have to use one if you know what you are doing.

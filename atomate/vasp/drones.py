@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
 This Drone tries to produce a more sensible task dictionary than the default VaspToDbTaskDrone.
@@ -635,7 +634,7 @@ class VaspDrone(AbstractDrone):
             else:
                 diff = v.difference(set(d.get(k, d).keys()))
             if diff:
-                logger.warn("The keys {0} in {1} not set".format(diff, k))
+                logger.warning("The keys {0} in {1} not set".format(diff, k))
 
     def get_valid_paths(self, path):
         """
