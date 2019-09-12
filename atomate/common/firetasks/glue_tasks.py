@@ -1,9 +1,7 @@
 # coding: utf-8
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
-import six
 import monty
 import shutil
 import glob
@@ -29,7 +27,7 @@ class PassCalcLocs(FiretaskBase):
         name (str): descriptive name for this calculation file/dir
 
     Optional params:
-        filesystem (str or custom user format): name of filesystem. Supports env_chk. 
+        filesystem (str or custom user format): name of filesystem. Supports env_chk.
             defaults to None
         path (str): The path to the directory containing the calculation. defaults to
             current working directory.
@@ -66,7 +64,7 @@ def get_calc_loc(target_name, calc_locs):
         (dict) dict with subkeys path, filesystem, and name
     """
 
-    if isinstance(target_name, six.string_types):
+    if isinstance(target_name, str):
         for doc in reversed(calc_locs):
             if doc["name"] == target_name:
                 return doc
@@ -83,7 +81,7 @@ class CopyFilesFromCalcLoc(FiretaskBase):
 
     Required params:
         calc_loc: name of target fw to get location for within the calc_locs.
-    
+
     Optional params:
         filenames (list(str)): filenames to copy. Special behavior for:
             None: if filenames not set, all files in calc_loc will be copied
@@ -107,7 +105,7 @@ class CopyFilesFromCalcLoc(FiretaskBase):
         filenames = self.get('filenames')
         if filenames is None:
             files_to_copy = fileclient.listdir(calc_dir)
-        elif isinstance(filenames, six.string_types):
+        elif isinstance(filenames, str):
             raise ValueError("filenames must be a list!")
         elif '$ALL_NO_SUBDIRS' in filenames:
             files_to_copy = fileclient.listdir(calc_dir)
@@ -186,7 +184,7 @@ class PassResult(FiretaskBase):
     to child fireworks.  Uses a string syntax similar to Mongo-style queries to designate
     values of output file dictionaries to retrieve.  For example, one could specify
     a task to pass the stress from the current calculation using:
-    
+
     PassResult(pass_dict={'stress': ">>ionic_steps.-1.stress"})
 
     Required params:
@@ -197,11 +195,11 @@ class PassResult(FiretaskBase):
             separated with periods, e. g. ">>ionic_steps.-1.stress" is used
             to designate the stress from the last ionic_step. If the value
             is not a string or does not begin with ">>", it is passed as is.
-        parse_class (str): string representation of complete path to a class 
+        parse_class (str): string representation of complete path to a class
             with which to parse the output, e. g. pymatgen.io.vasp.Vasprun
             or pymatgen.io.feff.LDos.from_file, class must be MSONable
         parse_kwargs (str): dict of kwargs for the parse class,
-            e. g. {"filename": "vasprun.xml", "parse_dos": False, 
+            e. g. {"filename": "vasprun.xml", "parse_dos": False,
             "parse_eigen": False}
 
     Optional params:
@@ -215,7 +213,7 @@ class PassResult(FiretaskBase):
 
     required_params = ["pass_dict", "parse_class", "parse_kwargs"]
     optional_params = ["calc_dir", "mod_spec_cmd", "mod_spec_key"]
-                       
+
     def run_task(self, fw_spec):
         pass_dict = self.get("pass_dict")
         parse_kwargs = self.get("parse_kwargs")

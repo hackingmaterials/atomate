@@ -9,7 +9,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 if __name__ == "__main__":
     setup(
         name='atomate',
-        version='0.9.2',
+        version='0.9.3',
         description='atomate has implementations of FireWorks workflows for '
                     'Materials Science',
         long_description=open(os.path.join(module_dir, 'README.md')).read(),
@@ -21,9 +21,9 @@ if __name__ == "__main__":
         package_data={'atomate.vasp.workflows.base': ['library/*'],
                       'atomate.vasp.builders': ['*', 'examples/*']},
         zip_safe=False,
-        install_requires=['FireWorks>=1.4.0', 'pymatgen>=2018.6.11',
+        install_requires=['FireWorks>=1.4.0', 'pymatgen>=2019.8.23',
                           'custodian>=2018.6.11', 'monty>=1.0.2',
-                          'tqdm>=4.7.4', 'six',
+                          'tqdm>=4.7.4', 
                           'pymatgen-diffusion>=2018.1.4',
                           'pydash>=4.1.0'],
         extras_require={'rtransfer': ['paramiko>=2.4.2'],
@@ -32,9 +32,9 @@ if __name__ == "__main__":
                         'complete': ['paramiko>=2.4.2',
                                      'matplotlib>=1.5.2',
                                      'phonopy>=1.10.8']},
-        classifiers=['Programming Language :: Python :: 2.7',
-                     "Programming Language :: Python :: 3",
+        classifiers=["Programming Language :: Python :: 3",
                      "Programming Language :: Python :: 3.6",
+                     "Programming Language :: Python :: 3.7",
                      'Development Status :: 5 - Production/Stable',
                      'Intended Audience :: Science/Research',
                      'Intended Audience :: System Administrators',

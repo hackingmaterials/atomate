@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
 import unittest
@@ -32,6 +31,9 @@ class TestWriteInputQChem(AtomateTest):
         cls.opt_mol_pcm_ref_in = QCInput.from_file(
             os.path.join(module_dir, "..", "..", "test_files",
                          "to_opt_pcm.qin"))
+        cls.opt_mol_smd_ref_in = QCInput.from_file(
+            os.path.join(module_dir, "..", "..", "test_files",
+                         "to_opt_smd.qin"))
 
     def setUp(self, lpad=False):
         super(TestWriteInputQChem, self).setUp(lpad=False)
@@ -68,6 +70,20 @@ class TestWriteInputQChem(AtomateTest):
         for k, v in self.opt_mol_pcm_ref_in.as_dict().items():
             self.assertEqual(v, test_dict[k])
 
+    def test_write_input_from_io_custom_smd(self):
+        ft = WriteInputFromIOSet(
+            molecule=self.opt_mol,
+            qchem_input_set="OptSet",
+            qchem_input_params={"smd_solvent": "custom", "custom_smd": "90.00,1.415,0.00,0.735,20.2,0.00,0.00"})
+        ft.run_task({})
+        test_dict = QCInput.from_file("mol.qin").as_dict()
+        for k, v in self.opt_mol_smd_ref_in.as_dict().items():
+            self.assertEqual(v, test_dict[k])
+        with open("solvent_data") as sd:
+            lines = sd.readlines()
+            self.assertEqual(lines[0],"90.00,1.415,0.00,0.735,20.2,0.00,0.00")
+        os.remove("solvent_data")
+
     def test_write_input_from_io_set_write_dir(self):
         ft = WriteInputFromIOSet(
             molecule=self.co_mol,
@@ -83,12 +99,16 @@ class TestWriteInputQChem(AtomateTest):
         mol = self.co_mol
         rem = {
             "job_type": "opt",
-            "basis": "6-311++G*",
+            "basis": "def2-tzvppd",
             "max_scf_cycles": 200,
             "method": "wB97xd",
             "geom_opt_max_cycles": 200,
             "gen_scfman": True,
-            "scf_algorithm": "gdm"
+            "scf_algorithm": "diis",
+            "xc_grid": 3,
+            "sym_ignore": True,
+            "symmetry": False,
+            "resp_charges": True
         }
         qc_input = QCInput(mol, rem)
         ft = WriteInput(qc_input=qc_input)
@@ -101,12 +121,16 @@ class TestWriteInputQChem(AtomateTest):
         mol = self.co_mol
         rem = {
             "job_type": "opt",
-            "basis": "6-311++G*",
+            "basis": "def2-tzvppd",
             "max_scf_cycles": 200,
             "method": "wB97xd",
             "geom_opt_max_cycles": 200,
             "gen_scfman": True,
-            "scf_algorithm": "gdm"
+            "scf_algorithm": "diis",
+            "xc_grid": 3,
+            "sym_ignore": True,
+            "symmetry": False,
+            "resp_charges": True
         }
         ft = WriteCustomInput(molecule=mol, rem=rem)
         ft.run_task({})
