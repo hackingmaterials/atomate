@@ -1,21 +1,19 @@
 from fireworks import Firework
-from atomate.vasp.firetasks.approx_neb_tasks import (
-    PathfinderToDb,
-    AddSelectiveDynamics,
-)
+from atomate.vasp.firetasks.approx_neb_tasks import PathfinderToDb, AddSelectiveDynamics
 from atomate.vasp.firetasks.approx_neb_dynamic_tasks import GetImageFireworks
 from atomate.vasp.config import VASP_CMD, DB_FILE
+
 
 class EvaluatePathFW(Firework):
     def __init__(
         self,
         approx_neb_wf_uuid,
-        stable_sites_combo,
+        end_points_combo,
         mobile_specie,
         n_images,
         selective_dynamics_scheme,
-        launch_mode = "all",
-        name="evaluate path",
+        launch_mode="all",
+        name="path",
         db_file=DB_FILE,
         vasp_input_set=None,
         vasp_cmd=VASP_CMD,
@@ -29,9 +27,9 @@ class EvaluatePathFW(Firework):
         """
         #ToDo: Update description
         Applies NEBPathFinder (from pymatgen.analysis.path_finder) using the
-        host lattice (chgcar from the task_id stored) and output structures stored
-        in the stable_sites field of the approx_neb collection. Resulting
-        structures or images (interpolated between stable_site structures or end
+        host (chgcar from the task_id stored) and output structures stored
+        in the end_points field of the approx_neb collection. Resulting
+        structures or images (interpolated between end_point structures or end
         point structures) are stored in the "images" field of the approx_neb
         collection for future use.
         Prepares input structures for image relaxations by applying selective
@@ -45,15 +43,15 @@ class EvaluatePathFW(Firework):
         Args:
             approx_neb_wf_uuid (str): Unique identifier for approx workflow record
                 keeping.
-            stable_sites_combo (str): string must have format of "0+1",
-                "0+2", etc. to specify which combination of stable_sites to use for
-                path interpolation for cases with multiple stable sites
+            end_points_combo (str): string must have format of "0+1",
+                "0+2", etc. to specify which combination of end_points to use for
+                path interpolation for cases with multiple end points
             mobile_specie (str): specie of site of interest such as the working ion
                 (e.g. "Li" if the working ion of interest is a Li). Provided  to
                 perform a built in check on the structures pulled the approx_neb doc.
             n_images (int): number of images interpolated between end point structures
             selective_dynamics_scheme (str): "fix_two_atom"
-            name (str): Combined with mobile_specie and stable_sites_combo to label the firework
+            name (str): Combined with mobile_specie and end_points_combo to label the firework
             vasp_input_set (VaspInputSet): input set to use. Defaults to
                 MPRelaxSet() if None.
             override_default_vasp_params (dict): If this is not None, these params
@@ -71,7 +69,7 @@ class EvaluatePathFW(Firework):
             parents ([Firework]): Parents of this particular Firework.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = name + ": " + mobile_specie + " " + stable_sites_combo
+        fw_name = name + ": " + mobile_specie + " " + end_points_combo
         fw_spec = {"tags": ["approx_neb", approx_neb_wf_uuid, "evaluate_path"]}
 
         t = []
@@ -80,7 +78,7 @@ class EvaluatePathFW(Firework):
             PathfinderToDb(
                 db_file=db_file,
                 n_images=n_images,
-                stable_sites_combo=stable_sites_combo,
+                end_points_combo=end_points_combo,
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
             )
         )
@@ -88,7 +86,7 @@ class EvaluatePathFW(Firework):
         t.append(
             AddSelectiveDynamics(
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
-                pathfinder_key=stable_sites_combo,
+                pathfinder_key=end_points_combo,
                 mobile_specie=mobile_specie,
                 selective_dynamics_scheme=selective_dynamics_scheme,
                 db_file=db_file,
@@ -98,7 +96,7 @@ class EvaluatePathFW(Firework):
         t.append(
             GetImageFireworks(
                 launch_mode=launch_mode,
-                images_key=stable_sites_combo,
+                images_key=end_points_combo,
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
                 vasp_cmd=vasp_cmd,
                 db_file=db_file,
@@ -106,8 +104,8 @@ class EvaluatePathFW(Firework):
                 override_default_vasp_params=override_default_vasp_params,
                 handler_group=handler_group,
                 add_additional_fields=add_additional_fields,
-                add_tags=add_tags
+                add_tags=add_tags,
             )
         )
 
-        super().__init__(tasks=t, spec = fw_spec, name=fw_name, parents=parents, **kwargs)
+        super().__init__(tasks=t, spec=fw_spec, name=fw_name, parents=parents, **kwargs)

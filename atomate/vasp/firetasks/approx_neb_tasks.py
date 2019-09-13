@@ -2,43 +2,42 @@ from pymatgen import Element, Structure
 from pymatgen.io.vasp.outputs import Chgcar
 from pymatgen.analysis.path_finder import NEBPathfinder, ChgcarPotential
 from fireworks import FiretaskBase, FWAction, explicit_serialize, LaunchPad
-from atomate.utils.utils import env_chk, load_class
+from atomate.utils.utils import env_chk
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
-from atomate.vasp.drones import VaspDrone
 from pymatgen.io.vasp.sets import MPRelaxSet
 from pydash import get  # ,set_
-import json
-import os.path
-from monty.json import MontyEncoder
-from itertools import combinations
 
 logger = get_logger(__name__)
 
 
 @explicit_serialize
-class HostLatticeToDb(FiretaskBase):
+class HostToDb(FiretaskBase):
     """
-    Initializes a approx_neb collection database entry from a host lattice task doc
-    specified by the supplied task_id using the provided approx_neb_wf_uuid.
-    Host lattice task doc is updated with the provided approx_neb_wf_uuid.
-    Pulls GridFS identifier (or parses and stores from files in task doc
-    directory if not already stored) for accessing host lattice CHGCAR and AECCARs.
+    Initializes a approx_neb collection database entry from
+    a host task doc specified by the supplied task_id and
+    the provided approx_neb_wf_uuid. Also updates the
+    tasks collection for approx neb workflow record keeping.
 
     Args:
-        db_file (str): path to file containing the database credentials.
-        approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
-        host_lattice_task_id (int): task_id for structure optimization of host
-            lattice. Must be provided in the fw_spec or firetask inputs.
+        db_file (str): path to file containing the database
+            credentials.
+        approx_neb_wf_uuid (str): unique id for approx neb
+            workflow record keeping
+        host_task_id (int): task_id for VASP calculation of
+            host structure. Must be provided in the fw_spec
+            or firetask inputs.
     Optional Args:
-        additional_fields (dict): specifies more information to be stored in
-            the approx_neb collection to assist user record keeping.
-        tags (list): list of strings to be stored in the approx_neb collection
-            under the field "tags" to assist user record keeping.
+        additional_fields (dict): specifies more information
+            to be stored in the approx_neb collection to
+            assist user record keeping.
+        tags (list): list of strings to be stored in the
+            approx_neb collection under the "tags" field to
+            assist user record keeping.
     """
 
     required_params = ["db_file", "approx_neb_wf_uuid"]
-    optional_params = ["host_lattice_task_id", "additional_fields", "tags"]
+    optional_params = ["host_task_id", "additional_fields", "tags"]
 
     def run_task(self, fw_spec):
         # get the database connection
@@ -54,42 +53,42 @@ class HostLatticeToDb(FiretaskBase):
                 "Provided approx_neb_wf_uuid is not unique. A unique workflow id is required for querying in the approx_neb workflow."
             )
 
-        # get host lattice task doc from host_lattice_task_id
-        t_id = self.get("host_lattice_task_id",fw_spec.get("host_lattice_task_id"))
+        # get host task doc from host_task_id
+        t_id = self.get("host_task_id", fw_spec.get("host_task_id"))
         try:
-            host_lattice_tasks_doc = mmdb.collection.find_one(
-                {"task_id": t_id, "approx_neb.calc_type": "host_lattice"}
+            host_tasks_doc = mmdb.collection.find_one(
+                {"task_id": t_id, "approx_neb.calc_type": "host"}
             )
         except:
             raise ValueError(
-                "Unable to find approx neb host lattice with task_id: {}".format(t_id)
+                "Unable to find approx neb host with task_id: {}".format(t_id)
             )
-        # update found host lattice task doc with unique wf_uuid
-        # (tracks approx_neb workflows generated from this host lattice task doc)
+        # update found host task doc with unique wf_uuid
+        # (tracks approx_neb workflows generated from this host task doc)
         mmdb.collection.update_one(
             {"task_id": t_id}, {"$push": {"approx_neb.wf_uuids": wf_uuid}}
         )
 
-        # Initialize and store select host lattice task doc fields in approx_neb_doc
+        # Initialize and store select host task doc fields in approx_neb_doc
         # (to be stored in the approx_neb collection)
         approx_neb_doc = {
-            "host_lattice": {
-                "dir_name": host_lattice_tasks_doc["dir_name"],
-                "formula_pretty": host_lattice_tasks_doc["formula_pretty"],
-                "input_structure": host_lattice_tasks_doc["input"]["structure"],
-                "output": host_lattice_tasks_doc["output"],
-                "task_id": host_lattice_tasks_doc["task_id"],
+            "host": {
+                "dir_name": host_tasks_doc["dir_name"],
+                "formula_pretty": host_tasks_doc["formula_pretty"],
+                "input_structure": host_tasks_doc["input"]["structure"],
+                "output": host_tasks_doc["output"],
+                "task_id": host_tasks_doc["task_id"],
             },
             "wf_uuid": wf_uuid,
-            "stable_sites": [],
-            "tags":[]
+            "end_points": [],
+            "tags": [],
         }
 
         # Add additional fields to approx_neb_doc if provided (stored in approx_neb collection)
         additional_fields = self.get("additional_fields")
-        if isinstance(additional_fields,(dict)):
+        if isinstance(additional_fields, (dict)):
             for key, value in additional_fields.items():
-                if key == "tags" and isinstance(value,(list)):
+                if key == "tags" and isinstance(value, (list)):
                     approx_neb_doc["tags"].extend(value)
                 elif key not in approx_neb_doc.keys():
                     approx_neb_doc[key] = value
@@ -99,12 +98,12 @@ class HostLatticeToDb(FiretaskBase):
         if tags:
             approx_neb_doc["tags"].extend(tags)
 
-        # Gets GridFS ids for host lattice chgcar and aeccars if stored in task_doc.
+        # Gets GridFS ids for host chgcar and aeccars if stored in task_doc.
         # Store GridFS ids in approx_neb_doc (to be stored in the approx_neb collection).
         # None will be stored if no gridfs_id is found.
-        for key in ["chgcar_fs_id","aeccar0_fs_id","aeccar2_fs_id"]:
-            grid_fs_id = host_lattice_tasks_doc["calcs_reversed"][0].get(key)
-            approx_neb_doc["host_lattice"][key] = grid_fs_id
+        for key in ["chgcar_fs_id", "aeccar0_fs_id", "aeccar2_fs_id"]:
+            grid_fs_id = host_tasks_doc["calcs_reversed"][0].get(key)
+            approx_neb_doc["host"][key] = grid_fs_id
 
         # Insert approx_neb_doc in the approx_neb collection of provided database
         mmdb.collection = mmdb.db["approx_neb"]
@@ -120,23 +119,30 @@ class HostLatticeToDb(FiretaskBase):
 @explicit_serialize
 class PassFromDb(FiretaskBase):
     """
-        Search approx_neb collection of database for designated fields.
-        Pass designated fields to fw_spec according to fields_to_pull input.
+    Search approx_neb collection of database for designated
+    fields. Pass designated fields to fw_spec according to
+    fields_to_pull input.
 
-        Args:
-            db_file (str): path to file containing the database credentials.
-            approx_neb_wf_uuid (str): unique identifier for approx neb workflow
-                record keeping. Used for querying approx_neb collection.
-            fields_to_pull (dict): define fields to pull from approx_neb collection
-                using pydash.get() notation (doc specified by approx_neb_wf_uuid).
-                Keys of fields_to_pull are used to name pulled fields in the
-                updated fw_spec via...
-                Format: {key : path} -> fw.spec[key] = task_doc[path]
-                The path is a full mongo-style path so subdocuments can be
-                referenced using dot notation and array keys can be referenced
-                using the index. Example for pulling host lattice structure from
-                approx_neb collection into fw_spec["host_lattice_structure"]:
-                {"host_lattice_structure":"host_lattice.output.structure"}
+    Args:
+        db_file (str): path to file containing the database
+            credentials.
+        approx_neb_wf_uuid (str): unique identifier for
+            approx neb workflow record keeping. Used for
+            querying approx_neb collection.
+        fields_to_pull (dict): define fields to pull from
+            approx_neb collection using pydash.get()
+            notation (doc specified by approx_neb_wf_uuid).
+            Keys of fields_to_pull are used to name pulled
+            fields in the updated fw_spec via...
+            Format:
+            {key : path} -> fw.spec[key] = task_doc[path]
+            The path is a full mongo-style path so
+            subdocuments can be referenced using dot
+            notation and array keys can be referenced
+            using the index. Example for pulling host
+            structure from approx_neb collection into
+            fw_spec["host_structure"]:
+            {"host_structure":"host.output.structure"}
     """
 
     required_params = ["db_file", "approx_neb_wf_uuid", "fields_to_pull"]
@@ -164,30 +170,44 @@ class PassFromDb(FiretaskBase):
 @explicit_serialize
 class InsertSites(FiretaskBase):
     """
-    Insert sites into the output structure of a previous calculation
-    for use of the modified structure. Updates fw_spec with
-    modified_structure to pass the modified structure. Also updates the fw_spec
-    with stable_sites_index and structure_path if a approx_neb_wf_uuid is provided.
-    Intended use is for inserting working ions into an empty host lattice.
+    Insert sites into the output structure of a previous
+    calculation for use of the modified structure. Updates
+    fw_spec with modified_structure to pass the modified
+    structure. Also updates the fw_spec with
+    end_points_index and structure_path if a
+    approx_neb_wf_uuid is provided. Intended use is for
+    inserting working ions into an empty host structure.
 
     Args:
-        db_file (str): path to file containing the database credentials
-        host_lattice_task_id (int): task_id for output structure to modify and insert
-            site. Must be provided in the fw_spec or firetask inputs.
-        insert_specie (str): specie of site to insert in structure (e.g. "Li").
-        insert_coords (1x3 array or list of 1x3 arrays): coordinates of site(s)
-            to insert in structure (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]]).
-        stable_sites_index (int): index used in stable_sites field of
-            approx_neb collection for workflow record keeping
-        approx_neb_wf_uuid (str): Unique identifier for approx workflow record
-            keeping.
+        db_file (str): path to file containing the database
+            credentials
+        host_task_id (int): task_id for output structure to
+            modify and insert site. Must be provided in the
+            fw_spec or firetask inputs.
+        insert_specie (str): specie of site to insert in
+            structure (e.g. "Li").
+        insert_coords (1x3 array or list of 1x3 arrays):
+            coordinates of site(s) to insert in structure
+            (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]]).
+        end_points_index (int): index used in end_points
+            field of approx_neb collection for workflow
+            record keeping.
+        approx_neb_wf_uuid (str): Unique identifier for
+            approx workflow record keeping.
     Optional Parameters:
-        coords_are_cartesian (bool): Set to True if you are providing insert_coords
-            in cartesian coordinates. Otherwise assumes fractional coordinates.
+        coords_are_cartesian (bool): Set to True if using
+            cartesian coordinates for insert_coords.
+            Otherwise assumes fractional coordinates.
         """
 
-    required_params = ["db_file", "insert_specie", "insert_coords", "stable_sites_index","approx_neb_wf_uuid"]
-    optional_params = ["host_lattice_task_id","coords_are_cartesian"]
+    required_params = [
+        "db_file",
+        "insert_specie",
+        "insert_coords",
+        "end_points_index",
+        "approx_neb_wf_uuid",
+    ]
+    optional_params = ["host_task_id", "coords_are_cartesian"]
 
     def run_task(self, fw_spec):
         # get the database connection
@@ -197,19 +217,19 @@ class InsertSites(FiretaskBase):
 
         insert_specie = self["insert_specie"]
         insert_coords = self["insert_coords"]
-        stable_sites_index = self["stable_sites_index"]
+        end_points_index = self["end_points_index"]
         # put in list if insert_coords provided as a single coordinate to avoid error
         if isinstance(insert_coords[0], (float, int)):
             insert_coords = [insert_coords]
 
-        # get output structure from host_lattice_task_id
-        t_id = self.get("host_lattice_task_id",fw_spec.get("host_lattice_task_id"))
+        # get output structure from host_task_id
+        t_id = self.get("host_task_id", fw_spec.get("host_task_id"))
         if t_id:
             structure_doc = mmdb.collection.find_one({"task_id": t_id})
         else:
             mmdb.collection = mmdb.db["approx_neb"]
             approx_neb_doc = mmdb.collection.find_one({"wf_uuid": wf_uuid})
-            structure_doc = approx_neb_doc["host_lattice"]["output"]["structure"]
+            structure_doc = approx_neb_doc["host"]["output"]["structure"]
 
         structure = Structure.from_dict(structure_doc["output"]["structure"])
         # removes site properties to avoid error
@@ -229,24 +249,29 @@ class InsertSites(FiretaskBase):
             inserted_site_indexes = [i + 1 for i in inserted_site_indexes]
             inserted_site_indexes.insert(0, 0)
 
-        # store stable site input structures in approx_neb collection
+        # store end point input structures in approx_neb collection
         mmdb.collection = mmdb.db["approx_neb"]
         mmdb.collection.update_one(
             {"wf_uuid": wf_uuid},
             {
                 "$set": {
-                    "stable_sites."+str(stable_sites_index): {
+                    "end_points."
+                    + str(end_points_index): {
                         "input_structure": structure.as_dict(),
                         "inserted_site_indexes": inserted_site_indexes,
-                        "insert_coords":insert_coords,
+                        "insert_coords": insert_coords,
                     }
                 }
-            }
+            },
         )
 
-        stored_data = {"modified_structure": structure.as_dict(),
-                       "inserted_site_indexes": inserted_site_indexes,
-                       "structure_path": "stable_sites." + str(stable_sites_index) + ".input_structure"}
+        stored_data = {
+            "modified_structure": structure.as_dict(),
+            "inserted_site_indexes": inserted_site_indexes,
+            "structure_path": "end_points."
+            + str(end_points_index)
+            + ".input_structure",
+        }
 
         return FWAction(stored_data=stored_data)
 
@@ -254,28 +279,38 @@ class InsertSites(FiretaskBase):
 @explicit_serialize
 class WriteVaspInput(FiretaskBase):
     """
-    Creates VASP input files using implementations of pymatgen's
-    AbstractVaspInputSet. Vasp input parameters can be provided as a VaspInputSet
-    object. The input structure used is set by the provided approx_neb_wf_uuid and
-    structure_path to query the approx_neb collection using pydash.get().
+    Creates VASP input files using implementations of
+    pymatgen's AbstractVaspInputSet. Vasp input parameters
+    can be provided as a VaspInputSet object. The input
+    structure used is set by the provided approx_neb_wf_uuid
+    and structure_path to query the approx_neb collection
+    using pydash.get().
 
     Args:
-        db_file (str): Path to file specifying db credentials for getting the input
-            structure from the approx_neb collection (specified by structure_path).
-        approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
-        vasp_input_set (VaspInputSet class): can use to define VASP input
-            parameters. See pymatgen.io.vasp.sets module for more information.
-            MPRelaxSet() and override_default_vasp_params are used if
+        db_file (str): Path to file specifying db
+            credentials for getting the input structure from
+            the approx_neb collection (specified by
+            structure_path).
+        approx_neb_wf_uuid (str): unique id for approx neb
+            workflow record keeping
+        vasp_input_set (VaspInputSet class): can use to
+            define VASP input parameters.
+            See pymatgen.io.vasp.sets module for more
+            information. MPRelaxSet() and
+            override_default_vasp_params are used if
             vasp_input_set = None.
-        structure_path (str): A full mongo-style path to reference approx_neb
-            collection subdocuments using dot notation and array keys (e.g.
-            "host_lattice.output.structure"). Must be provided in the fw_spec
-            or firetask inputs.
-        override_default_vasp_params (dict): if provided, vasp_input_set is
-            disregarded and the Vasp Input Set is created by passing
-            override_default_vasp_params to MPRelaxSet(). Allows for easy
-            modification of MPRelaxSet(). For example, to set ISIF=2 in the INCAR
-            use: override_default_vasp_params = {"user_incar_settings":{"ISIF":2}}
+        structure_path (str): A full mongo-style path to
+            reference approx_neb collection subdocuments
+            using dot notation and array keys (e.g.
+            "host.output.structure"). Must be provided in
+            the fw_spec or firetask inputs.
+        override_default_vasp_params (dict): if provided,
+            vasp_input_set is disregarded and the Vasp Input
+            Set is created by passing
+            override_default_vasp_params to MPRelaxSet().
+            Allows for easy modification of MPRelaxSet().
+            For example, to set ISIF=2 in the INCAR use:
+            {"user_incar_settings":{"ISIF":2}}
     """
 
     required_params = ["db_file", "approx_neb_wf_uuid", "vasp_input_set"]
@@ -291,7 +326,7 @@ class WriteVaspInput(FiretaskBase):
         # get structure from approx_neb collection
         try:
             wf_uuid = self["approx_neb_wf_uuid"]
-            structure_path = self.get("structure_path",fw_spec.get("structure_path"))
+            structure_path = self.get("structure_path", fw_spec.get("structure_path"))
             approx_neb_doc = mmdb.collection.find_one({"wf_uuid": wf_uuid})
             structure = Structure.from_dict(get(approx_neb_doc, structure_path))
 
@@ -301,7 +336,9 @@ class WriteVaspInput(FiretaskBase):
         # get vasp input set and write files
         override_default_vasp_params = self.get("override_default_vasp_params") or {}
         if self["vasp_input_set"] == None or override_default_vasp_params != {}:
-            vis = MPRelaxSet(structure, **override_default_vasp_params, sort_structure = False)
+            vis = MPRelaxSet(
+                structure, **override_default_vasp_params, sort_structure=False
+            )
             # note sort_structure = False required to retain original site order of structure
         elif hasattr(self["vasp_input_set"], "write_input"):
             vis = self["vasp_input_set"]
@@ -311,71 +348,79 @@ class WriteVaspInput(FiretaskBase):
 
 
 @explicit_serialize
-class StableSiteToDb(FiretaskBase):
+class EndPointToDb(FiretaskBase):
     """
-    Store information from stable site structure optimization in approx_neb
-    collection database entry from a the task doc specified by stable_site_task_id.
-    Also updates the tasks collection for approx neb workflow record keeping.
+    Store information from VASP calculation of end point
+    structure in approx_neb collection from the task doc
+    specified by end_point_task_id. Also updates the tasks
+    collection for approx neb workflow record keeping.
 
     Args:
-        db_file (str): path to file containing the database credentials.
-        approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
-        stable_sites_index (int): index used in stable_sites field of
-            approx_neb collection for workflow record keeping.
+        db_file (str): path to file containing the database
+            credentials.
+        approx_neb_wf_uuid (str): unique id for approx neb
+            workflow record keeping
+        end_points_index (int): index used in end_points
+            field of approx_neb collection for workflow
+            record keeping.
     Optional Params:
-        stable_site_task_id (int): task_id for structure optimization of stable
-            site structure (empty host lattice with one working ion inserted).
-            stable_site_task_id must be provided in the fw_spec or firetask inputs.
+        end_point_task_id (int): task_id for VASP
+            calculation of end point structure (empty host
+            with one working ion inserted).
+            end_point_task_id must be provided in the
+            fw_spec or firetask inputs.
     """
 
-    required_params = ["db_file", "approx_neb_wf_uuid", "stable_sites_index"]
-    optional_params = ["stable_site_task_id"]
+    required_params = ["db_file", "approx_neb_wf_uuid", "end_points_index"]
+    optional_params = ["end_point_task_id"]
 
     def run_task(self, fw_spec):
         # get the database connection
         db_file = env_chk(self["db_file"], fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         wf_uuid = self["approx_neb_wf_uuid"]
-        index = self["stable_sites_index"]
-        t_id = self.get("stable_site_task_id",fw_spec.get("stable_sites_" + str(index) + "_task_id"))
+        index = self["end_points_index"]
+        t_id = self.get(
+            "end_point_task_id", fw_spec.get("end_points_" + str(index) + "_task_id")
+        )
 
         # pull task doc to store parts in approx_neb_collection
         task_doc = mmdb.collection.find_one(
-            {"task_id": t_id, "approx_neb.calc_type": "stable_site"}
+            {"task_id": t_id, "approx_neb.calc_type": "end_point"}
         )
         if task_doc == None:
             raise ValueError(
-                "Unable to find approx neb stable site with task_id: {}".format(t_id)
+                "Unable to find approx neb end point with task_id: {}".format(t_id)
             )
 
         # store info in tasks collection for record keeping
         mmdb.collection.update_one(
-            {"task_id": t_id, "approx_neb.calc_type": "stable_site"},
+            {"task_id": t_id, "approx_neb.calc_type": "end_points"},
             {
                 "$push": {
                     "approx_neb.wf_uuids": wf_uuid,
-                    "approx_neb.stable_sites_indexes": index,
+                    "approx_neb.end_points_indexes": index,
                 }
             },
         )
 
         # Store info in approx_neb collection for record keeping
         mmdb.collection = mmdb.db["approx_neb"]
-        path = "stable_sites." + str(index) + "."
-        stable_site_output = {
+        path = "end_points." + str(index) + "."
+        end_point_output = {
             path + "dir_name": task_doc["dir_name"],
             path + "formula_pretty": task_doc["formula_pretty"],
             path + "output": task_doc["output"],
             path + "task_id": task_doc["task_id"],
         }
 
-        mmdb.collection.update_one({"wf_uuid": wf_uuid}, {"$set": stable_site_output})
+        mmdb.collection.update_one({"wf_uuid": wf_uuid}, {"$set": end_point_output})
 
         return FWAction(
             stored_data={
                 "wf_uuid": wf_uuid,
-                "stable_sites_index": index,
-                "stable_site_output": stable_site_output,
+                "end_points_index": index,
+                "end_point_output": end_point_output,
             }
         )
 
@@ -383,42 +428,46 @@ class StableSiteToDb(FiretaskBase):
 @explicit_serialize
 class PathfinderToDb(FiretaskBase):
     """
-    Applies NEBPathFinder (from pymatgen.analysis.path_finder) using the
-    host lattice (chgcar from the task_id stored) and output structures stored
-    in the stable_sites field of the approx_neb collection. Resulting
-    structures or images (interpolated between stable_site structures or end
-    point structures) are stored in the "images" field of the approx_neb
-    collection for future use. The provided approx_neb_wf_uuid specifies the
-    set of inputs to use.
+    Applies NEBPathFinder (pymatgen.analysis.path_finder)
+    using the host (CHGCAR from the task_id stored) and
+    output structures stored in the end_points field of the
+    approx_neb collection. Resulting image structures
+    (interpolated between end point structures) are stored
+    in the "images" field of the approx_neb collection for
+    future use. The provided approx_neb_wf_uuid specifies
+    the set of inputs to use.
 
     Args:
-        db_file (str): path to file containing the database credentials.
-        approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
-        n_images: n_images (int): number of images interpolated between end point structures
+        db_file (str): path to file containing the database
+            credentials.
+        approx_neb_wf_uuid (str): unique id for approx neb
+            workflow record keeping
+        n_images: n_images (int): number of images
+            interpolated between end point structures
     Optional Parameters:
-        stable_sites_combo (str): string must have format of "0+1",
-            "0+2", etc. to specify which combination of stable_sites to use for
-            path interpolation for cases with multiple stable sites
+        end_points_combo (str): string must have format of
+            "0+1", "0+2", etc. to specify which combination
+            of end_points to use for path interpolation.
     """
 
-    required_params = ["db_file", "n_images", "approx_neb_wf_uuid","stable_sites_combo"]
+    required_params = ["db_file", "n_images", "approx_neb_wf_uuid", "end_points_combo"]
     optional_params = []
 
     def run_task(self, fw_spec):
         n_images = self["n_images"]
-        stable_sites_combo = self["stable_sites_combo"]
-        # checks if format of stable_sites_combo is correct and if so
-        # get two desired stable_sites indexes for end point structures
+        end_points_combo = self["end_points_combo"]
+        # checks if format of end_points_combo is correct and if so
+        # get two desired end_points indexes for end point structures
         try:
-            combo = stable_sites_combo.split("+")
+            combo = end_points_combo.split("+")
             if len(combo) == 2:
                 c = [int(combo[0]), int(combo[1])]
             else:
-                raise ValueError(
-                    "NEBPathfinder requires exactly two stable sites"
-                )
+                raise ValueError("NEBPathfinder requires exactly two end points")
         except:
-            raise ValueError("{} stable_sites_combo input is incorrect".format(str(stable_sites_combo)))
+            raise ValueError(
+                "{} end_points_combo input is incorrect".format(str(end_points_combo))
+            )
 
         # get the database connection
         db_file = env_chk(self["db_file"], fw_spec)
@@ -426,27 +475,26 @@ class PathfinderToDb(FiretaskBase):
         mmdb.collection = mmdb.db["approx_neb"]
         wf_uuid = self["approx_neb_wf_uuid"]
 
-        # get stable_sites and task_id of host lattice from approx_neb collection
+        # get end_points and task_id of host from approx_neb collection
         approx_neb_doc = mmdb.collection.find_one(
-            {"wf_uuid": wf_uuid},
-            {"stable_sites": 1, "host_lattice.task_id": 1, "_id": 0},
+            {"wf_uuid": wf_uuid}, {"end_points": 1, "host.task_id": 1, "_id": 0}
         )
-        stable_sites = approx_neb_doc["stable_sites"]
-        task_id = approx_neb_doc["host_lattice"]["task_id"]
+        end_points = approx_neb_doc["end_points"]
+        task_id = approx_neb_doc["host"]["task_id"]
 
-        # get potential gradient, v, from host lattice chgcar
+        # get potential gradient, v, from host chgcar
         mmdb.collection = mmdb.db["tasks"]
-        host_lattice_chgcar = mmdb.get_chgcar(task_id)
-        v_chgcar = ChgcarPotential(host_lattice_chgcar)
-        host_lattice_v = v_chgcar.get_v()
+        host_chgcar = mmdb.get_chgcar(task_id)
+        v_chgcar = ChgcarPotential(host_chgcar)
+        host_v = v_chgcar.get_v()
 
-        # get start and end point structures from stable_sites
-        start_struct = Structure.from_dict(stable_sites[c[0]]["output"]["structure"])
-        end_struct = Structure.from_dict(stable_sites[c[1]]["output"]["structure"])
+        # get start and end point structures from end_points
+        start_struct = Structure.from_dict(end_points[c[0]]["output"]["structure"])
+        end_struct = Structure.from_dict(end_points[c[1]]["output"]["structure"])
 
         # checks if inserted site indexes match
-        inserted_site_indexes = stable_sites[c[0]]["inserted_site_indexes"]
-        if inserted_site_indexes != stable_sites[c[1]]["inserted_site_indexes"]:
+        inserted_site_indexes = end_points[c[0]]["inserted_site_indexes"]
+        if inserted_site_indexes != end_points[c[1]]["inserted_site_indexes"]:
             raise ValueError(
                 "Inserted site indexes of end point structures must match for NEBPathfinder"
             )
@@ -457,7 +505,7 @@ class PathfinderToDb(FiretaskBase):
             start_struct,
             end_struct,
             relax_sites=inserted_site_indexes,
-            v=host_lattice_v,
+            v=host_v,
             n_images=n_images - 1,
         )
         # note NEBPathfinder currently returns n_images+1 images (rather than n_images)
@@ -468,8 +516,8 @@ class PathfinderToDb(FiretaskBase):
 
         # stores images generated by NEBPathFinder in approx_neb collection
         # pathfinder field which is a nested dictionary using
-        # stable_sites_combo as a key.
-        path = "pathfinder." + stable_sites_combo
+        # end_points_combo as a key.
+        path = "pathfinder." + end_points_combo
         mmdb.collection = mmdb.db["approx_neb"]
         mmdb.collection.update_one(
             {"wf_uuid": wf_uuid}, {"$set": {path: pathfinder_output}}
@@ -478,7 +526,7 @@ class PathfinderToDb(FiretaskBase):
         return FWAction(
             stored_data={
                 "wf_uuid": wf_uuid,
-                "stable_sites_combo": c,
+                "end_points_combo": c,
                 "pathfinder": pathfinder_output,
             }
         )
@@ -487,28 +535,33 @@ class PathfinderToDb(FiretaskBase):
 @explicit_serialize
 class AddSelectiveDynamics(FiretaskBase):
     """
-    #ToDo: update description
-    Applies specified selective dynamics schemes (see functions specified in this
-    Firetask for descriptions) to image structures generated (and stored in
-    approx_neb collection) by PathfinderToDb Firetask. Stores image structures in
-    the approx_neb collection for as input structures for future relaxations.
+    Applies specified selective dynamics scheme (see
+    functions defined in Firetask) to interpolated images
+    generated (and stored in approx_neb collection) by
+    PathfinderToDb Firetask. Stores in the approx_neb
+    collection (as input structures for future calculations).
 
     Args:
-        db_file (str): path to file containing the database credentials
-        approx_neb_wf_uuid (str): Unique identifier for approx workflow record
-            keeping. Used to specify the approx_neb collection doc from which
-            structure are pulled from the "pathfinder.images" field, modified, and
-            then stored in the "images" field.
-            images field.
-        pathfinder_key (str): due to cases with multiple paths, the approx_neb
-            pathfinder field is a nested dictionary. The user must specify a key
-            corresponding the pathfinder field derived from the desired
-            combination of stable sites. pathfinder_key should be a string
-            of format "0+1", "0+2", etc. matching stable_sites_combo input
-            of PathfinderToDb Firetask.
-        mobile_specie (str): specie of site of interest such as the working ion
-            (e.g. "Li" if the working ion of interest is a Li). Provided  to
-            perform a built in check on the structures pulled the approx_neb doc.
+        db_file (str): path to file containing the database
+            credentials
+        approx_neb_wf_uuid (str): Unique identifier for
+            approx workflow record keeping. Used to specify
+            the approx_neb collection doc to get structures
+            (from the "pathfinder" field), modify, and then
+            store (in the "images" field).
+        pathfinder_key (str): The "pathfinder" field of the
+            approx_neb collection doc is a nested dictionary
+            (to handle cases with multiple paths). This
+            input specifies the key for this nested dict
+            which is derived from the desired combination of
+            end points. pathfinder_key should be a string
+            of format "0+1", "0+2", etc. matching
+            end_points_combo of the PathfinderToDb Firetask.
+        mobile_specie (str): specie of site of interest such
+            as the working ion (e.g. "Li" if the working ion
+            of interest is lithium). Used to perform a check
+            on the structures pulled from the approx_neb
+            collection.
         selective_dynamics_scheme (str): "fix_two_atom"
     """
 
@@ -541,7 +594,7 @@ class AddSelectiveDynamics(FiretaskBase):
         # apply selective dynamics to get images (list of pymatgen structures)
         fixed_specie = self["mobile_specie"]
         scheme = self["selective_dynamics_scheme"]
-        images = self.get_images_list(structure_docs,scheme,fixed_index,fixed_specie)
+        images = self.get_images_list(structure_docs, scheme, fixed_index, fixed_specie)
 
         # assemble images output to be stored in approx_neb collection
         images_output = []
@@ -561,17 +614,18 @@ class AddSelectiveDynamics(FiretaskBase):
         )
 
         return FWAction(
-            stored_data={"wf_uuid": wf_uuid, "images_output": images_output},
+            stored_data={"wf_uuid": wf_uuid, "images_output": images_output}
         )
 
     def get_images_list(self, structure_docs, scheme, fixed_index, fixed_specie):
         """
-        Returns a list of structure objects with selective dynamics applied
-        according ot the specified scheme.
+        Returns a list of structure objects with selective
+        dynamics applied according ot the specified scheme.
 
         Args:
-            structure_docs(list of structure dictionaries):
-            scheme(str): "fix_two_atom" or
+            structure_docs (list): list of structure
+                dictionaries
+            scheme (str): "fix_two_atom"
         Returns:
              list of structure objects
         """
@@ -586,27 +640,31 @@ class AddSelectiveDynamics(FiretaskBase):
                     structure, fixed_index, fixed_specie
                 )
                 images.append(image)
+        # ToDo: add radius based selective dynamics scheme
         else:
             raise ValueError(
                 "selective_dynamics_scheme does match any supported schemes, check input value"
             )
-            # ToDo: add radius based selective dynamics scheme
         return images
 
     def add_fix_two_atom_selective_dynamics(self, structure, fixed_index, fixed_specie):
         """
-        Returns structure with selective dynamics assigned to fix the
-        position of two sites.
-        Two sites will be fixed: 1) the site specified by fixed_index and
-        2) the site positioned furthest from the specified fixed_index site.
+        Returns structure with selective dynamics assigned
+        to fix the position of two sites.
+        Two sites will be fixed:
+        1) the site specified by fixed_index and
+        2) the site positioned furthest from the specified
+           fixed_index site.
 
         Args:
-            structure (Structure): Input structure (e.g. host lattice with
-            one working ion intercalated)
-            fixed_index (int): Index of site in structure whose position
-            will be fixed (e.g. the working ion site)
-            fixed_specie (str or Element): Specie of site in structure
-            whose position will be fixed (e.g. the working ion site)
+            structure (Structure): Input structure (e.g.
+                relaxed host with one working ion)
+            fixed_index (int): Index of site in structure
+                whose position will be fixed (e.g. the
+                working ion site)
+            fixed_specie (str or Element): Specie of site
+                in structure whose position will be fixed
+                (e.g. the working ion site)
         Returns:
             Structure
         """
@@ -647,21 +705,24 @@ class AddSelectiveDynamics(FiretaskBase):
 @explicit_serialize
 class ImageToDb(FiretaskBase):
     """
-    ToDo: Update description
-    Store information from stable site structure optimization in approx_neb
-    collection database entry from a the task doc specified by stable_site_task_id.
-    Also updates the tasks collection for approx neb workflow record keeping.
+    Store information from VASP calculation of image
+    structure in approx_neb collection from the task doc
+    specified by image_task_id. Also updates the tasks
+    collection for approx neb workflow record keeping.
 
     Args:
-        db_file (str): path to file containing the database credentials.
-        approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
-        image_task_id (int): task_id for structure optimization of image structure
-            (mobile specie/working ion in various positions moving in host lattice
-            structure).
-            image_task_id must be provided in the fw_spec or firetask inputs.
+        db_file (str): path to file containing the database
+            credentials.
+        approx_neb_wf_uuid (str): unique id for approx neb
+            workflow record keeping
+        image_task_id (int): task_id for VASP calculation
+            of image structure (mobile specie/
+            working ion in various positions in host).
+            image_task_id must be provided in the fw_spec
+            or firetask inputs.
 
-        Note task_doc["approx_neb.image_index"] is required for task doc specified
-        by image_task_id.
+        Note "approx_neb.image_index" field is required in
+        task doc specified by image_task_id.
     """
 
     required_params = ["db_file", "approx_neb_wf_uuid"]
@@ -672,7 +733,7 @@ class ImageToDb(FiretaskBase):
         db_file = env_chk(self["db_file"], fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         wf_uuid = self["approx_neb_wf_uuid"]
-        t_id = self.get("image_task_id",fw_spec.get("image_task_id"))
+        t_id = self.get("image_task_id", fw_spec.get("image_task_id"))
 
         # Store info in tasks collection for record keeping
         mmdb.collection.update_one(

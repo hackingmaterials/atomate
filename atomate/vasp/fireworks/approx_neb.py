@@ -5,11 +5,11 @@ from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
 from atomate.vasp.firetasks.parse_outputs import VaspToDb
 from atomate.vasp.firetasks.approx_neb_tasks import (
-    HostLatticeToDb,
+    HostToDb,
     PassFromDb,
     InsertSites,
     WriteVaspInput,
-    StableSiteToDb,
+    EndPointToDb,
     PathfinderToDb,
     AddSelectiveDynamics,
     ImageToDb,
@@ -17,12 +17,12 @@ from atomate.vasp.firetasks.approx_neb_tasks import (
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
 
-class HostLatticeFW(Firework):
+class HostFW(Firework):
     def __init__(
         self,
         structure,
         approx_neb_wf_uuid,
-        name="host lattice relaxation",
+        name="host",
         db_file=DB_FILE,
         vasp_input_set=None,
         vasp_cmd=VASP_CMD,
@@ -34,14 +34,14 @@ class HostLatticeFW(Firework):
     ):
         """
         Launches a structure optimization calculation for a provided empty host
-        lattice and stores appropriate fields in the task doc for approx_neb
+        structure and stores appropriate fields in the task doc for approx_neb
         workflow record keeping. Stores initializes approx_neb collection database
-        entry and stores relevant host lattice calcuation outputs.
+        entry and stores relevant host relaxation calcuation outputs.
 
         Adapted from OptimizeFW.
 
         Args:
-            structure (Structure): input structure of empty host lattice
+            structure (Structure): input structure of empty host
             approx_neb_wf_uuid (str): Unique identifier for approx workflow record
                 keeping.
             name (str): Combined with structure formula to label the firework
@@ -61,11 +61,11 @@ class HostLatticeFW(Firework):
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
         fw_name = "{} {}".format(structure.composition.reduced_formula, name)
-        fw_spec = {"tags": ["approx_neb", approx_neb_wf_uuid, "host_lattice"]}
+        fw_spec = {"tags": ["approx_neb", approx_neb_wf_uuid, "host"]}
         task_doc_additional_fields = {
             "task_label": name,
             "approx_neb": {
-                "calc_type": "host_lattice",
+                "calc_type": "host",
                 "wf_uuids": [],
                 "_source_wf_uuid": approx_neb_wf_uuid,
             },
@@ -86,11 +86,16 @@ class HostLatticeFW(Firework):
                 additional_fields=task_doc_additional_fields,
                 parse_chgcar=True,
                 parse_aeccar=True,
-                task_fields_to_push={"host_lattice_task_id": "task_id"},
+                task_fields_to_push={"host_task_id": "task_id"},
             )
         )
         t.append(
-            HostLatticeToDb(db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid, additional_fields=additional_fields, tags=tags)
+            HostToDb(
+                db_file=db_file,
+                approx_neb_wf_uuid=approx_neb_wf_uuid,
+                additional_fields=additional_fields,
+                tags=tags,
+            )
         )
         super().__init__(tasks=t, spec=fw_spec, name=fw_name, **kwargs)
 
@@ -101,7 +106,6 @@ class ApproxNEBLaunchFW(Firework):
         calc_type,
         approx_neb_wf_uuid,
         structure_path=None,
-        name="relaxation",
         db_file=DB_FILE,
         vasp_input_set=None,
         vasp_cmd=VASP_CMD,
@@ -122,7 +126,7 @@ class ApproxNEBLaunchFW(Firework):
         Adapted from OptimizeFW.
 
         Args:
-            calc_type (str): Set to "stable_site" or "image"
+            calc_type (str): Set to "end_point" or "image"
             approx_neb_wf_uuid (str): Unique identifier for approx workflow record
                 keeping.
             structure_path (str): A full mongo-style path to reference approx_neb
@@ -149,23 +153,23 @@ class ApproxNEBLaunchFW(Firework):
 
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
-        fw_name = calc_type + " " + name
+        fw_name = calc_type
         fw_spec = {"tags": ["approx_neb", approx_neb_wf_uuid, calc_type]}
         handler_group = handler_group or {}
         additional_fields = {
             "task_label": fw_name,
-            "approx_neb": {"wf_uuids": [], "_source_wf_uuid": approx_neb_wf_uuid},
+            "approx_neb": {"wf_uuids": [],
+                           "_source_wf_uuid": approx_neb_wf_uuid,
+                           "calc_type": calc_type},
         }
-        if isinstance(add_additional_fields,(dict)):
-            for key,value in add_additional_fields.items():
+        if isinstance(add_additional_fields, (dict)):
+            for key, value in add_additional_fields.items():
                 additional_fields[key] = value
-        if isinstance(add_tags,(list,dict)):
+        if isinstance(add_tags, (list, dict)):
             additional_fields["tags"] = add_tags
-        if calc_type == "stable_site":
-            additional_fields["approx_neb"]["calc_type"] = "stable_site"
-            additional_fields["approx_neb"]["stable_sites_indexes"]: []
+        if calc_type == "end_point":
+            additional_fields["approx_neb"]["end_points_indexes"]: []
         elif calc_type == "image":
-            additional_fields["approx_neb"]["calc_type"] = "image"
             image_index = int(structure_path.split(".")[-2])
             additional_fields["approx_neb"]["image_index"] = image_index
             images_key = structure_path.split(".")[-3]
@@ -182,19 +186,23 @@ class ApproxNEBLaunchFW(Firework):
                 override_default_vasp_params=override_default_vasp_params,
             )
         )
-        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, job_type=job_type, handler_group=handler_group))
-        t.append(PassCalcLocs(name=name))
+        t.append(
+            RunVaspCustodian(
+                vasp_cmd=vasp_cmd, job_type=job_type, handler_group=handler_group
+            )
+        )
+        t.append(PassCalcLocs(name=calc_type))
 
-        if calc_type == "stable_site":
+        if calc_type == "end_point":
             t.append(
                 VaspToDb(
                     db_file=db_file,
                     additional_fields=additional_fields,
-                    task_fields_to_push={"stable_site_task_id": "task_id"},
+                    task_fields_to_push={"end_point_task_id": "task_id"},
                 )
             )
             t.append(
-                StableSiteToDb(db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid)
+                EndPointToDb(db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid)
             )
         elif calc_type == "image":
             t.append(
@@ -206,17 +214,17 @@ class ApproxNEBLaunchFW(Firework):
             )
             t.append(ImageToDb(db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid))
 
-        super().__init__(tasks=t, spec = fw_spec, name=fw_name, parents=parents, **kwargs)
+        super().__init__(tasks=t, spec=fw_spec, name=fw_name, parents=parents, **kwargs)
 
 
-class StableSiteFW(Firework):
+class EndPointFW(Firework):
     def __init__(
         self,
         approx_neb_wf_uuid,
         insert_specie,
         insert_coords,
-        stable_sites_index,
-        name="stable site",
+        end_points_index,
+        name="end point",
         db_file=DB_FILE,
         vasp_input_set=None,
         vasp_cmd=VASP_CMD,
@@ -227,14 +235,14 @@ class StableSiteFW(Firework):
     ):
         """
         ToDo: Update description
-        Updates the fw_spec with the empty host lattice task_id from the provided
-        approx_neb_wf_uuid. Pulls the empty host lattice structure from the tasks
+        Updates the fw_spec with the empty host task_id from the provided
+        approx_neb_wf_uuid. Pulls the empty host structure from the tasks
         collection and inserts the site(s) designated by insert_specie and
-        insert_coords. Stores the modified structure in the stable_sites field of
+        insert_coords. Stores the modified structure in the end_points field of
         the approx_neb collection.
         Launches a structure optimization calculation from a structure stored in
         in the approx_neb collection. Structure input for calculation is specified
-        by the provided approx_neb_wf_uuid and stable_sites_index to pull the
+        by the provided approx_neb_wf_uuid and end_points_index to pull the
         structure from the approx_neb collection using pydash.get().
 
         Adapted from OptimizeFW.
@@ -245,9 +253,9 @@ class StableSiteFW(Firework):
             insert_specie (str): specie of site to insert in structure (e.g. "Li")
             insert_coords (1x3 array or list of 1x3 arrays): coordinates of site(s)
                 to insert in structure (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]])
-            stable_sites_index (int): index used in stable_sites field of
+            end_points_index (int): index used in end_points field of
                 approx_neb collection for workflow record keeping
-            name (str): Combined with insert_specie and stable_sites_index to label the firework
+            name (str): Combined with insert_specie and end_points_index to label the firework
             vasp_input_set (VaspInputSet): input set to use. Defaults to
                 MPRelaxSet() if None.
             override_default_vasp_params (dict): If this is not None, these params
@@ -261,8 +269,8 @@ class StableSiteFW(Firework):
             parents ([Firework]): Parents of this particular Firework.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = name + ": insert " + insert_specie + " " + str(stable_sites_index)
-        fw_spec = {"tags": ["approx_neb", approx_neb_wf_uuid, "stable_site"]}
+        fw_name = name + ": insert " + insert_specie + " " + str(end_points_index)
+        fw_spec = {"tags": ["approx_neb", approx_neb_wf_uuid, "end_point"]}
 
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
@@ -271,28 +279,28 @@ class StableSiteFW(Firework):
             "approx_neb": {
                 "wf_uuids": [],
                 "_source_wf_uuid": approx_neb_wf_uuid,
-                "calc_type": "stable_site",
-                "stable_sites_indexes": []
-            }
+                "calc_type": "end_point",
+                "end_points_indexes": [],
+            },
         }
 
         t = []
-        # Add host_lattice_task_id (for empty host lattice) to fw_spec
-        # host_lattice_task_id is required for InsertSites firetask
+        # Add host_task_id (for empty host) to fw_spec
+        # host_task_id is required for InsertSites firetask
         t.append(
             PassFromDb(
                 db_file=db_file,
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
-                fields_to_pull={"host_lattice_task_id": "host_lattice.task_id"},
+                fields_to_pull={"host_task_id": "host.task_id"},
             )
         )
-        # Insert sites into empty host lattice (specified by host_lattice_task_id)
+        # Insert sites into empty host (specified by host_task_id)
         t.append(
             InsertSites(
                 db_file=db_file,
                 insert_specie=insert_specie,
                 insert_coords=insert_coords,
-                stable_sites_index=stable_sites_index,
+                end_points_index=end_points_index,
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
             )
         )
@@ -302,7 +310,9 @@ class StableSiteFW(Firework):
                 db_file=db_file,
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
                 vasp_input_set=vasp_input_set,
-                structure_path="stable_sites." + str(stable_sites_index) + ".input_structure",
+                structure_path="end_points."
+                + str(end_points_index)
+                + ".input_structure",
                 override_default_vasp_params=override_default_vasp_params,
             )
         )
@@ -312,12 +322,18 @@ class StableSiteFW(Firework):
             VaspToDb(
                 db_file=db_file,
                 additional_fields=additional_fields,
-                task_fields_to_push={"stable_sites_" + str(stable_sites_index) + "_task_id": "task_id"},
+                task_fields_to_push={
+                    "end_points_" + str(end_points_index) + "_task_id": "task_id"
+                },
             )
         )
         # store desired outputs from tasks doc in approx_neb collection
         t.append(
-            StableSiteToDb(stable_sites_index=stable_sites_index, db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid)
+            EndPointToDb(
+                end_points_index=end_points_index,
+                db_file=db_file,
+                approx_neb_wf_uuid=approx_neb_wf_uuid,
+            )
         )
 
-        super().__init__(tasks=t, spec = fw_spec, name=fw_name, parents=parents, **kwargs)
+        super().__init__(tasks=t, spec=fw_spec, name=fw_name, parents=parents, **kwargs)
