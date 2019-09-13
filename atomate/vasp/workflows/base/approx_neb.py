@@ -18,7 +18,7 @@ from custodian.vasp.handlers import (
 )
 from uuid import uuid4
 
-from atomate.vasp.fireworks.approx_neb import HostFW, ApproxNEBLaunchFW, EndPointFW
+from atomate.vasp.fireworks.approx_neb import HostFW, ImageFW, EndPointFW
 from atomate.vasp.fireworks.approx_neb_dynamic import EvaluatePathFW
 
 # TODO: Write approx_neb_wf_description
@@ -143,3 +143,4 @@ def approx_neb_wf(
     wf.name = name
 
     return wf
+

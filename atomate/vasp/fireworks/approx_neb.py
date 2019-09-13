@@ -22,7 +22,6 @@ class HostFW(Firework):
         self,
         structure,
         approx_neb_wf_uuid,
-        name="host",
         db_file=DB_FILE,
         vasp_input_set=None,
         vasp_cmd=VASP_CMD,
@@ -60,14 +59,14 @@ class HostFW(Firework):
         """
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
-        fw_name = "{} {}".format(structure.composition.reduced_formula, name)
-        fw_spec = {"tags": ["approx_neb", approx_neb_wf_uuid, "host"]}
+        fw_name = "{} {}".format(structure.composition.reduced_formula, "host")
+        fw_spec = {"tags": ["approx_neb", approx_neb_wf_uuid, "host", "relaxation"]}
         task_doc_additional_fields = {
-            "task_label": name,
             "approx_neb": {
-                "calc_type": "host",
                 "wf_uuids": [],
                 "_source_wf_uuid": approx_neb_wf_uuid,
+                "calc_type": "host",
+                "task_label": "relaxation"
             },
         }
 
@@ -79,7 +78,7 @@ class HostFW(Firework):
         t = []
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, job_type=job_type))
-        t.append(PassCalcLocs(name=name))
+        t.append(PassCalcLocs(name="host"))
         t.append(
             VaspToDb(
                 db_file=db_file,
@@ -100,7 +99,7 @@ class HostFW(Firework):
         super().__init__(tasks=t, spec=fw_spec, name=fw_name, **kwargs)
 
 
-class ApproxNEBLaunchFW(Firework):
+class ImageFW(Firework):
     def __init__(
         self,
         calc_type,
@@ -126,11 +125,12 @@ class ApproxNEBLaunchFW(Firework):
         Adapted from OptimizeFW.
 
         Args:
-            calc_type (str): Set to "end_point" or "image"
+            calc_type (str): Set to "image"
             approx_neb_wf_uuid (str): Unique identifier for approx workflow record
                 keeping.
             structure_path (str): A full mongo-style path to reference approx_neb
                 collection subdocuments using dot notation and array keys.
+                e.g. "images.0+1.2.input_structure"
                 By default structure_path = None which assumes
                 fw_spec["structure_path"] is set by a parent firework.
             name (str): Combined with calc_type to label the firework
@@ -150,33 +150,33 @@ class ApproxNEBLaunchFW(Firework):
             parents ([Firework]): Parents of this particular Firework.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
+        # initiates the information stored in the tasks collection to aid record keeping
+        image_index = int(structure_path.split(".")[-2])
+        images_key = structure_path.split(".")[-3]
+        fw_name = "image " + images_key + ": " + str(image_index)
+        fw_spec = {"tags": ["approx_neb", approx_neb_wf_uuid, "image","relaxation"]}
+        handler_group = handler_group or {}
 
         # set additional_fields to be added to task doc by VaspToDb
-        # initiates the information stored in the tasks collection to aid record keeping
-        fw_name = calc_type
-        fw_spec = {"tags": ["approx_neb", approx_neb_wf_uuid, calc_type]}
-        handler_group = handler_group or {}
         additional_fields = {
-            "task_label": fw_name,
             "approx_neb": {"wf_uuids": [],
                            "_source_wf_uuid": approx_neb_wf_uuid,
-                           "calc_type": calc_type},
+                           "_wf_input_host_structure": None,
+                           "_wf_input_insert_coords": [],
+                           "calc_type": "image",
+                           "task_label": "relaxation",
+                           "images_key": images_key,
+                           "image_index": image_index
+                           },
         }
         if isinstance(add_additional_fields, (dict)):
             for key, value in add_additional_fields.items():
                 additional_fields[key] = value
         if isinstance(add_tags, (list, dict)):
             additional_fields["tags"] = add_tags
-        if calc_type == "end_point":
-            additional_fields["approx_neb"]["end_points_indexes"]: []
-        elif calc_type == "image":
-            image_index = int(structure_path.split(".")[-2])
-            additional_fields["approx_neb"]["image_index"] = image_index
-            images_key = structure_path.split(".")[-3]
-            additional_fields["approx_neb"]["images_key"] = images_key
-            fw_name = fw_name + " " + images_key + ": " + str(image_index)
 
         t = []
+        # write vasp inputs, run vasp, parse vasp outputs
         t.append(
             WriteVaspInput(
                 db_file=db_file,
@@ -191,28 +191,16 @@ class ApproxNEBLaunchFW(Firework):
                 vasp_cmd=vasp_cmd, job_type=job_type, handler_group=handler_group
             )
         )
-        t.append(PassCalcLocs(name=calc_type))
-
-        if calc_type == "end_point":
-            t.append(
-                VaspToDb(
-                    db_file=db_file,
-                    additional_fields=additional_fields,
-                    task_fields_to_push={"end_point_task_id": "task_id"},
-                )
+        t.append(PassCalcLocs(name="image"))
+        t.append(
+            VaspToDb(
+                db_file=db_file,
+                additional_fields=additional_fields,
+                task_fields_to_push={"image_task_id": "task_id"},
             )
-            t.append(
-                EndPointToDb(db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid)
-            )
-        elif calc_type == "image":
-            t.append(
-                VaspToDb(
-                    db_file=db_file,
-                    additional_fields=additional_fields,
-                    task_fields_to_push={"image_task_id": "task_id"},
-                )
-            )
-            t.append(ImageToDb(db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid))
+        )
+        # store desired outputs from tasks doc in approx_neb collection
+        t.append(ImageToDb(db_file=db_file, approx_neb_wf_uuid=approx_neb_wf_uuid))
 
         super().__init__(tasks=t, spec=fw_spec, name=fw_name, parents=parents, **kwargs)
 
@@ -224,7 +212,6 @@ class EndPointFW(Firework):
         insert_specie,
         insert_coords,
         end_points_index,
-        name="end point",
         db_file=DB_FILE,
         vasp_input_set=None,
         vasp_cmd=VASP_CMD,
@@ -269,17 +256,19 @@ class EndPointFW(Firework):
             parents ([Firework]): Parents of this particular Firework.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = name + ": insert " + insert_specie + " " + str(end_points_index)
-        fw_spec = {"tags": ["approx_neb", approx_neb_wf_uuid, "end_point"]}
+        fw_name = "end point: insert " + insert_specie + " " + str(end_points_index)
+        fw_spec = {"tags": ["approx_neb", approx_neb_wf_uuid, "end_point", "relaxation"]}
 
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
         additional_fields = {
-            "task_label": fw_name,
             "approx_neb": {
                 "wf_uuids": [],
                 "_source_wf_uuid": approx_neb_wf_uuid,
+                "_wf_input_host_structure": None,
+                "_wf_input_insert_coords": [],
                 "calc_type": "end_point",
+                "task_label": "relaxation",
                 "end_points_indexes": [],
             },
         }
@@ -310,14 +299,12 @@ class EndPointFW(Firework):
                 db_file=db_file,
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
                 vasp_input_set=vasp_input_set,
-                structure_path="end_points."
-                + str(end_points_index)
-                + ".input_structure",
+                structure_path="end_points."+ str(end_points_index)+ ".input_structure",
                 override_default_vasp_params=override_default_vasp_params,
             )
         )
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, job_type=job_type))
-        t.append(PassCalcLocs(name=name))
+        t.append(PassCalcLocs(name="end_point"))
         t.append(
             VaspToDb(
                 db_file=db_file,

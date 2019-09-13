@@ -735,7 +735,7 @@ class ImageToDb(FiretaskBase):
         wf_uuid = self["approx_neb_wf_uuid"]
         t_id = self.get("image_task_id", fw_spec.get("image_task_id"))
 
-        # Store info in tasks collection for record keeping
+        # store info in tasks collection for record keeping
         mmdb.collection.update_one(
             {"task_id": t_id, "approx_neb.calc_type": "image"},
             {"$push": {"approx_neb.wf_uuids": wf_uuid}},

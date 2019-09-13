@@ -1,18 +1,7 @@
-from pymatgen import Element, Structure
-from pymatgen.io.vasp.outputs import Chgcar
-from pymatgen.analysis.path_finder import NEBPathfinder, ChgcarPotential
 from fireworks import FiretaskBase, FWAction, explicit_serialize
-from atomate.utils.utils import env_chk, load_class
-from atomate.utils.utils import get_logger
+from atomate.utils.utils import env_chk
 from atomate.vasp.database import VaspCalcDb
-from atomate.vasp.drones import VaspDrone
-from pymatgen.io.vasp.sets import MPRelaxSet
-from pydash import get  # ,set_
-import json
-import os.path
-from monty.json import MontyEncoder
-from itertools import combinations
-from atomate.vasp.fireworks.approx_neb import ApproxNEBLaunchFW
+from atomate.vasp.fireworks.approx_neb import ImageFW
 
 
 @explicit_serialize
@@ -132,7 +121,7 @@ class GetImageFireworks(FiretaskBase):
 
     def get_fw(self, structure_path, parents=None):
         add_tags = self.get("add_tags")
-        fw = ApproxNEBLaunchFW(
+        fw = ImageFW(
             calc_type="image",
             approx_neb_wf_uuid=self["approx_neb_wf_uuid"],
             structure_path=structure_path,
