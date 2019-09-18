@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>atomate.qchem.firetasks package &#8212; atomate 0.9.3 documentation</title>
+    <title>atomate.qchem.firetasks package &#8212; atomate 0.9.4 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -27,7 +27,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -120,9 +120,13 @@ would not cause any new charges to be calculated as they are
 already done. Defaults to [].</p>
 </div></blockquote>
 <dl class="simple">
-<dt>do_triplets (bool): Whether to simulate triplets as well as singlets for molecules with</dt><dd><p>an even number of electrons. Defaults to True.</p>
+<dt>do_triplets (bool): Whether to simulate triplets as well as singlets for molecules with</dt><dd><p>an even number of electrons. Defaults to False.</p>
 </dd>
-<dt>qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.</dt><dd><p>Basic uses would be to modify the default inputs of the set,
+</dl>
+<p>linked (bool): If True, use a linked FFopt. If False, use the original. Defaults to True.
+qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.</p>
+<blockquote>
+<div><p>Basic uses would be to modify the default inputs of the set,
 such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
 or max_scf_cycles. See pymatgen/io/qchem/sets.py for default
 values of all input parameters. For instance, if a user wanted
@@ -139,8 +143,7 @@ to true, then they would set qchem_input_params = {“overwrite_inputs”:
 “rem”: {“sym_ignore”: “true”}}. Of course, overwrite_inputs
 could be used in conjuction with more typical modifications,
 as seen in the test_double_FF_opt workflow test.</p>
-</dd>
-</dl>
+</div></blockquote>
 <p>db_file (str): Path to file containing the database credentials. Supports env_chk.
 check_db (bool): Whether or not to check if fragments are present in the database.</p>
 <blockquote>
@@ -151,7 +154,7 @@ false if db_file is None.</p>
 </dl>
 <dl class="attribute">
 <dt id="atomate.qchem.firetasks.fragmenter.FragmentMolecule.optional_params">
-<code class="sig-name descname">optional_params</code><em class="property"> = ['molecule', 'edges', 'depth', 'open_rings', 'opt_steps', 'additional_charges', 'do_triplets', 'qchem_input_params', 'db_file', 'check_db']</em><a class="headerlink" href="#atomate.qchem.firetasks.fragmenter.FragmentMolecule.optional_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">optional_params</code><em class="property"> = ['molecule', 'edges', 'depth', 'open_rings', 'opt_steps', 'additional_charges', 'do_triplets', 'linked', 'qchem_input_params', 'db_file', 'check_db']</em><a class="headerlink" href="#atomate.qchem.firetasks.fragmenter.FragmentMolecule.optional_params" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -380,14 +383,12 @@ max_iterations (int): Number of perturbation -&gt; optimization -&gt; frequency 
 <dl class="simple">
 <dt>max_molecule_perturb_scale (float): The maximum scaled perturbation that can be</dt><dd><p>applied to the molecule. Defaults to 0.3.</p>
 </dd>
-<dt>reversed_direction (bool): Whether to reverse the direction of the vibrational</dt><dd><p>frequency vectors. Defaults to False.</p>
-</dd>
 </dl>
 </dd>
 </dl>
 <dl class="attribute">
 <dt id="atomate.qchem.firetasks.run_calc.RunQChemCustodian.optional_params">
-<code class="sig-name descname">optional_params</code><em class="property"> = ['multimode', 'input_file', 'output_file', 'max_cores', 'qclog_file', 'suffix', 'scratch_dir', 'save_scratch', 'save_name', 'max_errors', 'max_iterations', 'max_molecule_perturb_scale', 'reversed_direction', 'job_type', 'handler_group', 'gzipped_output']</em><a class="headerlink" href="#atomate.qchem.firetasks.run_calc.RunQChemCustodian.optional_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">optional_params</code><em class="property"> = ['multimode', 'input_file', 'output_file', 'max_cores', 'qclog_file', 'suffix', 'scratch_dir', 'save_scratch', 'save_name', 'max_errors', 'max_iterations', 'max_molecule_perturb_scale', 'linked', 'job_type', 'handler_group', 'gzipped_output']</em><a class="headerlink" href="#atomate.qchem.firetasks.run_calc.RunQChemCustodian.optional_params" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -490,6 +491,11 @@ these multiple resources.</p>
 </dd>
 </dl>
 <dl class="attribute">
+<dt id="atomate.qchem.firetasks.run_calc.RunQChemFake.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['input_file']</em><a class="headerlink" href="#atomate.qchem.firetasks.run_calc.RunQChemFake.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="atomate.qchem.firetasks.run_calc.RunQChemFake.required_params">
 <code class="sig-name descname">required_params</code><em class="property"> = ['ref_dir']</em><a class="headerlink" href="#atomate.qchem.firetasks.run_calc.RunQChemFake.required_params" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -537,8 +543,7 @@ Each QChem section should be a key with its own dictionary as the value. For mor
 the input should be structured look at pymatgen.io.qchem.inputs
 <strong>*  *</strong></p>
 </dd>
-<dt>optional_params:</dt><dd><p>molecule (Molecule):
-input_file (str): Name of the QChem input file. Defaults to mol.qin
+<dt>optional_params:</dt><dd><p>input_file (str): Name of the QChem input file. Defaults to mol.qin
 write_to_dir (str): Path of the directory where the QChem input file will be written,
 the default is to write to the current working directory</p>
 </dd>
@@ -641,8 +646,10 @@ parameters are given as keys in the dictionary.</p>
 name for the QChem input set (e.g., “OptSet”). <strong>* Note that if the molecule is to be inherited through
 fw_spec qc_input_set must be a string name for the QChem input set. *</strong></p>
 </dd>
-<dt>optional_params:</dt><dd><dl class="simple">
-<dt>qchem_input_params (dict): When using a string name for QChem input set, use this as a dict</dt><dd><p>to specify kwargs for instantiating the input set parameters. This
+<dt>optional_params:</dt><dd><p>molecule (Molecule): Molecule that will be subjected to an electronic structure calculation
+qchem_input_params (dict): When using a string name for QChem input set, use this as a dict</p>
+<blockquote>
+<div><p>to specify kwargs for instantiating the input set parameters. This
 setting is ignored if you provide the full object representation of
 a QChemDictSet. Basic uses would be to modify the default inputs of
 the set, such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
@@ -660,10 +667,8 @@ would set qchem_input_params = {“overwrite_inputs”: “rem”: {“sym_ignor
 “true”}}. Of course, overwrite_inputs could be used in conjuction with
 more typical modifications, as seen in the test_double_FF_opt workflow
 test.</p>
-</dd>
-</dl>
-<p>molecule (Molecule):
-input_file (str): Name of the QChem input file. Defaults to mol.qin
+</div></blockquote>
+<p>input_file (str): Name of the QChem input file. Defaults to mol.qin
 write_to_dir (str): Path of the directory where the QChem input file will be written,
 the default is to write to the current working directory</p>
 </dd>
@@ -762,7 +767,7 @@ these multiple resources.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
       </ul>
     </div>
 
