@@ -614,9 +614,9 @@ class VaspDrone(AbstractDrone):
                 if "POSCAR.orig" in f:
                     d["orig_inputs"]["poscar"] = Poscar.from_file(f).as_dict()
 
-        fw_metadata_path = os.path.join(fullpath, "FW.json")
-        if self.store_fw_metadata and os.path.isfile(fw_metadata_path):
-            fw_metadata = loadfn(fw_metadata_path)
+        fw_metadata_paths = glob.glob(os.path.join(fullpath, "FW.json*"))
+        if self.store_fw_metadata and fw_metadata_paths:
+            fw_metadata = loadfn(fw_metadata_paths[0])
             d["fireworks"] = fw_metadata
 
         logger.info("Post-processed " + fullpath)
