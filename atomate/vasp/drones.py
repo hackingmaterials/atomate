@@ -15,6 +15,7 @@ from collections import OrderedDict
 import json
 import glob
 import traceback
+import warnings
 
 from monty.io import zopen
 from monty.json import jsanitize
@@ -27,8 +28,9 @@ from pymatgen.core.structure import Structure
 from pymatgen.core.operations import SymmOp
 from pymatgen.electronic_structure.bandstructure import BandStructureSymmLine
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot, Chgcar
+from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot
 from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
+from pymatgen.io.vasp.outputs import VolumetricData
 from pymatgen.apps.borg.hive import AbstractDrone
 from pymatgen.command_line.bader_caller import bader_analysis_from_path
 
@@ -82,7 +84,8 @@ class VaspDrone(AbstractDrone):
 
     def __init__(self, runs=None, parse_dos="auto", bandstructure_mode="auto",
                  parse_locpot=True, additional_fields=None, use_full_uri=True,
-                 parse_bader=bader_exe_exists, parse_chgcar=False, parse_aeccar=False):
+                 parse_bader=bader_exe_exists, parse_chgcar=False, parse_aeccar=False,
+                 store_volumetric_data=("chgcar", "aeccar0", "aeccar2", "elfcar", "locpot")):
         """
         Initialize a Vasp drone to parse vasp outputs
         Args:
@@ -105,6 +108,8 @@ class VaspDrone(AbstractDrone):
             parse_bader (bool): Run and parse Bader charge data. Defaults to True if Bader is present
             parse_chgcar (bool): Run and parse CHGCAR file
             parse_aeccar (bool): Run and parse AECCAR0 and AECCAR2 files
+            store_files (list): List of files to store, choose from ('CHGCAR', 'LOCPOT',
+            'AECCAR0', 'AECCAR1', 'AECCAR2', 'ELFCAR'), case insensitive
         """
         self.parse_dos = parse_dos
         self.additional_fields = additional_fields or {}
@@ -114,8 +119,18 @@ class VaspDrone(AbstractDrone):
         self.bandstructure_mode = bandstructure_mode
         self.parse_locpot = parse_locpot
         self.parse_bader = parse_bader
-        self.parse_chgcar = parse_chgcar
-        self.parse_aeccar = parse_aeccar
+        self.store_volumetric_data = [f.lower() for f in store_volumetric_data]
+
+        if parse_chgcar or parse_aeccar:
+            warnings.warn("These options have been deprecated in favor of the 'store_files' keyword "
+                          "argument, which is more general. Functionality is equivalent.",
+                          DeprecationWarning)
+            if parse_chgcar and "chgcar" not in self.store_volumetric_data:
+                self.store_volumetric_data.append("chgcar")
+            if parse_aeccar and "aeccar0" not in self.store_volumetric_data:
+                self.store_volumetric_data.append("aeccar0")
+            if parse_aeccar and "aeccar2" not in self.store_volumetric_data:
+                self.store_volumetric_data.append("aeccar2")
 
     def assimilate(self, path):
         """
@@ -394,27 +409,16 @@ class VaspDrone(AbstractDrone):
             locpot = Locpot.from_file(os.path.join(dir_name, d["output_file_paths"]["locpot"]))
             d["output"]["locpot"] = {i: locpot.get_average_along_axis(i) for i in range(3)}
 
-        if self.parse_chgcar != False:
-            # parse CHGCAR file only for static calculations
-            # TODO require static run later
-            # if self.parse_chgcar == True and vrun.incar.get("NSW", 0) < 1:
-            try:
-                chgcar = self.process_chgcar(os.path.join(dir_name, d["output_file_paths"]["chgcar"]))
-            except:
-                raise ValueError("No valid charge data exist")
-            d["chgcar"] = chgcar
-
-        if self.parse_aeccar != False:
-            try:
-                chgcar = self.process_chgcar(os.path.join(dir_name, d["output_file_paths"]["aeccar0"]))
-            except:
-                raise ValueError("No valid charge data exist")
-            d["aeccar0"] = chgcar
-            try:
-                chgcar = self.process_chgcar(os.path.join(dir_name, d["output_file_paths"]["aeccar2"]))
-            except:
-                raise ValueError("No valid charge data exist")
-            d["aeccar2"] = chgcar
+        if self.store_volumetric_data:
+            for file in self.store_volumetric_data:
+                if file in d["output_file_paths"]:
+                    try:
+                        # assume volumetric data is all in CHGCAR format
+                        data = VolumetricData.from_file(file, d["output_file_paths"][file])
+                        d[file] = data
+                    except:
+                        raise ValueError("Failed to parse {} at {}.".format(file,
+                                                                            d["output_file_paths"][file]))
 
         # parse force constants
         if hasattr(vrun, "force_constants"):
@@ -422,23 +426,12 @@ class VaspDrone(AbstractDrone):
             d["output"]["normalmode_eigenvals"] = vrun.normalmode_eigenvals.tolist()
             d["output"]["normalmode_eigenvecs"] = vrun.normalmode_eigenvecs.tolist()
 
-        # Try and perform bader
+        # perform Bader analysis using Henkelman bader
         if self.parse_bader:
-            try:
-                bader = bader_analysis_from_path(dir_name, suffix=".{}".format(taskname))
-            except Exception as e:
-                bader = "Bader analysis failed: {}".format(e)
+            bader = bader_analysis_from_path(dir_name, suffix=".{}".format(taskname))
             d["bader"] = bader
 
         return d
-
-    @classmethod
-    def process_chgcar(cls, chg_file):
-        try:
-            chgcar = Chgcar.from_file(chg_file)
-        except IOError:
-            raise ValueError("Unable to open CHGCAR/AECCAR file" )
-        return chgcar
 
     def process_bandstructure(self, vrun):
 
