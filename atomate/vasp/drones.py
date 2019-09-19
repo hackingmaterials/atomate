@@ -109,7 +109,7 @@ class VaspDrone(AbstractDrone):
             parse_bader (bool): Run and parse Bader charge data. Defaults to True if Bader is present
             parse_chgcar (bool): Run and parse CHGCAR file
             parse_aeccar (bool): Run and parse AECCAR0 and AECCAR2 files
-            store_files (list): List of files to store, choose from ('CHGCAR', 'LOCPOT',
+            store_volumetric_data (list): List of files to store, choose from ('CHGCAR', 'LOCPOT',
             'AECCAR0', 'AECCAR1', 'AECCAR2', 'ELFCAR'), case insensitive
             store_fw_metadata (bool): If True, parse FW.json if present and store as sub-doc
         """
