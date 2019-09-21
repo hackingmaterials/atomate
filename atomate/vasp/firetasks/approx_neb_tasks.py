@@ -53,17 +53,13 @@ class HostToDb(FiretaskBase):
                 "Provided approx_neb_wf_uuid is not unique. A unique workflow id is required for querying in the approx_neb workflow."
             )
 
-        # get host task doc from host_task_id
-        t_id = self.get("host_task_id", fw_spec.get("host_task_id"))
-        host_query = {"task_id": t_id, "approx_neb.calc_type": "host"}
-        host_tasks_doc = mmdb.collection.find_one(host_query)
-
-        # update host task doc with unique wf_uuid
+        # update host task doc (from host_task_id) with unique wf_uuid
         # (tracks approx_neb workflows generated from this host task doc)
-        tasks_update = mmdb.collection.update_one(
-            host_query, {"$push": {"approx_neb.wf_uuids": wf_uuid}}
+        t_id = self.get("host_task_id", fw_spec.get("host_task_id"))
+        host_tasks_doc = mmdb.collection.find_one_and_update(
+            {"task_id": t_id, "approx_neb.calc_type": "host"}, {"$push": {"approx_neb.wf_uuids": wf_uuid}}
         )
-        if tasks_update.modified_count == 0:
+        if host_tasks_doc == None:
             raise ValueError(
                 "Error updating approx neb host with task_id: {}".format(t_id)
             )
@@ -383,12 +379,9 @@ class EndPointToDb(FiretaskBase):
         wf_input_host_structure = fw_spec.get("wf_input_host_structure")
         wf_input_insert_coords = [fw_spec.get("wf_input_insert_coords")]
 
-        # pull task doc to store parts in approx_neb_collection
-        end_point_query = {"task_id": t_id, "approx_neb.calc_type": "end_point"}
-        task_doc = mmdb.collection.find_one(end_point_query)
-
-        # store info in tasks collection for record keeping
-        tasks_update = mmdb.collection.update_one(end_point_query,
+        # get task doc (parts stored in approx_neb collection) and update for record keeping
+        task_doc = mmdb.collection.find_one_and_update(
+            {"task_id": t_id, "approx_neb.calc_type": "end_point"},
             {
                 "$push": {
                     "approx_neb.wf_uuids": wf_uuid,
@@ -399,7 +392,7 @@ class EndPointToDb(FiretaskBase):
                     "approx_neb._wf_input_insert_coords": wf_input_insert_coords}
             },
         )
-        if tasks_update.modified_count == 0:
+        if task_doc == None:
             raise ValueError(
                 "Error updating approx neb end point with task_id: {}".format(t_id)
             )
@@ -414,11 +407,7 @@ class EndPointToDb(FiretaskBase):
             path + "task_id": task_doc["task_id"],
         }
 
-        approx_neb_update = mmdb.collection.update_one({"wf_uuid": wf_uuid}, {"$set": end_point_output})
-        if approx_neb_update.modified_count == 0:
-            raise ValueError(
-                "Error updating end_point_output for approx_neb_wf_uuid: {}".format(wf_uuid)
-            )
+        mmdb.collection.update_one({"wf_uuid": wf_uuid}, {"$set": end_point_output})
 
         return FWAction(
             stored_data={
@@ -748,19 +737,15 @@ class ImageToDb(FiretaskBase):
             if "wf_input_insert_coords" in key:
                 wf_input_insert_coords.append(value)
 
-        # pull task doc to store parts in approx_neb_collection
-        image_query = {"task_id": t_id, "approx_neb.calc_type": "image"}
-        task_doc = mmdb.collection.find_one(image_query)
-
-        # store info in tasks collection for record keeping
-        tasks_update = mmdb.collection.update_one(
-            image_query,
+        # get task doc (parts stored in approx_neb collection) and update for record keeping
+        task_doc = mmdb.collection.find_one_and_update(
+            {"task_id": t_id, "approx_neb.calc_type": "image"},
             {"$push": {"approx_neb.wf_uuids": wf_uuid},
              "$set": {
                  "approx_neb._wf_input_host_structure": wf_input_host_structure,
                 "approx_neb._wf_input_insert_coords": wf_input_insert_coords}}
         )
-        if tasks_update.modified_count == 0:
+        if task_doc == None:
             raise ValueError(
                 "Error updating approx neb image with task_id: {}".format(t_id)
             )
