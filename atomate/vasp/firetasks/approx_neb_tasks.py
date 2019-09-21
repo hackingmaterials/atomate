@@ -97,13 +97,6 @@ class HostToDb(FiretaskBase):
         if tags:
             approx_neb_doc["tags"].extend(tags)
 
-        # Gets GridFS ids for host chgcar and aeccars if stored in task_doc.
-        # Store GridFS ids in approx_neb_doc (to be stored in the approx_neb collection).
-        # None will be stored if no gridfs_id is found.
-        for key in ["chgcar_fs_id", "aeccar0_fs_id", "aeccar2_fs_id"]:
-            grid_fs_id = host_tasks_doc["calcs_reversed"][0].get(key)
-            approx_neb_doc["host"][key] = grid_fs_id
-
         # Insert approx_neb_doc in the approx_neb collection of provided database
         mmdb.collection = mmdb.db["approx_neb"]
         mmdb.collection.insert_one(approx_neb_doc)

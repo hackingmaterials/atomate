@@ -84,7 +84,6 @@ class HostFW(Firework):
                 db_file=db_file,
                 additional_fields=task_doc_additional_fields,
                 parse_chgcar=True,
-                parse_aeccar=True,
                 task_fields_to_push={"host_task_id": "task_id"},
             )
         )
