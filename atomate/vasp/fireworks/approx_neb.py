@@ -162,7 +162,7 @@ class ImageFW(Firework):
             "approx_neb": {"wf_uuids": [],
                            "_source_wf_uuid": approx_neb_wf_uuid,
                            "_wf_input_host_structure": None,
-                           "_wf_input_insert_coords": [],
+                           "_wf_input_insert_coords": None,
                            "calc_type": "image",
                            "task_label": "relaxation",
                            "images_key": images_key,
@@ -176,6 +176,19 @@ class ImageFW(Firework):
             additional_fields["tags"] = add_tags
 
         t = []
+        # pull input host and insert_coords for ImageToDb firetask
+        combo = images_key.split("+")
+        if len(combo) == 2:
+            c = [int(combo[0]), int(combo[1])]
+        t.append(
+            PassFromDb(
+                db_file=db_file,
+                approx_neb_wf_uuid=approx_neb_wf_uuid,
+                fields_to_pull={"wf_input_host_structure": "host.input_structure",
+                                "wf_input_insert_coords"+str(c[0]): "end_points."+str(c[0])+".insert_coords",
+                                "wf_input_insert_coords" + str(c[1]): "end_points." + str(c[1]) + ".insert_coords",
+                                })
+        )
         # write vasp inputs, run vasp, parse vasp outputs
         t.append(
             WriteVaspInput(
@@ -266,7 +279,7 @@ class EndPointFW(Firework):
                 "wf_uuids": [],
                 "_source_wf_uuid": approx_neb_wf_uuid,
                 "_wf_input_host_structure": None,
-                "_wf_input_insert_coords": [],
+                "_wf_input_insert_coords": None,
                 "calc_type": "end_point",
                 "task_label": "relaxation",
                 "end_points_indexes": [],
@@ -275,12 +288,16 @@ class EndPointFW(Firework):
 
         t = []
         # Add host_task_id (for empty host) to fw_spec
-        # host_task_id is required for InsertSites firetask
+        # host_task_id is required for InsertSites firetask.
+        # wf_input_host_structure and wf_input_insert_coords are pulled
+        # into the fw_spec for EndPointToDb firetask.
         t.append(
             PassFromDb(
                 db_file=db_file,
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
-                fields_to_pull={"host_task_id": "host.task_id"},
+                fields_to_pull={"host_task_id": "host.task_id",
+                                "wf_input_host_structure": "host.input_structure",
+                                "wf_input_insert_coords": "end_points." + str(end_points_index) + ".insert_coords"},
             )
         )
         # Insert sites into empty host (specified by host_task_id)
