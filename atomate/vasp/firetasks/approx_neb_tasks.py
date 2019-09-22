@@ -57,7 +57,8 @@ class HostToDb(FiretaskBase):
         # (tracks approx_neb workflows generated from this host task doc)
         t_id = self.get("host_task_id", fw_spec.get("host_task_id"))
         host_tasks_doc = mmdb.collection.find_one_and_update(
-            {"task_id": t_id, "approx_neb.calc_type": "host"}, {"$push": {"approx_neb.wf_uuids": wf_uuid}}
+            {"task_id": t_id, "approx_neb.calc_type": "host"},
+            {"$push": {"approx_neb.wf_uuids": wf_uuid}},
         )
         if host_tasks_doc == None:
             raise ValueError(
@@ -362,7 +363,11 @@ class EndPointToDb(FiretaskBase):
     """
 
     required_params = ["db_file", "approx_neb_wf_uuid", "end_points_index"]
-    optional_params = ["end_point_task_id","wf_input_host_structure","wf_input_insert_coords"]
+    optional_params = [
+        "end_point_task_id",
+        "wf_input_host_structure",
+        "wf_input_insert_coords",
+    ]
 
     def run_task(self, fw_spec):
         # get the database connection
@@ -377,7 +382,9 @@ class EndPointToDb(FiretaskBase):
 
         # get any workflow inputs provided in fw_spec to store in task_doc
         wf_input_host_structure = fw_spec.get("wf_input_host_structure")
-        wf_input_insert_coords = [fw_spec.get("wf_input_insert_coords")]
+        for key,value in fw_spec.items():
+            if "wf_input_insert_coords" in key:
+                wf_input_insert_coords = [value]
 
         # get task doc (parts stored in approx_neb collection) and update for record keeping
         task_doc = mmdb.collection.find_one_and_update(
@@ -389,7 +396,8 @@ class EndPointToDb(FiretaskBase):
                 },
                 "$set": {
                     "approx_neb._wf_input_host_structure": wf_input_host_structure,
-                    "approx_neb._wf_input_insert_coords": wf_input_insert_coords}
+                    "approx_neb._wf_input_insert_coords": wf_input_insert_coords,
+                },
             },
         )
         if task_doc == None:
@@ -721,7 +729,11 @@ class ImageToDb(FiretaskBase):
     """
 
     required_params = ["db_file", "approx_neb_wf_uuid"]
-    optional_params = ["image_task_id","wf_input_host_structure","wf_input_insert_coords"]
+    optional_params = [
+        "image_task_id",
+        "wf_input_host_structure",
+        "wf_input_insert_coords",
+    ]
 
     def run_task(self, fw_spec):
         # get the database connection
@@ -730,20 +742,23 @@ class ImageToDb(FiretaskBase):
         wf_uuid = self["approx_neb_wf_uuid"]
         t_id = self.get("image_task_id", fw_spec.get("image_task_id"))
 
-        #get any workflow inputs provided in fw_spec to store in task_doc
+        # get any workflow inputs provided in fw_spec to store in task_doc
         wf_input_host_structure = fw_spec.get("wf_input_host_structure")
         wf_input_insert_coords = []
-        for key,value in fw_spec.items():
+        for key, value in fw_spec.items():
             if "wf_input_insert_coords" in key:
                 wf_input_insert_coords.append(value)
 
         # get task doc (parts stored in approx_neb collection) and update for record keeping
         task_doc = mmdb.collection.find_one_and_update(
             {"task_id": t_id, "approx_neb.calc_type": "image"},
-            {"$push": {"approx_neb.wf_uuids": wf_uuid},
-             "$set": {
-                 "approx_neb._wf_input_host_structure": wf_input_host_structure,
-                "approx_neb._wf_input_insert_coords": wf_input_insert_coords}}
+            {
+                "$push": {"approx_neb.wf_uuids": wf_uuid},
+                "$set": {
+                    "approx_neb._wf_input_host_structure": wf_input_host_structure,
+                    "approx_neb._wf_input_insert_coords": wf_input_insert_coords,
+                },
+            },
         )
         if task_doc == None:
             raise ValueError(

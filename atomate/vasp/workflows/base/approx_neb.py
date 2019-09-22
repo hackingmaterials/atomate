@@ -53,7 +53,7 @@ def approx_neb_wf(
             "NSW": 400,
             "ADDGRID": True,
             "ISYM": 1,
-            "NELMIN": 4
+            "NELMIN": 4,
         }
     }
     # TODO: Add LASPH: True
@@ -142,4 +142,3 @@ def approx_neb_wf(
     wf.name = name
 
     return wf
-
