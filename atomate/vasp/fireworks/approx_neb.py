@@ -32,27 +32,39 @@ class HostFW(Firework):
         **kwargs
     ):
         """
-        Launches a structure optimization calculation for a provided empty host
-        structure and stores appropriate fields in the task doc for approx_neb
-        workflow record keeping. Stores initializes approx_neb collection database
-        entry and stores relevant host relaxation calcuation outputs.
-
-        Adapted from OptimizeFW.
+        Launches a VASP calculation for the provided empty host structure
+        and adds task doc fields for approx_neb workflow record keeping.
+        Initializes a doc in the approx_neb collection and stores relevant
+        outputs from the host.
 
         Args:
-            structure (Structure): input structure of empty host
-            approx_neb_wf_uuid (str): Unique identifier for approx workflow record
-                keeping.
-            name (str): Combined with structure formula to label the firework
-            vasp_input_set (VaspInputSet): input set to use. Defaults to
-                MPRelaxSet() if None.
-            override_default_vasp_params (dict): If this is not None, these params
-                are passed to the default vasp_input_set, i.e., MPRelaxSet. This
-                allows one to easily override some settings (e.g.
-                user_incar_settings, etc.)
-            vasp_cmd (str): Command to run vasp.
-            db_file (str): Path to file specifying db credentials to store outputs.
-            job_type (str): custodian job type (default "double_relaxation_run")
+            structure (Structure): structure of empty host
+            approx_neb_wf_uuid (str): unique id for approx neb
+                workflow record keeping
+            db_file (str): path to file containing the database
+                credentials.
+            vasp_input_set (VaspInputSet class): can use to
+                define VASP input parameters.
+                See pymatgen.io.vasp.sets module for more
+                information. MPRelaxSet() and
+                override_default_vasp_params are used if
+                vasp_input_set = None.
+            vasp_cmd (str): the name of the full executable for running
+                VASP.
+            override_default_vasp_params (dict): if provided,
+                vasp_input_set is disregarded and the Vasp Input
+                Set is created by passing
+                override_default_vasp_params to MPRelaxSet().
+                Allows for easy modification of MPRelaxSet().
+                For example, to set ISIF=2 in the INCAR use:
+                {"user_incar_settings":{"ISIF":2}}
+            job_type (str): custodian job type
+            additional_fields (dict): specifies more information
+                to be stored in the approx_neb collection to
+                assist user record keeping.
+            tags (list): list of strings to be stored in the
+                approx_neb collection under the "tags" field to
+                assist user record keeping.
 
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
             parents ([Firework]): Parents of this particular Firework.
@@ -98,9 +110,6 @@ class HostFW(Firework):
         super().__init__(tasks=t, spec=fw_spec, name=fw_name, **kwargs)
 
 
-
-
-
 class EndPointFW(Firework):
     def __init__(
         self,
@@ -117,38 +126,45 @@ class EndPointFW(Firework):
         **kwargs
     ):
         """
-        ToDo: Update description
-        Updates the fw_spec with the empty host task_id from the provided
-        approx_neb_wf_uuid. Pulls the empty host structure from the tasks
-        collection and inserts the site(s) designated by insert_specie and
-        insert_coords. Stores the modified structure in the end_points field of
-        the approx_neb collection.
-        Launches a structure optimization calculation from a structure stored in
-        in the approx_neb collection. Structure input for calculation is specified
-        by the provided approx_neb_wf_uuid and end_points_index to pull the
-        structure from the approx_neb collection using pydash.get().
-
-        Adapted from OptimizeFW.
+        Pulls information from the approx_neb collection (e.g. host
+        task_id) using the provided approx_neb_wf_uuid. Gets the host
+        structure from the tasks collection and inserts the site(s)
+        designated by insert_specie and insert_coords. Stores the modified
+        structure in the end_points field of the approx_neb collection.
+        Launches a VASP calculation and adds task doc fields for approx_neb
+        workflow record keeping. The input structure is specified by the
+        provided approx_neb_wf_uuid and end_points_index. Stores relevant
+        outputs in the approx_neb collection.
 
         Args:
-            approx_neb_wf_uuid (str): Unique identifier for approx workflow record
-                keeping.
-            insert_specie (str): specie of site to insert in structure (e.g. "Li")
-            insert_coords (1x3 array or list of 1x3 arrays): coordinates of site(s)
-                to insert in structure (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]])
-            end_points_index (int): index used in end_points field of
-                approx_neb collection for workflow record keeping
-            name (str): Combined with insert_specie and end_points_index to label the firework
-            vasp_input_set (VaspInputSet): input set to use. Defaults to
-                MPRelaxSet() if None.
-            override_default_vasp_params (dict): If this is not None, these params
-                are passed to the default vasp_input_set, i.e., MPRelaxSet. This
-                allows one to easily override some settings (e.g.
-                user_incar_settings, etc.)
-            vasp_cmd (str): Command to run vasp.
-            db_file (str): Path to file specifying db credentials to store outputs.
-            job_type (str): custodian job type (default "double_relaxation_run")
-
+            approx_neb_wf_uuid (str): unique id for approx neb
+                workflow record keeping
+            insert_specie (str): specie of site to insert in
+                structure (e.g. "Li").
+            insert_coords (1x3 array or list of 1x3 arrays):
+                coordinates of site(s) to insert in structure
+                (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]]).
+            end_points_index (int): index used in end_points
+                field of approx_neb collection for workflow
+                record keeping.
+            db_file (str): path to file containing the database
+                credentials
+            vasp_input_set (VaspInputSet class): can use to
+                define VASP input parameters.
+                See pymatgen.io.vasp.sets module for more
+                information. MPRelaxSet() and
+                override_default_vasp_params are used if
+                vasp_input_set = None.
+            vasp_cmd (str): the name of the full executable for running
+                VASP.
+            override_default_vasp_params (dict): if provided,
+                vasp_input_set is disregarded and the Vasp Input
+                Set is created by passing
+                override_default_vasp_params to MPRelaxSet().
+                Allows for easy modification of MPRelaxSet().
+                For example, to set ISIF=2 in the INCAR use:
+                {"user_incar_settings":{"ISIF":2}}
+            job_type (str): custodian job type
             parents ([Firework]): Parents of this particular Firework.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
@@ -183,7 +199,8 @@ class EndPointFW(Firework):
                 fields_to_pull={
                     "host_task_id": "host.task_id",
                     "wf_input_host_structure": "host.input_structure",
-                    "wf_input_insert_coords_"+str(end_points_index): "end_points."
+                    "wf_input_insert_coords_"
+                    + str(end_points_index): "end_points."
                     + str(end_points_index)
                     + ".insert_coords",
                 },
@@ -233,10 +250,10 @@ class EndPointFW(Firework):
 
         super().__init__(tasks=t, spec=fw_spec, name=fw_name, parents=parents, **kwargs)
 
+
 class ImageFW(Firework):
     def __init__(
         self,
-        calc_type,
         approx_neb_wf_uuid,
         structure_path=None,
         db_file=DB_FILE,
@@ -251,37 +268,49 @@ class ImageFW(Firework):
         **kwargs
     ):
         """
-        Launches a structure optimization calculation from a structure stored in
-        in the approx_neb collection. Structure input for calculation is specified
-        by the provided approx_neb_wf_uuid and structure_path to pull the
-        structure from the approx_neb collection using pydash.get().
-
-        Adapted from OptimizeFW.
+        Pulls information from the approx_neb collection using the
+        provided approx_neb_wf_uuid (including the image structure using
+        structure_path and pydash.get() notation). Launches a VASP
+        calculation and adds task doc fields for approx_neb workflow
+        record keeping. Stores relevant outputs in the approx_neb
+        collection.
 
         Args:
-            calc_type (str): Set to "image"
-            approx_neb_wf_uuid (str): Unique identifier for approx workflow record
-                keeping.
-            structure_path (str): A full mongo-style path to reference approx_neb
-                collection subdocuments using dot notation and array keys.
-                e.g. "images.0+1.2.input_structure"
+            approx_neb_wf_uuid (str): Unique identifier for approx_neb
+                workflow record keeping.
+            structure_path (str): A full mongo-style path to reference
+                approx_neb collection subdocuments using dot notation and
+                array keys. e.g. "images.0+1.2.input_structure"
                 By default structure_path = None which assumes
                 fw_spec["structure_path"] is set by a parent firework.
-            name (str): Combined with calc_type to label the firework
-            vasp_input_set (VaspInputSet): input set to use. Defaults to
-                MPRelaxSet() if None.
-            override_default_vasp_params (dict): If this is not None, these params
-                are passed to the default vasp_input_set, i.e., MPRelaxSet. This
-                allows one to easily override some settings (e.g.
-                user_incar_settings, etc.)
-            vasp_cmd (str): Command to run vasp.
-            db_file (str): Path to file specifying db credentials to store outputs.
-            job_type (str): custodian job type (default "double_relaxation_run")
-            handler_group (str or [ErrorHandler]): group of handlers to use for
-                RunVaspCustodian firetask. See handler_groups dict in the code for
-                the groups and complete list of handlers in each group. Alternatively,
-                you can specify a list of ErrorHandler objects.
+            vasp_input_set (VaspInputSet class): can use to
+                define VASP input parameters.
+                See pymatgen.io.vasp.sets module for more
+                information. MPRelaxSet() and
+                override_default_vasp_params are used if
+                vasp_input_set = None.
+            override_default_vasp_params (dict): if provided,
+                vasp_input_set is disregarded and the Vasp Input
+                Set is created by passing
+                override_default_vasp_params to MPRelaxSet().
+                Allows for easy modification of MPRelaxSet().
+                For example, to set ISIF=2 in the INCAR use:
+                {"user_incar_settings":{"ISIF":2}}
+            vasp_cmd (str): the name of the full executable for running
+                VASP.
+            db_file (str): Path to file specifying db credentials to store
+                outputs.
+            job_type (str): custodian job type
+            handler_group (str or [ErrorHandler]): group of handlers to use
+                for RunVaspCustodian firetask. See handler_groups dict in
+                the code for the groups and complete list of handlers in
+                each group. Alternatively, you can specify a list of
+                ErrorHandler objects.
             parents ([Firework]): Parents of this particular Firework.
+            add_additional_fields (dict): dict of additional fields to
+                add to task docs (by additional_fields of VaspToDb).
+            add_tags (list of strings): added to the "tags" field of the
+                task docs.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         # initiates the information stored in the tasks collection to aid record keeping

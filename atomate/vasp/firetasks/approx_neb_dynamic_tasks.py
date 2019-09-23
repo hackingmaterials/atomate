@@ -7,31 +7,61 @@ from atomate.vasp.fireworks.approx_neb import ImageFW
 @explicit_serialize
 class GetImageFireworks(FiretaskBase):
     """
-    ToDo: Update description
+    Adds ImageFWs to the workflow for the provided images_key
+    according to the scheme specified by launch_mode. Optional
+    parameters such as "handler_group", "add_additional_fields",
+    and "add_tags" can be used to modify the resulting ImageFWs.
 
     Args:
-        db_file (str): path to file containing the database credentials.
-        approx_neb_wf_uuid (str): unique id for approx neb workflow record keeping
-        launch_mode (int): "all" or "screening"
-        vasp_cmd (...): ...
+        db_file (str): path to file containing the database
+            credentials.
+        approx_neb_wf_uuid (str): unique id for approx neb workflow
+            record keeping.
+        images_key (str): specifies a key corresponding the images
+            field of the approx_neb collection which specifies the
+            desired combination of end points to interpolate images
+            between. images_key should be a string of format "0+1",
+            "0+2", etc. matching end_points_combo input of
+            PathfinderToDb Firetask or pathfinder_key input of
+            AddSelectiveDynamics Firetask. If images_key is not
+            provided images will be launched for all paths/keys in
+            the approx_neb collection images field.
+        launch_mode (str): "all" or "screening"
+        vasp_cmd (str): the name of the full executable for running
+            VASP.
     Optional Params:
-        images_key (str): for cases with multiple paths, to only launch images for
-            one path use images_key to specify a key corresponding the images field
-            derived from the desired combination of end points. images_key
-            should be a string of format "0+1", "0+2", etc. matching
-            end_points_combo input of PathfinderToDb Firetask or pathfinder_key
-            input of AddSelectiveDynamics Firetask. If images_key is not provided
-            images will be launched for all paths/keys in the approx_neb
-            collection images field.
-        handler_group (str or [ErrorHandler]): group of handlers to use for
-            RunVaspCustodian firetask. See handler_groups dict in the code for
-            the groups and complete list of handlers in each group. Alternatively,
-            you can specify a list of ErrorHandler objects.
+        vasp_input_set (VaspInputSet class): can use to
+            define VASP input parameters.
+            See pymatgen.io.vasp.sets module for more
+            information. MPRelaxSet() and
+            override_default_vasp_params are used if
+            vasp_input_set = None.
+        override_default_vasp_params (dict): if provided,
+            vasp_input_set is disregarded and the Vasp Input
+            Set is created by passing
+            override_default_vasp_params to MPRelaxSet().
+            Allows for easy modification of MPRelaxSet().
+            For example, to set ISIF=2 in the INCAR use:
+            {"user_incar_settings":{"ISIF":2}}
+        handler_group (str or [ErrorHandler]): group of handlers to
+            use for RunVaspCustodian firetask. See handler_groups
+            dict in the code for the groups and complete list of
+            handlers in each group. Alternatively, you can specify a
+            list of ErrorHandler objects.
+        add_additional_fields (dict): dict of additional fields to
+            add to task docs (by additional_fields of VaspToDb).
+        add_tags (list of strings): added to the "tags" field of the
+            task docs.
     """
 
-    required_params = ["db_file", "approx_neb_wf_uuid", "launch_mode", "vasp_cmd"]
-    optional_params = [
+    required_params = [
+        "db_file",
+        "approx_neb_wf_uuid",
         "images_key",
+        "launch_mode",
+        "vasp_cmd",
+    ]
+    optional_params = [
         "vasp_input_set",
         "override_default_vasp_params",
         "handler_group",

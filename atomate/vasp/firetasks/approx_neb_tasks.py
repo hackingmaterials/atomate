@@ -6,7 +6,7 @@ from atomate.utils.utils import env_chk
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
 from pymatgen.io.vasp.sets import MPRelaxSet
-from pydash import get  # ,set_
+from pydash import get
 
 logger = get_logger(__name__)
 
@@ -281,7 +281,7 @@ class WriteVaspInput(FiretaskBase):
             the approx_neb collection (specified by
             structure_path).
         approx_neb_wf_uuid (str): unique id for approx neb
-            workflow record keeping
+            workflow record keeping.
         vasp_input_set (VaspInputSet class): can use to
             define VASP input parameters.
             See pymatgen.io.vasp.sets module for more
@@ -358,8 +358,12 @@ class EndPointToDb(FiretaskBase):
             with one working ion inserted).
             end_point_task_id must be provided in the
             fw_spec or firetask inputs.
-        wf_input_host_structure !!!
-        wf_input_insert_coords !!!
+        wf_input_host_structure (structure dict): for record
+            keeping purposes, a dictionary representation of
+            the workflow's original input structure
+        wf_input_insert_coords (list of 1x3 arrays): for
+            record keeping purposes, the workflow's original
+            input insert_coords (e.g. [[0,0,0]])
     """
 
     required_params = ["db_file", "approx_neb_wf_uuid", "end_points_index"]
@@ -382,7 +386,7 @@ class EndPointToDb(FiretaskBase):
 
         # get any workflow inputs provided in fw_spec to store in task_doc
         wf_input_host_structure = fw_spec.get("wf_input_host_structure")
-        for key,value in fw_spec.items():
+        for key, value in fw_spec.items():
             if "wf_input_insert_coords" in key:
                 wf_input_insert_coords = [value]
 
@@ -721,8 +725,12 @@ class ImageToDb(FiretaskBase):
             working ion in various positions in host).
             image_task_id must be provided in the fw_spec
             or firetask inputs.
-        wf_input_host_structure (structure dict): !!!
-        wf_input_insert_coords (list): !!!must be provided in the fw_spec
+        wf_input_host_structure (structure dict): for record
+            keeping purposes, a dictionary representation of
+            the workflow's original input structure
+        wf_input_insert_coords (list of 1x3 arrays): for
+            record keeping purposes, the workflow's original
+            input insert_coords (e.g. [[0,0,0]])
 
         Note "approx_neb.image_index" field is required in
         task doc specified by image_task_id.
