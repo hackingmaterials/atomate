@@ -38,6 +38,7 @@ from atomate.utils.utils import get_uri
 
 from atomate.utils.utils import get_logger
 from atomate import __version__ as atomate_version
+from atomate.vasp.config import DB_DEFAULT_VOL_DATA_TO_STORE
 
 __author__ = 'Kiran Mathew, Shyue Ping Ong, Shyam Dwaraknath, Anubhav Jain'
 __email__ = 'kmathew@lbl.gov'
@@ -85,7 +86,7 @@ class VaspDrone(AbstractDrone):
     def __init__(self, runs=None, parse_dos="auto", bandstructure_mode="auto",
                  parse_locpot=True, additional_fields=None, use_full_uri=True,
                  parse_bader=bader_exe_exists, parse_chgcar=False, parse_aeccar=False,
-                 store_volumetric_data=("chgcar", "aeccar0", "aeccar2", "elfcar", "locpot"),
+                 store_volumetric_data=DB_DEFAULT_VOL_DATA_TO_STORE,
                  store_fw_metadata=True):
         """
         Initialize a Vasp drone to parse vasp outputs
@@ -125,8 +126,8 @@ class VaspDrone(AbstractDrone):
         self.store_fw_metadata = store_fw_metadata
 
         if parse_chgcar or parse_aeccar:
-            warnings.warn("These options have been deprecated in favor of the 'store_files' keyword "
-                          "argument, which is more general. Functionality is equivalent.",
+            warnings.warn("These options have been deprecated in favor of the 'store_volumetric_data' "
+                          "keyword argument, which is more general. Functionality is equivalent.",
                           DeprecationWarning)
             if parse_chgcar and "chgcar" not in self.store_volumetric_data:
                 self.store_volumetric_data.append("chgcar")
