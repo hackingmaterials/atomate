@@ -220,7 +220,11 @@ class MagneticOrderingsWF:
 
         """
 
-        c = c or {"VASP_CMD": VASP_CMD, "DB_FILE": DB_FILE}
+        c_defaults = {"VASP_CMD": VASP_CMD, "DB_FILE": DB_FILE}
+        c = c or {}
+        for k, v in c_defaults:
+            if k not in c:
+                c[k] = v
 
         fws = []
         analysis_parents = []
