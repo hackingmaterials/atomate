@@ -152,7 +152,6 @@ class GetImageFireworks(FiretaskBase):
     def get_fw(self, structure_path, parents=None):
         add_tags = self.get("add_tags")
         fw = ImageFW(
-            calc_type="image",
             approx_neb_wf_uuid=self["approx_neb_wf_uuid"],
             structure_path=structure_path,
             db_file=self["db_file"],
