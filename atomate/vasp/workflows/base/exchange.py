@@ -3,27 +3,26 @@
 import os
 import numpy as np
 
-from atomate.vasp.fireworks.core import StaticFW
 from fireworks import Workflow, Firework
+from atomate.vasp.fireworks.core import StaticFW
 from atomate.vasp.powerups import (
     add_tags,
+    add_modify_incar,
     add_additional_fields_to_taskdocs,
     add_wf_metadata,
     add_common_powerups,
 )
 from atomate.vasp.workflows.base.core import get_wf
-
 from atomate.vasp.fireworks.exchange import HeisenbergModelFW, VampireCallerFW
 from atomate.vasp.firetasks.exchange_tasks import ExchangeToDB
+from atomate.vasp.config import VASP_CMD, DB_FILE, ADD_WF_METADATA
+from atomate.vasp.workflows.presets.scan import wf_scan_opt
+from atomate.utils.utils import get_logger
 
 from uuid import uuid4
 from copy import deepcopy
-from atomate.utils.utils import get_logger
 
 logger = get_logger(__name__)
-
-from atomate.vasp.config import VASP_CMD, DB_FILE, ADD_WF_METADATA
-from atomate.vasp.workflows.presets.scan import wf_scan_opt
 
 from pymatgen.io.vasp.sets import MPStaticSet
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
@@ -95,6 +94,9 @@ class ExchangeWF:
             matched_structures (list): Commensurate supercells for static 
         calculations.
 
+        TODO:
+            * Only consider orderings with |S_i| = ground state
+
         """
 
         # Sort by energies
@@ -125,6 +127,8 @@ class ExchangeWF:
 
         mse = MagneticStructureEnumerator(
             enum_struct,
+            strategies=("ferromagnetic", "antiferromagnetic"),
+            automatic=False,
             transformation_kwargs={
                 "min_cell_size": 1,
                 "max_cell_size": 2,
@@ -155,7 +159,20 @@ class ExchangeWF:
             except:
                 s2 = None
             if s2 is not None:
+                # Standardize magnetic structure
+                cmsa = CollinearMagneticStructureAnalyzer(s2, 
+                    threshold=0.0, make_primitive=False)
+                s2 = cmsa.structure
                 matched_structures.append(s2)
+
+        # Enforce all magmom magnitudes to match the gs
+        gs_supercell = matched_structures[0]
+        gs_magmoms = [abs(m) for m in gs_supercell.site_properties["magmom"]]
+
+        for s in matched_structures[1:]:
+            ms = s.site_properties["magmom"]
+            magmoms = [np.sign(m1) * m2 for m1, m2 in zip(ms, gs_magmoms)]
+            s.add_site_property("magmom", magmoms)
 
         return matched_structures, input_index, ordered_structure_origins
 
@@ -173,7 +190,6 @@ class ExchangeWF:
             mc_timesteps (int): Number of MC moves for averaging.
 
         Args:
-            scan (bool): use SCAN functional.
             num_orderings_hard_limit (int): will make sure total number of magnetic
         orderings does not exceed this number even if there are extra orderings
         of equivalent symmetry
@@ -184,7 +200,6 @@ class ExchangeWF:
 
         TODO:
             * Add static SCAN option (only optimization is available)
-            * Allow for user inputs to HeisenbergMapper and VampireCaller
         """
 
         c = c or {"VASP_CMD": VASP_CMD, "DB_FILE": DB_FILE}
@@ -218,7 +233,7 @@ class ExchangeWF:
                     vasp_input_set=vis,
                     vasp_cmd=c["VASP_CMD"],
                     db_file=c["DB_FILE"],
-                    name=name + " static",
+                    name="static",
                 )
             )
 
@@ -277,6 +292,15 @@ class ExchangeWF:
         fws = static_fws + [fw_analysis, heisenberg_model_fw, vampire_fw]
 
         wf = Workflow(fws)
+
+        # Powerups for static vasp calc
+        # user vasp input settings isn't working...
+        wf = add_modify_incar(wf, modify_incar_params={"incar_update":
+            {"ISYM": 0, "LASPH": ".TRUE.", "ADDGRID": ".TRUE.", 
+            "PREC": "Accurate", "LMAXMIX": 4}},
+            fw_name_constraint="static")
+
+        # Add metadata
         wf = add_additional_fields_to_taskdocs(wf, {"wf_meta": self.wf_meta})
         formula = self.matched_structures[0].composition.reduced_formula
         wf.name = "{} - Exchange".format(formula)

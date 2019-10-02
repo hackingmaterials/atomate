@@ -58,9 +58,9 @@ class HeisenbergModelFW(Firework):
         }
 
         tasks = []
-        end_cutoff = 15  # Larger than this is unreasonable
+        end_cutoff = 5.0  # Larger than this is unreasonable
 
-        for coff in np.linspace(cutoff, end_cutoff, 9):
+        for coff in np.linspace(cutoff, end_cutoff, 5):
             tasks.append(
                 HeisenbergModelMapping(
                     db_file=db_file,
