@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
 
@@ -18,10 +17,10 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 def get_wf(structure, wf_filename, params=None, common_params=None, vis=None, wf_metadata=None):
     """
     Get a workflow given a structure and a name of file from the workflow library.
-    
-    Possible options for wf_filename are listed in: atomate.vasp.workflows.base.library and 
+
+    Possible options for wf_filename are listed in: atomate.vasp.workflows.base.library and
     include band structure, dielectric constant, NEB, and more.
-    
+
     You can also override some of the parameters via the function arguments.
 
     Args:

@@ -1,12 +1,10 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, \
-    absolute_import
-
 import glob
 
 from pymatgen.analysis.elasticity.strain import Strain
-from pymatgen.io.vasp import Vasprun, zpath
+from pymatgen.io.vasp import Vasprun
+from monty.os.path import zpath
 
 """
 This module defines tasks that acts as a glue between other vasp Firetasks to allow communication
@@ -39,9 +37,9 @@ __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
 class CopyVaspOutputs(CopyFiles):
     """
     Copy files from a previous VASP run directory to the current directory.
-    By default, copies 'INCAR', 'POSCAR' (default: via 'CONTCAR'), 'KPOINTS', 
-    'POTCAR', 'OUTCAR', and 'vasprun.xml'. Additional files, e.g. 'CHGCAR', 
-    can also be specified. Automatically handles files that have a ".gz" 
+    By default, copies 'INCAR', 'POSCAR' (default: via 'CONTCAR'), 'KPOINTS',
+    'POTCAR', 'OUTCAR', and 'vasprun.xml'. Additional files, e.g. 'CHGCAR',
+    can also be specified. Automatically handles files that have a ".gz"
     extension (copies and unzips).
 
     Note that you must specify either "calc_loc" or "calc_dir" to indicate
@@ -289,7 +287,7 @@ def pass_vasp_result(pass_dict=None, calc_dir='.', filename="vasprun.xml.gz",
     Function that gets a PassResult firework corresponding to output from a Vasprun.  Covers
     most use cases in which user needs to pass results from a vasp run to child FWs
     (e. g. analysis FWs)
-        
+
     pass_vasp_result(pass_dict={'stress': ">>ionic_steps.-1.stress"})
 
     Args:
@@ -313,7 +311,7 @@ def pass_vasp_result(pass_dict=None, calc_dir='.', filename="vasprun.xml.gz",
             defaults to false
         **kwargs (keyword args): other keyword arguments passed to PassResult
             e.g. mod_spec_key or mod_spec_cmd
-        
+
     """
     pass_dict = pass_dict or {"computed_entry": "a>>get_computed_entry"}
     parse_kwargs = {"filename": filename, "parse_eigen": parse_eigen,

@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 """
 This module defines the gibbs free energy workflow.

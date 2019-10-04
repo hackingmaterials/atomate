@@ -2,7 +2,6 @@
 # Copyright (c) Materials Virtual Lab.
 # Distributed under the terms of the BSD License.
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
 import unittest
@@ -83,6 +82,7 @@ class QChemDroneTest(unittest.TestCase):
         self.assertIn("last_updated", doc)
         self.assertIn("dir_name", doc)
         self.assertEqual(len(doc["calcs_reversed"]), 1)
+        self.assertEqual(doc["output"]["final_energy"],-348.6524625796)
 
     def test_assimilate_FF(self):
         drone = QChemDrone(
@@ -199,7 +199,6 @@ class QChemDroneTest(unittest.TestCase):
         self.assertEqual(doc["output"]["final_energy"], "unstable")
         self.assertEqual(doc["smiles"], "[S](=O)[N]S[C]")
         self.assertEqual(doc["state"], "unsuccessful")
-        self.assertEqual(doc["num_frequencies_flattened"], 0)
         self.assertEqual(doc["walltime"], None)
         self.assertEqual(doc["cputime"], None)
         self.assertEqual(doc["formula_pretty"], "CS2NO")
@@ -319,6 +318,40 @@ class QChemDroneTest(unittest.TestCase):
         self.assertIn("last_updated", doc)
         self.assertIn("dir_name", doc)
         self.assertEqual(len(doc["calcs_reversed"]), 1)
+
+    def test_FF_switching(self):
+        drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener"})
+        doc = drone.assimilate(
+            path=os.path.join(module_dir, "..", "test_files", "FF_switching"),
+            input_file="mol.qin",
+            output_file="mol.qout",
+            multirun=False)
+        self.assertEqual(doc["special_run_type"], "frequency_flattener")
+        self.assertEqual(doc["input"]["job_type"], "opt")
+        self.assertEqual(doc["output"]["job_type"], "freq")
+        self.assertEqual(doc["num_frequencies_flattened"], 1)
+        self.assertEqual(doc["warnings"]["energy_increased"], True)
+
+    def test_FF_with_error_correction(self):
+        drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener", "linked": True})
+        doc = drone.assimilate(
+            path=os.path.join(module_dir, "..", "test_files", "LiH4C2SO4"),
+            input_file="mol.qin",
+            output_file="mol.qout",
+            multirun=False)
+        self.assertEqual(doc["opt_trajectory"]["discontinuity"], {'structure': [[1, 2]], 'scf_energy': [[1, 2]], 'total_energy': [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6]]})
+        self.assertEqual(doc["opt_trajectory"]["energy_increase"], [[1, 2, 0.00011567800004286255], [4, 2.779800001917465e-05], [3, 4, 2.8762000056303805e-05], [5, 2.2528000044985674e-05], [4, 5, 2.1631999970850302e-05]])
+        self.assertEqual(doc["opt_trajectory"]["structure_change"], [[0, 'no_change'], [1, 'no_change'], [2, 'no_change'], [3, 'no_change'], [4, 'no_change'], [5, 'no_change'], [6, 'no_change']])
+        self.assertEqual(doc["warnings"], {'missing_analytical_derivates': True, 'mkl': True, 'hessian_local_structure': True, 'internal_coordinates': True, 'diagonalizing_BBt': True, 'eigenvalue_magnitude': True, 'positive_definiteness_endangered': True, 'linked_structure_discontinuity': True, 'energy_increased': True})
+
+    def test_custom_smd(self):
+        drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener", "linked": True})
+        doc = drone.assimilate(
+            path=os.path.join(module_dir, "..", "test_files", "custom_smd"),
+            input_file="mol.qin",
+            output_file="mol.qout",
+            multirun=False)
+        self.assertEqual(doc["custom_smd"],"18.5,1.415,0.00,0.735,20.2,0.00,0.00")
 
 
 if __name__ == "__main__":

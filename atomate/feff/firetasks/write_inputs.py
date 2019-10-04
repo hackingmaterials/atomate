@@ -1,9 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
-
-from six import string_types
-
 """
 This module defines tasks for writing FEFF input sets.
 """
@@ -80,7 +76,7 @@ def get_feff_input_set_obj(fis, *args, **kwargs):
         FeffDictSet object
     """
     # e.g. "pymatgen.io.feff.sets.MPXANESSet" or "XANES"
-    if isinstance(fis, string_types):
+    if isinstance(fis, str):
         fis_ = "pymatgen.io.feff.sets.MP{}Set".format(fis) if "pymatgen" not in fis else fis
         modname, classname = fis_.strip().rsplit(".", 1)
         fis_cls = load_class(modname, classname)

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Creating workflows &#8212; atomate 0.9.3 documentation</title>
+    <title>Creating workflows &#8212; atomate 0.9.4 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -35,7 +35,7 @@
         <li class="right" >
           <a href="builders.html" title="Builders: creating calculation reports for data analysis"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -102,7 +102,7 @@
 </div>
 <div class="section" id="finding-fireworks">
 <h3>Finding Fireworks<a class="headerlink" href="#finding-fireworks" title="Permalink to this headline">¶</a></h3>
-<p>Once you have identified each calculation or analysis step as a Firework in our graph, we must determine which Fireworks correspond to each node in our graph. The full Python documentation for each of the atomate Fireworks can be found in the <a class="reference internal" href="atomate.vasp.fireworks.html#module-atomate.vasp.fireworks" title="atomate.vasp.fireworks"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.fireworks</span> <span class="pre">module</span></code></a> documentation or the corresponding documentation page for the software you want to use. Currently FEFF, LAMMPS, and VASP are supported. Some available VASP Fireworks are</p>
+<p>Once you have identified each calculation or analysis step as a Firework in our graph, we must determine which Fireworks correspond to each node in our graph. The full Python documentation for each of the atomate Fireworks can be found in the <code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.fireworks</span> <span class="pre">module</span></code> documentation or the corresponding documentation page for the software you want to use. Currently FEFF, LAMMPS, and VASP are supported. Some available VASP Fireworks are</p>
 <ul class="simple">
 <li><p>OptimizeFW</p></li>
 <li><p>StaticFW</p></li>
@@ -313,7 +313,7 @@
 </td></tr></table></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The documentation and source for the actual Gibbs Free Energy Workflow is found at <a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base.gibbs" title="atomate.vasp.workflows.base.gibbs"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.base.gibbs</span></code></a>. Here we have simplified some of the options and explicitly added each Firework.</p>
+<p>The documentation and source for the actual Gibbs Free Energy Workflow is found at <code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.base.gibbs</span></code>. Here we have simplified some of the options and explicitly added each Firework.</p>
 </div>
 <p>In the above code example, we start by importing the classes and functions we’ll be using and defining our <code class="docutils literal notranslate"><span class="pre">wf_gibbs_free_energy</span></code> function with all of the parameters we’d like to control from a workflow level and the documentation for those parameters. Running the function will return a FireWorks Workflow to add to the LaunchPad.</p>
 <p>Lines 41-51 is where we define the optimization Firework. First we check if a vasp_input_set_relax parameter was passed, if not we default to MPRelaxSet and update that set if the <code class="docutils literal notranslate"><span class="pre">user_kpoints_settings</span></code> parameter was passed. It’s common to see a similar parameter for <code class="docutils literal notranslate"><span class="pre">user_incar_settings</span></code>. On line 49 we create our list of Fireworks (<code class="docutils literal notranslate"><span class="pre">fws</span></code>) with the <code class="docutils literal notranslate"><span class="pre">OptimizeFW</span></code> that we imported. Take note that this is the only Firework we pass our structure to, which allows for more flexibility. More on this later.</p>
@@ -324,7 +324,7 @@
 <div class="section" id="more-help">
 <h3>More help<a class="headerlink" href="#more-help" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>Reading the source the base Workflows (<a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base" title="atomate.vasp.workflows.base"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.base</span></code></a>) would be a good place to find functional examples with reasonable parameters</p></li>
+<li><p>Reading the source the base Workflows (<code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.base</span></code>) would be a good place to find functional examples with reasonable parameters</p></li>
 <li><p>Creating workflows can also be done to some extent in YAML files. You can adapt the example along with a short explanation of the <a class="reference internal" href="workflow_yaml_reference.html#workflow-yaml-reference"><span class="std std-ref">Workflow YAML Reference</span></a>.</p></li>
 </ul>
 </div>
@@ -334,7 +334,7 @@
 <p>There are a few other interesting features of workflows in atomate that make writing dynamic and customizable workflows easier.</p>
 <div class="section" id="powerups">
 <h3>Powerups<a class="headerlink" href="#powerups" title="Permalink to this headline">¶</a></h3>
-<p>Powerups (<a class="reference internal" href="atomate.vasp.html#module-atomate.vasp.powerups" title="atomate.vasp.powerups"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.powerups</span></code></a>) enable modifications to be made to workflows <strong>after</strong> they have been created. The benefit of these is that you can apply powerups conditionally in code or to a large list of Workflows that you’ll later add to your LaunchPad. Some powerups affect the behavior of your calculations, others simply add metadata or change how the individual Fireworks interact with the database under the hood.</p>
+<p>Powerups (<code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.powerups</span></code>) enable modifications to be made to workflows <strong>after</strong> they have been created. The benefit of these is that you can apply powerups conditionally in code or to a large list of Workflows that you’ll later add to your LaunchPad. Some powerups affect the behavior of your calculations, others simply add metadata or change how the individual Fireworks interact with the database under the hood.</p>
 <p>Some useful powerups that affect the behavior of VASP are</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">add_modify_incar</span></code>: Update the INCAR of Fireworks specifed by (partially matched) name at runtime</p></li>
@@ -454,7 +454,7 @@
         <li class="right" >
           <a href="builders.html" title="Builders: creating calculation reports for data analysis"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
       </ul>
     </div>
 

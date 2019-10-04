@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 # This module defines firetasks for writing QChem input files
 
@@ -9,6 +8,8 @@ import os
 from atomate.utils.utils import load_class
 from fireworks import FiretaskBase, explicit_serialize
 from pymatgen.io.qchem.inputs import QCInput
+from pymatgen.analysis.graphs import MoleculeGraph
+from pymatgen.analysis.local_env import OpenBabelNN
 
 __author__ = "Brandon Wood"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -32,6 +33,7 @@ class WriteInputFromIOSet(FiretaskBase):
         fw_spec qc_input_set must be a string name for the QChem input set. ***
 
     optional_params:
+        molecule (Molecule): Molecule that will be subjected to an electronic structure calculation
         qchem_input_params (dict): When using a string name for QChem input set, use this as a dict
                                    to specify kwargs for instantiating the input set parameters. This
                                    setting is ignored if you provide the full object representation of
@@ -51,7 +53,6 @@ class WriteInputFromIOSet(FiretaskBase):
                                    "true"}}. Of course, overwrite_inputs could be used in conjuction with
                                    more typical modifications, as seen in the test_double_FF_opt workflow
                                    test.
-        molecule (Molecule):
         input_file (str): Name of the QChem input file. Defaults to mol.qin
         write_to_dir (str): Path of the directory where the QChem input file will be written,
         the default is to write to the current working directory
@@ -64,17 +65,41 @@ class WriteInputFromIOSet(FiretaskBase):
 
     def run_task(self, fw_spec):
         input_file = os.path.join(self.get("write_to_dir", ""),self.get("input_file", "mol.qin"))
-        # these if statements might need to be reordered at some point
+
         # if a full QChemDictSet object was provided
         if hasattr(self["qchem_input_set"], "write_file"):
             qcin = self["qchem_input_set"]
         # if a molecule is being passed through fw_spec
         elif fw_spec.get("prev_calc_molecule"):
-            mol = fw_spec.get("prev_calc_molecule")
+            prev_calc_mol = fw_spec.get("prev_calc_molecule")
+            # if a molecule is also passed as an optional parameter
+            if self.get("molecule"):
+                mol = self.get("molecule")
+                # check if mol and prev_calc_mol are isomorphic
+                mol_graph = MoleculeGraph.with_local_env_strategy(mol,
+                                                                  OpenBabelNN(),
+                                                                  reorder=False,
+                                                                  extend_structure=False)
+                prev_mol_graph = MoleculeGraph.with_local_env_strategy(prev_calc_molecule,
+                                                                       OpenBabelNN(),
+                                                                       reorder=False,
+                                                                       extend_structure=False)
+                # If they are isomorphic, aka a previous FW has not changed bonding,
+                # then we will use prev_calc_mol. If bonding has changed, we will use mol.
+                if mol_graph.isomorphic_to(prev_mol_graph):
+                    mol = prev_calc_mol
+                elif self["qchem_input_set"] != "OptSet":
+                    print("WARNING: Molecule from spec is not isomorphic to passed molecule!")
+                    mol = prev_calc_mol
+                else:
+                    print("Not using prev_calc_mol as it is not isomorphic to passed molecule!")
+            else:
+              mol = prev_calc_mol
+
             qcin_cls = load_class("pymatgen.io.qchem.sets",
                                   self["qchem_input_set"])
             qcin = qcin_cls(mol, **self.get("qchem_input_params", {}))
-        # if a molecule is included as an optional parameter
+        # if a molecule is only included as an optional parameter
         elif self.get("molecule"):
             qcin_cls = load_class("pymatgen.io.qchem.sets",
                                   self["qchem_input_set"])
@@ -85,7 +110,7 @@ class WriteInputFromIOSet(FiretaskBase):
             raise KeyError(
                 "No molecule present, add as an optional param or check fw_spec"
             )
-        qcin.write_file(input_file)
+        qcin.write(input_file)
 
 
 @explicit_serialize
@@ -102,7 +127,6 @@ class WriteCustomInput(FiretaskBase):
             ***  ***
 
         optional_params:
-            molecule (Molecule):
             input_file (str): Name of the QChem input file. Defaults to mol.qin
             write_to_dir (str): Path of the directory where the QChem input file will be written,
             the default is to write to the current working directory
@@ -116,11 +140,29 @@ class WriteCustomInput(FiretaskBase):
 
     def run_task(self, fw_spec):
         input_file = os.path.join(self.get("write_to_dir", ""),self.get("input_file", "mol.qin"))
-        # these if statements might need to be reordered at some point
-        if "molecule" in self:
-            molecule = self["molecule"]
-        elif fw_spec.get("prev_calc_molecule"):
-            molecule = fw_spec.get("prev_calc_molecule")
+        # if a molecule is being passed through fw_spec
+        if fw_spec.get("prev_calc_molecule"):
+            prev_calc_mol = fw_spec.get("prev_calc_molecule")
+            # if a molecule is also passed as an optional parameter
+            if self.get("molecule"):
+                mol = self.get("molecule")
+                # check if mol and prev_calc_mol are isomorphic
+                mol_graph = MoleculeGraph.with_local_env_strategy(mol,
+                                                                  OpenBabelNN(),
+                                                                  reorder=False,
+                                                                  extend_structure=False)
+                prev_mol_graph = MoleculeGraph.with_local_env_strategy(prev_calc_molecule,
+                                                                       OpenBabelNN(),
+                                                                       reorder=False,
+                                                                       extend_structure=False)
+                if mol_graph.isomorphic_to(prev_mol_graph):
+                    mol = prev_calc_mol
+                else:
+                    print("WARNING: Molecule from spec is not isomorphic to passed molecule!")
+            else:
+              mol = prev_calc_mol
+        elif self.get("molecule"):
+            mol = self.get("molecule")
         else:
             raise KeyError(
                 "No molecule present, add as an optional param or check fw_spec"
@@ -132,7 +174,7 @@ class WriteCustomInput(FiretaskBase):
         solvent = self.get("solvent", None)
 
         qcin = QCInput(
-            molecule=molecule,
+            molecule=mol,
             rem=self["rem"],
             opt=opt,
             pcm=pcm,

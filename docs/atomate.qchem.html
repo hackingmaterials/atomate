@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>atomate.qchem package &#8212; atomate 0.9.3 documentation</title>
+    <title>atomate.qchem package &#8212; atomate 0.9.4 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -27,7 +27,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -215,8 +215,7 @@ example, you will want the file paths.</p>
 <dl class="method">
 <dt id="atomate.qchem.drones.QChemDrone.post_process">
 <em class="property">static </em><code class="sig-name descname">post_process</code><span class="sig-paren">(</span><em class="sig-param">dir_name</em>, <em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.post_process" title="Permalink to this definition">¶</a></dt>
-<dd><p>Post-processing for various files other than the QChem input and output files.
-Currently only looks for custodian.json. Modify this if other files need to be processed.</p>
+<dd><p>Post-processing for various files other than the QChem input and output files.</p>
 </dd></dl>
 
 <dl class="method">
@@ -234,7 +233,7 @@ in a single input/output pair.</p>
 
 <dl class="attribute">
 <dt id="atomate.qchem.drones.QChemDrone.schema">
-<code class="sig-name descname">schema</code><em class="property"> = {'input': {'initial_molecule', 'job_type'}, 'output': {'initial_molecule', 'job_type'}, 'root': {'calcs_reversed', 'chemsys', 'cputime', 'dir_name', 'formula_anonymous', 'formula_pretty', 'input', 'output', 'pointgroup', 'smiles', 'walltime'}}</em><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.schema" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">schema</code><em class="property"> = {'input': {'initial_molecule', 'job_type'}, 'output': {'final_energy', 'initial_molecule', 'job_type'}, 'root': {'calcs_reversed', 'chemsys', 'cputime', 'dir_name', 'formula_alphabetical', 'formula_anonymous', 'formula_pretty', 'input', 'output', 'pointgroup', 'smiles', 'walltime'}}</em><a class="headerlink" href="#atomate.qchem.drones.QChemDrone.schema" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -251,7 +250,7 @@ to pass validation is unfortunately unlikely to be noticed by a user.</p>
 <span id="atomate-qchem-powerups-module"></span><h2>atomate.qchem.powerups module<a class="headerlink" href="#module-atomate.qchem.powerups" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="atomate.qchem.powerups.use_fake_qchem">
-<code class="sig-prename descclassname">atomate.qchem.powerups.</code><code class="sig-name descname">use_fake_qchem</code><span class="sig-paren">(</span><em class="sig-param">original_wf</em>, <em class="sig-param">ref_dirs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.powerups.use_fake_qchem" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">atomate.qchem.powerups.</code><code class="sig-name descname">use_fake_qchem</code><span class="sig-paren">(</span><em class="sig-param">original_wf</em>, <em class="sig-param">ref_dirs</em>, <em class="sig-param">input_file='mol.qin'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.powerups.use_fake_qchem" title="Permalink to this definition">¶</a></dt>
 <dd><p>Replaces all RunQChem commands (i.e. RunQChemDirect, RunQChemCustodian) with RunQChemFake.
 This allows for testing without actually running QChem</p>
 <dl class="simple">
@@ -318,7 +317,7 @@ ref_dirs (dict): key=firework name, value=path to the reference QChem calculatio
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
       </ul>
     </div>
 
