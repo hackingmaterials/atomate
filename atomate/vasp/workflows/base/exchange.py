@@ -233,7 +233,7 @@ class ExchangeWF:
                     vasp_input_set=vis,
                     vasp_cmd=c["VASP_CMD"],
                     db_file=c["DB_FILE"],
-                    name="static",
+                    name=name + "static",
                 )
             )
 
@@ -297,8 +297,7 @@ class ExchangeWF:
         # user vasp input settings isn't working...
         wf = add_modify_incar(wf, modify_incar_params={"incar_update":
             {"ISYM": 0, "LASPH": ".TRUE.", "ADDGRID": ".TRUE.", 
-            "PREC": "Accurate", "LMAXMIX": 4}},
-            fw_name_constraint="static")
+            "PREC": "Accurate", "LMAXMIX": 4}})
 
         # Add metadata
         wf = add_additional_fields_to_taskdocs(wf, {"wf_meta": self.wf_meta})
