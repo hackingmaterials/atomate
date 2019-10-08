@@ -3,7 +3,7 @@
 atomate is a software for computational materials science that contains pre-built workflows to compute and analyze the properties of materials.
 
 - **Website (including documentation):** https://hackingmaterials.github.io/atomate/
-- **Help/Support:** https://groups.google.com/forum/#!forum/atomate
+- **Help/Support:** https://hackingmaterials.discourse.group/c/atomate
 - **Source:** https://github.com/hackingmaterials/atomate
 
 If you find atomate useful, please encourage its development by citing the following paper in your research output:
