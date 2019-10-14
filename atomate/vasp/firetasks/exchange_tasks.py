@@ -278,6 +278,9 @@ class HeisenbergModelMapping(FiretaskBase):
             "heisenberg_model": hmodel_dict,
         }
 
+        if fw_spec.get("tags", None):
+            task_doc["tags"] = fw_spec["tags"]
+
         # Exchange collection
         mmdb.collection = mmdb.db["exchange"]
         mmdb.collection.insert(task_doc)
@@ -372,12 +375,16 @@ class VampireMC(FiretaskBase):
         db_file = env_chk(self["db_file"], fw_spec)
         wf_uuid = self["exchange_wf_uuid"]
         formula_pretty = self["parent_structure"].composition.reduced_formula
+        mc_settings = self["mc_settings"]
 
         # Get Heisenberg models from db
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         mmdb.collection = mmdb.db["exchange"]
 
         task_doc = {"wf_meta": {"wf_uuid": wf_uuid}, "formula_pretty": formula_pretty}
+
+        if fw_spec.get("tags", None):
+            task_doc["tags"] = fw_spec["tags"]
 
         # Vampire monte carlo settings
         mc_box_size = mc_settings["mc_box_size"]

@@ -56,7 +56,7 @@ class ExchangeWF:
         Args:
             magnetic_structures (list): Structure objects with the 'magmom'
         site property.
-            energies (list): Total energies in eV.
+            energies (list): Energies per atom in eV.
             default_magmoms: (optional, defaults provided) dict of
         magnetic elements to their initial magnetic moments in µB, generally
         these are chosen to be high-spin since they can relax to a low-spin
@@ -88,7 +88,7 @@ class ExchangeWF:
 
         Args:
             magnetic_structures (list): Structures.
-            energies (list): Energies.
+            energies (list): Energies per atom.
 
         Returns:
             matched_structures (list): Commensurate supercells for static 
@@ -122,8 +122,12 @@ class ExchangeWF:
         # FM gs will always be commensurate so we match to the 1st es
         if gs_ordering == "FM":
             enum_struct = es_struct
+            fm_moments = np.array(gs_struct.site_properties["magmom"])
+            fm_moment = np.mean(fm_moments[np.nonzero(fm_moments)])
+            gs_magmoms = [fm_moment for m in es_struct.site_properties["magmom"]]
         elif gs_ordering in ["FiM", "AFM"]:
             enum_struct = gs_struct
+            gs_magmoms = [abs(m) for m in gs_struct.site_properties["magmom"]]
 
         mse = MagneticStructureEnumerator(
             enum_struct,
@@ -140,19 +144,13 @@ class ExchangeWF:
         input_index = mse.input_index
         ordered_structure_origins = mse.ordered_structure_origins
 
-        # Get commensurate supercells
-        cmsa = CollinearMagneticStructureAnalyzer(
-            enum_struct, threshold=0.0, make_primitive=False
-        )
-        enum_index = [cmsa.matches_ordering(s) for s in mse.ordered_structures].index(
-            True
-        )
-        matched_structures = [mse.ordered_structures[enum_index]]
+        matched_structures = []
 
         sm = StructureMatcher(
             primitive_cell=False, attempt_supercell=True, comparator=ElementComparator()
         )
 
+        # Get commensurate supercells
         for s in mse.ordered_structures:
             try:
                 s2 = sm.get_s2_like_s1(enum_struct, s)
@@ -165,11 +163,17 @@ class ExchangeWF:
                 s2 = cmsa.structure
                 matched_structures.append(s2)
 
-        # Enforce all magmom magnitudes to match the gs
-        gs_supercell = matched_structures[0]
-        gs_magmoms = [abs(m) for m in gs_supercell.site_properties["magmom"]]
+        # Find the gs ordering in the enumerated supercells
+        cmsa = CollinearMagneticStructureAnalyzer(
+            gs_struct, threshold=0.0, make_primitive=False
+        )
 
-        for s in matched_structures[1:]:
+        enum_index = [cmsa.matches_ordering(s) for s in matched_structures].index(
+            True
+        )
+
+        # Enforce all magmom magnitudes to match the gs
+        for s in matched_structures:
             ms = s.site_properties["magmom"]
             magmoms = [np.sign(m1) * m2 for m1, m2 in zip(ms, gs_magmoms)]
             s.add_site_property("magmom", magmoms)
