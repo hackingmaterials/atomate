@@ -30,7 +30,7 @@ from pymatgen.electronic_structure.bandstructure import BandStructureSymmLine
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot
 from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
-from pymatgen.io.vasp.outputs import VolumetricData
+from pymatgen.io.vasp.outputs import Chgcar
 from pymatgen.apps.borg.hive import AbstractDrone
 from pymatgen.command_line.bader_caller import bader_analysis_from_path
 
@@ -418,7 +418,7 @@ class VaspDrone(AbstractDrone):
                 if file in d["output_file_paths"]:
                     try:
                         # assume volumetric data is all in CHGCAR format
-                        data = VolumetricData.from_file(file, d["output_file_paths"][file])
+                        data = Chgcar.from_file(file, d["output_file_paths"][file])
                         d[file] = data
                     except:
                         raise ValueError("Failed to parse {} at {}.".format(file,
