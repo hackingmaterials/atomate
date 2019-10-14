@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>atomate.vasp.workflows.base package &#8212; atomate 0.9.3 documentation</title>
+    <title>atomate.vasp.workflows.base package &#8212; atomate 0.9.4 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -27,7 +27,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -41,683 +41,41 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.vasp.workflows.base.adsorption">
-<span id="atomate-vasp-workflows-base-adsorption-module"></span><h2>atomate.vasp.workflows.base.adsorption module<a class="headerlink" href="#module-atomate.vasp.workflows.base.adsorption" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="atomate.vasp.workflows.base.adsorption.MPSurfaceSet">
-<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.workflows.base.adsorption.</code><code class="sig-name descname">MPSurfaceSet</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">bulk=False</em>, <em class="sig-param">auto_dipole=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.MPSurfaceSet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.io.vasp.sets.MVLSlabSet</span></code></p>
-<p>Input class for MP slab calcs, mostly to change parameters
-and defaults slightly</p>
-<dl class="method">
-<dt id="atomate.vasp.workflows.base.adsorption.MPSurfaceSet.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">bulk=False</em>, <em class="sig-param">auto_dipole=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.MPSurfaceSet.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.vasp.workflows.base.adsorption.MPSurfaceSet.incar">
-<em class="property">property </em><code class="sig-name descname">incar</code><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.MPSurfaceSet.incar" title="Permalink to this definition">¶</a></dt>
-<dd><p>Incar object</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.vasp.workflows.base.adsorption.get_slab_fw">
-<code class="sig-prename descclassname">atomate.vasp.workflows.base.adsorption.</code><code class="sig-name descname">get_slab_fw</code><span class="sig-paren">(</span><em class="sig-param">slab</em>, <em class="sig-param">transmuter=False</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">vasp_input_set=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">vasp_cmd='vasp'</em>, <em class="sig-param">name=''</em>, <em class="sig-param">add_slab_metadata=True</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.get_slab_fw" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function to generate a a slab firework.  Returns a TransmuterFW if
-bulk_structure is specified, constructing the necessary transformations
-from the slab and slab generator parameters, or an OptimizeFW if only a
-slab is specified.</p>
-<dl>
-<dt>Args:</dt><dd><dl class="simple">
-<dt>slab (Slab or Structure): structure or slab corresponding</dt><dd><p>to the slab to be calculated</p>
-</dd>
-<dt>transmuter (bool): whether or not to use a TransmuterFW based</dt><dd><p>on slab params, if this option is selected, input slab must
-be a Slab object (as opposed to Structure)</p>
-</dd>
-<dt>vasp_input_set (VaspInputSet): vasp_input_set corresponding to</dt><dd><p>the slab calculation</p>
-</dd>
-</dl>
-<p>parents (Fireworks or list of ints): parent FWs
-db_file (string): path to database file
-vasp_cmd (string): vasp command
-name (string): name of firework
-add_slab_metadata (bool): whether to add slab metadata to task doc</p>
-</dd>
-<dt>Returns:</dt><dd><p>Firework corresponding to slab calculation</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.vasp.workflows.base.adsorption.get_slab_trans_params">
-<code class="sig-prename descclassname">atomate.vasp.workflows.base.adsorption.</code><code class="sig-name descname">get_slab_trans_params</code><span class="sig-paren">(</span><em class="sig-param">slab</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.get_slab_trans_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets a set of slab transformation params</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>slab (Slab): slab to find transformation params from</p>
-</dd>
-<dt>Returns (SlabTransformation):</dt><dd><p>Transformation for a transformation that will transform
-the oriented unit cell to the slab</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.vasp.workflows.base.adsorption.get_wf_molecules">
-<code class="sig-prename descclassname">atomate.vasp.workflows.base.adsorption.</code><code class="sig-name descname">get_wf_molecules</code><span class="sig-paren">(</span><em class="sig-param">molecules</em>, <em class="sig-param">vasp_input_set=None</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">vasp_cmd='vasp'</em>, <em class="sig-param">name=''</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.get_wf_molecules" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Args:</dt><dd><p>molecules (Molecules): list of molecules to calculate
-vasp_input_set (DictSet): VaspInputSet for molecules
-db_file (string): database file path
-vasp_cmd (string): VASP command
-name (string): name for workflow</p>
-</dd>
-<dt>Returns:</dt><dd><p>workflow consisting of molecule calculations</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.vasp.workflows.base.adsorption.get_wf_slab">
-<code class="sig-prename descclassname">atomate.vasp.workflows.base.adsorption.</code><code class="sig-name descname">get_wf_slab</code><span class="sig-paren">(</span><em class="sig-param">slab</em>, <em class="sig-param">include_bulk_opt=False</em>, <em class="sig-param">adsorbates=None</em>, <em class="sig-param">ads_structures_params=None</em>, <em class="sig-param">vasp_cmd='vasp'</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">add_molecules_in_box=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.get_wf_slab" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets a workflow corresponding to a slab calculation along with optional
-adsorbate calcs and precursor oriented unit cell optimization</p>
-<dl>
-<dt>Args:</dt><dd><p>slabs (list of Slabs or Structures): slabs to calculate
-include_bulk_opt (bool): whether to include bulk optimization,</p>
-<blockquote>
-<div><p>this flag sets the slab fireworks to be TransmuterFWs based
-on bulk optimization of oriented unit cells</p>
-</div></blockquote>
-<p>adsorbates ([Molecule]): list of molecules to place as adsorbates
-ads_structures_params (dict): parameters to be supplied as</p>
-<blockquote>
-<div><p>kwargs to AdsorbateSiteFinder.generate_adsorption_structures</p>
-</div></blockquote>
-<dl class="simple">
-<dt>add_molecules_in_box (boolean): flag to add calculation of</dt><dd><p>adsorbate molecule energies to the workflow</p>
-</dd>
-</dl>
-<p>db_file (string): path to database file
-vasp_cmd (string): vasp command</p>
-</dd>
-<dt>Returns:</dt><dd><p>Workflow</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.vasp.workflows.base.adsorption.get_wfs_all_slabs">
-<code class="sig-prename descclassname">atomate.vasp.workflows.base.adsorption.</code><code class="sig-name descname">get_wfs_all_slabs</code><span class="sig-paren">(</span><em class="sig-param">bulk_structure</em>, <em class="sig-param">include_bulk_opt=False</em>, <em class="sig-param">adsorbates=None</em>, <em class="sig-param">max_index=1</em>, <em class="sig-param">slab_gen_params=None</em>, <em class="sig-param">ads_structures_params=None</em>, <em class="sig-param">vasp_cmd='vasp'</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">add_molecules_in_box=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.adsorption.get_wfs_all_slabs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convenience constructor that allows a user to construct a workflow
-that finds all adsorption configurations (or slabs) for a given
-max miller index.</p>
-<dl>
-<dt>Args:</dt><dd><p>bulk_structure (Structure): bulk structure from which to construct slabs
-include_bulk_opt (bool): whether to include bulk optimization</p>
-<blockquote>
-<div><p>of oriented unit cells</p>
-</div></blockquote>
-<p>adsorbates ([Molecule]): adsorbates to place on surfaces
-max_index (int): max miller index
-slab_gen_params (dict): dictionary of kwargs for generate_all_slabs
-ads_structures_params (dict): dictionary of kwargs for generating</p>
-<blockquote>
-<div><p>of adsorption structures via AdsorptionSiteFinder</p>
-</div></blockquote>
-<p>vasp_cmd (str): vasp command
-db_file (str): location of db file
-add_molecules_in_box (bool): whether to add molecules in a box</p>
-<blockquote>
-<div><p>for the entire workflow</p>
-</div></blockquote>
-</dd>
-<dt>Returns:</dt><dd><p>list of slab-specific Workflows</p>
-</dd>
-</dl>
-</dd></dl>
-
+<div class="section" id="atomate-vasp-workflows-base-adsorption-module">
+<h2>atomate.vasp.workflows.base.adsorption module<a class="headerlink" href="#atomate-vasp-workflows-base-adsorption-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.vasp.workflows.base.bulk_modulus">
-<span id="atomate-vasp-workflows-base-bulk-modulus-module"></span><h2>atomate.vasp.workflows.base.bulk_modulus module<a class="headerlink" href="#module-atomate.vasp.workflows.base.bulk_modulus" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="atomate.vasp.workflows.base.bulk_modulus.get_wf_bulk_modulus">
-<code class="sig-prename descclassname">atomate.vasp.workflows.base.bulk_modulus.</code><code class="sig-name descname">get_wf_bulk_modulus</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">deformations</em>, <em class="sig-param">vasp_input_set=None</em>, <em class="sig-param">vasp_cmd='vasp'</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">user_kpoints_settings=None</em>, <em class="sig-param">eos='vinet'</em>, <em class="sig-param">tag=None</em>, <em class="sig-param">user_incar_settings=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.bulk_modulus.get_wf_bulk_modulus" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the workflow that computes the bulk modulus by fitting to the given equation of state.</p>
-<dl>
-<dt>Args:</dt><dd><p>structure (Structure): input structure.
-deformations (list): list of deformation matrices(list of lists).
-vasp_input_set (VaspInputSet): for the static deformation calculations
-vasp_cmd (str): vasp command to run.
-db_file (str): path to the db file.
-user_kpoints_settings (dict): example: {“grid_density”: 7000}
-eos (str): equation of state used for fitting the energies and the volumes.</p>
-<blockquote>
-<div><p>supported equation of states: “quadratic”, “murnaghan”, “birch”, “birch_murnaghan”,
-“pourier_tarantola”, “vinet”, “deltafactor”. See pymatgen.analysis.eos.py</p>
-</div></blockquote>
-<dl class="simple">
-<dt>tag (str): something unique to identify the tasks in this workflow. If None a random uuid</dt><dd><p>will be assigned.</p>
-</dd>
-</dl>
-<p>user_incar_settings (dict):</p>
-</dd>
-<dt>Returns:</dt><dd><p>Workflow</p>
-</dd>
-</dl>
-</dd></dl>
-
+<div class="section" id="atomate-vasp-workflows-base-bulk-modulus-module">
+<h2>atomate.vasp.workflows.base.bulk_modulus module<a class="headerlink" href="#atomate-vasp-workflows-base-bulk-modulus-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.vasp.workflows.base.core">
-<span id="atomate-vasp-workflows-base-core-module"></span><h2>atomate.vasp.workflows.base.core module<a class="headerlink" href="#module-atomate.vasp.workflows.base.core" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="atomate.vasp.workflows.base.core.get_wf">
-<code class="sig-prename descclassname">atomate.vasp.workflows.base.core.</code><code class="sig-name descname">get_wf</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">wf_filename</em>, <em class="sig-param">params=None</em>, <em class="sig-param">common_params=None</em>, <em class="sig-param">vis=None</em>, <em class="sig-param">wf_metadata=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.core.get_wf" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get a workflow given a structure and a name of file from the workflow library.</p>
-<p>Possible options for wf_filename are listed in: atomate.vasp.workflows.base.library and 
-include band structure, dielectric constant, NEB, and more.</p>
-<p>You can also override some of the parameters via the function arguments.</p>
-<dl>
-<dt>Args:</dt><dd><p>structure: (Structure) structure to run
-wf_filename: filename in library subdir, e.g. “band_structure.yaml”
-params: (list of dicts) set params for each Firework; format is list</p>
-<blockquote>
-<div><p>that is same length as # of fws in the workflow</p>
-</div></blockquote>
-<p>common_params: (dict) set common params
-vis: (VaspInputSet) A VaspInputSet to use for the first FW
-wf_metadata: (dict) workflow metadata</p>
-</dd>
-<dt>Returns:</dt><dd><p>A Workflow</p>
-</dd>
-</dl>
-</dd></dl>
-
+<div class="section" id="atomate-vasp-workflows-base-core-module">
+<h2>atomate.vasp.workflows.base.core module<a class="headerlink" href="#atomate-vasp-workflows-base-core-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.vasp.workflows.base.deformations">
-<span id="atomate-vasp-workflows-base-deformations-module"></span><h2>atomate.vasp.workflows.base.deformations module<a class="headerlink" href="#module-atomate.vasp.workflows.base.deformations" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="atomate.vasp.workflows.base.deformations.get_wf_deformations">
-<code class="sig-prename descclassname">atomate.vasp.workflows.base.deformations.</code><code class="sig-name descname">get_wf_deformations</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">deformations</em>, <em class="sig-param">name='deformation'</em>, <em class="sig-param">vasp_input_set=None</em>, <em class="sig-param">vasp_cmd='vasp'</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">tag=''</em>, <em class="sig-param">copy_vasp_outputs=True</em>, <em class="sig-param">metadata=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.deformations.get_wf_deformations" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a structure deformation workflow.</p>
-<p>Firework 1 : structural relaxation
-Firework 2 - len(deformations): Deform the optimized structure and run static calculations.</p>
-<dl>
-<dt>Args:</dt><dd><p>structure (Structure): input structure to be optimized and run
-deformations (list of 3x3 array-likes): list of deformations
-name (str): some appropriate name for the transmuter fireworks.
-vasp_input_set (DictVaspInputSet): vasp input set for static deformed structure calculation.
-vasp_cmd (str): command to run
-db_file (str): path to file containing the database credentials.
-tag (str): some unique string that will be appended to the names of the fireworks so that</p>
-<blockquote>
-<div><p>the data from those tagged fireworks can be queried later during the analysis.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>copy_vasp_outputs (bool): whether or not copy the outputs from the previous calc(usually</dt><dd><p>structure optimization) before the transmuter fireworks.</p>
-</dd>
-</dl>
-<p>metadata (dict): meta data</p>
-</dd>
-<dt>Returns:</dt><dd><p>Workflow</p>
-</dd>
-</dl>
-</dd></dl>
-
+<div class="section" id="atomate-vasp-workflows-base-deformations-module">
+<h2>atomate.vasp.workflows.base.deformations module<a class="headerlink" href="#atomate-vasp-workflows-base-deformations-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.vasp.workflows.base.elastic">
-<span id="atomate-vasp-workflows-base-elastic-module"></span><h2>atomate.vasp.workflows.base.elastic module<a class="headerlink" href="#module-atomate.vasp.workflows.base.elastic" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="atomate.vasp.workflows.base.elastic.get_default_strain_states">
-<code class="sig-prename descclassname">atomate.vasp.workflows.base.elastic.</code><code class="sig-name descname">get_default_strain_states</code><span class="sig-paren">(</span><em class="sig-param">order=2</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.elastic.get_default_strain_states" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates a list of “strain-states”</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.vasp.workflows.base.elastic.get_wf_elastic_constant">
-<code class="sig-prename descclassname">atomate.vasp.workflows.base.elastic.</code><code class="sig-name descname">get_wf_elastic_constant</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">strain_states=None</em>, <em class="sig-param">stencils=None</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">conventional=False</em>, <em class="sig-param">order=2</em>, <em class="sig-param">vasp_input_set=None</em>, <em class="sig-param">analysis=True</em>, <em class="sig-param">sym_reduce=False</em>, <em class="sig-param">tag='elastic'</em>, <em class="sig-param">copy_vasp_outputs=False</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.elastic.get_wf_elastic_constant" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a workflow to calculate elastic constants.</p>
-<dl class="simple">
-<dt>Firework 1<span class="classifier">write vasp input set for structural relaxation,</span></dt><dd><p>run vasp,
-pass run location,
-database insertion.</p>
-</dd>
-</dl>
-<p>Firework 2 - number of total deformations: Static runs on the deformed structures</p>
-<p>last Firework : Analyze Stress/Strain data and fit the elastic tensor</p>
-<dl>
-<dt>Args:</dt><dd><p>structure (Structure): input structure to be optimized and run.
-strain_states (list of Voigt-notation strains): list of ratios of nonzero elements</p>
-<blockquote>
-<div><p>of Voigt-notation strain, e. g. [(1, 0, 0, 0, 0, 0), (0, 1, 0, 0, 0, 0), etc.].</p>
-</div></blockquote>
-<dl class="simple">
-<dt>stencils (list of floats, or list of list of floats): values of strain to multiply</dt><dd><p>by for each strain state, i. e. stencil for the perturbation along the strain
-state direction, e. g. [-0.01, -0.005, 0.005, 0.01].  If a list of lists,
-stencils must correspond to each strain state provided.</p>
-</dd>
-</dl>
-<p>db_file (str): path to file containing the database credentials.
-conventional (bool): flag to convert input structure to conventional structure,</p>
-<blockquote>
-<div><p>defaults to False.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>order (int): order of the tensor expansion to be determined.  Defaults to 2 and</dt><dd><p>currently supports up to 3.</p>
-</dd>
-<dt>vasp_input_set (VaspInputSet): vasp input set to be used.  Defaults to static</dt><dd><p>set with ionic relaxation parameters set.  Take care if replacing this,
-default ensures that ionic relaxation is done and that stress is calculated
-for each vasp run.</p>
-</dd>
-<dt>analysis (bool): flag to indicate whether analysis task should be added</dt><dd><p>and stresses and strains passed to that task</p>
-</dd>
-</dl>
-<p>sym_reduce (bool): Whether or not to apply symmetry reductions
-tag (str):
-copy_vasp_outputs (bool): whether or not to copy previous vasp outputs.
-kwargs (keyword arguments): additional kwargs to be passed to get_wf_deformations</p>
-</dd>
-<dt>Returns:</dt><dd><p>Workflow</p>
-</dd>
-</dl>
-</dd></dl>
-
+<div class="section" id="atomate-vasp-workflows-base-elastic-module">
+<h2>atomate.vasp.workflows.base.elastic module<a class="headerlink" href="#atomate-vasp-workflows-base-elastic-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.vasp.workflows.base.ferroelectric">
-<span id="atomate-vasp-workflows-base-ferroelectric-module"></span><h2>atomate.vasp.workflows.base.ferroelectric module<a class="headerlink" href="#module-atomate.vasp.workflows.base.ferroelectric" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="atomate.vasp.workflows.base.ferroelectric.get_wf_ferroelectric">
-<code class="sig-prename descclassname">atomate.vasp.workflows.base.ferroelectric.</code><code class="sig-name descname">get_wf_ferroelectric</code><span class="sig-paren">(</span><em class="sig-param">polar_structure</em>, <em class="sig-param">nonpolar_structure</em>, <em class="sig-param">vasp_cmd='vasp'</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">vasp_input_set_polar='MPStaticSet'</em>, <em class="sig-param">vasp_input_set_nonpolar='MPStaticSet'</em>, <em class="sig-param">relax=False</em>, <em class="sig-param">vasp_relax_input_set_polar=None</em>, <em class="sig-param">vasp_relax_input_set_nonpolar=None</em>, <em class="sig-param">nimages=9</em>, <em class="sig-param">hse=False</em>, <em class="sig-param">add_analysis_task=False</em>, <em class="sig-param">wfid=None</em>, <em class="sig-param">tags=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.ferroelectric.get_wf_ferroelectric" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a workflow to calculate the spontaneous polarization of polar_structure using
-a nonpolar reference phase structure and linear interpolations between the polar and
-nonpolar structure.</p>
-<p>The nonpolar and polar structures must be in the same space group setting and atoms ordered
-such that a linear interpolation can be performed to create intermediate structures along
-the distortion.</p>
-<p>For example, to calculate the polarization of orthorhombic BaTiO3 (space group 38) using
-the cubic structure (space group 221) as the nonpolar reference phase, we must transform
-the cubic to the orthorhombic setting. This can be accomplished using Bilbao Crystallographic
-Server’s Structure Relations tool. (<a class="reference external" href="http://www.cryst.ehu.es/cryst/rel.html">http://www.cryst.ehu.es/cryst/rel.html</a>)</p>
-<dl>
-<dt>Args:</dt><dd><p>polar_structure (Structure): polar structure of candidate ferroelectric
-nonpolar_structure (Structure): nonpolar reference structure in polar setting
-vasp_input_set_polar (DictVaspInputSet): VASP polar input set. Defaults to MPStaticSet.
-vasp_input_set_nonpolar (DictVaspInputSet): VASP nonpolar input set. Defaults to MPStaticSet.
-vasp_relax_input_set_polar (DictVaspInputSet): VASP polar input set. Defaults to MPRelaxSet.
-vasp_relax_input_set_nonpolar (DictVaspInputSet): VASP nonpolar input set. Defaults to MPRelaxSet.
-vasp_cmd (str): command to run
-db_file (str): path to file containing the database credentials.
-nimages: Number of interpolations calculated from polar to nonpolar structures, including the nonpolar.</p>
-<blockquote>
-<div><p>For example, nimages = 9 will calculate 8 interpolated structures. 8 interpolations + nonpolar = 9.</p>
-</div></blockquote>
-<p>add_analysis_task: Analyze polarization and energy trends as part of workflow. Default False.
-wfid (string): Unique worfklow id starting with “<a href="#id1"><span class="problematic" id="id2">wfid_</span></a>”. If None this is atomatically generated (recommended).
-tags (list of strings): Additional tags to add such as identifiers for structures.</p>
-</dd>
-</dl>
-<p>Returns:</p>
-</dd></dl>
-
+<div class="section" id="atomate-vasp-workflows-base-ferroelectric-module">
+<h2>atomate.vasp.workflows.base.ferroelectric module<a class="headerlink" href="#atomate-vasp-workflows-base-ferroelectric-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.vasp.workflows.base.gibbs">
-<span id="atomate-vasp-workflows-base-gibbs-module"></span><h2>atomate.vasp.workflows.base.gibbs module<a class="headerlink" href="#module-atomate.vasp.workflows.base.gibbs" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="atomate.vasp.workflows.base.gibbs.get_wf_gibbs_free_energy">
-<code class="sig-prename descclassname">atomate.vasp.workflows.base.gibbs.</code><code class="sig-name descname">get_wf_gibbs_free_energy</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">deformations</em>, <em class="sig-param">vasp_input_set=None</em>, <em class="sig-param">vasp_cmd='vasp'</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">user_kpoints_settings=None</em>, <em class="sig-param">t_step=10</em>, <em class="sig-param">t_min=0</em>, <em class="sig-param">t_max=1000</em>, <em class="sig-param">mesh=(20</em>, <em class="sig-param">20</em>, <em class="sig-param">20)</em>, <em class="sig-param">eos='vinet'</em>, <em class="sig-param">qha_type='debye_model'</em>, <em class="sig-param">pressure=0.0</em>, <em class="sig-param">poisson=0.25</em>, <em class="sig-param">anharmonic_contribution=False</em>, <em class="sig-param">metadata=None</em>, <em class="sig-param">tag=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.gibbs.get_wf_gibbs_free_energy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns quasi-harmonic gibbs free energy workflow.
-Note: phonopy package is required for the final analysis step if qha_type=”phonopy”</p>
-<dl>
-<dt>Args:</dt><dd><p>structure (Structure): input structure.
-deformations (list): list of deformation matrices(list of lists).
-vasp_input_set (VaspInputSet)
-vasp_cmd (str): vasp command to run.
-db_file (str): path to the db file.
-user_kpoints_settings (dict): example: {“grid_density”: 7000}
-t_step (float): temperature step (in K)
-t_min (float): min temperature (in K)
-t_max (float): max temperature (in K)
-mesh (list/tuple): reciprocal space density
-eos (str): equation of state used for fitting the energies and the volumes.</p>
-<blockquote>
-<div><p>options supported by phonopy: “vinet”, “murnaghan”, “birch_murnaghan”.
-Note: pymatgen supports more options than phonopy. see pymatgen.analysis.eos.py</p>
-</div></blockquote>
-<dl class="simple">
-<dt>qha_type(str): quasi-harmonic approximation type: “debye_model” or “phonopy”,</dt><dd><p>default is “debye_model”</p>
-</dd>
-</dl>
-<p>pressure (float): in GPa
-poisson (float): poisson ratio
-anharmonic_contribution (bool): consider anharmonic contributions to</p>
-<blockquote>
-<div><p>Gibbs energy from the Debye model. Defaults to False.</p>
-</div></blockquote>
-<p>metadata (dict): meta data
-tag (str): something unique to identify the tasks in this workflow. If None a random uuid</p>
-<blockquote>
-<div><p>will be assigned.</p>
-</div></blockquote>
-</dd>
-<dt>Returns:</dt><dd><p>Workflow</p>
-</dd>
-</dl>
-</dd></dl>
-
+<div class="section" id="atomate-vasp-workflows-base-gibbs-module">
+<h2>atomate.vasp.workflows.base.gibbs module<a class="headerlink" href="#atomate-vasp-workflows-base-gibbs-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.vasp.workflows.base.magnetism">
-<span id="atomate-vasp-workflows-base-magnetism-module"></span><h2>atomate.vasp.workflows.base.magnetism module<a class="headerlink" href="#module-atomate.vasp.workflows.base.magnetism" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF">
-<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.workflows.base.magnetism.</code><code class="sig-name descname">MagneticOrderingsWF</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">default_magmoms=None</em>, <em class="sig-param">strategies=('ferromagnetic'</em>, <em class="sig-param">'antiferromagnetic')</em>, <em class="sig-param">automatic=True</em>, <em class="sig-param">truncate_by_symmetry=True</em>, <em class="sig-param">transformation_kwargs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<dl class="method">
-<dt id="atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">default_magmoms=None</em>, <em class="sig-param">strategies=('ferromagnetic'</em>, <em class="sig-param">'antiferromagnetic')</em>, <em class="sig-param">automatic=True</em>, <em class="sig-param">truncate_by_symmetry=True</em>, <em class="sig-param">transformation_kwargs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>This workflow will try several different collinear
-magnetic orderings for a given input structure,
-and output a summary to a dedicated database
-collection, magnetic_orderings, in the supplied
-db_file.</p>
-<p>If the input structure has magnetic moments defined, it
-is possible to use these as a hint as to which elements are
-magnetic, otherwise magnetic elements will be guessed
-(this can be changed using default_magmoms kwarg).</p>
-<dl class="simple">
-<dt>A brief description on how this workflow works:</dt><dd><ol class="arabic simple">
-<li><p>We make a note of the input structure, and then
-sanitize it (make it ferromagnetic, primitive)</p></li>
-<li><p>We gather information on which sites are likely
-magnetic, how many unique magnetic sites there
-are (whether one species is in several unique
-environments, e.g. tetrahedral/octahedra as Fe
-in a spinel)</p></li>
-<li><p>We generate ordered magnetic structures, first
-antiferromagnetic, and then, if appropriate,
-ferrimagnetic_Cr2NiO4 structures either by species or
-by environment – this makes use of some new
-additions to MagOrderingTransformation to allow
-the spins of different species to be coupled together
-(e.g. all one species spin up, all other species spin
-down, with an overall order parameter of 0.5)</p></li>
-<li><p>For each ordered structure, we perform a relaxation
-and static calculation. Then an aggregation is performed
-which finds which ordering is the ground state (of
-those attempted in this specific workflow). For
-high-throughput studies, a dedicated builder is
-recommended.</p></li>
-<li><p>For book-keeping, a record is kept of whether the
-input structure is enumerated by the algorithm or
-not. This is useful when supplying the workflow with
-a magnetic structure obtained by experiment, to measure
-the performance of the workflow.</p></li>
-</ol>
-</dd>
-<dt>Args:</dt><dd><p>structure: input structure
-default_magmoms: (optional, defaults provided) dict of</p>
-</dd>
-</dl>
-<p>magnetic elements to their initial magnetic moments in µB, generally
-these are chosen to be high-spin since they can relax to a low-spin
-configuration during a DFT electronic configuration</p>
-<blockquote>
-<div><p>strategies: different ordering strategies to use, choose from:</p>
-</div></blockquote>
-<p>ferromagnetic, antiferromagnetic, antiferromagnetic_by_motif,
-ferrimagnetic_by_motif and ferrimagnetic_by_species (here, “motif”,
-means to use a different ordering parameter for symmetry inequivalent
-sites)</p>
-<blockquote>
-<div><p>automatic: if True, will automatically choose sensible strategies
-truncate_by_symmetry: if True, will remove very unsymmetrical</p>
-</div></blockquote>
-<dl class="simple">
-<dt>orderings that are likely physically implausible</dt><dd><p>transformation_kwargs: keyword arguments to pass to</p>
-</dd>
-</dl>
-<p>MagOrderingTransformation, to change automatic cell size limits, etc.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF.get_wf">
-<code class="sig-name descname">get_wf</code><span class="sig-paren">(</span><em class="sig-param">scan=False</em>, <em class="sig-param">perform_bader=True</em>, <em class="sig-param">num_orderings_hard_limit=16</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF.get_wf" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve the FireWorks workflow.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>scan: if True, use the SCAN functional instead of GGA+U, since</p>
-</dd>
-</dl>
-<p>the SCAN functional has shown to have improved performance for
-magnetic systems in some cases</p>
-<blockquote>
-<div><p>perform_bader: if True, make sure the “bader” binary is in your</p>
-</div></blockquote>
-<p>path, will use Bader analysis to calculate atom-projected magnetic
-moments</p>
-<blockquote>
-<div><p>num_orderings_hard_limit: will make sure total number of magnetic</p>
-</div></blockquote>
-<p>orderings does not exceed this number even if there are extra orderings
-of equivalent symmetry</p>
-<blockquote>
-<div><p>c: additional config dict (as used elsewhere in atomate)</p>
-</div></blockquote>
-<p>Returns: FireWorks Workflow</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.vasp.workflows.base.magnetism.get_wf_magnetic_deformation">
-<code class="sig-prename descclassname">atomate.vasp.workflows.base.magnetism.</code><code class="sig-name descname">get_wf_magnetic_deformation</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em>, <em class="sig-param">vis=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.magnetism.get_wf_magnetic_deformation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Minimal workflow to obtain magnetic deformation proxy, as
-defined by Bocarsly et al. 2017, doi: 10.1021/acs.chemmater.6b04729</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>structure: input structure, must be structure with magnetic</p>
-</dd>
-</dl>
-<p>elements, such that pymatgen will initalize ferromagnetic input by
-default – see MPRelaxSet.yaml for list of default elements</p>
-<blockquote>
-<div><p>c: Workflow config dict, in the same format</p>
-</div></blockquote>
-<dl class="simple">
-<dt>as in presets/core.py and elsewhere in atomate</dt><dd><p>vis: A VaspInputSet to use for the first FW</p>
-</dd>
-</dl>
-<p>Returns: Workflow</p>
-</dd></dl>
-
+<div class="section" id="atomate-vasp-workflows-base-magnetism-module">
+<h2>atomate.vasp.workflows.base.magnetism module<a class="headerlink" href="#atomate-vasp-workflows-base-magnetism-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.vasp.workflows.base.neb">
-<span id="atomate-vasp-workflows-base-neb-module"></span><h2>atomate.vasp.workflows.base.neb module<a class="headerlink" href="#module-atomate.vasp.workflows.base.neb" title="Permalink to this headline">¶</a></h2>
-<p>This module defines the Nudged Elastic Band (NEB) workflow.</p>
-<dl class="function">
-<dt id="atomate.vasp.workflows.base.neb.get_wf_neb_from_endpoints">
-<code class="sig-prename descclassname">atomate.vasp.workflows.base.neb.</code><code class="sig-name descname">get_wf_neb_from_endpoints</code><span class="sig-paren">(</span><em class="sig-param">parent</em>, <em class="sig-param">endpoints</em>, <em class="sig-param">user_incar_settings=None</em>, <em class="sig-param">additional_spec=None</em>, <em class="sig-param">user_kpoints_settings=None</em>, <em class="sig-param">additional_cust_args=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.neb.get_wf_neb_from_endpoints" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get a CI-NEB workflow from given endpoints.
-Workflow: (Endpoints relax – ) NEB_1 – NEB_2 - … - NEB_r</p>
-<blockquote>
-<div><p>endpoints not optimized: ep–neb(r)
-endpoints are optimized: neb(r)</p>
-</div></blockquote>
-<dl>
-<dt>Args:</dt><dd><p>parent (Structure): parent structure.
-endpoints (list[Structure]): The endpoint structures.
-user_incar_settings([dict]): Additional user_incar_settings. Note that the order of the</p>
-<blockquote>
-<div><p>list is set as: “parent”, “ep_relax”, “neb1”, “neb2” etc., which contains
-at least three elements. The first dict is for parent structure relaxation,
-the second dict is for endpoints relaxation, and the rest are for NEB
-calculations. For example, [{}, {}, {“IOPT”: 7}, {“IOPT”: 1}]. Besides,
-user_incar_settings is used to determine how many NEB rounds will be. Default
-is [{}, {}, {}].</p>
-</div></blockquote>
-<p>additional_spec (dict): User spec settings to overwrite default_spec.
-user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at at</p>
-<blockquote>
-<div><p>least three elements, which is similar to user_incar_settings. For example,
-[{}, {}, {“grid_density”: 100}] for the workflow from the parent structure
-relaxation, then the endpoint relaxation followed by one-round NEB simulation.
-Default values depend on the selected VaspInputSet.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>additional_cust_args ([dict]): Optional parameters for RunVaspCustodian, same structure</dt><dd><p>with user_incar_settings and user_kpoints_settings.</p>
-</dd>
-</dl>
-</dd>
-<dt>Returns:</dt><dd><p>Workflow</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.vasp.workflows.base.neb.get_wf_neb_from_images">
-<code class="sig-prename descclassname">atomate.vasp.workflows.base.neb.</code><code class="sig-name descname">get_wf_neb_from_images</code><span class="sig-paren">(</span><em class="sig-param">parent</em>, <em class="sig-param">images</em>, <em class="sig-param">user_incar_settings</em>, <em class="sig-param">additional_spec=None</em>, <em class="sig-param">user_kpoints_settings=None</em>, <em class="sig-param">additional_cust_args=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.neb.get_wf_neb_from_images" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get a CI-NEB workflow from given images.
-Workflow: NEB_1 – NEB_2 - … - NEB_n</p>
-<dl>
-<dt>Args:</dt><dd><p>parent (Structure): parent structure.
-images ([Structure]): All images and two endpoints.
-user_incar_settings([dict]): Additional user_incar_settings. Note that the order of the</p>
-<blockquote>
-<div><p>list is set as: “parent”, “ep_relax”, “neb1”, “neb2” etc., which contains
-at least three elements. The first dict is for parent structure relaxation,
-the second dict is for endpoints relaxation, and the rest are for NEB
-calculations. For example, [{}, {}, {“IOPT”: 7}, {“IOPT”: 1}]. Besides,
-user_incar_settings is used to determine how many NEB rounds will be. Default
-is [{}, {}, {}].</p>
-</div></blockquote>
-<p>additional_spec (dict): User spec settings to overwrite default_spec.
-user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at at</p>
-<blockquote>
-<div><p>least three elements, which is similar to user_incar_settings. For example,
-[{}, {}, {“grid_density”: 100}] for the workflow from the parent structure
-relaxation, then the endpoint relaxation followed by one-round NEB simulation.
-Default values depend on the selected VaspInputSet.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>additional_cust_args ([dict]): Optional parameters for RunVaspCustodian, same structure</dt><dd><p>with user_incar_settings and user_kpoints_settings.</p>
-</dd>
-</dl>
-</dd>
-<dt>Returns:</dt><dd><p>Workflow</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.vasp.workflows.base.neb.get_wf_neb_from_structure">
-<code class="sig-prename descclassname">atomate.vasp.workflows.base.neb.</code><code class="sig-name descname">get_wf_neb_from_structure</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">user_incar_settings=None</em>, <em class="sig-param">additional_spec=None</em>, <em class="sig-param">user_kpoints_settings=None</em>, <em class="sig-param">additional_cust_args=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.neb.get_wf_neb_from_structure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Obtain the CI-NEB workflow staring with a parent structure. This works only under the single
-vacancy diffusion mechanism.</p>
-<dl>
-<dt>Workflow: (parent relaxation) –&gt; Endpoints relaxation –&gt; NEB_1 –&gt; NEB_2 –&gt; … –&gt; NEB_r</dt><dd><ol class="lowerroman simple">
-<li><dl class="simple">
-<dt>If parent is not relaxed: then parent relaxation–ep–neb(r)</dt><dd><p>(r rounds of NEB)</p>
-</dd>
-</dl>
-</li>
-<li><p>If parent is relaxed: ep–neb(r) (r rounds of NEB)</p></li>
-</ol>
-</dd>
-<dt>Args:</dt><dd><p>structure (Structure): The parent structure.
-user_incar_settings([dict]): Additional user_incar_settings. Note that the order of the</p>
-<blockquote>
-<div><p>list is set as: “parent”, “ep_relax”, “neb1”, “neb2” etc., which contains
-at least three elements. The first dict is for parent structure relaxation,
-the second dict is for endpoints relaxation, and the rest are for NEB
-calculations. For example, [{}, {}, {“IOPT”: 7}, {“IOPT”: 1}]. Besides,
-user_incar_settings is used to determine how many NEB rounds will be. Default
-is [{}, {}, {}].</p>
-</div></blockquote>
-<p>additional_spec (dict): User spec settings to overwrite default_spec.
-user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at at</p>
-<blockquote>
-<div><p>least three elements, which is similar to user_incar_settings. For example,
-[{}, {}, {“grid_density”: 100}] for the workflow from the parent structure
-relaxation, then the endpoint relaxation followed by one-round NEB simulation.
-Default values depend on the selected VaspInputSet.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>additional_cust_args ([dict]): Optional parameters for RunVaspCustodian, same structure</dt><dd><p>with user_incar_settings and user_kpoints_settings.</p>
-</dd>
-</dl>
-</dd>
-<dt>Returns:</dt><dd><p>Workflow</p>
-</dd>
-</dl>
-</dd></dl>
-
+<div class="section" id="atomate-vasp-workflows-base-neb-module">
+<h2>atomate.vasp.workflows.base.neb module<a class="headerlink" href="#atomate-vasp-workflows-base-neb-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.vasp.workflows.base.raman">
-<span id="atomate-vasp-workflows-base-raman-module"></span><h2>atomate.vasp.workflows.base.raman module<a class="headerlink" href="#module-atomate.vasp.workflows.base.raman" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="atomate.vasp.workflows.base.raman.get_wf_raman_spectra">
-<code class="sig-prename descclassname">atomate.vasp.workflows.base.raman.</code><code class="sig-name descname">get_wf_raman_spectra</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">modes=None</em>, <em class="sig-param">step_size=0.005</em>, <em class="sig-param">vasp_cmd='vasp'</em>, <em class="sig-param">db_file=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.raman.get_wf_raman_spectra" title="Permalink to this definition">¶</a></dt>
-<dd><dl>
-<dt>Raman susceptibility tensor workflow:</dt><dd><p>Calculation of phonon normal modes followed by the computation of dielectric tensor for
-structures displaced along the normal modes. Finally the dielectric tensors corresponding
-to each mode are used to compute the Raman susceptibility tensor using finite difference 
-(central difference scheme).</p>
-</dd>
-<dt>Args:</dt><dd><p>structure (Structure): Input structure.
-modes (tuple/list): list of modes for which the Raman spectra need to be calculated.</p>
-<blockquote>
-<div><p>The default is to use all the 3N modes.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>step_size (float): site displacement along the normal mode in Angstroms. Used to compute</dt><dd><p>the finite difference(central difference scheme) first derivative of the dielectric
-constant along the normal modes.</p>
-</dd>
-</dl>
-<p>vasp_cmd (str): vasp command to run.
-db_file (str): path to file containing the database credentials.</p>
-</dd>
-<dt>Returns:</dt><dd><p>Workflow</p>
-</dd>
-</dl>
-</dd></dl>
-
+<div class="section" id="atomate-vasp-workflows-base-raman-module">
+<h2>atomate.vasp.workflows.base.raman module<a class="headerlink" href="#atomate-vasp-workflows-base-raman-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.vasp.workflows.base.thermal_expansion">
-<span id="atomate-vasp-workflows-base-thermal-expansion-module"></span><h2>atomate.vasp.workflows.base.thermal_expansion module<a class="headerlink" href="#module-atomate.vasp.workflows.base.thermal_expansion" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="atomate.vasp.workflows.base.thermal_expansion.get_wf_thermal_expansion">
-<code class="sig-prename descclassname">atomate.vasp.workflows.base.thermal_expansion.</code><code class="sig-name descname">get_wf_thermal_expansion</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">deformations</em>, <em class="sig-param">vasp_input_set=None</em>, <em class="sig-param">vasp_cmd='vasp'</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">user_kpoints_settings=None</em>, <em class="sig-param">t_step=10</em>, <em class="sig-param">t_min=0</em>, <em class="sig-param">t_max=1000</em>, <em class="sig-param">mesh=(20</em>, <em class="sig-param">20</em>, <em class="sig-param">20)</em>, <em class="sig-param">eos='vinet'</em>, <em class="sig-param">pressure=0.0</em>, <em class="sig-param">tag=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.thermal_expansion.get_wf_thermal_expansion" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns quasi-harmonic thermal expansion workflow.
-Note: phonopy package is required for the final analysis step.</p>
-<dl>
-<dt>Args:</dt><dd><p>structure (Structure): input structure.
-deformations (list): list of deformation matrices(list of lists).
-vasp_input_set (VaspInputSet)
-vasp_cmd (str): vasp command to run.
-db_file (str): path to the db file.
-user_kpoints_settings (dict): example: {“grid_density”: 7000}
-t_step (float): temperature step (in K)
-t_min (float): min temperature (in K)
-t_max (float): max temperature (in K)
-mesh (list/tuple): reciprocal space density
-eos (str): equation of state used for fitting the energies and the volumes.</p>
-<blockquote>
-<div><p>options supported by phonopy: “vinet”, “murnaghan”, “birch_murnaghan”.
-Note: pymatgen supports more options than phonopy. see pymatgen.analysis.eos.py</p>
-</div></blockquote>
-<p>pressure (float): in GPa
-tag (str): something unique to identify the tasks in this workflow. If None a random uuid</p>
-<blockquote>
-<div><p>will be assigned.</p>
-</div></blockquote>
-</dd>
-<dt>Returns:</dt><dd><p>Workflow</p>
-</dd>
-</dl>
-</dd></dl>
-
+<div class="section" id="atomate-vasp-workflows-base-thermal-expansion-module">
+<h2>atomate.vasp.workflows.base.thermal_expansion module<a class="headerlink" href="#atomate-vasp-workflows-base-thermal-expansion-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.vasp.workflows.base">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.vasp.workflows.base" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -731,18 +89,18 @@ tag (str): something unique to identify the tasks in this workflow. If None a ra
   <ul>
 <li><a class="reference internal" href="#">atomate.vasp.workflows.base package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-atomate.vasp.workflows.base.adsorption">atomate.vasp.workflows.base.adsorption module</a></li>
-<li><a class="reference internal" href="#module-atomate.vasp.workflows.base.bulk_modulus">atomate.vasp.workflows.base.bulk_modulus module</a></li>
-<li><a class="reference internal" href="#module-atomate.vasp.workflows.base.core">atomate.vasp.workflows.base.core module</a></li>
-<li><a class="reference internal" href="#module-atomate.vasp.workflows.base.deformations">atomate.vasp.workflows.base.deformations module</a></li>
-<li><a class="reference internal" href="#module-atomate.vasp.workflows.base.elastic">atomate.vasp.workflows.base.elastic module</a></li>
-<li><a class="reference internal" href="#module-atomate.vasp.workflows.base.ferroelectric">atomate.vasp.workflows.base.ferroelectric module</a></li>
-<li><a class="reference internal" href="#module-atomate.vasp.workflows.base.gibbs">atomate.vasp.workflows.base.gibbs module</a></li>
-<li><a class="reference internal" href="#module-atomate.vasp.workflows.base.magnetism">atomate.vasp.workflows.base.magnetism module</a></li>
-<li><a class="reference internal" href="#module-atomate.vasp.workflows.base.neb">atomate.vasp.workflows.base.neb module</a></li>
-<li><a class="reference internal" href="#module-atomate.vasp.workflows.base.raman">atomate.vasp.workflows.base.raman module</a></li>
-<li><a class="reference internal" href="#module-atomate.vasp.workflows.base.thermal_expansion">atomate.vasp.workflows.base.thermal_expansion module</a></li>
-<li><a class="reference internal" href="#module-atomate.vasp.workflows.base">Module contents</a></li>
+<li><a class="reference internal" href="#atomate-vasp-workflows-base-adsorption-module">atomate.vasp.workflows.base.adsorption module</a></li>
+<li><a class="reference internal" href="#atomate-vasp-workflows-base-bulk-modulus-module">atomate.vasp.workflows.base.bulk_modulus module</a></li>
+<li><a class="reference internal" href="#atomate-vasp-workflows-base-core-module">atomate.vasp.workflows.base.core module</a></li>
+<li><a class="reference internal" href="#atomate-vasp-workflows-base-deformations-module">atomate.vasp.workflows.base.deformations module</a></li>
+<li><a class="reference internal" href="#atomate-vasp-workflows-base-elastic-module">atomate.vasp.workflows.base.elastic module</a></li>
+<li><a class="reference internal" href="#atomate-vasp-workflows-base-ferroelectric-module">atomate.vasp.workflows.base.ferroelectric module</a></li>
+<li><a class="reference internal" href="#atomate-vasp-workflows-base-gibbs-module">atomate.vasp.workflows.base.gibbs module</a></li>
+<li><a class="reference internal" href="#atomate-vasp-workflows-base-magnetism-module">atomate.vasp.workflows.base.magnetism module</a></li>
+<li><a class="reference internal" href="#atomate-vasp-workflows-base-neb-module">atomate.vasp.workflows.base.neb module</a></li>
+<li><a class="reference internal" href="#atomate-vasp-workflows-base-raman-module">atomate.vasp.workflows.base.raman module</a></li>
+<li><a class="reference internal" href="#atomate-vasp-workflows-base-thermal-expansion-module">atomate.vasp.workflows.base.thermal_expansion module</a></li>
+<li><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -777,7 +135,7 @@ tag (str): something unique to identify the tasks in this workflow. If None a ra
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
       </ul>
     </div>
 

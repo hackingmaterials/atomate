@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>atomate.qchem.workflows.base package &#8212; atomate 0.9.3 documentation</title>
+    <title>atomate.qchem.workflows.base package &#8212; atomate 0.9.4 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -27,7 +27,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -45,7 +45,7 @@
 <span id="atomate-qchem-workflows-base-double-ff-opt-module"></span><h2>atomate.qchem.workflows.base.double_FF_opt module<a class="headerlink" href="#module-atomate.qchem.workflows.base.double_FF_opt" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="atomate.qchem.workflows.base.double_FF_opt.get_wf_double_FF_opt">
-<code class="sig-prename descclassname">atomate.qchem.workflows.base.double_FF_opt.</code><code class="sig-name descname">get_wf_double_FF_opt</code><span class="sig-paren">(</span><em class="sig-param">molecule</em>, <em class="sig-param">pcm_dielectric</em>, <em class="sig-param">max_cores='&gt;&gt;max_cores&lt;&lt;'</em>, <em class="sig-param">qchem_input_params=None</em>, <em class="sig-param">name='douple_FF_opt'</em>, <em class="sig-param">qchem_cmd='&gt;&gt;qchem_cmd&lt;&lt;'</em>, <em class="sig-param">db_file='&gt;&gt;db_file&lt;&lt;'</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.workflows.base.double_FF_opt.get_wf_double_FF_opt" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">atomate.qchem.workflows.base.double_FF_opt.</code><code class="sig-name descname">get_wf_double_FF_opt</code><span class="sig-paren">(</span><em class="sig-param">molecule</em>, <em class="sig-param">pcm_dielectric</em>, <em class="sig-param">linked=False</em>, <em class="sig-param">qchem_input_params=None</em>, <em class="sig-param">name='douple_FF_opt'</em>, <em class="sig-param">db_file='&gt;&gt;db_file&lt;&lt;'</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.workflows.base.double_FF_opt.get_wf_double_FF_opt" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
 <dt>Firework 1<span class="classifier">write QChem input for an FF optimization,</span></dt><dd><p>run FF_opt QCJob,
 parse directory and insert into db,
@@ -98,7 +98,7 @@ kwargs (keyword arguments): additional kwargs to be passed to Workflow</p>
 <span id="atomate-qchem-workflows-base-fragmentation-module"></span><h2>atomate.qchem.workflows.base.fragmentation module<a class="headerlink" href="#module-atomate.qchem.workflows.base.fragmentation" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="atomate.qchem.workflows.base.fragmentation.get_fragmentation_wf">
-<code class="sig-prename descclassname">atomate.qchem.workflows.base.fragmentation.</code><code class="sig-name descname">get_fragmentation_wf</code><span class="sig-paren">(</span><em class="sig-param">molecule</em>, <em class="sig-param">depth=1</em>, <em class="sig-param">open_rings=True</em>, <em class="sig-param">additional_charges=None</em>, <em class="sig-param">do_triplets=True</em>, <em class="sig-param">pcm_dielectric=None</em>, <em class="sig-param">do_optimization=True</em>, <em class="sig-param">max_cores='&gt;&gt;max_cores&lt;&lt;'</em>, <em class="sig-param">qchem_input_params=None</em>, <em class="sig-param">name='FF then fragment'</em>, <em class="sig-param">qchem_cmd='&gt;&gt;qchem_cmd&lt;&lt;'</em>, <em class="sig-param">db_file='&gt;&gt;db_file&lt;&lt;'</em>, <em class="sig-param">check_db=True</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.workflows.base.fragmentation.get_fragmentation_wf" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">atomate.qchem.workflows.base.fragmentation.</code><code class="sig-name descname">get_fragmentation_wf</code><span class="sig-paren">(</span><em class="sig-param">molecule</em>, <em class="sig-param">depth=1</em>, <em class="sig-param">open_rings=True</em>, <em class="sig-param">additional_charges=None</em>, <em class="sig-param">do_triplets=True</em>, <em class="sig-param">pcm_dielectric=None</em>, <em class="sig-param">do_optimization=True</em>, <em class="sig-param">linked=False</em>, <em class="sig-param">qchem_input_params=None</em>, <em class="sig-param">name='FF then fragment'</em>, <em class="sig-param">db_file='&gt;&gt;db_file&lt;&lt;'</em>, <em class="sig-param">check_db=True</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.workflows.base.fragmentation.get_fragmentation_wf" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
 <dt>Args:</dt><dd><p>molecule (Molecule): input molecule to be fragmented.
 depth (int): The number of levels of iterative fragmentation to perform,</p>
@@ -131,8 +131,6 @@ do_optimization (bool): Whether or not to optimize the given molecule</p>
 <div><p>before fragmentation. Defaults to True.</p>
 </div></blockquote>
 <dl class="simple">
-<dt>max_cores (int): Maximum number of cores to parallelize over.</dt><dd><p>Value obtained from the environment by default.</p>
-</dd>
 <dt>qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.</dt><dd><p>Basic uses would be to modify the default inputs of the set,
 such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
 or max_scf_cycles. See pymatgen/io/qchem/sets.py for default
@@ -152,8 +150,7 @@ could be used in conjuction with more typical modifications,
 as seen in the test_double_FF_opt workflow test.</p>
 </dd>
 </dl>
-<p>qchem_cmd (str): Command to run QChem. Supports env_chk.
-db_file (str): path to file containing the database credentials.
+<p>db_file (str): path to file containing the database credentials.
 check_db (bool): Whether or not to check the database for equivalent</p>
 <blockquote>
 <div><p>structures before adding new fragment fireworks.
@@ -274,7 +271,7 @@ provide: {“DFT_rung”: …}. Defaults to None.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
       </ul>
     </div>
 

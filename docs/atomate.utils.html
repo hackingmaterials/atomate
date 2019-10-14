@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>atomate.utils package &#8212; atomate 0.9.3 documentation</title>
+    <title>atomate.utils package &#8212; atomate 0.9.4 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -27,7 +27,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -57,6 +57,7 @@
 </div>
 <div class="section" id="module-atomate.utils.database">
 <span id="atomate-utils-database-module"></span><h2>atomate.utils.database module<a class="headerlink" href="#module-atomate.utils.database" title="Permalink to this headline">¶</a></h2>
+<p>This module defines a base class for derived database classes that store calculation data.</p>
 <dl class="class">
 <dt id="atomate.utils.database.CalcDb">
 <em class="property">class </em><code class="sig-prename descclassname">atomate.utils.database.</code><code class="sig-name descname">CalcDb</code><span class="sig-paren">(</span><em class="sig-param">host</em>, <em class="sig-param">port</em>, <em class="sig-param">database</em>, <em class="sig-param">collection</em>, <em class="sig-param">user</em>, <em class="sig-param">password</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.database.CalcDb" title="Permalink to this definition">¶</a></dt>
@@ -284,7 +285,7 @@ default: if val is None or env cannot be found in non-strict mode,</p>
 <dl class="function">
 <dt id="atomate.utils.utils.get_fws_and_tasks">
 <code class="sig-prename descclassname">atomate.utils.utils.</code><code class="sig-name descname">get_fws_and_tasks</code><span class="sig-paren">(</span><em class="sig-param">workflow</em>, <em class="sig-param">fw_name_constraint=None</em>, <em class="sig-param">task_name_constraint=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.get_fws_and_tasks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper method: given a workflow, returns back the fw_ids and task_ids that match name 
+<dd><p>Helper method: given a workflow, returns back the fw_ids and task_ids that match name
 constraints. Used in developing multiple powerups.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>workflow (Workflow): Workflow
@@ -424,9 +425,9 @@ classname (str): name of the class to be loaded.</p>
 <dl class="function">
 <dt id="atomate.utils.utils.recursive_get_result">
 <code class="sig-prename descclassname">atomate.utils.utils.</code><code class="sig-name descname">recursive_get_result</code><span class="sig-paren">(</span><em class="sig-param">d</em>, <em class="sig-param">result</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.recursive_get_result" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function that gets designated keys or values of d 
-(i. e. those that start with “d&gt;&gt;” or “a&gt;&gt;”) from 
-the corresponding entry in result_dict, similar to 
+<dd><p>Function that gets designated keys or values of d
+(i. e. those that start with “d&gt;&gt;” or “a&gt;&gt;”) from
+the corresponding entry in result_dict, similar to
 FireWorks recursive_deserialize.</p>
 <p>Note that the plain “&gt;&gt;” notation will get a key from
 the result.as_dict() object and may use MongoDB
@@ -510,7 +511,7 @@ u (dict): updates to propogate</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.3 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
       </ul>
     </div>
 
