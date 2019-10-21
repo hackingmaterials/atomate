@@ -28,6 +28,8 @@ class HeisenbergModelFW(Firework):
         heisenberg_settings=None,
         name="heisenberg model",
         c=None,
+        structures=None,
+        energies=None
     ):
         """
         Takes a set of low-energy magnetic orderings and energies and maps them to a Heisenberg Model to compute exchange params.
@@ -40,11 +42,14 @@ class HeisenbergModelFW(Firework):
             heisenberg_settings (dict): A config dict for Heisenberg model mapping.
             name (str): Labels the FW.
             c (dict): Config dict.
+            structures (list): Magnetic structures.
+            energies (list): Total energies of magnetic structures.
 
         """
 
         cutoff = heisenberg_settings["cutoff"]
         tol = heisenberg_settings["tol"]
+        avg = heisenberg_settings["avg"]
 
         fw_name = "%s %s" % (parent_structure.composition.reduced_formula, name)
 
@@ -58,18 +63,34 @@ class HeisenbergModelFW(Firework):
         }
 
         tasks = []
-        end_cutoff = 5.0  # Larger than this is unreasonable
 
-        for coff in np.linspace(cutoff, end_cutoff, 5):
+        # Generate a HeisenbergModel with only <J> exchange
+        if avg:
             tasks.append(
                 HeisenbergModelMapping(
                     db_file=db_file,
                     exchange_wf_uuid=exchange_wf_uuid,
                     parent_structure=parent_structure,
-                    cutoff=coff,
+                    cutoff=cutoff,
                     tol=tol,
+                    avg=avg,
+                    structures=structures,
+                    energies=energies))
+
+        else:
+            end_cutoff = 5.0  # Larger than this is unreasonable
+
+            for coff in np.linspace(cutoff, end_cutoff, 5):
+                tasks.append(
+                    HeisenbergModelMapping(
+                        db_file=db_file,
+                        exchange_wf_uuid=exchange_wf_uuid,
+                        parent_structure=parent_structure,
+                        cutoff=coff,
+                        tol=tol,
+                        avg=avg,
+                    )
                 )
-            )
 
         super().__init__(tasks=tasks, name=fw_name, parents=parents)
 
@@ -84,6 +105,7 @@ class VampireCallerFW(Firework):
         mc_settings=None,
         name="vampire caller",
         c=None,
+        avg=True,
     ):
         """Run Vampire Monte Carlo from a HeisenbergModel.
 
@@ -95,6 +117,7 @@ class VampireCallerFW(Firework):
             name (str): Labels the FW.
             mc_settings (dict): A configuration dict for monte carlo.
             c (dict): Config dict.
+            avg (bool): Use only <J> exchange param.
 
         """
 
@@ -124,6 +147,7 @@ class VampireCallerFW(Firework):
                 exchange_wf_uuid=exchange_wf_uuid,
                 parent_structure=parent_structure,
                 mc_settings=mc_settings,
+                avg=avg,
             )
         )
 

@@ -45,6 +45,7 @@ class ExchangeWF:
         magnetic_structures,
         energies,
         default_magmoms=None,
+        static=False,
         vasp_cmd=VASP_CMD,
         db_file=DB_FILE,
         name="Exchange WF",
@@ -52,6 +53,8 @@ class ExchangeWF:
         """Workflow for computing exchange parameters.
 
         This workflow takes a set of magnetic orderings and their energies from MagneticOrderingsWF and runs static calculations of magnetic orderings in the ground state geometry. The static orderings/energies are then fit to a classical Heisenberg Hamiltonian to compute exchange parameters. The critical temperature can then be calculated with Monte Carlo.
+
+        Optionally, only the lowest energy FM and AFM configurations can be used to compute the average exchange interaction, <J>, without any static calculations.
 
         Args:
             magnetic_structures (list): Structure objects with the 'magmom'
@@ -61,6 +64,7 @@ class ExchangeWF:
         magnetic elements to their initial magnetic moments in µB, generally
         these are chosen to be high-spin since they can relax to a low-spin
         configuration during a DFT electronic configuration
+            static (bool): Run static enumerations for full fitting of Heisenberg model.
 
         """
 
@@ -70,11 +74,18 @@ class ExchangeWF:
             "wf_name": self.__class__.__name__,
             "wf_version": __version__,
         }
+        self.structures = magnetic_structures
+        self.energies = energies
+        self.static = static
 
-        # self.matched_structures = self.magnetic_structures
-        self.matched_structures, self.input_index, self.ordered_structure_origins = self.get_commensurate_orderings(
-            magnetic_structures, energies
-        )
+        if self.static:  # prepare orderings for static calcs
+            self.matched_structures, self.input_index, self.ordered_structure_origins = self.get_commensurate_orderings(
+                magnetic_structures, energies
+            )
+        else:
+            self.matched_structures = magnetic_structures
+            self.input_index = None
+            self.ordered_structure_origins = None
 
     @staticmethod
     def get_commensurate_orderings(magnetic_structures, energies):
@@ -209,73 +220,85 @@ class ExchangeWF:
         """
 
         c = c or {"VASP_CMD": VASP_CMD, "DB_FILE": DB_FILE}
-
-        fws = []
-        analysis_parents = []
-
-        matched_structures = self.matched_structures
-
-        matched_structures = matched_structures[:num_orderings_hard_limit]
-
-        # default incar settings
-        user_incar_settings = {"ISYM": 0, "LASPH": True}
-        user_incar_settings.update(c.get("user_incar_settings", {}))
-        c["user_incar_settings"] = user_incar_settings
-
-        static_fws = []
-        # Add static vasp calc FWs which go to 'tasks' collection
-        for idx, struct in enumerate(matched_structures):
-
-            cmsa = CollinearMagneticStructureAnalyzer(
-                struct, threshold=0.0, make_primitive=False
-            )
-
-            name = " ordering {} {} -".format(idx, cmsa.ordering.value)
-
-            vis = MPStaticSet(struct, user_incar_settings=user_incar_settings)
-            static_fws.append(
-                StaticFW(
-                    struct,
-                    vasp_input_set=vis,
-                    vasp_cmd=c["VASP_CMD"],
-                    db_file=c["DB_FILE"],
-                    name=name + "static",
-                )
-            )
-
-            analysis_parents.append(static_fws[-1])
-
-        # Magnetic ordering analysis that generates 'magnetic_orderings'
-        # collection
-        fw_analysis = Firework(
-            ExchangeToDB(
-                db_file=c["DB_FILE"],
-                wf_uuid=self.uuid,
-                auto_generated=False,
-                name="MagneticOrderingsToDB",
-                parent_structure=self.matched_structures[0],
-                input_index=self.input_index,
-                origins=self.ordered_structure_origins,
-                perform_bader=False,
-                scan=False,
-            ),
-            name="Magnetic Exchange Analysis",
-            parents=analysis_parents,
-            spec={"_allow_fizzled_parents": True},
-        )
-
-        # Heisenberg model mapping
-        heisenberg_settings = {"cutoff": 3.0, "tol": 0.04}
+        heisenberg_settings = {"cutoff": 3.0, "tol": 0.04, "avg": True}
         heisenberg_settings.update(c.get("heisenberg_settings", {}))
         c["heisenberg_settings"] = heisenberg_settings
 
-        heisenberg_model_fw = HeisenbergModelFW(
-            exchange_wf_uuid=self.uuid,
-            parent_structure=self.matched_structures[0],
-            parents=[fw_analysis],
-            db_file=c["DB_FILE"],
-            heisenberg_settings=c["heisenberg_settings"],
-        )
+        fws = []
+        analysis_parents = []
+        static_fws = []
+
+        # Do new static calcs at fixed ground state geometry
+        if self.static:
+            matched_structures = self.matched_structures
+
+            matched_structures = matched_structures[:num_orderings_hard_limit]
+
+            # default incar settings
+            user_incar_settings = {"ISYM": 0, "LASPH": True}
+            user_incar_settings.update(c.get("user_incar_settings", {}))
+            c["user_incar_settings"] = user_incar_settings
+
+            # Add static vasp calc FWs which go to 'tasks' collection
+            for idx, struct in enumerate(matched_structures):
+
+                cmsa = CollinearMagneticStructureAnalyzer(
+                    struct, threshold=0.0, make_primitive=False
+                )
+
+                name = " ordering {} {} -".format(idx, cmsa.ordering.value)
+
+                vis = MPStaticSet(struct, user_incar_settings=user_incar_settings)
+                static_fws.append(
+                    StaticFW(
+                        struct,
+                        vasp_input_set=vis,
+                        vasp_cmd=c["VASP_CMD"],
+                        db_file=c["DB_FILE"],
+                        name=name + "static",
+                    )
+                )
+
+                analysis_parents.append(static_fws[-1])
+
+            # Magnetic ordering analysis that generates 'magnetic_orderings'
+            # collection
+            fw_analysis = Firework(
+                ExchangeToDB(
+                    db_file=c["DB_FILE"],
+                    wf_uuid=self.uuid,
+                    auto_generated=False,
+                    name="MagneticOrderingsToDB",
+                    parent_structure=self.matched_structures[0],
+                    input_index=self.input_index,
+                    origins=self.ordered_structure_origins,
+                    perform_bader=False,
+                    scan=False,
+                ),
+                name="Magnetic Exchange Analysis",
+                parents=analysis_parents,
+                spec={"_allow_fizzled_parents": True},
+            )
+
+            heisenberg_model_fw = HeisenbergModelFW(
+                exchange_wf_uuid=self.uuid,
+                parent_structure=self.matched_structures[0],
+                parents=[fw_analysis],
+                db_file=c["DB_FILE"],
+                heisenberg_settings=c["heisenberg_settings"],
+            )
+        else:  # <J> only
+            fw_analysis = []
+            heisenberg_model_fw = HeisenbergModelFW(
+                exchange_wf_uuid=self.uuid,
+                parent_structure=self.matched_structures[0],
+                db_file=c["DB_FILE"],
+                heisenberg_settings=c["heisenberg_settings"],
+                parents=None,
+                structures=self.structures,
+                energies=self.energies,
+            )
+
 
         # Vampire Monte Carlo
         mc_settings = {
@@ -286,16 +309,23 @@ class ExchangeWF:
         mc_settings.update(c.get("mc_settings", {}))
         c["mc_settings"] = mc_settings
 
+        # <J> only?
+        avg = not self.static
+
         vampire_fw = VampireCallerFW(
             exchange_wf_uuid=self.uuid,
             parent_structure=self.matched_structures[0],
             parents=[heisenberg_model_fw],
             db_file=c["DB_FILE"],
             mc_settings=c["mc_settings"],
+            avg=avg,
         )
 
         # Chain FWs together
-        fws = static_fws + [fw_analysis, heisenberg_model_fw, vampire_fw]
+        if self.static:
+            fws = static_fws + [fw_analysis, heisenberg_model_fw, vampire_fw]
+        else:
+            fws = [heisenberg_model_fw, vampire_fw]
 
         wf = Workflow(fws)
 

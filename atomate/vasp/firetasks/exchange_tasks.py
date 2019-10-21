@@ -224,6 +224,11 @@ class HeisenbergModelMapping(FiretaskBase):
     Args:
         db_file (str): path to file containing the database credentials.
         exchange_wf_uuid (int): Unique id for record keeping.
+        cutoff (float): NN search cutoff (Angstrom).
+        tol (float): distance tolerance for similar bonds.
+        avg (bool): <J> only or full NN, NNN HeisenbergModel.
+        structures (list): Magnetic structures.
+        energies (list): Energies / atom (eV).
     """
 
     required_params = [
@@ -232,34 +237,48 @@ class HeisenbergModelMapping(FiretaskBase):
         "parent_structure",
         "cutoff",
         "tol",
+        "avg",
     ]
-    optional_params = []
+
+    # If only doing <J>, give the original structure/energy inputs
+    optional_params = [
+        "structures",
+        "energies",
+        ]
 
     def run_task(self, fw_spec):
-        db_file = env_chk(self["db_file"], fw_spec)
-        wf_uuid = self["exchange_wf_uuid"]
 
-        # Get magnetic orderings collection from db
-        mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-        mmdb.collection = mmdb.db["magnetic_orderings"]
+        # Look up static calcs if needed
+        if not avg:
+            db_file = env_chk(self["db_file"], fw_spec)
+            wf_uuid = self["exchange_wf_uuid"]
 
-        formula = self["parent_structure"].formula
-        formula_pretty = self["parent_structure"].composition.reduced_formula
+            # Get magnetic orderings collection from db
+            mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
+            mmdb.collection = mmdb.db["magnetic_orderings"]
 
-        # Get documents
-        docs = list(
-            mmdb.collection.find(
-                {"wf_meta.wf_uuid": wf_uuid},
-                ["task_id", "structure", "energy_per_atom"],
+            formula = self["parent_structure"].formula
+            formula_pretty = self["parent_structure"].composition.reduced_formula
+
+            # Get documents
+            docs = list(
+                mmdb.collection.find(
+                    {"wf_meta.wf_uuid": wf_uuid},
+                    ["task_id", "structure", "energy_per_atom"],
+                )
             )
-        )
 
-        # Get structures and energy / unit cell
-        structures = [Structure.from_dict(d["structure"]) for d in docs]
-        epas = [d["energy_per_atom"] for d in docs]
+            # Get structures and energy / unit cell
+            structures = [Structure.from_dict(d["structure"]) for d in docs]
+            epas = [d["energy_per_atom"] for d in docs]
+            n_atoms = len(structures[0])
+            energies = [e * n_atoms for e in epas]
+        else:
+            structures = self["structures"]
+            energies = self["energies"]
 
-        n_atoms = len(structures[0])
-        energies = [e * n_atoms for e in epas]
+        # Total energies
+        energies = [e * len(s) for e, s in zip(energies, structures)]
 
         # Map system to a Heisenberg Model
         hmapper = HeisenbergMapper(structures, energies, self["cutoff"], self["tol"])
@@ -346,7 +365,7 @@ class HeisenbergConvergence(FiretaskBase):
         if len(converged_list) > 0:
             hmodel = converged_list[-1]  # Largest cutoff
         else:
-            hmodel = None
+            hmodel = converged_list[0]  # Just <J>
 
         # Update FW spec with converged hmodel or None
         update_spec = {"converged_heisenberg_model": hmodel}
@@ -364,10 +383,11 @@ class VampireMC(FiretaskBase):
         exchange_wf_uuid (int): Unique id for record keeping.
         parent_structure (Structure): Structure object with magmoms.
         mc_settings (dict): A configuration dict for monte carlo.
+        avg (bool): Only <J> exchange param.
 
     """
 
-    required_params = ["db_file", "exchange_wf_uuid", "parent_structure", "mc_settings"]
+    required_params = ["db_file", "exchange_wf_uuid", "parent_structure", "mc_settings", "avg"]
     optional_params = []
 
     def run_task(self, fw_spec):
@@ -394,11 +414,13 @@ class VampireMC(FiretaskBase):
         # Get a converged Heisenberg model if one was found
         if fw_spec["converged_heisenberg_model"]:
             hmodel = HeisenbergModel.from_dict(fw_spec["converged_heisenberg_model"])
+
             vc = VampireCaller(
                 mc_box_size=mc_box_size,
                 equil_timesteps=equil_timesteps,
                 mc_timesteps=mc_timesteps,
                 hm=hmodel,
+                avg=self["avg"],
             )
             vo = vc.output
             task_doc["vampire_output"] = vo
