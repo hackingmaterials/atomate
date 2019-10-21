@@ -110,14 +110,16 @@ class ExchangeWF:
         es_struct = ordered_structures[1]
 
         cmsa = CollinearMagneticStructureAnalyzer(
-            es_struct, threshold=0.0, make_primitive=False
+            es_struct, threshold=0.0, threshold_nonmag=1.0, make_primitive=False
         )
         es_ordering = cmsa.ordering.value
+        es_struct = cmsa.structure
 
         cmsa = CollinearMagneticStructureAnalyzer(
-            gs_struct, threshold=0.0, make_primitive=False
+            gs_struct, threshold=0.0, threshold_nonmag=1.0, make_primitive=False
         )
         gs_ordering = cmsa.ordering.value
+        gs_struct = cmsa.structure
 
         # FM gs will always be commensurate so we match to the 1st es
         if gs_ordering == "FM":
