@@ -526,6 +526,18 @@ class VaspDrone(AbstractDrone):
                 forces[np.logical_not(sdyn)] = 0
             max_force = max(np.linalg.norm(forces, axis=1))
 
+            drift = calc['output']['outcar'].get("drift", [[0, 0, 0]])
+            max_drift = max([np.linalg.norm(d) for d in drift])
+            ediffg = calc["input"]["parameters"].get("EDIFFG", None)
+            if ediffg and float(ediffg) < 0:
+                desired_force_convergence = -float(ediffg)
+            else:
+                desired_force_convergence = np.inf
+            if max_drift > desired_force_convergence:
+                warning_msgs.append("Drift ({}) > desired force convergence ({}), "
+                                    "structure likely not converged to desired accuracy."
+                                    .format(drift, desired_force_convergence))
+
             s = Structure.from_dict(d["output"]["structure"])
             if not s.is_valid():
                 error_msgs.append("Bad structure (atoms are too close!)")
