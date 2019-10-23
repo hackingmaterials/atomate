@@ -318,6 +318,9 @@ class HeisenbergConvergence(FiretaskBase):
         parent_structure (Structure): Structure object.
         avg (bool): <J> exchange param only.
 
+    TODO:
+        * More robust convergence check
+
     """
 
     required_params = ["db_file", "exchange_wf_uuid", "parent_structure", "avg"]
@@ -391,6 +394,9 @@ class VampireMC(FiretaskBase):
         mc_settings (dict): A configuration dict for monte carlo.
         avg (bool): Only <J> exchange param.
 
+    TODO:
+        * Include HeisenbergModel convergence check.
+
     """
 
     required_params = ["db_file", "exchange_wf_uuid", "parent_structure", "mc_settings", "avg"]
@@ -408,6 +414,16 @@ class VampireMC(FiretaskBase):
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         mmdb.collection = mmdb.db["exchange"]
 
+        # Get documents
+        docs = list(
+            mmdb.collection.find(
+                {"wf_meta.wf_uuid": wf_uuid}, ["heisenberg_model", "nn_cutoff"]
+            )
+        )
+
+        hmodels = [HeisenbergModel.from_dict(d["heisenberg_model"]) for d in docs]
+        hmodel = hmodels[0]  # Take the model with smallest NN cutoff
+
         task_doc = {"wf_meta": {"wf_uuid": wf_uuid}, "formula_pretty": formula_pretty}
 
         if fw_spec.get("tags", None):
@@ -419,20 +435,21 @@ class VampireMC(FiretaskBase):
         mc_timesteps = mc_settings["mc_timesteps"]
 
         # Get a converged Heisenberg model if one was found
-        if fw_spec["converged_heisenberg_model"]:
-            hmodel = HeisenbergModel.from_dict(fw_spec["converged_heisenberg_model"])
+        # if fw_spec["converged_heisenberg_model"]:
+        #     hmodel = HeisenbergModel.from_dict(fw_spec["converged_heisenberg_model"])
 
-            vc = VampireCaller(
-                mc_box_size=mc_box_size,
-                equil_timesteps=equil_timesteps,
-                mc_timesteps=mc_timesteps,
-                hm=hmodel,
-                avg=avg,
-            )
-            vo = vc.output
-            task_doc["vampire_output"] = vo
-        else:
-            task_doc["vampire_output"] = None
+        vc = VampireCaller(
+            mc_box_size=mc_box_size,
+            equil_timesteps=equil_timesteps,
+            mc_timesteps=mc_timesteps,
+            hm=hmodel,
+            avg=avg,
+        )
+        vo = vc.output
+        task_doc["vampire_output"] = vo
+        
+        # else:
+        #     task_doc["vampire_output"] = None
 
         # Insert vampire output into exchange collection
         mmdb.collection.insert(task_doc)
