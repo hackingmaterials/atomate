@@ -248,17 +248,17 @@ class HeisenbergModelMapping(FiretaskBase):
 
     def run_task(self, fw_spec):
 
+        db_file = env_chk(self["db_file"], fw_spec)
+        wf_uuid = self["exchange_wf_uuid"]
+        formula = self["parent_structure"].formula
+        formula_pretty = self["parent_structure"].composition.reduced_formula
+
         # Look up static calcs if needed
         if not self["avg"]:
-            db_file = env_chk(self["db_file"], fw_spec)
-            wf_uuid = self["exchange_wf_uuid"]
 
             # Get magnetic orderings collection from db
             mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
             mmdb.collection = mmdb.db["magnetic_orderings"]
-
-            formula = self["parent_structure"].formula
-            formula_pretty = self["parent_structure"].composition.reduced_formula
 
             # Get documents
             docs = list(
