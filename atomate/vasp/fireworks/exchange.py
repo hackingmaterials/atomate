@@ -138,6 +138,7 @@ class VampireCallerFW(Firework):
                 db_file=db_file,
                 exchange_wf_uuid=exchange_wf_uuid,
                 parent_structure=parent_structure,
+                avg=avg,
             )
         )
 

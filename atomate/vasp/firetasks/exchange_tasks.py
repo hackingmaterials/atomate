@@ -315,10 +315,12 @@ class HeisenbergConvergence(FiretaskBase):
     Args:
         db_file (str): path to file containing the database credentials.
         exchange_wf_uuid (int): Unique id for record keeping.
+        parent_structure (Structure): Structure object.
+        avg (bool): <J> exchange param only.
 
     """
 
-    required_params = ["db_file", "exchange_wf_uuid", "parent_structure"]
+    required_params = ["db_file", "exchange_wf_uuid", "parent_structure", "avg"]
     optional_params = []
 
     def run_task(self, fw_spec):
@@ -342,30 +344,34 @@ class HeisenbergConvergence(FiretaskBase):
         hmodels = [HeisenbergModel.from_dict(d["heisenberg_model"]) for d in docs]
         cutoffs = [d["nn_cutoff"] for d in docs]
 
-        # Check for J_ij convergence
-        converged_list = []
-        for cutoff, hmodel in zip(cutoffs, hmodels):
-            ex_params = hmodel.ex_params
-            converged = True
-
-            # J_ij exists
-            if len(ex_params) > 1:
-                E0 = abs(ex_params["E0"])
-                for k, v in ex_params.items():
-                    if k != "E0":
-                        if abs(v) > E0:  # |J_ij| > |E0| unphysical!
-                            converged = False
-            else:  # Only <J> was computed
-                converged = False
-
-            if converged:
-                converged_list.append(hmodel.as_dict())
-
-        # If multiple Heisenberg Models converged, take the maximal cutoff
-        if len(converged_list) > 0:
-            hmodel = converged_list[-1]  # Largest cutoff
+        # Take <J> only if no static calcs
+        if self["avg"]:
+            hmodel = hmodels[0].as_dict()
         else:
-            hmodel = converged_list[0]  # Just <J>
+            # Check for J_ij convergence
+            converged_list = []
+            for cutoff, hmodel in zip(cutoffs, hmodels):
+                ex_params = hmodel.ex_params
+                converged = True
+
+                # J_ij exists
+                if len(ex_params) > 1:
+                    E0 = abs(ex_params["E0"])
+                    for k, v in ex_params.items():
+                        if k != "E0":
+                            if abs(v) > E0:  # |J_ij| > |E0| unphysical!
+                                converged = False
+                else:  # Only <J> was computed
+                    converged = False
+
+                if converged:
+                    converged_list.append(hmodel.as_dict())
+
+            # If multiple Heisenberg Models converged, take the maximal cutoff
+            if len(converged_list) > 0:
+                hmodel = converged_list[-1]  # Largest cutoff
+            else:  # No converged models
+                hmodel = None
 
         # Update FW spec with converged hmodel or None
         update_spec = {"converged_heisenberg_model": hmodel}
@@ -396,6 +402,7 @@ class VampireMC(FiretaskBase):
         wf_uuid = self["exchange_wf_uuid"]
         formula_pretty = self["parent_structure"].composition.reduced_formula
         mc_settings = self["mc_settings"]
+        avg = self["avg"]
 
         # Get Heisenberg models from db
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
@@ -420,7 +427,7 @@ class VampireMC(FiretaskBase):
                 equil_timesteps=equil_timesteps,
                 mc_timesteps=mc_timesteps,
                 hm=hmodel,
-                avg=self["avg"],
+                avg=avg,
             )
             vo = vc.output
             task_doc["vampire_output"] = vo
