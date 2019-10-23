@@ -249,7 +249,7 @@ class HeisenbergModelMapping(FiretaskBase):
     def run_task(self, fw_spec):
 
         # Look up static calcs if needed
-        if not avg:
+        if not self["avg"]:
             db_file = env_chk(self["db_file"], fw_spec)
             wf_uuid = self["exchange_wf_uuid"]
 
