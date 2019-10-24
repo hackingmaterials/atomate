@@ -446,7 +446,7 @@ class VampireMC(FiretaskBase):
             avg=avg,
         )
         vo = vc.output
-        task_doc["vampire_output"] = vo
+        task_doc["vampire_output"] = vo.as_dict()
         
         # else:
         #     task_doc["vampire_output"] = None
