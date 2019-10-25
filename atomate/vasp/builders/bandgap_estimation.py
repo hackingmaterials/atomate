@@ -1,4 +1,3 @@
-from __future__ import division
 
 from tqdm import tqdm
 import math
