@@ -418,7 +418,7 @@ class VaspDrone(AbstractDrone):
                 if file in d["output_file_paths"]:
                     try:
                         # assume volumetric data is all in CHGCAR format
-                        data = Chgcar.from_file(file, d["output_file_paths"][file])
+                        data = Chgcar.from_file(d["output_file_paths"][file])
                         d[file] = data
                     except:
                         raise ValueError("Failed to parse {} at {}.".format(file,
