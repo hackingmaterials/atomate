@@ -1,13 +1,10 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
-This module defines firetasks for writing LAMMPS input files (data file and the control 
+This module defines firetasks for writing LAMMPS input files (data file and the control
 parameters file)
 """
-
-import six
 
 from pymatgen import Molecule
 # from pymatgen.io.lammps.data import LammpsData
@@ -69,7 +66,7 @@ class WriteInputFromForceFieldAndTopology(FiretaskBase):
         # if the final molecule was generated using packmol
         if fw_spec.get("packed_mol", None):
             final_molecule = fw_spec["packed_mol"]
-        elif isinstance(final_molecule, six.string_types):
+        elif isinstance(final_molecule, str):
             final_molecule = Molecule.from_file(final_molecule)
 
         #molecules, mols_number, final_molecule

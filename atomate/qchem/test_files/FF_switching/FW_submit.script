@@ -1,0 +1,15 @@
+#!/bin/bash -l
+
+#SBATCH --nodes=1
+#SBATCH --qos=premium
+#SBATCH --time=06:00:00
+#SBATCH --account=jcesr
+#SBATCH --job-name=FW_job
+#SBATCH --output=FW_job-%j.out
+#SBATCH --error=FW_job-%j.error
+
+module load qchem/5.1
+cd /scratch2/scratchdirs/sblau/ion_placement/block_2018-11-13-02-29-44-974177/launcher_2018-11-13-22-17-41-574824
+rlaunch -c /global/homes/s/sblau/config_edison singleshot
+
+# CommonAdapter (SLURM) completed writing Template
