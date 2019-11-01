@@ -431,7 +431,7 @@ class VaspDrone(AbstractDrone):
             d["output"]["normalmode_eigenvecs"] = vrun.normalmode_eigenvecs.tolist()
 
         # perform Bader analysis using Henkelman bader
-        if self.parse_bader:
+        if self.parse_bader and "chgcar" in d["output_file_paths"]:
             bader = bader_analysis_from_path(dir_name, suffix=".{}".format(taskname))
             d["bader"] = bader
 
