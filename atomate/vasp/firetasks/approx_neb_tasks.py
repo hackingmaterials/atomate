@@ -8,6 +8,9 @@ from atomate.vasp.database import VaspCalcDb
 from pymatgen.io.vasp.sets import MPRelaxSet
 from pydash import get
 
+from monty.json import MontyDecoder, MontyEncoder
+from json import loads
+
 logger = get_logger(__name__)
 
 
@@ -95,8 +98,23 @@ class HostToDb(FiretaskBase):
             approx_neb_doc["tags"].extend(tags)
 
         # Insert approx_neb_doc in the approx_neb collection of provided database
+        print(additional_fields)
+        print("END ADDITIONAL FIELDS")
+        print()
+        print(approx_neb_doc)
+        print("END ORIGINAL APPROXNEB DOC")
+        print()
+        print(get(approx_neb_doc, "cep.base_struct"))
+        print("END cep.base_struct")
+        print()
+        my_dict_as_json_string = MontyEncoder().encode(approx_neb_doc)
+        my_dict_without_objects = loads(my_dict_as_json_string)
+        print(my_dict_without_objects)
+        print("END RE-ENCODED")
+        print()
         mmdb.collection = mmdb.db["approx_neb"]
-        mmdb.collection.insert_one(approx_neb_doc)
+        mmdb.collection.insert_one(my_dict_without_objects)
+        #mmdb.collection.insert_one(approx_neb_doc)
 
         # Update fw_spec with approx_neb_doc and
         # store wf_uuid and gridfs_ids in launches collection for record keeping
