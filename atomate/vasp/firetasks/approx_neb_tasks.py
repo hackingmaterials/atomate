@@ -1,14 +1,13 @@
 from pymatgen import Element, Structure
 from pymatgen.io.vasp.outputs import Chgcar
 from pymatgen.analysis.path_finder import NEBPathfinder, ChgcarPotential
-from fireworks import FiretaskBase, FWAction, explicit_serialize, LaunchPad
+from fireworks import FiretaskBase, FWAction, explicit_serialize
 from atomate.utils.utils import env_chk
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
 from pymatgen.io.vasp.sets import MPRelaxSet
 from pydash import get
-
-from monty.json import MontyDecoder, MontyEncoder
+from monty.json import MontyEncoder
 from json import loads
 
 logger = get_logger(__name__)
@@ -80,44 +79,28 @@ class HostToDb(FiretaskBase):
             },
             "wf_uuid": wf_uuid,
             "end_points": [],
-            "tags": [],
         }
 
-        # Add additional fields to approx_neb_doc if provided (stored in approx_neb collection)
-        additional_fields = self.get("additional_fields")
-        if isinstance(additional_fields, (dict)):
-            for key, value in additional_fields.items():
-                if key == "tags" and isinstance(value, (list)):
-                    approx_neb_doc["tags"].extend(value)
-                elif key not in approx_neb_doc.keys():
-                    approx_neb_doc[key] = value
+        # ensure tags and additional_fields are the same
+        # in both the approx_neb and tasks collections
+        additional_fields = self.get("additional_fields", {})
+        for key, value in additional_fields.items():
+            if key not in approx_neb_doc.keys():
+                approx_neb_doc[key] = value
 
-        # Add tags to approx_neb_doc if provided (stored in approx_neb collection)
         tags = self.get("tags")
         if tags:
-            approx_neb_doc["tags"].extend(tags)
+            approx_neb_doc["tags"] = tags
 
-        # Insert approx_neb_doc in the approx_neb collection of provided database
-        print(additional_fields)
-        print("END ADDITIONAL FIELDS")
-        print()
-        print(approx_neb_doc)
-        print("END ORIGINAL APPROXNEB DOC")
-        print()
-        print(get(approx_neb_doc, "cep.base_struct"))
-        print("END cep.base_struct")
-        print()
-        my_dict_as_json_string = MontyEncoder().encode(approx_neb_doc)
-        my_dict_without_objects = loads(my_dict_as_json_string)
-        print(my_dict_without_objects)
-        print("END RE-ENCODED")
-        print()
+        # insert approx_neb_doc in the approx_neb collection of provided database
+        # includes fix to ensure approx_neb_doc is a json serializable dict
+        approx_neb_doc = MontyEncoder().encode(approx_neb_doc)
+        approx_neb_doc = loads(approx_neb_doc)
         mmdb.collection = mmdb.db["approx_neb"]
-        mmdb.collection.insert_one(my_dict_without_objects)
-        #mmdb.collection.insert_one(approx_neb_doc)
+        mmdb.collection.insert_one(approx_neb_doc)
 
-        # Update fw_spec with approx_neb_doc and
-        # store wf_uuid and gridfs_ids in launches collection for record keeping
+        # Update fw_spec with approx_neb_doc and store wf_uuid
+        # in launches collection for record keeping
         return FWAction(
             stored_data={"wf_uuid": wf_uuid, "approx_neb_doc": approx_neb_doc}
         )
