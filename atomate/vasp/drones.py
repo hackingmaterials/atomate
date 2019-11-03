@@ -20,6 +20,7 @@ import warnings
 from monty.io import zopen
 from monty.json import jsanitize
 from monty.os.path import which
+from monty.serialization import loadfn
 
 import numpy as np
 
