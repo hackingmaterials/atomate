@@ -39,7 +39,7 @@ from atomate.utils.utils import get_uri
 
 from atomate.utils.utils import get_logger
 from atomate import __version__ as atomate_version
-from atomate.vasp.config import DB_DEFAULT_VOL_DATA_TO_STORE
+from atomate.vasp.config import STORE_VOLUMETRIC_DATA
 
 __author__ = 'Kiran Mathew, Shyue Ping Ong, Shyam Dwaraknath, Anubhav Jain'
 __email__ = 'kmathew@lbl.gov'
@@ -49,6 +49,7 @@ __version__ = "0.1.0"
 logger = get_logger(__name__)
 
 bader_exe_exists = which("bader") or which("bader.exe")
+
 
 class VaspDrone(AbstractDrone):
     """
@@ -87,7 +88,7 @@ class VaspDrone(AbstractDrone):
     def __init__(self, runs=None, parse_dos="auto", bandstructure_mode="auto",
                  parse_locpot=True, additional_fields=None, use_full_uri=True,
                  parse_bader=bader_exe_exists, parse_chgcar=False, parse_aeccar=False,
-                 store_volumetric_data=DB_DEFAULT_VOL_DATA_TO_STORE,
+                 store_volumetric_data=STORE_VOLUMETRIC_DATA,
                  store_fw_metadata=True):
         """
         Initialize a Vasp drone to parse vasp outputs
@@ -433,7 +434,8 @@ class VaspDrone(AbstractDrone):
 
         # perform Bader analysis using Henkelman bader
         if self.parse_bader and "chgcar" in d["output_file_paths"]:
-            bader = bader_analysis_from_path(dir_name, suffix=".{}".format(taskname))
+            suffix = '' if taskname == 'standard' else ".{}".format(taskname)
+            bader = bader_analysis_from_path(dir_name, suffix=suffix)
             d["bader"] = bader
 
         return d

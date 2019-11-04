@@ -33,7 +33,7 @@ from atomate.utils.utils import env_chk, get_meta_from_structure
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.drones import VaspDrone
-from atomate.vasp.config import DB_DEFAULT_VOL_DATA_TO_STORE
+from atomate.vasp.config import STORE_VOLUMETRIC_DATA
 
 __author__ = 'Anubhav Jain, Kiran Mathew, Shyam Dwaraknath'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov'
@@ -95,7 +95,7 @@ class VaspToDb(FiretaskBase):
                           bandstructure_mode=self.get("bandstructure_mode", False),
                           parse_chgcar=self.get("parse_chgcar", False),  # deprecated
                           parse_aeccar=self.get("parse_aeccar", False),  # deprecated
-                          store_volumetric_data=self.get("store_volumetric_data", DB_DEFAULT_VOL_DATA_TO_STORE))
+                          store_volumetric_data=self.get("store_volumetric_data", STORE_VOLUMETRIC_DATA))
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)

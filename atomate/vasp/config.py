@@ -34,4 +34,4 @@ DEFUSE_UNSUCCESSFUL = "fizzle"
 CUSTODIAN_MAX_ERRORS = 5
 
 # store data from these files in database if present
-DB_DEFAULT_VOL_DATA_TO_STORE = ("chgcar", "aeccar0", "aeccar2", "elfcar", "locpot")
+STORE_VOLUMETRIC_DATA = ("chgcar", "aeccar0", "aeccar2", "elfcar", "locpot")
