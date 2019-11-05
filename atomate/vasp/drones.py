@@ -20,7 +20,6 @@ import warnings
 from monty.io import zopen
 from monty.json import jsanitize
 from monty.os.path import which
-from monty.serialization import loadfn
 
 import numpy as np
 
@@ -39,7 +38,7 @@ from atomate.utils.utils import get_uri
 
 from atomate.utils.utils import get_logger
 from atomate import __version__ as atomate_version
-from atomate.vasp.config import STORE_VOLUMETRIC_DATA
+from atomate.vasp.config import STORE_VOLUMETRIC_DATA, STORE_ADDITIONAL_JSON
 
 __author__ = 'Kiran Mathew, Shyue Ping Ong, Shyam Dwaraknath, Anubhav Jain'
 __email__ = 'kmathew@lbl.gov'
@@ -89,7 +88,7 @@ class VaspDrone(AbstractDrone):
                  parse_locpot=True, additional_fields=None, use_full_uri=True,
                  parse_bader=bader_exe_exists, parse_chgcar=False, parse_aeccar=False,
                  store_volumetric_data=STORE_VOLUMETRIC_DATA,
-                 store_fw_metadata=True):
+                 store_additional_json=STORE_ADDITIONAL_JSON):
         """
         Initialize a Vasp drone to parse vasp outputs
         Args:
@@ -114,7 +113,8 @@ class VaspDrone(AbstractDrone):
             parse_aeccar (bool): Run and parse AECCAR0 and AECCAR2 files
             store_volumetric_data (list): List of files to store, choose from ('CHGCAR', 'LOCPOT',
             'AECCAR0', 'AECCAR1', 'AECCAR2', 'ELFCAR'), case insensitive
-            store_fw_metadata (bool): If True, parse FW.json if present and store as sub-doc
+            store_additional_json (bool): If True, parse any .json files present and store as
+            sub-doc including the FW.json if present
         """
         self.parse_dos = parse_dos
         self.additional_fields = additional_fields or {}
@@ -125,7 +125,7 @@ class VaspDrone(AbstractDrone):
         self.parse_locpot = parse_locpot
         self.parse_bader = parse_bader
         self.store_volumetric_data = [f.lower() for f in store_volumetric_data]
-        self.store_fw_metadata = store_fw_metadata
+        self.store_additional_json = store_additional_json
 
         if parse_chgcar or parse_aeccar:
             warnings.warn("These options have been deprecated in favor of the 'store_volumetric_data' "
@@ -630,10 +630,13 @@ class VaspDrone(AbstractDrone):
                 if "POSCAR.orig" in f:
                     d["orig_inputs"]["poscar"] = Poscar.from_file(f).as_dict()
 
-        fw_metadata_paths = glob.glob(os.path.join(fullpath, "FW.json*"))
-        if self.store_fw_metadata and fw_metadata_paths:
-            fw_metadata = loadfn(fw_metadata_paths[0])
-            d["fireworks"] = fw_metadata
+        filenames = glob.glob(os.path.join(fullpath, "*.json*"))
+        if self.store_additional_json and filenames:
+            for filename in filenames:
+                key = filename.split('.')[0]
+                if key != "custodian" and key != "transformations":
+                    with zopen(filename, "rt") as f:
+                        d[key] = json.load(f)
 
         logger.info("Post-processed " + fullpath)
 
