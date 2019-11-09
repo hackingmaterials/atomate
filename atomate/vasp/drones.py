@@ -633,7 +633,7 @@ class VaspDrone(AbstractDrone):
         filenames = glob.glob(os.path.join(fullpath, "*.json*"))
         if self.store_additional_json and filenames:
             for filename in filenames:
-                key = filename.split('.')[0]
+                key = os.path.basename(filename).split('.')[0]
                 if key != "custodian" and key != "transformations":
                     with zopen(filename, "rt") as f:
                         d[key] = json.load(f)
