@@ -292,28 +292,6 @@ def clear_modify(original_wf, fw_name_constraint=None):
         original_wf.fws[idx_fw].tasks.pop(idx_t)
     return original_wf
 
-def set_walltime(original_wf, walltime=None, 
-                          fw_name_constraint=None, task_name_constraint=None):
-    """
-    set _queueadapter walltime spec of Fireworker(s) of a Workflow. It can be used to specify the walltime
-    requested from a queue on a per-workflow basis.
-
-    Args:
-        original_wf (Workflow):
-        walltime (str): user-defined walltime to be added under fw.spec._queueadapter['walltime']
-            in HH:MM:SS format e.g., "00:10:00" for 10 minutes.
-        fw_name_constraint (str): name of the Fireworks to be tagged (all if None is passed)
-        task_name_constraint (str): name of the Firetasks to be tagged (e.g. None or 'RunVasp')
-
-    Returns:
-        Workflow: modified workflow with specified walltime
-    """
-    for idx_fw, idx_t in get_fws_and_tasks(original_wf,
-                                           fw_name_constraint=fw_name_constraint,
-                                           task_name_constraint=task_name_constraint):
-        if walltime:
-            original_wf.fws[idx_fw].spec.update({"_queueadapter":{"walltime":walltime}})
-    return original_wf
 
 def set_execution_options(original_wf, fworker_name=None, category=None,
                           fw_name_constraint=None, task_name_constraint=None):
