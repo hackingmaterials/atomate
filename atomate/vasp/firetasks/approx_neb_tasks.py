@@ -420,15 +420,10 @@ class EndPointToDb(FiretaskBase):
             path + "formula_pretty": task_doc["formula_pretty"],
             path + "output": task_doc["output"],
             path + "task_id": task_doc["task_id"],
+            "last_updated": datetime.utcnow(),
         }
 
-        mmdb.collection.update_one(
-            {"wf_uuid": wf_uuid},
-            {
-                "$set": end_point_output,
-                "$update": {"last_updated": datetime.utcnow()},
-            },
-        )
+        mmdb.collection.update_one({"wf_uuid": wf_uuid}, {"$set": end_point_output})
 
         return FWAction(
             stored_data={
@@ -535,10 +530,7 @@ class PathfinderToDb(FiretaskBase):
         mmdb.collection = mmdb.db["approx_neb"]
         mmdb.collection.update_one(
             {"wf_uuid": wf_uuid},
-            {
-                "$set": {path: pathfinder_output},
-                "$update": {"last_updated": datetime.utcnow()},
-            },
+            {"$set": {path: pathfinder_output, "last_updated": datetime.utcnow()}},
         )
 
         return FWAction(
@@ -628,7 +620,8 @@ class AddSelectiveDynamics(FiretaskBase):
         # store images output in approx_neb collection
         path = "images" + "." + pathfinder_key
         mmdb.collection.update_one(
-            {"wf_uuid": wf_uuid}, {"$set": {path: images_output}}
+            {"wf_uuid": wf_uuid},
+            {"$set": {path: images_output, "last_updated": datetime.utcnow()}},
         )
 
         return FWAction(
@@ -796,15 +789,10 @@ class ImageToDb(FiretaskBase):
             path + "formula_pretty": task_doc["formula_pretty"],
             path + "output": task_doc["output"],
             path + "task_id": task_doc["task_id"],
+            "last_updated": datetime.utcnow(),
         }
 
-        mmdb.collection.update_one(
-            {"wf_uuid": wf_uuid},
-            {
-                "$set": image_output,
-                "$update": {"last_updated": datetime.utcnow()},
-            },
-        )
+        mmdb.collection.update_one({"wf_uuid": wf_uuid}, {"$set": image_output})
 
         return FWAction(
             stored_data={
