@@ -9,6 +9,7 @@ from pymatgen.io.vasp.sets import MPRelaxSet
 from pydash import get
 from monty.json import MontyEncoder
 from json import loads
+from datetime import datetime
 
 logger = get_logger(__name__)
 
@@ -70,6 +71,7 @@ class HostToDb(FiretaskBase):
         # Initialize and store select host task doc fields in approx_neb_doc
         # (to be stored in the approx_neb collection)
         approx_neb_doc = {
+            "wf_uuid": wf_uuid,
             "host": {
                 "dir_name": host_tasks_doc["dir_name"],
                 "formula_pretty": host_tasks_doc["formula_pretty"],
@@ -77,7 +79,6 @@ class HostToDb(FiretaskBase):
                 "output": host_tasks_doc["output"],
                 "task_id": host_tasks_doc["task_id"],
             },
-            "wf_uuid": wf_uuid,
             "end_points": [],
         }
 
@@ -96,6 +97,7 @@ class HostToDb(FiretaskBase):
         # includes fix to ensure approx_neb_doc is a json serializable dict
         approx_neb_doc = MontyEncoder().encode(approx_neb_doc)
         approx_neb_doc = loads(approx_neb_doc)
+        approx_neb_doc["last_updated"] = datetime.utcnow()
         mmdb.collection = mmdb.db["approx_neb"]
         mmdb.collection.insert_one(approx_neb_doc)
 
@@ -420,7 +422,13 @@ class EndPointToDb(FiretaskBase):
             path + "task_id": task_doc["task_id"],
         }
 
-        mmdb.collection.update_one({"wf_uuid": wf_uuid}, {"$set": end_point_output})
+        mmdb.collection.update_one(
+            {"wf_uuid": wf_uuid},
+            {
+                "$set": end_point_output,
+                "$update": {"last_updated": datetime.utcnow()},
+            },
+        )
 
         return FWAction(
             stored_data={
@@ -526,7 +534,11 @@ class PathfinderToDb(FiretaskBase):
         path = "pathfinder." + end_points_combo
         mmdb.collection = mmdb.db["approx_neb"]
         mmdb.collection.update_one(
-            {"wf_uuid": wf_uuid}, {"$set": {path: pathfinder_output}}
+            {"wf_uuid": wf_uuid},
+            {
+                "$set": {path: pathfinder_output},
+                "$update": {"last_updated": datetime.utcnow()},
+            },
         )
 
         return FWAction(
@@ -786,7 +798,13 @@ class ImageToDb(FiretaskBase):
             path + "task_id": task_doc["task_id"],
         }
 
-        mmdb.collection.update_one({"wf_uuid": wf_uuid}, {"$set": image_output})
+        mmdb.collection.update_one(
+            {"wf_uuid": wf_uuid},
+            {
+                "$set": image_output,
+                "$update": {"last_updated": datetime.utcnow()},
+            },
+        )
 
         return FWAction(
             stored_data={
