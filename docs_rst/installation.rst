@@ -609,5 +609,5 @@ The non-reservation mode for qlaunching requires a little less maintenance with 
 Q: I honestly tried everything I can to solve my problem. I still need help!
 ----------------------------------------------------------------------------
 
-:A: There is a support forum for atomate: https://hackingmaterials.discourse.group/c/atomate
+:A: There is a support forum for atomate: https://discuss.matsci.org/c/atomate
 

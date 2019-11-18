@@ -302,6 +302,6 @@ Understanding this guide has enabled you to create arbitrarily complex atomate w
 
 If any of this was unclear, or if you feel that useful documentation is missing, please leave us feedback on the `atomate Discourse forum`_! To see all of the different pieces you can control with Python, go to the :ref:`API documentation <modindex>`. Many customization options and features of interest are not in atomate alone, but in `FireWorks`_, `pymatgen`_, and `custodian`_. Mastering FireWorks will enable you to get the most out of executing and managing your workflows. Mastering pymatgen will help you write complex materials workflows and perform sophisticated analyses of results.
 
-.. _atomate Discourse forum:  https://hackingmaterials.discourse.group/c/atomate
+.. _atomate Discourse forum:  https://discuss.matsci.org/c/atomate
 
 
