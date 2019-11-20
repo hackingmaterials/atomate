@@ -412,18 +412,23 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
                                          [{} for i in range(len(self["transformations"]))])
         for t in self["transformations"]:
             found = False
+            t_cls = None
             for m in ["advanced_transformations", "defect_transformations",
                       "site_transformations", "standard_transformations"]:
                 mod = import_module("pymatgen.transformations.{}".format(m))
+
                 try:
                     t_cls = getattr(mod, t)
-                except AttributeError:
+                    found = True
                     continue
-                t_obj = t_cls(**transformation_params.pop(0))
-                transformations.append(t_obj)
-                found = True
+                except AttributeError:
+                    pass
+
             if not found:
                 raise ValueError("Could not find transformation: {}".format(t))
+
+            t_obj = t_cls(**transformation_params.pop(0))
+            transformations.append(t_obj)
 
         # TODO: @matk86 - should prev_calc_dir use CONTCAR instead of POSCAR? Note that if
         # current dir, maybe it is POSCAR indeed best ... -computron
