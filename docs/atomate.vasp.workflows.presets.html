@@ -41,11 +41,175 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="atomate-vasp-workflows-presets-core-module">
-<h2>atomate.vasp.workflows.presets.core module<a class="headerlink" href="#atomate-vasp-workflows-presets-core-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-atomate.vasp.workflows.presets.core">
+<span id="atomate-vasp-workflows-presets-core-module"></span><h2>atomate.vasp.workflows.presets.core module<a class="headerlink" href="#module-atomate.vasp.workflows.presets.core" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="atomate.vasp.workflows.presets.core.wf_bandstructure">
+<code class="sig-prename descclassname">atomate.vasp.workflows.presets.core.</code><code class="sig-name descname">wf_bandstructure</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.core.wf_bandstructure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.presets.core.wf_bandstructure_hse">
+<code class="sig-prename descclassname">atomate.vasp.workflows.presets.core.</code><code class="sig-name descname">wf_bandstructure_hse</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.core.wf_bandstructure_hse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.presets.core.wf_bandstructure_no_opt">
+<code class="sig-prename descclassname">atomate.vasp.workflows.presets.core.</code><code class="sig-name descname">wf_bandstructure_no_opt</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.core.wf_bandstructure_no_opt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.presets.core.wf_bandstructure_plus_boltztrap">
+<code class="sig-prename descclassname">atomate.vasp.workflows.presets.core.</code><code class="sig-name descname">wf_bandstructure_plus_boltztrap</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.core.wf_bandstructure_plus_boltztrap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.presets.core.wf_bandstructure_plus_hse">
+<code class="sig-prename descclassname">atomate.vasp.workflows.presets.core.</code><code class="sig-name descname">wf_bandstructure_plus_hse</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">gap_only=True</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.core.wf_bandstructure_plus_hse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.presets.core.wf_bulk_modulus">
+<code class="sig-prename descclassname">atomate.vasp.workflows.presets.core.</code><code class="sig-name descname">wf_bulk_modulus</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.core.wf_bulk_modulus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bulk modulus workflow from the given structure and config dict.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>structure (Structure): input structure
+c (dict): workflow config dict</p>
+</dd>
+<dt>Returns:</dt><dd><p>Workflow</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.presets.core.wf_dielectric_constant">
+<code class="sig-prename descclassname">atomate.vasp.workflows.presets.core.</code><code class="sig-name descname">wf_dielectric_constant</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.core.wf_dielectric_constant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.presets.core.wf_dielectric_constant_no_opt">
+<code class="sig-prename descclassname">atomate.vasp.workflows.presets.core.</code><code class="sig-name descname">wf_dielectric_constant_no_opt</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.core.wf_dielectric_constant_no_opt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.presets.core.wf_elastic_constant">
+<code class="sig-prename descclassname">atomate.vasp.workflows.presets.core.</code><code class="sig-name descname">wf_elastic_constant</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em>, <em class="sig-param">order=2</em>, <em class="sig-param">sym_reduce=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.core.wf_elastic_constant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.presets.core.wf_elastic_constant_minimal">
+<code class="sig-prename descclassname">atomate.vasp.workflows.presets.core.</code><code class="sig-name descname">wf_elastic_constant_minimal</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em>, <em class="sig-param">order=2</em>, <em class="sig-param">sym_reduce=True</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.core.wf_elastic_constant_minimal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.presets.core.wf_gibbs_free_energy">
+<code class="sig-prename descclassname">atomate.vasp.workflows.presets.core.</code><code class="sig-name descname">wf_gibbs_free_energy</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.core.wf_gibbs_free_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gibbs free energy workflow from the given structure and config dict.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>structure (Structure): input structure
+c (dict): workflow config dict</p>
+</dd>
+<dt>Returns:</dt><dd><p>Workflow</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.presets.core.wf_nmr">
+<code class="sig-prename descclassname">atomate.vasp.workflows.presets.core.</code><code class="sig-name descname">wf_nmr</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.core.wf_nmr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.presets.core.wf_nudged_elastic_band">
+<code class="sig-prename descclassname">atomate.vasp.workflows.presets.core.</code><code class="sig-name descname">wf_nudged_elastic_band</code><span class="sig-paren">(</span><em class="sig-param">structures</em>, <em class="sig-param">parent</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.core.wf_nudged_elastic_band" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nudged elastic band (NEB) workflow from the given structures and config dict.</p>
+<p>‘is_optimized’ default False
+‘neb_round’ default 1</p>
+<dl>
+<dt>Notes:</dt><dd><p>Length of Structure list and “is_optimized” are used to determine the workflow:
+1 structure    # The parent structure &amp; two endpoint indexes provided; need relaxation.</p>
+<blockquote>
+<div><p># The parent structure &amp; two endpoint indexes provided; no need to relax.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>2 structures   # Two endpoints provided; need to relax two endpoints.</dt><dd><p># Two relaxed endpoints provided; no need to relax two endpoints.</p>
+</dd>
+</dl>
+<p>&gt;=3 structures # All images including two endpoints are provided.</p>
+</dd>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>structures ([Structure]):</dt><dd><ol class="arabic simple">
+<li><p>The parent structure</p></li>
+<li><p>Two endpoint structures</p></li>
+<li><p>An initial NEB path that comprises both images and endpoints</p></li>
+</ol>
+</dd>
+</dl>
+<p>parent (Structure): parent structure used to get two endpoints.
+c (dict): workflow config dict, basic format:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>{“fireworks”: [],  “common_params”: {}, “additional_ep_params”: {},</dt><dd><p>“additional_neb_params”: {}}. When the length of structures is 1, “site_indices” key
+must be included in c. Note that “fireworks” is a list corresponding to the order of
+execution.</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>Workflow</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.presets.core.wf_piezoelectric_constant">
+<code class="sig-prename descclassname">atomate.vasp.workflows.presets.core.</code><code class="sig-name descname">wf_piezoelectric_constant</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.core.wf_piezoelectric_constant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.presets.core.wf_raman_spectra">
+<code class="sig-prename descclassname">atomate.vasp.workflows.presets.core.</code><code class="sig-name descname">wf_raman_spectra</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.core.wf_raman_spectra" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raman spectra workflow from the given structure and config dict</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>structure (Structure): input structure
+c (dict): workflow config dict</p>
+</dd>
+<dt>Returns:</dt><dd><p>Workflow</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.presets.core.wf_static">
+<code class="sig-prename descclassname">atomate.vasp.workflows.presets.core.</code><code class="sig-name descname">wf_static</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.core.wf_static" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.presets.core.wf_structure_optimization">
+<code class="sig-prename descclassname">atomate.vasp.workflows.presets.core.</code><code class="sig-name descname">wf_structure_optimization</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.core.wf_structure_optimization" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.presets.core.wf_thermal_expansion">
+<code class="sig-prename descclassname">atomate.vasp.workflows.presets.core.</code><code class="sig-name descname">wf_thermal_expansion</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.core.wf_thermal_expansion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Thermal expansion coefficient workflow from the given structure and config dict.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>structure (Structure): input structure
+c (dict): workflow config dict</p>
+</dd>
+<dt>Returns:</dt><dd><p>Workflow</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
-<div class="section" id="atomate-vasp-workflows-presets-scan-module">
-<h2>atomate.vasp.workflows.presets.scan module<a class="headerlink" href="#atomate-vasp-workflows-presets-scan-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-atomate.vasp.workflows.presets.scan">
+<span id="atomate-vasp-workflows-presets-scan-module"></span><h2>atomate.vasp.workflows.presets.scan module<a class="headerlink" href="#module-atomate.vasp.workflows.presets.scan" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="atomate.vasp.workflows.presets.scan.wf_scan_opt">
+<code class="sig-prename descclassname">atomate.vasp.workflows.presets.scan.</code><code class="sig-name descname">wf_scan_opt</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.scan.wf_scan_opt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 <div class="section" id="module-atomate.vasp.workflows.presets">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.vasp.workflows.presets" title="Permalink to this headline">¶</a></h2>
@@ -62,8 +226,8 @@
   <ul>
 <li><a class="reference internal" href="#">atomate.vasp.workflows.presets package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#atomate-vasp-workflows-presets-core-module">atomate.vasp.workflows.presets.core module</a></li>
-<li><a class="reference internal" href="#atomate-vasp-workflows-presets-scan-module">atomate.vasp.workflows.presets.scan module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.workflows.presets.core">atomate.vasp.workflows.presets.core module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.workflows.presets.scan">atomate.vasp.workflows.presets.scan module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.workflows.presets">Module contents</a></li>
 </ul>
 </li>

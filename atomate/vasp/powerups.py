@@ -250,8 +250,10 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
     if structure is None:
         try:
             sid = get_fws_and_tasks(original_wf, fw_name_constraint="structure optimization",
-                                    task_name_constraint="RunVasp")[0][0]
-            structure = Structure.from_dict(original_wf.fws[sid].tasks[1]["vasp_input_set"]["structure"])
+                                    task_name_constraint="WriteVasp")
+            fw_id = sid[0][0]
+            task_id = sid[0][1]
+            structure = original_wf.fws[fw_id].tasks[task_id]["vasp_input_set"].structure
         except:
             raise ValueError("modify_to_soc powerup requires the structure in vasp_input_set")
 
@@ -264,9 +266,8 @@ def modify_to_soc(original_wf, nbands, structure=None, modify_incar_params=None,
 
     for idx_fw, idx_t in get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint,
                                            task_name_constraint="RunVasp"):
-        if "structure" not in original_wf.fws[idx_fw].name and "static" not in original_wf.fws[idx_fw].name:
-            original_wf.fws[idx_fw].tasks[idx_t]["vasp_cmd"] = ">>vasp_ncl<<"
-            original_wf.fws[idx_fw].tasks.insert(idx_t, ModifyIncar(**modify_incar_params))
+        original_wf.fws[idx_fw].tasks[idx_t]["vasp_cmd"] = ">>vasp_ncl<<"
+        original_wf.fws[idx_fw].tasks.insert(idx_t, ModifyIncar(**modify_incar_params))
 
         original_wf.fws[idx_fw].name += " soc"
 

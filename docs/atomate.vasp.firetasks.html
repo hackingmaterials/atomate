@@ -44,12 +44,12 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="atomate.vasp.firetasks.tests.html">atomate.vasp.firetasks.tests package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#atomate-vasp-firetasks-tests-test-copy-module">atomate.vasp.firetasks.tests.test_copy module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#atomate-vasp-firetasks-tests-test-get-interpolated-poscar-module">atomate.vasp.firetasks.tests.test_get_interpolated_poscar module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#atomate-vasp-firetasks-tests-test-polarization-to-db-module">atomate.vasp.firetasks.tests.test_polarization_to_db module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#atomate-vasp-firetasks-tests-test-write-vasp-module">atomate.vasp.firetasks.tests.test_write_vasp module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#atomate-vasp-firetasks-tests-test-write-vasp-from-interpolated-poscar-module">atomate.vasp.firetasks.tests.test_write_vasp_from_interpolated_poscar module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#module-atomate.vasp.firetasks.tests.test_copy">atomate.vasp.firetasks.tests.test_copy module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#module-atomate.vasp.firetasks.tests.test_get_interpolated_poscar">atomate.vasp.firetasks.tests.test_get_interpolated_poscar module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#module-atomate.vasp.firetasks.tests.test_polarization_to_db">atomate.vasp.firetasks.tests.test_polarization_to_db module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#module-atomate.vasp.firetasks.tests.test_write_vasp">atomate.vasp.firetasks.tests.test_write_vasp module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#module-atomate.vasp.firetasks.tests.test_write_vasp_from_interpolated_poscar">atomate.vasp.firetasks.tests.test_write_vasp_from_interpolated_poscar module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#module-atomate.vasp.firetasks.tests">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -1241,14 +1241,891 @@ these multiple resources.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="atomate-vasp-firetasks-run-calc-module">
-<h2>atomate.vasp.firetasks.run_calc module<a class="headerlink" href="#atomate-vasp-firetasks-run-calc-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-atomate.vasp.firetasks.run_calc">
+<span id="atomate-vasp-firetasks-run-calc-module"></span><h2>atomate.vasp.firetasks.run_calc module<a class="headerlink" href="#module-atomate.vasp.firetasks.run_calc" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.firetasks.run_calc.RunBoltztrap">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.run_calc.</code><code class="sig-name descname">RunBoltztrap</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunBoltztrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Run Boltztrap directly. Requires vasprun.xml and OUTCAR to be in current dir.</p>
+<dl class="simple">
+<dt>Required params:</dt><dd><p>(none)</p>
+</dd>
+<dt>Optional params:</dt><dd><p>scissor: (float) scissor band gap amount in eV (i.e. new gap == scissor)
+tmax: (float) max temperature to evaluate (default = 1300K)
+tgrid: (float) temperature interval (default = 50K)
+doping: ([float]) doping levels you want to compute
+soc: (bool) whether the band structure is calculated with spin-orbit coupling or not</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.run_calc.RunBoltztrap.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['scissor', 'tmax', 'tgrid', 'doping', 'soc']</em><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunBoltztrap.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.run_calc.RunBoltztrap.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param">fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunBoltztrap.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.run_calc.RunNoVasp">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.run_calc.</code><code class="sig-name descname">RunNoVasp</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunNoVasp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Do NOT run vasp. Do nothing.</p>
+<dl class="method">
+<dt id="atomate.vasp.firetasks.run_calc.RunNoVasp.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param">fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunNoVasp.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspCustodian">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.run_calc.</code><code class="sig-name descname">RunVaspCustodian</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspCustodian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Run VASP using custodian “on rails”, i.e. in a simple way that supports most common options.</p>
+<dl>
+<dt>Required params:</dt><dd><p>vasp_cmd (str): the name of the full executable for running VASP. Supports env_chk.</p>
+</dd>
+<dt>Optional params:</dt><dd><dl class="simple">
+<dt>job_type: (str) - choose from “normal” (default), “double_relaxation_run” (two consecutive</dt><dd><p>jobs), “full_opt_run” (multiple optimizations), and “neb”</p>
+</dd>
+<dt>handler_group: (str or [ErrorHandler]) - group of handlers to use. See handler_groups dict in the code for</dt><dd><p>the groups and complete list of handlers in each group. Alternatively, you can
+specify a list of ErrorHandler objects.</p>
+</dd>
+<dt>max_force_threshold: (float) - if &gt;0, adds MaxForceErrorHandler. Not recommended for</dt><dd><p>nscf runs.</p>
+</dd>
+<dt>scratch_dir: (str) - if specified, uses this directory as the root scratch dir.</dt><dd><p>Supports env_chk.</p>
+</dd>
+</dl>
+<p>gzip_output: (bool) - gzip output (default=T)
+max_errors: (int) - maximum # of errors to fix before giving up (default=5)
+ediffg: (float) shortcut for setting EDIFFG in special custodian jobs
+auto_npar: (bool) - use auto_npar (default=F). Recommended set to T</p>
+<blockquote>
+<div><p>for single-node jobs only. Supports env_chk.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>gamma_vasp_cmd: (str) - cmd for Gamma-optimized VASP compilation.</dt><dd><p>Supports env_chk.</p>
+</dd>
+</dl>
+<p>wall_time (int): Total wall time in seconds. Activates WalltimeHandler if set.
+half_kpts_first_relax (bool): Use half the k-points for the first relaxation</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspCustodian.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['job_type', 'handler_group', 'max_force_threshold', 'scratch_dir', 'gzip_output', 'max_errors', 'ediffg', 'auto_npar', 'gamma_vasp_cmd', 'wall_time', 'half_kpts_first_relax']</em><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspCustodian.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspCustodian.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['vasp_cmd']</em><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspCustodian.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspCustodian.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param">fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspCustodian.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspDirect">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.run_calc.</code><code class="sig-name descname">RunVaspDirect</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspDirect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Execute a command directly (no custodian).</p>
+<dl class="simple">
+<dt>Required params:</dt><dd><p>cmd (str): the name of the full executable to run. Supports env_chk.</p>
+</dd>
+<dt>Optional params:</dt><dd><p>expand_vars (str): Set to true to expand variable names in the cmd.</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspDirect.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['expand_vars']</em><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspDirect.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspDirect.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['vasp_cmd']</em><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspDirect.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspDirect.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param">fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspDirect.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspFake">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.run_calc.</code><code class="sig-name descname">RunVaspFake</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspFake" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Vasp Emulator</p>
+<dl class="simple">
+<dt>Required params:</dt><dd><dl class="simple">
+<dt>ref_dir (string): Path to reference vasp run directory with input files in the folder</dt><dd><p>named ‘inputs’ and output files in the folder named ‘outputs’.</p>
+</dd>
+</dl>
+</dd>
+<dt>Optional params:</dt><dd><p>params_to_check (list): optional list of incar parameters to check.
+check_incar (bool): whether to confirm the INCAR params (default: True)
+check_kpoints (bool): whether to confirm the KPOINTS params (default: True)
+check_poscar (bool): whether to confirm the POSCAR params (default: True)
+check_potcar (bool): whether to confirm the POTCAR params (default: True)</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspFake.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['params_to_check', 'check_incar', 'check_kpoints', 'check_poscar', 'check_potcar']</em><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspFake.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspFake.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['ref_dir']</em><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspFake.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.run_calc.RunVaspFake.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param">fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.run_calc.RunVaspFake.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
-<div class="section" id="atomate-vasp-firetasks-write-inputs-module">
-<h2>atomate.vasp.firetasks.write_inputs module<a class="headerlink" href="#atomate-vasp-firetasks-write-inputs-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-atomate.vasp.firetasks.write_inputs">
+<span id="atomate-vasp-firetasks-write-inputs-module"></span><h2>atomate.vasp.firetasks.write_inputs module<a class="headerlink" href="#module-atomate.vasp.firetasks.write_inputs" title="Permalink to this headline">¶</a></h2>
+<p>This module defines tasks for writing vasp input sets for various types of vasp calculations</p>
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.ModifyIncar">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="sig-name descname">ModifyIncar</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.ModifyIncar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Modify an INCAR file.</p>
+<dl>
+<dt>Required params:</dt><dd><p>(none)</p>
+</dd>
+<dt>Optional params:</dt><dd><p>incar_update (dict): overwrite Incar dict key. Supports env_chk.
+incar_multiply ([{&lt;str&gt;:&lt;float&gt;}]) - multiply Incar key by a constant</p>
+<blockquote>
+<div><p>factor. Supports env_chk.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>incar_dictmod ([{}]): use DictMod language to change Incar.</dt><dd><p>Supports env_chk.</p>
+</dd>
+</dl>
+<p>input_filename (str): Input filename (if not “INCAR”)
+output_filename (str): Output filename (if not “INCAR”)</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.ModifyIncar.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['incar_update', 'incar_multiply', 'incar_dictmod', 'input_filename', 'output_filename']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.ModifyIncar.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.ModifyIncar.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param">fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.ModifyIncar.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.ModifyPotcar">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="sig-name descname">ModifyPotcar</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.ModifyPotcar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Modify Potcar file.</p>
+<dl class="simple">
+<dt>Required params:</dt><dd><p>potcar_symbols (dict): overwrite potcar with symbol. Supports env_chk.</p>
+</dd>
+<dt>Optional params:</dt><dd><p>functional (dict): functional to use, e.g. PBE, PBE_52, LDA_US, PW91
+input_filename (str): Input filename (if not “INCAR”)
+output_filename (str): Output filename (if not “INCAR”)</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.ModifyPotcar.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['functional', 'input_filename', 'output_filename']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.ModifyPotcar.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.ModifyPotcar.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['potcar_symbols']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.ModifyPotcar.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.ModifyPotcar.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param">fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.ModifyPotcar.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteNormalmodeDisplacedPoscar">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="sig-name descname">WriteNormalmodeDisplacedPoscar</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteNormalmodeDisplacedPoscar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Displace the structure from the previous calculation along the provided normal mode by the
+given amount and write the corresponding Poscar file. The fw_spec must contain a “normalmodes”
+key with “eigenvecs” sub-key that is likely produced by a previous calc.</p>
+<dl class="simple">
+<dt>Required params:</dt><dd><p>mode (int): normal mode index
+displacement (float): displacement along the normal mode in Angstroms</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteNormalmodeDisplacedPoscar.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['mode', 'displacement']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteNormalmodeDisplacedPoscar.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteNormalmodeDisplacedPoscar.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param">fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteNormalmodeDisplacedPoscar.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="sig-name descname">WriteTransmutedStructureIOSet</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Apply the provided transformations to the input structure and write the
+input set for that structure. Reads structure from POSCAR if no structure provided. Note that
+if a transformation yields many structures from one, only the last structure in the list is
+used.</p>
+<dl>
+<dt>Required params:</dt><dd><p>structure (Structure): input structure
+transformations (list): list of names of transformation classes as defined in</p>
+<blockquote>
+<div><p>the modules in pymatgen.transformations</p>
+</div></blockquote>
+<p>vasp_input_set (VaspInputSet): VASP input set.</p>
+</dd>
+<dt>Optional params:</dt><dd><dl class="simple">
+<dt>transformation_params (list): list of dicts where each dict specifies the input parameters</dt><dd><p>to instantiate the transformation class in the transformations list.</p>
+</dd>
+</dl>
+<p>override_default_vasp_params (dict): additional user input settings.
+prev_calc_dir: path to previous calculation if using structure from another calculation.</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['prev_calc_dir', 'transformation_params', 'override_default_vasp_params']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['structure', 'transformations', 'vasp_input_set']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param">fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteTransmutedStructureIOSet.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSet">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="sig-name descname">WriteVaspFromIOSet</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Create VASP input files using implementations of pymatgen’s AbstractVaspInputSet. An input set
+can be provided as an object or as a String/parameter combo.</p>
+<dl>
+<dt>Required params:</dt><dd><p>structure (Structure): structure
+vasp_input_set (AbstractVaspInputSet or str): Either a VaspInputSet object or a string</p>
+<blockquote>
+<div><p>name for the VASP input set (e.g., “MPRelaxSet”).</p>
+</div></blockquote>
+</dd>
+<dt>Optional params:</dt><dd><dl class="simple">
+<dt>vasp_input_params (dict): When using a string name for VASP input set, use this as a dict</dt><dd><p>to specify kwargs for instantiating the input set parameters. For example, if you want
+to change the user_incar_settings, you should provide: {“user_incar_settings”: …}.
+This setting is ignored if you provide the full object representation of a VaspInputSet
+rather than a String.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSet.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['vasp_input_params']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSet.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSet.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['structure', 'vasp_input_set']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSet.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSet.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param">fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSet.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSetFromInterpolatedPOSCAR">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="sig-name descname">WriteVaspFromIOSetFromInterpolatedPOSCAR</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSetFromInterpolatedPOSCAR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#atomate.vasp.firetasks.glue_tasks.GetInterpolatedPOSCAR" title="atomate.vasp.firetasks.glue_tasks.GetInterpolatedPOSCAR"><code class="xref py py-class docutils literal notranslate"><span class="pre">atomate.vasp.firetasks.glue_tasks.GetInterpolatedPOSCAR</span></code></a></p>
+<p>Grabs CONTCARS from two previous calculations to create interpolated
+structure. Create VASP input files using implementations of pymatgen’s
+AbstractVaspInputSet. An input set can be provided as String/parameter
+combo.</p>
+<dl>
+<dt>Required params:</dt><dd><p>start (str): name of fw for start of interpolation.
+end (str): name of fw for end of interpolation.
+this_image (int): which interpolation this is.
+nimages (int) : number of interpolations.
+autosort_tol (float): a distance tolerance in angstrom in which</p>
+<blockquote>
+<div><p>to automatically sort end_structure to match to the closest
+points in this particular structure.</p>
+</div></blockquote>
+<p>vasp_input_set (str): a string name for the VASP input set (e.g., “MPRelaxSet”).</p>
+</dd>
+<dt>Optional params:</dt><dd><dl class="simple">
+<dt>vasp_input_params (dict): When using a string name for VASP input set, use this as a dict</dt><dd><p>to specify kwargs for instantiating the input set parameters. For example, if you want
+to change the user_incar_settings, you should provide: {“user_incar_settings”: …}.
+This setting is ignored if you provide the full object representation of a VaspInputSet
+rather than a String.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSetFromInterpolatedPOSCAR.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['vasp_input_params', 'autosort_tol']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSetFromInterpolatedPOSCAR.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSetFromInterpolatedPOSCAR.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['start', 'end', 'this_image', 'nimages', 'vasp_input_set']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSetFromInterpolatedPOSCAR.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSetFromInterpolatedPOSCAR.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param">fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspFromIOSetFromInterpolatedPOSCAR.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspFromPMGObjects">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="sig-name descname">WriteVaspFromPMGObjects</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspFromPMGObjects" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Write VASP files using pymatgen objects.</p>
+<dl class="simple">
+<dt>Required params:</dt><dd><p>(none) - although non-functional unless you set one or more optional params</p>
+</dd>
+<dt>Optional params:</dt><dd><p>incar (Incar): pymatgen Incar object
+poscar (Poscar): pymatgen Poscar object
+kpoints (Kpoints): pymatgen Kpoints object
+potcar (Potcar): pymatgen Potcar object</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspFromPMGObjects.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['incar', 'poscar', 'kpoints', 'potcar']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspFromPMGObjects.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspFromPMGObjects.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param">fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspFromPMGObjects.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspHSEBSFromPrev">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="sig-name descname">WriteVaspHSEBSFromPrev</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspHSEBSFromPrev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Writes input files for HSE band structure run. Assumes that output files from a
+a previous job can be accessed. Since HSE always re-optimizes the charge density (no nSCF mode),
+the previous job is used to get the location of VBM/CBM for mode=”gap” (otherwise just used to
+get the structure / starting charge density).</p>
+<dl class="simple">
+<dt>Required params:</dt><dd><p>(none)</p>
+</dd>
+<dt>Optional params:</dt><dd><p>(documentation for all other optional params can be found in
+MPHSEBSSet)</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspHSEBSFromPrev.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['prev_calc_dir', 'mode', 'reciprocal_density', 'kpoints_line_density']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspHSEBSFromPrev.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspHSEBSFromPrev.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = []</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspHSEBSFromPrev.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspHSEBSFromPrev.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param">fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspHSEBSFromPrev.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspNMRFromPrev">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="sig-name descname">WriteVaspNMRFromPrev</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspNMRFromPrev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Writes input files for a NMR calculation</p>
+<dl>
+<dt>Optional params::</dt><dd><p>prev_calc_dir: path to previous calculation, else current directory
+mode (str): the NMR calculation type: cs or efg, default is cs
+isotopes (list): list of isotopes to include, default is to include the</p>
+<blockquote>
+<div><p>lowest mass quadrupolar isotope for all applicable elements</p>
+</div></blockquote>
+<p>reciprocol_density (int): the reciprocol density for the kpoint mesh, defaults to 100
+other_aprams (dict) : any other params passsed to MPNMRSet as a dictionary</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspNMRFromPrev.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['mode', 'isotopes', 'reciprocal_density', 'other_params']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspNMRFromPrev.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspNMRFromPrev.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param">fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspNMRFromPrev.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspNSCFFromPrev">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="sig-name descname">WriteVaspNSCFFromPrev</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspNSCFFromPrev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Writes input files for an NSCF static run. Assumes that output files from an
+scf job can be accessed. There are many options, e.g. uniform mode,
+line mode, adding the optical properties, etc.</p>
+<dl class="simple">
+<dt>Required params:</dt><dd><p>(none)</p>
+</dd>
+<dt>Optional params:</dt><dd><p>(documentation for all optional params can be found in
+NonSCFVaspInputSet)</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspNSCFFromPrev.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['prev_calc_dir', 'copy_chgcar', 'nbands_factor', 'reciprocal_density', 'kpoints_line_density', 'small_gap_multiply', 'standardize', 'sym_prec', 'international_monoclinic', 'mode', 'nedos', 'optics', 'other_params']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspNSCFFromPrev.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspNSCFFromPrev.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = []</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspNSCFFromPrev.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspNSCFFromPrev.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param">fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspNSCFFromPrev.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspSOCFromPrev">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="sig-name descname">WriteVaspSOCFromPrev</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspSOCFromPrev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Writes input files for a spinorbit coupling calculation.</p>
+<dl class="simple">
+<dt>Required params:</dt><dd><p>magmom (list): magnetic moment values for each site in the structure.
+saxis (list): magnetic field direction</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspSOCFromPrev.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['prev_calc_dir', 'copy_chgcar', 'nbands_factor', 'reciprocal_density', 'small_gap_multiply', 'standardize', 'sym_prec', 'international_monoclinic', 'other_params']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspSOCFromPrev.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspSOCFromPrev.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['magmom', 'saxis']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspSOCFromPrev.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspSOCFromPrev.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param">fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspSOCFromPrev.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspStaticFromPrev">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.write_inputs.</code><code class="sig-name descname">WriteVaspStaticFromPrev</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspStaticFromPrev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Writes input files for a static run. Assumes that output files from a previous
+(e.g., optimization) run can be accessed in current dir or prev_calc_dir. Also allows
+lepsilon (dielectric constant) calcs.</p>
+<dl class="simple">
+<dt>Required params:</dt><dd><p>(none)</p>
+</dd>
+<dt>Optional params:</dt><dd><p>(documentation for all other optional params can be found in
+MPStaticSet)</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspStaticFromPrev.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['prev_calc_dir', 'reciprocal_density', 'small_gap_multiply', 'standardize', 'sym_prec', 'international_monoclinic', 'lepsilon', 'other_params']</em><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspStaticFromPrev.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.firetasks.write_inputs.WriteVaspStaticFromPrev.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param">fw_spec</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.write_inputs.WriteVaspStaticFromPrev.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
-<div class="section" id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-atomate.vasp.firetasks">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.vasp.firetasks" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -1266,9 +2143,9 @@ these multiple resources.</p>
 <li><a class="reference internal" href="#module-atomate.vasp.firetasks.glue_tasks">atomate.vasp.firetasks.glue_tasks module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.firetasks.neb_tasks">atomate.vasp.firetasks.neb_tasks module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.firetasks.parse_outputs">atomate.vasp.firetasks.parse_outputs module</a></li>
-<li><a class="reference internal" href="#atomate-vasp-firetasks-run-calc-module">atomate.vasp.firetasks.run_calc module</a></li>
-<li><a class="reference internal" href="#atomate-vasp-firetasks-write-inputs-module">atomate.vasp.firetasks.write_inputs module</a></li>
-<li><a class="reference internal" href="#module-contents">Module contents</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.firetasks.run_calc">atomate.vasp.firetasks.run_calc module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.firetasks.write_inputs">atomate.vasp.firetasks.write_inputs module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.firetasks">Module contents</a></li>
 </ul>
 </li>
 </ul>
