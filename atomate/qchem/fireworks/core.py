@@ -476,7 +476,7 @@ class CubeAndCritic2FW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 additional_fields={"task_label": name}))
-        super(SinglePointFW, self).__init__(
+        super(CubeAndCritic2FW, self).__init__(
             t,
             parents=parents,
             name=name,
