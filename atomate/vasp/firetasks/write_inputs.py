@@ -362,11 +362,14 @@ class WriteVaspNMRFromPrev(FiretaskBase):
         prev_calc_dir: path to previous calculation, else current directory
         mode (str): the NMR calculation type: cs or efg, default is cs
         isotopes (list): list of isotopes to include, default is to include the
-                         lowest mass quadrupolar isotope for all applicable elements
-        reciprocol_density (int): the reciprocol density for the kpoint mesh, defaults to 100
-        other_aprams (dict) : any other params passsed to MPNMRSet as a dictionary
+                         lowest mass quadrupolar isotope for all applicable
+                         elements
+        reciprocal_density (int): the reciprocal density for the kpoint mesh,
+            defaults to 100
+        other_params (dict) : any other params passed to MPNMRSet as a dict.
     """
-    optional_params = ["mode", "isotopes", "reciprocal_density", "other_params"]
+    optional_params = ["prev_calc_dir", "mode", "isotopes",
+                       "reciprocal_density", "other_params"]
 
     def run_task(self, fw_spec):
         vis = MPNMRSet.from_prev_calc(
@@ -409,18 +412,23 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
                                          [{} for i in range(len(self["transformations"]))])
         for t in self["transformations"]:
             found = False
+            t_cls = None
             for m in ["advanced_transformations", "defect_transformations",
                       "site_transformations", "standard_transformations"]:
                 mod = import_module("pymatgen.transformations.{}".format(m))
+
                 try:
                     t_cls = getattr(mod, t)
-                except AttributeError:
+                    found = True
                     continue
-                t_obj = t_cls(**transformation_params.pop(0))
-                transformations.append(t_obj)
-                found = True
+                except AttributeError:
+                    pass
+
             if not found:
                 raise ValueError("Could not find transformation: {}".format(t))
+
+            t_obj = t_cls(**transformation_params.pop(0))
+            transformations.append(t_obj)
 
         # TODO: @matk86 - should prev_calc_dir use CONTCAR instead of POSCAR? Note that if
         # current dir, maybe it is POSCAR indeed best ... -computron
