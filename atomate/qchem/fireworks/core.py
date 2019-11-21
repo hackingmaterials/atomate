@@ -464,6 +464,7 @@ class CubeAndCritic2FW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
+                scratch_dir=os.getcwd(),
                 save_scratch=True,
                 job_type="normal"))
         t.append(
