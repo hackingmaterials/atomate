@@ -59,29 +59,29 @@ class RunCritic2(FiretaskBase):
         input_script += ["yt"]
         input_script = "\n".join(input_script)
 
-        with ScratchDir(".") as temp_dir:
-            os.chdir(temp_dir)
-            with open('input_script.cri', 'w') as f:
-                f.write(input_script)
-            args = ["critic2", "input_script.cri"]
+        # with ScratchDir(".") as temp_dir:
+        #     os.chdir(temp_dir)
+        with open('input_script.cri', 'w') as f:
+            f.write(input_script)
+        args = ["critic2", "input_script.cri"]
 
-            rs = subprocess.Popen(args,
-                                  stdout=subprocess.PIPE,
-                                  stdin=subprocess.PIPE, close_fds=True)
+        rs = subprocess.Popen(args,
+                              stdout=subprocess.PIPE,
+                              stdin=subprocess.PIPE, close_fds=True)
 
-            stdout, stderr = rs.communicate()
-            stdout = stdout.decode()
+        stdout, stderr = rs.communicate()
+        stdout = stdout.decode()
 
-            if stderr:
-                stderr = stderr.decode()
-                warnings.warn(stderr)
+        if stderr:
+            stderr = stderr.decode()
+            warnings.warn(stderr)
 
-            if rs.returncode != 0:
-                raise RuntimeError("critic2 exited with return code {}.".format(rs.returncode))
+        if rs.returncode != 0:
+            raise RuntimeError("critic2 exited with return code {}.".format(rs.returncode))
 
-            # print(stdout)
-            output = Critic2Output(molecule, stdout)
-            dumpfn(output,"../processed_critic2.json")
+        # print(stdout)
+        output = Critic2Output(molecule, stdout)
+        dumpfn(output,"../processed_critic2.json")
 
         if compress_at_end:
             compress_file(cube)
