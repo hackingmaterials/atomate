@@ -21,7 +21,7 @@ from monty.shutil import compress_file, decompress_file
 from pymatgen.command_line.critic2_caller import Critic2Output
 from fireworks import explicit_serialize, FiretaskBase
 
-from atomate.utils.utils import env_chk, get_logger
+from atomate.utils.utils import env_chk#, get_logger
 import numpy as np
 
 __author__ = "Samuel Blau"
@@ -33,9 +33,9 @@ __status__ = "Alpha"
 __date__ = "11/20/18"
 
 
-logging.basicConfig(filename="critic.log")
-logger = get_logger(__name__)
-
+# logging.basicConfig(filename="critic.log")
+# logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 @explicit_serialize
 class RunCritic2(FiretaskBase):
