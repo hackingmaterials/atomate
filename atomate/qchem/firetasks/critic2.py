@@ -78,9 +78,12 @@ class RunCritic2(FiretaskBase):
             warnings.warn(stderr)
 
         if rs.returncode != 0:
-            raise RuntimeError("critic2 exited with return code {}.".format(rs.returncode))
+            # raise RuntimeError("critic2 exited with return code {}.".format(rs.returncode))
+            print("critic2 exited with return code {}.".format(rs.returncode))
 
-        # print(stdout)
+        print(stderr)
+        print(stdout)
+
         output = Critic2Output(molecule, stdout)
         dumpfn(output.processed_dict,"processed_critic2.json")
 
