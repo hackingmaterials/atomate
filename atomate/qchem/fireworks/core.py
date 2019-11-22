@@ -469,7 +469,7 @@ class CubeAndCritic2FW(Firework):
         t.append(
             RunCritic2(
                 molecule=molecule,
-                cube_file="dens.0.cube"))
+                cube_file="dens.0.cube.gz"))
         t.append(
             QChemToDb(
                 db_file=db_file,
