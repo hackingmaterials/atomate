@@ -9,6 +9,7 @@ import os
 import subprocess
 
 from pymatgen.io.qchem.inputs import QCInput
+from monty.serialization import loadfn, dumpfn
 
 from custodian import Custodian
 from custodian.qchem.handlers import QChemErrorHandler
@@ -81,7 +82,7 @@ class RunCritic2(FiretaskBase):
 
         # print(stdout)
         output = Critic2Output(molecule, stdout)
-        dumpfn(output,"../processed_critic2.json")
+        dumpfn(output.processed_dict,"processed_critic2.json")
 
         if compress_at_end:
             compress_file(cube)
