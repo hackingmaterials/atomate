@@ -15,6 +15,7 @@ from custodian.qchem.handlers import QChemErrorHandler
 from custodian.qchem.jobs import QCJob
 
 from monty.tempfile import ScratchDir
+from monty.shutil import compress_file, uncompress_file
 from pymatgen.command_line.critic2_caller import Critic2Output
 from fireworks import explicit_serialize, FiretaskBase
 
@@ -44,6 +45,14 @@ class RunCritic2(FiretaskBase):
     def run_task(self, fw_spec):
         molecule = self.get("molecule")
         cube = self.get("cube_file")
+
+        compress_at_end = False
+
+        if cube[-3:] == ".gz":
+            compress_at_end = True
+            decompress_file(cube)
+            cube = cube[:-3]
+
         input_script = ["molecule "+cube]
         input_script += ["load "+cube]
         input_script += ["auto"]
@@ -73,5 +82,8 @@ class RunCritic2(FiretaskBase):
             # print(stdout)
             output = Critic2Output(molecule, stdout)
             dumpfn(output,"../processed_critic2.json")
+
+        if compress_at_end:
+            compress_file(cube)
 
 
