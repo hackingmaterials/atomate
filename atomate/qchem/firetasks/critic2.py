@@ -7,6 +7,7 @@
 import shutil
 import os
 import subprocess
+import logging
 
 from pymatgen.io.qchem.inputs import QCInput
 from monty.serialization import loadfn, dumpfn
@@ -31,6 +32,8 @@ __email__ = "samblau1@gmail.com"
 __status__ = "Alpha"
 __date__ = "11/20/18"
 
+
+logging.basicConfig(filename="critic.log")
 logger = get_logger(__name__)
 
 
