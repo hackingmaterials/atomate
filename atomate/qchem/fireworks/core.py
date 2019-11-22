@@ -448,6 +448,7 @@ class CubeAndCritic2FW(Firework):
         """
 
         qchem_input_params = qchem_input_params or {}
+        qchem_input_params["plot_cubes"] = True
         input_file="mol.qin"
         output_file="mol.qout"
         t = []
