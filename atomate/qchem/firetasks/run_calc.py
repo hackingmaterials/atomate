@@ -7,6 +7,7 @@
 import shutil
 import os
 import subprocess
+import logging
 
 from pymatgen.io.qchem.inputs import QCInput
 
@@ -16,7 +17,7 @@ from custodian.qchem.jobs import QCJob
 
 from fireworks import explicit_serialize, FiretaskBase
 
-from atomate.utils.utils import env_chk, get_logger
+from atomate.utils.utils import env_chk#, get_logger
 import numpy as np
 
 __author__ = "Samuel Blau"
@@ -28,7 +29,8 @@ __status__ = "Alpha"
 __date__ = "5/11/18"
 __credits__ = "Shyam Dwaraknath, Xiaohui Qu, Shyue Ping Ong, Anubhav Jain"
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
+# logger = get_logger(__name__)
 
 
 @explicit_serialize
