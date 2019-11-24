@@ -420,7 +420,7 @@ class VaspDrone(AbstractDrone):
                 if file in d["output_file_paths"]:
                     try:
                         # assume volumetric data is all in CHGCAR format
-                        data = Chgcar.from_file(d["output_file_paths"][file])
+                        data = Chgcar.from_file(os.path.join(dir_name, d["output_file_paths"][file]))
                         d[file] = data
                     except:
                         raise ValueError("Failed to parse {} at {}.".format(file,
@@ -518,7 +518,7 @@ class VaspDrone(AbstractDrone):
         # max force and valid structure checks
         max_force = None
         calc = d["calcs_reversed"][0]
-        if d["state"] == "successful" and calc["input"]["parameters"].get("NSW", 0) > 0:
+        if d["state"] == "successful":
 
             # calculate max forces
             forces = np.array(calc['output']['ionic_steps'][-1]['forces'])
@@ -529,17 +529,19 @@ class VaspDrone(AbstractDrone):
                 forces[np.logical_not(sdyn)] = 0
             max_force = max(np.linalg.norm(forces, axis=1))
 
-            drift = calc['output']['outcar'].get("drift", [[0, 0, 0]])
-            max_drift = max([np.linalg.norm(d) for d in drift])
-            ediffg = calc["input"]["parameters"].get("EDIFFG", None)
-            if ediffg and float(ediffg) < 0:
-                desired_force_convergence = -float(ediffg)
-            else:
-                desired_force_convergence = np.inf
-            if max_drift > desired_force_convergence:
-                warning_msgs.append("Drift ({}) > desired force convergence ({}), "
-                                    "structure likely not converged to desired accuracy."
-                                    .format(drift, desired_force_convergence))
+            if calc["input"]["parameters"].get("NSW", 0) > 0:
+
+                drift = calc['output']['outcar'].get("drift", [[0, 0, 0]])
+                max_drift = max([np.linalg.norm(d) for d in drift])
+                ediffg = calc["input"]["parameters"].get("EDIFFG", None)
+                if ediffg and float(ediffg) < 0:
+                    desired_force_convergence = -float(ediffg)
+                else:
+                    desired_force_convergence = np.inf
+                if max_drift > desired_force_convergence:
+                    warning_msgs.append("Drift ({}) > desired force convergence ({}), "
+                                        "structure likely not converged to desired accuracy."
+                                       .format(drift, desired_force_convergence))
 
             s = Structure.from_dict(d["output"]["structure"])
             if not s.is_valid():
