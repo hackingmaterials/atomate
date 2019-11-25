@@ -521,13 +521,14 @@ class VaspDrone(AbstractDrone):
         if d["state"] == "successful":
 
             # calculate max forces
-            forces = np.array(calc['output']['ionic_steps'][-1]['forces'])
-            # account for selective dynamics
-            final_structure = Structure.from_dict(calc['output']['structure'])
-            sdyn = final_structure.site_properties.get('selective_dynamics')
-            if sdyn:
-                forces[np.logical_not(sdyn)] = 0
-            max_force = max(np.linalg.norm(forces, axis=1))
+            if 'forces' in calc['output']['ionic_steps'][-1]:
+                forces = np.array(calc['output']['ionic_steps'][-1]['forces'])
+                # account for selective dynamics
+                final_structure = Structure.from_dict(calc['output']['structure'])
+                sdyn = final_structure.site_properties.get('selective_dynamics')
+                if sdyn:
+                    forces[np.logical_not(sdyn)] = 0
+                max_force = max(np.linalg.norm(forces, axis=1))
 
             if calc["input"]["parameters"].get("NSW", 0) > 0:
 
