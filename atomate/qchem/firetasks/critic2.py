@@ -124,12 +124,13 @@ class RunCritic2(FiretaskBase):
                 bond_dict[cp["id"]]["atom_ids"] = [entry["cell_id"] for entry in cp["attractors"]]
                 bond_dict[cp["id"]]["atoms"] = [atoms[int(entry["cell_id"])-1] for entry in cp["attractors"]]
                 bond_dict[cp["id"]]["distance"] = cp["attractors"][0]["distance"]*bohr_to_ang+cp["attractors"][1]["distance"]*bohr_to_ang
+        dumpfn(bond_dict,"bonding.json")
 
         bonds = []
         for cpid in bond_dict:
-            valid = True
-            # identify and throw out invalid bonds
-            if valid:
+            # identify and throw out fictitious bonds
+            # NOTE: this should be re-examined and refined in the future
+            if bond_dict[cpid]["field"] > 0.02 and bond_dict[cpid]["distance"] < 2.5:
                 bonds.append([int(entry)-1 for entry in bond_dict[cpid]["atom_ids"]])
 
         YT = loadfn("YT.json")
