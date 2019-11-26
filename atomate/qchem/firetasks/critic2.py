@@ -33,9 +33,7 @@ __status__ = "Alpha"
 __date__ = "11/20/18"
 
 
-# logging.basicConfig(filename="critic.log")
-# logger = get_logger(__name__)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 @explicit_serialize
 class RunCritic2(FiretaskBase):
@@ -60,11 +58,11 @@ class RunCritic2(FiretaskBase):
         input_script = ["molecule "+cube]
         input_script += ["load "+cube]
         input_script += ["auto"]
-        input_script += ["yt"]
+        input_script += ["CPREPORT CP.json"]
+        input_script += ["YT JSON YT.json"]
+        input_script += ["end"]
         input_script = "\n".join(input_script)
 
-        # with ScratchDir(".") as temp_dir:
-        #     os.chdir(temp_dir)
         with open('input_script.cri', 'w') as f:
             f.write(input_script)
         args = ["critic2", "input_script.cri"]
@@ -81,14 +79,61 @@ class RunCritic2(FiretaskBase):
             warnings.warn(stderr)
 
         if rs.returncode != 0:
-            # raise RuntimeError("critic2 exited with return code {}.".format(rs.returncode))
-            logger.info("critic2 exited with return code {}.".format(rs.returncode))
+            raise RuntimeError("critic2 exited with return code {}.".format(rs.returncode))
 
-        logger.info(stderr)
-        logger.info(stdout)
+        CP = loadfn("CP.json")
+        bohr_to_ang = 0.529177249
 
-        output = Critic2Output(molecule, stdout)
-        dumpfn(output.processed_dict,"processed_critic2.json")
+        species = {}
+        for specie in CP["structure"]["species"]:
+            if specie["name"][1] == "_":
+                species[specie["id"]] = specie["name"][0]
+            else:
+                species[specie["id"]] = specie["name"]
+
+        atoms = []
+        centering_vector = CP["structure"]["molecule_centering_vector"]
+        for ii,atom in enumerate(CP["structure"]["nonequivalent_atoms"]):
+            specie = species[atom["species"]]
+            atoms.append(specie)
+            tmp = atom["cartesian_coordinates"]
+            coords = []
+            for jj,val in enumerate(tmp):
+                coords.append((val+centering_vector[jj])*bohr_to_ang)
+            if str(mol[ii].specie) != specie:
+                raise RuntimeError("Atom ordering different!")
+            if mol[ii].distance_from_point(coords) > 1*10**-6:
+                raise RuntimeError("Atom position "+str(ii)+" inconsistent!")
+
+        assert CP["critical_points"]["number_of_nonequivalent_cps"] == CP["critical_points"]["number_of_cell_cps"]
+
+        bond_dict = {}
+        for cp in CP["critical_points"]["nonequivalent_cps"]:
+            if cp["rank"] == 3 and cp["signature"] == -1:
+                bond_dict[cp["id"]] = {"field":cp["field"]}
+
+        for cp in CP["critical_points"]["cell_cps"]:
+            if cp["id"] in bond_dict:
+                bond_dict[cp["id"]]["atom_ids"] = [entry["cell_id"] for entry in cp["attractors"]]
+                bond_dict[cp["id"]]["atoms"] = [atoms[int(entry["cell_id"])-1] for entry in cp["attractors"]]
+                bond_dict[cp["id"]]["distance"] = cp["attractors"][0]["distance"]*bohr_to_ang+cp["attractors"][1]["distance"]*bohr_to_ang
+
+        bonds = []
+        for cpid in bond_dict:
+            valid = True
+            # identify and throw out invalid bonds
+            if valid:
+                bonds.append([int(entry)-1 for entry in bond_dict[cpid]["atom_ids"]])
+
+        YT = loadfn("YT.json")
+        charges = []
+        for site in YT["integration"]["attractors"]:
+            charges.append(site["atomic_number"]-site["integrals"][0])
+
+        processed_dict = {}
+        processed_dict["bonds"] = bonds
+        processed_dict["charges"] = charges
+        dumpfn(processed_dict,"processed_critic2.json")
 
         if compress_at_end:
             compress_file(cube)

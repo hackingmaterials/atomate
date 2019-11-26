@@ -7,7 +7,6 @@
 import shutil
 import os
 import subprocess
-import logging
 
 from pymatgen.io.qchem.inputs import QCInput
 
@@ -17,7 +16,7 @@ from custodian.qchem.jobs import QCJob
 
 from fireworks import explicit_serialize, FiretaskBase
 
-from atomate.utils.utils import env_chk#, get_logger
+from atomate.utils.utils import env_chk, get_logger
 import numpy as np
 
 __author__ = "Samuel Blau"
@@ -29,8 +28,7 @@ __status__ = "Alpha"
 __date__ = "5/11/18"
 __credits__ = "Shyam Dwaraknath, Xiaohui Qu, Shyue Ping Ong, Anubhav Jain"
 
-# logger = logging.getLogger(__name__)
-# logger = get_logger(__name__)
+logger = get_logger(__name__)
 
 
 @explicit_serialize
@@ -58,10 +56,10 @@ class RunQChemDirect(FiretaskBase):
             scratch_dir = "/dev/shm/qcscratch/"
         os.putenv("QCSCRATCH", scratch_dir)
 
-        # logger.info("Running command: {}".format(cmd))
+        logger.info("Running command: {}".format(cmd))
         return_code = subprocess.call(cmd, shell=True)
-        # logger.info("Command {} finished running with return code: {}".format(
-        #     cmd, return_code))
+        logger.info("Command {} finished running with return code: {}".format(
+            cmd, return_code))
 
 
 @explicit_serialize
@@ -258,7 +256,7 @@ class RunQChemFake(FiretaskBase):
                     raise ValueError(
                         "Solvent key {} is inconsistent!".format(key))
 
-        # logger.info("RunQChemFake: verified input successfully")
+        logger.info("RunQChemFake: verified input successfully")
 
     @staticmethod
     def _clear_inputs():
@@ -272,4 +270,4 @@ class RunQChemFake(FiretaskBase):
             full_file_name = os.path.join(self["ref_dir"], file_name)
             if os.path.isfile(full_file_name):
                 shutil.copy(full_file_name, os.getcwd())
-        # logger.info("RunQChemFake: ran fake QChem, generated outputs")
+        logger.info("RunQChemFake: ran fake QChem, generated outputs")
