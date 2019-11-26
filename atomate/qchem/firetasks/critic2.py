@@ -8,6 +8,7 @@ import shutil
 import os
 import subprocess
 import logging
+import warnings
 
 from pymatgen.io.qchem.inputs import QCInput
 from monty.serialization import loadfn, dumpfn
