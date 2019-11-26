@@ -18,10 +18,9 @@ from custodian.qchem.jobs import QCJob
 
 from monty.tempfile import ScratchDir
 from monty.shutil import compress_file, decompress_file
-from pymatgen.command_line.critic2_caller import Critic2Output
 from fireworks import explicit_serialize, FiretaskBase
 
-from atomate.utils.utils import env_chk#, get_logger
+from atomate.utils.utils import env_chk, get_logger
 import numpy as np
 
 __author__ = "Samuel Blau"
