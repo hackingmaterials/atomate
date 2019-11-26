@@ -78,7 +78,7 @@ class RunCritic2(FiretaskBase):
             warnings.warn(stderr)
 
         if rs.returncode != 0:
-            raise RuntimeError("critic2 exited with return code {}.".format(rs.returncode))
+            logger.info("critic2 exited with return code {}.".format(rs.returncode))
 
         CP = loadfn("CP.json")
         bohr_to_ang = 0.529177249
