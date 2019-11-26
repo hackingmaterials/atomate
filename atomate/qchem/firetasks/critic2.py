@@ -60,6 +60,7 @@ class RunCritic2(FiretaskBase):
         input_script += ["CPREPORT CP.json"]
         input_script += ["YT JSON YT.json"]
         input_script += ["end"]
+        input_script += [""]
         input_script = "\n".join(input_script)
 
         with open('input_script.cri', 'w') as f:
@@ -68,14 +69,20 @@ class RunCritic2(FiretaskBase):
 
         rs = subprocess.Popen(args,
                               stdout=subprocess.PIPE,
-                              stdin=subprocess.PIPE, close_fds=True)
+                              stdin=subprocess.PIPE,
+                              stderr=subprocess.PIPE,
+                              close_fds=True)
 
         stdout, stderr = rs.communicate()
         stdout = stdout.decode()
+        with open('stdout.cri', 'w') as f:
+            f.write(stdout)
 
         if stderr:
             stderr = stderr.decode()
             warnings.warn(stderr)
+            with open('stderr.cri', 'w') as f:
+                f.write(stderr)
 
         if rs.returncode != 0:
             logger.info("critic2 exited with return code {}.".format(rs.returncode))
