@@ -59,14 +59,13 @@ class RunCritic2(FiretaskBase):
         input_script += ["load "+cube]
         input_script += ["auto"]
         input_script += ["CPREPORT CP.json"]
-        input_script += ["YT JSON YT.json"]
         input_script += ["end"]
         input_script += [""]
         input_script = "\n".join(input_script)
 
-        with open('input_script.cri', 'w') as f:
+        with open('input_script1.cri', 'w') as f:
             f.write(input_script)
-        args = ["critic2", "input_script.cri"]
+        args = ["critic2", "input_script1.cri"]
 
         rs = subprocess.Popen(args,
                               stdout=subprocess.PIPE,
@@ -77,13 +76,46 @@ class RunCritic2(FiretaskBase):
         stdout, stderr = rs.communicate()
         rs.wait()
         stdout = stdout.decode()
-        with open('stdout.cri', 'w') as f:
+        with open('stdout1.cri', 'w') as f:
             f.write(stdout)
 
         if stderr:
             stderr = stderr.decode()
             warnings.warn(stderr)
-            with open('stderr.cri', 'w') as f:
+            with open('stderr1.cri', 'w') as f:
+                f.write(stderr)
+
+        if rs.returncode != 0:
+            logger.info("critic2 exited with return code {}.".format(rs.returncode))
+
+        input_script = ["molecule "+cube]
+        input_script += ["load "+cube]
+        input_script += ["auto"]
+        input_script += ["YT JSON YT.json"]
+        input_script += ["end"]
+        input_script += [""]
+        input_script = "\n".join(input_script)
+
+        with open('input_script2.cri', 'w') as f:
+            f.write(input_script)
+        args = ["critic2", "input_script2.cri"]
+
+        rs = subprocess.Popen(args,
+                              stdout=subprocess.PIPE,
+                              stdin=subprocess.PIPE,
+                              stderr=subprocess.PIPE,
+                              close_fds=True)
+
+        stdout, stderr = rs.communicate()
+        rs.wait()
+        stdout = stdout.decode()
+        with open('stdout2.cri', 'w') as f:
+            f.write(stdout)
+
+        if stderr:
+            stderr = stderr.decode()
+            warnings.warn(stderr)
+            with open('stderr2.cri', 'w') as f:
                 f.write(stderr)
 
         if rs.returncode != 0:
