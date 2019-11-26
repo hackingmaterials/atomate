@@ -8,6 +8,7 @@ import shutil
 import os
 import subprocess
 import logging
+import time
 
 from pymatgen.io.qchem.inputs import QCInput
 from monty.serialization import loadfn, dumpfn
@@ -74,6 +75,7 @@ class RunCritic2(FiretaskBase):
                               close_fds=True)
 
         stdout, stderr = rs.communicate()
+        time.sleep(10)
         stdout = stdout.decode()
         with open('stdout.cri', 'w') as f:
             f.write(stdout)
