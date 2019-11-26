@@ -99,9 +99,9 @@ class RunCritic2(FiretaskBase):
             coords = []
             for jj,val in enumerate(tmp):
                 coords.append((val+centering_vector[jj])*bohr_to_ang)
-            if str(mol[ii].specie) != specie:
+            if str(molecule[ii].specie) != specie:
                 raise RuntimeError("Atom ordering different!")
-            if mol[ii].distance_from_point(coords) > 1*10**-6:
+            if molecule[ii].distance_from_point(coords) > 1*10**-6:
                 raise RuntimeError("Atom position "+str(ii)+" inconsistent!")
 
         assert CP["critical_points"]["number_of_nonequivalent_cps"] == CP["critical_points"]["number_of_cell_cps"]
