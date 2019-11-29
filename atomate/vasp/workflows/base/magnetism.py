@@ -320,7 +320,8 @@ class MagneticOrderingsWF:
                         name=name + " static",
                         prev_calc_loc=True,
                         parents=fws[-1],
-                        vasptodb_kwargs={'parse_chgcar': True, 'parse_aeccar': True}
+                        vasptodb_kwargs={'parse_chgcar': True, 'parse_aeccar': True},
+                        allow_fizzled_parents=True  # so a failed optimize doesn't crash workflow
                     )
                 )
 
