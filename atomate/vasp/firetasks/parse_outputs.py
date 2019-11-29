@@ -118,7 +118,7 @@ class VaspToDb(FiretaskBase):
                 or bool(self.get("bandstructure_mode", False))
                 or self.get("parse_chgcar", False)  # deprecated
                 or self.get("parse_aeccar", False)  # deprecated
-                or bool(self.get("store_volumetric_data", [])))
+                or bool(self.get("store_volumetric_data", STORE_VOLUMETRIC_DATA)))
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
         defuse_children = False
