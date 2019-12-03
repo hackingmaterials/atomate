@@ -166,20 +166,27 @@ class TestVaspPowerups(unittest.TestCase):
     def test_queue_options(self):
         my_wf = self._copy_wf(self.bs_wf)
         my_wf = set_queue_options(my_wf, walltime="00:10:00")
-        self.assertEqual(my_wf.id_fw[-1].spec["_queueadapter"]["walltime"],"00:10:00")
+        for fw in my_wf.fws:
+            self.assertEqual(fw.spec["_queueadapter"]["walltime"], "00:10:00")
 
         my_wf = self._copy_wf(self.bs_wf)
         my_wf = set_queue_options(my_wf, qos="flex")
-        self.assertEqual(my_wf.id_fw[-1].spec["_queueadapter"]["qos"],"flex")
+        for fw in my_wf.fws:
+            self.assertEqual(fw.spec["_queueadapter"]["qos"], "flex")
 
         my_wf = self._copy_wf(self.bs_wf)
         my_wf = set_queue_options(my_wf, time_min="00:02:00")
-        self.assertEqual(my_wf.id_fw[-1].spec["_queueadapter"]["time_min"],"00:02:00")
+        for fw in my_wf.fws:
+            self.assertEqual(fw.spec["_queueadapter"]["time_min"], "00:02:00")
 
-        y_wf = set_queue_options(my_wf, walltime="00:10:00",time_min="00:02:00",qos="flex")
-        self.assertEqual(my_wf.id_fw[-1].spec["_queueadapter"]["qos"],"flex")
-        self.assertEqual(my_wf.id_fw[-1].spec["_queueadapter"]["time_min"],"00:02:00")
-        self.assertEqual(my_wf.id_fw[-1].spec["_queueadapter"]["walltime"],"00:10:00")
+        my_wf = self._copy_wf(self.bs_wf)
+        my_wf = set_queue_options(
+            my_wf, walltime="00:10:00", time_min="00:02:00", qos="flex"
+        )
+        for fw in my_wf.fws:
+            self.assertEqual(fw.spec["_queueadapter"]["qos"], "flex")
+            self.assertEqual(fw.spec["_queueadapter"]["time_min"], "00:02:00")
+            self.assertEqual(fw.spec["_queueadapter"]["walltime"], "00:10:00")
 
     def test_add_wf_metadata(self):
         my_wf = self._copy_wf(self.bs_wf)
