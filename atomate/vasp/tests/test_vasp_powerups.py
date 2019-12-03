@@ -6,7 +6,7 @@ from fireworks import Firework, ScriptTask, Workflow
 
 from atomate.vasp.powerups import add_priority, use_custodian, add_trackers, \
     add_modify_incar, add_small_gap_multiply, use_scratch_dir, remove_custodian, \
-    add_tags, add_wf_metadata, add_modify_potcar, clean_up_files
+    add_tags, add_wf_metadata, add_modify_potcar, clean_up_files, set_queue_options
 from atomate.vasp.workflows.base.core import get_wf
 
 from pymatgen.io.vasp.sets import MPRelaxSet
@@ -162,6 +162,24 @@ class TestVaspPowerups(unittest.TestCase):
                     v_found += 1
         self.assertEqual(b_found, 1)
         self.assertEqual(v_found, 4)
+
+    def test_queue_options(self):
+        my_wf = self._copy_wf(self.bs_wf)
+        my_wf = set_queue_options(my_wf, walltime="00:10:00")
+        self.assertEqual(my_wf.id_fw[-1].spec["_queueadapter"]["walltime"],"00:10:00")
+
+        my_wf = self._copy_wf(self.bs_wf)
+        my_wf = set_queue_options(my_wf, qos="flex")
+        self.assertEqual(my_wf.id_fw[-1].spec["_queueadapter"]["qos"],"flex")
+
+        my_wf = self._copy_wf(self.bs_wf)
+        my_wf = set_queue_options(my_wf, time_min="00:02:00")
+        self.assertEqual(my_wf.id_fw[-1].spec["_queueadapter"]["time_min"],"00:02:00")
+
+        y_wf = set_queue_options(my_wf, walltime="00:10:00",time_min="00:02:00",qos="flex")
+        self.assertEqual(my_wf.id_fw[-1].spec["_queueadapter"]["qos"],"flex")
+        self.assertEqual(my_wf.id_fw[-1].spec["_queueadapter"]["time_min"],"00:02:00")
+        self.assertEqual(my_wf.id_fw[-1].spec["_queueadapter"]["walltime"],"00:10:00")
 
     def test_add_wf_metadata(self):
         my_wf = self._copy_wf(self.bs_wf)
