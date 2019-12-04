@@ -227,7 +227,7 @@ class QChemDrone(AbstractDrone):
                 job_type = calc["input"]["rem"]["job_type"]
                 if job_type == "opt" or job_type == "optimization":
                     for ii,geom in enumerate(calc["geometries"]):
-                        site_properties = {"Mulliken":calc["Mullkien"][ii]}
+                        site_properties = {"Mulliken":calc["Mulliken"][ii]}
                         if "RESP" in calc:
                             site_properties["RESP"] = calc["RESP"][ii]
                         mol = Molecule(
