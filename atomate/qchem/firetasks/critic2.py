@@ -121,9 +121,18 @@ class RunCritic2(FiretaskBase):
 
         for cp in CP["critical_points"]["cell_cps"]:
             if cp["id"] in bond_dict:
-                bond_dict[cp["id"]]["atom_ids"] = [entry["cell_id"] for entry in cp["attractors"]]
-                bond_dict[cp["id"]]["atoms"] = [atoms[int(entry["cell_id"])-1] for entry in cp["attractors"]]
-                bond_dict[cp["id"]]["distance"] = cp["attractors"][0]["distance"]*bohr_to_ang+cp["attractors"][1]["distance"]*bohr_to_ang
+                # Check if any bonds include fictitious atoms
+                bad_bond = False
+                for entry in cp["attractors"]:
+                    if int(entry["cell_id"])-1 >= len(atoms):
+                        bad_bond = True
+                # If so, remove them from the bond_dict
+                if bad_bond:
+                    bond_dict.pop(cp["id"])
+                else:
+                    bond_dict[cp["id"]]["atom_ids"] = [entry["cell_id"] for entry in cp["attractors"]]
+                    bond_dict[cp["id"]]["atoms"] = [atoms[int(entry["cell_id"])-1] for entry in cp["attractors"]]
+                    bond_dict[cp["id"]]["distance"] = cp["attractors"][0]["distance"]*bohr_to_ang+cp["attractors"][1]["distance"]*bohr_to_ang
         dumpfn(bond_dict,"bonding.json")
 
         bonds = []
