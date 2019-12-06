@@ -3,7 +3,7 @@ jobs:
   py3test:
     working_directory: ~/atomate
     docker:
-      - image: materialsvirtuallab/circle-ci-pmg-py3:0.0.2
+      - image: materialsvirtuallab/circle-ci-pmg-py3:3.7.3
       - image: circleci/mongo:3.4.15
     steps:
       - checkout
@@ -12,19 +12,18 @@ jobs:
       - run:
           command: |
             export PATH=$HOME/miniconda3/bin:$PATH
-            conda create --quiet --yes --name test_env python=3.6
+            conda create --quiet --yes --name test_env python=3.7
             source activate test_env
             conda install --quiet --yes numpy scipy matplotlib sympy pandas
             conda install --quiet --yes -c openbabel openbabel
-            conda install --quiet --yes -c clinicalgraphics vtk
+            # conda install --quiet --yes -c clinicalgraphics vtk
             conda install --quiet --yes -c conda-forge python-igraph
             conda update --quiet --all
-            mkdir coverage_reports
-            pip install --quiet -r requirements.txt -r requirements-optional.txt
+            pip install --quiet -r requirements.txt -r requirements-ci.txt
             # Add executables and path.
             for EXEPATH in `pwd`/cmd_line/*/Linux_64bit; do export PATH=$PATH:$EXEPATH; done
             pip install --quiet -e .
-            nosetests --config=nose.cfg --cover-html --cover-html-dir=coverage_reports
+            pytest --ignore=atomate/qchem/test_files --cov=atomate --cov-report html:coverage_reports atomate
           no_output_timeout: 3600
       - store_artifacts:
           path: coverage_reports/

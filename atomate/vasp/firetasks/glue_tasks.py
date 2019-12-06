@@ -3,7 +3,8 @@
 import glob
 
 from pymatgen.analysis.elasticity.strain import Strain
-from pymatgen.io.vasp import Vasprun, zpath
+from pymatgen.io.vasp import Vasprun
+from monty.os.path import zpath
 
 """
 This module defines tasks that acts as a glue between other vasp Firetasks to allow communication

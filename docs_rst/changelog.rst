@@ -2,6 +2,11 @@
 atomate Changelog
 =================
 
+**v0.9.4**
+
+* Fixes for new pymatgen (S. Blau, S.P. Ong)
+
+
 **v0.9.3**
 
 * Minor change to enforce storing chgcars, clean up old kwargs in MagneticOrderings workflow (M. Horton)
