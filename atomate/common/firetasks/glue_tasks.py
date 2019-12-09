@@ -242,12 +242,14 @@ class CopyFiles(FiretaskBase):
         filesystem (str)
         files_to_copy (list): list of file names.
         exclude_files (list): list of file names to be excluded.
+        suffix (str): suffix to append to each filename when copying 
+            (e.g., rename 'INCAR' to 'INCAR.precondition')
     """
 
-    optional_params = ["from_dir", "to_dir", "filesystem", "files_to_copy", "exclude_files"]
+    optional_params = ["from_dir", "to_dir", "filesystem", "files_to_copy", "exclude_files","suffix"]
 
     def setup_copy(self, from_dir, to_dir=None, filesystem=None, files_to_copy=None, exclude_files=None,
-                   from_path_dict=None):
+                   from_path_dict=None,suffix=None):
         """
         setup the copy i.e setup the from directory, filesystem, destination directory etc.
 
@@ -270,6 +272,7 @@ class CopyFiles(FiretaskBase):
         self.to_dir = to_dir or os.getcwd()
         exclude_files = exclude_files or []
         self.files_to_copy = files_to_copy or [f for f in self.fileclient.listdir(self.from_dir) if f not in exclude_files]
+        self.suffix = suffix
 
     def copy_files(self):
         """
@@ -277,12 +280,16 @@ class CopyFiles(FiretaskBase):
         """
         for f in self.files_to_copy:
             prev_path_full = os.path.join(self.from_dir, f)
-            dest_path = os.path.join(self.to_dir, f)
+            if self.suffix:
+                dest_path = os.path.join(self.to_dir, f,self.suffix)
+            else:
+                dest_path = os.path.join(self.to_dir, f,self.suffix)
             self.fileclient.copy(prev_path_full, dest_path)
 
     def run_task(self, fw_spec):
         self.setup_copy(self.get("from_dir", None), to_dir=self.get("to_dir", None),
                         filesystem=self.get("filesystem", None),
                         files_to_copy=self.get("files_to_copy", None),
-                        exclude_files=self.get("exclude_files", []))
+                        exclude_files=self.get("exclude_files", []),
+                        suffix=self.get("suffix",None))
         self.copy_files()

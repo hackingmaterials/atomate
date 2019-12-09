@@ -52,6 +52,8 @@ class CopyVaspOutputs(CopyFiles):
         calc_loc (str OR bool): if True will set most recent calc_loc. If str
             search for the most recent calc_loc with the matching name
         calc_dir (str): path to dir that contains VASP output files.
+        suffix (str): suffix to append to each filename when copying 
+            (e.g., rename 'INCAR' to 'INCAR.precondition')
         filesystem (str): remote filesystem. e.g. username@host
         additional_files ([str]): additional files to copy,
             e.g. ["CHGCAR", "WAVECAR"]. Use $ALL if you just want to copy
@@ -61,7 +63,7 @@ class CopyVaspOutputs(CopyFiles):
     """
 
     optional_params = ["calc_loc", "calc_dir", "filesystem", "additional_files",
-                       "contcar_to_poscar"]
+                       "contcar_to_poscar","suffix"]
 
     def run_task(self, fw_spec):
 
@@ -87,7 +89,8 @@ class CopyVaspOutputs(CopyFiles):
         # setup the copy
         self.setup_copy(self.get("calc_dir", None),
                         filesystem=self.get("filesystem", None),
-                        files_to_copy=files_to_copy, from_path_dict=calc_loc)
+                        files_to_copy=files_to_copy, from_path_dict=calc_loc,
+                        suffix=self.get("suffix", None))
         # do the copying
         self.copy_files()
 
@@ -98,6 +101,8 @@ class CopyVaspOutputs(CopyFiles):
             prev_path_full = os.path.join(self.from_dir, f)
             dest_fname = 'POSCAR' if f == 'CONTCAR' and self.get(
                 "contcar_to_poscar", True) else f
+            if self.suffix:
+                dest_fname += self.suffix
             dest_path = os.path.join(self.to_dir, dest_fname)
 
             relax_ext = ""
@@ -118,7 +123,12 @@ class CopyVaspOutputs(CopyFiles):
                         gz_ext = possible_ext
 
             if not (f + relax_ext + gz_ext) in all_files:
-                raise ValueError("Cannot find file: {}".format(f))
+                # ignore missing KPOINTS file, as some calcs will set KSPACING
+                # and not output KPOINTS
+                if "KPOINTS" in f:
+                    continue
+                else:
+                    raise ValueError("Cannot find file: {}".format(f))
 
             # copy the file (minus the relaxation extension)
             self.fileclient.copy(prev_path_full + relax_ext + gz_ext,

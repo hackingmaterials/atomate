@@ -16,15 +16,16 @@ from pymatgen import Structure
 from pymatgen.io.vasp.sets import MPRelaxSet, MITMDSet, MITRelaxSet, \
     MPStaticSet, MPSOCSet
 
-from atomate.common.firetasks.glue_tasks import PassCalcLocs
+from atomate.common.firetasks.glue_tasks import PassCalcLocs, CopyFilesFromCalcLoc
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, pass_vasp_result
 from atomate.vasp.firetasks.neb_tasks import TransferNEBTask
 from atomate.vasp.firetasks.parse_outputs import VaspToDb, BoltztrapToDb
-from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunBoltztrap
+from atomate.vasp.firetasks.run_calc import RunVaspCustodian, RunVaspDirect, \
+    RunBoltztrap
 from atomate.vasp.firetasks.write_inputs import WriteNormalmodeDisplacedPoscar, \
     WriteTransmutedStructureIOSet, WriteVaspFromIOSet, WriteVaspHSEBSFromPrev, \
     WriteVaspNSCFFromPrev, WriteVaspSOCFromPrev, WriteVaspStaticFromPrev, \
-    WriteVaspFromIOSetFromInterpolatedPOSCAR
+    WriteVaspFromIOSetFromInterpolatedPOSCAR, ModifyIncar
 from atomate.vasp.firetasks.neb_tasks import WriteNEBFromImages, \
     WriteNEBFromEndpoints
 
@@ -87,6 +88,115 @@ class OptimizeFW(Firework):
                                              structure.composition.reduced_formula, name),
                                          **kwargs)
 
+class SCANOptimizeFW(Firework):
+
+    def __init__(self, structure, name="SCAN structure optimization",
+                 vasp_input_set=None,
+                 vasp_cmd=VASP_CMD, override_default_vasp_params=None,
+                 db_file=DB_FILE,
+                 max_force_threshold=RELAX_MAX_FORCE,
+                 auto_npar=">>auto_npar<<",
+                 parents=None,
+                 **kwargs):
+        """
+        Structure optimization using the SCAN metaGGA functional.
+
+        This workflow performs a 2-step optmization. The first step
+        is a conventional GGA run and serves to precondition the geometry and
+        wavefunctions. The second step is a SCAN structure optimization.
+
+        By default, the first optimization is force converged with 
+        EDIFFG = -0.05, and the second optimization is force converged with
+        EDIFFG=-0.02. Convergence paramters for the first and second
+        optimizations can be overridden by passing 'user_incar_settings_1' and 
+        'user_incar_settings_2', respectively.
+
+        Args:
+            structure (Structure): Input structure.
+            name (str): Name for the Firework.
+            vasp_input_set (VaspInputSet): input set to use. Defaults to MPRelaxSet() if None.
+            override_default_vasp_params (dict): If this is not None, these params are passed to
+                the default vasp_input_set, i.e., MPRelaxSet. This allows one to easily override
+                some settings, e.g., user_incar_settings, etc.
+            vasp_cmd (str): Command to run vasp.
+            ediffg (float): Shortcut to set ediffg in certain jobs
+            max_force_threshold (float): max force on a site allowed at end; otherwise, reject job
+            auto_npar (bool or str): whether to set auto_npar. defaults to env_chk: ">>auto_npar<<"
+            parents ([Firework]): Parents of this particular Firework.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+        override_default_vasp_params = override_default_vasp_params or {}
+        vasp_input_set = vasp_input_set or MPSCANRelaxSet(structure,
+                                                      **override_default_vasp_params)
+
+        t = []
+        # write the VASP input files based on MPScanRelaxSet
+        t.append(WriteVaspFromIOSet(structure=structure,
+                                    vasp_input_set=vasp_input_set))
+        
+        # pass the CalcLoc so that CopyFiles can find the directory
+        t.append(PassCalcLocs(name=name))
+
+        # Copy original inputs with the ".orig" suffix
+        t.append(CopyFilesFromCalcLoc(calc_loc=True,
+                                name_append=".orig"))
+
+        # Update the INCAR for the GGA preconditioning step
+        pre_opt_settings = {"_set": {"METAGGA": None, 
+                                                  "LWAVE": True,
+                                                  "EDIFFG":-0.05}}
+        
+        # Disable vdW for the precondition step
+        if vasp_input_set.incar.get("LUSE_VDW", None):
+            pre_opt_setings.append(
+                    {
+                        "_unset": {"LUSE_VDW": True, "BPARAM": 15.7}
+                            }
+                )
+        
+        t.append(ModifyIncar(incar_dictmod=pre_opt_settings))
+
+        # Run the GGA precondition step
+        t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
+
+        # Copy GGA outputs with '.precondition' suffix, copy CONTCAR to POSCAR
+        t.append(CopyVaspOutputs(calc_loc=True,contcar_to_poscar=True,
+                                        additional_files=["CHGCAR","WAVECAR"],suffix=".precondition"))
+
+        # Update the INCAR for the SCAN optimization  step
+        post_opt_settings = {
+                            "_set": {
+                                "METAGGA": vasp_input_set.incar.get("METAGGA"),
+                                "ISTART": 1,
+                                "NSW": vasp_input_set.incar.get("NSW"),
+                                "LWAVE": vasp_input_set.incar.get("LWAVE"),
+                                "EDIFFG": vasp_input_set.incar.get("EDIFFG"),
+                            }
+                    }
+        if vasp_input_set.incar.get("LUSE_VDW"):
+            post_opt_setings.append(
+                {"_set": {
+                    "LUSE_VDW": vasp_input_set.incar.get("LUSE_VDW"),
+                    "BPARAM": vasp_input_set.incar.get("BPARAM")
+                    }}
+            )
+        t.append(ModifyIncar(incar_dictmod=post_opt_settings))
+
+        # Run the SCAN optimization step
+        t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
+
+        # Copy the outputs with '.relax1' suffix
+        t.append(CopyVaspOutputs(calc_loc=True,additional_files=["CHGCAR","WAVECAR"],
+                                                suffix=".relax1"))
+
+        # Parse the outputs into the database
+        t.append(PassCalcLocs(name=name))
+        t.append(
+            VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
+        super(SCANOptimizeFW, self).__init__(t, parents=parents, name="{}-{}".
+                                         format(
+                                             structure.composition.reduced_formula, name),
+                                         **kwargs)
 
 class StaticFW(Firework):
 
