@@ -177,18 +177,14 @@ class ScanOptimizeFW(Firework):
                             "_set": {
                                 "METAGGA": vasp_input_set.incar.get("METAGGA"),
                                 "ISTART": 1,
-                                "NSW": vasp_input_set.incar.get("NSW"),
                                 "LWAVE": vasp_input_set.incar.get("LWAVE"),
                                 "EDIFFG": vasp_input_set.incar.get("EDIFFG"),
                             }
                     }
         if vasp_input_set.incar.get("LUSE_VDW"):
-            post_opt_settings.update(
-                {"_set": {
-                    "LUSE_VDW": vasp_input_set.incar.get("LUSE_VDW"),
-                    "BPARAM": vasp_input_set.incar.get("BPARAM")
-                    }}
-            )
+            post_opt_settings["_set"]["LUSE_VDW"] = vasp_input_set.incar.get("LUSE_VDW")
+            post_opt_settings["_set"]["BPARAM"] = vasp_input_set.incar.get("BPARAM")
+
         t.append(ModifyIncar(incar_dictmod=post_opt_settings))
 
         # Run the SCAN optimization step
