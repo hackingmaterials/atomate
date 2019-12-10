@@ -17,7 +17,7 @@ from atomate.vasp.powerups import (
     clean_up_files,
 )
 from atomate.vasp.workflows.base.core import get_wf
-from atomate.vasp.fireworks.core import SCANOptimizeFW
+from atomate.vasp.fireworks.core import ScanOptimizeFW
 
 __author__ = "Ryan Kingsbury, Shyam Dwaraknath, Anubhav Jain"
 __email__ = "rkingsbury@lbl.gov, shyamd@lbl.gov, ajain@lbl.gov"

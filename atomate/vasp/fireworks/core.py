@@ -3,7 +3,7 @@
 import warnings
 
 from atomate.vasp.config import HALF_KPOINTS_FIRST_RELAX, RELAX_MAX_FORCE, \
-    VASP_CMD, DB_FILE
+    VASP_CMD, DB_FILE, VDW_KERNEL_DIR
 
 """
 Defines standardized Fireworks that can be chained easily to perform various
@@ -17,6 +17,7 @@ from pymatgen.io.vasp.sets import MPRelaxSet, MITMDSet, MITRelaxSet, \
     MPStaticSet, MPSOCSet
 
 from atomate.common.firetasks.glue_tasks import PassCalcLocs, GzipDir, \
+                                            CopyFiles, DeleteFiles, \
                                             CopyFilesFromCalcLoc
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, pass_vasp_result
 from atomate.vasp.firetasks.neb_tasks import TransferNEBTask
@@ -95,6 +96,7 @@ class ScanOptimizeFW(Firework):
                  vasp_input_set=None,
                  vasp_cmd=VASP_CMD, override_default_vasp_params=None,
                  db_file=DB_FILE,
+                 vdw_kernel_dir = VDW_KERNEL_DIR,
                  parents=None,
                  **kwargs):
         """
@@ -118,8 +120,11 @@ class ScanOptimizeFW(Firework):
                 these params are passed to the default vasp_input_set, i.e., 
                 MPScanRelaxSet. This allows one to easily override
                 some settings, e.g., user_incar_settings, etc.
-            vasp_cmd (str): Command to run vasp.
+            vasp_cmd (str): Command to run vasp. Supports env_chk.
+            vdw_kernel_dir (str): Directory containing the pre-compiled VdW kernel.
+                Supports env_chk.
             db_file (str): Path to file specifying db credentials to place output parsing.
+                Supports env_chk.
             parents ([Firework]): Parents of this particular Firework.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
@@ -135,9 +140,14 @@ class ScanOptimizeFW(Firework):
         # pass the CalcLoc so that CopyFilesFromCalcLoc can find the directory
         t.append(PassCalcLocs(name=name))
 
+        # Copy the pre-compiled VdW kernel for VASP, if required
+        if vasp_input_set.vdw is not None:
+            t.append(CopyFiles(from_dir=vdw_kernel_dir))
+
         # Copy original inputs with the ".orig" suffix
         t.append(CopyFilesFromCalcLoc(calc_loc=True,
-                                name_append=".orig"))
+                                name_append=".orig",
+                                exclude_files=['vdw_kernel.bindat']))
 
         # Update the INCAR for the GGA preconditioning step
         pre_opt_settings = {"_set": {"METAGGA": None, 
@@ -158,8 +168,9 @@ class ScanOptimizeFW(Firework):
         t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
 
         # Copy GGA outputs with '.precondition' suffix, copy CONTCAR to POSCAR
-        t.append(CopyVaspOutputs(calc_loc=True,contcar_to_poscar=True,
-                                        additional_files=["CHGCAR","WAVECAR"],suffix=".precondition"))
+        t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True,
+                                        additional_files=["CHGCAR","WAVECAR"],
+                                        suffix=".precondition"))
 
         # Update the INCAR for the SCAN optimization  step
         post_opt_settings = {
@@ -184,8 +195,9 @@ class ScanOptimizeFW(Firework):
         t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
 
         # Copy the outputs with '.relax1' suffix
-        t.append(CopyVaspOutputs(calc_loc=True,additional_files=["CHGCAR","WAVECAR"],
-                                                suffix=".relax1"))
+        t.append(CopyVaspOutputs(calc_loc=True, 
+                                additional_files=["CHGCAR","WAVECAR"],
+                                suffix=".relax1"))
 
         # Parse the outputs into the database
         t.append(PassCalcLocs(name=name))
@@ -195,7 +207,10 @@ class ScanOptimizeFW(Firework):
         # gzip the output
         t.append(GzipDir())
 
-        super(SCANOptimizeFW, self).__init__(t, parents=parents, name="{}-{}".
+        # Delete the VdW kernel, if present
+        t.append(DeleteFiles(files=["vdw_kernel.bindat"]))
+
+        super(ScanOptimizeFW, self).__init__(t, parents=parents, name="{}-{}".
                                          format(
                                              structure.composition.reduced_formula, name),
                                          **kwargs)
