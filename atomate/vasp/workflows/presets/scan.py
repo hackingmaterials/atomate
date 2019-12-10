@@ -48,9 +48,10 @@ def wf_scan_opt(structure, c=None):
         params=[{"name": "SCAN optimization"}],
     )
 
-    #wf = use_custodian(
-    #    wf, custodian_params={"job_type": "metagga_opt_run",backup=False}
-    #)
+    # wf = use_custodian(
+    #     wf, custodian_params={"job_type": "metagga_opt_run",
+    #                         gzipped_output=False}
+    # )
     wf = add_common_powerups(wf, c)
 
     if c.get("ADD_WF_METADATA", ADD_WF_METADATA):

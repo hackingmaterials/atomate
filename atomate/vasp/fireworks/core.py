@@ -16,7 +16,8 @@ from pymatgen import Structure
 from pymatgen.io.vasp.sets import MPRelaxSet, MITMDSet, MITRelaxSet, \
     MPStaticSet, MPSOCSet
 
-from atomate.common.firetasks.glue_tasks import PassCalcLocs, CopyFilesFromCalcLoc
+from atomate.common.firetasks.glue_tasks import PassCalcLocs, GzipDir, \
+                                            CopyFilesFromCalcLoc
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, pass_vasp_result
 from atomate.vasp.firetasks.neb_tasks import TransferNEBTask
 from atomate.vasp.firetasks.parse_outputs import VaspToDb, BoltztrapToDb
@@ -88,14 +89,12 @@ class OptimizeFW(Firework):
                                              structure.composition.reduced_formula, name),
                                          **kwargs)
 
-class SCANOptimizeFW(Firework):
+class ScanOptimizeFW(Firework):
 
     def __init__(self, structure, name="SCAN structure optimization",
                  vasp_input_set=None,
                  vasp_cmd=VASP_CMD, override_default_vasp_params=None,
                  db_file=DB_FILE,
-                 max_force_threshold=RELAX_MAX_FORCE,
-                 auto_npar=">>auto_npar<<",
                  parents=None,
                  **kwargs):
         """
@@ -114,19 +113,18 @@ class SCANOptimizeFW(Firework):
         Args:
             structure (Structure): Input structure.
             name (str): Name for the Firework.
-            vasp_input_set (VaspInputSet): input set to use. Defaults to MPRelaxSet() if None.
-            override_default_vasp_params (dict): If this is not None, these params are passed to
-                the default vasp_input_set, i.e., MPRelaxSet. This allows one to easily override
+            vasp_input_set (VaspInputSet): input set to use. Defaults to MPScanRelaxSet() if None.
+            override_default_vasp_params (dict): If this is not None, and vasp_input_set is None,
+                these params are passed to the default vasp_input_set, i.e., 
+                MPScanRelaxSet. This allows one to easily override
                 some settings, e.g., user_incar_settings, etc.
             vasp_cmd (str): Command to run vasp.
-            ediffg (float): Shortcut to set ediffg in certain jobs
-            max_force_threshold (float): max force on a site allowed at end; otherwise, reject job
-            auto_npar (bool or str): whether to set auto_npar. defaults to env_chk: ">>auto_npar<<"
+            db_file (str): Path to file specifying db credentials to place output parsing.
             parents ([Firework]): Parents of this particular Firework.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         override_default_vasp_params = override_default_vasp_params or {}
-        vasp_input_set = vasp_input_set or MPSCANRelaxSet(structure,
+        vasp_input_set = vasp_input_set or MPScanRelaxSet(structure,
                                                       **override_default_vasp_params)
 
         t = []
@@ -134,7 +132,7 @@ class SCANOptimizeFW(Firework):
         t.append(WriteVaspFromIOSet(structure=structure,
                                     vasp_input_set=vasp_input_set))
         
-        # pass the CalcLoc so that CopyFiles can find the directory
+        # pass the CalcLoc so that CopyFilesFromCalcLoc can find the directory
         t.append(PassCalcLocs(name=name))
 
         # Copy original inputs with the ".orig" suffix
@@ -148,7 +146,7 @@ class SCANOptimizeFW(Firework):
         
         # Disable vdW for the precondition step
         if vasp_input_set.incar.get("LUSE_VDW", None):
-            pre_opt_setings.append(
+            pre_opt_settings.update(
                     {
                         "_unset": {"LUSE_VDW": True, "BPARAM": 15.7}
                             }
@@ -174,7 +172,7 @@ class SCANOptimizeFW(Firework):
                             }
                     }
         if vasp_input_set.incar.get("LUSE_VDW"):
-            post_opt_setings.append(
+            post_opt_settings.update(
                 {"_set": {
                     "LUSE_VDW": vasp_input_set.incar.get("LUSE_VDW"),
                     "BPARAM": vasp_input_set.incar.get("BPARAM")
@@ -193,6 +191,10 @@ class SCANOptimizeFW(Firework):
         t.append(PassCalcLocs(name=name))
         t.append(
             VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
+
+        # gzip the output
+        t.append(GzipDir())
+
         super(SCANOptimizeFW, self).__init__(t, parents=parents, name="{}-{}".
                                          format(
                                              structure.composition.reduced_formula, name),

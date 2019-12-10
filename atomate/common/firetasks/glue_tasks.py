@@ -10,7 +10,7 @@ from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 from atomate.utils.utils import env_chk, load_class, recursive_get_result
 from atomate.utils.fileio import FileClient
-from monty.shutil import copy_r
+from monty.shutil import copy_r, gzip_dir
 
 __author__ = 'Anubhav Jain'
 __email__ = 'ajain@lbl.gov'
@@ -293,3 +293,17 @@ class CopyFiles(FiretaskBase):
                         exclude_files=self.get("exclude_files", []),
                         suffix=self.get("suffix",None))
         self.copy_files()
+
+@explicit_serialize
+class GzipDir(FiretaskBase):
+    """
+    Task to gzip the current directory.
+
+    """
+
+    required_params = []
+    optional_params = []
+
+    def run_task(self,fw_spec=None):
+        cwd = os.getcwd()
+        gzip_dir(cwd)
