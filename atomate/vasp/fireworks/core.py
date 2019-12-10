@@ -169,7 +169,9 @@ class ScanOptimizeFW(Firework):
 
         # Copy GGA outputs with '.precondition' suffix, copy CONTCAR to POSCAR
         t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True,
-                                        additional_files=["CHGCAR","WAVECAR"],
+                                        additional_files=["CHGCAR",
+                                            "AECCAR0","AECCAR1","AECCAR2",
+                                            "LOCPOT","ELFCAR"],
                                         suffix=".precondition"))
 
         # Update the INCAR for the SCAN optimization  step
@@ -177,10 +179,14 @@ class ScanOptimizeFW(Firework):
                             "_set": {
                                 "METAGGA": vasp_input_set.incar.get("METAGGA"),
                                 "ISTART": 1,
-                                "LWAVE": vasp_input_set.incar.get("LWAVE"),
                                 "EDIFFG": vasp_input_set.incar.get("EDIFFG"),
                             }
                     }
+        if vasp_input_set.incar.get("LWAVE"):
+            post_opt_settings["_set"]["LWAVE"] = vasp_input_set.incar.get("LWAVE")
+        else:
+            post_opt_settings["_set"]["LWAVE"] = False
+
         if vasp_input_set.incar.get("LUSE_VDW"):
             post_opt_settings["_set"]["LUSE_VDW"] = vasp_input_set.incar.get("LUSE_VDW")
             post_opt_settings["_set"]["BPARAM"] = vasp_input_set.incar.get("BPARAM")
@@ -192,7 +198,9 @@ class ScanOptimizeFW(Firework):
 
         # Copy the outputs with '.relax1' suffix
         t.append(CopyVaspOutputs(calc_loc=True, 
-                                additional_files=["CHGCAR","WAVECAR"],
+                                additional_files=["CHGCAR",
+                                            "AECCAR0","AECCAR1","AECCAR2",
+                                            "LOCPOT","ELFCAR"],
                                 suffix=".relax1"))
 
         # Parse the outputs into the database
@@ -201,7 +209,7 @@ class ScanOptimizeFW(Firework):
             VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
 
         # Delete the VdW kernel, if present
-        t.append(DeleteFiles(files=["vdw_kernel.bindat"]))
+        t.append(DeleteFiles(files=["vdw_kernel.bindat","WAVECAR"]))
 
         # gzip the output
         t.append(GzipDir())
