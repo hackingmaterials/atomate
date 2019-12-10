@@ -204,11 +204,11 @@ class ScanOptimizeFW(Firework):
         t.append(
             VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
 
-        # gzip the output
-        t.append(GzipDir())
-
         # Delete the VdW kernel, if present
         t.append(DeleteFiles(files=["vdw_kernel.bindat"]))
+
+        # gzip the output
+        t.append(GzipDir())
 
         super(ScanOptimizeFW, self).__init__(t, parents=parents, name="{}-{}".
                                          format(
