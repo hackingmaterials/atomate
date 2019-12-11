@@ -31,12 +31,18 @@ def wf_scan_opt(structure, c=None):
 
     c = c or {}
     user_incar_settings = c.get("USER_INCAR_SETTINGS", {})
-    vdw = c.get("vdw", "")
+    vdw = c.get("vdw")
+    is_metallic = c.get("is_metallic", True)
 
     wf = get_wf(
         structure,
         "SCAN_optimization.yaml",
-        vis=MPScanRelaxSet(structure, user_incar_settings=user_incar_settings, vdw=vdw),
+        vis=MPScanRelaxSet(
+            structure,
+            user_incar_settings=user_incar_settings,
+            vdw=vdw,
+            is_metallic=is_metallic,
+        ),
         params=[{"name": "SCAN optimization"}],
     )
 
