@@ -54,7 +54,4 @@ def wf_scan_opt(structure, c=None):
     if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
         wf = add_wf_metadata(wf, structure)
 
-    if c.get("REMOVE_WAVECAR", REMOVE_WAVECAR):
-        wf = clean_up_files(wf)
-
     return wf
