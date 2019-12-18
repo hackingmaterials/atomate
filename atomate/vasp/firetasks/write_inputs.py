@@ -15,7 +15,7 @@ from fireworks.utilities.dict_mods import apply_mod
 from pymatgen.core.structure import Structure
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
-from pymatgen.io.vasp import Incar, Poscar, Potcar, PotcarSingle
+from pymatgen.io.vasp import Incar, Poscar, Potcar, PotcarSingle, Vasprun
 from pymatgen.io.vasp.sets import (
     MPStaticSet,
     MPNonSCFSet,
@@ -242,6 +242,34 @@ class ModifyPotcar(FiretaskBase):
 
         potcar.write_file(self.get("output_filename", "POTCAR"))
 
+
+@explicit_serialize
+class WriteScanRelaxFromPrev(FiretaskBase):
+    """
+    Writes input files for a SCAN relaxation by constructing a new input set.
+    The purpose of this Firetask is to allow the KSPACING and smearing parameters
+    to be recalculated based on the bandgap from the PBE relaxation in the
+    SCAN relaxation workflow. Assumes that output files from a previous
+    (e.g., optimization) run can be accessed in current dir or prev_calc_dir. 
+
+    Required params:
+        (none)
+
+    Optional params (dict):
+        other_params: Dict of any keyword arguments supported by MPScanRelaxSet.
+    """
+    optional_params = ["other_params"]
+
+    def run_task(self, fw_spec):
+
+        kwargs = self.get("other_params")
+
+        os.chdir(os.getcwd())
+        vrun = Vasprun("vasprun.xml")
+        bandgap = vrun.get_band_structure().get_band_gap()["energy"]
+        structure = vrun.final_structure
+        vis = MPScanRelaxSet(structure, bandgap=bandgap, **kwargs)
+        vis.write_input(".")
 
 @explicit_serialize
 class WriteVaspStaticFromPrev(FiretaskBase):
