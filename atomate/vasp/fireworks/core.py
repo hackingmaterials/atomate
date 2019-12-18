@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import warnings
+import copy
 
 from atomate.vasp.config import (
     HALF_KPOINTS_FIRST_RELAX,
@@ -144,12 +145,12 @@ class ScanOptimizeFW(Firework):
         """
         Structure optimization using the SCAN metaGGA functional.
 
-        This workflow performs a 2-step optmization. The first step
-        is a conventional GGA run and serves to precondition the geometry and
-        wavefunctions. The second step is a SCAN structure optimization.
+        This workflow performs a 2-step optmization. The first step ('relax1')
+        is a conventional GGA run relaxation that initializes the geometry and
+        wavefunctions. The second step ('relax2') is a SCAN relaxation.
 
-        By default, the first optimization is force converged with
-        EDIFFG = -0.05, and the second optimization is force converged with
+        By default, the first relaxation is force converged with
+        EDIFFG = -0.05, and the second relaxation is force converged with
         EDIFFG=-0.02.
 
         Args:
@@ -213,7 +214,7 @@ class ScanOptimizeFW(Firework):
         # Run the GGA precondition step
         t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
 
-        # Copy GGA outputs with '.precondition' suffix
+        # Copy GGA outputs with '.relax1' suffix
         # Copy CONTCAR to POSCAR is disabled because the structure is updated
         # by the subsequent WriteScanRelaxFromPrev Firetask
         t.append(
@@ -227,15 +228,16 @@ class ScanOptimizeFW(Firework):
                     "AECCAR2",
                     "LOCPOT",
                     "ELFCAR",
+                    "custodian.json"
                 ],
-                suffix=".precondition",
+                suffix=".relax1",
             )
         )
 
         # Create a new InputSet and write new inputs (but copy the CONTCAR)
         # set ICHARG and ISTART = 1 to start the calc from the previous charge
         # density
-        other_params = orig_input_set.kwargs
+        other_params = copy.deepcopy(orig_input_set.kwargs)
         if other_params.get("user_incar_settings"):
             other_params["user_incar_settings"]["ISTART"] = 1
             other_params["user_incar_settings"]["ICHARG"] = 1
@@ -246,7 +248,7 @@ class ScanOptimizeFW(Firework):
         # Run the SCAN optimization step
         t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
 
-        # Copy the outputs with '.relax1' suffix
+        # Copy the outputs with '.relax2' suffix
         t.append(
             CopyVaspOutputs(
                 calc_loc=True,
@@ -257,8 +259,9 @@ class ScanOptimizeFW(Firework):
                     "AECCAR2",
                     "LOCPOT",
                     "ELFCAR",
+                    "custodian.json"
                 ],
-                suffix=".relax1",
+                suffix=".relax2",
             )
         )
 
