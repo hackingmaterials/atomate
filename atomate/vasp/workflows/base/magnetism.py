@@ -222,7 +222,7 @@ class MagneticOrderingsWF:
 
         c_defaults = {"VASP_CMD": VASP_CMD, "DB_FILE": DB_FILE}
         c = c or {}
-        for k, v in c_defaults:
+        for k, v in c_defaults.items():
             if k not in c:
                 c[k] = v
 
@@ -320,10 +320,12 @@ class MagneticOrderingsWF:
                         name=name + " static",
                         prev_calc_loc=True,
                         parents=fws[-1],
-                        vasptodb_kwargs={'parse_chgcar': True, 'parse_aeccar': True},
-                        allow_fizzled_parents=True  # so a failed optimize doesn't crash workflow
+                        vasptodb_kwargs={'parse_chgcar': True, 'parse_aeccar': True}
                     )
                 )
+                
+                # so a failed optimize doesn't crash workflow
+                fws[-1].spec["_allow_fizzled_parents"] = True
 
             else:
 
