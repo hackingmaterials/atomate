@@ -228,9 +228,10 @@ class ScanOptimizeFW(Firework):
                     "AECCAR2",
                     "LOCPOT",
                     "ELFCAR",
-                    "custodian.json"
+                    "custodian.json",
                 ],
                 suffix=".relax1",
+                continue_on_missing=True
             )
         )
 
@@ -259,18 +260,35 @@ class ScanOptimizeFW(Firework):
                     "AECCAR2",
                     "LOCPOT",
                     "ELFCAR",
-                    "custodian.json"
+                    "custodian.json",
                 ],
                 suffix=".relax2",
+                continue_on_missing=True
+            )
+        )
+
+        # Delete the VdW kernel, WAVECAR, custodian.json, and VASP output files
+        # that have been copied to .relax2
+        # Deleting custodian.json is necessary to avoid double-counting
+        # custodian.json and custodian.json.relax2 when the output is parsed
+        t.append(
+            DeleteFiles(
+                files=[
+                    "vdw_kernel.bindat",
+                    "WAVECAR",
+                    "custodian.json",
+                    "*CAR",  # All files that end in "CAR"
+                    "AECCAR0",
+                    "AECCAR1",
+                    "AECCAR2",
+                    "LOCPOT",
+                ]
             )
         )
 
         # Parse the outputs into the database
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
-
-        # Delete the VdW kernel, if present
-        t.append(DeleteFiles(files=["vdw_kernel.bindat", "WAVECAR"]))
 
         # gzip the output
         t.append(GzipDir())

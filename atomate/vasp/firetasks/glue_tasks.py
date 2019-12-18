@@ -60,10 +60,12 @@ class CopyVaspOutputs(CopyFiles):
             everything
         contcar_to_poscar(bool): If True (default), will move CONTCAR to
             POSCAR (original POSCAR is not copied).
+        continue_on_missing(bool): Whether to continue copying when a file
+            is missing. Defaults to False.
     """
 
     optional_params = ["calc_loc", "calc_dir", "filesystem", "additional_files",
-                       "contcar_to_poscar","suffix"]
+                       "contcar_to_poscar","suffix", "continue_on_missing"]
 
     def run_task(self, fw_spec):
 
@@ -96,6 +98,9 @@ class CopyVaspOutputs(CopyFiles):
 
     def copy_files(self):
         all_files = self.fileclient.listdir(self.from_dir)
+
+        continue_on_missing = self.get("continue_on_missing", False)
+
         # start file copy
         for f in self.files_to_copy:
             prev_path_full = os.path.join(self.from_dir, f)
@@ -127,8 +132,10 @@ class CopyVaspOutputs(CopyFiles):
                 # and not output KPOINTS
                 if "KPOINTS" in f:
                     continue
-                else:
+                elif not continue_on_missing:
                     raise ValueError("Cannot find file: {}".format(f))
+                else:
+                    continue
 
             # copy the file (minus the relaxation extension)
             self.fileclient.copy(prev_path_full + relax_ext + gz_ext,
