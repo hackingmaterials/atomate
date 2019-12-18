@@ -22,6 +22,7 @@ from pymatgen.io.vasp.sets import (
     MPSOCSet,
     MPHSEBSSet,
     MPNMRSet,
+    MPScanRelaxSet
 )
 
 from atomate.utils.utils import env_chk, load_class

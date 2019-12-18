@@ -32,7 +32,7 @@ def wf_scan_opt(structure, c=None):
     c = c or {}
     user_incar_settings = c.get("USER_INCAR_SETTINGS", {})
     vdw = c.get("vdw")
-    is_metallic = c.get("is_metallic", True)
+    bandgap = c.get("bandgap", 0)
 
     wf = get_wf(
         structure,
@@ -41,13 +41,13 @@ def wf_scan_opt(structure, c=None):
             structure,
             user_incar_settings=user_incar_settings,
             vdw=vdw,
-            is_metallic=is_metallic,
+            bandgap=bandgap
         ),
         params=[{"name": "SCAN optimization"}],
     )
 
     wf = use_custodian(
-        wf, custodian_params={"job_type": "metagga_opt_run", "gzip_output": False}
+        wf, custodian_params={"job_type": "normal_no_backup", "gzip_output": False}
     )
     wf = add_common_powerups(wf, c)
 
