@@ -256,13 +256,17 @@ class ScanOptimizeFW(Firework):
             DeleteFiles(
                 files=[
                     "vdw_kernel.bindat",
-                    "WAVECAR",
-                    "custodian.json",
+                    "WAVECAR*",  # All WAVECARs,
+                    "*.json",
                     "*CAR",  # All files that end in "CAR"
-                    "AECCAR0",
-                    "AECCAR1",
-                    "AECCAR2",
+                    "EIGENVAL",
+                    "AECCAR?",
+                    "IBZKPT",
                     "LOCPOT",
+                    "REPORT",
+                    "std_err.txt",
+                    "vasp.out",
+                    "CHG"
                 ]
             )
         )

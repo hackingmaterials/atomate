@@ -87,14 +87,16 @@ class CopyFilesFromCalcLoc(FiretaskBase):
             None: if filenames not set, all files in calc_loc will be copied
             '$ALL_NO_SUBDIRS' in filenames: similar to filenames is None
             '$ALL' in filenames: all files and subfolders copied, name_prepend
-                and name_append cannot be set in this case
+                and name_append cannot be set in this case.
+            Accepts glob patterns.
         name_prepend (str): string to prepend filenames, e.g. can be a directory.
         name_append (str): string to append to destination filenames.
-        exclude_files (list): list of file names to be excluded.
+        exclude_files (list): list of file names to be excluded. Accepts glob patterns.
     """
 
     required_params = ["calc_loc"]
-    optional_params = ["filenames", "name_prepend", "name_append","exclude_files"]
+    optional_params = ["filenames", "name_prepend", "name_append",
+                       "exclude_files"]
 
     def run_task(self,fw_spec=None):
         calc_loc = get_calc_loc(self['calc_loc'], fw_spec["calc_locs"])
@@ -104,6 +106,7 @@ class CopyFilesFromCalcLoc(FiretaskBase):
         fileclient = FileClient(filesystem=filesystem)
         calc_dir = fileclient.abspath(calc_dir)
         filenames = self.get('filenames')
+
         exclude_files = self.get('exclude_files', [])
         if filenames is None:
             files_to_copy = fileclient.listdir(calc_dir)
@@ -113,16 +116,22 @@ class CopyFilesFromCalcLoc(FiretaskBase):
             files_to_copy = fileclient.listdir(calc_dir)
         elif '$ALL' in filenames:
             if self.get('name_prepend') or self.get('name_append') or \
-                self.get("exclude_files"):
+                    self.get("exclude_files"):
                 raise ValueError('name_prepend, name_append, and exclude_files \
                     options not compatible with "$ALL" option')
             copy_r(calc_dir, os.getcwd())
             return
         else:
-            files_to_copy = filenames
+            files_to_copy = []
+            for fname in filenames:
+                for f in glob.glob(os.path.join(calc_dir, fname)):
+                    files_to_copy.append(os.path.basename(f))
 
         # delete any excluded files
-        files_to_copy = [f for f in files_to_copy if f not in exclude_files]
+        for fname in exclude_files:
+            for f in glob.glob(os.path.join(calc_dir, fname)):
+                if os.path.basename(f) in files_to_copy:
+                    files_to_copy.remove(os.path.basename(f))
 
         for f in files_to_copy:
             prev_path_full = os.path.join(calc_dir, f)
@@ -247,16 +256,19 @@ class CopyFiles(FiretaskBase):
         from_dir (str): path to the directory containing the files to be copied. Supports env_chk.
         to_dir (str): path to the destination directory. Supports env_chk.
         filesystem (str)
-        files_to_copy (list): list of file names.
+        files_to_copy (list): list of file names. Defaults to copying everything in from_dir.
         exclude_files (list): list of file names to be excluded.
         suffix (str): suffix to append to each filename when copying 
             (e.g., rename 'INCAR' to 'INCAR.precondition')
+        continue_on_missing(bool): Whether to continue copying when a file
+            in filenames is missing. Defaults to False.
     """
 
-    optional_params = ["from_dir", "to_dir", "filesystem", "files_to_copy", "exclude_files","suffix"]
+    optional_params = ["from_dir", "to_dir", "filesystem", "files_to_copy", 
+                       "exclude_files","suffix","continue_on_missing"]
 
     def setup_copy(self, from_dir, to_dir=None, filesystem=None, files_to_copy=None, exclude_files=None,
-                   from_path_dict=None,suffix=None,fw_spec=None):
+                   from_path_dict=None,suffix=None,fw_spec=None,continue_on_missing=False):
         """
         setup the copy i.e setup the from directory, filesystem, destination directory etc.
 
@@ -280,6 +292,7 @@ class CopyFiles(FiretaskBase):
         exclude_files = exclude_files or []
         self.files_to_copy = files_to_copy or [f for f in self.fileclient.listdir(self.from_dir) if f not in exclude_files]
         self.suffix = suffix
+        self.continue_on_missing = continue_on_missing
 
     def copy_files(self):
         """
@@ -291,7 +304,13 @@ class CopyFiles(FiretaskBase):
                 dest_path = os.path.join(self.to_dir, f,self.suffix)
             else:
                 dest_path = os.path.join(self.to_dir, f)
-            self.fileclient.copy(prev_path_full, dest_path)
+            try:
+                self.fileclient.copy(prev_path_full, dest_path)
+            except FileNotFoundError as exc:
+                if continue_on_missing:
+                    continue
+                else:
+                    raise exc
 
     def run_task(self, fw_spec):
         self.setup_copy(self.get("from_dir", None), to_dir=self.get("to_dir", None),
