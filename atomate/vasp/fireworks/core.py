@@ -218,20 +218,10 @@ class ScanOptimizeFW(Firework):
         # Copy CONTCAR to POSCAR is disabled because the structure is updated
         # by the subsequent WriteScanRelaxFromPrev Firetask
         t.append(
-            CopyVaspOutputs(
+            CopyFilesFromCalcLoc(
                 calc_loc=True,
-                contcar_to_poscar=False,
-                additional_files=[
-                    "CHGCAR",
-                    "AECCAR0",
-                    "AECCAR1",
-                    "AECCAR2",
-                    "LOCPOT",
-                    "ELFCAR",
-                    "custodian.json",
-                ],
-                suffix=".relax1",
-                continue_on_missing=True
+                name_append=".relax1",
+                exclude_files=["vdw_kernel.bindat", "*.orig"],
             )
         )
 
@@ -251,19 +241,10 @@ class ScanOptimizeFW(Firework):
 
         # Copy the outputs with '.relax2' suffix
         t.append(
-            CopyVaspOutputs(
+            CopyFilesFromCalcLoc(
                 calc_loc=True,
-                additional_files=[
-                    "CHGCAR",
-                    "AECCAR0",
-                    "AECCAR1",
-                    "AECCAR2",
-                    "LOCPOT",
-                    "ELFCAR",
-                    "custodian.json",
-                ],
-                suffix=".relax2",
-                continue_on_missing=True
+                name_append=".relax2",
+                exclude_files=["vdw_kernel.bindat", "*.orig", "*.relax1"],
             )
         )
 
@@ -287,7 +268,6 @@ class ScanOptimizeFW(Firework):
         )
 
         # Parse the outputs into the database
-        t.append(PassCalcLocs(name=name))
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
 
         # gzip the output
