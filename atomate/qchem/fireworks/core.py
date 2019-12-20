@@ -447,7 +447,7 @@ class CubeAndCritic2FW(Firework):
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
 
-        qchem_input_params = qchem_input_params or {}
+        qchem_input_params = copy.deepcopy(qchem_input_params) or {}
         qchem_input_params["plot_cubes"] = True
         input_file="mol.qin"
         output_file="mol.qout"
