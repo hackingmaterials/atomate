@@ -45,7 +45,13 @@ class RunCritic2(FiretaskBase):
     required_params = ["molecule", "cube_file"]
 
     def run_task(self, fw_spec):
-        molecule = self.get("molecule")
+        if fw_spec.get("prev_calc_molecule"):
+            molecule = fw_spec.get("prev_calc_molecule")
+        else:
+            molecule = self.get("molecule")
+        if molecule == None:
+            raise ValueError("No molecule passed and no prev_calc_molecule found in spec! Exiting...")
+
         cube = self.get("cube_file")
 
         compress_at_end = False
