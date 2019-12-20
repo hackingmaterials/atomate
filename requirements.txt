@@ -3,7 +3,7 @@ scipy==1.4.1
 FireWorks==1.9.5
 pymatgen_diffusion==2019.8.18
 monty==3.0.2
-paramiko==2.4.2
+paramiko==2.7.1
 tqdm==4.38.0
 pybtex==0.22.2
 ruamel.yaml==0.16.5
