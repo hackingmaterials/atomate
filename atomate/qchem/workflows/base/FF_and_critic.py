@@ -38,6 +38,6 @@ def get_wf_FFopt_and_critic(molecule,
          parents=fw1)
     fws = [fw1, fw2]
 
-    wfname = "{}:{}".format(mol.composition.alphabetical_formula, "FFopt_CC2_WF_" + suffix)
+    wfname = "{}:{}".format(molecule.composition.alphabetical_formula, "FFopt_CC2_WF_" + suffix)
 
     return Workflow(fws, name=wfname, **kwargs)
