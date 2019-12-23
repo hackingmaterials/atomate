@@ -214,7 +214,8 @@ class ScanOptimizeFW(Firework):
         t.append(ModifyIncar(incar_dictmod=pre_opt_settings))
 
         # Run the GGA precondition step
-        t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, job_type="normal_no_backup",
+                                  gzip_output=False))
 
         # Copy GGA outputs with '.relax1' suffix
         # Copy CONTCAR to POSCAR is disabled because the structure is updated
@@ -239,7 +240,8 @@ class ScanOptimizeFW(Firework):
         t.append(WriteScanRelaxFromPrev(other_params=other_params))
 
         # Run the SCAN optimization step
-        t.append(RunVaspDirect(vasp_cmd=vasp_cmd))
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, job_type="normal_no_backup",
+                                  gzip_output=False))
 
         # Copy the outputs with '.relax2' suffix
         t.append(
