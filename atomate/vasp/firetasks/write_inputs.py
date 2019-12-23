@@ -253,9 +253,6 @@ class WriteScanRelaxFromPrev(FiretaskBase):
     SCAN relaxation workflow. Assumes that output files from a previous
     (e.g., optimization) run can be accessed in current dir or prev_calc_dir. 
 
-    Required params:
-        (none)
-
     Optional params (dict):
         other_params: Dict of any keyword arguments supported by MPScanRelaxSet.
     """
