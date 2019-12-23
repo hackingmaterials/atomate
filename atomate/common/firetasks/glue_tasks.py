@@ -76,7 +76,7 @@ def get_calc_loc(target_name, calc_locs):
 @explicit_serialize
 class CopyFilesFromCalcLoc(FiretaskBase):
     """
-    Based on CopyVaspOutputs but for general file copying. Note that "calc_locs"
+    Based on CopyVaspOutputs but for general file copying. Note "calc_locs"
     must be set in the fw_spec. Files are copied to the current folder.
 
     Required params:
@@ -89,16 +89,18 @@ class CopyFilesFromCalcLoc(FiretaskBase):
             '$ALL' in filenames: all files and subfolders copied, name_prepend
                 and name_append cannot be set in this case.
             Accepts glob patterns.
-        name_prepend (str): string to prepend filenames, e.g. can be a directory.
+        name_prepend (str): string to prepend filenames, e.g. can be a 
+            directory.
         name_append (str): string to append to destination filenames.
-        exclude_files (list): list of file names to be excluded. Accepts glob patterns.
+        exclude_files (list): list of file names to be excluded. Accepts glob
+            patterns.
     """
 
     required_params = ["calc_loc"]
     optional_params = ["filenames", "name_prepend", "name_append",
                        "exclude_files"]
 
-    def run_task(self,fw_spec=None):
+    def run_task(self, fw_spec=None):
         calc_loc = get_calc_loc(self['calc_loc'], fw_spec["calc_locs"])
         calc_dir = calc_loc["path"]
         filesystem = calc_loc["filesystem"]
@@ -154,15 +156,16 @@ class DeleteFiles(FiretaskBase):
 
     required_params = ["files"]
 
-    def run_task(self,fw_spec=None):
+    def run_task(self, fw_spec=None):
         cwd = os.getcwd()
 
-        for file in self.get("files",[]):
-            for f in glob.glob(os.path.join(cwd,file)):
+        for file in self.get("files", []):
+            for f in glob.glob(os.path.join(cwd, file)):
                 if os.path.isdir(f):
                     shutil.rmtree(f)
                 else:
                     os.remove(f)
+
 
 @explicit_serialize
 class CreateFolder(FiretaskBase):
@@ -265,10 +268,11 @@ class CopyFiles(FiretaskBase):
     """
 
     optional_params = ["from_dir", "to_dir", "filesystem", "files_to_copy", 
-                       "exclude_files","suffix","continue_on_missing"]
+                       "exclude_files", "suffix", "continue_on_missing"]
 
-    def setup_copy(self, from_dir, to_dir=None, filesystem=None, files_to_copy=None, exclude_files=None,
-                   from_path_dict=None,suffix=None,fw_spec=None,continue_on_missing=False):
+    def setup_copy(self, from_dir, to_dir=None, filesystem=None, files_to_copy=None,
+                   exclude_files=None, from_path_dict=None, suffix=None, 
+                   fw_spec=None, continue_on_missing=False):
         """
         setup the copy i.e setup the from directory, filesystem, destination directory etc.
 
@@ -277,7 +281,11 @@ class CopyFiles(FiretaskBase):
             to_dir (str)
             filesystem (str)
             files_to_copy (list): if None all the files in the from_dir will be copied
-            exclude_files (list)
+            exclude_files (list): list of file names to be excluded.
+            suffix (str): suffix to append to each filename when copying 
+                (e.g., rename 'INCAR' to 'INCAR.precondition')
+            continue_on_missing(bool): Whether to continue copying when a file
+                in filenames is missing. Defaults to False.
             from_path_dict (dict): dict specification of the path. If specified must contain atleast
                 the key "path" that specifies the path to the from_dir.
         """
