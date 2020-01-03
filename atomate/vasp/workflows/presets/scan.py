@@ -6,10 +6,8 @@ from pymatgen.io.vasp.sets import MPScanRelaxSet
 from atomate.vasp.config import ADD_WF_METADATA
 
 from atomate.vasp.powerups import (
-    use_custodian,
     add_wf_metadata,
     add_common_powerups,
-    clean_up_files,
 )
 from atomate.vasp.workflows.base.core import get_wf
 
