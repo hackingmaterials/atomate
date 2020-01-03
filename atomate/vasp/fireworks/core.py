@@ -52,7 +52,7 @@ from atomate.vasp.firetasks.write_inputs import (
     WriteVaspSOCFromPrev,
     WriteVaspStaticFromPrev,
     WriteVaspFromIOSetFromInterpolatedPOSCAR,
-    WriteScanRelaxFromPrev,
+    UpdateScanRelaxBandgap,
     ModifyIncar,
 )
 from atomate.vasp.firetasks.neb_tasks import WriteNEBFromImages, WriteNEBFromEndpoints
@@ -219,7 +219,7 @@ class ScanOptimizeFW(Firework):
 
         # Copy GGA outputs with '.relax1' suffix
         # Copy CONTCAR to POSCAR is disabled because the structure is updated
-        # by the subsequent WriteScanRelaxFromPrev Firetask
+        # by the subsequent UpdateScanRelaxBandgap Firetask
         t.append(
             CopyFilesFromCalcLoc(
                 calc_loc=True,
@@ -237,7 +237,7 @@ class ScanOptimizeFW(Firework):
             other_params["user_incar_settings"]["ICHARG"] = 1
         else:
             other_params["user_incar_settings"] = {"ISTART": 1, "ICHARG": 1}
-        t.append(WriteScanRelaxFromPrev(other_params=other_params))
+        t.append(UpdateScanRelaxBandgap(override_default_vasp_params=other_params))
 
         # Run the SCAN optimization step
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, job_type="normal_no_backup",

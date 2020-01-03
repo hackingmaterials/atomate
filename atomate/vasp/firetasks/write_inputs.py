@@ -245,7 +245,7 @@ class ModifyPotcar(FiretaskBase):
 
 
 @explicit_serialize
-class WriteScanRelaxFromPrev(FiretaskBase):
+class UpdateScanRelaxBandgap(FiretaskBase):
     """
     Writes input files for a SCAN relaxation by constructing a new input set.
     The purpose of this Firetask is to allow the KSPACING and smearing parameters
@@ -254,13 +254,14 @@ class WriteScanRelaxFromPrev(FiretaskBase):
     (e.g., optimization) run can be accessed in current dir or prev_calc_dir. 
 
     Optional params (dict):
-        other_params: Dict of any keyword arguments supported by MPScanRelaxSet.
+        override_default_vasp_params: Dict of any keyword arguments supported 
+                                      by MPScanRelaxSet.
     """
-    optional_params = ["other_params"]
+    optional_params = ["override_default_vasp_params"]
 
     def run_task(self, fw_spec):
 
-        kwargs = self.get("other_params")
+        kwargs = self.get("override_default_vasp_params")
 
         os.chdir(os.getcwd())
         vrun = Vasprun("vasprun.xml")
