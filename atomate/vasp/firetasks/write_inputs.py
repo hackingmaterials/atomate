@@ -1,8 +1,5 @@
-# coding: utf-8
-
-
 """
-This module defines tasks for writing vasp input sets for various types of vasp calculations
+This module defines tasks for writing vasp input sets.
 """
 
 import os
@@ -19,13 +16,19 @@ from pymatgen.core.structure import Structure
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
 from pymatgen.io.vasp import Incar, Poscar, Potcar, PotcarSingle
-from pymatgen.io.vasp.sets import MPStaticSet, MPNonSCFSet, MPSOCSet, MPHSEBSSet, MPNMRSet
+from pymatgen.io.vasp.sets import (
+    MPStaticSet,
+    MPNonSCFSet,
+    MPSOCSet,
+    MPHSEBSSet,
+    MPNMRSet,
+)
 
 from atomate.utils.utils import env_chk, load_class
 from atomate.vasp.firetasks.glue_tasks import GetInterpolatedPOSCAR
 
-__author__ = 'Anubhav Jain, Shyue Ping Ong, Kiran Mathew'
-__email__ = 'ajain@lbl.gov'
+__author__ = "Anubhav Jain, Shyue Ping Ong, Kiran Mathew"
+__email__ = "ajain@lbl.gov"
 
 
 @explicit_serialize
@@ -58,13 +61,17 @@ class WriteVaspFromIOSet(FiretaskBase):
 
     def run_task(self, fw_spec):
         # if a full VaspInputSet object was provided
-        if hasattr(self['vasp_input_set'], 'write_input'):
-            vis = self['vasp_input_set']
+        if hasattr(self["vasp_input_set"], "write_input"):
+            vis = self["vasp_input_set"]
 
         # if VaspInputSet String + parameters was provided
         else:
-            vis_cls = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])
-            vis = vis_cls(self["structure"], **self.get("vasp_input_params", {}))
+            vis_cls = load_class(
+                "pymatgen.io.vasp.sets", self["vasp_input_set"]
+            )
+            vis = vis_cls(
+                self["structure"], **self.get("vasp_input_params", {})
+            )
 
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
@@ -101,8 +108,15 @@ class WriteVaspFromIOSetFromInterpolatedPOSCAR(GetInterpolatedPOSCAR):
             "POTCAR.spec". This is intended to allow testing of workflows
             without requiring pseudo-potentials to be installed on the system.
     """
+
     # First, we make a fresh copy of the required_params before modifying.
-    required_params = ["start", "end", "this_image", "nimages", "vasp_input_set"]
+    required_params = [
+        "start",
+        "end",
+        "this_image",
+        "nimages",
+        "vasp_input_set",
+    ]
     optional_params = ["vasp_input_params", "autosort_tol", "potcar_spec"]
 
     def run_task(self, fw_spec):
@@ -121,8 +135,8 @@ class WriteVaspFromPMGObjects(FiretaskBase):
     """
     Write VASP files using pymatgen objects.
 
-    Required params:
-        (none) - although non-functional unless you set one or more optional params
+    Note, that although this firetask has no required params, it is
+    non-functional unless at least one optional param is set.
 
     Optional params:
         incar (Incar): pymatgen Incar object
@@ -162,24 +176,29 @@ class ModifyIncar(FiretaskBase):
         output_filename (str): Output filename (if not "INCAR")
     """
 
-    optional_params = ["incar_update", "incar_multiply", "incar_dictmod", "input_filename",
-                       "output_filename"]
+    optional_params = [
+        "incar_update",
+        "incar_multiply",
+        "incar_dictmod",
+        "input_filename",
+        "output_filename",
+    ]
 
     def run_task(self, fw_spec):
 
         incar_name = self.get("input_filename", "INCAR")
         incar = Incar.from_file(incar_name)
 
-        incar_update = env_chk(self.get('incar_update'), fw_spec)
-        incar_multiply = env_chk(self.get('incar_multiply'), fw_spec)
-        incar_dictmod = env_chk(self.get('incar_dictmod'), fw_spec)
+        incar_update = env_chk(self.get("incar_update"), fw_spec)
+        incar_multiply = env_chk(self.get("incar_multiply"), fw_spec)
+        incar_dictmod = env_chk(self.get("incar_dictmod"), fw_spec)
 
         if incar_update:
             incar.update(incar_update)
 
         if incar_multiply:
             for k in incar_multiply:
-                if hasattr(incar[k], '__iter__'):  # is list-like
+                if hasattr(incar[k], "__iter__"):  # is list-like
                     incar[k] = list(np.multiply(incar[k], incar_multiply[k]))
                 else:
                     incar[k] = incar[k] * incar_multiply[k]
@@ -218,7 +237,8 @@ class ModifyPotcar(FiretaskBase):
         for n, psingle in enumerate(potcar):
             if psingle.element in potcar_symbols:
                 potcar[n] = PotcarSingle.from_symbol_and_functional(
-                    potcar_symbols[psingle.element], functional)
+                    potcar_symbols[psingle.element], functional
+                )
 
         potcar.write_file(self.get("output_filename", "POTCAR"))
 
@@ -239,8 +259,17 @@ class WriteVaspStaticFromPrev(FiretaskBase):
 
     """
 
-    optional_params = ["prev_calc_dir", "reciprocal_density", "small_gap_multiply", "standardize",
-                       "sym_prec", "international_monoclinic", "lepsilon", "other_params", "potcar_spec"]
+    optional_params = [
+        "prev_calc_dir",
+        "reciprocal_density",
+        "small_gap_multiply",
+        "standardize",
+        "sym_prec",
+        "international_monoclinic",
+        "lepsilon",
+        "other_params",
+        "potcar_spec",
+    ]
 
     def run_task(self, fw_spec):
         lepsilon = self.get("lepsilon")
@@ -251,21 +280,29 @@ class WriteVaspStaticFromPrev(FiretaskBase):
         user_incar_settings = other_params.get("user_incar_settings", {})
 
         # for lepsilon runs, set EDIFF to 1E-5 unless user says otherwise
-        if lepsilon and "EDIFF" not in user_incar_settings and \
-                        "EDIFF_PER_ATOM" not in user_incar_settings:
+        if (
+            lepsilon
+            and "EDIFF" not in user_incar_settings
+            and "EDIFF_PER_ATOM" not in user_incar_settings
+        ):
             if "user_incar_settings" not in other_params:
                 other_params["user_incar_settings"] = {}
-            other_params["user_incar_settings"]["EDIFF"] = 1E-5
+            other_params["user_incar_settings"]["EDIFF"] = 1e-5
 
-        vis = MPStaticSet.from_prev_calc(prev_calc_dir=self.get("prev_calc_dir", "."),
-                                         reciprocal_density=self.get("reciprocal_density",
-                                                                     default_reciprocal_density),
-                                         small_gap_multiply=self.get("small_gap_multiply", None),
-                                         standardize=self.get("standardize", False),
-                                         sym_prec=self.get("sym_prec", 0.1),
-                                         international_monoclinic=self.get(
-                                             "international_monoclinic", True),
-                                         lepsilon=lepsilon, **other_params)
+        vis = MPStaticSet.from_prev_calc(
+            prev_calc_dir=self.get("prev_calc_dir", "."),
+            reciprocal_density=self.get(
+                "reciprocal_density", default_reciprocal_density
+            ),
+            small_gap_multiply=self.get("small_gap_multiply", None),
+            standardize=self.get("standardize", False),
+            sym_prec=self.get("sym_prec", 0.1),
+            international_monoclinic=self.get(
+                "international_monoclinic", True
+            ),
+            lepsilon=lepsilon,
+            **other_params
+        )
 
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
@@ -289,14 +326,22 @@ class WriteVaspHSEBSFromPrev(FiretaskBase):
     """
 
     required_params = []
-    optional_params = ["prev_calc_dir", "mode", "reciprocal_density", "kpoints_line_density", "potcar_spec"]
+    optional_params = [
+        "prev_calc_dir",
+        "mode",
+        "reciprocal_density",
+        "kpoints_line_density",
+        "potcar_spec",
+    ]
 
     def run_task(self, fw_spec):
-        vis = MPHSEBSSet.from_prev_calc(self.get("prev_calc_dir", "."),
-                                        mode=self.get("mode", "uniform"),
-                                        reciprocal_density=self.get("reciprocal_density", 50),
-                                        kpoints_line_density=self.get("kpoints_line_density", 10),
-                                        copy_chgcar=False)
+        vis = MPHSEBSSet.from_prev_calc(
+            self.get("prev_calc_dir", "."),
+            mode=self.get("mode", "uniform"),
+            reciprocal_density=self.get("reciprocal_density", 50),
+            kpoints_line_density=self.get("kpoints_line_density", 10),
+            copy_chgcar=False,
+        )
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
 
@@ -317,9 +362,22 @@ class WriteVaspNSCFFromPrev(FiretaskBase):
     """
 
     required_params = []
-    optional_params = ["prev_calc_dir", "copy_chgcar", "nbands_factor", "reciprocal_density",
-                       "kpoints_line_density", "small_gap_multiply", "standardize", "sym_prec",
-                       "international_monoclinic", "mode", "nedos", "optics", "other_params", "potcar_spec"]
+    optional_params = [
+        "prev_calc_dir",
+        "copy_chgcar",
+        "nbands_factor",
+        "reciprocal_density",
+        "kpoints_line_density",
+        "small_gap_multiply",
+        "standardize",
+        "sym_prec",
+        "international_monoclinic",
+        "mode",
+        "nedos",
+        "optics",
+        "other_params",
+        "potcar_spec",
+    ]
 
     def run_task(self, fw_spec):
         vis = MPNonSCFSet.from_prev_calc(
@@ -331,11 +389,14 @@ class WriteVaspNSCFFromPrev(FiretaskBase):
             small_gap_multiply=self.get("small_gap_multiply", None),
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
-            international_monoclinic=self.get("international_monoclinic", True),
+            international_monoclinic=self.get(
+                "international_monoclinic", True
+            ),
             mode=self.get("mode", "uniform"),
             nedos=self.get("nedos", 2001),
             optics=self.get("optics", False),
-            **self.get("other_params", {}))
+            **self.get("other_params", {})
+        )
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
 
@@ -356,10 +417,21 @@ class WriteVaspSOCFromPrev(FiretaskBase):
         (documentation for all optional params can be found in MPSOCSet)
 
     """
+
     required_params = ["magmom", "saxis"]
 
-    optional_params = ["prev_calc_dir", "copy_chgcar", "nbands_factor", "reciprocal_density", "small_gap_multiply",
-                       "standardize", "sym_prec", "international_monoclinic", "other_params", "potcar_spec"]
+    optional_params = [
+        "prev_calc_dir",
+        "copy_chgcar",
+        "nbands_factor",
+        "reciprocal_density",
+        "small_gap_multiply",
+        "standardize",
+        "sym_prec",
+        "international_monoclinic",
+        "other_params",
+        "potcar_spec",
+    ]
 
     def run_task(self, fw_spec):
         # TODO: @albalu - can saxis have a default value e.g. [001] and be an
@@ -377,8 +449,11 @@ class WriteVaspSOCFromPrev(FiretaskBase):
             small_gap_multiply=self.get("small_gap_multiply", None),
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
-            international_monoclinic=self.get("international_monoclinic", True),
-            **self.get("other_params", {}))
+            international_monoclinic=self.get(
+                "international_monoclinic", True
+            ),
+            **self.get("other_params", {})
+        )
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
 
@@ -401,8 +476,15 @@ class WriteVaspNMRFromPrev(FiretaskBase):
             "POTCAR.spec". This is intended to allow testing of workflows
             without requiring pseudo-potentials to be installed on the system.
     """
-    optional_params = ["prev_calc_dir", "mode", "isotopes",
-                       "reciprocal_density", "other_params", "potcar_spec"]
+
+    optional_params = [
+        "prev_calc_dir",
+        "mode",
+        "isotopes",
+        "reciprocal_density",
+        "other_params",
+        "potcar_spec",
+    ]
 
     def run_task(self, fw_spec):
         vis = MPNMRSet.from_prev_calc(
@@ -410,7 +492,8 @@ class WriteVaspNMRFromPrev(FiretaskBase):
             mode=self.get("mode", "cs"),
             isotopes=self.get("isotopes", None),
             reciprocal_density=self.get("reciprocal_density", 100),
-            **self.get("other_params", {}))
+            **self.get("other_params", {})
+        )
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
 
@@ -442,18 +525,29 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
     """
 
     required_params = ["structure", "transformations", "vasp_input_set"]
-    optional_params = ["prev_calc_dir", "transformation_params", "override_default_vasp_params", "potcar_spec"]
+    optional_params = [
+        "prev_calc_dir",
+        "transformation_params",
+        "override_default_vasp_params",
+        "potcar_spec",
+    ]
 
     def run_task(self, fw_spec):
 
         transformations = []
-        transformation_params = self.get("transformation_params",
-                                         [{} for i in range(len(self["transformations"]))])
+        transformation_params = self.get(
+            "transformation_params",
+            [{} for _ in range(len(self["transformations"]))],
+        )
         for t in self["transformations"]:
             found = False
             t_cls = None
-            for m in ["advanced_transformations", "defect_transformations",
-                      "site_transformations", "standard_transformations"]:
+            for m in [
+                "advanced_transformations",
+                "defect_transformations",
+                "site_transformations",
+                "standard_transformations",
+            ]:
                 mod = import_module("pymatgen.transformations.{}".format(m))
 
                 try:
@@ -471,11 +565,18 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
 
         # TODO: @matk86 - should prev_calc_dir use CONTCAR instead of POSCAR?
         #  Note that if current dir, maybe POSCAR is indeed best ... -computron
-        structure = self['structure'] if not self.get('prev_calc_dir', None) else \
-            Poscar.from_file(os.path.join(self['prev_calc_dir'], 'POSCAR')).structure
+        structure = (
+            self["structure"]
+            if not self.get("prev_calc_dir", None)
+            else Poscar.from_file(
+                os.path.join(self["prev_calc_dir"], "POSCAR")
+            ).structure
+        )
         ts = TransformedStructure(structure)
         transmuter = StandardTransmuter([ts], transformations)
-        final_structure = transmuter.transformed_structures[-1].final_structure.copy()
+        final_structure = transmuter.transformed_structures[
+            -1
+        ].final_structure.copy()
         vis_orig = self["vasp_input_set"]
         vis_dict = vis_orig.as_dict()
         vis_dict["structure"] = final_structure.as_dict()
@@ -512,7 +613,9 @@ class WriteNormalmodeDisplacedPoscar(FiretaskBase):
 
         # displace the sites along the given normal mode: displacement vector
         # for each site = normalized eigen vector * amount of displacement
-        nm_displacement = nm_eigenvecs[mode, :, :] * disp / nm_norms[mode, :, np.newaxis]
+        nm_displacement = (
+            nm_eigenvecs[mode, :, :] * disp / nm_norms[mode, :, np.newaxis]
+        )
         for i, vec in enumerate(nm_displacement):
             structure.translate_sites(i, vec, frac_coords=False)
 
