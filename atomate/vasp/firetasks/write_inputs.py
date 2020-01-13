@@ -31,24 +31,30 @@ __email__ = 'ajain@lbl.gov'
 @explicit_serialize
 class WriteVaspFromIOSet(FiretaskBase):
     """
-    Create VASP input files using implementations of pymatgen's AbstractVaspInputSet. An input set
-    can be provided as an object or as a String/parameter combo.
+    Create VASP input files using implementations of pymatgen's
+    AbstractVaspInputSet. An input set can be provided as an object or as a
+    String/parameter combo.
 
     Required params:
         structure (Structure): structure
-        vasp_input_set (AbstractVaspInputSet or str): Either a VaspInputSet object or a string
-            name for the VASP input set (e.g., "MPRelaxSet").
+        vasp_input_set (AbstractVaspInputSet or str): Either a VaspInputSet
+            object or a string name for the VASP input set (e.g., "MPRelaxSet").
 
     Optional params:
-        vasp_input_params (dict): When using a string name for VASP input set, use this as a dict
-            to specify kwargs for instantiating the input set parameters. For example, if you want
-            to change the user_incar_settings, you should provide: {"user_incar_settings": ...}.
-            This setting is ignored if you provide the full object representation of a VaspInputSet
-            rather than a String.
+        vasp_input_params (dict): When using a string name for VASP input set,
+            use this as a dict to specify kwargs for instantiating the input set
+            parameters. For example, if you want to change the
+            user_incar_settings, you should provide:
+            {"user_incar_settings": ...}. This setting is ignored if you provide
+            the full object representation of a VaspInputSet rather than a
+            String.
+        potcar_spec (bool): Instead of writing the POTCAR, write a
+            "POTCAR.spec". This is intended to allow testing of workflows
+            without requiring pseudo-potentials to be installed on the system.
     """
 
     required_params = ["structure", "vasp_input_set"]
-    optional_params = ["vasp_input_params"]
+    optional_params = ["vasp_input_params", "potcar_spec"]
 
     def run_task(self, fw_spec):
         # if a full VaspInputSet object was provided
@@ -59,7 +65,9 @@ class WriteVaspFromIOSet(FiretaskBase):
         else:
             vis_cls = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])
             vis = vis_cls(self["structure"], **self.get("vasp_input_params", {}))
-        vis.write_input(".")
+
+        potcar_spec = self.get("potcar_spec", False)
+        vis.write_input(".", potcar_spec=potcar_spec)
 
 
 @explicit_serialize
@@ -78,18 +86,24 @@ class WriteVaspFromIOSetFromInterpolatedPOSCAR(GetInterpolatedPOSCAR):
         autosort_tol (float): a distance tolerance in angstrom in which
           to automatically sort end_structure to match to the closest
           points in this particular structure.
-        vasp_input_set (str): a string name for the VASP input set (e.g., "MPRelaxSet").
+        vasp_input_set (str): a string name for the VASP input set (e.g.,
+            "MPRelaxSet").
 
     Optional params:
-        vasp_input_params (dict): When using a string name for VASP input set, use this as a dict
-            to specify kwargs for instantiating the input set parameters. For example, if you want
-            to change the user_incar_settings, you should provide: {"user_incar_settings": ...}.
-            This setting is ignored if you provide the full object representation of a VaspInputSet
-            rather than a String.
+        vasp_input_params (dict): When using a string name for VASP input set,
+            use this as a dict to specify kwargs for instantiating the input set
+            parameters. For example, if you want to change the
+            user_incar_settings, you should provide:
+            {"user_incar_settings": ...}. This setting is ignored if you provide
+            the full object representation of a VaspInputSet rather than a
+            String.
+        potcar_spec (bool): Instead of writing the POTCAR, write a
+            "POTCAR.spec". This is intended to allow testing of workflows
+            without requiring pseudo-potentials to be installed on the system.
     """
     # First, we make a fresh copy of the required_params before modifying.
     required_params = ["start", "end", "this_image", "nimages", "vasp_input_set"]
-    optional_params = ["vasp_input_params", "autosort_tol"]
+    optional_params = ["vasp_input_params", "autosort_tol", "potcar_spec"]
 
     def run_task(self, fw_spec):
         # Get interpolated structure.
@@ -98,7 +112,8 @@ class WriteVaspFromIOSetFromInterpolatedPOSCAR(GetInterpolatedPOSCAR):
         # Assumes VaspInputSet String + parameters was provided
         vis_cls = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])
         vis = vis_cls(structure, **self.get("vasp_input_params", {}))
-        vis.write_input(".")
+        potcar_spec = self.get("potcar_spec", False)
+        vis.write_input(".", potcar_spec=potcar_spec)
 
 
 @explicit_serialize
@@ -211,25 +226,27 @@ class ModifyPotcar(FiretaskBase):
 @explicit_serialize
 class WriteVaspStaticFromPrev(FiretaskBase):
     """
-    Writes input files for a static run. Assumes that output files from a previous
-    (e.g., optimization) run can be accessed in current dir or prev_calc_dir. Also allows
-    lepsilon (dielectric constant) calcs.
-
-    Required params:
-        (none)
+    Writes input files for a static run. Assumes that output files from a
+    previous (e.g., optimization) run can be accessed in current dir or
+    prev_calc_dir. Also allows lepsilon (dielectric constant) calcs.
 
     Optional params:
+        potcar_spec (bool): Instead of writing the POTCAR, write a
+            "POTCAR.spec". This is intended to allow testing of workflows
+            without requiring pseudo-potentials to be installed on the system.
         (documentation for all other optional params can be found in
         MPStaticSet)
+
     """
 
     optional_params = ["prev_calc_dir", "reciprocal_density", "small_gap_multiply", "standardize",
-                       "sym_prec", "international_monoclinic", "lepsilon", "other_params"]
+                       "sym_prec", "international_monoclinic", "lepsilon", "other_params", "potcar_spec"]
 
     def run_task(self, fw_spec):
         lepsilon = self.get("lepsilon")
 
-        default_reciprocal_density = 200 if lepsilon else 100  # more k-points for dielectric calc.
+        # more k-points for dielectric calc.
+        default_reciprocal_density = 200 if lepsilon else 100
         other_params = self.get("other_params", {})
         user_incar_settings = other_params.get("user_incar_settings", {})
 
@@ -249,27 +266,30 @@ class WriteVaspStaticFromPrev(FiretaskBase):
                                          international_monoclinic=self.get(
                                              "international_monoclinic", True),
                                          lepsilon=lepsilon, **other_params)
-        vis.write_input(".")
+
+        potcar_spec = self.get("potcar_spec", False)
+        vis.write_input(".", potcar_spec=potcar_spec)
 
 
 @explicit_serialize
 class WriteVaspHSEBSFromPrev(FiretaskBase):
     """
-    Writes input files for HSE band structure run. Assumes that output files from a
-    a previous job can be accessed. Since HSE always re-optimizes the charge density (no nSCF mode),
-    the previous job is used to get the location of VBM/CBM for mode="gap" (otherwise just used to
-    get the structure / starting charge density).
-
-    Required params:
-        (none)
+    Writes input files for HSE band structure run. Assumes that output files
+    from a previous job can be accessed. Since HSE always re-optimizes the
+    charge density (no nSCF mode), the previous job is used to get the location
+    of VBM/CBM for mode="gap" (otherwise just used to get the structure /
+    starting charge density).
 
     Optional params:
+        potcar_spec (bool): Instead of writing the POTCAR, write a
+            "POTCAR.spec". This is intended to allow testing of workflows
+            without requiring pseudo-potentials to be installed on the system.
         (documentation for all other optional params can be found in
         MPHSEBSSet)
     """
 
     required_params = []
-    optional_params = ["prev_calc_dir", "mode", "reciprocal_density", "kpoints_line_density"]
+    optional_params = ["prev_calc_dir", "mode", "reciprocal_density", "kpoints_line_density", "potcar_spec"]
 
     def run_task(self, fw_spec):
         vis = MPHSEBSSet.from_prev_calc(self.get("prev_calc_dir", "."),
@@ -277,7 +297,8 @@ class WriteVaspHSEBSFromPrev(FiretaskBase):
                                         reciprocal_density=self.get("reciprocal_density", 50),
                                         kpoints_line_density=self.get("kpoints_line_density", 10),
                                         copy_chgcar=False)
-        vis.write_input(".")
+        potcar_spec = self.get("potcar_spec", False)
+        vis.write_input(".", potcar_spec=potcar_spec)
 
 
 @explicit_serialize
@@ -287,10 +308,10 @@ class WriteVaspNSCFFromPrev(FiretaskBase):
     scf job can be accessed. There are many options, e.g. uniform mode,
     line mode, adding the optical properties, etc.
 
-    Required params:
-        (none)
-
     Optional params:
+        potcar_spec (bool): Instead of writing the POTCAR, write a
+            "POTCAR.spec". This is intended to allow testing of workflows
+            without requiring pseudo-potentials to be installed on the system.
         (documentation for all optional params can be found in
         NonSCFVaspInputSet)
     """
@@ -298,7 +319,7 @@ class WriteVaspNSCFFromPrev(FiretaskBase):
     required_params = []
     optional_params = ["prev_calc_dir", "copy_chgcar", "nbands_factor", "reciprocal_density",
                        "kpoints_line_density", "small_gap_multiply", "standardize", "sym_prec",
-                       "international_monoclinic", "mode", "nedos", "optics", "other_params"]
+                       "international_monoclinic", "mode", "nedos", "optics", "other_params", "potcar_spec"]
 
     def run_task(self, fw_spec):
         vis = MPNonSCFSet.from_prev_calc(
@@ -315,7 +336,8 @@ class WriteVaspNSCFFromPrev(FiretaskBase):
             nedos=self.get("nedos", 2001),
             optics=self.get("optics", False),
             **self.get("other_params", {}))
-        vis.write_input(".")
+        potcar_spec = self.get("potcar_spec", False)
+        vis.write_input(".", potcar_spec=potcar_spec)
 
 
 @explicit_serialize
@@ -327,16 +349,23 @@ class WriteVaspSOCFromPrev(FiretaskBase):
         magmom (list): magnetic moment values for each site in the structure.
         saxis (list): magnetic field direction
 
+    Optional params:
+        potcar_spec (bool): Instead of writing the POTCAR, write a
+            "POTCAR.spec". This is intended to allow testing of workflows
+            without requiring pseudo-potentials to be installed on the system.
+        (documentation for all optional params can be found in MPSOCSet)
+
     """
     required_params = ["magmom", "saxis"]
 
     optional_params = ["prev_calc_dir", "copy_chgcar", "nbands_factor", "reciprocal_density", "small_gap_multiply",
-                       "standardize", "sym_prec", "international_monoclinic", "other_params"]
+                       "standardize", "sym_prec", "international_monoclinic", "other_params", "potcar_spec"]
 
     def run_task(self, fw_spec):
-        # TODO: @albalu - can saxis have a default value e.g. [001] and be an optional parameter?
-        # -computron
-        # TODO: @albalu - can magmom be auto-parsed from the previous calc? -computron
+        # TODO: @albalu - can saxis have a default value e.g. [001] and be an
+        #  optional parameter? -computron
+        # TODO: @albalu - can magmom be auto-parsed from the previous calc?
+        #  -computron
 
         vis = MPSOCSet.from_prev_calc(
             prev_calc_dir=self.get("prev_calc_dir", "."),
@@ -350,7 +379,8 @@ class WriteVaspSOCFromPrev(FiretaskBase):
             sym_prec=self.get("sym_prec", 0.1),
             international_monoclinic=self.get("international_monoclinic", True),
             **self.get("other_params", {}))
-        vis.write_input(".")
+        potcar_spec = self.get("potcar_spec", False)
+        vis.write_input(".", potcar_spec=potcar_spec)
 
 
 @explicit_serialize
@@ -367,9 +397,12 @@ class WriteVaspNMRFromPrev(FiretaskBase):
         reciprocal_density (int): the reciprocal density for the kpoint mesh,
             defaults to 100
         other_params (dict) : any other params passed to MPNMRSet as a dict.
+        potcar_spec (bool): Instead of writing the POTCAR, write a
+            "POTCAR.spec". This is intended to allow testing of workflows
+            without requiring pseudo-potentials to be installed on the system.
     """
     optional_params = ["prev_calc_dir", "mode", "isotopes",
-                       "reciprocal_density", "other_params"]
+                       "reciprocal_density", "other_params", "potcar_spec"]
 
     def run_task(self, fw_spec):
         vis = MPNMRSet.from_prev_calc(
@@ -378,32 +411,38 @@ class WriteVaspNMRFromPrev(FiretaskBase):
             isotopes=self.get("isotopes", None),
             reciprocal_density=self.get("reciprocal_density", 100),
             **self.get("other_params", {}))
-        vis.write_input(".")
+        potcar_spec = self.get("potcar_spec", False)
+        vis.write_input(".", potcar_spec=potcar_spec)
 
 
 @explicit_serialize
 class WriteTransmutedStructureIOSet(FiretaskBase):
     """
     Apply the provided transformations to the input structure and write the
-    input set for that structure. Reads structure from POSCAR if no structure provided. Note that
-    if a transformation yields many structures from one, only the last structure in the list is
-    used.
+    input set for that structure. Reads structure from POSCAR if no structure
+    provided. Note that if a transformation yields many structures from one,
+    only the last structure in the list is used.
 
     Required params:
         structure (Structure): input structure
-        transformations (list): list of names of transformation classes as defined in
-            the modules in pymatgen.transformations
+        transformations (list): list of names of transformation classes as
+            defined in the modules in pymatgen.transformations
         vasp_input_set (VaspInputSet): VASP input set.
 
     Optional params:
-        transformation_params (list): list of dicts where each dict specifies the input parameters
-            to instantiate the transformation class in the transformations list.
+        transformation_params (list): list of dicts where each dict specifies
+            the input parameters to instantiate the transformation class in the
+            transformations list.
         override_default_vasp_params (dict): additional user input settings.
-        prev_calc_dir: path to previous calculation if using structure from another calculation.
+        prev_calc_dir: path to previous calculation if using structure from
+            another calculation.
+        potcar_spec (bool): Instead of writing the POTCAR, write a
+            "POTCAR.spec". This is intended to allow testing of workflows
+            without requiring pseudo-potentials to be installed on the system.
     """
 
     required_params = ["structure", "transformations", "vasp_input_set"]
-    optional_params = ["prev_calc_dir", "transformation_params", "override_default_vasp_params"]
+    optional_params = ["prev_calc_dir", "transformation_params", "override_default_vasp_params", "potcar_spec"]
 
     def run_task(self, fw_spec):
 
@@ -430,8 +469,8 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
             t_obj = t_cls(**transformation_params.pop(0))
             transformations.append(t_obj)
 
-        # TODO: @matk86 - should prev_calc_dir use CONTCAR instead of POSCAR? Note that if
-        # current dir, maybe it is POSCAR indeed best ... -computron
+        # TODO: @matk86 - should prev_calc_dir use CONTCAR instead of POSCAR?
+        #  Note that if current dir, maybe POSCAR is indeed best ... -computron
         structure = self['structure'] if not self.get('prev_calc_dir', None) else \
             Poscar.from_file(os.path.join(self['prev_calc_dir'], 'POSCAR')).structure
         ts = TransformedStructure(structure)
@@ -442,7 +481,9 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
         vis_dict["structure"] = final_structure.as_dict()
         vis_dict.update(self.get("override_default_vasp_params", {}) or {})
         vis = vis_orig.__class__.from_dict(vis_dict)
-        vis.write_input(".")
+
+        potcar_spec = self.get("potcar_spec", False)
+        vis.write_input(".", potcar_spec=potcar_spec)
 
         dumpfn(transmuter.transformed_structures[-1], "transformations.json")
 
@@ -450,9 +491,10 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
 @explicit_serialize
 class WriteNormalmodeDisplacedPoscar(FiretaskBase):
     """
-    Displace the structure from the previous calculation along the provided normal mode by the
-    given amount and write the corresponding Poscar file. The fw_spec must contain a "normalmodes"
-    key with "eigenvecs" sub-key that is likely produced by a previous calc.
+    Displace the structure from the previous calculation along the provided
+    normal mode by the given amount and write the corresponding Poscar file.
+    The fw_spec must contain a "normalmodes" key with "eigenvecs" sub-key that
+    is likely produced by a previous calc.
 
     Required params:
         mode (int): normal mode index
@@ -468,8 +510,8 @@ class WriteNormalmodeDisplacedPoscar(FiretaskBase):
         nm_eigenvecs = np.array(fw_spec["normalmodes"]["eigenvecs"])
         nm_norms = np.linalg.norm(nm_eigenvecs, axis=2)
 
-        # displace the sites along the given normal mode:
-        # displacement vector for each site = normalized eigen vector * amount of displacement
+        # displace the sites along the given normal mode: displacement vector
+        # for each site = normalized eigen vector * amount of displacement
         nm_displacement = nm_eigenvecs[mode, :, :] * disp / nm_norms[mode, :, np.newaxis]
         for i, vec in enumerate(nm_displacement):
             structure.translate_sites(i, vec, frac_coords=False)
