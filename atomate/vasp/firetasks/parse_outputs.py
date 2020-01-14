@@ -54,6 +54,8 @@ class VaspToDb(FiretaskBase):
             search for the most recent calc_loc with the matching name
         parse_dos (bool): whether to parse the DOS and store in GridFS.
             Defaults to False.
+        parse_potcar_file (bool): Whether to parse the potcar file. Defaults to
+            True.
         bandstructure_mode (str): Set to "uniform" for uniform band structure.
             Set to "line" for line mode. If not set, band structure will not
             be parsed.
@@ -77,6 +79,7 @@ class VaspToDb(FiretaskBase):
     optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
                        "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful",
                        "task_fields_to_push", "parse_chgcar", "parse_aeccar",
+                       "parse_potcar_file",
                        "store_volumetric_data"]
 
     def run_task(self, fw_spec):
@@ -92,6 +95,7 @@ class VaspToDb(FiretaskBase):
 
         drone = VaspDrone(additional_fields=self.get("additional_fields"),
                           parse_dos=self.get("parse_dos", False),
+                          parse_potcar_file=self.get("parse_potcar_file", True),
                           bandstructure_mode=self.get("bandstructure_mode", False),
                           parse_chgcar=self.get("parse_chgcar", False),  # deprecated
                           parse_aeccar=self.get("parse_aeccar", False),  # deprecated
