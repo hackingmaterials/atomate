@@ -38,6 +38,7 @@ class TestWriteVasp(AtomateTest):
         super(TestWriteVasp, self).setUp(lpad=False)
 
     def tearDown(self):
+        super().tearDown()
         for x in ["INCAR", "POSCAR", "POTCAR", "KPOINTS", "POTCAR.spec"]:
             f = Path(self.scratch_dir) / x
             if f.exists():
