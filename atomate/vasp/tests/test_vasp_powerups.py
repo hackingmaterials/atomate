@@ -1,5 +1,6 @@
 import unittest
 
+from atomate.utils.utils import get_fws_and_tasks
 from fireworks import Firework, ScriptTask, Workflow
 
 from atomate.vasp.powerups import (
@@ -15,6 +16,7 @@ from atomate.vasp.powerups import (
     add_modify_potcar,
     clean_up_files,
     set_queue_options,
+    use_potcar_spec,
 )
 from atomate.vasp.workflows.base.core import get_wf
 
@@ -41,9 +43,6 @@ class TestVaspPowerups(unittest.TestCase):
             struct_si, "bandstructure_boltztrap.yaml", vis=vis
         )
 
-    def _copy_wf(self, wf):
-        return Workflow.from_dict(wf.to_dict())
-
     def test_add_priority(self):
         fw1 = Firework([ScriptTask(script=None)], fw_id=-1)
         fw2 = Firework([ScriptTask(script=None)], parents=[fw1], fw_id=-2)
@@ -57,7 +56,7 @@ class TestVaspPowerups(unittest.TestCase):
         self.assertEqual(wf.id_fw[-3].spec["_priority"], 8)
 
     def test_custodian_powerups(self):
-        my_wf = self._copy_wf(self.bs_wf)
+        my_wf = copy_wf(self.bs_wf)
         my_wf = remove_custodian(my_wf)
 
         for fw in my_wf.fws:
@@ -65,7 +64,7 @@ class TestVaspPowerups(unittest.TestCase):
             self.assertTrue("RunVaspDirect" in fw.tasks[task_idx]._fw_name)
             self.assertEqual(fw.tasks[task_idx]["vasp_cmd"], "test_VASP")
 
-        my_wf_double_relax = remove_custodian(self._copy_wf(self.bs_wf))
+        my_wf_double_relax = remove_custodian(copy_wf(self.bs_wf))
         my_wf_double_relax = use_custodian(
             my_wf_double_relax,
             fw_name_constraint="structure optimization",
@@ -84,7 +83,7 @@ class TestVaspPowerups(unittest.TestCase):
 
     def test_modify_incar(self):
         my_wf = add_modify_incar(
-            self._copy_wf(self.bs_wf),
+            copy_wf(self.bs_wf),
             {"incar_update": {"NCORE": 1}},
             fw_name_constraint="structure optimization",
         )
@@ -99,7 +98,7 @@ class TestVaspPowerups(unittest.TestCase):
 
     def test_modify_potcar(self):
         my_wf = add_modify_potcar(
-            self._copy_wf(self.bs_wf),
+            copy_wf(self.bs_wf),
             {"potcar_symbols": {"Si": "Si_alt"}},
             fw_name_constraint="structure optimization",
         )
@@ -115,13 +114,13 @@ class TestVaspPowerups(unittest.TestCase):
                     self.assertFalse("ModifyPotcar" in t["_fw_name"])
 
     def test_add_trackers(self):
-        my_wf = add_trackers(self._copy_wf(self.bs_wf))
+        my_wf = add_trackers(copy_wf(self.bs_wf))
 
         for fw in my_wf.fws:
             self.assertEqual(len(fw.spec["_trackers"]), 2)
 
     def test_add_small_gap_multiply(self):
-        my_wf = self._copy_wf(self.bs_wf)
+        my_wf = copy_wf(self.bs_wf)
         my_wf = add_small_gap_multiply(my_wf, 0.5, 1.5, "static")
         found = False
 
@@ -135,7 +134,7 @@ class TestVaspPowerups(unittest.TestCase):
         self.assertEqual(found, True)
 
     def test_use_scratch_dir(self):
-        my_wf = self._copy_wf(self.bs_wf)
+        my_wf = copy_wf(self.bs_wf)
         my_wf = use_custodian(my_wf)
         my_wf = use_scratch_dir(my_wf, ">>scratch_dir<<")
         found = 0
@@ -149,7 +148,7 @@ class TestVaspPowerups(unittest.TestCase):
         self.assertEqual(found, 4)
 
     def test_add_tags(self):
-        my_wf = self._copy_wf(self.bs_wf)
+        my_wf = copy_wf(self.bs_wf)
         my_wf.metadata = {"tags": ["a"]}
         my_wf = add_tags(my_wf, ["b", "c"])
 
@@ -166,7 +165,7 @@ class TestVaspPowerups(unittest.TestCase):
                     found += 1
         self.assertEqual(found, 4)
 
-        my_wf = self._copy_wf(self.bsboltz_wf)
+        my_wf = copy_wf(self.bsboltz_wf)
         my_wf = add_tags(my_wf, ["foo", "bar"])
 
         v_found = 0
@@ -190,22 +189,22 @@ class TestVaspPowerups(unittest.TestCase):
         self.assertEqual(v_found, 4)
 
     def test_queue_options(self):
-        my_wf = self._copy_wf(self.bs_wf)
+        my_wf = copy_wf(self.bs_wf)
         my_wf = set_queue_options(my_wf, walltime="00:10:00")
         for fw in my_wf.fws:
             self.assertEqual(fw.spec["_queueadapter"]["walltime"], "00:10:00")
 
-        my_wf = self._copy_wf(self.bs_wf)
+        my_wf = copy_wf(self.bs_wf)
         my_wf = set_queue_options(my_wf, qos="flex")
         for fw in my_wf.fws:
             self.assertEqual(fw.spec["_queueadapter"]["qos"], "flex")
 
-        my_wf = self._copy_wf(self.bs_wf)
+        my_wf = copy_wf(self.bs_wf)
         my_wf = set_queue_options(my_wf, time_min="00:02:00")
         for fw in my_wf.fws:
             self.assertEqual(fw.spec["_queueadapter"]["time_min"], "00:02:00")
 
-        my_wf = self._copy_wf(self.bs_wf)
+        my_wf = copy_wf(self.bs_wf)
         my_wf = set_queue_options(
             my_wf, walltime="00:10:00", time_min="00:02:00", qos="flex"
         )
@@ -215,7 +214,7 @@ class TestVaspPowerups(unittest.TestCase):
             self.assertEqual(fw.spec["_queueadapter"]["walltime"], "00:10:00")
 
     def test_add_wf_metadata(self):
-        my_wf = self._copy_wf(self.bs_wf)
+        my_wf = copy_wf(self.bs_wf)
         my_wf = add_wf_metadata(my_wf, PymatgenTest.get_structure("Si"))
         self.assertEqual(my_wf.metadata["nelements"], 1)
         self.assertEqual(my_wf.metadata["formula"], "Si2")
@@ -231,3 +230,18 @@ class TestVaspPowerups(unittest.TestCase):
             self.assertEqual(
                 list(fw.tasks[clean_idx].get("files")), ["WAVECAR*"]
             )
+
+    def test_use_potcar_spec(self):
+        wf = copy_wf(self.bs_wf)
+        wf = use_potcar_spec(wf)
+
+        idx_list = get_fws_and_tasks(wf, task_name_constraint="WriteVasp")
+        self.assertTrue(len(idx_list) > 0)
+
+        for idx_fw, idx_t in idx_list:
+            task = wf.fws[idx_fw].tasks[idx_t]
+            self.assertTrue(task["potcar_spec"])
+
+
+def copy_wf(wf):
+    return Workflow.from_dict(wf.to_dict())
