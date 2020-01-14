@@ -862,7 +862,8 @@ def use_potcar_spec(original_wf, fw_name_constraint=None):
     """
     In all WriteVasp tasks, enable the potcar_spec option. In this mode,
     POTCAR files will be written as POTCAR.spec files, containing only the
-    atomic symbols.
+    atomic symbols. Furthermore, POTCAR files will not be parsed by the
+    VaspToDb drone.
 
     The primary use case for this powerup is to enable easier testing of
     atomate workflows. Typically, writing VaspInputSets requires having the
@@ -887,8 +888,15 @@ def use_potcar_spec(original_wf, fw_name_constraint=None):
         fw_name_constraint=fw_name_constraint,
         task_name_constraint="WriteVasp",
     )
-
     for idx_fw, idx_t in idx_list:
         original_wf.fws[idx_fw].tasks[idx_t]["potcar_spec"] = True
+
+    idx_list = get_fws_and_tasks(
+        original_wf,
+        fw_name_constraint=fw_name_constraint,
+        task_name_constraint="VaspToDb",
+    )
+    for idx_fw, idx_t in idx_list:
+        original_wf.fws[idx_fw].tasks[idx_t]["parse_potcar_file"] = False
 
     return original_wf

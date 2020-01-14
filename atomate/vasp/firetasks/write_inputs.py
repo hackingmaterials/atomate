@@ -27,7 +27,7 @@ from pymatgen.io.vasp.sets import (
 from atomate.utils.utils import env_chk, load_class
 from atomate.vasp.firetasks.glue_tasks import GetInterpolatedPOSCAR
 
-__author__ = "Anubhav Jain, Shyue Ping Ong, Kiran Mathew"
+__author__ = "Anubhav Jain, Shyue Ping Ong, Kiran Mathew, Alex Ganose"
 __email__ = "ajain@lbl.gov"
 
 
