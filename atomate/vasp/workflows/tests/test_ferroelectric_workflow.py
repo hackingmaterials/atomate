@@ -45,8 +45,7 @@ class TestFerroelectricWorkflow(AtomateTest):
             self.bto_polar, self.bto_nonpolar, **self.ferroelectric_config
         )
 
-        if not (ref_dir / "ferroelectric_wf/nonpolar_static").exists():
-            untar_test_files()
+        untar_test_files()
 
     def tearDown(self):
         super().tearDown()
@@ -95,7 +94,7 @@ class TestFerroelectricWorkflow(AtomateTest):
 
         self.assertTrue(all(interpolated_polarization_vis))
 
-        self.lp.add_wf(self.wf)
+        fw_ids = self.lp.add_wf(self.wf)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": db_dir / "db.json"}))
 
         # Check polar relaxation
@@ -117,6 +116,14 @@ class TestFerroelectricWorkflow(AtomateTest):
         for d in all_d:
             self._check_run(d, d["task_label"])
 
+        # get a fw that can be used to identify the workflow
+        fw_id = list(fw_ids.values())[0]
+
+        # check workflow finished without error
+        wf = self.lp.get_wf_by_fw_id(fw_id)
+        is_completed = [s == "COMPLETED" for s in wf.fw_states.values()]
+        self.assertTrue(all(is_completed))
+
 
 def get_simulated_wf(wf):
     f_dir = ref_dir / "ferroelectric_wf/scratch"
@@ -131,7 +138,7 @@ def get_simulated_wf(wf):
         "_interpolation_1_polarization": f_dir / "interpolation_1_polarization",
     }
 
-    wf = use_potcar_spec(wf)
+    wf = use_potcar_spec(wf, vasp_to_db_kwargs={"store_volumetric_data": []})
     wf = use_fake_vasp(
         wf, bto_ref_dirs, params_to_check=["ENCUT", "LWAVE"], check_potcar=False
     )
