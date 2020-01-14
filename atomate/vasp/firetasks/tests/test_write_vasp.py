@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from fireworks.utilities.fw_serializers import load_object
@@ -15,13 +14,13 @@ from pymatgen.util.testing import PymatgenTest
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
 from pymatgen.io.vasp.sets import MPRelaxSet
 
-__author__ = "Anubhav Jain, Kiran Mathew"
+__author__ = "Anubhav Jain, Kiran Mathew, Alex Ganose"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"
 
 module_dir = Path(__file__).resolve().parent
 test_files = module_dir / "../../test_files"
-p_setup_test = test_files / "../p_setup_test"
-p_preserve_incar = test_files / "../preserve_incar"
+p_setup_test = test_files / "setup_test"
+p_preserve_incar = test_files / "preserve_incar"
 
 
 class TestWriteVasp(AtomateTest):
@@ -39,10 +38,10 @@ class TestWriteVasp(AtomateTest):
         super(TestWriteVasp, self).setUp(lpad=False)
 
     def tearDown(self):
-        for x in ["INCAR", "POSCAR", "POTCAR", "KPOINTS"]:
-            f = module_dir / x
+        for x in ["INCAR", "POSCAR", "POTCAR", "KPOINTS", "POTCAR.spec"]:
+            f = Path(self.scratch_dir) / x
             if f.exists():
-                os.remove(os.path.join(module_dir, x))
+                f.unlink()
 
     def _verify_files(
         self, skip_kpoints=False, preserve_incar=False, potcar_spec=False
@@ -54,8 +53,8 @@ class TestWriteVasp(AtomateTest):
             self.assertEqual(str(poscar), str(self.ref_poscar))
 
             if potcar_spec:
-                potcar = Potcar.from_file("POTCAR")
-                self.assertEqual(potcar.symbols, self.ref_potcar.symbols)
+                symbols = Path("POTCAR.spec").read_text().split()
+                self.assertEqual(symbols, self.ref_potcar.symbols)
             else:
                 potcar = Potcar.from_file("POTCAR")
                 self.assertEqual(potcar.symbols, self.ref_potcar.symbols)
@@ -68,28 +67,34 @@ class TestWriteVasp(AtomateTest):
 
     def test_ioset_explicit(self):
         vis = MPRelaxSet(self.struct_si, force_gamma=True)
-        ft = WriteVaspFromIOSet(
-            dict(structure=self.struct_si, vasp_input_set=vis)
-        )
+        ft = WriteVaspFromIOSet(structure=self.struct_si, vasp_input_set=vis)
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
         self._verify_files()
 
     def test_ioset_implicit(self):
         ft = WriteVaspFromIOSet(
-            dict(structure=self.struct_si, vasp_input_set="MPRelaxSet")
+            structure=self.struct_si, vasp_input_set="MPRelaxSet"
         )
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
         self._verify_files(skip_kpoints=True)
 
+    def test_potcar_spec(self):
+        ft = WriteVaspFromIOSet(
+            structure=self.struct_si,
+            vasp_input_set="MPRelaxSet",
+            potcar_spec=True
+        )
+        ft = load_object(ft.to_dict())  # simulate database insertion
+        ft.run_task({})
+        self._verify_files(potcar_spec=True)
+
     def test_ioset_params(self):
         ft = WriteVaspFromIOSet(
-            dict(
-                structure=self.struct_si,
-                vasp_input_set="MPRelaxSet",
-                vasp_input_params={"user_incar_settings": {"ISMEAR": 1000}},
-            )
+            structure=self.struct_si,
+            vasp_input_set="MPRelaxSet",
+            vasp_input_params={"user_incar_settings": {"ISMEAR": 1000}},
         )
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
@@ -102,12 +107,10 @@ class TestWriteVasp(AtomateTest):
     def test_pmgobjects(self):
         mpvis = MPRelaxSet(self.struct_si, force_gamma=True)
         ft = WriteVaspFromPMGObjects(
-            {
-                "incar": mpvis.incar,
-                "poscar": mpvis.poscar,
-                "kpoints": mpvis.kpoints,
-                "potcar": mpvis.potcar,
-            }
+            incar=mpvis.incar,
+            poscar=mpvis.poscar,
+            kpoints=mpvis.kpoints,
+            potcar=mpvis.potcar,
         )
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
@@ -120,11 +123,9 @@ class TestWriteVasp(AtomateTest):
 
         # modify and test
         ft = ModifyIncar(
-            {
-                "incar_update": {"ISMEAR": 1000},
-                "incar_multiply": {"ENCUT": 1.5},
-                "incar_dictmod": {"_inc": {"ISPIN": -1}},
-            }
+            incar_update={"ISMEAR": 1000},
+            incar_multiply={"ENCUT": 1.5},
+            incar_dictmod={"_inc": {"ISPIN": -1}},
         )
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
