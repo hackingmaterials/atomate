@@ -138,7 +138,16 @@ def use_no_vasp(original_wf, ref_dirs):
     return original_wf
 
 
-def use_fake_vasp(original_wf, ref_dirs, params_to_check=None):
+def use_fake_vasp(
+    original_wf,
+    ref_dirs,
+    params_to_check=None,
+    check_incar=True,
+    check_kpoints=True,
+    check_poscar=True,
+    check_potcar=True,
+    clear_inputs=True,
+):
     """
     Replaces all tasks with "RunVasp" (e.g. RunVaspDirect) to be RunVaspFake.
     Thus, we do not actually run VASP but copy pre-determined inputs and
@@ -149,6 +158,11 @@ def use_fake_vasp(original_wf, ref_dirs, params_to_check=None):
         ref_dirs (dict): key=firework name, value=path to the reference vasp
             calculation directory
         params_to_check (list): optional list of incar parameters to check.
+        check_incar (bool): whether to confirm the INCAR params.
+        check_kpoints (bool): whether to confirm the KPOINTS params.
+        check_poscar (bool): whether to confirm the POSCAR params.
+        check_potcar (bool): whether to confirm the POTCAR params.
+        clear_inputs (bool): whether to delete VASP input files after running.
 
     Returns:
         Workflow
@@ -175,6 +189,11 @@ def use_fake_vasp(original_wf, ref_dirs, params_to_check=None):
                         original_wf.fws[idx_fw].tasks[idx_t] = RunVaspFake(
                             ref_dir=ref_dirs[job_type],
                             params_to_check=params_to_check,
+                            check_incar=check_incar,
+                            check_kpoints=check_kpoints,
+                            check_poscar=check_poscar,
+                            check_potcar=check_potcar,
+                            clear_inputs=clear_inputs,
                         )
 
                     if "RunVaspCustodian" in t_str and t_job_type == "neb":
