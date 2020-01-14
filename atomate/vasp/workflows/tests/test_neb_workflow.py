@@ -104,19 +104,31 @@ class TestNudgedElasticBandWorkflow(AtomateTest):
         wf_5 = get_simulated_wf(self.wf_5)
         wf_6 = get_simulated_wf(self.wf_6)
 
-        self.lp.add_wf(wf_1)
-        self.lp.add_wf(wf_2)
-        self.lp.add_wf(wf_3)
-        self.lp.add_wf(wf_4)
-        self.lp.add_wf(wf_5)
-        self.lp.add_wf(wf_6)
+        wf_1_ids = self.lp.add_wf(wf_1)
+        wf_2_ids = self.lp.add_wf(wf_2)
+        wf_3_ids = self.lp.add_wf(wf_3)
+        wf_4_ids = self.lp.add_wf(wf_4)
+        wf_5_ids = self.lp.add_wf(wf_5)
+        wf_6_ids = self.lp.add_wf(wf_6)
+
+        # get fw ids that can be used to identify the workflows from the DB
+        fw_wf_1 = list(wf_1_ids.values())[0]
+        fw_wf_2 = list(wf_2_ids.values())[0]
+        fw_wf_3 = list(wf_3_ids.values())[0]
+        fw_wf_4 = list(wf_4_ids.values())[0]
+        fw_wf_5 = list(wf_5_ids.values())[0]
+        fw_wf_6 = list(wf_6_ids.values())[0]
+
+        fw_ids = [fw_wf_1, fw_wf_2, fw_wf_3, fw_wf_4, fw_wf_5, fw_wf_6]
 
         # Use scratch directory as destination directory for testing
         fworker = FWorker(env={"run_dest_root": self.scratch_dir})
         rapidfire(self.lp, fworker=fworker)
 
-        wf = self.lp.get_wf_by_fw_id(1)
-        self.assertTrue(all([s == "COMPLETED" for s in wf.fw_states.values()]))
+        for i in fw_ids:
+            wf = self.lp.get_wf_by_fw_id(i)
+            is_completed = [s == "COMPLETED" for s in wf.fw_states.values()]
+            self.assertTrue(all(is_completed))
 
 
 def get_simulated_wf(wf):
