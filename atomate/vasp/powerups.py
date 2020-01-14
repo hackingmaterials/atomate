@@ -901,6 +901,8 @@ def use_potcar_spec(
         fw_name_constraint=fw_name_constraint,
         task_name_constraint="VaspToDb",
     )
+
+    vasp_to_db_kwargs = vasp_to_db_kwargs if vasp_to_db_kwargs else {}
     for idx_fw, idx_t in idx_list:
         original_wf.fws[idx_fw].tasks[idx_t]["parse_potcar_file"] = False
         original_wf.fws[idx_fw].tasks[idx_t].update(vasp_to_db_kwargs)
