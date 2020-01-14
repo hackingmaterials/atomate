@@ -84,7 +84,7 @@ class TestWriteVasp(AtomateTest):
         ft = WriteVaspFromIOSet(
             structure=self.struct_si,
             vasp_input_set="MPRelaxSet",
-            potcar_spec=True
+            potcar_spec=True,
         )
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
