@@ -23,7 +23,7 @@ from atomate.vasp.config import (
     GAMMA_VASP_CMD,
 )
 
-__author__ = "Anubhav Jain, Kiran Mathew"
+__author__ = "Anubhav Jain, Kiran Mathew, Alex Ganose"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"
 
 
@@ -99,10 +99,13 @@ def use_custodian(original_wf, fw_name_constraint=None, custodian_params=None):
         task_name_constraint="RunVasp",
     )
     for idx_fw, idx_t in vasp_fws_and_tasks:
-        fw = original_wf.fws[idx_fw]
         if "vasp_cmd" not in custodian_params:
-            custodian_params["vasp_cmd"] = fw.tasks[idx_t]["vasp_cmd"]
-        fw.tasks[idx_t] = RunVaspCustodian(**custodian_params)
+            custodian_params["vasp_cmd"] = original_wf.fws[idx_fw].tasks[
+                idx_t
+            ]["vasp_cmd"]
+        original_wf.fws[idx_fw].tasks[idx_t] = RunVaspCustodian(
+            **custodian_params
+        )
     return original_wf
 
 
