@@ -834,3 +834,39 @@ def modify_gzip_vasp(original_wf, gzip_output):
     for idx_fw, idx_t in idx_list:
         original_wf.fws[idx_fw].tasks[idx_t]["gzip_output"] = gzip_output
     return original_wf
+
+
+def use_potcar_spec(original_wf, fw_name_constraint=None):
+    """
+    In all WriteVasp tasks, enable the potcar_spec option. In this mode,
+    POTCAR files will be written as POTCAR.spec files, containing only the
+    atomic symbols.
+
+    The primary use case for this powerup is to enable easier testing of
+    atomate workflows. Typically, writing VaspInputSets requires having the
+    VASP pseudopotentials installed. Due to licensing restraints, the
+    VASP pseudopotentials are not installed in the atomate testing environment.
+    Use of this powerup therefore enables testing of atomate workflows in the
+    absence of installed pseudopotentials.
+
+    Note: this powerup should also be combined with RunFakeVasp with
+    check_potcar set to False.
+
+    Args:
+        original_wf (Workflow)
+        fw_name_constraint (str): Only apply changes to FWs where fw_name
+            contains this substring.
+
+    Returns:
+       Workflow
+    """
+    idx_list = get_fws_and_tasks(
+        original_wf,
+        fw_name_constraint=fw_name_constraint,
+        task_name_constraint="WriteVasp",
+    )
+
+    for idx_fw, idx_t in idx_list:
+        original_wf.fws[idx_fw].tasks[idx_t]["potcar_spec"] = True
+
+    return original_wf
