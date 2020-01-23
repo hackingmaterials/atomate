@@ -50,9 +50,9 @@ jobs:
             conda install --quiet --yes -c conda-forge python-igraph
             conda update --quiet --all
             pip install --quiet -r requirements.txt -r requirements-ci.txt
-            pip install git+https://github.com/materialsproject/pymatgen.git
-            pip install git+https://github.com/materialsproject/custodian.git
-            pip install git+https://github.com/materialsproject/fireworks.git
+            pip install git+https://github.com/materialsproject/pymatgen.git --upgrade
+            pip install git+https://github.com/materialsproject/custodian.git --upgrade
+            pip install git+https://github.com/materialsproject/fireworks.git --upgrade
             # Add executables and path.
             for EXEPATH in `pwd`/cmd_line/*/Linux_64bit; do export PATH=$PATH:$EXEPATH; done
             pip install --quiet -e .
