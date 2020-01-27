@@ -12,8 +12,7 @@ from pymongo import DESCENDING
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
-from atomate.vasp.powerups import use_custodian, add_namefile, use_fake_vasp, add_trackers, \
-    add_bandgap_check
+from atomate.vasp.powerups import use_custodian, add_namefile, use_fake_vasp, add_trackers, add_bandgap_check, use_potcar_spec
 from atomate.vasp.workflows.base.core import get_wf
 from atomate.utils.testing import AtomateTest
 from atomate.vasp.firetasks.parse_outputs import VaspDrone
@@ -359,6 +358,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         else:
             wf = use_custodian(wf)
 
+        my_wf = use_potcar_spec(my_wf)
         self.lp.add_wf(wf)
 
         # run the workflow
@@ -373,6 +373,8 @@ class TestScanOptimizeWorkflow(AtomateTest):
     def test_SCAN_no_bandgap(self):
         # A structure with bandgap = 0 (default) should have KSPACING equal to 0.22
         structure = Structure.from_file(os.path.join(reference_dir, "SCAN_structure_optimization_Al/inputs", "POSCAR"))
+
+        vis=MPScanRelaxSet(structure).write_spec()
 
         my_wf = get_wf(structure, "SCAN_optimization.yaml", vis=MPScanRelaxSet(structure),
                        common_params={"vasp_cmd": VASP_CMD})
