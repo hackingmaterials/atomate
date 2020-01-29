@@ -87,6 +87,7 @@ class VaspDrone(AbstractDrone):
     def __init__(self, runs=None, parse_dos="auto", bandstructure_mode="auto",
                  parse_locpot=True, additional_fields=None, use_full_uri=True,
                  parse_bader=bader_exe_exists, parse_chgcar=False, parse_aeccar=False,
+                 parse_potcar_file=True,
                  store_volumetric_data=STORE_VOLUMETRIC_DATA,
                  store_additional_json=STORE_ADDITIONAL_JSON):
         """
@@ -126,6 +127,7 @@ class VaspDrone(AbstractDrone):
         self.parse_bader = parse_bader
         self.store_volumetric_data = [f.lower() for f in store_volumetric_data]
         self.store_additional_json = store_additional_json
+        self.parse_potcar_file = parse_potcar_file
 
         if parse_chgcar or parse_aeccar:
             warnings.warn("These options have been deprecated in favor of the 'store_volumetric_data' "
@@ -342,7 +344,7 @@ class VaspDrone(AbstractDrone):
         """
         vasprun_file = os.path.join(dir_name, filename)
 
-        vrun = Vasprun(vasprun_file)
+        vrun = Vasprun(vasprun_file, parse_potcar_file=self.parse_potcar_file)
 
         d = vrun.as_dict()
 
