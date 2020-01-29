@@ -264,7 +264,7 @@ class UpdateScanRelaxBandgap(FiretaskBase):
         kwargs = self.get("override_default_vasp_params")
 
         os.chdir(os.getcwd())
-        vrun = Vasprun("vasprun.xml")
+        vrun = Vasprun("vasprun.xml", parse_potcar_file=False)
         bandgap = vrun.get_band_structure().get_band_gap()["energy"]
         structure = vrun.final_structure
         vis = MPScanRelaxSet(structure, bandgap=bandgap, **kwargs)
