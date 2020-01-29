@@ -256,19 +256,24 @@ class UpdateScanRelaxBandgap(FiretaskBase):
     Optional params (dict):
         override_default_vasp_params: Dict of any keyword arguments supported 
                                       by MPScanRelaxSet.
+        potcar_spec (bool): Instead of writing the POTCAR, write a
+            "POTCAR.spec". This is intended to allow testing of workflows
+            without requiring pseudo-potentials to be installed on the system.
+
     """
-    optional_params = ["override_default_vasp_params"]
+    optional_params = ["override_default_vasp_params", "potcar_spec"]
 
     def run_task(self, fw_spec):
 
         kwargs = self.get("override_default_vasp_params")
+        potcar_spec = self.get("potcar_spec", False)
 
         os.chdir(os.getcwd())
         vrun = Vasprun("vasprun.xml", parse_potcar_file=False)
         bandgap = vrun.get_band_structure().get_band_gap()["energy"]
         structure = vrun.final_structure
         vis = MPScanRelaxSet(structure, bandgap=bandgap, **kwargs)
-        vis.write_input(".")
+        vis.write_input(".", potcar_spec=potcar_spec)
 
 @explicit_serialize
 class WriteVaspStaticFromPrev(FiretaskBase):
