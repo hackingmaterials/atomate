@@ -202,7 +202,7 @@ class CheckBandgap(FiretaskBase):
                 vr_path = relax_paths[-1]
 
         logger.info("Checking the gap of file: {}".format(vr_path))
-        vr = Vasprun(vr_path)
+        vr = Vasprun(vr_path, parse_potcar_file=False)
         gap = vr.get_band_structure().get_band_gap()["energy"]
         stored_data = {"band_gap": gap}
         logger.info(
@@ -256,16 +256,15 @@ class GetInterpolatedPOSCAR(FiretaskBase):
         if not os.path.exists(os.path.join(os.getcwd(), interpolate_folder)):
             os.makedirs(os.path.join(os.getcwd(), interpolate_folder))
 
-        # use method of GrabFilesFromCalcLoc to grab files from previous locations.
-        CopyFilesFromCalcLoc(calc_dir=None, calc_loc=self["start"],
+        # use CopyFilesFromCalcLoc to get files from previous locations.
+        CopyFilesFromCalcLoc(calc_loc=self["start"],
                              filenames=["CONTCAR"],
                              name_prepend=interpolate_folder + os.sep,
                              name_append="_0").run_task(fw_spec=fw_spec)
-        CopyFilesFromCalcLoc(calc_dir=None, calc_loc=self["end"],
+        CopyFilesFromCalcLoc(calc_loc=self["end"],
                              filenames=["CONTCAR"],
                              name_prepend=interpolate_folder + os.sep,
                              name_append="_1").run_task(fw_spec=fw_spec)
-
 
         # assuming first calc_dir is polar structure for ferroelectric search
         s1 = Structure.from_file(os.path.join(interpolate_folder, "CONTCAR_0"))

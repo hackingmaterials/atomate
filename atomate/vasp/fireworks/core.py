@@ -66,6 +66,11 @@ class OptimizeFW(Firework):
                                                       force_gamma=force_gamma,
                                                       **override_default_vasp_params)
 
+        if vasp_input_set.incar["ISIF"] in (0, 1, 2, 7) and job_type == "double_relaxation":
+            warnings.warn(
+                "A double relaxation run might not be appropriate with ISIF {}".format(
+                    vasp_input_set.incar["ISIF"]))
+        
         t = []
         t.append(WriteVaspFromIOSet(structure=structure,
                                     vasp_input_set=vasp_input_set))
@@ -128,10 +133,9 @@ class StaticFW(Firework):
                                          contcar_to_poscar=True))
             t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
         elif structure:
-            vasp_input_set = vasp_input_set or MPStaticSet(structure)
+            vasp_input_set = vasp_input_set or MPStaticSet(structure, **vasp_input_set_params)
             t.append(WriteVaspFromIOSet(structure=structure,
-                                        vasp_input_set=vasp_input_set,
-                                        vasp_input_params=vasp_input_set_params))
+                                        vasp_input_set=vasp_input_set))
         else:
             raise ValueError("Must specify structure or previous calculation")
 
@@ -774,7 +778,7 @@ class NEBRelaxationFW(Firework):
                                                  user_incar_settings=user_incar_settings,
                                                  user_kpoints_settings=user_kpoints_settings)
 
-        write_ep_task = WriteVaspFromIOSet(structure=structure, output_dir=".",
+        write_ep_task = WriteVaspFromIOSet(structure=structure,
                                            vasp_input_set=vasp_input_set)
 
         # Task 2: Run VASP using Custodian
@@ -839,7 +843,7 @@ class NEBFW(Firework):
             write_neb_task = WriteNEBFromEndpoints(
                 user_incar_settings=user_incar_settings,
                 user_kpoints_settings=user_kpoints_settings,
-                output_dir=".", sort_tol=sort_tol, d_img=d_img,
+                sort_tol=sort_tol, d_img=d_img,
                 interpolation_type=interpolation_type)
 
         # Task 2: Run NEB using Custodian

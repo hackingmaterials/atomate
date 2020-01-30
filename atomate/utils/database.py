@@ -131,5 +131,5 @@ class CalcDb(metaclass=ABCMeta):
         else:
             kwargs["authsource"] = creds["database"]
 
-        return cls(creds["host"], int(creds["port"]), creds["database"], creds["collection"],
+        return cls(creds["host"], int(creds.get("port", 27017)), creds["database"], creds["collection"],
                    user, password, **kwargs)

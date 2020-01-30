@@ -33,6 +33,7 @@ from atomate.utils.utils import env_chk, get_meta_from_structure
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.drones import VaspDrone
+from atomate.vasp.config import STORE_VOLUMETRIC_DATA
 
 __author__ = 'Anubhav Jain, Kiran Mathew, Shyam Dwaraknath'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov'
@@ -53,6 +54,8 @@ class VaspToDb(FiretaskBase):
             search for the most recent calc_loc with the matching name
         parse_dos (bool): whether to parse the DOS and store in GridFS.
             Defaults to False.
+        parse_potcar_file (bool): Whether to parse the potcar file. Defaults to
+            True.
         bandstructure_mode (str): Set to "uniform" for uniform band structure.
             Set to "line" for line mode. If not set, band structure will not
             be parsed.
@@ -75,7 +78,9 @@ class VaspToDb(FiretaskBase):
     """
     optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
                        "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful",
-                       "task_fields_to_push", "parse_chgcar", "parse_aeccar"]
+                       "task_fields_to_push", "parse_chgcar", "parse_aeccar",
+                       "parse_potcar_file",
+                       "store_volumetric_data"]
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
@@ -90,9 +95,11 @@ class VaspToDb(FiretaskBase):
 
         drone = VaspDrone(additional_fields=self.get("additional_fields"),
                           parse_dos=self.get("parse_dos", False),
+                          parse_potcar_file=self.get("parse_potcar_file", True),
                           bandstructure_mode=self.get("bandstructure_mode", False),
-                          parse_chgcar=self.get("parse_chgcar", False),
-                          parse_aeccar=self.get("parse_aeccar", False))
+                          parse_chgcar=self.get("parse_chgcar", False),  # deprecated
+                          parse_aeccar=self.get("parse_aeccar", False),  # deprecated
+                          store_volumetric_data=self.get("store_volumetric_data", STORE_VOLUMETRIC_DATA))
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)
@@ -113,8 +120,9 @@ class VaspToDb(FiretaskBase):
             t_id = mmdb.insert_task(
                 task_doc, use_gridfs=self.get("parse_dos", False)
                 or bool(self.get("bandstructure_mode", False))
-                or self.get("parse_chgcar", False)
-                or self.get("parse_aeccar", False))
+                or self.get("parse_chgcar", False)  # deprecated
+                or self.get("parse_aeccar", False)  # deprecated
+                or bool(self.get("store_volumetric_data", STORE_VOLUMETRIC_DATA)))
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
         defuse_children = False
