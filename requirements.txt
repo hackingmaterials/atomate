@@ -6,7 +6,7 @@ monty==3.0.2
 paramiko==2.7.1
 tqdm==4.42.0
 pybtex==0.22.2
-ruamel.yaml==0.16.6
+ruamel.yaml==0.16.7
 pandas==0.25.3
 pymatgen==2020.1.28
 custodian==2019.9.23
