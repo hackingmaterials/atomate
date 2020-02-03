@@ -257,7 +257,7 @@ class ScanOptimizeFW(Firework):
         # Update the INCAR for the GGA static run
         t.append(ModifyIncar(incar_dictmod=pre_opt_settings))
 
-        # Run the GGA static .relax2 setp
+        # Run the GGA static .relax2 step
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd,
                                   job_type="normal_no_backup",
                                   gzip_output=False
@@ -274,7 +274,7 @@ class ScanOptimizeFW(Firework):
                     "FW.json",
                     "FW--*",
                     "*.orig",
-                    "*.relax2",
+                    "*.relax1",
                     "INCAR.temp"
                     ],
             )
