@@ -45,7 +45,13 @@ class RunCritic2(FiretaskBase):
     required_params = ["molecule", "cube_file"]
 
     def run_task(self, fw_spec):
-        molecule = self.get("molecule")
+        if fw_spec.get("prev_calc_molecule"):
+            molecule = fw_spec.get("prev_calc_molecule")
+        else:
+            molecule = self.get("molecule")
+        if molecule == None:
+            raise ValueError("No molecule passed and no prev_calc_molecule found in spec! Exiting...")
+
         cube = self.get("cube_file")
 
         compress_at_end = False
@@ -109,7 +115,7 @@ class RunCritic2(FiretaskBase):
                 coords.append((val+centering_vector[jj])*bohr_to_ang)
             if str(molecule[ii].specie) != specie:
                 raise RuntimeError("Atom ordering different!")
-            if molecule[ii].distance_from_point(coords) > 1*10**-6:
+            if molecule[ii].distance_from_point(coords) > 1*10**-5:
                 raise RuntimeError("Atom position "+str(ii)+" inconsistent!")
 
         assert CP["critical_points"]["number_of_nonequivalent_cps"] == CP["critical_points"]["number_of_cell_cps"]
