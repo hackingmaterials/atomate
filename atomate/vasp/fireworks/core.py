@@ -145,13 +145,12 @@ class ScanOptimizeFW(Firework):
         """
         Structure optimization using the SCAN metaGGA functional.
 
-        This workflow performs a 2-step optmization. The first step ('relax1')
+        This workflow performs a 3-step optmization. The first step ('relax1')
         is a conventional GGA run relaxation that initializes the geometry and
-        wavefunctions. The second step ('relax2') is a SCAN relaxation.
+        calculates the bandgap of the structure. The bandgap is used to update the KSPACING parameter, which sets the appropriate number of k-points for the structure. The second step ('.relax2') is a static GGA calculation that computes wavefunctions using the updated number of k-points. The third step ('relax3') is a SCAN relaxation.
 
-        By default, the first relaxation is force converged with
-        EDIFFG = -0.05, and the second relaxation is force converged with
-        EDIFFG=-0.02.
+        By default, .relax1 and .relax2 are force converged with
+        EDIFFG = -0.05, and .relax3 is force converged with EDIFFG=-0.02.
 
         Args:
             structure (Structure): Input structure.
@@ -175,7 +174,7 @@ class ScanOptimizeFW(Firework):
             structure, **override_default_vasp_params
         )
 
-        # Raise an warning if the InputSet is not MPScanRelaxSet, because the
+        # Raise a warning if the InputSet is not MPScanRelaxSet, because the
         # kspacing calculation from bandgap is only supported in MPScanRelaxSet.
         if not isinstance(orig_input_set, MPScanRelaxSet):
             raise UserWarning(
