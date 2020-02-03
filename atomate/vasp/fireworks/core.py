@@ -274,7 +274,7 @@ class ScanOptimizeFW(Firework):
                     "FW.json",
                     "FW--*",
                     "*.orig",
-                    "*.relax1",
+                    "*.relax2",
                     "INCAR.temp"
                     ],
             )
