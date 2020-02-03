@@ -17,7 +17,6 @@ LMIXTAU = True
 LORBIT = 11
 LREAL = False
 LVTOT = True
-LWAVE = True
 MAGMOM = 1*0.0
 METAGGA = None
 NELM = 200
