@@ -358,7 +358,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         else:
             wf = use_custodian(wf)
 
-        my_wf = use_potcar_spec(my_wf)
+        wf = use_potcar_spec(wf)
         self.lp.add_wf(wf)
 
         # run the workflow
