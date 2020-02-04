@@ -256,7 +256,7 @@ class ScanOptimizeFW(Firework):
         pre_opt_settings2["_set"].update({"LWAVE": True, "NSW": 0})
 
         # Update the INCAR for the GGA static run
-        t.append(ModifyIncar(incar_dictmod=pre_opt_settings))
+        t.append(ModifyIncar(incar_dictmod=pre_opt_settings2))
 
         # Run the GGA static .relax2 step
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd,
