@@ -374,8 +374,6 @@ class TestScanOptimizeWorkflow(AtomateTest):
         # A structure with bandgap = 0 (default) should have KSPACING equal to 0.22
         structure = Structure.from_file(os.path.join(reference_dir, "SCAN_structure_optimization_Al/inputs", "POSCAR"))
 
-        vis=MPScanRelaxSet(structure).write_spec()
-
         my_wf = get_wf(structure, "SCAN_optimization.yaml", vis=MPScanRelaxSet(structure),
                        common_params={"vasp_cmd": VASP_CMD})
 
