@@ -1382,7 +1382,6 @@ class NEBFW(Firework):
             write_neb_task = WriteNEBFromEndpoints(
                 user_incar_settings=user_incar_settings,
                 user_kpoints_settings=user_kpoints_settings,
-                output_dir=".",
                 sort_tol=sort_tol,
                 d_img=d_img,
                 interpolation_type=interpolation_type,
