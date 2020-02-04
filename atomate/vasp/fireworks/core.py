@@ -252,7 +252,8 @@ class ScanOptimizeFW(Firework):
         # Run a GGA static (.relax2) to initialize the wavefunction
         # In addition to the previous INCAR updates used in .relax1, output the
         # WAVECAR with LWAVE True
-        pre_opt_settings["_set"].update({"LWAVE": True, "NSW": 0})
+        pre_opt_settings2 = copy.deepcopy(pre_opt_settings)
+        pre_opt_settings2["_set"].update({"LWAVE": True, "NSW": 0})
 
         # Update the INCAR for the GGA static run
         t.append(ModifyIncar(incar_dictmod=pre_opt_settings))

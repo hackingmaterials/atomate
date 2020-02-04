@@ -449,7 +449,6 @@ class TestScanOptimizeWorkflow(AtomateTest):
         self.assertEqual(incar["ICHARG"], 1)
         self.assertEqual(incar["ISTART"], 1)
 
-
         # Check INCAR.relax3
         incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax3.gz"))
         for p in incar.keys():
