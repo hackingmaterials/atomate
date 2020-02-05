@@ -1303,7 +1303,7 @@ class NEBRelaxationFW(Firework):
             )
 
         write_ep_task = WriteVaspFromIOSet(
-            structure=structure, output_dir=".", vasp_input_set=vasp_input_set
+            structure=structure, vasp_input_set=vasp_input_set
         )
 
         # Task 2: Run VASP using Custodian
