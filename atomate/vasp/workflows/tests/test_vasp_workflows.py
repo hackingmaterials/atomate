@@ -392,6 +392,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax1.gz"))
         self.assertEqual(incar["METAGGA"], "None")
         self.assertEqual(incar["EDIFFG"], -0.05)
+        self.assertEqual(incar["LWAVE"], False)
 
         # Check INCAR.relax2
         incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax2.gz"))
@@ -400,7 +401,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         self.assertEqual(incar["NSW"], 0)
         self.assertEqual(incar["EDIFFG"], -0.05)
         self.assertEqual(incar["ICHARG"], 1)
-        self.assertEqual(incar["ISTART"], 1)
+        self.assertEqual(incar["ISTART"], 0)
 
         # Check INCAR.relax3
         incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax3.gz"))
@@ -436,6 +437,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax1.gz"))
         self.assertEqual(incar["METAGGA"], "None")
         self.assertEqual(incar["EDIFFG"], -0.05)
+        self.assertEqual(incar["LWAVE"], False)
 
         # Check INCAR.relax2
         incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax2.gz"))
@@ -444,7 +446,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         self.assertEqual(incar["NSW"], 0)
         self.assertEqual(incar["EDIFFG"], -0.05)
         self.assertEqual(incar["ICHARG"], 1)
-        self.assertEqual(incar["ISTART"], 1)
+        self.assertEqual(incar["ISTART"], 0)
 
         # Check INCAR.relax3
         incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax3.gz"))
@@ -484,6 +486,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax1.gz"))
         self.assertEqual(incar["METAGGA"], "None")
         self.assertEqual(incar["EDIFFG"], -0.05)
+        self.assertEqual(incar["LWAVE"], False)
 
         # Check INCAR.relax2
         incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax2.gz"))
@@ -492,7 +495,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         self.assertEqual(incar["NSW"], 0)
         self.assertEqual(incar["EDIFFG"], -0.05)
         self.assertEqual(incar["ICHARG"], 1)
-        self.assertEqual(incar["ISTART"], 1)
+        self.assertEqual(incar["ISTART"], 0)
 
 
         # Check INCAR.relax3 for the correct kspacing
@@ -535,6 +538,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         self.assertIsNone(incar.get("BPARAM", None))
         self.assertEqual(incar["METAGGA"], "None")
         self.assertEqual(incar["EDIFFG"], -0.05)
+        self.assertEqual(incar["LWAVE"], False)
 
         # Check INCAR.relax2
         incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax2.gz"))
@@ -543,7 +547,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         self.assertEqual(incar["NSW"], 0)
         self.assertEqual(incar["EDIFFG"], -0.05)
         self.assertEqual(incar["ICHARG"], 1)
-        self.assertEqual(incar["ISTART"], 1)
+        self.assertEqual(incar["ISTART"], 0)
 
         # Check INCAR.relax3
         incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax3.gz"))
