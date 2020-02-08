@@ -88,7 +88,8 @@ class OptimizeFW(Firework):
 class StaticFW(Firework):
 
     def __init__(self, structure=None, name="static", vasp_input_set=None, vasp_input_set_params=None,
-                 vasp_cmd="vasp", prev_calc_loc=True, prev_calc_dir=None, db_file=None, vasptodb_kwargs=None, parents=None, additional_files=None,contcar_to_poscar=True,**kwargs):
+                 vasp_cmd=VASP_CMD, prev_calc_loc=True, prev_calc_dir=None, db_file=DB_FILE, vasptodb_kwargs=None,
+                 parents=None, **kwargs):
         """
         Standard static calculation Firework - either from a previous location or from a structure.
 
