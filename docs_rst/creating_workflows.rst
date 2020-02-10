@@ -288,7 +288,7 @@ Currently supported ``env_chk`` variables are:
 * ``>>vasp_cmd<<``
 * ``>>db_file<<``
 
-If you think there are other potentially useful variables that should support ``env_chk``, please propose your idea in the `atomate Google Group`_ (or better, submit a pull request)!
+If you think there are other potentially useful variables that should support ``env_chk``, please propose your idea in the `atomate Discourse forum`_ (or better, submit a pull request)!
 
 PassCalcLocs
 ------------
@@ -300,8 +300,8 @@ Conclusion
 
 Understanding this guide has enabled you to create arbitrarily complex atomate workflows with any combination of Firetasks and Fireworks, but not everything was able to be covered in detail with examples. See the :ref:`customizing workflows` documentation for specific examples for customizing workflows that you can adapt to your needs.
 
-If any of this was unclear, or if you feel that useful documentation is missing, please leave us feedback on the `atomate Google Group`_! To see all of the different pieces you can control with Python, go to the :ref:`API documentation <modindex>`. Many customization options and features of interest are not in atomate alone, but in `FireWorks`_, `pymatgen`_, and `custodian`_. Mastering FireWorks will enable you to get the most out of executing and managing your workflows. Mastering pymatgen will help you write complex materials workflows and perform sophisticated analyses of results.
+If any of this was unclear, or if you feel that useful documentation is missing, please leave us feedback on the `atomate Discourse forum`_! To see all of the different pieces you can control with Python, go to the :ref:`API documentation <modindex>`. Many customization options and features of interest are not in atomate alone, but in `FireWorks`_, `pymatgen`_, and `custodian`_. Mastering FireWorks will enable you to get the most out of executing and managing your workflows. Mastering pymatgen will help you write complex materials workflows and perform sophisticated analyses of results.
 
-.. _atomate Google Group: https://groups.google.com/forum/#!forum/atomate
+.. _atomate Discourse forum:  https://discuss.matsci.org/c/atomate
 
 

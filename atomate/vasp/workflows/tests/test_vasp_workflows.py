@@ -35,6 +35,8 @@ ref_dirs_si = {"structure optimization": os.path.join(reference_dir, "Si_structu
              "nscf uniform": os.path.join(reference_dir, "Si_nscf_uniform"),
              "nscf line": os.path.join(reference_dir, "Si_nscf_line")}
 
+_fworker = FWorker(env={"db_file": os.path.join(db_dir, "db.json")})
+
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
@@ -137,13 +139,10 @@ class TestVaspWorkflows(AtomateTest):
         self.lp.add_wf(my_wf)
 
         # run the workflow
-        rapidfire(self.lp)
+        rapidfire(self.lp, fworker=_fworker)
 
-        fw = self.lp.get_fw_by_id(1)
-
-        with open(os.path.join(fw.launches[-1].launch_dir, "task.json")) as f:
-            d = json.load(f)
-            self._check_run(d, mode="structure optimization")
+        d = self.get_task_collection().find_one({"task_label": "structure optimization"})
+        self._check_run(d, mode="structure optimization")
 
         wf = self.lp.get_wf_by_fw_id(1)
         self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
@@ -165,10 +164,8 @@ class TestVaspWorkflows(AtomateTest):
             {"test_additional_field": self.struct_si})
         self.lp.add_wf(my_wf)
 
-
         # run the workflow
-        # set the db_file variable
-        rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
+        rapidfire(self.lp, fworker=_fworker)
 
         d = self.get_task_collection().find_one()
         self._check_run(d, mode="structure optimization")
@@ -196,7 +193,7 @@ class TestVaspWorkflows(AtomateTest):
 
         # run the workflow
         # set the db_file variable
-        rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
+        rapidfire(self.lp, fworker=_fworker)
 
         # make sure the structure relaxation ran OK
         d = self.get_task_collection().find_one({"task_label": "structure optimization"},
@@ -237,7 +234,7 @@ class TestVaspWorkflows(AtomateTest):
 
         # run the workflow
         # set the db_file variable
-        rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
+        rapidfire(self.lp, fworker=_fworker)
 
         # structure optimization should be completed
         self.assertEqual(self.lp.fireworks.find_one(
@@ -264,7 +261,7 @@ class TestVaspWorkflows(AtomateTest):
         self.lp.add_wf(my_wf)
 
         # run the workflow
-        rapidfire(self.lp)
+        rapidfire(self.lp, fworker=_fworker)
 
         for x in self.lp.get_tracker_data(1):
             for t in x["trackers"]:
@@ -325,7 +322,7 @@ class TestVaspWorkflows(AtomateTest):
 
         # run the workflow
         # set the db_file variable
-        rapidfire(self.lp, fworker=FWorker(env={"db_file": os.path.join(db_dir, "db.json")}))
+        rapidfire(self.lp, fworker=_fworker)
 
         d = self.get_task_collection().find_one()
         self._check_run(d, mode="static")

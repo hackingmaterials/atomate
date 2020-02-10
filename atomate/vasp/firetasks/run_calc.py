@@ -100,8 +100,7 @@ class RunVaspCustodian(FiretaskBase):
         handler_groups = {
             "default": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
                         NonConvergingErrorHandler(),PotimErrorHandler(),
-                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(), StdErrHandler(),
-                        DriftErrorHandler()],
+                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(), StdErrHandler()],
             "strict": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
                        NonConvergingErrorHandler(),PotimErrorHandler(),
                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(),
@@ -266,13 +265,15 @@ class RunVaspFake(FiretaskBase):
          check_kpoints (bool): whether to confirm the KPOINTS params (default: True)
          check_poscar (bool): whether to confirm the POSCAR params (default: True)
          check_potcar (bool): whether to confirm the POTCAR params (default: True)
+         clear_inputs (bool): whether to delete VASP input files after running (default: True)
      """
     required_params = ["ref_dir"]
-    optional_params = ["params_to_check", "check_incar", "check_kpoints", "check_poscar", "check_potcar"]
+    optional_params = ["params_to_check", "check_incar", "check_kpoints", "check_poscar", "check_potcar", "clear_inputs"]
 
     def run_task(self, fw_spec):
         self._verify_inputs()
-        self._clear_inputs()
+        if self.get("clear_inputs", True):
+            self._clear_inputs()
         self._generate_outputs()
 
     def _verify_inputs(self):

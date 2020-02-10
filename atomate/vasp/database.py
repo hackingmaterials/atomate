@@ -82,9 +82,7 @@ class VaspCalcDb(CalcDb):
         """
         dos = None
         bs = None
-        chgcar = None
-        aeccar0 = None
-        write_aeccar = False
+        vol_data = {}
 
         # move dos BS and CHGCAR from doc to gridfs
         if use_gridfs and "calcs_reversed" in task_doc:
@@ -97,25 +95,11 @@ class VaspCalcDb(CalcDb):
                 bs = json.dumps(task_doc["calcs_reversed"][0]["bandstructure"], cls=MontyEncoder)
                 del task_doc["calcs_reversed"][0]["bandstructure"]
 
-            if "chgcar" in task_doc["calcs_reversed"][0]:  # only store idx=0 DOS
-                chgcar = json.dumps(task_doc["calcs_reversed"][0]["chgcar"], cls=MontyEncoder)
-                del task_doc["calcs_reversed"][0]["chgcar"]
-
-            if "aeccar0" in task_doc["calcs_reversed"][0]:
-                aeccar0 = task_doc["calcs_reversed"][0]["aeccar0"]
-                aeccar2 = task_doc["calcs_reversed"][0]["aeccar2"]
-                # check if the aeccar is valid before insertion
-                if (aeccar0.data['total'] + aeccar2.data['total']).min() < 0:
-                    logger.warning(f"The AECCAR seems to be corrupted for task_in directory {task_doc['dir_name']}\nSkipping storage of AECCARs")
-                    write_aeccar = False
-                else:
-                    # overwrite the aeccar variable with their string representations to be inserted in GridFS
-                    aeccar0 = json.dumps(task_doc["calcs_reversed"][0]["aeccar0"], cls=MontyEncoder)
-                    aeccar2 = json.dumps(task_doc["calcs_reversed"][0]["aeccar2"], cls=MontyEncoder)
-                    write_aeccar = True
-
-                del task_doc["calcs_reversed"][0]["aeccar0"]
-                del task_doc["calcs_reversed"][0]["aeccar2"]
+            for vol_data_name in ('chgcar', 'locpot', 'aeccar0', 'aeccar1', 'aeccar2', 'elfcar'):
+                if vol_data_name in task_doc["calcs_reversed"][0]:  # only store idx=0 data
+                    vol_data[vol_data_name] = json.dumps(task_doc["calcs_reversed"][0][vol_data_name],
+                                                         cls=MontyEncoder)
+                    del task_doc["calcs_reversed"][0][vol_data_name]
 
         # insert the task document
         t_id = self.insert(task_doc)
@@ -136,22 +120,13 @@ class VaspCalcDb(CalcDb):
                 {"task_id": t_id}, {"$set": {"calcs_reversed.0.bandstructure_fs_id": bfs_gfs_id}})
 
         # insert the CHGCAR file into gridfs and update the task documents
-        if chgcar:
-            chgcar_gfs_id, compression_type = self.insert_gridfs(chgcar, "chgcar_fs", task_id=t_id)
-            self.collection.update_one(
-                {"task_id": t_id}, {"$set": {"calcs_reversed.0.chgcar_compression": compression_type}})
-            self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.chgcar_fs_id": chgcar_gfs_id}})
+        if vol_data:
+            for name, data in vol_data.items():
+                data_gfs_id, compression_type = self.insert_gridfs(data, "{}_fs".format(name), task_id=t_id)
+                self.collection.update_one(
+                    {"task_id": t_id}, {"$set": {"calcs_reversed.0.{}_compression".format(name): compression_type}})
+                self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.{}_fs_id".format(name): data_gfs_id}})
 
-        # insert the AECCARs file into gridfs and update the task documents
-        if write_aeccar:
-            aeccar0_gfs_id, compression_type = self.insert_gridfs(aeccar0, "aeccar0_fs", task_id=t_id)
-            self.collection.update_one(
-                {"task_id": t_id}, {"$set": {"calcs_reversed.0.aeccar0_compression": compression_type}})
-            self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.aeccar0_fs_id": aeccar0_gfs_id}})
-            aeccar2_gfs_id, compression_type = self.insert_gridfs(aeccar2, "aeccar2_fs", task_id=t_id)
-            self.collection.update_one(
-                {"task_id": t_id}, {"$set": {"calcs_reversed.0.aeccar2_compression": compression_type}})
-            self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.aeccar2_fs_id": aeccar2_gfs_id}})
         return t_id
 
     def retrieve_task(self, task_id):
