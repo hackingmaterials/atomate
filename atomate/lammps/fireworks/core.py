@@ -81,7 +81,8 @@ class LammpsDeepMDFW(Firework):
 
         tasks = []
 
-        tasks.append(WriteInputFromTemplate(settings=settings, lammps_data=lammps_data, script_template=template_string))
+        tasks.append(WriteInputFromTemplate(settings=settings, lammps_data=lammps_data,
+                                            script_template=template_string, input_filename=input_filename))
 
         tasks.append(CopyDeepMDModel(model_path=model_path))
 

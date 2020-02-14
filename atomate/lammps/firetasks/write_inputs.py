@@ -20,7 +20,7 @@ class WriteInputFromTemplate(FiretaskBase):
 
     """
 
-    required_params = ["settings", "lammps_data"]
+    required_params = ["settings", "lammps_data", "input_filename"]
 
     optional_params = ["script_template", "template_dir"]
 
@@ -37,7 +37,7 @@ class WriteInputFromTemplate(FiretaskBase):
                     script_template = f.read()
 
 
-        lr = LammpsRun(script_template, settings, lammps_data, 'in.md')
+        lr = LammpsRun(script_template, settings, lammps_data, self["input_filename"])
         lr.write_inputs('./')
 
 
