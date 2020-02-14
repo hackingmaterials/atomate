@@ -7,6 +7,7 @@ from atomate.vasp.firetasks.write_inputs import (
     WriteVaspFromPMGObjects,
     ModifyPotcar,
     ModifyIncar,
+    ModifyKpoints,
 )
 from atomate.utils.testing import AtomateTest
 
@@ -148,3 +149,18 @@ class TestWriteVasp(AtomateTest):
         new_potcar = Potcar.from_file("POTCAR")
         self.assertEqual(len(new_potcar), 1)
         self.assertEqual(new_potcar[0].symbol, "O")
+
+    def test_modify_kpoints(self):
+        # create an KPOINTS
+        kpoints = self.ref_kpoints
+        kpoints.write_file("KPOINTS")
+
+        # modify and test
+        ft = ModifyKpoints(
+            kpoints_update={"kpts": [[3,4,5]]},
+        )
+        ft = load_object(ft.to_dict())  # simulate database insertion
+        ft.run_task({})
+
+        kpoints_mod = Kpoints.from_file("KPOINTS")
+        self.assertEqual(kpoints_mod.kpts, [[3,4,5]])
