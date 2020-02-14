@@ -298,8 +298,8 @@ def add_modify_kpoints(
 
     Args:
         original_wf (Workflow)
-        modify_kpoints_params (dict) - dict of parameters for ModifyKpoints.
-        fw_name_constraint (str) - Only apply changes to FWs where fw_name
+        modify_kpoints_params (dict): dict of parameters for ModifyKpoints.
+        fw_name_constraint (str): Only apply changes to FWs where fw_name
         contains this substring.
 
     Returns:
