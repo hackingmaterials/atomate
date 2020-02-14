@@ -221,8 +221,8 @@ class ModifyKpoints(FiretaskBase):
             keys can be anything property of a kpoint object (kpts, kpts_shift,
             kpts_weights, labels, comment, coord_type, num_kpts,
             tet_connections, tet_number, tet_weight)
-        input_filename (str): Input filename (if not "INCAR")
-        output_filename (str): Output filename (if not "INCAR")
+        input_filename (str): Input filename (if not "KPOINTS")
+        output_filename (str): Output filename (if not "KPOINTS")
     """
 
     optional_params = [
