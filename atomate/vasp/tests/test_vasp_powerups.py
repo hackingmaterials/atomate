@@ -14,6 +14,7 @@ from atomate.vasp.powerups import (
     add_tags,
     add_wf_metadata,
     add_modify_potcar,
+    add_modify_kpoints,
     clean_up_files,
     set_queue_options,
     use_potcar_spec,
@@ -95,6 +96,22 @@ class TestVaspPowerups(unittest.TestCase):
             else:
                 for t in fw.tasks:
                     self.assertFalse("ModifyIncar" in t["_fw_name"])
+
+    def test_modify_kpoints(self):
+        my_wf = add_modify_kpoints(
+            copy_wf(self.bs_wf),
+            {"kpoints_update": {"kpts": [[3,4,5]]}},
+            fw_name_constraint="structure optimization",
+        )
+
+        for fw in my_wf.fws:
+            if "structure optimization" in fw.name:
+                self.assertTrue("ModifyKpoints" in fw.tasks[1]._fw_name)
+                self.assertEqual(fw.tasks[1]["kpoints_update"],
+                                 {"kpts": [[3,4,5]]})
+            else:
+                for t in fw.tasks:
+                    self.assertFalse("ModifyKpoints" in t["_fw_name"])
 
     def test_modify_potcar(self):
         my_wf = add_modify_potcar(
