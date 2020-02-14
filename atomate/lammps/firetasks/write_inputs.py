@@ -27,7 +27,7 @@ class WriteInputFromTemplate(FiretaskBase):
     def run_task(self, fw_spec):
         script_template = self.get("script_template", None)
         settings = self["settings"]
-        lammps_data = LammpsData.from_dict(self["lammps_data"])
+        lammps_data = self["lammps_data"]
         if script_template is None:
             template_dir = self.get("template_dir", None)
             if template_dir is None:
