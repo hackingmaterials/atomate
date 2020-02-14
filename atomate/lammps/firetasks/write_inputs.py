@@ -7,13 +7,38 @@ parameters file)
 """
 
 from pymatgen import Molecule
-# from pymatgen.io.lammps.data import LammpsData
-# from pymatgen.io.lammps.sets import LammpsInputSet
+from pymatgen.io.lammps.inputs import LammpsRun, LammpsData
 
 from fireworks import FiretaskBase, explicit_serialize
 
-__author__ = 'Kiran Mathew, Brandon Wood'
-__email__ = "kmathew@lbl.gov, b.wood@berkeley.edu"
+__author__ = 'Kiran Mathew, Brandon Wood, Eric Sivonxay'
+__email__ = "kmathew@lbl.gov, b.wood@berkeley.edu, esivonxay@lbl.gov"
+
+@explicit_serialize
+class WriteInputFromTemplate(FiretaskBase):
+    """
+
+    """
+
+    required_params = ["settings", "lammps_data"]
+
+    optional_params = ["script_template", "template_dir"]
+
+    def run_task(self, fw_spec):
+        script_template = self.get("script_template", None)
+        settings = self["settings"]
+        lammps_data = LammpsData.from_dict(self["lammps_data"])
+        if script_template is None:
+            template_dir = self.get("template_dir", None)
+            if template_dir is None:
+                raise ValueError("no template supplied, defaulting to default md script")
+            else:
+                with open(template_dir, 'r') as f:
+                    script_template = f.read()
+
+
+        lr = LammpsRun(script_template, settings, lammps_data, 'in.md')
+        lr.write_inputs('./')
 
 
 @explicit_serialize

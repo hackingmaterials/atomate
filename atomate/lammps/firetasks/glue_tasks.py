@@ -2,11 +2,12 @@
 
 
 from fireworks import explicit_serialize
+import os
 
 from atomate.common.firetasks.glue_tasks import get_calc_loc, CopyFiles
 
-__author__ = 'Kiran Mathew'
-__email__ = 'kmathew@lbl.gov'
+__author__ = 'Kiran Mathew, Eric Sivonxay'
+__email__ = 'kmathew@lbl.gov, esivonxay@lbl.gov'
 
 
 @explicit_serialize
@@ -35,3 +36,19 @@ class CopyPackmolOutputs(CopyFiles):
         self.setup_copy(self.get("calc_dir", None), filesystem=self.get("filesystem", None),
                         exclude_files=exclude_files, from_path_dict=calc_loc)
         self.copy_files()
+
+@explicit_serialize
+class CopyDeepMDModel(CopyFiles):
+    """
+    Copy the frozen deepmd model necessary to run
+    """
+
+    optional_params = ['model_path']
+
+    def run_task(self, fw_spec):
+
+        model_loc, model_name = os.path.split(self['model_path'])
+
+        self.setup_copy(model_loc, files_to_copy=[model_name])
+        self.copy_files()
+
