@@ -12,7 +12,7 @@ from pymatgen.io.lammps.utils import PackmolRunner, LammpsRunner
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
-from atomate.utils.utils import get_logger
+from atomate.utils.utils import get_logger, env_chk
 
 __author__ = 'Kiran Mathew'
 __email__ = "kmathew@lbl.gov"
@@ -33,7 +33,7 @@ class RunLammpsDirect(FiretaskBase):
     required_params = ["lammps_cmd", "input_filename"]
 
     def run_task(self, fw_spec):
-        lammps_cmd = self["lammps_cmd"]
+        lammps_cmd = env_chk(self["lammps_cmd"], fw_spec)
         input_filename = self["input_filename"]
         lmps_runner = LammpsRunner(input_filename, lammps_cmd)
         stdout, stderr = lmps_runner.run()
