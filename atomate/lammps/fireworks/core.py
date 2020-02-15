@@ -10,6 +10,7 @@ Defines fireworks to be incorporated into workflows.
 from fireworks import Firework
 
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
+from atomate.lammps.firetasks.dbtasks import LammpsMDToDB
 from atomate.lammps.firetasks.run_calc import RunLammpsDirect, RunPackmol
 from atomate.lammps.firetasks.parse_outputs import LammpsToDB
 from atomate.lammps.firetasks.write_inputs import WriteInputFromIOSet, WriteInputFromForceFieldAndTopology, WriteInputFromTemplate
@@ -88,9 +89,10 @@ class LammpsDeepMDFW(Firework):
 
         tasks.append(RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename))
 
-        tasks.append(LammpsToDB(input_filename=input_filename, data_filename=data_filename,
-                                log_filename=log_filename, dump_filename=dump_filename,
-                                db_file=db_file, additional_fields={"task_label": name}))
+        tasks.append(LammpsMDToDB(db_file=db_file, input_filename=input_filename))
+        # tasks.append(LammpsToDB(input_filename=input_filename, data_filename=data_filename,
+        #                         log_filename=log_filename, dump_filename=dump_filename,
+        #                         db_file=db_file, additional_fields={"task_label": name}))
 
         super(LammpsDeepMDFW, self).__init__(tasks, parents=parents, name=name, **kwargs)
 
