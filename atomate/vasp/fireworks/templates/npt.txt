@@ -1,0 +1,49 @@
+# read lammps data file, write a restart file
+ # command line variable section
+
+ # these variables must be set from the command line:
+variable        NAME index diffusion_test
+log             ${NAME}.log
+
+# Set up simulation
+units           metal
+
+read_data       md.data
+
+pair_style      lj/cut/coul/long 15
+pair_modify     tail yes
+
+
+# Minimization, initial velocity
+neighbor        2.0 bin
+neigh_modify    delay 0 every 1 check yes #page 1000000 one 20000
+timestep        $timestep
+minimize        5.0e-4 1.0e-6 1000 10000
+velocity        all create ${mytemp} 314159265 mom yes rot yes units box dist gaussian
+
+# Run configuration
+compute         myKE all ke/atom                  # used so I can print out kinetic energy per atom
+compute         myPE all pe/atom                  # used so I can print out potential energy per atom
+
+# Equilibration
+## Set output values
+thermo_style    custom step vol temp press ke pe etotal enthalpy evdwl epair lx ly lz xy xz yz
+thermo          1000
+thermo_modify   flush yes
+
+# Equilibrate
+fix             NVT all nvt temp $temperature $temperature $($timestep * $tdamp_timesteps)
+run             $equil_steps
+unfix           NVT
+
+# Production Run
+reset_timestep  0
+compute         MSD1 Li msd                                #  calculated mean-squared displacement
+compute         MSD2 Si msd                                #  calculated mean-squared displacement
+thermo_style    custom step vol temp press ke pe etotal enthalpy evdwl epair lx ly lz xy xz yz c_MSD1[4] c_MSD2[4]
+thermo          1000
+thermo_modify   flush yes
+
+fix             NPT all npt temp $temperature $temperature $($timestep * $tdamp_timesteps) iso $pressure $pressure $($timestep * $pdamp_timesteps) nreset 500 fixedpoint 0 0 0
+run             $prod_steps
+unfix           NPT
