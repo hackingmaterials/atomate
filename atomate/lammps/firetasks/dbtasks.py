@@ -23,7 +23,7 @@ class LammpsMDToDB(FiretaskBase):
     searching for a unique tag
     """
     required_params = ["db_file"]
-    optional_params = ["input_filename"]
+    optional_params = ["input_filename", "run_label"]
 
     def run_task(self, fw_spec):
         db_file = env_chk(self["db_file"], fw_spec)
@@ -45,7 +45,7 @@ class LammpsMDToDB(FiretaskBase):
         # Load trajectories
         path = os.getcwd()
         dump_filename = re.search(r"variable\s+ NAME(.*)\n", input_string).group(1).split()[1]
-        dumpfile = os.path.join(path, f'{dump_filename}.lammpstrj')
+        dumpfile = os.path.join(path, f'{dump_filename}_diffusion.lammpstrj')
         trajectory = LammpsTrajectory.from_lammps_dump(dumpfile, atomic_map, time_step=timestep)
 
         mmdb = LammpsCalcDb.from_db_file(db_file, admin=True)
@@ -64,6 +64,9 @@ class LammpsMDToDB(FiretaskBase):
             'dimension': list(np.shape(trajectory.frac_coords)),
             'time_step': timestep
         }
+
+        traj_doc['run_label'] = self.get("run_label", None)
+        traj_doc['comments'] = self.get("comments", None)
 
         mmdb.db.trajectories.insert_one(traj_doc)
 

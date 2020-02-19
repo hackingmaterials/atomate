@@ -70,6 +70,8 @@ class WriteInputFromIOSet(FiretaskBase):
 
 @explicit_serialize
 class WriteInputFromForceFieldAndTopology(FiretaskBase):
+    # Note: This function only works versions of pymatgen from ~2017 and prior
+    # TODO: Fix this to work with the current Lammps IO in pymatgen.
 
     required_params = ["input_file", "final_molecule", "constituent_molecules", "mols_number",
                        "box_size", "forcefield", "topologies", "input_filename"]
