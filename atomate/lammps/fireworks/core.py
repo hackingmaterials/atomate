@@ -95,61 +95,61 @@ class LammpsDeepMDFW(Firework):
         super(LammpsDeepMDFW, self).__init__(tasks, parents=parents, name=name, **kwargs)
 
 
-class LammpsForceFieldFW(Firework):
-
-    def __init__(self, input_file, final_molecule, forcefield, box_size, topologies=None,
-                 constituent_molecules=None, mols_number=None, user_settings=None,
-                 ff_site_property=None, input_filename="lammps.in", data_filename="lammps.data",
-                 lammps_cmd="lammps", db_file=None, parents=None, log_filename="log.lammps",
-                 dump_filenames=None, name="LammpsFFFW", **kwargs):
-        """
-        Write lammps input from forcefield and topology, run lammps, store results. Can be used
-        with RunPackmol firework.
-
-        Args:
-            input_file (str): path to lammps input(or template) file.
-            final_molecule (str/Molecule): either path to the moelcule of Molecule object.
-            forcefield (ForceField): pymatgen.io.lammps.force_field.ForceField object
-            box_size (list):  list of list of low and high values for each dimension [[xlow, xhigh], ...]
-            topologies ([Topology]): list of pymatgen.io.lammps.topology.Topology objects, one for
-                each constituent molecule.
-            constituent_molecules ([Molecule]): list of Molecule objects that make up the final_molecule
-            mols_number (list): list of number of each constituent moelcule.
-            user_settings (dict):
-            ff_site_property (str): the site property used for forcefiled mapping
-            input_filename (str): name of the input file to be written
-            data_filename (str):name of the data file to be written
-            lammps_cmd (str): lammps command run (without the input file)
-            db_file (str): path to the db settings
-            parents (list): list of Fireworks
-            log_filename (str): lammps log file name
-            dump_filenames (str): list of dump files
-            name (str): firework name
-            **kwargs:
-        """
-
-        user_settings = user_settings or {}
-        constituent_molecules = constituent_molecules or [final_molecule]
-        mols_number = mols_number or [1]
-        topologies = topologies or Topology.from_molecule(final_molecule, ff_map=ff_site_property)
-
-        tasks = [
-
-            WriteInputFromForceFieldAndTopology(input_file=input_file, final_molecule=final_molecule,
-                                                constituent_molecules=constituent_molecules,
-                                                mols_number=mols_number, forcefield=forcefield,
-                                                topologies=topologies, input_filename=input_filename,
-                                                user_settings=user_settings, data_filename=data_filename,
-                                                ff_site_property=ff_site_property, box_size=box_size),
-
-            RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename),
-
-            LammpsToDB(input_filename=input_filename, data_filename=data_filename,
-                       log_filename=log_filename, dump_filenames=dump_filenames,
-                       db_file=db_file, additional_fields={"task_label": name})
-            ]
-
-        super(LammpsForceFieldFW, self).__init__(tasks, parents=parents, name=name, **kwargs)
+# class LammpsForceFieldFW(Firework):
+#
+#     def __init__(self, input_file, final_molecule, forcefield, box_size, topologies=None,
+#                  constituent_molecules=None, mols_number=None, user_settings=None,
+#                  ff_site_property=None, input_filename="lammps.in", data_filename="lammps.data",
+#                  lammps_cmd="lammps", db_file=None, parents=None, log_filename="log.lammps",
+#                  dump_filenames=None, name="LammpsFFFW", **kwargs):
+#         """
+#         Write lammps input from forcefield and topology, run lammps, store results. Can be used
+#         with RunPackmol firework.
+#
+#         Args:
+#             input_file (str): path to lammps input(or template) file.
+#             final_molecule (str/Molecule): either path to the moelcule of Molecule object.
+#             forcefield (ForceField): pymatgen.io.lammps.force_field.ForceField object
+#             box_size (list):  list of list of low and high values for each dimension [[xlow, xhigh], ...]
+#             topologies ([Topology]): list of pymatgen.io.lammps.topology.Topology objects, one for
+#                 each constituent molecule.
+#             constituent_molecules ([Molecule]): list of Molecule objects that make up the final_molecule
+#             mols_number (list): list of number of each constituent moelcule.
+#             user_settings (dict):
+#             ff_site_property (str): the site property used for forcefiled mapping
+#             input_filename (str): name of the input file to be written
+#             data_filename (str):name of the data file to be written
+#             lammps_cmd (str): lammps command run (without the input file)
+#             db_file (str): path to the db settings
+#             parents (list): list of Fireworks
+#             log_filename (str): lammps log file name
+#             dump_filenames (str): list of dump files
+#             name (str): firework name
+#             **kwargs:
+#         """
+#
+#         user_settings = user_settings or {}
+#         constituent_molecules = constituent_molecules or [final_molecule]
+#         mols_number = mols_number or [1]
+#         topologies = topologies or Topology.from_molecule(final_molecule, ff_map=ff_site_property)
+#
+#         tasks = [
+#
+#             WriteInputFromForceFieldAndTopology(input_file=input_file, final_molecule=final_molecule,
+#                                                 constituent_molecules=constituent_molecules,
+#                                                 mols_number=mols_number, forcefield=forcefield,
+#                                                 topologies=topologies, input_filename=input_filename,
+#                                                 user_settings=user_settings, data_filename=data_filename,
+#                                                 ff_site_property=ff_site_property, box_size=box_size),
+#
+#             RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename),
+#
+#             LammpsToDB(input_filename=input_filename, data_filename=data_filename,
+#                        log_filename=log_filename, dump_filenames=dump_filenames,
+#                        db_file=db_file, additional_fields={"task_label": name})
+#             ]
+#
+#         super(LammpsForceFieldFW, self).__init__(tasks, parents=parents, name=name, **kwargs)
 
 
 class PackmolFW(Firework):
