@@ -1,8 +1,5 @@
 # coding: utf-8
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 # This module defines a workflow that fragments a molecule and optimizes each fragment.
 # It will most often be used in order to obtain the bond dissociation energies of a molecule.
 
@@ -29,10 +26,9 @@ def get_fragmentation_wf(molecule,
                          do_triplets=True,
                          pcm_dielectric=None,
                          do_optimization=True,
-                         max_cores=">>max_cores<<",
+                         linked=False,
                          qchem_input_params=None,
                          name="FF then fragment",
-                         qchem_cmd=">>qchem_cmd<<",
                          db_file=">>db_file<<",
                          check_db=True,
                          **kwargs):
@@ -63,8 +59,6 @@ def get_fragmentation_wf(molecule,
         pcm_dielectric (float): The PCM dielectric constant.
         do_optimization (bool): Whether or not to optimize the given molecule
                                 before fragmentation. Defaults to True.
-        max_cores (int): Maximum number of cores to parallelize over.
-                         Value obtained from the environment by default.
         qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
                                    Basic uses would be to modify the default inputs of the set,
                                    such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
@@ -83,7 +77,6 @@ def get_fragmentation_wf(molecule,
                                    "rem": {"sym_ignore": "true"}}. Of course, overwrite_inputs
                                    could be used in conjuction with more typical modifications,
                                    as seen in the test_double_FF_opt workflow test.
-        qchem_cmd (str): Command to run QChem. Supports env_chk.
         db_file (str): path to file containing the database credentials.
         check_db (bool): Whether or not to check the database for equivalent
                          structures before adding new fragment fireworks.
@@ -116,9 +109,10 @@ def get_fragmentation_wf(molecule,
         fw1 = FrequencyFlatteningOptimizeFW(
             molecule=molecule,
             name="first FF",
-            qchem_cmd=qchem_cmd,
-            max_cores=max_cores,
+            qchem_cmd=">>qchem_cmd<<",
+            max_cores=">>max_cores<<",
             qchem_input_params=qchem_input_params,
+            linked=linked,
             db_file=db_file)
 
         # Fragment the optimized molecule
@@ -127,9 +121,8 @@ def get_fragmentation_wf(molecule,
             open_rings=open_rings,
             additional_charges=additional_charges,
             do_triplets=do_triplets,
+            linked=linked,
             name="fragment and FF_opt",
-            qchem_cmd=qchem_cmd,
-            max_cores=max_cores,
             qchem_input_params=qchem_input_params,
             db_file=db_file,
             check_db=check_db,
@@ -144,9 +137,8 @@ def get_fragmentation_wf(molecule,
             open_rings=open_rings,
             additional_charges=additional_charges,
             do_triplets=do_triplets,
+            linked=linked,
             name="fragment and FF_opt",
-            qchem_cmd=qchem_cmd,
-            max_cores=max_cores,
             qchem_input_params=qchem_input_params,
             db_file=db_file,
             check_db=check_db)

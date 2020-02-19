@@ -1,8 +1,5 @@
 # coding: utf-8
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 # This module defines a workflow for optimizing a molecule first in vacuum and then
 # in PCM. Both optimizations will include automatic frequency flattening.
 
@@ -24,10 +21,9 @@ logger = get_logger(__name__)
 
 def get_wf_double_FF_opt(molecule,
                          pcm_dielectric,
-                         max_cores=">>max_cores<<",
+                         linked=False,
                          qchem_input_params=None,
                          name="douple_FF_opt",
-                         qchem_cmd=">>qchem_cmd<<",
                          db_file=">>db_file<<",
                          **kwargs):
     """
@@ -80,9 +76,10 @@ def get_wf_double_FF_opt(molecule,
     fw1 = FrequencyFlatteningOptimizeFW(
         molecule=molecule,
         name="first_FF_no_pcm",
-        qchem_cmd=qchem_cmd,
-        max_cores=max_cores,
+        qchem_cmd=">>qchem_cmd<<",
+        max_cores=">>max_cores<<",
         qchem_input_params=first_qchem_input_params,
+        linked=linked,
         db_file=db_file)
 
     # Optimize the molecule in PCM
@@ -91,9 +88,10 @@ def get_wf_double_FF_opt(molecule,
         second_qchem_input_params[key] = first_qchem_input_params[key]
     fw2 = FrequencyFlatteningOptimizeFW(
         name="second_FF_with_pcm",
-        qchem_cmd=qchem_cmd,
-        max_cores=max_cores,
+        qchem_cmd=">>qchem_cmd<<",
+        max_cores=">>max_cores<<",
         qchem_input_params=second_qchem_input_params,
+        linked=linked,
         db_file=db_file,
         parents=fw1)
     fws = [fw1, fw2]

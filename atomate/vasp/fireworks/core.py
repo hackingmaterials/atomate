@@ -1,8 +1,5 @@
 # coding: utf-8
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 import warnings
 
 from atomate.vasp.config import HALF_KPOINTS_FIRST_RELAX, RELAX_MAX_FORCE, \
@@ -50,8 +47,8 @@ class OptimizeFW(Firework):
             structure (Structure): Input structure.
             name (str): Name for the Firework.
             vasp_input_set (VaspInputSet): input set to use. Defaults to MPRelaxSet() if None.
-            override_default_vasp_params (dict): If this is not None, these params are passed to 
-                the default vasp_input_set, i.e., MPRelaxSet. This allows one to easily override 
+            override_default_vasp_params (dict): If this is not None, these params are passed to
+                the default vasp_input_set, i.e., MPRelaxSet. This allows one to easily override
                 some settings, e.g., user_incar_settings, etc.
             vasp_cmd (str): Command to run vasp.
             ediffg (float): Shortcut to set ediffg in certain jobs
@@ -69,6 +66,11 @@ class OptimizeFW(Firework):
                                                       force_gamma=force_gamma,
                                                       **override_default_vasp_params)
 
+        if vasp_input_set.incar["ISIF"] in (0, 1, 2, 7) and job_type == "double_relaxation":
+            warnings.warn(
+                "A double relaxation run might not be appropriate with ISIF {}".format(
+                    vasp_input_set.incar["ISIF"]))
+        
         t = []
         t.append(WriteVaspFromIOSet(structure=structure,
                                     vasp_input_set=vasp_input_set))
@@ -95,15 +97,15 @@ class StaticFW(Firework):
         Standard static calculation Firework - either from a previous location or from a structure.
 
         Args:
-            structure (Structure): Input structure. Note that for prev_calc_loc jobs, the structure 
-                is only used to set the name of the FW and any structure with the same composition 
+            structure (Structure): Input structure. Note that for prev_calc_loc jobs, the structure
+                is only used to set the name of the FW and any structure with the same composition
                 can be used.
             name (str): Name for the Firework.
             vasp_input_set (VaspInputSet): input set to use (for jobs w/no parents)
                 Defaults to MPStaticSet() if None.
             vasp_input_set_params (dict): Dict of vasp_input_set kwargs.
             vasp_cmd (str): Command to run vasp.
-            prev_calc_loc (bool or str): If true (default), copies outputs from previous calc. If 
+            prev_calc_loc (bool or str): If true (default), copies outputs from previous calc. If
                 a str value, retrieves a previous calculation output by name. If False/None, will create
                 new static calculation using the provided structure.
             prev_calc_dir (str): Path to a previous calculation to copy from
@@ -131,10 +133,9 @@ class StaticFW(Firework):
                                          contcar_to_poscar=True))
             t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
         elif structure:
-            vasp_input_set = vasp_input_set or MPStaticSet(structure)
+            vasp_input_set = vasp_input_set or MPStaticSet(structure, **vasp_input_set_params)
             t.append(WriteVaspFromIOSet(structure=structure,
-                                        vasp_input_set=vasp_input_set,
-                                        vasp_input_params=vasp_input_set_params))
+                                        vasp_input_set=vasp_input_set))
         else:
             raise ValueError("Must specify structure or previous calculation")
 
@@ -515,7 +516,7 @@ class SOCFW(Firework):
         Firework for spin orbit coupling calculation.
 
         Args:
-            structure (Structure): Input structure. If copy_vasp_outputs, used only to set the 
+            structure (Structure): Input structure. If copy_vasp_outputs, used only to set the
                 name of the FW.
             name (str): Name for the Firework.
             prev_calc_dir (str): Path to a previous calculation to copy from
@@ -562,7 +563,7 @@ class TransmuterFW(Firework):
                  parents=None, override_default_vasp_params=None, **kwargs):
         """
         Apply the transformations to the input structure, write the input set corresponding
-        to the transformed structure, and run vasp on them.  Note that if a transformation yields 
+        to the transformed structure, and run vasp on them.  Note that if a transformation yields
         many structures from one, only the last structure in the list is used.
 
         Args:
@@ -570,7 +571,7 @@ class TransmuterFW(Firework):
             transformations (list): list of names of transformation classes as defined in
                 the modules in pymatgen.transformations.
                 eg:  transformations=['DeformStructureTransformation', 'SupercellTransformation']
-            transformation_params (list): list of dicts where each dict specify the input 
+            transformation_params (list): list of dicts where each dict specify the input
                 parameters to instantiate the transformation class in the transformations list.
             vasp_input_set (VaspInputSet): VASP input set, used to write the input set for the
                 transmuted structure.
@@ -695,7 +696,7 @@ class BoltztrapFW(Firework):
                  scissor=0.0, doping=None, tmax=1300, tgrid=50, prev_calc_dir=None,
                  soc=False, additional_fields=None, **kwargs):
         """
-        Run Boltztrap (which includes writing bolztrap input files and parsing outputs). Assumes 
+        Run Boltztrap (which includes writing bolztrap input files and parsing outputs). Assumes
         you have a previous FW with the calc_locs passed into the current FW.
 
         Args:
@@ -777,7 +778,7 @@ class NEBRelaxationFW(Firework):
                                                  user_incar_settings=user_incar_settings,
                                                  user_kpoints_settings=user_kpoints_settings)
 
-        write_ep_task = WriteVaspFromIOSet(structure=structure, output_dir=".",
+        write_ep_task = WriteVaspFromIOSet(structure=structure,
                                            vasp_input_set=vasp_input_set)
 
         # Task 2: Run VASP using Custodian
@@ -842,7 +843,7 @@ class NEBFW(Firework):
             write_neb_task = WriteNEBFromEndpoints(
                 user_incar_settings=user_incar_settings,
                 user_kpoints_settings=user_kpoints_settings,
-                output_dir=".", sort_tol=sort_tol, d_img=d_img,
+                sort_tol=sort_tol, d_img=d_img,
                 interpolation_type=interpolation_type)
 
         # Task 2: Run NEB using Custodian

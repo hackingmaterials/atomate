@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import json
 import os
@@ -54,7 +53,7 @@ class TestFerroelectricWorkflow(AtomateTest):
         new_fw_spec = {'_fw_env': {"db_file": os.path.join(db_dir, "db.json")},
                        'tags':['wfid_1494203093.06934658']}
 
-        analysis = PolarizationToDb(db_file='>>db_file<<', name="_polarization_post_processing")
+        analysis = PolarizationToDb(db_file='>>db_file<<')
         analysis.run_task(new_fw_spec)
 
         # Check recovered change in polarization
