@@ -16,6 +16,7 @@ from atomate.lammps.firetasks.parse_outputs import LammpsToDB
 from atomate.lammps.firetasks.write_inputs import WriteInputFromIOSet, WriteInputFromForceFieldAndTopology, WriteInputFromTemplate
 from atomate.lammps.firetasks.glue_tasks import CopyDeepMDModel
 from pymatgen.io.lammps.inputs import LammpsData
+from uuid import uuid4
 
 __author__ = "Brandon Wood, Kiran Mathew"
 __email__ = "b.wood@berkeley.edu"
@@ -59,9 +60,8 @@ class LammpsFW(Firework):
 
 class LammpsDeepMDFW(Firework):
 
-    def __init__(self, structure, template_string, settings, model_path, input_filename="lammps.in", data_filename="lammps.data",
-                 lammps_cmd="lammps", db_file=None, parents=None, name="LammpsFW",
-                 log_filename="log.lammps", dump_filename=None, **kwargs):
+    def __init__(self, lammps_data, template_string, settings, model_path, input_filename="lammps.in",
+                 lammps_cmd="lammps", db_file=None, parents=None, name="LammpsFW", comments=None, run_label=None, **kwargs):
         """
         write lammps inputset, run, and store the output.
 
@@ -78,8 +78,6 @@ class LammpsDeepMDFW(Firework):
             dump_filename (str)
             \*\*kwargs: other kwargs that are passed to Firework.__init__.
         """
-        lammps_data = LammpsData.from_structure(structure, atom_style='atomic')
-
         tasks = []
 
         tasks.append(WriteInputFromTemplate(settings=settings, lammps_data=lammps_data,
@@ -89,10 +87,10 @@ class LammpsDeepMDFW(Firework):
 
         tasks.append(RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename))
 
-        tasks.append(LammpsMDToDB(db_file=db_file, input_filename=input_filename))
-        # tasks.append(LammpsToDB(input_filename=input_filename, data_filename=data_filename,
-        #                         log_filename=log_filename, dump_filename=dump_filename,
-        #                         db_file=db_file, additional_fields={"task_label": name}))
+        if run_label is None:
+            run_label = uuid4()
+        tasks.append(LammpsMDToDB(db_file=db_file, input_filename=input_filename,
+                                  comments=comments, run_label=run_label))
 
         super(LammpsDeepMDFW, self).__init__(tasks, parents=parents, name=name, **kwargs)
 
