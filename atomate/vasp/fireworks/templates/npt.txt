@@ -14,6 +14,7 @@ pair_style      lj/cut/coul/long 15
 pair_modify     tail yes
 
 
+
 # Minimization, initial velocity
 neighbor        2.0 bin
 neigh_modify    delay 0 every 1 check yes #page 1000000 one 20000
@@ -40,6 +41,9 @@ unfix           NVT
 reset_timestep  0
 compute         MSD1 Li msd                                #  calculated mean-squared displacement
 compute         MSD2 Si msd                                #  calculated mean-squared displacement
+dump            traj all dcd 10000 ${NAME}_nvt.dcd
+dump            unwrapped all dcd 10000 ${NAME}_unwrapped_nvt.dcd
+dump_modify     unwrapped unwrap yes
 thermo_style    custom step vol temp press ke pe etotal enthalpy evdwl epair lx ly lz xy xz yz c_MSD1[4] c_MSD2[4]
 thermo          1000
 thermo_modify   flush yes
