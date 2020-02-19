@@ -17,16 +17,20 @@ from atomate.lammps.firetasks.write_inputs import WriteInputFromIOSet, WriteInpu
 from atomate.lammps.firetasks.glue_tasks import CopyDeepMDModel
 from pymatgen.io.lammps.inputs import LammpsData
 from uuid import uuid4
+import os
 
-__author__ = "Brandon Wood, Kiran Mathew"
+__author__ = "Brandon Wood, Kiran Mathew, Eric Sivonxay"
 __email__ = "b.wood@berkeley.edu"
 
+template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
+
+default_timesteps = {'lj': 0.005, 'real': 1.0, 'metal': 0.001, 'si': 1e-8,
+                     'cgs': 1e-8, 'electron': 0.001, 'micro': 2.0, 'nano': 0.00045}
 
 class LammpsFW(Firework):
 
-    def __init__(self, lammps_input_set, input_filename="lammps.in", data_filename="lammps.data",
-                 lammps_cmd="lammps", db_file=None, parents=None, name="LammpsFW",
-                 log_filename="log.lammps", dump_filename=None, **kwargs):
+    def __init__(self, lammps_data, template_string, settings, input_filename="lammps.in",
+                 lammps_cmd="lammps", db_file=None, parents=None, name="LammpsFW", comments=None, run_label=None, **kwargs):
         """
         write lammps inputset, run, and store the output.
 
@@ -43,19 +47,99 @@ class LammpsFW(Firework):
             dump_filename (str)
             \*\*kwargs: other kwargs that are passed to Firework.__init__.
         """
+        if run_label is None:
+            run_label = uuid4()
 
-        tasks = [
-            WriteInputFromIOSet(lammps_input_set=lammps_input_set, input_filename=input_filename,
-                                data_filename=data_filename),
+        tasks = []
 
-            RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename),
+        tasks.append(WriteInputFromTemplate(settings=settings, lammps_data=lammps_data,
+                                            script_template=template_string, input_filename=input_filename))
 
-            LammpsToDB(input_filename=input_filename, data_filename=data_filename,
-                       log_filename=log_filename, dump_filename=dump_filename,
-                       db_file=db_file, additional_fields={"task_label": name})
-        ]
+        tasks.append(RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename))
+
+        #TODO: Add parsing of log file and saving of dcd unwrapped
 
         super(LammpsFW, self).__init__(tasks, parents=parents, name=name, **kwargs)
+
+    @classmethod
+    def npt_from_template(cls, lammps_data, temperature, pressure = 1, units='metal', equilibration_steps=100000,
+                          production_steps=1000000, timestep=None, name='Lammps_NPT_FW', group_info=None, **kwargs):
+        '''
+
+        :param lammps_data: pymatgen.io.lammps.inputs.LammpsData object containing structural information
+        :param temperature: Temperature of the lammps run
+        :param pressure: Pressure for the lammps run
+        :param units: Units style to use for lammps run.
+        :param equilibration_steps: Number of NVT equilibration steps before NPT
+        :param production_steps: Number of NPT steps
+        :param timestep: Timestep for run. When set to None, the lammps defaults are used.
+        :param name: Name for firework
+        :param group_info: List of group lines that would typically go in the e.g ['Group PF6 type 1 2', 'Group Li type 3']
+        :param kwargs:
+        :return:
+        '''
+        with open(os.path.join(template_dir, "npt.txt")) as f:
+            script_template = f.readlines()
+
+        settings = {'units': units, 'temperature': temperature, 'pressure': pressure,
+                    'equil_steps': equilibration_steps, 'prod_steps': production_steps,
+                    'pdamp_timesteps': 1000, 'tdamp_timesteps': 1000}
+
+        if timestep is None:
+            timestep = default_timesteps[units]
+
+        settings['timestep'] = timestep
+
+        if group_info:
+            # Add this information below velocity
+            pos = 0
+            for i, line in enumerate(script_template):
+                if line.startswith('# Run configuration'):
+                    pos = i
+            for i in range(len(group_info)):
+                script_template.insert(i + pos, group_info[i])
+
+        return cls(lammps_data, ''.join(script_template), settings, name=name, **kwargs)
+
+    @classmethod
+    def nvt_from_template(cls, lammps_data, temperature, units='metal', equilibration_steps=100000,
+                          production_steps=1000000, timestep=None, name='Lammps_NPT_FW', group_info=None, **kwargs):
+        '''
+
+        :param lammps_data: pymatgen.io.lammps.inputs.LammpsData object containing structural information
+        :param temperature: Temperature of the lammps run
+        :param pressure: Pressure for the lammps run
+        :param units: Units style to use for lammps run.
+        :param equilibration_steps: Number of NVT equilibration steps before NPT
+        :param production_steps: Number of NPT steps
+        :param timestep: Timestep for run. When set to None, the lammps defaults are used.
+        :param name: Name for firework
+        :param group_info: List of group lines that would typically go in the e.g ['Group PF6 type 1 2', 'Group Li type 3']
+        :param kwargs:
+        :return:
+        '''
+        with open(os.path.join(template_dir, "nvt.txt")) as f:
+            script_template = f.readlines()
+
+        settings = {'units': units, 'temperature': temperature,
+                    'equil_steps': equilibration_steps, 'prod_steps': production_steps,
+                    'pdamp_timesteps': 1000, 'tdamp_timesteps': 1000}
+
+        if timestep is None:
+            timestep = default_timesteps[units]
+
+        settings['timestep'] = timestep
+
+        if group_info:
+            # Add this information below velocity
+            pos = 0
+            for i, line in enumerate(script_template):
+                if line.startswith('# Run configuration'):
+                    pos = i
+            for i in range(len(group_info)):
+                script_template.insert(i + pos, group_info[i])
+
+        return cls(lammps_data, ''.join(script_template), settings, name=name, **kwargs)
 
 
 class LammpsDeepMDFW(Firework):
