@@ -18,7 +18,7 @@ import six
 import subprocess
 
 from custodian import Custodian
-from custodian.cp2k.handlers import Cp2kScfErrorHandler
+from custodian.cp2k.handlers import UnconvergedScfErrorHandler
 from custodian.cp2k.jobs import Cp2kJob
 from custodian.vasp.validators import VasprunXMLValidator, VaspFilesValidator
 
@@ -88,7 +88,7 @@ class RunCp2KCustodian(FiretaskBase):
     def run_task(self, fw_spec):
 
         handler_groups = {
-            "default": [Cp2kScfErrorHandler()],
+            "default": [UnconvergedScfErrorHandler()],
             "strict": [],
             "md": [],
             "no_handler": []

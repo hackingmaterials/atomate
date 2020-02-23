@@ -18,6 +18,8 @@ from pymatgen.io.cp2k.sets import RelaxSet, StaticSet, HybridStaticSet, HybridRe
 from atomate.cp2k.firetasks.write_inputs import WriteCp2kFromIOSet
 from atomate.cp2k.firetasks.run_calc import RunCp2KCustodian
 
+from atomate.common.firetasks.glue_tasks import PassCalcLocs
+
 
 class StaticFW(Firework):
 
@@ -50,11 +52,37 @@ class StaticFW(Firework):
 
         fw_name = "{}-{}".format(structure.composition.reduced_formula if structure else "unknown", name)
 
-        cp2k_input_set = cp2k_input_set or StaticSet(structure)
+        cp2k_input_set = cp2k_input_set or StaticSet(structure, **cp2k_input_set_params)
+
         t.append(WriteCp2kFromIOSet(structure=structure,
                                     cp2k_input_set=cp2k_input_set,
-                                    cp2k_input_set_params=cp2k_input_set_params))
+                                    cp2k_input_params=cp2k_input_set_params))
 
         t.append(RunCp2KCustodian(cp2k_cmd=cp2k_cmd))
 
-        super(StaticFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        t.append(PassCalcLocs(name=name))
+
+        super(StaticFW, self).__init__(t, parents=parents, name=fw_name,
+                                       spec={'cp2k_input_set': cp2k_input_set.as_dict()},
+                                       **kwargs)
+
+
+class RelaxFW(Firework):
+
+    def __init__(self, structure=None, name="static", cp2k_input_set=None,
+                 cp2k_input_set_params={}, cp2k_cmd="cp2k.popt",
+                 parents=None, **kwargs):
+        t = []
+
+        fw_name = "{}-{}".format(structure.composition.reduced_formula if structure else "unknown", name)
+
+        cp2k_input_set = cp2k_input_set or RelaxSet(structure, **cp2k_input_set_params)
+        t.append(WriteCp2kFromIOSet(structure=structure,
+                                    cp2k_input_set=cp2k_input_set,
+                                    cp2k_input_params=cp2k_input_set_params))
+
+        t.append(RunCp2KCustodian(cp2k_cmd=cp2k_cmd))
+
+        t.append(PassCalcLocs(name=name))
+
+        super(RelaxFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)

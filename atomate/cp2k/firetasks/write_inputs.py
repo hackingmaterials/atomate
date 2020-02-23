@@ -14,31 +14,27 @@ import numpy as np
 
 from monty.serialization import dumpfn
 
+from pymatgen.io.cp2k.sets import Cp2kInputSet
 from fireworks import FiretaskBase, explicit_serialize
 
 from atomate.utils.utils import env_chk, load_class
 
 __author__ = 'Nicholas Winner'
-__email__ = 'ajain@lbl.gov'
+__email__ = 'nwinner@berkeley.edu'
 
 
 @explicit_serialize
 class WriteCp2kFromIOSet(FiretaskBase):
     """
-    Create VASP input files using implementations of pymatgen's AbstractVaspInputSet. An input set
-    can be provided as an object or as a String/parameter combo.
+    Create CP2K input files using the pymatgen Cp2kInputSet object or dict representation.
 
     Required params:
         structure (Structure): structure
-        vasp_input_set (AbstractVaspInputSet or str): Either a VaspInputSet object or a string
-            name for the VASP input set (e.g., "MPRelaxSet").
+        cp2k_input_set (Cp2kInputSet or dict): Either a Cp2kInputSet object or a dict representation of one
 
     Optional params:
-        vasp_input_params (dict): When using a string name for VASP input set, use this as a dict
-            to specify kwargs for instantiating the input set parameters. For example, if you want
-            to change the user_incar_settings, you should provide: {"user_incar_settings": ...}.
-            This setting is ignored if you provide the full object representation of a VaspInputSet
-            rather than a String.
+        cp2k_input_params (dict): When using a string name for CP2K input set, use this as a dict
+            to specify kwargs for instantiating the input set parameters. For example, if you wan
     """
 
     required_params = ["structure", "cp2k_input_set"]
@@ -51,9 +47,19 @@ class WriteCp2kFromIOSet(FiretaskBase):
                              self['cp2k_input_set']['@module']).from_dict(
                              self['cp2k_input_set'])
 
-        # if VaspInputSet String + parameters was provided
         else:
             cis_cls = load_class("pymatgen.io.cp2k.sets", self["cp2k_input_set"])
             cis = cis_cls(self["structure"], **self.get("cp2k_input_params", {}))
         cis.write_file(input_filename='cp2k.inp', output_dir='.')
+
+
+@explicit_serialize
+class WriteCp2kFromPrevious(FiretaskBase):
+
+    def run_task(self, fw_spec):
+        prev_calc_loc = self.get('calc_locs')[-1]
+
+        ci = Cp2kInputSet.from_file(os.path.join(prev_calc_loc))
+
+
 

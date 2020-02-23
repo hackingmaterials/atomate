@@ -1,5 +1,5 @@
-from pymatgen.io.cp2k.sets import StaticSet
-from atomate.cp2k.fireworks.core import StaticFW
+from pymatgen.io.cp2k.sets import StaticSet, RelaxSet
+from atomate.cp2k.fireworks.core import StaticFW, RelaxFW
 from fireworks import Workflow
 
 ADD_NAMEFILE = True
@@ -38,7 +38,7 @@ def get_wf_static(structure, cp2k_input_set=None, name='Static WF',
     """
     fws = []
 
-    cis_static = cp2k_input_set or StaticSet(structure)
+    cis_static = cp2k_input_set or StaticSet(structure, **user_cp2k_settings)
 
     fw = StaticFW(structure=structure, name=name, cp2k_input_set=cis_static,
                   cp2k_input_set_params=user_cp2k_settings, cp2k_cmd=cp2k_cmd,
@@ -50,3 +50,53 @@ def get_wf_static(structure, cp2k_input_set=None, name='Static WF',
 
     return Workflow(fws, name=wfname, metadata=metadata)
 
+
+def get_wf_relax(structure, cp2k_input_set=None, name='Relax WF',
+                  cp2k_cmd="cp2k.popt", db_file=None,
+                  user_cp2k_settings=None, metadata=None):
+    """
+    Returns the workflow that computes the bulk modulus by fitting to the given equation of state.
+
+    Args:
+        structure (Structure): input structure.
+        cp2k_input_set (Cp2kInputSet): for relax calculations
+        cp2k_cmd (str): cp2k command to run.
+        db_file (str): path to the db file.
+        tag (str): something unique to identify the tasks in this workflow. If None a random uuid
+            will be assigned.
+
+    Returns:
+        Workflow
+    """
+    fws = []
+
+    cis_static = cp2k_input_set or RelaxSet(structure, **user_cp2k_settings)
+
+    fw = RelaxFW(structure=structure, name=name, cp2k_input_set=cis_static,
+                 cp2k_input_set_params=user_cp2k_settings, cp2k_cmd=cp2k_cmd,
+                 prev_calc_loc=True, prev_calc_dir=None, db_file=None,
+                 cp2ktodb_kwargs=None, parents=None)
+    fws.append(fw)
+
+    wfname = "{}:{}".format(structure.composition.reduced_formula, name)
+
+    return Workflow(fws, name=wfname, metadata=metadata)
+
+
+def get_wf_hybrid_static(structure, cp2k_input_set=None, name='Static WF',
+                  cp2k_cmd="cp2k.popt", db_file=None,
+                  user_cp2k_settings=None, metadata=None):
+
+    fws = []
+
+    cis_static = cp2k_input_set or StaticSet(structure, **user_cp2k_settings)
+
+    fw = StaticFW(structure=structure, name=name, cp2k_input_set=cis_static,
+                  cp2k_input_set_params=user_cp2k_settings, cp2k_cmd=cp2k_cmd,
+                  prev_calc_loc=True, prev_calc_dir=None, db_file=None,
+                  cp2ktodb_kwargs=None, parents=None)
+    fws.append(fw)
+
+    wfname = "{}:{}".format(structure.composition.reduced_formula, name)
+
+    return Workflow(fws, name=wfname, metadata=metadata)
