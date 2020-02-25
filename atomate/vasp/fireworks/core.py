@@ -190,8 +190,7 @@ class LinearResponseUFW(Firework):
         elif structure:
             vasp_input_set = vasp_input_set or LinearResponseUSet(structure, **vasp_input_set_params)
             t.append(WriteVaspFromIOSet(structure=structure,
-                                        vasp_input_set=vasp_input_set,
-                                        vasp_input_set_params=vasp_input_set_params))
+                                        vasp_input_set=vasp_input_set))
         else:
             raise ValueError("Must specify structure or previous calculation")
 

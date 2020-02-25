@@ -1,0 +1,146 @@
+# coding: utf-8
+
+import os
+
+from atomate.vasp.fireworks.core import StaticFW, LinearResponseUFW
+from fireworks import Workflow, Firework
+from atomate.vasp.powerups import (
+    add_tags,
+    add_additional_fields_to_taskdocs,
+    add_wf_metadata,
+    add_common_powerups,
+)
+from atomate.vasp.workflows.base.core import get_wf
+
+from atomate.utils.utils import get_logger
+
+logger = get_logger(__name__)
+
+from atomate.vasp.config import VASP_CMD, DB_FILE, ADD_WF_METADATA
+
+from atomate.vasp.workflows.presets.scan import wf_scan_opt
+from uuid import uuid4
+from pymatgen.io.vasp.sets import MPRelaxSet, LinearResponseUSet
+from pymatgen.core import Lattice, Structure
+
+import numpy as np
+
+__author__ = ""
+__maintainer__ = ""
+__email__ = ""
+__status__ = "Production"
+__date__ = "February 2020"
+
+__hubbard_u_wf_version__ = 0.0
+
+module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+
+def get_wf_hubbard_u(structure, applied_potential_values=[0.0], c=None, vis=None):
+    """
+    Args:
+        structure: 
+        c: Workflow config dict, in the same format
+    as in presets/core.py and elsewhere in atomate
+        vis: A VaspInputSet to use for the first FW
+
+    Returns: Workflow
+    """
+
+    if not structure.is_ordered:
+        raise ValueError(
+            "Please obtain an ordered approximation of the input structure."
+        )
+
+    structure = structure.get_primitive_structure(use_site_props=True)
+
+    # using a uuid for book-keeping,
+    # in a similar way to other workflows
+    uuid = str(uuid4())
+
+    c_defaults = {"vasp_cmd": VASP_CMD, "db_file": DB_FILE}
+    if c:
+        c.update(c_defaults)
+    else:
+        c = c_defaults
+
+    # Calculate groundstate
+    vis_d = vis.as_dict()
+    uis_gs = {"LDAU":False, "LMAXMIX":4, "LORBIT": 11, "ISPIN": 2}
+    vis_d.update({"user_incar_settings": uis_gs})
+    vis_gs = vis.__class__.from_dict(vis_d)
+
+    fws = [StaticFW(structure=structure, name="initial static", vasp_input_set=vis_gs,
+                    vasp_cmd=">>std_vasp_cmd<<", db_file=DB_FILE)]
+
+    uis_ldau = uis_gs.copy()
+    uis_ldau.update({"LDAU":True, "LDAUTYPE":3, "LDAUPRINT":2,"ISTART":1})
+
+    if 0.0 in applied_potential_values:
+        applied_potential_values = list(applied_potential_values)
+        applied_potential_values.pop(applied_potential_values.index(0.0))
+        applied_potential_values = np.array(applied_potential_values)
+
+    for v in applied_potential_values:
+
+        sign = 'neg' if str(v)[0] == '-' else 'pos'
+        vis_ldau = LinearResponseUSet.from_dict(vis_d)
+
+        for k in ["LDAUL", "LDAUU", "LDAUJ"]:
+            val_dict = {}
+            if (k == "LDAUL"):
+                # for LDAUL
+                val_dict.update({"perturb":2})
+                for s in vis_ldau.poscar.site_symbols:
+                    val_dict.update({s:-1})
+            else:
+                # for LDAUU and LDAUJ
+                val_dict.update({"perturb":v})
+                for s in vis_ldau.poscar.site_symbols:
+                    val_dict.update({s:0})
+            uis_ldau.update({k:val_dict})
+        
+        # NSCF
+        uis_ldau.update({"ICHARG":11})
+        
+        vis_d = vis_ldau.as_dict()
+        vis_d.update({"user_incar_settings": uis_ldau})
+        vis_ldau = LinearResponseUSet.from_dict(vis_d)
+
+        fw = LinearResponseUFW(structure, parents=fws[0],
+                               name="nscf_u_eq_{}{}".format(sign, abs(round(v,6))),
+                               vasp_input_set=vis_ldau,
+                               vasp_cmd=VASP_CMD, db_file=DB_FILE)
+
+        fws.append(fw)
+
+        # SCF
+        uis_ldau.update({"ICHARG":0})
+        
+        vis_d = vis_ldau.as_dict()
+        vis_d.update({"user_incar_settings": uis_ldau})
+        vis_ldau = LinearResponseUSet.from_dict(vis_d)
+
+        fw = LinearResponseUFW(structure, parents=fws[-1],
+                               name="scf_u_eq_{}{}".format(sign, abs(round(v,6))),
+                               vasp_input_set=vis_ldau,
+                               vasp_cmd=VASP_CMD, db_file=DB_FILE)
+        fws.append(fw)
+
+    wf = Workflow(fws)
+    wf = add_common_powerups(wf, c)
+
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
+    wf = add_additional_fields_to_taskdocs(
+        wf,
+        {
+            "wf_meta": {
+                "wf_uuid": uuid,
+                "wf_name": "hubbard_u",
+                "wf_version": __hubbard_u_wf_version__,
+            }
+        },
+    )
+
+    return wf
