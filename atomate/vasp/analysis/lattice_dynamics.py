@@ -1,207 +1,318 @@
-# coding: utf-8
-
-from __future__ import division, print_function, unicode_literals, absolute_import
-
-from typing import Optional, Tuple, List
-
 import numpy as np
 
+from itertools import product
+from typing import Optional, Tuple, List, Dict
+
 from pymatgen import Structure
-from pymatgen.transformations.standard_transformations import PerturbStructureTransformation
+from pymatgen.io.ase import AseAtomsAdaptor
+from pymatgen.io.phonopy import get_phonopy_structure
 
-__author__ = 'Rees Chang, Alex Ganose'
-__email__ = 'rc564@cornell.edu, aganose@lbl.gov'
+from atomate.utils.utils import get_logger
+from atomate.vasp.workflows.base.lattice_dynamics import (
+    MIN_NN_SCALE,
+    FIT_METHOD,
+    MAX_IMAGINARY_FREQ,
+    IMAGINARY_TOL,
+    MAX_N_IMAGINARY,
+)
+
+__author__ = "Rees Chang, Alex Ganose"
+__email__ = "rc564@cornell.edu, aganose@lbl.gov"
 
 
-def generate_perturbed_supercells(
-    supercell: Structure,
-    min_displacement: float = 0.01,
-    max_displacement: float = 0.1,
-    num_displacements: int = 10,
-    n_cells_per_displacement_distance: int = 1,
-    min_random_distance: Optional[float] = None
+logger = get_logger(__name__)
+
+
+def generate_perturbed_structures(
+    structure: Structure,
+    rattle_stds: Optional[List[float]] = None,
+    n_configs_per_std: int = 1,
+    min_nn_scale: float = MIN_NN_SCALE,
 ) -> Tuple[List[Structure], np.ndarray]:
     """
-    Generate a list of supercells with perturbed atomic sites.
+    Generate a list of structures with perturbed atomic sites.
+
+    Rattling atom `i` is carried out as a Monte Carlo move that is accepted with
+    a probability determined from the minimum interatomic distance
+    :math:`d_{ij}`.  If :math:`\\min(d_{ij})` is smaller than :math:`d_{min}`
+    the move is only accepted with a low probability.
+
+    :math:`d_{min}` is calculated as the smallest nearest neighbor distance
+    times ``min_nn_fraction``.
 
     Args:
-        supercell (Structure): Original structure whose atomic sites are to be
-            perturbed.
-        max_displacement: Maximum displacement distance for perturbing the
-            sites in Angstroms.
-        min_displacement: Minimum displacement distance for perturbing the
-            sites in Angstroms.
-        num_displacements: Number of unique displacement distances to
-            try, uniformly distributed between ``min_displacement`` and
-            ``max_displacement``.
-        n_cells_per_displacement_distance: Number of perturbed
-            structures to generate for each unique displacement distance.
-        min_random_distance: If None (default), then for a given perturbed
-            structure, all atoms will move the same distance from their original
-            locations. If float, then for a given perturbed structure, the
-            distances the atoms move will be uniformly distributed from a
-            minimum distance of ``min_random_distance`` to one of the
-            displacement distances uniformly sampled between
-            ``min_displacement`` and ``max_displacement``.
+        structure: Structure whose atomic sites are to be perturbed.
+        rattle_stds: List of standard deviations (in normal distribution) to
+            to use when displacing the sites.
+        n_configs_per_std: Number of structures to generate per rattle standard
+            deviation.
+        min_nn_scale: Controls the minimum interatomic distance used for
+            computing the probability for each rattle move.
 
     Returns:
         A tuple of the ``(structures, displacements)``. Where ``structures`` is
         a list of randomly displaced structures, and ``displacements`` is
         the displacement distance for each structure.
     """
-    dists = np.linspace(min_displacement, max_displacement, num_displacements)
-    displacements = np.repeat(dists, n_cells_per_displacement_distance)
+    from hiphive.structure_generation import generate_mc_rattled_structures
 
-    perturbed_supercells = []
-    for displacement in displacements:
-        pst = PerturbStructureTransformation(displacement, min_random_distance)
-        perturbed_supercells.append(pst.apply_transformation(supercell))
+    if rattle_stds is None:
+        rattle_stds = np.linspace(0.01, 0.1, 5)
 
-    return perturbed_supercells, displacements
+    min_distance = np.min(structure.distance_matrix) * min_nn_scale
+    atoms = AseAtomsAdaptor.get_atoms(structure)
+
+    perturbed_structures = []
+    for rattle_std in rattle_stds:
+        seed = np.random.randint(1, 10000000000)
+        structures = generate_mc_rattled_structures(
+            atoms, n_configs_per_std, rattle_std, min_distance, seed=seed
+        )
+        perturbed_structures.extend(structures)
+
+    return perturbed_structures, rattle_stds
 
 
-def csld_main(options, settings):
+def get_cutoffs(structure: Structure):
     """
-    Runs CSLD minimization.
+    Get a list of trial cutoffs based on a structure.
 
-    Changes from original version:
-        - Made 'prim' an argument in 'phonon_step()'
-        - Moved execution files to this main() function to be called from
-          atomate
-        - Rewrote 'add_common_parameter' in 'common_main' to treat 'options' as
+    An initial guess for the lower bound of the cutoffs is made based on the
+    period of the lightest element in the structure, according to:
 
-          a dictionary instead of ArgumentParser
+    ====== === === ===
+    .        Cutoff
+    ------ -----------
+    Period 2ND 3RD 4TH
+    ====== === === ===
+     1     5.5 3.0 3.0
+     2     5.5 3.0 3.0
+     3     6.5 4.0 3.5
+     4     7.5 5.0 4.0
+     5     8.5 6.0 4.5
+     6     9.5 7.0 5.0
+     7     9.5 7.0 5.0
+    ====== === === ===
+
+    The maximum cutoff for each order is determined by the minimum cutoff and
+    the following table. A full grid of all possible cutoff combinations is
+    generated based on the step size in the table below
+
+    ====== ==== =====
+    Cutoff Max  Step
+    ====== ==== =====
+    2ND    +3.0 0.5
+    3RD    +1.5 0.25
+    4TH    +1.0 0.25
+    ====== ==== =====
+
+    Args:
+        structure: A structure.
+
+    Returns:
+        A list of trial cutoffs.
     """
-    import matplotlib
-    matplotlib.use('Agg')
-    from matplotlib.backends.backend_pdf import PdfPages
-    import atexit
-    import csld
-    from csld.symmetry_structure import SymmetrizedStructure
-
-    from csld.lattice_dynamics import init_ld_model
-
-    from csld.common_main import upon_exit, \
-        init_training
-    from csld.csld_main_functions import phonon_step, \
-        save_pot, predict, fit_data
-
-
-    freq_matrix = None #Rees
-    pdfout = PdfPages(
-        options['pdfout'].strip()) if options['pdfout'].strip() else None
-    atexit.register(upon_exit, pdfout)
-
-    prim = SymmetrizedStructure.init_structure(settings['structure'],
-                                               options['symm_step'],
-                                               options['symm_prim'],
-                                               options['log_level'])
-    model = init_ld_model(prim, settings['model'], settings[
-        'LDFF'] if 'LDFF' in settings.sections() else {}, options['clus_step'],
-                          options['symC_step'], options['ldff_step'])
-    Amat, fval = init_training(model, settings['training'], options['train_step'])
-    ibest, solutions, rel_err = fit_data(model, Amat, fval, settings['fitting'],
-                                options['fit_step'], pdfout)
-    if settings.has_section('phonon'):
-        phonon, freq_matrix = phonon_step(model, solutions, settings['phonon'],
-                             options['phonon_step'], pdfout, prim, return_eigen=True)
-    if settings.has_section('export_potential'):
-        save_pot(model, solutions[ibest], settings['export_potential'],
-                 options['save_pot_step'], phonon)
-    if settings.has_section('prediction'):
-        predict(model, solutions, settings['prediction'], options['pred_step'])
-
-    #OUTPUT
-    # freq_matrix is (nbands, nkpoints) = frequencies. Check for negative entries
-    # rel_err is cross validation error in percent
-    return rel_err, freq_matrix  # also want to return force constants
-
-
-default_csld_settings = {
-    "structure": {"sym_tol": "1e-3"},
-    "model": {
-        'model_type': 'LD',
-        'cluster_in': 'clusters.out',
-        'cluster_out': 'clusters.out',
-        'symC_in': 'Cmat.mtx',
-        'symC_out': 'Cmat.mtx',
-        'fractional_distance': False,
-    },
-    "training":{
-        'interface': 'VASP',
-        'corr_type': 'f',
-        'corr_in': 'Amat.mtx',
-        'corr_out': 'Amat.mtx',
-        'fval_in': 'fval.txt',
-        'fval_out': 'fval.txt'
-    },
-    "fitting": {
-        'solution_in': 'solution_all',
-        'solution_out': 'solution_all',
-        'nsubset': 5,
-        'holdsize': 0.1,
-        ## 1 FPC 2 FPC sparse 3 split 4 sparse split
-        ## 5 split+ right preconditioning 6 sparse split + r preconditioning
-        ## 101 Bayesian CS
-        'method': 5,
-        # For weight of L1 or L2 regularization
-        'mulist': '1E-5 1E-6 1E-7 1E-9',
-        'maxIter': 300,
-        'tolerance': 1E-6,
-        'subsetsize': 0.85,
-        'lambda': 0.5,
-        'uscale_list': '0.03',
-    },
-    "phonon": {
-        'qpoint_fractional': False,
-        # 'Auto' or something like 
-        # "[[10,  [0,0,0],'\\Gamma', [0.5,0.5,0.5], 'X', [0.5,0.5,0], 'K']]"
-        'wavevector': 'Auto',
-        'unit': 'cm',  # THz, meV, eV, cm
-        'dos_grid': '15 15 15',  # number of grid points
-        'nE_dos': 500, # number of points in DOS
-        'ismear': -1,  # 0 (Gaussian), 1 (Lorentzian), -1 (tetrahedron method)
-        'epsilon': 0.05,  # width in THz of Gaussian/Lorentzian smearing
-        'pdos': True,
-        'thermal_T_range': '50 800 50',
-        'thermal_out': 'thermal_out.txt'
-    },
-   'prediction': {
-        'interface': 'VASP',
-        'corr_type': 'f',
-        'corr_in': 'Amat_pred.mtx',
-        'corr_out': 'Amat_pred.mtx',
-        'fval_in': 'fval_pred.txt',
-        'fval_out': 'fval_pred.txt',
-        'traindat0': 'fcc222/POSCAR fcc222/traj*'
-    },
-    'export_potential': {},
-    'DEFAULT': {
-        "qpoint_fractional": False,
-        "true_v_fit": 'true_fit.txt',
-        'epsilon': '0.05',
-        "bcs_reweight": 'True',
-        "bcs_penalty": 'arctan',
-        "bcs_jcutoff": '1E-8'
+    # indexed as min_cutoffs[order][period]
+    min_cutoffs = {
+        2: {1: 5.5, 2: 5.5, 3: 6.5, 4: 7.5, 5: 8.5, 6: 9.5, 7: 9.5},
+        3: {1: 3.0, 2: 3.0, 3: 4.0, 4: 5.0, 5: 6.0, 6: 7.0, 7: 7.0},
+        4: {1: 3.0, 2: 3.0, 3: 3.5, 4: 4.0, 5: 4.5, 6: 5.0, 7: 5.0},
     }
-}
+    inc = {2: 3, 3: 1.5, 4: 1}
+    steps = {2: 0.5, 3: 0.25, 4: 0.25}
 
-default_csld_options = {
-    'pdfout': 'plots.pdf',
-    'ldff_step': 0,
-    'phonon_step': 1,
-    'phonon': False,
-    'save_pot_step': 1,
-    'pot': False,
-    'log_level': 1,
-    'symm_step': 2,
-    'symm_prim': True,
-    'clus_step': 3,
-    'symC_step': 3,
-    'train_step': 3,
-    'fit_step': 3,
-    'pred_step': 0,
-    'refit': False,
-    'cont': False,
-    'predict': False
-}
+    row = min([s.row for s in structure.species])
+    mins = (min_cutoffs[row][2], min_cutoffs[row][3], min_cutoffs[row][4])
+
+    range_two = np.arange(mins[0], mins[0] + inc[0] + steps[0], steps[0])
+    range_three = np.arange(mins[1], mins[1] + inc[1] + steps[1], steps[1])
+    range_four = np.arange(mins[2], mins[2] + inc[2] + steps[2], steps[2])
+
+    return list(product(range_two, range_three, range_four))
+
+
+def fit_force_constants(
+    parent_structure: Structure,
+    supercell_matrix: np.ndarray,
+    structures: List["Atoms"],
+    all_cutoffs: List[List[float]],
+    imaginary_tol: float = IMAGINARY_TOL,
+    max_n_imaginary: int = MAX_N_IMAGINARY,
+    max_imaginary_freq: float = MAX_IMAGINARY_FREQ,
+    fit_method: str = FIT_METHOD,
+) -> Tuple["SortedForceConstants", Dict]:
+    """
+    Fit force constants using hiphive and select the optimum cutoff values.
+
+    The optimum cutoffs will be determined according to:
+    1. Number imaginary modes < ``max_n_imaginary``.
+    2. Most negative imaginary frequency < ``max_imaginary_freq``.
+    3. Least number of imaginary modes.
+    4. Lowest free energy at 300 K.
+
+    If criteria 1 and 2 are not satisfied, None will be returned as the
+    force constants.
+
+    Args:
+        parent_structure: Initial input structure.
+        supercell_matrix: Supercell transformation matrix.
+        structures: A list of ase atoms objects with "forces" and
+            "displacements" arrays added, as required by hiPhive.
+        all_cutoffs: A nested list of cutoff values to trial. Each set of
+            cutoffs contains the radii for different orders starting with second
+            order.
+        imaginary_tol: Tolerance used to decide if a phonon mode is imaginary,
+            in THz.
+        max_n_imaginary: Maximum number of imaginary modes allowed in the
+            the final fitted force constant solution. If this criteria is not
+            reached by any cutoff combination this FireTask will fizzle.
+        max_imaginary_freq: Maximum allowed imaginary frequency in the
+            final fitted force constant solution. If this criteria is not
+            reached by any cutoff combination this FireTask will fizzle.
+        fit_method: Method used for fitting force constants. This can be
+            any of the values allowed by the hiphive ``Optimizer`` class.
+
+    Returns:
+        A tuple of the best fitted force constants as a hiphive
+        ``SortedForceConstants`` object and a dictionary of information on the
+        fitting process.
+    """
+    from hiphive.fitting import Optimizer
+    from hiphive import ForceConstantPotential, enforce_rotational_sum_rules
+
+    logger.info("Starting fitting force constants.")
+
+    fitting_data = {
+        "cutoffs": [],
+        "rmse_test": [],
+        "n_imaginary": [],
+        "min_frequency": [],
+        "300K_free_energy": [],
+        "fit_method": fit_method,
+        "imaginary_tol": imaginary_tol,
+        "max_n_imaginary": max_n_imaginary,
+        "max_imaginary_freq": max_imaginary_freq,
+    }
+
+    supercell_atoms = structures[0]
+
+    best_fit = {
+        "n_imaginary": np.inf,
+        "free_energy": np.inf,
+        "force_constants": None,
+        "cutoffs": None,
+    }
+    n_cutoffs = len(all_cutoffs)
+    for i, cutoffs in enumerate(all_cutoffs):
+        logger.info(
+            "Testing cutoffs {} out of {}: {}".format(i, n_cutoffs, cutoffs)
+        )
+        sc = get_structure_container(cutoffs, structures)
+        opt = Optimizer(sc.get_fit_data(), fit_method)
+        opt.train()
+
+        parameters = enforce_rotational_sum_rules(
+            sc.cluster_space, opt.parameters, ["Huang", "Born-Huang"]
+        )
+        fcp = ForceConstantPotential(sc.cluster_space, parameters)
+        fcs = fcp.get_force_constants(supercell_atoms)
+
+        phonopy_fcs = fcs.get_fc_array(order=2)
+        n_imaginary, min_freq, free_energy = evaluate_force_constants(
+            parent_structure, supercell_matrix, phonopy_fcs, imaginary_tol
+        )
+
+        fitting_data["cutoffs"].append(cutoffs)
+        fitting_data["rmse_train"].append(opt.rmse_test)
+        fitting_data["n_imaginary"].append(n_imaginary)
+        fitting_data["min_frequency"].append(min_freq)
+        fitting_data["300K_free_energy"].append(free_energy)
+        fitting_data["force_constants"].append(fcs)
+
+        if (
+            min_freq < -np.abs(max_imaginary_freq)
+            and n_imaginary <= max_n_imaginary
+            and n_imaginary < best_fit["n_imaginary"]
+            and free_energy < best_fit["free_energy"]
+        ):
+
+            best_fit.update(
+                {
+                    "n_imaginary": n_imaginary,
+                    "free_energy": free_energy,
+                    "force_constants": fcs,
+                    "cutoffs": cutoffs,
+                }
+            )
+            fitting_data["best"] = cutoffs
+
+    logger.info("Finished fitting force constants.")
+
+    return best_fit["force_constants"], fitting_data
+
+
+def get_structure_container(
+    cutoffs: List[float], structures: List["Atoms"]
+) -> "StructureContainer":
+    """
+    Get a hiPhive StructureContainer from cutoffs and a list of atoms objects.
+
+    Args:
+        cutoffs: Cutoff radii for different orders starting with second order.
+        structures: A list of ase atoms objects with the "forces" and
+            "displacements" arrays included.
+
+    Returns:
+        A hiPhive StructureContainer.
+    """
+    from hiphive import ClusterSpace, StructureContainer
+
+    cs = ClusterSpace(structures[0], cutoffs)
+    logger.debug(cs.__repr__())
+
+    sc = StructureContainer(cs)
+    for structure in structures:
+        sc.add_structure(structure)
+    logger.debug(sc.__repr__())
+
+    return sc
+
+
+def evaluate_force_constants(
+    structure: Structure,
+    supercell_matrix: np.ndarray,
+    force_constants: np.ndarray,
+    imaginary_tol: float = IMAGINARY_TOL,
+) -> Tuple[int, float, float]:
+    """
+    Uses the force constants to extract phonon properties. Used for comparing
+    the accuracy of force constant fits.
+
+    Args:
+        structure: The parent structure.
+        supercell_matrix: The supercell transformation matrix.
+        force_constants: The force constants in numpy format.
+        imaginary_tol: Tolerance used to decide if a phonon mode is imaginary,
+            in THz.
+
+    Returns:
+        A tuple of the number of imaginary modes at Gamma, the minimum phonon
+        frequency at Gamma, and the free energy at 300 K.
+    """
+    from phonopy import Phonopy
+
+    parent_phonopy = get_phonopy_structure(structure)
+    phonopy = Phonopy(parent_phonopy, supercell_matrix=supercell_matrix)
+
+    phonopy.set_force_constants(force_constants)
+    phonopy.run_mesh(is_gamma_center=True)
+    phonopy.run_thermal_properties(temperatures=[300])
+    free_energy = phonopy.get_thermal_properties_dict()["free_energy"][0]
+
+    # find imaginary modes at gamma
+    phonopy.run_qpoints([0, 0, 0])
+    gamma_eigs = phonopy.get_qpoints_dict()["frequencies"]
+    n_imaginary = int(np.sum(gamma_eigs < -np.abs(imaginary_tol)))
+    min_frequency = np.min(gamma_eigs)
+
+    return n_imaginary, min_frequency, free_energy
