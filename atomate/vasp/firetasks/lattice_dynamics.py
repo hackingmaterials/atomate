@@ -3,12 +3,11 @@ import shlex
 
 from pathlib import Path
 
-from uuid import uuid4
-
 from datetime import datetime
 
 from monty.serialization import dumpfn, loadfn
 from monty.dev import requires
+from pymongo import ReturnDocument
 
 from atomate.utils.utils import get_logger, env_chk
 from atomate.vasp.analysis.lattice_dynamics import (
@@ -53,57 +52,31 @@ logger = get_logger(__name__)
 @explicit_serialize
 class CollectPerturbedStructures(FiretaskBase):
     """
-    Aggregate the structures and forces of perturbed supercells. Requires a
-    wf_uuid from which all perturbed static calculations will be compiled. The
-    initial structure and supercell transformation matrix will be extracted from
-    the perturbed structure tasks.
+    Aggregate the structures and forces of perturbed supercells.
 
-    Required parameters:
-        db_file (str): Path to DB file for the database that contains the
-            perturbed structure calculations.
-        wf_uuid (str): Workflow unique identifier.
+    Requires a ``perturbed_tasks`` key to be set in the fw_spec, containing a
+    list of dictionaries, each with the keys:
+
+    - "parent_structure": The original structure.
+    - "supercell_matrix": The supercell transformation matrix.
+    - "structure": The perturbed supercell structure.
+    - "forces": The forces on each site in the supercell.
     """
 
-    required_params = ["db_file", "wf_uuid"]
-
     def run_task(self, fw_spec):
-        db_file = env_chk(self.get("db_file"), fw_spec)
-        mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-        tasks = mmdb.collection
+        results = fw_spec.get("perturbed_tasks", [])
 
-        query = {
-            "wf_meta.wf_uuid": self["wf_uuid"],
-            "task_label": {"$regex": "perturbed static"},
-            "state": "successful",
-        }
-        projection = ["output.structure", "output.forces", "transformations"]
-
-        logger.info("Fetching structure and forces data")
-        results = list(tasks.find(query, projection))
+        if len(results) == 0:
+            # can happen if all parents fizzled
+            raise RuntimeError("No perturbed tasks found in firework spec")
 
         logger.info("Found {} perturbed structures".format(len(results)))
-        all_structures = []
-        all_forces = []
-        for result in results:
-            structure = Structure.from_dict(result["output"]["structure"])
-            forces = np.asarray(result["output"]["forces"])
-            all_structures.append(structure)
-            all_forces.append(forces)
 
-        if len(all_structures) == 0:
-            raise RuntimeError(
-                "Could not find any perturbed structures for workflow uuid: "
-                "{}".format(self["wf_uuid"])
-            )
-        else:
-            transformation = results[-1]["transformations"][0]
-            t_class = transformation["@class"]
-            if t_class != "SupercellTransformation":
-                raise ValueError(
-                    "Expecting SupercellTransformation not {}".format(t_class)
-                )
-            structure = Structure.from_dict(transformation["input_structure"])
-            supercell_matrix = transformation["deformation"]
+        structure = Structure.from_dict(results[0]["parent_structure"])
+        supercell_matrix = results[0]["supercell_matrix"]
+
+        structures = [Structure.from_dict(r["structure"]) for r in results]
+        forces = [np.asarray(r["forces"]) for r in results]
 
         # regenerate pure supercell structure
         st = SupercellTransformation(supercell_matrix)
@@ -116,19 +89,19 @@ class CollectPerturbedStructures(FiretaskBase):
         }
 
         logger.info("Writing structure and forces data.")
-        dumpfn(all_structures, "perturbed_structures.json")
-        dumpfn(all_forces, "perturbed_forces.json")
+        dumpfn(structures, "perturbed_structures.json")
+        dumpfn(forces, "perturbed_forces.json")
         dumpfn(structure_data, "structure_data.json")
 
 
 @requires(hiphive, "hiphive is required for lattice dynamics workflow")
 @explicit_serialize
-class FitForceConstants(FiretaskBase):
+class RunHiPhive(FiretaskBase):
     """
-    Used to aggregate atomic forces of perturbed supercells in and fit
-    force constants using hiPhive. Requires "perturbed_structures.json",
-    "perturbed_forces.json", and "structure_data.json" files to be present
-    in the current working directory.
+    Fit force constants using hiPhive.
+
+    Requires "perturbed_structures.json", "perturbed_forces.json", and
+    "structure_data.json" files to be present in the current working directory.
 
     Optional parameters:
         cutoffs (Optional[list[list]]): A list of cutoffs to trial. If None,
@@ -214,7 +187,7 @@ class FitForceConstants(FiretaskBase):
 
 @requires(hiphive, "hiphive is required for lattice dynamics workflow")
 @explicit_serialize
-class ForceConstantsToDB(FiretaskBase):
+class ForceConstantsToDb(FiretaskBase):
     """
     Add force constants, phonon band structure and density of states
     to the database.
@@ -227,7 +200,6 @@ class ForceConstantsToDB(FiretaskBase):
             perturbed structure calculations.
 
     Optional parameters:
-        wf_uuid (str): Workflow unique identifier.
         mesh_density (float): The density of the q-point mesh used to calculate
             the phonon density of states. See the docstring for the ``mesh``
             argument in Phonopy.init_mesh() for more details.
@@ -236,7 +208,7 @@ class ForceConstantsToDB(FiretaskBase):
     """
 
     required_params = ["db_file"]
-    optional_params = ["wf_uuid", "mesh_density", "additional_fields"]
+    optional_params = ["mesh_density", "additional_fields"]
 
     def run_task(self, fw_spec):
         from hiphive.force_constants import ForceConstants
@@ -247,6 +219,9 @@ class ForceConstantsToDB(FiretaskBase):
         force_constants = ForceConstants.read("force_constants.fcs")
         fitting_data = loadfn("fitting_data.json")
         structure_data = loadfn("structure_data.json")
+        forces = loadfn("perturbed_forces.json")
+        structures = loadfn("perturbed_structures.json")
+
         structure = structure_data["structure"]
         supercell_structure = structure_data["supercell_structure"]
         supercell_matrix = structure_data["supercell_matrix"]
@@ -280,12 +255,12 @@ class ForceConstantsToDB(FiretaskBase):
             lm_bs.to_json(), collection="phonon_bandstructure_fs"
         )
 
-        fc_uuid = str(uuid4())  # additional force constant identifier
-
         data = {
             "structure": structure.as_dict(),
             "supercell_matrix": supercell_matrix.tolist(),
             "supercell_structure": supercell_structure.as_dict(),
+            "perturbed_structures": [s.to_json() for s in structures],
+            "perturbed_forces": [f.tolist() for f in forces],
             "fitting_data": fitting_data,
             "force_constants": force_constants.get_fc_dict(),
             "tags": fw_spec.get("tags", None),
@@ -293,24 +268,32 @@ class ForceConstantsToDB(FiretaskBase):
             "phonon_dos_fs_id": dos_fsid,
             "phonon_bandstructure_uniform_fs_id": uniform_bs_fsid,
             "phonon_bandstructure_line_fs_id": lm_bs_fsid,
-            "wf_meta": {"wf_uuid": self["wf_uuid"], "fc_uuid": fc_uuid},
             "created_at": datetime.utcnow(),
         }
         data.update(self.get("additional_fields", {}))
 
+        # Get an id for the force constants
         mmdb.collection = mmdb.db["lattice_dynamics"]
-        mmdb.collection.insert_one(data)
+        fc_id = mmdb.db.counter.find_one_and_update(
+            {"_id": "taskid"}, {"$inc": {"c": 1}},
+            return_document=ReturnDocument.AFTER
+        )["c"]
+        metadata = {"fc_id": fc_id, "fc_dir": os.getcwd()}
+        data.update(metadata)
 
-        return FWAction(update_spec={"fc_uuid": fc_uuid})
+        mmdb.collection.insert_one(data)
+        logger.info("Finished inserting force constants")
+
+        return FWAction(update_spec=metadata)
 
 
 @explicit_serialize
 class RunShengBTE(FiretaskBase):
     """
     Run ShengBTE to calculate lattice thermal conductivity. Presumes
-    the FORCE_CONSTANTS_3ND and FORCE_CONSTANTS_2ND files in the current
-    directory. In addition, presumes a "structure_data.json" file, with they
-    keys "structure", " and "supercell_matrix" is in the current directory.
+    the FORCE_CONSTANTS_3ND and FORCE_CONSTANTS_2ND, and a "structure_data.json"
+    file, with the keys "structure", " and "supercell_matrix" is in the current
+    directory.
 
     Required parameters:
         shengbte_cmd (str): The name of the shengbte executable to run. Supports
@@ -373,7 +356,7 @@ class RunShengBTE(FiretaskBase):
 
 
 @explicit_serialize
-class ShengBTEToDB(FiretaskBase):
+class ShengBTEToDb(FiretaskBase):
     """
     Add lattice thermal conductivity results to database.
 
@@ -384,15 +367,11 @@ class ShengBTEToDB(FiretaskBase):
             perturbed structure calculations.
 
     Optional parameters:
-        wf_uuid (str): Workflow unique identifier.
-        fc_uuid (str): Force constant identifier, used if workflow has multiple
-            force constants calculated (i.e., using different fit_methods).
-        additional_fields (dict): Additional fields added to the document, such
-            as user-defined tags, name, ids, etc.
+        additional_fields (dict): Additional fields added to the document.
     """
 
     required_params = ["db_file"]
-    optional_params = ["wf_uuid", "fc_uuid", "additional_fields"]
+    optional_params = ["additional_fields"]
 
     def run_task(self, fw_spec):
         db_file = env_chk(self.get("db_file"), fw_spec)
@@ -413,13 +392,6 @@ class ShengBTEToDB(FiretaskBase):
         temperatures = bte_data[:, 0].tolist()
         kappa = bte_data[:, 1:10].reshape(-1, 3, 3)
 
-        wf_meta = {}
-        if self.get("wf_uuid"):
-            wf_meta["wf_uuid"] = self["wf_uuid"]
-
-        if self.get("fc_uuid") or fw_spec.get("fc_uuid"):
-            wf_meta["fc_uuid"] = self.get("fc_uuid", fw_spec.get("fc_uuid"))
-
         data = {
             "structure": structure.as_dict(),
             "supercell_matrix": supercell_matrix.tolist(),
@@ -428,7 +400,9 @@ class ShengBTEToDB(FiretaskBase):
             "control": control.to_json(),
             "tags": fw_spec.get("tags", None),
             "formula_pretty": structure.composition.reduced_formula,
-            "wf_meta": wf_meta,
+            "shengbte_dir": os.getcwd(),
+            "fc_id": fw_spec.get("fc_id", None),
+            "fc_dir": fw_spec.get("fc_dir", None),
             "created_at": datetime.utcnow(),
         }
         data.update(self.get("additional_fields", {}))
