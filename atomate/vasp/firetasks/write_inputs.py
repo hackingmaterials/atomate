@@ -15,7 +15,7 @@ from fireworks.utilities.dict_mods import apply_mod
 from pymatgen.core.structure import Structure
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
-from pymatgen.io.vasp import Incar, Poscar, Potcar, PotcarSingle
+from pymatgen.io.vasp import Incar, Poscar, Potcar, PotcarSingle, Kpoints
 from pymatgen.io.vasp.sets import (
     MPStaticSet,
     MPNonSCFSet,
@@ -207,6 +207,42 @@ class ModifyIncar(FiretaskBase):
             apply_mod(incar_dictmod, incar)
 
         incar.write_file(self.get("output_filename", "INCAR"))
+
+@explicit_serialize
+class ModifyKpoints(FiretaskBase):
+    """
+    Modify an KPOINTS file.
+
+    Required params:
+        (none)
+
+    Optional params:
+        kpoints_update (dict): overwrite Kpoint dict key. Supports env_chk.
+            keys can be anything property of a kpoint object (kpts, kpts_shift,
+            kpts_weights, labels, comment, coord_type, num_kpts,
+            tet_connections, tet_number, tet_weight)
+        input_filename (str): Input filename (if not "KPOINTS")
+        output_filename (str): Output filename (if not "KPOINTS")
+    """
+
+    optional_params = [
+        "kpoints_update",
+        "input_filename",
+        "output_filename",
+    ]
+
+    def run_task(self, fw_spec):
+
+        kpoints_name = self.get("input_filename", "KPOINTS")
+        kpoints = Kpoints.from_file(kpoints_name)
+
+        kpoints_update = env_chk(self.get("kpoints_update"), fw_spec)
+
+        if kpoints_update:
+            for key, value in kpoints_update.items():
+                setattr(kpoints, key, value)
+
+        kpoints.write_file(self.get("output_filename", "KPOINTS"))
 
 
 @explicit_serialize
