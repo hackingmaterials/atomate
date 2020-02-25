@@ -1,30 +1,29 @@
+import warnings
 import math
 
 import numpy as np
 
 from copy import deepcopy
-
-from monty.dev import requires
 from typing import List, Dict, Optional, Union
 
-from uuid import uuid4
 
-from atomate.vasp.firetasks.lattice_dynamics import FitForceConstants, \
-    ForceConstantsToDB, RunShengBTE, ShengBTEToDB
-from pymatgen.io.vasp.sets import MPStaticSet
+from pymatgen.io.vasp.sets import MPStaticSet, VaspInputSet
 from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.transformations.advanced_transformations import (
     CubicSupercellTransformation,
 )
 
-from fireworks import Workflow, Firework
+from monty.dev import requires
+from fireworks import Workflow
 
 from atomate.utils.utils import get_logger
 from atomate.vasp.config import VASP_CMD, DB_FILE, SHENGBTE_CMD
-from atomate.vasp.fireworks.core import StaticFW
+from atomate.vasp.fireworks.core import TransmuterFW
 from atomate.vasp.powerups import add_additional_fields_to_taskdocs
-from atomate.vasp.analysis.lattice_dynamics import generate_perturbed_structures
+from atomate.vasp.firetasks import pass_vasp_result
+from atomate.vasp.fireworks.lattice_dynamics import FitForceConstantsFW, \
+    LatticeThermalConductivityFW
 
 try:
     import hiphive
@@ -34,11 +33,10 @@ except ImportError:
 __author__ = "Rees Chang, Alex Ganose"
 __email__ = "rc564@cornell.edu, aganose@lbl.gov"
 __date__ = "July 2019"
-__lattice_dynamics_wf_version__ = 1.0
 
 logger = get_logger(__name__)
 
-_static_uis = {
+_static_user_incar_settings = {
     "ADDGRID": True,  # Fast Fourier Transform grid
     "LCHARG": False,
     "ENCUT": 700,
@@ -58,23 +56,17 @@ DEFAULT_TEMPERATURE = 300
 FIT_METHOD = "least-squares"
 MESH_DENSITY = 100.  # should always be a float
 _DEFAULT_SETTINGS = {"VASP_CMD": VASP_CMD, "DB_FILE": DB_FILE}
+_WF_VERSION = 1.0
 
 
 @requires(hiphive, "hiphive is required for lattice dynamics workflow")
 def get_lattice_dynamics_wf(
     structure: Structure,
     common_settings: Dict = None,
-    symmetrize: bool = False,
-    symprec: float = 0.01,
-    min_atoms: Optional[int] = None,
-    max_atoms: Optional[int] = None,
-    num_nn_dists: float = 5.,
-    force_diagonal_transformation: bool = True,
-    rattle_stds: Optional[List[float]] = None,
-    min_nn_scale: float = MIN_NN_SCALE,
-    min_num_equivalent_sites: int = 100,
-    max_num_supercells: int = 30,
-    dynamic_static_calcs: bool = False,
+    vasp_input_set: Optional[VaspInputSet] = None,
+    supercell_matrix_kwargs: Optional[dict] = None,
+    num_supercell_kwargs: Optional[dict] = None,
+    perturbed_structure_kwargs: Optional[dict] = None,
     calculate_lattice_thermal_conductivity: bool = False,
     thermal_conductivity_temperature: Union[float, Dict] = 300,
     shengbte_cmd: str = SHENGBTE_CMD,
@@ -99,38 +91,21 @@ def get_lattice_dynamics_wf(
 
     Args:
         structure: Initial structure.
-        common_settings: Common settings dict.
-        symmetrize: Whether to symmetrize the structure before running the
-            workflow.
-        symprec: Symmetry precision for determining the symmetry of the
-            structure.
-        min_atoms: Minimum number of atoms to constrain the supercell.
-        max_atoms: Maximum number of atoms to constrain the supercell.
-        num_nn_dists: Number of nearest neighbor distances that the shortest
-            direction of the supercell must be as long as.
-        force_diagonal_transformation: If True, the supercell
-            transformation will be constrained to have a diagonal
-            transformation matrix. If False, the supercell transformation
-            will not be constrained to be diagonal (resulting in a more
-            cubic supercell). A diagonal supercell is required to calculate
-            lattice thermal conductivity.
-        rattle_stds: List of standard deviations (in normal distribution) to
-            to use when displacing the sites.
-        min_nn_scale: Controls the minimum interatomic distance used for
-            computing the probability for each rattle move.
-        min_num_equivalent_sites: The minimum number of equivalent sites for
-            each species. The aim is to have each equivalent site represented at
-            least ``min_num_equivalent_sites`` times. For example, if a symmetry
-            inequivalent site appears 26 times in the supercell structure,
-            and ``min_num_equivalent_sites`` is 100, then at least 4 supercells
-            are required for that site to appear over 100 times.
-        max_num_supercells: The maximum number of supercells per displacement.
-            For very unsymmetric structures, this imposes a hard limit on
-            the number of sites generated due to ``min_num_equivalent_sites``.
-        dynamic_static_calcs: If True and hiPhive fails to return all real
-             harmonic phonon frequencies on the first try, then the workflow
-             will dynamically create more static perturbed supercell
-             calculations with larger displacements to improve the fitting.
+        common_settings: Common settings dict. Supports "VASP_CMD", "DB_FILE",
+            and "user_incar_settings" keys.
+        vasp_input_set: Vasp input set for perturbed structure calculations.
+        supercell_matrix_kwargs: Options that control the size of the supercell
+            that will be perturbed. Will be passed directly to
+            CubicSupercellTransformation in
+            pymatgen.transformations.advanced_transformations. Note, a diagonal
+            supercell is required to calculate lattice thermal conductivity.
+        num_supercell_kwargs: Options that control the number of supercells
+            generated per perturbation standard deviation distance. See the
+            docstring of ``get_num_supercells`` for more details.
+        perturbed_structure_kwargs: Options that control the number of
+            and magnitude of atomic displacements. Currently, the options are
+            "rattle_std", "n_configs_per_std", and "min_nn_scale". See the
+            docstring for ``get_perturbed_structure_wf`` for more details.
         calculate_lattice_thermal_conductivity: If True and force constant
             fitting does not return imaginary modes, then use ShengBTE to
             calculate the lattice thermal conductivity.
@@ -142,168 +117,170 @@ def get_lattice_dynamics_wf(
             to all the previous fireworks' fworker. If str, the ShengBTE
             firework's fworker will be set to shengbte_fworker.
    """
+    supercell_matrix_kwargs = supercell_matrix_kwargs or {}
+    num_supercell_kwargs = num_supercell_kwargs or {}
+    perturbed_structure_kwargs = perturbed_structure_kwargs or {}
     common_settings = _get_common_settings(common_settings)
-    uis = deepcopy(_static_uis)
-    uis.update(common_settings.get("user_incar_settings", {}))
+    db_file = common_settings["DB_FILE"]
 
-    if not force_diagonal_transformation and calculate_lattice_thermal_conductivity:
-        raise ValueError(
-            "Diagonal transformation required to calculate lattice thermal "
-            "conductivity"
-        )
+    if calculate_lattice_thermal_conductivity:
+        if supercell_matrix_kwargs.get("force_diagonal", True):
+            warnings.warn(
+                "Diagonal transformation required to calculate lattice thermal "
+                "conductivity. Forcing diagonal matrix"
+            )
+        supercell_matrix_kwargs["force_diagonal"] = True
 
-    sga = SpacegroupAnalyzer(structure, symprec=symprec)
-    if symmetrize:
-        structure = sga.get_primitive_standard_structure()
-
-    st = CubicSupercellTransformation(
-        min_atoms,
-        max_atoms,
-        num_nn_dists,
-        force_diagonal_transformation=force_diagonal_transformation,
-    )
+    st = CubicSupercellTransformation(**supercell_matrix_kwargs)
     supercell = st.apply_transformation(structure)
+    supercell_matrix = st.transformation_matrix
 
-    n_cells = _get_n_cells(sga, min_num_equivalent_sites, max_num_supercells)
-    perturbed_supercells, disp_dists, fws = get_perturbed_structure_fws(
-        supercell,
+    if "n_supercells" not in perturbed_structure_kwargs:
+        n_supercells = get_num_supercells(supercell, **num_supercell_kwargs)
+        perturbed_structure_kwargs["n_supercells"] = n_supercells
+
+    wf = get_perturbed_structure_wf(
+        structure,
+        supercell_matrix=supercell_matrix,
+        name="ld perturbed structure",
+        vasp_input_set=vasp_input_set,
         common_settings=common_settings,
-        user_incar_settings=uis,
-        rattle_stds=rattle_stds,
-        min_nn_scale=min_nn_scale,
-        n_configs_per_std=n_cells,
+        pass_forces=True,
+        **perturbed_structure_kwargs,
     )
 
-    logger.debug("Generating {} supercells per displacement".format(n_cells))
-    logger.debug("Using {} displacements".format(len(disp_dists)))
-    logger.debug("Displacements: {}".format(disp_dists))
-
-    wf_meta = {
-        "wf_uuid": str(uuid4()),
-        "wf_name": "LatticeDynamicsWF",
-        "wf_version": __lattice_dynamics_wf_version__,
-    }
-
-    # Add tasks to fit force constants
-    fit_forces = FitForceConstants(
-        db_file=common_settings["DB_FILE"],
-        wf_uuid=wf_meta["wf_uuid"],
-        parent_structure=structure,
-        supercell_structure=supercell,
-        supercell_matrix=st.transformation_matrix.tolist(),
+    allow_fizzled = {"_allow_fizzled_parents": True}
+    fw_fit_force_constant = FitForceConstantsFW(
+        parents=wf.fws[wf.leaf_fw_ids], db_file=db_file, spec=allow_fizzled
     )
-    forces_to_db = ForceConstantsToDB(
-        db_file=common_settings["DB_FILE"], wf_uuid=wf_meta["wf_uuid"],
-    )
-    fws.append(
-        Firework(
-            [fit_forces, forces_to_db],
-            name="Force Constant Fitting",
-            parents=fws[-len(perturbed_supercells):],
+    wf.fws.append(fw_fit_force_constant)
+
+    if calculate_lattice_thermal_conductivity:
+        fw_lattice_conductivity = LatticeThermalConductivityFW(
+            parents=wf.fws[-1], db_file=db_file
         )
-    )
-
-    # Add ShengBTE tasks
-    run_shengbte = RunShengBTE(
-        db_file=common_settings["DB_FILE"],
-        wf_uuid=wf_meta["wf_uuid"],
-        structure=structure,
-        supercell_matrix=st.transformation_matrix.tolist(),
-        shengbte_cmd=shengbte_cmd,
-        temperature=thermal_conductivity_temperature,
-    )
-    shengbte_to_db = ShengBTEToDB(
-        db_file=common_settings["DB_FILE"],
-        wf_uuid=wf_meta["wf_uuid"],
-    )
-    fws.append(
-        Firework(
-            [run_shengbte, shengbte_to_db],
-            name="Lattice Thermal Conductivity",
-            parents=fws[-1]
-        )
-    )
+        wf.fws.append(fw_lattice_conductivity)
 
     formula = structure.composition.reduced_formula
-    wf_name = "{} - lattice dynamics".format(formula)
+    wf.name = "{} - lattice dynamics".format(formula)
 
-    wf = Workflow(fws, name=wf_name)
-    wf = add_additional_fields_to_taskdocs(
-        wf, {"wf_meta": wf_meta}, task_name_constraint="VaspToDb"
-    )
+    # Add workflow meta data to all relevant *ToDb tasks.
+    wf_meta = {"wf_name": "LatticeDynamicsWF", "wf_version": _WF_VERSION}
+    for task_name in ["VaspToDb", "ShengBTEToDb", "ForceConstantsToDb"]:
+        wf = add_additional_fields_to_taskdocs(
+            wf, {"wf_meta": wf_meta}, task_name_constraint=task_name
+        )
 
     return wf
 
 
-def get_perturbed_structure_fws(
-    supercell: Structure,
+def get_perturbed_structure_wf(
+    structure: Structure,
+    supercell_matrix: Optional[np.ndarray],
+    name: str = "perturbed structure",
+    vasp_input_set: Optional[VaspInputSet] = None,
     common_settings: Optional[Dict] = None,
-    user_incar_settings: Optional[Dict] = None,
     rattle_stds: Optional[List[float]] = None,
     n_configs_per_std: int = 1,
     min_nn_scale: float = MIN_NN_SCALE,
-) -> List[Firework]:
+    pass_forces: bool = True,
+) -> Workflow:
     """
     Get static calculations to calculate the forces on each perturbed supercell.
 
     Args:
-        supercell: Parent supercell structure.
-        common_settings: Common settings dict
-        user_incar_settings: User incar settings override.
+        structure: Input structure.
+        supercell_matrix: Supercell transformation matrix
+        name: Transmuter firework name.
+        vasp_input_set: Vasp input set for perturbed structure calculations.
+        common_settings: Common settings dict. Supports "VASP_CMD", "DB_FILE",
+            and "user_incar_settings" keys.
         rattle_stds: List of standard deviations (in normal distribution) to
             to use when displacing the sites.
         n_configs_per_std: Number of structures to generate per rattle standard
             deviation.
         min_nn_scale: Controls the minimum interatomic distance used for
             computing the probability for each rattle move.
+        pass_forces: Whether to append the force and supercell structure
+            information into the perturbed_tasks key of the child fireworks.
 
     Returns:
-        A list of static fireworks.
+        The workflow.
     """
-    user_incar_settings = user_incar_settings if user_incar_settings else {}
     common_settings = _get_common_settings(common_settings)
+    vasp_cmd = common_settings["VASP_CMD"]
+    db_file = common_settings["DB_FILE"]
+    user_incar_settings = common_settings["user_incar_settings"]
 
-    # Generate list of perturbed supercells
-    perturbed_supercells, disp_dists = generate_perturbed_structures(
-        supercell,
-        rattle_stds=rattle_stds,
-        n_configs_per_std=n_configs_per_std,
-        min_nn_scale=min_nn_scale
-    )
+    if supercell_matrix is None:
+        supercell_matrix = np.eye(3)
+
+    supercell_matrix = np.asarray(supercell_matrix).tolist()
+
+    if rattle_stds is None:
+        rattle_stds = np.linspace(0.01, 0.1, 5)
+
+    if vasp_input_set is None:
+        vasp_input_set = MPStaticSet(structure)
+    else:
+        # ensure we don't override the user_incar_settings in the input set
+        user_incar_settings.update(vasp_input_set.user_incar_settings)
+    vasp_input_set.user_incar_settings = user_incar_settings
+
+    min_distance = np.min(structure.distance_matrix) * min_nn_scale
+    all_rattle_stds = np.repeat(rattle_stds, n_configs_per_std)
+
+    logger.debug("Using {} supercells / displacement".format(n_configs_per_std))
+    logger.debug("Using {} rattle stds".format(len(rattle_stds)))
+    logger.debug("Rattle stds: {}".format(rattle_stds))
 
     fws = []
-    data = enumerate(zip(perturbed_supercells, disp_dists))
-    for i, (supercell, dist) in data:
-        name = "perturbed supercell, idx: {}, disp_val: {:.3f} static".format(
-            i, dist
-        )
+    for i, rattle_std in all_rattle_stds:
+        name = "{} : i = {}; rattle_std : {:.3f}".format(name, i, rattle_std)
+        transformations = [
+            "SupercellTransformation", "MonteCarloRattleTransformation"
+        ]
+        transformation_params = [
+            {"scaling_matrix": supercell_matrix},
+            {"rattle_std": rattle_std, "min_distance": min_distance}
+        ]
 
-        vis = MPStaticSet(supercell, user_incar_settings=user_incar_settings)
-        static_fw = StaticFW(
-            supercell,
-            vasp_input_set=vis,
-            vasp_cmd=common_settings["VASP_CMD"],
-            db_file=common_settings["DB_FILE"],
+        fw = TransmuterFW(
             name=name,
+            structure=structure,
+            transformations=transformations,
+            transformation_params=transformation_params,
+            vasp_input_set=vasp_input_set,
+            copy_vasp_outputs=True,
+            vasp_cmd=vasp_cmd,
+            db_file=db_file,
         )
-        static_fw.spec["displacement_value"] = dist
-        fws.append(static_fw)
 
-    return fws
+        if pass_forces:
+            pass_dict = {
+                'parent_structure': structure.to_json(),
+                'supercell_matrix': supercell_matrix,
+                'forces': '>>output.ionic_steps.-1.forces',
+                'structure': '>>output.ionic_steps.-1.structure',
+            }
+            pass_task = pass_vasp_result(
+                pass_dict=pass_dict,
+                mod_spec_cmd="_push",
+                mod_spec_key="perturbed_tasks"
+            )
+            fw.tasks.append(pass_task)
+
+        fws.append(fw)
+
+    wfname = "{}: {}".format(structure.composition.reduced_formula, name)
+    return Workflow(fws, name=wfname)
 
 
-def _get_common_settings(common_settings: Optional[Dict]):
-    common_settings = common_settings or {}
-    for k, v in _DEFAULT_SETTINGS.items():
-        if k not in common_settings:
-            common_settings[k] = v
-    return common_settings
-
-
-def _get_n_cells(
-    spacegroup_analyzer: SpacegroupAnalyzer,
-    min_num_equivalent_sites: int,
-    max_num_structure: int,
+def get_num_supercells(
+    supercell_structure: Structure,
+    symprec: float = 0.01,
+    min_num_equivalent_sites: int = 100,
+    max_num_supercells: int = 30,
 ) -> int:
     """
     Get the number of supercells to run per rattle standard deviation.
@@ -314,9 +291,10 @@ def _get_n_cells(
     I.e., 4 * 26 > 100.
 
     Args:
-        spacegroup_analyzer: A spacegroup analyzer object.
+        supercell_structure: The ideal supercell structure.
+        symprec: The symmetry precision for determining if sites are equivalent.
         min_num_equivalent_sites: The minimum number of equivalent sites.
-        max_num_structure: The maximum number of cells.
+        max_num_supercells: The maximum number of cells.
 
     Returns:
         The number of supercells needed for all symmetry inequivalent sites to
@@ -324,9 +302,23 @@ def _get_n_cells(
     """
     # get the equivalent sites in the structure and calculate the smallest
     # site degeneracy
-    equiv_idxs = spacegroup_analyzer.get_symmetry_dataset()["equivalent_atoms"]
+    sga = SpacegroupAnalyzer(supercell_structure, symprec=symprec)
+    equiv_idxs = sga.get_symmetry_dataset()["equivalent_atoms"]
     equiv_counts = np.unique(equiv_idxs, return_counts=True)
     min_count = np.min(equiv_counts)
 
     n_cells = math.ceil(min_num_equivalent_sites / min_count)
-    return min(n_cells, max_num_structure)
+    return min(n_cells, max_num_supercells)
+
+
+def _get_common_settings(common_settings: Optional[Dict]):
+    common_settings = common_settings or {}
+    for k, v in _DEFAULT_SETTINGS.items():
+        if k not in common_settings:
+            common_settings[k] = v
+
+    user_incar_settings = deepcopy(_static_user_incar_settings)
+    user_incar_settings.update(common_settings.get("user_incar_settings", {}))
+    common_settings["user_incar_settings"] = user_incar_settings
+
+    return common_settings
