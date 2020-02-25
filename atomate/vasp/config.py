@@ -10,6 +10,7 @@ ADD_MODIFY_INCAR = False
 STABILITY_CHECK = False
 VASP_CMD = ">>vasp_cmd<<"
 DB_FILE = ">>db_file<<"
+SHENGBTE_CMD = ">>shengbte_cmd<<"
 ADD_WF_METADATA = True
 
 # whether to use only half the kpoint density in
