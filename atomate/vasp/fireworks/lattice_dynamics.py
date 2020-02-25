@@ -2,7 +2,7 @@ from typing import Optional, List, Union
 
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
 from atomate.vasp.firetasks.lattice_dynamics import CollectPerturbedStructures, \
-    FitForceConstants, ForceConstantsToDB
+    RunHiPhive, ForceConstantsToDb
 from atomate.vasp.workflows.base.lattice_dynamics import IMAGINARY_TOL, \
     MAX_N_IMAGINARY, MAX_IMAGINARY_FREQ, FIT_METHOD, MESH_DENSITY
 from fireworks import Firework
@@ -15,8 +15,7 @@ class FitForceConstantsFW(Firework):
 
     def __init__(
         self,
-        wf_uuid,
-        name="fit force constants",
+        name="Fit Force Constants",
         parents: Union[Firework, List[Firework]] = None,
         db_file: str = None,
         cutoffs: Optional[List[List[float]]] = None,
@@ -25,7 +24,6 @@ class FitForceConstantsFW(Firework):
         max_imaginary_freq: float = MAX_IMAGINARY_FREQ,
         fit_method: str = FIT_METHOD,
         mesh_density: float = MESH_DENSITY,
-        additional_fields: dict = None,
         **kwargs
     ):
         """
@@ -33,8 +31,6 @@ class FitForceConstantsFW(Firework):
         using hiPhive.
 
         Args:
-            wf_uuid: Workflow identifier, from which the perturbed supercell
-                static calculations will be compiled.
             parents: Parent(s) of this Firework.
             name: Name of this FW.
             db_file: Path to a db file.
@@ -53,31 +49,21 @@ class FitForceConstantsFW(Firework):
             mesh_density: The density of the q-point mesh used to calculate the
                 phonon density of states. See the docstring for the ``mesh``
                 argument in Phonopy.init_mesh() for more details.
-            additional_fields: Additional fields added to the document, such as
-                user-defined tags, name, ids, etc.
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = "{}-{}".format(wf_uuid, name)
-        additional_fields = additional_fields or {}
-
-        collect_structures = CollectPerturbedStructures(db_file, wf_uuid)
-        fit_constants = FitForceConstants(
+        collect_structures = CollectPerturbedStructures(db_file)
+        fit_constants = RunHiPhive(
             cutoffs=cutoffs,
             imaginary_tol=imaginary_tol,
             max_n_imaginary=max_n_imaginary,
             max_imaginary_freq=max_imaginary_freq,
             fit_method=fit_method
         )
-        fc_to_db = ForceConstantsToDB(
-            db_file=db_file,
-            wf_uuid=wf_uuid,
-            mesh_density=mesh_density,
-            additional_fields=additional_fields
-        )
+        fc_to_db = ForceConstantsToDb(db_file=db_file,mesh_density=mesh_density)
         pass_locs = PassCalcLocs(name=name)
 
         tasks = [collect_structures, fit_constants, fc_to_db, pass_locs]
-        super().__init__(tasks, parents=parents, name=fw_name, **kwargs)
+        super().__init__(tasks, parents=parents, name=name, **kwargs)
 
 
 class LatticeThermalConductivityFW(Firework):
@@ -129,14 +115,14 @@ class LatticeThermalConductivityFW(Firework):
         additional_fields = additional_fields or {}
 
         collect_structures = CollectPerturbedStructures(db_file, wf_uuid)
-        fit_constants = FitForceConstants(
+        fit_constants = RunHiPhive(
             cutoffs=cutoffs,
             imaginary_tol=imaginary_tol,
             max_n_imaginary=max_n_imaginary,
             max_imaginary_freq=max_imaginary_freq,
             fit_method=fit_method
         )
-        fc_to_db = ForceConstantsToDB(
+        fc_to_db = ForceConstantsToDb(
             db_file=db_file,
             wf_uuid=wf_uuid,
             mesh_density=mesh_density,
