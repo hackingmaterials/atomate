@@ -20,6 +20,8 @@ except ImportError:
 __author__ = "Kiran Mathew, Alex Ganose"
 __email__ = "kmathew@lbl.gov, aganose@lbl.gov"
 
+MESH_DENSITY = 100.  # should always be a float
+
 # TODO: @matk86 - unit tests?
 
 
