@@ -28,6 +28,8 @@ __author__ = "Kiran Mathew, Alex Ganose"
 __email__ = "kmathew@lbl.gov, aganose@lbl.gov"
 >>>>>>> 728556b6 (Add methods for generating phonon band structure & DOS)
 
+MESH_DENSITY = 100.  # should always be a float
+
 # TODO: @matk86 - unit tests?
 
 

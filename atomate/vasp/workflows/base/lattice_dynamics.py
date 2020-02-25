@@ -6,7 +6,7 @@ import numpy as np
 from copy import deepcopy
 from typing import List, Dict, Optional, Union
 
-
+from atomate.vasp.firetasks.lattice_dynamics import DEFAULT_TEMPERATURE
 from pymatgen.io.vasp.sets import MPStaticSet, VaspInputSet
 from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -47,14 +47,7 @@ _static_user_incar_settings = {
     "LASPH": True,
 }
 
-# define shared constants
-MIN_NN_SCALE = 0.85
-MAX_IMAGINARY_FREQ = 10  # in THz
-IMAGINARY_TOL = 0.025  # in THz
-MAX_N_IMAGINARY = 3
-DEFAULT_TEMPERATURE = 300
-FIT_METHOD = "least-squares"
-MESH_DENSITY = 100.  # should always be a float
+
 _DEFAULT_SETTINGS = {"VASP_CMD": VASP_CMD, "DB_FILE": DB_FILE}
 _WF_VERSION = 1.0
 
@@ -68,7 +61,7 @@ def get_lattice_dynamics_wf(
     num_supercell_kwargs: Optional[dict] = None,
     perturbed_structure_kwargs: Optional[dict] = None,
     calculate_lattice_thermal_conductivity: bool = False,
-    thermal_conductivity_temperature: Union[float, Dict] = 300,
+    thermal_conductivity_temperature: Union[float, Dict] = DEFAULT_TEMPERATURE,
     shengbte_cmd: str = SHENGBTE_CMD,
     shengbte_fworker: Optional[str] = None,
 ):
@@ -182,7 +175,7 @@ def get_perturbed_structure_wf(
     common_settings: Optional[Dict] = None,
     rattle_stds: Optional[List[float]] = None,
     n_configs_per_std: int = 1,
-    min_nn_scale: float = MIN_NN_SCALE,
+    min_nn_scale: float = 0.85,
     pass_forces: bool = True,
 ) -> Workflow:
     """

@@ -1,76 +1,22 @@
 import numpy as np
 
 from itertools import product
-from typing import Optional, Tuple, List, Dict
+from typing import Tuple, List, Dict
 
 from pymatgen import Structure
-from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.io.phonopy import get_phonopy_structure
 
 from atomate.utils.utils import get_logger
-from atomate.vasp.workflows.base.lattice_dynamics import (
-    MIN_NN_SCALE,
-    FIT_METHOD,
-    MAX_IMAGINARY_FREQ,
-    IMAGINARY_TOL,
-    MAX_N_IMAGINARY,
-)
 
 __author__ = "Rees Chang, Alex Ganose"
 __email__ = "rc564@cornell.edu, aganose@lbl.gov"
 
-
 logger = get_logger(__name__)
 
-
-def generate_perturbed_structures(
-    structure: Structure,
-    rattle_stds: Optional[List[float]] = None,
-    n_configs_per_std: int = 1,
-    min_nn_scale: float = MIN_NN_SCALE,
-) -> Tuple[List[Structure], np.ndarray]:
-    """
-    Generate a list of structures with perturbed atomic sites.
-
-    Rattling atom `i` is carried out as a Monte Carlo move that is accepted with
-    a probability determined from the minimum interatomic distance
-    :math:`d_{ij}`.  If :math:`\\min(d_{ij})` is smaller than :math:`d_{min}`
-    the move is only accepted with a low probability.
-
-    :math:`d_{min}` is calculated as the smallest nearest neighbor distance
-    times ``min_nn_fraction``.
-
-    Args:
-        structure: Structure whose atomic sites are to be perturbed.
-        rattle_stds: List of standard deviations (in normal distribution) to
-            to use when displacing the sites.
-        n_configs_per_std: Number of structures to generate per rattle standard
-            deviation.
-        min_nn_scale: Controls the minimum interatomic distance used for
-            computing the probability for each rattle move.
-
-    Returns:
-        A tuple of the ``(structures, displacements)``. Where ``structures`` is
-        a list of randomly displaced structures, and ``displacements`` is
-        the displacement distance for each structure.
-    """
-    from hiphive.structure_generation import generate_mc_rattled_structures
-
-    if rattle_stds is None:
-        rattle_stds = np.linspace(0.01, 0.1, 5)
-
-    min_distance = np.min(structure.distance_matrix) * min_nn_scale
-    atoms = AseAtomsAdaptor.get_atoms(structure)
-
-    perturbed_structures = []
-    for rattle_std in rattle_stds:
-        seed = np.random.randint(1, 10000000000)
-        structures = generate_mc_rattled_structures(
-            atoms, n_configs_per_std, rattle_std, min_distance, seed=seed
-        )
-        perturbed_structures.extend(structures)
-
-    return perturbed_structures, rattle_stds
+MAX_IMAGINARY_FREQ = 10  # in THz
+IMAGINARY_TOL = 0.025  # in THz
+MAX_N_IMAGINARY = 3
+FIT_METHOD = "least-squares"
 
 
 def get_cutoffs(structure: Structure):
@@ -204,9 +150,7 @@ def fit_force_constants(
     }
     n_cutoffs = len(all_cutoffs)
     for i, cutoffs in enumerate(all_cutoffs):
-        logger.info(
-            "Testing cutoffs {} out of {}: {}".format(i, n_cutoffs, cutoffs)
-        )
+        logger.info("Testing cutoffs {} out of {}: {}".format(i, n_cutoffs, cutoffs))
         sc = get_structure_container(cutoffs, structures)
         opt = Optimizer(sc.get_fit_data(), fit_method)
         opt.train()

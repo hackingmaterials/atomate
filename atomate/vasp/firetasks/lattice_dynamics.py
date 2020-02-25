@@ -13,20 +13,13 @@ from atomate.utils.utils import get_logger, env_chk
 from atomate.vasp.analysis.lattice_dynamics import (
     fit_force_constants,
     get_cutoffs,
-)
+    MAX_N_IMAGINARY, MAX_IMAGINARY_FREQ, IMAGINARY_TOL, FIT_METHOD)
 from atomate.vasp.analysis.phonopy import (
     get_phonon_dos,
     get_phonon_band_structure,
     get_line_mode_phonon_band_structure,
 )
 from atomate.vasp.database import VaspCalcDb
-from atomate.vasp.workflows.base.lattice_dynamics import (
-    MAX_N_IMAGINARY,
-    MAX_IMAGINARY_FREQ,
-    IMAGINARY_TOL,
-    FIT_METHOD,
-    DEFAULT_TEMPERATURE,
-    MESH_DENSITY)
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 import numpy as np
 
@@ -47,6 +40,9 @@ __author__ = "Alex Ganose"
 __email__ = "aganose@lbl.gov"
 
 logger = get_logger(__name__)
+
+# define shared constants
+DEFAULT_TEMPERATURE = 300
 
 
 @explicit_serialize
