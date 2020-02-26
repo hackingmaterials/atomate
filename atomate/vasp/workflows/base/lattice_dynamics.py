@@ -63,25 +63,30 @@ def get_lattice_dynamics_wf(
 
     A summary of the workflow is as follows:
 
-    1. Transform the input structure into a supercell
-    2. Transform the supercell into a list of supercells with all atoms
-       randomly perturbed from their original sites
-    3. Run static VASP calculations on each perturbed supercell to
-       calculate atomic forces.
-    4. Aggregate the forces and conduct the fit the force constants using
+    1. Calculate a supercell transformation matrix that brings the
+       structure as close as cubic as possible, with all lattice lengths
+       greater than 5 nearest neighbor distances.
+    2. Perturb the atomic sites for each supercell using a Monte Carlo
+       rattle procedure. The atoms are perturbed roughly according to a
+       normal deviation. A number of standard deviation perturbation distances
+       are included. Multiple supercells may be generated for each perturbation
+       distance.
+    3. Run static VASP calculations on each perturbed supercell to calculate
+       atomic forces.
+    4. Aggregate the forces and conduct the fit atomic force constants using
        the minimization schemes in hiPhive.
     5. Output the interatomic force constants, and phonon band structure and
        density of states to the database.
-    6. Optional: Solve the lattice thermal conductivity using ShengBTE.
+    6. Optional: Solve the lattice thermal conductivity using ShengBTE and
+       output to the database.
 
     Args:
         structure: Initial structure.
         common_settings: Common settings dict. Supports "VASP_CMD", "DB_FILE",
             and "user_incar_settings" keys.
         vasp_input_set: Vasp input set for perturbed structure calculations.
-        supercell_matrix_kwargs: Options that control the size of the supercell
-            that will be perturbed. Will be passed directly to
-            CubicSupercellTransformation in
+        supercell_matrix_kwargs: Options that control the size of the supercell.
+            Will be passed directly to CubicSupercellTransformation in
             pymatgen.transformations.advanced_transformations. Note, a diagonal
             supercell is required to calculate lattice thermal conductivity.
         num_supercell_kwargs: Options that control the number of supercells
