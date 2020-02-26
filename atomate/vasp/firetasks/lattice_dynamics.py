@@ -17,16 +17,12 @@ from atomate.vasp.analysis.lattice_dynamics import (
     fit_force_constants,
     get_cutoffs,
 )
-from atomate.vasp.analysis.phonopy import (
-    MESH_DENSITY,
-    get_line_mode_phonon_band_structure,
-    get_phonon_band_structure,
-    get_phonon_dos,
-)
 from atomate.vasp.database import VaspCalcDb
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 from pymatgen import Structure
 from pymatgen.io.ase import AseAtomsAdaptor
+from pymatgen.io.phonopy import get_phonon_band_structure_from_fc, \
+    get_line_mode_phonon_band_structure_from_fc, get_phonon_dos_from_fc
 from pymatgen.io.shengbte import Control
 from pymatgen.transformations.standard_transformations import (
     SupercellTransformation,
@@ -45,6 +41,7 @@ logger = get_logger(__name__)
 
 # define shared constants
 DEFAULT_TEMPERATURE = 300
+MESH_DENSITY = 100.0  # should always be a float
 
 
 @explicit_serialize
@@ -227,18 +224,18 @@ class ForceConstantsToDb(FiretaskBase):
         phonopy_fc = force_constants.get_fc_array(order=2)
 
         logger.info("Getting uniform phonon band structure.")
-        uniform_bs = get_phonon_band_structure(
+        uniform_bs = get_phonon_band_structure_from_fc(
             structure, supercell_matrix, phonopy_fc
         )
 
         logger.info("Getting line mode phonon band structure.")
-        lm_bs = get_line_mode_phonon_band_structure(
+        lm_bs = get_line_mode_phonon_band_structure_from_fc(
             structure, supercell_matrix, phonopy_fc
         )
 
         logger.info("Getting phonon density of states.")
         mesh_density = self.get("mesh_density", MESH_DENSITY)
-        dos = get_phonon_dos(
+        dos = get_phonon_dos_from_fc(
             structure, supercell_matrix, phonopy_fc, mesh_density=mesh_density
         )
 
