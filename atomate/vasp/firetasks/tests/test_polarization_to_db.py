@@ -1,6 +1,5 @@
 import bson
 import gzip
-import os
 
 from pathlib import Path
 
@@ -12,10 +11,10 @@ __email__ = "blondegeek@gmail.com"
 
 module_dir = Path(__file__).resolve().parent
 db_dir = module_dir / "../../../common/test_files"
-ref_dir = module_dir / "../..//test_files"
+ref_dir = module_dir / "../../test_files"
 
 
-class TestFerroelectricWorkflow(AtomateTest):
+class TestPolarizationFiretasks(AtomateTest):
     def test_polarizationtodb(self):
         wf_dir = ref_dir / "ferroelectric_wf"
 
@@ -29,7 +28,7 @@ class TestFerroelectricWorkflow(AtomateTest):
             db.insert(c)
 
         new_fw_spec = {
-            "_fw_env": {"db_file": os.path.join(db_dir, "db.json")},
+            "_fw_env": {"db_file": db_dir / "db.json"},
             "tags": ["wfid_1494203093.06934658"],
         }
 
