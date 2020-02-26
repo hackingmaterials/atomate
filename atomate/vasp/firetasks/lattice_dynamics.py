@@ -18,7 +18,7 @@ from atomate.vasp.analysis.phonopy import (
     get_phonon_dos,
     get_phonon_band_structure,
     get_line_mode_phonon_band_structure,
-)
+    MESH_DENSITY)
 from atomate.vasp.database import VaspCalcDb
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 import numpy as np
@@ -175,7 +175,7 @@ class RunHiPhive(FiretaskBase):
             force_constants.write("force_constants.fcs")
 
             atoms = AseAtomsAdaptor.get_atoms(parent_structure)
-            force_constants.write_to_shengBTE("FORCE_CONSTANTS_3ND", atoms)
+            force_constants.write_to_shengBTE("FORCE_CONSTANTS_3RD", atoms)
             force_constants.write_to_phonopy(
                 "FORCE_CONSTANTS_2ND", format="text"
             )
@@ -287,7 +287,7 @@ class ForceConstantsToDb(FiretaskBase):
 class RunShengBTE(FiretaskBase):
     """
     Run ShengBTE to calculate lattice thermal conductivity. Presumes
-    the FORCE_CONSTANTS_3ND and FORCE_CONSTANTS_2ND, and a "structure_data.json"
+    the FORCE_CONSTANTS_3RD and FORCE_CONSTANTS_2ND, and a "structure_data.json"
     file, with the keys "structure", " and "supercell_matrix" is in the current
     directory.
 
@@ -299,12 +299,12 @@ class RunShengBTE(FiretaskBase):
         temperature (float or dict): The temperature to calculate the lattice
             thermal conductivity for. Can be given as a single float, or a
             dictionary with the keys "min", "max", "step".
-        shengbte_control_kwargs (dict): Options to be included in the ShengBTE
-            control file.
+        control_kwargs (dict): Options to be included in the ShengBTE control
+            file.
     """
 
     required_params = ["shengbte_cmd"]
-    optional_params = ["temperature", "shengbte_control_kwargs"]
+    optional_params = ["temperature", "control_kwargs"]
 
     def run_task(self, fw_spec):
         structure_data = loadfn("structure_data.json")
@@ -318,7 +318,7 @@ class RunShengBTE(FiretaskBase):
             "temperature": self.get("temperature", DEFAULT_TEMPERATURE),
             "scell": np.diag(supercell_matrix),
         }
-        control_dict.update(self.get("shengbte_control_kwargs", {}))
+        control_dict.update(self.get("control_kwargs", {}))
         control = Control.from_structure(structure, **control_dict)
         control.to_file()
 
