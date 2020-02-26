@@ -70,7 +70,7 @@ def get_wf_hubbard_u(structure, applied_potential_values=[0.0], c=None, vis=None
     vis_gs = vis.__class__.from_dict(vis_d)
 
     fws = [StaticFW(structure=structure, name="initial static", vasp_input_set=vis_gs,
-                    vasp_cmd=">>std_vasp_cmd<<", db_file=DB_FILE)]
+                    vasp_cmd=VASP_CMD, db_file=DB_FILE)]
 
     uis_ldau = uis_gs.copy()
     uis_ldau.update({"LDAU":True, "LDAUTYPE":3, "LDAUPRINT":2,"ISTART":1})
@@ -98,39 +98,41 @@ def get_wf_hubbard_u(structure, applied_potential_values=[0.0], c=None, vis=None
                 for s in vis_ldau.poscar.site_symbols:
                     val_dict.update({s:0})
             uis_ldau.update({k:val_dict})
-        
+
         # NSCF
         uis_ldau.update({"ICHARG":11})
-        
+
         vis_d = vis_ldau.as_dict()
         vis_d.update({"user_incar_settings": uis_ldau})
         vis_ldau = LinearResponseUSet.from_dict(vis_d)
 
-        fw = LinearResponseUFW(structure, parents=fws[0],
+        fw = LinearResponseUFW(structure=structure, parents=fws[0],
                                name="nscf_u_eq_{}{}".format(sign, abs(round(v,6))),
                                vasp_input_set=vis_ldau,
-                               vasp_cmd=VASP_CMD, db_file=DB_FILE)
+                               vasp_input_set_params = {"user_incar_settings":uis_ldau},
+                               vasp_cmd=VASP_CMD, db_file=DB_FILE) #VASP_CMD
 
         fws.append(fw)
 
         # SCF
         uis_ldau.update({"ICHARG":0})
-        
+
         vis_d = vis_ldau.as_dict()
         vis_d.update({"user_incar_settings": uis_ldau})
         vis_ldau = LinearResponseUSet.from_dict(vis_d)
 
-        fw = LinearResponseUFW(structure, parents=fws[-1],
+        fw = LinearResponseUFW(structure=structure, parents=fws[-1],
                                name="scf_u_eq_{}{}".format(sign, abs(round(v,6))),
                                vasp_input_set=vis_ldau,
+                               vasp_input_set_params = {"user_incar_settings":uis_ldau},
                                vasp_cmd=VASP_CMD, db_file=DB_FILE)
         fws.append(fw)
 
     wf = Workflow(fws)
     wf = add_common_powerups(wf, c)
 
-    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
-        wf = add_wf_metadata(wf, structure)
+    # if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+    #     wf = add_wf_metadata(wf, structure)
 
     wf = add_additional_fields_to_taskdocs(
         wf,
