@@ -1,12 +1,11 @@
+from itertools import product
+from typing import Dict, List, Tuple
+
 import numpy as np
 
-from itertools import product
-from typing import Tuple, List, Dict
-
+from atomate.utils.utils import get_logger
 from pymatgen import Structure
 from pymatgen.io.phonopy import get_phonopy_structure
-
-from atomate.utils.utils import get_logger
 
 __author__ = "Rees Chang, Alex Ganose"
 __email__ = "rc564@cornell.edu, aganose@lbl.gov"
@@ -150,7 +149,9 @@ def fit_force_constants(
     }
     n_cutoffs = len(all_cutoffs)
     for i, cutoffs in enumerate(all_cutoffs):
-        logger.info("Testing cutoffs {} out of {}: {}".format(i, n_cutoffs, cutoffs))
+        logger.info(
+            "Testing cutoffs {} out of {}: {}".format(i, n_cutoffs, cutoffs)
+        )
         sc = get_structure_container(cutoffs, structures)
         opt = Optimizer(sc.get_fit_data(), fit_method)
         opt.train()

@@ -16,7 +16,7 @@ from pymatgen.phonon.bandstructure import (
     PhononBandStructure,
     PhononBandStructureSymmLine,
 )
-from pymatgen.phonon.dos import PhononDos, CompletePhononDos
+from pymatgen.phonon.dos import CompletePhononDos, PhononDos
 from pymatgen.symmetry.bandstructure import HighSymmKpath
 
 try:
@@ -28,7 +28,7 @@ __author__ = "Kiran Mathew, Alex Ganose"
 __email__ = "kmathew@lbl.gov, aganose@lbl.gov"
 >>>>>>> 728556b6 (Add methods for generating phonon band structure & DOS)
 
-MESH_DENSITY = 100.  # should always be a float
+MESH_DENSITY = 100.0  # should always be a float
 
 # TODO: @matk86 - unit tests?
 

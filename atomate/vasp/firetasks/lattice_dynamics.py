@@ -1,28 +1,30 @@
 import os
 import shlex
-
+from datetime import datetime
 from pathlib import Path
 
-from datetime import datetime
-
-from monty.serialization import dumpfn, loadfn
+import numpy as np
 from monty.dev import requires
+from monty.serialization import dumpfn, loadfn
 from pymongo import ReturnDocument
 
-from atomate.utils.utils import get_logger, env_chk
+from atomate.utils.utils import env_chk, get_logger
 from atomate.vasp.analysis.lattice_dynamics import (
+    FIT_METHOD,
+    IMAGINARY_TOL,
+    MAX_IMAGINARY_FREQ,
+    MAX_N_IMAGINARY,
     fit_force_constants,
     get_cutoffs,
-    MAX_N_IMAGINARY, MAX_IMAGINARY_FREQ, IMAGINARY_TOL, FIT_METHOD)
+)
 from atomate.vasp.analysis.phonopy import (
-    get_phonon_dos,
-    get_phonon_band_structure,
+    MESH_DENSITY,
     get_line_mode_phonon_band_structure,
-    MESH_DENSITY)
+    get_phonon_band_structure,
+    get_phonon_dos,
+)
 from atomate.vasp.database import VaspCalcDb
-from fireworks import explicit_serialize, FiretaskBase, FWAction
-import numpy as np
-
+from fireworks import FiretaskBase, FWAction, explicit_serialize
 from pymatgen import Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.io.shengbte import Control
@@ -271,8 +273,9 @@ class ForceConstantsToDb(FiretaskBase):
         # Get an id for the force constants
         mmdb.collection = mmdb.db["lattice_dynamics"]
         fc_id = mmdb.db.counter.find_one_and_update(
-            {"_id": "taskid"}, {"$inc": {"c": 1}},
-            return_document=ReturnDocument.AFTER
+            {"_id": "taskid"},
+            {"$inc": {"c": 1}},
+            return_document=ReturnDocument.AFTER,
         )["c"]
         metadata = {"fc_id": fc_id, "fc_dir": os.getcwd()}
         data.update(metadata)

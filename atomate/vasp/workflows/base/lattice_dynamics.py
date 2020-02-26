@@ -1,28 +1,27 @@
-import warnings
 import math
+import warnings
+from copy import deepcopy
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 
-from copy import deepcopy
-from typing import List, Dict, Optional, Union
-
+from atomate.utils.utils import get_logger
+from atomate.vasp.config import DB_FILE, SHENGBTE_CMD, VASP_CMD
+from atomate.vasp.firetasks import pass_vasp_result
 from atomate.vasp.firetasks.lattice_dynamics import DEFAULT_TEMPERATURE
-from pymatgen.io.vasp.sets import MPStaticSet, VaspInputSet
+from atomate.vasp.fireworks.core import TransmuterFW
+from atomate.vasp.fireworks.lattice_dynamics import (
+    FitForceConstantsFW,
+    LatticeThermalConductivityFW,
+)
+from atomate.vasp.powerups import add_additional_fields_to_taskdocs
+from fireworks import Workflow
 from pymatgen.core.structure import Structure
+from pymatgen.io.vasp.sets import MPStaticSet, VaspInputSet
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.transformations.advanced_transformations import (
     CubicSupercellTransformation,
 )
-
-from fireworks import Workflow
-
-from atomate.utils.utils import get_logger
-from atomate.vasp.config import VASP_CMD, DB_FILE, SHENGBTE_CMD
-from atomate.vasp.fireworks.core import TransmuterFW
-from atomate.vasp.powerups import add_additional_fields_to_taskdocs
-from atomate.vasp.firetasks import pass_vasp_result
-from atomate.vasp.fireworks.lattice_dynamics import FitForceConstantsFW, \
-    LatticeThermalConductivityFW
 
 __author__ = "Rees Chang, Alex Ganose"
 __email__ = "rc564@cornell.edu, aganose@lbl.gov"
@@ -146,7 +145,7 @@ def get_lattice_dynamics_wf(
             parents=wf.fws[-1],
             db_file=db_file,
             shengbte_cmd=shengbte_cmd,
-            temperature=thermal_conductivity_temperature
+            temperature=thermal_conductivity_temperature,
         )
         if shengbte_fworker:
             fw_lattice_conductivity.spec["_fworker"] = shengbte_fworker
@@ -230,11 +229,12 @@ def get_perturbed_structure_wf(
     for i, rattle_std in all_rattle_stds:
         name = "{} : i = {}; rattle_std : {:.3f}".format(name, i, rattle_std)
         transformations = [
-            "SupercellTransformation", "MonteCarloRattleTransformation"
+            "SupercellTransformation",
+            "MonteCarloRattleTransformation",
         ]
         transformation_params = [
             {"scaling_matrix": supercell_matrix},
-            {"rattle_std": rattle_std, "min_distance": min_distance}
+            {"rattle_std": rattle_std, "min_distance": min_distance},
         ]
 
         fw = TransmuterFW(
@@ -250,15 +250,15 @@ def get_perturbed_structure_wf(
 
         if pass_forces:
             pass_dict = {
-                'parent_structure': structure.to_json(),
-                'supercell_matrix': supercell_matrix,
-                'forces': '>>output.ionic_steps.-1.forces',
-                'structure': '>>output.ionic_steps.-1.structure',
+                "parent_structure": structure.to_json(),
+                "supercell_matrix": supercell_matrix,
+                "forces": ">>output.ionic_steps.-1.forces",
+                "structure": ">>output.ionic_steps.-1.structure",
             }
             pass_task = pass_vasp_result(
                 pass_dict=pass_dict,
                 mod_spec_cmd="_push",
-                mod_spec_key="perturbed_tasks"
+                mod_spec_key="perturbed_tasks",
             )
             fw.tasks.append(pass_task)
 
