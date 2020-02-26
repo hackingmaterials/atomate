@@ -3,7 +3,6 @@ import os
 =======
 import bson
 import gzip
-import os
 
 from pathlib import Path
 >>>>>>> 45fcce62 (Tidy polarization tests)
@@ -28,11 +27,15 @@ VASP_CMD = None
 =======
 module_dir = Path(__file__).resolve().parent
 db_dir = module_dir / "../../../common/test_files"
+<<<<<<< HEAD
 ref_dir = module_dir / "../..//test_files"
 >>>>>>> 45fcce62 (Tidy polarization tests)
+=======
+ref_dir = module_dir / "../../test_files"
+>>>>>>> fcdf2e63 (Finish tidying polarization tests)
 
 
-class TestFerroelectricWorkflow(AtomateTest):
+class TestPolarizationFiretasks(AtomateTest):
     def test_polarizationtodb(self):
 <<<<<<< HEAD
         import gzip
@@ -56,7 +59,7 @@ class TestFerroelectricWorkflow(AtomateTest):
             task_coll.insert_one(c)
 
         new_fw_spec = {
-            "_fw_env": {"db_file": os.path.join(db_dir, "db.json")},
+            "_fw_env": {"db_file": db_dir / "db.json"},
             "tags": ["wfid_1494203093.06934658"],
         }
 
