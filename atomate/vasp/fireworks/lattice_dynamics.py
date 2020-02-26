@@ -11,7 +11,6 @@ from atomate.vasp.analysis.lattice_dynamics import (
     MAX_IMAGINARY_FREQ,
     MAX_N_IMAGINARY,
 )
-from atomate.vasp.analysis.phonopy import MESH_DENSITY
 from atomate.vasp.config import SHENGBTE_CMD
 from atomate.vasp.firetasks.lattice_dynamics import (
     DEFAULT_TEMPERATURE,
@@ -20,7 +19,7 @@ from atomate.vasp.firetasks.lattice_dynamics import (
     RunHiPhive,
     RunShengBTE,
     ShengBTEToDb,
-)
+    MESH_DENSITY)
 from fireworks import Firework
 
 __author__ = "Alex Ganose"
@@ -67,7 +66,7 @@ class FitForceConstantsFW(Firework):
         mesh_density: float = MESH_DENSITY,
         **kwargs
     ):
-        collect_structures = CollectPerturbedStructures(db_file)
+        collect_structures = CollectPerturbedStructures()
         fit_constants = RunHiPhive(
             cutoffs=cutoffs,
             imaginary_tol=imaginary_tol,
@@ -75,7 +74,9 @@ class FitForceConstantsFW(Firework):
             max_imaginary_freq=max_imaginary_freq,
             fit_method=fit_method,
         )
-        to_db = ForceConstantsToDb(db_file=db_file, mesh_density=mesh_density)
+        to_db = ForceConstantsToDb(
+            db_file=db_file, mesh_density=mesh_density, additional_fields={}
+        )
         pass_locs = PassCalcLocs(name=name)
 
         tasks = [collect_structures, fit_constants, to_db, pass_locs]
@@ -88,7 +89,6 @@ class LatticeThermalConductivityFW(Firework):
 
     Args:
         name: Name of this FW.
-        parents: Parent(s) of this Firework.
         prev_calc_dir: Path to a directory containing the force constant
             information. Will override ``parents`` when collecting the force
             constants to run ShengBTE.
@@ -106,7 +106,6 @@ class LatticeThermalConductivityFW(Firework):
     def __init__(
         self,
         name="Lattice Thermal Conductivity",
-        parents: Optional[Union[Firework, List[Firework]]] = None,
         prev_calc_dir: Optional[str] = None,
         db_file: str = None,
         shengbte_cmd: str = SHENGBTE_CMD,
@@ -123,17 +122,15 @@ class LatticeThermalConductivityFW(Firework):
 
         if prev_calc_dir:
             copy_files = CopyFiles(from_dir=prev_calc_dir, files_to_copy=files)
-        elif parents:
-            copy_files = CopyFilesFromCalcLoc(calc_loc=True, filenames=files)
         else:
-            raise ValueError("Must specify parents or prev_calc_dir.")
+            copy_files = CopyFilesFromCalcLoc(calc_loc=True, filenames=files)
 
         run_shengbte = RunShengBTE(
             shengbte_cmd=shengbte_cmd,
             temperature=temperature,
             control_kwargs=shengbte_control_kwargs,
         )
-        shengbte_to_db = ShengBTEToDb(db_file=db_file)
+        shengbte_to_db = ShengBTEToDb(db_file=db_file, additional_fields={})
 
         tasks = [copy_files, run_shengbte, shengbte_to_db]
-        super().__init__(tasks, parents=parents, name=name, **kwargs)
+        super().__init__(tasks, name=name, **kwargs)
