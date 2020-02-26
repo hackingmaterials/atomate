@@ -23,32 +23,32 @@ from pymatgen.transformations.advanced_transformations import (
     CubicSupercellTransformation,
 )
 
-__author__ = "Rees Chang, Alex Ganose"
-__email__ = "rc564@cornell.edu, aganose@lbl.gov"
-__date__ = "July 2019"
+__author__ = "Alex Ganose, Rees Chang"
+__email__ = "aganose@lbl.gov, rc564@cornell.edu"
+__date__ = "February 2020"
 
 logger = get_logger(__name__)
 
 _static_user_incar_settings = {
-    "ADDGRID": True,  # Fast Fourier Transform grid
+    "ADDGRID": True,
     "LCHARG": False,
     "ENCUT": 700,
-    "EDIFF": 1e-8,  # may need to tune this
+    "ISMEAR": 0,
+    "EDIFF": 1e-8,
     "PREC": "Accurate",
     "LAECHG": False,
     "LREAL": False,
     "LASPH": True,
 }
-
-
 _DEFAULT_SETTINGS = {"VASP_CMD": VASP_CMD, "DB_FILE": DB_FILE}
-_WF_VERSION = 1.0
+_WF_VERSION = 0.1
 
 
 def get_lattice_dynamics_wf(
     structure: Structure,
     common_settings: Dict = None,
     vasp_input_set: Optional[VaspInputSet] = None,
+    copy_vasp_outputs: bool = False,
     supercell_matrix_kwargs: Optional[dict] = None,
     num_supercell_kwargs: Optional[dict] = None,
     perturbed_structure_kwargs: Optional[dict] = None,
@@ -85,6 +85,7 @@ def get_lattice_dynamics_wf(
         common_settings: Common settings dict. Supports "VASP_CMD", "DB_FILE",
             and "user_incar_settings" keys.
         vasp_input_set: Vasp input set for perturbed structure calculations.
+        copy_vasp_outputs: Whether or not to copy previous vasp outputs.
         supercell_matrix_kwargs: Options that control the size of the supercell.
             Will be passed directly to CubicSupercellTransformation in
             pymatgen.transformations.advanced_transformations. Note, a diagonal
@@ -125,29 +126,28 @@ def get_lattice_dynamics_wf(
     supercell = st.apply_transformation(structure)
     supercell_matrix = st.transformation_matrix
 
-    if "n_supercells" not in perturbed_structure_kwargs:
+    if "n_configs_per_std" not in perturbed_structure_kwargs:
         n_supercells = get_num_supercells(supercell, **num_supercell_kwargs)
-        perturbed_structure_kwargs["n_supercells"] = n_supercells
+        perturbed_structure_kwargs["n_configs_per_std"] = n_supercells
 
     wf = get_perturbed_structure_wf(
         structure,
         supercell_matrix=supercell_matrix,
-        name="ld perturbed structure",
         vasp_input_set=vasp_input_set,
         common_settings=common_settings,
+        copy_vasp_outputs=copy_vasp_outputs,
         pass_forces=True,
         **perturbed_structure_kwargs,
     )
 
     allow_fizzled = {"_allow_fizzled_parents": True}
     fw_fit_force_constant = FitForceConstantsFW(
-        parents=wf.fws[wf.leaf_fw_ids], db_file=db_file, spec=allow_fizzled
+        db_file=db_file, spec=allow_fizzled
     )
-    wf.fws.append(fw_fit_force_constant)
+    wf.append_wf(Workflow.from_Firework(fw_fit_force_constant), wf.leaf_fw_ids)
 
     if calculate_lattice_thermal_conductivity:
         fw_lattice_conductivity = LatticeThermalConductivityFW(
-            parents=wf.fws[-1],
             db_file=db_file,
             shengbte_cmd=shengbte_cmd,
             temperature=thermal_conductivity_temperature,
@@ -155,7 +155,9 @@ def get_lattice_dynamics_wf(
         if shengbte_fworker:
             fw_lattice_conductivity.spec["_fworker"] = shengbte_fworker
 
-        wf.fws.append(fw_lattice_conductivity)
+        wf.append_wf(
+            Workflow.from_Firework(fw_lattice_conductivity), [wf.fws[-1].fw_id]
+        )
 
     formula = structure.composition.reduced_formula
     wf.name = "{} - lattice dynamics".format(formula)
@@ -176,6 +178,7 @@ def get_perturbed_structure_wf(
     name: str = "perturbed structure",
     vasp_input_set: Optional[VaspInputSet] = None,
     common_settings: Optional[Dict] = None,
+    copy_vasp_outputs: bool = False,
     rattle_stds: Optional[List[float]] = None,
     n_configs_per_std: int = 1,
     min_nn_scale: float = 0.85,
@@ -191,6 +194,7 @@ def get_perturbed_structure_wf(
         vasp_input_set: Vasp input set for perturbed structure calculations.
         common_settings: Common settings dict. Supports "VASP_CMD", "DB_FILE",
             and "user_incar_settings" keys.
+        copy_vasp_outputs: Whether or not to copy previous vasp outputs.
         rattle_stds: List of standard deviations (in normal distribution) to
             to use when displacing the sites.
         n_configs_per_std: Number of structures to generate per rattle standard
@@ -206,7 +210,9 @@ def get_perturbed_structure_wf(
     common_settings = _get_common_settings(common_settings)
     vasp_cmd = common_settings["VASP_CMD"]
     db_file = common_settings["DB_FILE"]
-    user_incar_settings = common_settings["user_incar_settings"]
+    override_vasp_params = {
+        "user_incar_settings": common_settings["user_incar_settings"]
+    }
 
     if supercell_matrix is None:
         supercell_matrix = np.eye(3)
@@ -218,21 +224,24 @@ def get_perturbed_structure_wf(
 
     if vasp_input_set is None:
         vasp_input_set = MPStaticSet(structure)
-    else:
-        # ensure we don't override the user_incar_settings in the input set
-        user_incar_settings.update(vasp_input_set.user_incar_settings)
-    vasp_input_set.user_incar_settings = user_incar_settings
 
-    min_distance = np.min(structure.distance_matrix) * min_nn_scale
+    # find the smallest nearest neighbor distance taking into account PBC
+    min_distance = np.min(
+        [d.nn_distance for d in structure.get_all_neighbors(10)[0]]
+    )
+    min_distance *= min_nn_scale
     all_rattle_stds = np.repeat(rattle_stds, n_configs_per_std)
 
-    logger.debug("Using {} supercells / displacement".format(n_configs_per_std))
+    logger.debug("Using supercell_matrix of: {}".format(supercell_matrix))
+    logger.debug(
+        "Using {} supercells per displacement".format(n_configs_per_std)
+    )
     logger.debug("Using {} rattle stds".format(len(rattle_stds)))
     logger.debug("Rattle stds: {}".format(rattle_stds))
 
     fws = []
-    for i, rattle_std in all_rattle_stds:
-        name = "{} : i = {}; rattle_std : {:.3f}".format(name, i, rattle_std)
+    for i, rattle_std in enumerate(all_rattle_stds):
+        fw_name = "{}: i={}; rattle_std={:.3f}".format(name, i, rattle_std)
         transformations = [
             "SupercellTransformation",
             "MonteCarloRattleTransformation",
@@ -243,12 +252,13 @@ def get_perturbed_structure_wf(
         ]
 
         fw = TransmuterFW(
-            name=name,
+            name=fw_name,
             structure=structure,
             transformations=transformations,
             transformation_params=transformation_params,
             vasp_input_set=vasp_input_set,
-            copy_vasp_outputs=True,
+            override_default_vasp_params=override_vasp_params,
+            copy_vasp_outputs=copy_vasp_outputs,
             vasp_cmd=vasp_cmd,
             db_file=db_file,
         )
@@ -301,11 +311,11 @@ def get_num_supercells(
     # site degeneracy
     sga = SpacegroupAnalyzer(supercell_structure, symprec=symprec)
     equiv_idxs = sga.get_symmetry_dataset()["equivalent_atoms"]
-    equiv_counts = np.unique(equiv_idxs, return_counts=True)
+    _, equiv_counts = np.unique(equiv_idxs, return_counts=True)
     min_count = np.min(equiv_counts)
 
     n_cells = math.ceil(min_num_equivalent_sites / min_count)
-    return min(n_cells, max_num_supercells)
+    return min([n_cells, max_num_supercells])
 
 
 def _get_common_settings(common_settings: Optional[Dict]):
