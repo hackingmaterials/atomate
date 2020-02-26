@@ -14,7 +14,6 @@ from pymatgen.transformations.advanced_transformations import (
     CubicSupercellTransformation,
 )
 
-from monty.dev import requires
 from fireworks import Workflow
 
 from atomate.utils.utils import get_logger
@@ -24,11 +23,6 @@ from atomate.vasp.powerups import add_additional_fields_to_taskdocs
 from atomate.vasp.firetasks import pass_vasp_result
 from atomate.vasp.fireworks.lattice_dynamics import FitForceConstantsFW, \
     LatticeThermalConductivityFW
-
-try:
-    import hiphive
-except ImportError:
-    hiphive = False
 
 __author__ = "Rees Chang, Alex Ganose"
 __email__ = "rc564@cornell.edu, aganose@lbl.gov"
@@ -52,7 +46,6 @@ _DEFAULT_SETTINGS = {"VASP_CMD": VASP_CMD, "DB_FILE": DB_FILE}
 _WF_VERSION = 1.0
 
 
-@requires(hiphive, "hiphive is required for lattice dynamics workflow")
 def get_lattice_dynamics_wf(
     structure: Structure,
     common_settings: Dict = None,
@@ -150,14 +143,20 @@ def get_lattice_dynamics_wf(
 
     if calculate_lattice_thermal_conductivity:
         fw_lattice_conductivity = LatticeThermalConductivityFW(
-            parents=wf.fws[-1], db_file=db_file
+            parents=wf.fws[-1],
+            db_file=db_file,
+            shengbte_cmd=shengbte_cmd,
+            temperature=thermal_conductivity_temperature
         )
+        if shengbte_fworker:
+            fw_lattice_conductivity.spec["_fworker"] = shengbte_fworker
+
         wf.fws.append(fw_lattice_conductivity)
 
     formula = structure.composition.reduced_formula
     wf.name = "{} - lattice dynamics".format(formula)
 
-    # Add workflow meta data to all relevant *ToDb tasks.
+    # Add workflow metadata to all relevant *ToDb tasks.
     wf_meta = {"wf_name": "LatticeDynamicsWF", "wf_version": _WF_VERSION}
     for task_name in ["VaspToDb", "ShengBTEToDb", "ForceConstantsToDb"]:
         wf = add_additional_fields_to_taskdocs(
