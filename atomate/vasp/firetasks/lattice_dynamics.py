@@ -22,7 +22,7 @@ from fireworks import FiretaskBase, FWAction, explicit_serialize
 from pymatgen import Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.io.phonopy import get_phonon_band_structure_from_fc, \
-    get_line_mode_phonon_band_structure_from_fc, get_phonon_dos_from_fc
+    get_phonon_dos_from_fc, get_phonon_band_structure_symm_line_from_fc
 from pymatgen.io.shengbte import Control
 from pymatgen.transformations.standard_transformations import (
     SupercellTransformation,
@@ -229,7 +229,7 @@ class ForceConstantsToDb(FiretaskBase):
         )
 
         logger.info("Getting line mode phonon band structure.")
-        lm_bs = get_line_mode_phonon_band_structure_from_fc(
+        lm_bs = get_phonon_band_structure_symm_line_from_fc(
             structure, supercell_matrix, phonopy_fc
         )
 
