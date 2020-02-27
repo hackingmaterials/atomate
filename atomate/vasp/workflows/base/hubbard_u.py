@@ -109,8 +109,6 @@ def get_wf_hubbard_u(structure, applied_potential_values=[0.0], ground_state_dir
         vis_d.update({"user_incar_settings": uis_ldau})
         vis_ldau = LinearResponseUSet.from_dict(vis_d)
 
-        # print(vis_ldau.incar)
-
         if ground_state_dir:
             parents = []
         else:
@@ -133,17 +131,20 @@ def get_wf_hubbard_u(structure, applied_potential_values=[0.0], ground_state_dir
         vis_d.update({"user_incar_settings": uis_ldau})
         vis_ldau = LinearResponseUSet.from_dict(vis_d)
 
-        # print(vis_ldau.incar)
-
         # NOTE: More efficient to reuse WAVECAR or remove dependency of SCF on NSCF?
-        
-        parents=fws[-1]
+
+        if ground_state_dir:
+            parents = []
+        else:
+            parents=fws[0]
+            # parents=fws[-1]
         
         fw = LinearResponseUFW(structure=structure, parents=parents,
                                name="scf_u_eq_{}{}".format(sign, abs(round(v,6))),
                                vasp_input_set=vis_ldau,
                                vasp_input_set_params = {"user_incar_settings":uis_ldau},
                                additional_files=["WAVECAR"],
+                               prev_calc_dir=ground_state_dir,
                                vasp_cmd=VASP_CMD, db_file=DB_FILE)
         fws.append(fw)
 
