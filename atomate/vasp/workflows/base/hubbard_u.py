@@ -106,11 +106,14 @@ def get_wf_hubbard_u(structure, applied_potential_values=[0.0], c=None, vis=None
         vis_d.update({"user_incar_settings": uis_ldau})
         vis_ldau = LinearResponseUSet.from_dict(vis_d)
 
+        # print(vis_ldau.incar)
+
         fw = LinearResponseUFW(structure=structure, parents=fws[0],
                                name="nscf_u_eq_{}{}".format(sign, abs(round(v,6))),
                                vasp_input_set=vis_ldau,
                                vasp_input_set_params = {"user_incar_settings":uis_ldau},
-                               vasp_cmd=VASP_CMD, db_file=DB_FILE) #VASP_CMD
+                               additional_files=["WAVECAR","CHGCAR"],
+                               vasp_cmd=VASP_CMD, db_file=DB_FILE)
 
         fws.append(fw)
 
@@ -121,10 +124,15 @@ def get_wf_hubbard_u(structure, applied_potential_values=[0.0], c=None, vis=None
         vis_d.update({"user_incar_settings": uis_ldau})
         vis_ldau = LinearResponseUSet.from_dict(vis_d)
 
+        # print(vis_ldau.incar)
+
+        # NOTE: More efficient to reuse WAVECAR or remove dependency of SCF on NSCF?
+        
         fw = LinearResponseUFW(structure=structure, parents=fws[-1],
                                name="scf_u_eq_{}{}".format(sign, abs(round(v,6))),
                                vasp_input_set=vis_ldau,
                                vasp_input_set_params = {"user_incar_settings":uis_ldau},
+                               additional_files=["WAVECAR"],
                                vasp_cmd=VASP_CMD, db_file=DB_FILE)
         fws.append(fw)
 

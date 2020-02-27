@@ -146,8 +146,11 @@ class StaticFW(Firework):
         super(StaticFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
 
 class LinearResponseUFW(Firework):
-    def __init__(self, structure=None, name="linresponse_U", vasp_input_set=None, vasp_input_set_params=None,
-                 vasp_cmd=VASP_CMD, prev_calc_loc=True, prev_calc_dir=None, db_file=DB_FILE, vasptodb_kwargs=None, parents=None,
+    def __init__(self, structure=None, name="linresponse_U",
+                 vasp_input_set=None, vasp_input_set_params=None,
+                 vasp_cmd=VASP_CMD, prev_calc_loc=True, prev_calc_dir=None,
+                 db_file=DB_FILE, vasptodb_kwargs=None, parents=None,
+                 additional_files=None,
                  **kwargs):
         """
         Standard static calculation Firework - either from a previous location or from a structure.
@@ -185,8 +188,8 @@ class LinearResponseUFW(Firework):
             t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
         elif parents:
             if prev_calc_loc:
-                t.append(CopyVaspOutputs(calc_loc=prev_calc_loc,                           # add additional_files?
-                                         contcar_to_poscar=True))                          # should be true?
+                t.append(CopyVaspOutputs(calc_loc=prev_calc_loc, additional_files=additional_files,     # add additional_files?
+                                         contcar_to_poscar=False))                                      # should be true?
             t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
         elif structure:
             vasp_input_set = vasp_input_set or LinearResponseUSet(structure, **vasp_input_set_params)
