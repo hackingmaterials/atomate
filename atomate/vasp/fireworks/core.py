@@ -184,20 +184,29 @@ class LinearResponseUFW(Firework):
         fw_name = "{}-{}".format(structure.composition.reduced_formula if structure else "unknown", name)
 
         if prev_calc_dir:
-            t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, contcar_to_poscar=True))
-            t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
+            t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, additional_files=additional_files,
+                                     contcar_to_poscar=False))
+            # t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
         elif parents:
             if prev_calc_loc:
-                t.append(CopyVaspOutputs(calc_loc=prev_calc_loc, additional_files=additional_files,     # add additional_files?
-                                         contcar_to_poscar=False))                                      # should be true?
-            t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
-        elif structure:
+                t.append(CopyVaspOutputs(calc_loc=prev_calc_loc, additional_files=additional_files,
+                                         contcar_to_poscar=False)) # should be true?
+
+            # t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
+        # elif structure:
+        #     vasp_input_set = vasp_input_set or LinearResponseUSet(structure, **vasp_input_set_params)
+        #     t.append(WriteVaspFromIOSet(structure=structure,
+        #                                 vasp_input_set=vasp_input_set))
+        # else:
+        #     raise ValueError("Must specify structure or previous calculation")
+
+        if structure:
             vasp_input_set = vasp_input_set or LinearResponseUSet(structure, **vasp_input_set_params)
             t.append(WriteVaspFromIOSet(structure=structure,
                                         vasp_input_set=vasp_input_set))
         else:
-            raise ValueError("Must specify structure or previous calculation")
-
+            raise ValueError("Must specify structure")
+        
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
         t.append(

@@ -35,7 +35,7 @@ __hubbard_u_wf_version__ = 0.0
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
-def get_wf_hubbard_u(structure, applied_potential_values=[0.0], c=None, vis=None):
+def get_wf_hubbard_u(structure, applied_potential_values=[0.0], ground_state_dir=None, c=None, vis=None):
     """
     Args:
         structure: 
@@ -69,7 +69,10 @@ def get_wf_hubbard_u(structure, applied_potential_values=[0.0], c=None, vis=None
     vis_d.update({"user_incar_settings": uis_gs})
     vis_gs = vis.__class__.from_dict(vis_d)
 
-    fws = [StaticFW(structure=structure, name="initial static", vasp_input_set=vis_gs,
+    if ground_state_dir:
+        fws = []
+    else:
+        fws = [StaticFW(structure=structure, name="initial static", vasp_input_set=vis_gs,
                     vasp_cmd=VASP_CMD, db_file=DB_FILE)]
 
     uis_ldau = uis_gs.copy()
@@ -108,11 +111,17 @@ def get_wf_hubbard_u(structure, applied_potential_values=[0.0], c=None, vis=None
 
         # print(vis_ldau.incar)
 
-        fw = LinearResponseUFW(structure=structure, parents=fws[0],
+        if ground_state_dir:
+            parents = []
+        else:
+            parents=fws[0]
+            
+        fw = LinearResponseUFW(structure=structure, parents=parents,
                                name="nscf_u_eq_{}{}".format(sign, abs(round(v,6))),
                                vasp_input_set=vis_ldau,
                                vasp_input_set_params = {"user_incar_settings":uis_ldau},
                                additional_files=["WAVECAR","CHGCAR"],
+                               prev_calc_dir=ground_state_dir,
                                vasp_cmd=VASP_CMD, db_file=DB_FILE)
 
         fws.append(fw)
@@ -128,7 +137,9 @@ def get_wf_hubbard_u(structure, applied_potential_values=[0.0], c=None, vis=None
 
         # NOTE: More efficient to reuse WAVECAR or remove dependency of SCF on NSCF?
         
-        fw = LinearResponseUFW(structure=structure, parents=fws[-1],
+        parents=fws[-1]
+        
+        fw = LinearResponseUFW(structure=structure, parents=parents,
                                name="scf_u_eq_{}{}".format(sign, abs(round(v,6))),
                                vasp_input_set=vis_ldau,
                                vasp_input_set_params = {"user_incar_settings":uis_ldau},
