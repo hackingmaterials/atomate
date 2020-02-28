@@ -18,10 +18,12 @@ db_dir = module_dir / "../../../common/test_files"
 ref_dir = module_dir / "../../test_files"
 wf_dir = ref_dir / "lattice_dynamics_wf"
 
-test_fworker = FWorker(env={"db_file": db_dir / "db.json"})
+test_fworker = FWorker(
+    env={"db_file": db_dir / "db.json", "shengbte_cmd": "ShengBTE"}
+)
 
 
-class TestRamanWorkflow(AtomateTest):
+class TestLatticeThermalConductivityWorkflow(AtomateTest):
 
     def setUp(self, lpad=True):
         super().setUp(lpad=lpad)
@@ -32,6 +34,14 @@ class TestRamanWorkflow(AtomateTest):
             self.struct_si,
             perturbed_structure_kwargs={"rattle_stds": [0.01]},
             calculate_lattice_thermal_conductivity=True
+        )
+
+        # change the cutoffs for fit CSLD
+        self.wf.fws[-2].tasks[1].update({"cutoffs": [[5., 3., 3.]]})
+
+        # change shengbte mesh density
+        self.wf.fws[-1].tasks[1].update(
+            {"control_kwargs": {"reciprocal_density": 500}}
         )
 
     def test_wf(self):
@@ -51,7 +61,7 @@ class TestRamanWorkflow(AtomateTest):
         self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
 
     def check_run(self, d, mode):
-        pass
+        return 1
         # if mode not in ["structure optimization", "static dielectric",
         #                 "raman_0_0.005", "raman analysis"]:
         #     raise ValueError("Invalid mode!")
@@ -80,7 +90,6 @@ class TestRamanWorkflow(AtomateTest):
         #     np.testing.assert_allclose(epsilon, d["output"]["epsilon_static"], rtol=1e-5)
 
 
-
 def get_simulated_wf(wf):
     ref_dirs = {"perturbed structure: i=0; rattle_std=0.010": wf_dir / "0"}
 
@@ -91,3 +100,4 @@ def get_simulated_wf(wf):
     )
 
     return wf
+
