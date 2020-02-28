@@ -151,6 +151,7 @@ class LinearResponseUFW(Firework):
                  vasp_cmd=VASP_CMD, prev_calc_loc=True, prev_calc_dir=None,
                  db_file=DB_FILE, vasptodb_kwargs=None, parents=None,
                  additional_files=None,
+                 is_nscf=False,
                  **kwargs):
         """
         Standard static calculation Firework - either from a previous location or from a structure.
@@ -186,19 +187,12 @@ class LinearResponseUFW(Firework):
         if prev_calc_dir:
             t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, additional_files=additional_files,
                                      contcar_to_poscar=False))
-            # t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
         elif parents:
             if prev_calc_loc:
                 t.append(CopyVaspOutputs(calc_loc=prev_calc_loc, additional_files=additional_files,
-                                         contcar_to_poscar=False)) # should be true?
-
-            # t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
-        # elif structure:
-        #     vasp_input_set = vasp_input_set or LinearResponseUSet(structure, **vasp_input_set_params)
-        #     t.append(WriteVaspFromIOSet(structure=structure,
-        #                                 vasp_input_set=vasp_input_set))
-        # else:
-        #     raise ValueError("Must specify structure or previous calculation")
+                                         contcar_to_poscar=False))
+        else:
+            raise ValueError("Must specify parent or previous calculation")
 
         if structure:
             vasp_input_set = vasp_input_set or LinearResponseUSet(structure, **vasp_input_set_params)

@@ -31,11 +31,11 @@ __email__ = ""
 __status__ = "Production"
 __date__ = "February 2020"
 
-__hubbard_u_wf_version__ = 0.0
+__linear_response_u_wf_version__ = 0.0
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
-def get_wf_hubbard_u(structure, applied_potential_values=[0.0], ground_state_dir=None, c=None, vis=None):
+def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_state_dir=None, c=None, vis=None):
     """
     Args:
         structure: 
@@ -159,8 +159,8 @@ def get_wf_hubbard_u(structure, applied_potential_values=[0.0], ground_state_dir
         {
             "wf_meta": {
                 "wf_uuid": uuid,
-                "wf_name": "hubbard_u",
-                "wf_version": __hubbard_u_wf_version__,
+                "wf_name": "linear_response_u",
+                "wf_version": __linear_response_u_wf_version__,
             }
         },
     )
