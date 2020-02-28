@@ -1,4 +1,6 @@
+import json
 import os
+import subprocess
 import shlex
 from datetime import datetime
 from pathlib import Path
@@ -19,7 +21,6 @@ from atomate.vasp.analysis.lattice_dynamics import (
 )
 from atomate.vasp.database import VaspCalcDb
 from fireworks import FiretaskBase, FWAction, explicit_serialize
-from pymatgen import Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.io.phonopy import get_phonon_band_structure_from_fc, \
     get_phonon_dos_from_fc, get_phonon_band_structure_symm_line_from_fc
@@ -67,10 +68,10 @@ class CollectPerturbedStructures(FiretaskBase):
 
         logger.info("Found {} perturbed structures".format(len(results)))
 
-        structure = Structure.from_dict(results[0]["parent_structure"])
+        structure = results[0]["parent_structure"]
         supercell_matrix = results[0]["supercell_matrix"]
 
-        structures = [Structure.from_dict(r["structure"]) for r in results]
+        structures = [r["structure"] for r in results]
         forces = [np.asarray(r["forces"]) for r in results]
 
         # regenerate pure supercell structure
@@ -89,7 +90,6 @@ class CollectPerturbedStructures(FiretaskBase):
         dumpfn(structure_data, "structure_data.json")
 
 
-@requires(hiphive, "hiphive is required for lattice dynamics workflow")
 @explicit_serialize
 class RunHiPhive(FiretaskBase):
     """
@@ -122,6 +122,7 @@ class RunHiPhive(FiretaskBase):
         "fit_method",
     ]
 
+    @requires(hiphive, "hiphive is required for lattice dynamics workflow")
     def run_task(self, fw_spec):
         from hiphive.utilities import get_displacements
 
@@ -131,7 +132,7 @@ class RunHiPhive(FiretaskBase):
         fit_method = self.get("fit_method", FIT_METHOD)
 
         all_structures = loadfn("perturbed_structures.json")
-        all_forces = loadfn("all_forces.json")
+        all_forces = loadfn("perturbed_forces.json")
         structure_data = loadfn("structure_data.json")
         parent_structure = structure_data["structure"]
         supercell_matrix = structure_data["supercell_matrix"]
@@ -142,12 +143,12 @@ class RunHiPhive(FiretaskBase):
         for structure, forces in zip(all_structures, all_forces):
             atoms = AseAtomsAdaptor.get_atoms(structure)
             displacements = get_displacements(atoms, supercell_atoms)
-            structure.new_array("displacements", displacements)
-            structure.new_array("forces", forces)
-            structure.positions = supercell_atoms.get_positions()
-            structures.append(structure)
+            atoms.new_array("displacements", displacements)
+            atoms.new_array("forces", forces)
+            atoms.positions = supercell_atoms.get_positions()
+            structures.append(atoms)
 
-        cutoffs = self.get("cutoffs", get_cutoffs(supercell_structure))
+        cutoffs = self.get("cutoffs") or get_cutoffs(supercell_structure)
         force_constants, fitting_data = fit_force_constants(
             parent_structure,
             supercell_matrix,
@@ -161,10 +162,10 @@ class RunHiPhive(FiretaskBase):
 
         dumpfn(fitting_data, "fitting_data.json")
 
-        if force_constants is not None:
+        if force_constants is None:
             # fitting failed
             raise RuntimeError(
-                "Could not find a force constant solution with less than {}"
+                "Could not find a force constant solution with less than {} "
                 "imaginary modes.\n"
                 "Fitting results: {}".format(max_n_imaginary, fitting_data)
             )
@@ -180,7 +181,6 @@ class RunHiPhive(FiretaskBase):
             )
 
 
-@requires(hiphive, "hiphive is required for lattice dynamics workflow")
 @explicit_serialize
 class ForceConstantsToDb(FiretaskBase):
     """
@@ -205,13 +205,14 @@ class ForceConstantsToDb(FiretaskBase):
     required_params = ["db_file"]
     optional_params = ["mesh_density", "additional_fields"]
 
+    @requires(hiphive, "hiphive is required for lattice dynamics workflow")
     def run_task(self, fw_spec):
         from hiphive.force_constants import ForceConstants
 
         db_file = env_chk(self.get("db_file"), fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
-        force_constants = ForceConstants.read("force_constants.fcs")
+        fc = ForceConstants.read("force_constants.fcs")
         fitting_data = loadfn("fitting_data.json")
         structure_data = loadfn("structure_data.json")
         forces = loadfn("perturbed_forces.json")
@@ -221,7 +222,7 @@ class ForceConstantsToDb(FiretaskBase):
         supercell_structure = structure_data["supercell_structure"]
         supercell_matrix = structure_data["supercell_matrix"]
 
-        phonopy_fc = force_constants.get_fc_array(order=2)
+        phonopy_fc = fc.get_fc_array(order=2)
 
         logger.info("Getting uniform phonon band structure.")
         uniform_bs = get_phonon_band_structure_from_fc(
@@ -250,14 +251,22 @@ class ForceConstantsToDb(FiretaskBase):
             lm_bs.to_json(), collection="phonon_bandstructure_fs"
         )
 
+        logger.info("Inserting force constants into database.")
+        fc_json = json.dumps(
+            {str(k): v.tolist() for k, v in fc.get_fc_dict().items()}
+        )
+        fc_fsid, _ = mmdb.insert_gridfs(
+            fc_json, collection="phonon_force_constants_fs"
+        )
+
         data = {
             "structure": structure.as_dict(),
-            "supercell_matrix": supercell_matrix.tolist(),
+            "supercell_matrix": supercell_matrix,
             "supercell_structure": supercell_structure.as_dict(),
-            "perturbed_structures": [s.to_json() for s in structures],
+            "perturbed_structures": [s.as_dict() for s in structures],
             "perturbed_forces": [f.tolist() for f in forces],
             "fitting_data": fitting_data,
-            "force_constants": force_constants.get_fc_dict(),
+            "force_constants_fs_id": fc_fsid,
             "tags": fw_spec.get("tags", None),
             "formula_pretty": structure.composition.reduced_formula,
             "phonon_dos_fs_id": dos_fsid,
@@ -268,16 +277,11 @@ class ForceConstantsToDb(FiretaskBase):
         data.update(self.get("additional_fields", {}))
 
         # Get an id for the force constants
-        mmdb.collection = mmdb.db["lattice_dynamics"]
-        fc_id = mmdb.db.counter.find_one_and_update(
-            {"_id": "taskid"},
-            {"$inc": {"c": 1}},
-            return_document=ReturnDocument.AFTER,
-        )["c"]
-        metadata = {"fc_id": fc_id, "fc_dir": os.getcwd()}
+        fitting_id = _get_fc_fitting_id(mmdb)
+        metadata = {"fc_fitting_id": fitting_id, "fc_fitting_dir": os.getcwd()}
         data.update(metadata)
 
-        mmdb.collection.insert_one(data)
+        mmdb.db.lattice_dynamics.insert_one(data)
         logger.info("Finished inserting force constants")
 
         return FWAction(update_spec=metadata)
@@ -316,10 +320,11 @@ class RunShengBTE(FiretaskBase):
             "nonanalytic": False,
             "isotopes": False,
             "temperature": self.get("temperature", DEFAULT_TEMPERATURE),
-            "scell": np.diag(supercell_matrix),
+            "scell": np.diag(supercell_matrix).tolist(),
         }
-        control_dict.update(self.get("control_kwargs", {}))
-        control = Control.from_structure(structure, **control_dict)
+        control_kwargs = self.get("control_kwargs") or {}
+        control_dict.update(control_kwargs)
+        control = Control().from_structure(structure, **control_dict)
         control.to_file()
 
         shengbte_cmd = env_chk(self["shengbte_cmd"], fw_spec)
@@ -335,7 +340,7 @@ class RunShengBTE(FiretaskBase):
             "shengbte_err.txt", "w", buffering=1
         ) as f_err:
             # use line buffering for stderr
-            return_code = os.subprocess.call(
+            return_code = subprocess.call(
                 shengbte_cmd, stdout=f_std, stderr=f_err
             )
         logger.info(
@@ -373,7 +378,7 @@ class ShengBTEToDb(FiretaskBase):
         db_file = env_chk(self.get("db_file"), fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
-        control = Control.from_file("CONTROL")
+        control = Control().from_file("CONTROL")
         structure = control.get_structure()
         supercell_matrix = np.diag(control["scell"])
 
@@ -385,23 +390,43 @@ class ShengBTEToDb(FiretaskBase):
             raise RuntimeError("Could not find ShengBTE output files.")
 
         bte_data = np.loadtxt(filename)
+        if len(bte_data.shape) == 1:
+            # pad extra axis to make compatible with multiple temperatures
+            bte_data = bte_data[None, :]
+
         temperatures = bte_data[:, 0].tolist()
-        kappa = bte_data[:, 1:10].reshape(-1, 3, 3)
+        kappa = bte_data[:, 1:10].reshape(-1, 3, 3).tolist()
 
         data = {
             "structure": structure.as_dict(),
             "supercell_matrix": supercell_matrix.tolist(),
             "temperatures": temperatures,
             "lattice_thermal_conductivity": kappa,
-            "control": control.to_json(),
+            "control": control.as_dict(),
             "tags": fw_spec.get("tags", None),
             "formula_pretty": structure.composition.reduced_formula,
             "shengbte_dir": os.getcwd(),
-            "fc_id": fw_spec.get("fc_id", None),
-            "fc_dir": fw_spec.get("fc_dir", None),
+            "fc_fitting_id": fw_spec.get("fc_fitting_id", None),
+            "fc_fitting_dir": fw_spec.get("fc_fitting_dir", None),
             "created_at": datetime.utcnow(),
         }
         data.update(self.get("additional_fields", {}))
 
         mmdb.collection = mmdb.db["lattice_thermal_conductivity"]
         mmdb.collection.insert(data)
+
+
+def _get_fc_fitting_id(mmdb: VaspCalcDb) -> int:
+    """Helper method to get a force constant fitting id."""
+    fc_id = mmdb.db.counter.find_one_and_update(
+        {"_id": "fc_fitting_id"},
+        {"$inc": {"c": 1}},
+        return_document=ReturnDocument.AFTER,
+    )
+    if fc_id is None:
+        mmdb.db.counter.insert({"_id": "fc_fitting_id", "c": 1})
+        fc_id = 1
+    else:
+        fc_id = fc_id["c"]
+
+    return fc_id
