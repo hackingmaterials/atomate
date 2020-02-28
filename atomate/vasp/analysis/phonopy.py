@@ -1,15 +1,33 @@
 # coding: utf-8
 
-
 import numpy as np
+from monty.dev import requires
 
-__author__ = 'Kiran Mathew'
-__email__ = 'kmathew@lbl.gov'
+from pymatgen import Structure
+
+try:
+    import phonopy
+except ImportError:
+    phonopy = False
+
+__author__ = "Kiran Mathew"
+__email__ = "kmathew@lbl.gov"
 
 # TODO: @matk86 - unit tests?
 
-def get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_step, t_max, mesh,
-                      eos, pressure=0):
+
+def get_phonopy_gibbs(
+    energies,
+    volumes,
+    force_constants,
+    structure,
+    t_min,
+    t_step,
+    t_max,
+    mesh,
+    eos,
+    pressure=0,
+):
     """
     Compute QHA gibbs free energy using the phonopy interface.
 
@@ -22,8 +40,9 @@ def get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_st
         t_step (float): temperature step
         t_max (float): max temperature
         mesh (list/tuple): reciprocal space density
-        eos (str): equation of state used for fitting the energies and the volumes.
-            options supported by phonopy: vinet, murnaghan, birch_murnaghan
+        eos (str): equation of state used for fitting the energies and the
+            volumes. options supported by phonopy: vinet, murnaghan,
+            birch_murnaghan
         pressure (float): in GPa, optional.
 
     Returns:
@@ -31,8 +50,18 @@ def get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_st
     """
 
     # quasi-harmonic approx
-    phonopy_qha = get_phonopy_qha(energies, volumes, force_constants, structure, t_min, t_step,
-                                  t_max, mesh, eos, pressure=pressure)
+    phonopy_qha = get_phonopy_qha(
+        energies,
+        volumes,
+        force_constants,
+        structure,
+        t_min,
+        t_step,
+        t_max,
+        mesh,
+        eos,
+        pressure=pressure,
+    )
 
     # gibbs free energy and temperature
     max_t_index = phonopy_qha._qha._max_t_index
@@ -41,8 +70,19 @@ def get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min, t_st
     return G, T
 
 
-def get_phonopy_qha(energies, volumes, force_constants, structure, t_min, t_step, t_max, mesh, eos,
-                      pressure=0):
+@requires(phonopy, "phonopy is required to calculate the QHA")
+def get_phonopy_qha(
+    energies,
+    volumes,
+    force_constants,
+    structure,
+    t_min,
+    t_step,
+    t_max,
+    mesh,
+    eos,
+    pressure=0,
+):
     """
     Return phonopy QHA interface.
 
@@ -55,8 +95,9 @@ def get_phonopy_qha(energies, volumes, force_constants, structure, t_min, t_step
         t_step (float): temperature step
         t_max (float): max temperature
         mesh (list/tuple): reciprocal space density
-        eos (str): equation of state used for fitting the energies and the volumes.
-            options supported by phonopy: vinet, murnaghan, birch_murnaghan
+        eos (str): equation of state used for fitting the energies and the
+            volumes. options supported by phonopy: vinet, murnaghan,
+            birch_murnaghan
         pressure (float): in GPa, optional.
 
     Returns:
@@ -67,9 +108,11 @@ def get_phonopy_qha(energies, volumes, force_constants, structure, t_min, t_step
     from phonopy import PhonopyQHA
     from phonopy.units import EVAngstromToGPa
 
-    phon_atoms = PhonopyAtoms(symbols=[str(s.specie) for s in structure],
-                              scaled_positions=structure.frac_coords,
-                              cell=structure.lattice.matrix)
+    phon_atoms = PhonopyAtoms(
+        symbols=[str(s.specie) for s in structure],
+        scaled_positions=structure.frac_coords,
+        cell=structure.lattice.matrix,
+    )
     scell = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
     phonon = Phonopy(phon_atoms, scell)
     # compute the required phonon thermal properties
@@ -88,15 +131,35 @@ def get_phonopy_qha(energies, volumes, force_constants, structure, t_min, t_step
         cv.append(c)
 
     # add pressure contribution
-    energies = np.array(energies) + np.array(volumes) * pressure / EVAngstromToGPa
+    energies = (
+        np.array(energies) + np.array(volumes) * pressure / EVAngstromToGPa
+    )
+
     # quasi-harmonic approx
-    return PhonopyQHA(volumes, energies, eos=eos, temperatures=temperatures[0],
-                      free_energy=np.array(free_energy).T, cv=np.array(cv).T,
-                      entropy=np.array(entropy).T, t_max=np.max(temperatures[0]))
+    return PhonopyQHA(
+        volumes,
+        energies,
+        eos=eos,
+        temperatures=temperatures[0],
+        free_energy=np.array(free_energy).T,
+        cv=np.array(cv).T,
+        entropy=np.array(entropy).T,
+        t_max=np.max(temperatures[0]),
+    )
 
 
-def get_phonopy_thermal_expansion(energies, volumes, force_constants, structure, t_min, t_step,
-                                  t_max, mesh, eos, pressure=0):
+def get_phonopy_thermal_expansion(
+    energies,
+    volumes,
+    force_constants,
+    structure,
+    t_min,
+    t_step,
+    t_max,
+    mesh,
+    eos,
+    pressure=0,
+):
     """
     Compute QHA thermal expansion coefficient using the phonopy interface.
 
@@ -109,17 +172,29 @@ def get_phonopy_thermal_expansion(energies, volumes, force_constants, structure,
         t_step (float): temperature step
         t_max (float): max temperature
         mesh (list/tuple): reciprocal space density
-        eos (str): equation of state used for fitting the energies and the volumes.
-            options supported by phonopy: vinet, murnaghan, birch_murnaghan
+        eos (str): equation of state used for fitting the energies and the
+            volumes. options supported by phonopy: vinet, murnaghan,
+            birch_murnaghan
         pressure (float): in GPa, optional.
 
     Returns:
-        (numpy.ndarray, numpy.ndarray): thermal expansion coefficient, Temperature
+        (numpy.ndarray, numpy.ndarray): thermal expansion coefficient,
+        Temperature
     """
 
     # quasi-harmonic approx
-    phonopy_qha = get_phonopy_qha(energies, volumes, force_constants, structure, t_min, t_step,
-                                  t_max, mesh, eos, pressure=pressure)
+    phonopy_qha = get_phonopy_qha(
+        energies,
+        volumes,
+        force_constants,
+        structure,
+        t_min,
+        t_step,
+        t_max,
+        mesh,
+        eos,
+        pressure=pressure,
+    )
 
     # thermal expansion coefficient and temperature
     max_t_index = phonopy_qha._qha._max_t_index

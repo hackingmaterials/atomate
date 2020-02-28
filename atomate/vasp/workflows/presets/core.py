@@ -1,12 +1,13 @@
-# coding: utf-8
-
+from typing import Optional
 
 from uuid import uuid4
 
 import numpy as np
 
+from atomate.vasp.workflows.base.lattice_dynamics import get_lattice_dynamics_wf
+from fireworks import Workflow
+from pymatgen import Structure
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet, MPHSERelaxSet
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp.inputs import Kpoints
 
 from atomate.vasp.config import SMALLGAP_KPOINT_MULTIPLY, STABILITY_CHECK, VASP_CMD, DB_FILE, \
@@ -655,3 +656,60 @@ def wf_nudged_elastic_band(structures, parent, c=None):
                                     additional_spec=spec, **kwargs)
 
     return wf
+
+
+def wf_lattice_thermal_conductivity(
+    structure: Structure,
+    c: Optional[dict] = None,
+    **ld_kwargs
+) -> Workflow:
+    """
+    Get a workflow to calculate lattice thermal conductivity, including a tight
+    structure optimization.
+
+    Args:
+        structure: The input structure.
+        c: Workflow common settings dict. Supports the keys: "VASP_CMD",
+            "DB_FILE", and "user_incar_settings", "ADD_WF_METADATA", and the
+            options supported by "add_common_powerups".
+        **ld_kwargs: Keyword arguments to be passed directly to the lattice
+            dynamics base workflow.
+
+    Returns:
+        A workflow to calculate lattice thermal conductivity.
+    """
+    optimize_uis = {
+        "LAECHG": False,
+        'ENCUT': 700,
+        'ADDGRID': True,
+        'EDIFFG': -5e-4,
+        'PREC': 'Accurate',
+        "LREAL": False,
+        'EDIFF': 1e-8,
+        "ISMEAR": 0,
+        'LCHARG': False,
+        'LASPH': True
+    }
+    # wf_structure_optimization expects user incar settings in capitals
+    c["USER_INCAR_SETTINGS"].update(optimize_uis)
+    c["USER_INCAR_SETTINGS"].update(c.get("user_incar_settings", {}))
+    wf = wf_structure_optimization(structure, c=c)
+
+    wf_ld = get_lattice_dynamics_wf(
+        structure,
+        common_settings=c,
+        calculate_lattice_thermal_conductivity=True,
+        **ld_kwargs
+    )
+    wf.append_wf(wf_ld, wf.leaf_fw_ids)
+
+    formula = structure.composition.reduced_formula
+    wf_name = "{} - lattice thermal conductivity preset".format(formula)
+    wf.name = wf_name
+
+    wf = add_common_powerups(wf, c)
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
+    return wf
+
