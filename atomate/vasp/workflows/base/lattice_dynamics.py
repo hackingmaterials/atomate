@@ -265,7 +265,7 @@ def get_perturbed_structure_wf(
 
         if pass_forces:
             pass_dict = {
-                "parent_structure": structure.to_json(),
+                "parent_structure": structure.as_dict(),
                 "supercell_matrix": supercell_matrix,
                 "forces": ">>output.ionic_steps.-1.forces",
                 "structure": ">>output.ionic_steps.-1.structure",
