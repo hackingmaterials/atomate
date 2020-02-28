@@ -7,8 +7,8 @@ from atomate.utils.utils import get_logger
 from pymatgen import Structure
 from pymatgen.io.phonopy import get_phonopy_structure
 
-__author__ = "Rees Chang, Alex Ganose"
-__email__ = "rc564@cornell.edu, aganose@lbl.gov"
+__author__ = "Alex Ganose, Rees Chang"
+__email__ = "aganose@lbl.gov, rc564@cornell.edu"
 
 logger = get_logger(__name__)
 
@@ -67,13 +67,15 @@ def get_cutoffs(structure: Structure):
     steps = {2: 0.5, 3: 0.25, 4: 0.25}
 
     row = min([s.row for s in structure.species])
-    mins = (min_cutoffs[row][2], min_cutoffs[row][3], min_cutoffs[row][4])
+    mins = {
+        2: min_cutoffs[row][2], 3: min_cutoffs[row][3], 4: min_cutoffs[row][4]
+    }
 
-    range_two = np.arange(mins[0], mins[0] + inc[0] + steps[0], steps[0])
-    range_three = np.arange(mins[1], mins[1] + inc[1] + steps[1], steps[1])
-    range_four = np.arange(mins[2], mins[2] + inc[2] + steps[2], steps[2])
+    range_two = np.arange(mins[2], mins[2] + inc[2] + steps[2], steps[2])
+    range_three = np.arange(mins[3], mins[3] + inc[3] + steps[3], steps[3])
+    range_four = np.arange(mins[4], mins[4] + inc[4] + steps[4], steps[4])
 
-    return list(product(range_two, range_three, range_four))
+    return list(map(list, product(range_two, range_three, range_four)))
 
 
 def fit_force_constants(
@@ -168,19 +170,17 @@ def fit_force_constants(
         )
 
         fitting_data["cutoffs"].append(cutoffs)
-        fitting_data["rmse_train"].append(opt.rmse_test)
+        fitting_data["rmse_test"].append(opt.rmse_test)
         fitting_data["n_imaginary"].append(n_imaginary)
         fitting_data["min_frequency"].append(min_freq)
         fitting_data["300K_free_energy"].append(free_energy)
-        fitting_data["force_constants"].append(fcs)
 
         if (
-            min_freq < -np.abs(max_imaginary_freq)
+            min_freq > -np.abs(max_imaginary_freq)
             and n_imaginary <= max_n_imaginary
             and n_imaginary < best_fit["n_imaginary"]
             and free_energy < best_fit["free_energy"]
         ):
-
             best_fit.update(
                 {
                     "n_imaginary": n_imaginary,
