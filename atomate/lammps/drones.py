@@ -6,9 +6,12 @@ Lammps Drones.
 """
 
 import os
+import re
 from datetime import datetime
 
 from pymatgen.apps.borg.hive import AbstractDrone
+from pymatgen.io.lammps.outputs import parse_lammps_log
+from pymatgen.io.lammps.inputs import LammpsData
 # from pymatgen.io.lammps.output import LammpsLog, LammpsDump, LammpsRun
 # from pymatgen.io.lammps.sets import LammpsInputSet
 
@@ -16,7 +19,7 @@ from atomate.utils.utils import get_uri
 
 from atomate.utils.utils import get_logger
 
-__author__ = 'Brandon Wood, Kiran Mathew'
+__author__ = 'Brandon Wood, Kiran Mathew, Eric Sivonxay'
 __email__ = 'b.wood@berkeley.edu'
 
 logger = get_logger(__name__)
@@ -67,26 +70,39 @@ class LammpsDrone(AbstractDrone):
         dump_files = dump_files or []
         dump_files = [dump_files] if isinstance(dump_files, str) else dump_files
 
-        # input set
-        lmps_input = LammpsInputSet.from_file("lammps", input_file, {}, data_file, data_filename)
+        # Load input set as string.
+        #TODO: Consider if we want to parse this string more.
+        with open(input_filename, 'r') as f:
+            lmps_input = f.read()
 
+        #TODO: Deal with dump files.
         # dumps
         dumps = []
-        if dump_files:
-            for df in dump_files:
-                dumps.append((df, LammpsDump.from_file(os.path.join(path, df))))
+        # if dump_files:
+        #     for df in dump_files:
+        #         dumps.append((df, LammpsDump.from_file(os.path.join(path, df))))
 
-        # log
-        log = LammpsLog(log_file=log_file)
+        # Parse thermo blocks of log file
+        #TODO: Parse other data such as run statistics.
+        log = parse_lammps_log(log_file)
+
+        # Parse input structure from
+        atom_style_line = re.search(r"atom_style\s+(.*)\n", lmps_input)
+        if atom_style_line is None:
+            atom_style = 'atomic'
+        else:
+            atom_style = atom_style_line.group(1)
+
+        lammps_data = LammpsData.from_file(data_file, atom_style)
 
         logger.info("Getting task doc for base dir :{}".format(path))
-        d = self.generate_doc(path, lmps_input, log, dumps)
+        d = self.generate_doc(path, lmps_input, log, dumps, lammps_data)
 
-        lmps_run = None
-        if len(dump_files) == 1 and data_file:
-            lmps_run = LammpsRun(data_file, dump_files[0], log_file=log_filename)
-
-        self.post_process(d, lmps_run)
+        # lmps_run = None
+        # if len(dump_files) == 1 and data_file:
+        #     lmps_run = LammpsRun(data_file, dump_files[0], log_file=log_filename)
+        #
+        # self.post_process(d, lmps_run)
 
         return d
 
@@ -98,14 +114,14 @@ class LammpsDrone(AbstractDrone):
             d (dict)
             lmps_run (LammpsRun)
         """
-        if self.diffusion_params and isinstance(lmps_run, LammpsRun):
-            d["analysis"] = {}
-            d["analysis"]["diffusion_params"] = self.diffusion_params
-            diffusion_analyzer = lmps_run.get_diffusion_analyzer(**self.diffusion_params)
-            d["analysis"]["diffusion"] = diffusion_analyzer.get_summary_dict()
+        # if self.diffusion_params and isinstance(lmps_run, LammpsRun):
+        #     d["analysis"] = {}
+        #     d["analysis"]["diffusion_params"] = self.diffusion_params
+        #     diffusion_analyzer = lmps_run.get_diffusion_analyzer(**self.diffusion_params)
+        #     d["analysis"]["diffusion"] = diffusion_analyzer.get_summary_dict()
         d['state'] = 'successful'
 
-    def generate_doc(self, dir_name, lmps_input, log, dumps):
+    def generate_doc(self, dir_name, lmps_input, log, dumps, lammps_data):
         """
 
         Args:
@@ -126,9 +142,19 @@ class LammpsDrone(AbstractDrone):
             d["completed_at"] = str(datetime.fromtimestamp(os.path.getmtime(log.log_file)))
             d["dir_name"] = fullpath
             d["last_updated"] = datetime.utcnow()
-            d["input"] = lmps_input.as_dict()
-            d["output"] = {"log": log.as_dict()}
+            d["output"] = {"log": [pd.to_json() for pd in log]}
             d["output"]["dumps"] = dict([(dump_fname, dmp.as_dict()) for dump_fname, dmp in dumps])
+
+            d["input"] = {}
+            d["input"]["input_string"] = lmps_input
+            d['input']["timestep"] = float(re.search(r"timestep\s+(.*)\n", lmps_input).group(1).split()[0])
+            d['input']['structure'] = lammps_data.structure.as_dict()
+            d['formula_pretty'] = lammps_data.structure.composition.reduced_formula
+            d['chemsys'] = lammps_data.structure.composition.chemical_system
+            d['formula_anonymous'] = lammps_data.structure.composition.anonymized_formula
+            d['elements'] = [str(el) for el in lammps_data.structure.composition.elements]
+            d['nelements'] = len(lammps_data.structure.composition.elements)
+            d['nsites'] = len(lammps_data.structure)
             return d
 
         except:
