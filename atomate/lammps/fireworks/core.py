@@ -30,7 +30,7 @@ default_timesteps = {'lj': 0.005, 'real': 1.0, 'metal': 0.001, 'si': 1e-8,
 class LammpsFW(Firework):
 
     def __init__(self, lammps_data, template_string, settings, input_filename="lammps.in",
-                 lammps_cmd="lammps", db_file=None, parents=None, name="LammpsFW", comments=None, run_label=None, **kwargs):
+                 lammps_cmd="lammps", db_file=None, parents=None, name="LammpsFW", run_label=None, **kwargs):
         """
         write lammps inputset, run, and store the output.
 
