@@ -7,17 +7,17 @@ Defines fireworks to be incorporated into workflows.
 
 # from pymatgen.io.lammps.data import Topology
 
-from fireworks import Firework
+import os
+import re
+from uuid import uuid4
 
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
 from atomate.lammps.firetasks.dbtasks import LammpsMDToDB
-from atomate.lammps.firetasks.run_calc import RunLammpsDirect, RunPackmol
-from atomate.lammps.firetasks.parse_outputs import LammpsToDB
-from atomate.lammps.firetasks.write_inputs import WriteInputFromIOSet, WriteInputFromForceFieldAndTopology, WriteInputFromTemplate
 from atomate.lammps.firetasks.glue_tasks import CopyDeepMDModel
-from pymatgen.io.lammps.inputs import LammpsData
-from uuid import uuid4
-import os
+from atomate.lammps.firetasks.parse_outputs import LammpsToDB
+from atomate.lammps.firetasks.run_calc import RunLammpsDirect, RunPackmol
+from atomate.lammps.firetasks.write_inputs import WriteInputFromTemplate
+from fireworks import Firework
 
 __author__ = "Brandon Wood, Kiran Mathew, Eric Sivonxay"
 __email__ = "b.wood@berkeley.edu"
@@ -27,10 +27,11 @@ template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templat
 default_timesteps = {'lj': 0.005, 'real': 1.0, 'metal': 0.001, 'si': 1e-8,
                      'cgs': 1e-8, 'electron': 0.001, 'micro': 2.0, 'nano': 0.00045}
 
-class LammpsFW(Firework):
 
+class LammpsFW(Firework):
     def __init__(self, lammps_data, template_string, settings, input_filename="lammps.in",
-                 lammps_cmd="lammps", db_file=None, parents=None, name="LammpsFW", run_label=None, **kwargs):
+                 lammps_cmd="lammps", db_file=None, parents=None, name="LammpsFW", run_label=None,
+                 **kwargs):
         """
         write lammps inputset, run, and store the output.
 
@@ -57,12 +58,20 @@ class LammpsFW(Firework):
 
         tasks.append(RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename))
 
-        #TODO: Add parsing of log file and saving of dcd unwrapped
+        data_filename = re.search(r"read_data\s+(.*)\n", template_string)
+        log_filename = re.search(r"log\s+(.*)\n", template_string)
+
+        # TODO: deal with dump files. FOr now, just assume none. In future, search for all instances of dump in the input string and extract file names
+        # dump_filenames = re.search(r"dump\s+(.*)\n", template_string)
+        dump_filenames = []
+        tasks.append(LammpsToDB(input_filename=input_filename, data_filename=data_filename,
+                                log_filename=log_filename, dump_filenames=dump_filenames,
+                                db_file=db_file, additional_fields={"task_label": name}))
 
         super(LammpsFW, self).__init__(tasks, parents=parents, name=name, **kwargs)
 
     @classmethod
-    def npt_from_template(cls, lammps_data, temperature, pressure = 1, units='metal', equilibration_steps=100000,
+    def npt_from_template(cls, lammps_data, temperature, pressure=1, units='metal', equilibration_steps=100000,
                           production_steps=1000000, timestep=None, name='Lammps_NPT_FW', group_info=None, **kwargs):
         '''
 
@@ -143,9 +152,9 @@ class LammpsFW(Firework):
 
 
 class LammpsDeepMDFW(Firework):
-
     def __init__(self, lammps_data, template_string, settings, model_path, input_filename="lammps.in",
-                 lammps_cmd="lammps", db_file=None, parents=None, name="LammpsFW", comments=None, run_label=None, **kwargs):
+                 lammps_cmd="lammps", db_file=None, parents=None, name="LammpsFW", comments=None, run_label=None,
+                 **kwargs):
         """
         write lammps inputset, run, and store the output.
 
@@ -236,41 +245,40 @@ class LammpsDeepMDFW(Firework):
 #         super(LammpsForceFieldFW, self).__init__(tasks, parents=parents, name=name, **kwargs)
 
 
-class PackmolFW(Firework):
-
-    def __init__(self, molecules, packing_config, tolerance=2.0, filetype="xyz", control_params=None,
-                 output_file="packed.xyz",  copy_to_current_on_exit=False, site_property=None,
-                 parents=None, name="PackmolFW", packmol_cmd="packmol", **kwargs):
-        """
-
-        Args:
-            molecules (list): list of constituent molecules(Molecule objects)
-            packing_config (list): list of dict config settings for each molecule in the
-                molecules list. eg: config settings for a single molecule
-                [{"number": 1, "inside box":[0,0,0,100,100,100]}]
-            tolerance (float): packmol tolerance
-            filetype (string): input/output structure file type
-            control_params (dict): packmol control parameters dictionary. Basically all parameters
-                other than structure/atoms.
-            output_file (str): output file name. The extension will be adjusted according to the filetype.
-            copy_to_current_on_exit (bool): whether or not to copy the packed molecule output file
-                to the current directory.
-            site_property (str): the specified site property will be restored for the final Molecule object.
-            parents ([Firework]): parent fireworks
-            name (str): firework name
-            packmol_cmd (str): path to packmol bin
-            **kwargs:
-        """
-        control_params = control_params or {'maxit': 20, 'nloop': 600}
-
-        tasks = [
-            RunPackmol(molecules=molecules, packing_config=packing_config, tolerance=tolerance,
-                       filetype=filetype, control_params=control_params,  output_file=output_file,
-                       copy_to_current_on_exit=copy_to_current_on_exit, site_property=site_property,
-                       packmol_cmd=packmol_cmd),
-
-            PassCalcLocs(name=name)
-
-             ]
-
-        super(PackmolFW, self).__init__(tasks, parents=parents, name=name, **kwargs)
+# class PackmolFW(Firework):
+#     def __init__(self, molecules, packing_config, tolerance=2.0, filetype="xyz", control_params=None,
+#                  output_file="packed.xyz", copy_to_current_on_exit=False, site_property=None,
+#                  parents=None, name="PackmolFW", packmol_cmd="packmol", **kwargs):
+#         """
+#
+#         Args:
+#             molecules (list): list of constituent molecules(Molecule objects)
+#             packing_config (list): list of dict config settings for each molecule in the
+#                 molecules list. eg: config settings for a single molecule
+#                 [{"number": 1, "inside box":[0,0,0,100,100,100]}]
+#             tolerance (float): packmol tolerance
+#             filetype (string): input/output structure file type
+#             control_params (dict): packmol control parameters dictionary. Basically all parameters
+#                 other than structure/atoms.
+#             output_file (str): output file name. The extension will be adjusted according to the filetype.
+#             copy_to_current_on_exit (bool): whether or not to copy the packed molecule output file
+#                 to the current directory.
+#             site_property (str): the specified site property will be restored for the final Molecule object.
+#             parents ([Firework]): parent fireworks
+#             name (str): firework name
+#             packmol_cmd (str): path to packmol bin
+#             **kwargs:
+#         """
+#         control_params = control_params or {'maxit': 20, 'nloop': 600}
+#
+#         tasks = [
+#             RunPackmol(molecules=molecules, packing_config=packing_config, tolerance=tolerance,
+#                        filetype=filetype, control_params=control_params, output_file=output_file,
+#                        copy_to_current_on_exit=copy_to_current_on_exit, site_property=site_property,
+#                        packmol_cmd=packmol_cmd),
+#
+#             PassCalcLocs(name=name)
+#
+#         ]
+#
+#         super(PackmolFW, self).__init__(tasks, parents=parents, name=name, **kwargs)
