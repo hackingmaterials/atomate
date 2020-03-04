@@ -58,8 +58,8 @@ class LammpsFW(Firework):
 
         tasks.append(RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename))
 
-        data_filename = re.search(r"read_data\s+(.*)\n", template_string)
-        log_filename = re.search(r"log\s+(.*)\n", template_string)
+        data_filename = re.search(r"read_data\s+(.*)\n", template_string).group(1)
+        log_filename = re.search(r"log\s+(.*)\n", template_string).group(1)
 
         # TODO: deal with dump files. FOr now, just assume none. In future, search for all instances of dump in the input string and extract file names
         # dump_filenames = re.search(r"dump\s+(.*)\n", template_string)
@@ -180,10 +180,20 @@ class LammpsDeepMDFW(Firework):
 
         tasks.append(RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename))
 
-        if run_label is None:
-            run_label = uuid4()
-        tasks.append(LammpsMDToDB(db_file=db_file, input_filename=input_filename,
-                                  comments=comments, run_label=run_label))
+        # if run_label is None:
+        #     run_label = uuid4()
+        # tasks.append(LammpsMDToDB(db_file=db_file, input_filename=input_filename,
+        #                           comments=comments, run_label=run_label))
+
+        data_filename = re.search(r"read_data\s+(.*)\n", template_string).group(1)
+        log_filename = re.search(r"log\s+(.*)\n", template_string).group(1)
+
+        # TODO: deal with dump files. FOr now, just assume none. In future, search for all instances of dump in the input string and extract file names
+        # dump_filenames = re.search(r"dump\s+(.*)\n", template_string)
+        dump_filenames = []
+        tasks.append(LammpsToDB(input_filename=input_filename, data_filename=data_filename,
+                                log_filename=log_filename, dump_filenames=dump_filenames,
+                                db_file=db_file, additional_fields={"task_label": name}))
 
         super(LammpsDeepMDFW, self).__init__(tasks, parents=parents, name=name, **kwargs)
 
