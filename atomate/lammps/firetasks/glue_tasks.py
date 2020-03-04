@@ -1,10 +1,11 @@
 # coding: utf-8
 
 
-from fireworks import explicit_serialize
+from fireworks import explicit_serialize, FiretaskBase
 import os
-
 from atomate.common.firetasks.glue_tasks import get_calc_loc, CopyFiles
+from atomate.utils.utils import env_chk, get_logger
+from atomate.lammps.database import LammpsCalcDb
 
 __author__ = 'Kiran Mathew, Eric Sivonxay'
 __email__ = 'kmathew@lbl.gov, esivonxay@lbl.gov'
@@ -52,3 +53,24 @@ class CopyDeepMDModel(CopyFiles):
         self.setup_copy(model_loc, files_to_copy=[model_name])
         self.copy_files()
 
+@explicit_serialize
+class DeepMDModelFromDB(FiretaskBase):
+    """
+
+    """
+
+    required_params = ["query"]
+
+    optional_params = ["db_file"]
+
+    def run_task(self, fw_spec):
+
+        db_file = env_chk(self["db_file"], fw_spec)
+        mmdb = LammpsCalcDb.from_db_file(db_file, admin=True)
+
+        query = self["query"]
+
+        model_doc = mmdb.models.find_one(query)
+
+        with open('graph.pb', 'wb') as f:
+            f.write(model_doc['model'])
