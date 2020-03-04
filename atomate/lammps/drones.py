@@ -72,7 +72,7 @@ class LammpsDrone(AbstractDrone):
 
         # Load input set as string.
         #TODO: Consider if we want to parse this string more.
-        with open(input_filename, 'r') as f:
+        with open(input_file, 'r') as f:
             lmps_input = f.read()
 
         #TODO: Deal with dump files.
@@ -139,7 +139,7 @@ class LammpsDrone(AbstractDrone):
                 fullpath = get_uri(dir_name)
             d = {k: v for k, v in self.additional_fields.items()}
             d["schema"] = {"code": "atomate", "version": LammpsDrone.__version__}
-            d["completed_at"] = str(datetime.fromtimestamp(os.path.getmtime(log.log_file)))
+            # d["completed_at"] = str(datetime.fromtimestamp(os.path.getmtime(log.log_file)))
             d["dir_name"] = fullpath
             d["last_updated"] = datetime.utcnow()
             d["output"] = {"log": [pd.to_json() for pd in log]}
