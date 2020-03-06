@@ -12,6 +12,10 @@ from atomate.vasp.powerups import (
 )
 from atomate.vasp.workflows.base.core import get_wf
 
+from atomate.vasp.firetasks.parse_outputs import (
+    LinearResponseUToDb
+)
+
 from atomate.utils.utils import get_logger
 
 logger = get_logger(__name__)
@@ -73,7 +77,7 @@ def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_s
         fws = []
     else:
         fws = [StaticFW(structure=structure, name="initial static", vasp_input_set=vis_gs,
-                    vasp_cmd=VASP_CMD, db_file=DB_FILE)]
+                        vasp_cmd=VASP_CMD, db_file=DB_FILE)]
 
     uis_ldau = uis_gs.copy()
     uis_ldau.update({"LDAU":True, "LDAUTYPE":3, "LDAUPRINT":2,"ISTART":1})
@@ -95,12 +99,13 @@ def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_s
                 val_dict.update({"perturb":2})
                 for s in vis_ldau.poscar.site_symbols:
                     val_dict.update({s:-1})
+                    uis_ldau.update({k:val_dict})
             else:
                 # for LDAUU and LDAUJ
                 val_dict.update({"perturb":v})
                 for s in vis_ldau.poscar.site_symbols:
                     val_dict.update({s:0})
-            uis_ldau.update({k:val_dict})
+                    uis_ldau.update({k:val_dict})
 
         # NSCF
         uis_ldau.update({"ICHARG":11})
@@ -119,7 +124,7 @@ def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_s
                                vasp_input_set=vis_ldau,
                                vasp_input_set_params = {"user_incar_settings":uis_ldau},
                                additional_files=["WAVECAR","CHGCAR"],
-                               prev_calc_dir=ground_state_dir,
+                               # prev_calc_dir=ground_state_dir,
                                vasp_cmd=VASP_CMD, db_file=DB_FILE)
 
         fws.append(fw)
@@ -144,9 +149,19 @@ def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_s
                                vasp_input_set=vis_ldau,
                                vasp_input_set_params = {"user_incar_settings":uis_ldau},
                                additional_files=["WAVECAR"],
-                               prev_calc_dir=ground_state_dir,
+                               # prev_calc_dir=ground_state_dir,
                                vasp_cmd=VASP_CMD, db_file=DB_FILE)
         fws.append(fw)
+
+
+    fw_analysis = Firework(
+        LinearResponseUToDb(
+            db_file=DB_FILE, wf_uuid=uuid
+        ),
+        name="LinearResponseUToDb",
+    )
+
+    fws.append(fw_analysis)
 
     wf = Workflow(fws)
     wf = add_common_powerups(wf, c)

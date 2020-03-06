@@ -761,7 +761,48 @@ class ThermalExpansionCoeffToDb(FiretaskBase):
         # a builder to put it into materials collection... -computron
         logger.info("Thermal expansion coefficient calculation complete.")
 
+@explicit_serialize
+class LinearResponseUToDb(FiretaskBase):
+    """
+    optional_params:
+        db_file (str): path to the db file
+    """
 
+    required_params = ["db_file", "wf_uuid"]
+    optional_params = []
+
+    summaries = []
+
+    def run_task(self, fw_spec):
+
+        uuid = self["wf_uuid"]
+        db_file = env_chk(self.get("db_file"), fw_spec)
+        to_db = self.get("to_db", True)
+
+        mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
+
+        # get ground state energy
+        task_label_regex = 'scf'
+        docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid,
+                                          "task_label": {"$regex": task_label_regex}}))
+
+        for d in docs:
+            nd_scf = d["output"]["outcar"]["charge"][0]['d']
+
+        summary = {
+            "nd scf": nd_scf
+        }
+ 
+        if fw_spec.get("tags", None):
+            summary["tags"] = fw_spec["tags"]
+
+        summaries.append(summary)
+
+        mmdb.collection = mmdb.db["linear_response_u"]
+        mmdb.collection.insert(summaries)
+
+        logger.info("Linear regression analysis is complete.")
+            
 @explicit_serialize
 class MagneticOrderingsToDB(FiretaskBase):
     """
@@ -1023,7 +1064,6 @@ class MagneticDeformationToDB(FiretaskBase):
                 f.write(json.dumps(summary, default=DATETIME_HANDLER))
 
         logger.info("Magnetic deformation calculation complete.")
-
 
 @explicit_serialize
 class PolarizationToDb(FiretaskBase):
