@@ -124,7 +124,7 @@ def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_s
                                vasp_input_set=vis_ldau,
                                vasp_input_set_params = {"user_incar_settings":uis_ldau},
                                additional_files=["WAVECAR","CHGCAR"],
-                               # prev_calc_dir=ground_state_dir,
+                               prev_calc_dir=ground_state_dir,
                                vasp_cmd=VASP_CMD, db_file=DB_FILE)
 
         fws.append(fw)
@@ -149,7 +149,7 @@ def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_s
                                vasp_input_set=vis_ldau,
                                vasp_input_set_params = {"user_incar_settings":uis_ldau},
                                additional_files=["WAVECAR"],
-                               # prev_calc_dir=ground_state_dir,
+                               prev_calc_dir=ground_state_dir,
                                vasp_cmd=VASP_CMD, db_file=DB_FILE)
         fws.append(fw)
 
