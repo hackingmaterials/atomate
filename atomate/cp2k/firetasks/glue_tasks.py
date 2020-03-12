@@ -19,6 +19,7 @@ import os
 import re
 import pickle
 import glob
+from monty.io import zopen
 
 from pymatgen.io.cp2k.sets import Cp2kInputSet
 from pymatgen.io.cp2k.inputs import Cp2kInput, Coord, Cell
@@ -129,8 +130,12 @@ class CopyCp2kOutputs(CopyFiles):
             # unzip the .gz if needed
             if gz_ext in ['.gz', ".GZ"]:
                 # unzip dest file
-                f = gzip.open(dest_path + gz_ext, 'rt')
-                file_content = f.read()
+                try:
+                    f = zopen(dest_path + gz_ext, 'rt')
+                    file_content = f.read()
+                except (UnicodeDecodeError, AttributeError):
+                    f = zopen(dest_path + gz_ext, 'rb')
+                    file_content = f.read()
                 if isinstance(file_content, (bytes, bytearray)):
                     with open(dest_path, 'wb') as f_out:
                         f_out.writelines(file_content)
