@@ -36,7 +36,7 @@ def get_wf_static(structure, cp2k_input_set=None, name='Static-WF',
 
     fw = StaticFW(structure=structure, name=name, cp2k_input_set=cis_static,
                   cp2k_input_set_params=user_cp2k_settings, cp2k_cmd=cp2k_cmd,
-                  prev_calc_loc=True, prev_calc_dir=None, db_file=db_file,
+                  prev_calc_loc=False, prev_calc_dir=None, db_file=db_file,
                   cp2ktodb_kwargs=None, parents=None)
     fws.append(fw)
 
@@ -68,7 +68,7 @@ def get_wf_relax(structure, cp2k_input_set=None, name='Relax WF',
 
     fw = RelaxFW(structure=structure, name=name, cp2k_input_set=cis_static,
                  cp2k_input_set_params=user_cp2k_settings, cp2k_cmd=cp2k_cmd,
-                 prev_calc_loc=True, prev_calc_dir=None, db_file=db_file,
+                 prev_calc_loc=False, prev_calc_dir=None, db_file=db_file,
                  cp2ktodb_kwargs=None, parents=None)
     fws.append(fw)
 
@@ -79,16 +79,25 @@ def get_wf_relax(structure, cp2k_input_set=None, name='Relax WF',
 
 def get_wf_hybrid_static(structure, cp2k_static_input_set=None,
                          cp2k_hybrid_input_set=None, name='Hybrid-Static-WF',
-                         user_static_settings=None, user_hybrid_settings=None,
-                         cp2k_cmd=CP2K_CMD, db_file=DB_FILE, metadata=None):
+                         user_static_settings={}, user_hybrid_settings={},
+                         cp2k_cmd=CP2K_CMD, db_file=DB_FILE,
+                         cp2ktodb_kwargs=None, metadata=None):
 
     fws = []
+
+    # TODO I really don't like this work around... currently I'm asserting that all cp2k input files
+    # must have the same project name, that way its easier for different fws to find the files from
+    # previous fireworks. Should be more flexible. -NW
+    if 'project_name' not in user_static_settings.keys():
+        user_static_settings['project_name'] = name
+    if 'project_name' not in user_hybrid_settings.keys():
+        user_hybrid_settings['project_name'] = name
 
     cp2k_static_input_set = cp2k_static_input_set or StaticSet(structure, **user_static_settings)
     cp2k_hybrid_input_set = cp2k_hybrid_input_set or HybridStaticSet(structure, **user_hybrid_settings)
 
     fw1 = StaticFW(structure=structure, name=name, cp2k_input_set=cp2k_static_input_set,
-                   cp2k_cmd=cp2k_cmd,
+                   cp2k_cmd=cp2k_cmd, prev_calc_loc=False,
                    db_file=db_file, cp2ktodb_kwargs=cp2ktodb_kwargs,
                    parents=None)
     fws.append(fw1)
@@ -102,6 +111,7 @@ def get_wf_hybrid_static(structure, cp2k_static_input_set=None,
     wfname = "{}:{}".format(structure.composition.reduced_formula, name)
 
     return Workflow(fws, name=wfname, metadata=metadata)
+
 
 def get_wf_glue_test(structure, cp2k_input_set=None, name='debug',
                   cp2k_cmd="cp2k.sopt", db_file=None,
