@@ -138,10 +138,10 @@ class CopyCp2kOutputs(CopyFiles):
                     file_content = f.read()
                 if isinstance(file_content, (bytes, bytearray)):
                     with open(dest_path, 'wb') as f_out:
-                        f_out.writelines(file_content)
+                        f_out.write(file_content)
                 else:
                     with open(dest_path, 'w') as f_out:
-                        f_out.writelines(file_content)
+                        f_out.write(file_content)
 
                 f.close()
                 os.remove(dest_path + gz_ext)

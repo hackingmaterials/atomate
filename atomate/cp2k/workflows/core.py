@@ -111,29 +111,3 @@ def get_wf_hybrid_static(structure, cp2k_static_input_set=None,
     wfname = "{}:{}".format(structure.composition.reduced_formula, name)
 
     return Workflow(fws, name=wfname, metadata=metadata)
-
-
-def get_wf_glue_test(structure, cp2k_input_set=None, name='debug',
-                  cp2k_cmd="cp2k.sopt", db_file=None,
-                  user_cp2k_settings=None, metadata=None):
-
-    fws = []
-
-    cis_static = cp2k_input_set or StaticSet(structure, **user_cp2k_settings)
-
-    fw1 = StaticFW(structure=structure, name=name, cp2k_input_set=cis_static,
-                  cp2k_input_set_params=user_cp2k_settings, cp2k_cmd=cp2k_cmd,
-                  prev_calc_loc=False, prev_calc_dir=None, db_file=None,
-                  files_to_copy=['Si-RESTART.wfn'],
-                  cp2ktodb_kwargs=None, parents=None)
-    fws.append(fw1)
-
-    fw2 = StaticFW(structure=structure, name=name, cp2k_input_set=cis_static,
-                  cp2k_input_set_params=user_cp2k_settings, cp2k_cmd=cp2k_cmd,
-                  prev_calc_loc=True, prev_calc_dir=None, db_file=None,
-                  cp2ktodb_kwargs=None, parents=[fw1], files_to_copy=[])
-    fws.append(fw2)
-
-    wfname = "{}:{}".format(structure.composition.reduced_formula, name)
-
-    return Workflow(fws, name=wfname, metadata=metadata)
