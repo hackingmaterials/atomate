@@ -8,15 +8,15 @@ atomate.feff.fireworks.tests.test\_fireworks module
 ---------------------------------------------------
 
 .. automodule:: atomate.feff.fireworks.tests.test_fireworks
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 
 Module contents
 ---------------
 
 .. automodule:: atomate.feff.fireworks.tests
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

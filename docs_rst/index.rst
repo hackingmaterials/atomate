@@ -107,11 +107,11 @@ Want to see something added or changed? There are many ways to make that a reali
 
 The list of contributors to atomate can be found :doc:`here </contributors>`.
 
-There is an `atomate Google Group`_ dedicated to discussion and basic support.
+There is an `atomate Discourse forum`_ dedicated to discussion and basic support.
 
 For specifics on how to contribute, see our `contribution guidelines. <https://github.com/hackingmaterials/atomate/blob/master/CONTRIBUTING.md>`_
 
-.. _atomate Google Group: https://groups.google.com/forum/#!forum/atomate
+.. _atomate Discourse forum: https://discuss.matsci.org/c/atomate
 
 
 =======

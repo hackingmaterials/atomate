@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 # This module defines the database classes.
 
@@ -25,9 +24,10 @@ class QChemCalcDb(CalcDb):
                  database="qchem",
                  collection="tasks",
                  user=None,
-                 password=None):
+                 password=None,
+                 **kwargs):
         super(QChemCalcDb, self).__init__(host, port, database, collection,
-                                          user, password)
+                                          user, password, **kwargs)
 
     def build_indexes(self, indexes=None, background=True):
         """
