@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 """
 This module defines the thermal expansion coefficient workflow.
@@ -54,7 +53,7 @@ def get_wf_thermal_expansion(structure, deformations, vasp_input_set=None, vasp_
     try:
         from phonopy import Phonopy
     except ImportError:
-        logger.warn("'phonopy' package NOT installed. Required for the final analysis step.")
+        logger.warning("'phonopy' package NOT installed. Required for the final analysis step.")
 
     tag = tag or "thermal_expansion group: >>{}<<".format(str(uuid4()))
 

@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 from atomate.utils.utils import get_database
 
@@ -57,7 +56,7 @@ class FixTasksBuilder(AbstractBuilder):
         logger.info("FixTasksBuilder finished.")
 
     def reset(self):
-        logger.warn("Cannot reset FixTasksBuilder!")
+        logger.warning("Cannot reset FixTasksBuilder!")
 
     @classmethod
     def from_file(cls, db_file, t="tasks", **kwargs):

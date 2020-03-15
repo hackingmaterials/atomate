@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 from pymatgen.io.vasp.sets import MVLScanRelaxSet
 
@@ -38,7 +37,6 @@ def wf_scan_opt(structure, c=None):
             "max_force_threshold": 0,
             "half_kpts_first_relax": half_kpts,
             "job_type": "metagga_opt_run",
-            "db_file": db_file,
             "vasp_cmd": vasp_cmd
         })
     wf = add_common_powerups(wf, c)

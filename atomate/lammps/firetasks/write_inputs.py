@@ -1,17 +1,14 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
-This module defines firetasks for writing LAMMPS input files (data file and the control 
+This module defines firetasks for writing LAMMPS input files (data file and the control
 parameters file)
 """
 
-import six
-
 from pymatgen import Molecule
-from pymatgen.io.lammps.data import LammpsData
-from pymatgen.io.lammps.inputs import LammpsInputSet
+# from pymatgen.io.lammps.data import LammpsData
+# from pymatgen.io.lammps.sets import LammpsInputSet
 
 from fireworks import FiretaskBase, explicit_serialize
 
@@ -34,15 +31,16 @@ class WriteInputFromIOSet(FiretaskBase):
 
     required_params = ["lammps_input_set", "input_filename"]
 
-    optional_params = ["data_filename", "output_dir"]
+    optional_params = ["data_filename"]
 
     def run_task(self, fw_spec):
 
         lammps_input_set = self["lammps_input_set"]
         input_filename = self["input_filename"]
-        data_filename = self.get("data_filename", "lammps.data")
-        output_dir = self.get("output_dir", '.')
-        lammps_input_set.write_input(input_filename=input_filename, output_dir=output_dir, data_filename=data_filename)
+        data_filename = self.get("data_filename", None)
+        if isinstance(lammps_input_set.lammps_data, dict):
+            lammps_input_set.lammps_data = LammpsData.from_dict(lammps_input_set.lammps_data)
+        lammps_input_set.write_input(input_filename, data_filename)
 
 
 @explicit_serialize
@@ -68,7 +66,7 @@ class WriteInputFromForceFieldAndTopology(FiretaskBase):
         # if the final molecule was generated using packmol
         if fw_spec.get("packed_mol", None):
             final_molecule = fw_spec["packed_mol"]
-        elif isinstance(final_molecule, six.string_types):
+        elif isinstance(final_molecule, str):
             final_molecule = Molecule.from_file(final_molecule)
 
         #molecules, mols_number, final_molecule
@@ -81,4 +79,3 @@ class WriteInputFromForceFieldAndTopology(FiretaskBase):
                                                     is_forcefield=True)
 
         lammps_input_set.write_input(input_filename, data_filename)
-

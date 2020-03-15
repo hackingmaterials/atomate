@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import json
 import os
@@ -34,6 +33,7 @@ from atomate.utils.utils import env_chk, get_meta_from_structure
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.drones import VaspDrone
+from atomate.vasp.config import STORE_VOLUMETRIC_DATA
 
 __author__ = 'Anubhav Jain, Kiran Mathew, Shyam Dwaraknath'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov'
@@ -54,6 +54,8 @@ class VaspToDb(FiretaskBase):
             search for the most recent calc_loc with the matching name
         parse_dos (bool): whether to parse the DOS and store in GridFS.
             Defaults to False.
+        parse_potcar_file (bool): Whether to parse the potcar file. Defaults to
+            True.
         bandstructure_mode (str): Set to "uniform" for uniform band structure.
             Set to "line" for line mode. If not set, band structure will not
             be parsed.
@@ -76,7 +78,9 @@ class VaspToDb(FiretaskBase):
     """
     optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
                        "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful",
-                       "task_fields_to_push", "parse_chgcar", "parse_aeccar"]
+                       "task_fields_to_push", "parse_chgcar", "parse_aeccar",
+                       "parse_potcar_file",
+                       "store_volumetric_data"]
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
@@ -91,9 +95,11 @@ class VaspToDb(FiretaskBase):
 
         drone = VaspDrone(additional_fields=self.get("additional_fields"),
                           parse_dos=self.get("parse_dos", False),
+                          parse_potcar_file=self.get("parse_potcar_file", True),
                           bandstructure_mode=self.get("bandstructure_mode", False),
-                          parse_chgcar=self.get("parse_chgcar", False),
-                          parse_aeccar=self.get("parse_aeccar", False))
+                          parse_chgcar=self.get("parse_chgcar", False),  # deprecated
+                          parse_aeccar=self.get("parse_aeccar", False),  # deprecated
+                          store_volumetric_data=self.get("store_volumetric_data", STORE_VOLUMETRIC_DATA))
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)
@@ -114,8 +120,9 @@ class VaspToDb(FiretaskBase):
             t_id = mmdb.insert_task(
                 task_doc, use_gridfs=self.get("parse_dos", False)
                 or bool(self.get("bandstructure_mode", False))
-                or self.get("parse_chgcar", False)
-                or self.get("parse_aeccar", False))
+                or self.get("parse_chgcar", False)  # deprecated
+                or self.get("parse_aeccar", False)  # deprecated
+                or bool(self.get("store_volumetric_data", STORE_VOLUMETRIC_DATA)))
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
         defuse_children = False
@@ -143,7 +150,7 @@ class VaspToDb(FiretaskBase):
                     if has(task_doc, path_in_task_doc):
                         update_spec[key] = get(task_doc, path_in_task_doc)
                     else:
-                        logger.warn("Could not find {} in task document. Unable to push to next firetask/firework".format(path_in_task_doc))
+                        logger.warning("Could not find {} in task document. Unable to push to next firetask/firework".format(path_in_task_doc))
             else:
                 raise RuntimeError("Inappropriate type {} for task_fields_to_push. It must be a "
                                    "dictionary of format: {key: path} where key refers to a field "
@@ -266,7 +273,7 @@ class ElasticTensorToDb(FiretaskBase):
     """
     Analyzes the stress/strain data of an elastic workflow to produce
     an elastic tensor and various other quantities.
-    
+
     Required params:
         structure (Structure): structure to use for symmetrization,
             input structure.  If an optimization was used, will
@@ -388,7 +395,7 @@ class ElasticTensorToDb(FiretaskBase):
             db.collection = db.db["elasticity"]
             db.collection.insert_one(d)
             logger.info("Elastic analysis complete.")
-        
+
         return FWAction()
 
 
@@ -443,7 +450,7 @@ class RamanTensorToDb(FiretaskBase):
             # frequency in cm^-1
             omega = nm_frequencies[k]
             if nm_eigenvals[k] > 0:
-                logger.warn("Mode: {} is UNSTABLE. Freq(cm^-1) = {}".format(k, -omega))
+                logger.warning("Mode: {} is UNSTABLE. Freq(cm^-1) = {}".format(k, -omega))
             raman_tensor = scale * raman_tensor * np.sum(nm_norms[k]) / np.sqrt(omega)
             raman_tensor_dict[str(k)] = raman_tensor.tolist()
 
@@ -575,7 +582,7 @@ class GibbsAnalysisToDb(FiretaskBase):
         except:
             import traceback
 
-            logger.warn("Quasi-harmonic analysis failed!")
+            logger.warning("Quasi-harmonic analysis failed!")
             gibbs_dict["success"] = False
             gibbs_dict["traceback"] = traceback.format_exc()
             gibbs_dict['metadata'].update({"task_label_tag": tag})
@@ -799,7 +806,7 @@ class MagneticOrderingsToDB(FiretaskBase):
         idx = energies.index(ground_state_energy)
         ground_state_task_id = docs[idx]["task_id"]
         if energies.count(ground_state_energy) > 1:
-            logger.warn("Multiple identical energies exist, "
+            logger.warning("Multiple identical energies exist, "
                         "duplicate calculations for {}?".format(formula))
 
         # get results for different orderings

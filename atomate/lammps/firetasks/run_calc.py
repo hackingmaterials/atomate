@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
 This module defines firetasks for running lammps
@@ -8,11 +7,12 @@ This module defines firetasks for running lammps
 
 import os
 import shutil
-from subprocess import call, PIPE
+
+# from pymatgen.io.lammps.utils import PackmolRunner, LammpsRunner
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
-from pymatgen.io.lammps.utils import PackmolRunner, LammpsRunner
-from atomate.utils.utils import get_logger, env_chk
+
+from atomate.utils.utils import get_logger
 
 __author__ = 'Kiran Mathew'
 __email__ = "kmathew@lbl.gov"
@@ -33,13 +33,12 @@ class RunLammpsDirect(FiretaskBase):
     required_params = ["lammps_cmd", "input_filename"]
 
     def run_task(self, fw_spec):
-        lammps_cmd = env_chk(self["lammps_cmd"], fw_spec)
+        lammps_cmd = self["lammps_cmd"]
         input_filename = self["input_filename"]
-        lammps_cmd = lammps_cmd + " < {}".format(input_filename)
+        lmps_runner = LammpsRunner(input_filename, lammps_cmd)
+        stdout, stderr = lmps_runner.run()
+        logger.info("LAMMPS finished running: {} \n {}".format(stdout, stderr))
 
-        logger.info("Running LAMMPS using exe: {}".format(lammps_cmd))
-        return_code = call(lammps_cmd, shell=True)
-        logger.info("LAMMPS finished running with returncode: {}".format(return_code))
 
 @explicit_serialize
 class RunLammpsFake(FiretaskBase):

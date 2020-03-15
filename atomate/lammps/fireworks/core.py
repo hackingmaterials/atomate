@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 """
 Defines fireworks to be incorporated into workflows.
@@ -47,10 +46,9 @@ class LammpsFW(Firework):
 
             RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename),
 
-            LammpsToDB(lammps_input_set=lammps_input_set, input_filename=input_filename,
-                       data_filename=data_filename, log_filename=log_filename,
-                       dump_filename=dump_filename, db_file=db_file,
-                       additional_fields={"task_label": name})
+            LammpsToDB(input_filename=input_filename, data_filename=data_filename,
+                       log_filename=log_filename, dump_filename=dump_filename,
+                       db_file=db_file, additional_fields={"task_label": name})
         ]
 
         super(LammpsFW, self).__init__(tasks, parents=parents, name=name, **kwargs)
