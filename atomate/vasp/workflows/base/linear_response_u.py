@@ -153,6 +153,9 @@ def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_s
                                vasp_cmd=VASP_CMD, db_file=DB_FILE)
         fws.append(fw)
 
+    wf = Workflow(fws)
+    # Needed here?
+    wf = add_common_powerups(wf, c)
 
     fw_analysis = Firework(
         LinearResponseUToDb(
@@ -161,9 +164,8 @@ def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_s
         name="LinearResponseUToDb",
     )
 
-    fws.append(fw_analysis)
+    wf.append_wf(Workflow.from_Firework(fw_analysis), wf.leaf_fw_ids)
 
-    wf = Workflow(fws)
     wf = add_common_powerups(wf, c)
 
     # if c.get("ADD_WF_METADATA", ADD_WF_METADATA):

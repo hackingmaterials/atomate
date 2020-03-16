@@ -764,7 +764,7 @@ class ThermalExpansionCoeffToDb(FiretaskBase):
 @explicit_serialize
 class LinearResponseUToDb(FiretaskBase):
     """
-    optional_params:
+    required_params:
         db_file (str): path to the db file
     """
 
@@ -781,18 +781,66 @@ class LinearResponseUToDb(FiretaskBase):
 
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
-        # get ground state energy
-        task_label_regex = 'scf'
-        docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid,
-                                          "task_label": {"$regex": task_label_regex}}))
+        keys = ['Ground state', 'NSCF', 'SCF']
+        regexps = ['initial', '^nscf', '^scf']
+        response_dict = {}
 
-        for d in docs:
-            nd_scf = d["output"]["outcar"]["charge"][0]['d']
+        for key, task_label_regex in zip(keys, regexps):
 
-        summary = {
-            "nd scf": nd_scf
-        }
- 
+            docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid,
+                                              "task_label": {"$regex": task_label_regex}}))
+
+            # isdocs = False
+            # if docs:
+            #     isdocs = True
+
+            v = []
+            nd = []
+            for d in docs:
+                nd.append(float(d['calcs_reversed'][0]['output']['outcar']['charge'][0]['d']))
+                if key != keys[0]:
+                    v.append(float(d['calcs_reversed'][0]['input']['incar']['LDAUU'][0]))
+                elif key == keys[0]:
+                    v.append(0.0)
+
+            response_dict.update({key: {'V': v, 'Nd': nd}})
+            
+        for k in ['V', 'Nd']:
+            for i in [1, 2]:
+                response_dict[keys[i]][k].extend(response_dict[keys[0]][k])
+
+        for key in keys:
+
+            v, nd = [], []
+
+            if response_dict[key]['Nd']:
+                
+                v  = response_dict[key]['V']
+                nd = response_dict[key]['Nd']
+
+                if (len(v) == len(nd)):
+                    v, nd = (list(t) for t in zip(*sorted(zip(v, nd))))
+
+            response_dict.update({key: {'V': v, 'Nd': nd}})
+            
+        if response_dict[keys[1]]['Nd'] and response_dict[keys[2]]['Nd']:
+
+            lambda_nscf = np.polyfit(response_dict[keys[1]]['V'], response_dict[keys[1]]['Nd'], 1)[0]
+            lambda_scf  = np.polyfit(response_dict[keys[2]]['V'], response_dict[keys[2]]['Nd'], 1)[0]
+
+            U = 1.0/lambda_scf - 1.0/lambda_nscf
+
+        else:
+            
+            lambda_nscf, lambda_scf, U = float('nan'), float('nan'), float('nan')
+            
+        summaries = []
+
+        summary = {}
+        summary.update({'datapoints': response_dict})
+        summary.update({'fit': {'lambda - NSCF': lambda_nscf, 'lambda - SCF': lambda_scf}})
+        summary.update({'U': U})
+        
         if fw_spec.get("tags", None):
             summary["tags"] = fw_spec["tags"]
 
@@ -802,7 +850,7 @@ class LinearResponseUToDb(FiretaskBase):
         mmdb.collection.insert(summaries)
 
         logger.info("Linear regression analysis is complete.")
-            
+
 @explicit_serialize
 class MagneticOrderingsToDB(FiretaskBase):
     """
