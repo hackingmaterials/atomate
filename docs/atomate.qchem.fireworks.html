@@ -1,18 +1,17 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>atomate.qchem.fireworks package &#8212; atomate 0.9.1 documentation</title>
+    <meta charset="utf-8" />
+    <title>atomate.qchem.fireworks package &#8212; atomate 0.9.4 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
  
@@ -28,7 +27,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -46,32 +45,29 @@
 <span id="atomate-qchem-fireworks-core-module"></span><h2>atomate.qchem.fireworks.core module<a class="headerlink" href="#module-atomate.qchem.fireworks.core" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="atomate.qchem.fireworks.core.FragmentFW">
-<em class="property">class </em><code class="descclassname">atomate.qchem.fireworks.core.</code><code class="descname">FragmentFW</code><span class="sig-paren">(</span><em>molecule=None</em>, <em>depth=1</em>, <em>open_rings=True</em>, <em>additional_charges=None</em>, <em>do_triplets=True</em>, <em>name='fragment and optimize'</em>, <em>qchem_cmd='&gt;&gt;qchem_cmd&lt;&lt;'</em>, <em>multimode='&gt;&gt;multimode&lt;&lt;'</em>, <em>max_cores='&gt;&gt;max_cores&lt;&lt;'</em>, <em>qchem_input_params=None</em>, <em>db_file=None</em>, <em>check_db=True</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.FragmentFW" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">atomate.qchem.fireworks.core.</code><code class="sig-name descname">FragmentFW</code><span class="sig-paren">(</span><em class="sig-param">molecule=None</em>, <em class="sig-param">depth=1</em>, <em class="sig-param">open_rings=True</em>, <em class="sig-param">additional_charges=None</em>, <em class="sig-param">do_triplets=True</em>, <em class="sig-param">linked=False</em>, <em class="sig-param">name='fragment and optimize'</em>, <em class="sig-param">qchem_input_params=None</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">check_db=True</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.FragmentFW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.Firework</span></code></p>
 <dl class="method">
 <dt id="atomate.qchem.fireworks.core.FragmentFW.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>molecule=None</em>, <em>depth=1</em>, <em>open_rings=True</em>, <em>additional_charges=None</em>, <em>do_triplets=True</em>, <em>name='fragment and optimize'</em>, <em>qchem_cmd='&gt;&gt;qchem_cmd&lt;&lt;'</em>, <em>multimode='&gt;&gt;multimode&lt;&lt;'</em>, <em>max_cores='&gt;&gt;max_cores&lt;&lt;'</em>, <em>qchem_input_params=None</em>, <em>db_file=None</em>, <em>check_db=True</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.FragmentFW.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">molecule=None</em>, <em class="sig-param">depth=1</em>, <em class="sig-param">open_rings=True</em>, <em class="sig-param">additional_charges=None</em>, <em class="sig-param">do_triplets=True</em>, <em class="sig-param">linked=False</em>, <em class="sig-param">name='fragment and optimize'</em>, <em class="sig-param">qchem_input_params=None</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">check_db=True</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.FragmentFW.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fragment the given structure and optimize all unique fragments</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><p class="first">molecule (Molecule): Input molecule.
+<dl>
+<dt>Args:</dt><dd><p>molecule (Molecule): Input molecule.
 depth (int): Fragmentation depth. Defaults to 1. See fragmenter firetask for more details.
 open_rings (bool): Whether or not to open any rings encountered during fragmentation.</p>
 <blockquote>
-<div>Defaults to True. See fragmenter firetask for more details.</div></blockquote>
-<dl class="docutils">
-<dt>additional_charges (list): List of additional charges besides the defaults. See fragmenter</dt>
-<dd>firetask for more details.</dd>
-<dt>do_triplets (bool): Whether to simulate triplets as well as singlets for molecules with an</dt>
-<dd>even number of electrons. Defaults to True.</dd>
+<div><p>Defaults to True. See fragmenter firetask for more details.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>additional_charges (list): List of additional charges besides the defaults. See fragmenter</dt><dd><p>firetask for more details.</p>
+</dd>
+<dt>do_triplets (bool): Whether to simulate triplets as well as singlets for molecules with an</dt><dd><p>even number of electrons. Defaults to True.</p>
+</dd>
 </dl>
 <p>name (str): Name for the Firework.
-qchem_cmd (str): Command to run QChem. Supports env_chk.
-multimode (str): Parallelization scheme, either openmp or mpi. Supports env_chk.
-max_cores (int): Maximum number of cores to parallelize over. Supports env_chk.
 qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.</p>
 <blockquote>
-<div>Basic uses would be to modify the default inputs of the set,
+<div><p>Basic uses would be to modify the default inputs of the set,
 such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
 or max_scf_cycles. See pymatgen/io/qchem/sets.py for default
 values of all input parameters. For instance, if a user wanted
@@ -87,12 +83,14 @@ set the sym_ignore flag in the rem section of the input file
 to true, then they would set qchem_input_params = {“overwrite_inputs”:
 “rem”: {“sym_ignore”: “true”}}. Of course, overwrite_inputs
 could be used in conjuction with more typical modifications,
-as seen in the test_double_FF_opt workflow test.</div></blockquote>
+as seen in the test_double_FF_opt workflow test.</p>
+</div></blockquote>
 <p>db_file (str): Path to file specifying db credentials to place output parsing.
 check_db (bool): Whether or not to check the database for equivalent structures</p>
 <blockquote>
-<div>before adding new fragment fireworks. Defaults to True.</div></blockquote>
-<p class="last">parents ([Firework]): Parents of this particular Firework.
+<div><p>before adding new fragment fireworks. Defaults to True.</p>
+</div></blockquote>
+<p>parents ([Firework]): Parents of this particular Firework.
 <a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs: Other kwargs that are passed to Firework.__init__.</p>
 </dd>
 </dl>
@@ -101,24 +99,22 @@ check_db (bool): Whether or not to check the database for equivalent structures<
 </dd></dl>
 
 <dl class="class">
-<dt id="atomate.qchem.fireworks.core.FrequencyFlatteningOptimizeFW">
-<em class="property">class </em><code class="descclassname">atomate.qchem.fireworks.core.</code><code class="descname">FrequencyFlatteningOptimizeFW</code><span class="sig-paren">(</span><em>molecule=None</em>, <em>name='frequency flattening structure optimization'</em>, <em>qchem_cmd='&gt;&gt;qchem_cmd&lt;&lt;'</em>, <em>multimode='&gt;&gt;multimode&lt;&lt;'</em>, <em>max_cores='&gt;&gt;max_cores&lt;&lt;'</em>, <em>qchem_input_params=None</em>, <em>max_iterations=10</em>, <em>max_molecule_perturb_scale=0.3</em>, <em>reversed_direction=False</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.FrequencyFlatteningOptimizeFW" title="Permalink to this definition">¶</a></dt>
+<dt id="atomate.qchem.fireworks.core.FrequencyFW">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.qchem.fireworks.core.</code><code class="sig-name descname">FrequencyFW</code><span class="sig-paren">(</span><em class="sig-param">molecule=None</em>, <em class="sig-param">name='frequency calculation'</em>, <em class="sig-param">qchem_cmd='&gt;&gt;qchem_cmd&lt;&lt;'</em>, <em class="sig-param">multimode='&gt;&gt;multimode&lt;&lt;'</em>, <em class="sig-param">max_cores='&gt;&gt;max_cores&lt;&lt;'</em>, <em class="sig-param">qchem_input_params=None</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.FrequencyFW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.Firework</span></code></p>
 <dl class="method">
-<dt id="atomate.qchem.fireworks.core.FrequencyFlatteningOptimizeFW.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>molecule=None</em>, <em>name='frequency flattening structure optimization'</em>, <em>qchem_cmd='&gt;&gt;qchem_cmd&lt;&lt;'</em>, <em>multimode='&gt;&gt;multimode&lt;&lt;'</em>, <em>max_cores='&gt;&gt;max_cores&lt;&lt;'</em>, <em>qchem_input_params=None</em>, <em>max_iterations=10</em>, <em>max_molecule_perturb_scale=0.3</em>, <em>reversed_direction=False</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.FrequencyFlatteningOptimizeFW.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Iteratively optimize the given structure and flatten imaginary frequencies to ensure that
-the resulting structure is a true minima and not a saddle point.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><p class="first">molecule (Molecule): Input molecule.
+<dt id="atomate.qchem.fireworks.core.FrequencyFW.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">molecule=None</em>, <em class="sig-param">name='frequency calculation'</em>, <em class="sig-param">qchem_cmd='&gt;&gt;qchem_cmd&lt;&lt;'</em>, <em class="sig-param">multimode='&gt;&gt;multimode&lt;&lt;'</em>, <em class="sig-param">max_cores='&gt;&gt;max_cores&lt;&lt;'</em>, <em class="sig-param">qchem_input_params=None</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.FrequencyFW.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optimize the given structure.</p>
+<dl>
+<dt>Args:</dt><dd><p>molecule (Molecule): Input molecule.
 name (str): Name for the Firework.
 qchem_cmd (str): Command to run QChem. Supports env_chk.
-multimode (str): Parallelization scheme, either openmp or mpi. Supports env_chk.
+multimode (str): Parallelization scheme, either openmp or mpi. Defaults to openmp.
 max_cores (int): Maximum number of cores to parallelize over. Supports env_chk.
 qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.</p>
 <blockquote>
-<div>Basic uses would be to modify the default inputs of the set,
+<div><p>Basic uses would be to modify the default inputs of the set,
 such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
 or max_scf_cycles. See pymatgen/io/qchem/sets.py for default
 values of all input parameters. For instance, if a user wanted
@@ -134,16 +130,9 @@ set the sym_ignore flag in the rem section of the input file
 to true, then they would set qchem_input_params = {“overwrite_inputs”:
 “rem”: {“sym_ignore”: “true”}}. Of course, overwrite_inputs
 could be used in conjuction with more typical modifications,
-as seen in the test_double_FF_opt workflow test.</div></blockquote>
-<dl class="docutils">
-<dt>max_iterations (int): Number of perturbation -&gt; optimization -&gt; frequency</dt>
-<dd>iterations to perform. Defaults to 10.</dd>
-<dt>max_molecule_perturb_scale (float): The maximum scaled perturbation that can be</dt>
-<dd>applied to the molecule. Defaults to 0.3.</dd>
-<dt>reversed_direction (bool): Whether to reverse the direction of the vibrational</dt>
-<dd>frequency vectors. Defaults to False.</dd>
-</dl>
-<p class="last">db_file (str): Path to file specifying db credentials to place output parsing.
+as seen in the test_double_FF_opt workflow test.</p>
+</div></blockquote>
+<p>db_file (str): Path to file specifying db credentials to place output parsing.
 parents ([Firework]): Parents of this particular Firework.
 <a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs: Other kwargs that are passed to Firework.__init__.</p>
 </dd>
@@ -153,23 +142,23 @@ parents ([Firework]): Parents of this particular Firework.
 </dd></dl>
 
 <dl class="class">
-<dt id="atomate.qchem.fireworks.core.OptimizeFW">
-<em class="property">class </em><code class="descclassname">atomate.qchem.fireworks.core.</code><code class="descname">OptimizeFW</code><span class="sig-paren">(</span><em>molecule=None</em>, <em>name='structure optimization'</em>, <em>qchem_cmd='&gt;&gt;qchem_cmd&lt;&lt;'</em>, <em>multimode='&gt;&gt;multimode&lt;&lt;'</em>, <em>max_cores='&gt;&gt;max_cores&lt;&lt;'</em>, <em>qchem_input_params=None</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.OptimizeFW" title="Permalink to this definition">¶</a></dt>
+<dt id="atomate.qchem.fireworks.core.FrequencyFlatteningOptimizeFW">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.qchem.fireworks.core.</code><code class="sig-name descname">FrequencyFlatteningOptimizeFW</code><span class="sig-paren">(</span><em class="sig-param">molecule=None</em>, <em class="sig-param">name='frequency flattening structure optimization'</em>, <em class="sig-param">qchem_cmd='&gt;&gt;qchem_cmd&lt;&lt;'</em>, <em class="sig-param">multimode='&gt;&gt;multimode&lt;&lt;'</em>, <em class="sig-param">max_cores='&gt;&gt;max_cores&lt;&lt;'</em>, <em class="sig-param">qchem_input_params=None</em>, <em class="sig-param">max_iterations=10</em>, <em class="sig-param">max_molecule_perturb_scale=0.3</em>, <em class="sig-param">linked=False</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.FrequencyFlatteningOptimizeFW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.Firework</span></code></p>
 <dl class="method">
-<dt id="atomate.qchem.fireworks.core.OptimizeFW.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>molecule=None</em>, <em>name='structure optimization'</em>, <em>qchem_cmd='&gt;&gt;qchem_cmd&lt;&lt;'</em>, <em>multimode='&gt;&gt;multimode&lt;&lt;'</em>, <em>max_cores='&gt;&gt;max_cores&lt;&lt;'</em>, <em>qchem_input_params=None</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.OptimizeFW.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Optimize the given structure.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><p class="first">molecule (Molecule): Input molecule.
+<dt id="atomate.qchem.fireworks.core.FrequencyFlatteningOptimizeFW.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">molecule=None</em>, <em class="sig-param">name='frequency flattening structure optimization'</em>, <em class="sig-param">qchem_cmd='&gt;&gt;qchem_cmd&lt;&lt;'</em>, <em class="sig-param">multimode='&gt;&gt;multimode&lt;&lt;'</em>, <em class="sig-param">max_cores='&gt;&gt;max_cores&lt;&lt;'</em>, <em class="sig-param">qchem_input_params=None</em>, <em class="sig-param">max_iterations=10</em>, <em class="sig-param">max_molecule_perturb_scale=0.3</em>, <em class="sig-param">linked=False</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.FrequencyFlatteningOptimizeFW.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iteratively optimize the given structure and flatten imaginary frequencies to ensure that
+the resulting structure is a true minima and not a saddle point.</p>
+<dl>
+<dt>Args:</dt><dd><p>molecule (Molecule): Input molecule.
 name (str): Name for the Firework.
 qchem_cmd (str): Command to run QChem. Supports env_chk.
-multimode (str): Parallelization scheme, either openmp or mpi. Defaults to openmp.
+multimode (str): Parallelization scheme, either openmp or mpi. Supports env_chk.
 max_cores (int): Maximum number of cores to parallelize over. Supports env_chk.
 qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.</p>
 <blockquote>
-<div>Basic uses would be to modify the default inputs of the set,
+<div><p>Basic uses would be to modify the default inputs of the set,
 such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
 or max_scf_cycles. See pymatgen/io/qchem/sets.py for default
 values of all input parameters. For instance, if a user wanted
@@ -185,8 +174,15 @@ set the sym_ignore flag in the rem section of the input file
 to true, then they would set qchem_input_params = {“overwrite_inputs”:
 “rem”: {“sym_ignore”: “true”}}. Of course, overwrite_inputs
 could be used in conjuction with more typical modifications,
-as seen in the test_double_FF_opt workflow test.</div></blockquote>
-<p class="last">db_file (str): Path to file specifying db credentials to place output parsing.
+as seen in the test_double_FF_opt workflow test.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>max_iterations (int): Number of perturbation -&gt; optimization -&gt; frequency</dt><dd><p>iterations to perform. Defaults to 10.</p>
+</dd>
+<dt>max_molecule_perturb_scale (float): The maximum scaled perturbation that can be</dt><dd><p>applied to the molecule. Defaults to 0.3.</p>
+</dd>
+</dl>
+<p>db_file (str): Path to file specifying db credentials to place output parsing.
 parents ([Firework]): Parents of this particular Firework.
 <a href="#id5"><span class="problematic" id="id6">**</span></a>kwargs: Other kwargs that are passed to Firework.__init__.</p>
 </dd>
@@ -196,22 +192,22 @@ parents ([Firework]): Parents of this particular Firework.
 </dd></dl>
 
 <dl class="class">
-<dt id="atomate.qchem.fireworks.core.SinglePointFW">
-<em class="property">class </em><code class="descclassname">atomate.qchem.fireworks.core.</code><code class="descname">SinglePointFW</code><span class="sig-paren">(</span><em>molecule=None</em>, <em>name='single point'</em>, <em>qchem_cmd='&gt;&gt;qchem_cmd&lt;&lt;'</em>, <em>multimode='&gt;&gt;multimode&lt;&lt;'</em>, <em>max_cores='&gt;&gt;max_cores&lt;&lt;'</em>, <em>qchem_input_params=None</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.SinglePointFW" title="Permalink to this definition">¶</a></dt>
+<dt id="atomate.qchem.fireworks.core.OptimizeFW">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.qchem.fireworks.core.</code><code class="sig-name descname">OptimizeFW</code><span class="sig-paren">(</span><em class="sig-param">molecule=None</em>, <em class="sig-param">name='structure optimization'</em>, <em class="sig-param">qchem_cmd='&gt;&gt;qchem_cmd&lt;&lt;'</em>, <em class="sig-param">multimode='&gt;&gt;multimode&lt;&lt;'</em>, <em class="sig-param">max_cores='&gt;&gt;max_cores&lt;&lt;'</em>, <em class="sig-param">qchem_input_params=None</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.OptimizeFW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.Firework</span></code></p>
 <dl class="method">
-<dt id="atomate.qchem.fireworks.core.SinglePointFW.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>molecule=None</em>, <em>name='single point'</em>, <em>qchem_cmd='&gt;&gt;qchem_cmd&lt;&lt;'</em>, <em>multimode='&gt;&gt;multimode&lt;&lt;'</em>, <em>max_cores='&gt;&gt;max_cores&lt;&lt;'</em>, <em>qchem_input_params=None</em>, <em>db_file=None</em>, <em>parents=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.SinglePointFW.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Args:</dt>
-<dd><p class="first">molecule (Molecule): Input molecule.
+<dt id="atomate.qchem.fireworks.core.OptimizeFW.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">molecule=None</em>, <em class="sig-param">name='structure optimization'</em>, <em class="sig-param">qchem_cmd='&gt;&gt;qchem_cmd&lt;&lt;'</em>, <em class="sig-param">multimode='&gt;&gt;multimode&lt;&lt;'</em>, <em class="sig-param">max_cores='&gt;&gt;max_cores&lt;&lt;'</em>, <em class="sig-param">qchem_input_params=None</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.OptimizeFW.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optimize the given structure.</p>
+<dl>
+<dt>Args:</dt><dd><p>molecule (Molecule): Input molecule.
 name (str): Name for the Firework.
 qchem_cmd (str): Command to run QChem. Supports env_chk.
-multimode (str): Parallelization scheme, either openmp or mpi. Supports env_chk.
+multimode (str): Parallelization scheme, either openmp or mpi. Defaults to openmp.
 max_cores (int): Maximum number of cores to parallelize over. Supports env_chk.
 qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.</p>
 <blockquote>
-<div>Basic uses would be to modify the default inputs of the set,
+<div><p>Basic uses would be to modify the default inputs of the set,
 such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
 or max_scf_cycles. See pymatgen/io/qchem/sets.py for default
 values of all input parameters. For instance, if a user wanted
@@ -227,10 +223,53 @@ set the sym_ignore flag in the rem section of the input file
 to true, then they would set qchem_input_params = {“overwrite_inputs”:
 “rem”: {“sym_ignore”: “true”}}. Of course, overwrite_inputs
 could be used in conjuction with more typical modifications,
-as seen in the test_double_FF_opt workflow test.</div></blockquote>
-<p class="last">db_file (str): Path to file specifying db credentials to place output parsing.
+as seen in the test_double_FF_opt workflow test.</p>
+</div></blockquote>
+<p>db_file (str): Path to file specifying db credentials to place output parsing.
 parents ([Firework]): Parents of this particular Firework.
 <a href="#id7"><span class="problematic" id="id8">**</span></a>kwargs: Other kwargs that are passed to Firework.__init__.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.qchem.fireworks.core.SinglePointFW">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.qchem.fireworks.core.</code><code class="sig-name descname">SinglePointFW</code><span class="sig-paren">(</span><em class="sig-param">molecule=None</em>, <em class="sig-param">name='single point'</em>, <em class="sig-param">qchem_cmd='&gt;&gt;qchem_cmd&lt;&lt;'</em>, <em class="sig-param">multimode='&gt;&gt;multimode&lt;&lt;'</em>, <em class="sig-param">max_cores='&gt;&gt;max_cores&lt;&lt;'</em>, <em class="sig-param">qchem_input_params=None</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.SinglePointFW" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.Firework</span></code></p>
+<dl class="method">
+<dt id="atomate.qchem.fireworks.core.SinglePointFW.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">molecule=None</em>, <em class="sig-param">name='single point'</em>, <em class="sig-param">qchem_cmd='&gt;&gt;qchem_cmd&lt;&lt;'</em>, <em class="sig-param">multimode='&gt;&gt;multimode&lt;&lt;'</em>, <em class="sig-param">max_cores='&gt;&gt;max_cores&lt;&lt;'</em>, <em class="sig-param">qchem_input_params=None</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.fireworks.core.SinglePointFW.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Args:</dt><dd><p>molecule (Molecule): Input molecule.
+name (str): Name for the Firework.
+qchem_cmd (str): Command to run QChem. Supports env_chk.
+multimode (str): Parallelization scheme, either openmp or mpi. Supports env_chk.
+max_cores (int): Maximum number of cores to parallelize over. Supports env_chk.
+qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.</p>
+<blockquote>
+<div><p>Basic uses would be to modify the default inputs of the set,
+such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
+or max_scf_cycles. See pymatgen/io/qchem/sets.py for default
+values of all input parameters. For instance, if a user wanted
+to use a more advanced DFT functional, include a pcm with a
+dielectric of 30, and use a larger basis, the user would set
+qchem_input_params = {“dft_rung”: 5, “pcm_dielectric”: 30,
+“basis_set”: “6-311++g**”}. However, more advanced customization
+of the input is also possible through the overwrite_inputs key
+which allows the user to directly modify the rem, pcm, smd, and
+solvent dictionaries that QChemDictSet passes to inputs.py to
+print an actual input file. For instance, if a user wanted to
+set the sym_ignore flag in the rem section of the input file
+to true, then they would set qchem_input_params = {“overwrite_inputs”:
+“rem”: {“sym_ignore”: “true”}}. Of course, overwrite_inputs
+could be used in conjuction with more typical modifications,
+as seen in the test_double_FF_opt workflow test.</p>
+</div></blockquote>
+<p>db_file (str): Path to file specifying db credentials to place output parsing.
+parents ([Firework]): Parents of this particular Firework.
+<a href="#id9"><span class="problematic" id="id10">**</span></a>kwargs: Other kwargs that are passed to Firework.__init__.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -267,13 +306,11 @@ parents ([Firework]): Parents of this particular Firework.
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -291,13 +328,13 @@ parents ([Firework]): Parents of this particular Firework.
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
     </div>
 
   </body>

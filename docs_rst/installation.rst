@@ -226,6 +226,16 @@ The ``db.json`` file tells atomate the location and credentials of the MongoDB s
         "aliases": {}
     }
 
+If you want to test whether your ``db.json`` is set up correctly (**and you do not mind resetting your database!!**)), try running the Python script below in the directory with your ``db.json`` file:
+
+.. code-block:: python
+
+    from atomate.vasp.database import VaspCalcDb
+    x = VaspCalcDb.from_db_file("db.json")
+    x.reset()
+    print("SUCCESS")
+
+
 my_fworker.yaml
 ---------------
 
@@ -281,6 +291,10 @@ Here's what you'll need to fill out:
 You can optionally set ``logdir`` to your ``<<INSTALL_DIR>>/logs`` directory, although you shouldn't need them. The ``strm_lvl`` sets the verbosity of the log and ``user_indices`` and ``wf_user_indices`` can be used to speed up targeted database queries if your project grows very large and queries are slow.
 
 **Note**: If you prefer to use the same database for FireWorks and calculation outputs, these values will largely be duplicated with ``db.json`` (this is what our tutorial is assuming). If you prefer to use different databases for workflows and calculation outputs, the information here will be different than ``db.json``.
+
+If you want to test whether your ``my_launchpad.yaml`` is set up correctly (**and you do not mind resetting your database!!**)), try executing the following command in the command line::
+
+    lpad -l my_launchpad.yaml reset
 
 my_qadapter.yaml
 ----------------
@@ -609,5 +623,5 @@ The non-reservation mode for qlaunching requires a little less maintenance with 
 Q: I honestly tried everything I can to solve my problem. I still need help!
 ----------------------------------------------------------------------------
 
-:A: There is a Google group for atomate: https://groups.google.com/forum/#!forum/atomate
+:A: There is a support forum for atomate: https://discuss.matsci.org/c/atomate
 

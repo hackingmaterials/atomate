@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 # This module defines a task that returns all fragments of a molecule
 
@@ -77,7 +76,8 @@ class FragmentMolecule(FiretaskBase):
                                    would not cause any new charges to be calculated as they are
                                    already done. Defaults to [].
         do_triplets (bool): Whether to simulate triplets as well as singlets for molecules with
-                            an even number of electrons. Defaults to True.
+                            an even number of electrons. Defaults to False.
+        linked (bool): If True, use a linked FFopt. If False, use the original. Defaults to True.
         qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
                                    Basic uses would be to modify the default inputs of the set,
                                    such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
@@ -103,7 +103,7 @@ class FragmentMolecule(FiretaskBase):
     """
 
     optional_params = [
-        "molecule", "edges", "depth", "open_rings", "opt_steps", "additional_charges", "do_triplets", "qchem_input_params", "db_file", "check_db"
+        "molecule", "edges", "depth", "open_rings", "opt_steps", "additional_charges", "do_triplets", "linked", "qchem_input_params", "db_file", "check_db"
     ]
 
     def run_task(self, fw_spec):
@@ -121,7 +121,8 @@ class FragmentMolecule(FiretaskBase):
 
         self.depth = self.get("depth", 1)
         additional_charges = self.get("additional_charges", [])
-        self.do_triplets = self.get("do_triplets", True)
+        self.do_triplets = self.get("do_triplets", False)
+        self.linked = self.get("linked", True)
         self.qchem_input_params = self.get("qchem_input_params", {})
 
         # Specify charges to consider based on charge of the principle molecule:
@@ -143,8 +144,10 @@ class FragmentMolecule(FiretaskBase):
 
         # Obtain fragments from Pymatgen's fragmenter:
         fragmenter = Fragmenter(molecule=molecule, edges=self.get("edges", None), depth=self.depth, open_rings=self.get("open_rings", True), opt_steps=self.get("opt_steps", 10000))
-        self.unique_fragments = fragmenter.unique_fragments
-        self.unique_fragments_from_ring_openings = fragmenter.unique_fragments_from_ring_openings
+        self.unique_fragments = []
+        for key in fragmenter.unique_frag_dict:
+            for frag in fragmenter.unique_frag_dict[key]:
+                self.unique_fragments.append(frag)
 
         # Convert fragment molecule graphs into molecule objects with charges given in self.charges
         self._build_unique_relevant_molecules()
@@ -178,37 +181,14 @@ class FragmentMolecule(FiretaskBase):
         """
         Convert unique fragments, aka molecule graph objects, into molecule objects with
         a range of charges as defined by self.charges. Builds self.unique_molecules, which
-        is then used to generate the new fireworks. Note that for fragments which come
-        exclusively from ring opening, as tracked by self.unique_fragments_from_ring_openings,
-        only the charge of the principle molecule is considered if using an iterative
-        fragmentation scheme, in which case we assume the user cares about minimizing the
-        number of total optimization calculations. This can be rationalized because clearly
-        no charge separation will occur due to fragmentation since only one molecule remains
-        after bond breakage. Regardless, when using the non-iterative scheme, we do include
-        all charges of fragments generated from ring opening given the user's desire for
-        absolute coverage of all potential reactions that may occur during fragmentation.
+        is then used to generate the new fireworks.
         """
         self.unique_molecules = []
         for unique_fragment in self.unique_fragments:
-            if self.depth != 0:
-                found = False
-                for fragment in self.unique_fragments_from_ring_openings:
-                    if fragment.isomorphic_to(unique_fragment):
-                        found = True
-                if found:
-                    this_molecule = copy.deepcopy(unique_fragment.molecule)
-                    this_molecule.set_charge_and_spin(charge=self.principle_charge)
-                    self.unique_molecules.append(this_molecule)
-                else:
-                    for charge in self.charges:
-                        this_molecule = copy.deepcopy(unique_fragment.molecule)
-                        this_molecule.set_charge_and_spin(charge=charge)
-                        self.unique_molecules.append(this_molecule)
-            else:
-                for charge in self.charges:
-                    this_molecule = copy.deepcopy(unique_fragment.molecule)
-                    this_molecule.set_charge_and_spin(charge=charge)
-                    self.unique_molecules.append(this_molecule)
+            for charge in self.charges:
+                this_molecule = copy.deepcopy(unique_fragment.molecule)
+                this_molecule.set_charge_and_spin(charge=charge)
+                self.unique_molecules.append(this_molecule)
         if self.do_triplets:
             for unique_molecule in self.unique_molecules:
                 if unique_molecule.spin_multiplicity == 1:
@@ -228,13 +208,11 @@ class FragmentMolecule(FiretaskBase):
         # otherwise, look through the docs for an entry with an isomorphic molecule with
         # equivalent charge and multiplicity
         else:
-            new_mol_graph = MoleculeGraph.with_local_env_strategy(molecule, OpenBabelNN(),
-                                                                  reorder=False, extend_structure=False)
+            new_mol_graph = MoleculeGraph.with_local_env_strategy(molecule, OpenBabelNN())
             for doc in self.all_relevant_docs:
                 if molecule.composition.reduced_formula == doc["formula_pretty"]:
                     old_mol = Molecule.from_dict(doc["input"]["initial_molecule"])
-                    old_mol_graph = MoleculeGraph.with_local_env_strategy(old_mol, OpenBabelNN(),
-                                                                          reorder=False, extend_structure=False)
+                    old_mol_graph = MoleculeGraph.with_local_env_strategy(old_mol, OpenBabelNN())
                     # If such an equivalent molecule is found, return true
                     if new_mol_graph.isomorphic_to(old_mol_graph) and molecule.charge == old_mol_graph.molecule.charge and molecule.spin_multiplicity == old_mol_graph.molecule.spin_multiplicity:
                         return True
@@ -269,5 +247,6 @@ class FragmentMolecule(FiretaskBase):
                             qchem_cmd=">>qchem_cmd<<",
                             max_cores=">>max_cores<<",
                             qchem_input_params=self.qchem_input_params,
+                            linked=self.linked,
                             db_file=">>db_file<<"))
         return new_FWs

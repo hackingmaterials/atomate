@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import json
 import os
@@ -67,7 +66,9 @@ class QChemToDb(FiretaskBase):
         # parse the QChem directory
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
 
-        drone = QChemDrone(additional_fields=self.get("additional_fields"))
+        additional_fields = self.get("additional_fields", [])
+
+        drone = QChemDrone(additional_fields=additional_fields)
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(
@@ -76,15 +77,22 @@ class QChemToDb(FiretaskBase):
             output_file=output_file,
             multirun=multirun)
 
+        if "tags" in fw_spec:
+            task_doc.update({"tags": fw_spec["tags"]})
+
         # Check for additional keys to set based on the fw_spec
         if self.get("fw_spec_field"):
-            task_doc.update(fw_spec[self.get("fw_spec_field")])
+            task_doc.update({self.get("fw_spec_field"): fw_spec.get(self.get("fw_spec_field"))})
 
         # Update fw_spec with final/optimized structure
         update_spec = {}
         if task_doc.get("output").get("optimized_molecule"):
-            update_spec["prev_calc_molecule"] = task_doc["output"][
-                "optimized_molecule"]
+            update_spec["prev_calc_molecule"] = task_doc["output"]["optimized_molecule"]
+            update_spec["prev_calc_mulliken"] = task_doc["output"]["mulliken"]
+            if "RESP" in task_doc["output"]:
+                update_spec["prev_calc_resp"] = task_doc["output"]["RESP"]
+            elif "ESP" in task_doc["output"]:
+                update_spec["prev_calc_esp"] = task_doc["output"]["ESP"]
 
         # get the database connection
         db_file = env_chk(self.get("db_file"), fw_spec)

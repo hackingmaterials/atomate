@@ -6,12 +6,12 @@ Subpackages
 
 .. toctree::
 
-    atomate.common.firetasks
+   atomate.common.firetasks
 
 Module contents
 ---------------
 
 .. automodule:: atomate.common
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

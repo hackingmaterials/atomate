@@ -2,9 +2,6 @@
 # Copyright (c) Materials Virtual Lab.
 # Distributed under the terms of the BSD License.
 
-from __future__ import division, print_function, unicode_literals, \
-    absolute_import
-
 import os
 import unittest
 
@@ -158,6 +155,15 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
         cc = doc['calcs_reversed'][0]['aeccar2']
         self.assertAlmostEqual(cc.data['total'].sum()/cc.ngridpts, 8.01314480789829, 4)
 
+    def test_parse_potcar(self):
+        # by default, POTCAR should be loaded
+        drone = VaspDrone()
+        doc = drone.assimilate(self.Si_static)
+        pot_spec = doc['calcs_reversed'][0]['input']["potcar_spec"]
+        self.assertIsNotNone(pot_spec[0]["hash"])  # check a hash was loaded
 
-if __name__ == "__main__":
-    unittest.main()
+        # Force not loading of POTCAR
+        drone = VaspDrone(parse_potcar_file=False)
+        doc = drone.assimilate(self.Si_static)
+        pot_spec = doc['calcs_reversed'][0]['input']["potcar_spec"]
+        self.assertIsNone(pot_spec[0]["hash"])  # check a hash was not loaded

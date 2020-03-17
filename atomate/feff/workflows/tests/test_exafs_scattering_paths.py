@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
 import unittest
@@ -24,9 +23,9 @@ class TestEXAFSPaths(unittest.TestCase):
         wflow = get_wf_exafs_paths(0, self.struct, [[249, 0], [85, 0]], feff_cmd="feff",  db_file=None)
         self.wf_dict = wflow.as_dict()
         self.fw1_dict = self.wf_dict["fws"][0]
-        self.fw2_dict = self.wf_dict["fws"][1]        
+        self.fw2_dict = self.wf_dict["fws"][1]
         if self.wf_dict["fws"][0]['name'] not in ['FeO-EXAFS-K-0']:
-            self.fw1_dict, self.fw2_dict = self.fw2_dict, self.fw1_dict        
+            self.fw1_dict, self.fw2_dict = self.fw2_dict, self.fw1_dict
 
     def test_wflow_composition(self):
         self.assertEqual(len(self.wf_dict["fws"]), 2)
@@ -52,6 +51,10 @@ class TestEXAFSPaths(unittest.TestCase):
                        'structure': self.struct.as_dict()}
         fis_fw1 = self.fw1_dict["spec"]['_tasks'][0]['feff_input_set']
         fis_fw2 = self.fw2_dict["spec"]['_tasks'][1]['feff_input_set']
+
+        fis_fw1.pop("@version")
+        fis_fw2.pop("@version")
+
         self.assertDictEqual(fis_fw1, ans_fis_fw1)
         self.assertDictEqual(fis_fw2, ans_fis_fw2)
 
