@@ -1,52 +1,52 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
-from pymatgen.io.vasp.sets import MVLScanRelaxSet
+from pymatgen.io.vasp.sets import MPScanRelaxSet
 
-from atomate.vasp.config import VASP_CMD, DB_FILE, ADD_WF_METADATA, HALF_KPOINTS_FIRST_RELAX, REMOVE_WAVECAR
-from atomate.vasp.powerups import use_custodian, add_wf_metadata, add_common_powerups, clean_up_files
+from atomate.vasp.config import ADD_WF_METADATA
+
+from atomate.vasp.powerups import (
+    add_wf_metadata,
+    add_common_powerups,
+)
 from atomate.vasp.workflows.base.core import get_wf
 
-__author__ = 'Shyam Dwaraknath, Anubhav Jain'
-__email__ = 'shyamd@lbl.gov, ajain@lbl.gov'
+__author__ = "Ryan Kingsbury, Shyam Dwaraknath, Anubhav Jain"
+__email__ = "rkingsbury@lbl.gov, shyamd@lbl.gov, ajain@lbl.gov"
 
 
 def wf_scan_opt(structure, c=None):
+    """
+    Structure optimization using the SCAN metaGGA functional.
+
+    This workflow performs a 2-step optmization. The first step
+    is a conventional GGA run and serves to precondition the geometry and
+    wavefunctions. The second step is a SCAN structure optimization.
+
+    The first optimization is force converged with EDIFFG = -0.05,
+    and the second optimization is force converged with EDIFFG=-0.02.
+    """
 
     c = c or {}
-    vasp_cmd = c.get("VASP_CMD", VASP_CMD)
-    db_file = c.get("DB_FILE", DB_FILE)
     user_incar_settings = c.get("USER_INCAR_SETTINGS", {})
-    half_kpts = c.get("HALF_KPOINTS_FIRST_RELAX", HALF_KPOINTS_FIRST_RELAX)
-    ediffg = user_incar_settings.get("EDIFFG", -0.05)
+    vdw = c.get("vdw")
+    bandgap = c.get("bandgap", 0)
 
     wf = get_wf(
         structure,
-        "optimize_only.yaml",
-        vis=MVLScanRelaxSet(
-            structure, user_incar_settings=user_incar_settings),
-        common_params={
-            "vasp_cmd": vasp_cmd,
-            "db_file": db_file
-        })
+        "SCAN_optimization.yaml",
+        vis=MPScanRelaxSet(
+            structure,
+            user_incar_settings=user_incar_settings,
+            vdw=vdw,
+            bandgap=bandgap
+        ),
+        params=[{"name": "SCAN optimization"}],
+    )
 
-    wf = use_custodian(
-        wf,
-        custodian_params={
-            "ediffg": ediffg,
-            "max_force_threshold": 0,
-            "half_kpts_first_relax": half_kpts,
-            "job_type": "metagga_opt_run",
-            "db_file": db_file,
-            "vasp_cmd": vasp_cmd
-        })
     wf = add_common_powerups(wf, c)
 
     if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
         wf = add_wf_metadata(wf, structure)
-
-    if c.get("REMOVE_WAVECAR", REMOVE_WAVECAR):
-        wf = clean_up_files(wf)
 
     return wf

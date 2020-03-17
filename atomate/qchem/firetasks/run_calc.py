@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 # This module defines tasks that support running QChem in various ways.
 
@@ -98,15 +97,13 @@ class RunQChemCustodian(FiretaskBase):
                               to perform. Defaults to 10.
         max_molecule_perturb_scale (float): The maximum scaled perturbation that can be
                                             applied to the molecule. Defaults to 0.3.
-        reversed_direction (bool): Whether to reverse the direction of the vibrational
-                                   frequency vectors. Defaults to False.
 
     """
     required_params = ["qchem_cmd"]
     optional_params = [
         "multimode", "input_file", "output_file", "max_cores", "qclog_file",
         "suffix", "scratch_dir", "save_scratch", "save_name", "max_errors",
-        "max_iterations", "max_molecule_perturb_scale", "reversed_direction",
+        "max_iterations", "max_molecule_perturb_scale", "linked",
         "job_type", "handler_group", "gzipped_output"
     ]
 
@@ -126,9 +123,10 @@ class RunQChemCustodian(FiretaskBase):
         if scratch_dir == None:
             scratch_dir = "/dev/shm/qcscratch/"
         save_scratch = self.get("save_scratch", False)
-        save_name = self.get("save_name", "default_save_name")
+        save_name = self.get("save_name", "saved_scratch")
         max_errors = self.get("max_errors", 5)
         max_iterations = self.get("max_iterations", 10)
+        linked = self.get("linked", False)
         max_molecule_perturb_scale = self.get("max_molecule_perturb_scale",
                                               0.3)
         job_type = self.get("job_type", "normal")
@@ -158,18 +156,30 @@ class RunQChemCustodian(FiretaskBase):
                     save_name=save_name)
             ]
         elif job_type == "opt_with_frequency_flattener":
-            jobs = QCJob.opt_with_frequency_flattener(
-                qchem_command=qchem_cmd,
-                multimode=multimode,
-                input_file=input_file,
-                output_file=output_file,
-                qclog_file=qclog_file,
-                max_iterations=max_iterations,
-                max_molecule_perturb_scale=max_molecule_perturb_scale,
-                scratch_dir=scratch_dir,
-                save_scratch=save_scratch,
-                save_name=save_name,
-                max_cores=max_cores)
+            if linked:
+                jobs = QCJob.opt_with_frequency_flattener(
+                    qchem_command=qchem_cmd,
+                    multimode=multimode,
+                    input_file=input_file,
+                    output_file=output_file,
+                    qclog_file=qclog_file,
+                    max_iterations=max_iterations,
+                    linked=linked,
+                    max_cores=max_cores)
+            else:
+                jobs = QCJob.opt_with_frequency_flattener(
+                    qchem_command=qchem_cmd,
+                    multimode=multimode,
+                    input_file=input_file,
+                    output_file=output_file,
+                    qclog_file=qclog_file,
+                    max_iterations=max_iterations,
+                    linked=linked,
+                    max_molecule_perturb_scale=max_molecule_perturb_scale,
+                    scratch_dir=scratch_dir,
+                    save_scratch=save_scratch,
+                    save_name=save_name,
+                    max_cores=max_cores)
 
         else:
             raise ValueError("Unsupported job type: {}".format(job_type))
@@ -207,6 +217,7 @@ class RunQChemFake(FiretaskBase):
 
      """
     required_params = ["ref_dir"]
+    optional_params = ["input_file"]
 
     def run_task(self, fw_spec):
         self._verify_inputs()
@@ -214,10 +225,12 @@ class RunQChemFake(FiretaskBase):
         self._generate_outputs()
 
     def _verify_inputs(self):
+        input_file = self.get("input_file", "mol.qin")
         user_qin = QCInput.from_file(os.path.join(os.getcwd(), "mol.qin"))
 
         # Check mol.qin
-        ref_qin = QCInput.from_file(os.path.join(self["ref_dir"], "mol.qin"))
+        ref_qin = QCInput.from_file(os.path.join(self["ref_dir"], input_file))
+
         np.testing.assert_equal(ref_qin.molecule.species,
                                 user_qin.molecule.species)
         np.testing.assert_allclose(

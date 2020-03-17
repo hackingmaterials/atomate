@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 from monty.os.path import zpath
 from monty.serialization import loadfn
@@ -14,7 +13,6 @@ This module defines tasks that support running vasp in various ways.
 import shutil
 import shlex
 import os
-import six
 import subprocess
 
 from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
@@ -73,14 +71,14 @@ class RunVaspCustodian(FiretaskBase):
         vasp_cmd (str): the name of the full executable for running VASP. Supports env_chk.
 
     Optional params:
-        job_type: (str) - choose from "normal" (default), "double_relaxation_run" (two consecutive 
+        job_type: (str) - choose from "normal" (default), "double_relaxation_run" (two consecutive
             jobs), "full_opt_run" (multiple optimizations), and "neb"
         handler_group: (str or [ErrorHandler]) - group of handlers to use. See handler_groups dict in the code for
             the groups and complete list of handlers in each group. Alternatively, you can
             specify a list of ErrorHandler objects.
-        max_force_threshold: (float) - if >0, adds MaxForceErrorHandler. Not recommended for 
+        max_force_threshold: (float) - if >0, adds MaxForceErrorHandler. Not recommended for
             nscf runs.
-        scratch_dir: (str) - if specified, uses this directory as the root scratch dir. 
+        scratch_dir: (str) - if specified, uses this directory as the root scratch dir.
             Supports env_chk.
         gzip_output: (bool) - gzip output (default=T)
         max_errors: (int) - maximum # of errors to fix before giving up (default=5)
@@ -102,8 +100,7 @@ class RunVaspCustodian(FiretaskBase):
         handler_groups = {
             "default": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
                         NonConvergingErrorHandler(),PotimErrorHandler(),
-                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(), StdErrHandler(),
-                        DriftErrorHandler()],
+                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(), StdErrHandler()],
             "strict": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
                        NonConvergingErrorHandler(),PotimErrorHandler(),
                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(),
@@ -114,7 +111,7 @@ class RunVaspCustodian(FiretaskBase):
 
         vasp_cmd = env_chk(self["vasp_cmd"], fw_spec)
 
-        if isinstance(vasp_cmd, six.string_types):
+        if isinstance(vasp_cmd, str):
             vasp_cmd = os.path.expandvars(vasp_cmd)
             vasp_cmd = shlex.split(vasp_cmd)
 
@@ -131,6 +128,8 @@ class RunVaspCustodian(FiretaskBase):
         # construct jobs
         if job_type == "normal":
             jobs = [VaspJob(vasp_cmd, auto_npar=auto_npar, gamma_vasp_cmd=gamma_vasp_cmd)]
+        elif job_type == "normal_no_backup":
+            jobs = [VaspJob(vasp_cmd, auto_npar=auto_npar, gamma_vasp_cmd=gamma_vasp_cmd,backup=False)]
         elif job_type == "double_relaxation_run":
             jobs = VaspJob.double_relaxation_run(vasp_cmd, auto_npar=auto_npar,
                                                  ediffg=self.get("ediffg"),
@@ -183,7 +182,7 @@ class RunVaspCustodian(FiretaskBase):
         # construct handlers
 
         handler_group = self.get("handler_group", "default")
-        if isinstance(handler_group, six.string_types):
+        if isinstance(handler_group, str):
             handlers = handler_groups[handler_group]
         else:
             handlers = handler_group
@@ -268,13 +267,15 @@ class RunVaspFake(FiretaskBase):
          check_kpoints (bool): whether to confirm the KPOINTS params (default: True)
          check_poscar (bool): whether to confirm the POSCAR params (default: True)
          check_potcar (bool): whether to confirm the POTCAR params (default: True)
+         clear_inputs (bool): whether to delete VASP input files after running (default: True)
      """
     required_params = ["ref_dir"]
-    optional_params = ["params_to_check", "check_incar", "check_kpoints", "check_poscar", "check_potcar"]
+    optional_params = ["params_to_check", "check_incar", "check_kpoints", "check_poscar", "check_potcar", "clear_inputs"]
 
     def run_task(self, fw_spec):
         self._verify_inputs()
-        self._clear_inputs()
+        if self.get("clear_inputs", True):
+            self._clear_inputs()
         self._generate_outputs()
 
     def _verify_inputs(self):

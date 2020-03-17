@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 from monty.json import MSONable, MontyDecoder
 
@@ -18,15 +17,15 @@ class SubmissionFilter(AbstractStructureFilter):
                  not_in_MP=True, MAPI_KEY=None, require_bandstructure=False):
         """
         Initialize a submission filter for checking that structures are valid for calculations.
-        
+
         Args:
             is_valid (bool): If true, checks structure validity
-            potcar_exists (bool): If true, ensures all elements have VASP PAW_PBE POTCAR 
-            max_natoms (int): If not None, ensures structure has <=max_natoms atoms 
-            is_ordered (bool): If true, ensures structure is ordered 
-            not_in_MP (bool): If true, ensures structure not in MP 
-            MAPI_KEY (str): For MP checks, your MAPI key if not previously set as config var 
-            require_bandstructure (bool): For MP checks, require a band structure calc 
+            potcar_exists (bool): If true, ensures all elements have VASP PAW_PBE POTCAR
+            max_natoms (int): If not None, ensures structure has <=max_natoms atoms
+            is_ordered (bool): If true, ensures structure is ordered
+            not_in_MP (bool): If true, ensures structure not in MP
+            MAPI_KEY (str): For MP checks, your MAPI key if not previously set as config var
+            require_bandstructure (bool): For MP checks, require a band structure calc
         """
         self.is_valid = is_valid
         self.potcar_exists = potcar_exists

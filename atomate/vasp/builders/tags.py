@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 from tqdm import tqdm
 
@@ -19,7 +18,7 @@ __author__ = 'Alireza Faghanina <albalu@lbl.gov>, Anubhav Jain <ajain@lbl.gov>'
 class TagsBuilder(AbstractBuilder):
     def __init__(self, materials_write, tasks_read, tasks_prefix="t"):
         """
-        Starting with an existing materials collection, searches all its component tasks for 
+        Starting with an existing materials collection, searches all its component tasks for
         the "tags" and key in the tasks collection and copies them to the materials collection.
         Thus, the "tags" for a material will be the union of all the tags for its component tasks.
 

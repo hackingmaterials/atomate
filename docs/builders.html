@@ -1,18 +1,17 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Builders &#8212; atomate 0.9.1 documentation</title>
+    <meta charset="utf-8" />
+    <title>Builders &#8212; atomate 0.9.4 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Creating Workflows" href="creating_workflows.html" />
@@ -36,7 +35,7 @@
         <li class="right" >
           <a href="gibbs_workflow_tutorial.html" title="Running Gibbs Workflows"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -59,22 +58,22 @@ and storing materials descriptors that can be helpful in data analysis. Thus, th
 builder is take the somewhat “raw” information from a set of calculation tasks and derive a summary
 and higher-level information from a materials perspective.</p>
 <p>A high-level diagram of the build process is shown below.</p>
-<div class="figure" id="id1">
+<div class="figure align-default" id="id1">
 <a class="reference internal image-reference" href="_images/build_process.png"><img alt="Build process" src="_images/build_process.png" style="width: 500.0px; height: 324.5px;" /></a>
-<p class="caption"><span class="caption-text">Diagram of the build process, which collects lower-level information such as tasks and organizes it into higher-level collections like materials.</span></p>
+<p class="caption"><span class="caption-text">Diagram of the build process, which collects lower-level information such as tasks and organizes it into higher-level collections like materials.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
 </div>
 <div class="section" id="the-core-builder-tasksmaterialsbuilder">
 <h3>The core builder: TasksMaterialsBuilder<a class="headerlink" href="#the-core-builder-tasksmaterialsbuilder" title="Permalink to this headline">¶</a></h3>
 <p>The core builder of atomate is TasksMaterialsBuilder. This builder will:</p>
 <ul class="simple">
-<li>automatically determine which tasks are on the same material using pymatgen’s StructureMatcher</li>
-<li>collect together basic data from all those tasks into a single document that is stored in a new collection called “materials”.</li>
+<li><p>automatically determine which tasks are on the same material using pymatgen’s StructureMatcher</p></li>
+<li><p>collect together basic data from all those tasks into a single document that is stored in a new collection called “materials”.</p></li>
 </ul>
 <p>This core builder is one of the more complex builders because it needs to decide things like:</p>
 <ul class="simple">
-<li>what kinds of calculations should be considered as possible new materials? (for example, in general one would not like to consider a small deformation calculation performed for the purpose of elastic tensor calculation to be different “material” than its parent)</li>
-<li>if there are multiple calculation types that give different values of the same property for a single material, which calculation should be trusted?</li>
-<li>how can we decide if two calculations are on the same material?</li>
+<li><p>what kinds of calculations should be considered as possible new materials? (for example, in general one would not like to consider a small deformation calculation performed for the purpose of elastic tensor calculation to be different “material” than its parent)</p></li>
+<li><p>if there are multiple calculation types that give different values of the same property for a single material, which calculation should be trusted?</p></li>
+<li><p>how can we decide if two calculations are on the same material?</p></li>
 </ul>
 <p>However, this is the “core” builder because it begins the process of collecting together data from individual calculations and creating a single materials-centric report.</p>
 </div>
@@ -124,13 +123,11 @@ and higher-level information from a materials perspective.</p>
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -154,13 +151,13 @@ and higher-level information from a materials perspective.</p>
         <li class="right" >
           <a href="gibbs_workflow_tutorial.html" title="Running Gibbs Workflows"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
     </div>
 
   </body>

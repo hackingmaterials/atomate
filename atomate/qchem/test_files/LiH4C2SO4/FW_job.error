@@ -1,0 +1,5 @@
+2018-12-28 12:20:27,044 INFO Launching Rocket
+2018-12-28 12:20:27,068 INFO RUNNING fw_id: 15396 in directory: /global/cscratch1/sd/sblau/mega_comp/block_2018-12-22-23-56-10-776797/launcher_2018-12-25-01-32-39-518583/launcher_2018-12-28-20-20-27-032082
+2018-12-28 12:20:27,085 INFO Task started: {{atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet}}.
+2018-12-28 12:20:27,090 INFO Task completed: {{atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet}} 
+2018-12-28 12:20:27,093 INFO Task started: {{atomate.qchem.firetasks.run_calc.RunQChemCustodian}}.
