@@ -171,8 +171,9 @@ class ExchangeWF:
                 s2 = None
             if s2 is not None:
                 # Standardize magnetic structure
-                cmsa = CollinearMagneticStructureAnalyzer(s2, 
-                    threshold=0.0, make_primitive=False)
+                cmsa = CollinearMagneticStructureAnalyzer(
+                    s2, threshold=0.0, make_primitive=False
+                )
                 s2 = cmsa.structure
                 matched_structures.append(s2)
 
@@ -181,9 +182,7 @@ class ExchangeWF:
             gs_struct, threshold=0.0, make_primitive=False
         )
 
-        enum_index = [cmsa.matches_ordering(s) for s in matched_structures].index(
-            True
-        )
+        enum_index = [cmsa.matches_ordering(s) for s in matched_structures].index(True)
 
         # Enforce all magmom magnitudes to match the gs
         for s in matched_structures:
@@ -299,7 +298,6 @@ class ExchangeWF:
                 energies=self.energies,
             )
 
-
         # Vampire Monte Carlo
         mc_settings = {
             "mc_box_size": 4.0,
@@ -331,9 +329,18 @@ class ExchangeWF:
 
         # Powerups for static vasp calc
         # user vasp input settings isn't working...
-        wf = add_modify_incar(wf, modify_incar_params={"incar_update":
-            {"ISYM": 0, "LASPH": ".TRUE.", "ADDGRID": ".TRUE.", 
-            "PREC": "Accurate", "LMAXMIX": 4}})
+        wf = add_modify_incar(
+            wf,
+            modify_incar_params={
+                "incar_update": {
+                    "ISYM": 0,
+                    "LASPH": ".TRUE.",
+                    "ADDGRID": ".TRUE.",
+                    "PREC": "Accurate",
+                    "LMAXMIX": 4,
+                }
+            },
+        )
 
         # Add metadata
         wf = add_additional_fields_to_taskdocs(wf, {"wf_meta": self.wf_meta})

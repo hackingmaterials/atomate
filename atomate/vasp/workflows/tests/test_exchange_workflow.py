@@ -30,13 +30,6 @@ VAMPEXE = which("vampire-serial")
 enumlib_present = enum_cmd
 vampire_present = VAMPEXE
 
-DEBUG_MODE = (
-    True
-)  # If true, retains the database and output dirs at the end of the test
-VASP_CMD = (
-    None
-)  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
-
 
 class TestExchangeWF(AtomateTest):
     @classmethod
@@ -61,7 +54,7 @@ class TestExchangeWF(AtomateTest):
             energies=self.energies,
             db_file=self.db_file,
         ).get_wf()
-        self.assertEqual(wf.name, "Exchange")
+        self.assertEqual(wf.name, "Mn3Al - Exchange")
 
 
 if __name__ == "__main__":

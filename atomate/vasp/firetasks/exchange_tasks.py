@@ -241,10 +241,7 @@ class HeisenbergModelMapping(FiretaskBase):
     ]
 
     # If only doing <J>, give the original structure/energy inputs
-    optional_params = [
-        "structures",
-        "energies",
-        ]
+    optional_params = ["structures", "energies"]
 
     def run_task(self, fw_spec):
 
@@ -399,7 +396,13 @@ class VampireMC(FiretaskBase):
 
     """
 
-    required_params = ["db_file", "exchange_wf_uuid", "parent_structure", "mc_settings", "avg"]
+    required_params = [
+        "db_file",
+        "exchange_wf_uuid",
+        "parent_structure",
+        "mc_settings",
+        "avg",
+    ]
     optional_params = []
 
     def run_task(self, fw_spec):
@@ -447,7 +450,7 @@ class VampireMC(FiretaskBase):
         )
         vo = vc.output
         task_doc["vampire_output"] = vo.as_dict()
-        
+
         # else:
         #     task_doc["vampire_output"] = None
 

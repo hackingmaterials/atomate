@@ -29,7 +29,7 @@ class HeisenbergModelFW(Firework):
         name="heisenberg model",
         c=None,
         structures=None,
-        energies=None
+        energies=None,
     ):
         """
         Takes a set of low-energy magnetic orderings and energies and maps them to a Heisenberg Model to compute exchange params.
@@ -75,7 +75,9 @@ class HeisenbergModelFW(Firework):
                     tol=tol,
                     avg=avg,
                     structures=structures,
-                    energies=energies))
+                    energies=energies,
+                )
+            )
 
         else:
             end_cutoff = 5.0  # Larger than this is unreasonable

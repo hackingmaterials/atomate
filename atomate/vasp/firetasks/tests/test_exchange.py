@@ -28,13 +28,6 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 test_dir = os.path.join(module_dir, "..", "..", "test_files", "exchange_wf")
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 
-DEBUG_MODE = (
-    False
-)  # If true, retains the database and output dirs at the end of the test
-VASP_CMD = (
-    None
-)  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
-
 
 class TestExchangeTasks(AtomateTest):
     @classmethod
@@ -49,15 +42,12 @@ class TestExchangeTasks(AtomateTest):
         ]
         cls.cutoff = 3.0
         cls.tol = 0.04
+        cls.avg = True
+        cls.mc_settings = {"mc_box_size": 3, "equil_timesteps": 10, "mc_timesteps": 10}
+
         cls.db_file = os.path.join(db_dir, "db.json")
 
         new_fw_spec = {"_fw_env": {"db_file": os.path.join(db_dir, "db.json")}}
-
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
 
     def test_heisenberg_mm(self):
         d = dict(
@@ -66,27 +56,12 @@ class TestExchangeTasks(AtomateTest):
             parent_structure=self.parent_structure,
             cutoff=self.cutoff,
             tol=self.tol,
+            avg=self.avg,
+            structures=self.structures,
+            energies=self.energies,
         )
         hmm = HeisenbergModelMapping(d)
         hmm.run_task({})
-
-    def test_heisenberg_convergence(self):
-        d = dict(
-            db_file=self.db_file,
-            exchange_wf_uuid=self.uuid,
-            parent_structure=self.parent_structure,
-        )
-        hc = HeisenbergConvergence(d)
-        hc.run_task({})
-
-    def test_vampire_mc(self):
-        d = dict(
-            db_file=self.db_file,
-            exchange_wf_uuid=self.uuid,
-            parent_structure=self.parent_structure,
-        )
-        vmc = VampireMC(d)
-        vmc.run_task({})
 
 
 if __name__ == "__main__":
