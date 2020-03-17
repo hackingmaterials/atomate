@@ -216,6 +216,7 @@ class ModifyIncar(FiretaskBase):
 
         incar.write_file(self.get("output_filename", "INCAR"))
 
+
 @explicit_serialize
 class ModifyKpoints(FiretaskBase):
     """
@@ -317,6 +318,7 @@ class UpdateScanRelaxBandgap(FiretaskBase):
         structure = vrun.final_structure
         vis = MPScanRelaxSet(structure, bandgap=bandgap, **kwargs)
         vis.write_input(".", potcar_spec=potcar_spec)
+
 
 @explicit_serialize
 class WriteVaspStaticFromPrev(FiretaskBase):
