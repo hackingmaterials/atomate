@@ -4,7 +4,7 @@ FireWorks==1.9.5
 pymatgen_diffusion==2019.8.18
 monty==3.0.2
 paramiko==2.7.1
-tqdm==4.42.1
+tqdm==4.43.0
 pybtex==0.22.2
 ruamel.yaml==0.16.10
 pandas==1.0.1
