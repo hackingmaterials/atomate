@@ -925,6 +925,14 @@ def use_potcar_spec(
         fw_name_constraint=fw_name_constraint,
         task_name_constraint="WriteVasp",
     )
+
+    idx_list.extend(get_fws_and_tasks(
+        original_wf,
+        fw_name_constraint=fw_name_constraint,
+        task_name_constraint="UpdateScanRelaxBandgap",
+        )
+    )
+    
     for idx_fw, idx_t in idx_list:
         original_wf.fws[idx_fw].tasks[idx_t]["potcar_spec"] = True
 
