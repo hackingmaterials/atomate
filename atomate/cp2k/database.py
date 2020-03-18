@@ -34,8 +34,8 @@ class Cp2kCalcDb(CalcDb):
     """
 
     def __init__(self, host="localhost", port=27017, database="cp2k", collection="tasks", user=None,
-                 password=None):
-        super(Cp2kCalcDb, self).__init__(host, port, database, collection, user, password)
+                 password=None, **kwargs):
+        super(Cp2kCalcDb, self).__init__(host, port, database, collection, user, password, **kwargs)
 
     def build_indexes(self, indexes=None, background=True):
         """

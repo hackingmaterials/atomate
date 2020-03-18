@@ -266,7 +266,7 @@ class Cp2kDrone(AbstractDrone):
         d["formula_reduced_abc"] = comp.reduced_composition.alphabetical_formula
         d['elements'] = list(comp.as_dict().keys())
         d['nelements'] = len(self.as_dict().keys())
-        d['nsites'] = len(d['input']['structure'])
+        d['nsites'] = d['input']['structure'].num_sites
         d["dir_name"] = os.path.abspath(dir_name)
         d["completed_at"] = str(datetime.datetime.fromtimestamp(os.path.getmtime(cp2k_file)))
         d["density"] = out.final_structure.density
