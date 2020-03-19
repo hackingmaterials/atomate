@@ -12,4 +12,4 @@ pymatgen==2020.3.13
 custodian==2019.9.23
 networkx==2.4
 pydash==4.7.6
-pyyaml==5.3
+pyyaml==5.3.1
