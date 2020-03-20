@@ -7,7 +7,7 @@ paramiko==2.7.1
 tqdm==4.43.0
 pybtex==0.22.2
 ruamel.yaml==0.16.10
-pandas==1.0.2
+pandas==1.0.3
 pymatgen==2020.3.13
 custodian==2019.9.23
 networkx==2.4
