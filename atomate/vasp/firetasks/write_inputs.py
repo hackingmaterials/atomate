@@ -15,13 +15,21 @@ from fireworks.utilities.dict_mods import apply_mod
 from pymatgen.core.structure import Structure
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
-from pymatgen.io.vasp import Incar, Poscar, Potcar, PotcarSingle, Kpoints
+from pymatgen.io.vasp import (
+    Incar,
+    Poscar,
+    Potcar,
+    PotcarSingle,
+    Vasprun,
+    Kpoints
+)
 from pymatgen.io.vasp.sets import (
     MPStaticSet,
     MPNonSCFSet,
     MPSOCSet,
     MPHSEBSSet,
     MPNMRSet,
+    MPScanRelaxSet
 )
 
 from atomate.utils.utils import env_chk, load_class
@@ -208,6 +216,7 @@ class ModifyIncar(FiretaskBase):
 
         incar.write_file(self.get("output_filename", "INCAR"))
 
+
 @explicit_serialize
 class ModifyKpoints(FiretaskBase):
     """
@@ -277,6 +286,38 @@ class ModifyPotcar(FiretaskBase):
                 )
 
         potcar.write_file(self.get("output_filename", "POTCAR"))
+
+
+@explicit_serialize
+class UpdateScanRelaxBandgap(FiretaskBase):
+    """
+    Writes input files for a SCAN relaxation by constructing a new input set.
+    The purpose of this Firetask is to allow the KSPACING and smearing parameters
+    to be recalculated based on the bandgap from the PBE relaxation in the
+    SCAN relaxation workflow. Assumes that output files from a previous
+    (e.g., optimization) run can be accessed in current dir or prev_calc_dir.
+
+    Optional params (dict):
+        override_default_vasp_params: Dict of any keyword arguments supported
+                                      by MPScanRelaxSet.
+        potcar_spec (bool): Instead of writing the POTCAR, write a
+            "POTCAR.spec". This is intended to allow testing of workflows
+            without requiring pseudo-potentials to be installed on the system.
+
+    """
+    optional_params = ["override_default_vasp_params", "potcar_spec"]
+
+    def run_task(self, fw_spec):
+
+        kwargs = self.get("override_default_vasp_params")
+        potcar_spec = self.get("potcar_spec", False)
+
+        os.chdir(os.getcwd())
+        vrun = Vasprun("vasprun.xml", parse_potcar_file=False)
+        bandgap = vrun.get_band_structure().get_band_gap()["energy"]
+        structure = vrun.final_structure
+        vis = MPScanRelaxSet(structure, bandgap=bandgap, **kwargs)
+        vis.write_input(".", potcar_spec=potcar_spec)
 
 
 @explicit_serialize

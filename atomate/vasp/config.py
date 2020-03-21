@@ -9,6 +9,7 @@ SMALLGAP_KPOINT_MULTIPLY = True
 ADD_MODIFY_INCAR = False
 STABILITY_CHECK = False
 VASP_CMD = ">>vasp_cmd<<"
+VDW_KERNEL_DIR = ">>vdw_kernel_dir<<"
 DB_FILE = ">>db_file<<"
 ADD_WF_METADATA = True
 
