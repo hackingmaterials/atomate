@@ -1,11 +1,7 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 """
-This Drone tries to produce a more sensible task dictionary than the default VaspToDbTaskDrone.
-Some of the changes are documented in this thread:
-https://groups.google.com/forum/#!topic/pymatgen/pQ-emBpeV5U
+This drone assimilates directories containing the results of cp2k calculations
 """
 
 import os
@@ -25,7 +21,6 @@ import numpy as np
 
 from pymatgen.core.composition import Composition
 from pymatgen.core.structure import Structure
-from pymatgen.core.operations import SymmOp
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.cp2k.outputs import Cp2kOutput
 from pymatgen.apps.borg.hive import AbstractDrone
@@ -35,10 +30,7 @@ from atomate.utils.utils import get_uri
 from atomate.utils.utils import get_logger
 from atomate import __version__ as atomate_version
 
-__author__ = 'Kiran Mathew, Shyue Ping Ong, Shyam Dwaraknath, Anubhav Jain'
-__email__ = 'kmathew@lbl.gov'
-__date__ = 'Mar 27, 2016'
-__version__ = "0.1.0"
+__author__ = "Nicholas Winner"
 
 logger = get_logger(__name__)
 
@@ -46,38 +38,83 @@ logger = get_logger(__name__)
 # TODO: Don't push until going through all this
 class Cp2kDrone(AbstractDrone):
     """
-    pymatgen-db VaspToDbTaskDrone with updated schema and documents processing methods.
-    Please refer to matgendb.creator.VaspToDbTaskDrone documentation.
+    Adapted from VaspDrone
     """
 
-    __version__ = atomate_version  # note: the version is inserted into the task doc
+    __version__ = (
+        atomate_version  # note: the version is inserted into the task doc
+    )
 
     # Schema def of important keys and sub-keys; used in validation
     schema = {
         "root": {
-            "schema", "dir_name", "chemsys", "composition_reduced",
-            "formula_pretty", "formula_reduced_abc", "elements",
-            "nelements", "formula_anonymous", "calcs_reversed", "completed_at",
-            "nsites", "composition_unit_cell", "input", "output", "state",
-            "analysis", "run_stats"
+            "schema",
+            "dir_name",
+            "chemsys",
+            "composition_reduced",
+            "formula_pretty",
+            "formula_reduced_abc",
+            "elements",
+            "nelements",
+            "formula_anonymous",
+            "calcs_reversed",
+            "completed_at",
+            "nsites",
+            "composition_unit_cell",
+            "input",
+            "output",
+            "state",
+            "analysis",
+            "run_stats",
         },
-        "input": {'atomic_kind_info', 'structure'},
-        "output": {'structure', 'spacegroup', 'density', 'energy',
-                   'energy_per_atom', 'bandgap', 'vbm',
-                   'cbm', 'is_metal', 'forces', 'stress'},
+        "input": {"atomic_kind_info", "structure"},
+        "output": {
+            "structure",
+            "spacegroup",
+            "density",
+            "energy",
+            "energy_per_atom",
+            "bandgap",
+            "vbm",
+            "cbm",
+            "is_metal",
+            "forces",
+            "stress",
+        },
         "calcs_reversed": {
-            'dir_name', 'run_type', 'elements', 'nelements',
-            'formula_pretty', 'formula_reduced_abc', 'composition_reduced',
-            'cp2k_version', 'formula_anonymous', 'nsites',
-            'composition_unit_cell', 'completed_at', 'task', 'input', 'output',
-            'has_cp2k_completed'
+            "dir_name",
+            "run_type",
+            "elements",
+            "nelements",
+            "formula_pretty",
+            "formula_reduced_abc",
+            "composition_reduced",
+            "cp2k_version",
+            "formula_anonymous",
+            "nsites",
+            "composition_unit_cell",
+            "completed_at",
+            "task",
+            "input",
+            "output",
+            "has_cp2k_completed",
         },
-        "analysis": {'delta_volume_as_percent', 'delta_volume', 'max_force',
-                     'errors', 'warnings'}
-
+        "analysis": {
+            "delta_volume_as_percent",
+            "delta_volume",
+            "max_force",
+            "errors",
+            "warnings",
+        },
     }
 
-    def __init__(self, runs=None, parse_dos="auto", additional_fields=None, use_full_uri=True):
+    def __init__(
+        self,
+        runs=None,
+        parse_dos="auto",
+        additional_fields=None,
+        use_full_uri=True,
+    ):
         """
         Initialize a cp2k drone to parse cp2k outputs
         Args:
@@ -89,7 +126,9 @@ class Cp2kDrone(AbstractDrone):
             additional_fields (dict): dictionary of additional fields to add to output document
             use_full_uri (bool): converts the directory path to the full URI path
         """
-        self.runs = runs or ["precondition"] + ["relax" + str(i + 1) for i in range(9)]
+        self.runs = runs or ["precondition"] + [
+            "relax" + str(i + 1) for i in range(9)
+        ]
         self.parse_dos = parse_dos
         self.additional_fields = additional_fields or {}
         self.use_full_uri = use_full_uri
@@ -151,7 +190,7 @@ class Cp2kDrone(AbstractDrone):
             # get any matching file from the folder
             for f in files:
                 if fnmatch(f, "{}*".format(file_pattern)):
-                    processed_files['standard'] = f
+                    processed_files["standard"] = f
         return processed_files
 
     def generate_doc(self, dir_name, cp2k_files):
@@ -164,13 +203,15 @@ class Cp2kDrone(AbstractDrone):
             d = jsanitize(self.additional_fields, strict=True)
             d["schema"] = {"code": "atomate", "version": Cp2kDrone.__version__}
             d["dir_name"] = fullpath
-            d["calcs_reversed"] = [self.process_cp2k(dir_name, taskname, filename)
-                                   for taskname, filename in cp2k_files.items()]
+            d["calcs_reversed"] = [
+                self.process_cp2k(dir_name, taskname, filename)
+                for taskname, filename in cp2k_files.items()
+            ]
 
             # TODO More run stats
             run_stats = {}
             for i, d_calc in enumerate(d["calcs_reversed"]):
-                run_stats[d_calc["task"]["name"]] = d_calc['total_time']
+                run_stats[d_calc["task"]["name"]] = d_calc["total_time"]
             d["run_stats"] = run_stats
 
             # TODO
@@ -180,9 +221,18 @@ class Cp2kDrone(AbstractDrone):
             d["chemsys"] = "-".join(sorted(d_calc_final["elements"]))
             comp = Composition(d_calc_final["composition_unit_cell"])
             d["formula_anonymous"] = comp.anonymized_formula
-            d["formula_reduced_abc"] = comp.reduced_composition.alphabetical_formula
-            for root_key in ["completed_at", "nsites", "composition_unit_cell",
-                             "composition_reduced", "formula_pretty", "elements", "nelements"]:
+            d[
+                "formula_reduced_abc"
+            ] = comp.reduced_composition.alphabetical_formula
+            for root_key in [
+                "completed_at",
+                "nsites",
+                "composition_unit_cell",
+                "composition_reduced",
+                "formula_pretty",
+                "elements",
+                "nelements",
+            ]:
                 d[root_key] = d_calc_final[root_key]
 
             # TODO: Should atomic kind info and DFT really be saved like this?
@@ -192,9 +242,9 @@ class Cp2kDrone(AbstractDrone):
             # parameters as a sequence or something? showing how they are the whole time?
             d["input"] = {
                 "structure": d_calc_init["input"]["structure"],
-                "atomic_kind_info": d_calc_init["input"]['atomic_kind_info'],
-                "dft": d_calc_init['input']['dft'],
-                "scf": d_calc_init['input']['scf']
+                "atomic_kind_info": d_calc_init["input"]["atomic_kind_info"],
+                "dft": d_calc_init["input"]["dft"],
+                "scf": d_calc_init["input"]["scf"],
             }
 
             # store the output key based on final calc
@@ -203,28 +253,41 @@ class Cp2kDrone(AbstractDrone):
                 "density": d_calc_final.pop("density"),
                 "energy": d_calc_final["output"]["energy"],
                 "energy_per_atom": d_calc_final["output"]["energy_per_atom"],
-                "forces": d_calc_final["output"]["ionic_steps"][-1].get("forces"),
-                "stress": d_calc_final["output"]["ionic_steps"][-1].get("stress"),
-                "cbm": d_calc_final["output"]['cbm'],
-                "vbm": d_calc_final["output"]['vbm'],
-                "bandgap": d_calc_final["output"]['bandgap'],
-                "efermi": d_calc_final["output"]['efermi'],
-                "is_metal": d_calc_final["output"]['is_metal'],
+                "forces": d_calc_final["output"]["ionic_steps"][-1].get(
+                    "forces"
+                ),
+                "stress": d_calc_final["output"]["ionic_steps"][-1].get(
+                    "stress"
+                ),
+                "cbm": d_calc_final["output"]["cbm"],
+                "vbm": d_calc_final["output"]["vbm"],
+                "bandgap": d_calc_final["output"]["bandgap"],
+                "efermi": d_calc_final["output"]["efermi"],
+                "is_metal": d_calc_final["output"]["is_metal"],
             }
 
             # Store symmetry information
             try:
-                sg = SpacegroupAnalyzer(Structure.from_dict(d_calc_final["output"]["structure"]), 0.1)
+                sg = SpacegroupAnalyzer(
+                    Structure.from_dict(d_calc_final["output"]["structure"]),
+                    0.1,
+                )
                 if not sg.get_symmetry_dataset():
-                    sg = SpacegroupAnalyzer(Structure.from_dict(d_calc_final["output"]["structure"]),
-                                            1e-3, 1)
+                    sg = SpacegroupAnalyzer(
+                        Structure.from_dict(
+                            d_calc_final["output"]["structure"]
+                        ),
+                        1e-3,
+                        1,
+                    )
                 d["output"]["spacegroup"] = {
                     "source": "spglib",
                     "symbol": sg.get_space_group_symbol(),
                     "number": sg.get_space_group_number(),
                     "point_group": sg.get_point_group_symbol(),
                     "crystal_system": sg.get_crystal_system(),
-                    "hall": sg.get_hall()}
+                    "hall": sg.get_hall(),
+                }
             except TypeError:
                 d["output"]["spacegroup"] = {
                     "source": None,
@@ -232,10 +295,18 @@ class Cp2kDrone(AbstractDrone):
                     "number": None,
                     "point_group": None,
                     "crystal_system": None,
-                    "hall": None}
-                warnings.warn('Space Group could not be determined by this drone.', Warning)
+                    "hall": None,
+                }
+                warnings.warn(
+                    "Space Group could not be determined by this drone.",
+                    Warning,
+                )
 
-            d["state"] = "successful" if all([i['has_cp2k_completed'] for i in d["calcs_reversed"]]) else "unsuccessful"
+            d["state"] = (
+                "successful"
+                if all([i["has_cp2k_completed"] for i in d["calcs_reversed"]])
+                else "unsuccessful"
+            )
 
             self.set_analysis(d)
 
@@ -244,7 +315,12 @@ class Cp2kDrone(AbstractDrone):
 
         except Exception:
             logger.error(traceback.format_exc())
-            logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
+            logger.error(
+                "Error in "
+                + os.path.abspath(dir_name)
+                + ".\n"
+                + traceback.format_exc()
+            )
             raise
 
     def process_cp2k(self, dir_name, taskname, filename):
@@ -258,26 +334,30 @@ class Cp2kDrone(AbstractDrone):
         out = Cp2kOutput(cp2k_file, auto_load=True)
         d = out.as_dict()
 
-        comp = Composition(d['composition'])
-        d['formula_pretty'] = comp.reduced_formula
-        d['composition_reduced'] = comp.reduced_composition
-        d['composition_unit_cell'] = comp.as_dict()
+        comp = Composition(d["composition"])
+        d["formula_pretty"] = comp.reduced_formula
+        d["composition_reduced"] = comp.reduced_composition
+        d["composition_unit_cell"] = comp.as_dict()
         d["formula_anonymous"] = comp.anonymized_formula
         d["formula_reduced_abc"] = comp.reduced_composition.alphabetical_formula
-        d['elements'] = list(comp.as_dict().keys())
-        d['nelements'] = len(self.as_dict().keys())
-        d['nsites'] = d['input']['structure'].num_sites
+        d["elements"] = list(comp.as_dict().keys())
+        d["nelements"] = len(self.as_dict().keys())
+        d["nsites"] = len(d["input"]["structure"]["sites"])
         d["dir_name"] = os.path.abspath(dir_name)
-        d["completed_at"] = str(datetime.datetime.fromtimestamp(os.path.getmtime(cp2k_file)))
+        d["completed_at"] = str(
+            datetime.datetime.fromtimestamp(os.path.getmtime(cp2k_file))
+        )
         d["density"] = out.final_structure.density
 
-        d['has_cp2k_completed'] = d.pop('ran_successfully')
+        d["has_cp2k_completed"] = d.pop("ran_successfully")
 
         # store run name and location ,e.g. relax1, relax2, etc.
         d["task"] = {"type": taskname, "name": taskname}
 
         # include output file names
-        d["output_file_paths"] = self.process_raw_data(dir_name, taskname=taskname)
+        d["output_file_paths"] = self.process_raw_data(
+            dir_name, taskname=taskname
+        )
 
         return d
 
@@ -303,18 +383,23 @@ class Cp2kDrone(AbstractDrone):
 
         # delta volume checks
         if abs(percent_delta_vol) > volume_change_threshold:
-            warning_msgs.append("Volume change > {}%".format(volume_change_threshold * 100))
+            warning_msgs.append(
+                "Volume change > {}%".format(volume_change_threshold * 100)
+            )
 
         # max force and valid structure checks
         max_force = None
         calc = d["calcs_reversed"][0]
-        if d["state"] == "successful" and 'forces' in calc['output']['ionic_steps'][-1].keys():
+        if (
+            d["state"] == "successful"
+            and "forces" in calc["output"]["ionic_steps"][-1].keys()
+        ):
 
             # calculate max forces
-            forces = np.array(calc['output']['ionic_steps'][-1]['forces'])
+            forces = np.array(calc["output"]["ionic_steps"][-1]["forces"])
             # account for selective dynamics
-            final_structure = Structure.from_dict(calc['output']['structure'])
-            sdyn = final_structure.site_properties.get('selective_dynamics')
+            final_structure = Structure.from_dict(calc["output"]["structure"])
+            sdyn = final_structure.site_properties.get("selective_dynamics")
             if sdyn:
                 forces[np.logical_not(sdyn)] = 0
             max_force = max(np.linalg.norm(forces, axis=1))
@@ -324,15 +409,17 @@ class Cp2kDrone(AbstractDrone):
                 error_msgs.append("Bad structure (atoms are too close!)")
                 d["state"] = "error"
 
-        d["analysis"] = {"delta_volume": delta_vol,
-                         "delta_volume_as_percent": percent_delta_vol,
-                         "max_force": max_force,
-                         "warnings": warning_msgs,
-                         "errors": error_msgs}
+        d["analysis"] = {
+            "delta_volume": delta_vol,
+            "delta_volume_as_percent": percent_delta_vol,
+            "max_force": max_force,
+            "warnings": warning_msgs,
+            "errors": error_msgs,
+        }
 
     def post_process(self, dir_name, d):
         """
-        Post-processing for various files other than the vasprun.xml and OUTCAR.
+        Post-processing for various files other than the cp2k.out file.
         Looks for files: transformations.json and custodian.json. Modify this if other
         output files need to be processed.
 
@@ -344,7 +431,7 @@ class Cp2kDrone(AbstractDrone):
         """
         logger.info("Post-processing dir:{}".format(dir_name))
         fullpath = os.path.abspath(dir_name)
-        # VASP input generated by pymatgen's alchemy has a transformations.json file that tracks
+        # CP2K input generated by pymatgen's alchemy has a transformations.json file that tracks
         # the origin of a particular structure. If such a file is found, it is inserted into the
         # task doc as d["transformations"]
         transformations = {}
@@ -353,11 +440,15 @@ class Cp2kDrone(AbstractDrone):
             with zopen(filenames[0], "rt") as f:
                 transformations = json.load(f)
                 try:
-                    m = re.match("(\d+)-ICSD", transformations["history"][0]["source"])
+                    m = re.match(
+                        "(\d+)-ICSD", transformations["history"][0]["source"]
+                    )
                     if m:
                         d["icsd_id"] = int(m.group(1))
                 except Exception as ex:
-                    logger.warning("Cannot parse ICSD from transformations file.")
+                    logger.warning(
+                        "Cannot parse ICSD from transformations file."
+                    )
                     pass
         else:
             logger.warning("Transformations file does not exist.")
@@ -430,18 +521,20 @@ class Cp2kDrone(AbstractDrone):
         """
         There are some restrictions on the valid directory structures:
 
-        1. There can be only one vasp run in each directory. Nested directories
+        1. There can be only one cp2k run in each directory. Nested directories
            are fine.
         2. Directories designated "relax1"..."relax9" are considered to be
            parts of a multiple-optimization run.
-        3. Directories containing vasp output with ".relax1"...".relax9" are
+        3. Directories containing cp2k output with ".relax1"...".relax9" are
            also considered as parts of a multiple-optimization run.
         """
         (parent, subdirs, files) = path
         if set(self.runs).intersection(subdirs):
             return [parent]
-        if not any([parent.endswith(os.sep + r) for r in self.runs]) and \
-                len(glob.glob(os.path.join(parent, "vasprun.xml*"))) > 0:
+        if (
+            not any([parent.endswith(os.sep + r) for r in self.runs])
+            and len(glob.glob(os.path.join(parent, "cp2k.out*"))) > 0
+        ):
             return [parent]
         return []
 
@@ -450,14 +543,15 @@ class Cp2kDrone(AbstractDrone):
             "parse_dos": self.parse_dos,
             "additional_fields": self.additional_fields,
             "use_full_uri": self.use_full_uri,
-            "runs": self.runs}
-        return {"@module": self.__class__.__module__,
-                "@class": self.__class__.__name__,
-                "version": self.__class__.__version__,
-                "init_args": init_args
-                }
+            "runs": self.runs,
+        }
+        return {
+            "@module": self.__class__.__module__,
+            "@class": self.__class__.__name__,
+            "version": self.__class__.__version__,
+            "init_args": init_args,
+        }
 
     @classmethod
     def from_dict(cls, d):
         return cls(**d["init_args"])
-

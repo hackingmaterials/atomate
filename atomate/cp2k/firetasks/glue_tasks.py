@@ -1,12 +1,11 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, \
-    absolute_import
-
-import glob
-
-from pymatgen.analysis.elasticity.strain import Strain
-from pymatgen.io.vasp import Vasprun, zpath
+from __future__ import (
+    division,
+    print_function,
+    unicode_literals,
+    absolute_import,
+)
 
 """
 This module defines tasks that acts as a glue between other vasp Firetasks to allow communication
@@ -28,13 +27,17 @@ from pymatgen.io.cp2k.outputs import Cp2kOutput
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 from atomate.utils.utils import env_chk, get_logger
-from atomate.common.firetasks.glue_tasks import get_calc_loc, PassResult, \
-    CopyFiles, CopyFilesFromCalcLoc
+from atomate.common.firetasks.glue_tasks import (
+    get_calc_loc,
+    PassResult,
+    CopyFiles,
+    CopyFilesFromCalcLoc,
+)
 
 logger = get_logger(__name__)
 
-__author__ = 'Nicholas Winner'
-__email__ = 'nwinner@berkeley.edu'
+__author__ = "Nicholas Winner"
+__email__ = "nwinner@berkeley.edu"
 
 
 @explicit_serialize
@@ -45,26 +48,30 @@ class UpdateStructureFromPrevCalc(FiretaskBase):
     cp2k_input_set using it.
     """
 
-    required_params = ['prev_calc_loc']
-    optional_params = ['cp2k_output_file']
+    required_params = ["prev_calc_loc"]
+    optional_params = ["cp2k_output_file"]
 
     def run_task(self, fw_spec):
-        calc_loc = get_calc_loc(self.get('prev_calc_loc'),
-                                fw_spec["calc_locs"]) if self.get(
-            "prev_calc_loc") else {}
+        calc_loc = (
+            get_calc_loc(self.get("prev_calc_loc"), fw_spec["calc_locs"])
+            if self.get("prev_calc_loc")
+            else {}
+        )
 
-        cp2k_input_set = fw_spec.get('cp2k_input_set')
+        cp2k_input_set = fw_spec.get("cp2k_input_set")
         ci = Cp2kInputSet.from_dict(cp2k_input_set)
 
-        if self.get('cp2k_output_file'):
-            out = Cp2kOutput(os.path.join(calc_loc['path'], self.get('cp2k_output_file')))
+        if self.get("cp2k_output_file"):
+            out = Cp2kOutput(
+                os.path.join(calc_loc["path"], self.get("cp2k_output_file"))
+            )
         else:
-            out = Cp2kOutput(glob.glob(calc_loc['path']+'/cp2k.out*')[0])
+            out = Cp2kOutput(glob.glob(calc_loc["path"] + "/cp2k.out*")[0])
 
         out.parse_structures()
-        ci['FORCE_EVAL']['SUBSYS']['COORD'] = Coord(out.final_structure)
-        ci['FORCE_EVAL']['SUBSYS']['CELL'] = Cell(out.final_structure.lattice)
-        fw_spec['cp2k_input_set'] = ci.as_dict()
+        ci["FORCE_EVAL"]["SUBSYS"]["COORD"] = Coord(out.final_structure)
+        ci["FORCE_EVAL"]["SUBSYS"]["CELL"] = Cell(out.final_structure.lattice)
+        fw_spec["cp2k_input_set"] = ci.as_dict()
 
 
 @explicit_serialize
@@ -93,15 +100,20 @@ class CopyCp2kOutputs(CopyFiles):
 
     def run_task(self, fw_spec):
 
-        calc_loc = get_calc_loc(self["calc_loc"],
-                                fw_spec["calc_locs"]) if self.get(
-            "calc_loc") else {}
+        calc_loc = (
+            get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])
+            if self.get("calc_loc")
+            else {}
+        )
 
-        files_to_copy = self.get('files_to_copy', [])
+        files_to_copy = self.get("files_to_copy", [])
         # setup the copy
-        self.setup_copy(self.get("calc_dir", None),
-                        filesystem=self.get("filesystem", None),
-                        files_to_copy=files_to_copy, from_path_dict=calc_loc)
+        self.setup_copy(
+            self.get("calc_dir", None),
+            filesystem=self.get("filesystem", None),
+            files_to_copy=files_to_copy,
+            from_path_dict=calc_loc,
+        )
         # do the copying
         self.copy_files()
 
@@ -124,23 +136,22 @@ class CopyCp2kOutputs(CopyFiles):
                 raise ValueError("Cannot find file: {}".format(f))
 
             # copy the file (minus the relaxation extension)
-            self.fileclient.copy(prev_path_full + gz_ext,
-                                 dest_path + gz_ext)
+            self.fileclient.copy(prev_path_full + gz_ext, dest_path + gz_ext)
 
             # unzip the .gz if needed
-            if gz_ext in ['.gz', ".GZ"]:
+            if gz_ext in [".gz", ".GZ"]:
                 # unzip dest file
                 try:
-                    f = zopen(dest_path + gz_ext, 'rt')
+                    f = zopen(dest_path + gz_ext, "rt")
                     file_content = f.read()
                 except (UnicodeDecodeError, AttributeError):
-                    f = zopen(dest_path + gz_ext, 'rb')
+                    f = zopen(dest_path + gz_ext, "rb")
                     file_content = f.read()
                 if isinstance(file_content, (bytes, bytearray)):
-                    with open(dest_path, 'wb') as f_out:
+                    with open(dest_path, "wb") as f_out:
                         f_out.write(file_content)
                 else:
-                    with open(dest_path, 'w') as f_out:
+                    with open(dest_path, "w") as f_out:
                         f_out.write(file_content)
 
                 f.close()

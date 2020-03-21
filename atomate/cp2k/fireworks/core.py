@@ -1,7 +1,11 @@
 # coding: utf-8
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 import warnings
 
@@ -13,11 +17,22 @@ sequences of CP2K calculations.
 from fireworks.core.firework import Firework
 
 from pymatgen.core.structure import Structure
-from pymatgen.io.cp2k.sets import RelaxSet, StaticSet, HybridStaticSet, HybridRelaxSet
+from pymatgen.io.cp2k.sets import (
+    RelaxSet,
+    StaticSet,
+    HybridStaticSet,
+    HybridRelaxSet,
+)
 
-from atomate.cp2k.firetasks.write_inputs import WriteCp2kFromIOSet, WriteCp2kFromPrevious
+from atomate.cp2k.firetasks.write_inputs import (
+    WriteCp2kFromIOSet,
+    WriteCp2kFromPrevious,
+)
 from atomate.cp2k.firetasks.run_calc import RunCp2KCustodian
-from atomate.cp2k.firetasks.glue_tasks import UpdateStructureFromPrevCalc, CopyCp2kOutputs
+from atomate.cp2k.firetasks.glue_tasks import (
+    UpdateStructureFromPrevCalc,
+    CopyCp2kOutputs,
+)
 from atomate.cp2k.firetasks.parse_outputs import Cp2kToDb
 
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
@@ -28,11 +43,21 @@ from atomate.common.firetasks.glue_tasks import PassCalcLocs
 
 
 class BaseFW(Firework):
-
-    def __init__(self, structure=None, name=None, cp2k_input_set=None,
-                 cp2k_input_set_params={}, cp2k_cmd="cp2k", prev_calc_loc=True,
-                 prev_calc_dir=None, db_file=None, cp2ktodb_kwargs=None,
-                 parents=None, files_to_copy=[], **kwargs):
+    def __init__(
+        self,
+        structure=None,
+        name=None,
+        cp2k_input_set=None,
+        cp2k_input_set_params={},
+        cp2k_cmd="cp2k",
+        prev_calc_loc=True,
+        prev_calc_dir=None,
+        db_file=None,
+        cp2ktodb_kwargs=None,
+        parents=None,
+        files_to_copy=[],
+        **kwargs
+    ):
         """
         Standard calculation Firework. A FW generally follows the following structure:
             (1) Update based on previous calculation
@@ -69,11 +94,16 @@ class BaseFW(Firework):
         t = []
 
         # Set up the name, the input set, and how cp2k will be pushed to DB
-        fw_name = "{}-{}".format(structure.composition.reduced_formula if structure else "unknown", name)
+        fw_name = "{}-{}".format(
+            structure.composition.reduced_formula if structure else "unknown",
+            name,
+        )
 
-        cp2k_input_set = cp2k_input_set or StaticSet(structure, **cp2k_input_set_params)
+        cp2k_input_set = cp2k_input_set or StaticSet(
+            structure, **cp2k_input_set_params
+        )
         cp2k_input_set.project_name = name  # Currently, this assertion is needed to keep all FWs in a workflow
-                                            # behaving with the same name
+        # behaving with the same name
 
         cp2ktodb_kwargs = cp2ktodb_kwargs or {}
         if "additional_fields" not in cp2ktodb_kwargs:
@@ -83,109 +113,208 @@ class BaseFW(Firework):
         # if continuing from prev calc, update the structure with the previous result
         # For hybrid, should almost always be true (initialize with gga first)
         if prev_calc_loc:
-            t.append(CopyCp2kOutputs(files_to_copy=files_to_copy,
-                                     calc_loc=prev_calc_loc))  # TODO START HERE WITH TESTING
+            t.append(
+                CopyCp2kOutputs(
+                    files_to_copy=files_to_copy, calc_loc=prev_calc_loc
+                )
+            )  # TODO START HERE WITH TESTING
             t.append(UpdateStructureFromPrevCalc(prev_calc_loc=prev_calc_loc))
 
         # if prev calc directory is being REPEATED, copy files
         if prev_calc_dir:
-            t.append(WriteCp2kFromPrevious(cp2k_input_set_params=cp2k_input_set_params))
+            t.append(
+                WriteCp2kFromPrevious(
+                    cp2k_input_set_params=cp2k_input_set_params
+                )
+            )
 
         # else run based on the IO set
         else:
-            t.append(WriteCp2kFromIOSet(structure=structure,
-                                        cp2k_input_set=cp2k_input_set,
-                                        cp2k_input_params=cp2k_input_set_params))
+            t.append(
+                WriteCp2kFromIOSet(
+                    structure=structure,
+                    cp2k_input_set=cp2k_input_set,
+                    cp2k_input_params=cp2k_input_set_params,
+                )
+            )
 
         t.append(RunCp2KCustodian(cp2k_cmd=cp2k_cmd))
         t.append(PassCalcLocs(name=name))
 
         t.append(Cp2kToDb(db_file=db_file, **cp2ktodb_kwargs))
 
-        super().__init__(t, parents=parents, name=fw_name,
-                         spec={'cp2k_input_set': cp2k_input_set.as_dict()},
-                         **kwargs)
+        super().__init__(
+            t,
+            parents=parents,
+            name=fw_name,
+            spec={"cp2k_input_set": cp2k_input_set.as_dict()},
+            **kwargs
+        )
 
 
 class StaticFW(BaseFW):
-
-    def __init__(self, structure=None, name='Static', cp2k_input_set=None,
-                 cp2k_input_set_params={}, cp2k_cmd="cp2k", prev_calc_loc=True,
-                 prev_calc_dir=None, db_file=None, cp2ktodb_kwargs=None,
-                 parents=None, files_to_copy=[], **kwargs):
+    def __init__(
+        self,
+        structure=None,
+        name="Static",
+        cp2k_input_set=None,
+        cp2k_input_set_params={},
+        cp2k_cmd="cp2k",
+        prev_calc_loc=True,
+        prev_calc_dir=None,
+        db_file=None,
+        cp2ktodb_kwargs=None,
+        parents=None,
+        files_to_copy=[],
+        **kwargs
+    ):
         """
         Standard static calculation. Can start from input set or from previous calculation.
         """
 
-        cp2k_input_set = cp2k_input_set or StaticSet(structure, **cp2k_input_set_params)
+        cp2k_input_set = cp2k_input_set or StaticSet(
+            structure, **cp2k_input_set_params
+        )
 
-        super().__init__(structure=structure, name=name, cp2k_input_set=cp2k_input_set,
-                         cp2k_input_set_params=cp2k_input_set_params, cp2k_cmd=cp2k_cmd,
-                         prev_calc_loc=prev_calc_loc, prev_calc_dir=prev_calc_dir,
-                         db_file=db_file, cp2ktodb_kwargs=cp2ktodb_kwargs,
-                         parents=parents, files_to_copy=files_to_copy, **kwargs)
+        super().__init__(
+            structure=structure,
+            name=name,
+            cp2k_input_set=cp2k_input_set,
+            cp2k_input_set_params=cp2k_input_set_params,
+            cp2k_cmd=cp2k_cmd,
+            prev_calc_loc=prev_calc_loc,
+            prev_calc_dir=prev_calc_dir,
+            db_file=db_file,
+            cp2ktodb_kwargs=cp2ktodb_kwargs,
+            parents=parents,
+            files_to_copy=files_to_copy,
+            **kwargs
+        )
 
 
 class StaticHybridFW(BaseFW):
-
-    def __init__(self, structure=None, name='HybridStatic', cp2k_input_set=None,
-                 cp2k_input_set_params={}, cp2k_cmd="cp2k", prev_calc_loc=True,
-                 prev_calc_dir=None, db_file=None, cp2ktodb_kwargs=None,
-                 parents=None, files_to_copy=[], **kwargs):
+    def __init__(
+        self,
+        structure=None,
+        name="HybridStatic",
+        cp2k_input_set=None,
+        cp2k_input_set_params={},
+        cp2k_cmd="cp2k",
+        prev_calc_loc=True,
+        prev_calc_dir=None,
+        db_file=None,
+        cp2ktodb_kwargs=None,
+        parents=None,
+        files_to_copy=[],
+        **kwargs
+    ):
         """
         Hybrid Static calculation. Presumably restarting from a previous GGA calculation.
         """
 
-        cp2k_input_set = cp2k_input_set or HybridStaticSet(structure, **cp2k_input_set_params)
+        cp2k_input_set = cp2k_input_set or HybridStaticSet(
+            structure, **cp2k_input_set_params
+        )
 
         # Default to copying the wavefunction file from previous GGA calculation
         if prev_calc_loc:
             files_to_copy.append("{}-RESTART.wfn".format(name))
 
-        super().__init__(structure=structure, name=name, cp2k_input_set=cp2k_input_set,
-                         cp2k_input_set_params=cp2k_input_set_params, cp2k_cmd=cp2k_cmd,
-                         prev_calc_loc=prev_calc_loc, prev_calc_dir=prev_calc_dir,
-                         db_file=db_file, cp2ktodb_kwargs=cp2ktodb_kwargs,
-                         parents=parents, files_to_copy=files_to_copy, **kwargs)
+        super().__init__(
+            structure=structure,
+            name=name,
+            cp2k_input_set=cp2k_input_set,
+            cp2k_input_set_params=cp2k_input_set_params,
+            cp2k_cmd=cp2k_cmd,
+            prev_calc_loc=prev_calc_loc,
+            prev_calc_dir=prev_calc_dir,
+            db_file=db_file,
+            cp2ktodb_kwargs=cp2ktodb_kwargs,
+            parents=parents,
+            files_to_copy=files_to_copy,
+            **kwargs
+        )
 
 
 class RelaxFW(BaseFW):
-
-    def __init__(self, structure=None, name='Relax', cp2k_input_set=None,
-                 cp2k_input_set_params={}, cp2k_cmd="cp2k", prev_calc_loc=True,
-                 prev_calc_dir=None, db_file=None, cp2ktodb_kwargs=None,
-                 parents=None, files_to_copy=[], **kwargs):
+    def __init__(
+        self,
+        structure=None,
+        name="Relax",
+        cp2k_input_set=None,
+        cp2k_input_set_params={},
+        cp2k_cmd="cp2k",
+        prev_calc_loc=True,
+        prev_calc_dir=None,
+        db_file=None,
+        cp2ktodb_kwargs=None,
+        parents=None,
+        files_to_copy=[],
+        **kwargs
+    ):
         """
         Geometry Relaxation Calculation.
         """
 
-        cp2k_input_set = cp2k_input_set or RelaxSet(structure, **cp2k_input_set_params)
+        cp2k_input_set = cp2k_input_set or RelaxSet(
+            structure, **cp2k_input_set_params
+        )
 
-        super().__init__(structure=structure, name=name, cp2k_input_set=cp2k_input_set,
-                         cp2k_input_set_params=cp2k_input_set_params, cp2k_cmd=cp2k_cmd,
-                         prev_calc_loc=prev_calc_loc, prev_calc_dir=prev_calc_dir,
-                         db_file=db_file, cp2ktodb_kwargs=cp2ktodb_kwargs,
-                         parents=parents, files_to_copy=files_to_copy, **kwargs)
+        super().__init__(
+            structure=structure,
+            name=name,
+            cp2k_input_set=cp2k_input_set,
+            cp2k_input_set_params=cp2k_input_set_params,
+            cp2k_cmd=cp2k_cmd,
+            prev_calc_loc=prev_calc_loc,
+            prev_calc_dir=prev_calc_dir,
+            db_file=db_file,
+            cp2ktodb_kwargs=cp2ktodb_kwargs,
+            parents=parents,
+            files_to_copy=files_to_copy,
+            **kwargs
+        )
 
 
 class RelaxHybridFW(BaseFW):
-
-    def __init__(self, structure=None, name='HybridRelax', cp2k_input_set=None,
-                 cp2k_input_set_params={}, cp2k_cmd="cp2k", prev_calc_loc=True,
-                 prev_calc_dir=None, db_file=None, cp2ktodb_kwargs=None,
-                 parents=None, files_to_copy=[], **kwargs):
+    def __init__(
+        self,
+        structure=None,
+        name="HybridRelax",
+        cp2k_input_set=None,
+        cp2k_input_set_params={},
+        cp2k_cmd="cp2k",
+        prev_calc_loc=True,
+        prev_calc_dir=None,
+        db_file=None,
+        cp2ktodb_kwargs=None,
+        parents=None,
+        files_to_copy=[],
+        **kwargs
+    ):
         """
         Hybrid Static calculation. Presumably restarting from a previous GGA calculation.
         """
 
-        cp2k_input_set = cp2k_input_set or HybridRelaxSet(structure, **cp2k_input_set_params)
+        cp2k_input_set = cp2k_input_set or HybridRelaxSet(
+            structure, **cp2k_input_set_params
+        )
 
         # Default to copying the wavefunction file from previous GGA calculation
         if prev_calc_loc:
             files_to_copy.append("{}-RESTART.wfn".format(name))
 
-        super().__init__(structure=structure, name=name, cp2k_input_set=cp2k_input_set,
-                         cp2k_input_set_params=cp2k_input_set_params, cp2k_cmd=cp2k_cmd,
-                         prev_calc_loc=prev_calc_loc, prev_calc_dir=prev_calc_dir,
-                         db_file=db_file, cp2ktodb_kwargs=cp2ktodb_kwargs,
-                         parents=parents, files_to_copy=files_to_copy, **kwargs)
+        super().__init__(
+            structure=structure,
+            name=name,
+            cp2k_input_set=cp2k_input_set,
+            cp2k_input_set_params=cp2k_input_set_params,
+            cp2k_cmd=cp2k_cmd,
+            prev_calc_loc=prev_calc_loc,
+            prev_calc_dir=prev_calc_dir,
+            db_file=db_file,
+            cp2ktodb_kwargs=cp2ktodb_kwargs,
+            parents=parents,
+            files_to_copy=files_to_copy,
+            **kwargs
+        )

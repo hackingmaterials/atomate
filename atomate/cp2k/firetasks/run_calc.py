@@ -1,17 +1,12 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 from monty.os.path import zpath
 from monty.serialization import loadfn
-
-from atomate.vasp.config import HALF_KPOINTS_FIRST_RELAX
 
 """
 This module defines tasks that support running vasp in various ways.
 """
 
-import shutil
 import shlex
 import os
 import six
@@ -20,14 +15,13 @@ import subprocess
 from custodian import Custodian
 from custodian.cp2k.handlers import UnconvergedScfErrorHandler
 from custodian.cp2k.jobs import Cp2kJob
-from custodian.vasp.validators import VasprunXMLValidator, VaspFilesValidator
 
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 from atomate.utils.utils import env_chk, get_logger
 from atomate.vasp.config import CUSTODIAN_MAX_ERRORS
 
-__author__ = 'Nicholas Winner <nwinner@berkeley.edu>'
+__author__ = "Nicholas Winner <nwinner@berkeley.edu>"
 
 logger = get_logger(__name__)
 
@@ -53,7 +47,11 @@ class RunCp2KDirect(FiretaskBase):
 
         logger.info("Running command: {}".format(cmd))
         return_code = subprocess.call(cmd, shell=True)
-        logger.info("Command {} finished running with returncode: {}".format(cmd, return_code))
+        logger.info(
+            "Command {} finished running with returncode: {}".format(
+                cmd, return_code
+            )
+        )
 
 
 @explicit_serialize
@@ -82,6 +80,7 @@ class RunCp2KCustodian(FiretaskBase):
             Supports env_chk.
         wall_time (int): Total wall time in seconds. Activates WalltimeHandler if set.
     """
+
     required_params = ["cp2k_cmd"]
     optional_params = []
 
@@ -91,8 +90,8 @@ class RunCp2KCustodian(FiretaskBase):
             "default": [UnconvergedScfErrorHandler()],
             "strict": [],
             "md": [],
-            "no_handler": []
-            }
+            "no_handler": [],
+        }
 
         cp2k_cmd = env_chk(self["cp2k_cmd"], fw_spec)
 
@@ -120,11 +119,19 @@ class RunCp2KCustodian(FiretaskBase):
         # construct validators
         validators = []
 
-        c = Custodian(handlers, jobs, validators=validators, max_errors=max_errors,
-                      scratch_dir=scratch_dir, gzipped_output=gzip_output)
+        c = Custodian(
+            handlers,
+            jobs,
+            validators=validators,
+            max_errors=max_errors,
+            scratch_dir=scratch_dir,
+            gzipped_output=gzip_output,
+        )
 
         c.run()
 
         if os.path.exists(zpath("custodian.json")):
-            stored_custodian_data = {"custodian": loadfn(zpath("custodian.json"))}
+            stored_custodian_data = {
+                "custodian": loadfn(zpath("custodian.json"))
+            }
             return FWAction(stored_data=stored_custodian_data)
