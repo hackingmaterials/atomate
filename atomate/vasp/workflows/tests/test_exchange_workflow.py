@@ -10,8 +10,8 @@ from monty.os.path import which
 
 from atomate.vasp.workflows.base.exchange import ExchangeWF
 from atomate.vasp.firetasks.parse_outputs import (
-    MagneticDeformationToDB,
-    MagneticOrderingsToDB,
+    MagneticDeformationToDb,
+    MagneticOrderingsToDb,
 )
 from atomate.utils.testing import AtomateTest, DB_DIR
 
@@ -24,11 +24,6 @@ __email__ = "ncfrey@lbl.gov"
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 test_dir = os.path.join(module_dir, "..", "..", "test_files", "exchange_wf")
-
-enum_cmd = which("enum.x") or which("multienum.x")
-VAMPEXE = which("vampire-serial")
-enumlib_present = enum_cmd
-vampire_present = VAMPEXE
 
 
 class TestExchangeWF(AtomateTest):
@@ -44,16 +39,24 @@ class TestExchangeWF(AtomateTest):
         ]
         cls.cutoff = 3.0
         cls.tol = 0.04
+        cls.heisenberg_settings = {"cutoff": 3.0, "tol": 0.04, 
+            "average": False}
+        cls.mc_settings = {"mc_box_size": 3, "equil_timesteps": 10, "mc_timesteps": 10}
         cls.db_file = os.path.join(db_dir, "db.json")
 
-    @unittest.skipIf(not enumlib_present, "enumlib not present")
     def test_workflow(self):
+
+        c = {}
+        c["heisenberg_settings"] = self.heisenberg_settings
+        c["mc_settings"] = self.mc_settings
+        c["DB_FILE"] = self.db_file
 
         wf = ExchangeWF(
             magnetic_structures=self.structures,
             energies=self.energies,
             db_file=self.db_file,
-        ).get_wf()
+        ).get_wf(c=c)
+
         self.assertEqual(wf.name, "Mn3Al - Exchange")
 
 

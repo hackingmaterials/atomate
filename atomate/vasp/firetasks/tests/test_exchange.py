@@ -6,12 +6,16 @@ import os
 import unittest
 import pandas as pd
 
+from monty.os.path import which
+
 from fireworks.utilities.fw_serializers import load_object
 
-from atomate.vasp.firetasks.exchange_tasks import (
+from atomate.vasp.firetasks.exchange import (
     HeisenbergModelMapping,
+    HeisenbergModelToDb,
     HeisenbergConvergence,
     VampireMC,
+    VampireToDb,
 )
 
 from atomate.utils.testing import AtomateTest
@@ -28,6 +32,8 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 test_dir = os.path.join(module_dir, "..", "..", "test_files", "exchange_wf")
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 
+VAMPEXE = which("vampire-serial")
+vampire_present = VAMPEXE
 
 class TestExchangeTasks(AtomateTest):
     @classmethod
@@ -42,26 +48,44 @@ class TestExchangeTasks(AtomateTest):
         ]
         cls.cutoff = 3.0
         cls.tol = 0.04
-        cls.avg = True
+        cls.average = True
         cls.mc_settings = {"mc_box_size": 3, "equil_timesteps": 10, "mc_timesteps": 10}
 
         cls.db_file = os.path.join(db_dir, "db.json")
 
         new_fw_spec = {"_fw_env": {"db_file": os.path.join(db_dir, "db.json")}}
 
+    @unittest.skipIf(not vampire_present, "vampire not present")
     def test_heisenberg_mm(self):
         d = dict(
             db_file=self.db_file,
-            exchange_wf_uuid=self.uuid,
+            wf_uuid=self.uuid,
             parent_structure=self.parent_structure,
             cutoff=self.cutoff,
             tol=self.tol,
-            avg=self.avg,
+            average=self.average,
             structures=self.structures,
             energies=self.energies,
         )
         hmm = HeisenbergModelMapping(d)
         hmm.run_task({})
+
+        hmtdb = HeisenbergModelToDb(d)
+        hmtdb.run_task({})
+
+        d = dict(
+            db_file=self.db_file,
+            wf_uuid=self.uuid,
+            parent_structure=self.parent_structure,
+            mc_settings=self.mc_settings,
+            average=self.average,
+            )
+
+        vmc = VampireMC(d)
+        vmc.run_task({})
+
+        vtdb = VampireToDb(d)
+        vtdb.run_task({})
 
 
 if __name__ == "__main__":

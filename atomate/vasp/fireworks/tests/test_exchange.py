@@ -8,7 +8,8 @@ from pymatgen.core.lattice import Lattice
 from pymatgen.core.structure import Structure
 from pymatgen.transformations.standard_transformations import RotationTransformation
 
-from atomate.vasp.fireworks.exchange import *
+from atomate.utils.testing import AtomateTest
+from atomate.vasp.fireworks.exchange import HeisenbergModelFW, VampireCallerFW
 
 __author__ = "Nathan C. Frey"
 __email__ = "ncfrey@lbl.gov"
@@ -18,36 +19,40 @@ db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 test_dir = os.path.join(module_dir, "..", "..", "test_files", "exchange_wf")
 
 
-class TestExchangeFireworks(unittest.TestCase):
-    def setUp(self):
-        self.Mn3Al = pd.read_json(os.path.join(test_dir, "Mn3Al.json"))
-        self.db_file = ""
-        self.uuid = 1
-        self.structures = [Structure.from_dict(s) for s in self.Mn3Al.structure]
-        self.parent_structure = self.structures[0]
-        self.energies = [
-            e * len(self.parent_structure) for e in self.Mn3Al.energy_per_atom
+class TestExchangeFireworks(AtomateTest):
+    @classmethod
+    def setUpClass(cls):
+        cls.Mn3Al = pd.read_json(os.path.join(test_dir, "Mn3Al.json"))
+        cls.db_file = ""
+        cls.uuid = 1
+        cls.structures = [Structure.from_dict(s) for s in cls.Mn3Al.structure]
+        cls.parent_structure = cls.structures[0]
+        cls.energies = [
+            e * len(cls.parent_structure) for e in cls.Mn3Al.energy_per_atom
         ]
-        self.heisenberg_settings = {"cutoff": 3.0, "tol": 0.04, "avg": False}
-        self.db_file = os.path.join(db_dir, "db.json")
+        cls.heisenberg_settings = {"cutoff": 3.0, "tol": 0.04, 
+            "average": False}
+        cls.db_file = os.path.join(db_dir, "db.json")
+
+        new_fw_spec = {"_fw_env": {"db_file": os.path.join(db_dir, "db.json")}}
 
     def test_EFWs(self):
         hmfw = HeisenbergModelFW(
-            exchange_wf_uuid=self.uuid,
+            wf_uuid=self.uuid,
             parent_structure=self.parent_structure,
             parents=None,
             heisenberg_settings=self.heisenberg_settings,
         )
         num_ftasks = len(hmfw.tasks)
-        self.assertEqual(num_ftasks, 5)
+        self.assertEqual(num_ftasks, 10)
 
         vcfw = VampireCallerFW(
-            exchange_wf_uuid=self.uuid,
+            wf_uuid=self.uuid,
             parent_structure=self.parent_structure,
-            parents=None,
+            parents=[hmfw],
         )
         num_ftasks = len(vcfw.tasks)
-        self.assertEqual(num_ftasks, 2)
+        self.assertEqual(num_ftasks, 3)
 
 
 if __name__ == "__main__":
