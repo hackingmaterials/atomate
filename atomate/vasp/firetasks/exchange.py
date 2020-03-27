@@ -32,6 +32,8 @@ class HeisenbergModelMapping(FiretaskBase):
         cutoff (float): NN search cutoff (Angstrom).
         tol (float): distance tolerance for similar bonds.
         average (bool): <J> only or full NN, NNN HeisenbergModel.
+
+    Optional parameters:
         structures (list): Magnetic structures.
         energies (list): Energies / atom (eV).
 
@@ -40,7 +42,6 @@ class HeisenbergModelMapping(FiretaskBase):
     required_params = [
         "db_file",
         "wf_uuid",
-        "parent_structure",
         "cutoff",
         "tol",
         "average",
@@ -53,8 +54,6 @@ class HeisenbergModelMapping(FiretaskBase):
 
         db_file = env_chk(self["db_file"], fw_spec)
         wf_uuid = self["wf_uuid"]
-        formula = self["parent_structure"].formula
-        formula_pretty = self["parent_structure"].composition.reduced_formula
 
         # Get magnetic orderings collection from db
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
@@ -109,28 +108,20 @@ class HeisenbergModelToDb(FiretaskBase):
     Args:
         db_file (str): path to file containing the database credentials.
         wf_uuid (int): Unique id for record keeping.
-        parent_structure (Structure): magnetic structure.
         cutoff (float): NN search cutoff (Angstrom).
-        tol (float): distance tolerance for similar bonds.
-        average (bool): <J> only or full NN, NNN HeisenbergModel.
 
     """
 
     required_params = [
         "db_file",
         "wf_uuid",
-        "parent_structure",
-        "cutoff",
-        "tol",
-        "average",
+        "cutoff"
     ]
 
     def run_task(self, fw_spec):
 
         db_file = env_chk(self["db_file"], fw_spec)
         wf_uuid = self["wf_uuid"]
-        formula = self["parent_structure"].formula
-        formula_pretty = self["parent_structure"].composition.reduced_formula
 
         name = "heisenberg_model_" + str(self["cutoff"])
         hmodel = loadfn(name + ".json")
@@ -141,14 +132,16 @@ class HeisenbergModelToDb(FiretaskBase):
         mmdb.collection = mmdb.db["exchange"]
 
         hmodel_dict = hmodel.as_dict()
-        name = "heisenberg_model_" + str(self["cutoff"])
+
+        parent_structure = hmodel.structures[0]
+        formula_pretty = parent_structure.composition.reduced_formula
 
         wf_meta = {"wf_uuid": wf_uuid}
         task_doc = {
             "wf_meta": wf_meta,
             "formula_pretty": formula_pretty,
             "nn_cutoff": self["cutoff"],
-            "nn_tol": self["tol"],
+            "nn_tol": hmodel.tol,
             "heisenberg_model": hmodel_dict,
         }
 
@@ -173,7 +166,6 @@ class HeisenbergConvergence(FiretaskBase):
     Args:
         db_file (str): path to file containing the database credentials.
         wf_uuid (int): Unique id for record keeping.
-        parent_structure (Structure): Structure object.
         average (bool): <J> exchange param only.
 
     TODO:
@@ -181,7 +173,7 @@ class HeisenbergConvergence(FiretaskBase):
 
     """
 
-    required_params = ["db_file", "wf_uuid", "parent_structure", "average"]
+    required_params = ["db_file", "wf_uuid", "average"]
 
     def run_task(self, fw_spec):
 
@@ -191,8 +183,6 @@ class HeisenbergConvergence(FiretaskBase):
         # Get Heisenberg models from db
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         mmdb.collection = mmdb.db["exchange"]
-
-        formula_pretty = self["parent_structure"].composition.reduced_formula
 
         # Get documents
         docs = list(
@@ -248,7 +238,6 @@ class VampireMC(FiretaskBase):
     Args:
         db_file (str): path to file containing the database credentials.
         wf_uuid (int): Unique id for record keeping.
-        parent_structure (Structure): Structure object with magmoms.
         mc_settings (dict): A configuration dict for monte carlo.
         average (bool): Only <J> exchange param.
 
@@ -260,7 +249,6 @@ class VampireMC(FiretaskBase):
     required_params = [
         "db_file",
         "wf_uuid",
-        "parent_structure",
         "mc_settings",
         "average",
     ]
@@ -269,7 +257,6 @@ class VampireMC(FiretaskBase):
 
         db_file = env_chk(self["db_file"], fw_spec)
         wf_uuid = self["wf_uuid"]
-        formula_pretty = self["parent_structure"].composition.reduced_formula
         mc_settings = self["mc_settings"]
         average = self["average"]
 
@@ -323,27 +310,24 @@ class VampireToDb(FiretaskBase):
     Args:
         db_file (str): path to file containing the database credentials.
         wf_uuid (int): Unique id for record keeping.
-        parent_structure (Structure): Structure object with magmoms.
 
     """
 
     required_params = [
         "db_file",
         "wf_uuid",
-        "parent_structure",
     ]
 
     def run_task(self, fw_spec):
 
         db_file = env_chk(self["db_file"], fw_spec)
         wf_uuid = self["wf_uuid"]
-        formula_pretty = self["parent_structure"].composition.reduced_formula
         vampire_output = loadfn("vampire_output.json")
 
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         mmdb.collection = mmdb.db["exchange"]
 
-        task_doc = {"wf_meta": {"wf_uuid": wf_uuid}, "formula_pretty": formula_pretty}
+        task_doc = {"wf_meta": {"wf_uuid": wf_uuid}}
 
         if fw_spec.get("tags", None):
             task_doc["tags"] = fw_spec["tags"]

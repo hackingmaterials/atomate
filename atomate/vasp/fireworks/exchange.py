@@ -79,7 +79,6 @@ class HeisenbergModelFW(Firework):
                 HeisenbergModelMapping(
                     db_file=db_file,
                     wf_uuid=wf_uuid,
-                    parent_structure=parent_structure,
                     cutoff=cutoff,
                     tol=tol,
                     average=average,
@@ -90,10 +89,7 @@ class HeisenbergModelFW(Firework):
                 HeisenbergModelToDb(
                     db_file=db_file,
                     wf_uuid=wf_uuid,
-                    parent_structure=parent_structure,
-                    cutoff=cutoff,
-                    tol=tol,
-                    average=average)
+                    cutoff=cutoff)
             )
 
         else:
@@ -104,7 +100,6 @@ class HeisenbergModelFW(Firework):
                     HeisenbergModelMapping(
                         db_file=db_file,
                         wf_uuid=wf_uuid,
-                        parent_structure=parent_structure,
                         cutoff=coff,
                         tol=tol,
                         average=average,
@@ -113,10 +108,7 @@ class HeisenbergModelFW(Firework):
                     HeisenbergModelToDb(
                         db_file=db_file,
                         wf_uuid=wf_uuid,
-                        parent_structure=parent_structure,
-                        cutoff=cutoff,
-                        tol=tol,
-                        average=average)
+                        cutoff=cutoff)
                 )
 
         super().__init__(tasks=tasks, name=fw_name, parents=parents)
@@ -167,7 +159,6 @@ class VampireCallerFW(Firework):
             HeisenbergConvergence(
                 db_file=db_file,
                 wf_uuid=wf_uuid,
-                parent_structure=parent_structure,
                 average=average,
             )
         )
@@ -176,15 +167,13 @@ class VampireCallerFW(Firework):
             VampireMC(
                 db_file=db_file,
                 wf_uuid=wf_uuid,
-                parent_structure=parent_structure,
                 mc_settings=mc_settings,
                 average=average,
             ))
         tasks.append(
             VampireToDb(
                 db_file=db_file,
-                wf_uuid=wf_uuid,
-                parent_structure=parent_structure,
+                wf_uuid=wf_uuid
             ),
 
         )

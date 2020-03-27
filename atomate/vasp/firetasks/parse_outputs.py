@@ -782,6 +782,16 @@ class MagneticOrderingsToDb(FiretaskBase):
         perform_bader (bool): Perform Bader charge analysis.
         scan (bool): Do static calcs with SCAN functional.
 
+    Optional parameters:
+        origins (list): str indicating transformations that generated
+            orderings.
+        input_index (int): index of input structure to enumerator.
+        to_db (bool): if True, the data will be inserted into
+            dedicated collection in database, otherwise, will be dumped
+            to a .json file.
+        additional_fields (dict): fields added to the document such as
+            user-defined tags or name, ids, etc
+
     """
 
     required_params = ["db_file", "wf_uuid", "parent_structure",
