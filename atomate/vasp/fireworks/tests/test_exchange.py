@@ -30,8 +30,7 @@ class TestExchangeFireworks(AtomateTest):
         cls.energies = [
             e * len(cls.parent_structure) for e in cls.Mn3Al.energy_per_atom
         ]
-        cls.heisenberg_settings = {"cutoff": 3.0, "tol": 0.04, 
-            "average": False}
+        cls.heisenberg_settings = {"cutoff": 3.0, "tol": 0.04}
         cls.db_file = os.path.join(db_dir, "db.json")
 
         new_fw_spec = {"_fw_env": {"db_file": os.path.join(db_dir, "db.json")}}
@@ -42,9 +41,11 @@ class TestExchangeFireworks(AtomateTest):
             parent_structure=self.parent_structure,
             parents=None,
             heisenberg_settings=self.heisenberg_settings,
+            structures=self.structures,
+            energies=self.energies,
         )
         num_ftasks = len(hmfw.tasks)
-        self.assertEqual(num_ftasks, 10)
+        self.assertEqual(num_ftasks, 2)
 
         vcfw = VampireCallerFW(
             wf_uuid=self.uuid,
@@ -52,7 +53,7 @@ class TestExchangeFireworks(AtomateTest):
             parents=[hmfw],
         )
         num_ftasks = len(vcfw.tasks)
-        self.assertEqual(num_ftasks, 3)
+        self.assertEqual(num_ftasks, 2)
 
 
 if __name__ == "__main__":

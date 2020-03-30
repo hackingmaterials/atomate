@@ -26,75 +26,62 @@ class HeisenbergModelMapping(FiretaskBase):
     Map structures and energies to a Heisenberg model and compute exchange
     parameters for a given NN cutoff.
 
+    * heisenberg_settings: 
+        cutoff (float): Starting point for nearest neighbor search.
+        tol (float): Tolerance for equivalent NN bonds.
+        average (bool): Compute only <J>.
+
     Args:
         db_file (str): path to file containing the database credentials.
         wf_uuid (int): Unique id for record keeping.
-        cutoff (float): NN search cutoff (Angstrom).
-        tol (float): distance tolerance for similar bonds.
-        average (bool): <J> only or full NN, NNN HeisenbergModel.
-
-    Optional parameters:
         structures (list): Magnetic structures.
         energies (list): Energies / atom (eV).
+
+    Optional parameters:
+        heisenberg_settings (dict): A config dict for Heisenberg model 
+            mapping, detailed above.
 
     """
 
     required_params = [
         "db_file",
         "wf_uuid",
-        "cutoff",
-        "tol",
-        "average",
+        "structures", 
+        "energies"
     ]
 
-    # If only doing <J>, give the original structure/energy inputs
-    optional_params = ["structures", "energies"]
+    optional_params = ["heisenberg_settings"]
 
     def run_task(self, fw_spec):
 
         db_file = env_chk(self["db_file"], fw_spec)
         wf_uuid = self["wf_uuid"]
+        structures = self["structures"]
+        energies = self["energies"]
 
         # Get magnetic orderings collection from db
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         mmdb.collection = mmdb.db["magnetic_orderings"]
 
-        # Look up static calcs if needed
-        if not self["average"]:
-
-            # Get documents
-            docs = list(
-                mmdb.collection.find(
-                    {"wf_meta.wf_uuid": wf_uuid},
-                    ["task_id", "structure", "energy_per_atom"],
-                )
-            )
-
-            # Get structures and energy / unit cell
-            structures = [Structure.from_dict(d["structure"]) for d in docs]
-            epas = [d["energy_per_atom"] for d in docs]
-            n_atoms = len(structures[0])
-            energies = [e * n_atoms for e in epas]
-        else:
-            structures = self["structures"]
-            energies = self["energies"]
+        heisenberg_settings = self.get("heisenberg_settings", {})
 
         # Total energies
         energies = [e * len(s) for e, s in zip(energies, structures)]
 
         # Map system to a Heisenberg Model
-        hmapper = HeisenbergMapper(structures, energies, self["cutoff"], self["tol"])
+        hmapper = HeisenbergMapper(structures, energies, 
+            **heisenberg_settings)
 
         # Get MSONable Heisenberg Model
         hmodel = hmapper.get_heisenberg_model()
         hmodel_dict = hmodel.as_dict()
 
         # Update FW spec with model
-        name = "heisenberg_model_" + str(self["cutoff"])
+        name = "heisenberg_model_" + str(hmodel.cutoff)
         update_spec = {name: hmodel}
 
         # Write to file
-        dumpfn(hmodel_dict, name + ".json")
+        dumpfn(hmodel_dict, "heisenberg_model.json")
 
         return FWAction(update_spec=update_spec)
 
@@ -108,24 +95,21 @@ class HeisenbergModelToDb(FiretaskBase):
     Args:
         db_file (str): path to file containing the database credentials.
         wf_uuid (int): Unique id for record keeping.
-        cutoff (float): NN search cutoff (Angstrom).
 
     """
 
     required_params = [
         "db_file",
         "wf_uuid",
-        "cutoff"
     ]
+
 
     def run_task(self, fw_spec):
 
         db_file = env_chk(self["db_file"], fw_spec)
         wf_uuid = self["wf_uuid"]
 
-        name = "heisenberg_model_" + str(self["cutoff"])
-        hmodel = loadfn(name + ".json")
-        #hmodel = HeisenbergModel.from_dict(hmodel_dict)
+        hmodel = loadfn("heisenberg_model.json")
 
         # Exchange collection
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
@@ -140,7 +124,7 @@ class HeisenbergModelToDb(FiretaskBase):
         task_doc = {
             "wf_meta": wf_meta,
             "formula_pretty": formula_pretty,
-            "nn_cutoff": self["cutoff"],
+            "nn_cutoff": hmodel.cutoff,
             "nn_tol": hmodel.tol,
             "heisenberg_model": hmodel_dict,
         }
@@ -238,8 +222,10 @@ class VampireMC(FiretaskBase):
     Args:
         db_file (str): path to file containing the database credentials.
         wf_uuid (int): Unique id for record keeping.
+
+    Optional args:
         mc_settings (dict): A configuration dict for monte carlo.
-        average (bool): Only <J> exchange param.
+            See pymatgen.command_line.VampireCaller for options.
 
     TODO:
         * Include HeisenbergModel convergence check.
@@ -249,16 +235,15 @@ class VampireMC(FiretaskBase):
     required_params = [
         "db_file",
         "wf_uuid",
-        "mc_settings",
-        "average",
     ]
+
+    optional_params = ["mc_settings"]
 
     def run_task(self, fw_spec):
 
         db_file = env_chk(self["db_file"], fw_spec)
         wf_uuid = self["wf_uuid"]
-        mc_settings = self["mc_settings"]
-        average = self["average"]
+        mc_settings = self.get("mc_settings", {})
 
         # Get Heisenberg models from db
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
@@ -274,21 +259,13 @@ class VampireMC(FiretaskBase):
         hmodels = [HeisenbergModel.from_dict(d["heisenberg_model"]) for d in docs]
         hmodel = hmodels[0]  # Take the model with smallest NN cutoff
 
-        # Vampire monte carlo settings
-        mc_box_size = mc_settings["mc_box_size"]
-        equil_timesteps = mc_settings["equil_timesteps"]
-        mc_timesteps = mc_settings["mc_timesteps"]
-
         # Get a converged Heisenberg model if one was found
         # if fw_spec["converged_heisenberg_model"]:
         #     hmodel = HeisenbergModel.from_dict(fw_spec["converged_heisenberg_model"])
 
         vc = VampireCaller(
-            mc_box_size=mc_box_size,
-            equil_timesteps=equil_timesteps,
-            mc_timesteps=mc_timesteps,
             hm=hmodel,
-            avg=average,
+            **mc_settings,
         )
         vampire_output = vc.output
 

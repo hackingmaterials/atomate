@@ -46,10 +46,8 @@ class TestExchangeTasks(AtomateTest):
         cls.energies = [
             e * len(cls.parent_structure) for e in cls.Mn3Al.energy_per_atom
         ]
-        cls.cutoff = 3.0
-        cls.tol = 0.04
-        cls.average = True
-        cls.mc_settings = {"mc_box_size": 3, "equil_timesteps": 10, "mc_timesteps": 10}
+        cls.heisenberg_settings = {"cutoff": 3.0, "tol": 0.04}
+        cls.mc_settings = {"mc_box_size": 3, "equil_timesteps": 10, "mc_timesteps": 10, "avg": True}
 
         cls.db_file = os.path.join(db_dir, "db.json")
 
@@ -57,34 +55,25 @@ class TestExchangeTasks(AtomateTest):
 
     @unittest.skipIf(not vampire_present, "vampire not present")
     def test_heisenberg_mm(self):
-        d = dict(
-            db_file=self.db_file,
+        hmm = HeisenbergModelMapping(db_file=self.db_file,
             wf_uuid=self.uuid,
-            parent_structure=self.parent_structure,
-            cutoff=self.cutoff,
-            tol=self.tol,
-            average=self.average,
             structures=self.structures,
             energies=self.energies,
-        )
-        hmm = HeisenbergModelMapping(d)
+            heisenberg_settings=self.heisenberg_settings)
         hmm.run_task({})
 
-        hmtdb = HeisenbergModelToDb(d)
+        hmtdb = HeisenbergModelToDb(db_file=self.db_file,
+            wf_uuid=self.uuid)
         hmtdb.run_task({})
 
-        d = dict(
-            db_file=self.db_file,
-            wf_uuid=self.uuid,
-            parent_structure=self.parent_structure,
-            mc_settings=self.mc_settings,
-            average=self.average,
-            )
 
-        vmc = VampireMC(d)
+        vmc = VampireMC(db_file=self.db_file,
+            wf_uuid=self.uuid,
+            mc_settings=self.mc_settings)
         vmc.run_task({})
 
-        vtdb = VampireToDb(d)
+        vtdb = VampireToDb(db_file=self.db_file,
+            wf_uuid=self.uuid)
         vtdb.run_task({})
 
 

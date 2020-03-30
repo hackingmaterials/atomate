@@ -102,15 +102,15 @@ class ExchangeWF:
     def get_wf(self, num_orderings_hard_limit=16, c=None):
         """Retrieve Fireworks workflow.
 
-        c is a dictionary that can contain:
+        c is an optional dictionary that can contain:
         * heisenberg_settings: 
             cutoff (float): Starting point for nearest neighbor search.
             tol (float): Tolerance for equivalent NN bonds.
-            average (bool): Compute only <J>.
         * mc_settings:
             mc_box_size (float): MC simulation box size in nm.
             equil_timesteps (int): Number of MC equilibration moves.
             mc_timesteps (int): Number of MC moves for averaging.
+            avg (bool): Compute only <J>.
         * DB_FILE:
             path to db.json.
 
@@ -118,11 +118,10 @@ class ExchangeWF:
             num_orderings_hard_limit (int): will make sure total number of
                 magnetic orderings does not exceed this number even if there
                 are extra orderings of equivalent symmetry
-            c (dict): additional config dict described above
+            c Optional[dict]: additional config dict described above
 
         Returns: 
-            wf (Workflow): Static magnetic orderings + Heisenberg Model +
-                Vampire Monte Carlo.
+            wf (Workflow): Heisenberg Model + Vampire Monte Carlo.
 
         TODO:
             * Add static SCAN option (only optimization is available)
@@ -134,9 +133,7 @@ class ExchangeWF:
         if "DB_FILE" not in c:
             c["DB_FILE"] = DB_FILE
 
-        heisenberg_settings = {"cutoff": 3.0, "tol": 0.04, "average": True}
-        heisenberg_settings.update(c.get("heisenberg_settings", {}))
-        c["heisenberg_settings"] = heisenberg_settings
+        heisenberg_settings = c.get("heisenberg_settings", {})
 
         fws = []
 
@@ -144,31 +141,21 @@ class ExchangeWF:
             wf_uuid=self.uuid,
             parent_structure=self.structures[0],
             db_file=c["DB_FILE"],
-            heisenberg_settings=c["heisenberg_settings"],
+            heisenberg_settings=heisenberg_settings,
             parents=None,
             structures=self.structures,
             energies=self.energies,
         )
 
         # Vampire Monte Carlo
-        mc_settings = {
-            "mc_box_size": 4.0,
-            "equil_timesteps": 2000,
-            "mc_timesteps": 4000,
-        }
-        mc_settings.update(c.get("mc_settings", {}))
-        c["mc_settings"] = mc_settings
-
-        # <J> only?
-        average = c["heisenberg_settings"]["average"]
+        mc_settings = c.get("mc_settings", {})
 
         vampire_fw = VampireCallerFW(
             wf_uuid=self.uuid,
             parent_structure=self.structures[0],
             parents=[heisenberg_model_fw],
             db_file=c["DB_FILE"],
-            mc_settings=c["mc_settings"],
-            average=average,
+            mc_settings=mc_settings,
         )
 
         fws = [heisenberg_model_fw, vampire_fw]
