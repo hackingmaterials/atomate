@@ -73,8 +73,6 @@ class HeisenbergModelFW(Firework):
 
         tasks.append(
             HeisenbergModelMapping(
-                db_file=db_file,
-                wf_uuid=wf_uuid,
                 structures=structures,
                 energies=energies,
                 heisenberg_settings=heisenberg_settings,

@@ -32,8 +32,6 @@ class HeisenbergModelMapping(FiretaskBase):
         average (bool): Compute only <J>.
 
     Args:
-        db_file (str): path to file containing the database credentials.
-        wf_uuid (int): Unique id for record keeping.
         structures (list): Magnetic structures.
         energies (list): Energies / atom (eV).
 
@@ -44,8 +42,6 @@ class HeisenbergModelMapping(FiretaskBase):
     """
 
     required_params = [
-        "db_file",
-        "wf_uuid",
         "structures", 
         "energies"
     ]

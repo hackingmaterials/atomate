@@ -55,8 +55,7 @@ class TestExchangeTasks(AtomateTest):
 
     @unittest.skipIf(not vampire_present, "vampire not present")
     def test_heisenberg_mm(self):
-        hmm = HeisenbergModelMapping(db_file=self.db_file,
-            wf_uuid=self.uuid,
+        hmm = HeisenbergModelMapping(
             structures=self.structures,
             energies=self.energies,
             heisenberg_settings=self.heisenberg_settings)
