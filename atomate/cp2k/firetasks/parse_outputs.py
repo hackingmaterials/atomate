@@ -11,7 +11,7 @@ from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk
 from atomate.utils.utils import get_logger
-from atomate.cp2k.drones import Cp2kDrone
+from atomate.cp2k import drones
 from atomate.cp2k.database import Cp2kCalcDb
 
 __author__ = "Nicholas Winner"
@@ -55,6 +55,7 @@ class Cp2kToDb(FiretaskBase):
     """
 
     optional_params = [
+        "drone",
         "calc_dir",
         "calc_loc",
         "parse_dos",
@@ -81,7 +82,8 @@ class Cp2kToDb(FiretaskBase):
         # parse the cp2k directory
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
 
-        drone = Cp2kDrone(
+        _drone = getattr(drones, self.get('drone', 'Cp2kDrone'))
+        drone = _drone(
             additional_fields=self.get("additional_fields"),
             parse_dos=self.get("parse_dos", False),
         )
@@ -118,7 +120,7 @@ class Cp2kToDb(FiretaskBase):
                 pass
             elif defuse_unsuccessful == "fizzle":
                 raise RuntimeError(
-                    "VaspToDb indicates that job is not successful "
+                    "Cp2kToDb indicates that job is not successful "
                     "(perhaps your job did not converge within the "
                     "limit of electronic/ionic iterations)!"
                 )

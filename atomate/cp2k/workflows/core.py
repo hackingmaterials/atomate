@@ -172,3 +172,118 @@ def get_wf_hybrid_static(
     wfname = "{}:{}".format(structure.composition.reduced_formula, name)
 
     return Workflow(fws, name=wfname, metadata=metadata)
+
+
+def get_wf_hybrid_relax(
+    structure,
+    cp2k_static_input_set=None,
+    cp2k_hybrid_input_set=None,
+    name="Hybrid-Static-WF",
+    user_static_settings={},
+    user_hybrid_settings={},
+    cp2k_cmd=CP2K_CMD,
+    db_file=DB_FILE,
+    cp2ktodb_kwargs=None,
+    metadata=None,
+):
+
+    fws = []
+
+    # TODO I really don't like this work around... currently I'm asserting that all cp2k input files
+    # must have the same project name, that way its easier for different fws to find the files from
+    # previous fireworks. Should be more flexible. -NW
+    if "project_name" not in user_static_settings.keys():
+        user_static_settings["project_name"] = name
+    if "project_name" not in user_hybrid_settings.keys():
+        user_hybrid_settings["project_name"] = name
+
+    cp2k_static_input_set = cp2k_static_input_set or StaticSet(
+        structure, **user_static_settings
+    )
+    cp2k_hybrid_input_set = cp2k_hybrid_input_set or HybridRelaxSet(
+        structure, **user_hybrid_settings
+    )
+
+    fw1 = StaticFW(
+        structure=structure,
+        name=name,
+        cp2k_input_set=cp2k_static_input_set,
+        cp2k_cmd=cp2k_cmd,
+        prev_calc_loc=False,
+        db_file=db_file,
+        cp2ktodb_kwargs=cp2ktodb_kwargs,
+        parents=None,
+    )
+    fws.append(fw1)
+
+    fw2 = StaticHybridFW(
+        structure=structure,
+        name=name,
+        cp2k_input_set=cp2k_hybrid_input_set,
+        cp2k_cmd=cp2k_cmd,
+        prev_calc_loc=True,
+        db_file=db_file,
+        cp2ktodb_kwargs=cp2ktodb_kwargs,
+        parents=fw1,
+    )
+    fws.append(fw2)
+
+    wfname = "{}:{}".format(structure.composition.reduced_formula, name)
+
+    return Workflow(fws, name=wfname, metadata=metadata)
+
+
+def get_wf_gga_relax_to_hybrid_static(
+    structure,
+    cp2k_gga_input_set=None,
+    cp2k_hybrid_input_set=None,
+    name="Hybrid-Static-WF",
+    user_gga_settings={},
+    user_hybrid_settings={},
+    cp2k_cmd=CP2K_CMD,
+    db_file=DB_FILE,
+    cp2ktodb_kwargs=None,
+    metadata=None,
+):
+
+    fws = []
+
+    if "project_name" not in user_gga_settings.keys():
+        user_gga_settings["project_name"] = name
+    if "project_name" not in user_hybrid_settings.keys():
+        user_hybrid_settings["project_name"] = name
+
+    cp2k_gga_input_set = cp2k_gga_input_set or RelaxSet(
+        structure, **user_gga_settings
+    )
+    cp2k_hybrid_input_set = cp2k_hybrid_input_set or HybridStaticSet(
+        structure, **user_hybrid_settings
+    )
+
+    fw1 = RelaxFW(
+        structure=structure,
+        name=name,
+        cp2k_input_set=cp2k_gga_input_set,
+        cp2k_cmd=cp2k_cmd,
+        prev_calc_loc=False,
+        db_file=db_file,
+        cp2ktodb_kwargs=cp2ktodb_kwargs,
+        parents=None,
+    )
+    fws.append(fw1)
+
+    fw2 = StaticHybridFW(
+        structure=structure,
+        name=name,
+        cp2k_input_set=cp2k_hybrid_input_set,
+        cp2k_cmd=cp2k_cmd,
+        prev_calc_loc=True,
+        db_file=db_file,
+        cp2ktodb_kwargs=cp2ktodb_kwargs,
+        parents=fw1,
+    )
+    fws.append(fw2)
+
+    wfname = "{}:{}".format(structure.composition.reduced_formula, name)
+
+    return Workflow(fws, name=wfname, metadata=metadata)

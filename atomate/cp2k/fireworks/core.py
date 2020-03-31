@@ -34,8 +34,8 @@ from atomate.cp2k.firetasks.glue_tasks import (
     CopyCp2kOutputs,
 )
 from atomate.cp2k.firetasks.parse_outputs import Cp2kToDb
-
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
+from atomate.cp2k.utils import optimize_structure_sc_scale
 
 
 # TODO: almost all Fws follow a similar copy from calc loc --> write input --> run --> pass locs/data.
@@ -56,6 +56,7 @@ class BaseFW(Firework):
         cp2ktodb_kwargs=None,
         parents=None,
         files_to_copy=[],
+        scale_to_num_sites=500,
         **kwargs
     ):
         """
@@ -140,14 +141,15 @@ class BaseFW(Firework):
 
         t.append(RunCp2KCustodian(cp2k_cmd=cp2k_cmd))
         t.append(PassCalcLocs(name=name))
-
         t.append(Cp2kToDb(db_file=db_file, **cp2ktodb_kwargs))
 
+        spec = {"cp2k_input_set": cp2k_input_set.as_dict()}
+        spec.update(kwargs.get('spec', {}))
         super().__init__(
             t,
             parents=parents,
             name=fw_name,
-            spec={"cp2k_input_set": cp2k_input_set.as_dict()},
+            spec=spec,
             **kwargs
         )
 

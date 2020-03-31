@@ -74,10 +74,6 @@ class RunCp2KCustodian(FiretaskBase):
         gzip_output: (bool) - gzip output (default=T)
         max_errors: (int) - maximum # of errors to fix before giving up (default=5)
         ediffg: (float) shortcut for setting EDIFFG in special custodian jobs
-        auto_npar: (bool) - use auto_npar (default=F). Recommended set to T
-            for single-node jobs only. Supports env_chk.
-        gamma_vasp_cmd: (str) - cmd for Gamma-optimized VASP compilation.
-            Supports env_chk.
         wall_time (int): Total wall time in seconds. Activates WalltimeHandler if set.
     """
 

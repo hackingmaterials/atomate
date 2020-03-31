@@ -555,3 +555,11 @@ class Cp2kDrone(AbstractDrone):
     @classmethod
     def from_dict(cls, d):
         return cls(**d["init_args"])
+
+
+# TODO Extension of basic drone. Implement post processing here that cannot be part of builder
+class DefectDrone(Cp2kDrone):
+
+    def assimilate(self, path):
+        task_doc = super(DefectDrone, self).assimilate(path)
+        return task_doc
