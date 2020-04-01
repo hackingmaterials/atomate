@@ -56,7 +56,6 @@ class BaseFW(Firework):
         cp2ktodb_kwargs=None,
         parents=None,
         files_to_copy=[],
-        scale_to_num_sites=500,
         **kwargs
     ):
         """
@@ -103,8 +102,6 @@ class BaseFW(Firework):
         cp2k_input_set = cp2k_input_set or StaticSet(
             structure, **cp2k_input_set_params
         )
-        cp2k_input_set.project_name = name  # Currently, this assertion is needed to keep all FWs in a workflow
-        # behaving with the same name
 
         cp2ktodb_kwargs = cp2ktodb_kwargs or {}
         if "additional_fields" not in cp2ktodb_kwargs:
@@ -175,7 +172,8 @@ class StaticFW(BaseFW):
         """
 
         cp2k_input_set = cp2k_input_set or StaticSet(
-            structure, **cp2k_input_set_params
+            structure, project_name=name,
+            **cp2k_input_set_params
         )
 
         super().__init__(
@@ -215,12 +213,9 @@ class StaticHybridFW(BaseFW):
         """
 
         cp2k_input_set = cp2k_input_set or HybridStaticSet(
-            structure, **cp2k_input_set_params
+            structure, project_name=name,
+            **cp2k_input_set_params
         )
-
-        # Default to copying the wavefunction file from previous GGA calculation
-        if prev_calc_loc:
-            files_to_copy.append("{}-RESTART.wfn".format(name))
 
         super().__init__(
             structure=structure,
@@ -259,7 +254,8 @@ class RelaxFW(BaseFW):
         """
 
         cp2k_input_set = cp2k_input_set or RelaxSet(
-            structure, **cp2k_input_set_params
+            structure, project_name=name,
+            **cp2k_input_set_params
         )
 
         super().__init__(
@@ -299,12 +295,9 @@ class RelaxHybridFW(BaseFW):
         """
 
         cp2k_input_set = cp2k_input_set or HybridRelaxSet(
-            structure, **cp2k_input_set_params
+            structure, project_name=name,
+            **cp2k_input_set_params
         )
-
-        # Default to copying the wavefunction file from previous GGA calculation
-        if prev_calc_loc:
-            files_to_copy.append("{}-RESTART.wfn".format(name))
 
         super().__init__(
             structure=structure,

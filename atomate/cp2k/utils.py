@@ -2,6 +2,7 @@ from pymatgen.analysis.defects.generators import VacancyGenerator, InterstitialG
 import itertools
 import numpy as np
 
+
 def get_defect_structures(structure, defect_dict):
 
     vacancies = defect_dict.get('vacancies')
@@ -25,6 +26,10 @@ def get_defect_structures(structure, defect_dict):
                         defect_structures.append(v)
                 else:
                     defect_structures.append(vac)
+
+    # TODO shouldn't this be done in defect object?
+    for d in defect_structures:
+        d.bulk_structure.set_charge(d.bulk_structure.charge + d.charge)
 
     return defect_structures
 

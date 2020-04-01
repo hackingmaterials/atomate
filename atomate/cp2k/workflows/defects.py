@@ -170,11 +170,13 @@ def get_wf_chg_defects(structure,
     defects = get_defect_structures(structure, defect_dict=defect_dict)
     for i, defect in enumerate(defects):
         bulk_name = 'Re-Relax-FW' if rerelax_flag else None  # So prev_calc_loc can find re-relax fw
-        cp2ktodb_kwargs['fw_spec_field'] = {'defect': defect.as_dict()}  # Keep record of defect object
+        cp2ktodb_kwargs['fw_spec_field'].update({'defect': defect.as_dict()})  # Keep record of defect object
+        gga_name = "Defect-GGA-FW-{}".format(i)  # How to track the GGA FW
+        hybrid_name = "Defect-Hybrid-FW-{}".format(i)  # How to track the hybrid FW
         fws.append(
             RelaxFW(
                 structure=defect.bulk_structure,
-                name="Defect-GGA-WF-{}".format(i),
+                name=gga_name,
                 cp2k_input_set=cp2k_gga_input_set,
                 cp2k_input_set_params=user_gga_settings,
                 cp2k_cmd=cp2k_cmd,
@@ -182,19 +184,21 @@ def get_wf_chg_defects(structure,
                 db_file=db_file,
                 cp2ktodb_kwargs=cp2ktodb_kwargs,
                 parents=parents,
+                files_to_copy=None
             )
         )
         fws.append(
             StaticHybridFW(
                 structure=defect.bulk_structure,
-                name="Defect-Hybrid-WF-{}".format(i),
+                name=hybrid_name,
                 cp2k_input_set=cp2k_hybrid_input_set,
                 cp2k_input_set_params=user_hybrid_settings,
                 cp2k_cmd=cp2k_cmd,
-                prev_calc_loc="Defect-GGA-WF-{}".format(i),
+                prev_calc_loc=gga_name,
                 db_file=db_file,
                 cp2ktodb_kwargs=cp2ktodb_kwargs,
                 parents=fws[-1],
+                files_to_copy="{}-RESTART.wfn".format(gga_name)
             )
         )
 
