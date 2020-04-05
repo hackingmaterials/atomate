@@ -24,7 +24,7 @@ from atomate.vasp.config import VASP_CMD, DB_FILE, ADD_WF_METADATA
 
 from atomate.vasp.workflows.presets.scan import wf_scan_opt
 from uuid import uuid4
-from pymatgen.io.vasp.sets import MPRelaxSet, LinearResponseUSet
+from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet, LinearResponseUSet
 from pymatgen.core import Lattice, Structure
 
 import numpy as np
@@ -68,10 +68,9 @@ def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_s
         c = c_defaults
 
     # Calculate groundstate
-    vis_d = vis.as_dict()
     uis_gs = {"LDAU":False, "LMAXMIX":4, "LORBIT": 11, "ISPIN": 2}
-    vis_d.update({"user_incar_settings": uis_gs})
-    vis_gs = vis.__class__.from_dict(vis_d)
+    vis_params = {"user_incar_settings": uis_gs}
+    vis_gs = MPStaticSet(structure=structure, **vis_params)
 
     if ground_state_dir:
         fws = []
@@ -90,7 +89,9 @@ def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_s
     for v in applied_potential_values:
 
         sign = 'neg' if str(v)[0] == '-' else 'pos'
-        vis_ldau = LinearResponseUSet.from_dict(vis_d)
+
+        vis_params = {"user_incar_settings": uis_ldau}
+        vis_ldau = LinearResponseUSet(structure=structure, **vis_params)
 
         for k in ["LDAUL", "LDAUU", "LDAUJ"]:
             val_dict = {}
@@ -110,15 +111,14 @@ def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_s
         # NSCF
         uis_ldau.update({"ICHARG":11})
 
-        vis_d = vis_ldau.as_dict()
-        vis_d.update({"user_incar_settings": uis_ldau})
-        vis_ldau = LinearResponseUSet.from_dict(vis_d)
+        vis_params = {"user_incar_settings": uis_ldau}
+        vis_ldau = LinearResponseUSet(structure=structure, **vis_params)
 
         if ground_state_dir:
             parents = []
         else:
             parents=fws[0]
-            
+
         fw = LinearResponseUFW(structure=structure, parents=parents,
                                name="nscf_u_eq_{}{}".format(sign, abs(round(v,6))),
                                vasp_input_set=vis_ldau,
@@ -132,9 +132,8 @@ def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_s
         # SCF
         uis_ldau.update({"ICHARG":0})
 
-        vis_d = vis_ldau.as_dict()
-        vis_d.update({"user_incar_settings": uis_ldau})
-        vis_ldau = LinearResponseUSet.from_dict(vis_d)
+        vis_params = {"user_incar_settings": uis_ldau}
+        vis_ldau = LinearResponseUSet(structure=structure, **vis_params)
 
         # NOTE: More efficient to reuse WAVECAR or remove dependency of SCF on NSCF?
 
@@ -143,7 +142,7 @@ def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_s
         else:
             parents=fws[0]
             # parents=fws[-1]
-        
+
         fw = LinearResponseUFW(structure=structure, parents=parents,
                                name="scf_u_eq_{}{}".format(sign, abs(round(v,6))),
                                vasp_input_set=vis_ldau,
@@ -157,16 +156,16 @@ def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_s
     # Needed here?
     wf = add_common_powerups(wf, c)
 
-    fw_analysis = Firework(
-        LinearResponseUToDb(
-            db_file=DB_FILE, wf_uuid=uuid
-        ),
-        name="LinearResponseUToDb",
-    )
+    # fw_analysis = Firework(
+    #     LinearResponseUToDb(
+    #         db_file=DB_FILE, wf_uuid=uuid
+    #     ),
+    #     name="LinearResponseUToDb",
+    # )
 
-    wf.append_wf(Workflow.from_Firework(fw_analysis), wf.leaf_fw_ids)
+    # wf.append_wf(Workflow.from_Firework(fw_analysis), wf.leaf_fw_ids)
 
-    wf = add_common_powerups(wf, c)
+    # wf = add_common_powerups(wf, c)
 
     # if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
     #     wf = add_wf_metadata(wf, structure)
