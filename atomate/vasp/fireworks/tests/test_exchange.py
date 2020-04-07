@@ -48,9 +48,7 @@ class TestExchangeFireworks(AtomateTest):
         self.assertEqual(num_ftasks, 2)
 
         vcfw = VampireCallerFW(
-            wf_uuid=self.uuid,
-            parent_structure=self.parent_structure,
-            parents=[hmfw],
+            wf_uuid=self.uuid, parent_structure=self.parent_structure, parents=[hmfw]
         )
         num_ftasks = len(vcfw.tasks)
         self.assertEqual(num_ftasks, 2)

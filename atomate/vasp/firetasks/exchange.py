@@ -29,7 +29,6 @@ class HeisenbergModelMapping(FiretaskBase):
     * heisenberg_settings: 
         cutoff (float): Starting point for nearest neighbor search.
         tol (float): Tolerance for equivalent NN bonds.
-        average (bool): Compute only <J>.
 
     Args:
         structures (list): Magnetic structures.
@@ -41,23 +40,14 @@ class HeisenbergModelMapping(FiretaskBase):
 
     """
 
-    required_params = [
-        "structures", 
-        "energies"
-    ]
+    required_params = ["structures", "energies"]
 
     optional_params = ["heisenberg_settings"]
 
     def run_task(self, fw_spec):
 
-        db_file = env_chk(self["db_file"], fw_spec)
-        wf_uuid = self["wf_uuid"]
         structures = self["structures"]
         energies = self["energies"]
-
-        # Get magnetic orderings collection from db
-        mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-        mmdb.collection = mmdb.db["magnetic_orderings"]
 
         heisenberg_settings = self.get("heisenberg_settings", {})
 
@@ -65,8 +55,7 @@ class HeisenbergModelMapping(FiretaskBase):
         energies = [e * len(s) for e, s in zip(energies, structures)]
 
         # Map system to a Heisenberg Model
-        hmapper = HeisenbergMapper(structures, energies, 
-            **heisenberg_settings)
+        hmapper = HeisenbergMapper(structures, energies, **heisenberg_settings)
 
         # Get MSONable Heisenberg Model
         hmodel = hmapper.get_heisenberg_model()
@@ -94,11 +83,7 @@ class HeisenbergModelToDb(FiretaskBase):
 
     """
 
-    required_params = [
-        "db_file",
-        "wf_uuid",
-    ]
-
+    required_params = ["db_file", "wf_uuid"]
 
     def run_task(self, fw_spec):
 
@@ -123,6 +108,7 @@ class HeisenbergModelToDb(FiretaskBase):
             "nn_cutoff": hmodel.cutoff,
             "nn_tol": hmodel.tol,
             "heisenberg_model": hmodel_dict,
+            "task_name": "heisenberg model",
         }
 
         if fw_spec.get("tags", None):
@@ -228,10 +214,7 @@ class VampireMC(FiretaskBase):
 
     """
 
-    required_params = [
-        "db_file",
-        "wf_uuid",
-    ]
+    required_params = ["db_file", "wf_uuid"]
 
     optional_params = ["mc_settings"]
 
@@ -253,16 +236,16 @@ class VampireMC(FiretaskBase):
         )
 
         hmodels = [HeisenbergModel.from_dict(d["heisenberg_model"]) for d in docs]
-        hmodel = hmodels[0]  # Take the model with smallest NN cutoff
+        cutoffs = [hmodel.cutoff for hmodel in hmodels]
+        ordered_hmodels = [h for _, h in sorted(zip(cutoffs, hmodels), reverse=False)]
+        # Take the model with smallest NN cutoff
+        hmodel = ordered_hmodels[0]
 
         # Get a converged Heisenberg model if one was found
         # if fw_spec["converged_heisenberg_model"]:
         #     hmodel = HeisenbergModel.from_dict(fw_spec["converged_heisenberg_model"])
 
-        vc = VampireCaller(
-            hm=hmodel,
-            **mc_settings,
-        )
+        vc = VampireCaller(hm=hmodel, **mc_settings)
         vampire_output = vc.output
 
         # Update FW spec
@@ -286,10 +269,7 @@ class VampireToDb(FiretaskBase):
 
     """
 
-    required_params = [
-        "db_file",
-        "wf_uuid",
-    ]
+    required_params = ["db_file", "wf_uuid"]
 
     def run_task(self, fw_spec):
 
@@ -300,7 +280,7 @@ class VampireToDb(FiretaskBase):
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         mmdb.collection = mmdb.db["exchange"]
 
-        task_doc = {"wf_meta": {"wf_uuid": wf_uuid}}
+        task_doc = {"wf_meta": {"wf_uuid": wf_uuid}, "task_name": "vampire caller"}
 
         if fw_spec.get("tags", None):
             task_doc["tags"] = fw_spec["tags"]

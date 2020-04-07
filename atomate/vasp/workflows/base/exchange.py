@@ -82,7 +82,8 @@ class ExchangeWF:
 
         # Make sure gs is index 0
         ordered_structures = [
-        s for _, s in sorted(zip(energies, magnetic_structures), reverse=False)]
+            s for _, s in sorted(zip(energies, magnetic_structures), reverse=False)
+        ]
         ordered_energies = sorted(energies, reverse=False)
 
         self.structures = ordered_structures
@@ -97,7 +98,6 @@ class ExchangeWF:
                     "All structures must have 'magmom' site \
                     property."
                 )
-
 
     def get_wf(self, num_orderings_hard_limit=16, c=None):
         """Retrieve Fireworks workflow.
@@ -129,7 +129,7 @@ class ExchangeWF:
         """
 
         c = c or {"DB_FILE": DB_FILE}
-        
+
         if "DB_FILE" not in c:
             c["DB_FILE"] = DB_FILE
 

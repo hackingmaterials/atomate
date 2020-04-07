@@ -62,11 +62,7 @@ class HeisenbergModelFW(Firework):
 
         additional_fields = {
             "task_label": fw_name,
-            "exchange": {
-                "calc_type": name,
-                "wf_uuids": [],
-                "_source_wf_uuid": wf_uuid,
-            },
+            "exchange": {"calc_type": name, "wf_uuids": [], "_source_wf_uuid": wf_uuid},
         }
 
         tasks = []
@@ -76,12 +72,9 @@ class HeisenbergModelFW(Firework):
                 structures=structures,
                 energies=energies,
                 heisenberg_settings=heisenberg_settings,
-            ))
-        tasks.append(
-            HeisenbergModelToDb(
-                db_file=db_file,
-                wf_uuid=wf_uuid)
+            )
         )
+        tasks.append(HeisenbergModelToDb(db_file=db_file, wf_uuid=wf_uuid))
 
         super().__init__(tasks=tasks, name=fw_name, parents=parents)
 
@@ -118,11 +111,7 @@ class VampireCallerFW(Firework):
 
         additional_fields = {
             "task_label": fw_name,
-            "exchange": {
-                "calc_type": name,
-                "wf_uuids": [],
-                "_source_wf_uuid": wf_uuid,
-            },
+            "exchange": {"calc_type": name, "wf_uuids": [], "_source_wf_uuid": wf_uuid},
         }
 
         tasks = []
@@ -135,17 +124,8 @@ class VampireCallerFW(Firework):
         # )
 
         tasks.append(
-            VampireMC(
-                db_file=db_file,
-                wf_uuid=wf_uuid,
-                mc_settings=mc_settings,
-            ))
-        tasks.append(
-            VampireToDb(
-                db_file=db_file,
-                wf_uuid=wf_uuid
-            ),
-
+            VampireMC(db_file=db_file, wf_uuid=wf_uuid, mc_settings=mc_settings)
         )
+        tasks.append(VampireToDb(db_file=db_file, wf_uuid=wf_uuid))
 
         super().__init__(tasks=tasks, name=fw_name, parents=parents)
