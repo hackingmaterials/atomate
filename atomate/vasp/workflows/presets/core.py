@@ -690,6 +690,10 @@ def wf_lattice_thermal_conductivity(
         'LCHARG': False,
         'LASPH': True
     }
+    c = c if c is not None else {}
+    if "USER_INCAR_SETTINGS" not in c:
+        c["USER_INCAR_SETTINGS"] = {}
+
     # wf_structure_optimization expects user incar settings in capitals
     c["USER_INCAR_SETTINGS"].update(optimize_uis)
     c["USER_INCAR_SETTINGS"].update(c.get("user_incar_settings", {}))
