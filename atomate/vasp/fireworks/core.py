@@ -105,7 +105,7 @@ class OptimizeFW(Firework):
             warnings.warn(
                 "A double relaxation run might not be appropriate with ISIF {}".format(
                     vasp_input_set.incar["ISIF"]))
-        
+
         t = []
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
         t.append(
@@ -146,10 +146,10 @@ class ScanOptimizeFW(Firework):
 
         This workflow performs a 3-step optmization. The first step ('relax1')
         is a conventional GGA run relaxation that initializes the geometry and
-        calculates the bandgap of the structure. The bandgap is used to update 
-        the KSPACING parameter, which sets the appropriate number of k-points 
-        for the structure. The second step ('.relax2') is a static GGA 
-        calculation that computes wavefunctions using the updated number of 
+        calculates the bandgap of the structure. The bandgap is used to update
+        the KSPACING parameter, which sets the appropriate number of k-points
+        for the structure. The second step ('.relax2') is a static GGA
+        calculation that computes wavefunctions using the updated number of
         k-points. The third step ('relax3') is a SCAN relaxation.
 
         By default, .relax1 and .relax2 are force converged with
@@ -188,7 +188,7 @@ class ScanOptimizeFW(Firework):
 
         t = []
         # write the VASP input files based on MPScanRelaxSet
-        t.append(WriteVaspFromIOSet(structure=structure, 
+        t.append(WriteVaspFromIOSet(structure=structure,
                                     vasp_input_set=orig_input_set
                                     )
                  )
@@ -224,7 +224,7 @@ class ScanOptimizeFW(Firework):
         t.append(ModifyIncar(incar_dictmod=pre_opt_settings))
 
         # Run the GGA .relax1 step
-        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, 
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd,
                                   job_type="normal_no_backup",
                                   gzip_output=False
                                   )
@@ -1052,7 +1052,7 @@ class TransmuterFW(Firework):
             db_file (string): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
             override_default_vasp_params (dict): additional user input settings for vasp_input_set.
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
         """
         fw_name = "{}-{}".format(structure.composition.reduced_formula, name)
         override_default_vasp_params = override_default_vasp_params or {}
