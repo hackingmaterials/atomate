@@ -699,6 +699,7 @@ def wf_lattice_thermal_conductivity(
         structure,
         common_settings=c,
         calculate_lattice_thermal_conductivity=True,
+        copy_vasp_outputs=True,
         **ld_kwargs
     )
     wf.append_wf(wf_ld, wf.leaf_fw_ids)
