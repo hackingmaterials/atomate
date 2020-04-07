@@ -269,7 +269,7 @@ def wf_elastic_constant(structure, c=None, order=2, sym_reduce=False):
 
     uis_optimize = {"ENCUT": 700, "EDIFF": 1e-6, "LAECHG": False}
     if order > 2:
-        uis_optimize.update({"EDIFF": 1e-10, "EDIFFG": -0.001,
+        uis_optimize.update({"EDIFF": 1e-8, "EDIFFG": -0.001,
                              "ADDGRID": True, "LREAL": False, "ISYM": 0})
         # This ensures a consistent k-point mesh across all calculations
         # We also turn off symmetry to prevent VASP from changing the
@@ -704,7 +704,7 @@ def wf_lattice_thermal_conductivity(
     wf.append_wf(wf_ld, wf.leaf_fw_ids)
 
     formula = structure.composition.reduced_formula
-    wf_name = "{} - lattice thermal conductivity preset".format(formula)
+    wf_name = "{} - lattice thermal conductivity".format(formula)
     wf.name = wf_name
 
     wf = add_common_powerups(wf, c)
