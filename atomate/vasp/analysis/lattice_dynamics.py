@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 
 MAX_IMAGINARY_FREQ = 10  # in THz
 IMAGINARY_TOL = 0.025  # in THz
-MAX_N_IMAGINARY = 3
+MAX_N_IMAGINARY = np.inf
 FIT_METHOD = "least-squares"
 
 
