@@ -115,7 +115,7 @@ def get_lattice_dynamics_wf(
     db_file = common_settings["DB_FILE"]
 
     if calculate_lattice_thermal_conductivity:
-        if supercell_matrix_kwargs.get("force_diagonal", True):
+        if supercell_matrix_kwargs.get("force_diagonal", False):
             warnings.warn(
                 "Diagonal transformation required to calculate lattice thermal "
                 "conductivity. Forcing diagonal matrix"
@@ -218,6 +218,7 @@ def get_perturbed_structure_wf(
         supercell_matrix = np.eye(3)
 
     supercell_matrix = np.asarray(supercell_matrix).tolist()
+    natoms = len(structure * supercell_matrix)
 
     if rattle_stds is None:
         rattle_stds = np.linspace(0.01, 0.1, 5)
@@ -227,12 +228,13 @@ def get_perturbed_structure_wf(
 
     # find the smallest nearest neighbor distance taking into account PBC
     min_distance = np.min(
-        [d.nn_distance for d in structure.get_all_neighbors(10)[0]]
+        [n.nn_distance for d in structure.get_all_neighbors(10) for n in d]
     )
-    min_distance *= min_nn_scale
+    scaled_min_distance = min_distance * min_nn_scale
     all_rattle_stds = np.repeat(rattle_stds, n_configs_per_std)
 
     logger.debug("Using supercell_matrix of: {}".format(supercell_matrix))
+    logger.debug("Supercell has {} atoms".format(natoms))
     logger.debug(
         "Using {} supercells per displacement".format(n_configs_per_std)
     )
@@ -242,13 +244,19 @@ def get_perturbed_structure_wf(
     fws = []
     for i, rattle_std in enumerate(all_rattle_stds):
         fw_name = "{}: i={}; rattle_std={:.3f}".format(name, i, rattle_std)
+
+        # make sure the minimum distance is at least min_dist - 2 * rattle_std
+        # as a sanity check
+        rattle_min_distance = min_distance - 2 * rattle_std
+        rattle_min_distance = min(scaled_min_distance, rattle_min_distance)
+
         transformations = [
             "SupercellTransformation",
             "MonteCarloRattleTransformation",
         ]
         transformation_params = [
             {"scaling_matrix": supercell_matrix},
-            {"rattle_std": rattle_std, "min_distance": min_distance},
+            {"rattle_std": rattle_std, "min_distance": rattle_min_distance},
         ]
 
         fw = TransmuterFW(
@@ -262,6 +270,11 @@ def get_perturbed_structure_wf(
             vasp_cmd=vasp_cmd,
             db_file=db_file,
         )
+
+        # don't store CHGCAR and other volumetric data in the VASP drone
+        for task in fw.tasks:
+            if "VaspToDb" in str(task):
+                task.update({"store_volumetric_data": tuple()})
 
         if pass_forces:
             pass_dict = {
@@ -287,7 +300,7 @@ def get_num_supercells(
     supercell_structure: Structure,
     symprec: float = 0.01,
     min_num_equivalent_sites: int = 100,
-    max_num_supercells: int = 30,
+    max_num_supercells: int = 6,
 ) -> int:
     """
     Get the number of supercells to run per rattle standard deviation.
@@ -329,3 +342,5 @@ def _get_common_settings(common_settings: Optional[Dict]):
     common_settings["user_incar_settings"] = user_incar_settings
 
     return common_settings
+
+
