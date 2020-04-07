@@ -99,8 +99,13 @@ class OptimizeFW(Firework):
             and job_type == "double_relaxation"
         ):
             warnings.warn(
+<<<<<<< HEAD
                 f"A double relaxation run might not be appropriate with ISIF {vasp_input_set.incar['ISIF']}"
             )
+=======
+                "A double relaxation run might not be appropriate with ISIF {}".format(
+                    vasp_input_set.incar["ISIF"]))
+>>>>>>> 23b88a18 (Tidy docstrings)
 
         t = []
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
@@ -140,11 +145,26 @@ class ScanOptimizeFW(Firework):
         **kwargs,
     ):
         """
+<<<<<<< HEAD
         Structure optimization using the SCAN metaGGA functional. If this Firework is
         initialized with no parents, it will perform a GGA optimization of the provided
         structure using the PBESol functional. This GGA-relaxed structure is intended
         to be passed to a second instance of this Firework for optimization with SCAN.
         (see workflow definition in metagga_optimization.yaml)
+=======
+        Structure optimization using the SCAN metaGGA functional.
+
+        This workflow performs a 3-step optmization. The first step ('relax1')
+        is a conventional GGA run relaxation that initializes the geometry and
+        calculates the bandgap of the structure. The bandgap is used to update
+        the KSPACING parameter, which sets the appropriate number of k-points
+        for the structure. The second step ('.relax2') is a static GGA
+        calculation that computes wavefunctions using the updated number of
+        k-points. The third step ('relax3') is a SCAN relaxation.
+
+        By default, .relax1 and .relax2 are force converged with
+        EDIFFG = -0.05, and .relax3 is force converged with EDIFFG=-0.02.
+>>>>>>> 23b88a18 (Tidy docstrings)
 
         Args:
             structure (Structure): Input structure. Note that for prev_calc_loc jobs, the structure
@@ -188,6 +208,7 @@ class ScanOptimizeFW(Firework):
                  is not supported by this InputSet."
             )
 
+<<<<<<< HEAD
         if prev_calc_dir:
             has_previous_calc = True
             # Copy the CHGCAR from previous calc directory (usually PBE)
@@ -218,6 +239,59 @@ class ScanOptimizeFW(Firework):
             raise UserWarning(
                 "You specified prev_calc_loc but did not provide a parent Firework. Set "
                 "parents and try again."
+=======
+        t = []
+        # write the VASP input files based on MPScanRelaxSet
+        t.append(WriteVaspFromIOSet(structure=structure,
+                                    vasp_input_set=orig_input_set
+                                    )
+                 )
+
+        # pass the CalcLoc so that CopyFilesFromCalcLoc can find the directory
+        t.append(PassCalcLocs(name=name))
+
+        # Copy the pre-compiled VdW kernel for VASP, if required
+        if orig_input_set.vdw is not None:
+            t.append(CopyFiles(from_dir=vdw_kernel_dir))
+
+        # Copy original inputs with the ".orig" suffix
+        t.append(
+            CopyFilesFromCalcLoc(
+                calc_loc=True,
+                name_append=".orig",
+                exclude_files=["vdw_kernel.bindat", "FW.json", "FW--*"],
+            )
+        )
+
+        # Update the INCAR for the GGA preconditioning step
+        # Disable writing the WAVECAR because the no. of k-points will likely
+        # change before the next step in the calculation
+        pre_opt_settings = {"_set": {"METAGGA": None,
+                                     "EDIFFG": -0.05,
+                                     "LWAVE": False}}
+
+        # Disable vdW for the precondition step
+        if orig_input_set.incar.get("LUSE_VDW", None):
+            pre_opt_settings.update({"_unset": {"LUSE_VDW": True,
+                                                "BPARAM": 15.7}})
+
+        t.append(ModifyIncar(incar_dictmod=pre_opt_settings))
+
+        # Run the GGA .relax1 step
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd,
+                                  job_type="normal_no_backup",
+                                  gzip_output=False
+                                  )
+                 )
+
+        # Copy GGA outputs with '.relax1' suffix
+        # by the subsequent UpdateScanRelaxBandgap Firetask
+        t.append(
+            CopyFilesFromCalcLoc(
+                calc_loc=True,
+                name_append=".relax1",
+                exclude_files=["vdw_kernel.bindat", "FW.json", "FW--*", "*.orig"],
+>>>>>>> 23b88a18 (Tidy docstrings)
             )
 
         if has_previous_calc:
