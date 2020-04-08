@@ -62,7 +62,7 @@ class HeisenbergModelMapping(FiretaskBase):
         hmodel_dict = hmodel.as_dict()
 
         # Update FW spec with model
-        name = "heisenberg_model_" + str(hmodel.cutoff)
+        name = "heisenberg_model_" + str(hmodel.cutoff).replace(".", "_")
         update_spec = {name: hmodel}
 
         # Write to file

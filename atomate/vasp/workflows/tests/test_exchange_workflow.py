@@ -69,8 +69,6 @@ class TestExchangeWF(AtomateTest):
         rapidfire(self.lp, fworker=FWorker(env={"db_file": self.db_file}))
 
         # Exchange collection
-        # mmdb = VaspCalcDb.from_db_file(self.db_file, admin=True)
-        # mmdb.collection = mmdb.db["exchange"]
         exchange_collection = self.get_task_database().exchange
 
         # Check Heisenberg model mapping
