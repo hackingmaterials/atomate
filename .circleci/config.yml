@@ -21,7 +21,7 @@ jobs:
             conda update --quiet --all
             wget https://vampire.york.ac.uk/resources/release-5/vampire-5.0-linux.tar.gz
             tar -zxvf vampire-5.0-linux.tar.gz
-            export PATH=/root/linux/:$PATH
+            export PATH=/root/atomate/linux/:$PATH
             pip install --quiet -r requirements.txt -r requirements-ci.txt
             # Add executables and path.
             for EXEPATH in `pwd`/cmd_line/*/Linux_64bit; do export PATH=$PATH:$EXEPATH; done
@@ -54,7 +54,7 @@ jobs:
             conda update --quiet --all
             wget https://vampire.york.ac.uk/resources/release-5/vampire-5.0-linux.tar.gz
             tar -zxvf vampire-5.0-linux.tar.gz
-            export PATH=/root/linux/:$PATH
+            export PATH=/root/atomate/linux/:$PATH
             pip install --quiet -r requirements.txt -r requirements-ci.txt
             pip install git+https://github.com/materialsproject/pymatgen.git --upgrade
             pip install git+https://github.com/materialsproject/custodian.git --upgrade
