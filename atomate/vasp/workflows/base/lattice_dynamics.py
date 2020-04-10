@@ -40,6 +40,12 @@ _static_user_incar_settings = {
     "LREAL": False,
     "LASPH": True,
 }
+
+vasp_to_db_params = {
+    "store_volumetric_data": tuple(),
+    "vasp_drone_params": {"parse_bader": False, "parse_locpot": False}
+}
+
 _DEFAULT_SETTINGS = {"VASP_CMD": VASP_CMD, "DB_FILE": DB_FILE}
 _WF_VERSION = 0.1
 
@@ -221,7 +227,7 @@ def get_perturbed_structure_wf(
     natoms = len(structure * supercell_matrix)
 
     if rattle_stds is None:
-        rattle_stds = np.linspace(0.01, 0.1, 5)
+        rattle_stds = np.linspace(0.008, 0.08, 5)
 
     if vasp_input_set is None:
         vasp_input_set = MPStaticSet(structure)
@@ -274,7 +280,7 @@ def get_perturbed_structure_wf(
         # don't store CHGCAR and other volumetric data in the VASP drone
         for task in fw.tasks:
             if "VaspToDb" in str(task):
-                task.update({"store_volumetric_data": tuple()})
+                task.update(vasp_to_db_params)
 
         if pass_forces:
             pass_dict = {

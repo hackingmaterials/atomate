@@ -117,6 +117,7 @@ class VaspToDb(FiretaskBase):
             Format: {key : path} -> fw.spec[key] = task_doc[path]
             The path is a full mongo-style path so subdocuments can be referenced
             using dot notation and array keys can be referenced using the index.
+<<<<<<< HEAD
             E.g "calcs_reversed.0.output.outcar.run_stats"
     """
 
@@ -136,6 +137,17 @@ class VaspToDb(FiretaskBase):
         "parse_bader",
         "store_volumetric_data",
     ]
+=======
+            E.g "calcs_reversed.0.output.outar.run_stats"
+        vasp_drone_params (dict): Additional keyword arguments to pass to the
+            VaspDrone.
+    """
+    optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
+                       "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful",
+                       "task_fields_to_push", "parse_chgcar", "parse_aeccar",
+                       "parse_potcar_file",
+                       "store_volumetric_data", "vasp_drone_params"]
+>>>>>>> cf160919 (Tweak VaspToDb params)
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
@@ -148,6 +160,7 @@ class VaspToDb(FiretaskBase):
         # parse the VASP directory
         logger.info(f"PARSING DIRECTORY: {calc_dir}")
 
+<<<<<<< HEAD
         drone = VaspDrone(
             additional_fields=self.get("additional_fields"),
             parse_dos=self.get("parse_dos", False),
@@ -160,6 +173,16 @@ class VaspToDb(FiretaskBase):
                 "store_volumetric_data", STORE_VOLUMETRIC_DATA
             ),
         )
+=======
+        drone = VaspDrone(additional_fields=self.get("additional_fields"),
+                          parse_dos=self.get("parse_dos", False),
+                          parse_potcar_file=self.get("parse_potcar_file", True),
+                          bandstructure_mode=self.get("bandstructure_mode", False),
+                          parse_chgcar=self.get("parse_chgcar", False),  # deprecated
+                          parse_aeccar=self.get("parse_aeccar", False),  # deprecated
+                          store_volumetric_data=self.get("store_volumetric_data", STORE_VOLUMETRIC_DATA),
+                          **self.get("vasp_drone_params", {}))
+>>>>>>> cf160919 (Tweak VaspToDb params)
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)
