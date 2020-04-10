@@ -4,7 +4,8 @@ from uuid import uuid4
 
 import numpy as np
 
-from atomate.vasp.workflows.base.lattice_dynamics import get_lattice_dynamics_wf
+from atomate.vasp.workflows.base.lattice_dynamics import \
+    get_lattice_dynamics_wf, vasp_to_db_params
 from fireworks import Workflow
 from pymatgen import Structure
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet, MPHSERelaxSet
@@ -698,6 +699,11 @@ def wf_lattice_thermal_conductivity(
     c["USER_INCAR_SETTINGS"].update(optimize_uis)
     c["USER_INCAR_SETTINGS"].update(c.get("user_incar_settings", {}))
     wf = wf_structure_optimization(structure, c=c)
+
+    # don't store CHGCAR and other volumetric data in the VASP drone
+    for task in wf.fws[0].tasks:
+        if "VaspToDb" in str(task):
+            task.update(vasp_to_db_params)
 
     wf_ld = get_lattice_dynamics_wf(
         structure,

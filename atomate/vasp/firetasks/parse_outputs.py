@@ -74,12 +74,14 @@ class VaspToDb(FiretaskBase):
             The path is a full mongo-style path so subdocuments can be referneced
             using dot notation and array keys can be referenced using the index.
             E.g "calcs_reversed.0.output.outar.run_stats"
+        vasp_drone_params (dict): Additional keyword arguments to pass to the
+            VaspDrone.
     """
     optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
                        "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful",
                        "task_fields_to_push", "parse_chgcar", "parse_aeccar",
                        "parse_potcar_file",
-                       "store_volumetric_data"]
+                       "store_volumetric_data", "vasp_drone_params"]
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
@@ -98,7 +100,8 @@ class VaspToDb(FiretaskBase):
                           bandstructure_mode=self.get("bandstructure_mode", False),
                           parse_chgcar=self.get("parse_chgcar", False),  # deprecated
                           parse_aeccar=self.get("parse_aeccar", False),  # deprecated
-                          store_volumetric_data=self.get("store_volumetric_data", STORE_VOLUMETRIC_DATA))
+                          store_volumetric_data=self.get("store_volumetric_data", STORE_VOLUMETRIC_DATA),
+                          **self.get("vasp_drone_params", {}))
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)
