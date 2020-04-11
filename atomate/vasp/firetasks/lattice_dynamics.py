@@ -79,7 +79,10 @@ class CollectPerturbedStructures(FiretaskBase):
         if opt_calc_locs:
             opt_loc = opt_calc_locs[-1]["path"]
             logger.info("Parsing optimization directory: {}".format(opt_loc))
-            opt_doc = VaspDrone().assimilate(opt_loc)
+            opt_doc = VaspDrone(
+                parse_dos=False, parse_locpot=False,
+                parse_bader=False, store_volumetric_data=[],
+            ).assimilate(opt_loc)
             opt_output = opt_doc["calcs_reversed"][0]["output"]
             structure = Structure.from_dict(opt_output["structure"])
         else:
