@@ -39,6 +39,8 @@ _static_user_incar_settings = {
     "LAECHG": False,
     "LREAL": False,
     "LASPH": True,
+    "LVTOT": False,
+    "LVHAR": False,
 }
 
 vasp_to_db_params = {
