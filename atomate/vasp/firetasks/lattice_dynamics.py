@@ -20,7 +20,9 @@ from atomate.vasp.analysis.lattice_dynamics import (
     get_cutoffs,
 )
 from atomate.vasp.database import VaspCalcDb
+from atomate.vasp.drones import VaspDrone
 from fireworks import FiretaskBase, FWAction, explicit_serialize
+from pymatgen import Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.io.phonopy import get_phonon_band_structure_from_fc, \
     get_phonon_dos_from_fc, get_phonon_band_structure_symm_line_from_fc
@@ -68,11 +70,21 @@ class CollectPerturbedStructures(FiretaskBase):
 
         logger.info("Found {} perturbed structures".format(len(results)))
 
-        structure = results[0]["parent_structure"]
-        supercell_matrix = results[0]["supercell_matrix"]
-
         structures = [r["structure"] for r in results]
         forces = [np.asarray(r["forces"]) for r in results]
+
+        # if relaxation, get original structure from that calculation
+        calc_locs = fw_spec.get("calc_locs", [])
+        opt_calc_locs = [c for c in calc_locs if "optimiz" in c["name"]]
+        if opt_calc_locs:
+            opt_loc = opt_calc_locs[-1]["path"]
+            logger.info("Parsing optimization directory: {}".format(opt_loc))
+            opt_doc = VaspDrone().assimilate(opt_loc)
+            opt_output = opt_doc["calcs_reversed"][0]["output"]
+            structure = Structure.from_dict(opt_output["structure"])
+        else:
+            structure = results[0]["parent_structure"]
+        supercell_matrix = results[0]["supercell_matrix"]
 
         # regenerate pure supercell structure
         st = SupercellTransformation(supercell_matrix)
