@@ -68,7 +68,7 @@ def get_cutoffs(structure: Structure):
 
     row = min([s.row for s in structure.species])
     mins = {
-        2: min_cutoffs[row][2], 3: min_cutoffs[row][3], 4: min_cutoffs[row][4]
+        2: min_cutoffs[2][row], 3: min_cutoffs[3][row], 4: min_cutoffs[4][row]
     }
 
     range_two = np.arange(mins[2], mins[2] + inc[2] + steps[2], steps[2])
