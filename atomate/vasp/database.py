@@ -85,10 +85,18 @@ class VaspCalcDb(CalcDb):
         chgcar = None
         aeccar0 = None
         write_aeccar = False
+        eigenvals = None
+        proj_eigenvals = None
 
         # move dos BS and CHGCAR from doc to gridfs
         if use_gridfs and "calcs_reversed" in task_doc:
-
+            
+            if "eigenvalues" in task_doc["calcs_reversed"][0]['output']:  # only store idx=0 DOS
+                eigenvals = json.dumps(task_doc["calcs_reversed"][0]["output"]["eigenvalues"], cls=MontyEncoder)
+                del task_doc["calcs_reversed"][0]["output"]["eigenvalues"]
+                proj_eigenvals = json.dumps(task_doc["calcs_reversed"][0]["output"]["projected_eigenvalues"], cls=MontyEncoder)
+                del task_doc["calcs_reversed"][0]["output"]["projected_eigenvalues"]
+            
             if "dos" in task_doc["calcs_reversed"][0]:  # only store idx=0 (last step)
                 dos = json.dumps(task_doc["calcs_reversed"][0]["dos"], cls=MontyEncoder)
                 del task_doc["calcs_reversed"][0]["dos"]
@@ -119,7 +127,21 @@ class VaspCalcDb(CalcDb):
 
         # insert the task document
         t_id = self.insert(task_doc)
-
+                                            
+        # insert the EIGENVALS file into gridfs and update the task documents (by JENG)
+        if eigenvals:
+            eigenvals_gfs_id, compression_type = self.insert_gridfs(eigenvals, "eigenvals_fs", task_id=t_id)
+            self.collection.update_one(
+                {"task_id": t_id}, {"$set": {"calcs_reversed.0.eigenvals_compression": compression_type}})
+            self.collection.update_one({"task_id": t_id},
+                                       {"$set": {"calcs_reversed.0.eigenvals_fs_id": eigenvals_gfs_id}})
+            proj_eigenvals_gfs_id, compression_type = self.insert_gridfs(proj_eigenvals, "proj_eigenvals_fs",
+                                                                         task_id=t_id)
+            self.collection.update_one(
+                {"task_id": t_id}, {"$set": {"calcs_reversed.0.proj_eigenvals_compression": compression_type}})
+            self.collection.update_one({"task_id": t_id},
+                                       {"$set": {"calcs_reversed.0.proj_eigenvals_fs_id": proj_eigenvals_gfs_id}})
+                                                           
         # insert the dos into gridfs and update the task document
         if dos:
             dos_gfs_id, compression_type = self.insert_gridfs(dos, "dos_fs", task_id=t_id)
@@ -212,6 +234,23 @@ class VaspCalcDb(CalcDb):
 
         return fs_id, compression_type
 
+                                   
+    def get_eigenvals(self, task_id):
+        m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
+        fs_id = m_task['calcs_reversed'][0]['eigenvals_fs_id']
+        fs = gridfs.GridFS(self.db, 'eigenvals_fs')
+        eigenvals_json = zlib.decompress(fs.get(fs_id).read())
+        eigenvals_dict = json.loads(eigenvals_json.decode())
+        return eigenvals_dict
+
+    def get_proj_eigenvals(self, task_id):
+        m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
+        fs_id = m_task['calcs_reversed'][0]['proj_eigenvals_fs_id']
+        fs = gridfs.GridFS(self.db, 'proj_eigenvals_fs')
+        proj_eigenvals_json = zlib.decompress(fs.get(fs_id).read())
+        proj_eigenvals_dict = json.loads(proj_eigenvals_json.decode())
+        return proj_eigenvals_dict                                            
+                                   
     def get_band_structure(self, task_id):
         m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
         fs_id = m_task['calcs_reversed'][0]['bandstructure_fs_id']
