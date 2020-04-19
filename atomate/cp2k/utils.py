@@ -34,7 +34,7 @@ def get_defect_structures(structure, defect_dict):
     return defect_structures
 
 
-def optimize_structure_sc_scale(inp_struct, final_site_no):
+def optimize_structure_sc_scale(inp_struct, final_site_no=None):
     """
     A function for finding optimal supercell transformation
     by maximizing the nearest image distance with the number of
@@ -86,8 +86,27 @@ def optimize_structure_sc_scale(inp_struct, final_site_no):
     return biggest
 
 
+def optimize_structure_sc_scale_by_length(inp_struct, minimum_distance):
+    return np.ceil(minimum_distance/np.linalg.norm(inp_struct.lattice.matrix, axis=0))
+
+"""
 from pymatgen.core.structure import Structure
 from pymatgen.ext.matproj import MPRester
 
+Si = 'mp-149'
+C = 'mp-66'
+NaCl = 'mp-22862'
+Cr2O3 = 'mp-19399'
+PbSe = 'mp-2201'
 with MPRester() as mp:
-    struc = mp.get_structure_by_material_id('mp-149')
+    for i in [Si, C, NaCl, Cr2O3, PbSe]:
+        struc = mp.get_structure_by_material_id(i, conventional_unit_cell=True)
+        s = optimize_structure_sc_scale_by_length(struc, 16)
+        print(struc.lattice)
+        print(s)
+        struc.make_supercell(s)
+        print(struc.lattice)
+        print(struc.num_sites)
+"""
+
+

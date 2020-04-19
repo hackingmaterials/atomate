@@ -102,6 +102,7 @@ class BaseFW(Firework):
         cp2k_input_set = cp2k_input_set or StaticSet(
             structure, **cp2k_input_set_params
         )
+        cp2k_input_set.silence()  # Don't include section descriptions
 
         cp2ktodb_kwargs = cp2ktodb_kwargs or {}
         if "additional_fields" not in cp2ktodb_kwargs:
@@ -111,11 +112,13 @@ class BaseFW(Firework):
         # if continuing from prev calc, update the structure with the previous result
         # For hybrid, should almost always be true (initialize with gga first)
         if prev_calc_loc:
+            if isinstance(files_to_copy, str):
+                files_to_copy = [files_to_copy]
             t.append(
                 CopyCp2kOutputs(
                     files_to_copy=files_to_copy, calc_loc=prev_calc_loc
                 )
-            )  # TODO START HERE WITH TESTING
+            )
             t.append(UpdateStructureFromPrevCalc(prev_calc_loc=prev_calc_loc))
 
         # if prev calc directory is being REPEATED, copy files
@@ -211,12 +214,10 @@ class StaticHybridFW(BaseFW):
         """
         Hybrid Static calculation. Presumably restarting from a previous GGA calculation.
         """
-
         cp2k_input_set = cp2k_input_set or HybridStaticSet(
             structure, project_name=name,
             **cp2k_input_set_params
         )
-
         super().__init__(
             structure=structure,
             name=name,

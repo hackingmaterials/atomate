@@ -364,6 +364,9 @@ class Cp2kDrone(AbstractDrone):
     def process_dos(self, dos):
         pass
 
+    def process_hartree(self, hartree):
+        pass
+
     def process_raw_data(self, dir_name, taskname="standard"):
         pass
 
@@ -562,4 +565,10 @@ class DefectDrone(Cp2kDrone):
 
     def assimilate(self, path):
         task_doc = super(DefectDrone, self).assimilate(path)
+        defect = self.additional_fields.get('defect', None)
+        task_doc.update({'defect': defect})
         return task_doc
+
+    def assimilate_defect_parameters(self):
+        pass
+

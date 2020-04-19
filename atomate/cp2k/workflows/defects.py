@@ -10,7 +10,7 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from atomate.utils.utils import get_logger
 from atomate.cp2k.fireworks.core import StaticFW, RelaxFW, StaticHybridFW, RelaxHybridFW
-from atomate.cp2k.utils import get_defect_structures, optimize_structure_sc_scale
+from atomate.cp2k.utils import get_defect_structures, optimize_structure_sc_scale, optimize_structure_sc_scale_by_length
 
 #from atomate.vasp.firetasks.defects import DefectSetupFiretask
 #from atomate.vasp.fireworks.defects import DefectAnalysisFW
@@ -33,7 +33,7 @@ def get_wf_chg_defects(structure,
                        diel_flag=False,
                        defect_dict={},
                        rerelax_flag=False,
-                       scale_to_num_sites=500):
+                       minimum_distance=16):
     """
     Returns a charged defect workflow.
 
@@ -141,26 +141,67 @@ def get_wf_chg_defects(structure,
     fws, parents = [], []
 
     # Make supercell. Should always be done for CP2K because it is gamma point only
-    structure.make_supercell(optimize_structure_sc_scale(structure, scale_to_num_sites))
+    scale = optimize_structure_sc_scale_by_length(structure, minimum_distance=minimum_distance)
 
     # Use the DefectDrone unless specified
     cp2ktodb_kwargs['drone'] = cp2ktodb_kwargs.get('drone', 'DefectDrone')
+    cp2ktodb_kwargs['additional_fields'] = cp2ktodb_kwargs.get('additional_fields', {})
 
-    # Re-relax the initial structure
+    # Run the bulk structure calculation GGA-->Hybrid to get bulk band gap
+    # Re-relaxing the structure if not starting from a good initial state
+    bulk_name = "Bulk-GGA-FW"
+    bulk_hybrid_name = "Bulk-Hybrid-FW"
+    restart_filename = "{}-RESTART.wfn".format(bulk_name)  # GGA restart WFN
+    user_hybrid_settings.update({'wfn_restart_file_name': restart_filename,
+                                 'activate_robust_minimization': True,
+                                 'print_hartree_potential': True,
+                                 'print_e_density': True})
+    struc = structure.copy()  # make so unscaled cell can be used for defects
+    struc.make_supercell(scale)
     if rerelax_flag:
         fws.append(
             RelaxFW(
-                structure=structure,
-                name='Re-Relax-FW',
+                structure=struc,
+                name=bulk_name,
                 cp2k_input_set=cp2k_gga_input_set,
+                cp2k_input_set_params=user_gga_settings,
                 cp2k_cmd=cp2k_cmd,
-                prev_calc_loc=False,
+                prev_calc_loc=None,
                 db_file=db_file,
                 cp2ktodb_kwargs=cp2ktodb_kwargs,
-                parents=None
+                parents=None,
+                files_to_copy=None
             )
         )
-        parents.append(fws[-1])
+    else:
+        fws.append(
+            StaticFW(
+                structure=struc,
+                name=bulk_name,
+                cp2k_input_set=cp2k_gga_input_set,
+                cp2k_input_set_params=user_gga_settings,
+                cp2k_cmd=cp2k_cmd,
+                prev_calc_loc=None,
+                db_file=db_file,
+                cp2ktodb_kwargs=cp2ktodb_kwargs,
+                parents=None,
+                files_to_copy=None
+            )
+        )
+    fws.append(
+        StaticHybridFW(
+            structure=struc,
+            name=bulk_hybrid_name,
+            cp2k_input_set=cp2k_hybrid_input_set,
+            cp2k_input_set_params=user_hybrid_settings,
+            cp2k_cmd=cp2k_cmd,
+            prev_calc_loc=bulk_name,
+            db_file=db_file,
+            cp2ktodb_kwargs=cp2ktodb_kwargs,
+            parents=fws[-1],
+            files_to_copy=restart_filename
+        )
+    )
 
     # Run dielectric calculation before defects (for finite size corrections)
     if diel_flag:
@@ -170,12 +211,18 @@ def get_wf_chg_defects(structure,
     defects = get_defect_structures(structure, defect_dict=defect_dict)
     for i, defect in enumerate(defects):
         bulk_name = 'Re-Relax-FW' if rerelax_flag else None  # So prev_calc_loc can find re-relax fw
-        cp2ktodb_kwargs['fw_spec_field'].update({'defect': defect.as_dict()})  # Keep record of defect object
+        cp2ktodb_kwargs['additional_fields'].update({'defect': defect.as_dict()})  # Keep record of defect object
         gga_name = "Defect-GGA-FW-{}".format(i)  # How to track the GGA FW
         hybrid_name = "Defect-Hybrid-FW-{}".format(i)  # How to track the hybrid FW
+        restart_filename = "{}-RESTART.wfn".format(gga_name)  # GGA restart WFN
+        user_hybrid_settings.update({'wfn_restart_file_name': restart_filename,
+                                     'activate_robust_minimization': True,
+                                     'print_hartree_potential': True,
+                                     'print_e_density': True})
+        defect_structure = defect.generate_defect_structure(scale)
         fws.append(
-            RelaxFW(
-                structure=defect.bulk_structure,
+            StaticFW( # TODO THIS NEEDS TO BE CHANGED BEFORE ROLLOUT. ONLY STATIC FOR TESTS!!!!
+                structure=defect_structure,
                 name=gga_name,
                 cp2k_input_set=cp2k_gga_input_set,
                 cp2k_input_set_params=user_gga_settings,
@@ -189,7 +236,7 @@ def get_wf_chg_defects(structure,
         )
         fws.append(
             StaticHybridFW(
-                structure=defect.bulk_structure,
+                structure=defect_structure,
                 name=hybrid_name,
                 cp2k_input_set=cp2k_hybrid_input_set,
                 cp2k_input_set_params=user_hybrid_settings,
@@ -198,7 +245,7 @@ def get_wf_chg_defects(structure,
                 db_file=db_file,
                 cp2ktodb_kwargs=cp2ktodb_kwargs,
                 parents=fws[-1],
-                files_to_copy="{}-RESTART.wfn".format(gga_name)
+                files_to_copy=restart_filename
             )
         )
 
