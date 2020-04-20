@@ -365,7 +365,7 @@ class Cp2kDrone(AbstractDrone):
             d['dos'] = out.parse_pdos()
 
         if self.parse_hartree:
-            cube = Cube(out['filenames']['v_hartree'][-1])
+            cube = Cube(out.filenames['v_hartree'][-1])
             # TODO: Store in reciprocal or not?
             d['v_hartree'] = jsanitize(
                 np.fft.ifft(
