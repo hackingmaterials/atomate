@@ -22,7 +22,7 @@ import numpy as np
 from pymatgen.core.composition import Composition
 from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.io.cp2k.outputs import Cp2kOutput
+from pymatgen.io.cp2k.outputs import Cp2kOutput, Cube
 from pymatgen.apps.borg.hive import AbstractDrone
 
 from atomate.utils.utils import get_uri
@@ -112,6 +112,7 @@ class Cp2kDrone(AbstractDrone):
         self,
         runs=None,
         parse_dos="auto",
+        parse_hartree=False,
         additional_fields=None,
         use_full_uri=True,
     ):
@@ -130,6 +131,7 @@ class Cp2kDrone(AbstractDrone):
             "relax" + str(i + 1) for i in range(9)
         ]
         self.parse_dos = parse_dos
+        self.parse_hartree = parse_hartree
         self.additional_fields = additional_fields or {}
         self.use_full_uri = use_full_uri
 
@@ -359,13 +361,19 @@ class Cp2kDrone(AbstractDrone):
             dir_name, taskname=taskname
         )
 
+        if self.parse_dos:
+            d['dos'] = out.parse_pdos()
+
+        if self.parse_hartree:
+            cube = Cube(out['filenames']['v_hartree'][-1])
+            # TODO: Store in reciprocal or not?
+            d['v_hartree'] = jsanitize(
+                np.fft.ifft(
+                   cube.planar_average()
+                )
+            )
+            d['v_hartree_grid'] = cube.planar_grid()
         return d
-
-    def process_dos(self, dos):
-        pass
-
-    def process_hartree(self, hartree):
-        pass
 
     def process_raw_data(self, dir_name, taskname="standard"):
         pass
@@ -558,17 +566,3 @@ class Cp2kDrone(AbstractDrone):
     @classmethod
     def from_dict(cls, d):
         return cls(**d["init_args"])
-
-
-# TODO Extension of basic drone. Implement post processing here that cannot be part of builder
-class DefectDrone(Cp2kDrone):
-
-    def assimilate(self, path):
-        task_doc = super(DefectDrone, self).assimilate(path)
-        defect = self.additional_fields.get('defect', None)
-        task_doc.update({'defect': defect})
-        return task_doc
-
-    def assimilate_defect_parameters(self):
-        pass
-

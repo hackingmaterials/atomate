@@ -143,9 +143,8 @@ def get_wf_chg_defects(structure,
     # Make supercell. Should always be done for CP2K because it is gamma point only
     scale = optimize_structure_sc_scale_by_length(structure, minimum_distance=minimum_distance)
 
-    # Use the DefectDrone unless specified
-    cp2ktodb_kwargs['drone'] = cp2ktodb_kwargs.get('drone', 'DefectDrone')
-    cp2ktodb_kwargs['additional_fields'] = cp2ktodb_kwargs.get('additional_fields', {})
+    cp2ktodb_kwargs['additional_fields'] = cp2ktodb_kwargs.get('additional_fields',
+                                                               {'parse_hartree': True})
 
     # Run the bulk structure calculation GGA-->Hybrid to get bulk band gap
     # Re-relaxing the structure if not starting from a good initial state
@@ -168,7 +167,7 @@ def get_wf_chg_defects(structure,
                 cp2k_cmd=cp2k_cmd,
                 prev_calc_loc=None,
                 db_file=db_file,
-                cp2ktodb_kwargs=cp2ktodb_kwargs,
+                cp2ktodb_kwargs=cp2ktodb_kwargs.copy(),
                 parents=None,
                 files_to_copy=None
             )
@@ -183,7 +182,7 @@ def get_wf_chg_defects(structure,
                 cp2k_cmd=cp2k_cmd,
                 prev_calc_loc=None,
                 db_file=db_file,
-                cp2ktodb_kwargs=cp2ktodb_kwargs,
+                cp2ktodb_kwargs=cp2ktodb_kwargs.copy(),
                 parents=None,
                 files_to_copy=None
             )
@@ -197,7 +196,7 @@ def get_wf_chg_defects(structure,
             cp2k_cmd=cp2k_cmd,
             prev_calc_loc=bulk_name,
             db_file=db_file,
-            cp2ktodb_kwargs=cp2ktodb_kwargs,
+            cp2ktodb_kwargs=cp2ktodb_kwargs.copy(),
             parents=fws[-1],
             files_to_copy=restart_filename
         )
@@ -211,7 +210,9 @@ def get_wf_chg_defects(structure,
     defects = get_defect_structures(structure, defect_dict=defect_dict)
     for i, defect in enumerate(defects):
         bulk_name = 'Re-Relax-FW' if rerelax_flag else None  # So prev_calc_loc can find re-relax fw
-        cp2ktodb_kwargs['additional_fields'].update({'defect': defect.as_dict()})  # Keep record of defect object
+        cp2ktodb_kwargs['additional_fields'].update({'defect': defect.as_dict(),
+                                                     'scale': scale,
+                                                     'task_label': 'defect'})  # Keep record of defect object
         gga_name = "Defect-GGA-FW-{}".format(i)  # How to track the GGA FW
         hybrid_name = "Defect-Hybrid-FW-{}".format(i)  # How to track the hybrid FW
         restart_filename = "{}-RESTART.wfn".format(gga_name)  # GGA restart WFN
@@ -220,8 +221,9 @@ def get_wf_chg_defects(structure,
                                      'print_hartree_potential': True,
                                      'print_e_density': True})
         defect_structure = defect.generate_defect_structure(scale)
+        print(defect_structure.num_sites)
         fws.append(
-            StaticFW( # TODO THIS NEEDS TO BE CHANGED BEFORE ROLLOUT. ONLY STATIC FOR TESTS!!!!
+            StaticFW(  # TODO THIS NEEDS TO BE CHANGED BEFORE ROLL-OUT. ONLY STATIC FOR TESTS!!!!
                 structure=defect_structure,
                 name=gga_name,
                 cp2k_input_set=cp2k_gga_input_set,
@@ -229,7 +231,7 @@ def get_wf_chg_defects(structure,
                 cp2k_cmd=cp2k_cmd,
                 prev_calc_loc=bulk_name,
                 db_file=db_file,
-                cp2ktodb_kwargs=cp2ktodb_kwargs,
+                cp2ktodb_kwargs=cp2ktodb_kwargs.copy(),
                 parents=parents,
                 files_to_copy=None
             )
@@ -243,7 +245,7 @@ def get_wf_chg_defects(structure,
                 cp2k_cmd=cp2k_cmd,
                 prev_calc_loc=gga_name,
                 db_file=db_file,
-                cp2ktodb_kwargs=cp2ktodb_kwargs,
+                cp2ktodb_kwargs=cp2ktodb_kwargs.copy(),
                 parents=fws[-1],
                 files_to_copy=restart_filename
             )

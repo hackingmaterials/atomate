@@ -11,7 +11,7 @@ from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk
 from atomate.utils.utils import get_logger
-from atomate.cp2k import drones
+from atomate.cp2k.drones import Cp2kDrone
 from atomate.cp2k.database import Cp2kCalcDb
 
 __author__ = "Nicholas Winner"
@@ -82,10 +82,10 @@ class Cp2kToDb(FiretaskBase):
         # parse the cp2k directory
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
 
-        _drone = getattr(drones, self.get('drone', 'Cp2kDrone'))
-        drone = _drone(
+        drone = Cp2kDrone(
             additional_fields=self.get("additional_fields"),
             parse_dos=self.get("parse_dos", False),
+            parse_hartree=self.get("parse_hartree", False)
         )
 
         # assimilate (i.e., parse)

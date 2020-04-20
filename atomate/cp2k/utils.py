@@ -87,7 +87,26 @@ def optimize_structure_sc_scale(inp_struct, final_site_no=None):
 
 
 def optimize_structure_sc_scale_by_length(inp_struct, minimum_distance):
-    return np.ceil(minimum_distance/np.linalg.norm(inp_struct.lattice.matrix, axis=0))
+    """
+    Given a structure, provide the scaling matrix such that the points in the lattice maintain
+    a minimum distance from one another.
+
+    Args:
+        inp_struct (Structure): structure to consider
+        minimum_distance (float or int): minimum distance desired between atoms. Note that if the
+            value of minimum distance is < 0, this means a scalar will be returned, defining the
+            minimum uniform scaling required to achieve minimum_distance. If minimum distance is
+            > 0, then a vector will be returned, giving the appropriate scaling in each direction
+            to achieve minimum_distance.
+    :return:
+    """
+    if minimum_distance == 0:
+        raise ValueError("Cannot assign a minimum distance of 0!")
+    elif minimum_distance < 0:
+        minimum_distance = -minimum_distance
+        return max(np.ceil(minimum_distance/np.linalg.norm(inp_struct.lattice.matrix, axis=0)))
+    else:
+        return np.ceil(minimum_distance/np.linalg.norm(inp_struct.lattice.matrix, axis=0))
 
 """
 from pymatgen.core.structure import Structure
