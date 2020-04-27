@@ -1,16 +1,13 @@
-
 import os
-import shutil
 import unittest
 
-from fireworks import LaunchPad
+from atomate.common.firetasks.glue_tasks import PassCalcLocs, get_calc_loc, CopyFilesFromCalcLoc, CreateFolder, \
+    DeleteFiles, DeleteFilesPrevFolder
+from atomate.utils.testing import AtomateTest
+from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from fireworks.core.firework import Firework, Workflow
 from fireworks.core.rocket_launcher import rapidfire
-
-from atomate.common.firetasks.glue_tasks import PassCalcLocs, get_calc_loc, CopyFilesFromCalcLoc, CreateFolder, DeleteFiles
-from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
-
-from atomate.utils.testing import AtomateTest
+from monty.tempfile import ScratchDir
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>'
 
@@ -48,7 +45,6 @@ class TestPassCalcLocs(AtomateTest):
 class TestDeleteFiles(AtomateTest):
 
     def test_cleanupfiles(self):
-
         fw1 = Firework([CreateFolder(folder_name="to_remove.relax0"),
                         CreateFolder(folder_name="to_remove.relax1"),
                         CreateFolder(folder_name="dont_remove.relax0"),
@@ -70,10 +66,77 @@ class TestDeleteFiles(AtomateTest):
         self.assertFalse(os.path.exists(os.path.join(get_calc_loc("fw1", calc_locs)["path"], "to_remove.relax1")))
 
 
+class TestDeleteFilesPrevFolder(AtomateTest):
+
+    def test_cleanupfiles(self):
+        fw1 = Firework([CreateFolder(folder_name="to_remove.relax0"),
+                        CreateFolder(folder_name="to_remove.relax1"),
+                        CreateFolder(folder_name="dont_remove.relax0"),
+                        CreateFolder(folder_name="shouldnt_touch"),
+                        DeleteFilesPrevFolder(files=["to_remove*", "dont_remove"]),
+                        PassCalcLocs(name="fw1")], name="fw1")
+        fw2 = Firework([PassCalcLocs(name="fw2")], name="fw2", parents=fw1)
+
+        wf = Workflow([fw1, fw2])
+        self.lp.add_wf(wf)
+        rapidfire(self.lp)
+
+        fw2 = self.lp.get_fw_by_id(self.lp.get_fw_ids({"name": "fw2"})[0])
+        calc_locs = fw2.spec["calc_locs"]
+
+        self.assertTrue(os.path.exists(os.path.join(get_calc_loc("fw1", calc_locs)["path"], "dont_remove.relax0")))
+        self.assertTrue(os.path.exists(os.path.join(get_calc_loc("fw1", calc_locs)["path"], "shouldnt_touch")))
+        self.assertFalse(os.path.exists(os.path.join(get_calc_loc("fw1", calc_locs)["path"], "to_remove.relax0")))
+        self.assertFalse(os.path.exists(os.path.join(get_calc_loc("fw1", calc_locs)["path"], "to_remove.relax1")))
+
+    def test_cleanupfiles_calc_loc(self):
+        # will test deleting files from previous folder
+        fw1 = Firework([CreateFolder(folder_name="to_remove.relax0"),
+                        CreateFolder(folder_name="to_remove.relax1"),
+                        CreateFolder(folder_name="dont_remove.relax0"),
+                        CreateFolder(folder_name="shouldnt_touch"),
+                        PassCalcLocs(name="fw1")], name="fw1")
+        fw2 = Firework([DeleteFilesPrevFolder(files=["to_remove*", "dont_remove"], calc_loc=True),
+                        PassCalcLocs(name="fw2")], name="fw2", parents=fw1)
+
+        wf = Workflow([fw1, fw2])
+        self.lp.add_wf(wf)
+        rapidfire(self.lp)
+
+        fw2 = self.lp.get_fw_by_id(self.lp.get_fw_ids({"name": "fw2"})[0])
+        calc_locs = fw2.spec["calc_locs"]
+
+        self.assertTrue(os.path.exists(os.path.join(get_calc_loc("fw1", calc_locs)["path"], "dont_remove.relax0")))
+        self.assertTrue(os.path.exists(os.path.join(get_calc_loc("fw1", calc_locs)["path"], "shouldnt_touch")))
+        self.assertFalse(os.path.exists(os.path.join(get_calc_loc("fw1", calc_locs)["path"], "to_remove.relax0")))
+        self.assertFalse(os.path.exists(os.path.join(get_calc_loc("fw1", calc_locs)["path"], "to_remove.relax1")))
+
+    def test_cleanupfiles_calc_dir(self):
+        #will test deleting from some folder specified by calc_dir
+        with ScratchDir('.', copy_from_current_on_enter=True) as d:
+            current_path = os.getcwd()
+            os.mkdir("to_remove.relax0")
+            os.mkdir("to_remove.relax1")
+            os.mkdir("dont_remove.relax0")
+            os.mkdir("shouldnt_touch")
+
+            fw1 = Firework([DeleteFilesPrevFolder(files=["to_remove*", "dont_remove"], calc_dir=current_path),
+                            PassCalcLocs(name="fw1")], name="fw1")
+            fw2 = Firework([PassCalcLocs(name="fw2")], name="fw2", parents=fw1)
+
+            wf = Workflow([fw1, fw2])
+            self.lp.add_wf(wf)
+            rapidfire(self.lp)
+
+            self.assertTrue(os.path.exists(os.path.join(current_path, "dont_remove.relax0")))
+            self.assertTrue(os.path.exists(os.path.join(current_path, "shouldnt_touch")))
+            self.assertFalse(os.path.exists(os.path.join(current_path, "to_remove.relax0")))
+            self.assertFalse(os.path.exists(os.path.join(current_path, "to_remove.relax1")))
+
+
 class TestCreateFolder(AtomateTest):
 
     def test_createfolder(self):
-
         folder_name = "test_folder"
         fw1 = Firework([CreateFolder(folder_name=folder_name, change_dir=False),
                         PassCalcLocs(name="fw1")],

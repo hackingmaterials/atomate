@@ -269,3 +269,36 @@ class VaspCalcDb(CalcDb):
 
 
 # TODO: @albalu, @matk86, @computron - add BoltztrapCalcDB management here -computron, matk86
+
+
+def put_file_in_gridfs(file_path, db, collection_name=None, compress=False,
+                       compression_type=None):
+    """
+    Helper function to store a file in gridfs.
+
+    Args:
+        file_path (str):path to the files that should be saved.
+        db (CalcDb): the interface with the database.
+        collection_name (str): optionally modify the name of the collection
+            with respect to the one included in the db.
+        compress (bool): if True the file will be compressed with zlib.
+        compression_type (str): if file is already compressed defines the
+            compression type to be stored in the metadata.
+
+    Returns:
+        ObjectId: the mongodb id of the file that have been saved.
+    """
+
+    with open(file_path, "rb") as f:
+        data = f.read()
+
+    if compress:
+        data = zlib.compress(data, compress)
+        compression_type = "zlib"
+
+    if collection_name is None:
+        collection_name = db.collection
+    fs = gridfs.GridFS(db.db, collection_name)
+    fs_id = fs.put(data, metadata={"compression": compression_type})
+
+    return fs_id

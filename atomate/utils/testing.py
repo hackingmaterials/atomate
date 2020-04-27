@@ -41,6 +41,7 @@ class AtomateTest(unittest.TestCase):
             shutil.rmtree(self.scratch_dir)
         os.makedirs(self.scratch_dir)
         os.chdir(self.scratch_dir)
+        self.lpad = lpad
         if lpad:
             try:
                 self.lp = LaunchPad.from_file(os.path.join(DB_DIR, "my_launchpad.yaml"))
@@ -79,10 +80,11 @@ class AtomateTest(unittest.TestCase):
         Remove the scratch directory and teardown the test db.
         """
         if not DEBUG_MODE:
+            if self.lpad:
+                self.lp.reset("", require_password=False)
+                db = self.get_task_database()
+                for coll in db.collection_names():
+                    if coll != "system.indexes":
+                        db[coll].drop()
             shutil.rmtree(self.scratch_dir)
-            self.lp.reset("", require_password=False)
-            db = self.get_task_database()
-            for coll in db.collection_names():
-                if coll != "system.indexes":
-                    db[coll].drop()
             os.chdir(MODULE_DIR)
