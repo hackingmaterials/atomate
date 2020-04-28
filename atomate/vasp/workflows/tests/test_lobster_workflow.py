@@ -12,7 +12,9 @@ from atomate.vasp.powerups import use_fake_vasp, use_custodian
 from atomate.vasp.workflows.base.lobster import get_all_possible_basis_combinations, get_wf_lobster, \
     get_wf_lobster_test_basis
 from fireworks.core.rocket_launcher import rapidfire
+from pymatgen.core.structure import Structure
 from pymatgen.util.testing import PymatgenTest
+from atomate.vasp.powerups import use_potcar_spec
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
@@ -37,7 +39,7 @@ refs_dirs_complex_lobster = {
 class TestWFLobster(AtomateTest):
     def setUp(self):
         super(TestWFLobster, self).setUp(lpad=True)
-        self.struct_si = PymatgenTest.get_structure("Si")
+        self.struct_si = Structure.from_file(os.path.join(refs_dirs_si_vasp["static"], "inputs", "POSCAR"))
 
     def _check_run(self, d, mode, database=True):
         if mode not in ["lobsternormal"]:
@@ -176,7 +178,7 @@ class TestWFLobsterTestBasis(AtomateTest):
 
     def setUp(self):
         super(TestWFLobsterTestBasis, self).setUp(lpad=True)
-        self.struct_mp = PymatgenTest.get_mp_structure("mp-241")
+        self.struct_mp = Structure.from_file(os.path.join(refs_dirs_complex_vasp["static"], "inputs", "POSCAR"))
 
     def _check_run(self, d, mode):
         if mode not in ["lobsternormal"]:
