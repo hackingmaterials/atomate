@@ -1,3 +1,9 @@
+# coding: utf-8
+
+"""
+This module defines tasks  that can be used to handle Lobster calculations that are based on VASP wavefunctions.
+"""
+
 import json
 import logging
 import os
@@ -17,6 +23,9 @@ from monty.os.path import zpath
 from monty.serialization import loadfn
 from pymatgen.core.structure import Structure
 from pymatgen.io.lobster import Lobsterout, Lobsterin
+
+__author__ = "Janine George, Guido Petretto"
+__email__ = 'janine.george@uclouvain.be, guido.petretto@uclouvain.be'
 
 LOBSTERINPUT_FILES = ["lobsterin"]
 LOBSTEROUTPUT_FILES = ["lobsterout", "CHARGE.lobster", "COHPCAR.lobster", "COOPCAR.lobster", "DOSCAR.lobster",
@@ -158,8 +167,8 @@ class LobsterRunToDb(FiretaskBase):
                        "additional_outputs"]
 
     std_additional_outputs = ["ICOHPLIST.lobster", "ICOOPLIST.lobster", "COHPCAR.lobster",
-                                   "COOPCAR.lobster", "GROSSPOP.lobster", "CHARGE.lobster",
-                                   "DOSCAR.lobster"]
+                              "COOPCAR.lobster", "GROSSPOP.lobster", "CHARGE.lobster",
+                              "DOSCAR.lobster"]
 
     def __init__(self, *args, **kwargs):
         # override the original __init__ method to check the values of

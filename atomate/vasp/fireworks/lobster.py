@@ -1,3 +1,8 @@
+# coding: utf-8
+"""
+This module defines fireworks  that can be used to handle Lobster calculations that are based on VASP wavefunctions.
+"""
+
 import logging
 import os
 from typing import List, Union
@@ -6,10 +11,12 @@ from atomate.common.firetasks.glue_tasks import DeleteFiles, PassCalcLocs, Delet
 from atomate.vasp.config import DB_FILE
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from atomate.vasp.firetasks.lobster_tasks import WriteLobsterinputfromIO, RunLobster, LobsterRunToDb
+from custodian.custodian import ErrorHandler, Validator
 from fireworks import Firework
 from pymatgen.core.structure import Structure
-from custodian.custodian import ErrorHandler, Validator
 
+__author__ = "Janine George, Guido Petretto"
+__email__ = 'janine.george@uclouvain.be, guido.petretto@uclouvain.be'
 
 LOBSTER_CMD = ">>lobster_cmd<<"
 VASP_OUTPUT_FILES_without_PPKI = ["OUTCAR", "vasprun.xml", "CHG", "CHGCAR", "CONTCAR", "DOSCAR", "EIGENVAL", "IBZKPT",
@@ -66,7 +73,7 @@ class LobsterFW(Firework):
         # TODO: make this lobster firework more flexible to allow for FATBAND and other types of calculations
 
         fw_name = "{}-{}".format(structure.composition.reduced_formula if structure else 'unknown', name)
-        
+
         t = []
         # copies all files from previous VASP calculation;
         if prev_calc_dir:

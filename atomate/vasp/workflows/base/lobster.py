@@ -5,9 +5,6 @@
 This module defines the VASP/Lobster workflows
 """
 
-__author__ = "Janine George, Guido Petretto"
-__email__ = 'janine.george@uclouvain.be, '
-
 import itertools
 import logging
 import os
@@ -24,11 +21,12 @@ from pymatgen.core.structure import Structure
 from pymatgen.io.lobster import Lobsterin
 from pymatgen.io.vasp.sets import LobsterSet
 
+__author__ = "Janine George, Guido Petretto"
+__email__ = 'janine.george@uclouvain.be, guido.petretto@uclouvain.be'
+
 LOBSTER_CMD = ">>lobster_cmd<<"
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 logger = logging.getLogger(__name__)
-
-
 
 
 def get_wf_lobster(structure: Structure, calculationtype: str = 'standard', delete_all_wavecars: bool = True,

@@ -1,20 +1,18 @@
-#!/usr/bin/env python
 # coding: utf-8
 
 """
-This module defines the VASP/Lobster workflows
+This module defines general powerups that can be used for all workflows
 """
-
-__author__ = "Janine George, Guido Petretto"
-__email__ = 'janine.george@uclouvain.be, '
 
 from atomate.utils.utils import get_fws_and_tasks
 from fireworks.core.firework import Workflow
 
+__author__ = "Janine George, Guido Petretto"
+__email__ = 'janine.george@uclouvain.be, guido.petretto@uclouvain.be'
 
 
 def set_queue_adapter(original_wf: Workflow, queueadapter: dict = None,
-                    fw_name_constraint: str = None, task_name_constraint: str = None) -> Workflow:
+                      fw_name_constraint: str = None, task_name_constraint: str = None) -> Workflow:
     """
     set _queueadapter spec of Fireworker(s) of a Workflow. It can be used to change the overall queueadapter during the run.
 
