@@ -797,7 +797,7 @@ class LinearResponseUToDb(FiretaskBase):
             v = []
             nd = []
             for d in docs:
-                nd.append(float(d['calcs_reversed'][0]['output']['outcar']['charge'][0]['d']))
+                nd.append(float(d['calcs_reversed'][0]['output']['outcar']['charge'][0]['d'])) # 'd'
                 if key != keys[0]:
                     v.append(float(d['calcs_reversed'][0]['input']['incar']['LDAUU'][0]))
                 elif key == keys[0]:
@@ -833,14 +833,25 @@ class LinearResponseUToDb(FiretaskBase):
         else:
             
             lambda_nscf, lambda_scf, U = float('nan'), float('nan'), float('nan')
-            
+
+        docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid,
+                                          "task_label": {"$regex": regexps[1]}}))
+
+        structure = None
+        if docs:
+            structure = Structure.from_dict(docs[0]["calcs_reversed"][-1]["output"]['structure'])
+
         summaries = []
 
         summary = {}
+        if structure:
+            summary.update({'formula_pretty': structure.composition.reduced_formula})
+            summary.update({'structure_groundstate': structure.as_dict()})
         summary.update({'datapoints': response_dict})
         summary.update({'fit': {'lambda - NSCF': lambda_nscf, 'lambda - SCF': lambda_scf}})
         summary.update({'U': U})
-        
+        summary.update({'wf_meta': {'wf_uuid': uuid}})
+
         if fw_spec.get("tags", None):
             summary["tags"] = fw_spec["tags"]
 
