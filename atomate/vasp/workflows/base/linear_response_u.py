@@ -55,8 +55,6 @@ def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_s
             "Please obtain an ordered approximation of the input structure."
         )
 
-    structure = structure.get_primitive_structure(use_site_props=True)
-
     # using a uuid for book-keeping,
     # in a similar way to other workflows
     uuid = str(uuid4())
@@ -68,9 +66,10 @@ def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_s
         c = c_defaults
 
     # Calculate groundstate
+    
     uis_gs = {"LDAU":False, "LMAXMIX":4, "LORBIT": 11, "ISPIN": 2}
-    vis_params = {"user_incar_settings": uis_gs}
-    vis_gs = MPStaticSet(structure=structure, **vis_params)
+    vis_params = {"user_incar_settings": uis_gs.copy()}
+    vis_gs = MPStaticSet(structure=structure, sort_structure=False, **vis_params)
 
     if ground_state_dir:
         fws = []
@@ -90,7 +89,7 @@ def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_s
 
         sign = 'neg' if str(v)[0] == '-' else 'pos'
 
-        vis_params = {"user_incar_settings": uis_ldau}
+        vis_params = {"user_incar_settings": uis_ldau.copy()}
         vis_ldau = LinearResponseUSet(structure=structure, **vis_params)
 
         for k in ["LDAUL", "LDAUU", "LDAUJ"]:
@@ -111,7 +110,7 @@ def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_s
         # NSCF
         uis_ldau.update({"ICHARG":11})
 
-        vis_params = {"user_incar_settings": uis_ldau}
+        vis_params = {"user_incar_settings": uis_ldau.copy()}
         vis_ldau = LinearResponseUSet(structure=structure, **vis_params)
 
         if ground_state_dir:
@@ -132,7 +131,7 @@ def get_wf_linear_response_u(structure, applied_potential_values=[0.0], ground_s
         # SCF
         uis_ldau.update({"ICHARG":0})
 
-        vis_params = {"user_incar_settings": uis_ldau}
+        vis_params = {"user_incar_settings": uis_ldau.copy()}
         vis_ldau = LinearResponseUSet(structure=structure, **vis_params)
 
         # NOTE: More efficient to reuse WAVECAR or remove dependency of SCF on NSCF?
