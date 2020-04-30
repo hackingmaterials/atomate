@@ -477,8 +477,8 @@ class LinearResponseUFW(Firework):
             if prev_calc_loc:
                 t.append(CopyVaspOutputs(calc_loc=prev_calc_loc, additional_files=additional_files,
                                          contcar_to_poscar=False))
-        else:
-            raise ValueError("Must specify parent or previous calculation")
+        # else:
+        #     raise ValueError("Must specify parent or previous calculation")
 
         if structure:
             vasp_input_set = vasp_input_set or LinearResponseUSet(structure, **vasp_input_set_params)
