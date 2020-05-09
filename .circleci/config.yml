@@ -15,10 +15,13 @@ jobs:
             conda create --quiet --yes --name test_env python=3.7
             source activate test_env
             conda install --quiet --yes numpy scipy matplotlib sympy pandas
-            conda install --quiet --yes -c openbabel openbabel
+            conda install --quiet --yes -c conda-forge openbabel
             # conda install --quiet --yes -c clinicalgraphics vtk
             conda install --quiet --yes -c conda-forge python-igraph
             conda update --quiet --all
+            wget https://vampire.york.ac.uk/resources/release-5/vampire-5.0-linux.tar.gz
+            tar -zxvf vampire-5.0-linux.tar.gz
+            export PATH=/root/atomate/linux/:$PATH
             pip install --quiet -r requirements.txt -r requirements-ci.txt
             # Add executables and path.
             for EXEPATH in `pwd`/cmd_line/*/Linux_64bit; do export PATH=$PATH:$EXEPATH; done
@@ -45,10 +48,13 @@ jobs:
             conda create --quiet --yes --name test_env python=3.7
             source activate test_env
             conda install --quiet --yes numpy scipy matplotlib sympy pandas
-            conda install --quiet --yes -c openbabel openbabel
+            conda install --quiet --yes -c conda-forge openbabel
             # conda install --quiet --yes -c clinicalgraphics vtk
             conda install --quiet --yes -c conda-forge python-igraph
             conda update --quiet --all
+            wget https://vampire.york.ac.uk/resources/release-5/vampire-5.0-linux.tar.gz
+            tar -zxvf vampire-5.0-linux.tar.gz
+            export PATH=/root/atomate/linux/:$PATH
             pip install --quiet -r requirements.txt -r requirements-ci.txt
             pip install git+https://github.com/materialsproject/pymatgen.git --upgrade
             pip install git+https://github.com/materialsproject/custodian.git --upgrade
@@ -69,4 +75,10 @@ workflows:
   build_and_test:
     jobs:
       - py3test
-      - py3devtest
+      - py3devtest:
+          filters:  # don't run dev tests on master branch
+              branches:
+                  ignore:
+                      master
+
+

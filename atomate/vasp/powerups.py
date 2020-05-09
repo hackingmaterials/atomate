@@ -14,7 +14,8 @@ from atomate.vasp.firetasks.run_calc import (
     RunNoVasp,
 )
 from atomate.vasp.firetasks.neb_tasks import RunNEBVaspFake
-from atomate.vasp.firetasks.write_inputs import ModifyIncar, ModifyPotcar
+from atomate.vasp.firetasks.write_inputs import ModifyIncar, ModifyPotcar, \
+    ModifyKpoints
 from atomate.vasp.firetasks.parse_outputs import JsonToDb
 from atomate.vasp.config import (
     ADD_NAMEFILE,
@@ -284,6 +285,37 @@ def add_modify_incar(
     for idx_fw, idx_t in idx_list:
         original_wf.fws[idx_fw].tasks.insert(
             idx_t, ModifyIncar(**modify_incar_params)
+        )
+    return original_wf
+
+def add_modify_kpoints(
+    original_wf, modify_kpoints_params=None, fw_name_constraint=None
+):
+    """
+    Every FireWork that runs VASP has a ModifyKpoints task just beforehand. For
+    example, allows you to modify the KPOINTS based on the Worker using env_chk
+    or using hard-coded changes.
+
+    Args:
+        original_wf (Workflow)
+        modify_kpoints_params (dict): dict of parameters for ModifyKpoints.
+        fw_name_constraint (str): Only apply changes to FWs where fw_name
+        contains this substring.
+
+    Returns:
+       Workflow
+    """
+    modify_kpoints_params = modify_kpoints_params or {
+        "kpoints_update": ">>kpoints_update<<"
+    }
+    idx_list = get_fws_and_tasks(
+        original_wf,
+        fw_name_constraint=fw_name_constraint,
+        task_name_constraint="RunVasp",
+    )
+    for idx_fw, idx_t in idx_list:
+        original_wf.fws[idx_fw].tasks.insert(
+            idx_t, ModifyKpoints(**modify_kpoints_params)
         )
     return original_wf
 
@@ -893,6 +925,14 @@ def use_potcar_spec(
         fw_name_constraint=fw_name_constraint,
         task_name_constraint="WriteVasp",
     )
+
+    idx_list.extend(get_fws_and_tasks(
+        original_wf,
+        fw_name_constraint=fw_name_constraint,
+        task_name_constraint="UpdateScanRelaxBandgap",
+        )
+    )
+    
     for idx_fw, idx_t in idx_list:
         original_wf.fws[idx_fw].tasks[idx_t]["potcar_spec"] = True
 
