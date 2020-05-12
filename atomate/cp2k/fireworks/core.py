@@ -19,9 +19,11 @@ from fireworks.core.firework import Firework
 from pymatgen.core.structure import Structure
 from pymatgen.io.cp2k.sets import (
     RelaxSet,
+    CellOptSet,
     StaticSet,
     HybridStaticSet,
     HybridRelaxSet,
+    HybridCellOptSet
 )
 
 from atomate.cp2k.firetasks.write_inputs import (
@@ -94,14 +96,13 @@ class BaseFW(Firework):
         t = []
 
         # Set up the name, the input set, and how cp2k will be pushed to DB
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown",
-            name,
-        )
+        if "project_name" not in cp2k_input_set_params.keys():
+            cp2k_input_set_params["project_name"] = name
 
         cp2k_input_set = cp2k_input_set or StaticSet(
             structure, **cp2k_input_set_params
         )
+
         cp2k_input_set.silence()  # Don't include section descriptions
 
         cp2ktodb_kwargs = cp2ktodb_kwargs or {}
@@ -148,7 +149,7 @@ class BaseFW(Firework):
         super().__init__(
             t,
             parents=parents,
-            name=fw_name,
+            name=name,
             spec=spec,
             **kwargs
         )
@@ -176,7 +177,7 @@ class StaticFW(BaseFW):
 
         cp2k_input_set = cp2k_input_set or StaticSet(
             structure, project_name=name,
-            **cp2k_input_set_params
+            **cp2k_input_set_params.copy()
         )
 
         super().__init__(
@@ -216,7 +217,7 @@ class StaticHybridFW(BaseFW):
         """
         cp2k_input_set = cp2k_input_set or HybridStaticSet(
             structure, project_name=name,
-            **cp2k_input_set_params
+            **cp2k_input_set_params.copy()
         )
         super().__init__(
             structure=structure,
@@ -256,7 +257,48 @@ class RelaxFW(BaseFW):
 
         cp2k_input_set = cp2k_input_set or RelaxSet(
             structure, project_name=name,
-            **cp2k_input_set_params
+            **cp2k_input_set_params.copy()
+        )
+
+        super().__init__(
+            structure=structure,
+            name=name,
+            cp2k_input_set=cp2k_input_set,
+            cp2k_input_set_params=cp2k_input_set_params,
+            cp2k_cmd=cp2k_cmd,
+            prev_calc_loc=prev_calc_loc,
+            prev_calc_dir=prev_calc_dir,
+            db_file=db_file,
+            cp2ktodb_kwargs=cp2ktodb_kwargs,
+            parents=parents,
+            files_to_copy=files_to_copy,
+            **kwargs
+        )
+
+
+class CellOptFW(BaseFW):
+    def __init__(
+        self,
+        structure=None,
+        name="Relax",
+        cp2k_input_set=None,
+        cp2k_input_set_params={},
+        cp2k_cmd="cp2k",
+        prev_calc_loc=True,
+        prev_calc_dir=None,
+        db_file=None,
+        cp2ktodb_kwargs=None,
+        parents=None,
+        files_to_copy=[],
+        **kwargs
+    ):
+        """
+        Geometry Relaxation Calculation.
+        """
+
+        cp2k_input_set = cp2k_input_set or CellOptSet(
+            structure, project_name=name,
+            **cp2k_input_set_params.copy()
         )
 
         super().__init__(
@@ -297,7 +339,48 @@ class RelaxHybridFW(BaseFW):
 
         cp2k_input_set = cp2k_input_set or HybridRelaxSet(
             structure, project_name=name,
-            **cp2k_input_set_params
+            **cp2k_input_set_params.copy()
+        )
+
+        super().__init__(
+            structure=structure,
+            name=name,
+            cp2k_input_set=cp2k_input_set,
+            cp2k_input_set_params=cp2k_input_set_params,
+            cp2k_cmd=cp2k_cmd,
+            prev_calc_loc=prev_calc_loc,
+            prev_calc_dir=prev_calc_dir,
+            db_file=db_file,
+            cp2ktodb_kwargs=cp2ktodb_kwargs,
+            parents=parents,
+            files_to_copy=files_to_copy,
+            **kwargs
+        )
+
+
+class CellOptHybridFW(BaseFW):
+    def __init__(
+        self,
+        structure=None,
+        name="HybridCellOpt",
+        cp2k_input_set=None,
+        cp2k_input_set_params={},
+        cp2k_cmd="cp2k",
+        prev_calc_loc=True,
+        prev_calc_dir=None,
+        db_file=None,
+        cp2ktodb_kwargs=None,
+        parents=None,
+        files_to_copy=[],
+        **kwargs
+    ):
+        """
+        Hybrid cell optimization.
+        """
+
+        cp2k_input_set = cp2k_input_set or HybridCellOptSet(
+            structure, project_name=name,
+            **cp2k_input_set_params.copy()
         )
 
         super().__init__(
