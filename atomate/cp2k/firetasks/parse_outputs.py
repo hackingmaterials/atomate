@@ -67,6 +67,7 @@ class Cp2kToDb(FiretaskBase):
         "task_fields_to_push",
         "parse_chgcar",
         "parse_aeccar",
+        "db_user_settings"
     ]
 
     def run_task(self, fw_spec):
@@ -103,7 +104,9 @@ class Cp2kToDb(FiretaskBase):
             with open("task.json", "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
-            mmdb = Cp2kCalcDb.from_db_file(db_file, admin=True)
+            mmdb = Cp2kCalcDb.from_db_file(
+                db_file, admin=True, user_settings=self.get(
+                    'db_user_settings', {}))
             t_id = mmdb.insert_task(
                 task_doc, use_gridfs=self.get("parse_dos", False)
             )

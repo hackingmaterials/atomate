@@ -232,3 +232,49 @@ class Cp2kCalcDb(CalcDb):
         self.db.dos_fs.files.delete_many({})
         self.db.dos_fs.chunks.delete_many({})
         self.build_indexes()
+
+    # TODO: This become part of CalcDb, VASP/CP2K specific Db methods dont make sense anyway
+    @classmethod
+    def from_db_file(cls, db_file, admin=True, user_settings={}):
+        """
+        Create MMDB from database file. File requires host, port, database,
+        collection, and optionally admin_user/readonly_user and
+        admin_password/readonly_password
+
+        Args:
+            db_file (str): path to the file containing the credentials
+            admin (bool): whether to use the admin user
+            user_settings (dict): User settings to overwrite those in the db file.
+                Example: db_file is used to acquire all credentials, but
+                {'collection': 'test'} is used to overwrite the default DB insertion
+                collection to something else.
+
+        Returns:
+            MMDb object
+        """
+        creds = loadfn(db_file)
+        if user_settings:
+            creds.update(user_settings)
+
+        if admin and "admin_user" not in creds and "readonly_user" in creds:
+            raise ValueError("Trying to use admin credentials, "
+                             "but no admin credentials are defined. "
+                             "Use admin=False if only read_only "
+                             "credentials are available.")
+
+        if admin:
+            user = creds.get("admin_user")
+            password = creds.get("admin_password")
+        else:
+            user = creds.get("readonly_user")
+            password = creds.get("readonly_password")
+
+        kwargs = creds.get("mongoclient_kwargs", {})  # any other MongoClient kwargs can go here ...
+
+        if "authsource" in creds:
+            kwargs["authsource"] = creds["authsource"]
+        else:
+            kwargs["authsource"] = creds["database"]
+
+        return cls(creds["host"], int(creds.get("port", 27017)), creds["database"], creds["collection"],
+                   user, password, **kwargs)
