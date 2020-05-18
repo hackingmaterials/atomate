@@ -846,14 +846,14 @@ class LinearResponseUToDb(FiretaskBase):
                     V_scf.append(v)
                     Nd_scf.append(nd)
 
-            lambda_nscf = np.polyfit(V_nscf, Nd_nscf, 1)[0]
-            lambda_scf  = np.polyfit(V_scf,  Nd_scf,  1)[0]
+            chi_nscf = np.polyfit(V_nscf, Nd_nscf, 1)[0]
+            chi_scf  = np.polyfit(V_scf,  Nd_scf,  1)[0]
 
-            U = 1.0/lambda_scf - 1.0/lambda_nscf
+            U = 1.0/chi_scf - 1.0/chi_nscf
 
         else:
-            
-            lambda_nscf, lambda_scf, U = float('nan'), float('nan'), float('nan')
+
+            chi_nscf, chi_scf, U = float('nan'), float('nan'), float('nan')
 
         docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid,
                                           "task_label": {"$regex": regexps[1]}}))
@@ -869,7 +869,7 @@ class LinearResponseUToDb(FiretaskBase):
             summary.update({'formula_pretty': structure.composition.reduced_formula})
             summary.update({'structure_groundstate': structure.as_dict()})
         summary.update({'datapoints': response_dict})
-        summary.update({'fit': {'lambda - NSCF': lambda_nscf, 'lambda - SCF': lambda_scf}})
+        summary.update({'fit': {'chi - NSCF': chi_nscf, 'chi - SCF': chi_scf}})
         summary.update({'U': U})
         summary.update({'wf_meta': {'wf_uuid': uuid}})
 
