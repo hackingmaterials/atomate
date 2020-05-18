@@ -785,17 +785,14 @@ class LinearResponseUToDb(FiretaskBase):
         regexps = ['initial', '^nscf', '^scf']
         response_dict = {}
 
+        magnet_order_gs = None
+
         for key, task_label_regex in zip(keys, regexps):
 
             docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid,
                                               "task_label": {"$regex": task_label_regex}}))
 
-            # isdocs = False
-            # if docs:
-            #     isdocs = True
-
-            v = []
-            nd = []
+            v, nd = [], []
             for d in docs:
                 nd.append(float(d['calcs_reversed'][0]['output']['outcar']['charge'][0]['d'])) # 'd'
                 if key != keys[0]:
@@ -803,30 +800,54 @@ class LinearResponseUToDb(FiretaskBase):
                 elif key == keys[0]:
                     v.append(0.0)
 
-            response_dict.update({key: {'V': v, 'Nd': nd}})
-            
+                struct_final = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+                analyzer_output = CollinearMagneticStructureAnalyzer(struct_final, threshold=0.61)
+                magnet_order = analyzer_output.ordering.value
+
+                if key == keys[0]:
+                    magnet_order_gs = magnet_order.copy()
+
+            response_dict.update({key: {'V': v, 'Nd': nd, 'magnetic order': magnet_order.copy()}})
+
         for k in ['V', 'Nd']:
             for i in [1, 2]:
                 response_dict[keys[i]][k].extend(response_dict[keys[0]][k])
 
         for key in keys:
 
-            v, nd = [], []
+            v, nd, orders = [], [], []
 
             if response_dict[key]['Nd']:
-                
+
                 v  = response_dict[key]['V']
                 nd = response_dict[key]['Nd']
+                orders = response_dict[key]['magnetic order']
 
                 if (len(v) == len(nd)):
-                    v, nd = (list(t) for t in zip(*sorted(zip(v, nd))))
+                    v, nd, orders = (list(t) for t in zip(*sorted(zip(v, nd, orders))))
 
-            response_dict.update({key: {'V': v, 'Nd': nd}})
-            
+            response_dict.update({key: {'V': v, 'Nd': nd, 'magnetic order': orders}})
+
         if response_dict[keys[1]]['Nd'] and response_dict[keys[2]]['Nd']:
 
-            lambda_nscf = np.polyfit(response_dict[keys[1]]['V'], response_dict[keys[1]]['Nd'], 1)[0]
-            lambda_scf  = np.polyfit(response_dict[keys[2]]['V'], response_dict[keys[2]]['Nd'], 1)[0]
+            V_nscf, Nd_nscf = [], []
+            for v, nd, order in zip(response_dict[keys[1]]['V'],
+                                    response_dict[keys[1]]['Nd'],
+                                    response_dict[keys[1]]['magnetic order']):
+                if order == order_gs:
+                    V_nscf.append(v)
+                    Nd_nscf.append(nd)
+
+            V_scf, Nd_scf = [], []
+            for v, nd, order in zip(response_dict[keys[2]]['V'],
+                                    response_dict[keys[2]]['Nd'],
+                                    response_dict[keys[2]]['magnetic order']):
+                if order == order_gs:
+                    V_scf.append(v)
+                    Nd_scf.append(nd)
+
+            lambda_nscf = np.polyfit(V_nscf, Nd_nscf, 1)[0]
+            lambda_scf  = np.polyfit(V_scf,  Nd_scf,  1)[0]
 
             U = 1.0/lambda_scf - 1.0/lambda_nscf
 
