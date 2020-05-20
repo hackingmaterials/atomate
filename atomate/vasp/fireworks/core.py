@@ -27,6 +27,7 @@ from pymatgen.io.vasp.sets import (
     MPStaticSet,
     MPSOCSet,
 )
+
 from atomate.common.firetasks.glue_tasks import (
     PassCalcLocs,
     GzipDir,

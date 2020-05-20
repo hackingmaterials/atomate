@@ -1181,6 +1181,7 @@ class MagneticDeformationToDb(FiretaskBase):
 
         logger.info("Magnetic deformation calculation complete.")
 
+
 @explicit_serialize
 class PolarizationToDb(FiretaskBase):
     """
