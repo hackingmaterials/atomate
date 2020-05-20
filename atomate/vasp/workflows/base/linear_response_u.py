@@ -32,9 +32,9 @@ from pymatgen.core import Lattice, Structure
 
 import numpy as np
 
-__author__ = ""
-__maintainer__ = ""
-__email__ = ""
+__author__ = "Guy Moore, Martin Siron"
+__maintainer__ = "Guy Moore"
+__email__ = "gmoore@lbl.gov"
 __status__ = "Production"
 __date__ = "February 2020"
 
@@ -50,6 +50,9 @@ def get_wf_linear_response_u(structure,
                              ground_state_ldau=True, ground_state_dir=None,
                              c=None, vis=None):
     """
+    Compute Hubbard U on-site interaction values using LDA+U linear response method 
+    proposed by Cococcioni et. al. (DOI: 10.1103/PhysRevB.71.035105).
+
     Args:
         structure: 
         c: Workflow config dict, in the same format

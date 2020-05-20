@@ -764,8 +764,15 @@ class ThermalExpansionCoeffToDb(FiretaskBase):
 @explicit_serialize
 class LinearResponseUToDb(FiretaskBase):
     """
-    required_params:
-        db_file (str): path to the db file
+    Analyze the linear response data generated from get_wf_linear_response_u to compute 
+    Hubbard U value(s).
+    
+    Required parameters:
+        db_file (str): path to the db file that holds your tasks
+            collection and that you want to hold the linear_response_u
+            collection
+        wf_uuid (str): auto-generated from get_wf_linear_response_u,
+            used to make it easier to retrieve task docs
     """
 
     required_params = ["db_file", "wf_uuid"]
