@@ -266,6 +266,8 @@ class Cp2kDrone(AbstractDrone):
                 "bandgap": d_calc_final["output"]["bandgap"],
                 "efermi": d_calc_final["output"]["efermi"],
                 "is_metal": d_calc_final["output"]["is_metal"],
+                "v_hartree": d_calc_final.pop('v_hartree', None),
+                "v_hartree_grid": d_calc_final.pop('v_hartree_grid', None),
             }
 
             # Store symmetry information

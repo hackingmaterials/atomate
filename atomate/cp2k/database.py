@@ -1,6 +1,7 @@
 # coding: utf-8
 
 from monty.json import MontyEncoder
+from monty.serialization import loadfn
 
 """
 This module defines the database classes.
