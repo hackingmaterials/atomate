@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import os
+import itertools
 
 from atomate.vasp.fireworks.core import StaticFW
 from fireworks import Workflow, Firework
@@ -28,7 +29,7 @@ from atomate.vasp.workflows.presets.scan import wf_scan_opt
 from uuid import uuid4
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
 from pymatgen.io.vasp.inputs import Poscar, Incar
-from pymatgen.core import Lattice, Structure
+from pymatgen.core import Lattice, Structure, Element
 
 import numpy as np
 
@@ -72,23 +73,27 @@ def get_wf_linear_response_u(structure,
         site_indices_u = []
     
     if species_u:
-        foundSpecie = False
-        for s in range(len(structure)):
-            site = structure[s]
-            if site.specie == Element(target_elem):
-                foundSpecie = True
-                break
-        if not foundSpecie:
-            raise ValueError(
-                "Could not find specie(s) in structure."
-            )
-        site_indices_u.append(s)
+        for specie_u in species_u:
+            foundSpecie = False
+            for s in range(len(structure)):
+                site = structure[s]
+                if (site.specie == Element(specie_u)) and (s not in site_indices_u):
+                    foundSpecie = True
+                    break
+            if not foundSpecie:
+                raise ValueError(
+                    "Could not find specie(s) in structure."
+                )
+            site_indices_u.append(s)
 
     elif not site_indices_u:
         logger.warning(
             "Sites for computing U value are not specified. "
             "Computing U for first site in structure. "
         )
+
+    site_indices_u = list(tuple(site_indices_u))
+    num_perturb = len(site_indices_u)
 
     sites_perturb = []
     for site_index_perturb in site_indices_u:
@@ -99,7 +104,7 @@ def get_wf_linear_response_u(structure,
 
     for site in sites_perturb:
         structure.insert(i=0, species=site.specie, coords=site.frac_coords,
-                      properties=site.properties)
+                         properties=site.properties)
 
     # using a uuid for book-keeping,
     # in a similar way to other workflows
@@ -133,7 +138,7 @@ def get_wf_linear_response_u(structure,
 
     # Initialize vasp input set
     vis_params = {"user_incar_settings": uis_ldau.copy()}
-    vis_ldau = LinearResponseUSet(structure=structure, **vis_params.copy())
+    vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
 
     for k in ["LDAUL", "LDAUU", "LDAUJ"]:
         val_dict = {}
@@ -163,7 +168,7 @@ def get_wf_linear_response_u(structure,
     if ground_state_ldau:
         uis_gs = uis_ldau.copy()
         vis_params = {"user_incar_settings": uis_gs.copy()}
-        vis_gs = LinearResponseUSet(structure=structure, **vis_params.copy())
+        vis_gs = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
         fw_gs = LinearResponseUFW(structure=structure, name="initial static", vasp_input_set=vis_gs,
                                   vasp_cmd=VASP_CMD, db_file=DB_FILE)
     else:
@@ -209,7 +214,7 @@ def get_wf_linear_response_u(structure,
         uis_ldau.update({"ICHARG":11})
 
         vis_params = {"user_incar_settings": uis_ldau.copy()}
-        vis_ldau = LinearResponseUSet(structure=structure, **vis_params.copy())
+        vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
 
         if ground_state_dir:
             parents = []
@@ -229,7 +234,7 @@ def get_wf_linear_response_u(structure,
         uis_ldau.update({"ICHARG":0})
 
         vis_params = {"user_incar_settings": uis_ldau.copy()}
-        vis_ldau = LinearResponseUSet(structure=structure, **vis_params.copy())
+        vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
 
         # NOTE: More efficient to reuse WAVECAR or remove dependency of SCF on NSCF?
         if ground_state_dir:
@@ -283,7 +288,7 @@ class PoscarPerturb(Poscar):
     def __init__(
             self,
             structure: Structure,
-            perturb_index: int = 0,
+            num_perturb: int = 1,
             comment: str = None,
             selective_dynamics=None,
             true_names: bool = True,
@@ -297,7 +302,7 @@ class PoscarPerturb(Poscar):
         """
         # super().__init__(structure=Structure)
 
-        self.perturb_index = perturb_index
+        self.num_perturb = num_perturb
 
         if structure.is_ordered:
             site_properties = {}
@@ -328,12 +333,10 @@ class PoscarPerturb(Poscar):
         vasp 5+ POSCAR.
         """
 
-        syms = super().site_symbols
-
-        if (self.perturb_index == 0):
-            syms_perturb = []
-            if ((syms[0] == syms[1]) & (len(syms) > 1)):
-                syms_perturb = [syms[0]]
+        if (self.num_perturb > 0 and self.num_perturb <= len(self.structure)):
+            syms = [site.specie.symbol for site in self.structure[self.num_perturb:]]
+            syms = [a[0] for a in itertools.groupby(syms)]
+            syms_perturb = [site.specie.symbol for site in self.structure[0:self.num_perturb]]
             syms_perturb.extend(syms)
         else:
             raise ValueError(
@@ -343,47 +346,40 @@ class PoscarPerturb(Poscar):
         return syms_perturb
 
     @property
-    def sites(self):
-        """
-        FILL
-        """
-        sites_array = [site for site in self.structure]
-        return sites_array
-
-    @property
     def natoms(self):
         """
         Sequence of number of sites of each type associated with the Poscar.
         Similar to 7th line in vasp 5+ POSCAR or the 6th line in vasp 4 POSCAR.
         """
 
-        if (super().natoms[self.perturb_index] > 1):
-            if (self.perturb_index == 0):
-                n_atoms = [1]
-                n_atoms.extend(super().natoms)
-                n_atoms[1] -= 1
-            else:
-                raise ValueError(
-                    "Invalid atom index to perturb"
-                )
-        else:
-            n_atoms = super().natoms
+        if (self.num_perturb > 0 and self.num_perturb <= len(self.structure)):
+            syms = [site.specie.symbol for site in self.structure[self.num_perturb:]]
+            n_atoms = [len(tuple(a[1])) for a in itertools.groupby(syms)]
 
-        return n_atoms
+            n_atoms_perturb = [1 for i in range(self.num_perturb)]
+            n_atoms_perturb.extend(n_atoms)
+        else:
+            raise ValueError(
+                "Invalid atom index to perturb"
+            )
+
+        return n_atoms_perturb
 
 
 class LinearResponseUSet(MPStaticSet):
     """
     FILL
     """
-    def __init__(self, structure, prev_incar=None, prev_kpoints=None,
-                 lepsilon=False, lcalcpol=False, reciprocal_density=100,
+    def __init__(self, structure, num_perturb, prev_incar=None, prev_kpoints=None,
+                 lepsilon=False, reciprocal_density=100,
                  small_gap_multiply=None, **kwargs):
         """
         FILL
         """
 
         super().__init__(structure, sort_structure=False, **kwargs)
+
+        self.num_perturb = num_perturb
 
         if isinstance(prev_kpoints, str):
             prev_kpoints = Kpoints.from_file(prev_kpoints)
@@ -392,7 +388,6 @@ class LinearResponseUSet(MPStaticSet):
         self.reciprocal_density = reciprocal_density
         self.kwargs = kwargs
         self.lepsilon = lepsilon
-        self.lcalcpol = lcalcpol
         self.small_gap_multiply = small_gap_multiply
 
     @property
@@ -483,7 +478,7 @@ class LinearResponseUSet(MPStaticSet):
         """
         FILL
         """
-        poscar = PoscarPerturb(structure=super().structure)
+        poscar = PoscarPerturb(structure=super().structure, num_perturb=self.num_perturb)
         return poscar
 
     @property
