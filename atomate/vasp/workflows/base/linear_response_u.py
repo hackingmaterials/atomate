@@ -49,6 +49,7 @@ def get_wf_linear_response_u(structure,
                              site_indices_u=None, species_u=None,
                              use_default_uvals=False,
                              ground_state_ldau=True, ground_state_dir=None,
+                             parallel_scheme=0,
                              c=None, vis=None):
     """
     Compute Hubbard U on-site interaction values using LDA+U linear response method 
@@ -201,9 +202,6 @@ def get_wf_linear_response_u(structure,
 
         sign = 'neg' if str(v)[0] == '-' else 'pos'
 
-        # Update applied potential to U and J
-        uis_ldau.update({"ISTART":1})
-
         # Update perturbation potential for U and J
         for k in ["LDAUU", "LDAUJ"]:
             # for LDAUU and LDAUJ
@@ -211,7 +209,7 @@ def get_wf_linear_response_u(structure,
             uis_ldau.update({k:val_dict.copy()})
 
         # Non-SCF runs
-        uis_ldau.update({"ICHARG":11})
+        uis_ldau.update({"ISTART":1, "ICHARG":11})
 
         vis_params = {"user_incar_settings": uis_ldau.copy()}
         vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
@@ -221,10 +219,12 @@ def get_wf_linear_response_u(structure,
         else:
             parents=fws[0]
 
+        additional_files = ["WAVECAR","CHGCAR"]
+
         fw = LinearResponseUFW(structure=structure, parents=parents,
                                name="nscf_u_eq_{}{}".format(sign, abs(round(v,6))),
                                vasp_input_set=vis_ldau,
-                               additional_files=["WAVECAR","CHGCAR"],
+                               additional_files=additional_files.copy(),
                                prev_calc_dir=ground_state_dir,
                                vasp_cmd=VASP_CMD, db_file=DB_FILE)
 
@@ -233,6 +233,11 @@ def get_wf_linear_response_u(structure,
         # SCF runs
         uis_ldau.update({"ICHARG":0})
 
+        if parallel_scheme == 0:
+            uis_ldau.update({"ISTART":0})
+        else:
+            uis_ldau.update({"ISTART":1})
+
         vis_params = {"user_incar_settings": uis_ldau.copy()}
         vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
 
@@ -240,13 +245,22 @@ def get_wf_linear_response_u(structure,
         if ground_state_dir:
             parents = []
         else:
-            parents=fws[0]
-            # parents=fws[-1]
+            if parallel_scheme == 0:
+                parents = []
+            else if parallel_scheme == 1:
+                parents=fws[0]
+            else:
+                parents=fws[-1]
 
+        if parallel_scheme == 0:
+            additional_files = []
+        else:
+            additional_files = ["WAVECAR"]
+            
         fw = LinearResponseUFW(structure=structure, parents=parents,
                                name="scf_u_eq_{}{}".format(sign, abs(round(v,6))),
                                vasp_input_set=vis_ldau,
-                               additional_files=["WAVECAR"],
+                               additional_files=additional_files.copy(),
                                prev_calc_dir=ground_state_dir,
                                vasp_cmd=VASP_CMD, db_file=DB_FILE)
         fws.append(fw)
