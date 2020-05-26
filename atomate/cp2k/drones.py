@@ -370,9 +370,9 @@ class Cp2kDrone(AbstractDrone):
             cube = Cube(out.filenames['v_hartree'][-1])
             # TODO: Store in reciprocal or not?
             d['v_hartree'] = jsanitize(
-                np.fft.ifft(
-                   cube.planar_average()
-                )
+                [
+                    np.fft.ifft(p) for p in cube.planar_average()
+                ]
             )
             d['v_hartree_grid'] = cube.planar_grid()
         return d

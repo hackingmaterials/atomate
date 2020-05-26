@@ -104,9 +104,9 @@ def optimize_structure_sc_scale_by_length(inp_struct, minimum_distance):
         raise ValueError("Cannot assign a minimum distance of 0!")
     elif minimum_distance < 0:
         minimum_distance = -minimum_distance
-        return max(np.ceil(minimum_distance/np.linalg.norm(inp_struct.lattice.matrix, axis=0)))
+        return np.ceil(minimum_distance/np.linalg.norm(inp_struct.lattice.matrix, axis=0)).astype(int)
     else:
-        return np.ceil(minimum_distance/np.linalg.norm(inp_struct.lattice.matrix, axis=0))
+        return np.ceil(minimum_distance/np.linalg.norm(inp_struct.lattice.matrix, axis=0)).astype(int)
 
 """
 from pymatgen.core.structure import Structure
