@@ -799,7 +799,7 @@ class LinearResponseUToDb(FiretaskBase):
             docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid,
                                               "task_label": {"$regex": task_label_regex}}))
 
-            v, nd = [], []
+            v, nd, orders = [], [], []
             for d in docs:
                 nd.append(float(d['calcs_reversed'][0]['output']['outcar']['charge'][0]['d'])) # 'd'
                 if key != keys[0]:
@@ -811,12 +811,16 @@ class LinearResponseUToDb(FiretaskBase):
                 analyzer_output = CollinearMagneticStructureAnalyzer(struct_final, threshold=0.61)
                 magnet_order = analyzer_output.ordering.value
 
+                orders.append(magnet_order)
+
                 if key == keys[0]:
-                    magnet_order_gs = magnet_order.copy()
+                    magnet_order_gs = magnet_order
 
-            response_dict.update({key: {'V': v, 'Nd': nd, 'magnetic order': magnet_order.copy()}})
+            response_dict.update({key: {'V': v.copy(), 'Nd': nd.copy(),
+                                        'magnetic order': orders.copy()}})
+            print(response_dict)
 
-        for k in ['V', 'Nd']:
+        for k in ['V', 'Nd', 'magnetic order']:
             for i in [1, 2]:
                 response_dict[keys[i]][k].extend(response_dict[keys[0]][k])
 
@@ -831,9 +835,10 @@ class LinearResponseUToDb(FiretaskBase):
                 orders = response_dict[key]['magnetic order']
 
                 if (len(v) == len(nd)):
-                    v, nd, orders = (list(t) for t in zip(*sorted(zip(v, nd, orders))))
+                    v, nd, orders = (list(t) for t in zip(*sorted(zip(v.copy(), nd.copy(), orders.copy()))))
 
-            response_dict.update({key: {'V': v, 'Nd': nd, 'magnetic order': orders}})
+            response_dict.update({key: {'V': v.copy(), 'Nd': nd.copy(),
+                                        'magnetic order': orders.copy()}})
 
         if response_dict[keys[1]]['Nd'] and response_dict[keys[2]]['Nd']:
 
@@ -841,17 +846,17 @@ class LinearResponseUToDb(FiretaskBase):
             for v, nd, order in zip(response_dict[keys[1]]['V'],
                                     response_dict[keys[1]]['Nd'],
                                     response_dict[keys[1]]['magnetic order']):
-                if order == order_gs:
-                    V_nscf.append(v)
-                    Nd_nscf.append(nd)
+                # if order == magnet_order_gs:
+                V_nscf.append(v)
+                Nd_nscf.append(nd)
 
             V_scf, Nd_scf = [], []
             for v, nd, order in zip(response_dict[keys[2]]['V'],
                                     response_dict[keys[2]]['Nd'],
                                     response_dict[keys[2]]['magnetic order']):
-                if order == order_gs:
-                    V_scf.append(v)
-                    Nd_scf.append(nd)
+                # if order == magnet_order_gs:
+                V_scf.append(v)
+                Nd_scf.append(nd)
 
             chi_nscf = np.polyfit(V_nscf, Nd_nscf, 1)[0]
             chi_scf  = np.polyfit(V_scf,  Nd_scf,  1)[0]
