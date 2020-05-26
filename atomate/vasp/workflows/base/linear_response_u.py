@@ -49,6 +49,7 @@ def get_wf_linear_response_u(structure,
                              site_indices_u=None, species_u=None,
                              use_default_uvals=False,
                              ground_state_ldau=True, ground_state_dir=None,
+                             parallel_scheme=0,
                              c=None, vis=None):
     """
     Compute Hubbard U on-site interaction values using LDA+U linear response method 
@@ -201,9 +202,6 @@ def get_wf_linear_response_u(structure,
 
         sign = 'neg' if str(v)[0] == '-' else 'pos'
 
-        # Update applied potential to U and J
-        uis_ldau.update({"ISTART":1})
-
         # Update perturbation potential for U and J
         for k in ["LDAUU", "LDAUJ"]:
             # for LDAUU and LDAUJ
@@ -211,7 +209,7 @@ def get_wf_linear_response_u(structure,
             uis_ldau.update({k:val_dict.copy()})
 
         # Non-SCF runs
-        uis_ldau.update({"ICHARG":11})
+        uis_ldau.update({"ISTART":1, "ICHARG":11})
 
         vis_params = {"user_incar_settings": uis_ldau.copy()}
         vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
@@ -221,10 +219,12 @@ def get_wf_linear_response_u(structure,
         else:
             parents=fws[0]
 
+        additional_files = ["WAVECAR","CHGCAR"]
+
         fw = LinearResponseUFW(structure=structure, parents=parents,
                                name="nscf_u_eq_{}{}".format(sign, abs(round(v,6))),
                                vasp_input_set=vis_ldau,
-                               additional_files=["WAVECAR","CHGCAR"],
+                               additional_files=additional_files.copy(),
                                prev_calc_dir=ground_state_dir,
                                vasp_cmd=VASP_CMD, db_file=DB_FILE)
 
@@ -233,6 +233,11 @@ def get_wf_linear_response_u(structure,
         # SCF runs
         uis_ldau.update({"ICHARG":0})
 
+        if parallel_scheme == 0:
+            uis_ldau.update({"ISTART":0})
+        else:
+            uis_ldau.update({"ISTART":1})
+
         vis_params = {"user_incar_settings": uis_ldau.copy()}
         vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
 
@@ -240,13 +245,22 @@ def get_wf_linear_response_u(structure,
         if ground_state_dir:
             parents = []
         else:
-            parents=fws[0]
-            # parents=fws[-1]
+            if parallel_scheme == 0:
+                parents = []
+            else if parallel_scheme == 1:
+                parents=fws[0]
+            else:
+                parents=fws[-1]
 
+        if parallel_scheme == 0:
+            additional_files = []
+        else:
+            additional_files = ["WAVECAR"]
+            
         fw = LinearResponseUFW(structure=structure, parents=parents,
                                name="scf_u_eq_{}{}".format(sign, abs(round(v,6))),
                                vasp_input_set=vis_ldau,
-                               additional_files=["WAVECAR"],
+                               additional_files=additional_files.copy(),
                                prev_calc_dir=ground_state_dir,
                                vasp_cmd=VASP_CMD, db_file=DB_FILE)
         fws.append(fw)
@@ -289,42 +303,15 @@ class PoscarPerturb(Poscar):
             self,
             structure: Structure,
             num_perturb: int = 1,
-            comment: str = None,
-            selective_dynamics=None,
-            true_names: bool = True,
-            velocities=None,
-            predictor_corrector=None,
-            predictor_corrector_preamble=None,
-            sort_structure: bool = False,
+            **kwargs
     ):
         """
         FILL
         """
-        # super().__init__(structure=Structure)
+        super().__init__(structure, sort_structure=False, **kwargs)
 
+        self.structure = structure
         self.num_perturb = num_perturb
-
-        if structure.is_ordered:
-            site_properties = {}
-            if selective_dynamics:
-                site_properties["selective_dynamics"] = selective_dynamics
-            if velocities:
-                site_properties["velocities"] = velocities
-            if predictor_corrector:
-                site_properties["predictor_corrector"] = predictor_corrector
-            structure = Structure.from_sites(structure)
-            self.structure = structure.copy(site_properties=site_properties)
-            if sort_structure:
-                self.structure = self.structure.get_sorted_structure()
-            self.true_names = true_names
-            self.comment = structure.formula if comment is None else comment
-            self.predictor_corrector_preamble = predictor_corrector_preamble
-        else:
-            raise ValueError(
-                "Structure with partial occupancies cannot be " "converted into POSCAR!"
-            )
-
-        self.temperature = -1
 
     @property
     def site_symbols(self):
@@ -396,67 +383,11 @@ class LinearResponseUSet(MPStaticSet):
         FILL
         """
         parent_incar = super().incar
-        settings = dict(self._config_dict["INCAR"])
-
-        structure = self.structure
-
         incar = Incar(parent_incar)
 
-        settings.pop("LDAUU", None)
-        settings.pop("LDAUJ", None)
-        settings.pop("LDAUL", None)
+        incar.update({"ISYM": -1, "LWAVE": True})
 
-        # Note that DFPT calculations MUST unset NSW. NSW = 0 will fail
-        # to output ionic.
-
-        settings.pop("NSW", None)
-        incar.pop("NSW", None)
-
-        incar.update({"ISYM": -1, "IBRION": -1, "LCHARG": True, "LWAVE": True})
-        # "LORBIT": 11, "LVHAR": True, "LAECHG": True
-
-        for k, v in settings.items():
-            if k == "MAGMOM":
-                mag = []
-                for site in structure:
-                    if hasattr(site, 'magmom'):
-                        mag.append(site.magmom)
-                    elif hasattr(site.specie, 'spin'):
-                        mag.append(site.specie.spin)
-                    elif str(site.specie) in v:
-                        mag.append(v.get(str(site.specie)))
-                    else:
-                        mag.append(v.get(site.specie.symbol, 0.6))
-                incar[k] = mag
-            elif k.startswith("EDIFF") and k != "EDIFFG":
-                if "EDIFF" not in settings and k == "EDIFF_PER_ATOM":
-                    incar["EDIFF"] = float(v) * structure.num_sites
-                else:
-                    incar["EDIFF"] = float(settings["EDIFF"])
-            else:
-                incar[k] = v
-
-        for k in ["MAGMOM", "NUPDOWN"] + list(self.kwargs.get(
-                "user_incar_settings", {}).keys()):
-            # For these parameters as well as user specified settings, override
-            # the incar settings.
-            if parent_incar.get(k, None) is not None:
-                incar[k] = parent_incar[k]
-            else:
-                incar.pop(k, None)
-
-        if incar.get('LDAU'):
-            # ensure to have LMAXMIX for GGA+U static run
-            if "LMAXMIX" not in incar:
-                incar.update({"LMAXMIX": parent_incar["LMAXMIX"]})
-
-        # Compare ediff between previous and staticinputset values,
-        # choose the tighter ediff
-        incar["EDIFF"] = min(incar.get("EDIFF", 1), parent_incar["EDIFF"])
-        
         if self.kwargs.get("user_incar_settings")["LDAUU"]:
-
-            # Need to add another parameter for perturbed atom
 
             incar.update({"LDAUL": self.kwargs.get("user_incar_settings")["LDAUL"]})
             incar.update({"LDAUU": self.kwargs.get("user_incar_settings")["LDAUU"]})
@@ -486,19 +417,8 @@ class LinearResponseUSet(MPStaticSet):
         """
         FILL
         """
-        self._config_dict["KPOINTS"]["reciprocal_density"] = self.reciprocal_density
         kpoints = super().kpoints
 
-        # Prefer to use k-point scheme from previous run
-        # except for when lepsilon = True is specified
-        if self.prev_kpoints and self.prev_kpoints.style != kpoints.style:
-            if (self.prev_kpoints.style == Kpoints.supported_modes.Monkhorst) \
-               and (not self.lepsilon):
-                k_div = [kp + 1 if kp % 2 == 1 else kp
-                         for kp in kpoints.kpts[0]]
-                kpoints = Kpoints.monkhorst_automatic(k_div)
-            else:
-                kpoints = Kpoints.gamma_automatic(kpoints.kpts[0])
         return kpoints
 
 class LinearResponseUFW(Firework):
