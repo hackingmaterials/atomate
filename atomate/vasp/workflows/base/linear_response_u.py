@@ -145,7 +145,9 @@ def get_wf_linear_response_u(structure,
         val_dict = {}
         if (k == "LDAUL"):
             # for LDAUL
-            val_dict.update({"perturb":2})             # FIXME: shouldn't hard code LDAUL
+            # FIX ME: shouldn't hard code LDAUL = 2
+            for i in range(num_perturb):
+                val_dict.update({"perturb"+str(i):2})
             for s in vis_ldau.poscar.site_symbols:
                 l = -1
                 if use_default_uvals:
@@ -156,7 +158,8 @@ def get_wf_linear_response_u(structure,
             uis_ldau.update({k:val_dict.copy()})
         else:
             # for LDAUU and LDAUJ
-            val_dict.update({"perturb":0})
+            for i in range(num_perturb):
+                val_dict.update({"perturb"+str(i):0})
             for s in vis_ldau.poscar.site_symbols:
                 v = 0
                 if use_default_uvals:
@@ -189,16 +192,23 @@ def get_wf_linear_response_u(structure,
             "Different # of parallel & total evaluations not currently implemented."
         )
 
-    applied_potential_values = np.linspace(applied_potential_range[0],
-                                           applied_potential_range[1], num_parallel_evals)
-    applied_potential_values = np.around(applied_potential_values, decimals=9)
+    applied_potential_value_list = []
+    for counter_perturb in range(num_perturb):
+        applied_potential_values = np.linspace(applied_potential_range[0],
+                                               applied_potential_range[1], num_parallel_evals)
+        applied_potential_values = np.around(applied_potential_values, decimals=9)
 
-    if 0.0 in applied_potential_values:
-        applied_potential_values = list(applied_potential_values)
-        applied_potential_values.pop(applied_potential_values.index(0.0))
-        applied_potential_values = np.array(applied_potential_values)
+        if 0.0 in applied_potential_values:
+            applied_potential_values = list(applied_potential_values)
+            applied_potential_values.pop(applied_potential_values.index(0.0))
+            applied_potential_values = np.array(applied_potential_values)
+
+        applied_potential_value_list.append(applied_potential_values.copy())
 
     for counter_perturb in range(num_perturb):
+
+        applied_potential_values = applied_potential_value_list[counter_perturb]
+
         for v in applied_potential_values:
 
             sign = 'neg' if str(v)[0] == '-' else 'pos'
@@ -206,7 +216,11 @@ def get_wf_linear_response_u(structure,
             # Update perturbation potential for U and J
             for k in ["LDAUU", "LDAUJ"]:
                 # for LDAUU and LDAUJ
-                val_dict.update({"perturb":v})
+                for i in range(num_perturb):
+                    if i == counter_perturb:
+                        val_dict.update({"perturb"+str(i):v})
+                    else:
+                        val_dict.update({"perturb"+str(i):0})
                 uis_ldau.update({k:val_dict.copy()})
 
             # Non-SCF runs
@@ -223,7 +237,8 @@ def get_wf_linear_response_u(structure,
             additional_files = ["WAVECAR","CHGCAR"]
 
             fw = LinearResponseUFW(structure=structure, parents=parents,
-                                   name="nscf_u_eq_{}{}".format(sign, abs(round(v,6))),
+                                   name="nscf_site{}_v_{}{}".format(counter_perturb,
+                                                                    sign, abs(round(v,6))),
                                    vasp_input_set=vis_ldau,
                                    additional_files=additional_files.copy(),
                                    prev_calc_dir=ground_state_dir,
@@ -248,7 +263,7 @@ def get_wf_linear_response_u(structure,
             else:
                 if parallel_scheme == 0:
                     parents = []
-                else if parallel_scheme == 1:
+                elif parallel_scheme == 1:
                     parents=fws[0]
                 else:
                     parents=fws[-1]
@@ -259,7 +274,8 @@ def get_wf_linear_response_u(structure,
                 additional_files = ["WAVECAR"]
             
             fw = LinearResponseUFW(structure=structure, parents=parents,
-                                   name="scf_u_eq_{}{}".format(sign, abs(round(v,6))),
+                                   name="scf_site{}_v_{}{}".format(counter_perturb,
+                                                                   sign, abs(round(v,6))),
                                    vasp_input_set=vis_ldau,
                                    additional_files=additional_files.copy(),
                                    prev_calc_dir=ground_state_dir,
@@ -268,14 +284,14 @@ def get_wf_linear_response_u(structure,
 
     wf = Workflow(fws)
 
-    fw_analysis = Firework(
-        LinearResponseUToDb(
-            db_file=DB_FILE, wf_uuid=uuid
-        ),
-        name="LinearResponseUToDb",
-    )
+    # fw_analysis = Firework(
+    #     LinearResponseUToDb(
+    #         db_file=DB_FILE, wf_uuid=uuid
+    #     ),
+    #     name="LinearResponseUToDb",
+    # )
 
-    wf.append_wf(Workflow.from_Firework(fw_analysis), wf.leaf_fw_ids)
+    # wf.append_wf(Workflow.from_Firework(fw_analysis), wf.leaf_fw_ids)
 
     wf = add_common_powerups(wf, c)
 
