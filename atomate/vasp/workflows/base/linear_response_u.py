@@ -198,72 +198,73 @@ def get_wf_linear_response_u(structure,
         applied_potential_values.pop(applied_potential_values.index(0.0))
         applied_potential_values = np.array(applied_potential_values)
 
-    for v in applied_potential_values:
+    for counter_perturb in range(num_perturb):
+        for v in applied_potential_values:
 
-        sign = 'neg' if str(v)[0] == '-' else 'pos'
+            sign = 'neg' if str(v)[0] == '-' else 'pos'
 
-        # Update perturbation potential for U and J
-        for k in ["LDAUU", "LDAUJ"]:
-            # for LDAUU and LDAUJ
-            val_dict.update({"perturb":v})
-            uis_ldau.update({k:val_dict.copy()})
+            # Update perturbation potential for U and J
+            for k in ["LDAUU", "LDAUJ"]:
+                # for LDAUU and LDAUJ
+                val_dict.update({"perturb":v})
+                uis_ldau.update({k:val_dict.copy()})
 
-        # Non-SCF runs
-        uis_ldau.update({"ISTART":1, "ICHARG":11})
+            # Non-SCF runs
+            uis_ldau.update({"ISTART":1, "ICHARG":11})
 
-        vis_params = {"user_incar_settings": uis_ldau.copy()}
-        vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
+            vis_params = {"user_incar_settings": uis_ldau.copy()}
+            vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
 
-        if ground_state_dir:
-            parents = []
-        else:
-            parents=fws[0]
-
-        additional_files = ["WAVECAR","CHGCAR"]
-
-        fw = LinearResponseUFW(structure=structure, parents=parents,
-                               name="nscf_u_eq_{}{}".format(sign, abs(round(v,6))),
-                               vasp_input_set=vis_ldau,
-                               additional_files=additional_files.copy(),
-                               prev_calc_dir=ground_state_dir,
-                               vasp_cmd=VASP_CMD, db_file=DB_FILE)
-
-        fws.append(fw)
-
-        # SCF runs
-        uis_ldau.update({"ICHARG":0})
-
-        if parallel_scheme == 0:
-            uis_ldau.update({"ISTART":0})
-        else:
-            uis_ldau.update({"ISTART":1})
-
-        vis_params = {"user_incar_settings": uis_ldau.copy()}
-        vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
-
-        # NOTE: More efficient to reuse WAVECAR or remove dependency of SCF on NSCF?
-        if ground_state_dir:
-            parents = []
-        else:
-            if parallel_scheme == 0:
+            if ground_state_dir:
                 parents = []
-            else if parallel_scheme == 1:
-                parents=fws[0]
             else:
-                parents=fws[-1]
+                parents=fws[0]
 
-        if parallel_scheme == 0:
-            additional_files = []
-        else:
-            additional_files = ["WAVECAR"]
+            additional_files = ["WAVECAR","CHGCAR"]
+
+            fw = LinearResponseUFW(structure=structure, parents=parents,
+                                   name="nscf_u_eq_{}{}".format(sign, abs(round(v,6))),
+                                   vasp_input_set=vis_ldau,
+                                   additional_files=additional_files.copy(),
+                                   prev_calc_dir=ground_state_dir,
+                                   vasp_cmd=VASP_CMD, db_file=DB_FILE)
+
+            fws.append(fw)
+
+            # SCF runs
+            uis_ldau.update({"ICHARG":0})
+
+            if parallel_scheme == 0:
+                uis_ldau.update({"ISTART":0})
+            else:
+                uis_ldau.update({"ISTART":1})
+
+            vis_params = {"user_incar_settings": uis_ldau.copy()}
+            vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
+
+            # NOTE: More efficient to reuse WAVECAR or remove dependency of SCF on NSCF?
+            if ground_state_dir:
+                parents = []
+            else:
+                if parallel_scheme == 0:
+                    parents = []
+                else if parallel_scheme == 1:
+                    parents=fws[0]
+                else:
+                    parents=fws[-1]
+
+            if parallel_scheme == 0:
+                additional_files = []
+            else:
+                additional_files = ["WAVECAR"]
             
-        fw = LinearResponseUFW(structure=structure, parents=parents,
-                               name="scf_u_eq_{}{}".format(sign, abs(round(v,6))),
-                               vasp_input_set=vis_ldau,
-                               additional_files=additional_files.copy(),
-                               prev_calc_dir=ground_state_dir,
-                               vasp_cmd=VASP_CMD, db_file=DB_FILE)
-        fws.append(fw)
+            fw = LinearResponseUFW(structure=structure, parents=parents,
+                                   name="scf_u_eq_{}{}".format(sign, abs(round(v,6))),
+                                   vasp_input_set=vis_ldau,
+                                   additional_files=additional_files.copy(),
+                                   prev_calc_dir=ground_state_dir,
+                                   vasp_cmd=VASP_CMD, db_file=DB_FILE)
+            fws.append(fw)
 
     wf = Workflow(fws)
 
