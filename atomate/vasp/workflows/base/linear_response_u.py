@@ -78,7 +78,7 @@ def get_wf_linear_response_u(structure,
             foundSpecie = False
             for s in range(len(structure)):
                 site = structure[s]
-                if (site.specie == Element(specie_u)) and (s not in site_indices_u):
+                if (Element(str(site.specie)) == Element(specie_u)) and (s not in site_indices_u):
                     foundSpecie = True
                     break
             if not foundSpecie:
