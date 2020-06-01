@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Customizing workflows &#8212; atomate 0.9.4 documentation</title>
+    <title>Customizing workflows &#8212; atomate 0.9.5 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -35,7 +35,7 @@
         <li class="right" >
           <a href="creating_workflows.html" title="Creating Workflows"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -104,9 +104,9 @@
 <span class="kn">from</span> <span class="nn">pymatgen.io.vasp.sets</span> <span class="kn">import</span> <span class="n">MPRelaxSet</span>
 <span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
 
-<span class="k">def</span> <span class="nf">get_optimize_wf</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;optimization wf&quot;</span><span class="p">,</span> <span class="n">vasp_input_set</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                    <span class="n">vasp_cmd</span><span class="o">=</span><span class="s2">&quot;vasp&quot;</span><span class="p">,</span> <span class="n">db_file</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user_kpoints_settings</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                    <span class="n">tag</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">get_optimize_wf</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;optimization wf&quot;</span><span class="p">,</span> <span class="n">vasp_input_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">vasp_cmd</span><span class="o">=</span><span class="s2">&quot;vasp&quot;</span><span class="p">,</span> <span class="n">db_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">user_kpoints_settings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">tag</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a structure optimization workflow.</span>
 
@@ -133,9 +133,9 @@
 
     <span class="c1"># Structure optimization firework</span>
     <span class="n">fws</span> <span class="o">=</span> <span class="p">[</span><span class="n">OptimizeFW</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">vasp_input_set</span><span class="o">=</span><span class="n">vis_relax</span><span class="p">,</span> <span class="n">vasp_cmd</span><span class="o">=</span><span class="n">vasp_cmd</span><span class="p">,</span>
-                      <span class="n">db_file</span><span class="o">=</span><span class="n">db_file</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;{} structure optimization&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tag</span><span class="p">))]</span>
+                      <span class="n">db_file</span><span class="o">=</span><span class="n">db_file</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> structure optimization&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tag</span><span class="p">))]</span>
 
-    <span class="n">wfname</span> <span class="o">=</span> <span class="s2">&quot;{}:{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">composition</span><span class="o">.</span><span class="n">reduced_formula</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="n">wfname</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">composition</span><span class="o">.</span><span class="n">reduced_formula</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">Workflow</span><span class="p">(</span><span class="n">fws</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">wfname</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
 
@@ -165,7 +165,7 @@
 <span class="n">struct</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;POSCAR&#39;</span><span class="p">)</span>
 
 <span class="c1"># create a custom input set</span>
-<span class="n">my_custom_input_set</span> <span class="o">=</span> <span class="n">MPRelaxSet</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">force_gamma</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;grid_density&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">}</span> <span class="p">)</span>
+<span class="n">my_custom_input_set</span> <span class="o">=</span> <span class="n">MPRelaxSet</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">force_gamma</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;grid_density&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">}</span> <span class="p">)</span>
 
 <span class="c1"># create the workflow</span>
 <span class="n">my_wf</span> <span class="o">=</span> <span class="n">get_optimize_wf</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">vasp_input_set</span><span class="o">=</span><span class="n">my_custom_input_set</span><span class="p">)</span>
@@ -198,7 +198,7 @@
 <span class="c1"># create an instance of the custom input set</span>
 <span class="n">my_custom_input_set</span> <span class="o">=</span> <span class="n">MyInputSet</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">),</span> <span class="n">shift</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="c1"># show that the set applied</span>
-<span class="k">print</span><span class="p">(</span><span class="n">my_custom_input_set</span><span class="o">.</span><span class="n">kpoints</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_custom_input_set</span><span class="o">.</span><span class="n">kpoints</span><span class="p">)</span>
 
 <span class="c1"># create the workflow</span>
 <span class="n">my_wf</span> <span class="o">=</span> <span class="n">get_optimize_wf</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">vasp_input_set</span><span class="o">=</span><span class="n">my_custom_input_set</span><span class="p">)</span>
@@ -220,10 +220,10 @@
 
 <span class="c1"># create a custom input set</span>
 <span class="n">my_custom_input_set</span> <span class="o">=</span> <span class="n">MPRelaxSet</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s1">&#39;Config dict example: {}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">my_custom_input_set</span><span class="o">.</span><span class="n">config_dict</span><span class="p">))</span>
-<span class="k">print</span><span class="p">(</span><span class="s1">&#39;Before change: {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">my_custom_input_set</span><span class="o">.</span><span class="n">config_dict</span><span class="p">[</span><span class="s1">&#39;POTCAR&#39;</span><span class="p">][</span><span class="s1">&#39;Mg&#39;</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Config dict example: </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">my_custom_input_set</span><span class="o">.</span><span class="n">config_dict</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Before change: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">my_custom_input_set</span><span class="o">.</span><span class="n">config_dict</span><span class="p">[</span><span class="s1">&#39;POTCAR&#39;</span><span class="p">][</span><span class="s1">&#39;Mg&#39;</span><span class="p">]))</span>
 <span class="n">my_custom_input_set</span><span class="o">.</span><span class="n">config_dict</span><span class="p">[</span><span class="s1">&#39;POTCAR&#39;</span><span class="p">][</span><span class="s1">&#39;Mg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Mg&#39;</span>
-<span class="k">print</span><span class="p">(</span><span class="s1">&#39;After change: {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">my_custom_input_set</span><span class="o">.</span><span class="n">config_dict</span><span class="p">[</span><span class="s1">&#39;POTCAR&#39;</span><span class="p">][</span><span class="s1">&#39;Mg&#39;</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;After change: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">my_custom_input_set</span><span class="o">.</span><span class="n">config_dict</span><span class="p">[</span><span class="s1">&#39;POTCAR&#39;</span><span class="p">][</span><span class="s1">&#39;Mg&#39;</span><span class="p">]))</span>
 
 <span class="c1"># create the workflow</span>
 <span class="n">my_wf</span> <span class="o">=</span> <span class="n">get_optimize_wf</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">vasp_input_set</span><span class="o">=</span><span class="n">my_custom_input_set</span><span class="p">)</span>
@@ -303,7 +303,7 @@
         <li class="right" >
           <a href="creating_workflows.html" title="Creating Workflows"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
       </ul>
     </div>
 
