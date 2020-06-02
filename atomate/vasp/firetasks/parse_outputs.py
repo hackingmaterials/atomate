@@ -790,7 +790,7 @@ class LinearResponseUToDb(FiretaskBase):
 
         keys = ['Ground state', 'NSCF', 'SCF']
         regexps = ['initial', '^nscf', '^scf']
-        response_dict = {}
+        response_dict = {'Ground state':{}, 'NSCF':{}, 'SCF':{}}
 
         magnet_order_gs = None
 
@@ -799,31 +799,36 @@ class LinearResponseUToDb(FiretaskBase):
             docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid,
                                               "task_label": {"$regex": task_label_regex}}))
 
-            # FIXME: eventually simply add tag to firework for number of perturbed sites
-            site_indices = [int(doc["task_label"].split("site")[-1].split("_")[0]) for doc in docs]
-            site_indices = list(tuple(site_indices))
-            num_perturb_sites = len(site_indices)
+            # # FIXME: eventually simply add tag to firework for number of perturbed sites
+            # site_indices = [doc["task_label"].split("site")[-1].split("_")[0] for doc in docs]
+            # site_indices = list(tuple([int(index) if (regexps[0] not in index) else 0 for index in site_indices]))
+            # num_perturb_sites = len(site_indices)
+            # print("# of perturbed sites", num_perturb_sites)
 
+            #HACK
+            num_perturb_sites = 2
+            
             for i in range(num_perturb_sites):
-                response_dict.update({'V_site'+str(i): [], 'N_site'+str(i): []})
-            response_dict.update({'magnetic order': []})
-
+                response_dict[key].update({'V_site'+str(i): [], 'N_site'+str(i): []})
+            response_dict[key].update({'magnetic order': []})
+            
             for d in docs:
                 for i in range(num_perturb_sites):
-                    response_dict['N_site'+str(i)].append(float(d['calcs_reversed'][0]['output']['outcar']['charge'][i]['d']))
+                    # print(float(d['calcs_reversed'][0]['output']['outcar']['charge'][i]['d']))
+                    try:
+                        response_dict[key]['N_site'+str(i)].append(float(d['calcs_reversed'][0]['output']['outcar']['charge'][i]['d']))
 
-                for i in range(num_perturb_sites):
-                    if key != keys[0]:
-                        response_dict['V_site'+str(i)].append(float(d['calcs_reversed'][0]['input']['incar']['LDAUU'][i]))
-                    elif key == keys[0]:
-                        response_dict['V_site'+str(i)].append(0.0)
+                        if key != keys[0]:
+                            response_dict[key]['V_site'+str(i)].append(float(d['calcs_reversed'][0]['input']['incar']['LDAUU'][i]))
+                        elif key == keys[0]:
+                            response_dict[key]['V_site'+str(i)].append(0.0)
+                    except Exception as exc:
+                        print('site: '+str(i)+' miss',  exc)
 
                 struct_final = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
                 analyzer_output = CollinearMagneticStructureAnalyzer(struct_final, threshold=0.61)
                 magnet_order = analyzer_output.ordering.value
-                response_dict['magnetic order'].append(magnet_order.copy())
-
-                orders.append(magnet_order)
+                response_dict[key]['magnetic order'].append(magnet_order)
 
                 if key == keys[0]:
                     magnet_order_gs = magnet_order
@@ -848,26 +853,28 @@ class LinearResponseUToDb(FiretaskBase):
 
         #     response_dict.update({key: {'V': vs, 'N': ns, 'magnetic order': orders}})
 
+        print(response_dict)
+
         Chi_nscf = np.zeros([num_perturb_sites, num_perturb_sites])
         Chi_scf = np.zeros([num_perturb_sites, num_perturb_sites])
 
         for i in range(num_perturb_sites):
             for j in range(num_perturb_sites):
-                if response_dict[keys[1]]['N_site'+str(i)] and
-                   response_dict[keys[2]]['N_site'+str(i)] and
-                   response_dict[keys[1]]['V_site'+str(j)] and
+                if response_dict[keys[1]]['N_site'+str(i)] and \
+                   response_dict[keys[2]]['N_site'+str(i)] and \
+                   response_dict[keys[1]]['V_site'+str(j)] and \
                    response_dict[keys[2]]['V_site'+str(j)]:
 
                     # gather NSCF response data
                     V_nscf, N_nscf = [], []
                     for l in range(len(response_dict[keys[1]]['N_site'+str(i)])):
                         v = response_dict[keys[1]]['V_site'+str(j)][l]
-                        n = response_dict[keys[1]]['N_site'+str(j)][l]
-                        order = response_dict[keys[1]]['magnetic order'][l]
+                        n = response_dict[keys[1]]['N_site'+str(i)][l]
+                        # order = response_dict[keys[1]]['magnetic order'][l]
 
                         # if order == order_gs:
                         isolated_response = True
-                        if v = 0.0:
+                        if v == 0.0:
                             for k in range(num_perturb_sites):
                                 if (k != j) and (response_dict[keys[1]]['V_site'+str(k)][l] != 0.0):
                                     isolated_response = False
@@ -881,12 +888,12 @@ class LinearResponseUToDb(FiretaskBase):
                     V_scf, N_scf = [], []
                     for l in range(len(response_dict[keys[2]]['N_site'+str(i)])):
                         v = response_dict[keys[2]]['V_site'+str(j)][l]
-                        n = response_dict[keys[2]]['N_site'+str(j)][l]
-                        order = response_dict[keys[2]]['magnetic order'][l]
+                        n = response_dict[keys[2]]['N_site'+str(i)][l]
+                        # order = response_dict[keys[2]]['magnetic order'][l]
 
                         # if order == order_gs:
                         isolated_response = True
-                        if v = 0.0:
+                        if v == 0.0:
                             for k in range(num_perturb_sites):
                                 if (k != j) and (response_dict[keys[2]]['V_site'+str(k)][l] != 0.0):
                                     isolated_response = False
@@ -896,8 +903,12 @@ class LinearResponseUToDb(FiretaskBase):
                             V_scf.append(v)
                             N_scf.append(n)
 
-                    chi_nscf = np.polyfit(V_nscf, N_nscf, 1)[0]
-                    chi_scf  = np.polyfit(V_scf,  N_scf,  1)[0]
+                    try:
+                        chi_nscf = np.polyfit(V_nscf, N_nscf, 1)[0]
+                        chi_scf  = np.polyfit(V_scf,  N_scf,  1)[0]
+                    except Exception as exc:
+                        chi_nscf, chi_scf = float('nan'), float('nan')
+                        print('slope fitting fail',  exc)
 
                 else:
                     chi_nscf, chi_scf = float('nan'), float('nan')
@@ -905,10 +916,17 @@ class LinearResponseUToDb(FiretaskBase):
                 Chi_nscf[i, j] = chi_nscf
                 Chi_scf[i, j] = chi_scf
 
-        U = np.linalg.inv(Chi_scf) - np.linalg.inv(Chi_nscf)
-                    
+        print(" chi SCF = \n", Chi_scf, "\n chi NSCF = \n", Chi_nscf)
+        try:
+            U = np.linalg.inv(Chi_scf) - np.linalg.inv(Chi_nscf)
+        except Exception as exc:
+            U = [[float('nan') for i in range(num_perturb_sites)] for j in range(num_perturb_sites)]
+            print('U matrix compute fail',  exc)
+
+        Chi_scf, Chi_nscf, U = [list(a) for a in Chi_scf], [list(a) for a in Chi_nscf], [list(a) for a in U]
+
         docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid,
-                                          "task_label": {"$regex": regexps[1]}}))
+                                          "task_label": {"$regex": regexps[2]}}))
 
         structure = None
         if docs:

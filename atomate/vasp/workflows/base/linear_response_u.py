@@ -141,33 +141,31 @@ def get_wf_linear_response_u(structure,
     vis_params = {"user_incar_settings": uis_ldau.copy()}
     vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
 
+    val_dict = {"LDAUL": {}, "LDAUU": {}, "LDAUJ": {}}
     for k in ["LDAUL", "LDAUU", "LDAUJ"]:
-        val_dict = {}
         if (k == "LDAUL"):
             # for LDAUL
-            # FIX ME: shouldn't hard code LDAUL = 2
             for i in range(num_perturb):
-                val_dict.update({"perturb"+str(i):2})
+                val_dict[k].update({"perturb"+str(i):-1})
             for s in vis_ldau.poscar.site_symbols:
                 l = -1
                 if use_default_uvals:
                     if s in default_uvals.keys():
                         if k in default_uvals[s].keys():
                             l = default_uvals[s][k]
-                val_dict.update({s:l})
-            uis_ldau.update({k:val_dict.copy()})
+                val_dict[k].update({s:l})
         else:
             # for LDAUU and LDAUJ
             for i in range(num_perturb):
-                val_dict.update({"perturb"+str(i):0})
+                val_dict[k].update({"perturb"+str(i):0})
             for s in vis_ldau.poscar.site_symbols:
                 v = 0
                 if use_default_uvals:
                     if s in default_uvals.keys():
                         if 'LDAUU' in default_uvals[s].keys():
                             v = default_uvals[s]['LDAUU']
-                val_dict.update({s:v})
-            uis_ldau.update({k:val_dict.copy()})
+                val_dict[k].update({s:v})
+        uis_ldau.update({k:val_dict[k].copy()})
 
     if ground_state_ldau:
         uis_gs = uis_ldau.copy()
@@ -214,14 +212,23 @@ def get_wf_linear_response_u(structure,
             sign = 'neg' if str(v)[0] == '-' else 'pos'
 
             # Update perturbation potential for U and J
-            for k in ["LDAUU", "LDAUJ"]:
-                # for LDAUU and LDAUJ
-                for i in range(num_perturb):
-                    if i == counter_perturb:
-                        val_dict.update({"perturb"+str(i):v})
-                    else:
-                        val_dict.update({"perturb"+str(i):0})
-                uis_ldau.update({k:val_dict.copy()})
+            for k in ["LDAUL", "LDAUU", "LDAUJ"]:
+                if (k == "LDAUL"):
+                    # for LDAUL
+                    # FIX ME: shouldn't hard code LDAUL = 2
+                    for i in range(num_perturb):
+                        if i == counter_perturb:
+                            val_dict[k].update({"perturb"+str(i):2})
+                        else:
+                            val_dict[k].update({"perturb"+str(i):-1})
+                else:
+                    # for LDAUU and LDAUJ
+                    for i in range(num_perturb):
+                        if i == counter_perturb:
+                            val_dict[k].update({"perturb"+str(i):v})
+                        else:
+                            val_dict[k].update({"perturb"+str(i):0})
+                uis_ldau.update({k:val_dict[k].copy()})
 
             # Non-SCF runs
             uis_ldau.update({"ISTART":1, "ICHARG":11})
@@ -402,8 +409,12 @@ class LinearResponseUSet(MPStaticSet):
         parent_incar = super().incar
         incar = Incar(parent_incar)
 
-        incar.update({"ISYM": -1, "LWAVE": True})
-
+        incar.update({"ISYM": 0, "LWAVE": True})
+        incar.pop("NSW", None)
+        incar.update({"ALGO": "Fast", "IBRION": 2})
+        # incar.update({"LNONCOLLINEAR": True, "LORBIT": 11})
+	# incar.update({"I_CONSTRAINED_M": 2, "LAMBDA": 10.0})
+        
         if self.kwargs.get("user_incar_settings")["LDAUU"]:
 
             incar.update({"LDAUL": self.kwargs.get("user_incar_settings")["LDAUL"]})
