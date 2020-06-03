@@ -247,7 +247,7 @@ def get_wf_linear_response_u(structure,
         else:
             if parallel_scheme == 0:
                 parents = []
-            else if parallel_scheme == 1:
+            elif parallel_scheme == 1:
                 parents=fws[0]
             else:
                 parents=fws[-1]
