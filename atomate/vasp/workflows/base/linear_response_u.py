@@ -409,9 +409,11 @@ class LinearResponseUSet(MPStaticSet):
         parent_incar = super().incar
         incar = Incar(parent_incar)
 
-        incar.update({"ISYM": 0, "LWAVE": True})
+        incar.update({"ISYM": -1})
+        incar.update({"ALGO": "Fast"})
         incar.pop("NSW", None)
-        incar.update({"ALGO": "Fast", "IBRION": 2})
+        # incar.update({"ISTART": 1, "LWAVE": False, "IBRION": 2})
+
         # incar.update({"LNONCOLLINEAR": True, "LORBIT": 11})
 	# incar.update({"I_CONSTRAINED_M": 2, "LAMBDA": 10.0})
         
