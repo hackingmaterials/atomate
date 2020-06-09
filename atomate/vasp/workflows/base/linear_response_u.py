@@ -56,7 +56,22 @@ def get_wf_linear_response_u(structure,
     proposed by Cococcioni et. al. (DOI: 10.1103/PhysRevB.71.035105).
 
     Args:
-        structure: 
+        structure:
+        applied_potential_range: Bounds of applied potential 
+        num_evals: Number of perturbation evalutaions
+        site_indices_u: List of site indices within 
+    Structure indicating perturbation sites
+        species_u: List of names of species (string) 
+    of sites to perturb; First site of that species 
+    is selected in the structure
+        use_default_uvals: Use the default U values 
+    for non-perturbed sites
+        ground_state_dir: Directory of ground state 
+    (zero applied potential) calculation
+        parallel_scheme: 0 - (default) self-consistent (SCF) 
+    runs use WAVECAR from non-self consistent (NSCF) run
+    at same applied potential; 1 - SCF runs use WAVECAR 
+    from ground-state (V=0) run
         c: Workflow config dict, in the same format
     as in presets/core.py and elsewhere in atomate
         vis: A VaspInputSet to use for the first FW
@@ -72,7 +87,7 @@ def get_wf_linear_response_u(structure,
     # Reorder structure
     if not site_indices_u:
         site_indices_u = []
-    
+        
     if species_u:
         for specie_u in species_u:
             foundSpecie = False
@@ -153,7 +168,7 @@ def get_wf_linear_response_u(structure,
                     if s in default_uvals.keys():
                         if k in default_uvals[s].keys():
                             l = default_uvals[s][k]
-                val_dict[k].update({s:l})
+                            val_dict[k].update({s:l})
         else:
             # for LDAUU and LDAUJ
             for i in range(num_perturb):
@@ -164,8 +179,8 @@ def get_wf_linear_response_u(structure,
                     if s in default_uvals.keys():
                         if 'LDAUU' in default_uvals[s].keys():
                             v = default_uvals[s]['LDAUU']
-                val_dict[k].update({s:v})
-        uis_ldau.update({k:val_dict[k].copy()})
+                            val_dict[k].update({s:v})
+                            uis_ldau.update({k:val_dict[k].copy()})
 
     if ground_state_ldau:
         uis_gs = uis_ldau.copy()
@@ -228,7 +243,7 @@ def get_wf_linear_response_u(structure,
                             val_dict[k].update({"perturb"+str(i):v})
                         else:
                             val_dict[k].update({"perturb"+str(i):0})
-                uis_ldau.update({k:val_dict[k].copy()})
+                            uis_ldau.update({k:val_dict[k].copy()})
 
             # Non-SCF runs
             uis_ldau.update({"ISTART":1, "ICHARG":11})
@@ -254,12 +269,7 @@ def get_wf_linear_response_u(structure,
             fws.append(fw)
 
             # SCF runs
-            uis_ldau.update({"ICHARG":0})
-
-            if parallel_scheme == 0:
-                uis_ldau.update({"ISTART":0})
-            else:
-                uis_ldau.update({"ISTART":1})
+            uis_ldau.update({"ISTART":1, "ICHARG":0})
 
             vis_params = {"user_incar_settings": uis_ldau.copy()}
             vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
@@ -269,16 +279,11 @@ def get_wf_linear_response_u(structure,
                 parents = []
             else:
                 if parallel_scheme == 0:
-                    parents = []
-                elif parallel_scheme == 1:
-                    parents=fws[0]
-                else:
                     parents=fws[-1]
+                else:
+                    parents=fws[0]
 
-            if parallel_scheme == 0:
-                additional_files = []
-            else:
-                additional_files = ["WAVECAR"]
+            additional_files = ["WAVECAR"]
             
             fw = LinearResponseUFW(structure=structure, parents=parents,
                                    name="scf_site{}_v_{}{}".format(counter_perturb,
@@ -291,14 +296,15 @@ def get_wf_linear_response_u(structure,
 
     wf = Workflow(fws)
 
-    # fw_analysis = Firework(
-    #     LinearResponseUToDb(
-    #         db_file=DB_FILE, wf_uuid=uuid
-    #     ),
-    #     name="LinearResponseUToDb",
-    # )
+    fw_analysis = Firework(
+        LinearResponseUToDb(
+            num_perturb=num_perturb,
+            db_file=DB_FILE, wf_uuid=uuid
+        ),
+        name="LinearResponseUToDb",
+    )
 
-    # wf.append_wf(Workflow.from_Firework(fw_analysis), wf.leaf_fw_ids)
+    wf.append_wf(Workflow.from_Firework(fw_analysis), wf.leaf_fw_ids)
 
     wf = add_common_powerups(wf, c)
 
@@ -320,7 +326,7 @@ def get_wf_linear_response_u(structure,
 
 class PoscarPerturb(Poscar):
     """
-    FILL
+    Derived Poscar class that allows the distinction of individual sites in the Structure
     """
 
     def __init__(
@@ -330,7 +336,11 @@ class PoscarPerturb(Poscar):
             **kwargs
     ):
         """
-        FILL
+        Args:
+            structure:
+            num_perturb: Number of sites to perturb;
+        First n sites are indicated as "separate" species
+            **kwargs:
         """
         super().__init__(structure, sort_structure=False, **kwargs)
 
@@ -340,8 +350,7 @@ class PoscarPerturb(Poscar):
     @property
     def site_symbols(self):
         """
-        Sequence of symbols associated with the Poscar. Similar to 6th line in
-        vasp 5+ POSCAR.
+        Sequence of symbols associated with the Poscar
         """
 
         if (self.num_perturb > 0 and self.num_perturb <= len(self.structure)):
@@ -359,8 +368,7 @@ class PoscarPerturb(Poscar):
     @property
     def natoms(self):
         """
-        Sequence of number of sites of each type associated with the Poscar.
-        Similar to 7th line in vasp 5+ POSCAR or the 6th line in vasp 4 POSCAR.
+        Sequence of number of sites of each type associated with the Poscar
         """
 
         if (self.num_perturb > 0 and self.num_perturb <= len(self.structure)):
@@ -379,13 +387,19 @@ class PoscarPerturb(Poscar):
 
 class LinearResponseUSet(MPStaticSet):
     """
-    FILL
+    VASP input set for Linear Response Hubbard U workflow perturbation Fireworks
     """
     def __init__(self, structure, num_perturb, prev_incar=None, prev_kpoints=None,
-                 lepsilon=False, reciprocal_density=100,
-                 small_gap_multiply=None, **kwargs):
+                 reciprocal_density=100, small_gap_multiply=None, **kwargs):
         """
-        FILL
+        Args:
+            structure:
+            num_perturb: Number of sites to perturb
+            prev_incar:
+            prev_kpoints:
+            reciprocal_density:
+            small_gap_multiply:
+            **kwargs:
         """
 
         super().__init__(structure, sort_structure=False, **kwargs)
@@ -398,24 +412,20 @@ class LinearResponseUSet(MPStaticSet):
 
         self.reciprocal_density = reciprocal_density
         self.kwargs = kwargs
-        self.lepsilon = lepsilon
         self.small_gap_multiply = small_gap_multiply
 
     @property
     def incar(self):
         """
-        FILL
+        Custom Incar attribute for LinearResponseUSet
         """
         parent_incar = super().incar
         incar = Incar(parent_incar)
 
-        incar.update({"ISYM": -1})
+        incar.update({"ISYM": 0})
         incar.update({"ALGO": "Fast"})
         incar.pop("NSW", None)
-        # incar.update({"ISTART": 1, "LWAVE": False, "IBRION": 2})
-
-        # incar.update({"LNONCOLLINEAR": True, "LORBIT": 11})
-	# incar.update({"I_CONSTRAINED_M": 2, "LAMBDA": 10.0})
+        incar.update({"ISTART": 1})
         
         if self.kwargs.get("user_incar_settings")["LDAUU"]:
 
@@ -437,7 +447,7 @@ class LinearResponseUSet(MPStaticSet):
     @property
     def poscar(self):
         """
-        FILL
+        Custom Poscar for LinearResponseUSet
         """
         poscar = PoscarPerturb(structure=super().structure, num_perturb=self.num_perturb)
         return poscar
@@ -445,7 +455,7 @@ class LinearResponseUSet(MPStaticSet):
     @property
     def kpoints(self):
         """
-        FILL
+        Custom Kpoints for LinearResponseUSet
         """
         kpoints = super().kpoints
 
@@ -457,7 +467,6 @@ class LinearResponseUFW(Firework):
                  vasp_cmd=VASP_CMD, prev_calc_loc=True, prev_calc_dir=None,
                  db_file=DB_FILE, vasptodb_kwargs=None, parents=None,
                  additional_files=None,
-                 is_nscf=False,
                  **kwargs):
         """
         Standard static calculation Firework - either from a previous location or from a structure.

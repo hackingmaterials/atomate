@@ -768,6 +768,7 @@ class LinearResponseUToDb(FiretaskBase):
     Hubbard U value(s).
     
     Required parameters:
+        num_perturb (int): number of perturbed sites
         db_file (str): path to the db file that holds your tasks
             collection and that you want to hold the linear_response_u
             collection
@@ -788,6 +789,8 @@ class LinearResponseUToDb(FiretaskBase):
 
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
+        num_pertub_sites = int(self["num_perturb"])
+
         keys = ['Ground state', 'NSCF', 'SCF']
         regexps = ['initial', '^nscf', '^scf']
         response_dict = {'Ground state':{}, 'NSCF':{}, 'SCF':{}}
@@ -799,22 +802,12 @@ class LinearResponseUToDb(FiretaskBase):
             docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid,
                                               "task_label": {"$regex": task_label_regex}}))
 
-            # # FIXME: eventually simply add tag to firework for number of perturbed sites
-            # site_indices = [doc["task_label"].split("site")[-1].split("_")[0] for doc in docs]
-            # site_indices = list(tuple([int(index) if (regexps[0] not in index) else 0 for index in site_indices]))
-            # num_perturb_sites = len(site_indices)
-            # print("# of perturbed sites", num_perturb_sites)
-
-            #HACK
-            num_perturb_sites = 2
-            
             for i in range(num_perturb_sites):
                 response_dict[key].update({'V_site'+str(i): [], 'N_site'+str(i): []})
             response_dict[key].update({'magnetic order': []})
             
             for d in docs:
                 for i in range(num_perturb_sites):
-                    # print(float(d['calcs_reversed'][0]['output']['outcar']['charge'][i]['d']))
                     try:
                         response_dict[key]['N_site'+str(i)].append(float(d['calcs_reversed'][0]['output']['outcar']['charge'][i]['d']))
 
@@ -916,7 +909,6 @@ class LinearResponseUToDb(FiretaskBase):
                 Chi_nscf[i, j] = chi_nscf
                 Chi_scf[i, j] = chi_scf
 
-        print(" chi SCF = \n", Chi_scf, "\n chi NSCF = \n", Chi_nscf)
         try:
             U = np.linalg.inv(Chi_scf) - np.linalg.inv(Chi_nscf)
         except Exception as exc:
@@ -927,7 +919,6 @@ class LinearResponseUToDb(FiretaskBase):
 
         docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid,
                                           "task_label": {"$regex": regexps[2]}}))
-
         structure = None
         if docs:
             structure = Structure.from_dict(docs[0]["calcs_reversed"][-1]["output"]['structure'])
@@ -939,7 +930,7 @@ class LinearResponseUToDb(FiretaskBase):
             summary.update({'formula_pretty': structure.composition.reduced_formula})
             summary.update({'structure_groundstate': structure.as_dict()})
         summary.update({'datapoints': response_dict})
-        summary.update({'fit': {'chi - NSCF': Chi_nscf, 'chi - SCF': Chi_scf}})
+        summary.update({'fit': {'chi_nscf': Chi_nscf, 'chi_scf': Chi_scf}})
         summary.update({'U': U})
         summary.update({'wf_meta': {'wf_uuid': uuid}})
 
