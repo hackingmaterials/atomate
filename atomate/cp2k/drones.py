@@ -24,6 +24,7 @@ from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.cp2k.outputs import Cp2kOutput, Cube
 from pymatgen.apps.borg.hive import AbstractDrone
+from pymatgen.io.vasp.outputs import VolumetricData
 
 from atomate.utils.utils import get_uri
 
@@ -369,12 +370,13 @@ class Cp2kDrone(AbstractDrone):
         if self.parse_hartree:
             cube = Cube(out.filenames['v_hartree'][-1])
             # TODO: Store in reciprocal or not?
+            vd = VolumetricData(structure=None, data={'total': cube.data})
             d['v_hartree'] = jsanitize(
                 [
-                    np.fft.ifft(p) for p in cube.planar_average()
+                    np.fft.ifft(vd.get_average_along_axis(i)) for i in range(3)
                 ]
             )
-            d['v_hartree_grid'] = cube.planar_grid()
+            d['v_hartree_grid'] = [vd.get_axis_grid(i) for i in range(3)]
         return d
 
     def process_raw_data(self, dir_name, taskname="standard"):
