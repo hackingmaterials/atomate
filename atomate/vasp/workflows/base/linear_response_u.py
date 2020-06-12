@@ -243,7 +243,7 @@ def get_wf_linear_response_u(structure,
                             val_dict[k].update({"perturb"+str(i):v})
                         else:
                             val_dict[k].update({"perturb"+str(i):0})
-                            uis_ldau.update({k:val_dict[k].copy()})
+                uis_ldau.update({k:val_dict[k].copy()})
 
             # Non-SCF runs
             uis_ldau.update({"ISTART":1, "ICHARG":11})
