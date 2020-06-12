@@ -776,7 +776,7 @@ class LinearResponseUToDb(FiretaskBase):
             used to make it easier to retrieve task docs
     """
 
-    required_params = ["db_file", "wf_uuid"]
+    required_params = ["num_perturb", "db_file", "wf_uuid"]
     optional_params = []
 
     summaries = []
