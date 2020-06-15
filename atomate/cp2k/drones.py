@@ -370,7 +370,7 @@ class Cp2kDrone(AbstractDrone):
         if self.parse_hartree:
             cube = Cube(out.filenames['v_hartree'][-1])
             # TODO: Store in reciprocal or not?
-            vd = VolumetricData(structure=None, data={'total': cube.data})
+            vd = VolumetricData(structure=cube.structure, data={'total': cube.data})
             d['v_hartree'] = jsanitize(
                 [
                     np.fft.ifft(vd.get_average_along_axis(i)) for i in range(3)
