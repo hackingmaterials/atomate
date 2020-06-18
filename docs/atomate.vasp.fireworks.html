@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>atomate.vasp.fireworks package &#8212; atomate 0.9.4 documentation</title>
+    <title>atomate.vasp.fireworks package &#8212; atomate 0.9.5 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -27,7 +27,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -417,6 +417,53 @@ parents (Firework): Parents of this particular Firework.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="atomate.vasp.fireworks.core.ScanOptimizeFW">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.fireworks.core.</code><code class="sig-name descname">ScanOptimizeFW</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">name='SCAN structure optimization'</em>, <em class="sig-param">vasp_input_set=None</em>, <em class="sig-param">vasp_cmd='&gt;&gt;vasp_cmd&lt;&lt;'</em>, <em class="sig-param">override_default_vasp_params=None</em>, <em class="sig-param">db_file='&gt;&gt;db_file&lt;&lt;'</em>, <em class="sig-param">vdw_kernel_dir='&gt;&gt;vdw_kernel_dir&lt;&lt;'</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.ScanOptimizeFW" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.Firework</span></code></p>
+<dl class="method">
+<dt id="atomate.vasp.fireworks.core.ScanOptimizeFW.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">name='SCAN structure optimization'</em>, <em class="sig-param">vasp_input_set=None</em>, <em class="sig-param">vasp_cmd='&gt;&gt;vasp_cmd&lt;&lt;'</em>, <em class="sig-param">override_default_vasp_params=None</em>, <em class="sig-param">db_file='&gt;&gt;db_file&lt;&lt;'</em>, <em class="sig-param">vdw_kernel_dir='&gt;&gt;vdw_kernel_dir&lt;&lt;'</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.ScanOptimizeFW.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Structure optimization using the SCAN metaGGA functional.</p>
+<p>This workflow performs a 3-step optmization. The first step (‘relax1’)
+is a conventional GGA run relaxation that initializes the geometry and
+calculates the bandgap of the structure. The bandgap is used to update 
+the KSPACING parameter, which sets the appropriate number of k-points 
+for the structure. The second step (‘.relax2’) is a static GGA 
+calculation that computes wavefunctions using the updated number of 
+k-points. The third step (‘relax3’) is a SCAN relaxation.</p>
+<p>By default, .relax1 and .relax2 are force converged with
+EDIFFG = -0.05, and .relax3 is force converged with EDIFFG=-0.02.</p>
+<dl>
+<dt>Args:</dt><dd><p>structure (Structure): Input structure.
+name (str): Name for the Firework.
+vasp_input_set (VaspInputSet): input set to use. Defaults to</p>
+<blockquote>
+<div><p>MPScanRelaxSet() if None.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>override_default_vasp_params (dict): If this is not None, and</dt><dd><p>vasp_input_set is None, these params are passed to the default
+vasp_input_set, i.e., MPScanRelaxSet. This allows one to easily
+override some settings, e.g., bandgap, user_incar_settings, etc.</p>
+</dd>
+</dl>
+<p>vasp_cmd (str): Command to run vasp. Supports env_chk.
+vdw_kernel_dir (str): Directory containing the pre-compiled VdW</p>
+<blockquote>
+<div><p>kernel. Supports env_chk.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>db_file (str): Path to file specifying db credentials to place</dt><dd><p>output parsing. Supports env_chk.</p>
+</dd>
+</dl>
+<p>parents ([Firework]): Parents of this particular Firework.
+<a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs: Other kwargs that are passed to Firework.__init__.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="atomate.vasp.fireworks.core.StaticFW">
 <em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.fireworks.core.</code><code class="sig-name descname">StaticFW</code><span class="sig-paren">(</span><em class="sig-param">structure=None</em>, <em class="sig-param">name='static'</em>, <em class="sig-param">vasp_input_set=None</em>, <em class="sig-param">vasp_input_set_params=None</em>, <em class="sig-param">vasp_cmd='&gt;&gt;vasp_cmd&lt;&lt;'</em>, <em class="sig-param">prev_calc_loc=True</em>, <em class="sig-param">prev_calc_dir=None</em>, <em class="sig-param">db_file='&gt;&gt;db_file&lt;&lt;'</em>, <em class="sig-param">vasptodb_kwargs=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.core.StaticFW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.Firework</span></code></p>
@@ -524,6 +571,79 @@ override_default_vasp_params (dict): additional user input settings for vasp_inp
 </dd></dl>
 
 </div>
+<div class="section" id="module-atomate.vasp.fireworks.exchange">
+<span id="atomate-vasp-fireworks-exchange-module"></span><h2>atomate.vasp.fireworks.exchange module<a class="headerlink" href="#module-atomate.vasp.fireworks.exchange" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.fireworks.exchange.HeisenbergModelFW">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.fireworks.exchange.</code><code class="sig-name descname">HeisenbergModelFW</code><span class="sig-paren">(</span><em class="sig-param">wf_uuid</em>, <em class="sig-param">parent_structure</em>, <em class="sig-param">parents</em>, <em class="sig-param">db_file='&gt;&gt;db_file&lt;&lt;'</em>, <em class="sig-param">heisenberg_settings=None</em>, <em class="sig-param">name='heisenberg model'</em>, <em class="sig-param">structures=None</em>, <em class="sig-param">energies=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.exchange.HeisenbergModelFW" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.Firework</span></code></p>
+<dl class="method">
+<dt id="atomate.vasp.fireworks.exchange.HeisenbergModelFW.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">wf_uuid</em>, <em class="sig-param">parent_structure</em>, <em class="sig-param">parents</em>, <em class="sig-param">db_file='&gt;&gt;db_file&lt;&lt;'</em>, <em class="sig-param">heisenberg_settings=None</em>, <em class="sig-param">name='heisenberg model'</em>, <em class="sig-param">structures=None</em>, <em class="sig-param">energies=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.exchange.HeisenbergModelFW.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a set of low-energy magnetic orderings and energies and maps
+them to a Heisenberg Model to compute exchange params.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>heisenberg_settings: </dt><dd><p>cutoff (float): Starting point for nearest neighbor search.
+tol (float): Tolerance for equivalent NN bonds.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl>
+<dt>Args:</dt><dd><p>wf_uuid (int): Unique id for record keeping.
+parent_structure (Structure): Magnetic ground state.
+parents (FireWorks): Parent FWs.
+db_file (str): Path to file containing db credentials.
+heisenberg_settings (dict): A config dict for Heisenberg model</p>
+<blockquote>
+<div><p>mapping, detailed above.</p>
+</div></blockquote>
+<p>name (str): Labels the FW.
+structures (list): Magnetic structures.
+energies (list): Total energies of magnetic structures.</p>
+</dd>
+<dt>TODO:</dt><dd><ul class="simple">
+<li><p>Test a range of nn cutoffs and add convergence check.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.vasp.fireworks.exchange.VampireCallerFW">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.fireworks.exchange.</code><code class="sig-name descname">VampireCallerFW</code><span class="sig-paren">(</span><em class="sig-param">wf_uuid</em>, <em class="sig-param">parent_structure</em>, <em class="sig-param">parents</em>, <em class="sig-param">db_file='&gt;&gt;db_file&lt;&lt;'</em>, <em class="sig-param">mc_settings=None</em>, <em class="sig-param">name='vampire caller'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.exchange.VampireCallerFW" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.Firework</span></code></p>
+<dl class="method">
+<dt id="atomate.vasp.fireworks.exchange.VampireCallerFW.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">wf_uuid</em>, <em class="sig-param">parent_structure</em>, <em class="sig-param">parents</em>, <em class="sig-param">db_file='&gt;&gt;db_file&lt;&lt;'</em>, <em class="sig-param">mc_settings=None</em>, <em class="sig-param">name='vampire caller'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.exchange.VampireCallerFW.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run Vampire Monte Carlo from a HeisenbergModel.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>mc_settings:</dt><dd><p>mc_box_size (float): MC simulation box size in nm.
+equil_timesteps (int): Number of MC equilibration moves.
+mc_timesteps (int): Number of MC moves for averaging.
+avg (bool): Compute only &lt;J&gt;.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="simple">
+<dt>Args:</dt><dd><p>wf_uuid (int): Unique id for record keeping.
+parent_structure (Structure): Magnetic ground state.
+parents (FireWorks): Parent FWs.
+db_file (str): Path to file containing db credentials.
+mc_settings (dict): A configuration dict for monte carlo.
+name (str): Labels the FW.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-atomate.vasp.fireworks.nmr">
 <span id="atomate-vasp-fireworks-nmr-module"></span><h2>atomate.vasp.fireworks.nmr module<a class="headerlink" href="#module-atomate.vasp.fireworks.nmr" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
@@ -573,50 +693,78 @@ parents (Firework): Parents of this particular Firework.</p>
 <dl class="method">
 <dt id="atomate.vasp.fireworks.polarization.LcalcpolFW.__init__">
 <code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">name='static dipole moment'</em>, <em class="sig-param">static_name='static'</em>, <em class="sig-param">vasp_cmd='vasp'</em>, <em class="sig-param">vasp_input_set=None</em>, <em class="sig-param">vasp_input_set_params=None</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">gap_threshold=0.01</em>, <em class="sig-param">interpolate=False</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">this_image=0</em>, <em class="sig-param">nimages=5</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.fireworks.polarization.LcalcpolFW.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static Firework that calculates the dipole moment of structure or a single interpolated image of structures
-output by two calculations specified by PassCalcLoc names start and end.</p>
-<p>This Firework uses three steps to calculate the dipole moment.
-1. A StaticFW or StaticInterpolatFW calculation is performed to compute the band gap of the structure.
-2. Because VASP cannot compute the dipole moment of metallic structures, CheckBandgap checks that the structure
-has a band gap greater than gap_threshold. If the structure has a band gap less than gap_threshold,
-the Firework defuses. Otherwise,
-3. a polarization calculation (LCALCPOL=TRUE) is performed to calculate the dipole moment.</p>
-<p>If interpolate is equal to True, the keywords start and end are PassCalcLoc names used to locate the output
-structures (CONTCAR) of two previous calculations. These two structures must have the same number and
-type of atoms given in identical order in the structures. These structures are used to create nimages structures
-interpolations.</p>
-<p>this_image specifies which of the interpolated structures to use in this Firework. For example in the
-ferroelectric workflow, two structures that can be distorted into one another (a
-high-symmetry nonpolar structure and a low-symmetry polar structure) are relaxed using OptimizeFW. Then the
-dipole moment is calculated for nimages intermediate structures generated by interpolating between these two
-relaxed structures.</p>
+<dd><p>Static Firework that calculates the dipole moment of structure or a
+single interpolated image of structures output by two calculations
+specified by PassCalcLoc names start and end.</p>
+<p>This Firework uses three steps to calculate the dipole moment.</p>
+<ol class="arabic simple">
+<li><p>A StaticFW or StaticInterpolatFW calculation is performed to compute</p></li>
+</ol>
+<blockquote>
+<div><p>the band gap of the structure.</p>
+</div></blockquote>
+<ol class="arabic simple" start="2">
+<li><p>Because VASP cannot compute the dipole moment of metallic structures,</p></li>
+</ol>
+<blockquote>
+<div><p>CheckBandgap checks that the structure has a band gap greater than
+gap_threshold. If the structure has a band  gap less than
+gap_threshold, the Firework defuses. Otherwise,</p>
+</div></blockquote>
+<ol class="arabic simple" start="3">
+<li><p>a polarization calculation (LCALCPOL=TRUE) is performed to calculate</p></li>
+</ol>
+<blockquote>
+<div><p>the dipole moment.</p>
+</div></blockquote>
+<p>If interpolate is equal to True, the keywords start and end are
+PassCalcLoc names used to locate the output structures (CONTCAR) of two
+previous calculations. These two structures must have the same number
+and type of atoms given in identical order in the structures. These
+structures are used to create nimages structures interpolations.</p>
+<p>this_image specifies which of the interpolated structures to use in this
+Firework. For example in the ferroelectric workflow, two structures that
+can be distorted into one another (a high-symmetry nonpolar structure
+and a low-symmetry polar structure) are relaxed using OptimizeFW. Then
+the dipole moment is calculated for nimages intermediate structures
+generated by interpolating between these two relaxed structures.</p>
 <dl>
 <dt>Args:</dt><dd><dl class="simple">
-<dt>structure (Structure): Input structure. For an interpolation, this is a dummy structure. See interpolate arg</dt><dd><p>description.</p>
+<dt>structure (Structure): Input structure. For an interpolation, this</dt><dd><p>is a dummy structure. See interpolate arg description.</p>
 </dd>
 </dl>
 <p>name (str): Name for the polarization FireWork.
-static_name (str): Name for the SCF run to be used in PassCalcLoc if copy_vasp_outputs != True.
-vasp_cmd (str): Command to run vasp.
-vasp_input_set (str): string name for the VASP input set (e.g., “MITMDVaspInputSet”).
-vasp_input_set_params (dict): Dict of vasp_input_set_kwargs.
-db_file (str): Path to file specifying db credentials.
-parents (Firework): Parents of this particular Firework. FW or list of FWS.
-gap_threshold: Band gap cutoff for determining whether polarization calculation will proceed from</p>
+static_name (str): Name for the SCF run to be used in PassCalcLoc</p>
 <blockquote>
-<div><p>SCF band gap.</p>
+<div><p>if copy_vasp_outputs != True.</p>
+</div></blockquote>
+<p>vasp_cmd (str): Command to run vasp.
+vasp_input_set (str): string name for the VASP input set (e.g.,</p>
+<blockquote>
+<div><p>“MITMDVaspInputSet”).</p>
+</div></blockquote>
+<p>vasp_input_set_params (dict): Dict of vasp_input_set_kwargs.
+db_file (str): Path to file specifying db credentials.
+parents (Firework): Parents of this particular Firework. FW or list</p>
+<blockquote>
+<div><p>of FWS.</p>
 </div></blockquote>
 <dl class="simple">
-<dt>interpolate (bool): use structure created by interpolating CONTCAR structure from calculations indicated by</dt><dd><p>start and end PassCalcLoc names. If interpolate is False, start and end do not need to be set.</p>
+<dt>gap_threshold: Band gap cutoff for determining whether polarization</dt><dd><p>calculation will proceed from SCF band gap.</p>
+</dd>
+<dt>interpolate (bool): use structure created by interpolating CONTCAR</dt><dd><p>structure from calculations indicated by start and end
+PassCalcLoc names. If interpolate is False, start and end do
+not need to be set.</p>
+</dd>
+<dt>start (str): PassCalcLoc name of StaticFW or RelaxFW run of starting</dt><dd><p>structure</p>
+</dd>
+<dt>end (str): PassCalcLoc name of StaticFW or RelaxFW run of ending</dt><dd><p>structure</p>
+</dd>
+<dt>this_image (int): which interpolation to use for this run of the</dt><dd><p>nimage interpolations.</p>
+</dd>
+<dt>nimages (int): number of interpolations between CONTCAR structures</dt><dd><p>from calculations indicated by start and end args.</p>
 </dd>
 </dl>
-<p>start (str): PassCalcLoc name of StaticFW or RelaxFW run of starting structure
-end (str): PassCalcLoc name of StaticFW or RelaxFW run of ending structure
-this_image (int): which interpolation to use for this run of the nimage interpolations.
-nimages (int): number of interpolations between CONTCAR structures from calculations indicated by start and</p>
-<blockquote>
-<div><p>end args.</p>
-</div></blockquote>
 </dd>
 </dl>
 </dd></dl>
@@ -640,6 +788,7 @@ nimages (int): number of interpolations between CONTCAR structures from calculat
 <li><a class="reference internal" href="#">atomate.vasp.fireworks package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.fireworks.core">atomate.vasp.fireworks.core module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.fireworks.exchange">atomate.vasp.fireworks.exchange module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.fireworks.nmr">atomate.vasp.fireworks.nmr module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.fireworks.polarization">atomate.vasp.fireworks.polarization module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.fireworks">Module contents</a></li>
@@ -677,7 +826,7 @@ nimages (int): number of interpolations between CONTCAR structures from calculat
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
       </ul>
     </div>
 

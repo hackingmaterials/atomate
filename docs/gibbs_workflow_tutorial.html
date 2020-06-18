@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Running Gibbs workflows &#8212; atomate 0.9.4 documentation</title>
+    <title>Running Gibbs workflows &#8212; atomate 0.9.5 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -35,7 +35,7 @@
         <li class="right" >
           <a href="running_workflows.html" title="Running Workflows Tutorial"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -111,7 +111,7 @@ And we can setup the workflow and add it to our LaunchPad ready to run in just a
 <p><strong>Create the workflow script</strong></p>
 <p>In the directory you created, make a Python script named <code class="docutils literal notranslate"><span class="pre">gibbs.py</span></code> with the following contents:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">MPRester</span>
 <span class="kn">from</span> <span class="nn">fireworks</span> <span class="kn">import</span> <span class="n">LaunchPad</span>
 <span class="kn">from</span> <span class="nn">atomate.vasp.workflows.presets.core</span> <span class="kn">import</span> <span class="n">wf_gibbs_free_energy</span>
@@ -130,7 +130,7 @@ And we can setup the workflow and add it to our LaunchPad ready to run in just a
 <span class="c1"># of anharmonic contributions, and finally the deformation matrix describing points</span>
 <span class="c1"># on the energy vs. volume curve.</span>
 <span class="n">c</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;T_MIN&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;T_STEP&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;T_MAX&quot;</span><span class="p">:</span> <span class="mi">2000</span><span class="p">,</span>
-     <span class="s2">&quot;POISSON&quot;</span><span class="p">:</span> <span class="mf">0.20</span><span class="p">,</span> <span class="s2">&quot;ANHARMONIC_CONTRIBUTION&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+     <span class="s2">&quot;POISSON&quot;</span><span class="p">:</span> <span class="mf">0.20</span><span class="p">,</span> <span class="s2">&quot;ANHARMONIC_CONTRIBUTION&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
      <span class="s2">&quot;DEFORMATIONS&quot;</span><span class="p">:</span> <span class="n">deformations</span><span class="p">}</span>
 
 <span class="c1"># Create the workflow</span>
@@ -169,9 +169,9 @@ Here we’ll compare the heat capacity from our DFT calculation with experimenta
 Simply add the following Python script (<code class="docutils literal notranslate"><span class="pre">gibbs-analysis.py</span></code>) to your folder and run it</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">atomate.vasp.database</span> <span class="kn">import</span> <span class="n">VaspCalcDb</span>
 <span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="c1"># create the atomate db from your db.json</span>
 <span class="n">PATH_TO_MY_DB_JSON</span> <span class="o">=</span> <span class="s1">&#39;/path/to/my/db.json&#39;</span>
@@ -294,7 +294,7 @@ Simply add the following Python script (<code class="docutils literal notranslat
         <li class="right" >
           <a href="running_workflows.html" title="Running Workflows Tutorial"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
       </ul>
     </div>
 

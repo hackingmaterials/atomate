@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>atomate.vasp.workflows.base package &#8212; atomate 0.9.4 documentation</title>
+    <title>atomate.vasp.workflows.base package &#8212; atomate 0.9.5 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -27,7 +27,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -346,6 +346,87 @@ kwargs (keyword arguments): additional kwargs to be passed to get_wf_deformation
 </dd></dl>
 
 </div>
+<div class="section" id="module-atomate.vasp.workflows.base.exchange">
+<span id="atomate-vasp-workflows-base-exchange-module"></span><h2>atomate.vasp.workflows.base.exchange module<a class="headerlink" href="#module-atomate.vasp.workflows.base.exchange" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="atomate.vasp.workflows.base.exchange.ExchangeWF">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.workflows.base.exchange.</code><code class="sig-name descname">ExchangeWF</code><span class="sig-paren">(</span><em class="sig-param">magnetic_structures</em>, <em class="sig-param">energies</em>, <em class="sig-param">default_magmoms=None</em>, <em class="sig-param">db_file='&gt;&gt;db_file&lt;&lt;'</em>, <em class="sig-param">name='Exchange WF'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.exchange.ExchangeWF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="atomate.vasp.workflows.base.exchange.ExchangeWF.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">magnetic_structures</em>, <em class="sig-param">energies</em>, <em class="sig-param">default_magmoms=None</em>, <em class="sig-param">db_file='&gt;&gt;db_file&lt;&lt;'</em>, <em class="sig-param">name='Exchange WF'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.exchange.ExchangeWF.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Workflow for computing exchange parameters.</p>
+<p>This workflow takes a set of magnetic orderings and their energies
+from MagneticOrderingsWF and fits to a classical Heisenberg
+Hamiltonian to compute exchange parameters. The critical temperature
+can then be calculated with Monte Carlo.</p>
+<p>Optionally, only the lowest energy FM and AFM configurations can be
+used to compute the average exchange interaction, &lt;J&gt;, without any
+static calculations.</p>
+<dl>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>magnetic_structures (list): Structure objects with the ‘magmom’</dt><dd><p>site property.</p>
+</dd>
+</dl>
+<p>energies (list): Energies per atom in eV.
+default_magmoms (dict): (optional, defaults provided) dict of</p>
+<blockquote>
+<div><p>magnetic elements to their initial magnetic moments in µB, 
+generally these are chosen to be high-spin since they can 
+relax to a low-spin configuration during a DFT electronic
+configuration.</p>
+</div></blockquote>
+<p>db_file (string): Path to database file.
+name (string): Name of workflow.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="atomate.vasp.workflows.base.exchange.ExchangeWF.get_wf">
+<code class="sig-name descname">get_wf</code><span class="sig-paren">(</span><em class="sig-param">num_orderings_hard_limit=16</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.exchange.ExchangeWF.get_wf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve Fireworks workflow.</p>
+<p>c is an optional dictionary that can contain:
+* heisenberg_settings:</p>
+<blockquote>
+<div><p>cutoff (float): Starting point for nearest neighbor search.
+tol (float): Tolerance for equivalent NN bonds.</p>
+</div></blockquote>
+<ul class="simple">
+<li><dl class="simple">
+<dt>mc_settings:</dt><dd><p>mc_box_size (float): MC simulation box size in nm.
+equil_timesteps (int): Number of MC equilibration moves.
+mc_timesteps (int): Number of MC moves for averaging.
+avg (bool): Compute only &lt;J&gt;.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>DB_FILE:</dt><dd><p>path to db.json.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>num_orderings_hard_limit (int): will make sure total number of</dt><dd><p>magnetic orderings does not exceed this number even if there
+are extra orderings of equivalent symmetry</p>
+</dd>
+</dl>
+<p>c Optional[dict]: additional config dict described above</p>
+</dd>
+<dt>Returns: </dt><dd><p>wf (Workflow): Heisenberg Model + Vampire Monte Carlo.</p>
+</dd>
+<dt>TODO:</dt><dd><ul class="simple">
+<li><p>Add static SCAN option (only optimization is available)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-atomate.vasp.workflows.base.ferroelectric">
 <span id="atomate-vasp-workflows-base-ferroelectric-module"></span><h2>atomate.vasp.workflows.base.ferroelectric module<a class="headerlink" href="#module-atomate.vasp.workflows.base.ferroelectric" title="Permalink to this headline">¶</a></h2>
 <p>This module defines the ferroelectric workflow</p>
@@ -376,7 +457,7 @@ nimages: Number of interpolations calculated from polar to nonpolar structures, 
 <div><p>For example, nimages = 9 will calculate 8 interpolated structures. 8 interpolations + nonpolar = 9.</p>
 </div></blockquote>
 <p>add_analysis_task: Analyze polarization and energy trends as part of workflow. Default False.
-wfid (string): Unique worfklow id starting with “<a href="#id1"><span class="problematic" id="id2">wfid_</span></a>”. If None this is atomatically generated (recommended).
+wfid (string): Unique worfklow id starting with “<a href="#id3"><span class="problematic" id="id4">wfid_</span></a>”. If None this is atomatically generated (recommended).
 tags (list of strings): Additional tags to add such as identifiers for structures.</p>
 </dd>
 </dl>
@@ -434,11 +515,11 @@ tag (str): something unique to identify the tasks in this workflow. If None a ra
 <span id="atomate-vasp-workflows-base-magnetism-module"></span><h2>atomate.vasp.workflows.base.magnetism module<a class="headerlink" href="#module-atomate.vasp.workflows.base.magnetism" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF">
-<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.workflows.base.magnetism.</code><code class="sig-name descname">MagneticOrderingsWF</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">default_magmoms=None</em>, <em class="sig-param">strategies=('ferromagnetic'</em>, <em class="sig-param">'antiferromagnetic')</em>, <em class="sig-param">automatic=True</em>, <em class="sig-param">truncate_by_symmetry=True</em>, <em class="sig-param">transformation_kwargs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.workflows.base.magnetism.</code><code class="sig-name descname">MagneticOrderingsWF</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">default_magmoms=None</em>, <em class="sig-param">strategies=('ferromagnetic'</em>, <em class="sig-param">'antiferromagnetic')</em>, <em class="sig-param">automatic=True</em>, <em class="sig-param">truncate_by_symmetry=True</em>, <em class="sig-param">transformation_kwargs=None</em>, <em class="sig-param">static=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <dl class="method">
 <dt id="atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">default_magmoms=None</em>, <em class="sig-param">strategies=('ferromagnetic'</em>, <em class="sig-param">'antiferromagnetic')</em>, <em class="sig-param">automatic=True</em>, <em class="sig-param">truncate_by_symmetry=True</em>, <em class="sig-param">transformation_kwargs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">default_magmoms=None</em>, <em class="sig-param">strategies=('ferromagnetic'</em>, <em class="sig-param">'antiferromagnetic')</em>, <em class="sig-param">automatic=True</em>, <em class="sig-param">truncate_by_symmetry=True</em>, <em class="sig-param">transformation_kwargs=None</em>, <em class="sig-param">static=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>This workflow will try several different collinear
 magnetic orderings for a given input structure,
 and output a summary to a dedicated database
@@ -448,7 +529,7 @@ db_file.</p>
 is possible to use these as a hint as to which elements are
 magnetic, otherwise magnetic elements will be guessed
 (this can be changed using default_magmoms kwarg).</p>
-<dl class="simple">
+<dl>
 <dt>A brief description on how this workflow works:</dt><dd><ol class="arabic simple">
 <li><p>We make a note of the input structure, and then
 sanitize it (make it ferromagnetic, primitive)</p></li>
@@ -479,56 +560,83 @@ the performance of the workflow.</p></li>
 </ol>
 </dd>
 <dt>Args:</dt><dd><p>structure: input structure
-default_magmoms: (optional, defaults provided) dict of</p>
-</dd>
-</dl>
-<p>magnetic elements to their initial magnetic moments in µB, generally
-these are chosen to be high-spin since they can relax to a low-spin
-configuration during a DFT electronic configuration</p>
+default_magmoms (dict): (optional, defaults provided) dict of</p>
 <blockquote>
-<div><p>strategies: different ordering strategies to use, choose from:</p>
-</div></blockquote>
-<p>ferromagnetic, antiferromagnetic, antiferromagnetic_by_motif,
-ferrimagnetic_by_motif and ferrimagnetic_by_species (here, “motif”,
-means to use a different ordering parameter for symmetry inequivalent
-sites)</p>
-<blockquote>
-<div><p>automatic: if True, will automatically choose sensible strategies
-truncate_by_symmetry: if True, will remove very unsymmetrical</p>
+<div><p>magnetic elements to their initial magnetic moments in µB,
+generally these are chosen to be high-spin since they can
+relax to a low-spin configuration during a DFT electronic
+configuration</p>
 </div></blockquote>
 <dl class="simple">
-<dt>orderings that are likely physically implausible</dt><dd><p>transformation_kwargs: keyword arguments to pass to</p>
+<dt>strategies (tuple): different ordering strategies to use, choose</dt><dd><p>from: ferromagnetic, antiferromagnetic,
+antiferromagnetic_by_motif, ferrimagnetic_by_motif and
+ferrimagnetic_by_species (here, “motif”, 
+means to use a different ordering parameter for symmetry
+inequivalent sites)</p>
+</dd>
+<dt>automatic (bool): if True, will automatically choose sensible</dt><dd><p>strategies</p>
+</dd>
+<dt>truncate_by_symmetry (bool): if True, will remove very</dt><dd><p>unsymmetrical orderings that are likely physically implausible</p>
+</dd>
+<dt>transformation_kwargs (dict): keyword arguments to pass to</dt><dd><p>MagOrderingTransformation, to change automatic cell size
+limits, etc.</p>
+</dd>
+<dt>static (bool): Run only static calcs (no optimization) of </dt><dd><p>different magnetic orderings in a fixed ground state
+geometry.</p>
 </dd>
 </dl>
-<p>MagOrderingTransformation, to change automatic cell size limits, etc.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF.get_wf">
 <code class="sig-name descname">get_wf</code><span class="sig-paren">(</span><em class="sig-param">scan=False</em>, <em class="sig-param">perform_bader=True</em>, <em class="sig-param">num_orderings_hard_limit=16</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.magnetism.MagneticOrderingsWF.get_wf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve the FireWorks workflow.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>scan: if True, use the SCAN functional instead of GGA+U, since</p>
+<dl>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>scan (bool): if True, use the SCAN functional instead of GGA+U,</dt><dd><p>since the SCAN functional has shown to have improved
+performance for magnetic systems in some cases</p>
+</dd>
+<dt>perform_bader (bool): if True, make sure the “bader” binary is in</dt><dd><p>your path, will use Bader analysis to calculate
+atom-projected magnetic moments</p>
+</dd>
+<dt>num_orderings_hard_limit (int): will make sure total number of</dt><dd><p>magnetic orderings does not exceed this number even if there
+are extra orderings of equivalent symmetry</p>
 </dd>
 </dl>
-<p>the SCAN functional has shown to have improved performance for
-magnetic systems in some cases</p>
-<blockquote>
-<div><p>perform_bader: if True, make sure the “bader” binary is in your</p>
-</div></blockquote>
-<p>path, will use Bader analysis to calculate atom-projected magnetic
-moments</p>
-<blockquote>
-<div><p>num_orderings_hard_limit: will make sure total number of magnetic</p>
-</div></blockquote>
-<p>orderings does not exceed this number even if there are extra orderings
-of equivalent symmetry</p>
-<blockquote>
-<div><p>c: additional config dict (as used elsewhere in atomate)</p>
-</div></blockquote>
+<p>c (dict): additional config dict (as used elsewhere in atomate)</p>
+</dd>
+</dl>
 <p>Returns: FireWorks Workflow</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="function">
+<dt id="atomate.vasp.workflows.base.magnetism.get_commensurate_orderings">
+<code class="sig-prename descclassname">atomate.vasp.workflows.base.magnetism.</code><code class="sig-name descname">get_commensurate_orderings</code><span class="sig-paren">(</span><em class="sig-param">magnetic_structures</em>, <em class="sig-param">energies</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.base.magnetism.get_commensurate_orderings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate supercells for static calculations.</p>
+<p>From the ground state magnetic ordering and first excited state,
+generate supercells with magnetic orderings.</p>
+<p>If the gs is FM, match supercells to the 1st es.
+If the gs is AFM, FM is included by default, 1st es may not be.
+If the gs is FiM, 1st es may not be captured.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>magnetic_structures (list): Structures.
+energies (list): Energies per atom.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>matched_structures (list): Commensurate supercells for static </dt><dd><p>calculations.</p>
+</dd>
+</dl>
+</dd>
+<dt>TODO:</dt><dd><ul class="simple">
+<li><p>Only consider orderings with <a href="#id1"><span class="problematic" id="id2">|S_i|</span></a> = ground state</p></li>
+<li><p>Constrain noncollinear magmoms</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -761,6 +869,7 @@ tag (str): something unique to identify the tasks in this workflow. If None a ra
 <li><a class="reference internal" href="#module-atomate.vasp.workflows.base.core">atomate.vasp.workflows.base.core module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.workflows.base.deformations">atomate.vasp.workflows.base.deformations module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.workflows.base.elastic">atomate.vasp.workflows.base.elastic module</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.workflows.base.exchange">atomate.vasp.workflows.base.exchange module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.workflows.base.ferroelectric">atomate.vasp.workflows.base.ferroelectric module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.workflows.base.gibbs">atomate.vasp.workflows.base.gibbs module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.workflows.base.magnetism">atomate.vasp.workflows.base.magnetism module</a></li>
@@ -802,7 +911,7 @@ tag (str): something unique to identify the tasks in this workflow. If None a ra
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
       </ul>
     </div>
 

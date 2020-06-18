@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>atomate.common.firetasks package &#8212; atomate 0.9.4 documentation</title>
+    <title>atomate.common.firetasks package &#8212; atomate 0.9.5 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -27,7 +27,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -63,12 +63,20 @@
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
 <p>Task to copy the given list of files from the given directory to the destination directory.
 To customize override the setup_copy and copy_files methods.</p>
-<dl class="simple">
-<dt>Optional params:</dt><dd><p>from_dir (str): path to the directory containing the files to be copied.
-to_dir (str): path to the destination directory
+<dl>
+<dt>Optional params:</dt><dd><p>from_dir (str): path to the directory containing the files to be copied. Supports env_chk.
+to_dir (str): path to the destination directory. Supports env_chk.
 filesystem (str)
-files_to_copy (list): list of file names.
-exclude_files (list): list of file names to be excluded.</p>
+files_to_copy (list): list of file names. Defaults to copying everything in from_dir.
+exclude_files (list): list of file names to be excluded.
+suffix (str): suffix to append to each filename when copying</p>
+<blockquote>
+<div><p>(e.g., rename ‘INCAR’ to ‘INCAR.precondition’)</p>
+</div></blockquote>
+<dl class="simple">
+<dt>continue_on_missing(bool): Whether to continue copying when a file</dt><dd><p>in filenames is missing. Defaults to False.</p>
+</dd>
+</dl>
 </dd>
 </dl>
 <dl class="method">
@@ -79,7 +87,7 @@ exclude_files (list): list of file names to be excluded.</p>
 
 <dl class="attribute">
 <dt id="atomate.common.firetasks.glue_tasks.CopyFiles.optional_params">
-<code class="sig-name descname">optional_params</code><em class="property"> = ['from_dir', 'to_dir', 'filesystem', 'files_to_copy', 'exclude_files']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFiles.optional_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">optional_params</code><em class="property"> = ['from_dir', 'to_dir', 'filesystem', 'files_to_copy', 'exclude_files', 'suffix', 'continue_on_missing']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFiles.optional_params" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -109,18 +117,24 @@ these multiple resources.</p>
 
 <dl class="method">
 <dt id="atomate.common.firetasks.glue_tasks.CopyFiles.setup_copy">
-<code class="sig-name descname">setup_copy</code><span class="sig-paren">(</span><em class="sig-param">from_dir</em>, <em class="sig-param">to_dir=None</em>, <em class="sig-param">filesystem=None</em>, <em class="sig-param">files_to_copy=None</em>, <em class="sig-param">exclude_files=None</em>, <em class="sig-param">from_path_dict=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFiles.setup_copy" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">setup_copy</code><span class="sig-paren">(</span><em class="sig-param">from_dir</em>, <em class="sig-param">to_dir=None</em>, <em class="sig-param">filesystem=None</em>, <em class="sig-param">files_to_copy=None</em>, <em class="sig-param">exclude_files=None</em>, <em class="sig-param">from_path_dict=None</em>, <em class="sig-param">suffix=None</em>, <em class="sig-param">fw_spec=None</em>, <em class="sig-param">continue_on_missing=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFiles.setup_copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>setup the copy i.e setup the from directory, filesystem, destination directory etc.</p>
 <dl>
 <dt>Args:</dt><dd><p>from_dir (str)
 to_dir (str)
 filesystem (str)
 files_to_copy (list): if None all the files in the from_dir will be copied
-exclude_files (list)
-from_path_dict (dict): dict specification of the path. If specified must contain atleast</p>
+exclude_files (list): list of file names to be excluded.
+suffix (str): suffix to append to each filename when copying</p>
 <blockquote>
-<div><p>the key “path” that specifies the path to the from_dir.</p>
+<div><p>(e.g., rename ‘INCAR’ to ‘INCAR.precondition’)</p>
 </div></blockquote>
+<dl class="simple">
+<dt>continue_on_missing(bool): Whether to continue copying when a file</dt><dd><p>in filenames is missing. Defaults to False.</p>
+</dd>
+<dt>from_path_dict (dict): dict specification of the path. If specified must contain atleast</dt><dd><p>the key “path” that specifies the path to the from_dir.</p>
+</dd>
+</dl>
 </dd>
 </dl>
 </dd></dl>
@@ -131,7 +145,7 @@ from_path_dict (dict): dict specification of the path. If specified must contain
 <dt id="atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc">
 <em class="property">class </em><code class="sig-prename descclassname">atomate.common.firetasks.glue_tasks.</code><code class="sig-name descname">CopyFilesFromCalcLoc</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
-<p>Based on CopyVaspOutputs but for general file copying. Note that “calc_locs”
+<p>Based on CopyVaspOutputs but for general file copying. Note “calc_locs”
 must be set in the fw_spec. Files are copied to the current folder.</p>
 <dl>
 <dt>Required params:</dt><dd><p>calc_loc: name of target fw to get location for within the calc_locs.</p>
@@ -141,17 +155,23 @@ must be set in the fw_spec. Files are copied to the current folder.</p>
 ‘$ALL_NO_SUBDIRS’ in filenames: similar to filenames is None
 ‘$ALL’ in filenames: all files and subfolders copied, name_prepend</p>
 <blockquote>
-<div><p>and name_append cannot be set in this case</p>
+<div><p>and name_append cannot be set in this case.</p>
 </div></blockquote>
+<p>Accepts glob patterns.</p>
+</dd>
+<dt>name_prepend (str): string to prepend filenames, e.g. can be a </dt><dd><p>directory.</p>
 </dd>
 </dl>
-<p>name_prepend (str): string to prepend filenames, e.g. can be a directory.
-name_append (str): string to append to destination filenames.</p>
+<p>name_append (str): string to append to destination filenames.
+exclude_files (list): list of file names to be excluded. Accepts glob</p>
+<blockquote>
+<div><p>patterns.</p>
+</div></blockquote>
 </dd>
 </dl>
 <dl class="attribute">
 <dt id="atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc.optional_params">
-<code class="sig-name descname">optional_params</code><em class="property"> = ['filenames', 'name_prepend', 'name_append']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc.optional_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">optional_params</code><em class="property"> = ['filenames', 'name_prepend', 'name_append', 'exclude_files']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc.optional_params" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -257,6 +277,48 @@ Uses glob to search for files so any pattern it can accept can be used</p>
 <dl class="method">
 <dt id="atomate.common.firetasks.glue_tasks.DeleteFiles.run_task">
 <code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param">fw_spec=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.DeleteFiles.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="atomate.common.firetasks.glue_tasks.GzipDir">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.common.firetasks.glue_tasks.</code><code class="sig-name descname">GzipDir</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.GzipDir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Task to gzip the current directory.</p>
+<dl class="attribute">
+<dt id="atomate.common.firetasks.glue_tasks.GzipDir.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = []</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.GzipDir.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="atomate.common.firetasks.glue_tasks.GzipDir.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = []</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.GzipDir.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="atomate.common.firetasks.glue_tasks.GzipDir.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param">fw_spec=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.GzipDir.run_task" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method gets called when the Firetask is run. It can take in a
 Firework spec, perform some task using that data, and then return an
 output in the form of a FWAction.</p>
@@ -658,7 +720,7 @@ these multiple resources.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
       </ul>
     </div>
 

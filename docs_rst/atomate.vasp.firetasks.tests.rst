@@ -12,6 +12,14 @@ atomate.vasp.firetasks.tests.test\_copy module
    :undoc-members:
    :show-inheritance:
 
+atomate.vasp.firetasks.tests.test\_exchange module
+--------------------------------------------------
+
+.. automodule:: atomate.vasp.firetasks.tests.test_exchange
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.vasp.firetasks.tests.test\_get\_interpolated\_poscar module
 -------------------------------------------------------------------
 
