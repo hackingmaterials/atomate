@@ -1,5 +1,8 @@
 # coding: utf-8
+from typing import Dict, Union
 
+import msgpack
+from monty.msgpack import default as monty_default
 
 from monty.json import MontyEncoder, MontyDecoder
 
@@ -19,6 +22,9 @@ from pymongo import ASCENDING, DESCENDING
 
 from atomate.utils.database import CalcDb
 from atomate.utils.utils import get_logger
+from deprecated import deprecated
+from maggma.stores.aws import S3Store
+from maggma.stores import GridFSStore
 
 __author__ = 'Kiran Mathew'
 __credits__ = 'Anubhav Jain'
@@ -157,6 +163,26 @@ class VaspCalcDb(CalcDb):
             calc["aeccar2"] = aeccar['aeccar2']
         return task_doc
 
+    def insert_object_store(self, data : Dict, target_store: Union[S3Store, GridFSStore], oid: ObjectId=None, task_id: Union[str, int]=None):
+        """
+        Insert the given document into either GridFS store or S3Store.
+
+        Args:
+            data (dict): the document
+            oid (ObjectId()): the _id of the file; if specified, it must not already exist in GridFS
+            task_id(int or str): the task_id
+        Returns:
+            SearchDoc for the store for redundancy , the type of compression used.
+        """
+        oid = oid or ObjectId()
+        doc = {"task_id" : task_id, "ObjectId" : oid, 'data' : data}
+        serach_keys = ['task_id', "ObjectId"]
+        target_store.update(doc, key=serach_keys)
+        compression_type = target_store.compression
+        serach_doc = {doc[k_] for k_ in serach_keys}
+        return serach_doc, compression_type
+
+    @deprecated(version='0.9.5', reason="Using maggma API for object storage")
     def insert_gridfs(self, d, collection="fs", compress=True, oid=None, task_id=None):
         """
         Insert the given document into GridFS.
