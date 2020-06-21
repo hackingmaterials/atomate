@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Creating workflows &#8212; atomate 0.9.4 documentation</title>
+    <title>Creating workflows &#8212; atomate 0.9.5 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -35,7 +35,7 @@
         <li class="right" >
           <a href="builders.html" title="Builders: creating calculation reports for data analysis"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -232,8 +232,8 @@
 <span class="kn">from</span> <span class="nn">atomate.vasp.firetasks.parse_outputs</span> <span class="kn">import</span> <span class="n">GibbsFreeEnergyTask</span>
 
 
-<span class="k">def</span> <span class="nf">wf_gibbs_free_energy</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">deformations</span><span class="p">,</span> <span class="n">vasp_input_set_relax</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">vasp_input_set_static</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">vasp_cmd</span><span class="o">=</span><span class="s2">&quot;vasp&quot;</span><span class="p">,</span>
-                             <span class="n">db_file</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user_kpoints_settings</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">t_step</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">t_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">t_max</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">wf_gibbs_free_energy</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">deformations</span><span class="p">,</span> <span class="n">vasp_input_set_relax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vasp_input_set_static</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vasp_cmd</span><span class="o">=</span><span class="s2">&quot;vasp&quot;</span><span class="p">,</span>
+                             <span class="n">db_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">user_kpoints_settings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t_step</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">t_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">t_max</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
                              <span class="n">mesh</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="n">eos</span><span class="o">=</span><span class="s2">&quot;vinet&quot;</span><span class="p">,</span> <span class="n">qha_type</span><span class="o">=</span><span class="s2">&quot;debye_model&quot;</span><span class="p">,</span> <span class="n">pressure</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
                              <span class="n">poisson</span><span class="o">=</span><span class="mf">0.25</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -264,7 +264,7 @@
     <span class="n">tag</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">-%H-%M-%S-</span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">)</span>
 
     <span class="c1"># get the input set for the optimization and update it if we passed custom settings</span>
-    <span class="n">vis_relax</span> <span class="o">=</span> <span class="n">vasp_input_set</span> <span class="ow">or</span> <span class="n">MPRelaxSet</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">force_gamma</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">vis_relax</span> <span class="o">=</span> <span class="n">vasp_input_set</span> <span class="ow">or</span> <span class="n">MPRelaxSet</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">force_gamma</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">user_kpoints_settings</span><span class="p">:</span>
         <span class="n">v</span> <span class="o">=</span> <span class="n">vis_relax</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
         <span class="n">v</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;user_kpoints_settings&quot;</span><span class="p">:</span> <span class="n">user_kpoints_settings</span><span class="p">})</span>
@@ -272,15 +272,15 @@
 
     <span class="c1"># Structure optimization firework</span>
     <span class="n">fws</span> <span class="o">=</span> <span class="p">[</span><span class="n">OptimizeFW</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">vasp_input_set</span><span class="o">=</span><span class="n">vis_relax</span><span class="p">,</span> <span class="n">vasp_cmd</span><span class="o">=</span><span class="n">vasp_cmd</span><span class="p">,</span>
-                      <span class="n">db_file</span><span class="o">=</span><span class="n">db_file</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;{} structure optimization&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tag</span><span class="p">))]</span>
+                      <span class="n">db_file</span><span class="o">=</span><span class="n">db_file</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> structure optimization&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tag</span><span class="p">))]</span>
 
     <span class="c1"># get the input set for the static calculations and update it if we passed custom settings</span>
     <span class="n">uis_static</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ISIF&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;ISTART&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span>
-    <span class="n">lepsilon</span> <span class="o">=</span> <span class="bp">False</span> <span class="c1"># use IBRION = -1; don&#39;t update the ions</span>
+    <span class="n">lepsilon</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># use IBRION = -1; don&#39;t update the ions</span>
     <span class="k">if</span> <span class="n">qha_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;debye model&#39;</span><span class="p">]:</span>
         <span class="n">uis_static</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ISIF&#39;</span><span class="p">}</span>
-        <span class="n">lepsilon</span> <span class="o">=</span> <span class="bp">True</span> <span class="c1"># use IBRION = -8; DFPT</span>
-    <span class="n">vis_static</span> <span class="o">=</span> <span class="n">MPStaticSet</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">force_gamma</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">lepsilon</span><span class="o">=</span><span class="n">lepsilon</span><span class="p">,</span>
+        <span class="n">lepsilon</span> <span class="o">=</span> <span class="kc">True</span> <span class="c1"># use IBRION = -8; DFPT</span>
+    <span class="n">vis_static</span> <span class="o">=</span> <span class="n">MPStaticSet</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">force_gamma</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lepsilon</span><span class="o">=</span><span class="n">lepsilon</span><span class="p">,</span>
                          <span class="n">user_kpoints_settings</span><span class="o">=</span><span class="n">user_kpoints_settings</span><span class="p">,</span>
                          <span class="n">user_incar_settings</span><span class="o">=</span><span class="n">uis_static</span><span class="p">)</span>
 
@@ -288,7 +288,7 @@
     <span class="n">parents</span> <span class="o">=</span> <span class="n">fws</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">deformations</span> <span class="o">=</span> <span class="p">[</span><span class="n">Deformation</span><span class="p">(</span><span class="n">defo_mat</span><span class="p">)</span> <span class="k">for</span> <span class="n">defo_mat</span> <span class="ow">in</span> <span class="n">deformations</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">deformation</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">deformations</span><span class="p">):</span>
-        <span class="n">fw</span> <span class="o">=</span> <span class="n">TransmuterFW</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;{} {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="s1">&#39;gibbs deformation&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span>
+        <span class="n">fw</span> <span class="o">=</span> <span class="n">TransmuterFW</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="s1">&#39;gibbs deformation&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span>
                           <span class="n">transformations</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DeformStructureTransformation&#39;</span><span class="p">],</span>
                           <span class="n">transformation_params</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;deformation&quot;</span><span class="p">:</span> <span class="n">deformation</span><span class="o">.</span><span class="n">tolist</span><span class="p">()}],</span>
                           <span class="n">vasp_input_set</span><span class="o">=</span><span class="n">vis_static</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="n">parents</span><span class="p">,</span>
@@ -306,7 +306,7 @@
 
     <span class="c1"># finally, create the workflow</span>
     <span class="n">wf_gibbs</span> <span class="o">=</span> <span class="n">Workflow</span><span class="p">(</span><span class="n">fws</span><span class="p">)</span>
-    <span class="n">wf_gibbs</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;{}:{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">composition</span><span class="o">.</span><span class="n">reduced_formula</span><span class="p">,</span> <span class="s2">&quot;gibbs free energy&quot;</span><span class="p">)</span>
+    <span class="n">wf_gibbs</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">composition</span><span class="o">.</span><span class="n">reduced_formula</span><span class="p">,</span> <span class="s2">&quot;gibbs free energy&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">wf_gibbs</span>
 </pre></div>
@@ -454,7 +454,7 @@
         <li class="right" >
           <a href="builders.html" title="Builders: creating calculation reports for data analysis"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
       </ul>
     </div>
 
