@@ -1,7 +1,7 @@
 # coding: utf-8
 
 """
-This module defines tasks  that can be used to handle Lobster calculations that are based on VASP wavefunctions.
+This module defines tasks that can be used to handle Lobster calculations that are based on VASP wavefunctions.
 """
 
 import json
