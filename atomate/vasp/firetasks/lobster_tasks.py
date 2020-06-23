@@ -21,13 +21,17 @@ from atomate.utils.utils import env_chk, get_meta_from_structure
 from atomate.vasp.config import VASP_OUTPUT_FILES
 from atomate.vasp.database import VaspCalcDb, put_file_in_gridfs
 from custodian import Custodian
-from custodian.lobster.handlers import ChargeSpillingValidator, EnoughBandsValidator, LobsterFilesValidator
+from custodian.lobster.handlers import (
+    ChargeSpillingValidator,
+    EnoughBandsValidator,
+    LobsterFilesValidator,
+)
 from custodian.lobster.jobs import LobsterJob
 from pymatgen.core.structure import Structure
 from pymatgen.io.lobster import Lobsterout, Lobsterin
 
 __author__ = "Janine George, Guido Petretto"
-__email__ = 'janine.george@uclouvain.be, guido.petretto@uclouvain.be'
+__email__ = "janine.george@uclouvain.be, guido.petretto@uclouvain.be"
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 logger = logging.getLogger(__name__)
@@ -47,8 +51,14 @@ class WriteLobsterinputfromIO(FiretaskBase):
         user_lobsterin_settings (dict): dictionary that will be used to overwrite settings in Lobsterin dict
     """
 
-    optional_params = ["user_supplied_basis", "user_lobsterin_settings", "poscar_path", "incar_path", "potcar_path",
-                       "option"]
+    optional_params = [
+        "user_supplied_basis",
+        "user_lobsterin_settings",
+        "poscar_path",
+        "incar_path",
+        "potcar_path",
+        "option",
+    ]
 
     def run_task(self, fw_spec):
         poscar_path = self.get("poscar_path", "POSCAR")
@@ -57,11 +67,17 @@ class WriteLobsterinputfromIO(FiretaskBase):
         option = self.get("option", "standard")
         user_supplied_basis = self.get("user_supplied_basis", None)
         if user_supplied_basis is None:
-            lobsterinput = Lobsterin.standard_calculations_from_vasp_files(poscar_path, incar_path, potcar_path,
-                                                                           option=option)
+            lobsterinput = Lobsterin.standard_calculations_from_vasp_files(
+                poscar_path, incar_path, potcar_path, option=option
+            )
         else:
-            lobsterinput = Lobsterin.standard_calculations_from_vasp_files(poscar_path, incar_path, None, option=option,
-                                                                           dict_for_basis=user_supplied_basis)
+            lobsterinput = Lobsterin.standard_calculations_from_vasp_files(
+                poscar_path,
+                incar_path,
+                None,
+                option=option,
+                dict_for_basis=user_supplied_basis,
+            )
         additional_input = self.get("user_lobsterin_settings", None)
         if additional_input:
             for key, parameter in additional_input.items():
@@ -86,10 +102,16 @@ class RunLobster(FiretaskBase):
             specify a list of Validator objects.
     """
 
-    optional_params = ["lobster_cmd", "gzip_output", "gzip_WAVECAR", "handler_group", "validator_group"]
+    optional_params = [
+        "lobster_cmd",
+        "gzip_output",
+        "gzip_WAVECAR",
+        "handler_group",
+        "validator_group",
+    ]
 
     def run_task(self, fw_spec):
-        lobster_cmd = env_chk(self.get('lobster_cmd'), fw_spec)
+        lobster_cmd = env_chk(self.get("lobster_cmd"), fw_spec)
         gzip_output = self.get("gzip_output", True)
         gzip_WAVECAR = self.get("gzip_WAVECAR", False)
         if gzip_WAVECAR:
@@ -97,16 +119,18 @@ class RunLobster(FiretaskBase):
         else:
             add_files_to_gzip = [f for f in VASP_OUTPUT_FILES if f not in ["WAVECAR"]]
 
-        handler_groups = {
-            "default": [],
-            "no_handler": []
-        }
+        handler_groups = {"default": [], "no_handler": []}
         validator_groups = {
-            "default": [LobsterFilesValidator(),
-                        EnoughBandsValidator(output_filename="lobsterout")],
-            "strict": [ChargeSpillingValidator(output_filename="lobsterout"), LobsterFilesValidator(),
-                       EnoughBandsValidator(output_filename="lobsterout")],
-            "no_validator": []
+            "default": [
+                LobsterFilesValidator(),
+                EnoughBandsValidator(output_filename="lobsterout"),
+            ],
+            "strict": [
+                ChargeSpillingValidator(output_filename="lobsterout"),
+                LobsterFilesValidator(),
+                EnoughBandsValidator(output_filename="lobsterout"),
+            ],
+            "no_validator": [],
         }
 
         handler_group = self.get("handler_group", "default")
@@ -122,9 +146,22 @@ class RunLobster(FiretaskBase):
             validators = handler_group
 
         # LobsterJob gzips output files, Custodian would gzip all output files (even slurm)
-        jobs = [LobsterJob(lobster_cmd=lobster_cmd, output_file="lobster.out", stderr_file="std_err_lobster.txt",
-                           gzipped=gzip_output, add_files_to_gzip=add_files_to_gzip)]
-        c = Custodian(handlers=handlers, jobs=jobs, validators=validators, gzipped_output=False, max_errors=5)
+        jobs = [
+            LobsterJob(
+                lobster_cmd=lobster_cmd,
+                output_file="lobster.out",
+                stderr_file="std_err_lobster.txt",
+                gzipped=gzip_output,
+                add_files_to_gzip=add_files_to_gzip,
+            )
+        ]
+        c = Custodian(
+            handlers=handlers,
+            jobs=jobs,
+            validators=validators,
+            gzipped_output=False,
+            max_errors=5,
+        )
         c.run()
 
         if os.path.exists(zpath("custodian.json")):
@@ -153,12 +190,24 @@ class LobsterRunToDb(FiretaskBase):
             should be given with the full name and the correct capitalization.
     """
 
-    optional_params = ["calc_dir", "calc_loc", "additional_fields", "db_file", "fw_spec_field",
-                       "additional_outputs"]
+    optional_params = [
+        "calc_dir",
+        "calc_loc",
+        "additional_fields",
+        "db_file",
+        "fw_spec_field",
+        "additional_outputs",
+    ]
 
-    std_additional_outputs = ["ICOHPLIST.lobster", "ICOOPLIST.lobster", "COHPCAR.lobster",
-                              "COOPCAR.lobster", "GROSSPOP.lobster", "CHARGE.lobster",
-                              "DOSCAR.lobster"]
+    std_additional_outputs = [
+        "ICOHPLIST.lobster",
+        "ICOOPLIST.lobster",
+        "COHPCAR.lobster",
+        "COOPCAR.lobster",
+        "GROSSPOP.lobster",
+        "CHARGE.lobster",
+        "DOSCAR.lobster",
+    ]
 
     def __init__(self, *args, **kwargs):
         # override the original __init__ method to check the values of
@@ -170,8 +219,10 @@ class LobsterRunToDb(FiretaskBase):
         if additional_outputs:
             for ao in additional_outputs:
                 if ao not in self.std_additional_outputs:
-                    warnings.warn(f"{ao} not in the list of standard additional outputs. "
-                                  f"Check that you did not misspell it.")
+                    warnings.warn(
+                        f"{ao} not in the list of standard additional outputs. "
+                        f"Check that you did not misspell it."
+                    )
 
     def _find_gz_file(self, filename):
         gz_filename = filename + ".gz"
@@ -185,7 +236,11 @@ class LobsterRunToDb(FiretaskBase):
     def run_task(self, fw_spec):
 
         vasp_calc_dir = self.get("calc_dir", None)
-        vasp_calc_loc = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"]) if self.get("calc_loc") else {}
+        vasp_calc_loc = (
+            get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])
+            if self.get("calc_loc")
+            else {}
+        )
 
         # get the directory that contains the Lobster dir to parse
         current_dir = os.getcwd()
@@ -221,11 +276,11 @@ class LobsterRunToDb(FiretaskBase):
         if self.get("fw_spec_field"):
             task_doc.update(fw_spec[self.get("fw_spec_field")])
 
-        task_doc["state"] = 'successful'
+        task_doc["state"] = "successful"
 
         task_doc = jsanitize(task_doc)
         # get the database connection
-        db_file = env_chk(self.get('db_file'), fw_spec)
+        db_file = env_chk(self.get("db_file"), fw_spec)
 
         # db insertion or taskdoc dump
         if not db_file:
@@ -240,11 +295,17 @@ class LobsterRunToDb(FiretaskBase):
 
                     fs_id = None
                     if os.path.isfile(filename):
-                        fs_id = put_file_in_gridfs(filename, db, collection_name="lobster_files",
-                                                   compress=True)
+                        fs_id = put_file_in_gridfs(
+                            filename, db, collection_name="lobster_files", compress=True
+                        )
                     elif os.path.isfile(filename + ".gz"):
-                        fs_id = put_file_in_gridfs(filename + ".gz", db, collection_name="lobster_files",
-                                                   compress=False, compression_type="zlib")
+                        fs_id = put_file_in_gridfs(
+                            filename + ".gz",
+                            db,
+                            collection_name="lobster_files",
+                            compress=False,
+                            compression_type="zlib",
+                        )
 
                     if fs_id:
                         key_name = filename.split(".")[0].lower() + "_id"
@@ -265,6 +326,7 @@ class RunLobsterFake(FiretaskBase):
          params_to_check (list): optional list of lobsterin parameters to check
          check_lobsterin (bool): whether to confirm the lobsterin params (default: True)
      """
+
     required_params = ["ref_dir"]
     optional_params = ["params_to_check", "check_lobsterin"]
 
@@ -278,7 +340,9 @@ class RunLobsterFake(FiretaskBase):
 
         # Check lobsterin
         if self.get("check_lobsterin", True):
-            ref_lobsterin = Lobsterin.from_file(os.path.join(self["ref_dir"], "inputs", "lobsterin"))
+            ref_lobsterin = Lobsterin.from_file(
+                os.path.join(self["ref_dir"], "inputs", "lobsterin")
+            )
             params_to_check = self.get("params_to_check", [])
             for p in params_to_check:
                 if user_lobsterin.get(p, None) != ref_lobsterin.get(p, None):

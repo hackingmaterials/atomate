@@ -21,16 +21,24 @@ from pymatgen.io.lobster import Lobsterin
 from pymatgen.io.vasp.sets import LobsterSet
 
 __author__ = "Janine George, Guido Petretto"
-__email__ = 'janine.george@uclouvain.be, guido.petretto@uclouvain.be'
+__email__ = "janine.george@uclouvain.be, guido.petretto@uclouvain.be"
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 logger = logging.getLogger(__name__)
 
 
-def get_wf_lobster(structure: Structure, calculation_type: str = 'standard', delete_all_wavecars: bool = True,
-                   user_lobsterin_settings: dict = None, user_incar_settings: dict = None,
-                   user_kpoints_settings: dict = None, user_supplied_basis: dict = None,
-                   isym: int = 0, c: dict = None, additional_outputs: List[str] = None) -> Workflow:
+def get_wf_lobster(
+    structure: Structure,
+    calculation_type: str = "standard",
+    delete_all_wavecars: bool = True,
+    user_lobsterin_settings: dict = None,
+    user_incar_settings: dict = None,
+    user_kpoints_settings: dict = None,
+    user_supplied_basis: dict = None,
+    isym: int = 0,
+    c: dict = None,
+    additional_outputs: List[str] = None,
+) -> Workflow:
     """
     Creates a workflow for a static vasp calculation followed by a Lobster calculation.
 
@@ -61,32 +69,52 @@ def get_wf_lobster(structure: Structure, calculation_type: str = 'standard', del
     db_file = c.get("DB_FILE", DB_FILE)
 
     fws = []
-    staticfw = StaticFW(structure=structure,
-                        vasp_input_set=LobsterSet(structure, user_incar_settings=user_incar_settings,
-                                                  user_kpoints_settings=user_kpoints_settings, isym=isym),
-                        vasp_cmd=vasp_cmd, db_file=db_file)
+    staticfw = StaticFW(
+        structure=structure,
+        vasp_input_set=LobsterSet(
+            structure,
+            user_incar_settings=user_incar_settings,
+            user_kpoints_settings=user_kpoints_settings,
+            isym=isym,
+        ),
+        vasp_cmd=vasp_cmd,
+        db_file=db_file,
+    )
     fws.append(staticfw)
-    fws.append(LobsterFW(structure=structure, parents=staticfw, calculation_type=calculation_type,
-                         delete_wavecar=delete_all_wavecars,
-                         delete_wavecar_previous_fw=delete_all_wavecars, lobster_cmd=lobster_cmd,
-                         db_file=db_file, lobsterin_key_dict=user_lobsterin_settings,
-                         user_supplied_basis=user_supplied_basis, handler_group="default",
-                         validator_group="strict",
-                         additional_outputs=additional_outputs))
+    fws.append(
+        LobsterFW(
+            structure=structure,
+            parents=staticfw,
+            calculation_type=calculation_type,
+            delete_wavecar=delete_all_wavecars,
+            delete_wavecar_previous_fw=delete_all_wavecars,
+            lobster_cmd=lobster_cmd,
+            db_file=db_file,
+            lobsterin_key_dict=user_lobsterin_settings,
+            user_supplied_basis=user_supplied_basis,
+            handler_group="default",
+            validator_group="strict",
+            additional_outputs=additional_outputs,
+        )
+    )
 
     workflow = Workflow(fws, name="LobsterWorkflow")
     return workflow
 
 
-def get_wf_lobster_test_basis(structure: Structure, calculation_type: str = 'standard', delete_all_wavecars: bool =
-True,
-                              c: dict = None,
-                              address_max_basis: Optional[str] = None,
-                              address_min_basis: Optional[str] = None,
-                              user_lobsterin_settings: dict = None,
-                              user_incar_settings: dict = None,
-                              user_kpoints_settings: dict = None,
-                              isym: int = 0, additional_outputs: List[str] = None) -> Workflow:
+def get_wf_lobster_test_basis(
+    structure: Structure,
+    calculation_type: str = "standard",
+    delete_all_wavecars: bool = True,
+    c: dict = None,
+    address_max_basis: Optional[str] = None,
+    address_min_basis: Optional[str] = None,
+    user_lobsterin_settings: dict = None,
+    user_incar_settings: dict = None,
+    user_kpoints_settings: dict = None,
+    isym: int = 0,
+    additional_outputs: List[str] = None,
+) -> Workflow:
     """
     creates workflow where all possible basis functions for one compound are tested
     at the end, the user has to decide which projection worked best (e.g., based on chargespilling)
@@ -117,45 +145,76 @@ True,
 
     fws = []
     # get the relevant potcar files!
-    inputset = LobsterSet(structure, address_basis_file=address_max_basis,
-                          user_incar_settings=user_incar_settings,
-                          user_kpoints_settings=user_kpoints_settings, isym=isym)
+    inputset = LobsterSet(
+        structure,
+        address_basis_file=address_max_basis,
+        user_incar_settings=user_incar_settings,
+        user_kpoints_settings=user_kpoints_settings,
+        isym=isym,
+    )
     # get the basis from dict_max_basis
     potcar_symbols = inputset.potcar_symbols
 
     # will get all possible basis functions that have to be tested
     if address_max_basis is None and address_min_basis is None:
-        list_basis_dict = Lobsterin.get_all_possible_basis_functions(structure=structure, potcar_symbols=potcar_symbols)
+        list_basis_dict = Lobsterin.get_all_possible_basis_functions(
+            structure=structure, potcar_symbols=potcar_symbols
+        )
     elif address_max_basis is not None and address_min_basis is None:
-        list_basis_dict = Lobsterin.get_all_possible_basis_functions(structure=structure, potcar_symbols=potcar_symbols,
-                                                                     address_basis_file_max=address_max_basis)
+        list_basis_dict = Lobsterin.get_all_possible_basis_functions(
+            structure=structure,
+            potcar_symbols=potcar_symbols,
+            address_basis_file_max=address_max_basis,
+        )
     elif address_min_basis is not None and address_max_basis is None:
-        list_basis_dict = Lobsterin.get_all_possible_basis_functions(structure=structure, potcar_symbols=potcar_symbols,
-                                                                     address_basis_file_min=address_min_basis)
+        list_basis_dict = Lobsterin.get_all_possible_basis_functions(
+            structure=structure,
+            potcar_symbols=potcar_symbols,
+            address_basis_file_min=address_min_basis,
+        )
     elif address_min_basis is not None and address_max_basis is not None:
-        list_basis_dict = Lobsterin.get_all_possible_basis_functions(structure=structure, potcar_symbols=potcar_symbols,
-                                                                     address_basis_file_max=address_max_basis,
-                                                                     address_basis_file_min=address_min_basis)
+        list_basis_dict = Lobsterin.get_all_possible_basis_functions(
+            structure=structure,
+            potcar_symbols=potcar_symbols,
+            address_basis_file_max=address_max_basis,
+            address_basis_file_min=address_min_basis,
+        )
 
-    staticfw = StaticFW(structure=structure,
-                        vasp_input_set=inputset,
-                        vasp_cmd=vasp_cmd, db_file=db_file, name="static")
+    staticfw = StaticFW(
+        structure=structure,
+        vasp_input_set=inputset,
+        vasp_cmd=vasp_cmd,
+        db_file=db_file,
+        name="static",
+    )
     fws.append(staticfw)
 
     # append all lobster calculations that need to be done
     fws_lobster = []
     for ibasis, basis_dict in enumerate(list_basis_dict):
         fws_lobster.append(
-            LobsterFW(structure=structure, parents=staticfw, calculation_type=calculation_type,
-                      delete_wavecar=delete_all_wavecars,
-                      delete_wavecar_previous_fw=False, lobster_cmd=lobster_cmd,
-                      db_file=db_file, user_supplied_basis=basis_dict,
-                      lobsterin_key_dict=user_lobsterin_settings,
-                      handler_group="default", validator_group="strict",
-                      name="lobster_calculation_{}".format(ibasis),
-                      lobstertodb_kwargs={"additional_fields": {"basis_id": ibasis,
-                                                                "number_lobster_runs": len(list_basis_dict)}},
-                      additional_outputs=additional_outputs))
+            LobsterFW(
+                structure=structure,
+                parents=staticfw,
+                calculation_type=calculation_type,
+                delete_wavecar=delete_all_wavecars,
+                delete_wavecar_previous_fw=False,
+                lobster_cmd=lobster_cmd,
+                db_file=db_file,
+                user_supplied_basis=basis_dict,
+                lobsterin_key_dict=user_lobsterin_settings,
+                handler_group="default",
+                validator_group="strict",
+                name="lobster_calculation_{}".format(ibasis),
+                lobstertodb_kwargs={
+                    "additional_fields": {
+                        "basis_id": ibasis,
+                        "number_lobster_runs": len(list_basis_dict),
+                    }
+                },
+                additional_outputs=additional_outputs,
+            )
+        )
 
     fws.extend(fws_lobster)
     # wavecar from static run is deleted, WAVECARs without symmetry can be huge!
