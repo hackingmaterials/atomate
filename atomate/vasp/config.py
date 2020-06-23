@@ -1,4 +1,4 @@
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = "Anubhav Jain <ajain@lbl.gov>"
 
 # TODO: @computron should be able to load from YAML -computron
 
@@ -43,11 +43,35 @@ STORE_VOLUMETRIC_DATA = ("chgcar", "aeccar0", "aeccar2", "elfcar", "locpot")
 STORE_ADDITIONAL_JSON = False
 
 # vasp output files that will be copied to lobster run
-VASP_OUTPUT_FILES = ["OUTCAR", "vasprun.xml", "CHG", "CHGCAR", "CONTCAR", "INCAR", "KPOINTS", "POSCAR", "POTCAR",
-                     "DOSCAR", "EIGENVAL", "IBZKPT", "OSZICAR", "WAVECAR", "XDATCAR"]
+VASP_OUTPUT_FILES = [
+    "OUTCAR",
+    "vasprun.xml",
+    "CHG",
+    "CHGCAR",
+    "CONTCAR",
+    "INCAR",
+    "KPOINTS",
+    "POSCAR",
+    "POTCAR",
+    "DOSCAR",
+    "EIGENVAL",
+    "IBZKPT",
+    "OSZICAR",
+    "WAVECAR",
+    "XDATCAR",
+]
 
 # lobster output files
 LOBSTERINPUT_FILES = ["lobsterin"]
-LOBSTEROUTPUT_FILES = ["lobsterout", "CHARGE.lobster", "COHPCAR.lobster", "COOPCAR.lobster", "DOSCAR.lobster",
-                       "GROSSPOP.lobster", "ICOHPLIST.lobster", "ICOOPLIST.lobster", "lobster.out",
-                       "projectionData.lobster"]
+LOBSTEROUTPUT_FILES = [
+    "lobsterout",
+    "CHARGE.lobster",
+    "COHPCAR.lobster",
+    "COOPCAR.lobster",
+    "DOSCAR.lobster",
+    "GROSSPOP.lobster",
+    "ICOHPLIST.lobster",
+    "ICOOPLIST.lobster",
+    "lobster.out",
+    "projectionData.lobster",
+]
