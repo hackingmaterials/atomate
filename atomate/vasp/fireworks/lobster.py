@@ -7,20 +7,17 @@ import logging
 import os
 from typing import List, Union
 
+from fireworks import Firework
+
 from atomate.common.firetasks.glue_tasks import DeleteFiles, PassCalcLocs, DeleteFilesPrevFolder
-from atomate.vasp.config import DB_FILE
+from atomate.vasp.config import DB_FILE, LOBSTER_CMD, VASP_OUTPUT_FILES
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from atomate.vasp.firetasks.lobster_tasks import WriteLobsterinputfromIO, RunLobster, LobsterRunToDb
 from custodian.custodian import ErrorHandler, Validator
-from fireworks import Firework
 from pymatgen.core.structure import Structure
 
 __author__ = "Janine George, Guido Petretto"
 __email__ = 'janine.george@uclouvain.be, guido.petretto@uclouvain.be'
-
-LOBSTER_CMD = ">>lobster_cmd<<"
-VASP_OUTPUT_FILES_without_PPKI = ["OUTCAR", "vasprun.xml", "CHG", "CHGCAR", "CONTCAR", "DOSCAR", "EIGENVAL", "IBZKPT",
-                                  "OSZICAR", "PCDAT", "PROCAR", "REPORT", "WAVECAR", "XDATCAR"]
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 logger = logging.getLogger(__name__)
@@ -36,7 +33,7 @@ class LobsterFW(Firework):
                  delete_wavecar_previous_fw: bool = False,
                  handler_group: Union[List[ErrorHandler], str] = "default",
                  validator_group: Union[List[Validator], str] = "default",
-                 calculationtype: str = 'standard',
+                 calculation_type: str = 'standard',
                  parents: Union[List[Firework], Firework] = None,
                  prev_calc_dir: str = None, prev_calc_loc: bool = True, user_supplied_basis: dict = None,
                  lobsterin_key_dict: dict = None, lobstertodb_kwargs: dict = None,
@@ -48,15 +45,16 @@ class LobsterFW(Firework):
             name (str): name of the firework
             lobster_cmd (str): command to run lobster
             db_file (str): address to db_file
-            delete_wavecar (bool): If True, WAVECAR will be deleted
-            delete_wavecar_previous_fw (bool): If True, WAVECAR from VASP calc will be deleted
+            delete_wavecar (bool): If True, WAVECAR will be deleted in the folder of the Lobster run
+            delete_wavecar_previous_fw (bool): If True, WAVECAR from initial VASP calc will be deleted
             handler_group (Union[List[ErrorHandler],str])): group of handlers to use. See handler_groups dict in the code for
                 the groups and complete list of handlers in each group. Alternatively, you can
-                specify a list of ErrorHandler objects.
+                specify a list of ErrorHandler objects. This information can be found in the lobster module of
+                custodian.
             validator_group (Union[List[Validator],str]): group of validators to use. See validator_groups dict in the
                 code for the groups and complete list of validators in each group. Alternatively, you can
-            specify a list of Validator objects.
-            calculationtype (str): only 'standard' is fully implemented so far
+                specify a list of Validator objects.
+            calculation_type (str): only 'standard' is fully implemented so far
             parents (Union[List[Firework],Firework]): parent Firework
             prev_calc_dir (str): address to previous vasp calculation
             prev_calc_loc (bool): If true, calc wil be started from previous directory
@@ -76,21 +74,22 @@ class LobsterFW(Firework):
 
         t = []
         # copies all files from previous VASP calculation;
+        additional_files = [f for f in VASP_OUTPUT_FILES if f not in ["POSCAR", "POTCAR", "KPOINTS", "INCAR"]]
         if prev_calc_dir:
             t.append(
-                CopyVaspOutputs(calc_dir=prev_calc_dir, additional_files=VASP_OUTPUT_FILES_without_PPKI,
+                CopyVaspOutputs(calc_dir=prev_calc_dir, additional_files=additional_files,
                                 contcar_to_poscar=False))
             calc_loc = False
         elif parents:
             t.append(
-                CopyVaspOutputs(calc_loc=prev_calc_loc, additional_files=VASP_OUTPUT_FILES_without_PPKI,
+                CopyVaspOutputs(calc_loc=prev_calc_loc, additional_files=additional_files,
                                 contcar_to_poscar=False))
             calc_loc = True
         else:
             raise ValueError("One must specify a VASP calculation for Lobster run")
 
         t.append(WriteLobsterinputfromIO(poscar_path='POSCAR', incar_path='INCAR', potcar_path='POTCAR',
-                                         option=calculationtype, user_supplied_basis=user_supplied_basis,
+                                         option=calculation_type, user_supplied_basis=user_supplied_basis,
                                          user_lobsterin_settings=lobsterin_key_dict))
 
         # runs lobster

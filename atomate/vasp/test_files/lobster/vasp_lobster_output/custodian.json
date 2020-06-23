@@ -1,7 +1,7 @@
 [
     {
         "job": {
-            "@module": "custodian_here",
+            "@module": "custodian",
             "@class": "LobsterJob",
             "@version": null,
             "lobster_cmd": "/home/ucl/naps/jgeorge/bin/lobster-3.2.0",

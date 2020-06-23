@@ -10,33 +10,24 @@ import os
 import shutil
 import warnings
 
-from atomate.common.firetasks.glue_tasks import get_calc_loc
-from atomate.utils.utils import env_chk, get_meta_from_structure
-from atomate.vasp.database import VaspCalcDb, put_file_in_gridfs
-from custodian import Custodian
-from custodian.lobster.handlers import ChargeSpillingValidator, EnoughBandsValidator, LobsterFilesValidator
-from custodian.lobster.jobs import LobsterJob
 from fireworks import FiretaskBase, explicit_serialize, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from monty.json import jsanitize
 from monty.os.path import zpath
 from monty.serialization import loadfn
+
+from atomate.common.firetasks.glue_tasks import get_calc_loc
+from atomate.utils.utils import env_chk, get_meta_from_structure
+from atomate.vasp.config import VASP_OUTPUT_FILES
+from atomate.vasp.database import VaspCalcDb, put_file_in_gridfs
+from custodian import Custodian
+from custodian.lobster.handlers import ChargeSpillingValidator, EnoughBandsValidator, LobsterFilesValidator
+from custodian.lobster.jobs import LobsterJob
 from pymatgen.core.structure import Structure
 from pymatgen.io.lobster import Lobsterout, Lobsterin
 
 __author__ = "Janine George, Guido Petretto"
 __email__ = 'janine.george@uclouvain.be, guido.petretto@uclouvain.be'
-
-LOBSTERINPUT_FILES = ["lobsterin"]
-LOBSTEROUTPUT_FILES = ["lobsterout", "CHARGE.lobster", "COHPCAR.lobster", "COOPCAR.lobster", "DOSCAR.lobster",
-                       "GROSSPOP.lobster", "ICOHPLIST.lobster", "ICOOPLIST.lobster", "lobster.out",
-                       "projectionData.lobster"]
-
-VASP_OUTPUT_FILES = ["OUTCAR", "vasprun.xml", "CHG", "CHGCAR", "CONTCAR", "INCAR", "KPOINTS", "POSCAR", "POTCAR",
-                     "DOSCAR", "EIGENVAL", "IBZKPT", "OSZICAR", "PCDAT", "PROCAR", "REPORT", "WAVECAR", "XDATCAR"]
-VASP_OUTPUT_FILES_without_WAVECAR = ["OUTCAR", "vasprun.xml", "CHG", "CHGCAR", "CONTCAR", "INCAR", "KPOINTS", "POSCAR",
-                                     "POTCAR",
-                                     "DOSCAR", "EIGENVAL", "IBZKPT", "OSZICAR", "PCDAT", "PROCAR", "REPORT", "XDATCAR"]
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 logger = logging.getLogger(__name__)
@@ -46,17 +37,18 @@ logger = logging.getLogger(__name__)
 class WriteLobsterinputfromIO(FiretaskBase):
     """
     will write lobsterin from POSCAR, INCAR, POTCAR
-    Required Params:
-        poscar_path (str): path of POSCAR
-        incar_path (str): path of INCAR
-        potcar_path (str): address to POSCAR
-        option (str): options as in Lobsterin.standard_calculations_from_vasp_files
     Optional Params:
+        poscar_path (str): path of POSCAR (will use "POSCAR" if not specified)
+        incar_path (str): path of INCAR (will use "INCAR" if not specified)
+        potcar_path (str): address to POSCAR (will use "POTCAR" if not specified)
+        option (str): options as in Lobsterin.standard_calculations_from_vasp_files (will use "standard" if not
+        specified)
         user_supplied_basis (dict): dictionary including the basis for each atom type
         user_lobsterin_settings (dict): dictionary that will be used to overwrite settings in Lobsterin dict
     """
-    required_params = ["poscar_path", "incar_path", "potcar_path", "option"]
-    optional_params = ["user_supplied_basis", "user_lobsterin_settings"]
+
+    optional_params = ["user_supplied_basis", "user_lobsterin_settings", "poscar_path", "incar_path", "potcar_path",
+                       "option"]
 
     def run_task(self, fw_spec):
         poscar_path = self.get("poscar_path", "POSCAR")
@@ -83,28 +75,27 @@ class RunLobster(FiretaskBase):
     """
     Starts the Lobster Job
     Optional params:
-        lobster_cmd (str): command to run lobster
-        gzip_output (bool): If true, output (except WAVECAR) will be gzipped.
-        gzip_WAVECAR (bool): If true, WAVECAR will be gzipped
+        lobster_cmd (str): command to run lobster, supports env_chk
+        gzip_output (bool): Default: True. If true, output (except WAVECAR) will be gzipped.
+        gzip_WAVECAR (bool): Default: False. If true, WAVECAR will be gzipped
         handler_group (str or [ErrorHandler]): group of handlers to use. See handler_groups dict in the code for
             the groups and complete list of handlers in each group. Alternatively, you can
-            specify a list of ErrorHandler objects.
+            specify a list of ErrorHandler objects. These handlers can be found in the lobster module of custodian.
         validator_group (str or [Validator]): group of validators to use. See validator_groups dict in the
             code for the groups and complete list of validators in each group. Alternatively, you can
             specify a list of Validator objects.
     """
 
-    required_params = []
     optional_params = ["lobster_cmd", "gzip_output", "gzip_WAVECAR", "handler_group", "validator_group"]
 
     def run_task(self, fw_spec):
         lobster_cmd = env_chk(self.get('lobster_cmd'), fw_spec)
-        gzip_output = self.get("gzip_output", False)
+        gzip_output = self.get("gzip_output", True)
         gzip_WAVECAR = self.get("gzip_WAVECAR", False)
         if gzip_WAVECAR:
             add_files_to_gzip = VASP_OUTPUT_FILES
         else:
-            add_files_to_gzip = VASP_OUTPUT_FILES_without_WAVECAR
+            add_files_to_gzip = [f for f in VASP_OUTPUT_FILES if f not in ["WAVECAR"]]
 
         handler_groups = {
             "default": [],
@@ -144,7 +135,7 @@ class RunLobster(FiretaskBase):
 @explicit_serialize
 class LobsterRunToDb(FiretaskBase):
     """
-    Adds Lobster Calculation to Database.Uses current directory unless you
+    Adds Lobster Calculation to collection "lobster" of the Database. Uses current directory unless you
     specify calc_dir or calc_loc.
     Optional params:
         calc_dir (str): path to dir (on current filesystem) that contains VASP
@@ -161,8 +152,7 @@ class LobsterRunToDb(FiretaskBase):
             "ICOHPLIST.lobster" or "DOSCAR.lobster". Note that the file name
             should be given with the full name and the correct capitalization.
     """
-    # TODO: which ones are required, which are optional
-    # TODO: check if other files can be saved as well
+
     optional_params = ["calc_dir", "calc_loc", "additional_fields", "db_file", "fw_spec_field",
                        "additional_outputs"]
 
@@ -183,50 +173,39 @@ class LobsterRunToDb(FiretaskBase):
                     warnings.warn(f"{ao} not in the list of standard additional outputs. "
                                   f"Check that you did not misspell it.")
 
+    def _find_gz_file(self, filename):
+        gz_filename = filename + ".gz"
+        if os.path.exists(gz_filename):
+            return gz_filename
+        elif os.path.exists(filename):
+            return filename
+        else:
+            raise ValueError("{}/{} does not exist".format(filename, gz_filename))
+
     def run_task(self, fw_spec):
 
         vasp_calc_dir = self.get("calc_dir", None)
-        # TODO: ist this even correct?
         vasp_calc_loc = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"]) if self.get("calc_loc") else {}
 
         # get the directory that contains the Lobster dir to parse
-        calc_dir = os.getcwd()
+        current_dir = os.getcwd()
         # parse the Lobster directory
-        logger.info("PARSING DIRECTORY: {}".format(calc_dir))
-        if os.path.exists("POSCAR.gz"):
-            struct = Structure.from_file("POSCAR.gz")
-        elif os.path.exists("POSCAR"):
-            struct = Structure.from_file("POSCAR")
-        else:
-            raise ValueError("POSCAR.gz/POSCAR does not exist")
-
-        # use lobsterout from pymatgen to get all the information
-        if os.path.exists("lobsterout.gz"):
-            Lobsterout_here = Lobsterout("lobsterout.gz")
-        elif os.path.exists("lobsterout"):
-            Lobsterout_here = Lobsterout("lobsterout")
-        else:
-            raise ValueError("lobsterout.gz/lobsterout does not exist")
-        # will get document from Lobsterout
+        logger.info("PARSING DIRECTORY: {}".format(current_dir))
         task_doc = {}
-        task_doc["output"] = jsanitize(Lobsterout_here.get_doc())
-        if os.path.exists("lobsterin.gz"):
-            task_doc["input"] = jsanitize(Lobsterin.from_file("lobsterin.gz"))
-        elif os.path.exists("lobsterin"):
-            task_doc["input"] = jsanitize(Lobsterin.from_file("lobsterin"))
-        else:
-            raise ValueError("lobsterin.gz/lobsterin does not exist")
-        if os.path.exists("lobsterin.orig.gz"):
-            task_doc["orig_input"] = jsanitize(Lobsterin.from_file("lobsterin.orig.gz"))
-        elif os.path.exists("lobsterin.orig"):
-            task_doc["orig_input"] = jsanitize(Lobsterin.from_file("lobsterin.orig"))
-        # save custodian details
+        struct = Structure.from_file(self._find_gz_file("POSCAR"))
+        Lobsterout_here = Lobsterout(self._find_gz_file("lobsterout"))
+        task_doc["output"] = Lobsterout_here.get_doc()
+        Lobsterin_here = Lobsterin.from_file(self._find_gz_file("lobsterin"))
+        task_doc["input"] = Lobsterin_here
         try:
-            with open("custodian.json", "r") as f:
-                custodian_details = json.load(f)
-            task_doc["custodian"] = jsanitize(custodian_details)
-        except:
+            Lobsterin_orig = Lobsterin.from_file(self._find_gz_file("lobsterin.orig"))
+            task_doc["orig_input"] = Lobsterin_orig
+        except ValueError:
             pass
+        # save custodian details
+        if os.path.exists("custodian.json"):
+            task_doc["custodian"] = loadfn("custodian.json")
+
         additional_fields = self.get("additional_fields", {})
         if additional_fields:
             task_doc.update(additional_fields["additional_fields"])
@@ -236,7 +215,7 @@ class LobsterRunToDb(FiretaskBase):
             task_doc["vasp_dir_name"] = vasp_calc_dir
         else:
             task_doc["vasp_dir_name"] = vasp_calc_loc["path"]
-        task_doc["dir_name"] = os.getcwd()
+        task_doc["dir_name"] = current_dir
 
         # Check for additional keys to set based on the fw_spec
         if self.get("fw_spec_field"):
@@ -272,8 +251,6 @@ class LobsterRunToDb(FiretaskBase):
                         task_doc[key_name] = fs_id
 
             db.insert(task_doc)
-            logger.info("Lobster calculation is complete.")
-
         return FWAction()
 
 
@@ -299,16 +276,12 @@ class RunLobsterFake(FiretaskBase):
     def _verify_inputs(self):
         user_lobsterin = Lobsterin.from_file(os.path.join(os.getcwd(), "lobsterin"))
 
-        # Carry out some BASIC tests.
-
         # Check lobsterin
         if self.get("check_lobsterin", True):
-            # TODO understand this class better
             ref_lobsterin = Lobsterin.from_file(os.path.join(self["ref_dir"], "inputs", "lobsterin"))
             params_to_check = self.get("params_to_check", [])
-            defaults = {"basisSet": "pbeVaspFit2015", "cohpEndEnergy": 5.0}
             for p in params_to_check:
-                if user_lobsterin.get(p, defaults.get(p)) != ref_lobsterin.get(p, defaults.get(p)):
+                if user_lobsterin.get(p, None) != ref_lobsterin.get(p, None):
                     raise ValueError("lobsterin value of {} is inconsistent!".format(p))
 
         logger.info("RunLobsterFake: verified inputs successfully")
@@ -327,23 +300,5 @@ class RunLobsterFake(FiretaskBase):
             full_file_name = os.path.join(output_dir, file_name)
             if os.path.isfile(full_file_name):
                 shutil.copy(full_file_name, os.getcwd())
-
-        # if self.get("gzipped_WAVECAR", False):
-        #     for file in LOBSTEROUTPUT_FILES:
-        #         if os.path.exists(file):
-        #             compress_file(file, compression="gz")
-        #     for file in LOBSTERINPUT_FILES:
-        #         if os.path.exists(file):
-        #             compress_file(file, compression="gz")
-        #     if self.get("backup", False):
-        #         if os.path.exists("lobsterin.orig"):
-        #             compress_file("lobsterin.orig", compression="gz")
-        #     for file in VASP_OUTPUT_FILES:
-        #         if self.get("gzipped_WAVECAR", False):
-        #             if os.path.exists(file):
-        #                 compress_file(file, compression="gz")
-        #         else:
-        #             if os.path.exists(file) and file != 'WAVECAR':
-        #                 compress_file(file, compression="gz")
 
         logger.info("RunLobsterFake: ran fake lobster, generated outputs")

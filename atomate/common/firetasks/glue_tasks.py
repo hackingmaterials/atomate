@@ -175,7 +175,8 @@ class DeleteFilesPrevFolder(DeleteFiles):
         files: list of files to remove
     Optional params:
         calc_dir: directory to delete the files from
-        calc_loc: if True, files will be deleted from the previous calculation folder; if string, the folder corresponding this string will be deleted
+        calc_loc (str OR bool): if True will set most recent calc_loc. If str
+             search for the most recent calc_loc with the matching name
     """
 
     required_params = ["files"]

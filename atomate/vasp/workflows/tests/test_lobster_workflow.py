@@ -9,7 +9,7 @@ from atomate.utils.testing import AtomateTest
 from atomate.utils.testing import DB_DIR
 from atomate.vasp.powerups import use_fake_lobster
 from atomate.vasp.powerups import use_fake_vasp, use_custodian
-from atomate.vasp.workflows.base.lobster import get_all_possible_basis_combinations, get_wf_lobster, \
+from atomate.vasp.workflows.base.lobster import get_wf_lobster, \
     get_wf_lobster_test_basis
 from fireworks.core.rocket_launcher import rapidfire
 from pymatgen.core.structure import Structure
@@ -19,7 +19,7 @@ from atomate.vasp.powerups import use_potcar_spec
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 VASP_CMD = None
-LOBSTER_CMD = None
+#LOBSTER_CMD = None
 DEBUG = False
 DB_FILE = os.path.join(DB_DIR, "db.json")
 refs_dirs_si_vasp = {"static": os.path.join(module_dir, "../../test_files/lobster/si_vasp_lobster/vasp/")}
@@ -131,44 +131,6 @@ class TestWFLobster(AtomateTest):
     #     if VASP_CMD and LOBSTER_CMD:
     #        self._single_vasp_lobster(fake=False)
 
-
-class TestUtils(PymatgenTest):
-
-    def test_get_all_possible_basis_combinations(self):
-        # this basis is just for testing (not correct)
-        min_basis = ['Li 1s 2s ', 'Na 1s 2s', 'Si 1s 2s']
-        max_basis = ['Li 1s 2p 2s ', 'Na 1s 2p 2s', 'Si 1s 2s']
-        combinations_basis = get_all_possible_basis_combinations(min_basis, max_basis)
-        self.assertListEqual(combinations_basis,
-                             [['Li 1s 2s', 'Na 1s 2s', 'Si 1s 2s'], ['Li 1s 2s', 'Na 1s 2s 2p', 'Si 1s 2s'],
-                              ['Li 1s 2s 2p', 'Na 1s 2s', 'Si 1s 2s'], ['Li 1s 2s 2p', 'Na 1s 2s 2p', 'Si 1s 2s']])
-
-        min_basis = ['Li 1s 2s']
-        max_basis = ['Li 1s 2s 2p 3s']
-        combinations_basis = get_all_possible_basis_combinations(min_basis, max_basis)
-        self.assertListEqual(combinations_basis, [['Li 1s 2s'], ['Li 1s 2s 2p'], ['Li 1s 2s 3s'], ['Li 1s 2s 2p 3s']])
-
-        min_basis = ['Li 1s 2s', 'Na 1s 2s']
-        max_basis = ['Li 1s 2s 2p 3s', 'Na 1s 2s 2p 3s']
-        combinations_basis = get_all_possible_basis_combinations(min_basis, max_basis)
-        self.assertListEqual(combinations_basis,
-                             [['Li 1s 2s', 'Na 1s 2s'], ['Li 1s 2s', 'Na 1s 2s 2p'], ['Li 1s 2s', 'Na 1s 2s 3s'],
-                              ['Li 1s 2s', 'Na 1s 2s 2p 3s'], ['Li 1s 2s 2p', 'Na 1s 2s'],
-                              ['Li 1s 2s 2p', 'Na 1s 2s 2p'], ['Li 1s 2s 2p', 'Na 1s 2s 3s'],
-                              ['Li 1s 2s 2p', 'Na 1s 2s 2p 3s'], ['Li 1s 2s 3s', 'Na 1s 2s'],
-                              ['Li 1s 2s 3s', 'Na 1s 2s 2p'], ['Li 1s 2s 3s', 'Na 1s 2s 3s'],
-                              ['Li 1s 2s 3s', 'Na 1s 2s 2p 3s'], ['Li 1s 2s 2p 3s', 'Na 1s 2s'],
-                              ['Li 1s 2s 2p 3s', 'Na 1s 2s 2p'], ['Li 1s 2s 2p 3s', 'Na 1s 2s 3s'],
-                              ['Li 1s 2s 2p 3s', 'Na 1s 2s 2p 3s']])
-
-        min_basis = ['Si 1s 2s 2p', 'Na 1s 2s']
-        max_basis = ['Si 1s 2s 2p 3s', 'Na 1s 2s 2p 3s']
-        combinations_basis = get_all_possible_basis_combinations(min_basis, max_basis)
-        self.assertListEqual(combinations_basis, [['Si 1s 2s 2p', 'Na 1s 2s'], ['Si 1s 2s 2p', 'Na 1s 2s 2p'],
-                                                  ['Si 1s 2s 2p', 'Na 1s 2s 3s'], ['Si 1s 2s 2p', 'Na 1s 2s 2p 3s'],
-                                                  ['Si 1s 2s 2p 3s', 'Na 1s 2s'], ['Si 1s 2s 2p 3s', 'Na 1s 2s 2p'],
-                                                  ['Si 1s 2s 2p 3s', 'Na 1s 2s 3s'],
-                                                  ['Si 1s 2s 2p 3s', 'Na 1s 2s 2p 3s']])
 
 
 class TestWFLobsterTestBasis(AtomateTest):

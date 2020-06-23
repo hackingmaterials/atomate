@@ -16,9 +16,6 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 reference_dir = os.path.join(module_dir, "..", "..", "test_files")
 
-DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
-VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
-
 
 class TestLobsterFireworks(unittest.TestCase):
     def setUp(self):
@@ -29,7 +26,7 @@ class TestLobsterFireworks(unittest.TestCase):
 
     def testLobsterFW(self):
         static_fw = StaticFW(structure=self.structure).name
-        self.assertEqual(LobsterFW(structure=self.structure, parents=static_fw).name, "Si-lobster_calculation",)
+        self.assertEqual(LobsterFW(structure=self.structure, parents=static_fw).name, "Si-lobster_calculation", )
         lobster_fw = LobsterFW(prev_calc_dir="/", delete_wavecar=True, delete_wavecar_previous_fw=True)
         self.assertEqual(lobster_fw.name, "unknown-lobster_calculation")
         self.assertEqual(lobster_fw.tasks[0]["calc_dir"], "/")
