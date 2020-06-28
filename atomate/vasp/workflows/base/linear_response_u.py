@@ -225,74 +225,87 @@ def get_wf_linear_response_u(structure,
         for v in applied_potential_values:
 
             sign = 'neg' if str(v)[0] == '-' else 'pos'
+            signs = []
 
-            # Update perturbation potential for U and J
-            for k in ["LDAUL", "LDAUU", "LDAUJ"]:
-                if (k == "LDAUL"):
-                    # for LDAUL
-                    # FIX ME: shouldn't hard code LDAUL = 2
-                    for i in range(num_perturb):
-                        if i == counter_perturb:
-                            val_dict[k].update({"perturb"+str(i):2})
-                        else:
-                            val_dict[k].update({"perturb"+str(i):-1})
-                else:
-                    # for LDAUU and LDAUJ
-                    for i in range(num_perturb):
-                        if i == counter_perturb:
-                            val_dict[k].update({"perturb"+str(i):v})
-                        else:
-                            val_dict[k].update({"perturb"+str(i):0})
-                            uis_ldau.update({k:val_dict[k].copy()})
-
-            # Non-SCF runs
-            uis_ldau.update({"ISTART":1, "ICHARG":11})
-
-            vis_params = {"user_incar_settings": uis_ldau.copy()}
-            vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
-
-            if ground_state_dir:
-                parents = []
+            spin_potential_values = []
+            if spin_polarized:
+                spin_potential_values = [{"LDAUU": v, "LDAUJ": 0.0}, {"LDAUU": 0.0, "LDAUJ": v}]
+                signs = [{"LDAUU": sign, "LDAUJ": ""}, {"LDAUU": "", "LDAUJ": sign}]
             else:
-                parents=fws[0]
+                spin_potential_values = [{"LDAUU": v, "LDAUJ": v}]
+                signs = [{"LDAUU": sign, "LDAUJ": sign}]
 
-            additional_files = ["WAVECAR","CHGCAR"]
+            for spin_pot_dict, sign_dict in zip(spin_potential_values, signs):
 
-            fw = LinearResponseUFW(structure=structure, parents=parents,
-                                   name="nscf_site{}_v_{}{}".format(counter_perturb,
-                                                                    sign, abs(round(v,6))),
-                                   vasp_input_set=vis_ldau,
-                                   additional_files=additional_files.copy(),
-                                   prev_calc_dir=ground_state_dir,
-                                   vasp_cmd=VASP_CMD, db_file=DB_FILE)
+                # Update perturbation potential for U and J
+                for k in ["LDAUL", "LDAUU", "LDAUJ"]:
+                    if (k == "LDAUL"):
+                        # for LDAUL
+                        # FIX ME: shouldn't hard code LDAUL = 2
+                        for i in range(num_perturb):
+                            if i == counter_perturb:
+                                val_dict[k].update({"perturb"+str(i):2})
+                            else:
+                                val_dict[k].update({"perturb"+str(i):-1})
+                    else:
+                        # for LDAUU and LDAUJ
+                        for i in range(num_perturb):
+                            if i == counter_perturb:
+                                val_dict[k].update({"perturb"+str(i):spin_pot_dict[k]})
+                            else:
+                                val_dict[k].update({"perturb"+str(i):0})
+                                uis_ldau.update({k:val_dict[k].copy()})
 
-            fws.append(fw)
+                # Non-SCF runs
+                uis_ldau.update({"ISTART":1, "ICHARG":11})
 
-            # SCF runs
-            uis_ldau.update({"ISTART":1, "ICHARG":0})
+                vis_params = {"user_incar_settings": uis_ldau.copy()}
+                vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
 
-            vis_params = {"user_incar_settings": uis_ldau.copy()}
-            vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
-
-            # NOTE: More efficient to reuse WAVECAR or remove dependency of SCF on NSCF?
-            if ground_state_dir:
-                parents = []
-            else:
-                if parallel_scheme == 0:
-                    parents=fws[-1]
+                if ground_state_dir:
+                    parents = []
                 else:
                     parents=fws[0]
 
-            additional_files = ["WAVECAR"]
-            
-            fw = LinearResponseUFW(structure=structure, parents=parents,
-                                   name="scf_site{}_v_{}{}".format(counter_perturb,
-                                                                   sign, abs(round(v,6))),
-                                   vasp_input_set=vis_ldau,
-                                   additional_files=additional_files.copy(),
-                                   prev_calc_dir=ground_state_dir,
-                                   vasp_cmd=VASP_CMD, db_file=DB_FILE)
-            fws.append(fw)
+                additional_files = ["WAVECAR","CHGCAR"]
+
+                fw = LinearResponseUFW(structure=structure, parents=parents,
+                                       name="nscf_site{}_vup_{}{}_vdn_{}{}".format(counter_perturb,
+                                                                                   sign_dict["LDAUU"], abs(round(spin_pot_dict["LDAUU"],6)),
+                                                                                   sign_dict["LDAUJ"], abs(round(spin_pot_dict["LDAUJ"],6))),
+                                       vasp_input_set=vis_ldau,
+                                       additional_files=additional_files.copy(),
+                                       prev_calc_dir=ground_state_dir,
+                                       vasp_cmd=VASP_CMD, db_file=DB_FILE)
+
+                fws.append(fw)
+
+                # SCF runs
+                uis_ldau.update({"ISTART":1, "ICHARG":0})
+
+                vis_params = {"user_incar_settings": uis_ldau.copy()}
+                vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
+
+                # NOTE: More efficient to reuse WAVECAR or remove dependency of SCF on NSCF?
+                if ground_state_dir:
+                    parents = []
+                else:
+                    if parallel_scheme == 0:
+                        parents=fws[-1]
+                    else:
+                        parents=fws[0]
+
+                additional_files = ["WAVECAR"]
+
+                fw = LinearResponseUFW(structure=structure, parents=parents,
+                                       name="scf_site{}_vup_{}{}_vdn_{}{}".format(counter_perturb,
+                                                                                  sign_dict["LDAUU"], abs(round(spin_pot_dict["LDAUU"],6)),
+                                                                                  sign_dict["LDAUJ"], abs(round(spin_pot_dict["LDAUJ"],6))),
+                                       vasp_input_set=vis_ldau,
+                                       additional_files=additional_files.copy(),
+                                       prev_calc_dir=ground_state_dir,
+                                       vasp_cmd=VASP_CMD, db_file=DB_FILE)
+                fws.append(fw)
 
     wf = Workflow(fws)
 
