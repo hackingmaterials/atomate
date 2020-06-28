@@ -776,7 +776,7 @@ class LinearResponseUToDb(FiretaskBase):
             used to make it easier to retrieve task docs
     """
 
-    required_params = ["db_file", "wf_uuid"]
+    required_params = ["num_perturb", "db_file", "wf_uuid"]
     optional_params = []
 
     summaries = []
@@ -789,7 +789,7 @@ class LinearResponseUToDb(FiretaskBase):
 
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
-        num_pertub_sites = int(self["num_perturb"])
+        num_perturb_sites = int(self["num_perturb"])
 
         keys = ['Ground state', 'NSCF', 'SCF']
         regexps = ['initial', '^nscf', '^scf']

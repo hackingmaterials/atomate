@@ -168,7 +168,7 @@ def get_wf_linear_response_u(structure,
                     if s in default_uvals.keys():
                         if k in default_uvals[s].keys():
                             l = default_uvals[s][k]
-                            val_dict[k].update({s:l})
+                val_dict[k].update({s:l})
         else:
             # for LDAUU and LDAUJ
             for i in range(num_perturb):
@@ -179,8 +179,8 @@ def get_wf_linear_response_u(structure,
                     if s in default_uvals.keys():
                         if 'LDAUU' in default_uvals[s].keys():
                             v = default_uvals[s]['LDAUU']
-                            val_dict[k].update({s:v})
-                            uis_ldau.update({k:val_dict[k].copy()})
+                val_dict[k].update({s:v})
+        uis_ldau.update({k:val_dict[k].copy()})
 
     if ground_state_ldau:
         uis_gs = uis_ldau.copy()
