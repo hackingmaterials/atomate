@@ -44,12 +44,13 @@ __linear_response_u_wf_version__ = 0.0
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 def get_wf_linear_response_u(structure,
+                             spin_polarized=True,
                              applied_potential_range=[-0.2, 0.2],
                              num_parallel_evals=9, num_total_evals=9,
                              site_indices_u=None, species_u=None,
                              use_default_uvals=False,
                              ground_state_ldau=True, ground_state_dir=None,
-                             parallel_scheme=0,
+                             parallel_scheme=1,
                              c=None, vis=None):
     """
     Compute Hubbard U on-site interaction values using LDA+U linear response method 
@@ -57,6 +58,7 @@ def get_wf_linear_response_u(structure,
 
     Args:
         structure:
+        spin_polarized: Perform spin-dependent perturbations
         applied_potential_range: Bounds of applied potential 
         num_evals: Number of perturbation evalutaions
         site_indices_u: List of site indices within 
@@ -254,7 +256,7 @@ def get_wf_linear_response_u(structure,
                                 val_dict[k].update({"perturb"+str(i):spin_pot_dict[k]})
                             else:
                                 val_dict[k].update({"perturb"+str(i):0})
-                                uis_ldau.update({k:val_dict[k].copy()})
+                    uis_ldau.update({k:val_dict[k].copy()})
 
                 # Non-SCF runs
                 uis_ldau.update({"ISTART":1, "ICHARG":11})
