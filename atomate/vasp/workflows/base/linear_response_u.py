@@ -44,6 +44,7 @@ __linear_response_u_wf_version__ = 0.0
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 def get_wf_linear_response_u(structure,
+                             relax_nonmagnetic=True,
                              spin_polarized=True,
                              applied_potential_range=[-0.2, 0.2],
                              num_parallel_evals=9, num_total_evals=9,
@@ -184,22 +185,42 @@ def get_wf_linear_response_u(structure,
                 val_dict[k].update({s:v})
         uis_ldau.update({k:val_dict[k].copy()})
 
-    if ground_state_ldau:
-        uis_gs = uis_ldau.copy()
-        vis_params = {"user_incar_settings": uis_gs.copy()}
-        vis_gs = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
-        fw_gs = LinearResponseUFW(structure=structure, name="initial static", vasp_input_set=vis_gs,
-                                  vasp_cmd=VASP_CMD, db_file=DB_FILE)
-    else:
-        vis_params = {"user_incar_settings": uis_gs.copy()}
-        vis_gs = MPStaticSet(structure=structure, sort_structure=False, **vis_params.copy())
-        fw_gs = StaticFW(structure=structure, name="initial static", vasp_input_set=vis_gs,
-                         vasp_cmd=VASP_CMD, db_file=DB_FILE)
+    fws = []
+    index_fw_gs = 0
 
-    if ground_state_dir:
-        fws = []
-    else:
-        fws = [fw_gs]
+    if not(ground_state_dir):
+        if ground_state_ldau:
+            uis_gs = uis_ldau.copy()
+
+            if relax_nonmagnetic:
+                uis_gs.update({"ISPIN":1})
+            else:
+                uis_gs.update({"ISPIN":2})
+            vis_params = {"user_incar_settings": uis_gs.copy()}
+            vis_gs = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
+            fws.append(LinearResponseUFW(structure=structure,
+                                         name="initial_static", vasp_input_set=vis_gs,
+                                         vasp_cmd=VASP_CMD, db_file=DB_FILE))
+
+            if relax_nonmagnetic:
+                index_fw_gs += 1
+                uis_gs.update({"ISPIN":2, "ICHARG":1})
+                additional_files = ["WAVECAR", "CHGCAR"]
+                vis_params = {"user_incar_settings": uis_gs.copy()}
+                vis_gs = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
+                fws.append(LinearResponseUFW(structure=structure, parents=fws[-1],
+                                             additional_files=additional_files.copy(),
+                                             name="initial_static_magnetic", vasp_input_set=vis_gs,
+                                             vasp_cmd=VASP_CMD, db_file=DB_FILE))
+
+        else:
+            raise ValueError(
+                "Non-LDA+U ground state no longer implemented."
+            )
+            # vis_params = {"user_incar_settings": uis_gs.copy()}
+            # vis_gs = MPStaticSet(structure=structure, sort_structure=False, **vis_params.copy())
+            # fw_gs = StaticFW(structure=structure, name="initial static", vasp_input_set=vis_gs,
+            #                  vasp_cmd=VASP_CMD, db_file=DB_FILE)
 
     # Determine applied potential range
     if num_parallel_evals != num_total_evals:
@@ -259,7 +280,7 @@ def get_wf_linear_response_u(structure,
                     uis_ldau.update({k:val_dict[k].copy()})
 
                 # Non-SCF runs
-                uis_ldau.update({"ISTART":1, "ICHARG":11})
+                uis_ldau.update({"ISTART":1, "ICHARG":11, "ISPIN":2})
 
                 vis_params = {"user_incar_settings": uis_ldau.copy()}
                 vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
@@ -267,47 +288,69 @@ def get_wf_linear_response_u(structure,
                 if ground_state_dir:
                     parents = []
                 else:
-                    parents=fws[0]
+                    parents=fws[index_fw_gs]
 
-                additional_files = ["WAVECAR","CHGCAR"]
+                additional_files = ["WAVECAR", "CHGCAR"]
 
                 fw = LinearResponseUFW(structure=structure, parents=parents,
                                        name="nscf_site{}_vup_{}{}_vdn_{}{}".format(counter_perturb,
-                                                                                   sign_dict["LDAUU"], abs(round(spin_pot_dict["LDAUU"],6)),
-                                                                                   sign_dict["LDAUJ"], abs(round(spin_pot_dict["LDAUJ"],6))),
+                                            sign_dict["LDAUU"], abs(round(spin_pot_dict["LDAUU"],6)),
+                                            sign_dict["LDAUJ"], abs(round(spin_pot_dict["LDAUJ"],6))),
                                        vasp_input_set=vis_ldau,
                                        additional_files=additional_files.copy(),
                                        prev_calc_dir=ground_state_dir,
                                        vasp_cmd=VASP_CMD, db_file=DB_FILE)
-
                 fws.append(fw)
 
                 # SCF runs
                 uis_ldau.update({"ISTART":1, "ICHARG":0})
+                if relax_nonmagnetic:
+                    uis_ldau.update({"ISPIN":1})
+                else:
+                    uis_ldau.update({"ISPIN":2})
 
                 vis_params = {"user_incar_settings": uis_ldau.copy()}
                 vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
 
-                # NOTE: More efficient to reuse WAVECAR or remove dependency of SCF on NSCF?
                 if ground_state_dir:
                     parents = []
                 else:
                     if parallel_scheme == 0:
                         parents=fws[-1]
                     else:
-                        parents=fws[0]
+                        parents=fws[index_fw_gs]
 
                 additional_files = ["WAVECAR"]
 
                 fw = LinearResponseUFW(structure=structure, parents=parents,
                                        name="scf_site{}_vup_{}{}_vdn_{}{}".format(counter_perturb,
-                                                                                  sign_dict["LDAUU"], abs(round(spin_pot_dict["LDAUU"],6)),
-                                                                                  sign_dict["LDAUJ"], abs(round(spin_pot_dict["LDAUJ"],6))),
+                                            sign_dict["LDAUU"], abs(round(spin_pot_dict["LDAUU"],6)),
+                                            sign_dict["LDAUJ"], abs(round(spin_pot_dict["LDAUJ"],6))),
                                        vasp_input_set=vis_ldau,
                                        additional_files=additional_files.copy(),
                                        prev_calc_dir=ground_state_dir,
                                        vasp_cmd=VASP_CMD, db_file=DB_FILE)
                 fws.append(fw)
+
+                # SCF magnetic runs
+                if relax_nonmagnetic:
+                    uis_ldau.update({{"ISTART":1, "ICHARG":1, "ISPIN":2})
+
+                    vis_params = {"user_incar_settings": uis_ldau.copy()}
+                    vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
+                    
+                    parents=fws[-1]
+                    additional_files = ["WAVECAR", "CHGCAR"]
+
+                    fw = LinearResponseUFW(structure=structure, parents=parents,
+                                           name="scf_magnetic_site{}_vup_{}{}_vdn_{}{}".format(counter_perturb,
+                                                sign_dict["LDAUU"], abs(round(spin_pot_dict["LDAUU"],6)),
+                                                sign_dict["LDAUJ"], abs(round(spin_pot_dict["LDAUJ"],6))),
+                                           vasp_input_set=vis_ldau,
+                                           additional_files=additional_files.copy(),
+                                           prev_calc_dir=ground_state_dir,
+                                           vasp_cmd=VASP_CMD, db_file=DB_FILE)
+                    fws.append(fw)
 
     wf = Workflow(fws)
 
