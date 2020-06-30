@@ -44,7 +44,7 @@ __linear_response_u_wf_version__ = 0.0
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 def get_wf_linear_response_u(structure,
-                             relax_nonmagnetic=True,
+                             relax_nonmagnetic=2,
                              spin_polarized=True,
                              applied_potential_range=[-0.2, 0.2],
                              num_parallel_evals=9, num_total_evals=9,
@@ -192,7 +192,7 @@ def get_wf_linear_response_u(structure,
         if ground_state_ldau:
             uis_gs = uis_ldau.copy()
 
-            if relax_nonmagnetic:
+            if relax_nonmagnetic >= 1:
                 uis_gs.update({"ISPIN":1})
             else:
                 uis_gs.update({"ISPIN":2})
@@ -202,7 +202,7 @@ def get_wf_linear_response_u(structure,
                                          name="initial_static", vasp_input_set=vis_gs,
                                          vasp_cmd=VASP_CMD, db_file=DB_FILE))
 
-            if relax_nonmagnetic:
+            if relax_nonmagnetic >= 1:
                 index_fw_gs += 1
                 uis_gs.update({"ISPIN":2, "ICHARG":1})
                 additional_files = ["WAVECAR", "CHGCAR"]
@@ -215,7 +215,7 @@ def get_wf_linear_response_u(structure,
 
         else:
             raise ValueError(
-                "Non-LDA+U ground state no longer implemented."
+                "Non-LinearResponseUFW ground state no longer supported."
             )
             # vis_params = {"user_incar_settings": uis_gs.copy()}
             # vis_gs = MPStaticSet(structure=structure, sort_structure=False, **vis_params.copy())
@@ -304,7 +304,7 @@ def get_wf_linear_response_u(structure,
 
                 # SCF runs
                 uis_ldau.update({"ISTART":1, "ICHARG":0})
-                if relax_nonmagnetic:
+                if relax_nonmagnetic >= 2:
                     uis_ldau.update({"ISPIN":1})
                 else:
                     uis_ldau.update({"ISPIN":2})
@@ -333,8 +333,8 @@ def get_wf_linear_response_u(structure,
                 fws.append(fw)
 
                 # SCF magnetic runs
-                if relax_nonmagnetic:
-                    uis_ldau.update({{"ISTART":1, "ICHARG":1, "ISPIN":2})
+                if relax_nonmagnetic >= 2:
+                    uis_ldau.update({"ISTART":1, "ICHARG":1, "ISPIN":2})
 
                     vis_params = {"user_incar_settings": uis_ldau.copy()}
                     vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
