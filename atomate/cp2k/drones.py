@@ -26,9 +26,7 @@ from pymatgen.io.cp2k.outputs import Cp2kOutput, Cube
 from pymatgen.apps.borg.hive import AbstractDrone
 from pymatgen.io.vasp.outputs import VolumetricData
 
-from atomate.utils.utils import get_uri
-
-from atomate.utils.utils import get_logger
+from atomate.utils.utils import get_logger, get_uri
 from atomate import __version__ as atomate_version
 
 __author__ = "Nicholas Winner"
@@ -81,6 +79,7 @@ class Cp2kDrone(AbstractDrone):
             "is_metal",
             "forces",
             "stress",
+            "ionic_steps"
         },
         "calcs_reversed": {
             "dir_name",
@@ -262,6 +261,7 @@ class Cp2kDrone(AbstractDrone):
                 "stress": d_calc_final["output"]["ionic_steps"][-1].get(
                     "stress"
                 ),
+                "ionic_steps": d_calc_final["output"]["ionic_steps"],
                 "cbm": d_calc_final["output"]["cbm"],
                 "vbm": d_calc_final["output"]["vbm"],
                 "bandgap": d_calc_final["output"]["bandgap"],
@@ -369,14 +369,13 @@ class Cp2kDrone(AbstractDrone):
 
         if self.parse_hartree:
             cube = Cube(out.filenames['v_hartree'][-1])
-            # TODO: Store in reciprocal or not?
             vd = VolumetricData(structure=cube.structure, data={'total': cube.data})
-            d['v_hartree'] = jsanitize(
-                [
-                    np.fft.ifft(vd.get_average_along_axis(i)) for i in range(3)
-                ]
-            )
-            d['v_hartree_grid'] = [vd.get_axis_grid(i) for i in range(3)]
+            d['v_hartree'] = [
+                    vd.get_average_along_axis(i) for i in range(3)
+            ]
+            d['v_hartree_grid'] = [
+                vd.get_axis_grid(i) for i in range(3)
+            ]
         return d
 
     def process_raw_data(self, dir_name, taskname="standard"):
