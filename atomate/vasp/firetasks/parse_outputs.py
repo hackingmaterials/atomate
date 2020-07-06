@@ -769,6 +769,8 @@ class LinearResponseUToDb(FiretaskBase):
     
     Required parameters:
         num_perturb (int): number of perturbed sites
+        spin_polarized (bool):
+        relax_nonmagnetic (bool):
         db_file (str): path to the db file that holds your tasks
             collection and that you want to hold the linear_response_u
             collection
@@ -776,7 +778,7 @@ class LinearResponseUToDb(FiretaskBase):
             used to make it easier to retrieve task docs
     """
 
-    required_params = ["num_perturb", "db_file", "wf_uuid"]
+    required_params = ["num_perturb", "spin_polarized", "relax_nonmagnetic", "db_file", "wf_uuid"]
     optional_params = []
 
     summaries = []
@@ -790,9 +792,14 @@ class LinearResponseUToDb(FiretaskBase):
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
         num_perturb_sites = int(self["num_perturb"])
-
+        spin_polarized = bool(self["spin_polarized"])
+        relax_nonmagnetic = bool(self["relax_nonmagnetic"])
+        
         keys = ['Ground state', 'NSCF', 'SCF']
-        regexps = ['initial', '^nscf', '^scf']
+        if relax_nonmagnetic:
+            regexps = ['^initial_static_magnetic', '^nscf', '^scf_magnetic']
+        else:
+            regexps = ['^initial', '^nscf', '^scf']
         response_dict = {'Ground state':{}, 'NSCF':{}, 'SCF':{}}
 
         magnet_order_gs = None
@@ -803,20 +810,49 @@ class LinearResponseUToDb(FiretaskBase):
                                               "task_label": {"$regex": task_label_regex}}))
 
             for i in range(num_perturb_sites):
-                response_dict[key].update({'V_site'+str(i): [], 'N_site'+str(i): []})
+                response_dict[key].update({'Vup_site'+str(i): [], 'Nup_site'+str(i): []})
+                response_dict[key].update({'Vdn_site'+str(i): [], 'Ndn_site'+str(i): []})
+                response_dict[key].update({'Ntot_site'+str(i): [], 'Mz_site'+str(i): []})
             response_dict[key].update({'magnetic order': []})
-            
+
             for d in docs:
                 for i in range(num_perturb_sites):
                     try:
-                        response_dict[key]['N_site'+str(i)].append(float(d['calcs_reversed'][0]['output']['outcar']['charge'][i]['d']))
+
+                        # FIXME: Not Nd for non d-block elements
+
+                        struct = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+                        specie = struct[i].specie
+
+                        if specie.is_transition_metal:
+                            orbital = 'd'
+                        elif str(specie) == "O":
+                            orbital = 'p'
+
+                        Ntot = float(d['calcs_reversed'][0]['output']['outcar']['charge'][i][orbital])
+                        # FIXME: Adapt for noncollinear
+                        Mz = float(d['calcs_reversed'][0]['output']['outcar']['magnetization'][i][orbital])
+
+                        print(Ntot, Mz)
+                        
+                        response_dict[key]['Nup_site'+str(i)].append(0.5*(Ntot + Mz))
+                        response_dict[key]['Ndn_site'+str(i)].append(0.5*(Ntot - Mz))
+                        response_dict[key]['Ntot_site'+str(i)].append(Ntot)
+                        response_dict[key]['Mz_site'+str(i)].append(Mz)
+
+                        Vup = float(d['calcs_reversed'][0]['input']['incar']['LDAUU'][i])
+                        Vdn = float(d['calcs_reversed'][0]['input']['incar']['LDAUJ'][i])
+
+                        print(Vup,Vdn)
 
                         if key != keys[0]:
-                            response_dict[key]['V_site'+str(i)].append(float(d['calcs_reversed'][0]['input']['incar']['LDAUU'][i]))
+                            response_dict[key]['Vup_site'+str(i)].append(Vup)
+                            response_dict[key]['Vdn_site'+str(i)].append(Vdn)
                         elif key == keys[0]:
-                            response_dict[key]['V_site'+str(i)].append(0.0)
+                            response_dict[key]['Vup_site'+str(i)].append(0.0)
+                            response_dict[key]['Vdn_site'+str(i)].append(0.0)
                     except Exception as exc:
-                        print('site: '+str(i)+' miss',  exc)
+                        print('site: '+str(i)+' miss - ',  exc)
 
                 struct_final = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
                 analyzer_output = CollinearMagneticStructureAnalyzer(struct_final, threshold=0.61)
@@ -827,7 +863,9 @@ class LinearResponseUToDb(FiretaskBase):
                     magnet_order_gs = magnet_order
 
         for j in range(num_perturb_sites):
-            for k in ['V_site'+str(j), 'N_site'+str(j)]:
+            for k in ['Vup_site'+str(j), 'Vdn_site'+str(j),
+                      'Nup_site'+str(j), 'Ndn_site'+str(j),
+                      'Ntot_site'+str(j), 'Mz_site'+str(j)]:
                 for i in [1, 2]:
                     response_dict[keys[i]][k].extend(response_dict[keys[0]][k])
 
@@ -846,55 +884,61 @@ class LinearResponseUToDb(FiretaskBase):
 
         #     response_dict.update({key: {'V': vs, 'N': ns, 'magnetic order': orders}})
 
-        print(response_dict)
+        # print(response_dict)
 
-        Chi_nscf = np.zeros([num_perturb_sites, num_perturb_sites])
-        Chi_scf = np.zeros([num_perturb_sites, num_perturb_sites])
+        if spin_polarized:
+            n_response = 2*num_perturb_sites
+            Chi_nscf = np.zeros([n_response, n_response])
+            Chi_scf  = np.zeros([n_response, n_response])
+        else:
+            n_response = num_perturb_sites
+            Chi_nscf = np.zeros([n_response, n_response])
+            Chi_scf  = np.zeros([n_response, n_response])
 
-        for i in range(num_perturb_sites):
-            for j in range(num_perturb_sites):
-                if response_dict[keys[1]]['N_site'+str(i)] and \
-                   response_dict[keys[2]]['N_site'+str(i)] and \
-                   response_dict[keys[1]]['V_site'+str(j)] and \
-                   response_dict[keys[2]]['V_site'+str(j)]:
+        for ii in range(n_response):
+            for jj in range(n_response):
+                if spin_polarized:
+                    i, j = ii//2, jj//2
+                    si, sj = 'up' if np.mod(ii,2)==0 else 'dn', 'up' if np.mod(jj,2)==0 else 'dn'
+                    V_key = 'V'+sj+'_site'+str(j)
+                    N_key = 'N'+si+'_site'+str(i)
+                else:
+                    i, j = ii, jj
+                    V_key = 'Vup_site'+str(j)
+                    N_key = 'Ntot_site'+str(i)
 
-                    # gather NSCF response data
+                if response_dict[keys[1]][N_key] and response_dict[keys[2]][N_key] and \
+                   response_dict[keys[1]][V_key] and response_dict[keys[2]][V_key]:
+
+                    # gather NSCF & SCF response data
                     V_nscf, N_nscf = [], []
-                    for l in range(len(response_dict[keys[1]]['N_site'+str(i)])):
-                        v = response_dict[keys[1]]['V_site'+str(j)][l]
-                        n = response_dict[keys[1]]['N_site'+str(i)][l]
-                        # order = response_dict[keys[1]]['magnetic order'][l]
-
-                        # if order == order_gs:
-                        isolated_response = True
-                        if v == 0.0:
-                            for k in range(num_perturb_sites):
-                                if (k != j) and (response_dict[keys[1]]['V_site'+str(k)][l] != 0.0):
-                                    isolated_response = False
-                                    break
-
-                        if isolated_response:
-                            V_nscf.append(v)
-                            N_nscf.append(n)
-
-                    # gather SCF response data
                     V_scf, N_scf = [], []
-                    for l in range(len(response_dict[keys[2]]['N_site'+str(i)])):
-                        v = response_dict[keys[2]]['V_site'+str(j)][l]
-                        n = response_dict[keys[2]]['N_site'+str(i)][l]
-                        # order = response_dict[keys[2]]['magnetic order'][l]
+                    for ll in [1, 2]:
+                        for l in range(len(response_dict[keys[ll]][N_key])):
+                            v = response_dict[keys[ll]][V_key][l]
+                            n = response_dict[keys[ll]][N_key][l]
+                            # order = response_dict[keys[ll]]['magnetic order'][l]
 
-                        # if order == order_gs:
-                        isolated_response = True
-                        if v == 0.0:
-                            for k in range(num_perturb_sites):
-                                if (k != j) and (response_dict[keys[2]]['V_site'+str(k)][l] != 0.0):
-                                    isolated_response = False
-                                    break
+                            # if order == order_gs:
+                            isolated_response = True
+                            if v == 0.0:
+                                for k in range(n_response):
+                                    if spin_polarized:
+                                        s = 'up' if np.mod(k,2)==0 else 'dn'
+                                        V_key = 'V'+s+'_site'+str(k//2)
+                                    else:
+                                        V_key = 'Vup_site'+str(k)
+                                    if (k != j) and (response_dict[keys[ll]][V_key][l] != 0.0):
+                                        isolated_response = False
+                                        break
 
-                        if isolated_response:
-                            V_scf.append(v)
-                            N_scf.append(n)
+                            if isolated_response:
+                                if ll == 1:
+                                    V_nscf.append(v)
+                                    N_nscf.append(n)
+                                elif ll == 2:
+                                    V_scf.append(v)
+                                    N_scf.append(n)
 
                     try:
                         chi_nscf = np.polyfit(V_nscf, N_nscf, 1)[0]

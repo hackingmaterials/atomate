@@ -267,7 +267,10 @@ def get_wf_linear_response_u(structure,
                         # FIX ME: shouldn't hard code LDAUL = 2
                         for i in range(num_perturb):
                             if i == counter_perturb:
-                                val_dict[k].update({"perturb"+str(i):2})
+                                if str(structure[i].specie) == "O":
+                                    val_dict[k].update({"perturb"+str(i):1})
+                                else:
+                                    val_dict[k].update({"perturb"+str(i):2})
                             else:
                                 val_dict[k].update({"perturb"+str(i):-1})
                     else:
@@ -357,6 +360,8 @@ def get_wf_linear_response_u(structure,
     fw_analysis = Firework(
         LinearResponseUToDb(
             num_perturb=num_perturb,
+            spin_polarized=spin_polarized,
+            relax_nonmagnetic=relax_nonmagnetic,
             db_file=DB_FILE, wf_uuid=uuid
         ),
         name="LinearResponseUToDb",
@@ -480,10 +485,10 @@ class LinearResponseUSet(MPStaticSet):
         parent_incar = super().incar
         incar = Incar(parent_incar)
 
-        incar.update({"ISYM": 0})
-        incar.update({"ALGO": "Fast"})
+        incar.update({"ISYM": 0, "ISMEAR": 0})
         incar.pop("NSW", None)
         incar.update({"ISTART": 1})
+        # incar.update({"ALGO": "Fast"})
         
         if self.kwargs.get("user_incar_settings")["LDAUU"]:
 
