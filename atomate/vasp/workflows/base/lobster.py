@@ -40,7 +40,7 @@ def get_wf_lobster(
     additional_outputs: List[str] = None,
 ) -> Workflow:
     """
-    Creates a workflow for a static vasp calculation followed by a Lobster calculation.
+    Creates a workflow for a static Vasp calculation followed by a Lobster calculation.
 
     Args:
         structure: Structure object
