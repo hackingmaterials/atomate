@@ -145,7 +145,10 @@ class RunCritic2(FiretaskBase):
         for cpid in bond_dict:
             # identify and throw out fictitious bonds
             # NOTE: this should be re-examined and refined in the future
-            if bond_dict[cpid]["field"] > 0.02 and bond_dict[cpid]["distance"] < 2.5:
+            if bond_dict[cpid]["atoms"] == ["Li","C"] or bond_dict[cpid]["atoms"] == ["C","Li"]:
+                if bond_dict[cpid]["field"] > 0.012 and bond_dict[cpid]["distance"] < 2.5:
+                    bonds.append([int(entry)-1 for entry in bond_dict[cpid]["atom_ids"]])
+            elif bond_dict[cpid]["field"] > 0.02 and bond_dict[cpid]["distance"] < 2.5:
                 bonds.append([int(entry)-1 for entry in bond_dict[cpid]["atom_ids"]])
 
         YT = loadfn("YT.json")
