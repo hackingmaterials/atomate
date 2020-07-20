@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import glob
+import warnings
 
 from pymatgen.analysis.elasticity.strain import Strain
 from pymatgen.io.vasp import Vasprun
@@ -118,7 +119,13 @@ class CopyVaspOutputs(CopyFiles):
                         gz_ext = possible_ext
 
             if not (f + relax_ext + gz_ext) in all_files:
-                raise ValueError("Cannot find file: {}".format(f))
+                # do not fail if KPOINTS is missing, because this might indicate use of automatic
+                # KPOINTS (e.g., KSPACING argument)
+                if f == 'KPOINTS':
+                    warnings.warn("Cannot find file: {}".format(f))
+                    continue
+                else:
+                    raise ValueError("Cannot find file: {}".format(f))
 
             # copy the file (minus the relaxation extension)
             self.fileclient.copy(prev_path_full + relax_ext + gz_ext,
