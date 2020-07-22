@@ -30,10 +30,8 @@ from pymatgen.io.vasp.sets import (
 
 from atomate.common.firetasks.glue_tasks import (
     PassCalcLocs,
-    GzipDir,
     CopyFiles,
     DeleteFiles,
-    CopyFilesFromCalcLoc,
 )
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, pass_vasp_result
 from atomate.vasp.firetasks.neb_tasks import TransferNEBTask
@@ -51,7 +49,7 @@ from atomate.vasp.firetasks.write_inputs import (
     WriteVaspSOCFromPrev,
     WriteVaspStaticFromPrev,
     WriteVaspFromIOSetFromInterpolatedPOSCAR,
-    UpdateScanRelaxBandgap,
+    WriteScanRelaxFromPBE,
     ModifyIncar,
 )
 from atomate.vasp.firetasks.neb_tasks import WriteNEBFromImages, WriteNEBFromEndpoints
@@ -105,7 +103,7 @@ class OptimizeFW(Firework):
             warnings.warn(
                 "A double relaxation run might not be appropriate with ISIF {}".format(
                     vasp_input_set.incar["ISIF"]))
-        
+
         t = []
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
         t.append(
@@ -131,232 +129,121 @@ class OptimizeFW(Firework):
 class ScanOptimizeFW(Firework):
     def __init__(
         self,
-        structure,
-        name="SCAN structure optimization",
+        structure=None,
+        name="SCAN 680 eV structure optimization",
         vasp_input_set=None,
+        vasp_input_set_params=None,
         vasp_cmd=VASP_CMD,
-        override_default_vasp_params=None,
-        db_file=DB_FILE,
         vdw_kernel_dir=VDW_KERNEL_DIR,
+        prev_calc_loc=None,
+        prev_calc_dir=None,
+        db_file=DB_FILE,
+        vasptodb_kwargs=None,
         parents=None,
         **kwargs
     ):
         """
-        Structure optimization using the SCAN metaGGA functional.
-
-        This workflow performs a 3-step optmization. The first step ('relax1')
-        is a conventional GGA run relaxation that initializes the geometry and
-        calculates the bandgap of the structure. The bandgap is used to update 
-        the KSPACING parameter, which sets the appropriate number of k-points 
-        for the structure. The second step ('.relax2') is a static GGA 
-        calculation that computes wavefunctions using the updated number of 
-        k-points. The third step ('relax3') is a SCAN relaxation.
-
-        By default, .relax1 and .relax2 are force converged with
-        EDIFFG = -0.05, and .relax3 is force converged with EDIFFG=-0.02.
+        Structure optimization using the SCAN metaGGA functional. If this Firework is
+        initialized with no parents, it will perform a GGA optimization of the provided
+        structure, which is intended to be passed to a second instance of this Firework
+        (see workflow definition in SCAN_optimization.yaml)
 
         Args:
-            structure (Structure): Input structure.
+            structure (Structure): Input structure. Note that for prev_calc_loc jobs, the structure
+                is only used to set the name of the FW and any structure with the same composition
+                can be used.
             name (str): Name for the Firework.
-            vasp_input_set (VaspInputSet): input set to use. Defaults to
-                MPScanRelaxSet() if None.
-            override_default_vasp_params (dict): If this is not None, and
-                vasp_input_set is None, these params are passed to the default
-                vasp_input_set, i.e., MPScanRelaxSet. This allows one to easily
-                override some settings, e.g., bandgap, user_incar_settings, etc.
-            vasp_cmd (str): Command to run vasp. Supports env_chk.
+            vasp_input_set (VaspInputSet): input set to use (for jobs w/no parents)
+                Defaults to MpScanRelaxSet() if None.
+            vasp_input_set_params (dict): Dict of vasp_input_set kwargs.
+            vasp_cmd (str): Command to run vasp.
             vdw_kernel_dir (str): Directory containing the pre-compiled VdW
                 kernel. Supports env_chk.
-            db_file (str): Path to file specifying db credentials to place
-                output parsing. Supports env_chk.
-            parents ([Firework]): Parents of this particular Firework.
+            prev_calc_loc (bool or str): If true (default), copies outputs from previous calc. If
+                a str value, retrieves a previous calculation output by name. If False/None, will create
+                new SCAN calculation using the provided structure.
+            prev_calc_dir (str): Path to a previous calculation to copy from
+            db_file (str): Path to file specifying db credentials.
+            parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            vasptodb_kwargs (dict): kwargs to pass to VaspToDb
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        override_default_vasp_params = override_default_vasp_params or {}
-        orig_input_set = vasp_input_set or MPScanRelaxSet(
-            structure, **override_default_vasp_params
+        t = []
+
+        vasp_input_set_params = vasp_input_set_params or {}
+        vasptodb_kwargs = vasptodb_kwargs or {}
+        if "additional_fields" not in vasptodb_kwargs:
+            vasptodb_kwargs["additional_fields"] = {}
+        vasptodb_kwargs["additional_fields"]["task_label"] = name
+
+        fw_name = "{}-{}".format(
+            structure.composition.reduced_formula if structure else "unknown", name
         )
 
         # Raise a warning if the InputSet is not MPScanRelaxSet, because the
         # kspacing calculation from bandgap is only supported in MPScanRelaxSet.
-        if not isinstance(orig_input_set, MPScanRelaxSet):
+        if vasp_input_set and not isinstance(vasp_input_set, MPScanRelaxSet):
             raise UserWarning(
                 "You have specified a vasp_input_set other than \
-                               MPScanRelaxSet. Automatic adjustment of kspacing\
-                               is not supported by this InputSet."
+                 MPScanRelaxSet. Automatic adjustment of kspacing\
+                 is not supported by this InputSet."
             )
 
-        t = []
-        # write the VASP input files based on MPScanRelaxSet
-        t.append(WriteVaspFromIOSet(structure=structure, 
-                                    vasp_input_set=orig_input_set
-                                    )
-                 )
+        if prev_calc_dir:
+            # Copy the CHGCAR from previous calc (usually PBE)
+            t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, contcar_to_poscar=True, additional_files=["CHGCAR"]))
+            # Update the InputSet with the bandgap from the previous calc
+            t.append(WriteScanRelaxFromPBE(vasp_input_set_params=vasp_input_set_params))
+            # Set ICHARG to 1 to utilize the pre-existing CHGCAR
+            settings = {"_set": {"ICHARG": 1}}
+            t.append(ModifyIncar(incar_dictmod=settings))
 
-        # pass the CalcLoc so that CopyFilesFromCalcLoc can find the directory
-        t.append(PassCalcLocs(name=name))
+        elif parents:
+            if prev_calc_loc:
+                # Copy the CHGCAR from previous calc (usually PBE)
+                t.append(CopyVaspOutputs(calc_loc=prev_calc_loc, contcar_to_poscar=True, additional_files=["CHGCAR"]))
+                # Update the InputSet with the bandgap from the previous calc
+                t.append(WriteScanRelaxFromPBE(vasp_input_set_params=vasp_input_set_params))
+                # Set ICHARG to 1 to utilize the pre-existing CHGCAR
+                settings = {"_set": {"ICHARG": 1}}
+                t.append(ModifyIncar(incar_dictmod=settings))
+
+        elif structure:
+            vasp_input_set = vasp_input_set or MPScanRelaxSet(
+                structure, **vasp_input_set_params
+            )
+            t.append(
+                WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
+            )
+            # Update the INCAR for the GGA preconditioning step
+            # Disable writing the WAVECAR because the no. of k-points will likely
+            # change before the next step in the calculation
+            pre_opt_settings = {"_set": {"METAGGA": None,
+                                         "EDIFFG": -0.05
+                                         }}
+
+            # Disable vdW for the precondition step
+            if vasp_input_set_params.get("vdw"):
+                pre_opt_settings.update({"_unset": {"LUSE_VDW": True,
+                                                    "BPARAM": 15.7}})
+
+            t.append(ModifyIncar(incar_dictmod=pre_opt_settings))
+        else:
+            raise ValueError("Must specify structure or previous calculation")
 
         # Copy the pre-compiled VdW kernel for VASP, if required
-        if orig_input_set.vdw is not None:
+        if vasp_input_set_params.get("vdw"):
             t.append(CopyFiles(from_dir=vdw_kernel_dir))
 
-        # Copy original inputs with the ".orig" suffix
-        t.append(
-            CopyFilesFromCalcLoc(
-                calc_loc=True,
-                name_append=".orig",
-                exclude_files=["vdw_kernel.bindat", "FW.json", "FW--*"],
-            )
-        )
+        # Run VASP
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
+        t.append(PassCalcLocs(name=name))
+        # Parse
+        t.append(VaspToDb(db_file=db_file, **vasptodb_kwargs))
+        # Delete the VdW kernel
+        t.append(DeleteFiles(files=["vdw_kernel.bindat"]))
 
-        # Update the INCAR for the GGA preconditioning step
-        # Disable writing the WAVECAR because the no. of k-points will likely
-        # change before the next step in the calculation
-        pre_opt_settings = {"_set": {"METAGGA": None,
-                                     "EDIFFG": -0.05,
-                                     "LWAVE": False}}
-
-        # Disable vdW for the precondition step
-        if orig_input_set.incar.get("LUSE_VDW", None):
-            pre_opt_settings.update({"_unset": {"LUSE_VDW": True,
-                                                "BPARAM": 15.7}})
-
-        t.append(ModifyIncar(incar_dictmod=pre_opt_settings))
-
-        # Run the GGA .relax1 step
-        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, 
-                                  job_type="normal_no_backup",
-                                  gzip_output=False
-                                  )
-                 )
-
-        # Copy GGA outputs with '.relax1' suffix
-        # by the subsequent UpdateScanRelaxBandgap Firetask
-        t.append(
-            CopyFilesFromCalcLoc(
-                calc_loc=True,
-                name_append=".relax1",
-                exclude_files=["vdw_kernel.bindat", "FW.json", "FW--*", "*.orig"],
-            )
-        )
-
-        # Create a new InputSet and write new inputs based on the bandgap
-        # set ICHARG and ISTART = 1 to start the calc from the previous charge
-        # density and WAVECAR, respectively
-        other_params = copy.deepcopy(orig_input_set.kwargs)
-        if other_params.get("user_incar_settings"):
-            other_params["user_incar_settings"]["ISTART"] = 1
-            other_params["user_incar_settings"]["ICHARG"] = 1
-        else:
-            other_params["user_incar_settings"] = {"ISTART": 1,
-                                                   "ICHARG": 1}
-        t.append(UpdateScanRelaxBandgap(override_default_vasp_params=other_params))
-
-        # Store the INCAR generated by UpdateScanRelaxBandGap for later use
-        t.append(ModifyIncar(output_filename="INCAR.temp"))
-
-        # Run a GGA static (.relax2) to initialize the wavefunction
-        # In addition to the previous INCAR updates used in .relax1, output the
-        # WAVECAR with LWAVE True and set ISTART to 0, since there is no WAVECAR
-        # from the previous calculation
-        pre_opt_settings2 = {"_set": {"METAGGA": None,
-                                      "EDIFFG": -0.05,
-                                      "LWAVE": True,
-                                      "NSW": 0,
-                                      "ISTART": 0}}
-        if orig_input_set.incar.get("LUSE_VDW", None):
-            pre_opt_settings2.update({"_unset": {"LUSE_VDW": True,
-                                                 "BPARAM": 15.7}})
-
-        # Update the INCAR for the GGA static run
-        t.append(ModifyIncar(incar_dictmod=pre_opt_settings2))
-
-        # Run the GGA static .relax2 step
-        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd,
-                                  job_type="normal_no_backup",
-                                  gzip_output=False
-                                  )
-                 )
-
-        # Copy GGA outputs with '.relax2' suffix
-        t.append(
-            CopyFilesFromCalcLoc(
-                calc_loc=True,
-                name_append=".relax2",
-                exclude_files=[
-                    "vdw_kernel.bindat",
-                    "FW.json",
-                    "FW--*",
-                    "*.orig",
-                    "*.relax1",
-                    "INCAR.temp"
-                    ],
-            )
-        )
-
-        # Reset the INCAR to the settings given by UpdateScanRelaxBandgap
-        # by copying INCAR.temp to INCAR
-        t.append(ModifyIncar(input_filename="INCAR.temp"))
-
-        # Run the SCAN optimization step
-        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, job_type="normal_no_backup",
-                                  gzip_output=False))
-
-        # Copy SCAN outputs with '.relax3' suffix
-        t.append(
-            CopyFilesFromCalcLoc(
-                calc_loc=True,
-                name_append=".relax3",
-                exclude_files=[
-                    "vdw_kernel.bindat",
-                    "FW.json",
-                    "FW--*",
-                    "*.orig",
-                    "*.relax1",
-                    "*.relax2",
-                    "INCAR.temp"
-                ],
-            )
-        )
-
-        # Delete the VdW kernel, WAVECAR, custodian.json, and VASP output files
-        # that have been copied to .relax3
-        # Deleting custodian.json is necessary to avoid double-counting
-        # custodian.json and custodian.json.relax3 when the output is parsed
-        t.append(
-            DeleteFiles(
-                files=[
-                    "vdw_kernel.bindat",
-                    "WAVECAR*",  # All WAVECARs,
-                    "custodian.json",
-                    "*CAR",  # All files that end in "CAR"
-                    "EIGENVAL",
-                    "AECCAR?",
-                    "IBZKPT",
-                    "LOCPOT",
-                    "REPORT",
-                    "std_err.txt",
-                    "vasp.out",
-                    "CHG",
-                    "PCDAT",
-                    "vasprun.xml",
-                    "INCAR.temp"
-                ]
-            )
-        )
-
-        # Parse the outputs into the database
-        t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
-
-        # gzip the output
-        t.append(GzipDir())
-
-        super(ScanOptimizeFW, self).__init__(
-            t,
-            parents=parents,
-            name="{}-{}".format(structure.composition.reduced_formula, name),
-            **kwargs
-        )
+        super(ScanFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class StaticFW(Firework):
