@@ -32,7 +32,7 @@ from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk, get_meta_from_structure
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
-from atomate.vasp.drones import VaspDrone
+from atomate.vasp.drones import VaspDrone, BADER_EXE_EXISTS
 from atomate.vasp.config import STORE_VOLUMETRIC_DATA
 
 __author__ = 'Anubhav Jain, Kiran Mathew, Shyam Dwaraknath'
@@ -79,7 +79,7 @@ class VaspToDb(FiretaskBase):
     optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
                        "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful",
                        "task_fields_to_push", "parse_chgcar", "parse_aeccar",
-                       "parse_potcar_file",
+                       "parse_potcar_file", "parse_bader",
                        "store_volumetric_data"]
 
     def run_task(self, fw_spec):
@@ -97,6 +97,7 @@ class VaspToDb(FiretaskBase):
                           parse_dos=self.get("parse_dos", False),
                           parse_potcar_file=self.get("parse_potcar_file", True),
                           bandstructure_mode=self.get("bandstructure_mode", False),
+                          parse_bader=self.get("parse_bader", BADER_EXE_EXISTS),
                           parse_chgcar=self.get("parse_chgcar", False),  # deprecated
                           parse_aeccar=self.get("parse_aeccar", False),  # deprecated
                           store_volumetric_data=self.get("store_volumetric_data", STORE_VOLUMETRIC_DATA))
