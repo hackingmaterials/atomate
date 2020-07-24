@@ -243,7 +243,7 @@ class ScanOptimizeFW(Firework):
         # Delete the VdW kernel
         t.append(DeleteFiles(files=["vdw_kernel.bindat"]))
 
-        super(ScanFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        super(ScanOptimizeFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class StaticFW(Firework):
