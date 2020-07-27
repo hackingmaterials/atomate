@@ -32,6 +32,7 @@ from atomate.common.firetasks.glue_tasks import (
     PassCalcLocs,
     CopyFiles,
     DeleteFiles,
+    GzipDir
 )
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, pass_vasp_result
 from atomate.vasp.firetasks.neb_tasks import TransferNEBTask
@@ -236,12 +237,14 @@ class ScanOptimizeFW(Firework):
             t.append(CopyFiles(from_dir=vdw_kernel_dir))
 
         # Run VASP
-        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<", gzip_output=False))
         t.append(PassCalcLocs(name=name))
         # Parse
         t.append(VaspToDb(db_file=db_file, **vasptodb_kwargs))
         # Delete the VdW kernel
         t.append(DeleteFiles(files=["vdw_kernel.bindat"]))
+        # zip the output (don't rely on custodian to do it)
+        t.append(GzipDir())
 
         super(ScanOptimizeFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
 
