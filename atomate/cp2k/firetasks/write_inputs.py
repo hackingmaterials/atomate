@@ -54,13 +54,16 @@ class WriteCp2kFromIOSet(FiretaskBase):
                 self["cp2k_input_set"]["@module"],
                 self["cp2k_input_set"]["@class"]
             ).from_dict(self["cp2k_input_set"])
-        else:
+        elif isinstance(self['cp2k_input_set'], str):
             cis_cls = load_class(
                 "pymatgen.io.cp2k.sets", self["cp2k_input_set"]
             )
             cis = cis_cls(
                 self["structure"], **self.get("cp2k_input_params", {})
             )
+        else:
+            cis = self["cp2k_input_set"]
+        cis.silence()
         cis.write_file(input_filename="cp2k.inp", output_dir=".")
 
 
