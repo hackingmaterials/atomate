@@ -51,7 +51,8 @@ class WriteCp2kFromIOSet(FiretaskBase):
     def run_task(self, fw_spec):
         if isinstance(self["cp2k_input_set"], dict):
             cis = load_class(
-                "pymatgen.io.cp2k.sets", self["cp2k_input_set"]["@module"]
+                self["cp2k_input_set"]["@module"],
+                self["cp2k_input_set"]["@class"]
             ).from_dict(self["cp2k_input_set"])
         else:
             cis_cls = load_class(
