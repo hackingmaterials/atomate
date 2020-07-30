@@ -6,11 +6,11 @@ fireworks:
     name: "SCAN pre-optimization with PBE"
     vasptodb_kwargs:
       task_fields_to_push: {"gga_bandgap": "calcs_reversed.0.output.bandgap"}
-      "parse_bader": False
+      parse_bader: False
 - fw: atomate.vasp.fireworks.core.ScanOptimizeFW
   params:
     name: "SCAN structure optimization"
     parents: 0
     prev_calc_loc: True
     vasptodb_kwargs:
-      "parse_bader": False
+      parse_bader: False

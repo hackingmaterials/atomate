@@ -298,14 +298,13 @@ class WriteScanRelaxFromPBE(FiretaskBase):
     the firework contains a 'gga_bandgap' key in its spec.
 
     Optional params (dict):
-        prev_calc_dir: Location of the PBE calculation.
         vasp_input_set_params: Dict of any keyword arguments supported by MPScanRelaxSet.
         potcar_spec (bool): Instead of writing the POTCAR, write a
             "POTCAR.spec". This is intended to allow testing of workflows
             without requiring pseudo-potentials to be installed on the system.
 
     """
-    optional_params = ["prev_calc_dir", "vasp_input_set_params", "potcar_spec"]
+    optional_params = ["vasp_input_set_params", "potcar_spec"]
 
     def run_task(self, fw_spec):
 
