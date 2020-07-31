@@ -149,7 +149,9 @@ class LcalcpolFW(Firework):
                 RunVaspCustodian(vasp_cmd=vasp_cmd),
                 PassCalcLocs(name=name),
                 VaspToDb(
-                    db_file=db_file, additional_fields={"task_label": name}
+                    db_file=db_file,
+                    additional_fields={"task_label": name},
+                    extra_outcar_read=["lcalcpol"],
                 ),
             ]
         )
@@ -157,6 +159,8 @@ class LcalcpolFW(Firework):
         # Note, Outcar must have read_lcalcpol method for polarization
         # information to be processed. ...assuming VaspDrone will automatically
         # assimilate all properties of the Outcar.
+        # Update: I haven't tested it for lack of input files, but VaspDrone
+        #  should use read_lcalcpol now - Andrew Bogdan (andrewbogdan@lbl.gov)
         super(LcalcpolFW, self).__init__(
             t,
             parents=parents,

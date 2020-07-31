@@ -60,6 +60,13 @@ class VaspToDb(FiretaskBase):
             Set to "line" for line mode. If not set, band structure will not
             be parsed.
         additional_fields (dict): dict of additional fields to add
+        extra_outcar_read (list of str): list of extra data to read from
+            outcars. Default to []. The following strings will work:
+            - "igpar" to call Outcar.read_igpar()
+            - "lepsilon" to call Outcar.read_lepsilon()
+            - "lcalcpol" to call Outcar.read_lcalcpol()
+            - "core_state_eigen" to call Outcar.read_core_state_eigen()
+            - "avg_core_poten" to call Outcar.read_avg_core_poten()
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
         fw_spec_field (str): if set, will update the task doc with the contents
@@ -80,7 +87,8 @@ class VaspToDb(FiretaskBase):
                        "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful",
                        "task_fields_to_push", "parse_chgcar", "parse_aeccar",
                        "parse_potcar_file",
-                       "store_volumetric_data"]
+                       "store_volumetric_data",
+                       "extra_outcar_read"]
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
@@ -99,7 +107,8 @@ class VaspToDb(FiretaskBase):
                           bandstructure_mode=self.get("bandstructure_mode", False),
                           parse_chgcar=self.get("parse_chgcar", False),  # deprecated
                           parse_aeccar=self.get("parse_aeccar", False),  # deprecated
-                          store_volumetric_data=self.get("store_volumetric_data", STORE_VOLUMETRIC_DATA))
+                          store_volumetric_data=self.get("store_volumetric_data", STORE_VOLUMETRIC_DATA),
+                          extra_outcar_read=self.get("extra_outcar_read", []))
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)

@@ -89,7 +89,8 @@ class VaspDrone(AbstractDrone):
                  parse_bader=bader_exe_exists, parse_chgcar=False, parse_aeccar=False,
                  parse_potcar_file=True,
                  store_volumetric_data=STORE_VOLUMETRIC_DATA,
-                 store_additional_json=STORE_ADDITIONAL_JSON):
+                 store_additional_json=STORE_ADDITIONAL_JSON,
+                 extra_outcar_read=None):
         """
         Initialize a Vasp drone to parse vasp outputs
         Args:
@@ -116,6 +117,12 @@ class VaspDrone(AbstractDrone):
             'AECCAR0', 'AECCAR1', 'AECCAR2', 'ELFCAR'), case insensitive
             store_additional_json (bool): If True, parse any .json files present and store as
             sub-doc including the FW.json if present
+            extra_outcar_read (list of str): Include a strs in this list to use pymatgen's Outcar readers:
+             "igpar" to call Outcar.read_igpar(), storing it under "igpar".
+             "lepsilon" to call Outcar.read_lepsilon(), storing it under "lepsilon".
+             "lcalcpol" to call Outcar.read_lcalcpol(), storing it under "lcalcpol".
+             "core_state_eigen" to call Outcar.read_core_state_eigen(), storing it under "core_state_eigen".
+             "avg_core_poten" to call Outcar.read_avg_core_poten(), storing it under "avg_core_poten".
         """
         self.parse_dos = parse_dos
         self.additional_fields = additional_fields or {}
@@ -128,6 +135,7 @@ class VaspDrone(AbstractDrone):
         self.store_volumetric_data = [f.lower() for f in store_volumetric_data]
         self.store_additional_json = store_additional_json
         self.parse_potcar_file = parse_potcar_file
+        self.extra_outcar_read = extra_outcar_read or []
 
         if parse_chgcar or parse_aeccar:
             warnings.warn("These options have been deprecated in favor of the 'store_volumetric_data' "
@@ -213,8 +221,23 @@ class VaspDrone(AbstractDrone):
             d["dir_name"] = fullpath
             d["calcs_reversed"] = [self.process_vasprun(dir_name, taskname, filename)
                                    for taskname, filename in vasprun_files.items()]
-            outcar_data = [Outcar(os.path.join(dir_name, filename)).as_dict()
-                           for taskname, filename in outcar_files.items()]
+
+            outcar_data = []
+            for taskname, filename in outcar_files.items():
+                outcar = Outcar(os.path.join(dir_name, filename))
+                outcar_dict = outcar.as_dict()
+                if "igpar" in self.extra_outcar_read:
+                    outcar_dict["igpar"] = outcar.read_igpar()
+                if "lepsilon" in self.extra_outcar_read:
+                    outcar_dict["lepsilon"] = outcar.read_lepsilon()
+                if "lcalcpol" in self.extra_outcar_read:
+                    outcar_dict["lcalcpol"] = outcar.read_lcalcpol()
+                if "core_state_eigen" in self.extra_outcar_read:
+                    outcar_dict["core_state_eigen"] = outcar.read_core_state_eigen()
+                if "avg_core_poten" in self.extra_outcar_read:
+                    outcar_dict["avg_core_poten"] = outcar.read_avg_core_poten()
+                outcar_data.append(outcar_dict)
+
             run_stats = {}
             for i, d_calc in enumerate(d["calcs_reversed"]):
                 run_stats[d_calc["task"]["name"]] = outcar_data[i].pop("run_stats")
