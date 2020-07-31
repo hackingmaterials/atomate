@@ -137,6 +137,11 @@ class VaspDrone(AbstractDrone):
         self.parse_potcar_file = parse_potcar_file
         self.extra_outcar_read = extra_outcar_read or []
 
+        for flag in self.extra_outcar_read:
+            if flag not in ["igpar", "lepsilon", "lcalcpol",
+                            "core_state_eigen", "avg_core_poten"]:
+                raise ValueError(f"Invalid value {flag} for extra_outcar_read.")
+
         if parse_chgcar or parse_aeccar:
             warnings.warn("These options have been deprecated in favor of the 'store_volumetric_data' "
                           "keyword argument, which is more general. Functionality is equivalent.",
