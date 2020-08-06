@@ -146,7 +146,8 @@ class ScanOptimizeFW(Firework):
         """
         Structure optimization using the SCAN metaGGA functional. If this Firework is
         initialized with no parents, it will perform a GGA optimization of the provided
-        structure, which is intended to be passed to a second instance of this Firework
+        structure using the PBESol functional. This GGA-relaxed structure is intended
+        to be passed to a second instance of this Firework for optimization with SCAN.
         (see workflow definition in SCAN_optimization.yaml)
 
         Args:
@@ -216,10 +217,9 @@ class ScanOptimizeFW(Firework):
             t.append(
                 WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
             )
-            # Update the INCAR for the GGA preconditioning step
-            # Disable writing the WAVECAR because the no. of k-points will likely
-            # change before the next step in the calculation
-            pre_opt_settings = {"_set": {"METAGGA": None,
+            # Update the INCAR for the PBESol GGA preconditioning step
+            pre_opt_settings = {"_set": {"GGA": Ps",
+                                         "METAGGA": None,
                                          "EDIFFG": -0.05
                                          }}
 
