@@ -1,4 +1,4 @@
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = "Anubhav Jain <ajain@lbl.gov>"
 
 # TODO: @computron should be able to load from YAML -computron
 
@@ -12,6 +12,7 @@ VASP_CMD = ">>vasp_cmd<<"
 VDW_KERNEL_DIR = ">>vdw_kernel_dir<<"
 DB_FILE = ">>db_file<<"
 ADD_WF_METADATA = True
+LOBSTER_CMD = ">>lobster_cmd<<"
 
 # whether to use only half the kpoint density in
 # the initial relaxation of a structure optimization for faster performance
@@ -40,3 +41,37 @@ STORE_VOLUMETRIC_DATA = ()  # e.g. ("chgcar", "aeccar0", "aeccar2", "elfcar", "l
 # ingest any additional JSON data present into database when parsing VASP directories
 # useful for storing duplicate of FW.json
 STORE_ADDITIONAL_JSON = False
+
+# vasp output files that will be copied to lobster run
+VASP_OUTPUT_FILES = [
+    "OUTCAR",
+    "vasprun.xml",
+    "CHG",
+    "CHGCAR",
+    "CONTCAR",
+    "INCAR",
+    "KPOINTS",
+    "POSCAR",
+    "POTCAR",
+    "DOSCAR",
+    "EIGENVAL",
+    "IBZKPT",
+    "OSZICAR",
+    "WAVECAR",
+    "XDATCAR",
+]
+
+# lobster output files
+LOBSTERINPUT_FILES = ["lobsterin"]
+LOBSTEROUTPUT_FILES = [
+    "lobsterout",
+    "CHARGE.lobster",
+    "COHPCAR.lobster",
+    "COOPCAR.lobster",
+    "DOSCAR.lobster",
+    "GROSSPOP.lobster",
+    "ICOHPLIST.lobster",
+    "ICOOPLIST.lobster",
+    "lobster.out",
+    "projectionData.lobster",
+]
