@@ -29,6 +29,7 @@ from pymatgen.io.vasp.sets import (
     MPHSEBSSet,
     MPNMRSet,
     MPScanRelaxSet,
+    get_vasprun_outcar
 )
 
 from atomate.utils.utils import env_chk, load_class
@@ -292,10 +293,12 @@ class WriteScanRelaxFromPBE(FiretaskBase):
     """
     Writes input files for a SCAN relaxation by constructing a new input set.
     The purpose of this Firetask is to allow the KSPACING and smearing parameters
-    to be recalculated based on the bandgap from the PBE relaxation in the
+    to be recalculated based on the bandgap from the PBESol pre-optimization in the
     SCAN relaxation workflow. Assumes that output files from a previous
-    (e.g., optimization) run have been copied to the current directory and that
-    the firework contains a 'gga_bandgap' key in its spec.
+    (e.g., optimization) run have been copied to the current directory.
+
+    Note that if the "bandgap" kwarg is set by the user, this value will override
+    the value estimated from the PBESol relaxation.
 
     Optional params (dict):
         vasp_input_set_params: Dict of any keyword arguments supported by MPScanRelaxSet.
@@ -309,16 +312,24 @@ class WriteScanRelaxFromPBE(FiretaskBase):
     def run_task(self, fw_spec):
 
         potcar_spec = self.get("potcar_spec", False)
-        vasp_input_set_params = self.get("vasp_input_set_params")
-        # delete the bandgap argument from the original input set
-        del vasp_input_set_params["bandgap"]
+        vasp_input_set_params = self.get("vasp_input_set_params") or {}
+
+        # update the bandgap based on output from the previous calculation,
+        # unless the user specified a bandgap via vasp_input_set_params
+        if not vasp_input_set_params.get("bandgap"):
+            # First look for the gga_bandgap key in the FW spec, to save parsing time
+            if fw_spec.get("gga_bandgap"):
+                vasp_input_set_params["bandgap"] = fw_spec.get("gga_bandgap")
+            # If not found, parse the files from the previous calc to find the bandgap
+            else:
+                vasprun, outcar = get_vasprun_outcar(".")
+                bandgap = vasprun.get_band_structure().get_band_gap()["energy"]
+                vasp_input_set_params["bandgap"] = bandgap
 
         # read the structure from the output of the previous calculation
         structure = Structure.from_file("POSCAR")
-        # updated the bandgap to match that from the previous calculation
-        bandgap = fw_spec["gga_bandgap"]
 
-        vis = MPScanRelaxSet(structure, bandgap=bandgap, **vasp_input_set_params)
+        vis = MPScanRelaxSet(structure, **vasp_input_set_params)
         vis.write_input(".", potcar_spec=potcar_spec)
 
 

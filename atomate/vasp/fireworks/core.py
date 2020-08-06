@@ -218,7 +218,7 @@ class ScanOptimizeFW(Firework):
                 WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
             )
             # Update the INCAR for the PBESol GGA preconditioning step
-            pre_opt_settings = {"_set": {"GGA": Ps",
+            pre_opt_settings = {"_set": {"GGA": "Ps",
                                          "METAGGA": None,
                                          "EDIFFG": -0.05
                                          }}
