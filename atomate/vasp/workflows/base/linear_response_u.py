@@ -241,6 +241,8 @@ def get_wf_linear_response_u(structure,
 
         applied_potential_value_list.append(applied_potential_values.copy())
 
+    block_dict = {"s":0, "p":1, "d":2, "f":3}
+    
     for counter_perturb in range(num_perturb):
 
         applied_potential_values = applied_potential_value_list[counter_perturb]
@@ -267,10 +269,7 @@ def get_wf_linear_response_u(structure,
                         # FIX ME: shouldn't hard code LDAUL = 2
                         for i in range(num_perturb):
                             if i == counter_perturb:
-                                if str(structure[i].specie) == "O":
-                                    val_dict[k].update({"perturb"+str(i):1})
-                                else:
-                                    val_dict[k].update({"perturb"+str(i):2})
+                                val_dict[k].update({"perturb"+str(i):block_dict[str(structure[counter_perturb].specie.block)]})
                             else:
                                 val_dict[k].update({"perturb"+str(i):-1})
                     else:
@@ -485,6 +484,9 @@ class LinearResponseUSet(MPStaticSet):
         parent_incar = super().incar
         incar = Incar(parent_incar)
 
+        # #HACK - FIXME
+        # incar.update({"LMAXMIX": 6})
+        
         incar.update({"ISYM": 0, "ISMEAR": 0})
         incar.pop("NSW", None)
         incar.update({"ISTART": 1})

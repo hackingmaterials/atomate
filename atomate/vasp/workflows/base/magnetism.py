@@ -26,7 +26,7 @@ from atomate.vasp.config import VASP_CMD, DB_FILE, ADD_WF_METADATA
 
 from atomate.vasp.workflows.presets.scan import wf_scan_opt
 from uuid import uuid4
-from pymatgen.io.vasp.sets import MPRelaxSet
+from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
 from pymatgen.core import Lattice, Structure
 from pymatgen.analysis.magnetism.analyzer import (
     CollinearMagneticStructureAnalyzer,
@@ -78,7 +78,8 @@ def get_wf_magnetic_deformation(structure, c=None, vis=None):
     else:
         c = c_defaults
 
-    wf = get_wf(structure, "magnetic_deformation.yaml", common_params=c, vis=vis)
+    # wf = get_wf(structure, "magnetic_deformation.yaml", common_params=c, vis=vis)
+    wf = get_wf(structure, "magnetic_deformation_ncl.yaml", common_params=c, vis=vis)
 
     fw_analysis = Firework(
         MagneticDeformationToDb(
@@ -326,19 +327,32 @@ class MagneticOrderingsWF:
                         )
                     )
 
+                    static_parents = fws[-1]
+                    static_vis = None
+                    prev_calc_loc = True
+
+                else:
+
+                    static_parents = None
+                    static_vis = MPStaticSet(
+                        ordered_structure, user_incar_settings=user_incar_settings
+                    )
+                    prev_calc_loc = False
+
                 # static
                 fws.append(
                     StaticFW(
-                        ordered_structure,
+                        structure=ordered_structure,
+                        vasp_input_set=static_vis,
                         vasp_cmd=c["VASP_CMD"],
                         db_file=c["DB_FILE"],
                         name=name + " static",
-                        prev_calc_loc=True,
-                        parents=fws[-1],
+                        prev_calc_loc=prev_calc_loc,
+                        parents=static_parents,
                         vasptodb_kwargs={'parse_chgcar': True, 'parse_aeccar': True}
                     )
                 )
-                
+
                 if not self.static:
                     # so a failed optimize doesn't crash workflow
                     fws[-1].spec["_allow_fizzled_parents"] = True
