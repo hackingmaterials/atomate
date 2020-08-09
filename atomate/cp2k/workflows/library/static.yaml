@@ -1,0 +1,7 @@
+fireworks:
+      - fw: atomate.cp2k.fireworks.core.StaticFW
+      - fw: atomate.cp2k.fireworks.core.HybridStaticFW
+        params:
+          parents: 1
+          hybrid_functional: PBE0
+          files_to_copy:

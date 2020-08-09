@@ -1,4 +1,6 @@
 from pymatgen.analysis.defects.generators import VacancyGenerator, InterstitialGenerator, SubstitutionGenerator
+from pymatgen.analysis.defects.core import Vacancy
+from pymatgen.core.structure import Structure
 import itertools
 import numpy as np
 
@@ -14,7 +16,8 @@ def get_defect_structures(structure, defect_dict):
         # only create vacancies of interest...
         b_struct = structure.copy()  # base structure (un-defective)
         VG = VacancyGenerator(b_struct, include_bv_charge=False)
-        for vac in VG:
+        for _vac in VG:
+            vac = GhostVacancy(_vac.bulk_structure, _vac.site, _vac.charge, _vac.multiplicity)
             vac_ind = vac.site.specie.symbol
             if vac_ind not in vacancies.keys():
                 continue
@@ -108,24 +111,36 @@ def optimize_structure_sc_scale_by_length(inp_struct, minimum_distance):
     else:
         return np.ceil(minimum_distance/np.linalg.norm(inp_struct.lattice.matrix, axis=0)).astype(int)
 
-"""
-from pymatgen.core.structure import Structure
-from pymatgen.ext.matproj import MPRester
 
-Si = 'mp-149'
-C = 'mp-66'
-NaCl = 'mp-22862'
-Cr2O3 = 'mp-19399'
-PbSe = 'mp-2201'
-with MPRester() as mp:
-    for i in [Si, C, NaCl, Cr2O3, PbSe]:
-        struc = mp.get_structure_by_material_id(i, conventional_unit_cell=True)
-        s = optimize_structure_sc_scale_by_length(struc, 16)
-        print(struc.lattice)
-        print(s)
-        struc.make_supercell(s)
-        print(struc.lattice)
-        print(struc.num_sites)
-"""
+class GhostVacancy(Vacancy):
+    """
+    Current workaround for the Vacancy class in CP2K. Vacancies are normally just structures
+    with an atom removed, but with CP2K we want to retain the site and turn off its interaction
+    potential (Ghost atom) in order to avoid Basis set superposition error for localized basis.
+    """
+
+    def generate_defect_structure(self, supercell=(1, 1, 1)):
+        """
+        Returns Defective Vacancy structure, decorated with charge
+        Args:
+            supercell (int, [3x1], or [[]] (3x3)): supercell integer, vector, or scaling matrix
+        """
+        defect_structure = self.bulk_structure.copy()
+        defect_structure.make_supercell(supercell)
+
+        # create a trivial defect structure to find where supercell transformation moves the lattice
+        struct_for_defect_site = Structure(self.bulk_structure.copy().lattice,
+                                           [self.site.specie],
+                                           [self.site.frac_coords],
+                                           to_unit_cell=True)
+        struct_for_defect_site.make_supercell(supercell)
+        defect_site = struct_for_defect_site[0]
+
+        poss_deflist = sorted(
+            defect_structure.get_sites_in_sphere(defect_site.coords, 0.1, include_index=True), key=lambda x: x[1])
+        defindex = poss_deflist[0][2]
+        defect_structure.add_site_property('ghost', [True if i == defindex else False for i in range(len(defect_structure))])
+        defect_structure.set_charge(self.charge)
+        return defect_structure
 
 

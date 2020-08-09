@@ -3,14 +3,21 @@ from pymatgen.io.cp2k.sets import (
     RelaxSet,
     HybridStaticSet,
     HybridRelaxSet,
+    HybridCellOptSet
 )
 from atomate.cp2k.fireworks.core import (
     StaticFW,
     RelaxFW,
     StaticHybridFW,
     RelaxHybridFW,
+    CellOptHybridFW
 )
 from fireworks import Workflow
+from atomate.utils.utils import get_wf_from_spec_dict
+from monty.serialization import loadfn
+import os
+
+module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 ADD_NAMEFILE = True
 SCRATCH_DIR = ">>scratch_dir<<"
@@ -19,6 +26,48 @@ CP2K_CMD = ">>cp2k_cmd<<"
 DB_FILE = ">>db_file<<"
 ADD_WF_METADATA = True
 
+# TODO Incomplete. Just an idea.
+def get_wf(structure, wf_filename, params=None, common_params=None, wf_metadata=None):
+    """
+    structure,
+    cp2k_static_input_set=None,
+    cp2k_hybrid_input_set=None,
+    name="Hybrid-Static-WF",
+    user_static_settings={},
+    user_hybrid_settings={},
+    cp2k_cmd=CP2K_CMD,
+    db_file=DB_FILE,
+    cp2ktodb_kwargs=None,
+    metadata=None,
+    """
+
+    fws = []
+
+    sets = [
+
+    ]
+
+    for p in params:
+        fw = p['fw']
+
+        mod = __import__(modulepath, globals(), locals(), [classname], 0)
+        return getattr(mod, classname)
+
+    cp2k_static_input_set = cp2k_static_input_set or StaticSet(
+        structure, **user_static_settings
+    )
+    cp2k_hybrid_input_set = cp2k_hybrid_input_set or HybridStaticSet(
+        structure, **user_hybrid_settings
+    )
+
+    gga_name = "{}-GGA-FW".format(structure.composition.reduced_formula)
+    hybrid_name = "{}-Hybrid-FW".format(structure.composition.reduced_formula)
+    restart_filename = "{}-RESTART.wfn".format(gga_name)  # GGA restart WFN
+
+    wfname = "{}:{}".format(structure.composition.reduced_formula, name)
+
+    return Workflow(fws, name=wfname, metadata=wf_metadata)
+
 
 def get_wf_static(
     structure,
@@ -26,7 +75,8 @@ def get_wf_static(
     name="Static-WF",
     cp2k_cmd=">>cp2k_cmd<<",
     db_file=">>db_file<<",
-    user_cp2k_settings=None,
+    user_cp2k_settings={},
+    cp2ktodb_kwargs=None,
     metadata=None,
 ):
     """
@@ -48,19 +98,18 @@ def get_wf_static(
     """
     fws = []
 
-    cis_static = cp2k_input_set or StaticSet(structure, **user_cp2k_settings)
-
     fw = StaticFW(
         structure=structure,
         name=name,
-        cp2k_input_set=cis_static,
+        cp2k_input_set=cp2k_input_set,
         cp2k_input_set_params=user_cp2k_settings,
         cp2k_cmd=cp2k_cmd,
         prev_calc_loc=False,
         prev_calc_dir=None,
         db_file=db_file,
-        cp2ktodb_kwargs=None,
+        cp2ktodb_kwargs=cp2ktodb_kwargs,
         parents=None,
+        files_to_copy=None
     )
     fws.append(fw)
 
@@ -75,7 +124,8 @@ def get_wf_relax(
     name="Relax WF",
     cp2k_cmd=CP2K_CMD,
     db_file=DB_FILE,
-    user_cp2k_settings=None,
+    user_cp2k_settings={},
+    cp2ktodb_kwargs=None,
     metadata=None,
 ):
     """
@@ -94,19 +144,18 @@ def get_wf_relax(
     """
     fws = []
 
-    cis_static = cp2k_input_set or RelaxSet(structure, **user_cp2k_settings)
-
     fw = RelaxFW(
         structure=structure,
         name=name,
-        cp2k_input_set=cis_static,
+        cp2k_input_set=cp2k_input_set,
         cp2k_input_set_params=user_cp2k_settings,
         cp2k_cmd=cp2k_cmd,
         prev_calc_loc=False,
         prev_calc_dir=None,
         db_file=db_file,
-        cp2ktodb_kwargs=None,
+        cp2ktodb_kwargs=cp2ktodb_kwargs,
         parents=None,
+        files_to_copy=None
     )
     fws.append(fw)
 
@@ -130,42 +179,36 @@ def get_wf_hybrid_static(
 
     fws = []
 
-    # TODO I really don't like this work around... currently I'm asserting that all cp2k input files
-    # must have the same project name, that way its easier for different fws to find the files from
-    # previous fireworks. Should be more flexible. -NW
-    if "project_name" not in user_static_settings.keys():
-        user_static_settings["project_name"] = name
-    if "project_name" not in user_hybrid_settings.keys():
-        user_hybrid_settings["project_name"] = name
-
-    cp2k_static_input_set = cp2k_static_input_set or StaticSet(
-        structure, **user_static_settings
-    )
-    cp2k_hybrid_input_set = cp2k_hybrid_input_set or HybridStaticSet(
-        structure, **user_hybrid_settings
-    )
+    gga_name = "{}-GGA-FW".format(structure.composition.reduced_formula)
+    hybrid_name = "{}-Hybrid-FW".format(structure.composition.reduced_formula)
+    restart_filename = "{}-RESTART.wfn".format(gga_name)  # GGA restart WFN
+    user_hybrid_settings['wfn_restart_file_name'] = restart_filename
 
     fw1 = StaticFW(
         structure=structure,
-        name=name,
+        name=gga_name,
         cp2k_input_set=cp2k_static_input_set,
+        cp2k_input_set_params=user_static_settings,
         cp2k_cmd=cp2k_cmd,
         prev_calc_loc=False,
         db_file=db_file,
         cp2ktodb_kwargs=cp2ktodb_kwargs,
         parents=None,
+        files_to_copy=None
     )
     fws.append(fw1)
 
     fw2 = StaticHybridFW(
         structure=structure,
-        name=name,
+        name=hybrid_name,
         cp2k_input_set=cp2k_hybrid_input_set,
+        cp2k_input_set_params=user_hybrid_settings,
         cp2k_cmd=cp2k_cmd,
         prev_calc_loc=True,
         db_file=db_file,
         cp2ktodb_kwargs=cp2ktodb_kwargs,
         parents=fw1,
+        files_to_copy=restart_filename
     )
     fws.append(fw2)
 
@@ -178,7 +221,7 @@ def get_wf_hybrid_relax(
     structure,
     cp2k_static_input_set=None,
     cp2k_hybrid_input_set=None,
-    name="Hybrid-Static-WF",
+    name="Hybrid-Relax-WF",
     user_static_settings={},
     user_hybrid_settings={},
     cp2k_cmd=CP2K_CMD,
@@ -189,42 +232,89 @@ def get_wf_hybrid_relax(
 
     fws = []
 
-    # TODO I really don't like this work around... currently I'm asserting that all cp2k input files
-    # must have the same project name, that way its easier for different fws to find the files from
-    # previous fireworks. Should be more flexible. -NW
-    if "project_name" not in user_static_settings.keys():
-        user_static_settings["project_name"] = name
-    if "project_name" not in user_hybrid_settings.keys():
-        user_hybrid_settings["project_name"] = name
-
-    cp2k_static_input_set = cp2k_static_input_set or StaticSet(
-        structure, **user_static_settings
-    )
-    cp2k_hybrid_input_set = cp2k_hybrid_input_set or HybridRelaxSet(
-        structure, **user_hybrid_settings
-    )
+    gga_name = "{}-GGA-FW".format(structure.composition.reduced_formula)
+    hybrid_name = "{}-Hybrid-FW".format(structure.composition.reduced_formula)
+    restart_filename = "{}-RESTART.wfn".format(gga_name)  # GGA restart WFN
+    user_hybrid_settings['wfn_restart_file_name'] = restart_filename
 
     fw1 = StaticFW(
         structure=structure,
-        name=name,
+        name=gga_name,
         cp2k_input_set=cp2k_static_input_set,
+        cp2k_input_set_params=user_static_settings,
         cp2k_cmd=cp2k_cmd,
         prev_calc_loc=False,
         db_file=db_file,
         cp2ktodb_kwargs=cp2ktodb_kwargs,
         parents=None,
+        files_to_copy=False
     )
     fws.append(fw1)
 
-    fw2 = StaticHybridFW(
+    fw2 = RelaxHybridFW(
         structure=structure,
-        name=name,
+        name=hybrid_name,
         cp2k_input_set=cp2k_hybrid_input_set,
+        cp2k_input_set_params=user_hybrid_settings,
         cp2k_cmd=cp2k_cmd,
         prev_calc_loc=True,
         db_file=db_file,
         cp2ktodb_kwargs=cp2ktodb_kwargs,
         parents=fw1,
+        files_to_copy=restart_filename
+    )
+    fws.append(fw2)
+
+    wfname = "{}:{}".format(structure.composition.reduced_formula, name)
+
+    return Workflow(fws, name=wfname, metadata=metadata)
+
+
+def get_wf_hybrid_cell_opt(
+    structure,
+    cp2k_static_input_set=None,
+    cp2k_hybrid_input_set=None,
+    name="Hybrid-CellOpt-WF",
+    user_static_settings={},
+    user_hybrid_settings={},
+    cp2k_cmd=CP2K_CMD,
+    db_file=DB_FILE,
+    cp2ktodb_kwargs=None,
+    metadata=None,
+):
+
+    fws = []
+
+    gga_name = "{}-GGA-FW".format(structure.composition.reduced_formula)
+    hybrid_name = "{}-Hybrid-FW".format(structure.composition.reduced_formula)
+    restart_filename = "{}-RESTART.wfn".format(gga_name)  # GGA restart WFN
+    user_hybrid_settings['wfn_restart_file_name'] = restart_filename
+
+    fw1 = StaticFW(
+        structure=structure,
+        name=gga_name,
+        cp2k_input_set=cp2k_static_input_set,
+        cp2k_input_set_params=user_static_settings,
+        cp2k_cmd=cp2k_cmd,
+        prev_calc_loc=False,
+        db_file=db_file,
+        cp2ktodb_kwargs=cp2ktodb_kwargs,
+        parents=None,
+        files_to_copy=False
+    )
+    fws.append(fw1)
+
+    fw2 = CellOptHybridFW(
+        structure=structure,
+        name=hybrid_name,
+        cp2k_input_set=cp2k_hybrid_input_set,
+        cp2k_input_set_params=user_hybrid_settings,
+        cp2k_cmd=cp2k_cmd,
+        prev_calc_loc=True,
+        db_file=db_file,
+        cp2ktodb_kwargs=cp2ktodb_kwargs,
+        parents=fw1,
+        files_to_copy=restart_filename
     )
     fws.append(fw2)
 
@@ -248,41 +338,76 @@ def get_wf_gga_relax_to_hybrid_static(
 
     fws = []
 
-    if "project_name" not in user_gga_settings.keys():
-        user_gga_settings["project_name"] = name
-    if "project_name" not in user_hybrid_settings.keys():
-        user_hybrid_settings["project_name"] = name
-
-    cp2k_gga_input_set = cp2k_gga_input_set or RelaxSet(
-        structure, **user_gga_settings
-    )
-    cp2k_hybrid_input_set = cp2k_hybrid_input_set or HybridStaticSet(
-        structure, **user_hybrid_settings
-    )
+    gga_name = "{}-GGA-FW".format(structure.composition.reduced_formula)
+    hybrid_name = "{}-Hybrid-FW".format(structure.composition.reduced_formula)
+    restart_filename = "{}-RESTART.wfn".format(gga_name)  # GGA restart WFN
+    user_hybrid_settings['wfn_restart_file_name'] = restart_filename
 
     fw1 = RelaxFW(
         structure=structure,
-        name=name,
+        name=gga_name,
         cp2k_input_set=cp2k_gga_input_set,
+        cp2k_input_set_params=user_gga_settings,
         cp2k_cmd=cp2k_cmd,
         prev_calc_loc=False,
         db_file=db_file,
         cp2ktodb_kwargs=cp2ktodb_kwargs,
         parents=None,
+        files_to_copy=None
     )
     fws.append(fw1)
 
     fw2 = StaticHybridFW(
         structure=structure,
-        name=name,
+        name=hybrid_name,
         cp2k_input_set=cp2k_hybrid_input_set,
+        cp2k_input_set_params=user_hybrid_settings,
         cp2k_cmd=cp2k_cmd,
         prev_calc_loc=True,
         db_file=db_file,
         cp2ktodb_kwargs=cp2ktodb_kwargs,
         parents=fw1,
+        files_to_copy=restart_filename
     )
     fws.append(fw2)
+
+    wfname = "{}:{}".format(structure.composition.reduced_formula, name)
+
+    return Workflow(fws, name=wfname, metadata=metadata)
+
+def get_wf_atom(
+    structure,
+    cp2k_gga_input_set=None,
+    cp2k_hybrid_input_set=None,
+    name="Hybrid-Static-WF",
+    user_gga_settings={},
+    user_hybrid_settings={},
+    cp2k_cmd=CP2K_CMD,
+    db_file=DB_FILE,
+    cp2ktodb_kwargs=None,
+    metadata=None,
+):
+
+    fws = []
+
+    hybrid_name = "{}-Hybrid-Atom-FW".format(structure.composition.reduced_formula)
+
+    cis = HybridStaticSet(structure, hybrid_functional='PBE0', hf_fraction=1, gga_x_fraction=0)
+    cis.insert({'FORCE_EVAL': {'DFT': {''}}})
+
+    fw = StaticHybridFW(
+        structure=structure,
+        name=hybrid_name,
+        cp2k_input_set=cp2k_hybrid_input_set,
+        cp2k_input_set_params=user_hybrid_settings,
+        cp2k_cmd=cp2k_cmd,
+        prev_calc_loc=True,
+        db_file=db_file,
+        cp2ktodb_kwargs=cp2ktodb_kwargs,
+        parents=None,
+        files_to_copy=None
+    )
+    fws.append(fw)
 
     wfname = "{}:{}".format(structure.composition.reduced_formula, name)
 

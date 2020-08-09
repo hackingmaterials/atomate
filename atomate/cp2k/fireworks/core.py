@@ -174,7 +174,6 @@ class StaticFW(BaseFW):
         """
         Standard static calculation. Can start from input set or from previous calculation.
         """
-
         cp2k_input_set = cp2k_input_set or StaticSet(
             structure, project_name=name,
             **cp2k_input_set_params.copy()
@@ -219,6 +218,7 @@ class StaticHybridFW(BaseFW):
             structure, project_name=name,
             **cp2k_input_set_params.copy()
         )
+
         super().__init__(
             structure=structure,
             name=name,
