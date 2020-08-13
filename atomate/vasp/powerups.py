@@ -741,7 +741,6 @@ def add_additional_fields_to_taskdocs(
     idx_list = get_fws_and_tasks(original_wf, task_name_constraint=task_name_constraint)
     for idx_fw, idx_t in idx_list:
         original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"].update(update_dict)
-        print(original_wf.fws[idx_fw].tasks[idx_t])
     return original_wf
 
 
