@@ -126,7 +126,11 @@ def get_wf_linear_response_u(structure, uis,
                 dist_min = dist
                 indices_nearest = indxs.copy()
 
-        #print("Min. dist = ", dist_min, "- config: ", indices_nearest)
+        # ####################
+        # print("Min. dist = ", dist_min, "- config: ", indices_nearest)
+        # for index in indices_nearest:
+        #     print("site = ", struct[index])
+        # ####################
 
         return indices_nearest
 
@@ -519,10 +523,10 @@ class LinearResponseUSet(MPStaticSet):
         parent_incar = super().incar
         incar = Incar(parent_incar)
         
-        incar.update({"ISYM": -1, "ISMEAR": 0})
-        incar.pop("NSW", None)
+        incar.update({"ISYM": -1, "ISMEAR": 0, "LREAL":False, "LASPH":True})
         incar.update({"ISTART": 1})
         # incar.update({"ALGO": "Fast"})
+        incar.pop("NSW", None)
         
         if self.kwargs.get("user_incar_settings")["LDAUU"]:
 
