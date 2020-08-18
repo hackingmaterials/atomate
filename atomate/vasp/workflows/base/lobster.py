@@ -207,10 +207,8 @@ def get_wf_lobster_test_basis(
                 validator_group="strict",
                 name="lobster_calculation_{}".format(ibasis),
                 lobstertodb_kwargs={
-                    "additional_fields": {
                         "basis_id": ibasis,
                         "number_lobster_runs": len(list_basis_dict),
-                    }
                 },
                 additional_outputs=additional_outputs,
             )
