@@ -263,7 +263,7 @@ class LobsterRunToDb(FiretaskBase):
 
         additional_fields = self.get("additional_fields", {})
         if additional_fields:
-            task_doc.update(additional_fields["additional_fields"])
+            task_doc.update(additional_fields)
 
         task_doc.update(get_meta_from_structure(struct))
         if vasp_calc_dir != None:
