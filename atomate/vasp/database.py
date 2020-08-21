@@ -1,5 +1,5 @@
 # coding: utf-8
-from typing import Dict, Union
+from typing import Dict, Union, Any
 
 import msgpack
 from monty.msgpack import default as monty_default
@@ -39,7 +39,8 @@ class VaspCalcDb(CalcDb):
     """
 
     def __init__(self, host="localhost", port=27017, database="vasp", collection="tasks", user=None,
-                 password=None, **kwargs):
+                 password=None, big_obj_store=None, **kwargs):
+        self.big_obj_store = big_obj_store
         super(VaspCalcDb, self).__init__(host, port, database, collection, user,
                                          password, **kwargs)
 
@@ -73,7 +74,7 @@ class VaspCalcDb(CalcDb):
                                           ("completed_at", DESCENDING)],
                                          background=background)
 
-    def insert_task(self, task_doc, use_gridfs=False):
+    def insert_task(self, task_doc, use_gridfs=False, convert_to_str = True):
         """
         Inserts a task document (e.g., as returned by Drone.assimilate()) into the database.
         Handles putting DOS, band structure and charge density into GridFS as needed.
@@ -82,56 +83,47 @@ class VaspCalcDb(CalcDb):
 
         Args:
             task_doc: (dict) the task document
-            use_gridfs (bool) use gridfs for  bandstructures and DOS
+            use_gridfs (bool) use gridfs for  bandstructures and DOS, only parsed if big_obj_store is None
         Returns:
             (int) - task_id of inserted document
         """
-        dos = None
-        bs = None
-        vol_data = {}
+        # dos = None
+        # bs = None
+        # vol_data = {}
 
-        # move dos BS and CHGCAR from doc to gridfs
+        big_data_to_store = {}
+
+        def extract_from_calcs_reversed(obj_key):
+            """
+            Grab the data from calcs_reversed.0.obj_key_to_extract and store on gridfs directly or some Maggma store
+            Args:
+                obj_key: Key of the data in calcs_reversed.0 to store
+            """
+            if convert_to_str:
+                calcs_r_data = json.dumps(task_doc["calcs_reversed"][0][obj_key], cls=MontyEncoder)
+            else:
+                calcs_r_data = task_doc["calcs_reversed"][0]["dos"]
+
+            big_data_to_store[obj_key] = calcs_r_data
+            del task_doc["calcs_reversed"][0][obj_key]
+
+        # drop the data from the task_document and keep them in a separate dictionary (big_data_to_store)
         if use_gridfs and "calcs_reversed" in task_doc:
-
-            if "dos" in task_doc["calcs_reversed"][0]:  # only store idx=0 (last step)
-                dos = json.dumps(task_doc["calcs_reversed"][0]["dos"], cls=MontyEncoder)
-                del task_doc["calcs_reversed"][0]["dos"]
-
-            if "bandstructure" in task_doc["calcs_reversed"][0]:  # only store idx=0 (last step)
-                bs = json.dumps(task_doc["calcs_reversed"][0]["bandstructure"], cls=MontyEncoder)
-                del task_doc["calcs_reversed"][0]["bandstructure"]
-
-            for vol_data_name in ('chgcar', 'locpot', 'aeccar0', 'aeccar1', 'aeccar2', 'elfcar'):
-                if vol_data_name in task_doc["calcs_reversed"][0]:  # only store idx=0 data
-                    vol_data[vol_data_name] = json.dumps(task_doc["calcs_reversed"][0][vol_data_name],
-                                                         cls=MontyEncoder)
-                    del task_doc["calcs_reversed"][0][vol_data_name]
+            for data_key in ("dos", "bandstructure", 'chgcar', 'locpot', 'aeccar0', 'aeccar1', 'aeccar2', 'elfcar'):
+                if data_key in task_doc["calcs_reversed"][0]:
+                    extract_from_calcs_reversed(data_key)
 
         # insert the task document
         t_id = self.insert(task_doc)
 
-        # insert the dos into gridfs and update the task document
-        if dos:
-            dos_gfs_id, compression_type = self.insert_gridfs(dos, "dos_fs", task_id=t_id)
-            self.collection.update_one(
-                {"task_id": t_id}, {"$set": {"calcs_reversed.0.dos_compression": compression_type}})
-            self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.dos_fs_id": dos_gfs_id}})
-
-        # insert the bandstructure into gridfs and update the task documents
-        if bs:
-            bfs_gfs_id, compression_type = self.insert_gridfs(bs, "bandstructure_fs", task_id=t_id)
-            self.collection.update_one(
-                {"task_id": t_id}, {"$set": {"calcs_reversed.0.bandstructure_compression": compression_type}})
-            self.collection.update_one(
-                {"task_id": t_id}, {"$set": {"calcs_reversed.0.bandstructure_fs_id": bfs_gfs_id}})
-
-        # insert the CHGCAR file into gridfs and update the task documents
-        if vol_data:
-            for name, data in vol_data.items():
-                data_gfs_id, compression_type = self.insert_gridfs(data, "{}_fs".format(name), task_id=t_id)
-                self.collection.update_one(
-                    {"task_id": t_id}, {"$set": {"calcs_reversed.0.{}_compression".format(name): compression_type}})
-                self.collection.update_one({"task_id": t_id}, {"$set": {"calcs_reversed.0.{}_fs_id".format(name): data_gfs_id}})
+        # upload the data to a particular location and store the reference to that location in the task database
+        if use_gridfs and "calcs_reversed" in task_doc:
+            for data_key, data_val in big_data_to_store.items():
+                    gfs_id_, compression_type_ = self.insert_gridfs(data_val, collection = f"{data_key}_fs", task_id=t_id)
+                    self.collection.update_one(
+                        {"task_id": t_id}, {"$set": {f"calcs_reversed.0.{data_key}_compression": compression_type_}})
+                    self.collection.update_one(
+                        {"task_id": t_id}, {"$set": {f"calcs_reversed.0.{data_key}_fs_id": gfs_id_}})
 
         return t_id
 
@@ -182,7 +174,6 @@ class VaspCalcDb(CalcDb):
         serach_doc = {doc[k_] for k_ in serach_keys}
         return serach_doc, compression_type
 
-    @deprecated(version='0.9.5', reason="Using maggma API for object storage")
     def insert_gridfs(self, d, collection="fs", compress=True, oid=None, task_id=None):
         """
         Insert the given document into GridFS.
@@ -196,6 +187,37 @@ class VaspCalcDb(CalcDb):
         Returns:
             file id, the type of compression used.
         """
+        oid = oid or ObjectId()
+        compression_type = None
+
+        if compress:
+            d = zlib.compress(d.encode(), compress)
+            compression_type = "zlib"
+
+        fs = gridfs.GridFS(self.db, collection)
+        if task_id:
+            # Putting task id in the metadata subdocument as per mongo specs:
+            # https://github.com/mongodb/specifications/blob/master/source/gridfs/gridfs-spec.rst#terms
+            fs_id = fs.put(d, _id=oid, metadata={"task_id": task_id, "compression": compression_type})
+        else:
+            fs_id = fs.put(d, _id=oid, metadata={"compression": compression_type})
+
+        return fs_id, compression_type
+
+    def insert_maggma_store(self, d, store: Union[S3Store, GridFSStore], compress: bool=True, oid: ObjectId=None, task_id: Any=None):
+        """
+        Insert the given document into a Maggma store
+
+        Args:
+            d (dict): the document
+            collection (string): the GridFS collection name
+            compress (bool): Whether to compress the data or not
+            oid (ObjectId()): the _id of the file; if specified, it must not already exist in GridFS
+            task_id(int or str): the task_id to store into the gridfs metadata
+        Returns:
+            file id, the type of compression used.
+        """
+
         oid = oid or ObjectId()
         compression_type = None
 

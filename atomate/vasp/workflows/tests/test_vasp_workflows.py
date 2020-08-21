@@ -7,6 +7,7 @@ import unittest
 import zlib
 
 import gridfs
+from monty.json import MontyDecoder
 from pymongo import DESCENDING
 
 from fireworks import FWorker
@@ -41,6 +42,7 @@ _fworker = FWorker(env={"db_file": os.path.join(db_dir, "db.json")})
 DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
 VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 
+decoder = MontyDecoder()
 
 class TestVaspWorkflows(AtomateTest):
 
@@ -278,11 +280,11 @@ class TestVaspWorkflows(AtomateTest):
         print(ref_dirs_si['static'])
         doc = drone.assimilate(ref_dirs_si['static']+'/outputs')
         # insert the doc make sure that the
-        cc = doc['calcs_reversed'][0]['chgcar']
+        cc = decoder.process_decoded(doc['calcs_reversed'][0]['chgcar'])
         self.assertAlmostEqual(cc.data['total'].sum()/cc.ngridpts, 8.0, 4)
-        cc = doc['calcs_reversed'][0]['aeccar0']
+        cc = decoder.process_decoded(doc['calcs_reversed'][0]['aeccar0'])
         self.assertAlmostEqual(cc.data['total'].sum()/cc.ngridpts, 23.253588293583313, 4)
-        cc = doc['calcs_reversed'][0]['aeccar2']
+        cc = decoder.process_decoded(doc['calcs_reversed'][0]['aeccar2'])
         self.assertAlmostEqual(cc.data['total'].sum()/cc.ngridpts, 8.01314480789829, 4)
         mmdb = VaspCalcDb.from_db_file(os.path.join(db_dir, "db.json"))
         t_id = mmdb.insert_task(doc, use_gridfs=True)

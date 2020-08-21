@@ -11,6 +11,7 @@ STABILITY_CHECK = False
 VASP_CMD = ">>vasp_cmd<<"
 VDW_KERNEL_DIR = ">>vdw_kernel_dir<<"
 DB_FILE = ">>db_file<<"
+BIG_OBJ_STORE = ">>obj_store<<"
 ADD_WF_METADATA = True
 
 # whether to use only half the kpoint density in
