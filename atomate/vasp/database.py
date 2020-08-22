@@ -25,7 +25,6 @@ from pymongo import ASCENDING, DESCENDING
 
 from atomate.utils.database import CalcDb
 from atomate.utils.utils import get_logger
-from deprecated import deprecated
 from maggma.stores.aws import S3Store
 from maggma.stores import GridFSStore
 
@@ -34,7 +33,8 @@ __credits__ = "Anubhav Jain"
 __email__ = "kmathew@lbl.gov"
 
 logger = get_logger(__name__)
-
+# If we use Maggmastores  we will have to initialize a magmma store for each object typl
+OBJ_STORE_NAMES = ("dos", "bandstructure", 'chgcar', 'locpot', 'aeccar0', 'aeccar1', 'aeccar2', 'elfcar')
 
 class VaspCalcDb(CalcDb):
     """
@@ -99,8 +99,9 @@ class VaspCalcDb(CalcDb):
                 ],
                 background=background,
             )
+        # build the index stores
 
-    def insert_task(self, task_doc, use_gridfs=False, convert_to_str = True):
+    def insert_task(self, task_doc, use_gridfs=False):
         """
         Inserts a task document (e.g., as returned by Drone.assimilate()) into the database.
         Handles putting DOS, band structure and charge density into GridFS as needed.
@@ -113,9 +114,6 @@ class VaspCalcDb(CalcDb):
         Returns:
             (int) - task_id of inserted document
         """
-        # dos = None
-        # bs = None
-        # vol_data = {}
 
         big_data_to_store = {}
 
@@ -125,8 +123,6 @@ class VaspCalcDb(CalcDb):
             Args:
                 obj_key: Key of the data in calcs_reversed.0 to store
             """
-            if convert_to_str:
-                calcs_r_data = json.dumps(task_doc["calcs_reversed"][0][obj_key], cls=MontyEncoder)
             else:
                 calcs_r_data = task_doc["calcs_reversed"][0]["dos"]
 
@@ -135,7 +131,7 @@ class VaspCalcDb(CalcDb):
 
         # drop the data from the task_document and keep them in a separate dictionary (big_data_to_store)
         if use_gridfs and "calcs_reversed" in task_doc:
-            for data_key in ("dos", "bandstructure", 'chgcar', 'locpot', 'aeccar0', 'aeccar1', 'aeccar2', 'elfcar'):
+            for data_key in OBJ_STORE_NAMES:
                 if data_key in task_doc["calcs_reversed"][0]:
                     extract_from_calcs_reversed(data_key)
 
@@ -143,13 +139,20 @@ class VaspCalcDb(CalcDb):
         t_id = self.insert(task_doc)
 
         # upload the data to a particular location and store the reference to that location in the task database
-        if use_gridfs and "calcs_reversed" in task_doc:
+        if self._magga_store_type == "s3":
             for data_key, data_val in big_data_to_store.items():
-                    gfs_id_, compression_type_ = self.insert_gridfs(data_val, collection = f"{data_key}_fs", task_id=t_id)
+                fs_di_, compression_type_ = self.insert_maggma_store(data_val, collection=f"{data_key}_fs", task_id=t_id)
+                self.collection.update_one(
+                    {"task_id": t_id}, {"$set": {f"calcs_reversed.0.{data_key}_compression": compression_type_}})
+                self.collection.update_one(
+                    {"task_id": t_id}, {"$set": {f"calcs_reversed.0.{data_key}_fs_id": fs_di_}})
+        elif use_gridfs and "calcs_reversed" in task_doc:
+            for data_key, data_val in big_data_to_store.items():
+                    fs_di_, compression_type_ = self.insert_gridfs(data_val, collection = f"{data_key}_fs", task_id=t_id)
                     self.collection.update_one(
                         {"task_id": t_id}, {"$set": {f"calcs_reversed.0.{data_key}_compression": compression_type_}})
                     self.collection.update_one(
-                        {"task_id": t_id}, {"$set": {f"calcs_reversed.0.{data_key}_fs_id": gfs_id_}})
+                        {"task_id": t_id}, {"$set": {f"calcs_reversed.0.{data_key}_fs_id": fs_di_}})
 
         return t_id
 
@@ -216,6 +219,8 @@ class VaspCalcDb(CalcDb):
         oid = oid or ObjectId()
         compression_type = None
 
+        # always perform the string conversion when inserting directly to gridfs
+        d = json.dumps(d, cls=MontyEncoder)
         if compress:
             d = zlib.compress(d.encode(), compress)
             compression_type = "zlib"
@@ -234,13 +239,13 @@ class VaspCalcDb(CalcDb):
 
         return fs_id, compression_type
 
-    def insert_maggma_store(self, d, store: Union[S3Store, GridFSStore], compress: bool=True, oid: ObjectId=None, task_id: Any=None):
+    def insert_maggma_store(self, d, storename: str, compress: bool=True, oid: ObjectId=None, task_id: Any=None):
         """
-        Insert the given document into a Maggma store
+        Insert the given document into a Maggma store, first check if the store is already
 
         Args:
             d (dict): the document
-            collection (string): the GridFS collection name
+            storename (string): the name prefix for the maggma store
             compress (bool): Whether to compress the data or not
             oid (ObjectId()): the _id of the file; if specified, it must not already exist in GridFS
             task_id(int or str): the task_id to store into the gridfs metadata
@@ -250,20 +255,17 @@ class VaspCalcDb(CalcDb):
 
         oid = oid or ObjectId()
         compression_type = None
+        if storename not in self.maggma_stores:
+            self.get_maggma_store(storename)
 
         if compress:
-            d = zlib.compress(d.encode(), compress)
             compression_type = "zlib"
+            self.maggma_stores.compress = True
 
-        fs = gridfs.GridFS(self.db, collection)
-        if task_id:
-            # Putting task id in the metadata subdocument as per mongo specs:
-            # https://github.com/mongodb/specifications/blob/master/source/gridfs/gridfs-spec.rst#terms
-            fs_id = fs.put(d, _id=oid, metadata={"task_id": task_id, "compression": compression_type})
-        else:
-            fs_id = fs.put(d, _id=oid, metadata={"compression": compression_type})
+        d['_id'] = oid
+        self.maggma_stores[storename].update(d)
 
-        return fs_id, compression_type
+        return oid, compression_type
 
     def get_band_structure(self, task_id):
         m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})

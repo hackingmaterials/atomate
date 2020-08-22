@@ -13,6 +13,8 @@ from monty.json import jsanitize
 from monty.serialization import loadfn
 
 from atomate.utils.utils import get_logger
+from maggma.stores import S3Store
+from maggma.stores import MongoStore
 
 __author__ = 'Kiran Mathew'
 __credits__ = 'Anubhav Jain'
@@ -29,6 +31,11 @@ class CalcDb(metaclass=ABCMeta):
         self.user = user
         self.password = password
         self.port = int(port)
+
+        # Optional Maggma store for large obj storage
+        self._magga_store_type = None
+        self._maggma_login_kwargs = {}
+        self.maggma_stores = {}
 
         try:
             self.connection = MongoClient(host=self.host, port=self.port,
@@ -131,5 +138,44 @@ class CalcDb(metaclass=ABCMeta):
         else:
             kwargs["authsource"] = creds["database"]
 
-        return cls(creds["host"], int(creds.get("port", 27017)), creds["database"], creds["collection"],
-                   user, password, **kwargs)
+        calc_db = cls(creds["host"], int(creds.get("port", 27017)), creds["database"], creds["collection"],
+                      user, password, **kwargs)
+
+        calc_db._maggma_login_kwargs = creds.get("maggma_login", {})
+        if "bucket" in calc_db._maggma_login_kwargs:
+            calc_db._magga_store_type = 's3'
+            calc_db.get_obj_store = calc_db._get_s3_store
+        ## Implement additional maggma stores here as needed
+
+        return calc_db
+
+    def get_obj_store(self, store_name):
+        pass
+
+    def _get_s3_store(self, store_name):
+        """
+        Add a maggma store to this object for storage of large chunk data
+        The maggma store will be stored to self.maggma_store[store_name]
+
+        For aws store, all documents will be stored to the same bucket and the store_name will double as the sub_dir name.
+
+        Args:
+            store_name: correspond to the the key within calcs_reversed.0 that will be stored
+        """
+        index_store_ = MongoStore(
+            database=self.db_name,
+            collection_name=f"atomate_{store_name}_index",
+            host=self.host,
+            port=self.port,
+            username=self.user,
+            password=self.password
+        )
+
+        store = S3Store(
+            index=index_store_,
+            sub_dir=f"atomate_{store_name}",
+            key="_id",
+            **self._maggma_login_kwargs
+        )
+
+        self.maggma_stores[store_name] = store
