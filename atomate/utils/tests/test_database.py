@@ -30,7 +30,7 @@ class TestToDb(CalcDb):
 class DatabaseTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.testdb = TestToDb.from_db_file("./db_aws.json")
+        cls.testdb = TestToDb.from_db_file(MODULE_DIR + "/db_aws.json")
 
     def test_s3_valid(self):
         with mock_s3():
