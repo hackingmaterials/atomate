@@ -123,8 +123,10 @@ class VaspCalcDb(CalcDb):
             Args:
                 obj_key: Key of the data in calcs_reversed.0 to store
             """
+            if obj_key in task_doc["calcs_reversed"][0]:
+                calcs_r_data = task_doc["calcs_reversed"][0][obj_key]
             else:
-                calcs_r_data = task_doc["calcs_reversed"][0]["dos"]
+                calcs_r_data = task_doc["calcs_reversed"][0][obj_key]
 
             big_data_to_store[obj_key] = calcs_r_data
             del task_doc["calcs_reversed"][0][obj_key]
@@ -138,22 +140,23 @@ class VaspCalcDb(CalcDb):
         # insert the task document
         t_id = self.insert(task_doc)
 
+        if "calcs_reversed" in task_doc:
+            #
+            if self._maggma_store_type == "s3":
+                obj_insertion_func = self.insert_maggma_store
+            elif self._maggma_store_type is not None:
+                raise NotImplementedError(f"Maggma Store Object storage for {self._maggma_store_type} is not implemented")
+            # TODO implement other stores here
+            elif use_gridfs:
+                obj_insertion_func = self.insert_gridfs
+
         # upload the data to a particular location and store the reference to that location in the task database
-        if self._magga_store_type == "s3":
             for data_key, data_val in big_data_to_store.items():
-                fs_di_, compression_type_ = self.insert_maggma_store(data_val, collection=f"{data_key}_fs", task_id=t_id)
+                fs_di_, compression_type_ = obj_insertion_func(data_val, collection=f"{data_key}_fs", task_id=t_id)
                 self.collection.update_one(
                     {"task_id": t_id}, {"$set": {f"calcs_reversed.0.{data_key}_compression": compression_type_}})
                 self.collection.update_one(
                     {"task_id": t_id}, {"$set": {f"calcs_reversed.0.{data_key}_fs_id": fs_di_}})
-        elif use_gridfs and "calcs_reversed" in task_doc:
-            for data_key, data_val in big_data_to_store.items():
-                    fs_di_, compression_type_ = self.insert_gridfs(data_val, collection = f"{data_key}_fs", task_id=t_id)
-                    self.collection.update_one(
-                        {"task_id": t_id}, {"$set": {f"calcs_reversed.0.{data_key}_compression": compression_type_}})
-                    self.collection.update_one(
-                        {"task_id": t_id}, {"$set": {f"calcs_reversed.0.{data_key}_fs_id": fs_di_}})
-
         return t_id
 
     def retrieve_task(self, task_id):
@@ -184,25 +187,6 @@ class VaspCalcDb(CalcDb):
             calc["aeccar2"] = aeccar["aeccar2"]
         return task_doc
 
-    def insert_object_store(self, data : Dict, target_store: Union[S3Store, GridFSStore], oid: ObjectId=None, task_id: Union[str, int]=None):
-        """
-        Insert the given document into either GridFS store or S3Store.
-
-        Args:
-            data (dict): the document
-            oid (ObjectId()): the _id of the file; if specified, it must not already exist in GridFS
-            task_id(int or str): the task_id
-        Returns:
-            SearchDoc for the store for redundancy , the type of compression used.
-        """
-        oid = oid or ObjectId()
-        doc = {"task_id" : task_id, "ObjectId" : oid, 'data' : data}
-        serach_keys = ['task_id', "ObjectId"]
-        target_store.update(doc, key=serach_keys)
-        compression_type = target_store.compression
-        serach_doc = {doc[k_] for k_ in serach_keys}
-        return serach_doc, compression_type
-
     def insert_gridfs(self, d, collection="fs", compress=True, oid=None, task_id=None):
         """
         Insert the given document into GridFS.
@@ -226,44 +210,50 @@ class VaspCalcDb(CalcDb):
             compression_type = "zlib"
 
         fs = gridfs.GridFS(self.db, collection)
+        m_data = {"compression": compression_type}
         if task_id:
-            # Putting task id in the metadata subdocument as per mongo specs:
-            # https://github.com/mongodb/specifications/blob/master/source/gridfs/gridfs-spec.rst#terms
-            fs_id = fs.put(
-                d,
-                _id=oid,
-                metadata={"task_id": task_id, "compression": compression_type},
-            )
-        else:
-            fs_id = fs.put(d, _id=oid, metadata={"compression": compression_type})
+            m_data["task_id"] = task_id
+        # Putting task id in the metadata subdocument as per mongo specs:
+        # https://github.com/mongodb/specifications/blob/master/source/gridfs/gridfs-spec.rst#terms
+        fs_id = fs.put(d, _id=oid, metadata=m_data)
 
         return fs_id, compression_type
 
-    def insert_maggma_store(self, d, storename: str, compress: bool=True, oid: ObjectId=None, task_id: Any=None):
+    def insert_maggma_store(self, data: Any, collection: str, compress: bool=True, oid: ObjectId=None, task_id: Any=None):
         """
         Insert the given document into a Maggma store, first check if the store is already
 
         Args:
-            d (dict): the document
-            storename (string): the name prefix for the maggma store
+            data: the document to be stored
+            collection (string): the name prefix for the maggma store
             compress (bool): Whether to compress the data or not
             oid (ObjectId()): the _id of the file; if specified, it must not already exist in GridFS
             task_id(int or str): the task_id to store into the gridfs metadata
         Returns:
             file id, the type of compression used.
         """
-
         oid = oid or ObjectId()
         compression_type = None
-        if storename not in self.maggma_stores:
-            self.get_maggma_store(storename)
+
+        # make sure the store is availible
+        if collection not in self.maggma_stores:
+            self.get_maggma_store(collection)
+
+        doc = {
+            "_id" : oid,
+            "compression" : compression_type,
+            "data" : data
+        }
+
+        search_keys = ["_id", ]
+        if isinstance(data, dict) and "task_id" in data:
+            search_keys.append('task_id')
 
         if compress:
             compression_type = "zlib"
             self.maggma_stores.compress = True
 
-        d['_id'] = oid
-        self.maggma_stores[storename].update(d)
+        self.maggma_stores[collection].update(doc, search_keys)
 
         return oid, compression_type
 

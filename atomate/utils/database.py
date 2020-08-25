@@ -33,7 +33,7 @@ class CalcDb(metaclass=ABCMeta):
         self.port = int(port)
 
         # Optional Maggma store for large obj storage
-        self._magga_store_type = None
+        self._maggma_store_type = None
         self._maggma_login_kwargs = {}
         self.maggma_stores = {}
 
@@ -143,7 +143,7 @@ class CalcDb(metaclass=ABCMeta):
 
         calc_db._maggma_login_kwargs = creds.get("maggma_login", {})
         if "bucket" in calc_db._maggma_login_kwargs:
-            calc_db._magga_store_type = 's3'
+            calc_db._maggma_store_type = 's3'
             calc_db.get_obj_store = calc_db._get_s3_store
         ## Implement additional maggma stores here as needed
 
