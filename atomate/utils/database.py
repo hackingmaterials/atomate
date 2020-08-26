@@ -168,7 +168,8 @@ class CalcDb(metaclass=ABCMeta):
             host=self.host,
             port=self.port,
             username=self.user,
-            password=self.password
+            password=self.password,
+            key = 'fs_id'
         )
 
         store = S3Store(
