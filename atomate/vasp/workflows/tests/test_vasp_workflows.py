@@ -6,8 +6,12 @@ import os
 import unittest
 import zlib
 
+import boto3
 import gridfs
+from maggma.stores import MemoryStore
 from monty.json import MontyDecoder
+from moto import mock_s3
+from pymatgen.electronic_structure.bandstructure import BandStructure
 from pymongo import DESCENDING
 
 from fireworks import FWorker
@@ -277,7 +281,6 @@ class TestVaspWorkflows(AtomateTest):
     def test_chgcar_db_read_write(self):
         # generate a doc from the test folder
         drone = VaspDrone(parse_chgcar=True, parse_aeccar=True)
-        print(ref_dirs_si['static'])
         doc = drone.assimilate(ref_dirs_si['static']+'/outputs')
         # insert the doc make sure that the
         cc = decoder.process_decoded(doc['calcs_reversed'][0]['chgcar'])
@@ -305,6 +308,58 @@ class TestVaspWorkflows(AtomateTest):
         ret_aeccar = ret_aeccar0 + ret_aeccar2
         self.assertAlmostEqual(ret_chgcar.data['total'].sum()/ret_chgcar.ngridpts, 8.0, 4)
         self.assertAlmostEqual(ret_aeccar.data['total'].sum()/ret_aeccar.ngridpts, 31.2667331015, 4)
+
+    def test_insert_maggma_store(self):
+        # generate a doc from the test folder
+        drone = VaspDrone(parse_chgcar=True, parse_aeccar=True)
+        doc = {"a" : 1, "b" : 2}
+
+        with mock_s3():
+            conn = boto3.client("s3")
+            conn.create_bucket(Bucket="test_bucket")
+            mmdb = VaspCalcDb.from_db_file(os.path.join(db_dir, "db_aws.json"))
+            fs_id, compress_type = mmdb.insert_maggma_store(doc, 'store1', oid='1')
+            assert fs_id == '1'
+            assert compress_type == 'zlib'
+            doc['task_id'] = 'mp-1'
+            _, _ = mmdb.insert_maggma_store(doc, 'store2', oid='2')
+            assert set(mmdb.maggma_stores.keys()) == {'store1', 'store2'}
+            with mmdb.maggma_stores['store1'] as store:
+                self.assertTrue(store.compress == True)
+                self.assertTrue(store.query_one({'fs_id': '1'}) == {'fs_id': '1', 'compression': 'zlib', 'data': {'a': 1, 'b': 2}})
+            with mmdb.maggma_stores['store2'] as store:
+                self.assertTrue(store.compress == True)
+                self.assertTrue(store.query_one({'task_id': 'mp-1'}) == {'fs_id': '2', 'compression': 'zlib', 'data': {'a': 1, 'b': 2, 'task_id': 'mp-1'}, 'task_id': 'mp-1'})
+
+    def test_chgcar_db_read_write_maggma(self):
+        # generate a doc from the test folder
+        drone = VaspDrone(parse_chgcar=True, parse_aeccar=True)
+        doc = drone.assimilate(ref_dirs_si['static']+'/outputs')
+        mmdb = VaspCalcDb.from_db_file(os.path.join(db_dir, "db_aws.json"))
+
+        with mock_s3():
+            conn = boto3.client("s3")
+            conn.create_bucket(Bucket="test_bucket")
+            t_id = mmdb.insert_task(task_doc=doc)
+
+            # basic check that data was written to the stores
+            with mmdb.maggma_stores['chgcar_fs'] as store:
+                res = store.query_one()
+                self.assertTrue(res['data']['@class'] == "Chgcar")
+            with mmdb.maggma_stores['aeccar0_fs'] as store:
+                res = store.query_one()
+                self.assertTrue(res['data']['@class'] == "Chgcar")
+            with mmdb.maggma_stores['aeccar2_fs'] as store:
+                res = store.query_one()
+                self.assertTrue(res['data']['@class'] == "Chgcar")
+            with mmdb.maggma_stores['bandstructure_fs'] as store:
+                res = store.query_one()
+                self.assertTrue(res['data']['@class'] == "BandStructure")
+
+            # print(mmdb.collection.find_one({'task_id' : t_id})["calcs_reversed"][0].keys())
+            # complex check that the data is the same
+            res = mmdb.get_band_structure(task_id=t_id)
+            self.assertTrue(isinstance(res, BandStructure))
 
     def test_chgcar_db_read(self):
         # add the workflow

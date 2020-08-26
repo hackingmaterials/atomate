@@ -125,11 +125,11 @@ class CalcDb(metaclass=ABCMeta):
                              "credentials are available.")
 
         if admin:
-            user = creds.get("admin_user")
-            password = creds.get("admin_password")
+            user = creds.get("admin_user", "")
+            password = creds.get("admin_password", "")
         else:
-            user = creds.get("readonly_user")
-            password = creds.get("readonly_password")
+            user = creds.get("readonly_user", "")
+            password = creds.get("readonly_password", "")
 
         kwargs = creds.get("mongoclient_kwargs", {})  # any other MongoClient kwargs can go here ...
 
@@ -174,7 +174,7 @@ class CalcDb(metaclass=ABCMeta):
         store = S3Store(
             index=index_store_,
             sub_dir=f"atomate_{store_name}",
-            key="_id",
+            key = "fs_id",
             **self._maggma_login_kwargs
         )
 

@@ -17,6 +17,7 @@ from atomate.utils.database import CalcDb
 from atomate.utils.utils import get_logger
 
 MODULE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+db_dir = os.path.join(MODULE_DIR, "..", "..", "common", "test_files")
 
 logger = get_logger(__name__)
 
@@ -28,9 +29,14 @@ class TestToDb(CalcDb):
 
 
 class DatabaseTests(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
-        cls.testdb = TestToDb.from_db_file(MODULE_DIR + "/db_aws.json")
+        cls.testdb = TestToDb.from_db_file(db_dir + "/db_aws.json")
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.testdb.connection.drop_database(cls.testdb.db_name)
 
     def test_s3_valid(self):
         with mock_s3():
@@ -41,9 +47,9 @@ class DatabaseTests(unittest.TestCase):
             store = self.testdb.maggma_stores['test']
             store.index = index_store
             store.connect()
-            store.update([{"task_id": "mp-1", "data": "111111111110111111"}])
-            res = store.query_one({"task_id" : "mp-1"})
-            self.assertEqual(res['task_id'], "mp-1")
+            store.update([{"fs_id": "mp-1", "data": "111111111110111111"}])
+            res = store.query_one({"fs_id" : "mp-1"})
+            self.assertEqual(res['fs_id'], "mp-1")
             self.assertEqual(res['data'], "111111111110111111")
 
     def test_s3_not_valid(self):
@@ -57,6 +63,4 @@ class DatabaseTests(unittest.TestCase):
 
             with self.assertRaises(Exception):
                 store.connect()
-
-
 

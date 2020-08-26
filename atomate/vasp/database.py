@@ -132,7 +132,7 @@ class VaspCalcDb(CalcDb):
             del task_doc["calcs_reversed"][0][obj_key]
 
         # drop the data from the task_document and keep them in a separate dictionary (big_data_to_store)
-        if use_gridfs and "calcs_reversed" in task_doc:
+        if self._maggma_store_type in {"s3"} or use_gridfs and "calcs_reversed" in task_doc:
             for data_key in OBJ_STORE_NAMES:
                 if data_key in task_doc["calcs_reversed"][0]:
                     extract_from_calcs_reversed(data_key)
@@ -219,7 +219,7 @@ class VaspCalcDb(CalcDb):
 
         return fs_id, compression_type
 
-    def insert_maggma_store(self, data: Any, collection: str, compress: bool=True, oid: ObjectId=None, task_id: Any=None):
+    def insert_maggma_store(self, data: Any, collection: str, oid: ObjectId=None, task_id: Any=None):
         """
         Insert the given document into a Maggma store, first check if the store is already
 
@@ -232,37 +232,56 @@ class VaspCalcDb(CalcDb):
         Returns:
             file id, the type of compression used.
         """
-        oid = oid or ObjectId()
+        oid = oid or str(ObjectId())
         compression_type = None
 
         # make sure the store is availible
         if collection not in self.maggma_stores:
-            self.get_maggma_store(collection)
+            self.get_obj_store(collection)
 
         doc = {
-            "_id" : oid,
-            "compression" : compression_type,
-            "data" : data
+            "fs_id": oid,
+            "compression": compression_type,
+            "data": data
         }
 
-        search_keys = ["_id", ]
-        if isinstance(data, dict) and "task_id" in data:
+        search_keys = ["fs_id", ]
+        if task_id is not None:
+            doc['task_id'] = task_id
+        elif isinstance(data, dict) and "task_id" in data:
             search_keys.append('task_id')
+            doc['task_id'] = data['task_id']
 
-        if compress:
-            compression_type = "zlib"
-            self.maggma_stores.compress = True
+        # make sure the store is availible
+        with self.maggma_stores[collection] as store:
+            ping_ = store.index._collection.database.command("ping")
+            assert ping_.get("ok", 0) == 1.0, f"Not connected to the index store of {self.__name__}.maggma_store[{collection}]"
+            if isinstance(store, S3Store):
+                # TODO find some way to ping the aws service
+                # ping_ = self.maggma_stores[collection].s3_bucket._name
+                pass
 
-        self.maggma_stores[collection].update(doc, search_keys)
+            if store.compress:
+                compression_type = "zlib"
+                doc['compression'] = 'zlib'
+
+            # print(doc, self.maggma_stores[collection].key)
+            store.update([doc], search_keys)
 
         return oid, compression_type
 
     def get_band_structure(self, task_id):
         m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
         fs_id = m_task["calcs_reversed"][0]["bandstructure_fs_id"]
-        fs = gridfs.GridFS(self.db, "bandstructure_fs")
-        bs_json = zlib.decompress(fs.get(fs_id).read())
-        bs_dict = json.loads(bs_json.decode())
+        print(fs_id)
+        if self._maggma_store_type in {'s3'}:
+            with self.maggma_stores['bandstructure_fs'] as store:
+                bs_dict = store.query_one({'fs_id' : fs_id})['data']
+        else:
+            fs = gridfs.GridFS(self.db, "bandstructure_fs")
+            bs_json = zlib.decompress(fs.get(fs_id).read())
+            bs_dict = json.loads(bs_json.decode())
+
         if bs_dict["@class"] == "BandStructure":
             return BandStructure.from_dict(bs_dict)
         elif bs_dict["@class"] == "BandStructureSymmLine":
