@@ -5,6 +5,7 @@ import msgpack
 from monty.msgpack import default as monty_default
 
 from monty.json import MontyEncoder, MontyDecoder
+from pymatgen.io.vasp import Chgcar
 
 """
 This module defines the database classes.
@@ -26,7 +27,7 @@ from pymongo import ASCENDING, DESCENDING
 from atomate.utils.database import CalcDb
 from atomate.utils.utils import get_logger
 from maggma.stores.aws import S3Store
-from maggma.stores import GridFSStore
+from monty.dev import deprecated
 
 __author__ = "Kiran Mathew"
 __credits__ = "Anubhav Jain"
@@ -271,34 +272,42 @@ class VaspCalcDb(CalcDb):
 
         return oid, compression_type
 
-    def get_band_structure(self, task_id):
+    def get_data_from_maggma_or_gridfs(self, task_id, key):
+        """
+        look for a task, then the object of type key associated with that task
+        Returns:
+            The data stored on object storage, typically a dictionary
+        """
         m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
-        fs_id = m_task["calcs_reversed"][0]["bandstructure_fs_id"]
+        fs_id = m_task["calcs_reversed"][0][f"{key}_fs_id"]
+
         if self._maggma_store_type in VALID_STORES:
-            with self.maggma_stores['bandstructure_fs'] as store:
-                bs_dict = store.query_one({'fs_id' : fs_id})['data']
+            with self.maggma_stores[f"{key}_fs"] as store:
+                obj_dict = store.query_one({'fs_id' : fs_id})['data']
         else:
             fs = gridfs.GridFS(self.db, "bandstructure_fs")
             bs_json = zlib.decompress(fs.get(fs_id).read())
-            bs_dict = json.loads(bs_json.decode())
+            obj_dict = json.loads(bs_json.decode())
+        return obj_dict
 
-        if bs_dict["@class"] == "BandStructure":
-            return BandStructure.from_dict(bs_dict)
-        elif bs_dict["@class"] == "BandStructureSymmLine":
-            return BandStructureSymmLine.from_dict(bs_dict)
+
+
+    def get_band_structure(self, task_id):
+        obj_dict = self.get_data_from_maggma_or_gridfs(task_id, key="bandstructure")
+        if obj_dict["@class"] == "BandStructure":
+            return BandStructure.from_dict(obj_dict)
+        elif obj_dict["@class"] == "BandStructureSymmLine":
+            return BandStructureSymmLine.from_dict(obj_dict)
         else:
             raise ValueError(
-                "Unknown class for band structure! {}".format(bs_dict["@class"])
+                "Unknown class for band structure! {}".format(obj_dict["@class"])
             )
 
     def get_dos(self, task_id):
-        m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
-        fs_id = m_task["calcs_reversed"][0]["dos_fs_id"]
-        fs = gridfs.GridFS(self.db, "dos_fs")
-        dos_json = zlib.decompress(fs.get(fs_id).read())
-        dos_dict = json.loads(dos_json.decode())
-        return CompleteDos.from_dict(dos_dict)
+        obj_dict = self.get_data_from_maggma_or_gridfs(task_id, key="dos")
+        return CompleteDos.from_dict(obj_dict)
 
+    @deprecated("No longer supported")
     def get_chgcar_string(self, task_id):
         # Not really used now, consier deleting
         m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
@@ -314,12 +323,8 @@ class VaspCalcDb(CalcDb):
         Returns:
             chgcar: Chgcar object
         """
-        m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
-        fs_id = m_task["calcs_reversed"][0]["chgcar_fs_id"]
-        fs = gridfs.GridFS(self.db, "chgcar_fs")
-        chgcar_json = zlib.decompress(fs.get(fs_id).read())
-        chgcar = json.loads(chgcar_json, cls=MontyDecoder)
-        return chgcar
+        obj_dict = self.get_data_from_maggma_or_gridfs(task_id, key="chgcar")
+        return Chgcar.from_dict(obj_dict)
 
     def get_aeccar(self, task_id, check_valid=True):
         """
@@ -330,15 +335,11 @@ class VaspCalcDb(CalcDb):
         Returns:
             {"aeccar0" : Chgcar, "aeccar2" : Chgcar}: dict of Chgcar objects
         """
-        m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
-        fs_id = m_task["calcs_reversed"][0]["aeccar0_fs_id"]
-        fs = gridfs.GridFS(self.db, "aeccar0_fs")
-        aeccar_json = zlib.decompress(fs.get(fs_id).read())
-        aeccar0 = json.loads(aeccar_json, cls=MontyDecoder)
-        fs_id = m_task["calcs_reversed"][0]["aeccar2_fs_id"]
-        fs = gridfs.GridFS(self.db, "aeccar2_fs")
-        aeccar_json = zlib.decompress(fs.get(fs_id).read())
-        aeccar2 = json.loads(aeccar_json, cls=MontyDecoder)
+
+        obj_dict = self.get_data_from_maggma_or_gridfs(task_id, key="aeccar0")
+        aeccar0 = Chgcar.from_dict(obj_dict)
+        obj_dict = self.get_data_from_maggma_or_gridfs(task_id, key="aeccar2")
+        aeccar2 = Chgcar.from_dict(obj_dict)
 
         if check_valid and (aeccar0.data["total"] + aeccar2.data["total"]).min() < 0:
             ValueError(f"The AECCAR seems to be corrupted for task_id = {task_id}")

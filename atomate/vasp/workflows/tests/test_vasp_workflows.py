@@ -12,6 +12,7 @@ from maggma.stores import MemoryStore
 from monty.json import MontyDecoder
 from moto import mock_s3
 from pymatgen.electronic_structure.bandstructure import BandStructure
+from pymatgen.electronic_structure.dos import CompleteDos
 from pymongo import DESCENDING
 
 from fireworks import FWorker
@@ -24,7 +25,7 @@ from atomate.vasp.firetasks.parse_outputs import VaspDrone
 from atomate.vasp.database import VaspCalcDb
 
 
-from pymatgen.io.vasp import Incar
+from pymatgen.io.vasp import Incar, Chgcar
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet, MPScanRelaxSet
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.core import Structure
@@ -360,6 +361,13 @@ class TestVaspWorkflows(AtomateTest):
             # complex check that the data is the same
             res = mmdb.get_band_structure(task_id=t_id)
             self.assertTrue(isinstance(res, BandStructure))
+            res = mmdb.get_dos(task_id=t_id)
+            self.assertTrue(isinstance(res, CompleteDos))
+            res = mmdb.get_chgcar(task_id=t_id)
+            self.assertTrue(isinstance(res, Chgcar))
+            res = mmdb.get_aeccar(task_id=t_id)
+            self.assertTrue(isinstance(res['aeccar0'], Chgcar))
+            self.assertTrue(isinstance(res['aeccar2'], Chgcar))
 
     def test_chgcar_db_read(self):
         # add the workflow
