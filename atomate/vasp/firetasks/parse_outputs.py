@@ -9,6 +9,8 @@ from datetime import datetime
 
 import numpy as np
 import numpy.linalg as npla
+import scipy
+import scipy.optimize as spopt
 
 from monty.json import MontyEncoder, jsanitize
 from pydash.objects import has, get
@@ -418,7 +420,7 @@ class RamanTensorToDb(FiretaskBase):
     def run_task(self, fw_spec):
         nm_eigenvecs = np.array(fw_spec["normalmodes"]["eigenvecs"])
         nm_eigenvals = np.array(fw_spec["normalmodes"]["eigenvals"])
-        nm_norms = np.linalg.norm(nm_eigenvecs, axis=2)
+        nm_norms = npla.norm(nm_eigenvecs, axis=2)
         structure = fw_spec["normalmodes"]["structure"]
         masses = np.array([site.specie.data['Atomic mass'] for site in structure])
         nm_norms = nm_norms / np.sqrt(masses)  # eigenvectors in vasprun.xml are not divided by sqrt(M_i)
@@ -797,18 +799,17 @@ class LinearResponseUToDb(FiretaskBase):
         relax_nonmagnetic = bool(self["relax_nonmagnetic"])
         
         keys = ['Ground state', 'NSCF', 'SCF']
-        if relax_nonmagnetic:
-            regexps = ['^initial_static_magnetic', '^nscf', '^scf_magnetic']
-        else:
-            regexps = ['^initial', '^nscf', '^scf']
+        # if relax_nonmagnetic:
+        #     regexps = ['^initial_static_magnetic', '^nscf', '^scf_magnetic']
+        # else:
+        #     regexps = ['^initial', '^nscf', '^scf']
         response_dict = {'Ground state':{}, 'NSCF':{}, 'SCF':{}}
+
+        perturb_dict = {}
 
         magnet_order_gs = None
 
-        for key, task_label_regex in zip(keys, regexps):
-
-            docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid,
-                                              "task_label": {"$regex": task_label_regex}}))
+        for key in keys:
 
             for i in range(num_perturb_sites):
                 response_dict[key].update({'Vup_site'+str(i): [], 'Nup_site'+str(i): []})
@@ -816,29 +817,65 @@ class LinearResponseUToDb(FiretaskBase):
                 response_dict[key].update({'Ntot_site'+str(i): [], 'Mz_site'+str(i): []})
             response_dict[key].update({'magnetic order': []})
 
-            inv_block_dict = {0:"s", 1:"p", 2:"d", 3:"f"}
+        inv_block_dict = {0:"s", 1:"p", 2:"d", 3:"f"}
 
-            for d in docs:
+        docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid})) # "task_label": {"$regex": task_label_regex}
+
+        for d in docs:
+
+            struct = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+
+            incar_dict = d['calcs_reversed'][0]['input']['incar']
+            outcar_dict = d['calcs_reversed'][0]['output']['outcar']
+
+            use_calc = False
+            if int(incar_dict["ICHARG"]) == 11:
+                use_calc = True
+                key = keys[1]
+            else:
+                use_calc = False
+                if relax_nonmagnetic:
+                    if int(incar_dict["ISPIN"]) == 2:
+                        use_calc = True
+                else:
+                    use_calc = True
+
+                if use_calc:
+                    is_gs = True
+                    for i in range(num_perturb_sites):
+                        v_up = float(incar_dict['LDAUU'][i])
+                        v_dn = float(incar_dict['LDAUJ'][i])
+                        if v_up != 0.0 or v_dn != 0.0:
+                            is_gs = False
+                    if is_gs:
+                        key = keys[0]
+                    else:
+                        key = keys[2]
+                else:
+                    key = ""
+
+            if use_calc:
                 for i in range(num_perturb_sites):
                     try:
 
-                        struct = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
                         specie = struct[i].specie
                         ldaul = int(d['calcs_reversed'][0]['input']['incar']['LDAUL'][i])
+
                         if ldaul != -1:
                             orbital = inv_block_dict[ldaul]
+                            perturb_dict.update({i:{"specie":str(specie), "orbital":orbital}})
 
-                            n_tot = float(d['calcs_reversed'][0]['output']['outcar']['charge'][i][orbital])
+                            n_tot = float(outcar_dict['charge'][i][orbital])
                             # FIXME: Adapt for noncollinear
-                            m_z = float(d['calcs_reversed'][0]['output']['outcar']['magnetization'][i][orbital])
+                            m_z = float((outcar_dict['magnetization'][i][orbital])
 
                             response_dict[key]['Nup_site'+str(i)].append(0.5*(n_tot + m_z))
                             response_dict[key]['Ndn_site'+str(i)].append(0.5*(n_tot - m_z))
                             response_dict[key]['Ntot_site'+str(i)].append(n_tot)
                             response_dict[key]['Mz_site'+str(i)].append(m_z)
 
-                            v_up = float(d['calcs_reversed'][0]['input']['incar']['LDAUU'][i])
-                            v_dn = float(d['calcs_reversed'][0]['input']['incar']['LDAUJ'][i])
+                            v_up = float(incar_dict['LDAUU'][i])
+                            v_dn = float(incar_dict['LDAUJ'][i])
 
                             if key != keys[0]:
                                 response_dict[key]['Vup_site'+str(i)].append(v_up)
@@ -866,12 +903,28 @@ class LinearResponseUToDb(FiretaskBase):
 
         if spin_polarized:
             n_response = 2 * num_perturb_sites
-            chi_matrix_nscf = np.zeros([n_response, n_response])
-            chi_matrix_scf = np.zeros([n_response, n_response])
         else:
             n_response = num_perturb_sites
-            chi_matrix_nscf = np.zeros([n_response, n_response])
-            chi_matrix_scf = np.zeros([n_response, n_response])
+
+        chi_matrix_nscf = np.zeros([n_response, n_response])
+        chi_matrix_scf = np.zeros([n_response, n_response])
+        chi_nscf_err = np.zeros([n_response, n_response])
+        chi_scf_err = np.zeros([n_response, n_response])
+
+        def response_fit(x, y):
+
+            # poly_order = 1
+            # a = np.polyfit(x, y, poly_order)[-2]
+            # b = np.polyfit(x, y, poly_order)[-1]
+            # p = [a, b]
+
+            def fit_func(x, a, b):
+                return a*x + b
+
+            p, pcov = scipy.optimize.curve_fit(fit_func, x, y, method="dogbox")  # method = "lm", "trf", "dogbox"
+            perr = np.sqrt(np.diag(pcov))
+
+            return p, perr
 
         for ii in range(n_response):
             for jj in range(n_response):
@@ -919,8 +972,10 @@ class LinearResponseUToDb(FiretaskBase):
                                     n_scf.append(n)
 
                     try:
-                        chi_nscf = np.polyfit(v_nscf, n_nscf, 1)[0]
-                        chi_scf  = np.polyfit(v_scf, n_scf, 1)[0]
+                        fit_nscf = response_fit(v_nscf, n_nscf)
+                        chi_nscf, err_chi_nscf = fit_nscf[0][-2], fit_nscf[1][-2]
+                        fit_scf = response_fit(v_scf, n_scf)
+                        chi_scf, err_chi_scf = fit_scf[0][-2], fit_scf[1][-2]
                     except Exception as exc:
                         chi_nscf, chi_scf = float('nan'), float('nan')
                         print('slope fitting fail',  exc)
@@ -930,12 +985,8 @@ class LinearResponseUToDb(FiretaskBase):
 
                 chi_matrix_nscf[ii, jj] = chi_nscf
                 chi_matrix_scf[ii, jj] = chi_scf
-
-        try:
-            u_matrix = np.linalg.inv(chi_matrix_scf) - np.linalg.inv(chi_matrix_nscf)
-        except Exception as exc:
-            u_matrix = [[float('nan') for i in range(n_response)] for j in range(n_response)]
-            print('U matrix compute fail',  exc)
+                chi_nscf_err[ii, jj] = err_chi_nscf
+                chi_scf_err[ii, jj] = err_chi_scf
 
         def inverse_matrix_uncertainty(matrix, matrix_covar):
             m,n = matrix.shape
@@ -978,13 +1029,110 @@ class LinearResponseUToDb(FiretaskBase):
                     sigma_f = np.sum(np.dot(np.transpose(j_vec), np.dot(matrix_covar, j_vec)))
                     matrixinv_var[i,j] = sigma_f
 
-            return matrixinv_var, jacobians
+            return matrixinv, matrixinv_var, jacobians
 
-        # Assume cross-covariances are zero
-        chi_scf_covar = np.diag(np.transpose(np.reshape(chi_scf_var, [n_response*n_response, 1]))[0])
-        chi_nscf_covar = np.diag(np.transpose(np.reshape(chi_nscf_var, [n_response*n_response, 1]))[0])
+        def chi_inverse(chi, chi_err, method="full"):
 
-        chi_matrix_scf, chi_matrix_nscf, u_matrix = [list(a) for a in chi_matrix_scf], [list(a) for a in chi_matrix_nscf], [list(a) for a in u_matrix]
+            n_response = len(chi)
+
+            chi_block = chi.copy()
+            chi_err_block = chi_err.copy()
+
+            if method == "site":
+                # diagonal
+                for ii in range(n_response):
+                    for jj in range(n_response):
+                        if ii != jj:
+                            chi_block[ii,jj], chi_err_block[ii,jj] = 0.0, 0.0
+            elif method == "atom":
+                # 2x2 block diagonal
+                for ii in range(n_response):
+                    for jj in range(n_response):
+                        i, j = ii//2, jj//2
+                        if i != j:
+                            chi_block[ii,jj], chi_err_block[ii,jj] = 0.0, 0.0
+            elif method != "full":
+                raise ValueError("Unsupported method, method must be site (diagonal inversion), "
+                                 "atom (block 2x2 inverse), or full (full inverse)")
+
+            # Assume cross-covariances are zero
+            chi_covar = np.diag(np.transpose(np.reshape(chi_err_block**2, [n_response * n_response, 1]))[0])
+
+            (chi_inv, chi_inv_var, chi_inv_jacobs) = inverse_matrix_uncertainty(chi, chi_covar)
+
+            return chi_block, chi_inv, chi_inv_var, chi_inv_jacobs
+
+        def array_to_list(a):
+            a_list = [[x for x in row] for row in a]
+            return a_list
+
+        if spin_polarized:
+            inversion_methods = ["site", "atom", "full"]
+            inversion_keys = ["site", "atom", "full"]
+        else:
+            inversion_methods = ["site", "full"]
+            inversion_keys = ["atom", "full"]
+
+        hubbard_hund_dict = {}
+
+        for key, method in zip(inversion_keys, inversion_methods):
+
+            u_j_dict = perturb_dict.copy()
+
+            try:
+                (chi_block_scf, chi_scf_inv, chi_scf_inv_var, chi_scf_inv_jacobs) = chi_inverse(chi_scf, chi_scf_err, method)
+                (chi_block_nscf, chi_nscf_inv, chi_nscf_inv_var, chi_nscf_inv_jacobs) = chi_inverse(chi_nscf, chi_nscf_err, method)
+
+                f_matrix = chi_scf_inv - chi_nscf_inv
+                f_matrix_err = np.sqrt(chi_scf_inv_var + chi_nscf_inv_var)
+
+                if spin_polarized:
+                    if method == "site":
+                        for i in range(num_perturb_sites):
+                            umat = f_matrix[2*i:2*(i+1), 2*i:2*(i+1)]
+                            umat_err = f_matrix_err[2*i:2*(i+1), 2*i:2*(i+1)]
+                            uval = 0.5 * np.sum(np.diag(umat))
+                            uval_err = 0.5 * np.sqrt(np.sum(np.diag(umat_err)**2))
+
+                            u_j_dict[i].update({"U":{"value":uval, "error":uval_err}})
+                    else:
+                        for i in range(num_perturb_sites):
+                            umat = f_matrix[2*i:2*(i+1), 2*i:2*(i+1)]
+                            umat_err = f_matrix_err[2*i:2*(i+1), 2*i:2*(i+1)]
+                            uval = 0.25 * np.sum(umat)
+                            uval_err = 0.25 * np.sqrt(np.sum(umat_err**2))
+
+                            jmat = np.array([[-1,1],[1,-1]]) * umat.copy()
+                            jmat_err = umat_err.copy()
+                            jval = 0.25 * np.sum(jmat)
+                            jval_err = 0.25 * np.sqrt(np.sum(jmat_err**2))
+
+                            u_j_dict[i].update({"U":{"value":uval, "error":uval_err}})
+                            u_j_dict[i].update({"J":{"value":jval, "error":jval_err}})
+                else:
+                    for i in range(num_perturb_sites):
+                        uval = f_matrix[i,i]
+                        uval_err = f_matrix_err[i,i]
+
+                        u_j_dict[i].update({"U":{"value":uval, "error":uval_err}})
+
+                # convert numpy arrays to nested lists
+                f_matrix, f_matrix_err =  array_to_list(f_matrix), array_to_list(f_matrix_err)
+                chi_block_scf, chi_scf_inv, chi_scf_inv_var = array_to_list(chi_block_scf), array_to_list(chi_scf_inv), array_to_list(chi_scf_inv_var)
+                chi_block_nscf, chi_nscf_inv, chi_nscf_inv_var = array_to_list(chi_block_nscf), array_to_list(chi_nscf_inv), array_to_list(chi_nscf_inv_var)
+
+            except Exception as exc:
+                f_matrix, f_matrix_err = [], []
+                chi_block_scf, chi_scf_inv, chi_scf_inv_var, chi_scf_inv_jacobs = [], [], [], []
+                chi_block_nscf, chi_nscf_inv, chi_nscf_inv_var, chi_nscf_inv_jacobs = [], [], [], []
+                print('U matrix compute fail',  exc)
+
+            hubbard_hund_dict.update({key: {"values":{}, "matrices":{}}})
+            hubbard_hund_dict[key]["values"] = u_j_dict.copy()
+
+            hubbard_hund_dict[key]["matrices"].update({"f_matrix":f_matrix, "f_matrix_err":f_matrix_err})
+            hubbard_hund_dict[key]["matrices"].update({"chi_block_scf":chi_block_scf, "chi_scf_inv":chi_scf_inv, "chi_scf_inv_var":chi_scf_inv_var})
+            hubbard_hund_dict[key]["matrices"].update({"chi_block_nscf":chi_block_nscf, "chi_nscf_inv":chi_nscf_inv, "chi_nscf_inv_var":chi_nscf_inv_var})
 
         docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid,
                                           "task_label": {"$regex": regexps[2]}}))
@@ -998,9 +1146,10 @@ class LinearResponseUToDb(FiretaskBase):
         if structure:
             summary.update({'formula_pretty': structure.composition.reduced_formula})
             summary.update({'structure_groundstate': structure.as_dict()})
+        summary.update({'perturb_sites':})
         summary.update({'datapoints': response_dict})
-        summary.update({'fit': {'chi_nscf': chi_matrix_nscf, 'chi_scf': chi_matrix_scf}})
-        summary.update({'U matrix': u_matrix})
+        summary.update({'response_matrices': {'chi_nscf': chi_matrix_nscf, 'chi_scf': chi_matrix_scf}})
+        summary.update({'hubbard_hund_results': hubbard_hund_dict})
         summary.update({'wf_meta': {'wf_uuid': uuid}})
 
         if fw_spec.get("tags", None):
