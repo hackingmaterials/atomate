@@ -1,15 +1,12 @@
 # coding: utf-8
-from typing import Dict, Union, Any
-
-import msgpack
-from monty.msgpack import default as monty_default
-
-from monty.json import MontyEncoder, MontyDecoder
-from pymatgen.io.vasp import Chgcar
-
 """
 This module defines the database classes.
 """
+
+from typing import Dict, Union, Any
+
+from monty.json import MontyEncoder, MontyDecoder
+from pymatgen.io.vasp import Chgcar
 
 import zlib
 import json
@@ -285,7 +282,7 @@ class VaspCalcDb(CalcDb):
             with self.maggma_stores[f"{key}_fs"] as store:
                 obj_dict = store.query_one({'fs_id' : fs_id})['data']
         else:
-            fs = gridfs.GridFS(self.db, "bandstructure_fs")
+            fs = gridfs.GridFS(self.db, f"{key}_fs")
             bs_json = zlib.decompress(fs.get(fs_id).read())
             obj_dict = json.loads(bs_json.decode())
         return obj_dict
