@@ -34,7 +34,8 @@ __email__ = "kmathew@lbl.gov"
 
 logger = get_logger(__name__)
 # If we use Maggmastores  we will have to initialize a magmma store for each object typl
-OBJ_STORE_NAMES = ("dos", "bandstructure", 'chgcar', 'locpot', 'aeccar0', 'aeccar1', 'aeccar2', 'elfcar')
+OBJ_NAMES = ("dos", "bandstructure", 'chgcar', 'locpot', 'aeccar0', 'aeccar1', 'aeccar2', 'elfcar')
+VALID_STORES = ("s3", )
 
 class VaspCalcDb(CalcDb):
     """
@@ -132,8 +133,8 @@ class VaspCalcDb(CalcDb):
             del task_doc["calcs_reversed"][0][obj_key]
 
         # drop the data from the task_document and keep them in a separate dictionary (big_data_to_store)
-        if self._maggma_store_type in {"s3"} or use_gridfs and "calcs_reversed" in task_doc:
-            for data_key in OBJ_STORE_NAMES:
+        if self._maggma_store_type in VALID_STORES or use_gridfs and "calcs_reversed" in task_doc:
+            for data_key in OBJ_NAMES:
                 if data_key in task_doc["calcs_reversed"][0]:
                     extract_from_calcs_reversed(data_key)
 
@@ -273,8 +274,7 @@ class VaspCalcDb(CalcDb):
     def get_band_structure(self, task_id):
         m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
         fs_id = m_task["calcs_reversed"][0]["bandstructure_fs_id"]
-        print(fs_id)
-        if self._maggma_store_type in {'s3'}:
+        if self._maggma_store_type in VALID_STORES:
             with self.maggma_stores['bandstructure_fs'] as store:
                 bs_dict = store.query_one({'fs_id' : fs_id})['data']
         else:
