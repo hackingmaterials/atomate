@@ -797,13 +797,13 @@ class LinearResponseUToDb(FiretaskBase):
         num_perturb_sites = int(self["num_perturb"])
         spin_polarized = bool(self["spin_polarized"])
         relax_nonmagnetic = bool(self["relax_nonmagnetic"])
-        
+
         keys = ['Ground state', 'NSCF', 'SCF']
         # if relax_nonmagnetic:
         #     regexps = ['^initial_static_magnetic', '^nscf', '^scf_magnetic']
         # else:
         #     regexps = ['^initial', '^nscf', '^scf']
-        response_dict = {'Ground state':{}, 'NSCF':{}, 'SCF':{}}
+        response_dict = {'Ground state': {}, 'NSCF': {}, 'SCF': {}}
 
         perturb_dict = {}
 
@@ -812,14 +812,17 @@ class LinearResponseUToDb(FiretaskBase):
         for key in keys:
 
             for i in range(num_perturb_sites):
-                response_dict[key].update({'Vup_site'+str(i): [], 'Nup_site'+str(i): []})
-                response_dict[key].update({'Vdn_site'+str(i): [], 'Ndn_site'+str(i): []})
-                response_dict[key].update({'Ntot_site'+str(i): [], 'Mz_site'+str(i): []})
+                response_dict[key].update({'Vup_site'+str(i): [],
+                                           'Nup_site'+str(i): []})
+                response_dict[key].update({'Vdn_site'+str(i): [],
+                                           'Ndn_site'+str(i): []})
+                response_dict[key].update({'Ntot_site'+str(i): [],
+                                           'Mz_site'+str(i): []})
             response_dict[key].update({'magnetic order': []})
 
-        inv_block_dict = {0:"s", 1:"p", 2:"d", 3:"f"}
+        inv_block_dict = {0: "s", 1: "p", 2: "d", 3: "f"}
 
-        docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid})) # "task_label": {"$regex": task_label_regex}
+        docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid}))
 
         for d in docs:
 
@@ -829,9 +832,10 @@ class LinearResponseUToDb(FiretaskBase):
             outcar_dict = d['calcs_reversed'][0]['output']['outcar']
 
             use_calc = False
+            rkey = ""
             if int(incar_dict["ICHARG"]) == 11:
                 use_calc = True
-                key = keys[1]
+                rkey = keys[1]
             else:
                 use_calc = False
                 if relax_nonmagnetic:
@@ -848,51 +852,51 @@ class LinearResponseUToDb(FiretaskBase):
                         if v_up != 0.0 or v_dn != 0.0:
                             is_gs = False
                     if is_gs:
-                        key = keys[0]
+                        rkey = keys[0]
                     else:
-                        key = keys[2]
+                        rkey = keys[2]
                 else:
-                    key = ""
+                    rkey = ""
 
-            if use_calc:
-                for i in range(num_perturb_sites):
-                    try:
+            # if use_calc:
+            for i in range(num_perturb_sites):
+                try:
+                    specie = struct[i].specie
+                    ldaul = int(d['calcs_reversed'][0]['input']['incar']['LDAUL'][i])
 
-                        specie = struct[i].specie
-                        ldaul = int(d['calcs_reversed'][0]['input']['incar']['LDAUL'][i])
+                    if ldaul != -1 and rkey:
+                        orbital = inv_block_dict[ldaul]
+                        perturb_dict.update({i:{"specie": str(specie), "orbital": orbital}})
 
-                        if ldaul != -1:
-                            orbital = inv_block_dict[ldaul]
-                            perturb_dict.update({i:{"specie":str(specie), "orbital":orbital}})
+                        n_tot = float(outcar_dict['charge'][i][orbital])
+                        # FIXME: Adapt for noncollinear
+                        m_z = float((outcar_dict['magnetization'][i][orbital]))
 
-                            n_tot = float(outcar_dict['charge'][i][orbital])
-                            # FIXME: Adapt for noncollinear
-                            m_z = float((outcar_dict['magnetization'][i][orbital])
+                        response_dict[rkey]['Nup_site'+str(i)].append(0.5*(n_tot + m_z))
+                        response_dict[rkey]['Ndn_site'+str(i)].append(0.5*(n_tot - m_z))
+                        response_dict[rkey]['Ntot_site'+str(i)].append(n_tot)
+                        response_dict[rkey]['Mz_site'+str(i)].append(m_z)
 
-                            response_dict[key]['Nup_site'+str(i)].append(0.5*(n_tot + m_z))
-                            response_dict[key]['Ndn_site'+str(i)].append(0.5*(n_tot - m_z))
-                            response_dict[key]['Ntot_site'+str(i)].append(n_tot)
-                            response_dict[key]['Mz_site'+str(i)].append(m_z)
+                        v_up = float(incar_dict['LDAUU'][i])
+                        v_dn = float(incar_dict['LDAUJ'][i])
 
-                            v_up = float(incar_dict['LDAUU'][i])
-                            v_dn = float(incar_dict['LDAUJ'][i])
+                        if rkey != keys[0]:
+                            response_dict[rkey]['Vup_site'+str(i)].append(v_up)
+                            response_dict[rkey]['Vdn_site'+str(i)].append(v_dn)
+                        elif rkey == keys[0]:
+                            response_dict[rkey]['Vup_site'+str(i)].append(0.0)
+                            response_dict[rkey]['Vdn_site'+str(i)].append(0.0)
 
-                            if key != keys[0]:
-                                response_dict[key]['Vup_site'+str(i)].append(v_up)
-                                response_dict[key]['Vdn_site'+str(i)].append(v_dn)
-                            elif key == keys[0]:
-                                response_dict[key]['Vup_site'+str(i)].append(0.0)
-                                response_dict[key]['Vdn_site'+str(i)].append(0.0)
-                    except Exception as exc:
-                        print('site: '+str(i)+' miss - ',  exc)
+                except Exception as exc:
+                    print('site: '+str(i)+' miss - ',  exc)
 
-                struct_final = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
-                analyzer_output = CollinearMagneticStructureAnalyzer(struct_final, threshold=0.61)
-                magnet_order = analyzer_output.ordering.value
-                response_dict[key]['magnetic order'].append(magnet_order)
+            struct_final = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+            analyzer_output = CollinearMagneticStructureAnalyzer(struct_final, threshold=0.61)
+            magnet_order = analyzer_output.ordering.value
+            response_dict[rkey]['magnetic order'].append(magnet_order)
 
-                if key == keys[0]:
-                    magnet_order_gs = magnet_order
+            if rkey == keys[0]:
+                magnet_order_gs = magnet_order
 
         for j in range(num_perturb_sites):
             for k in ['Vup_site'+str(j), 'Vdn_site'+str(j),
@@ -1146,7 +1150,7 @@ class LinearResponseUToDb(FiretaskBase):
         if structure:
             summary.update({'formula_pretty': structure.composition.reduced_formula})
             summary.update({'structure_groundstate': structure.as_dict()})
-        summary.update({'perturb_sites':})
+        summary.update({'perturb_sites': perturb_dict})
         summary.update({'datapoints': response_dict})
         summary.update({'response_matrices': {'chi_nscf': chi_matrix_nscf, 'chi_scf': chi_matrix_scf}})
         summary.update({'hubbard_hund_results': hubbard_hund_dict})
@@ -1160,7 +1164,7 @@ class LinearResponseUToDb(FiretaskBase):
         mmdb.collection = mmdb.db["linear_response_u"]
         mmdb.collection.insert(summaries)
 
-        logger.info("Linear regression analysis is complete.")
+        logger.info("Linear response analysis is complete.")
 
 @explicit_serialize
 class MagneticOrderingsToDb(FiretaskBase):
