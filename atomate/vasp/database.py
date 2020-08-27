@@ -118,7 +118,7 @@ class VaspCalcDb(CalcDb):
 
         def extract_from_calcs_reversed(obj_key):
             """
-            Grab the data from calcs_reversed.0.obj_key_to_extract and store on gridfs directly or some Maggma store
+            Grab the data from calcs_reversed.0.obj_key and store on gridfs directly or some Maggma store
             Args:
                 obj_key: Key of the data in calcs_reversed.0 to store
             """
@@ -277,17 +277,19 @@ class VaspCalcDb(CalcDb):
         """
         m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
         fs_id = m_task["calcs_reversed"][0][f"{key}_fs_id"]
-
+        obj_dict = None
         if self._maggma_store_type in VALID_STORES:
             with self.maggma_stores[f"{key}_fs"] as store:
                 obj_dict = store.query_one({'fs_id' : fs_id})['data']
+
+       # if the object cannot be found then try using the grid_fs method
+        if obj_dict is not None:
+            return obj_dict
         else:
             fs = gridfs.GridFS(self.db, f"{key}_fs")
             bs_json = zlib.decompress(fs.get(fs_id).read())
             obj_dict = json.loads(bs_json.decode())
         return obj_dict
-
-
 
     def get_band_structure(self, task_id):
         obj_dict = self.get_data_from_maggma_or_gridfs(task_id, key="bandstructure")
