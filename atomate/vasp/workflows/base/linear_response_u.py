@@ -43,18 +43,18 @@ __linear_response_u_wf_version__ = 0.0
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
-def get_wf_linear_response_u(structure,
-                             relax_nonmagnetic=2,
+def get_wf_linear_response_u(structure, uis,
+                             relax_nonmagnetic=True,
                              spin_polarized=True,
                              applied_potential_range=[-0.2, 0.2],
                              num_parallel_evals=9, num_total_evals=9,
                              site_indices_u=None, species_u=None,
-                             use_default_uvals=False,
-                             ground_state_ldau=True, ground_state_dir=None,
+                             find_nearest_sites=True,
                              parallel_scheme=1,
-                             c=None, vis=None):
+                             ediff_tight=1.0e-6,
+                             c=None):
     """
-    Compute Hubbard U on-site interaction values using LDA+U linear response method 
+    Compute Hubbard U on-site interaction values using GGA+U linear response method 
     proposed by Cococcioni et. al. (DOI: 10.1103/PhysRevB.71.035105).
 
     Args:
@@ -62,6 +62,7 @@ def get_wf_linear_response_u(structure,
         spin_polarized: Perform spin-dependent perturbations
         applied_potential_range: Bounds of applied potential 
         num_evals: Number of perturbation evalutaions
+        uis: user INCAR settings (must set LMAXMIX, i.e. uis = {"LMAXMIX": 4}) 
         site_indices_u: List of site indices within 
     Structure indicating perturbation sites
         species_u: List of names of species (string) 
@@ -69,15 +70,12 @@ def get_wf_linear_response_u(structure,
     is selected in the structure
         use_default_uvals: Use the default U values 
     for non-perturbed sites
-        ground_state_dir: Directory of ground state 
-    (zero applied potential) calculation
         parallel_scheme: 0 - (default) self-consistent (SCF) 
     runs use WAVECAR from non-self consistent (NSCF) run
     at same applied potential; 1 - SCF runs use WAVECAR 
     from ground-state (V=0) run
         c: Workflow config dict, in the same format
     as in presets/core.py and elsewhere in atomate
-        vis: A VaspInputSet to use for the first FW
 
     Returns: Workflow
     """
@@ -87,23 +85,66 @@ def get_wf_linear_response_u(structure,
             "Please obtain an ordered approximation of the input structure."
         )
 
-    # Reorder structure
+    def find_closest_sites(struct, species_u):
+
+        Dij = struct.distance_matrix
+
+        n_species = {}
+        for site in struct:
+            k = str(site.specie)
+            if k not in n_species.keys():
+                n_species.update({k: 0})
+            n_species[k] += 1
+
+        n_s = len(n_species.keys())
+        n_config = 1
+        for k in n_species:
+            n_config *= n_species[k]
+        indices = -1*np.ones(n_s, int)
+        dist_min = -1.0
+        indices_nearest = indices.copy()
+        for k in range(n_config):
+            denom = 1
+            for j in range(n_s):
+                n = n_species[list(n_species.keys())[j]]
+                indices[j] = np.mod(k // denom, n)
+                denom *= n
+            Ns = [n_species[list(n_species.keys())[j]] for j in range(n_s)]
+            iindxs = [indices[j]+int(np.sum(Ns[0:j])) for j in range(n_s)]            
+            indxs = []
+            for j,jk in enumerate(n_species):
+                if jk in species_u:
+                    indxs.append(iindxs[j])
+            dist = 0.0
+            for x in indxs:
+                for y in indxs:
+                    dist += Dij[x,y]
+            if dist < dist_min or dist_min == -1.0:
+                dist_min = dist
+                indices_nearest = indxs.copy()
+
+        return indices_nearest
+
     if not site_indices_u:
         site_indices_u = []
-        
+
     if species_u:
-        for specie_u in species_u:
-            foundSpecie = False
-            for s in range(len(structure)):
-                site = structure[s]
-                if (Element(str(site.specie)) == Element(specie_u)) and (s not in site_indices_u):
-                    foundSpecie = True
-                    break
-            if not foundSpecie:
-                raise ValueError(
-                    "Could not find specie(s) in structure."
-                )
-            site_indices_u.append(s)
+
+        if find_nearest_sites:
+            site_indices_u = find_closest_sites(structure, species_u)
+        else:
+            for specie_u in species_u:
+                foundSpecie = False
+                for s in range(len(structure)):
+                    site = structure[s]
+                    if (Element(str(site.specie)) == Element(specie_u)) and (s not in site_indices_u):
+                        foundSpecie = True
+                        break
+                if not foundSpecie:
+                    raise ValueError(
+                        "Could not find specie(s) in structure."
+                    )
+                site_indices_u.append(s)
 
     elif not site_indices_u:
         logger.warning(
@@ -138,22 +179,15 @@ def get_wf_linear_response_u(structure,
     # Calculate groundstate
 
     # ground state user incar settings
-    uis_gs = {"LDAU":False, "LMAXMIX":4, "LORBIT": 11, "ISPIN": 2}
+    uis_gs = uis.copy() # LMAXMIX
+    if "LMAXMIX" not in uis_gs:
+        logger.warning(
+            "You have not specified LMAXMIX. Defaulting to VASP default."
+        )
+    uis_gs.update({"LDAU":False, "LORBIT": 11, "LWAVE":True, "ISPIN": 2})
 
     uis_ldau = uis_gs.copy()
     uis_ldau.update({"LDAU":True, "LDAUTYPE":3, "LDAUPRINT":2})
-
-    # Load default U values
-    vis_params = {"user_incar_settings":{}}
-    set_default_uvals = MPRelaxSet(structure=structure, sort_structure=False, **vis_params.copy())
-    incar_dict_default_u = set_default_uvals.incar.as_dict()
-    sitesym_default_u = set_default_uvals.poscar.site_symbols
-    default_uvals = {}
-    if 'LDAUU' in incar_dict_default_u.keys():
-        uvals = incar_dict_default_u['LDAUU']
-        lvals = incar_dict_default_u['LDAUL']
-        for sym, u, l in zip(sitesym_default_u, uvals, lvals):
-            default_uvals.update({sym:{'LDAUU':u, 'LDAUL':l}})
 
     # Initialize vasp input set
     vis_params = {"user_incar_settings": uis_ldau.copy()}
@@ -167,10 +201,6 @@ def get_wf_linear_response_u(structure,
                 val_dict[k].update({"perturb"+str(i):-1})
             for s in vis_ldau.poscar.site_symbols:
                 l = -1
-                if use_default_uvals:
-                    if s in default_uvals.keys():
-                        if k in default_uvals[s].keys():
-                            l = default_uvals[s][k]
                 val_dict[k].update({s:l})
         else:
             # for LDAUU and LDAUJ
@@ -178,49 +208,38 @@ def get_wf_linear_response_u(structure,
                 val_dict[k].update({"perturb"+str(i):0})
             for s in vis_ldau.poscar.site_symbols:
                 v = 0
-                if use_default_uvals:
-                    if s in default_uvals.keys():
-                        if 'LDAUU' in default_uvals[s].keys():
-                            v = default_uvals[s]['LDAUU']
                 val_dict[k].update({s:v})
         uis_ldau.update({k:val_dict[k].copy()})
-
+    vis_params = {"user_incar_settings": uis_ldau.copy()}
+    vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
+    
     fws = []
     index_fw_gs = 0
 
-    if not(ground_state_dir):
-        if ground_state_ldau:
-            uis_gs = uis_ldau.copy()
+    ediff_default = vis_ldau.incar['EDIFF']
 
-            if relax_nonmagnetic >= 1:
-                uis_gs.update({"ISPIN":1})
-            else:
-                uis_gs.update({"ISPIN":2})
-            vis_params = {"user_incar_settings": uis_gs.copy()}
-            vis_gs = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
-            fws.append(LinearResponseUFW(structure=structure,
-                                         name="initial_static", vasp_input_set=vis_gs,
-                                         vasp_cmd=VASP_CMD, db_file=DB_FILE))
+    uis_gs = uis_ldau.copy()
 
-            if relax_nonmagnetic >= 1:
-                index_fw_gs += 1
-                uis_gs.update({"ISPIN":2, "ICHARG":1})
-                additional_files = ["WAVECAR", "CHGCAR"]
-                vis_params = {"user_incar_settings": uis_gs.copy()}
-                vis_gs = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
-                fws.append(LinearResponseUFW(structure=structure, parents=fws[-1],
-                                             additional_files=additional_files.copy(),
-                                             name="initial_static_magnetic", vasp_input_set=vis_gs,
-                                             vasp_cmd=VASP_CMD, db_file=DB_FILE))
+    if relax_nonmagnetic:
+        uis_gs.update({"ISPIN":1, "EDIFF":ediff_default})
+    else:
+        uis_gs.update({"ISPIN":2, "EDIFF":ediff_tight})
+    vis_params = {"user_incar_settings": uis_gs.copy()}
+    vis_gs = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
+    fws.append(LinearResponseUFW(structure=structure,
+                                 name="initial_static", vasp_input_set=vis_gs,
+                                 vasp_cmd=VASP_CMD, db_file=DB_FILE))
 
-        else:
-            raise ValueError(
-                "Non-LinearResponseUFW ground state no longer supported."
-            )
-            # vis_params = {"user_incar_settings": uis_gs.copy()}
-            # vis_gs = MPStaticSet(structure=structure, sort_structure=False, **vis_params.copy())
-            # fw_gs = StaticFW(structure=structure, name="initial static", vasp_input_set=vis_gs,
-            #                  vasp_cmd=VASP_CMD, db_file=DB_FILE)
+    if relax_nonmagnetic:
+        index_fw_gs += 1
+        uis_gs.update({"ISPIN":2, "ICHARG":1, "EDIFF":ediff_tight})
+        additional_files = ["WAVECAR", "CHGCAR"]
+        vis_params = {"user_incar_settings": uis_gs.copy()}
+        vis_gs = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
+        fws.append(LinearResponseUFW(structure=structure, parents=fws[-1],
+                                     additional_files=additional_files.copy(),
+                                     name="initial_static_magnetic", vasp_input_set=vis_gs,
+                                     vasp_cmd=VASP_CMD, db_file=DB_FILE))
 
     # Determine applied potential range
     if num_parallel_evals != num_total_evals:
@@ -282,15 +301,12 @@ def get_wf_linear_response_u(structure,
                     uis_ldau.update({k:val_dict[k].copy()})
 
                 # Non-SCF runs
-                uis_ldau.update({"ISTART":1, "ICHARG":11, "ISPIN":2})
+                uis_ldau.update({"ISTART":1, "ICHARG":11, "ISPIN":2, "EDIFF":ediff_default})
 
                 vis_params = {"user_incar_settings": uis_ldau.copy()}
                 vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
 
-                if ground_state_dir:
-                    parents = []
-                else:
-                    parents=fws[index_fw_gs]
+                parents=fws[index_fw_gs]
 
                 additional_files = ["WAVECAR", "CHGCAR"]
 
@@ -300,27 +316,23 @@ def get_wf_linear_response_u(structure,
                                             sign_dict["LDAUJ"], abs(round(spin_pot_dict["LDAUJ"],6))),
                                        vasp_input_set=vis_ldau,
                                        additional_files=additional_files.copy(),
-                                       prev_calc_dir=ground_state_dir,
                                        vasp_cmd=VASP_CMD, db_file=DB_FILE)
                 fws.append(fw)
 
                 # SCF runs
                 uis_ldau.update({"ISTART":1, "ICHARG":0})
-                if relax_nonmagnetic >= 2:
-                    uis_ldau.update({"ISPIN":1})
+                if relax_nonmagnetic:
+                    uis_ldau.update({"ISPIN":1, "EDIFF":ediff_default})
                 else:
-                    uis_ldau.update({"ISPIN":2})
+                    uis_ldau.update({"ISPIN":2, "EDIFF":ediff_tight})
 
                 vis_params = {"user_incar_settings": uis_ldau.copy()}
                 vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
 
-                if ground_state_dir:
-                    parents = []
+                if parallel_scheme == 0:
+                    parents=fws[-1]
                 else:
-                    if parallel_scheme == 0:
-                        parents=fws[-1]
-                    else:
-                        parents=fws[index_fw_gs]
+                    parents=fws[index_fw_gs]
 
                 additional_files = ["WAVECAR"]
 
@@ -330,13 +342,12 @@ def get_wf_linear_response_u(structure,
                                             sign_dict["LDAUJ"], abs(round(spin_pot_dict["LDAUJ"],6))),
                                        vasp_input_set=vis_ldau,
                                        additional_files=additional_files.copy(),
-                                       prev_calc_dir=ground_state_dir,
                                        vasp_cmd=VASP_CMD, db_file=DB_FILE)
                 fws.append(fw)
 
                 # SCF magnetic runs
-                if relax_nonmagnetic >= 2:
-                    uis_ldau.update({"ISTART":1, "ICHARG":1, "ISPIN":2})
+                if relax_nonmagnetic:
+                    uis_ldau.update({"ISTART":1, "ICHARG":1, "ISPIN":2, "EDIFF":ediff_tight})
 
                     vis_params = {"user_incar_settings": uis_ldau.copy()}
                     vis_ldau = LinearResponseUSet(structure=structure, num_perturb=num_perturb, **vis_params.copy())
@@ -350,7 +361,6 @@ def get_wf_linear_response_u(structure,
                                                 sign_dict["LDAUJ"], abs(round(spin_pot_dict["LDAUJ"],6))),
                                            vasp_input_set=vis_ldau,
                                            additional_files=additional_files.copy(),
-                                           prev_calc_dir=ground_state_dir,
                                            vasp_cmd=VASP_CMD, db_file=DB_FILE)
                     fws.append(fw)
 
@@ -483,14 +493,11 @@ class LinearResponseUSet(MPStaticSet):
         """
         parent_incar = super().incar
         incar = Incar(parent_incar)
-
-        # #HACK - FIXME
-        # incar.update({"LMAXMIX": 6})
         
-        incar.update({"ISYM": 0, "ISMEAR": 0})
-        incar.pop("NSW", None)
+        incar.update({"ISYM": -1, "ISMEAR": 0, "LREAL":False, "LASPH":True})
         incar.update({"ISTART": 1})
         # incar.update({"ALGO": "Fast"})
+        incar.pop("NSW", None)
         
         if self.kwargs.get("user_incar_settings")["LDAUU"]:
 
