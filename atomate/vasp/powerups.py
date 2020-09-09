@@ -888,6 +888,14 @@ def use_potcar_spec(original_wf, fw_name_constraint=None, vasp_to_db_kwargs=None
         )
     )
 
+    idx_list.extend(
+        get_fws_and_tasks(
+            original_wf,
+            fw_name_constraint=fw_name_constraint,
+            task_name_constraint="CopyVaspOutputs",
+        )
+    )
+
     for idx_fw, idx_t in idx_list:
         original_wf.fws[idx_fw].tasks[idx_t]["potcar_spec"] = True
 

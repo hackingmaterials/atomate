@@ -29,8 +29,9 @@ from pymatgen.io.vasp.sets import (
     MPHSEBSSet,
     MPNMRSet,
     MPScanRelaxSet,
-    get_vasprun_outcar
 )
+
+from pymatgen.io.vasp.outputs import Vasprun
 
 from atomate.utils.utils import env_chk, load_class
 from atomate.vasp.firetasks.glue_tasks import GetInterpolatedPOSCAR
@@ -322,7 +323,8 @@ class WriteScanRelaxFromPBE(FiretaskBase):
                 vasp_input_set_params["bandgap"] = fw_spec.get("gga_bandgap")
             # If not found, parse the files from the previous calc to find the bandgap
             else:
-                vasprun, outcar = get_vasprun_outcar(".")
+                parse_potcar_file = not potcar_spec
+                vasprun = Vasprun("vasprun.xml", parse_potcar_file=parse_potcar_file)
                 bandgap = vasprun.get_band_structure().get_band_gap()["energy"]
                 vasp_input_set_params["bandgap"] = bandgap
 

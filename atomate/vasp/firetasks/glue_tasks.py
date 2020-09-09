@@ -57,12 +57,16 @@ class CopyVaspOutputs(CopyFiles):
         additional_files ([str]): additional files to copy,
             e.g. ["CHGCAR", "WAVECAR"]. Use $ALL if you just want to copy
             everything
-        contcar_to_poscar(bool): If True (default), will move CONTCAR to
+        contcar_to_poscar (bool): If True (default), will move CONTCAR to
             POSCAR (original POSCAR is not copied).
+        potcar_spec (bool): Instead of copying the POTCAR, copy the
+            "POTCAR.spec". This is intended to allow testing of workflows
+            without requiring pseudo-potentials to be installed on the system.
+            Default: False
     """
 
     optional_params = ["calc_loc", "calc_dir", "filesystem", "additional_files",
-                       "contcar_to_poscar"]
+                       "contcar_to_poscar", "potcar_spec"]
 
     def run_task(self, fw_spec):
 
@@ -77,6 +81,10 @@ class CopyVaspOutputs(CopyFiles):
                              'vasprun.xml']
             if self.get("additional_files"):
                 files_to_copy.extend(self["additional_files"])
+            if self.get("potcar_spec", False):
+                files_to_copy.remove("POTCAR")
+                files_to_copy.append("POTCAR.spec")
+
 
         # decide between poscar and contcar
         contcar_to_poscar = self.get("contcar_to_poscar", True)
