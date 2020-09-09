@@ -128,7 +128,11 @@ class VaspCalcDb(CalcDb):
                 calcs_r_data = task_doc["calcs_reversed"][0][obj_key]
 
             big_data_to_store[obj_key] = calcs_r_data
-            del task_doc["calcs_reversed"][0][obj_key]
+
+            # remove the big object from all calcs_reversed
+            # this can catch situations were the drone added the data to more than one calc.
+            for i_calcs in range(len(task_doc["calcs_reversed"])):
+                del task_doc["calcs_reversed"][i_calcs][obj_key]
 
         # drop the data from the task_document and keep them in a separate dictionary (big_data_to_store)
         if self._maggma_store_type in VALID_STORES or use_gridfs and "calcs_reversed" in task_doc:
