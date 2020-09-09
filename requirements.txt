@@ -3,14 +3,14 @@ scipy==1.5.2
 FireWorks==1.9.6
 pymatgen_diffusion==2019.8.18
 monty==3.0.4
-paramiko==2.7.1
+paramiko==2.7.2
 tqdm==4.48.2
 pybtex==0.22.2
 ruamel.yaml==0.16.10
-pandas==1.1.0
+pandas==1.1.1
 pymatgen==2020.8.3
 custodian==2020.4.27
-networkx==2.4
+networkx==2.5
 pydash==4.8.0
 pyyaml==5.3.1
 maggma==0.22.3
