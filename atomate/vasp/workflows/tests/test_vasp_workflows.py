@@ -530,9 +530,8 @@ class TestScanOptimizeWorkflow(AtomateTest):
 
         # Check SCAN INCAR
         ref_incar = Incar.from_file(os.path.join(reference_dir, "SCAN_structure_optimization_LiF_vdw/inputs", "INCAR"))
-        print(self._get_launch_dir()[1])
         incar = Incar.from_file(os.path.join(self._get_launch_dir()[1], "INCAR.gz"))
-        print(incar)
+
         for p in incar.keys():
             if p == "KSPACING":
                 self.assertEqual(incar[p], 0.44)
