@@ -85,7 +85,6 @@ class CopyVaspOutputs(CopyFiles):
                 files_to_copy.remove("POTCAR")
                 files_to_copy.append("POTCAR.spec")
 
-
         # decide between poscar and contcar
         contcar_to_poscar = self.get("contcar_to_poscar", True)
         if contcar_to_poscar and "CONTCAR" not in files_to_copy:

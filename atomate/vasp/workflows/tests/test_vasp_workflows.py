@@ -32,9 +32,9 @@ db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 reference_dir = os.path.join(module_dir, "..", "..", "test_files")
 
 ref_dirs_si = {"structure optimization": os.path.join(reference_dir, "Si_structure_optimization"),
-             "static": os.path.join(reference_dir, "Si_static"),
-             "nscf uniform": os.path.join(reference_dir, "Si_nscf_uniform"),
-             "nscf line": os.path.join(reference_dir, "Si_nscf_line")}
+               "static": os.path.join(reference_dir, "Si_static"),
+               "nscf uniform": os.path.join(reference_dir, "Si_nscf_uniform"),
+               "nscf line": os.path.join(reference_dir, "Si_nscf_line")}
 
 _fworker = FWorker(env={"db_file": os.path.join(db_dir, "db.json")})
 
@@ -345,11 +345,12 @@ class TestScanOptimizeWorkflow(AtomateTest):
     def setUp(self):
         super(TestScanOptimizeWorkflow, self).setUp()
 
-    def _run_scan_relax(self, wf, dir_name):
+    def _run_scan_relax(self, wf, formula):
         if not VASP_CMD:
             wf = use_fake_vasp(wf,
-                               {"SCAN structure optimization": os.path.join(
-                                reference_dir, dir_name)},
+                               {"PBESol pre-optimization for SCAN": os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_{}".format(formula)),
+                                "SCAN structure optimization": os.path.join(reference_dir, "SCAN_structure_optimization_{}".format(formula))
+                                },
                                check_kpoints=False,
                                check_potcar=False,
                                clear_inputs=False,
@@ -366,151 +367,130 @@ class TestScanOptimizeWorkflow(AtomateTest):
 
     def _get_launch_dir(self):
         # retrieve the launcher directory
-        d = list(self.get_task_collection().find({"task_label": "SCAN structure optimization"}))[-1]
-        launch_dir = d["dir_name"].split(":")[1]
-        return launch_dir
+        pbesol = list(self.get_task_collection().find({"task_label": "PBESol pre-optimization for SCAN"}))[-1]
+        r2scan = list(self.get_task_collection().find({"task_label": "SCAN structure optimization"}))[-1]
+        pbesol_dir = pbesol["dir_name"].split(":")[1]
+        r2scan_dir = r2scan["dir_name"].split(":")[1]
+        return pbesol_dir, r2scan_dir
 
     def test_SCAN_no_bandgap(self):
         # A structure with bandgap = 0 (default) should have KSPACING equal to 0.22
-        structure = Structure.from_file(os.path.join(reference_dir, "SCAN_structure_optimization_Al/inputs", "POSCAR"))
+        structure = Structure.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_Al/inputs", "POSCAR"))
 
-        my_wf = get_wf(structure, "SCAN_optimization.yaml", vis=MPScanRelaxSet(structure),
-                       common_params={"vasp_cmd": VASP_CMD})
+        my_wf = get_wf(structure, "SCAN_optimization.yaml")
+        self._run_scan_relax(my_wf, "Al")
 
-        self._run_scan_relax(my_wf, "SCAN_structure_optimization_Al")
-
-        # Check INCAR.orig
-        incar_orig = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.orig.gz"))
-        ref_incar = Incar.from_file(os.path.join(reference_dir, "SCAN_structure_optimization_Al/inputs", "INCAR.orig"))
-        for p in incar_orig.keys():
-            if p == "MAGMOM":  # Ignore MAGMOM b/c structure initialized from POSCAR cannot have a MAGMOM
-                pass
-            else:
-                self.assertEqual(incar_orig[p], ref_incar[p])
-
-        # Check INCAR.relax1
-        incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax1.gz"))
-        self.assertEqual(incar["METAGGA"], "None")
-        self.assertEqual(incar["EDIFFG"], -0.05)
-        self.assertEqual(incar["LWAVE"], False)
-
-        # Check INCAR.relax2
-        incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax2.gz"))
-        self.assertEqual(incar["METAGGA"], "None")
-        self.assertEqual(incar["LWAVE"], True)
-        self.assertEqual(incar["NSW"], 0)
-        self.assertEqual(incar["EDIFFG"], -0.05)
-        self.assertEqual(incar["ICHARG"], 1)
-        self.assertEqual(incar["ISTART"], 0)
-
-        # Check INCAR.relax3
-        incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax3.gz"))
+        # Check PBESol INCAR
+        ref_incar = Incar.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_Al/inputs", "INCAR"))
+        incar = Incar.from_file(os.path.join(self._get_launch_dir()[0], "INCAR.gz"))
         for p in incar.keys():
             if p == "KSPACING":
                 self.assertEqual(incar[p], 0.22)
             elif p == "ICHARG" or p == "ISTART":
                 self.assertEqual(incar[p], 1)
+            elif p == "METAGGA":
+                self.assertEqual(incar[p], "None")
+            elif p == "GGA":
+                self.assertEqual(incar[p], "Ps")
+            elif p == "EDIFFG":
+                self.assertEqual(incar[p], -0.05)
+            elif p == "MAGMOM":  # Ignore MAGMOM b/c structure initialized from POSCAR cannot have a MAGMOM
+                pass
             else:
-                self.assertEqual(incar_orig[p], incar[p])
+                self.assertEqual(incar[p], ref_incar[p])
+
+        # Check SCAN INCAR
+        ref_incar = Incar.from_file(os.path.join(reference_dir, "SCAN_structure_optimization_Al/inputs", "INCAR"))
+        incar = Incar.from_file(os.path.join(self._get_launch_dir()[1], "INCAR.gz"))
+        for p in incar.keys():
+            if p == "KSPACING":
+                self.assertEqual(incar[p], 0.22)
+            elif p == "ICHARG":
+                self.assertEqual(incar[p], 1)
+            else:
+                self.assertEqual(incar[p], ref_incar[p])
 
     def test_SCAN_small_bandgap(self):
         # A structure with a small bandgap (LiH) should result in a KSPACING
-        # value of 0.351275
+        # value of 0.34292
 
-        structure = Structure.from_file(os.path.join(reference_dir, "SCAN_structure_optimization_LiH/inputs", "POSCAR"))
+        structure = Structure.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_LiH/inputs", "POSCAR"))
 
-        my_wf = get_wf(structure, "SCAN_optimization.yaml", vis=MPScanRelaxSet(structure),
-                       common_params={"vasp_cmd": VASP_CMD})
+        my_wf = get_wf(structure, "SCAN_optimization.yaml")
+        self._run_scan_relax(my_wf, "LiH")
 
-        self._run_scan_relax(my_wf, "SCAN_structure_optimization_LiH")
-
-        # Check INCAR.orig
-        incar_orig = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.orig.gz"))
-        ref_incar = Incar.from_file(os.path.join(reference_dir, "SCAN_structure_optimization_LiH/inputs", "INCAR.orig"))
-        for p in incar_orig.keys():
-            if p == "MAGMOM":  # Ignore MAGMOM b/c structure initialized from POSCAR cannot have a MAGMOM
-                pass
-            else:
-                self.assertEqual(incar_orig[p], ref_incar[p])
-
-        # Check INCAR.relax1
-        incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax1.gz"))
-        self.assertEqual(incar["METAGGA"], "None")
-        self.assertEqual(incar["EDIFFG"], -0.05)
-        self.assertEqual(incar["LWAVE"], False)
-
-        # Check INCAR.relax2
-        incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax2.gz"))
-        self.assertEqual(incar["METAGGA"], "None")
-        self.assertEqual(incar["LWAVE"], True)
-        self.assertEqual(incar["NSW"], 0)
-        self.assertEqual(incar["EDIFFG"], -0.05)
-        self.assertEqual(incar["ICHARG"], 1)
-        self.assertEqual(incar["ISTART"], 0)
-
-        # Check INCAR.relax3
-        incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax3.gz"))
+        # Check PBESol INCAR
+        ref_incar = Incar.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_LiH/inputs", "INCAR"))
+        incar = Incar.from_file(os.path.join(self._get_launch_dir()[0], "INCAR.gz"))
         for p in incar.keys():
             if p == "KSPACING":
-                self.assertAlmostEqual(incar[p], 0.351275, 4)
+                self.assertEqual(incar[p], 0.22)
             elif p == "ICHARG" or p == "ISTART":
                 self.assertEqual(incar[p], 1)
-            elif p == "ISMEAR":
-                self.assertEqual(incar[p], -5)
+            elif p == "METAGGA":
+                self.assertEqual(incar[p], "None")
+            elif p == "GGA":
+                self.assertEqual(incar[p], "Ps")
+            elif p == "EDIFFG":
+                self.assertEqual(incar[p], -0.05)
+            elif p == "MAGMOM":  # Ignore MAGMOM b/c structure initialized from POSCAR cannot have a MAGMOM
+                pass
+            else:
+                self.assertEqual(incar[p], ref_incar[p])
+
+        # Check SCAN INCAR
+        ref_incar = Incar.from_file(os.path.join(reference_dir, "SCAN_structure_optimization_LiH/inputs", "INCAR"))
+        incar = Incar.from_file(os.path.join(self._get_launch_dir()[1], "INCAR.gz"))
+        for p in incar.keys():
+            if p == "KSPACING":
+                self.assertAlmostEqual(incar[p], 0.34292, 4)
             elif p == "SIGMA":
                 self.assertEqual(incar[p], 0.05)
+            elif p == "ICHARG":
+                self.assertEqual(incar[p], 1)
             else:
-                self.assertEqual(incar_orig[p], incar[p])
+                self.assertEqual(incar[p], ref_incar[p])
 
     def test_SCAN_large_bandgap(self):
         # A structure with a large bandgap (LiF) should result in KSPACING
         # hitting the maximum allowed value of 0.44
 
-        structure = Structure.from_file(os.path.join(reference_dir, "SCAN_structure_optimization_LiF/inputs", "POSCAR"))
+        structure = Structure.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_LiF/inputs", "POSCAR"))
 
-        my_wf = get_wf(structure, "SCAN_optimization.yaml", vis=MPScanRelaxSet(structure),
-                       common_params={"vasp_cmd": VASP_CMD})
+        my_wf = get_wf(structure, "SCAN_optimization.yaml")
+        self._run_scan_relax(my_wf, "LiF")
 
-        self._run_scan_relax(my_wf, "SCAN_structure_optimization_LiF")
-
-        # Check INCAR.orig generated by the InputSet
-        incar_orig = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.orig.gz"))
-        ref_incar = Incar.from_file(os.path.join(reference_dir, "SCAN_structure_optimization_LiF/inputs", "INCAR.orig"))
-        for p in incar_orig.keys():
-            if p == "MAGMOM":  # Ignore MAGMOM b/c structure initialized from POSCAR cannot have a MAGMOM
+        # Check PBESol INCAR
+        ref_incar = Incar.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_LiF/inputs", "INCAR"))
+        incar = Incar.from_file(os.path.join(self._get_launch_dir()[0], "INCAR.gz"))
+        for p in incar.keys():
+            if p == "KSPACING":
+                self.assertEqual(incar[p], 0.22)
+            elif p == "ICHARG" or p == "ISTART":
+                self.assertEqual(incar[p], 1)
+            elif p == "METAGGA":
+                self.assertEqual(incar[p], "None")
+            elif p == "GGA":
+                self.assertEqual(incar[p], "Ps")
+            elif p == "EDIFFG":
+                self.assertEqual(incar[p], -0.05)
+            elif p == "MAGMOM":  # Ignore MAGMOM b/c structure initialized from POSCAR cannot have a MAGMOM
                 pass
             else:
-                self.assertEqual(incar_orig[p], ref_incar[p])
+                self.assertEqual(incar[p], ref_incar[p])
 
-        # Check INCAR.relax1 generated by the Workflow
-        incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax1.gz"))
-        self.assertEqual(incar["METAGGA"], "None")
-        self.assertEqual(incar["EDIFFG"], -0.05)
-        self.assertEqual(incar["LWAVE"], False)
-
-        # Check INCAR.relax2
-        incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax2.gz"))
-        self.assertEqual(incar["METAGGA"], "None")
-        self.assertEqual(incar["LWAVE"], True)
-        self.assertEqual(incar["NSW"], 0)
-        self.assertEqual(incar["EDIFFG"], -0.05)
-        self.assertEqual(incar["ICHARG"], 1)
-        self.assertEqual(incar["ISTART"], 0)
-
-
-        # Check INCAR.relax3 for the correct kspacing
-        incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax3.gz"))
+        # Check SCAN INCAR
+        ref_incar = Incar.from_file(os.path.join(reference_dir, "SCAN_structure_optimization_LiF/inputs", "INCAR"))
+        incar = Incar.from_file(os.path.join(self._get_launch_dir()[1], "INCAR.gz"))
         for p in incar.keys():
             if p == "KSPACING":
                 self.assertEqual(incar[p], 0.44)
-            elif p == "ICHARG" or p == "ISTART":
-                self.assertEqual(incar[p], 1)
-            elif p == "ISMEAR":
-                self.assertEqual(incar[p], -5)
             elif p == "SIGMA":
                 self.assertEqual(incar[p], 0.05)
+            elif p == "ICHARG":
+                self.assertEqual(incar[p], 1)
             else:
-                self.assertEqual(incar_orig[p], incar[p])
+                self.assertEqual(incar[p], ref_incar[p])
 
     def test_SCAN_with_vdw(self):
         # Verify appropriate changes to the INCAR when VdW is enabled
@@ -532,7 +512,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
             else:
                 self.assertEqual(incar_orig[p], ref_incar[p])
 
-        # Check INCAR.relax1
+        # Check PBESol INCAR
         incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax1.gz"))
         self.assertIsNone(incar.get("LUSE_VDW", None))
         self.assertIsNone(incar.get("BPARAM", None))
@@ -540,16 +520,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         self.assertEqual(incar["EDIFFG"], -0.05)
         self.assertEqual(incar["LWAVE"], False)
 
-        # Check INCAR.relax2
-        incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax2.gz"))
-        self.assertEqual(incar["METAGGA"], "None")
-        self.assertEqual(incar["LWAVE"], True)
-        self.assertEqual(incar["NSW"], 0)
-        self.assertEqual(incar["EDIFFG"], -0.05)
-        self.assertEqual(incar["ICHARG"], 1)
-        self.assertEqual(incar["ISTART"], 0)
-
-        # Check INCAR.relax3
+        # Check SCAN INCAR
         incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax3.gz"))
         for p in incar.keys():
             if p == "KSPACING":
@@ -568,40 +539,29 @@ class TestScanOptimizeWorkflow(AtomateTest):
     def test_SCAN_incar_override(self):
         # user incar settings should be passed all the way through the workflow
 
-        structure = Structure.from_file(os.path.join(reference_dir, "SCAN_structure_optimization_LiH/inputs", "POSCAR"))
+        structure = Structure.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_LiH/inputs", "POSCAR"))
 
         my_wf = get_wf(structure, "SCAN_optimization.yaml",
-                       vis=MPScanRelaxSet(structure,
-                                          user_potcar_functional="PBE_52",
-                                          user_incar_settings={"NSW": 10, "SYMPREC": 1e-6, "SIGMA": 0.1}
-                                          ),
-                       common_params={"vasp_cmd": VASP_CMD})
+                       common_params={"vasp_input_set_params": {"user_potcar_functional": "PBE_52",
+                                                                "user_incar_settings": {"NSW": 10,
+                                                                                        "SYMPREC": 1e-6,
+                                                                                        "SIGMA": 0.1}
+                                                                }}
+                       )
 
-        self._run_scan_relax(my_wf, "SCAN_structure_optimization_LiH")
+        self._run_scan_relax(my_wf, "LiH")
 
-        # Check INCAR.orig
-        incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.orig.gz"))
-        self.assertEqual(incar["NSW"], 10)
-        self.assertEqual(incar["SYMPREC"], 1e-6)
-        self.assertEqual(incar["SIGMA"], 0.1)
+        # Check PBESol INCAR
+        incar1 = Incar.from_file(os.path.join(self._get_launch_dir()[0], "INCAR.gz"))
+        self.assertEqual(incar1["NSW"], 10)
+        self.assertEqual(incar1["SYMPREC"], 1e-6)
+        self.assertEqual(incar1["SIGMA"], 0.1)
 
-        # Check INCAR.relax1
-        incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax1.gz"))
-        self.assertEqual(incar["NSW"], 10)
-        self.assertEqual(incar["SYMPREC"], 1e-6)
-        self.assertEqual(incar["SIGMA"], 0.1)
-
-        # Check INCAR.relax2
-        incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax2.gz"))
-        self.assertEqual(incar["NSW"], 0)
-        self.assertEqual(incar["SYMPREC"], 1e-6)
-        self.assertEqual(incar["SIGMA"], 0.1)
-
-        # Check INCAR.relax3
-        incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax3.gz"))
-        self.assertEqual(incar["NSW"], 10)
-        self.assertEqual(incar["SYMPREC"], 1e-6)
-        self.assertEqual(incar["SIGMA"], 0.1)
+        # Check SCAN INCAR
+        incar2 = Incar.from_file(os.path.join(self._get_launch_dir()[1], "INCAR.gz"))
+        self.assertEqual(incar2["NSW"], 10)
+        self.assertEqual(incar2["SYMPREC"], 1e-6)
+        self.assertEqual(incar2["SIGMA"], 0.1)
 
 
 if __name__ == "__main__":
