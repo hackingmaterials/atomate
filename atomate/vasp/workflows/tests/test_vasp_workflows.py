@@ -20,7 +20,7 @@ from atomate.vasp.database import VaspCalcDb
 
 
 from pymatgen.io.vasp import Incar
-from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet, MPScanRelaxSet
+from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.core import Structure
 
@@ -271,7 +271,6 @@ class TestVaspWorkflows(AtomateTest):
         wf = self.lp.get_wf_by_fw_id(1)
         self.assertTrue(all([s == 'COMPLETED' for s in wf.fw_states.values()]))
 
-
     def test_chgcar_db_read_write(self):
         # generate a doc from the test folder
         drone = VaspDrone(parse_chgcar=True, parse_aeccar=True)
@@ -500,7 +499,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
 
         my_wf = get_wf(structure, "SCAN_optimization.yaml",
                        common_params={"vasp_input_set_params": {"vdw": "rVV10"},
-                                      "vdw_kernel_dir": os.path.join(reference_dir, 
+                                      "vdw_kernel_dir": os.path.join(reference_dir,
                                                                      "PBESol_pre_opt_for_SCAN_LiF_vdw/inputs")})
 
         self._run_scan_relax(my_wf, "LiF_vdw")

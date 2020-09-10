@@ -1,7 +1,6 @@
 # coding: utf-8
 
 import warnings
-import copy
 
 from atomate.vasp.config import (
     HALF_KPOINTS_FIRST_RELAX,
@@ -93,7 +92,7 @@ class OptimizeFW(Firework):
             auto_npar (bool or str): whether to set auto_npar. defaults to env_chk: ">>auto_npar<<"
             half_kpts_first_relax (bool): whether to use half the kpoints for the first relaxation
             parents ([Firework]): Parents of this particular Firework.
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
         """
         override_default_vasp_params = override_default_vasp_params or {}
         vasp_input_set = vasp_input_set or MPRelaxSet(
@@ -286,7 +285,7 @@ class StaticFW(Firework):
             db_file (str): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
             vasptodb_kwargs (dict): kwargs to pass to VaspToDb
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
         """
         t = []
 
@@ -361,7 +360,7 @@ class StaticInterpolateFW(Firework):
             autosort_tol (float): a distance tolerance in angstrom in which
                 to automatically sort end_structure to match to the closest
                 points in this particular structure.
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
         """
         t = []
 
@@ -418,7 +417,7 @@ class HSEBSFW(Firework):
             name (str): Name for the Firework.
             vasp_cmd (str): Command to run vasp.
             db_file (str): Path to file specifying db credentials.
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
         """
         name = name if name else "{} {}".format("hse", mode)
 
@@ -489,7 +488,7 @@ class NonSCFFW(Firework):
                 For example, passing the key value pair
                     {'reciprocal_density': 1000}
                 will override default k-point meshes for uniform calculations.
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
         """
         input_set_overrides = input_set_overrides or {}
 
@@ -571,7 +570,7 @@ class LepsFW(Firework):
             mode (int): normal mode index.
             displacement (float): displacement along the normal mode in Angstroms.
             user_incar_settings (dict): Parameters in INCAR to override
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
         """
         warnings.warn(
             "This firework will be removed soon. Use DFPTFW and/or RamanFW fireworks."
@@ -690,7 +689,7 @@ class DFPTFW(Firework):
             user_incar_settings (dict): Parameters in INCAR to override
             pass_nm_results (bool): if true the normal mode eigen vals and vecs are passed so that
                 next firework can use it.
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
         """
         name = "static dielectric" if lepsilon else "phonon"
 
@@ -787,7 +786,7 @@ class RamanFW(Firework):
             parents (Firework): Parents of this particular Firework.
                 FW or list of FWS.
             user_incar_settings (dict): Parameters in INCAR to override
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
         """
         name = "{}_{}_{}".format(name, str(mode), str(displacement))
         fw_name = "{}-{}".format(
@@ -863,7 +862,7 @@ class SOCFW(Firework):
             db_file (str): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework.
                 FW or list of FWS.
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
         """
         fw_name = "{}-{}".format(
             structure.composition.reduced_formula if structure else "unknown", name
@@ -945,7 +944,7 @@ class TransmuterFW(Firework):
             db_file (string): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
             override_default_vasp_params (dict): additional user input settings for vasp_input_set.
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
         """
         fw_name = "{}-{}".format(structure.composition.reduced_formula, name)
         override_default_vasp_params = override_default_vasp_params or {}
@@ -1047,7 +1046,7 @@ class MDFW(Firework):
             copy_vasp_outputs (bool): Whether to copy outputs from previous run. Defaults to True.
             db_file (string): Path to file specifying db credentials.
             parents (Firework): Parents of this particular Firework. FW or list of FWS.
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
         """
         override_default_vasp_params = override_default_vasp_params or {}
         vasp_input_set = vasp_input_set or MITMDSet(
@@ -1124,7 +1123,7 @@ class BoltztrapFW(Firework):
             tgrid: (float) temperature interval
             soc (bool): whether the band structure is calculated with spin-orbit coupling
             additional_fields (dict): fields added to the document such as user-defined tags or name, ids, etc
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
         """
         fw_name = "{}-{}".format(
             structure.composition.reduced_formula if structure else "unknown", name
@@ -1180,7 +1179,7 @@ class NEBRelaxationFW(Firework):
             vasp_input_set (VaspInputSet): Input set to use.
             user_kpoints_settings (dict): Additional KPOINTS settings.
             additional_cust_args (dict): Other kwargs that are passed to RunVaspCustodian.
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
         """
 
         # Get structure from spec
@@ -1264,7 +1263,7 @@ class NEBFW(Firework):
             user_incar_settings (dict): Additional INCAR settings.
             user_kpoints_settings (dict): Additional KPOINTS settings.
             additional_cust_args (dict): Other kwargs that are passed to RunVaspCustodian.
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
         """
         assert neb_label.isdigit() and int(neb_label) >= 1
         label = "neb{}".format(neb_label)

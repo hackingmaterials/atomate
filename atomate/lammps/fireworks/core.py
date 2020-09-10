@@ -37,7 +37,7 @@ class LammpsFW(Firework):
             name (str): descriptive name for lammps simulation
             log_filename (str)
             dump_filename (str)
-            \*\*kwargs: other kwargs that are passed to Firework.__init__.
+            **kwargs: other kwargs that are passed to Firework.__init__.
         """
 
         tasks = [

@@ -3,7 +3,6 @@
 import glob
 import warnings
 
-from pymatgen.analysis.elasticity.strain import Strain
 from pymatgen.io.vasp import Vasprun
 from monty.os.path import zpath
 
@@ -76,7 +75,7 @@ class CopyVaspOutputs(CopyFiles):
 
         # determine what files need to be copied
         files_to_copy = None
-        if not "$ALL" in self.get("additional_files", []):
+        if "$ALL" not in self.get("additional_files", []):
             files_to_copy = ['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR',
                              'vasprun.xml']
             if self.get("additional_files"):
