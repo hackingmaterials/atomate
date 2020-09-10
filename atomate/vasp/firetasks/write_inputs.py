@@ -332,6 +332,7 @@ class WriteScanRelaxFromPBE(FiretaskBase):
         structure = Structure.from_file("POSCAR")
 
         vis = MPScanRelaxSet(structure, **vasp_input_set_params)
+
         vis.write_input(".", potcar_spec=potcar_spec)
 
 

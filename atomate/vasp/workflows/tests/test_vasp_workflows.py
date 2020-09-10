@@ -496,45 +496,52 @@ class TestScanOptimizeWorkflow(AtomateTest):
         # Verify appropriate changes to the INCAR when VdW is enabled
         # VdW should be off for relax1 (GGA) and re-enabled for relax2 (SCAN)
 
-        structure = Structure.from_file(os.path.join(reference_dir, "SCAN_structure_optimization_LiF_vdw/inputs", "POSCAR"))
+        structure = Structure.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_LiF_vdw/inputs", "POSCAR"))
 
-        my_wf = get_wf(structure, "SCAN_optimization.yaml", vis=MPScanRelaxSet(structure, vdw="rvv10"),
-                       common_params={"vasp_cmd": VASP_CMD, "vdw_kernel_dir": os.path.join(reference_dir, "SCAN_structure_optimization_LiF_vdw/inputs")})
+        my_wf = get_wf(structure, "SCAN_optimization.yaml",
+                       common_params={"vasp_input_set_params": {"vdw": "rVV10"},
+                                      "vdw_kernel_dir": os.path.join(reference_dir, 
+                                                                     "PBESol_pre_opt_for_SCAN_LiF_vdw/inputs")})
 
-        self._run_scan_relax(my_wf, "SCAN_structure_optimization_LiF_vdw")
-
-        # Check INCAR.orig
-        incar_orig = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.orig.gz"))
-        ref_incar = Incar.from_file(os.path.join(reference_dir, "SCAN_structure_optimization_LiF_vdw/inputs", "INCAR.orig"))
-        for p in incar_orig.keys():
-            if p == "MAGMOM":  # Ignore MAGMOM b/c structure initialized from POSCAR cannot have a MAGMOM
-                pass
-            else:
-                self.assertEqual(incar_orig[p], ref_incar[p])
+        self._run_scan_relax(my_wf, "LiF_vdw")
 
         # Check PBESol INCAR
-        incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax1.gz"))
+        ref_incar = Incar.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_LiF_vdw/inputs", "INCAR"))
+        incar = Incar.from_file(os.path.join(self._get_launch_dir()[0], "INCAR.gz"))
+
         self.assertIsNone(incar.get("LUSE_VDW", None))
         self.assertIsNone(incar.get("BPARAM", None))
-        self.assertEqual(incar["METAGGA"], "None")
-        self.assertEqual(incar["EDIFFG"], -0.05)
-        self.assertEqual(incar["LWAVE"], False)
 
-        # Check SCAN INCAR
-        incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax3.gz"))
         for p in incar.keys():
             if p == "KSPACING":
-                self.assertEqual(incar[p], 0.44)
-            elif p == "ICHARG" or p == "ISTART":
+                self.assertEqual(incar[p], 0.22)
+            elif p == "ICHARG":
                 self.assertEqual(incar[p], 1)
-            elif p == "ISMEAR":
-                self.assertEqual(incar[p], -5)
-            elif p == "SIGMA":
-                self.assertEqual(incar[p], 0.05)
+            elif p == "METAGGA":
+                self.assertEqual(incar[p], "None")
+            elif p == "GGA":
+                self.assertEqual(incar[p], "Ps")
+            elif p == "EDIFFG":
+                self.assertEqual(incar[p], -0.05)
             elif p == "MAGMOM":  # Ignore MAGMOM b/c structure initialized from POSCAR cannot have a MAGMOM
                 pass
             else:
-                self.assertEqual(incar_orig[p], incar[p])
+                self.assertEqual(incar[p], ref_incar[p])
+
+        # Check SCAN INCAR
+        ref_incar = Incar.from_file(os.path.join(reference_dir, "SCAN_structure_optimization_LiF_vdw/inputs", "INCAR"))
+        print(self._get_launch_dir()[1])
+        incar = Incar.from_file(os.path.join(self._get_launch_dir()[1], "INCAR.gz"))
+        print(incar)
+        for p in incar.keys():
+            if p == "KSPACING":
+                self.assertEqual(incar[p], 0.44)
+            elif p == "SIGMA":
+                self.assertEqual(incar[p], 0.05)
+            elif p == "ICHARG":
+                self.assertEqual(incar[p], 1)
+            else:
+                self.assertEqual(incar[p], ref_incar[p])
 
     def test_SCAN_incar_override(self):
         # user incar settings should be passed all the way through the workflow

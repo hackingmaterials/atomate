@@ -166,7 +166,7 @@ class ScanOptimizeFW(Firework):
                 new SCAN calculation using the provided structure.
             prev_calc_dir (str): Path to a previous calculation to copy from
             db_file (str): Path to file specifying db credentials.
-            parents (Firework): Parents of this particular Firework. FW or list of FWS.
+            parents (Firework): Parents of this particular Firework. FW or list of FWs.
             vasptodb_kwargs (dict): kwargs to pass to VaspToDb
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
@@ -191,24 +191,31 @@ class ScanOptimizeFW(Firework):
                  is not supported by this InputSet."
             )
 
-        if prev_calc_dir:
+        if parents:
             # Copy the CHGCAR from previous calc (usually PBE)
-            t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, contcar_to_poscar=True, additional_files=["CHGCAR"]))
+            if prev_calc_dir:
+                t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, contcar_to_poscar=True, additional_files=["CHGCAR"]))
+            elif prev_calc_loc:
+                t.append(CopyVaspOutputs(calc_loc=prev_calc_loc, contcar_to_poscar=True, additional_files=["CHGCAR"]))
+            else:
+                raise UserWarning("You specified parent Firework but did not provide its location. Set "
+                                  "prev_calc_dir or prev_calc_loc and try again.")
+
             # Update the InputSet with the bandgap from the previous calc
             t.append(WriteScanRelaxFromPBE(vasp_input_set_params=vasp_input_set_params))
+
             # Set ICHARG to 1 to utilize the pre-existing CHGCAR
             settings = {"_set": {"ICHARG": 1}}
-            t.append(ModifyIncar(incar_dictmod=settings))
 
-        elif parents:
-            if prev_calc_loc:
-                # Copy the CHGCAR from previous calc (usually PBE)
-                t.append(CopyVaspOutputs(calc_loc=prev_calc_loc, contcar_to_poscar=True, additional_files=["CHGCAR"]))
-                # Update the InputSet with the bandgap from the previous calc
-                t.append(WriteScanRelaxFromPBE(vasp_input_set_params=vasp_input_set_params))
-                # Set ICHARG to 1 to utilize the pre-existing CHGCAR
-                settings = {"_set": {"ICHARG": 1}}
-                t.append(ModifyIncar(incar_dictmod=settings))
+            if vasp_input_set_params.get("vdw"):
+                # Copy the pre-compiled VdW kernel for VASP
+                t.append(CopyFiles(files_to_copy=["vdw_kernel.bindat"], from_dir=vdw_kernel_dir))
+
+                # Enable vdW for the SCAN step
+                settings["_set"]["LUSE_VDW"] = True
+                settings["_set"]["BPARAM"] = 15.7
+
+            t.append(ModifyIncar(incar_dictmod=settings))
 
         elif structure:
             vasp_input_set = vasp_input_set or MPScanRelaxSet(
@@ -231,10 +238,6 @@ class ScanOptimizeFW(Firework):
             t.append(ModifyIncar(incar_dictmod=pre_opt_settings))
         else:
             raise ValueError("Must specify structure or previous calculation")
-
-        # Copy the pre-compiled VdW kernel for VASP, if required
-        if vasp_input_set_params.get("vdw"):
-            t.append(CopyFiles(from_dir=vdw_kernel_dir))
 
         # Run VASP
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<", gzip_output=False))
