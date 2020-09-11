@@ -25,7 +25,7 @@ logger = get_logger(__name__)
 
 class CalcDb(metaclass=ABCMeta):
 
-    def __init__(self, host, port, database, collection, user, password, **kwargs):
+    def __init__(self, host, port, database, collection, user, password, maggma_login_kwargs, **kwargs):
         self.host = host
         self.db_name = database
         self.user = user
@@ -33,8 +33,13 @@ class CalcDb(metaclass=ABCMeta):
         self.port = int(port)
 
         # Optional Maggma store for large obj storage
-        self._maggma_store_type = None
-        self._maggma_login_kwargs = {}
+        self._maggma_login_kwargs = maggma_login_kwargs
+
+        if "bucket" in self._maggma_login_kwargs:
+            self._maggma_store_type = 's3'
+            self.get_obj_store = self._get_s3_store
+        ## Implement additional maggma stores here as needed
+
         self.maggma_stores = {}
 
         try:
@@ -138,16 +143,13 @@ class CalcDb(metaclass=ABCMeta):
         else:
             kwargs["authsource"] = creds["database"]
 
-        calc_db = cls(creds["host"], int(creds.get("port", 27017)), creds["database"], creds["collection"],
-                      user, password, **kwargs)
-
-        calc_db._maggma_login_kwargs = creds.get("maggma_login", {})
-        if "bucket" in calc_db._maggma_login_kwargs:
-            calc_db._maggma_store_type = 's3'
-            calc_db.get_obj_store = calc_db._get_s3_store
-        ## Implement additional maggma stores here as needed
-
-        return calc_db
+        return cls(host=creds["host"],
+                      port=int(creds.get("port", 27017)),
+                      database=creds["database"],
+                      collection=creds["collection"],
+                      user=user,
+                      password=password,
+                      maggma_login_kwargs=creds.get("maggma_login", {}), **kwargs)
 
     def get_obj_store(self, store_name):
         pass

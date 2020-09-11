@@ -53,6 +53,8 @@ class VaspCalcDb(CalcDb):
         super(VaspCalcDb, self).__init__(
             host, port, database, collection, user, password, **kwargs
         )
+        for oname in OBJ_NAMES:
+            self.get_obj_store(f"{oname}_fs")
 
     def build_indexes(self, indexes=None, background=True):
         """
@@ -244,6 +246,7 @@ class VaspCalcDb(CalcDb):
 
         doc = {
             "fs_id": oid,
+            "maggma_store_type": self.maggma_stores[collection].__class__.__name__,
             "compression": compression_type,
             "data": data
         }
