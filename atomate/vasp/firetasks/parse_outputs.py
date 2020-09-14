@@ -1191,6 +1191,7 @@ class LinearResponseUToDb(FiretaskBase):
         summary.update({'datapoints': response_dict})
         summary.update({'response_matrices': {'chi_nscf': chi_matrix_nscf_list, 'chi_scf': chi_matrix_scf_list}})
         summary.update({'hubbard_hund_results': hubbard_hund_dict})
+        summary.update({"created_at": datetime.utcnow()})
         summary.update({'wf_meta': {'wf_uuid': uuid}})
 
         if fw_spec.get("tags", None):

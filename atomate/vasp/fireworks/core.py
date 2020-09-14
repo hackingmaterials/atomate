@@ -416,7 +416,7 @@ class StaticFW(Firework):
                     CopyVaspOutputs(calc_loc=prev_calc_loc, contcar_to_poscar=True)
                 )
             t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
-        elif structure != None:
+        elif structure:
             vasp_input_set = vasp_input_set or MPStaticSet(
                 structure, **vasp_input_set_params
             )
