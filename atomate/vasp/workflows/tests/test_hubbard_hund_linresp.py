@@ -55,26 +55,26 @@ class TestHubbardHundLinRespWorkflow(AtomateTest):
 
         # Point-wise inversion
         self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["point"]["values"]["site0"]["U"]["value"],
-                               2.29626634232)
+                               2.27847349676485)
         self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["point"]["values"]["site1"]["U"]["value"],
-                               2.14015542927012)
+                               2.7450999408291)
 
         # Atom-wise inversion
         self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["atom"]["values"]["site0"]["U"]["value"],
-                               9.13623361152239)
+                               9.10812902582139)
         self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["atom"]["values"]["site1"]["U"]["value"],
-                               4.39863930827459)
+                               4.69863462949431)
 
         #self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["atom"]["values"]["site0"]["J"]["value"], )
         self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["atom"]["values"]["site1"]["J"]["value"],
-                               0.493630693437268)
+                               0.402767369819668)
 
         # Full inversion
         self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["full"]["values"]["site0"]["U"]["value"],
-                               9.15862888368067)
+                               9.09697783359765)
         self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["full"]["values"]["site1"]["U"]["value"],
-                               4.30759989846281)
+                               4.68740388160901)
 
         #self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["full"]["values"]["site0"]["J"]["value"], )
         self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["full"]["values"]["site1"]["J"]["value"],
-                               0.495719889211295)
+                               0.404226859586933)
