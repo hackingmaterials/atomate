@@ -765,9 +765,9 @@ class ThermalExpansionCoeffToDb(FiretaskBase):
         logger.info("Thermal expansion coefficient calculation complete.")
 
 @explicit_serialize
-class LinearResponseUToDb(FiretaskBase):
+class HubbardHundLinRespToDb(FiretaskBase):
     """
-    Analyze the linear response data generated from get_wf_linear_response_u to compute 
+    Analyze the linear response data generated from get_wf_hubbard_hund_linresp to compute 
     Hubbard U (and Hund J) value(s).
     
     Required parameters:
@@ -775,9 +775,9 @@ class LinearResponseUToDb(FiretaskBase):
         spin_polarized (bool):
         relax_nonmagnetic (bool):
         db_file (str): path to the db file that holds your tasks
-            collection and that you want to hold the linear_response_u
+            collection and that you want to hold the hubbard_hund_linresp
             collection
-        wf_uuid (str): auto-generated from get_wf_linear_response_u,
+        wf_uuid (str): auto-generated from get_wf_hubbard_hund_linresp,
             used to make it easier to retrieve task docs
     """
 
@@ -822,7 +822,7 @@ class LinearResponseUToDb(FiretaskBase):
 
         docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid}))
 
-        # find electron type responses for each site 
+        # Find electron type responses for each site 
         inv_block_dict = {"0": "s", "1": "p", "2": "d", "3": "f"}
         ldaul_vals = [-1 for i in range(num_perturb_sites)]
         for i in range(num_perturb_sites):
@@ -842,6 +842,7 @@ class LinearResponseUToDb(FiretaskBase):
             incar_dict = d['calcs_reversed'][0]['input']['incar']
             outcar_dict = d['calcs_reversed'][0]['output']['outcar']
 
+            # Check if task is used in LR analysis
             use_calc = False
             rkey = ""
             if int(incar_dict["ICHARG"]) == 11:
@@ -880,6 +881,7 @@ class LinearResponseUToDb(FiretaskBase):
                         perturb_dict.update({"site"+str(i):{"specie": str(specie),
                                                             "orbital": orbital}})
 
+                        # Obtain occupancy values
                         n_tot = float(outcar_dict['charge'][i][orbital])
                         # FIXME: Adapt for noncollinear
                         m_z = float((outcar_dict['magnetization'][i][orbital]))
@@ -915,16 +917,19 @@ class LinearResponseUToDb(FiretaskBase):
                 for i in [1, 2]:
                     response_dict[keys[i]][k].extend(response_dict[keys[0]][k])
 
+        # Find total number of response "sites"
         if spin_polarized:
             n_response = 2 * num_perturb_sites
         else:
             n_response = num_perturb_sites
 
+        # Matrices for self-consistent and non-self-consistent responses & associated element-wise errors
         chi_matrix_nscf = np.zeros([n_response, n_response])
         chi_matrix_scf = np.zeros([n_response, n_response])
         chi_nscf_err = np.zeros([n_response, n_response])
         chi_scf_err = np.zeros([n_response, n_response])
 
+        # Function to fit to response data. Returns: slope and associated error
         def response_fit(x, y):
 
             # poly_order = 1
@@ -940,6 +945,7 @@ class LinearResponseUToDb(FiretaskBase):
 
             return p, perr
 
+        # Compute response matrices using fitting function
         for ii in range(n_response):
             for jj in range(n_response):
                 if spin_polarized:
@@ -1006,6 +1012,7 @@ class LinearResponseUToDb(FiretaskBase):
                 chi_nscf_err[ii, jj] = err_chi_nscf
                 chi_scf_err[ii, jj] = err_chi_scf
 
+        # Function to compute the element-wise error propagation in matrix inversion
         def inverse_matrix_uncertainty(matrix, matrix_covar):
             m,n = matrix.shape
             if m != n:
@@ -1015,11 +1022,13 @@ class LinearResponseUToDb(FiretaskBase):
             matrixinv = npla.inv(matrix)
             matrixinv_var = np.zeros([m,n])
 
+            # Function to determine the symbolic partial derivative of the determinant w.r.t. matrix element
             def det_deriv(matrix,i,j):
                 mij = np.delete(np.delete(matrix,i,0),j,1)
                 partial = (-1)**(i+j) * npla.det(mij)
                 return partial
 
+            # Jacobians of each element of matrix inversion w.r.t. original matrix elements
             jacobians = [[] for i in range(m)]
 
             det = npla.det(matrix)
@@ -1049,6 +1058,8 @@ class LinearResponseUToDb(FiretaskBase):
 
             return matrixinv, matrixinv_var, jacobians
 
+        # Function to compute inverse of response matrix and associated element-wise uncertainty
+        #    for point-wise, atom-wise, and full matrix inversion
         def chi_inverse(chi, chi_err, method="full"):
 
             n_response = len(chi)
@@ -1056,8 +1067,8 @@ class LinearResponseUToDb(FiretaskBase):
             chi_block = chi.copy()
             chi_err_block = chi_err.copy()
 
-            if method == "site":
-                # diagonal
+            if method == "point":
+                # diagonal 1x1
                 for ii in range(n_response):
                     for jj in range(n_response):
                         if ii != jj:
@@ -1070,7 +1081,7 @@ class LinearResponseUToDb(FiretaskBase):
                         if i != j:
                             chi_block[ii,jj], chi_err_block[ii,jj] = 0.0, 0.0
             elif method != "full":
-                raise ValueError("Unsupported method, method must be site (diagonal inversion), "
+                raise ValueError("Unsupported method, method must be point (diagonal 1x1 inversion), "
                                  "atom (block 2x2 inverse), or full (full inverse)")
 
             # Assume cross-covariances are zero
@@ -1080,6 +1091,7 @@ class LinearResponseUToDb(FiretaskBase):
 
             return chi_block, chi_inv, chi_inv_var, chi_inv_jacobs
 
+        # Functions to help serialize numpy matrices
         def array_to_list(a):
             a_list = [[x for x in row] for row in a]
             return a_list
@@ -1091,11 +1103,12 @@ class LinearResponseUToDb(FiretaskBase):
                 b = []
             return b
 
+        # Compute U (and J) values for each matrix inversion method
         if spin_polarized:
-            inversion_methods = ["site", "atom", "full"]
-            inversion_keys = ["site", "atom", "full"]
+            inversion_methods = ["point", "atom", "full"]
+            inversion_keys = ["point", "atom", "full"]
         else:
-            inversion_methods = ["site", "full"]
+            inversion_methods = ["point", "full"]
             inversion_keys = ["atom", "full"]
 
         hubbard_hund_dict = {}
@@ -1112,7 +1125,7 @@ class LinearResponseUToDb(FiretaskBase):
                 f_matrix_err = np.sqrt(chi_scf_inv_var + chi_nscf_inv_var)
 
                 if spin_polarized:
-                    if method == "site":
+                    if method == "point":
                         for i in range(num_perturb_sites):
                             umat = f_matrix[2*i:2*(i+1), 2*i:2*(i+1)]
                             umat_err = f_matrix_err[2*i:2*(i+1), 2*i:2*(i+1)]
@@ -1175,11 +1188,9 @@ class LinearResponseUToDb(FiretaskBase):
                                                        "chi_nscf_inv": nested_copy(chi_nscf_inv),
                                                        "chi_nscf_inv_var": nested_copy(chi_nscf_inv_var)})
 
-        docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid,
-                                          "task_label": {"$regex": regexps[2]}}))
         structure = None
         if docs:
-            structure = Structure.from_dict(docs[0]["calcs_reversed"][-1]["output"]['structure'])
+            structure = Structure.from_dict(docs[0]["calcs_reversed"][-1]["input"]['structure'])
 
         summaries = []
 
@@ -1199,10 +1210,10 @@ class LinearResponseUToDb(FiretaskBase):
 
         summaries.append(summary)
 
-        mmdb.collection = mmdb.db["linear_response_u"]
+        mmdb.collection = mmdb.db["hubbard_hund_linresp"]
         mmdb.collection.insert(summaries)
 
-        logger.info("Linear response analysis is complete.")
+        logger.info("Hubbard-Hund linear response analysis is complete.")
 
 @explicit_serialize
 class MagneticOrderingsToDb(FiretaskBase):
