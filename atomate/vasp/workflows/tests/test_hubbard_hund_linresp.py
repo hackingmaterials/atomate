@@ -77,4 +77,4 @@ class TestHubbardHundLinRespWorkflow(AtomateTest):
 
         #self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["full"]["values"]["site0"]["J"]["value"], )
         self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["full"]["values"]["site1"]["J"]["value"],
-                               0.404226859586933)
+                               0.4042267723402815)
