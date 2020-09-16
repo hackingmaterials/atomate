@@ -767,9 +767,9 @@ class ThermalExpansionCoeffToDb(FiretaskBase):
 @explicit_serialize
 class HubbardHundLinRespToDb(FiretaskBase):
     """
-    Analyze the linear response data generated from get_wf_hubbard_hund_linresp to compute 
-    Hubbard U (and Hund J) value(s).
-    
+    Analyze the linear response data generated from get_wf_hubbard_hund_linresp to
+    compute Hubbard U (and Hund J) value(s).
+
     Required parameters:
         num_perturb (int): number of perturbed sites
         spin_polarized (bool):
@@ -781,7 +781,8 @@ class HubbardHundLinRespToDb(FiretaskBase):
             used to make it easier to retrieve task docs
     """
 
-    required_params = ["num_perturb", "spin_polarized", "relax_nonmagnetic", "db_file", "wf_uuid"]
+    required_params = ["num_perturb", "spin_polarized", "relax_nonmagnetic",
+                       "db_file", "wf_uuid"]
     optional_params = []
 
     summaries = []
@@ -822,7 +823,7 @@ class HubbardHundLinRespToDb(FiretaskBase):
 
         docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid}))
 
-        # Find electron type responses for each site 
+        # Find electron type responses for each site
         inv_block_dict = {"0": "s", "1": "p", "2": "d", "3": "f"}
         ldaul_vals = [-1 for i in range(num_perturb_sites)]
         for i in range(num_perturb_sites):
@@ -837,7 +838,8 @@ class HubbardHundLinRespToDb(FiretaskBase):
 
         for d in docs:
 
-            struct = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+            struct = Structure.from_dict(
+                d["calcs_reversed"][-1]["output"]['structure'])
 
             incar_dict = d['calcs_reversed'][0]['input']['incar']
             outcar_dict = d['calcs_reversed'][0]['output']['outcar']
@@ -878,8 +880,9 @@ class HubbardHundLinRespToDb(FiretaskBase):
 
                         # if ldaul != -1 and rkey:
                         orbital = inv_block_dict[str(ldaul)]
-                        perturb_dict.update({"site"+str(i):{"specie": str(specie),
-                                                            "orbital": orbital}})
+                        perturb_dict.update(
+                            {"site"+str(i): {"specie": str(specie),
+                                             "orbital": orbital}})
 
                         # Obtain occupancy values
                         n_tot = float(outcar_dict['charge'][i][orbital])
@@ -902,8 +905,10 @@ class HubbardHundLinRespToDb(FiretaskBase):
                 except Exception as exc:
                     logger.warning('Doc miss: ',  exc)
 
-                struct_final = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
-                analyzer_output = CollinearMagneticStructureAnalyzer(struct_final, threshold=0.61)
+                struct_final = Structure.from_dict(
+                    d["calcs_reversed"][-1]["output"]['structure'])
+                analyzer_output = CollinearMagneticStructureAnalyzer(
+                    struct_final, threshold=0.61)
                 magnet_order = analyzer_output.ordering.value
                 response_dict[rkey]['magnetic order'].append(magnet_order)
 
@@ -923,7 +928,8 @@ class HubbardHundLinRespToDb(FiretaskBase):
         else:
             n_response = num_perturb_sites
 
-        # Matrices for self-consistent and non-self-consistent responses & associated element-wise errors
+        # Matrices for self-consistent and non-self-consistent responses
+        # & associated element-wise errors
         chi_matrix_nscf = np.zeros([n_response, n_response])
         chi_matrix_scf = np.zeros([n_response, n_response])
         chi_nscf_err = np.zeros([n_response, n_response])
@@ -950,7 +956,8 @@ class HubbardHundLinRespToDb(FiretaskBase):
             for jj in range(n_response):
                 if spin_polarized:
                     i, j = ii//2, jj//2
-                    si, sj = 'up' if np.mod(ii,2)==0 else 'dn', 'up' if np.mod(jj,2)==0 else 'dn'
+                    si, sj = 'up' if np.mod(ii,2)==0 else 'dn', \
+                        'up' if np.mod(jj,2)==0 else 'dn'
                     v_key = 'V'+sj+'_site'+str(j)
                     n_key = 'N'+si+'_site'+str(i)
                 else:
@@ -1022,13 +1029,15 @@ class HubbardHundLinRespToDb(FiretaskBase):
             matrixinv = npla.inv(matrix)
             matrixinv_var = np.zeros([m,n])
 
-            # Function to determine the symbolic partial derivative of the determinant w.r.t. matrix element
+            # Function to determine the symbolic partial derivative of the
+            # determinant w.r.t. matrix element
             def det_deriv(matrix,i,j):
                 mij = np.delete(np.delete(matrix,i,0),j,1)
                 partial = (-1)**(i+j) * npla.det(mij)
                 return partial
 
-            # Jacobians of each element of matrix inversion w.r.t. original matrix elements
+            # Jacobians of each element of matrix inversion w.r.t.
+            # original matrix elements
             jacobians = [[] for i in range(m)]
 
             det = npla.det(matrix)
@@ -1053,13 +1062,15 @@ class HubbardHundLinRespToDb(FiretaskBase):
                     jacobians[i].append(j_matrix)
 
                     j_vec = np.reshape(j_matrix, [m*n, 1])
-                    sigma_f = np.sum(np.dot(np.transpose(j_vec), np.dot(matrix_covar, j_vec)))
+                    sigma_f = np.sum(
+                        np.dot(np.transpose(j_vec), np.dot(matrix_covar, j_vec)))
                     matrixinv_var[i,j] = sigma_f
 
             return matrixinv, matrixinv_var, jacobians
 
-        # Function to compute inverse of response matrix and associated element-wise uncertainty
-        #    for point-wise, atom-wise, and full matrix inversion
+        # Function to compute inverse of response matrix and associated
+        # element-wise uncertainty for point-wise, atom-wise,
+        # and full matrix inversion
         def chi_inverse(chi, chi_err, method="full"):
 
             n_response = len(chi)
@@ -1085,9 +1096,12 @@ class HubbardHundLinRespToDb(FiretaskBase):
                                  "atom (block 2x2 inverse), or full (full inverse)")
 
             # Assume cross-covariances are zero
-            chi_covar = np.diag(np.transpose(np.reshape(chi_err_block**2, [n_response * n_response, 1]))[0])
+            chi_covar = np.diag(np.transpose(
+                np.reshape(chi_err_block**2,
+                           [n_response * n_response, 1]))[0])
 
-            (chi_inv, chi_inv_var, chi_inv_jacobs) = inverse_matrix_uncertainty(chi_block, chi_covar)
+            (chi_inv, chi_inv_var, chi_inv_jacobs) = inverse_matrix_uncertainty(
+                chi_block, chi_covar)
 
             return chi_block, chi_inv, chi_inv_var, chi_inv_jacobs
 
@@ -1118,8 +1132,14 @@ class HubbardHundLinRespToDb(FiretaskBase):
             hubbard_hund_dict.update({key: {"values":{}, "matrices":{}}})
 
             try:
-                (chi_block_scf, chi_scf_inv, chi_scf_inv_var, chi_scf_inv_jacobs) = chi_inverse(chi_matrix_scf, chi_scf_err, method)
-                (chi_block_nscf, chi_nscf_inv, chi_nscf_inv_var, chi_nscf_inv_jacobs) = chi_inverse(chi_matrix_nscf, chi_nscf_err, method)
+                (chi_block_scf, chi_scf_inv, \
+                 chi_scf_inv_var, chi_scf_inv_jacobs) = chi_inverse(
+                     chi_matrix_scf, chi_scf_err, method
+                 )
+                (chi_block_nscf, chi_nscf_inv, \
+                 chi_nscf_inv_var, chi_nscf_inv_jacobs) = chi_inverse(
+                     chi_matrix_nscf, chi_nscf_err, method
+                 )
 
                 f_matrix = chi_scf_inv - chi_nscf_inv
                 f_matrix_err = np.sqrt(chi_scf_inv_var + chi_nscf_inv_var)
@@ -1165,11 +1185,16 @@ class HubbardHundLinRespToDb(FiretaskBase):
                             "U":{"value":uval, "error":uval_err}})
 
                 # convert numpy arrays to nested lists
-                f_matrix, f_matrix_err =  array_to_list(f_matrix), array_to_list(f_matrix_err)
-                chi_matrix_scf_list, chi_block_scf = array_to_list(chi_matrix_scf), array_to_list(chi_block_scf)
-                chi_scf_inv, chi_scf_inv_var = array_to_list(chi_scf_inv), array_to_list(chi_scf_inv_var)
-                chi_matrix_nscf_list, chi_block_nscf = array_to_list(chi_matrix_nscf), array_to_list(chi_block_nscf)
-                chi_nscf_inv, chi_nscf_inv_var = array_to_list(chi_nscf_inv), array_to_list(chi_nscf_inv_var)
+                f_matrix, f_matrix_err =  array_to_list(f_matrix), \
+                    array_to_list(f_matrix_err)
+                chi_matrix_scf_list, chi_block_scf = array_to_list(chi_matrix_scf), \
+                    array_to_list(chi_block_scf)
+                chi_scf_inv, chi_scf_inv_var = array_to_list(chi_scf_inv), \
+                    array_to_list(chi_scf_inv_var)
+                chi_matrix_nscf_list, chi_block_nscf = array_to_list(chi_matrix_nscf), \
+                    array_to_list(chi_block_nscf)
+                chi_nscf_inv, chi_nscf_inv_var = array_to_list(chi_nscf_inv), \
+                    array_to_list(chi_nscf_inv_var)
 
             except Exception as exc:
                 f_matrix, f_matrix_err = [], []
@@ -1179,18 +1204,22 @@ class HubbardHundLinRespToDb(FiretaskBase):
                 chi_nscf_inv, chi_nscf_inv_var, chi_nscf_inv_jacobs = [], [], []
                 logger.warning('Screening matrix compute fail',  exc)
 
-            hubbard_hund_dict[key]["matrices"].update({"f_matrix":nested_copy(f_matrix),
-                                                       "f_matrix_err":nested_copy(f_matrix_err)})
-            hubbard_hund_dict[key]["matrices"].update({"chi_block_scf":nested_copy(chi_block_scf),
-                                                       "chi_scf_inv": nested_copy(chi_scf_inv),
-                                                       "chi_scf_inv_var": nested_copy(chi_scf_inv_var)})
-            hubbard_hund_dict[key]["matrices"].update({"chi_block_nscf": nested_copy(chi_block_nscf),
-                                                       "chi_nscf_inv": nested_copy(chi_nscf_inv),
-                                                       "chi_nscf_inv_var": nested_copy(chi_nscf_inv_var)})
+            hubbard_hund_dict[key]["matrices"].update(
+                {"f_matrix":nested_copy(f_matrix),
+                 "f_matrix_err":nested_copy(f_matrix_err)})
+            hubbard_hund_dict[key]["matrices"].update(
+                {"chi_block_scf":nested_copy(chi_block_scf),
+                 "chi_scf_inv": nested_copy(chi_scf_inv),
+                 "chi_scf_inv_var": nested_copy(chi_scf_inv_var)})
+            hubbard_hund_dict[key]["matrices"].update(
+                {"chi_block_nscf": nested_copy(chi_block_nscf),
+                 "chi_nscf_inv": nested_copy(chi_nscf_inv),
+                 "chi_nscf_inv_var": nested_copy(chi_nscf_inv_var)})
 
         structure = None
         if docs:
-            structure = Structure.from_dict(docs[0]["calcs_reversed"][-1]["input"]['structure'])
+            structure = Structure.from_dict(
+                docs[0]["calcs_reversed"][-1]["input"]['structure'])
 
         summaries = []
 
@@ -1200,7 +1229,9 @@ class HubbardHundLinRespToDb(FiretaskBase):
             summary.update({'structure_groundstate': structure.as_dict()})
         summary.update({'perturb_sites': perturb_dict})
         summary.update({'datapoints': response_dict})
-        summary.update({'response_matrices': {'chi_nscf': chi_matrix_nscf_list, 'chi_scf': chi_matrix_scf_list}})
+        summary.update(
+            {'response_matrices': {'chi_nscf': chi_matrix_nscf_list,
+                                   'chi_scf': chi_matrix_scf_list}})
         summary.update({'hubbard_hund_results': hubbard_hund_dict})
         summary.update({"created_at": datetime.utcnow()})
         summary.update({'wf_meta': {'wf_uuid': uuid}})

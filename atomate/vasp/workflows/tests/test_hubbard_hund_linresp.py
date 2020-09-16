@@ -26,7 +26,7 @@ class TestHubbardHundLinRespWorkflow(AtomateTest):
         # load example tasks (since workflow re-uses existing FW building
         # blocks for the actual calculations, the most important test is
         # the new analysis task)
-        
+
         # Example: LiNiPO4
         formula_pretty = "LiNiPO4"
         tasks = self.get_task_collection()
@@ -51,30 +51,31 @@ class TestHubbardHundLinRespWorkflow(AtomateTest):
         from pprint import pprint
         hubbard_hund_analysis = hubbard_hund_linresp_collection.find_one({"formula_pretty": formula_pretty})
 
-        # For LiNiPO: site0 = O-p, site1 = Ni-d
+        # For LiNiPO4: site0 = O-p, site1 = Ni-d
+        uj_dict = hubbard_hund_analysis["hubbard_hund_results"]
 
         # Point-wise inversion
-        self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["point"]["values"]["site0"]["U"]["value"],
+        self.assertAlmostEqual(uj_dict["point"]["values"]["site0"]["U"]["value"],
                                2.278473, 4)
-        self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["point"]["values"]["site1"]["U"]["value"],
+        self.assertAlmostEqual(uj_dict["point"]["values"]["site1"]["U"]["value"],
                                2.745100, 4)
 
         # Atom-wise inversion
-        self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["atom"]["values"]["site0"]["U"]["value"],
+        self.assertAlmostEqual(uj_dict["atom"]["values"]["site0"]["U"]["value"],
                                9.108129, 4)
-        self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["atom"]["values"]["site1"]["U"]["value"],
+        self.assertAlmostEqual(uj_dict["atom"]["values"]["site1"]["U"]["value"],
                                4.698635, 4)
 
-        #self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["atom"]["values"]["site0"]["J"]["value"], )
-        self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["atom"]["values"]["site1"]["J"]["value"],
+        #self.assertAlmostEqual(uj_dict["atom"]["values"]["site0"]["J"]["value"], )
+        self.assertAlmostEqual(uj_dict["atom"]["values"]["site1"]["J"]["value"],
                                0.402767, 4)
 
         # Full inversion
-        self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["full"]["values"]["site0"]["U"]["value"],
+        self.assertAlmostEqual(uj_dict["full"]["values"]["site0"]["U"]["value"],
                                9.096978, 4)
-        self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["full"]["values"]["site1"]["U"]["value"],
+        self.assertAlmostEqual(uj_dict["full"]["values"]["site1"]["U"]["value"],
                                4.687404, 4)
 
-        #self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["full"]["values"]["site0"]["J"]["value"], )
-        self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["full"]["values"]["site1"]["J"]["value"],
+        #self.assertAlmostEqual(uj_dict["full"]["values"]["site0"]["J"]["value"], )
+        self.assertAlmostEqual(uj_dict["full"]["values"]["site1"]["J"]["value"],
                                0.404227, 4)
