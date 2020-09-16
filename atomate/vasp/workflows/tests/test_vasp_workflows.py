@@ -370,6 +370,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         launch_dir = d["dir_name"].split(":")[1]
         return launch_dir
 
+    @unittest.skip("Disabled until SCAN workflow stabilizes.")
     def test_SCAN_no_bandgap(self):
         # A structure with bandgap = 0 (default) should have KSPACING equal to 0.22
         structure = Structure.from_file(os.path.join(reference_dir, "SCAN_structure_optimization_Al/inputs", "POSCAR"))
@@ -413,6 +414,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
             else:
                 self.assertEqual(incar_orig[p], incar[p])
 
+    @unittest.skip("Disabled until SCAN workflow stabilizes.")
     def test_SCAN_small_bandgap(self):
         # A structure with a small bandgap (LiH) should result in a KSPACING
         # value of 0.351275
@@ -462,6 +464,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
             else:
                 self.assertEqual(incar_orig[p], incar[p])
 
+    @unittest.skip("Disabled until SCAN workflow stabilizes.")
     def test_SCAN_large_bandgap(self):
         # A structure with a large bandgap (LiF) should result in KSPACING
         # hitting the maximum allowed value of 0.44
@@ -497,7 +500,6 @@ class TestScanOptimizeWorkflow(AtomateTest):
         self.assertEqual(incar["ICHARG"], 1)
         self.assertEqual(incar["ISTART"], 0)
 
-
         # Check INCAR.relax3 for the correct kspacing
         incar = Incar.from_file(os.path.join(self._get_launch_dir(), "INCAR.relax3.gz"))
         for p in incar.keys():
@@ -512,6 +514,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
             else:
                 self.assertEqual(incar_orig[p], incar[p])
 
+    @unittest.skip("Disabled until SCAN workflow stabilizes.")
     def test_SCAN_with_vdw(self):
         # Verify appropriate changes to the INCAR when VdW is enabled
         # VdW should be off for relax1 (GGA) and re-enabled for relax2 (SCAN)
@@ -565,6 +568,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
             else:
                 self.assertEqual(incar_orig[p], incar[p])
 
+    @unittest.skip("Disabled until SCAN workflow stabilizes.")
     def test_SCAN_incar_override(self):
         # user incar settings should be passed all the way through the workflow
 
