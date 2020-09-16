@@ -33,7 +33,6 @@ __email__ = "kmathew@lbl.gov"
 logger = get_logger(__name__)
 # If we use Maggmastores  we will have to initialize a magmma store for each object typl
 OBJ_NAMES = ("dos", "bandstructure", 'chgcar', 'locpot', 'aeccar0', 'aeccar1', 'aeccar2', 'elfcar')
-VALID_STORES = ("s3", )
 
 class VaspCalcDb(CalcDb):
     """
@@ -53,8 +52,9 @@ class VaspCalcDb(CalcDb):
         super(VaspCalcDb, self).__init__(
             host, port, database, collection, user, password, **kwargs
         )
-        for oname in OBJ_NAMES:
-            self.get_obj_store(f"{oname}_fs")
+        # this might not be needed since we use a default dict for the stores
+        # for oname in OBJ_NAMES:
+        #     self.get_store(f"{oname}_fs")
 
     def build_indexes(self, indexes=None, background=True):
         """
@@ -124,40 +124,30 @@ class VaspCalcDb(CalcDb):
             Args:
                 obj_key: Key of the data in calcs_reversed.0 to store
             """
-            if obj_key in task_doc["calcs_reversed"][0]:
-                calcs_r_data = task_doc["calcs_reversed"][0][obj_key]
-            else:
-                calcs_r_data = task_doc["calcs_reversed"][0][obj_key]
-
-            big_data_to_store[obj_key] = calcs_r_data
+            calcs_r_data = task_doc["calcs_reversed"][0][obj_key]
 
             # remove the big object from all calcs_reversed
             # this can catch situations were the drone added the data to more than one calc.
             for i_calcs in range(len(task_doc["calcs_reversed"])):
                 del task_doc["calcs_reversed"][i_calcs][obj_key]
+            return calcs_r_data
 
         # drop the data from the task_document and keep them in a separate dictionary (big_data_to_store)
-        if self._maggma_store_type in VALID_STORES or use_gridfs and "calcs_reversed" in task_doc:
+        if (self._maggma_store_type is not None or use_gridfs) and "calcs_reversed" in task_doc:
             for data_key in OBJ_NAMES:
                 if data_key in task_doc["calcs_reversed"][0]:
-                    extract_from_calcs_reversed(data_key)
+                    big_data_to_store[data_key] = extract_from_calcs_reversed(data_key)
 
         # insert the task document
         t_id = self.insert(task_doc)
 
         if "calcs_reversed" in task_doc:
-            #
-            if self._maggma_store_type == "s3":
-                obj_insertion_func = self.insert_maggma_store
-            elif self._maggma_store_type is not None:
-                raise NotImplementedError(f"Maggma Store Object storage for {self._maggma_store_type} is not implemented")
-            # TODO implement other stores here
-            elif use_gridfs:
-                obj_insertion_func = self.insert_gridfs
-
-        # upload the data to a particular location and store the reference to that location in the task database
+            # upload the data to a particular location and store the reference to that location in the task database
             for data_key, data_val in big_data_to_store.items():
-                fs_di_, compression_type_ = obj_insertion_func(data_val, collection=f"{data_key}_fs", task_id=t_id)
+                fs_di_, compression_type_ = self.insert_object(use_gridfs=use_gridfs,
+                                                               d=data_val,
+                                                               collection=f"{data_key}_fs",
+                                                               task_id=t_id)
                 self.collection.update_one(
                     {"task_id": t_id}, {"$set": {f"calcs_reversed.0.{data_key}_compression": compression_type_}})
                 self.collection.update_one(
@@ -192,6 +182,12 @@ class VaspCalcDb(CalcDb):
             calc["aeccar2"] = aeccar["aeccar2"]
         return task_doc
 
+    def insert_object(self, use_gridfs, *args, **kwargs):
+        if self._maggma_store_type is not None:
+            return self.insert_maggma_store(*args, **kwargs)
+        elif use_gridfs:
+            return self.insert_gridfs(*args, **kwargs)
+
     def insert_gridfs(self, d, collection="fs", compress=True, oid=None, task_id=None):
         """
         Insert the given document into GridFS.
@@ -224,7 +220,7 @@ class VaspCalcDb(CalcDb):
 
         return fs_id, compression_type
 
-    def insert_maggma_store(self, data: Any, collection: str, oid: ObjectId=None, task_id: Any=None):
+    def insert_maggma_store(self, d: Any, collection: str, oid: ObjectId=None, task_id: Any=None):
         """
         Insert the given document into a Maggma store, first check if the store is already
 
@@ -240,38 +236,35 @@ class VaspCalcDb(CalcDb):
         oid = oid or str(ObjectId())
         compression_type = None
 
-        # make sure the store is availible
-        if collection not in self.maggma_stores:
-            self.get_obj_store(collection)
-
         doc = {
             "fs_id": oid,
-            "maggma_store_type": self.maggma_stores[collection].__class__.__name__,
+            "maggma_store_type": self.get_store(collection).__class__.__name__,
             "compression": compression_type,
-            "data": data
+            "data": d
         }
 
         search_keys = ["fs_id", ]
         if task_id is not None:
             doc['task_id'] = task_id
-        elif isinstance(data, dict) and "task_id" in data:
+        elif isinstance(d, dict) and "task_id" in d:
             search_keys.append('task_id')
-            doc['task_id'] = data['task_id']
+            doc['task_id'] = d['task_id']
 
         # make sure the store is availible
-        with self.maggma_stores[collection] as store:
+        with self.get_store(collection) as store:
             ping_ = store.index._collection.database.command("ping")
-            assert ping_.get("ok", 0) == 1.0, f"Not connected to the index store of {self.__name__}.maggma_store[{collection}]"
+            if ping_.get("ok", 0) != 1.0:
+                raise ConnectionError(f"Not connected to the index store of {self.__name__}.maggma_store[{collection}]")
             if isinstance(store, S3Store):
                 # TODO find some way to ping the aws service
-                # ping_ = self.maggma_stores[collection].s3_bucket._name
+                # ping_ = self._maggma_stores[collection].s3_bucket._name
                 pass
 
             if store.compress:
                 compression_type = "zlib"
                 doc['compression'] = 'zlib'
 
-            # print(doc, self.maggma_stores[collection].key)
+            # print(doc, self._maggma_stores[collection].key)
             store.update([doc], search_keys)
 
         return oid, compression_type
@@ -285,8 +278,8 @@ class VaspCalcDb(CalcDb):
         m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
         fs_id = m_task["calcs_reversed"][0][f"{key}_fs_id"]
         obj_dict = None
-        if self._maggma_store_type in VALID_STORES:
-            with self.maggma_stores[f"{key}_fs"] as store:
+        if self._maggma_store_type is not None:
+            with self.get_store(f"{key}_fs") as store:
                 obj_dict = store.query_one({'fs_id' : fs_id})['data']
 
        # if the object cannot be found then try using the grid_fs method

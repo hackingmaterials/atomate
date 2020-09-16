@@ -7,6 +7,8 @@ This module defines a base class for derived database classes that store calcula
 
 import datetime
 from abc import ABCMeta, abstractmethod
+from collections import defaultdict
+
 from pymongo import MongoClient, ReturnDocument
 
 from monty.json import jsanitize
@@ -25,7 +27,32 @@ logger = get_logger(__name__)
 
 class CalcDb(metaclass=ABCMeta):
 
-    def __init__(self, host, port, database, collection, user, password, maggma_login_kwargs, **kwargs):
+    def __init__(self, host, port, database, collection, user, password, maggma_store_kwargs=None, **kwargs):
+        """
+        Obeject to handle storing calculation data to MongoDB databases.
+        The results of calculations will be parsed by a Drone and
+        CalcDb is only responsible for putting that data into the database
+
+        Args:
+            host: name of MongoDB host
+            port: the port number
+            database: the name of the MongoDB database
+            collection: the collection were the parsed dictionaries will be stored
+            user: MongoDB authentication username
+            password: MongoDB authentication password
+            maggma_store_kwargs: additional kwargs for mongodb login.
+                Currently supports:
+                    S3 store kwarges:
+                        "bucket" : the S3 bucket where the data is stored
+                        "s3_profile" : the S3 profile that contains the login information
+                                        typically found at ~/.aws/credentials
+                        "compress" : Whether compression is used
+                        "endpoint_url" : the url used to access the S3 store
+
+            **kwargs:
+        """
+        if maggma_store_kwargs is None:
+            maggma_store_kwargs = {}
         self.host = host
         self.db_name = database
         self.user = user
@@ -33,14 +60,14 @@ class CalcDb(metaclass=ABCMeta):
         self.port = int(port)
 
         # Optional Maggma store for large obj storage
-        self._maggma_login_kwargs = maggma_login_kwargs
+        self._maggma_store_kwargs = maggma_store_kwargs if maggma_store_kwargs is not None else {}
 
-        if "bucket" in self._maggma_login_kwargs:
+        self._maggma_store_type = None
+        if "bucket" in self._maggma_store_kwargs:
             self._maggma_store_type = 's3'
-            self.get_obj_store = self._get_s3_store
         ## Implement additional maggma stores here as needed
 
-        self.maggma_stores = {}
+        self._maggma_stores = {}
 
         try:
             self.connection = MongoClient(host=self.host, port=self.port,
@@ -136,6 +163,7 @@ class CalcDb(metaclass=ABCMeta):
             user = creds.get("readonly_user", "")
             password = creds.get("readonly_password", "")
 
+        maggma_kwargs = creds.get("maggma_store", {})
         kwargs = creds.get("mongoclient_kwargs", {})  # any other MongoClient kwargs can go here ...
 
         if "authsource" in creds:
@@ -144,15 +172,28 @@ class CalcDb(metaclass=ABCMeta):
             kwargs["authsource"] = creds["database"]
 
         return cls(host=creds["host"],
-                      port=int(creds.get("port", 27017)),
-                      database=creds["database"],
-                      collection=creds["collection"],
-                      user=user,
-                      password=password,
-                      maggma_login_kwargs=creds.get("maggma_login", {}), **kwargs)
+                   port=int(creds.get("port", 27017)),
+                   database=creds["database"],
+                   collection=creds["collection"],
+                   user=user,
+                   password=password,
+                   maggma_store_kwargs=maggma_kwargs, **kwargs)
 
-    def get_obj_store(self, store_name):
-        pass
+    def get_store(self, store_name : str):
+        """Get return the defaultdict if it exists, if not create and return it.
+
+        Args:
+            store_name : name of the store desired
+        """
+        print(self._maggma_store_type)
+        if store_name not in self._maggma_stores:
+            if self._maggma_store_type == 's3':
+                 self._maggma_stores[store_name] = self._get_s3_store(store_name)
+            # Additional stores can be implemented here
+            else:
+                raise NotImplementedError("Maggma store type not currently supported.")
+        return self._maggma_stores[store_name]
+
 
     def _get_s3_store(self, store_name):
         """
@@ -178,7 +219,7 @@ class CalcDb(metaclass=ABCMeta):
             index=index_store_,
             sub_dir=f"atomate_{store_name}",
             key = "fs_id",
-            **self._maggma_login_kwargs
+            **self._maggma_store_kwargs
         )
 
-        self.maggma_stores[store_name] = store
+        return store

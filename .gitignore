@@ -48,6 +48,7 @@ nosetests.xml
 
 # VS Code
 settings.json
+.vscode
 
 # scratch files
 atomate/vasp/tests/scratch/*

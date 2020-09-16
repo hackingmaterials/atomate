@@ -4,7 +4,7 @@
     "database": "atomate_unittest",
     "host": "localhost", 
     "port": 27017,
-    "maggma_login": {
+    "maggma_store": {
         "bucket" : "test_bucket",
         "compress" : true
     }

@@ -312,7 +312,6 @@ class TestVaspWorkflows(AtomateTest):
 
     def test_insert_maggma_store(self):
         # generate a doc from the test folder
-        drone = VaspDrone(parse_chgcar=True, parse_aeccar=True)
         doc = {"a" : 1, "b" : 2}
 
         with mock_s3():
@@ -324,13 +323,13 @@ class TestVaspWorkflows(AtomateTest):
             assert compress_type == 'zlib'
             doc['task_id'] = 'mp-1'
             _, _ = mmdb.insert_maggma_store(doc, 'store2', oid='2')
-            assert set(mmdb.maggma_stores.keys()) == {'store1', 'store2'}
-            with mmdb.maggma_stores['store1'] as store:
+            assert set(mmdb._maggma_stores.keys()) == {'store1', 'store2'}
+            with mmdb._maggma_stores['store1'] as store:
                 self.assertTrue(store.compress == True)
-                self.assertTrue(store.query_one({'fs_id': '1'}) == {'fs_id': '1', 'compression': 'zlib', 'data': {'a': 1, 'b': 2}})
-            with mmdb.maggma_stores['store2'] as store:
+                self.assertTrue(store.query_one({'fs_id': '1'}) == {'fs_id': '1', 'maggma_store_type': 'S3Store', 'compression': 'zlib', 'data': {'a': 1, 'b': 2}})
+            with mmdb._maggma_stores['store2'] as store:
                 self.assertTrue(store.compress == True)
-                self.assertTrue(store.query_one({'task_id': 'mp-1'}) == {'fs_id': '2', 'compression': 'zlib', 'data': {'a': 1, 'b': 2, 'task_id': 'mp-1'}, 'task_id': 'mp-1'})
+                self.assertTrue(store.query_one({'task_id': 'mp-1'}) == {'fs_id': '2', 'maggma_store_type': 'S3Store', 'compression': 'zlib', 'data': {'a': 1, 'b': 2, 'task_id': 'mp-1'}, 'task_id': 'mp-1'})
 
     def test_chgcar_db_read_write_maggma(self):
         # generate a doc from the test folder
@@ -344,16 +343,16 @@ class TestVaspWorkflows(AtomateTest):
             t_id = mmdb.insert_task(task_doc=doc)
 
             # basic check that data was written to the stores
-            with mmdb.maggma_stores['chgcar_fs'] as store:
+            with mmdb._maggma_stores['chgcar_fs'] as store:
                 res = store.query_one()
                 self.assertTrue(res['data']['@class'] == "Chgcar")
-            with mmdb.maggma_stores['aeccar0_fs'] as store:
+            with mmdb._maggma_stores['aeccar0_fs'] as store:
                 res = store.query_one()
                 self.assertTrue(res['data']['@class'] == "Chgcar")
-            with mmdb.maggma_stores['aeccar2_fs'] as store:
+            with mmdb._maggma_stores['aeccar2_fs'] as store:
                 res = store.query_one()
                 self.assertTrue(res['data']['@class'] == "Chgcar")
-            with mmdb.maggma_stores['bandstructure_fs'] as store:
+            with mmdb._maggma_stores['bandstructure_fs'] as store:
                 res = store.query_one()
                 self.assertTrue(res['data']['@class'] == "BandStructure")
 

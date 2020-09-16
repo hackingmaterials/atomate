@@ -43,8 +43,7 @@ class DatabaseTests(unittest.TestCase):
             conn = boto3.client("s3")
             conn.create_bucket(Bucket="test_bucket")
             index_store = MemoryStore()
-            self.testdb.get_obj_store('test')
-            store = self.testdb.maggma_stores['test']
+            store = self.testdb.get_store('test')
             store.index = index_store
             store.connect()
             store.update([{"fs_id": "mp-1", "data": "111111111110111111"}])
@@ -55,10 +54,9 @@ class DatabaseTests(unittest.TestCase):
     def test_s3_not_valid(self):
         with mock_s3():
             conn = boto3.client("s3")
-            conn.create_bucket(Bucket="test_bucket_1")
+            conn.create_bucket(Bucket="test_bucket_2")
             index_store = MemoryStore()
-            self.testdb.get_obj_store('test')
-            store = self.testdb.maggma_stores['test']
+            store = self.testdb.get_store('test2')
             store.index = index_store
 
             with self.assertRaises(Exception):
