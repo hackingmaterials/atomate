@@ -180,12 +180,15 @@ class CalcDb(metaclass=ABCMeta):
                    maggma_store_kwargs=maggma_kwargs, **kwargs)
 
     def get_store(self, store_name : str):
-        """Get return the defaultdict if it exists, if not create and return it.
+        """Get the maggma store with a specific name if it exists, if not create it first.
 
         Args:
             store_name : name of the store desired
         """
         if store_name not in self._maggma_stores:
+            if self._maggma_store_type is None:
+                logger.warn(f"The maggma store was requested but the maggma store type was not set.  Check your DB_FILE")
+                return None
             if self._maggma_store_type == 's3':
                  self._maggma_stores[store_name] = self._get_s3_store(store_name)
             # Additional stores can be implemented here

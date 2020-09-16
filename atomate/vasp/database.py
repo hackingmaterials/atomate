@@ -52,9 +52,6 @@ class VaspCalcDb(CalcDb):
         super(VaspCalcDb, self).__init__(
             host, port, database, collection, user, password, **kwargs
         )
-        # this might not be needed since we use a default dict for the stores
-        # for oname in OBJ_NAMES:
-        #     self.get_store(f"{oname}_fs")
 
     def build_indexes(self, indexes=None, background=True):
         """
@@ -100,7 +97,7 @@ class VaspCalcDb(CalcDb):
                 ],
                 background=background,
             )
-        # build the index stores
+        # TODO consider sensible index building for the maggma stores
 
     def insert_task(self, task_doc, use_gridfs=False):
         """
@@ -110,8 +107,8 @@ class VaspCalcDb(CalcDb):
         So we do a quick check here and only record the AECCARs if they are valid
 
         Args:
-            task_doc: (dict) the task document
-            use_gridfs (bool) use gridfs for  bandstructures and DOS, only parsed if big_obj_store is None
+            task_doc (dict): the task document
+            use_gridfs (bool): store the data matching OBJ_NAMES to gridfs. if maggma_store_type is set (ex. "s3") this flag will be ignored
         Returns:
             (int) - task_id of inserted document
         """
@@ -183,6 +180,15 @@ class VaspCalcDb(CalcDb):
         return task_doc
 
     def insert_object(self, use_gridfs, *args, **kwargs):
+        """Insert the object into big object storage, try maggma_store if it is availible, if not try storing directly to girdfs.
+
+        Args:
+            use_gridfs (bool): Whether to store on gridfs if maggma storage is not availible
+
+        Returns:
+            fs_id: The id of the stored object
+            compression_type: The compress method of the stored object
+        """
         if self._maggma_store_type is not None:
             return self.insert_maggma_store(*args, **kwargs)
         elif use_gridfs:
