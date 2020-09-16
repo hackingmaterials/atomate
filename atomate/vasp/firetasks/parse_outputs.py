@@ -8,9 +8,7 @@ from collections import defaultdict
 from datetime import datetime
 
 import numpy as np
-import numpy.linalg as npla
 import scipy
-import scipy.optimize as spopt
 
 from monty.json import MontyEncoder, jsanitize
 from pydash.objects import has, get
@@ -420,7 +418,7 @@ class RamanTensorToDb(FiretaskBase):
     def run_task(self, fw_spec):
         nm_eigenvecs = np.array(fw_spec["normalmodes"]["eigenvecs"])
         nm_eigenvals = np.array(fw_spec["normalmodes"]["eigenvals"])
-        nm_norms = npla.norm(nm_eigenvecs, axis=2)
+        nm_norms = np.linalg.norm(nm_eigenvecs, axis=2)
         structure = fw_spec["normalmodes"]["structure"]
         masses = np.array([site.specie.data['Atomic mass'] for site in structure])
         nm_norms = nm_norms / np.sqrt(masses)  # eigenvectors in vasprun.xml are not divided by sqrt(M_i)
@@ -1026,25 +1024,25 @@ class HubbardHundLinRespToDb(FiretaskBase):
                 logger.warning("Matrix dimension error")
                 return float('nan')*matrix, float('nan')*matrix
 
-            matrixinv = npla.inv(matrix)
+            matrixinv = np.linalg.inv(matrix)
             matrixinv_var = np.zeros([m,n])
 
             # Function to determine the symbolic partial derivative of the
             # determinant w.r.t. matrix element
             def det_deriv(matrix,i,j):
                 mij = np.delete(np.delete(matrix,i,0),j,1)
-                partial = (-1)**(i+j) * npla.det(mij)
+                partial = (-1)**(i+j) * np.linalg.det(mij)
                 return partial
 
             # Jacobians of each element of matrix inversion w.r.t.
             # original matrix elements
             jacobians = [[] for i in range(m)]
 
-            det = npla.det(matrix)
+            det = np.linalg.det(matrix)
             for i in range(m):
                 for j in range(n):
                     mji = np.delete(np.delete(matrix,j,0),i,1)
-                    minor = (-1)**(i+j) * npla.det(mji)
+                    minor = (-1)**(i+j) * np.linalg.det(mji)
 
                     j_matrix = np.zeros([m,n])
                     for k in range(m):
