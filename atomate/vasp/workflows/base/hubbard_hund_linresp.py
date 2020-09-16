@@ -306,10 +306,8 @@ def get_wf_hubbard_hund_linresp(
                         # FIX ME: shouldn't hard code LDAUL = 2
                         for i in range(num_perturb):
                             if i == counter_perturb:
-                                val_dict[k].update(
-                                    {"perturb"+str(i):
-                                     specie = str(structure[counter_perturb].specie.block)
-                                     block_dict[specie]})
+                                block = str(structure[counter_perturb].specie.block)
+                                val_dict[k].update({"perturb"+str(i):block_dict[block]})
                             else:
                                 val_dict[k].update({"perturb"+str(i): -1})
                     else:
