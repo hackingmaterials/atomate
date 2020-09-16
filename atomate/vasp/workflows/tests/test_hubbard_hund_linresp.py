@@ -55,26 +55,26 @@ class TestHubbardHundLinRespWorkflow(AtomateTest):
 
         # Point-wise inversion
         self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["point"]["values"]["site0"]["U"]["value"],
-                               2.27847349676485)
+                               2.278473, 4)
         self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["point"]["values"]["site1"]["U"]["value"],
-                               2.7450999408291)
+                               2.745100, 4)
 
         # Atom-wise inversion
         self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["atom"]["values"]["site0"]["U"]["value"],
-                               9.10812902582139)
+                               9.108129, 4)
         self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["atom"]["values"]["site1"]["U"]["value"],
-                               4.69863462949431)
+                               4.698635, 4)
 
         #self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["atom"]["values"]["site0"]["J"]["value"], )
         self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["atom"]["values"]["site1"]["J"]["value"],
-                               0.402767369819668)
+                               0.402767, 4)
 
         # Full inversion
         self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["full"]["values"]["site0"]["U"]["value"],
-                               9.09697783359765)
+                               9.096978, 4)
         self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["full"]["values"]["site1"]["U"]["value"],
-                               4.6874038137901195)
+                               4.687404, 4)
 
         #self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["full"]["values"]["site0"]["J"]["value"], )
         self.assertAlmostEqual(hubbard_hund_analysis["hubbard_hund_results"]["full"]["values"]["site1"]["J"]["value"],
-                               0.4042267723402815)
+                               0.404227, 4)
