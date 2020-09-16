@@ -185,7 +185,6 @@ class CalcDb(metaclass=ABCMeta):
         Args:
             store_name : name of the store desired
         """
-        print(self._maggma_store_type)
         if store_name not in self._maggma_stores:
             if self._maggma_store_type == 's3':
                  self._maggma_stores[store_name] = self._get_s3_store(store_name)

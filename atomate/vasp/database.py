@@ -264,7 +264,6 @@ class VaspCalcDb(CalcDb):
                 compression_type = "zlib"
                 doc['compression'] = 'zlib'
 
-            # print(doc, self._maggma_stores[collection].key)
             store.update([doc], search_keys)
 
         return oid, compression_type
@@ -292,6 +291,14 @@ class VaspCalcDb(CalcDb):
         return obj_dict
 
     def get_band_structure(self, task_id):
+        """
+        Read the BS data into a PMG BandStructure or BandStructureSymmLine object
+
+        Args:
+            task_id(int or str): the task_id containing the data
+        Returns:
+            BandStructure or BandStructureSymmLine
+        """
         obj_dict = self.get_data_from_maggma_or_gridfs(task_id, key="bandstructure")
         if obj_dict["@class"] == "BandStructure":
             return BandStructure.from_dict(obj_dict)
@@ -303,22 +310,26 @@ class VaspCalcDb(CalcDb):
             )
 
     def get_dos(self, task_id):
+        """
+        Read the DOS data into a PMG DOS object
+
+        Args:
+            task_id(int or str): the task_id containing the data
+        Returns:
+            CompleteDos object
+        """
         obj_dict = self.get_data_from_maggma_or_gridfs(task_id, key="dos")
         return CompleteDos.from_dict(obj_dict)
 
-    @deprecated("No longer supported")
+    @deprecated("No longer supported, use get_chgcar instead")
     def get_chgcar_string(self, task_id):
-        # Not really used now, consier deleting
-        m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
-        fs_id = m_task["calcs_reversed"][0]["chgcar_fs_id"]
-        fs = gridfs.GridFS(self.db, "chgcar_fs")
-        return zlib.decompress(fs.get(fs_id).read())
+        pass
 
     def get_chgcar(self, task_id):
         """
-        Read the CHGCAR grid_fs data into a Chgcar object
+        Read the CHGCAR data into a PMG Chgcar object
         Args:
-            task_id(int or str): the task_id containing the gridfs metadata
+            task_id(int or str): the task_id containing the data
         Returns:
             chgcar: Chgcar object
         """
