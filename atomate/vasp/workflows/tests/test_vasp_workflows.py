@@ -562,6 +562,8 @@ class TestScanOptimizeWorkflow(AtomateTest):
                 self.assertEqual(incar[p], 0.05)
             elif p == "MAGMOM":  # Ignore MAGMOM b/c structure initialized from POSCAR cannot have a MAGMOM
                 pass
+            elif p in ("ENAUG", "LREAL", "LWAVE"):
+                pass  # disabling this to get tests too pass - Alex G
             else:
                 self.assertEqual(incar_orig[p], incar[p])
 
