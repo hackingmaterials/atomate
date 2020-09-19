@@ -19,7 +19,7 @@ For these fields, with larger storage requirements, the data itself will be remo
 This results in a task document with a much smaller size, which will still be uploaded onto the MongoDB specified in your ``DB_FILE``
 
 Two approaches are currently available in atomate to handle the storage of large data chunk.
-The user can implement a GridFS-based chunking and storage procedure as we have done in ``VaspToDb``.
+The user can implement a GridFS-based chunking and storage procedure as we have done in ``VaspCalcDb``.
 But the recommended method for large object storage is to use ``maggma`` stores implemented in the ``CalcDb`` class.
 Currently, only the Amazon S3 store is implemented.
 
@@ -51,7 +51,7 @@ To storing the larger items to an AWS S3 bucket via the ``maggma`` API, the user
     }
 
 Where ``<<BUCKET_NAME>>`` is S3 bucket where the data will be stored, ``<<S3_PROFILE_NAME>>`` is the name of the S3 profile from the ``$HOME/.aws`` folder.
-Note, this AWS profile needs to be available anywhere the ``VaspToDb.insert_task`` is called (i.e. on the computing resource where the database upload of the tasks takes place).
+Note, this AWS profile needs to be available anywhere the ``VaspCalcDb.insert_task`` is called (i.e. on the computing resource where the database upload of the tasks takes place).
 
 Usage
 -----------
@@ -76,4 +76,4 @@ To access the data using the task_id we can call
     chgcar = mmdb.get_chgcar(task_id)
 
 Similar functionalities exist for the band structure and DOS.
-Please refer to the documentation of ``VaspToDb`` for more details.
+Please refer to the documentation of ``VaspCalcDb`` for more details.
