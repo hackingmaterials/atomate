@@ -347,7 +347,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
     def _run_scan_relax(self, wf, formula):
         if not VASP_CMD:
             wf = use_fake_vasp(wf,
-                               {"PBESol pre-optimization for SCAN": os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_{}".format(formula)),
+                               {"PBEsol structure optimization": os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_{}".format(formula)),
                                 "SCAN structure optimization": os.path.join(reference_dir, "SCAN_structure_optimization_{}".format(formula))
                                 },
                                check_kpoints=False,
@@ -366,7 +366,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
 
     def _get_launch_dir(self):
         # retrieve the launcher directory
-        pbesol = list(self.get_task_collection().find({"task_label": "PBESol pre-optimization for SCAN"}))[-1]
+        pbesol = list(self.get_task_collection().find({"task_label": "PBEsol structure optimization"}))[-1]
         r2scan = list(self.get_task_collection().find({"task_label": "SCAN structure optimization"}))[-1]
         pbesol_dir = pbesol["dir_name"].split(":")[1]
         r2scan_dir = r2scan["dir_name"].split(":")[1]
