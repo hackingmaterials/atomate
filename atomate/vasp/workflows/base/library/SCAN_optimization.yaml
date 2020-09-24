@@ -3,7 +3,7 @@
 fireworks:
 - fw: atomate.vasp.fireworks.core.ScanOptimizeFW
   params:
-    name: "PBESol pre-optimization for SCAN"
+    name: "PBEsol structure optimization"
     vasptodb_kwargs:
       task_fields_to_push: {"gga_bandgap": "calcs_reversed.0.output.bandgap"}
       parse_bader: False
