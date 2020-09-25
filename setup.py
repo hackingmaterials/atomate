@@ -21,7 +21,7 @@ if __name__ == "__main__":
         package_data={'atomate.vasp.workflows.base': ['library/*'],
                       'atomate.vasp.builders': ['*', 'examples/*']},
         zip_safe=False,
-        install_requires=['FireWorks>=1.4.0', 'pymatgen>=2019.11.11',
+        install_requires=['FireWorks>=1.4.0', 'pymatgen>=2020.9.14',
                           'custodian>=2019.8.24', 'monty>=2.0.6',
                           'tqdm>=4.7.4',
                           'pymatgen-diffusion>=2018.1.4',
