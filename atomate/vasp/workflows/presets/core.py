@@ -542,6 +542,7 @@ def wf_thermal_expansion(structure, c=None):
 
     wf_thermal = get_wf_thermal_expansion(structure, user_kpoints_settings=user_kpoints_settings,
                                           deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file,
+                                          copy_vasp_outputs=True,
                                           eos=eos, pressure=pressure, tag=tag)
 
     # chain it
