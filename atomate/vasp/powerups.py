@@ -848,7 +848,7 @@ def modify_gzip_vasp(original_wf, gzip_output):
     return original_wf
 
 
-def use_potcar_spec(original_wf, fw_name_constraint=None, vasp_to_db_kwargs=None):
+def use_potcar_spec(original_wf, fw_name_constraint=None):
     """
     In all WriteVasp tasks, enable the potcar_spec option. In this mode,
     POTCAR files will be written as POTCAR.spec files, containing only the
@@ -869,7 +869,6 @@ def use_potcar_spec(original_wf, fw_name_constraint=None, vasp_to_db_kwargs=None
         original_wf (Workflow)
         fw_name_constraint (str): Only apply changes to FWs where fw_name
             contains this substring.
-        vasp_to_db_kwargs (dict): Additional kwargs to pass to VaspToDb.
 
     Returns:
        Workflow
@@ -905,10 +904,8 @@ def use_potcar_spec(original_wf, fw_name_constraint=None, vasp_to_db_kwargs=None
         task_name_constraint="VaspToDb",
     )
 
-    vasp_to_db_kwargs = vasp_to_db_kwargs if vasp_to_db_kwargs else {}
     for idx_fw, idx_t in idx_list:
         original_wf.fws[idx_fw].tasks[idx_t]["parse_potcar_file"] = False
-        original_wf.fws[idx_fw].tasks[idx_t].update(vasp_to_db_kwargs)
 
     return original_wf
 
