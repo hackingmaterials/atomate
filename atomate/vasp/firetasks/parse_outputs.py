@@ -639,20 +639,29 @@ class FitEOSToDb(FiretaskBase):
         summary_dict = {"eos": eos}
         to_db = self.get("to_db", True)
 
-        # collect and store task_id of all related tasks to make unique links with "tasks" collection
+        # collect and store task_id of all related tasks to make unique links with
+        # "tasks" collection
         all_task_ids = []
 
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-        # get the optimized structure
+
         d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
-        all_task_ids.append(d["task_id"])
-        structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+        docs = mmdb.collection.find({"task_label": {"$regex": "{} bulk_modulus*".format(tag)}})
+
+        if d:
+            # get the optimized structure and optimization task_id
+            all_task_ids.append(d["task_id"])
+            structure_dict = d["calcs_reversed"][-1]["output"]['structure']
+        else:
+            # no structure optimization in the workflow
+            # get the original structure from the transformation information
+            structure_dict = docs[0]["transformations"]["history"][0]["input_structure"]
+
+        structure = Structure.from_dict(structure_dict)
         summary_dict["structure"] = structure.as_dict()
         summary_dict["formula_pretty"] = structure.composition.reduced_formula
 
-        # get the data(energy, volume, force constant) from the deformation runs
-        docs = mmdb.collection.find({"task_label": {"$regex": "{} bulk_modulus*".format(tag)},
-                                     "formula_pretty": structure.composition.reduced_formula})
+        # get the data (energy, volume, force constant) from the deformation runs
         energies = []
         volumes = []
         for d in docs:
@@ -675,7 +684,8 @@ class FitEOSToDb(FiretaskBase):
         summary_dict["results"] = dict(eos_fit.results)
         summary_dict["created_at"] = datetime.utcnow()
 
-        # db_file itself is required but the user can choose to pass the results to db or not
+        # db_file itself is required but the user can choose to pass the results to db
+        # or not
         if to_db:
             mmdb.collection = mmdb.db["eos"]
             mmdb.collection.insert_one(summary_dict)
@@ -727,15 +737,16 @@ class ThermalExpansionCoeffToDb(FiretaskBase):
         summary_dict = {}
 
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-        # get the optimized structure
-        d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
-        structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+
+        docs = mmdb.collection.find({"task_label": {"$regex": "{} thermal_expansion*".format(tag)}})
+
+        # get the original structure from the transformation information
+        structure_dict = docs[0]["transformations"]["history"][0]["input_structure"]
+        structure = Structure.from_dict(structure_dict)
         summary_dict["structure"] = structure.as_dict()
         summary_dict["formula_pretty"] = structure.composition.reduced_formula
 
         # get the data(energy, volume, force constant) from the deformation runs
-        docs = mmdb.collection.find({"task_label": {"$regex": "{} thermal_expansion*".format(tag)},
-                                     "formula_pretty": structure.composition.reduced_formula})
         energies = []
         volumes = []
         force_constants = []
@@ -770,7 +781,7 @@ class MagneticOrderingsToDb(FiretaskBase):
     builder, this is intended for easy, automated use for calculating
     magnetic orderings directly from the get_wf_magnetic_orderings
     workflow. It's unlikely you will want to call this directly.
-    
+
     Required parameters:
         db_file (str): path to the db file that holds your tasks
             collection and that you want to hold the magnetic_orderings
