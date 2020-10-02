@@ -56,6 +56,8 @@ class VaspToDb(FiretaskBase):
             Defaults to False.
         parse_potcar_file (bool): Whether to parse the potcar file. Defaults to
             True.
+        parse_bader (bool): Whether to perform Bader charge analysis when parsing
+            the charge density. Default: True if bader.exe exists in the path.
         bandstructure_mode (str): Set to "uniform" for uniform band structure.
             Set to "line" for line mode. If not set, band structure will not
             be parsed.
