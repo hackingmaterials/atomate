@@ -317,7 +317,7 @@ class WriteScanRelaxFromPBE(FiretaskBase):
 
         # update the bandgap based on output from the previous calculation,
         # unless the user specified a bandgap via vasp_input_set_params
-        if not vasp_input_set_params.get("bandgap"):
+        if vasp_input_set_params.get("bandgap") is None:
             # First look for the gga_bandgap key in the FW spec, to save parsing time
             if fw_spec.get("gga_bandgap"):
                 vasp_input_set_params["bandgap"] = fw_spec.get("gga_bandgap")
