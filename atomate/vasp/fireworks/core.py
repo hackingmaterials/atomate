@@ -49,7 +49,7 @@ from atomate.vasp.firetasks.write_inputs import (
     WriteVaspSOCFromPrev,
     WriteVaspStaticFromPrev,
     WriteVaspFromIOSetFromInterpolatedPOSCAR,
-    WriteScanRelaxFromPBE,
+    WriteScanRelaxFromPrev,
     ModifyIncar,
 )
 from atomate.vasp.firetasks.neb_tasks import WriteNEBFromImages, WriteNEBFromEndpoints
@@ -218,7 +218,7 @@ class ScanOptimizeFW(Firework):
 
         if has_previous_calc:
             # Update the InputSet with the bandgap from the previous calc
-            t.append(WriteScanRelaxFromPBE(vasp_input_set_params=vasp_input_set_params))
+            t.append(WriteScanRelaxFromPrev(vasp_input_set_params=vasp_input_set_params))
 
             # Set ICHARG to 1 to utilize the pre-existing CHGCAR
             settings = {"_set": {"ICHARG": 1}}

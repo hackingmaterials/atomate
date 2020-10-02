@@ -290,7 +290,7 @@ class ModifyPotcar(FiretaskBase):
 
 
 @explicit_serialize
-class WriteScanRelaxFromPBE(FiretaskBase):
+class WriteScanRelaxFromPrev(FiretaskBase):
     """
     Writes input files for a SCAN relaxation by constructing a new input set.
     The purpose of this Firetask is to allow the KSPACING and smearing parameters

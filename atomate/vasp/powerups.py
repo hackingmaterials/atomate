@@ -883,7 +883,7 @@ def use_potcar_spec(original_wf, fw_name_constraint=None):
         get_fws_and_tasks(
             original_wf,
             fw_name_constraint=fw_name_constraint,
-            task_name_constraint="WriteScanRelaxFromPBE",
+            task_name_constraint="WriteScanRelaxFromPrev",
         )
     )
 
