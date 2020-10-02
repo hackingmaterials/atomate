@@ -181,6 +181,8 @@ class ScanOptimizeFW(Firework):
             structure.composition.reduced_formula if structure else "unknown", name
         )
 
+        has_previous_calc = False
+
         # Raise a warning if the InputSet is not MPScanRelaxSet, because the
         # kspacing calculation from bandgap is only supported in MPScanRelaxSet.
         if vasp_input_set and not isinstance(vasp_input_set, MPScanRelaxSet):
@@ -190,16 +192,31 @@ class ScanOptimizeFW(Firework):
                  is not supported by this InputSet."
             )
 
-        if parents:
-            # Copy the CHGCAR from previous calc (usually PBE)
-            if prev_calc_dir:
-                t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, contcar_to_poscar=True, additional_files=["CHGCAR"]))
-            elif prev_calc_loc:
-                t.append(CopyVaspOutputs(calc_loc=prev_calc_loc, contcar_to_poscar=True, additional_files=["CHGCAR"]))
+        if prev_calc_dir:
+            has_previous_calc = True
+            # Copy the CHGCAR from previous calc directory (usually PBE)
+            t.append(CopyVaspOutputs(calc_dir=prev_calc_dir,
+                                     contcar_to_poscar=True,
+                                     additional_files=["CHGCAR"]
+                                     )
+                     )
+        elif parents:
+            if prev_calc_loc:
+                has_previous_calc = True
+                # Copy the CHGCAR from previous calc location (usually PBE)
+                t.append(CopyVaspOutputs(calc_loc=prev_calc_loc,
+                                         contcar_to_poscar=True, 
+                                         additional_files=["CHGCAR"]
+                                         )
+                         )
             else:
                 raise UserWarning("You specified parent Firework but did not provide its location. Set "
                                   "prev_calc_dir or prev_calc_loc and try again.")
+        elif prev_calc_loc:
+            raise UserWarning("You specified prev_calc_loc but did not provide a parent Firework. Set "
+                              "parents and try again.")
 
+        if has_previous_calc:
             # Update the InputSet with the bandgap from the previous calc
             t.append(WriteScanRelaxFromPBE(vasp_input_set_params=vasp_input_set_params))
 
