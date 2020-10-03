@@ -359,10 +359,12 @@ class TestScanOptimizeWorkflow(AtomateTest):
             wf = use_custodian(wf)
 
         wf = use_potcar_spec(wf)
-        self.lp.add_wf(wf)
+        fw_ids = self.lp.add_wf(wf)
 
         # run the workflow
         rapidfire(self.lp, fworker=_fworker)
+
+        return fw_ids
 
     def _get_launch_dir(self):
         # retrieve the launcher directory
@@ -377,7 +379,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         structure = Structure.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_Al/inputs", "POSCAR"))
 
         my_wf = get_wf(structure, "SCAN_optimization.yaml")
-        self._run_scan_relax(my_wf, "Al")
+        fw_ids = self._run_scan_relax(my_wf, "Al")
 
         # Check PBESol INCAR
         ref_incar = Incar.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_Al/inputs", "INCAR"))
@@ -409,6 +411,14 @@ class TestScanOptimizeWorkflow(AtomateTest):
             else:
                 self.assertEqual(incar[p], ref_incar[p])
 
+        # get a fw that can be used to identify the workflow
+        fw_id = list(fw_ids.values())[0]
+
+        # check workflow finished without error
+        wf = self.lp.get_wf_by_fw_id(fw_id)
+        is_completed = [s == "COMPLETED" for s in wf.fw_states.values()]
+        self.assertTrue(all(is_completed))
+
     def test_SCAN_small_bandgap(self):
         # A structure with a small bandgap (LiH) should result in a KSPACING
         # value of 0.34292
@@ -416,7 +426,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         structure = Structure.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_LiH/inputs", "POSCAR"))
 
         my_wf = get_wf(structure, "SCAN_optimization.yaml")
-        self._run_scan_relax(my_wf, "LiH")
+        fw_ids = self._run_scan_relax(my_wf, "LiH")
 
         # Check PBESol INCAR
         ref_incar = Incar.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_LiH/inputs", "INCAR"))
@@ -450,6 +460,14 @@ class TestScanOptimizeWorkflow(AtomateTest):
             else:
                 self.assertEqual(incar[p], ref_incar[p])
 
+        # get a fw that can be used to identify the workflow
+        fw_id = list(fw_ids.values())[0]
+
+        # check workflow finished without error
+        wf = self.lp.get_wf_by_fw_id(fw_id)
+        is_completed = [s == "COMPLETED" for s in wf.fw_states.values()]
+        self.assertTrue(all(is_completed))
+
     def test_SCAN_large_bandgap(self):
         # A structure with a large bandgap (LiF) should result in KSPACING
         # hitting the maximum allowed value of 0.44
@@ -457,7 +475,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         structure = Structure.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_LiF/inputs", "POSCAR"))
 
         my_wf = get_wf(structure, "SCAN_optimization.yaml")
-        self._run_scan_relax(my_wf, "LiF")
+        fw_ids = self._run_scan_relax(my_wf, "LiF")
 
         # Check PBESol INCAR
         ref_incar = Incar.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_LiF/inputs", "INCAR"))
@@ -491,6 +509,14 @@ class TestScanOptimizeWorkflow(AtomateTest):
             else:
                 self.assertEqual(incar[p], ref_incar[p])
 
+        # get a fw that can be used to identify the workflow
+        fw_id = list(fw_ids.values())[0]
+
+        # check workflow finished without error
+        wf = self.lp.get_wf_by_fw_id(fw_id)
+        is_completed = [s == "COMPLETED" for s in wf.fw_states.values()]
+        self.assertTrue(all(is_completed))
+
     def test_SCAN_with_vdw(self):
         # Verify appropriate changes to the INCAR when VdW is enabled
         # VdW should be off for relax1 (GGA) and re-enabled for relax2 (SCAN)
@@ -502,7 +528,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
                                       "vdw_kernel_dir": os.path.join(reference_dir,
                                                                      "PBESol_pre_opt_for_SCAN_LiF_vdw/inputs")})
 
-        self._run_scan_relax(my_wf, "LiF_vdw")
+        fw_ids = self._run_scan_relax(my_wf, "LiF_vdw")
 
         # Check PBESol INCAR
         ref_incar = Incar.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_LiF_vdw/inputs", "INCAR"))
@@ -541,6 +567,14 @@ class TestScanOptimizeWorkflow(AtomateTest):
             else:
                 self.assertEqual(incar[p], ref_incar[p])
 
+        # get a fw that can be used to identify the workflow
+        fw_id = list(fw_ids.values())[0]
+
+        # check workflow finished without error
+        wf = self.lp.get_wf_by_fw_id(fw_id)
+        is_completed = [s == "COMPLETED" for s in wf.fw_states.values()]
+        self.assertTrue(all(is_completed))
+
     def test_SCAN_incar_override(self):
         # user incar settings should be passed all the way through the workflow
 
@@ -554,7 +588,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
                                                                 }}
                        )
 
-        self._run_scan_relax(my_wf, "LiH")
+        fw_ids = self._run_scan_relax(my_wf, "LiH")
 
         # Check PBESol INCAR
         incar1 = Incar.from_file(os.path.join(self._get_launch_dir()[0], "INCAR.gz"))
@@ -567,6 +601,14 @@ class TestScanOptimizeWorkflow(AtomateTest):
         self.assertEqual(incar2["NSW"], 10)
         self.assertEqual(incar2["SYMPREC"], 1e-6)
         self.assertEqual(incar2["SIGMA"], 0.1)
+
+        # get a fw that can be used to identify the workflow
+        fw_id = list(fw_ids.values())[0]
+
+        # check workflow finished without error
+        wf = self.lp.get_wf_by_fw_id(fw_id)
+        is_completed = [s == "COMPLETED" for s in wf.fw_states.values()]
+        self.assertTrue(all(is_completed))
 
 
 if __name__ == "__main__":
