@@ -313,7 +313,7 @@ class WriteScanRelaxFromPrev(FiretaskBase):
     def run_task(self, fw_spec):
 
         potcar_spec = self.get("potcar_spec", False)
-        vasp_input_set_params = self.get("vasp_input_set_params", {})
+        vasp_input_set_params = self.get("vasp_input_set_params") or {}
 
         # update the bandgap based on output from the previous calculation,
         # unless the user specified a bandgap via vasp_input_set_params
