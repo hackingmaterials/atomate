@@ -138,7 +138,7 @@ def get_simulated_wf(wf):
         "_interpolation_1_polarization": f_dir / "interpolation_1_polarization",
     }
 
-    wf = use_potcar_spec(wf, vasp_to_db_kwargs={"store_volumetric_data": []})
+    wf = use_potcar_spec(wf, vasp_to_db_kwargs={"store_volumetric_data": [], "parse_bader": False})
     wf = use_fake_vasp(
         wf, bto_ref_dirs, params_to_check=["ENCUT", "LWAVE"], check_potcar=False
     )
