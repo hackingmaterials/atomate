@@ -8,7 +8,7 @@ tqdm==4.50.0
 pybtex==0.22.2
 ruamel.yaml==0.16.12
 pandas==1.1.2
-pymatgen==2020.9.14
+pymatgen==2020.10.9.1
 custodian==2020.4.27
 networkx==2.5
 pydash==4.8.0
