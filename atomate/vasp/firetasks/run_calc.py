@@ -101,15 +101,15 @@ class RunVaspCustodian(FiretaskBase):
             "default": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
                         NonConvergingErrorHandler(), PotimErrorHandler(),
                         PositiveEnergyErrorHandler(), FrozenJobErrorHandler(), StdErrHandler(),
-                        LargeSigmaHandler],
+                        LargeSigmaHandler()],
             "strict": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
                        NonConvergingErrorHandler(), PotimErrorHandler(),
                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(),
-                       StdErrHandler(), AliasingErrorHandler(), DriftErrorHandler(), LargeSigmaHandler],
+                       StdErrHandler(), AliasingErrorHandler(), DriftErrorHandler(), LargeSigmaHandler()],
             "scan": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
                      NonConvergingErrorHandler(), PotimErrorHandler(),
                      PositiveEnergyErrorHandler(), FrozenJobErrorHandler(), StdErrHandler(),
-                     LargeSigmaHandler, ScanMetalHandler],
+                     LargeSigmaHandler(), ScanMetalHandler()],
             "md": [VaspErrorHandler(), NonConvergingErrorHandler()],
             "no_handler": []
             }

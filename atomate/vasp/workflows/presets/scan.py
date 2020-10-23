@@ -49,9 +49,6 @@ def wf_scan_opt(structure, c=None):
 
     wf = add_common_powerups(wf, c)
 
-    wf = use_custodian(wf, fw_name_constraint="SCAN structure optimization",
-                       handler_groups="scan")
-
     if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
         wf = add_wf_metadata(wf, structure)
 
