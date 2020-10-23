@@ -105,7 +105,7 @@ class RunVaspCustodian(FiretaskBase):
             "strict": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
                        NonConvergingErrorHandler(),PotimErrorHandler(),
                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(),
-                       StdErrHandler(), AliasingErrorHandler(), DriftErrorHandler()],
+                       StdErrHandler(), AliasingErrorHandler(), DriftErrorHandler(), LargeSigmaHandler],
             "md": [VaspErrorHandler(), NonConvergingErrorHandler()],
             "no_handler": []
             }
