@@ -23,7 +23,7 @@ from custodian import Custodian
 from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, \
     MeshSymmetryErrorHandler, UnconvergedErrorHandler, MaxForceErrorHandler, PotimErrorHandler, \
     FrozenJobErrorHandler, NonConvergingErrorHandler, PositiveEnergyErrorHandler, \
-    WalltimeHandler, StdErrHandler, DriftErrorHandler
+    WalltimeHandler, StdErrHandler, DriftErrorHandler, LargeSigmaHandler
 from custodian.vasp.jobs import VaspJob, VaspNEBJob
 from custodian.vasp.validators import VasprunXMLValidator, VaspFilesValidator
 
@@ -100,7 +100,8 @@ class RunVaspCustodian(FiretaskBase):
         handler_groups = {
             "default": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
                         NonConvergingErrorHandler(),PotimErrorHandler(),
-                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(), StdErrHandler()],
+                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(), StdErrHandler(),
+                        LargeSigmaHandler],
             "strict": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
                        NonConvergingErrorHandler(),PotimErrorHandler(),
                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(),
