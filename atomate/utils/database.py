@@ -27,7 +27,8 @@ logger = get_logger(__name__)
 
 class CalcDb(metaclass=ABCMeta):
 
-    def __init__(self, host, port, database, collection, user, password, maggma_store_kwargs=None, **kwargs):
+    def __init__(self, host, port, database, collection, user, password, maggma_store_kwargs=None,
+                 maggma_store_prefix: str = "atomate", **kwargs):
         """
         Obeject to handle storing calculation data to MongoDB databases.
         The results of calculations will be parsed by a Drone and
@@ -48,18 +49,19 @@ class CalcDb(metaclass=ABCMeta):
                                         typically found at ~/.aws/credentials
                         "compress" : Whether compression is used
                         "endpoint_url" : the url used to access the S3 store
+            maggma_store_prefix: when using maggma stores, you can set the prefix string.
 
             **kwargs:
         """
         if maggma_store_kwargs is None:
             maggma_store_kwargs = {}
+        self.maggma_store_prefix = maggma_store_prefix
         self.host = host
         self.db_name = database
         self.user = user
         self.password = password
         self.port = int(port)
 
-        # Optional Maggma store for large obj storage
         self._maggma_store_kwargs = maggma_store_kwargs if maggma_store_kwargs is not None else {}
 
         self._maggma_store_type = None
@@ -164,6 +166,7 @@ class CalcDb(metaclass=ABCMeta):
             password = creds.get("readonly_password", "")
 
         maggma_kwargs = creds.get("maggma_store", {})
+        maggma_prefix = creds.get("maggma_store_prefix", "atomate")
         kwargs = creds.get("mongoclient_kwargs", {})  # any other MongoClient kwargs can go here ...
 
         if "authsource" in creds:
@@ -177,7 +180,9 @@ class CalcDb(metaclass=ABCMeta):
                    collection=creds["collection"],
                    user=user,
                    password=password,
-                   maggma_store_kwargs=maggma_kwargs, **kwargs)
+                   maggma_store_kwargs=maggma_kwargs,
+                   maggma_store_prefix=maggma_prefix,
+                   **kwargs)
 
     def get_store(self, store_name : str):
         """Get the maggma store with a specific name if it exists, if not create it first.
@@ -209,7 +214,7 @@ class CalcDb(metaclass=ABCMeta):
         """
         index_store_ = MongoStore(
             database=self.db_name,
-            collection_name=f"atomate_{store_name}_index",
+            collection_name=f"{self.maggma_store_prefix}_{store_name}_index",
             host=self.host,
             port=self.port,
             username=self.user,
@@ -219,7 +224,7 @@ class CalcDb(metaclass=ABCMeta):
 
         store = S3Store(
             index=index_store_,
-            sub_dir=f"atomate_{store_name}",
+            sub_dir=f"{self.maggma_store_prefix}_{store_name}",
             key = "fs_id",
             **self._maggma_store_kwargs
         )
