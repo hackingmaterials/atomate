@@ -62,3 +62,18 @@ class DatabaseTests(unittest.TestCase):
             with self.assertRaises(Exception):
                 store.connect()
 
+
+    def test_maggma_store_names(self):
+        with mock_s3():
+            conn = boto3.client("s3")
+            conn.create_bucket(Bucket="test_bucket")
+            index_store = MemoryStore()
+            store = self.testdb.get_store('test')
+            store.index = index_store
+            store.connect()
+            self.assertEqual(store.sub_dir, "atomate_test/")
+            prefix_db = TestToDb.from_db_file(db_dir + "/db_aws.json")
+
+            prefix_db.maggma_store_prefix = "new_prefix"
+            store = prefix_db.get_store('test')
+            self.assertEqual(store.sub_dir, "new_prefix_test/")
