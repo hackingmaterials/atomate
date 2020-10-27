@@ -251,6 +251,7 @@ class VaspCalcDb(CalcDb):
 
         search_keys = ["fs_id", ]
         if task_id is not None:
+            search_keys.append('task_id')
             doc['task_id'] = task_id
         elif isinstance(d, dict) and "task_id" in d:
             search_keys.append('task_id')

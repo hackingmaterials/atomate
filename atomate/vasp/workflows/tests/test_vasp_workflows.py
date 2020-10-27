@@ -318,7 +318,9 @@ class TestVaspWorkflows(AtomateTest):
             conn = boto3.client("s3")
             conn.create_bucket(Bucket="test_bucket")
             mmdb = VaspCalcDb.from_db_file(os.path.join(db_dir, "db_aws.json"))
+            mmdb_changed_prefix = VaspCalcDb.from_db_file(os.path.join(db_dir, "db_aws_prefix.json"))
             fs_id, compress_type = mmdb.insert_maggma_store(doc, 'store1', oid='1')
+            fs_id, compress_type = mmdb_changed_prefix.insert_maggma_store(doc, 'store1', oid='1')
             assert fs_id == '1'
             assert compress_type == 'zlib'
             doc['task_id'] = 'mp-1'
