@@ -423,7 +423,7 @@ class VaspDrone(AbstractDrone):
                     try:
                         # assume volumetric data is all in CHGCAR format
                         data = Chgcar.from_file(os.path.join(dir_name, d["output_file_paths"][file]))
-                        d[file] = data
+                        d[file] = data.as_dict()
                     except:
                         raise ValueError("Failed to parse {} at {}.".format(file,
                                                                             d["output_file_paths"][file]))
@@ -690,11 +690,12 @@ class VaspDrone(AbstractDrone):
             "additional_fields": self.additional_fields,
             "use_full_uri": self.use_full_uri,
             "runs": self.runs}
-        return {"@module": self.__class__.__module__,
-                "@class": self.__class__.__name__,
-                "version": self.__class__.__version__,
-                "init_args": init_args
-                }
+        return {
+            "@module": self.__class__.__module__,
+            "@class": self.__class__.__name__,
+            "version": self.__class__.__version__,
+            "init_args": init_args
+            }
 
     @classmethod
     def from_dict(cls, d):
