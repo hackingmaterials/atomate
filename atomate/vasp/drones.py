@@ -47,7 +47,7 @@ __version__ = "0.1.0"
 
 logger = get_logger(__name__)
 
-bader_exe_exists = which("bader") or which("bader.exe")
+BADER_EXE_EXISTS = which("bader") or which("bader.exe")
 
 
 class VaspDrone(AbstractDrone):
@@ -86,7 +86,7 @@ class VaspDrone(AbstractDrone):
 
     def __init__(self, runs=None, parse_dos="auto", bandstructure_mode="auto",
                  parse_locpot=True, additional_fields=None, use_full_uri=True,
-                 parse_bader=bader_exe_exists, parse_chgcar=False, parse_aeccar=False,
+                 parse_bader=BADER_EXE_EXISTS, parse_chgcar=False, parse_aeccar=False,
                  parse_potcar_file=True,
                  store_volumetric_data=STORE_VOLUMETRIC_DATA,
                  store_additional_json=STORE_ADDITIONAL_JSON):

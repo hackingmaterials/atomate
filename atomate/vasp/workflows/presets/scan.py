@@ -1,8 +1,5 @@
 # coding: utf-8
 
-
-from pymatgen.io.vasp.sets import MPScanRelaxSet
-
 from atomate.vasp.config import ADD_WF_METADATA
 
 from atomate.vasp.powerups import (
@@ -20,28 +17,33 @@ def wf_scan_opt(structure, c=None):
     Structure optimization using the SCAN metaGGA functional.
 
     This workflow performs a 2-step optmization. The first step
-    is a conventional GGA run and serves to precondition the geometry and
-    wavefunctions. The second step is a SCAN structure optimization.
+    is a GGA structure optimization using the PBESol functional that serves to
+    precondition the geometry and charge density. The second step is a
+    SCAN structure optimization.
 
     The first optimization is force converged with EDIFFG = -0.05,
     and the second optimization is force converged with EDIFFG=-0.02.
+
+    The bandgap from the first step is used to update the KSPACING parameter,
+    which sets the appropriate number of k-points for the subsequent SCAN
+    calculation.
     """
 
     c = c or {}
-    user_incar_settings = c.get("USER_INCAR_SETTINGS", {})
-    vdw = c.get("vdw")
-    bandgap = c.get("bandgap", 0)
+    vasp_input_set_params = {}
+    if c.get("USER_INCAR_SETTINGS"):
+        vasp_input_set_params["user_incar_settings"] = c.get("USER_INCAR_SETTINGS")
+
+    if c.get("vdw"):
+        vasp_input_set_params["vdw"] = c.get("vdw")
+
+    if c.get("bandgap"):
+        vasp_input_set_params["bandgap"] = c.get("bandgap")
 
     wf = get_wf(
         structure,
         "SCAN_optimization.yaml",
-        vis=MPScanRelaxSet(
-            structure,
-            user_incar_settings=user_incar_settings,
-            vdw=vdw,
-            bandgap=bandgap
-        ),
-        params=[{"name": "SCAN optimization"}],
+        common_params={"vasp_input_set_params": vasp_input_set_params}
     )
 
     wf = add_common_powerups(wf, c)

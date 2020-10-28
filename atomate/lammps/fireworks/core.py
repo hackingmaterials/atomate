@@ -37,7 +37,7 @@ class LammpsFW(Firework):
             name (str): descriptive name for lammps simulation
             log_filename (str)
             dump_filename (str)
-            \*\*kwargs: other kwargs that are passed to Firework.__init__.
+            **kwargs: other kwargs that are passed to Firework.__init__.
         """
 
         tasks = [
@@ -114,8 +114,8 @@ class LammpsForceFieldFW(Firework):
 class PackmolFW(Firework):
 
     def __init__(self, molecules, packing_config, tolerance=2.0, filetype="xyz", control_params=None,
-                 output_file="packed.xyz",  copy_to_current_on_exit=False, site_property=None,
-                 parents=None, name="PackmolFW", packmol_cmd="packmol", **kwargs):
+                 output_file="packed.xyz", site_property=None, parents=None, name="PackmolFW",
+                 packmol_cmd="packmol", **kwargs):
         """
 
         Args:
@@ -128,8 +128,6 @@ class PackmolFW(Firework):
             control_params (dict): packmol control parameters dictionary. Basically all parameters
                 other than structure/atoms.
             output_file (str): output file name. The extension will be adjusted according to the filetype.
-            copy_to_current_on_exit (bool): whether or not to copy the packed molecule output file
-                to the current directory.
             site_property (str): the specified site property will be restored for the final Molecule object.
             parents ([Firework]): parent fireworks
             name (str): firework name
@@ -141,8 +139,7 @@ class PackmolFW(Firework):
         tasks = [
             RunPackmol(molecules=molecules, packing_config=packing_config, tolerance=tolerance,
                        filetype=filetype, control_params=control_params,  output_file=output_file,
-                       copy_to_current_on_exit=copy_to_current_on_exit, site_property=site_property,
-                       packmol_cmd=packmol_cmd),
+                       site_property=site_property, packmol_cmd=packmol_cmd),
 
             PassCalcLocs(name=name)
 
