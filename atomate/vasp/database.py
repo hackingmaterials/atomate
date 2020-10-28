@@ -252,10 +252,10 @@ class VaspCalcDb(CalcDb):
         search_keys = ["fs_id", ]
         if task_id is not None:
             search_keys.append('task_id')
-            doc['task_id'] = task_id
+            doc['task_id'] = str(task_id)
         elif isinstance(d, dict) and "task_id" in d:
             search_keys.append('task_id')
-            doc['task_id'] = d['task_id']
+            doc['task_id'] = str(d['task_id'])
 
         # make sure the store is availible
         with self.get_store(collection) as store:
