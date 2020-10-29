@@ -244,6 +244,7 @@ class CalcDb(metaclass=ABCMeta):
                 uri=self.host_uri,
                 database=self.db_name,
                 collection_name=f"{self.maggma_store_prefix}_{store_name}_index",
+                key='fs_id'
             )
         else:
             index_store_ = MongoStore(
