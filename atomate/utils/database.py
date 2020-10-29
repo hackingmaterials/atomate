@@ -171,12 +171,12 @@ class CalcDb(metaclass=ABCMeta):
 
         maggma_kwargs = creds.get("maggma_store", {})
         maggma_prefix = creds.get("maggma_store_prefix", "atomate")
+        database = creds.get("database", None)
 
         kwargs = creds.get("mongoclient_kwargs", {})  # any other MongoClient kwargs can go here ...
-
         if "host_uri" in creds:
-            return cls(host=creds['host_uri'],
-                       database=creds["database"],
+            return cls(host_uri=creds['host_uri'],
+                       database=database,
                        collection=creds["collection"],
                        maggma_store_kwargs = maggma_kwargs,
                        maggma_store_prefix = maggma_prefix,

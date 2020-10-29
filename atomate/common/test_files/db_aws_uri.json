@@ -1,8 +1,7 @@
 {
     "aliases": {}, 
     "collection": "tasks",
-    "database": "atomate_unittest",
-    "host": "mongodb://localhost:27017",
+    "host_uri": "mongodb://localhost:27017/atomate_unittest",
     "maggma_store": {
         "bucket" : "test_bucket",
         "compress" : true
