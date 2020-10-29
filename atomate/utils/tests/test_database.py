@@ -62,7 +62,6 @@ class DatabaseTests(unittest.TestCase):
             with self.assertRaises(Exception):
                 store.connect()
 
-
     def test_maggma_store_names(self):
         with mock_s3():
             conn = boto3.client("s3")
@@ -77,3 +76,19 @@ class DatabaseTests(unittest.TestCase):
             prefix_db.maggma_store_prefix = "new_prefix"
             store = prefix_db.get_store('test')
             self.assertEqual(store.sub_dir, "new_prefix_test/")
+
+    def test_uri(self):
+        calc_db = TestToDb(host_uri="mongodb://localhost:27017", database='test_db_name', collection='test_collection')
+        calc_db.collection.insert_one({'task_id' : "mp-1", "data" : "12345"})
+        self.assertEqual(calc_db.collection.find_one()['data'], "12345")
+
+        with mock_s3():
+            conn = boto3.client("s3")
+            conn.create_bucket(Bucket="test_bucket")
+            uri_db = TestToDb.from_db_file(db_dir + "/db_aws_uri.json")
+            store = uri_db.get_store('test')
+            self.assertEqual(store.sub_dir, "atomate_test/")
+
+
+
+
