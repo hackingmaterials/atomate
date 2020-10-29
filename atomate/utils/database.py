@@ -240,10 +240,11 @@ class CalcDb(metaclass=ABCMeta):
             store_name: correspond to the the key within calcs_reversed.0 that will be stored
         """
         if self.host_uri is not None:
-            index_store_ = MongoURIStore(uri=self.host_uri,
-                                         database=self.db_name,
-                                         collection_name=f"{self.maggma_store_prefix}_{store_name}_index",
-                                         )
+            index_store_ = MongoURIStore(
+                uri=self.host_uri,
+                database=self.db_name,
+                collection_name=f"{self.maggma_store_prefix}_{store_name}_index",
+            )
         else:
             index_store_ = MongoStore(
                 database=self.db_name,
