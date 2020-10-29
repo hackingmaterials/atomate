@@ -5,13 +5,14 @@
 import os
 import unittest
 
+from monty.json import MontyDecoder
 from pymatgen.io.vasp import Outcar, Oszicar
 
 from atomate.vasp.drones import VaspDrone
 
 import numpy as np
 
-
+decoder = MontyDecoder()
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -148,11 +149,12 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
     def test_parse_chrgcar(self):
         drone = VaspDrone(parse_chgcar=True, parse_aeccar=True)
         doc = drone.assimilate(self.Si_static)
-        cc = doc['calcs_reversed'][0]['chgcar']
+
+        cc = decoder.process_decoded(doc['calcs_reversed'][0]['chgcar'])
         self.assertAlmostEqual(cc.data['total'].sum()/cc.ngridpts, 8.0, 4)
-        cc = doc['calcs_reversed'][0]['aeccar0']
+        cc = decoder.process_decoded(doc['calcs_reversed'][0]['aeccar0'])
         self.assertAlmostEqual(cc.data['total'].sum()/cc.ngridpts, 23.253588293583313, 4)
-        cc = doc['calcs_reversed'][0]['aeccar2']
+        cc = decoder.process_decoded(doc['calcs_reversed'][0]['aeccar2'])
         self.assertAlmostEqual(cc.data['total'].sum()/cc.ngridpts, 8.01314480789829, 4)
 
     def test_parse_potcar(self):
