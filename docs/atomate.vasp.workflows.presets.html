@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>atomate.vasp.workflows.presets package &#8212; atomate 0.9.4 documentation</title>
+    <title>atomate.vasp.workflows.presets package &#8212; atomate 0.9.5 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -27,7 +27,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -208,7 +208,13 @@ c (dict): workflow config dict</p>
 <dl class="function">
 <dt id="atomate.vasp.workflows.presets.scan.wf_scan_opt">
 <code class="sig-prename descclassname">atomate.vasp.workflows.presets.scan.</code><code class="sig-name descname">wf_scan_opt</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.workflows.presets.scan.wf_scan_opt" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Structure optimization using the SCAN metaGGA functional.</p>
+<p>This workflow performs a 2-step optmization. The first step
+is a conventional GGA run and serves to precondition the geometry and
+wavefunctions. The second step is a SCAN structure optimization.</p>
+<p>The first optimization is force converged with EDIFFG = -0.05,
+and the second optimization is force converged with EDIFFG=-0.02.</p>
+</dd></dl>
 
 </div>
 <div class="section" id="module-atomate.vasp.workflows.presets">
@@ -263,7 +269,7 @@ c (dict): workflow config dict</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
       </ul>
     </div>
 

@@ -1,10 +1,13 @@
 from itertools import product
-from typing import Dict, List, Tuple
+from joblib import Parallel, delayed
+from typing import Dict, List, Tuple, Optional
 
 import numpy as np
 
 from atomate.utils.utils import get_logger
+from hiphive.cutoffs import is_cutoff_allowed, estimate_maximum_cutoff
 from pymatgen import Structure
+from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.io.phonopy import get_phonopy_structure
 
 __author__ = "Alex Ganose, Rees Chang"
@@ -18,9 +21,9 @@ MAX_N_IMAGINARY = np.inf
 FIT_METHOD = "least-squares"
 
 
-def get_cutoffs(structure: Structure):
+def get_cutoffs(supercell_structure: Structure):
     """
-    Get a list of trial cutoffs based on a structure.
+    Get a list of trial cutoffs based on a supercell structure.
 
     An initial guess for the lower bound of the cutoffs is made based on the
     period of the lightest element in the structure, according to:
@@ -47,12 +50,16 @@ def get_cutoffs(structure: Structure):
     Cutoff Max  Step
     ====== ==== =====
     2ND    +3.0 0.5
-    3RD    +1.5 0.25
-    4TH    +1.0 0.25
+    3RD    +1.5 0.5
+    4TH    +1.0 0.5
     ====== ==== =====
 
+    Finally, the max cutoff size is determined by the supercell lattice dimensions.
+    Cutoffs which result in multiple of the same orbits being populated will be
+    discounted.
+
     Args:
-        structure: A structure.
+        supercell_structure: A structure.
 
     Returns:
         A list of trial cutoffs.
@@ -64,9 +71,9 @@ def get_cutoffs(structure: Structure):
         4: {1: 3.0, 2: 3.0, 3: 3.5, 4: 4.0, 5: 4.5, 6: 5.0, 7: 5.0},
     }
     inc = {2: 3, 3: 1.5, 4: 1}
-    steps = {2: 0.5, 3: 0.25, 4: 0.25}
+    steps = {2: 0.5, 3: 0.5, 4: 0.5}
 
-    row = min([s.row for s in structure.species])
+    row = min([s.row for s in supercell_structure.species])
     mins = {
         2: min_cutoffs[2][row], 3: min_cutoffs[3][row], 4: min_cutoffs[4][row]
     }
@@ -75,7 +82,10 @@ def get_cutoffs(structure: Structure):
     range_three = np.arange(mins[3], mins[3] + inc[3] + steps[3], steps[3])
     range_four = np.arange(mins[4], mins[4] + inc[4] + steps[4], steps[4])
 
-    return list(map(list, product(range_two, range_three, range_four)))
+    cutoffs = np.array(list(map(list, product(range_two, range_three, range_four))))
+    max_cutoff = estimate_maximum_cutoff(AseAtomsAdaptor.get_atoms(supercell_structure))
+    good_cutoffs = np.all(cutoffs < np.around(max_cutoff, 4) - 0.0001, axis=1)
+    return cutoffs[good_cutoffs].tolist()
 
 
 def fit_force_constants(
@@ -87,6 +97,8 @@ def fit_force_constants(
     max_n_imaginary: int = MAX_N_IMAGINARY,
     max_imaginary_freq: float = MAX_IMAGINARY_FREQ,
     fit_method: str = FIT_METHOD,
+    n_jobs: int = -1,
+    fit_kwargs: Optional[Dict] = None
 ) -> Tuple["SortedForceConstants", Dict]:
     """
     Fit force constants using hiphive and select the optimum cutoff values.
@@ -118,15 +130,16 @@ def fit_force_constants(
             reached by any cutoff combination this FireTask will fizzle.
         fit_method: Method used for fitting force constants. This can be
             any of the values allowed by the hiphive ``Optimizer`` class.
+        n_jobs: Number of processors to use for fitting coefficients. -1 means use all
+            processors.
+        fit_kwargs: Additional arguements passed to the hiphive force constant
+            optimizer.
 
     Returns:
         A tuple of the best fitted force constants as a hiphive
         ``SortedForceConstants`` object and a dictionary of information on the
         fitting process.
     """
-    from hiphive.fitting import Optimizer
-    from hiphive import ForceConstantPotential, enforce_rotational_sum_rules
-
     logger.info("Starting fitting force constants.")
 
     fitting_data = {
@@ -141,21 +154,74 @@ def fit_force_constants(
         "max_imaginary_freq": max_imaginary_freq,
     }
 
-    supercell_atoms = structures[0]
-
     best_fit = {
         "n_imaginary": np.inf,
-        "free_energy": np.inf,
+        "rmse_test": np.inf,
         "force_constants": None,
         "cutoffs": None,
     }
     n_cutoffs = len(all_cutoffs)
-    for i, cutoffs in enumerate(all_cutoffs):
+
+    fit_kwargs = fit_kwargs if fit_kwargs else {}
+    if fit_method == "rfe" and n_jobs == -1:
+        fit_kwargs["n_jobs"] = 1
+
+    cutoff_results = Parallel(n_jobs=-1, backend="multiprocessing")(delayed(_run_cutoffs)(
+        i, cutoffs, n_cutoffs, parent_structure, structures, supercell_matrix,
+        fit_method, imaginary_tol, fit_kwargs) for i, cutoffs in enumerate(all_cutoffs))
+
+    for result in cutoff_results:
+        if result is None:
+            pass
+
+        fitting_data["cutoffs"].append(result["cutoffs"])
+        fitting_data["rmse_test"].append(result["rmse_test"])
+        fitting_data["n_imaginary"].append(result["n_imaginary"])
+        fitting_data["min_frequency"].append(result["min_frequency"])
+        fitting_data["300K_free_energy"].append(result["300K_free_energy"])
+
+        if (
+            result["min_frequency"] > -np.abs(max_imaginary_freq)
+            and result["n_imaginary"] <= max_n_imaginary
+            and result["n_imaginary"] < best_fit["n_imaginary"]
+            and result["rmse_test"] < best_fit["rmse_test"]
+        ):
+            best_fit.update(result)
+            fitting_data["best"] = result["cutoffs"]
+
+    logger.info("Finished fitting force constants.")
+
+    return best_fit["force_constants"], fitting_data
+
+
+def _run_cutoffs(
+    i,
+    cutoffs,
+    n_cutoffs,
+    parent_structure,
+    structures,
+    supercell_matrix,
+    fit_method,
+    imaginary_tol,
+    fit_kwargs
+):
+    from hiphive.fitting import Optimizer
+    from hiphive import ForceConstantPotential, enforce_rotational_sum_rules
+
+    logger.info(
+        "Testing cutoffs {} out of {}: {}".format(i + 1, n_cutoffs, cutoffs)
+    )
+    supercell_atoms = structures[0]
+
+    if not is_cutoff_allowed(supercell_atoms, max(cutoffs)):
         logger.info(
-            "Testing cutoffs {} out of {}: {}".format(i, n_cutoffs, cutoffs)
+            "Skipping cutoff due as it is not commensurate with supercell size"
         )
+        return None
+
+    try:
         sc = get_structure_container(cutoffs, structures)
-        opt = Optimizer(sc.get_fit_data(), fit_method)
+        opt = Optimizer(sc.get_fit_data(), fit_method, **fit_kwargs)
         opt.train()
 
         parameters = enforce_rotational_sum_rules(
@@ -168,36 +234,20 @@ def fit_force_constants(
         n_imaginary, min_freq, free_energy = evaluate_force_constants(
             parent_structure, supercell_matrix, phonopy_fcs, imaginary_tol
         )
-
-        fitting_data["cutoffs"].append(cutoffs)
-        fitting_data["rmse_test"].append(opt.rmse_test)
-        fitting_data["n_imaginary"].append(n_imaginary)
-        fitting_data["min_frequency"].append(min_freq)
-        fitting_data["300K_free_energy"].append(free_energy)
-
-        if (
-            min_freq > -np.abs(max_imaginary_freq)
-            and n_imaginary <= max_n_imaginary
-            and n_imaginary < best_fit["n_imaginary"]
-            and free_energy < best_fit["free_energy"]
-        ):
-            best_fit.update(
-                {
-                    "n_imaginary": n_imaginary,
-                    "free_energy": free_energy,
-                    "force_constants": fcs,
-                    "cutoffs": cutoffs,
-                }
-            )
-            fitting_data["best"] = cutoffs
-
-    logger.info("Finished fitting force constants.")
-
-    return best_fit["force_constants"], fitting_data
+        return {
+            "cutoffs": cutoffs,
+            "rmse_test": opt.rmse_test,
+            "n_imaginary": n_imaginary,
+            "min_frequency": min_freq,
+            "300K_free_energy": free_energy,
+            "force_constants": fcp
+        }
+    except Exception:
+        return None
 
 
 def get_structure_container(
-    cutoffs: List[float], structures: List["Atoms"]
+        cutoffs: List[float], structures: List["Atoms"]
 ) -> "StructureContainer":
     """
     Get a hiPhive StructureContainer from cutoffs and a list of atoms objects.

@@ -12,8 +12,8 @@ from atomate.vasp.powerups import (
 )
 from atomate.vasp.workflows.base.core import get_wf
 from atomate.vasp.firetasks.parse_outputs import (
-    MagneticDeformationToDB,
-    MagneticOrderingsToDB,
+    MagneticDeformationToDb,
+    MagneticOrderingsToDb,
 )
 
 from pymatgen.alchemy.materials import TransformedStructure
@@ -81,10 +81,10 @@ def get_wf_magnetic_deformation(structure, c=None, vis=None):
     wf = get_wf(structure, "magnetic_deformation.yaml", common_params=c, vis=vis)
 
     fw_analysis = Firework(
-        MagneticDeformationToDB(
+        MagneticDeformationToDb(
             db_file=DB_FILE, wf_uuid=uuid, to_db=c.get("to_db", True)
         ),
-        name="MagneticDeformationToDB",
+        name="MagneticDeformationToDb",
     )
 
     wf.append_wf(Workflow.from_Firework(fw_analysis), wf.leaf_fw_ids)
@@ -117,6 +117,7 @@ class MagneticOrderingsWF:
         automatic=True,
         truncate_by_symmetry=True,
         transformation_kwargs=None,
+        static=False,
     ):
         """
         This workflow will try several different collinear
@@ -160,20 +161,28 @@ class MagneticOrderingsWF:
 
         Args:
             structure: input structure
-            default_magmoms: (optional, defaults provided) dict of
-        magnetic elements to their initial magnetic moments in µB, generally
-        these are chosen to be high-spin since they can relax to a low-spin
-        configuration during a DFT electronic configuration
-            strategies: different ordering strategies to use, choose from:
-        ferromagnetic, antiferromagnetic, antiferromagnetic_by_motif,
-        ferrimagnetic_by_motif and ferrimagnetic_by_species (here, "motif",
-        means to use a different ordering parameter for symmetry inequivalent
-        sites)
-            automatic: if True, will automatically choose sensible strategies
-            truncate_by_symmetry: if True, will remove very unsymmetrical
-        orderings that are likely physically implausible
-            transformation_kwargs: keyword arguments to pass to
-        MagOrderingTransformation, to change automatic cell size limits, etc.
+            default_magmoms (dict): (optional, defaults provided) dict of
+                magnetic elements to their initial magnetic moments in µB,
+                generally these are chosen to be high-spin since they can
+                relax to a low-spin configuration during a DFT electronic
+                configuration
+            strategies (tuple): different ordering strategies to use, choose
+                from: ferromagnetic, antiferromagnetic,
+                antiferromagnetic_by_motif, ferrimagnetic_by_motif and
+                ferrimagnetic_by_species (here, "motif", 
+                means to use a different ordering parameter for symmetry
+                inequivalent sites)
+            automatic (bool): if True, will automatically choose sensible
+                strategies
+            truncate_by_symmetry (bool): if True, will remove very
+                unsymmetrical orderings that are likely physically implausible
+            transformation_kwargs (dict): keyword arguments to pass to
+                MagOrderingTransformation, to change automatic cell size
+                limits, etc.
+            static (bool): Run only static calcs (no optimization) of 
+                different magnetic orderings in a fixed ground state
+                geometry.
+
         """
 
         self.uuid = str(uuid4())
@@ -182,6 +191,7 @@ class MagneticOrderingsWF:
             "wf_name": self.__class__.__name__,
             "wf_version": __magnetic_ordering_wf_version__,
         }
+        self.static = static
 
         enumerator = MagneticStructureEnumerator(
             structure,
@@ -205,22 +215,23 @@ class MagneticOrderingsWF:
         Retrieve the FireWorks workflow.
 
         Args:
-            scan: if True, use the SCAN functional instead of GGA+U, since
-        the SCAN functional has shown to have improved performance for
-        magnetic systems in some cases
-            perform_bader: if True, make sure the "bader" binary is in your
-        path, will use Bader analysis to calculate atom-projected magnetic
-        moments
-            num_orderings_hard_limit: will make sure total number of magnetic
-        orderings does not exceed this number even if there are extra orderings
-        of equivalent symmetry
-            c: additional config dict (as used elsewhere in atomate)
+            scan (bool): if True, use the SCAN functional instead of GGA+U,
+                since the SCAN functional has shown to have improved
+                performance for magnetic systems in some cases
+            perform_bader (bool): if True, make sure the "bader" binary is in
+                your path, will use Bader analysis to calculate
+                atom-projected magnetic moments
+            num_orderings_hard_limit (int): will make sure total number of
+                magnetic orderings does not exceed this number even if there
+                are extra orderings of equivalent symmetry
+            c (dict): additional config dict (as used elsewhere in atomate)
 
         Returns: FireWorks Workflow
 
         """
 
         c_defaults = {"VASP_CMD": VASP_CMD, "DB_FILE": DB_FILE}
+        additional_fields = {"relax": not self.static}
         c = c or {}
         for k, v in c_defaults.items():
             if k not in c:
@@ -246,7 +257,9 @@ class MagneticOrderingsWF:
                 structure: Structure
 
             Returns: TransformedStructure
+
             """
+
             # this could be further improved by storing full transformation
             # history, but would require an improved transformation pipeline
             return TransformedStructure(
@@ -298,18 +311,20 @@ class MagneticOrderingsWF:
                     ordered_structure, user_incar_settings=user_incar_settings
                 )
 
-                # relax
-                fws.append(
-                    OptimizeFW(
-                        ordered_structure,
-                        vasp_input_set=vis,
-                        vasp_cmd=c["VASP_CMD"],
-                        db_file=c["DB_FILE"],
-                        max_force_threshold=0.05,
-                        half_kpts_first_relax=False,
-                        name=name + " optimize",
+                if not self.static:
+
+                    # relax
+                    fws.append(
+                        OptimizeFW(
+                            ordered_structure,
+                            vasp_input_set=vis,
+                            vasp_cmd=c["VASP_CMD"],
+                            db_file=c["DB_FILE"],
+                            max_force_threshold=0.05,
+                            half_kpts_first_relax=False,
+                            name=name + " optimize",
+                        )
                     )
-                )
 
                 # static
                 fws.append(
@@ -324,10 +339,11 @@ class MagneticOrderingsWF:
                     )
                 )
                 
-                # so a failed optimize doesn't crash workflow
-                fws[-1].spec["_allow_fizzled_parents"] = True
+                if not self.static:
+                    # so a failed optimize doesn't crash workflow
+                    fws[-1].spec["_allow_fizzled_parents"] = True
 
-            else:
+            elif scan:
 
                 # wf_scan_opt is just a single FireWork so can append it directly
                 scan_fws = wf_scan_opt(ordered_structure, c=c).fws
@@ -342,7 +358,7 @@ class MagneticOrderingsWF:
             analysis_parents.append(fws[-1])
 
         fw_analysis = Firework(
-            MagneticOrderingsToDB(
+            MagneticOrderingsToDb(
                 db_file=c["DB_FILE"],
                 wf_uuid=self.uuid,
                 parent_structure=self.sanitized_structure,
@@ -350,6 +366,7 @@ class MagneticOrderingsWF:
                 input_index=self.input_index,
                 perform_bader=perform_bader,
                 scan=scan,
+                additional_fields=additional_fields,
             ),
             name="Magnetic Orderings Analysis",
             parents=analysis_parents,
@@ -369,6 +386,113 @@ class MagneticOrderingsWF:
         wf = add_tags(wf, [tag, ordered_structure_origins])
 
         return wf
+
+
+def get_commensurate_orderings(magnetic_structures, energies):
+    """Generate supercells for static calculations.
+
+    From the ground state magnetic ordering and first excited state,
+    generate supercells with magnetic orderings.
+
+    If the gs is FM, match supercells to the 1st es.
+    If the gs is AFM, FM is included by default, 1st es may not be.
+    If the gs is FiM, 1st es may not be captured.
+
+    Args:
+        magnetic_structures (list): Structures.
+        energies (list): Energies per atom.
+
+    Returns:
+        matched_structures (list): Commensurate supercells for static 
+            calculations.
+
+    TODO:
+        * Only consider orderings with |S_i| = ground state
+        * Constrain noncollinear magmoms
+
+    """
+
+    # Sort by energies
+    ordered_structures = [
+        s for _, s in sorted(zip(energies, magnetic_structures), reverse=False)
+    ]
+    ordered_energies = sorted(energies, reverse=False)
+
+    # Ground state and 1st excited state
+    gs_struct = ordered_structures[0]
+    es_struct = ordered_structures[1]
+
+    cmsa = CollinearMagneticStructureAnalyzer(
+        es_struct, threshold=0.0, threshold_nonmag=1.0, make_primitive=False
+    )
+    es_ordering = cmsa.ordering.value
+    es_struct = cmsa.structure
+
+    cmsa = CollinearMagneticStructureAnalyzer(
+        gs_struct, threshold=0.0, threshold_nonmag=1.0, make_primitive=False
+    )
+    gs_ordering = cmsa.ordering.value
+    gs_struct = cmsa.structure
+
+    # FM gs will always be commensurate so we match to the 1st es
+    if gs_ordering == "FM":
+        enum_struct = es_struct
+        fm_moments = np.array(gs_struct.site_properties["magmom"])
+        fm_moment = np.mean(fm_moments[np.nonzero(fm_moments)])
+        gs_magmoms = [fm_moment for m in es_struct.site_properties["magmom"]]
+    elif gs_ordering in ["FiM", "AFM"]:
+        enum_struct = gs_struct
+        gs_magmoms = [abs(m) for m in gs_struct.site_properties["magmom"]]
+
+    mse = MagneticStructureEnumerator(
+        enum_struct,
+        strategies=("ferromagnetic", "antiferromagnetic"),
+        automatic=False,
+        transformation_kwargs={
+            "min_cell_size": 1,
+            "max_cell_size": 2,
+            "check_ordered_symmetry": False,
+        },
+    )
+
+    # Enumerator bookkeeping
+    input_index = mse.input_index
+    ordered_structure_origins = mse.ordered_structure_origins
+
+    matched_structures = []
+
+    sm = StructureMatcher(
+        primitive_cell=False, attempt_supercell=True, comparator=ElementComparator()
+    )
+
+    # Get commensurate supercells
+    for s in mse.ordered_structures:
+        try:
+            s2 = sm.get_s2_like_s1(enum_struct, s)
+        except:
+            s2 = None
+        if s2 is not None:
+            # Standardize magnetic structure
+            cmsa = CollinearMagneticStructureAnalyzer(
+                s2, threshold=0.0, make_primitive=False
+            )
+            s2 = cmsa.structure
+            matched_structures.append(s2)
+
+    # Find the gs ordering in the enumerated supercells
+    cmsa = CollinearMagneticStructureAnalyzer(
+        gs_struct, threshold=0.0, make_primitive=False
+    )
+
+    enum_index = [cmsa.matches_ordering(s) for s in matched_structures].index(True)
+
+    # Enforce all magmom magnitudes to match the gs
+    for s in matched_structures:
+        ms = s.site_properties["magmom"]
+        magmoms = [np.sign(m1) * m2 for m1, m2 in zip(ms, gs_magmoms)]
+        s.add_site_property("magmom", magmoms)
+
+    return matched_structures, input_index, ordered_structure_origins
 
 
 if __name__ == "__main__":
