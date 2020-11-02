@@ -409,7 +409,7 @@ class VaspDrone(AbstractDrone):
         # Should roughly agree with information from .get_band_structure() above, subject to tolerances
         # If there is disagreement, it may be related to VASP incorrectly assigning the Fermi level
         try:
-            band_props = v.eigenvalue_band_properties
+            band_props = vrun.eigenvalue_band_properties
             d["output"]["eigenvalue_band_properties"] = {
                 "bandgap": band_props[0],
                 "cbm": band_props[1],
