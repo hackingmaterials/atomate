@@ -23,7 +23,7 @@ from custodian import Custodian
 from custodian.vasp.handlers import VaspErrorHandler, AliasingErrorHandler, \
     MeshSymmetryErrorHandler, UnconvergedErrorHandler, MaxForceErrorHandler, PotimErrorHandler, \
     FrozenJobErrorHandler, NonConvergingErrorHandler, PositiveEnergyErrorHandler, \
-    WalltimeHandler, StdErrHandler, DriftErrorHandler, LargeSigmaHandler, ScanMetalHandler
+    WalltimeHandler, StdErrHandler, DriftErrorHandler, LargeSigmaHandler, IncorrectSmearingHandler, ScanMetalHandler
 from custodian.vasp.jobs import VaspJob, VaspNEBJob
 from custodian.vasp.validators import VasprunXMLValidator, VaspFilesValidator
 
@@ -101,15 +101,16 @@ class RunVaspCustodian(FiretaskBase):
             "default": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
                         NonConvergingErrorHandler(), PotimErrorHandler(),
                         PositiveEnergyErrorHandler(), FrozenJobErrorHandler(), StdErrHandler(),
-                        LargeSigmaHandler()],
+                        LargeSigmaHandler(), IncorrectSmearingHandler()],
             "strict": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
                        NonConvergingErrorHandler(), PotimErrorHandler(),
                        PositiveEnergyErrorHandler(), FrozenJobErrorHandler(),
-                       StdErrHandler(), AliasingErrorHandler(), DriftErrorHandler(), LargeSigmaHandler()],
+                       StdErrHandler(), AliasingErrorHandler(), DriftErrorHandler(), LargeSigmaHandler(), 
+                       IncorrectSmearingHandler()],
             "scan": [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErrorHandler(),
                      NonConvergingErrorHandler(), PotimErrorHandler(),
                      PositiveEnergyErrorHandler(), FrozenJobErrorHandler(), StdErrHandler(),
-                     LargeSigmaHandler(), ScanMetalHandler()],
+                     LargeSigmaHandler(), IncorrectSmearingHandler(), ScanMetalHandler()],
             "md": [VaspErrorHandler(), NonConvergingErrorHandler()],
             "no_handler": []
             }
