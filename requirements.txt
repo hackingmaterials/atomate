@@ -13,4 +13,4 @@ custodian==2020.4.27
 networkx==2.5
 pydash==4.9.0
 pyyaml==5.3.1
-maggma==0.23.3
+maggma==0.24.0
