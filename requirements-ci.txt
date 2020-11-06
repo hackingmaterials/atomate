@@ -3,4 +3,4 @@ pytest-cov==2.10.1
 coverage==5.3
 coveralls==2.1.2
 moto==1.3.16
-boto3==1.16.8
+boto3==1.16.12
