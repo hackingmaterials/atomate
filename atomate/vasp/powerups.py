@@ -17,10 +17,9 @@ from atomate.vasp.firetasks.run_calc import (
     RunNoVasp,
 )
 from atomate.vasp.firetasks.write_inputs import ModifyIncar, ModifyPotcar, ModifyKpoints
-from fireworks import Workflow, FileWriteTask
+from fireworks import FileWriteTask
 from fireworks.core.firework import Tracker
 from fireworks.utilities.fw_utilities import get_slug
-from pymatgen import Structure
 
 __author__ = "Anubhav Jain, Kiran Mathew, Alex Ganose"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"
@@ -375,7 +374,7 @@ def modify_to_soc(
             structure = (
                 original_wf.fws[fw_id].tasks[task_id]["vasp_input_set"].structure
             )
-        except:
+        except Exception:
             raise ValueError(
                 "modify_to_soc powerup requires the structure in vasp_input_set"
             )
@@ -939,3 +938,22 @@ def use_fake_lobster(original_wf, ref_dirs, params_to_check=None):
                         )
 
     return original_wf
+
+
+def power_up_by_kwargs(wf, **kwargs):
+    """
+    apply powerups in the form using a kwargs dictionary of the form:
+    {
+        powerup_function_name1 : {parameter1 : value1, parameter2: value2},
+        powerup_function_name2 : {parameter1 : value1, parameter2: value2},
+    }
+
+    As an example:
+        power_up_by_kwargs( "add_additional_fields_to_taskdocs" : {
+                                                                "update_dict" : {"foo" : "bar"}
+                                                                }
+        )
+    """
+    for k, v in kwargs:
+        locals()[k](wf, **v)
+    return wf
