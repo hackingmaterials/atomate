@@ -940,6 +940,9 @@ def use_fake_lobster(original_wf, ref_dirs, params_to_check=None):
     return original_wf
 
 
+local_names = locals()
+
+
 def power_up_by_kwargs(wf, **kwargs):
     """
     apply powerups in the form using a kwargs dictionary of the form:
@@ -954,6 +957,6 @@ def power_up_by_kwargs(wf, **kwargs):
                                                                 }
         )
     """
-    for k, v in kwargs:
-        locals()[k](wf, **v)
+    for k, v in kwargs.items():
+        local_names[k](wf, **v)
     return wf
