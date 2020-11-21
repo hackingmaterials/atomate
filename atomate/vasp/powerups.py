@@ -24,6 +24,8 @@ from fireworks.utilities.fw_utilities import get_slug
 __author__ = "Anubhav Jain, Kiran Mathew, Alex Ganose"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"
 
+POWERUP_NAMES = []
+
 
 def add_priority(original_wf, root_priority, child_priority=None):
     """
@@ -940,10 +942,20 @@ def use_fake_lobster(original_wf, ref_dirs, params_to_check=None):
     return original_wf
 
 
-local_names = locals()
+local_names = dict(locals())
+
+for k, v in local_names.items():
+    if (
+        hasattr(v, "__module__")
+        and v.__module__ == "atomate.vasp.powerups"
+        and k != "power_up_by_kwargs"
+    ):
+        POWERUP_NAMES.append(k)
+
+local_names = {k: v for k, v in local_names.items() if k in POWERUP_NAMES}
 
 
-def power_up_by_kwargs(wf, **kwargs):
+def powerup_by_kwargs(wf, **kwargs):
     """
     apply powerups in the form using a kwargs dictionary of the form:
     {
@@ -958,5 +970,5 @@ def power_up_by_kwargs(wf, **kwargs):
         )
     """
     for k, v in kwargs.items():
-        local_names[k](wf, **v)
+        wf = local_names[k](wf, **v)
     return wf

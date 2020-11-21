@@ -1,6 +1,7 @@
 import math
+from collections import defaultdict
 
-from fireworks import FiretaskBase, explicit_serialize, FWAction, Firework
+from fireworks import FiretaskBase, explicit_serialize, FWAction, Firework, Workflow
 from pymatgen import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher
 
@@ -13,7 +14,7 @@ __email__ = "jmmshn@lbl.gov"
 
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.firetasks import pass_vasp_result
-from atomate.vasp.powerups import add_additional_fields_to_taskdocs, add_tags
+from atomate.vasp.powerups import powerup_by_kwargs, POWERUP_NAMES
 
 logger = get_logger(__name__)
 
@@ -78,9 +79,7 @@ class GetNewCalcs(FiretaskBase):
         insert_sites = fw_spec.get("insert_sites", [])
         base_task_id = fw_spec.get("base_task_id")
         base_structure = fw_spec.get("base_structure", None)
-
         working_ion = fw_spec.get("working_ion", "Li")
-        tags = fw_spec.get("tags", None)
 
         if base_structure is None:
             raise RuntimeError(
@@ -89,6 +88,7 @@ class GetNewCalcs(FiretaskBase):
 
         base_structure = Structure.from_dict(base_structure)
         new_fws = []
+
         for isite in insert_sites:
             inserted_structure = base_structure.copy()
             fpos = [isite["a"], isite["b"], isite["c"]]
@@ -97,11 +97,8 @@ class GetNewCalcs(FiretaskBase):
             additional_fields = {"insertion_fpos": fpos, "base_task_id": base_task_id}
 
             # Create new fw
-            fw = OptimizeFW(inserted_structure)
-            fw = add_additional_fields_to_taskdocs(fw, additional_fields)
-
-            if tags is not None:
-                fw = add_tags(fw, tags)
+            wf = Workflow(OptimizeFW(inserted_structure))
+            wf = get_powereup_wf(wf, fw_spec, additional_fields=additional_fields)
 
             pass_dict = {
                 "structure": ">>output.ionic_steps.-1.structure",
@@ -113,8 +110,8 @@ class GetNewCalcs(FiretaskBase):
                 mod_spec_key="inserted_tasks",
             )
 
-            fw.tasks.append(pass_task)
-            new_fws.append(fw)
+            wf.tasks.append(pass_task)
+            new_fws.append(wf)
 
         if len(new_fws) == 0:
             return
@@ -135,8 +132,11 @@ class CollectInsertedCalcs(FiretaskBase):
     Aggregate the outputs of the inserted calculations, take the lowest energy completed calculation
     and pass it on for charge density analysis
 
-    Required keys in fw_spec
-
+    Required keys in fw_spec:
+    - inserted_results: list of parsed results from relaxation calcs each result needs to be:
+            {task_id : id, energy: -123.45, structure: struct}
+    - StructureMatcher: as_dict of a pymatgen structure matcher
+    - working_ion: name of the working ion
     """
 
     _fw_name = "CollectInsertedCalc"
@@ -144,11 +144,15 @@ class CollectInsertedCalcs(FiretaskBase):
     def run_task(self, fw_spec):
         reference_struct = Structure.from_dict(fw_spec.get("host_structure"))
         results = fw_spec.get("inserted_results", [])
+        working_ion = fw_spec.get("working_ion", "Li")
+        sm_dict = fw_spec.get("StructureMatcher", {})
 
-        """
-        each result needs to be:
-        {task_id : id, energy: -123.45, structure: struct}
-        """
+        sm_dict["ignore_species"] = [working_ion]
+
+        try:
+            sm = StructureMatcher.from_dict(sm_dict)
+        except KeyError:
+            sm = Structure(ignore_species=[working_ion])
 
         if len(results) == 0:
             # can happen if all parents fizzled
@@ -160,7 +164,6 @@ class CollectInsertedCalcs(FiretaskBase):
         for ires in results:
             n_completed += 1
             ires_struct_ = Structure.from_dict(ires["structure"])
-            # TODO pass kwargs for SM in via the launchpad
             if (
                 sm.fit(ires_struct_, reference_struct)
                 and ires["energy"] < best_res["energy"]
@@ -170,8 +173,7 @@ class CollectInsertedCalcs(FiretaskBase):
         if "task_id" not in best_res:
             # No matching structure was found in the completed results
             if n_completed > 0:
-                # TODO Finish the FireTask gracefully and diffuse the children
-                return FWAction()
+                return FWAction()  # TODO maybe deffuse children here?
 
         # Get the new structures
         return FWAction(update_spec=[{"base_task_id": best_res["task_id"]}])
@@ -181,23 +183,36 @@ class CollectInsertedCalcs(FiretaskBase):
 class SubmitMostStable(FiretaskBase):
     """
     For the best structure submit the Static WF
-
     """
 
     _fw_name = "SubmitBestInsertion"
 
     def run_task(self, fw_spec):
-
         inserted_structure = fw_spec.get("inserted_structure")
-        tags = fw_spec.get("tags", None)
-        additional_fields = fw_spec.get("additional_fields", {})
         inserted_structure = Structure.from_dict(inserted_structure)
 
-        fw = StaticFW(structure=inserted_structure)  # how to set the structure here
-        fw = add_additional_fields_to_taskdocs(fw, additional_fields)
+        wf = Workflow(
+            StaticFW(structure=inserted_structure)
+        )  # how to set the structure here
+        wf.tasks.append(AnalyzeChgcar())
+        wf.tasks.append(GetNewCalcs())
+        wf = get_powereup_wf(wf, fw_spec)
+        return FWAction(additions=[wf])
 
-        if tags is not None:
-            fw = add_tags(fw, tags)
 
-        fw.tasks.append(AnalyzeChgcar())
-        fw.tasks.append(GetNewCalcs())
+def get_powereup_wf(wf, fw_spec, additional_fields=None):
+    """
+    Check the fw_spec['vasp_powerups'] for powerups and apply them to a workflow.
+    Add/overwrite the additional fields in the fw_spec with user inputs
+    Args:
+        fw_spec: the fw_spec of the current workflow
+        additional_fields: The additional fields to be added to the task document
+    Returns:
+        Updated workflow
+    """
+    d_pu = defaultdict(dict)
+    d_pu.update(fw_spec.get("vasp_powerups", {}))
+    if additional_fields is not None:
+        d_pu["add_additional_fields_to_taskdocs"].update(additional_fields)
+    p_kwargs = {k: d_pu[k] for k in POWERUP_NAMES if k in d_pu}
+    return powerup_by_kwargs(wf, **p_kwargs)
