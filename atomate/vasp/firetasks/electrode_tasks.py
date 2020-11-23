@@ -8,6 +8,7 @@ from pymatgen.analysis.structure_matcher import StructureMatcher
 from atomate.utils.utils import env_chk, get_logger
 from pymatgen.analysis.defects.utils import ChargeInsertionAnalyzer
 
+from atomate.vasp.config import DB_FILE
 from atomate.vasp.fireworks.core import OptimizeFW, StaticFW
 
 from atomate.vasp.database import VaspCalcDb
@@ -41,7 +42,9 @@ class AnalyzeChgcar(FiretaskBase):
         cia_kwargs = fw_spec.get("ChargeInsertionAnalyzer_kwargs", dict())
 
         # get the database connection
+        fw_spec["db_file"] = DB_FILE
         db_file = env_chk(fw_spec.get("db_file"), fw_spec)
+        logger.info(f"DB_FILE: {db_file}")
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         chgcar = mmdb.get_chgcar(task_id=base_task_id)
 
@@ -97,7 +100,6 @@ class GetInsertionCalcs(FiretaskBase):
         print(base_structure)
         print(working_ion)
 
-
         if base_structure is None:
             raise RuntimeError(
                 "No base structure was passed to generate new insertion calculations."
@@ -108,14 +110,13 @@ class GetInsertionCalcs(FiretaskBase):
 
         for isite in insert_sites:
             inserted_structure = base_structure.copy()
-            fpos = [isite["a"], isite["b"], isite["c"]]
+            fpos = isite
             inserted_structure.insert(0, working_ion, fpos, properties={"magmom": 0})
 
             additional_fields = {"insertion_fpos": fpos, "base_task_id": base_task_id}
 
             # Create new fw
-            wf = Workflow(OptimizeFW(inserted_structure))
-            wf = get_powereup_wf(wf, fw_spec, additional_fields=additional_fields)
+            fw = OptimizeFW(inserted_structure)
 
             pass_dict = {
                 "structure": ">>output.ionic_steps.-1.structure",
@@ -127,7 +128,9 @@ class GetInsertionCalcs(FiretaskBase):
                 mod_spec_key="inserted_tasks",
             )
 
-            wf.tasks.append(pass_task)
+            fw.tasks.append(pass_task)
+            wf = Workflow([fw])
+            wf = get_powereup_wf(wf, fw_spec, additional_fields=additional_fields)
             new_fws.append(wf)
 
         if len(new_fws) == 0:
@@ -137,7 +140,9 @@ class GetInsertionCalcs(FiretaskBase):
         check_task = (
             CollectInsertedCalcs()
         )  # Ask Alex: Does this just grab the "host_structure" key
-        check_fw = Firework([check_task], parents=new_fws)  # Allow fizzled parent
+        check_fw = Firework(
+            [check_task], parents=new_fws, name="Collect Inserted Calcs"
+        )  # Allow fizzled parent
         check_fw.spec["_allow_fizzled_parents"] = True
 
         return FWAction(additions=new_fws + [check_fw])
@@ -230,6 +235,8 @@ def get_powereup_wf(wf, fw_spec, additional_fields=None):
     d_pu = defaultdict(dict)
     d_pu.update(fw_spec.get("vasp_powerups", {}))
     if additional_fields is not None:
-        d_pu["add_additional_fields_to_taskdocs"].update(additional_fields)
+        d_pu["add_additional_fields_to_taskdocs"].update(
+            {"update_dict": additional_fields}
+        )
     p_kwargs = {k: d_pu[k] for k in POWERUP_NAMES if k in d_pu}
     return powerup_by_kwargs(wf, **p_kwargs)
