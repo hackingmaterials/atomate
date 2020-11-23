@@ -41,7 +41,7 @@ class AnalyzeChgcar(FiretaskBase):
         cia_kwargs = fw_spec.get("ChargeInsertionAnalyzer_kwargs", dict())
 
         # get the database connection
-        db_file = env_chk(self.get("db_file"), fw_spec)
+        db_file = env_chk(fw_spec.get("db_file"), fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         chgcar = mmdb.get_chgcar(task_id=base_task_id)
 
@@ -49,10 +49,14 @@ class AnalyzeChgcar(FiretaskBase):
         cia.get_labels()
 
         insert_sites = []
+        seent = set()
 
         for itr, li_site in cia._extrema_df.iterrows():
-            li_site = self._extrema_df.iloc[itr]
-            insert_sites.append([li_site["a"], li_site["b"], li_site["c"]])
+            li_site = cia._extrema_df.iloc[itr]
+            lab = li_site["site_label"]
+            if lab not in seent:
+                insert_sites.append([li_site["a"], li_site["b"], li_site["c"]])
+                seent.add(lab)
 
         logger.info(
             f"Found {len(insert_sites)} insertion sites for task : {base_task_id}"
@@ -88,6 +92,11 @@ class GetInsertionCalcs(FiretaskBase):
         base_task_id = fw_spec.get("base_task_id")
         base_structure = fw_spec.get("base_structure", None)
         working_ion = fw_spec.get("working_ion", "Li")
+        print(insert_sites)
+        print(base_task_id)
+        print(base_structure)
+        print(working_ion)
+
 
         if base_structure is None:
             raise RuntimeError(
