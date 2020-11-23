@@ -89,6 +89,6 @@ def get_ion_insertion_wf(
     wf = Workflow([static_wf, analysis_wf], name=wf_name)
 
     if vasp_powerups is not None:
-        wf = powerup_by_kwargs(wf, vasp_powerups)
+        wf = powerup_by_kwargs(wf, **vasp_powerups)
 
     return wf
