@@ -6,6 +6,7 @@ __author__ = "Jimmy Shen"
 __email__ = "jmmshn@lbl.gov"
 
 from atomate.vasp.fireworks import StaticFW, Firework
+from atomate.vasp.powerups import powerup_by_kwargs
 
 """
 Define worflows related to battery material simulation --- they all have a working ion
@@ -85,4 +86,9 @@ def get_ion_insertion_wf(
         name="Charge Density Analysis",
     )
     analysis_wf.spec["working_ion"] = working_ion
-    return Workflow([static_wf, analysis_wf], name=wf_name)
+    wf = Workflow([static_wf, analysis_wf], name=wf_name)
+
+    if vasp_powerups is not None:
+        wf = powerup_by_kwargs(wf, vasp_powerups)
+
+    return wf
