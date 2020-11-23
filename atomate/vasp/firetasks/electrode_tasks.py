@@ -9,12 +9,12 @@ from atomate.utils.utils import env_chk, get_logger
 from pymatgen.analysis.defects.utils import ChargeInsertionAnalyzer
 from atomate.vasp.fireworks.core import OptimizeFW, StaticFW
 
-__author__ = "Jimmy Shen"
-__email__ = "jmmshn@lbl.gov"
-
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.firetasks import pass_vasp_result
 from atomate.vasp.powerups import powerup_by_kwargs, POWERUP_NAMES
+
+__author__ = "Jimmy Shen"
+__email__ = "jmmshn@lbl.gov"
 
 logger = get_logger(__name__)
 
@@ -31,10 +31,10 @@ class AnalyzeChgcar(FiretaskBase):
     - "db_file": The db_file that instantiates the tasks database
     """
 
-    required_params = ["base_task_id"]
-
     def run_task(self, fw_spec):
-        base_task_id = self.get("base_task_id")
+        base_task_id = fw_spec.get("base_task_id")
+        logger.info(f"Identifying sites for task : {base_task_id}")
+
         cia_kwargs = fw_spec.get("ChargeInsertionAnalyzer_kwargs", dict())
 
         # get the database connection
@@ -51,10 +51,15 @@ class AnalyzeChgcar(FiretaskBase):
             li_site = self._extrema_df.iloc[itr]
             insert_sites.append([li_site["a"], li_site["b"], li_site["c"]])
 
+        logger.info(
+            f"Found {len(insert_sites)} insertion sites for task : {base_task_id}"
+        )
+
         # Since we are only analyzing a single charge density
         # The we will only perform one set of atoms insertions at a given time
         # Thus, we just have to update the global fw_spec
         # (no need to pass this information from fw to fw)
+
         return FWAction(
             update_spec={
                 "insert_sites": insert_sites,
@@ -65,7 +70,7 @@ class AnalyzeChgcar(FiretaskBase):
 
 
 @explicit_serialize
-class GetNewCalcs(FiretaskBase):
+class GetInsertionCalcs(FiretaskBase):
     """
     Using a list of insertion sites and a base structure, get a new set of calculations
 
@@ -195,7 +200,7 @@ class SubmitMostStable(FiretaskBase):
             StaticFW(structure=inserted_structure)
         )  # how to set the structure here
         wf.tasks.append(AnalyzeChgcar())
-        wf.tasks.append(GetNewCalcs())
+        wf.tasks.append(GetInsertionCalcs())
         wf = get_powereup_wf(wf, fw_spec)
         return FWAction(additions=[wf])
 
