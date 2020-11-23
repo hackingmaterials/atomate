@@ -8,7 +8,6 @@ from pymatgen.analysis.structure_matcher import StructureMatcher
 from atomate.utils.utils import env_chk, get_logger
 from pymatgen.analysis.defects.utils import ChargeInsertionAnalyzer
 
-from atomate.vasp.config import DB_FILE
 from atomate.vasp.fireworks.core import OptimizeFW, StaticFW
 
 from atomate.vasp.database import VaspCalcDb
@@ -42,7 +41,7 @@ class AnalyzeChgcar(FiretaskBase):
         cia_kwargs = fw_spec.get("ChargeInsertionAnalyzer_kwargs", dict())
 
         # get the database connection
-        db_file = env_chk(self.get("db_file"), DB_FILE)
+        db_file = env_chk(self.get("db_file"), fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         chgcar = mmdb.get_chgcar(task_id=base_task_id)
 

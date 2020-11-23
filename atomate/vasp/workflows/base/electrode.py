@@ -1,5 +1,7 @@
 from fireworks import Workflow
 from pymatgen import Structure
+
+from atomate.vasp.config import DB_FILE
 from atomate.vasp.firetasks.electrode_tasks import AnalyzeChgcar, GetInsertionCalcs
 
 __author__ = "Jimmy Shen"
@@ -34,6 +36,7 @@ class IonInsertionWF(StaticFW):
 def get_ion_insertion_wf(
     structure: Structure,
     working_ion: str,
+    db_file: str = DB_FILE,
     vasptodb_kwargs: dict = None,
     volumetric_data_type: str = "CHGCAR",
     vasp_powerups: dict = None,
@@ -72,14 +75,14 @@ def get_ion_insertion_wf(
         }
     )
 
-    static_wf = StaticFW(structure=structure, vasptodb_kwargs=vasptodb_kwargs, **kwargs)
-
-    if vasp_powerups is not None:
-        static_wf.spec["vasp_powerups"] = vasp_powerups
+    static_wf = StaticFW(
+        structure=structure, vasptodb_kwargs=vasptodb_kwargs, db_file=db_file, **kwargs
+    )
 
     wf_name = "{}-{}".format(
         structure.composition.reduced_formula if structure else "unknown", "insertion"
     )
+
     analysis_wf = Firework(
         [AnalyzeChgcar(), GetInsertionCalcs()],
         parents=[static_wf],
@@ -88,7 +91,12 @@ def get_ion_insertion_wf(
     analysis_wf.spec["working_ion"] = working_ion
     wf = Workflow([static_wf, analysis_wf], name=wf_name)
 
+    for fw in wf.fws:
+        fw.spec["db_file"] = db_file
+
     if vasp_powerups is not None:
+        for fw in wf.fws:
+            fw.spec["vasp_powerups"] = vasp_powerups
         wf = powerup_by_kwargs(wf, **vasp_powerups)
 
     return wf
