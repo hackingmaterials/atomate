@@ -85,6 +85,7 @@ def get_ion_insertion_wf(
         structure.composition.reduced_formula if structure else "unknown", "insertion"
     )
 
+    # TODO Merge with Previouse FW
     analysis_wf = Firework(
         [AnalyzeChgcar(), GetInsertionCalcs()],
         parents=[static_wf],
