@@ -92,9 +92,9 @@ class GetInsertionCalcs(FiretaskBase):
     def run_task(self, fw_spec):
         insert_sites = fw_spec.get("insert_sites", [])
         base_task_id = fw_spec.get("base_task_id")
-        base_structure = fw_spec.get("base_structure", None)
-        working_ion = fw_spec.get("working_ion", "Li")
-        pass_keys = ["db_file", "vasp_powerups"]
+        base_structure = fw_spec.get("base_structure")
+        working_ion = fw_spec.get("working_ion")
+        pass_keys = ["db_file", "vasp_powerups", "base_task_id", "base_structure"]
 
         if base_structure is None:
             raise RuntimeError(
@@ -162,7 +162,7 @@ class CollectInsertedCalcs(FiretaskBase):
     _fw_name = "CollectInsertedCalc"
 
     def run_task(self, fw_spec):
-        reference_struct = Structure.from_dict(fw_spec.get("host_structure"))
+        reference_struct = Structure.from_dict(fw_spec.get("base_structure"))
         results = fw_spec.get("inserted_results", [])
         working_ion = fw_spec.get("working_ion", "Li")
         sm_dict = fw_spec.get("StructureMatcher", {})
