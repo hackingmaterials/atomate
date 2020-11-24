@@ -22,6 +22,15 @@ logger = get_logger(__name__)
 
 sm = StructureMatcher()
 
+PASS_KEYS = ["db_file", "vasp_powerups", "base_task_id", "base_structure"]
+
+
+def update_wf_keys(wf, fw_spec):
+    for k in PASS_KEYS:
+        if k in fw_spec:
+            for fw in wf.fws:
+                fw.spec[k] = fw_spec[k]
+
 
 @explicit_serialize
 class AnalyzeChgcar(FiretaskBase):
@@ -94,7 +103,6 @@ class GetInsertionCalcs(FiretaskBase):
         base_task_id = fw_spec.get("base_task_id")
         base_structure = fw_spec.get("base_structure")
         working_ion = fw_spec.get("working_ion")
-        pass_keys = ["db_file", "vasp_powerups", "base_task_id", "base_structure"]
 
         if base_structure is None:
             raise RuntimeError(
@@ -118,13 +126,14 @@ class GetInsertionCalcs(FiretaskBase):
 
             pass_dict = {
                 "structure": ">>output.ionic_steps.-1.structure",
+                "energy": ">>output.energy_per_atom",
             }
 
             pass_task = pass_vasp_result(
                 filename="vasprun.xml.relax2.gz",
                 pass_dict=pass_dict,
                 mod_spec_cmd="_push",
-                mod_spec_key="inserted_tasks",
+                mod_spec_key="inserted_results",
             )
 
             fw.tasks.append(pass_task)
@@ -140,11 +149,6 @@ class GetInsertionCalcs(FiretaskBase):
 
         wf = Workflow(new_fws + [check_fw])
         wf = get_powereup_wf(wf, fw_spec)
-
-        for k in pass_keys:
-            if k in fw_spec:
-                for fw in wf.fws:
-                    fw.spec[k] = fw_spec[k]
 
         return FWAction(additions=[wf], update_spec=fw_spec)
 
@@ -193,13 +197,15 @@ class CollectInsertedCalcs(FiretaskBase):
             ):
                 best_res = ires
 
-        if "task_id" not in best_res:
+        if "structure" not in best_res:
             # No matching structure was found in the completed results
             if n_completed > 0:
-                return FWAction()  # TODO maybe deffuse children here?
+                return FWAction(
+                    defuse_children=True
+                )  # TODO maybe diffuse children here?
 
         # Get the new structures
-        return FWAction(update_spec=[{"base_task_id": best_res["task_id"]}])
+        return FWAction(update_spec={"optimal_structure"})
 
 
 @explicit_serialize
@@ -211,16 +217,24 @@ class SubmitMostStable(FiretaskBase):
     _fw_name = "SubmitBestInsertion"
 
     def run_task(self, fw_spec):
-        inserted_structure = fw_spec.get("inserted_structure")
+        inserted_structure = fw_spec.get("optimal_structure")
         inserted_structure = Structure.from_dict(inserted_structure)
 
-        wf = Workflow(
-            StaticFW(structure=inserted_structure)
-        )  # how to set the structure here
-        wf.tasks.append(AnalyzeChgcar())
-        wf.tasks.append(GetInsertionCalcs())
+        vasptodb_kwargs = {
+            "store_volumetric_data": ["CHGCAR"],
+            "task_fields_to_push": {"base_task_id": "task_id"},
+        }
+
+        fws = [
+            StaticFW(
+                inserted_structure, vasptodb_kwargs=vasptodb_kwargs, db_file=DB_FILE
+            ),
+            AnalyzeChgcar(),
+            GetInsertionCalcs(),
+        ]
+        wf = Workflow(fws, name="Obtain inserted CHG")
         wf = get_powereup_wf(wf, fw_spec)
-        return FWAction(additions=[wf])
+        return FWAction(additions=[wf], update_spec=fw_spec)
 
 
 def get_powereup_wf(wf, fw_spec, additional_fields=None):
