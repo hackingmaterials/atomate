@@ -121,7 +121,7 @@ class GetInsertionCalcs(FiretaskBase):
             }
 
             pass_task = pass_vasp_result(
-                filename="vasp.out.relax2.gz",
+                filename="vasprun.xml.relax2.gz",
                 pass_dict=pass_dict,
                 mod_spec_cmd="_push",
                 mod_spec_key="inserted_tasks",
