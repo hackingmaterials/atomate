@@ -126,7 +126,7 @@ class GetInsertionCalcs(FiretaskBase):
 
             pass_dict = {
                 "structure": ">>output.ionic_steps.-1.structure",
-                "energy": ">>output.energy_per_atom",
+                "energy": "a>>final_energy",
             }
 
             pass_task = pass_vasp_result(
