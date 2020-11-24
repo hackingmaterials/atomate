@@ -22,14 +22,20 @@ logger = get_logger(__name__)
 
 sm = StructureMatcher()
 
-PASS_KEYS = ["db_file", "vasp_powerups", "base_task_id", "base_structure"]
+PASS_KEYS = [
+    "working_ion",
+    "db_file",
+    "vasp_powerups",
+    "base_task_id",
+    "base_structure",
+]
 
 
 def update_wf_keys(wf, fw_spec):
     for k in PASS_KEYS:
         if k in fw_spec:
             for fw in wf.fws:
-                fw.spec[k] = fw_spec[k]
+                fw.spec.update({k: fw_spec.get(k, None)})
 
 
 @explicit_serialize
@@ -99,29 +105,22 @@ class GetInsertionCalcs(FiretaskBase):
     """
 
     def run_task(self, fw_spec):
+
         insert_sites = fw_spec.get("insert_sites", [])
         base_task_id = fw_spec.get("base_task_id")
-        base_structure = fw_spec.get("base_structure")
+        base_structure = Structure.from_dict(fw_spec.get("base_structure"))
         working_ion = fw_spec.get("working_ion")
 
-        if base_structure is None:
-            raise RuntimeError(
-                "No base structure was passed to generate new insertion calculations."
-            )
-
-        base_structure = Structure.from_dict(base_structure)
         new_fws = []
-        for isite in insert_sites:
+        for itr, isite in enumerate(insert_sites):
             inserted_structure = base_structure.copy()
             fpos = isite
-            inserted_structure.insert(
-                0, working_ion, fpos, properties={"magmom": [0, 0, 0]}
-            )
+            inserted_structure.insert(0, working_ion, fpos, properties={"magmom": None})
 
             additional_fields = {"insertion_fpos": fpos, "base_task_id": base_task_id}
 
             # Create new fw
-            fw = OptimizeFW(inserted_structure)
+            fw = OptimizeFW(inserted_structure, name=f"insert-opt-{itr}")
             fw.tasks[-1]["additional_fields"].update(additional_fields)
 
             pass_dict = {
@@ -152,7 +151,8 @@ class GetInsertionCalcs(FiretaskBase):
         wf = Workflow(new_fws + [check_fw])
         wf = get_powereup_wf(wf, fw_spec)
 
-        return FWAction(additions=[wf], update_spec=fw_spec)
+        update_wf_keys(wf, fw_spec)
+        return FWAction(additions=[wf])
 
 
 @explicit_serialize
@@ -171,9 +171,9 @@ class CollectInsertedCalcs(FiretaskBase):
     _fw_name = "CollectInsertedCalc"
 
     def run_task(self, fw_spec):
-        reference_struct = Structure.from_dict(fw_spec.get("base_structure"))
+        reference_struct = fw_spec.get("base_structure")
         results = fw_spec.get("inserted_results", [])
-        working_ion = fw_spec.get("working_ion", "Li")
+        working_ion = fw_spec.get("working_ion")
         sm_dict = fw_spec.get("StructureMatcher", {})
 
         sm_dict["ignore_species"] = [working_ion]
@@ -181,7 +181,7 @@ class CollectInsertedCalcs(FiretaskBase):
         try:
             sm = StructureMatcher.from_dict(sm_dict)
         except KeyError:
-            sm = Structure(ignore_species=[working_ion])
+            sm = StructureMatcher(ignored_species=[working_ion])
 
         if len(results) == 0:
             # can happen if all parents fizzled
@@ -192,11 +192,12 @@ class CollectInsertedCalcs(FiretaskBase):
         n_completed = 0
         for ires in results:
             n_completed += 1
-            ires_struct_ = Structure.from_dict(ires["structure"])
+            ires_struct_ = ires["structure"]
             if (
                 sm.fit(ires_struct_, reference_struct)
                 and ires["energy"] < best_res["energy"]
             ):
+                logger.info("Found new optimal_structure")
                 best_res = ires
 
         if "structure" not in best_res:
@@ -207,7 +208,7 @@ class CollectInsertedCalcs(FiretaskBase):
                 )  # TODO maybe diffuse children here?
 
         # Get the new structures
-        return FWAction(update_spec={"optimal_structure"})
+        return FWAction(update_spec={"optimal_structure": best_res["structure"]})
 
 
 @explicit_serialize
@@ -220,7 +221,6 @@ class SubmitMostStable(FiretaskBase):
 
     def run_task(self, fw_spec):
         inserted_structure = fw_spec.get("optimal_structure")
-        inserted_structure = Structure.from_dict(inserted_structure)
 
         vasptodb_kwargs = {
             "store_volumetric_data": ["CHGCAR"],
@@ -231,12 +231,13 @@ class SubmitMostStable(FiretaskBase):
             StaticFW(
                 inserted_structure, vasptodb_kwargs=vasptodb_kwargs, db_file=DB_FILE
             ),
-            AnalyzeChgcar(),
-            GetInsertionCalcs(),
+            Firework(
+                [AnalyzeChgcar(), GetInsertionCalcs()], name="Charge Density Analysis"
+            ),
         ]
         wf = Workflow(fws, name="Obtain inserted CHG")
         wf = get_powereup_wf(wf, fw_spec)
-        return FWAction(additions=[wf], update_spec=fw_spec)
+        return FWAction(additions=[wf])
 
 
 def get_powereup_wf(wf, fw_spec, additional_fields=None):

@@ -1,4 +1,4 @@
-from collections import Mapping
+import collections
 
 from fireworks import Workflow
 from pymatgen import Structure
@@ -116,7 +116,7 @@ def get_ion_insertion_wf(
 
 def rec_update(d, u):
     for k, v in u.items():
-        if isinstance(v, Mapping):
+        if isinstance(v, collections.abc.Mapping):
             d[k] = rec_update(d.get(k, {}), v)
         else:
             d[k] = v
