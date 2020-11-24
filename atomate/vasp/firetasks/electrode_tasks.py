@@ -143,7 +143,9 @@ class GetInsertionCalcs(FiretaskBase):
             return
 
         check_fw = Firework(
-            [CollectInsertedCalcs()], parents=new_fws, name="Collect Inserted Calcs"
+            [CollectInsertedCalcs(), SubmitMostStable()],
+            parents=new_fws,
+            name="Collect Inserted Calcs",
         )  # Allow fizzled parent
         check_fw.spec["_allow_fizzled_parents"] = True
 
