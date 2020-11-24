@@ -106,7 +106,9 @@ class GetInsertionCalcs(FiretaskBase):
         for isite in insert_sites:
             inserted_structure = base_structure.copy()
             fpos = isite
-            inserted_structure.insert(0, working_ion, fpos, properties={"magmom": None})
+            inserted_structure.insert(
+                0, working_ion, fpos, properties={"magmom": [0, 0, 0]}
+            )
 
             additional_fields = {"insertion_fpos": fpos, "base_task_id": base_task_id}
 

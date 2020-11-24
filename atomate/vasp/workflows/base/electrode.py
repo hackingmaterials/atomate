@@ -1,3 +1,5 @@
+from collections import Mapping
+
 from fireworks import Workflow
 from pymatgen import Structure
 
@@ -94,9 +96,27 @@ def get_ion_insertion_wf(
     for fw in wf.fws:
         fw.spec["db_file"] = db_file
 
+    vp_dict = {
+        "add_modify_incar": {
+            "modify_incar_params": {"incar_update": {"ISMEAR": 0, "SIGMA": 0.02}}
+        }
+    }
+
     if vasp_powerups is not None:
-        for fw in wf.fws:
-            fw.spec["vasp_powerups"] = vasp_powerups
-        wf = powerup_by_kwargs(wf, **vasp_powerups)
+        rec_update(vp_dict, vasp_powerups)
+
+    for fw in wf.fws:
+        fw.spec["vasp_powerups"] = vp_dict
+
+    wf = powerup_by_kwargs(wf, **vp_dict)
 
     return wf
+
+
+def rec_update(d, u):
+    for k, v in u.items():
+        if isinstance(v, Mapping):
+            d[k] = rec_update(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
