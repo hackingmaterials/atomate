@@ -69,14 +69,14 @@ class AnalyzeChgcar(FiretaskBase):
         # The we will only perform one set of atoms insertions at a given time
         # Thus, we just have to update the global fw_spec
         # (no need to pass this information from fw to fw)
+        update_spec_dict = {
+            "insert_sites": insert_sites,
+            "base_task_id": base_task_id,
+            "base_structure": chgcar.structure.as_dict(),
+        }
+        update_spec_dict.update(fw_spec)
 
-        return FWAction(
-            update_spec={
-                "insert_sites": insert_sites,
-                "base_task_id": base_task_id,
-                "base_structure": chgcar.structure.as_dict(),
-            }
-        )
+        return FWAction(update_spec=update_spec_dict)
 
 
 @explicit_serialize
@@ -95,10 +95,6 @@ class GetInsertionCalcs(FiretaskBase):
         base_task_id = fw_spec.get("base_task_id")
         base_structure = fw_spec.get("base_structure", None)
         working_ion = fw_spec.get("working_ion", "Li")
-        print(insert_sites)
-        print(base_task_id)
-        print(base_structure)
-        print(working_ion)
 
         if base_structure is None:
             raise RuntimeError(
@@ -107,7 +103,6 @@ class GetInsertionCalcs(FiretaskBase):
 
         base_structure = Structure.from_dict(base_structure)
         new_fws = []
-
         for isite in insert_sites:
             inserted_structure = base_structure.copy()
             fpos = isite
@@ -129,23 +124,20 @@ class GetInsertionCalcs(FiretaskBase):
             )
 
             fw.tasks.append(pass_task)
-            wf = Workflow([fw])
-            wf = get_powereup_wf(wf, fw_spec, additional_fields=additional_fields)
-            new_fws.append(wf)
+            new_fws.append(fw)
 
         if len(new_fws) == 0:
             return
 
-        # analysis workflow that returns a
-        check_task = (
-            CollectInsertedCalcs()
-        )  # Ask Alex: Does this just grab the "host_structure" key
         check_fw = Firework(
-            [check_task], parents=new_fws, name="Collect Inserted Calcs"
+            [CollectInsertedCalcs()], parents=new_fws, name="Collect Inserted Calcs"
         )  # Allow fizzled parent
         check_fw.spec["_allow_fizzled_parents"] = True
 
-        return FWAction(additions=new_fws + [check_fw])
+        wf = Workflow(new_fws + [check_fw])
+        wf = get_powereup_wf(wf, fw_spec, additional_fields=additional_fields)
+
+        return FWAction(additions=[wf])
 
 
 @explicit_serialize
