@@ -94,7 +94,7 @@ class GetInsertionCalcs(FiretaskBase):
         base_task_id = fw_spec.get("base_task_id")
         base_structure = fw_spec.get("base_structure", None)
         working_ion = fw_spec.get("working_ion", "Li")
-        # pass_keys = ['db_file', "vasp_powerups"]
+        pass_keys = ["db_file", "vasp_powerups"]
 
         if base_structure is None:
             raise RuntimeError(
@@ -106,12 +106,13 @@ class GetInsertionCalcs(FiretaskBase):
         for isite in insert_sites:
             inserted_structure = base_structure.copy()
             fpos = isite
-            inserted_structure.insert(0, working_ion, fpos, properties={"magmom": 0})
+            inserted_structure.insert(0, working_ion, fpos, properties={"magmom": None})
 
             additional_fields = {"insertion_fpos": fpos, "base_task_id": base_task_id}
 
             # Create new fw
             fw = OptimizeFW(inserted_structure)
+            fw.tasks[-1]["additional_fields"].update(additional_fields)
 
             pass_dict = {
                 "structure": ">>output.ionic_steps.-1.structure",
@@ -135,12 +136,12 @@ class GetInsertionCalcs(FiretaskBase):
         check_fw.spec["_allow_fizzled_parents"] = True
 
         wf = Workflow(new_fws + [check_fw])
-        wf = get_powereup_wf(wf, fw_spec, additional_fields=additional_fields)
+        wf = get_powereup_wf(wf, fw_spec)
 
-        # for k in pass_keys:
-        #     if k in fw_spec:
-        #         for fw in wf.fws:
-        #             fw.spec[k] = fw_spec[k]
+        for k in pass_keys:
+            if k in fw_spec:
+                for fw in wf.fws:
+                    fw.spec[k] = fw_spec[k]
 
         return FWAction(additions=[wf], update_spec=fw_spec)
 
