@@ -69,14 +69,13 @@ class AnalyzeChgcar(FiretaskBase):
         # The we will only perform one set of atoms insertions at a given time
         # Thus, we just have to update the global fw_spec
         # (no need to pass this information from fw to fw)
-        update_spec_dict = {
-            "insert_sites": insert_sites,
-            "base_task_id": base_task_id,
-            "base_structure": chgcar.structure.as_dict(),
-        }
-        update_spec_dict.update(fw_spec)
-
-        return FWAction(update_spec=update_spec_dict)
+        return FWAction(
+            update_spec={
+                "insert_sites": insert_sites,
+                "base_task_id": base_task_id,
+                "base_structure": chgcar.structure.as_dict(),
+            }
+        )
 
 
 @explicit_serialize
@@ -95,6 +94,7 @@ class GetInsertionCalcs(FiretaskBase):
         base_task_id = fw_spec.get("base_task_id")
         base_structure = fw_spec.get("base_structure", None)
         working_ion = fw_spec.get("working_ion", "Li")
+        # pass_keys = ['db_file', "vasp_powerups"]
 
         if base_structure is None:
             raise RuntimeError(
@@ -137,7 +137,12 @@ class GetInsertionCalcs(FiretaskBase):
         wf = Workflow(new_fws + [check_fw])
         wf = get_powereup_wf(wf, fw_spec, additional_fields=additional_fields)
 
-        return FWAction(additions=[wf])
+        # for k in pass_keys:
+        #     if k in fw_spec:
+        #         for fw in wf.fws:
+        #             fw.spec[k] = fw_spec[k]
+
+        return FWAction(additions=[wf], update_spec=fw_spec)
 
 
 @explicit_serialize
