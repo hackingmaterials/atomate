@@ -30,6 +30,7 @@ def update_wf_keys(wf, fw_spec):
         "db_file",
         "vasp_powerups",
         "base_task_id",
+        "max_insertions",
         "base_structure",
     ]
 
