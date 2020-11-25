@@ -97,6 +97,7 @@ def get_ion_insertion_wf(
 
     for fw in wf.fws:
         fw.spec["db_file"] = db_file
+        fw.spec["max_insertions"] = max_insertions
 
     # vp_dict = {
     #     "add_modify_incar": {
