@@ -22,16 +22,17 @@ logger = get_logger(__name__)
 
 sm = StructureMatcher()
 
-PASS_KEYS = [
-    "working_ion",
-    "db_file",
-    "vasp_powerups",
-    "base_task_id",
-    "base_structure",
-]
 
-
+# Helper function to allow specific keys to be propagated to newly created workflows
 def update_wf_keys(wf, fw_spec):
+    PASS_KEYS = [
+        "working_ion",
+        "db_file",
+        "vasp_powerups",
+        "base_task_id",
+        "base_structure",
+    ]
+
     for k in PASS_KEYS:
         if k in fw_spec:
             for fw in wf.fws:
@@ -46,11 +47,13 @@ class AnalyzeChgcar(FiretaskBase):
     - "base_task_id" : the task_id for the charge density that is being analyzed
     - "ChargeInsertionAnalyzer_kwargs": The kwargs to overwrite default values in the ChargeInsertionAnalyzer
     - "db_file": The db_file that instantiates the tasks database
+    - "max_insertions": Restrict the number of insertion sites based on charge density (default 5)
     """
 
     optional_params = ["db_file"]
 
     def run_task(self, fw_spec):
+        max_insertions = fw_spec.get("max_insertions", 5)
         base_task_id = fw_spec.get("base_task_id")
         logger.info(f"Identifying sites for task : {base_task_id}")
 
@@ -69,7 +72,10 @@ class AnalyzeChgcar(FiretaskBase):
         insert_sites = []
         seent = set()
 
+        cia._extrema_df.sort_values(by=["avg_charge_den"], inplace=True)
         for itr, li_site in cia._extrema_df.iterrows():
+            if len(insert_sites) >= max_insertions:
+                break
             li_site = cia._extrema_df.iloc[itr]
             lab = li_site["site_label"]
             if lab not in seent:
@@ -227,16 +233,17 @@ class SubmitMostStable(FiretaskBase):
             "task_fields_to_push": {"base_task_id": "task_id"},
         }
 
-        fws = [
-            StaticFW(
-                inserted_structure, vasptodb_kwargs=vasptodb_kwargs, db_file=DB_FILE
-            ),
-            Firework(
-                [AnalyzeChgcar(), GetInsertionCalcs()], name="Charge Density Analysis"
-            ),
-        ]
-        wf = Workflow(fws, name="Obtain inserted CHG")
+        fw1 = StaticFW(
+            inserted_structure, vasptodb_kwargs=vasptodb_kwargs, db_file=DB_FILE
+        )
+        fw2 = Firework(
+            [AnalyzeChgcar(), GetInsertionCalcs()],
+            name="Charge Density Analysis",
+            parents=fw1,
+        )
+        wf = Workflow([fw1, fw2], name="Obtain inserted CHG")
         wf = get_powereup_wf(wf, fw_spec)
+        update_wf_keys(wf, fw_spec)
         return FWAction(additions=[wf])
 
 

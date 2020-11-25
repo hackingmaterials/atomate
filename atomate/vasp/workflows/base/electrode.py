@@ -42,6 +42,7 @@ def get_ion_insertion_wf(
     vasptodb_kwargs: dict = None,
     volumetric_data_type: str = "CHGCAR",
     vasp_powerups: dict = None,
+    max_insertions: int = 5,
     **kwargs
 ):
     """
@@ -97,11 +98,12 @@ def get_ion_insertion_wf(
     for fw in wf.fws:
         fw.spec["db_file"] = db_file
 
-    vp_dict = {
-        "add_modify_incar": {
-            "modify_incar_params": {"incar_update": {"ISMEAR": 0, "SIGMA": 0.02}}
-        }
-    }
+    # vp_dict = {
+    #     "add_modify_incar": {
+    #         "modify_incar_params": {"incar_update": {"ISMEAR": 0, "SIGMA": 0.02}}
+    #     }
+    # }
+    vp_dict = dict()
 
     if vasp_powerups is not None:
         rec_update(vp_dict, vasp_powerups)
