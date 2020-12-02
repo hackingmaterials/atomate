@@ -20,11 +20,18 @@ __email__ = "jmmshn@lbl.gov"
 
 logger = get_logger(__name__)
 
-sm = StructureMatcher()
+SM_DICT = StructureMatcher().as_dict()
 
 
-# Helper function to allow specific keys to be propagated to newly created workflows
 def update_wf_keys(wf, fw_spec):
+    """
+    Helper function to allow specific keys to be propagated to newly created workflows
+    update the wf in place with the keys in the fw_spec dictionary
+    Args:
+        wf: workflow to modify
+        fw_spec: dictionary to be passed
+    """
+
     PASS_KEYS = [
         "working_ion",
         "db_file",
@@ -33,7 +40,6 @@ def update_wf_keys(wf, fw_spec):
         "max_insertions",
         "base_structure",
     ]
-
     for k in PASS_KEYS:
         if k in fw_spec:
             for fw in wf.fws:
@@ -109,6 +115,10 @@ class GetInsertionCalcs(FiretaskBase):
     - "base_task_id" : the task_id for the charge density that is being analyzed
     - "base_structure": the base structure that the ion will be inserted on
     - "insert_sites": The list of insertion sites
+
+    Optional fw_spec:
+    - "allow_fizzled_parents" : If True, perform the static calculation and charge density
+        analysis as long as a single optimization is finished. Default is False
     """
 
     def run_task(self, fw_spec):
@@ -117,13 +127,14 @@ class GetInsertionCalcs(FiretaskBase):
         base_task_id = fw_spec.get("base_task_id")
         base_structure = Structure.from_dict(fw_spec.get("base_structure"))
         working_ion = fw_spec.get("working_ion")
+        allow_fizzled_parents = fw_spec.get("working_ion", False)
 
         new_fws = []
         for itr, isite in enumerate(insert_sites):
             inserted_structure = base_structure.copy()
             fpos = isite
-            inserted_structure.insert(0, working_ion, fpos, properties={"magmom": None})
-
+            inserted_structure.insert(0, working_ion, fpos, properties={"magmom": 0.0})
+            n_ion = inserted_structure.composition.element_composition[working_ion]
             additional_fields = {"insertion_fpos": fpos, "base_task_id": base_task_id}
 
             # Create new fw
@@ -151,9 +162,10 @@ class GetInsertionCalcs(FiretaskBase):
         check_fw = Firework(
             [CollectInsertedCalcs(), SubmitMostStable()],
             parents=new_fws,
-            name="Collect Inserted Calcs",
-        )  # Allow fizzled parent
-        check_fw.spec["_allow_fizzled_parents"] = True
+            name=f"Collect Inserted Calcs-{n_ion}",
+        )
+        # Allow fizzled parent
+        check_fw.spec["_allow_fizzled_parents"] = allow_fizzled_parents
 
         wf = Workflow(new_fws + [check_fw])
         wf = get_powereup_wf(wf, fw_spec)
@@ -169,10 +181,12 @@ class CollectInsertedCalcs(FiretaskBase):
     and pass it on for charge density analysis
 
     Required keys in fw_spec:
+    - base_structure: the base structure that the ion will be inserted on
     - inserted_results: list of parsed results from relaxation calcs each result needs to be:
             {task_id : id, energy: -123.45, structure: struct}
-    - StructureMatcher: as_dict of a pymatgen structure matcher
     - working_ion: name of the working ion
+    Optional keys in fw_spec:
+    - StructureMatcher: as_dict of a pymatgen structure matcher
     """
 
     _fw_name = "CollectInsertedCalc"
@@ -181,14 +195,9 @@ class CollectInsertedCalcs(FiretaskBase):
         reference_struct = fw_spec.get("base_structure")
         results = fw_spec.get("inserted_results", [])
         working_ion = fw_spec.get("working_ion")
-        sm_dict = fw_spec.get("StructureMatcher", {})
-
+        sm_dict = fw_spec.get("StructureMatcher", SM_DICT)
         sm_dict["ignore_species"] = [working_ion]
-
-        try:
-            sm = StructureMatcher.from_dict(sm_dict)
-        except KeyError:
-            sm = StructureMatcher(ignored_species=[working_ion])
+        sm = StructureMatcher.from_dict(sm_dict)
 
         if len(results) == 0:
             # can happen if all parents fizzled
@@ -210,9 +219,7 @@ class CollectInsertedCalcs(FiretaskBase):
         if "structure" not in best_res:
             # No matching structure was found in the completed results
             if n_completed > 0:
-                return FWAction(
-                    defuse_children=True
-                )  # TODO maybe diffuse children here?
+                return FWAction(defuse_children=True)
 
         # Get the new structures
         return FWAction(update_spec={"optimal_structure": best_res["structure"]})
@@ -222,24 +229,28 @@ class CollectInsertedCalcs(FiretaskBase):
 class SubmitMostStable(FiretaskBase):
     """
     For the best structure submit the Static WF
+
+    Required keys in fw_spec:
+    - optimal_structure: the most stable relaxed structure
+    - working_ion: name of the working ion
     """
 
     _fw_name = "SubmitBestInsertion"
 
     def run_task(self, fw_spec):
         inserted_structure = fw_spec.get("optimal_structure")
-
+        working_ion = fw_spec.get("working_ion")
         vasptodb_kwargs = {
             "store_volumetric_data": ["CHGCAR"],
             "task_fields_to_push": {"base_task_id": "task_id"},
         }
-
         fw1 = StaticFW(
             inserted_structure, vasptodb_kwargs=vasptodb_kwargs, db_file=DB_FILE
         )
+        n_ion = inserted_structure.composition.element_composition[working_ion]
         fw2 = Firework(
             [AnalyzeChgcar(), GetInsertionCalcs()],
-            name="Charge Density Analysis",
+            name=f"Charge Density Analysis-{n_ion}",
             parents=fw1,
         )
         wf = Workflow([fw1, fw2], name="Obtain inserted CHG")

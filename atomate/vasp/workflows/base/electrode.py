@@ -9,7 +9,7 @@ from atomate.vasp.firetasks.electrode_tasks import AnalyzeChgcar, GetInsertionCa
 __author__ = "Jimmy Shen"
 __email__ = "jmmshn@lbl.gov"
 
-from atomate.vasp.fireworks import StaticFW, Firework
+from atomate.vasp.fireworks import StaticFW, Firework, OptimizeFW
 from atomate.vasp.powerups import powerup_by_kwargs
 
 """
@@ -78,6 +78,7 @@ def get_ion_insertion_wf(
         }
     )
 
+    opt_wf = OptimizeFW(structure=structure, db_file=db_file)
     static_wf = StaticFW(
         structure=structure, vasptodb_kwargs=vasptodb_kwargs, db_file=db_file, **kwargs
     )
@@ -90,10 +91,10 @@ def get_ion_insertion_wf(
     analysis_wf = Firework(
         [AnalyzeChgcar(), GetInsertionCalcs()],
         parents=[static_wf],
-        name="Charge Density Analysis",
+        name="Charge Density Analysis-0",
     )
     analysis_wf.spec["working_ion"] = working_ion
-    wf = Workflow([static_wf, analysis_wf], name=wf_name)
+    wf = Workflow([opt_wf, static_wf, analysis_wf], name=wf_name)
 
     for fw in wf.fws:
         fw.spec["db_file"] = db_file
