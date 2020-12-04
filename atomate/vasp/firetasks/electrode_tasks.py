@@ -39,6 +39,10 @@ def update_wf_keys(wf, fw_spec):
         "base_task_id",
         "max_insertions",
         "base_structure",
+        "vasptodb_kwargs",
+        "staticfw_kwargs",
+        "optimizefw_kwargs",
+        "structure_matcher",
     ]
     for k in PASS_KEYS:
         if k in fw_spec:
@@ -57,8 +61,6 @@ class AnalyzeChgcar(FiretaskBase):
     - "max_insertions": Restrict the number of insertion sites based on charge density (default 5)
     """
 
-    optional_params = ["db_file"]
-
     def run_task(self, fw_spec):
         max_insertions = fw_spec.get("max_insertions", 5)
         base_task_id = fw_spec.get("base_task_id")
@@ -67,8 +69,7 @@ class AnalyzeChgcar(FiretaskBase):
         cia_kwargs = fw_spec.get("ChargeInsertionAnalyzer_kwargs", dict())
 
         # get the database connection
-        fw_spec["db_file"] = DB_FILE
-        db_file = env_chk(fw_spec.get("db_file"), fw_spec)
+        db_file = env_chk(DB_FILE, fw_spec)
         logger.info(f"DB_FILE: {db_file}")
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         chgcar = mmdb.get_chgcar(task_id=base_task_id)
@@ -115,10 +116,12 @@ class GetInsertionCalcs(FiretaskBase):
     - "base_task_id" : the task_id for the charge density that is being analyzed
     - "base_structure": the base structure that the ion will be inserted on
     - "insert_sites": The list of insertion sites
+    - "working_ion": The name of the ion to be inserted
 
     Optional fw_spec:
-    - "allow_fizzled_parents" : If True, perform the static calculation and charge density
+    - "allow_fizzled_parents": If True, perform the static calculation and charge density
         analysis as long as a single optimization is finished. Default is False
+    - "optimizefw_kwargs":  kwargs for the OptimizeFW created by the present task
     """
 
     def run_task(self, fw_spec):
@@ -128,6 +131,7 @@ class GetInsertionCalcs(FiretaskBase):
         base_structure = Structure.from_dict(fw_spec.get("base_structure"))
         working_ion = fw_spec.get("working_ion")
         allow_fizzled_parents = fw_spec.get("working_ion", False)
+        optimizefw_kwargs = fw_spec.get("optimizefw_kwargs", {})
 
         new_fws = []
         for itr, isite in enumerate(insert_sites):
@@ -138,8 +142,10 @@ class GetInsertionCalcs(FiretaskBase):
             additional_fields = {"insertion_fpos": fpos, "base_task_id": base_task_id}
 
             # Create new fw
-            fw = OptimizeFW(inserted_structure, name=f"insert-opt-{itr}")
-            fw.tasks[-1]["additional_fields"].update(additional_fields)
+            fw = OptimizeFW(
+                inserted_structure, name=f"insert-opt-{itr}", **optimizefw_kwargs
+            )
+            fw.tasks[-1]["additional_fields"].update(additional_fields)  #
 
             pass_dict = {
                 "structure": ">>output.ionic_steps.-1.structure",
@@ -168,7 +174,7 @@ class GetInsertionCalcs(FiretaskBase):
         check_fw.spec["_allow_fizzled_parents"] = allow_fizzled_parents
 
         wf = Workflow(new_fws + [check_fw])
-        wf = get_powereup_wf(wf, fw_spec)
+        wf = get_powerup_wf(wf, fw_spec)
 
         update_wf_keys(wf, fw_spec)
         return FWAction(additions=[wf])
@@ -181,12 +187,15 @@ class CollectInsertedCalcs(FiretaskBase):
     and pass it on for charge density analysis
 
     Required keys in fw_spec:
-    - base_structure: the base structure that the ion will be inserted on
-    - inserted_results: list of parsed results from relaxation calcs each result needs to be:
+    - "base_structure": the base structure that the ion will be inserted on
+    - "inserted_results": list of parsed results from relaxation calcs each result needs to be:
             {task_id : id, energy: -123.45, structure: struct}
-    - working_ion: name of the working ion
+    - "working_ion": name of the working ion
+
     Optional keys in fw_spec:
-    - StructureMatcher: as_dict of a pymatgen structure matcher
+    - "structure_matcher": as_dict of a pymatgen structure matcher
+    - "staticfw_kwargs": as_dict of a pymatgen structure matcher
+
     """
 
     _fw_name = "CollectInsertedCalc"
@@ -195,7 +204,7 @@ class CollectInsertedCalcs(FiretaskBase):
         reference_struct = fw_spec.get("base_structure")
         results = fw_spec.get("inserted_results", [])
         working_ion = fw_spec.get("working_ion")
-        sm_dict = fw_spec.get("StructureMatcher", SM_DICT)
+        sm_dict = fw_spec.get("structure_matcher", SM_DICT)
         sm_dict["ignore_species"] = [working_ion]
         sm = StructureMatcher.from_dict(sm_dict)
 
@@ -233,6 +242,7 @@ class SubmitMostStable(FiretaskBase):
     Required keys in fw_spec:
     - optimal_structure: the most stable relaxed structure
     - working_ion: name of the working ion
+    - staticfw_kwargs = fw_spec.get("staticfw_kwargs")
     """
 
     _fw_name = "SubmitBestInsertion"
@@ -240,12 +250,14 @@ class SubmitMostStable(FiretaskBase):
     def run_task(self, fw_spec):
         inserted_structure = fw_spec.get("optimal_structure")
         working_ion = fw_spec.get("working_ion")
-        vasptodb_kwargs = {
-            "store_volumetric_data": ["CHGCAR"],
-            "task_fields_to_push": {"base_task_id": "task_id"},
-        }
+        vasptodb_kwargs = fw_spec.get("vasptodb_kwargs")
+        staticfw_kwargs = fw_spec.get("staticfw_kwargs", {})
+
         fw1 = StaticFW(
-            inserted_structure, vasptodb_kwargs=vasptodb_kwargs, db_file=DB_FILE
+            inserted_structure,
+            vasptodb_kwargs=vasptodb_kwargs,
+            db_file=DB_FILE,
+            **staticfw_kwargs,
         )
         n_ion = inserted_structure.composition.element_composition[working_ion]
         fw2 = Firework(
@@ -253,13 +265,13 @@ class SubmitMostStable(FiretaskBase):
             name=f"Charge Density Analysis-{n_ion}",
             parents=fw1,
         )
-        wf = Workflow([fw1, fw2], name="Obtain inserted CHG")
-        wf = get_powereup_wf(wf, fw_spec)
+        wf = Workflow([fw1, fw2], name=f"Obtain inserted sites-{n_ion}")
+        wf = get_powerup_wf(wf, fw_spec)
         update_wf_keys(wf, fw_spec)
         return FWAction(additions=[wf])
 
 
-def get_powereup_wf(wf, fw_spec, additional_fields=None):
+def get_powerup_wf(wf, fw_spec):
     """
     Check the fw_spec['vasp_powerups'] for powerups and apply them to a workflow.
     Add/overwrite the additional fields in the fw_spec with user inputs
@@ -271,9 +283,9 @@ def get_powereup_wf(wf, fw_spec, additional_fields=None):
     """
     d_pu = defaultdict(dict)
     d_pu.update(fw_spec.get("vasp_powerups", {}))
-    if additional_fields is not None:
-        d_pu["add_additional_fields_to_taskdocs"].update(
-            {"update_dict": additional_fields}
-        )
+    # if additional_fields is not None:
+    #     d_pu["add_additional_fields_to_taskdocs"].update(
+    #         {"update_dict": additional_fields}
+    #     )
     p_kwargs = {k: d_pu[k] for k in POWERUP_NAMES if k in d_pu}
     return powerup_by_kwargs(wf, **p_kwargs)

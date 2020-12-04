@@ -1,7 +1,6 @@
-import collections
-
 from fireworks import Workflow
 from pymatgen import Structure
+from pymatgen.analysis.structure_matcher import StructureMatcher
 
 from atomate.vasp.config import DB_FILE
 from atomate.vasp.firetasks.electrode_tasks import AnalyzeChgcar, GetInsertionCalcs
@@ -17,51 +16,36 @@ Define worflows related to battery material simulation --- they all have a worki
 """
 
 
-class IonInsertionWF(StaticFW):
-    def __init__(
-        self,
-        structure,
-        vasptodb_kwargs: dict = None,
-        volumetric_data_type: str = "CHGCAR",
-        vasp_powerups: dict = None,
-        **kwargs
-    ):
-        super().__init__(structure=structure, vasptodb_kwargs=vasptodb_kwargs)
-
-        if vasp_powerups is not None:
-            for fw in self.fws:
-                fw.spec["vasp_powerups"] = vasp_powerups
-
-        self.tasks.extend([AnalyzeChgcar()])
-
-
 def get_ion_insertion_wf(
     structure: Structure,
     working_ion: str,
+    structure_matcher: StructureMatcher = None,
     db_file: str = DB_FILE,
     vasptodb_kwargs: dict = None,
     volumetric_data_type: str = "CHGCAR",
     vasp_powerups: dict = None,
     max_insertions: int = 5,
-    **kwargs
+    optimizefw_kwargs: dict = None,
+    staticfw_kwargs: dict = None,
 ):
     """
     Take the output static worflow and iteratively insert working ions based on charge density analysis.
 
     The workflow performs the following tasks.
     (StaticFW) <- Recieved dat inserted task_id from this workflow
-    (AnalyzeChgcar)
+    (AnalyzeChgcar) <- Obtain the set of possible unique insertions using the stored charge density
     (GetInsertionCalcs) <- This task contains the dynamic workflow creation that will keep inserting working ions
 
     Args:
-        structure:
-        working_ion:
-        db_file:
-        vasptodb_kwargs:
-        volumetric_data_type:
-        vasp_powerups:
-        **kwargs:
-
+        structure: The host structure to begin inserting on
+        working_ion: The working ion to be inserted at each step
+        structure_matcher: StructureMatcher object used to define topotactic insertion
+        db_file: The db_file that defines the VASP output database
+        vasptodb_kwargs: vasptodb_kwargs for the static workflow
+        volumetric_data_type: the type of volumetric data used to determine the insertion sites
+        vasp_powerups: additional powerups given to all the dynamically created workflows
+        optimizefw_kwargs: additional kwargs for all the OptimizeFWs
+        staticfw_kwargs: additional kwargs for all the StaticFWs
     """
 
     if not structure.is_ordered:
@@ -69,7 +53,7 @@ def get_ion_insertion_wf(
             "Please obtain an ordered approximation of the input structure."
         )
 
-    # set up the StaticFW and make sure the base_task_id field is populated
+    # Configured the optimization and static FWs for the base material
     vasptodb_kwargs = vasptodb_kwargs if vasptodb_kwargs is not None else {}
     vasptodb_kwargs.update(
         {
@@ -78,50 +62,47 @@ def get_ion_insertion_wf(
         }
     )
 
-    opt_wf = OptimizeFW(structure=structure, db_file=db_file)
+    opt_wf = OptimizeFW(structure=structure, db_file=db_file, **optimizefw_kwargs)
     static_wf = StaticFW(
-        structure=structure, vasptodb_kwargs=vasptodb_kwargs, db_file=db_file, **kwargs
+        structure=structure,
+        vasptodb_kwargs=vasptodb_kwargs,
+        db_file=db_file,
+        **staticfw_kwargs
     )
 
     wf_name = "{}-{}".format(
         structure.composition.reduced_formula if structure else "unknown", "insertion"
     )
 
-    # TODO Merge with Previouse FW
+    # Configure the analysis FW
     analysis_wf = Firework(
         [AnalyzeChgcar(), GetInsertionCalcs()],
         parents=[static_wf],
         name="Charge Density Analysis-0",
     )
     analysis_wf.spec["working_ion"] = working_ion
+
+    # Crate the initial workflow
     wf = Workflow([opt_wf, static_wf, analysis_wf], name=wf_name)
 
+    # Apply the vasp powerup if present
+    if vasp_powerups is not None:
+        wf = powerup_by_kwargs(wf, **vasp_powerups)
+        for fw in wf.fws:
+            fw.spec["vasp_powerups"] = vasp_powerups
+
+    if structure_matcher is not None:
+        sm_dict = structure_matcher.as_dict()
+        for fw in wf.fws:
+            fw.spec["structure_matcher"] = sm_dict
+
+    # write the persistent specs to all the fws
+    # Note this is probably redundant but is easier
     for fw in wf.fws:
         fw.spec["db_file"] = db_file
         fw.spec["max_insertions"] = max_insertions
-
-    # vp_dict = {
-    #     "add_modify_incar": {
-    #         "modify_incar_params": {"incar_update": {"ISMEAR": 0, "SIGMA": 0.02}}
-    #     }
-    # }
-    vp_dict = dict()
-
-    if vasp_powerups is not None:
-        rec_update(vp_dict, vasp_powerups)
-
-    for fw in wf.fws:
-        fw.spec["vasp_powerups"] = vp_dict
-
-    wf = powerup_by_kwargs(wf, **vp_dict)
+        fw.spec["vasptodb_kwargs"] = vasptodb_kwargs
+        fw.spec["staticfw_kwargs"] = staticfw_kwargs
+        fw.spec["optimizefw_kwargs"] = optimizefw_kwargs
 
     return wf
-
-
-def rec_update(d, u):
-    for k, v in u.items():
-        if isinstance(v, collections.abc.Mapping):
-            d[k] = rec_update(d.get(k, {}), v)
-        else:
-            d[k] = v
-    return d
