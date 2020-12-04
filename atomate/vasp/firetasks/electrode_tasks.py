@@ -132,13 +132,13 @@ class GetInsertionCalcs(FiretaskBase):
         working_ion = fw_spec.get("working_ion")
         allow_fizzled_parents = fw_spec.get("working_ion", False)
         optimizefw_kwargs = fw_spec.get("optimizefw_kwargs", {})
+        n_ion = int(base_structure.composition.element_composition[working_ion]) + 1
 
         new_fws = []
         for itr, isite in enumerate(insert_sites):
             inserted_structure = base_structure.copy()
             fpos = isite
             inserted_structure.insert(0, working_ion, fpos, properties={"magmom": 0.0})
-            n_ion = int(inserted_structure.composition.element_composition[working_ion])
             additional_fields = {"insertion_fpos": fpos, "base_task_id": base_task_id}
 
             # Create new fw

@@ -8,7 +8,7 @@ from atomate.vasp.firetasks.electrode_tasks import AnalyzeChgcar, GetInsertionCa
 __author__ = "Jimmy Shen"
 __email__ = "jmmshn@lbl.gov"
 
-from atomate.vasp.fireworks import Firework, OptimizeFW, StaticFW
+from atomate.vasp.fireworks import Firework, OptimizeFW, StaticFW, pass_vasp_result
 from atomate.vasp.powerups import powerup_by_kwargs
 
 """
@@ -68,11 +68,20 @@ def get_ion_insertion_wf(
     )
 
     opt_wf = OptimizeFW(structure=structure, db_file=db_file, **optimizefw_kwargs)
+
+    pass_task = pass_vasp_result(
+        filename="vasprun.xml.relax2.gz",
+        pass_dict=">>output.ionic_steps.-1.structure",
+        mod_spec_key="prev_calc_structure",
+    )
+    opt_wf.tasks.append(pass_task)
+
     static_wf = StaticFW(
         structure=structure,
         vasptodb_kwargs=vasptodb_kwargs,
         db_file=db_file,
         parents=[opt_wf],
+        spec_structure_key="prev_calc_structure",
         **staticfw_kwargs
     )
 
