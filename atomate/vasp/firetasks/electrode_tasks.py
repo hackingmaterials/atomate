@@ -138,12 +138,14 @@ class GetInsertionCalcs(FiretaskBase):
             inserted_structure = base_structure.copy()
             fpos = isite
             inserted_structure.insert(0, working_ion, fpos, properties={"magmom": 0.0})
-            n_ion = inserted_structure.composition.element_composition[working_ion]
+            n_ion = int(inserted_structure.composition.element_composition[working_ion])
             additional_fields = {"insertion_fpos": fpos, "base_task_id": base_task_id}
 
             # Create new fw
             fw = OptimizeFW(
-                inserted_structure, name=f"insert-opt-{itr}", **optimizefw_kwargs
+                inserted_structure,
+                name=f"structure optimization-{itr}",
+                **optimizefw_kwargs,
             )
             fw.tasks[-1]["additional_fields"].update(additional_fields)  #
 

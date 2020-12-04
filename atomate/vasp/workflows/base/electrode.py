@@ -8,7 +8,7 @@ from atomate.vasp.firetasks.electrode_tasks import AnalyzeChgcar, GetInsertionCa
 __author__ = "Jimmy Shen"
 __email__ = "jmmshn@lbl.gov"
 
-from atomate.vasp.fireworks import StaticFW, Firework, OptimizeFW
+from atomate.vasp.fireworks import Firework, OptimizeFW, StaticFW
 from atomate.vasp.powerups import powerup_by_kwargs
 
 """
@@ -53,6 +53,11 @@ def get_ion_insertion_wf(
             "Please obtain an ordered approximation of the input structure."
         )
 
+    if optimizefw_kwargs is None:
+        optimizefw_kwargs = {}
+    if staticfw_kwargs is None:
+        staticfw_kwargs = {}
+
     # Configured the optimization and static FWs for the base material
     vasptodb_kwargs = vasptodb_kwargs if vasptodb_kwargs is not None else {}
     vasptodb_kwargs.update(
@@ -67,11 +72,12 @@ def get_ion_insertion_wf(
         structure=structure,
         vasptodb_kwargs=vasptodb_kwargs,
         db_file=db_file,
+        parents=[opt_wf],
         **staticfw_kwargs
     )
 
     wf_name = "{}-{}".format(
-        structure.composition.reduced_formula if structure else "unknown", "insertion"
+        structure.composition.reduced_formula if structure else "unknown", "insertion",
     )
 
     # Configure the analysis FW
