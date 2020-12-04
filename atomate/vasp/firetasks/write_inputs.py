@@ -325,7 +325,7 @@ class WriteScanRelaxFromPrev(FiretaskBase):
             else:
                 parse_potcar_file = not potcar_spec
                 vasprun = Vasprun("vasprun.xml", parse_potcar_file=parse_potcar_file)
-                bandgap = vasprun.eigenvalue_band_properties[0]
+                bandgap = vasprun.get_band_structure(efermi="smart").get_band_gap()["energy"]
                 vasp_input_set_params["bandgap"] = bandgap
 
         # read the structure from the output of the previous calculation
