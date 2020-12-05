@@ -25,6 +25,7 @@ def get_ion_insertion_wf(
     volumetric_data_type: str = "CHGCAR",
     vasp_powerups: dict = None,
     max_insertions: int = 5,
+    allow_fizzled_parents: bool = True,
     optimizefw_kwargs: dict = None,
     staticfw_kwargs: dict = None,
 ):
@@ -119,5 +120,6 @@ def get_ion_insertion_wf(
         fw.spec["vasptodb_kwargs"] = vasptodb_kwargs
         fw.spec["staticfw_kwargs"] = staticfw_kwargs
         fw.spec["optimizefw_kwargs"] = optimizefw_kwargs
+        fw.spec["allow_fizzled_parents"] = allow_fizzled_parents
 
     return wf

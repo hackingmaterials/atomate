@@ -43,6 +43,7 @@ def update_wf_keys(wf, fw_spec):
         "staticfw_kwargs",
         "optimizefw_kwargs",
         "structure_matcher",
+        "allow_fizzled_parents",
     ]
     for k in PASS_KEYS:
         if k in fw_spec:
@@ -130,7 +131,7 @@ class GetInsertionCalcs(FiretaskBase):
         base_task_id = fw_spec.get("base_task_id")
         base_structure = Structure.from_dict(fw_spec.get("base_structure"))
         working_ion = fw_spec.get("working_ion")
-        allow_fizzled_parents = fw_spec.get("working_ion", False)
+        allow_fizzled_parents = fw_spec.get("allow_fizzled_parents", False)
         optimizefw_kwargs = fw_spec.get("optimizefw_kwargs", {})
         n_ion = int(base_structure.composition.element_composition[working_ion]) + 1
 
