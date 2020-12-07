@@ -207,7 +207,10 @@ class CollectInsertedCalcs(FiretaskBase):
         reference_struct = fw_spec.get("base_structure")
         results = fw_spec.get("inserted_results", [])
         working_ion = fw_spec.get("working_ion")
+
         sm_dict = fw_spec.get("structure_matcher", SM_DICT)
+        if not isinstance(sm_dict, dict):
+            sm_dict = sm_dict.as_dict()
         sm_dict["ignore_species"] = [working_ion]
         sm = StructureMatcher.from_dict(sm_dict)
 
