@@ -385,7 +385,7 @@ class VaspDrone(AbstractDrone):
         # Parse electronic information if possible.
         # For certain optimizers this is broken and we don't get an efermi resulting in the bandstructure
         try:
-            bs = vrun.get_band_structure()
+            bs = vrun.get_band_structure(efermi="smart")
             bs_gap = bs.get_band_gap()
             d["output"]["vbm"] = bs.get_vbm()["energy"]
             d["output"]["cbm"] = bs.get_cbm()["energy"]
