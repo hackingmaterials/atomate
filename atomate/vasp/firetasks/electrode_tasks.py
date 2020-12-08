@@ -60,6 +60,8 @@ class AnalyzeChgcar(FiretaskBase):
     - "base_task_id" : the task_id for the charge density that is being analyzed
     - "ChargeInsertionAnalyzer_kwargs": The kwargs to overwrite default values in the ChargeInsertionAnalyzer
     - "db_file": The db_file that instantiates the tasks database
+    - "volumetric_data_type": the type of Charge density file to be used for analysis "CHGCAR"/"AECCAR"
+    fw_spec optional:
     - "max_insertions": Restrict the number of insertion sites based on charge density (default 5)
     """
 
@@ -153,7 +155,9 @@ class GetInsertionCalcs(FiretaskBase):
             fw = OptimizeFW(
                 inserted_structure,
                 name=f"structure optimization-{itr}",
-                override_default_vasp_params={"user_incar_settings": {"NSW": 9999}},
+                override_default_vasp_params={
+                    "user_incar_settings": {"NSW": 9999}
+                },  # structure are rough guesses
                 **optimizefw_kwargs,
             )
             fw.tasks[-1]["additional_fields"].update(additional_fields)  #

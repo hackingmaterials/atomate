@@ -942,7 +942,7 @@ def use_fake_lobster(original_wf, ref_dirs, params_to_check=None):
     return original_wf
 
 
-local_names = dict(locals())
+local_names = dict(locals())  # locals() changes as the program runs, make a copy here
 
 for k, v in local_names.items():
     if (
