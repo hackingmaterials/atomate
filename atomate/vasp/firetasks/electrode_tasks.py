@@ -225,7 +225,7 @@ class CollectInsertedCalcs(FiretaskBase):
         sm_dict = fw_spec.get("structure_matcher", SM_DICT)
         if not isinstance(sm_dict, dict):
             sm_dict = sm_dict.as_dict()
-        sm_dict["ignore_species"] = [working_ion]
+        sm_dict["ignored_species"] = [working_ion]
         sm = StructureMatcher.from_dict(sm_dict)
 
         if len(results) == 0:
