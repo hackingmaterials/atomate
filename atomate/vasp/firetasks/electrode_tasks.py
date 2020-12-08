@@ -160,7 +160,9 @@ class GetInsertionCalcs(FiretaskBase):
                 },  # structure are rough guesses
                 **optimizefw_kwargs,
             )
-            fw.tasks[-1]["additional_fields"].update(additional_fields)  #
+            fw.tasks[-1]["additional_fields"].update(
+                additional_fields
+            )  # easy way to update a field
 
             pass_dict = {
                 "structure": ">>output.ionic_steps.-1.structure",
@@ -289,7 +291,7 @@ class SubmitMostStable(FiretaskBase):
         return FWAction(additions=[wf])
 
 
-def get_powerup_wf(wf, fw_spec):
+def get_powerup_wf(wf, fw_spec, additional_fields=None):
     """
     Check the fw_spec['vasp_powerups'] for powerups and apply them to a workflow.
     Add/overwrite the additional fields in the fw_spec with user inputs
@@ -301,9 +303,9 @@ def get_powerup_wf(wf, fw_spec):
     """
     d_pu = defaultdict(dict)
     d_pu.update(fw_spec.get("vasp_powerups", {}))
-    # if additional_fields is not None:
-    #     d_pu["add_additional_fields_to_taskdocs"].update(
-    #         {"update_dict": additional_fields}
-    #     )
+    if additional_fields is not None:
+        d_pu["add_additional_fields_to_taskdocs"].update(
+            {"update_dict": additional_fields}
+        )
     p_kwargs = {k: d_pu[k] for k in POWERUP_NAMES if k in d_pu}
     return powerup_by_kwargs(wf, **p_kwargs)
