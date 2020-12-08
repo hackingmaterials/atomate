@@ -279,7 +279,7 @@ class SubmitMostStable(FiretaskBase):
             db_file=DB_FILE,
             **staticfw_kwargs,
         )
-        n_ion = inserted_structure.composition.element_composition[working_ion]
+        n_ion = int(inserted_structure.composition.element_composition[working_ion])
         fw2 = Firework(
             [AnalyzeChgcar(), GetInsertionCalcs()],
             name=f"Charge Density Analysis-{n_ion}",
