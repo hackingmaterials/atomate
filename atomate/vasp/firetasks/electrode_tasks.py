@@ -44,6 +44,7 @@ def update_wf_keys(wf, fw_spec):
         "optimizefw_kwargs",
         "structure_matcher",
         "allow_fizzled_parents",
+        "volumetric_data_type",
     ]
     for k in PASS_KEYS:
         if k in fw_spec:
@@ -64,7 +65,9 @@ class AnalyzeChgcar(FiretaskBase):
 
     def run_task(self, fw_spec):
         max_insertions = fw_spec.get("max_insertions", 5)
+        volumetric_data_type = fw_spec.get("volumetric_data_type")
         base_task_id = fw_spec.get("base_task_id")
+
         logger.info(f"Identifying sites for task : {base_task_id}")
 
         cia_kwargs = fw_spec.get("ChargeInsertionAnalyzer_kwargs", dict())
@@ -73,7 +76,11 @@ class AnalyzeChgcar(FiretaskBase):
         db_file = env_chk(DB_FILE, fw_spec)
         logger.info(f"DB_FILE: {db_file}")
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-        chgcar = mmdb.get_chgcar(task_id=base_task_id)
+        if volumetric_data_type == "CHGCAR":
+            chgcar = mmdb.get_chgcar(task_id=base_task_id)
+        elif volumetric_data_type == "AECCAR":
+            chgcar = mmdb.get_aeccar(task_id=base_task_id)
+            chgcar = chgcar["aeccar0"] + chgcar["aeccar2"]
 
         cia = ChargeInsertionAnalyzer(chgcar, **cia_kwargs)
         cia.get_labels()
@@ -139,14 +146,15 @@ class GetInsertionCalcs(FiretaskBase):
         for itr, isite in enumerate(insert_sites):
             inserted_structure = base_structure.copy()
             fpos = isite
-            inserted_structure.insert(0, working_ion, fpos, properties={"magmom": 0.0})
+            inserted_structure.insert(0, working_ion, fpos, properties={"magmom": 1.0})
             additional_fields = {"insertion_fpos": fpos, "base_task_id": base_task_id}
 
             # Create new fw
             fw = OptimizeFW(
                 inserted_structure,
                 name=f"structure optimization-{itr}",
-                **optimizefw_kwargs,
+                override_default_vasp_params={"user_incar_settings": {"NSW": 9999}}
+                ** optimizefw_kwargs,
             )
             fw.tasks[-1]["additional_fields"].update(additional_fields)  #
 

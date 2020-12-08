@@ -61,9 +61,11 @@ def get_ion_insertion_wf(
 
     # Configured the optimization and static FWs for the base material
     vasptodb_kwargs = vasptodb_kwargs if vasptodb_kwargs is not None else {}
+    vasptodb_kwargs_vol_data = {"CHGCAR": ["CHGCAR"], "AECCAR": ["AECCAR0", "AECCAR2"]}
+
     vasptodb_kwargs.update(
         {
-            "store_volumetric_data": [volumetric_data_type],
+            "store_volumetric_data": vasptodb_kwargs_vol_data[volumetric_data_type],
             "task_fields_to_push": {"base_task_id": "task_id"},
         }
     )
@@ -121,5 +123,6 @@ def get_ion_insertion_wf(
         fw.spec["staticfw_kwargs"] = staticfw_kwargs
         fw.spec["optimizefw_kwargs"] = optimizefw_kwargs
         fw.spec["allow_fizzled_parents"] = allow_fizzled_parents
+        fw.spec["volumetric_data_type"] = volumetric_data_type
 
     return wf
