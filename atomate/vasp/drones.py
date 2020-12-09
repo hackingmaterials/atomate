@@ -405,6 +405,19 @@ class VaspDrone(AbstractDrone):
                 logger.error(traceback.format_exc())
                 logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
                 raise
+        
+        # Should roughly agree with information from .get_band_structure() above, subject to tolerances
+        # If there is disagreement, it may be related to VASP incorrectly assigning the Fermi level
+        try:
+            band_props = vrun.eigenvalue_band_properties
+            d["output"]["eigenvalue_band_properties"] = {
+                "bandgap": band_props[0],
+                "cbm": band_props[1],
+                "vbm": band_props[2],
+                "is_gap_direct": band_props[3]
+            }
+        except Exception:
+            logger.warning("Error in parsing eigenvalue band properties")
 
         # store run name and location ,e.g. relax1, relax2, etc.
         d["task"] = {"type": taskname, "name": taskname}

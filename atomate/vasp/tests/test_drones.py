@@ -99,6 +99,11 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
             self.assertNotIn("transition",d)
             self.assertAlmostEqual(d["direct_gap"],2.5563)
             self.assertIn("bandstructure", doc["calcs_reversed"][0])
+        band_props = doc["calcs_reversed"][0]["output"]["eigenvalue_band_properties"]
+        self.assertAlmostEqual(band_props["bandgap"], 0.6505999999999998)
+        self.assertAlmostEqual(band_props["cbm"], 6.2644)
+        self.assertAlmostEqual(band_props["vbm"], 5.6138)
+        self.assertFalse(band_props["is_gap_direct"])
 
 
         doc = drone.assimilate(self.Al)
