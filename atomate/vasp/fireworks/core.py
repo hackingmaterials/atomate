@@ -130,7 +130,7 @@ class ScanOptimizeFW(Firework):
     def __init__(
         self,
         structure=None,
-        name="SCAN 680 eV structure optimization",
+        name="SCAN structure optimization",
         vasp_input_set=None,
         vasp_input_set_params=None,
         vasp_cmd=VASP_CMD,
