@@ -5,13 +5,14 @@
 import os
 import unittest
 
+from monty.json import MontyDecoder
 from pymatgen.io.vasp import Outcar, Oszicar
 
 from atomate.vasp.drones import VaspDrone
 
 import numpy as np
 
-
+decoder = MontyDecoder()
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -98,6 +99,11 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
             self.assertNotIn("transition",d)
             self.assertAlmostEqual(d["direct_gap"],2.5563)
             self.assertIn("bandstructure", doc["calcs_reversed"][0])
+        band_props = doc["calcs_reversed"][0]["output"]["eigenvalue_band_properties"]
+        self.assertAlmostEqual(band_props["bandgap"], 0.6505999999999998)
+        self.assertAlmostEqual(band_props["cbm"], 6.2644)
+        self.assertAlmostEqual(band_props["vbm"], 5.6138)
+        self.assertFalse(band_props["is_gap_direct"])
 
 
         doc = drone.assimilate(self.Al)
@@ -148,13 +154,23 @@ class VaspToDbTaskDroneTest(unittest.TestCase):
     def test_parse_chrgcar(self):
         drone = VaspDrone(parse_chgcar=True, parse_aeccar=True)
         doc = drone.assimilate(self.Si_static)
-        cc = doc['calcs_reversed'][0]['chgcar']
+
+        cc = decoder.process_decoded(doc['calcs_reversed'][0]['chgcar'])
         self.assertAlmostEqual(cc.data['total'].sum()/cc.ngridpts, 8.0, 4)
-        cc = doc['calcs_reversed'][0]['aeccar0']
+        cc = decoder.process_decoded(doc['calcs_reversed'][0]['aeccar0'])
         self.assertAlmostEqual(cc.data['total'].sum()/cc.ngridpts, 23.253588293583313, 4)
-        cc = doc['calcs_reversed'][0]['aeccar2']
+        cc = decoder.process_decoded(doc['calcs_reversed'][0]['aeccar2'])
         self.assertAlmostEqual(cc.data['total'].sum()/cc.ngridpts, 8.01314480789829, 4)
 
+    def test_parse_potcar(self):
+        # by default, POTCAR should be loaded
+        drone = VaspDrone()
+        doc = drone.assimilate(self.Si_static)
+        pot_spec = doc['calcs_reversed'][0]['input']["potcar_spec"]
+        self.assertIsNotNone(pot_spec[0]["hash"])  # check a hash was loaded
 
-if __name__ == "__main__":
-    unittest.main()
+        # Force not loading of POTCAR
+        drone = VaspDrone(parse_potcar_file=False)
+        doc = drone.assimilate(self.Si_static)
+        pot_spec = doc['calcs_reversed'][0]['input']["potcar_spec"]
+        self.assertIsNone(pot_spec[0]["hash"])  # check a hash was not loaded

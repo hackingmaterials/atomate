@@ -15,11 +15,50 @@ jobs:
             conda create --quiet --yes --name test_env python=3.7
             source activate test_env
             conda install --quiet --yes numpy scipy matplotlib sympy pandas
-            conda install --quiet --yes -c openbabel openbabel
+            conda install --quiet --yes -c conda-forge openbabel
             # conda install --quiet --yes -c clinicalgraphics vtk
             conda install --quiet --yes -c conda-forge python-igraph
             conda update --quiet --all
+            wget https://vampire.york.ac.uk/resources/release-5/vampire-5.0-linux.tar.gz
+            tar -zxvf vampire-5.0-linux.tar.gz
+            export PATH=/root/atomate/linux/:$PATH
             pip install --quiet -r requirements.txt -r requirements-ci.txt
+            # Add executables and path.
+            for EXEPATH in `pwd`/cmd_line/*/Linux_64bit; do export PATH=$PATH:$EXEPATH; done
+            pip install --quiet -e .
+            pytest --ignore=atomate/qchem/test_files --cov=atomate --cov-report html:coverage_reports atomate
+          no_output_timeout: 3600
+      - store_artifacts:
+          path: coverage_reports/
+          destination: tr1
+      - store_test_results:
+          path: coverage_reports/
+  py3devtest:
+    working_directory: ~/atomate
+    docker:
+      - image: materialsvirtuallab/circle-ci-pmg-py3:3.7.3
+      - image: circleci/mongo:3.4.15
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+      - run:
+          command: |
+            export PATH=$HOME/miniconda3/bin:$PATH
+            conda create --quiet --yes --name test_env python=3.7
+            source activate test_env
+            conda install --quiet --yes numpy scipy matplotlib sympy pandas
+            conda install --quiet --yes -c conda-forge openbabel
+            # conda install --quiet --yes -c clinicalgraphics vtk
+            conda install --quiet --yes -c conda-forge python-igraph
+            conda update --quiet --all
+            wget https://vampire.york.ac.uk/resources/release-5/vampire-5.0-linux.tar.gz
+            tar -zxvf vampire-5.0-linux.tar.gz
+            export PATH=/root/atomate/linux/:$PATH
+            pip install --quiet -r requirements.txt -r requirements-ci.txt
+            pip install git+https://github.com/materialsproject/pymatgen.git --upgrade
+            pip install git+https://github.com/materialsproject/custodian.git --upgrade
+            pip install git+https://github.com/materialsproject/fireworks.git --upgrade
             # Add executables and path.
             for EXEPATH in `pwd`/cmd_line/*/Linux_64bit; do export PATH=$PATH:$EXEPATH; done
             pip install --quiet -e .
@@ -36,3 +75,10 @@ workflows:
   build_and_test:
     jobs:
       - py3test
+      - py3devtest:
+          filters:  # don't run dev tests on master branch
+              branches:
+                  ignore:
+                      master
+
+

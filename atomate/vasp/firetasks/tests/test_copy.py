@@ -25,6 +25,8 @@ class TestCopyVaspOutputs(AtomateTest):
                                        "Si_structure_optimization", "outputs")
         cls.relax2_outdir = os.path.join(module_dir, "..", "..", "test_files",
                                          "Si_structure_optimization_relax2", "outputs")
+        cls.nokpts_outdir = os.path.join(module_dir, "..", "..", "test_files",
+                                         "Si_structure_optimization", "outputs_no_kpts")
 
     def test_unittestsetup(self):
         files = ["INCAR", "KPOINTS", "POTCAR", "POSCAR", "CONTCAR", "OUTCAR"]
@@ -91,6 +93,17 @@ class TestCopyVaspOutputs(AtomateTest):
             self.assertTrue(os.path.exists(os.path.join(self.scratch_dir, f)))
 
         no_files = ["CONTCAR", "EIGENVAL"]
+        for f in no_files:
+            self.assertFalse(os.path.exists(os.path.join(self.scratch_dir, f)))
+
+    def test_missing_kpoints_copy(self):
+        ct = CopyVaspOutputs(calc_dir=self.nokpts_outdir)
+        ct.run_task({})
+        files = ["INCAR", "POTCAR", "POSCAR"]
+        for f in files:
+            self.assertTrue(os.path.exists(os.path.join(self.scratch_dir, f)))
+
+        no_files = ["CONTCAR", "EIGENVAL", "KPOINTS"]
         for f in no_files:
             self.assertFalse(os.path.exists(os.path.join(self.scratch_dir, f)))
 

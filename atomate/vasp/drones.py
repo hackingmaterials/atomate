@@ -15,6 +15,7 @@ from collections import OrderedDict
 import json
 import glob
 import traceback
+import warnings
 
 from monty.io import zopen
 from monty.json import jsanitize
@@ -27,8 +28,9 @@ from pymatgen.core.structure import Structure
 from pymatgen.core.operations import SymmOp
 from pymatgen.electronic_structure.bandstructure import BandStructureSymmLine
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot, Chgcar
+from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot
 from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
+from pymatgen.io.vasp.outputs import Chgcar
 from pymatgen.apps.borg.hive import AbstractDrone
 from pymatgen.command_line.bader_caller import bader_analysis_from_path
 
@@ -36,6 +38,7 @@ from atomate.utils.utils import get_uri
 
 from atomate.utils.utils import get_logger
 from atomate import __version__ as atomate_version
+from atomate.vasp.config import STORE_VOLUMETRIC_DATA, STORE_ADDITIONAL_JSON
 
 __author__ = 'Kiran Mathew, Shyue Ping Ong, Shyam Dwaraknath, Anubhav Jain'
 __email__ = 'kmathew@lbl.gov'
@@ -44,7 +47,8 @@ __version__ = "0.1.0"
 
 logger = get_logger(__name__)
 
-bader_exe_exists = which("bader") or which("bader.exe")
+BADER_EXE_EXISTS = which("bader") or which("bader.exe")
+
 
 class VaspDrone(AbstractDrone):
     """
@@ -82,7 +86,10 @@ class VaspDrone(AbstractDrone):
 
     def __init__(self, runs=None, parse_dos="auto", bandstructure_mode="auto",
                  parse_locpot=True, additional_fields=None, use_full_uri=True,
-                 parse_bader=bader_exe_exists, parse_chgcar=False, parse_aeccar=False):
+                 parse_bader=BADER_EXE_EXISTS, parse_chgcar=False, parse_aeccar=False,
+                 parse_potcar_file=True,
+                 store_volumetric_data=STORE_VOLUMETRIC_DATA,
+                 store_additional_json=STORE_ADDITIONAL_JSON):
         """
         Initialize a Vasp drone to parse vasp outputs
         Args:
@@ -105,6 +112,10 @@ class VaspDrone(AbstractDrone):
             parse_bader (bool): Run and parse Bader charge data. Defaults to True if Bader is present
             parse_chgcar (bool): Run and parse CHGCAR file
             parse_aeccar (bool): Run and parse AECCAR0 and AECCAR2 files
+            store_volumetric_data (list): List of files to store, choose from ('CHGCAR', 'LOCPOT',
+            'AECCAR0', 'AECCAR1', 'AECCAR2', 'ELFCAR'), case insensitive
+            store_additional_json (bool): If True, parse any .json files present and store as
+            sub-doc including the FW.json if present
         """
         self.parse_dos = parse_dos
         self.additional_fields = additional_fields or {}
@@ -114,8 +125,20 @@ class VaspDrone(AbstractDrone):
         self.bandstructure_mode = bandstructure_mode
         self.parse_locpot = parse_locpot
         self.parse_bader = parse_bader
-        self.parse_chgcar = parse_chgcar
-        self.parse_aeccar = parse_aeccar
+        self.store_volumetric_data = [f.lower() for f in store_volumetric_data]
+        self.store_additional_json = store_additional_json
+        self.parse_potcar_file = parse_potcar_file
+
+        if parse_chgcar or parse_aeccar:
+            warnings.warn("These options have been deprecated in favor of the 'store_volumetric_data' "
+                          "keyword argument, which is more general. Functionality is equivalent.",
+                          DeprecationWarning)
+            if parse_chgcar and "chgcar" not in self.store_volumetric_data:
+                self.store_volumetric_data.append("chgcar")
+            if parse_aeccar and "aeccar0" not in self.store_volumetric_data:
+                self.store_volumetric_data.append("aeccar0")
+            if parse_aeccar and "aeccar2" not in self.store_volumetric_data:
+                self.store_volumetric_data.append("aeccar2")
 
     def assimilate(self, path):
         """
@@ -321,7 +344,7 @@ class VaspDrone(AbstractDrone):
         """
         vasprun_file = os.path.join(dir_name, filename)
 
-        vrun = Vasprun(vasprun_file)
+        vrun = Vasprun(vasprun_file, parse_potcar_file=self.parse_potcar_file)
 
         d = vrun.as_dict()
 
@@ -362,7 +385,7 @@ class VaspDrone(AbstractDrone):
         # Parse electronic information if possible.
         # For certain optimizers this is broken and we don't get an efermi resulting in the bandstructure
         try:
-            bs = vrun.get_band_structure()
+            bs = vrun.get_band_structure(efermi="smart")
             bs_gap = bs.get_band_gap()
             d["output"]["vbm"] = bs.get_vbm()["energy"]
             d["output"]["cbm"] = bs.get_cbm()["energy"]
@@ -382,6 +405,19 @@ class VaspDrone(AbstractDrone):
                 logger.error(traceback.format_exc())
                 logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
                 raise
+        
+        # Should roughly agree with information from .get_band_structure() above, subject to tolerances
+        # If there is disagreement, it may be related to VASP incorrectly assigning the Fermi level
+        try:
+            band_props = vrun.eigenvalue_band_properties
+            d["output"]["eigenvalue_band_properties"] = {
+                "bandgap": band_props[0],
+                "cbm": band_props[1],
+                "vbm": band_props[2],
+                "is_gap_direct": band_props[3]
+            }
+        except Exception:
+            logger.warning("Error in parsing eigenvalue band properties")
 
         # store run name and location ,e.g. relax1, relax2, etc.
         d["task"] = {"type": taskname, "name": taskname}
@@ -394,27 +430,16 @@ class VaspDrone(AbstractDrone):
             locpot = Locpot.from_file(os.path.join(dir_name, d["output_file_paths"]["locpot"]))
             d["output"]["locpot"] = {i: locpot.get_average_along_axis(i) for i in range(3)}
 
-        if self.parse_chgcar != False:
-            # parse CHGCAR file only for static calculations
-            # TODO require static run later
-            # if self.parse_chgcar == True and vrun.incar.get("NSW", 0) < 1:
-            try:
-                chgcar = self.process_chgcar(os.path.join(dir_name, d["output_file_paths"]["chgcar"]))
-            except:
-                raise ValueError("No valid charge data exist")
-            d["chgcar"] = chgcar
-
-        if self.parse_aeccar != False:
-            try:
-                chgcar = self.process_chgcar(os.path.join(dir_name, d["output_file_paths"]["aeccar0"]))
-            except:
-                raise ValueError("No valid charge data exist")
-            d["aeccar0"] = chgcar
-            try:
-                chgcar = self.process_chgcar(os.path.join(dir_name, d["output_file_paths"]["aeccar2"]))
-            except:
-                raise ValueError("No valid charge data exist")
-            d["aeccar2"] = chgcar
+        if self.store_volumetric_data:
+            for file in self.store_volumetric_data:
+                if file in d["output_file_paths"]:
+                    try:
+                        # assume volumetric data is all in CHGCAR format
+                        data = Chgcar.from_file(os.path.join(dir_name, d["output_file_paths"][file]))
+                        d[file] = data.as_dict()
+                    except:
+                        raise ValueError("Failed to parse {} at {}.".format(file,
+                                                                            d["output_file_paths"][file]))
 
         # parse force constants
         if hasattr(vrun, "force_constants"):
@@ -422,23 +447,13 @@ class VaspDrone(AbstractDrone):
             d["output"]["normalmode_eigenvals"] = vrun.normalmode_eigenvals.tolist()
             d["output"]["normalmode_eigenvecs"] = vrun.normalmode_eigenvecs.tolist()
 
-        # Try and perform bader
-        if self.parse_bader:
-            try:
-                bader = bader_analysis_from_path(dir_name, suffix=".{}".format(taskname))
-            except Exception as e:
-                bader = "Bader analysis failed: {}".format(e)
+        # perform Bader analysis using Henkelman bader
+        if self.parse_bader and "chgcar" in d["output_file_paths"]:
+            suffix = '' if taskname == 'standard' else ".{}".format(taskname)
+            bader = bader_analysis_from_path(dir_name, suffix=suffix)
             d["bader"] = bader
 
         return d
-
-    @classmethod
-    def process_chgcar(cls, chg_file):
-        try:
-            chgcar = Chgcar.from_file(chg_file)
-        except IOError:
-            raise ValueError("Unable to open CHGCAR/AECCAR file" )
-        return chgcar
 
     def process_bandstructure(self, vrun):
 
@@ -518,16 +533,31 @@ class VaspDrone(AbstractDrone):
         # max force and valid structure checks
         max_force = None
         calc = d["calcs_reversed"][0]
-        if d["state"] == "successful" and calc["input"]["parameters"].get("NSW", 0) > 0:
+        if d["state"] == "successful":
 
             # calculate max forces
-            forces = np.array(calc['output']['ionic_steps'][-1]['forces'])
-            # account for selective dynamics
-            final_structure = Structure.from_dict(calc['output']['structure'])
-            sdyn = final_structure.site_properties.get('selective_dynamics')
-            if sdyn:
-                forces[np.logical_not(sdyn)] = 0
-            max_force = max(np.linalg.norm(forces, axis=1))
+            if 'forces' in calc['output']['ionic_steps'][-1]:
+                forces = np.array(calc['output']['ionic_steps'][-1]['forces'])
+                # account for selective dynamics
+                final_structure = Structure.from_dict(calc['output']['structure'])
+                sdyn = final_structure.site_properties.get('selective_dynamics')
+                if sdyn:
+                    forces[np.logical_not(sdyn)] = 0
+                max_force = max(np.linalg.norm(forces, axis=1))
+
+            if calc["input"]["parameters"].get("NSW", 0) > 0:
+
+                drift = calc['output']['outcar'].get("drift", [[0, 0, 0]])
+                max_drift = max([np.linalg.norm(d) for d in drift])
+                ediffg = calc["input"]["parameters"].get("EDIFFG", None)
+                if ediffg and float(ediffg) < 0:
+                    desired_force_convergence = -float(ediffg)
+                else:
+                    desired_force_convergence = np.inf
+                if max_drift > desired_force_convergence:
+                    warning_msgs.append("Drift ({}) > desired force convergence ({}), "
+                                        "structure likely not converged to desired accuracy."
+                                       .format(drift, desired_force_convergence))
 
             s = Structure.from_dict(d["output"]["structure"])
             if not s.is_valid():
@@ -593,8 +623,11 @@ class VaspDrone(AbstractDrone):
         # as d["custodian"]
         filenames = glob.glob(os.path.join(fullpath, "custodian.json*"))
         if len(filenames) >= 1:
-            with zopen(filenames[0], "rt") as f:
-                d["custodian"] = json.load(f)
+            custodian = []
+            for fname in filenames:
+                with zopen(fname, "rt") as f:
+                    custodian.append(json.load(f)[0])
+            d["custodian"] = custodian
         # Convert to full uri path.
         if self.use_full_uri:
             d["dir_name"] = get_uri(dir_name)
@@ -617,6 +650,14 @@ class VaspDrone(AbstractDrone):
                     d["orig_inputs"]["kpoints"] = Kpoints.from_file(f).as_dict()
                 if "POSCAR.orig" in f:
                     d["orig_inputs"]["poscar"] = Poscar.from_file(f).as_dict()
+
+        filenames = glob.glob(os.path.join(fullpath, "*.json*"))
+        if self.store_additional_json and filenames:
+            for filename in filenames:
+                key = os.path.basename(filename).split('.')[0]
+                if key != "custodian" and key != "transformations":
+                    with zopen(filename, "rt") as f:
+                        d[key] = json.load(f)
 
         logger.info("Post-processed " + fullpath)
 
@@ -662,11 +703,12 @@ class VaspDrone(AbstractDrone):
             "additional_fields": self.additional_fields,
             "use_full_uri": self.use_full_uri,
             "runs": self.runs}
-        return {"@module": self.__class__.__module__,
-                "@class": self.__class__.__name__,
-                "version": self.__class__.__version__,
-                "init_args": init_args
-                }
+        return {
+            "@module": self.__class__.__module__,
+            "@class": self.__class__.__name__,
+            "version": self.__class__.__version__,
+            "init_args": init_args
+            }
 
     @classmethod
     def from_dict(cls, d):

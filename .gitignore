@@ -5,6 +5,7 @@
 docs/_build/*
 docs/_build/*/*
 docs/_build/*/*/*
+docs_rst/_build
 
 # C extensions
 *.so
@@ -31,6 +32,7 @@ pip-log.txt
 .coverage
 .tox
 nosetests.xml
+*.mypy_cache/*
 
 # Translations
 *.mo
@@ -44,6 +46,10 @@ nosetests.xml
 .idea/*
 
 .eggs/*
+
+# VS Code
+settings.json
+.vscode
 
 # scratch files
 atomate/vasp/tests/scratch/*

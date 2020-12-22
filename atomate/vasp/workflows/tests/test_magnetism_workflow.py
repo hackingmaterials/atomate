@@ -8,8 +8,8 @@ from monty.os.path import which
 
 from atomate.vasp.workflows.base.magnetism import MagneticOrderingsWF
 from atomate.vasp.firetasks.parse_outputs import (
-    MagneticDeformationToDB,
-    MagneticOrderingsToDB,
+    MagneticDeformationToDb,
+    MagneticOrderingsToDb,
 )
 from atomate.utils.testing import AtomateTest, DB_DIR
 
@@ -79,7 +79,7 @@ class TestMagneticOrderingsWorkflow(AtomateTest):
         parent_structure = Structure.from_dict(sample_tasks[0]["input"]["structure"]).get_primitive_structure()
         tasks.insert_many(sample_tasks)
 
-        toDb = MagneticOrderingsToDB(
+        toDb = MagneticOrderingsToDb(
             db_file=os.path.join(DB_DIR, "db.json"), wf_uuid=wf_uuid,
             parent_structure=parent_structure,
             perform_bader=False, scan=False
@@ -105,7 +105,7 @@ class TestMagneticDeformationWorkflow(AtomateTest):
         wf_uuid = sample_tasks[0]["wf_meta"]["wf_uuid"]
         tasks.insert_many(sample_tasks)
 
-        toDb = MagneticDeformationToDB(
+        toDb = MagneticDeformationToDb(
             db_file=os.path.join(DB_DIR, "db.json"), wf_uuid=wf_uuid
         )
         toDb.run_task({})

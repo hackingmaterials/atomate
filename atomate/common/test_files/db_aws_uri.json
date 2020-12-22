@@ -1,0 +1,9 @@
+{
+    "aliases": {}, 
+    "collection": "tasks",
+    "host_uri": "mongodb://localhost:27017/atomate_unittest",
+    "maggma_store": {
+        "bucket" : "test_bucket",
+        "compress" : true
+    }
+}
