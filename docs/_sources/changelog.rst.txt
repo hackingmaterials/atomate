@@ -2,6 +2,19 @@
 atomate Changelog
 =================
 
+**v0.9.5**
+
+* Add magnetism workflow (M. Horton, N. Frey)
+* Overhaul SCAN workflow (R. Kingsbury)
+* Move help to Discourse (A. Ganose)
+* add ModifyKPoints Firetask (M. Siron)
+* Misc fixes, dependency updates, and improvements (M. Horton, N. Frey, A. Jain, M. Siron, A. Ganose)
+
+**v0.9.4**
+
+* Fixes for new pymatgen (S. Blau, S.P. Ong)
+
+
 **v0.9.3**
 
 * Minor change to enforce storing chgcars, clean up old kwargs in MagneticOrderings workflow (M. Horton)

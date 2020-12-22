@@ -11,6 +11,14 @@ Subpackages
 Submodules
 ----------
 
+atomate.vasp.firetasks.exchange module
+--------------------------------------
+
+.. automodule:: atomate.vasp.firetasks.exchange
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.vasp.firetasks.glue\_tasks module
 -----------------------------------------
 

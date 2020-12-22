@@ -51,6 +51,10 @@ class TestEXAFSPaths(unittest.TestCase):
                        'structure': self.struct.as_dict()}
         fis_fw1 = self.fw1_dict["spec"]['_tasks'][0]['feff_input_set']
         fis_fw2 = self.fw2_dict["spec"]['_tasks'][1]['feff_input_set']
+
+        fis_fw1.pop("@version")
+        fis_fw2.pop("@version")
+
         self.assertDictEqual(fis_fw1, ans_fis_fw1)
         self.assertDictEqual(fis_fw2, ans_fis_fw2)
 
