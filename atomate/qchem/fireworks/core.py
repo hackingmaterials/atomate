@@ -5,13 +5,11 @@
 
 
 from fireworks import Firework
-import os
-import copy
+
 from atomate.qchem.firetasks.parse_outputs import QChemToDb
 from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule
-from atomate.qchem.firetasks.critic2 import RunCritic2
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
