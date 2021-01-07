@@ -1,4 +1,9 @@
 repos:
+  - repo: git@github.com:humitos/mirrors-autoflake.git
+    rev: v1.1
+    hooks:
+    - id: autoflake
+      args: [ '--in-place', '--remove-all-unused-imports', '--remove-unused-variable' ]
   - repo: https://github.com/ambv/black
     rev: stable
     hooks:
