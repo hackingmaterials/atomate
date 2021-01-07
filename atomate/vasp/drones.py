@@ -580,13 +580,11 @@ class VaspDrone(AbstractDrone):
             d["bader"] = bader
 
         # parse output from loptics
-        if hasattr(vrun, "dielectric"):
+        if vrun.incar.get("LOPTICS", False):
             dielectric = vrun.dielectric
             d["output"]["dielectric"] = dict(
                 energy=dielectric[0], real=dielectric[1], imag=dielectric[2]
             )
-
-        if hasattr(vrun, "optical_absorption_coeff"):
             d["output"]["optical_absorption_coeff"] = vrun.optical_absorption_coeff
 
         return d
