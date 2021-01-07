@@ -749,7 +749,7 @@ class VaspDrone(AbstractDrone):
             with zopen(filenames[0], "rt") as f:
                 transformations = json.load(f)
                 try:
-                    m = re.match("(\\d+)-ICSD", transformations["history"][0]["source"])
+                    m = re.match(r"(\d+)-ICSD", transformations["history"][0]["source"])
                     if m:
                         d["icsd_id"] = int(m.group(1))
                 except Exception:
