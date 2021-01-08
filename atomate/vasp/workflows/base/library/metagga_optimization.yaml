@@ -1,4 +1,4 @@
-# SCAN structure optimization
+# metaGGA structure optimization
 # Author: Ryan Kingsbury (RKingsbury@lbl.gov)
 fireworks:
 - fw: atomate.vasp.fireworks.core.ScanOptimizeFW
@@ -10,7 +10,7 @@ fireworks:
       parse_bader: False
 - fw: atomate.vasp.fireworks.core.ScanOptimizeFW
   params:
-    name: "SCAN structure optimization"
+    name: "R2SCAN structure optimization"
     parents: 0
     prev_calc_loc: True
     vasptodb_kwargs:
