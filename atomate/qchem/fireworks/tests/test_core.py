@@ -182,7 +182,7 @@ class TestCore(AtomateTest):
                              job_type="opt_with_frequency_flattener",
                              max_iterations=10,
                              max_molecule_perturb_scale=0.3,
-                             linked=False).as_dict())
+                             linked=True).as_dict())
         self.assertEqual(firework.tasks[2].as_dict(),
                          QChemToDb(
                              db_file=None,
@@ -194,7 +194,7 @@ class TestCore(AtomateTest):
                                  "special_run_type":
                                  "frequency_flattener",
                                  "linked":
-                                 False
+                                 True
                              }).as_dict())
         self.assertEqual(firework.parents, [])
         self.assertEqual(firework.name,
