@@ -414,7 +414,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         if not VASP_CMD:
             wf = use_fake_vasp(wf,
                                {"PBEsol structure optimization": os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_{}".format(formula)),
-                                "SCAN structure optimization": os.path.join(reference_dir, "SCAN_structure_optimization_{}".format(formula))
+                                "R2SCAN structure optimization": os.path.join(reference_dir, "SCAN_structure_optimization_{}".format(formula))
                                 },
                                check_kpoints=False,
                                check_potcar=False,
@@ -435,7 +435,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
     def _get_launch_dir(self):
         # retrieve the launcher directory
         pbesol = list(self.get_task_collection().find({"task_label": "PBEsol structure optimization"}))[-1]
-        r2scan = list(self.get_task_collection().find({"task_label": "SCAN structure optimization"}))[-1]
+        r2scan = list(self.get_task_collection().find({"task_label": "R2SCAN structure optimization"}))[-1]
         pbesol_dir = pbesol["dir_name"].split(":")[1]
         r2scan_dir = r2scan["dir_name"].split(":")[1]
         return pbesol_dir, r2scan_dir
@@ -444,7 +444,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         # A structure with bandgap = 0 (default) should have KSPACING equal to 0.22
         structure = Structure.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_Al/inputs", "POSCAR"))
 
-        my_wf = get_wf(structure, "SCAN_optimization.yaml")
+        my_wf = get_wf(structure, "metagga_optimization.yaml")
         fw_ids = self._run_scan_relax(my_wf, "Al")
 
         # Check PBESol INCAR
@@ -491,7 +491,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
 
         structure = Structure.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_LiH/inputs", "POSCAR"))
 
-        my_wf = get_wf(structure, "SCAN_optimization.yaml")
+        my_wf = get_wf(structure, "metagga_optimization.yaml")
         fw_ids = self._run_scan_relax(my_wf, "LiH")
 
         # Check PBESol INCAR
@@ -540,7 +540,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
 
         structure = Structure.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_LiF/inputs", "POSCAR"))
 
-        my_wf = get_wf(structure, "SCAN_optimization.yaml")
+        my_wf = get_wf(structure, "metagga_optimization.yaml")
         fw_ids = self._run_scan_relax(my_wf, "LiF")
 
         # Check PBESol INCAR
@@ -589,7 +589,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
 
         structure = Structure.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_LiF_vdw/inputs", "POSCAR"))
 
-        my_wf = get_wf(structure, "SCAN_optimization.yaml",
+        my_wf = get_wf(structure, "metagga_optimization.yaml",
                        common_params={"vasp_input_set_params": {"vdw": "rVV10"},
                                       "vdw_kernel_dir": os.path.join(reference_dir,
                                                                      "PBESol_pre_opt_for_SCAN_LiF_vdw/inputs")})
@@ -646,7 +646,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
 
         structure = Structure.from_file(os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_LiH/inputs", "POSCAR"))
 
-        my_wf = get_wf(structure, "SCAN_optimization.yaml",
+        my_wf = get_wf(structure, "metagga_optimization.yaml",
                        common_params={"vasp_input_set_params": {"user_potcar_functional": "PBE_52",
                                                                 "user_incar_settings": {"NSW": 10,
                                                                                         "SYMPREC": 1e-6,
