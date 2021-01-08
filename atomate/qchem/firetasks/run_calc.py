@@ -40,21 +40,13 @@ class RunQChemDirect(FiretaskBase):
         qchem_cmd (str): The name of the full command line call to run. This should include any
                          flags for parallelization, saving scratch, and input / output files.
                          Does NOT support env_chk.
-    Optional params:
-        scratch_dir (str): Path to the scratch directory. Defaults to "/dev/shm/qcscratch/".
-                           Supports env_chk.
-
     """
 
     required_params = ["qchem_cmd"]
-    optional_params = ["scratch_dir"]
 
     def run_task(self, fw_spec):
         cmd = self.get("qchem_cmd")
-        scratch_dir = env_chk(self.get("scratch_dir"), fw_spec)
-        if scratch_dir == None:
-            scratch_dir = "/dev/shm/qcscratch/"
-        os.putenv("QCSCRATCH", scratch_dir)
+        os.putenv("QCSCRATCH", os.getcwd())
 
         logger.info("Running command: {}".format(cmd))
         return_code = subprocess.call(cmd, shell=True)
@@ -117,6 +109,11 @@ class RunQChemCustodian(FiretaskBase):
         multimode = env_chk(self.get("multimode"), fw_spec)
         if multimode == None:
             multimode = "openmp"
+        """
+        Note that I'm considering hardcoding openmp in the future
+        because there is basically no reason anyone should ever run
+        QChem on multiple nodes, aka with multimode = mpi.
+        """ 
         input_file = self.get("input_file", "mol.qin")
         output_file = self.get("output_file", "mol.qout")
         max_cores = env_chk(self["max_cores"], fw_spec)
