@@ -1,5 +1,5 @@
 numpy==1.19.5
-scipy==1.5.4
+scipy==1.6.0
 FireWorks==1.9.6
 pymatgen_diffusion==2020.10.8
 monty==4.0.2
@@ -7,7 +7,7 @@ paramiko==2.7.2
 tqdm==4.55.1
 pybtex==0.23.0
 ruamel.yaml==0.16.12
-pandas==1.1.5
+pandas==1.2.0
 pymatgen==2020.12.31
 custodian==2021.1.7
 networkx==2.5
