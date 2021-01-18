@@ -20,7 +20,6 @@ from pymatgen.io.vasp import (
     Poscar,
     Potcar,
     PotcarSingle,
-    Vasprun,
     Kpoints
 )
 from pymatgen.io.vasp.sets import (
@@ -29,8 +28,10 @@ from pymatgen.io.vasp.sets import (
     MPSOCSet,
     MPHSEBSSet,
     MPNMRSet,
-    MPScanRelaxSet
+    MPScanRelaxSet,
 )
+
+from pymatgen.io.vasp.outputs import Vasprun
 
 from atomate.utils.utils import env_chk, load_class
 from atomate.vasp.firetasks.glue_tasks import GetInterpolatedPOSCAR
@@ -289,34 +290,49 @@ class ModifyPotcar(FiretaskBase):
 
 
 @explicit_serialize
-class UpdateScanRelaxBandgap(FiretaskBase):
+class WriteScanRelaxFromPrev(FiretaskBase):
     """
     Writes input files for a SCAN relaxation by constructing a new input set.
     The purpose of this Firetask is to allow the KSPACING and smearing parameters
-    to be recalculated based on the bandgap from the PBE relaxation in the
+    to be recalculated based on the bandgap from the PBESol pre-optimization in the
     SCAN relaxation workflow. Assumes that output files from a previous
-    (e.g., optimization) run can be accessed in current dir or prev_calc_dir.
+    (e.g., optimization) run have been copied to the current directory.
+
+    Note that if the "bandgap" kwarg is set by the user, this value will override
+    the value estimated from the PBESol relaxation.
 
     Optional params (dict):
-        override_default_vasp_params: Dict of any keyword arguments supported
-                                      by MPScanRelaxSet.
+        vasp_input_set_params: Dict of any keyword arguments supported by MPScanRelaxSet.
         potcar_spec (bool): Instead of writing the POTCAR, write a
             "POTCAR.spec". This is intended to allow testing of workflows
             without requiring pseudo-potentials to be installed on the system.
 
     """
-    optional_params = ["override_default_vasp_params", "potcar_spec"]
+    optional_params = ["vasp_input_set_params", "potcar_spec"]
 
     def run_task(self, fw_spec):
 
-        kwargs = self.get("override_default_vasp_params")
         potcar_spec = self.get("potcar_spec", False)
+        vasp_input_set_params = self.get("vasp_input_set_params") or {}
 
-        os.chdir(os.getcwd())
-        vrun = Vasprun("vasprun.xml", parse_potcar_file=False)
-        bandgap = vrun.get_band_structure().get_band_gap()["energy"]
-        structure = vrun.final_structure
-        vis = MPScanRelaxSet(structure, bandgap=bandgap, **kwargs)
+        # update the bandgap based on output from the previous calculation,
+        # unless the user specified a bandgap via vasp_input_set_params
+        if vasp_input_set_params.get("bandgap") is None:
+            # First look for the gga_bandgap key in the FW spec, to save parsing time
+            if fw_spec.get("gga_bandgap") is not None:
+                vasp_input_set_params["bandgap"] = fw_spec.get("gga_bandgap")
+            # If not found, parse the files from the previous calc to find the bandgap
+            else:
+                parse_potcar_file = not potcar_spec
+                vasprun = Vasprun("vasprun.xml", parse_potcar_file=parse_potcar_file)
+                bandgap = vasprun.get_band_structure(efermi="smart").get_band_gap()["energy"]
+                vasp_input_set_params["bandgap"] = bandgap
+
+        # read the structure from the output of the previous calculation
+        structure = Structure.from_file("POSCAR")
+
+        vis = MPScanRelaxSet(structure, **vasp_input_set_params)
+
         vis.write_input(".", potcar_spec=potcar_spec)
 
 

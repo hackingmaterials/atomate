@@ -1,4 +1,0 @@
-# SCAN structure optimization
-# Author: Ryan Kingsbury (RKingsbury@lbl.gov)
-fireworks:
-- fw: atomate.vasp.fireworks.core.ScanOptimizeFW

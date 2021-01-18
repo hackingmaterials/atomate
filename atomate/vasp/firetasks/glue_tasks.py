@@ -1,8 +1,8 @@
 # coding: utf-8
 
 import glob
+import warnings
 
-from pymatgen.analysis.elasticity.strain import Strain
 from pymatgen.io.vasp import Vasprun
 from monty.os.path import zpath
 
@@ -56,12 +56,16 @@ class CopyVaspOutputs(CopyFiles):
         additional_files ([str]): additional files to copy,
             e.g. ["CHGCAR", "WAVECAR"]. Use $ALL if you just want to copy
             everything
-        contcar_to_poscar(bool): If True (default), will move CONTCAR to
+        contcar_to_poscar (bool): If True (default), will move CONTCAR to
             POSCAR (original POSCAR is not copied).
+        potcar_spec (bool): Instead of copying the POTCAR, copy the
+            "POTCAR.spec". This is intended to allow testing of workflows
+            without requiring pseudo-potentials to be installed on the system.
+            Default: False
     """
 
     optional_params = ["calc_loc", "calc_dir", "filesystem", "additional_files",
-                       "contcar_to_poscar"]
+                       "contcar_to_poscar", "potcar_spec"]
 
     def run_task(self, fw_spec):
 
@@ -71,11 +75,14 @@ class CopyVaspOutputs(CopyFiles):
 
         # determine what files need to be copied
         files_to_copy = None
-        if not "$ALL" in self.get("additional_files", []):
+        if "$ALL" not in self.get("additional_files", []):
             files_to_copy = ['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR', 'OUTCAR',
                              'vasprun.xml']
             if self.get("additional_files"):
                 files_to_copy.extend(self["additional_files"])
+            if self.get("potcar_spec", False):
+                files_to_copy.remove("POTCAR")
+                files_to_copy.append("POTCAR.spec")
 
         # decide between poscar and contcar
         contcar_to_poscar = self.get("contcar_to_poscar", True)
@@ -118,7 +125,13 @@ class CopyVaspOutputs(CopyFiles):
                         gz_ext = possible_ext
 
             if not (f + relax_ext + gz_ext) in all_files:
-                raise ValueError("Cannot find file: {}".format(f))
+                # do not fail if KPOINTS is missing, because this might indicate use of automatic
+                # KPOINTS (e.g., KSPACING argument)
+                if f == 'KPOINTS':
+                    warnings.warn("Cannot find file: {}".format(f))
+                    continue
+                else:
+                    raise ValueError("Cannot find file: {}".format(f))
 
             # copy the file (minus the relaxation extension)
             self.fileclient.copy(prev_path_full + relax_ext + gz_ext,

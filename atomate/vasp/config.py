@@ -21,10 +21,6 @@ HALF_KPOINTS_FIRST_RELAX = False
 # maximum force allowed on atom for successful structure optimization
 RELAX_MAX_FORCE = 0.25
 
-# Remove Wavecar after the calculation is finished.
-# Only used for SCAN structure optimizations right now.
-REMOVE_WAVECAR = False
-
 # this is a three-way toggle on what to do if your job looks OK,
 # but is actually unconverged (either electronic or ionic).
 # True -> mark job as COMPLETED, but defuse children.

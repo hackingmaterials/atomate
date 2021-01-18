@@ -35,7 +35,7 @@ from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk, get_meta_from_structure
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
-from atomate.vasp.drones import VaspDrone
+from atomate.vasp.drones import VaspDrone, BADER_EXE_EXISTS
 from atomate.vasp.config import STORE_VOLUMETRIC_DATA
 
 __author__ = 'Anubhav Jain, Kiran Mathew, Shyam Dwaraknath'
@@ -59,6 +59,8 @@ class VaspToDb(FiretaskBase):
             Defaults to False.
         parse_potcar_file (bool): Whether to parse the potcar file. Defaults to
             True.
+        parse_bader (bool): Whether to perform Bader charge analysis when parsing
+            the charge density. Default: True if bader.exe exists in the path.
         bandstructure_mode (str): Set to "uniform" for uniform band structure.
             Set to "line" for line mode. If not set, band structure will not
             be parsed.
@@ -82,7 +84,7 @@ class VaspToDb(FiretaskBase):
     optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
                        "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful",
                        "task_fields_to_push", "parse_chgcar", "parse_aeccar",
-                       "parse_potcar_file",
+                       "parse_potcar_file", "parse_bader",
                        "store_volumetric_data"]
 
     def run_task(self, fw_spec):
@@ -100,6 +102,7 @@ class VaspToDb(FiretaskBase):
                           parse_dos=self.get("parse_dos", False),
                           parse_potcar_file=self.get("parse_potcar_file", True),
                           bandstructure_mode=self.get("bandstructure_mode", False),
+                          parse_bader=self.get("parse_bader", BADER_EXE_EXISTS),
                           parse_chgcar=self.get("parse_chgcar", False),  # deprecated
                           parse_aeccar=self.get("parse_aeccar", False),  # deprecated
                           store_volumetric_data=self.get("store_volumetric_data", STORE_VOLUMETRIC_DATA))
@@ -642,20 +645,29 @@ class FitEOSToDb(FiretaskBase):
         summary_dict = {"eos": eos}
         to_db = self.get("to_db", True)
 
-        # collect and store task_id of all related tasks to make unique links with "tasks" collection
+        # collect and store task_id of all related tasks to make unique links with
+        # "tasks" collection
         all_task_ids = []
 
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-        # get the optimized structure
+
         d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
-        all_task_ids.append(d["task_id"])
-        structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+        docs = mmdb.collection.find({"task_label": {"$regex": "{} bulk_modulus*".format(tag)}})
+
+        if d:
+            # get the optimized structure and optimization task_id
+            all_task_ids.append(d["task_id"])
+            structure_dict = d["calcs_reversed"][-1]["output"]['structure']
+        else:
+            # no structure optimization in the workflow
+            # get the original structure from the transformation information
+            structure_dict = docs[0]["transformations"]["history"][0]["input_structure"]
+
+        structure = Structure.from_dict(structure_dict)
         summary_dict["structure"] = structure.as_dict()
         summary_dict["formula_pretty"] = structure.composition.reduced_formula
 
-        # get the data(energy, volume, force constant) from the deformation runs
-        docs = mmdb.collection.find({"task_label": {"$regex": "{} bulk_modulus*".format(tag)},
-                                     "formula_pretty": structure.composition.reduced_formula})
+        # get the data (energy, volume, force constant) from the deformation runs
         energies = []
         volumes = []
         for d in docs:
@@ -678,7 +690,8 @@ class FitEOSToDb(FiretaskBase):
         summary_dict["results"] = dict(eos_fit.results)
         summary_dict["created_at"] = datetime.utcnow()
 
-        # db_file itself is required but the user can choose to pass the results to db or not
+        # db_file itself is required but the user can choose to pass the results to db
+        # or not
         if to_db:
             mmdb.collection = mmdb.db["eos"]
             mmdb.collection.insert_one(summary_dict)
@@ -730,15 +743,16 @@ class ThermalExpansionCoeffToDb(FiretaskBase):
         summary_dict = {}
 
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
-        # get the optimized structure
-        d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
-        structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+
+        docs = mmdb.collection.find({"task_label": {"$regex": "{} thermal_expansion*".format(tag)}})
+
+        # get the original structure from the transformation information
+        structure_dict = docs[0]["transformations"]["history"][0]["input_structure"]
+        structure = Structure.from_dict(structure_dict)
         summary_dict["structure"] = structure.as_dict()
         summary_dict["formula_pretty"] = structure.composition.reduced_formula
 
         # get the data(energy, volume, force constant) from the deformation runs
-        docs = mmdb.collection.find({"task_label": {"$regex": "{} thermal_expansion*".format(tag)},
-                                     "formula_pretty": structure.composition.reduced_formula})
         energies = []
         volumes = []
         force_constants = []
@@ -1212,7 +1226,7 @@ class MagneticOrderingsToDb(FiretaskBase):
     builder, this is intended for easy, automated use for calculating
     magnetic orderings directly from the get_wf_magnetic_orderings
     workflow. It's unlikely you will want to call this directly.
-    
+
     Required parameters:
         db_file (str): path to the db file that holds your tasks
             collection and that you want to hold the magnetic_orderings
