@@ -1,5 +1,6 @@
 # coding: utf-8
 
+
 import os
 import itertools
 
@@ -47,14 +48,15 @@ module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 
 def get_wf_hubbard_hund_linresp(
-        structure, uis,
+        structure, 
+        user_incar_settings=None,
         relax_nonmagnetic=True,
         spin_polarized=True,
-        applied_potential_range=[-0.2, 0.2],
-        num_parallel_evals=9, num_total_evals=9,
-        site_indices_u=None, species_u=None,
+        applied_potential_range=(-0.2, 0.2),
+        num_evals=9,
+        site_indices_perturb=None, species_perturb=None,
         find_nearest_sites=True,
-        parallel_scheme=1,
+        parallel_scheme=0,
         ediff_tight=1.0e-6,
         c=None):
     """
@@ -69,18 +71,22 @@ def get_wf_hubbard_hund_linresp(
         spin_polarized: Perform spin-dependent perturbations
         applied_potential_range: Bounds of applied potential
         num_evals: Number of perturbation evalutaions
-        uis: user INCAR settings (must set LMAXMIX, i.e. uis = {"LMAXMIX": 4})
-        site_indices_u: List of site indices within
-    Structure indicating perturbation sites
-        species_u: List of names of species (string)
+        user_incar_settings: user INCAR settings
+        site_indices_perturb: (must specify if species_perturb=None) 
+    List of site indices within
+    Structure indicating perturbation sites; 
+        species_perturb: (must specify if site_indices_perturb=None) 
+    List of names of species (string)
     of sites to perturb; First site of that species
     is selected in the structure
-        use_default_uvals: Use the default U values
-    for non-perturbed sites
         parallel_scheme: 0 - (default) self-consistent (SCF)
     runs use WAVECAR from non-self consistent (NSCF) run
     at same applied potential; 1 - SCF runs use WAVECAR
-    from ground-state (V=0) run
+    from ground-state (V=0) run. 
+    While reusing the WAVECAR from NSCF run in SCF run may be more 
+    efficient (parallel_scheme: 0), the user may also choose to 
+    remove the dependency between NSCF and SCF runs 
+    (parallel_scheme: 1)
         c: Workflow config dict, in the same format
     as in presets/core.py and elsewhere in atomate
 
@@ -94,7 +100,7 @@ def get_wf_hubbard_hund_linresp(
 
     # Function to find closest cluster of sites of target species of
     # sites to perturb
-    def find_closest_sites(struct, species_u):
+    def find_closest_sites(struct, species_perturb):
 
         d_ij = struct.distance_matrix
 
@@ -122,7 +128,7 @@ def get_wf_hubbard_hund_linresp(
             iindxs = [indices[j]+int(np.sum(nn_s[0:j])) for j in range(n_s)]
             indxs = []
             for j, jk in enumerate(n_species):
-                if jk in species_u:
+                if jk in species_perturb:
                     indxs.append(iindxs[j])
             dist = 0.0
             for x in indxs:
@@ -134,43 +140,43 @@ def get_wf_hubbard_hund_linresp(
 
         return indices_nearest
 
-    if not site_indices_u:
-        site_indices_u = []
+    if not site_indices_perturb:
+        site_indices_perturb = []
 
-    if species_u:
+    if species_perturb:
 
         if find_nearest_sites:
-            site_indices_u = find_closest_sites(structure, species_u)
+            site_indices_perturb = find_closest_sites(structure, species_perturb)
         else:
-            for specie_u in species_u:
+            for specie_u in species_perturb:
                 found_specie = False
                 for s in range(len(structure)):
                     site = structure[s]
                     if (Element(str(site.specie)) == Element(specie_u)) \
-                       and (s not in site_indices_u):
+                       and (s not in site_indices_perturb):
                         found_specie = True
                         break
                 if not found_specie:
                     raise ValueError(
                         "Could not find specie(s) in structure."
                     )
-                site_indices_u.append(s)
+                site_indices_perturb.append(s)
 
-    elif not site_indices_u:
+    elif not site_indices_perturb:
         logger.warning(
             "Sites for computing U value are not specified. "
             "Computing U for first site in structure. "
         )
 
-    site_indices_u = list(tuple(site_indices_u))
-    num_perturb = len(site_indices_u)
+    site_indices_perturb = list(tuple(site_indices_perturb))
+    num_perturb = len(site_indices_perturb)
 
     sites_perturb = []
-    for site_index_perturb in site_indices_u:
+    for site_index_perturb in site_indices_perturb:
         site = structure[site_index_perturb]
         sites_perturb.append(site)
 
-    structure.remove_sites(indices=site_indices_u)
+    structure.remove_sites(indices=site_indices_perturb)
 
     for site in sites_perturb:
         structure.insert(i=0, species=site.specie, coords=site.frac_coords,
@@ -188,8 +194,25 @@ def get_wf_hubbard_hund_linresp(
 
     # Calculate groundstate
 
+    # set user_incar_settings
+    if not user_incar_settings:
+        user_incar_settings = {}
+
+    # set LMAXMIX in user_incar_settings
+    if 'LMAXMIX' not in user_incar_settings.keys():
+        lmaxmix_dict = {"p": 2, "d": 4, "f": 6} 
+        lmm = "p"
+        for site in structure:
+            block = str(site.specie.block)
+            if block == "d" and lmm != "f":
+                lmm = "d"
+            elif block == "f":
+                lmm = "f"
+                break
+        user_incar_settings.update({"LMAXMIX": lmaxmix_dict[lmm]})
+
     # ground state user incar settings
-    uis_gs = uis.copy()
+    uis_gs = user_incar_settings.copy()
     if "LMAXMIX" not in uis_gs:
         logger.warning(
             "You have not specified LMAXMIX. Defaulting to VASP default."
@@ -210,14 +233,14 @@ def get_wf_hubbard_hund_linresp(
             # for LDAUL
             for i in range(num_perturb):
                 val_dict[k].update({"perturb"+str(i): -1})
-            for s in vis_ldau.poscar.site_symbols:
+            for s in vis_ldau.poscar.site_symbols[num_perturb:]:
                 l = -1
                 val_dict[k].update({s: l})
         else:
             # for LDAUU and LDAUJ
             for i in range(num_perturb):
                 val_dict[k].update({"perturb"+str(i): 0})
-            for s in vis_ldau.poscar.site_symbols:
+            for s in vis_ldau.poscar.site_symbols[num_perturb:]:
                 v = 0
                 val_dict[k].update({s: v})
         uis_ldau.update({k: val_dict[k].copy()})
@@ -256,17 +279,11 @@ def get_wf_hubbard_hund_linresp(
             name="initial_static_magnetic", vasp_input_set=vis_gs,
             vasp_cmd=VASP_CMD, db_file=DB_FILE))
 
-    # Determine applied potential range
-    if num_parallel_evals != num_total_evals:
-        raise ValueError(
-            "Different # of parallel & total evaluations not currently implemented."
-        )
-
     applied_potential_value_list = []
     for counter_perturb in range(num_perturb):
         applied_potential_values = np.linspace(
             applied_potential_range[0], applied_potential_range[1],
-            num_parallel_evals)
+            num_evals)
         applied_potential_values = np.around(applied_potential_values, decimals=9)
 
         if 0.0 in applied_potential_values:
@@ -303,7 +320,6 @@ def get_wf_hubbard_hund_linresp(
                 for k in ["LDAUL", "LDAUU", "LDAUJ"]:
                     if (k == "LDAUL"):
                         # for LDAUL
-                        # FIX ME: shouldn't hard code LDAUL = 2
                         for i in range(num_perturb):
                             if i == counter_perturb:
                                 block = str(structure[counter_perturb].specie.block)
