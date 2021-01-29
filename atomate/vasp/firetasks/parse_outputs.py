@@ -812,11 +812,6 @@ class HubbardHundLinRespToDb(FiretaskBase):
         relax_nonmagnetic = bool(self["relax_nonmagnetic"])
 
         keys = ['Ground state', 'NSCF', 'SCF']
-        if relax_nonmagnetic:
-            regexps = ['^initial_static_magnetic', '^nscf', '^scf_magnetic']
-        else:
-            regexps = ['^initial', '^nscf', '^scf']
-
         response_dict = {'Ground state': {}, 'NSCF': {}, 'SCF': {}}
         perturb_dict = {}
 
@@ -917,8 +912,7 @@ class HubbardHundLinRespToDb(FiretaskBase):
                 except Exception as exc:
                     logger.warning('Doc miss: ',  exc)
 
-                struct_final = Structure.from_dict(
-                    d["calcs_reversed"][-1]["output"]['structure'])
+                struct_final = Structure.from_dict(d["output"]["structure"])
                 analyzer_output = CollinearMagneticStructureAnalyzer(
                     struct_final, threshold=0.61)
                 magnet_order = analyzer_output.ordering.value
@@ -988,31 +982,31 @@ class HubbardHundLinRespToDb(FiretaskBase):
 
                             v = response_dict[keys[ll]][v_key][l]
                             n = response_dict[keys[ll]][n_key][l]
-                            # order = response_dict[keys[ll]]['magnetic order'][l]
+                            order = response_dict[keys[ll]]['magnetic order'][l]
 
-                            # if order == order_gs:
-                            isolated_response = True
-                            if v == 0.0:
-                                for k in range(n_response):
-                                    if spin_polarized:
-                                        s = 'up' if np.mod(k,2)==0 else 'dn'
-                                        vv_key = 'V'+s+'_site'+str(k//2)
-                                    else:
-                                        vv_key = 'Vup_site'+str(k)
+                            if order == order_gs:
+                                isolated_response = True
+                                if v == 0.0:
+                                    for k in range(n_response):
+                                        if spin_polarized:
+                                            s = 'up' if np.mod(k,2)==0 else 'dn'
+                                            vv_key = 'V'+s+'_site'+str(k//2)
+                                        else:
+                                            vv_key = 'Vup_site'+str(k)
 
-                                    num_v = len(response_dict[keys[ll]][vv_key])
-                                    if (k != j) and (response_dict[keys[ll]][vv_key][l] != 0.0) \
-                                       and l < num_v:
-                                        isolated_response = False
-                                        break
+                                        num_v = len(response_dict[keys[ll]][vv_key])
+                                        if (k != j) and (response_dict[keys[ll]][vv_key][l] != 0.0) \
+                                           and l < num_v:
+                                            isolated_response = False
+                                            break
 
-                            if isolated_response:
-                                if ll == 1:
-                                    v_nscf.append(v)
-                                    n_nscf.append(n)
-                                elif ll == 2:
-                                    v_scf.append(v)
-                                    n_scf.append(n)
+                                if isolated_response:
+                                    if ll == 1:
+                                        v_nscf.append(v)
+                                        n_nscf.append(n)
+                                    elif ll == 2:
+                                        v_scf.append(v)
+                                        n_scf.append(n)
 
                     try:
                         fit_nscf = response_fit(v_nscf, n_nscf)
@@ -1230,8 +1224,7 @@ class HubbardHundLinRespToDb(FiretaskBase):
 
         structure = None
         if docs:
-            structure = Structure.from_dict(
-                docs[0]["calcs_reversed"][-1]["input"]['structure'])
+            structure = Structure.from_dict(docs[0]["input"]["structure"])
 
         summaries = []
 
