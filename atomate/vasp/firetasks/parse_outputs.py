@@ -881,6 +881,14 @@ class HubbardHundLinRespToDb(FiretaskBase):
 
             if use_calc:
                 try:
+                    # perform magnetic ordering analysis
+                    struct_final = Structure.from_dict(d["output"]["structure"])
+                    analyzer_output = CollinearMagneticStructureAnalyzer(
+                        struct_final, threshold=0.61)
+                    magnet_order = analyzer_output.ordering.value
+                    if rkey == keys[0]: # store ground state ordering
+                        magnet_order_gs = magnet_order
+
                     for i in range(num_perturb_sites):
                         specie = struct[i].specie
                         ldaul = ldaul_vals[i]
@@ -909,22 +917,16 @@ class HubbardHundLinRespToDb(FiretaskBase):
                         response_dict[rkey]['Vup_site'+str(i)].append(v_up)
                         response_dict[rkey]['Vdn_site'+str(i)].append(v_dn)
 
+                        response_dict[rkey]['magnetic order'].append(magnet_order)
+
                 except Exception as exc:
                     logger.warning('Doc miss: ',  exc)
-
-                struct_final = Structure.from_dict(d["output"]["structure"])
-                analyzer_output = CollinearMagneticStructureAnalyzer(
-                    struct_final, threshold=0.61)
-                magnet_order = analyzer_output.ordering.value
-                response_dict[rkey]['magnetic order'].append(magnet_order)
-
-                if rkey == keys[0]:
-                    magnet_order_gs = magnet_order
 
         for j in range(num_perturb_sites):
             for k in ['Vup_site'+str(j), 'Vdn_site'+str(j),
                       'Nup_site'+str(j), 'Ndn_site'+str(j),
-                      'Ntot_site'+str(j), 'Mz_site'+str(j)]:
+                      'Ntot_site'+str(j), 'Mz_site'+str(j),
+                      'magnetic order']:
                 for i in [1, 2]:
                     response_dict[keys[i]][k].extend(response_dict[keys[0]][k])
 
@@ -984,7 +986,7 @@ class HubbardHundLinRespToDb(FiretaskBase):
                             n = response_dict[keys[ll]][n_key][l]
                             order = response_dict[keys[ll]]['magnetic order'][l]
 
-                            if order == order_gs:
+                            if order == magnet_order_gs:
                                 isolated_response = True
                                 if v == 0.0:
                                     for k in range(n_response):
@@ -1102,9 +1104,7 @@ class HubbardHundLinRespToDb(FiretaskBase):
                                  "atom (block 2x2 inverse), or full (full inverse)")
 
             # Assume cross-covariances are zero
-            chi_covar = np.diag(np.transpose(
-                np.reshape(chi_err_block**2,
-                           [n_response * n_response, 1]))[0])
+            chi_covar = np.diag(np.reshape(chi_err_block**2, [n_response * n_response]))
 
             (chi_inv, chi_inv_var, chi_inv_jacobs) = inverse_matrix_uncertainty(
                 chi_block, chi_covar)
@@ -1164,8 +1164,11 @@ class HubbardHundLinRespToDb(FiretaskBase):
                                 "U":{"value":uval, "error":uval_err}})
                     else:
                         for i in range(num_perturb_sites):
+
+                            # first "simple 2x2" formula
                             umat = f_matrix[2*i:2*(i+1), 2*i:2*(i+1)]
                             umat_err = f_matrix_err[2*i:2*(i+1), 2*i:2*(i+1)]
+
                             uval = 0.25 * np.sum(umat)
                             uval_err = 0.25 * np.sqrt(np.sum(umat_err**2))
 
@@ -1174,12 +1177,119 @@ class HubbardHundLinRespToDb(FiretaskBase):
                             jval = 0.25 * np.sum(jmat)
                             jval_err = 0.25 * np.sqrt(np.sum(jmat_err**2))
 
+                            # update dictionary values
                             hubbard_hund_dict[key]["values"].update({
                                 "site"+str(i): perturb_dict["site"+str(i)].copy()})
-                            hubbard_hund_dict[key]["values"]["site"+str(i)].update({
+                            hubbard_hund_dict[key]["values"]["site"+str(i)]["simple"] = {}
+                            hubbard_hund_dict[key]["values"]["site"+str(i)]["simple"].update({
                                 "U":{"value":uval, "error":uval_err}})
-                            hubbard_hund_dict[key]["values"]["site"+str(i)].update({
+                            hubbard_hund_dict[key]["values"]["site"+str(i)]["simple"].update({
                                 "J":{"value":jval, "error":jval_err}})
+
+                            # second "scaled 2x2" formula
+
+                            # helpful functions for computing derivatives of "f" (Dyson) matrix
+                            def fmat_deriv_scf(kk,ll,k,l):
+                                fd = chi_scf_inv_jacobs[2*i+kk][2*i+ll][2*i+k,2*i+l]
+                                return fd
+
+                            def fmat_deriv_nscf(kk,ll,k,l):
+                                fd = - chi_nscf_inv_jacobs[2*i+kk][2*i+ll][2*i+k,2*i+l]
+                                return fd
+                            
+                            try:
+                                fmat = f_matrix[2*i:2*(i+1), 2*i:2*(i+1)]
+                                fmat_err = f_matrix_err[2*i:2*(i+1), 2*i:2*(i+1)]
+
+                                chi_sub_scf = chi_matrix_scf[2*i:2*(i+1), 2*i:2*(i+1)]
+                                chi_sub_scf_err = chi_scf_err[2*i:2*(i+1), 2*i:2*(i+1)]
+                                chi_sub_nscf = chi_matrix_nscf[2*i:2*(i+1), 2*i:2*(i+1)]
+                                chi_sub_nscf_err = chi_nscf_err[2*i:2*(i+1), 2*i:2*(i+1)]
+
+                                # compute U value and error
+                                lam = (chi_sub_scf[0,0] + chi_sub_scf[0,1]) / (chi_sub_scf[1,0] + chi_sub_scf[1,1])
+                                lam_deriv = np.zeros([2,2])
+                                lam_deriv[0,0] = 1.0 / (chi_sub_scf[1,0] + chi_sub_scf[1,1])
+                                lam_deriv[0,1] = lam_deriv[0,0]
+                                lam_deriv[1,1] = - lam / (chi_sub_scf[1,0] + chi_sub_scf[1,1])
+                                lam_deriv[1,0] = lam_deriv[1,1]
+
+                                uval = 0.5 * (lam*(fmat[0,0]+fmat[1,0]) + fmat[0,1]+fmat[1,1]) / (lam + 1.0)
+
+                                uval_err = 0.0
+                                # scf component
+                                u_deriv_scf = np.zeros([2,2])
+                                for k in [0,1]:
+                                    for l in [0,1]:
+                                        u_deriv_scf[k,l] = 0.5/(lam+1.0)*(lam_deriv[k,l]*(fmat[0,0] + fmat[1,0]) \
+                                            + lam*(fmat_deriv_scf(0,0,k,l) + fmat_deriv_scf(1,0,k,l)) \
+                                            + fmat_deriv_scf(0,1,k,l) + fmat_deriv_scf(1,1,k,l)) \
+                                            - uval/(lam+1.0) * lam_deriv[k,l]
+                                jacob_vec = np.reshape(u_deriv_scf, [4, 1])
+                                uval_err = uval_err + np.sum(
+                                    np.dot(np.transpose(jacob_vec), 
+                                           np.dot(np.diag(np.reshape(chi_sub_scf_err**2,[4])), jacob_vec)))
+                                # nscf component
+                                u_deriv_nscf = np.zeros([2,2])
+                                for k in [0,1]:
+                                    for l in [0,1]:
+                                        u_deriv_nscf[k,l] = 0.5/(lam+1.0)*( \
+                                            + lam*(fmat_deriv_nscf(0,0,k,l) + fmat_deriv_nscf(1,0,k,l)) \
+                                            + fmat_deriv_nscf(0,1,k,l) + fmat_deriv_nscf(1,1,k,l))
+                                jacob_vec = np.reshape(u_deriv_nscf, [4, 1])
+                                uval_err = uval_err + np.sum(
+                                    np.dot(np.transpose(jacob_vec),
+                                           np.dot(np.diag(np.reshape(chi_sub_nscf_err**2,[4])), jacob_vec)))
+                                # compute std
+                                uval_err = np.sqrt(uval_err)
+
+                                # compute J value and error
+                                lam = (chi_sub_scf[0,0] - chi_sub_scf[0,1]) / (chi_sub_scf[1,0] - chi_sub_scf[1,1])
+                                lam_deriv = np.zeros([2,2])
+                                lam_deriv[0,0] = 1.0 / (chi_sub_scf[1,0] - chi_sub_scf[1,1])
+                                lam_deriv[0,1] = - lam_deriv[0,0]
+                                lam_deriv[1,1] = lam / (chi_sub_scf[1,0] - chi_sub_scf[1,1])
+                                lam_deriv[1,0] = - lam_deriv[1,1]
+
+                                jval = - 0.5 * (lam*(fmat[0,0]-fmat[1,0]) + fmat[0,1]-fmat[1,1]) / (lam - 1.0)
+
+                                jval_err = 0.0
+                                # scf component
+                                j_deriv_scf = np.zeros([2,2])
+                                for k in [0,1]:
+                                    for l in [0,1]:
+                                        u_deriv_scf[k,l] = -0.5/(lam-1.0)*(lam_deriv[k,l]*(fmat[0,0] - fmat[1,0]) \
+                                            + lam*(fmat_deriv_scf(0,0,k,l) - fmat_deriv_scf(1,0,k,l)) \
+                                            + fmat_deriv_scf(0,1,k,l) - fmat_deriv_scf(1,1,k,l)) \
+                                            + uval/(lam-1.0) * lam_deriv[k,l]
+                                jacob_vec = np.reshape(j_deriv_scf, [4, 1])
+                                jval_err = jval_err + np.sum(
+                                    np.dot(np.transpose(jacob_vec), 
+                                           np.dot(np.diag(np.reshape(chi_sub_scf_err**2,[4])), jacob_vec)))
+                                # nscf component
+                                j_deriv_nscf = np.zeros([2,2])
+                                for k in [0,1]:
+                                    for l in [0,1]:
+                                        j_deriv_nscf[k,l] = -0.5/(lam-1.0)*( \
+                                            + lam*(fmat_deriv_nscf(0,0,k,l) - fmat_deriv_nscf(1,0,k,l)) \
+                                            + fmat_deriv_nscf(0,1,k,l) - fmat_deriv_nscf(1,1,k,l))
+                                jacob_vec = np.reshape(j_deriv_nscf, [4, 1])
+                                jval_err = jval_err + np.sum(
+                                    np.dot(np.transpose(jacob_vec),
+                                           np.dot(np.diag(np.reshape(chi_sub_nscf_err**2,[4])), jacob_vec)))
+                                # compute std
+                                jval_err = np.sqrt(jval_err)
+
+                                # update dictionary values
+                                hubbard_hund_dict[key]["values"]["site"+str(i)]["scaled"] = {}
+                                hubbard_hund_dict[key]["values"]["site"+str(i)]["scaled"].update({
+                                    "U":{"value":uval, "error":uval_err}})
+                                hubbard_hund_dict[key]["values"]["site"+str(i)]["scaled"].update({
+                                    "J":{"value":jval, "error":jval_err}})
+
+                            except Exception as exc:
+                                logger.warning('Error computing U & J values using scaled formula',  exc)
+
                 else:
                     for i in range(num_perturb_sites):
                         uval = f_matrix[i,i]
@@ -1204,9 +1314,9 @@ class HubbardHundLinRespToDb(FiretaskBase):
 
             except Exception as exc:
                 f_matrix, f_matrix_err = [], []
-                chi_matrix_scf_list, chi_block_scf = [], []
+                chi_matrix_scf_list, chi_block_scf = array_to_list(chi_matrix_scf), []
                 chi_scf_inv, chi_scf_inv_var, chi_scf_inv_jacobs = [], [], []
-                chi_matrix_nscf_list, chi_block_nscf = [], []
+                chi_matrix_nscf_list, chi_block_nscf = array_to_list(chi_matrix_nscf), []
                 chi_nscf_inv, chi_nscf_inv_var, chi_nscf_inv_jacobs = [], [], []
                 logger.warning('Screening matrix compute fail',  exc)
 
