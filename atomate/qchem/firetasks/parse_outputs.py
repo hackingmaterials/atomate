@@ -45,10 +45,13 @@ class QChemToDb(FiretaskBase):
             of this key in the fw_spec.
         multirun (bool): Whether the job to parse includes multiple
             calculations in one input / output pair.
+        runs (list): Series of file suffixes that the Drone should look for
+            when parsing output.
     """
     optional_params = [
         "calc_dir", "calc_loc", "input_file", "output_file",
-        "additional_fields", "db_file", "fw_spec_field", "multirun"
+        "additional_fields", "db_file", "fw_spec_field", "multirun",
+        "runs"
     ]
 
     def run_task(self, fw_spec):
@@ -62,13 +65,14 @@ class QChemToDb(FiretaskBase):
         input_file = self.get("input_file", "mol.qin")
         output_file = self.get("output_file", "mol.qout")
         multirun = self.get("multirun", False)
+        runs = self.get("runs", None)
 
         # parse the QChem directory
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
 
         additional_fields = self.get("additional_fields", [])
 
-        drone = QChemDrone(additional_fields=additional_fields)
+        drone = QChemDrone(runs=runs, additional_fields=additional_fields)
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(

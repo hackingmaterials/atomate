@@ -256,7 +256,11 @@ class TestRunCalcQChem(AtomateTest):
                         "max_cores":
                         32,
                         "calc_loc":
-                        None
+                        None,
+                        "freq_before_opt":
+                        False,
+                        "transition_state":
+                        False
                     })
 
     def test_RunQChemCustodian_FF_using_fw_spec_defaults(self):
@@ -323,7 +327,11 @@ class TestRunCalcQChem(AtomateTest):
                         "save_final_scratch":
                         False,
                         "max_cores":
-                        32
+                        32,
+                        "freq_before_opt":
+                        False,
+                        "transition_state":
+                        False,
                     })
 
     def test_RunQChemCustodian_FF_basic_not_defaults(self):
@@ -352,7 +360,9 @@ class TestRunCalcQChem(AtomateTest):
                     handler_group="no_handler",
                     max_iterations=1029,
                     max_molecule_perturb_scale=0.5,
-                    multimode="mpi")
+                    multimode="mpi",
+                    transition_state=True,
+                    freq_before_opt=True)
                 firetask.run_task(fw_spec={})
                 custodian_patch.assert_called_once()
                 self.assertEqual(custodian_patch.call_args[0][0], [])
@@ -385,7 +395,11 @@ class TestRunCalcQChem(AtomateTest):
                         "save_final_scratch":
                         True,
                         "max_cores":
-                        4
+                        4,
+                        "freq_before_opt":
+                        True,
+                        "transition_state":
+                        True,
                     })
 
     def test_RunQChemCustodian_FF_using_fw_spec_not_defaults(self):
@@ -414,7 +428,9 @@ class TestRunCalcQChem(AtomateTest):
                     linked=False,
                     max_iterations=1029,
                     max_molecule_perturb_scale=0.5,
-                    multimode=">>multimode<<")
+                    multimode=">>multimode<<",
+                    transition_state=True,
+                    freq_before_opt=True)
                 firetask.run_task(
                     fw_spec={
                         "_fw_env": {
@@ -455,7 +471,11 @@ class TestRunCalcQChem(AtomateTest):
                         "save_final_scratch":
                         True,
                         "max_cores":
-                        4
+                        4,
+                        "freq_before_opt":
+                        True,
+                        "transition_state":
+                        True,
                     })
 
 

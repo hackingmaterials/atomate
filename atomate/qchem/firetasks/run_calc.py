@@ -19,7 +19,7 @@ from fireworks import explicit_serialize, FiretaskBase
 from atomate.utils.utils import env_chk, get_logger
 import numpy as np
 
-__author__ = "Samuel Blau"
+__author__ = "Samuel Blau, Evan Spotte-Smith"
 __copyright__ = "Copyright 2018, The Materials Project"
 __version__ = "0.1"
 __maintainer__ = "Samuel Blau"
@@ -99,7 +99,8 @@ class RunQChemCustodian(FiretaskBase):
         "multimode", "input_file", "output_file", "max_cores", "qclog_file",
         "suffix", "calc_loc", "save_scratch", "max_errors", "job_type",
         "handler_group", "gzipped_output", "backup", "linked",
-        "max_iterations", "max_molecule_perturb_scale"
+        "max_iterations", "max_molecule_perturb_scale", "freq_before_opt",
+        "transition_state"
     ]
 
     def run_task(self, fw_spec):
@@ -129,6 +130,8 @@ class RunQChemCustodian(FiretaskBase):
                                               0.3)
         job_type = self.get("job_type", "normal")
         gzipped_output = self.get("gzipped_output", True)
+        transition_state = self.get("transition_state", False)
+        freq_before_opt = self.get("freq_before_opt", False)
 
         handler_groups = {
             "default": [
@@ -163,6 +166,8 @@ class RunQChemCustodian(FiretaskBase):
                     qclog_file=qclog_file,
                     max_iterations=max_iterations,
                     linked=linked,
+                    freq_before_opt=freq_before_opt,
+                    transition_state=transition_state,
                     save_final_scratch=save_scratch,
                     max_cores=max_cores,
                     calc_loc=calc_loc)
@@ -176,6 +181,8 @@ class RunQChemCustodian(FiretaskBase):
                     max_iterations=max_iterations,
                     max_molecule_perturb_scale=max_molecule_perturb_scale,
                     linked=linked,
+                    freq_before_opt=freq_before_opt,
+                    transition_state=transition_state,
                     save_final_scratch=save_scratch,
                     max_cores=max_cores,
                     calc_loc=calc_loc)
