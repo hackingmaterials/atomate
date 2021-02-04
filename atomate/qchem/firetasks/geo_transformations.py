@@ -78,7 +78,7 @@ class PerturbGeometry(FiretaskBase):
         else:
             raise KeyError("No molecule present; add as an optional param or check fw_spec")
 
-        if self.get("mode"):
+        if self.get("mode") is not None:
             mode = self.get("mode")
         else:
             raise KeyError("No mode present; add as an optional param or check fw_spec")
@@ -87,7 +87,7 @@ class PerturbGeometry(FiretaskBase):
 
         for ii in range(len(mol)):
             vec = np.array(mode[ii])
-            mol_copy.translate_sites(indices=[ii], vector=vec * self.get("scale", 1))
+            mol_copy.translate_sites(indices=[ii], vector=vec * self.get("scale", 1.0))
 
         update_spec = {"prev_calc_molecule": mol_copy}
 
