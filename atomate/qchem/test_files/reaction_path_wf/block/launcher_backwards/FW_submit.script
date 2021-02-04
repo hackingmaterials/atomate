@@ -1,0 +1,18 @@
+#!/bin/bash -l
+
+#SBATCH --nodes=1
+#SBATCH --exclude=n0181.lr6,n0130.lr6,n0249.lr6,n0251.lr6,n0209.lr6,n0171.lr6
+#SBATCH --qos=condo_mp_lr6
+#SBATCH --time=480:00:00
+#SBATCH --partition=lr6
+#SBATCH --account=lr_mp
+#SBATCH --job-name=ts_production
+#SBATCH --output=ts_production-%j.out
+#SBATCH --error=ts_production-%j.error
+
+
+conda activate dev && module load qchem/5.2.2
+cd /clusterfs/mp/ewcspottesmith/data/ts_testing/20201111_li2o_paths/block_2020-11-11-16-37-34-113586/launcher_2020-11-12-15-31-02-922842
+rlaunch -l ${FW_CONFIG_FILE%/*}/sam_launchpad.yaml -w ${FW_CONFIG_FILE%/*}/ts_fworker.yaml singleshot
+
+# CommonAdapter (SLURM) completed writing Template
