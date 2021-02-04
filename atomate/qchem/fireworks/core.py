@@ -3,6 +3,9 @@
 # Defines standardized Fireworks that can be chained easily to perform various
 # sequences of QChem calculations.
 
+from itertools import chain
+import os
+import copy
 
 from fireworks import Firework
 
@@ -10,6 +13,7 @@ from atomate.qchem.firetasks.parse_outputs import QChemToDb
 from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule
+from atomate.qchem.firetasks.geo_transformations import PerturbGeometry
 
 __author__ = "Samuel Blau, Evan Spotte-Smith"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -406,6 +410,10 @@ class FrequencyFlatteningOptimizeFW(Firework):
                  max_iterations=10,
                  max_molecule_perturb_scale=0.3,
                  linked=True,
+                 freq_before_opt=False,
+                 perturb_geometry=False,
+                 mode=None,
+                 scale=1.0,
                  db_file=None,
                  parents=None,
                  **kwargs):
@@ -441,6 +449,15 @@ class FrequencyFlatteningOptimizeFW(Firework):
                                   iterations to perform. Defaults to 10.
             max_molecule_perturb_scale (float): The maximum scaled perturbation that can be
                                                 applied to the molecule. Defaults to 0.3.
+            freq_before_opt (bool): If True (default False), run a frequency
+                calculation before any opt/ts searches to improve understanding
+                of the local potential energy surface. Only use this option if
+                linked=True.
+            perturb_geometry (bool): If True (default False), then modify the input geometry by some
+                translation matrix (N x 3, where N is the number of atoms) before optimizing.
+            mode (np.ndarray): If not None (default), then perturb the geometry by this matrix.
+                This will be ignored if perturb_geometry is False.
+            scale (float): Scaling factor for perturbation
             db_file (str): Path to file specifying db credentials to place output parsing.
             parents ([Firework]): Parents of this particular Firework.
             **kwargs: Other kwargs that are passed to Firework.__init__.
@@ -450,12 +467,31 @@ class FrequencyFlatteningOptimizeFW(Firework):
         input_file="mol.qin"
         output_file="mol.qout"
         t = []
-        t.append(
-            WriteInputFromIOSet(
+
+        if perturb_geometry:
+            t.append(PerturbGeometry(
                 molecule=molecule,
-                qchem_input_set="OptSet",
-                input_file=input_file,
-                qchem_input_params=qchem_input_params))
+                mode=mode,
+                scale=scale))
+
+            # Make sure that subsequent firetasks use the perturbed Molecule
+            molecule = None
+
+        if freq_before_opt:
+            t.append(
+                WriteInputFromIOSet(
+                    molecule=molecule,
+                    qchem_input_set="FreqSet",
+                    input_file=input_file,
+                    qchem_input_params=qchem_input_params))
+        else:
+            t.append(
+                WriteInputFromIOSet(
+                    molecule=molecule,
+                    qchem_input_set="OptSet",
+                    input_file=input_file,
+                    qchem_input_params=qchem_input_params))
+
         t.append(
             RunQChemCustodian(
                 qchem_cmd=qchem_cmd,
@@ -466,7 +502,9 @@ class FrequencyFlatteningOptimizeFW(Firework):
                 job_type="opt_with_frequency_flattener",
                 max_iterations=max_iterations,
                 max_molecule_perturb_scale=max_molecule_perturb_scale,
-                linked=linked))
+                linked=linked,
+                freq_before_opt=freq_before_opt
+            ))
         t.append(
             QChemToDb(
                 db_file=db_file,
@@ -494,8 +532,8 @@ class FrequencyFlatteningTransitionStateFW(Firework):
                  qchem_input_params=None,
                  max_iterations=3,
                  max_molecule_perturb_scale=0.3,
-                 linked=False,
-                 freq_before_opt=False,
+                 linked=True,
+                 freq_before_opt=True,
                  perturb_geometry=False,
                  mode=None,
                  scale=1,
@@ -583,6 +621,7 @@ class FrequencyFlatteningTransitionStateFW(Firework):
                     qchem_input_set="TransitionStateSet",
                     input_file=input_file,
                     qchem_input_params=qchem_input_params))
+
         t.append(
             RunQChemCustodian(
                 qchem_cmd=qchem_cmd,
