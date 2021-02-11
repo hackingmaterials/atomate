@@ -839,11 +839,31 @@ class HubbardHundLinRespToDb(FiretaskBase):
                 except Exception as exc:
                     logger.warning("Failed to obtain ldaul: ", exc)
 
+        # Ground state magnetic ordering analyzer
+        analyzer_gs = None
+        for d in docs:
+            struct_final = Structure.from_dict(d["output"]["structure"])
+            incar_dict = d['calcs_reversed'][0]['input']['incar']
+
+            use_calc = (int(incar_dict["ICHARG"]) != 11) \
+                        and ((not relax_nonmagnetic) or (relax_nonmagnetic \
+                        and int(incar_dict.get("ISPIN"))==2))
+            if use_calc:
+                is_gs = True
+                for i in range(num_perturb_sites):
+                    v_up = float(incar_dict['LDAUU'][i])
+                    v_dn = float(incar_dict['LDAUJ'][i])
+                    if v_up != 0.0 or v_dn != 0.0:
+                        is_gs = False
+                if is_gs:
+                    analyzer_gs = CollinearMagneticStructureAnalyzer(
+                                struct_final, threshold=0.61)
+
+        # keep track of calculations skipped due to magnetic ordering 
+        calcs_skipped = []
         for d in docs:
 
-            struct = Structure.from_dict(
-                d["calcs_reversed"][-1]["output"]['structure'])
-
+            struct_final = Structure.from_dict(d["output"]["structure"])
             incar_dict = d['calcs_reversed'][0]['input']['incar']
             outcar_dict = d['calcs_reversed'][0]['output']['outcar']
 
@@ -873,15 +893,25 @@ class HubbardHundLinRespToDb(FiretaskBase):
 
             if use_calc:
                 # perform magnetic ordering analysis
-                struct_final = Structure.from_dict(d["output"]["structure"])
                 analyzer_output = CollinearMagneticStructureAnalyzer(
                     struct_final, threshold=0.61)
                 magnet_order = analyzer_output.ordering.value
                 if rkey == keys[0]: # store ground state ordering
                     magnet_order_gs = magnet_order
 
+                # check if ordering matches ground state configuration
+                if analyzer_gs:
+                    if not analyzer_gs.matches_ordering(struct_final):
+                        use_calc = False
+                        calcs_skipped.append({'ICHARG': incar_dict["ICHARG"], 
+                                              'ISPIN': incar_dict.get("ISPIN"),
+                                              'LDAUU': incar_dict['LDAUU'].copy(), 
+                                              'LDAUJ': incar_dict['LDAUJ'].copy()})
+
+            if use_calc:
+
                 for i in range(num_perturb_sites):
-                    specie = struct[i].specie
+                    specie = struct_final[i].specie
                     ldaul = ldaul_vals[i]
 
                     # if ldaul != -1 and rkey:
@@ -913,9 +943,10 @@ class HubbardHundLinRespToDb(FiretaskBase):
         for j in range(num_perturb_sites):
             for qkey in ['Vup', 'Nup', 'Vdn', 'Ndn', 'Ntot', 'Mz']:
                 for i in [1, 2]:
-                    response_dict[keys[i]]['site'+str(i)][qkey].extend(response_dict[keys[0]]['site'+str(i)][qkey])
+                    response_dict[keys[i]]['site'+str(j)][qkey].extend(response_dict[keys[0]]['site'+str(j)][qkey])
         k = 'magnetic order'
-        response_dict[keys[i]][k].extend(response_dict[keys[0]][k])
+        for i in [1, 2]:
+            response_dict[keys[i]][k].extend(response_dict[keys[0]][k])
 
         # Find total number of response "sites"
         if spin_polarized:
@@ -1010,7 +1041,8 @@ class HubbardHundLinRespToDb(FiretaskBase):
                         logger.warning('Slope fitting fail',  exc)
 
                 else:
-                    chi_nscf, chi_scf = float('nan'), float('nan')
+                    chi_nscf, err_chi_nscf = float('nan'), float('nan')
+                    chi_scf, err_chi_scf = float('nan'), float('nan')
 
                 chi_matrix_nscf[ii, jj] = chi_nscf
                 chi_matrix_scf[ii, jj] = chi_scf
@@ -1339,6 +1371,7 @@ class HubbardHundLinRespToDb(FiretaskBase):
             {'response_matrices': {'chi_nscf': chi_matrix_nscf_list,
                                    'chi_scf': chi_matrix_scf_list}})
         summary.update({'hubbard_hund_results': hubbard_hund_dict})
+        summary.update({'calcs_skipped': calcs_skipped})
         summary.update({"created_at": datetime.utcnow()})
         summary.update({'wf_meta': {'wf_uuid': uuid}})
 
