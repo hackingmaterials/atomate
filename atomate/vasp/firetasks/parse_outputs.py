@@ -1004,31 +1004,31 @@ class HubbardHundLinRespToDb(FiretaskBase):
                             n = response_dict[keys[ll]]['site'+str(i)][n_key][l]
                             order = response_dict[keys[ll]]['magnetic order'][l]
 
-                            if order == magnet_order_gs:
-                                isolated_response = True
-                                if v == 0.0:
-                                    for k in range(n_response):
-                                        if spin_polarized:
-                                            kl = k//2
-                                            s = 'up' if np.mod(k,2)==0 else 'dn'
-                                            vv_key = 'V'+s
-                                        else:
-                                            kl = k
-                                            vv_key = 'Vup'
+                            #if order == magnet_order_gs:
+                            isolated_response = True
+                            if v == 0.0:
+                                for k in range(n_response):
+                                    if spin_polarized:
+                                        kl = k//2
+                                        s = 'up' if np.mod(k,2)==0 else 'dn'
+                                        vv_key = 'V'+s
+                                    else:
+                                        kl = k
+                                        vv_key = 'Vup'
 
-                                        num_v = len(response_dict[keys[ll]]['site'+str(kl)][vv_key])
-                                        if (k != j) and (response_dict[keys[ll]]['site'+str(kl)][vv_key][l] != 0.0) \
-                                           and l < num_v:
-                                            isolated_response = False
-                                            break
+                                    num_v = len(response_dict[keys[ll]]['site'+str(kl)][vv_key])
+                                    if (k != j) and (response_dict[keys[ll]]['site'+str(kl)][vv_key][l] != 0.0) \
+                                       and l < num_v:
+                                        isolated_response = False
+                                        break
 
-                                if isolated_response:
-                                    if ll == 1:
-                                        v_nscf.append(v)
-                                        n_nscf.append(n)
-                                    elif ll == 2:
-                                        v_scf.append(v)
-                                        n_scf.append(n)
+                            if isolated_response:
+                                if ll == 1:
+                                    v_nscf.append(v)
+                                    n_nscf.append(n)
+                                elif ll == 2:
+                                    v_scf.append(v)
+                                    n_scf.append(n)
 
                     try:
                         fit_nscf = response_fit(v_nscf, n_nscf)
