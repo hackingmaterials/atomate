@@ -818,14 +818,10 @@ class HubbardHundLinRespToDb(FiretaskBase):
         magnet_order_gs = None
 
         for key in keys:
-
             for i in range(num_perturb_sites):
-                response_dict[key].update({'Vup_site'+str(i): [],
-                                           'Nup_site'+str(i): []})
-                response_dict[key].update({'Vdn_site'+str(i): [],
-                                           'Ndn_site'+str(i): []})
-                response_dict[key].update({'Ntot_site'+str(i): [],
-                                           'Mz_site'+str(i): []})
+                response_dict[key].update({'site'+str(i): {}})
+                for qkey in ['Vup', 'Nup', 'Vdn', 'Ndn', 'Ntot', 'Mz']:
+                    response_dict[key]['site'+str(i)].update({qkey: []})
             response_dict[key].update({'magnetic order': []})
 
         docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid}))
@@ -858,12 +854,8 @@ class HubbardHundLinRespToDb(FiretaskBase):
                 use_calc = True
                 rkey = keys[1]
             else:
-                use_calc = False
-                if relax_nonmagnetic:
-                    if int(incar_dict["ISPIN"]) == 2:
-                        use_calc = True
-                else:
-                    use_calc = True
+                use_calc = (not relax_nonmagnetic) or (relax_nonmagnetic \
+                            and int(incar_dict.get("ISPIN"))==2)
 
                 if use_calc:
                     is_gs = True
@@ -880,55 +872,50 @@ class HubbardHundLinRespToDb(FiretaskBase):
                     rkey = ""
 
             if use_calc:
-                try:
-                    # perform magnetic ordering analysis
-                    struct_final = Structure.from_dict(d["output"]["structure"])
-                    analyzer_output = CollinearMagneticStructureAnalyzer(
-                        struct_final, threshold=0.61)
-                    magnet_order = analyzer_output.ordering.value
-                    if rkey == keys[0]: # store ground state ordering
-                        magnet_order_gs = magnet_order
+                # perform magnetic ordering analysis
+                struct_final = Structure.from_dict(d["output"]["structure"])
+                analyzer_output = CollinearMagneticStructureAnalyzer(
+                    struct_final, threshold=0.61)
+                magnet_order = analyzer_output.ordering.value
+                if rkey == keys[0]: # store ground state ordering
+                    magnet_order_gs = magnet_order
 
-                    for i in range(num_perturb_sites):
-                        specie = struct[i].specie
-                        ldaul = ldaul_vals[i]
+                for i in range(num_perturb_sites):
+                    specie = struct[i].specie
+                    ldaul = ldaul_vals[i]
 
-                        # if ldaul != -1 and rkey:
-                        orbital = inv_block_dict[str(ldaul)]
-                        perturb_dict.update(
-                            {"site"+str(i): {"specie": str(specie),
-                                             "orbital": orbital}})
+                    # if ldaul != -1 and rkey:
+                    orbital = inv_block_dict[str(ldaul)]
+                    perturb_dict.update(
+                        {"site"+str(i): {"specie": str(specie),
+                                         "orbital": orbital}})
 
-                        # Obtain occupancy values
-                        n_tot = float(outcar_dict['charge'][i][orbital])
-                        # FIXME: Adapt for noncollinear
-                        m_z = float((outcar_dict['magnetization'][i][orbital]))
-                        n_up = 0.5*(n_tot + m_z)
-                        n_dn = 0.5*(n_tot - m_z)
+                    # Obtain occupancy values
+                    n_tot = float(outcar_dict['charge'][i][orbital])
+                    # FIXME: Adapt for noncollinear
+                    m_z = float((outcar_dict['magnetization'][i][orbital]))
+                    n_up = 0.5*(n_tot + m_z)
+                    n_dn = 0.5*(n_tot - m_z)
 
-                        v_up = float(incar_dict['LDAUU'][i])
-                        v_dn = float(incar_dict['LDAUJ'][i])
+                    v_up = float(incar_dict['LDAUU'][i])
+                    v_dn = float(incar_dict['LDAUJ'][i])
 
-                        response_dict[rkey]['Nup_site'+str(i)].append(n_up)
-                        response_dict[rkey]['Ndn_site'+str(i)].append(n_dn)
-                        response_dict[rkey]['Ntot_site'+str(i)].append(n_tot)
-                        response_dict[rkey]['Mz_site'+str(i)].append(m_z)
+                    response_dict[rkey]['site'+str(i)]['Nup'].append(n_up)
+                    response_dict[rkey]['site'+str(i)]['Ndn'].append(n_dn)
+                    response_dict[rkey]['site'+str(i)]['Ntot'].append(n_tot)
+                    response_dict[rkey]['site'+str(i)]['Mz'].append(m_z)
 
-                        response_dict[rkey]['Vup_site'+str(i)].append(v_up)
-                        response_dict[rkey]['Vdn_site'+str(i)].append(v_dn)
+                    response_dict[rkey]['site'+str(i)]['Vup'].append(v_up)
+                    response_dict[rkey]['site'+str(i)]['Vdn'].append(v_dn)
 
-                        response_dict[rkey]['magnetic order'].append(magnet_order)
-
-                except Exception as exc:
-                    logger.warning('Doc miss: ',  exc)
+                    response_dict[rkey]['magnetic order'].append(magnet_order)
 
         for j in range(num_perturb_sites):
-            for k in ['Vup_site'+str(j), 'Vdn_site'+str(j),
-                      'Nup_site'+str(j), 'Ndn_site'+str(j),
-                      'Ntot_site'+str(j), 'Mz_site'+str(j),
-                      'magnetic order']:
+            for qkey in ['Vup', 'Nup', 'Vdn', 'Ndn', 'Ntot', 'Mz']:
                 for i in [1, 2]:
-                    response_dict[keys[i]][k].extend(response_dict[keys[0]][k])
+                    response_dict[keys[i]]['site'+str(i)][qkey].extend(response_dict[keys[0]]['site'+str(i)][qkey])
+        k = 'magnetic order'
+        response_dict[keys[i]][k].extend(response_dict[keys[0]][k])
 
         # Find total number of response "sites"
         if spin_polarized:
@@ -966,24 +953,24 @@ class HubbardHundLinRespToDb(FiretaskBase):
                     i, j = ii//2, jj//2
                     si, sj = 'up' if np.mod(ii,2)==0 else 'dn', \
                         'up' if np.mod(jj,2)==0 else 'dn'
-                    v_key = 'V'+sj+'_site'+str(j)
-                    n_key = 'N'+si+'_site'+str(i)
+                    v_key = 'V'+sj
+                    n_key = 'N'+si
                 else:
                     i, j = ii, jj
-                    v_key = 'Vup_site'+str(j)
-                    n_key = 'Ntot_site'+str(i)
+                    v_key = 'Vup'
+                    n_key = 'Ntot'
 
-                if response_dict[keys[1]][n_key] and response_dict[keys[2]][n_key] and \
-                   response_dict[keys[1]][v_key] and response_dict[keys[2]][v_key]:
+                if response_dict[keys[1]]['site'+str(i)][n_key] and response_dict[keys[2]]['site'+str(i)][n_key] and \
+                   response_dict[keys[1]]['site'+str(j)][v_key] and response_dict[keys[2]]['site'+str(j)][v_key]:
 
                     # gather NSCF & SCF response data
                     v_nscf, n_nscf = [], []
                     v_scf, n_scf = [], []
                     for ll in [1, 2]:
-                        for l in range(len(response_dict[keys[ll]][v_key])):
+                        for l in range(len(response_dict[keys[ll]]['site'+str(j)][v_key])):
 
-                            v = response_dict[keys[ll]][v_key][l]
-                            n = response_dict[keys[ll]][n_key][l]
+                            v = response_dict[keys[ll]]['site'+str(j)][v_key][l]
+                            n = response_dict[keys[ll]]['site'+str(i)][n_key][l]
                             order = response_dict[keys[ll]]['magnetic order'][l]
 
                             if order == magnet_order_gs:
@@ -991,13 +978,15 @@ class HubbardHundLinRespToDb(FiretaskBase):
                                 if v == 0.0:
                                     for k in range(n_response):
                                         if spin_polarized:
+                                            kl = k//2
                                             s = 'up' if np.mod(k,2)==0 else 'dn'
-                                            vv_key = 'V'+s+'_site'+str(k//2)
+                                            vv_key = 'V'+s
                                         else:
-                                            vv_key = 'Vup_site'+str(k)
+                                            kl = k
+                                            vv_key = 'Vup'
 
-                                        num_v = len(response_dict[keys[ll]][vv_key])
-                                        if (k != j) and (response_dict[keys[ll]][vv_key][l] != 0.0) \
+                                        num_v = len(response_dict[keys[ll]]['site'+str(kl)][vv_key])
+                                        if (k != j) and (response_dict[keys[ll]]['site'+str(kl)][vv_key][l] != 0.0) \
                                            and l < num_v:
                                             isolated_response = False
                                             break
@@ -1016,7 +1005,8 @@ class HubbardHundLinRespToDb(FiretaskBase):
                         fit_scf = response_fit(v_scf, n_scf)
                         chi_scf, err_chi_scf = fit_scf[0][-2], fit_scf[1][-2]
                     except Exception as exc:
-                        chi_nscf, chi_scf = float('nan'), float('nan')
+                        chi_nscf, err_chi_nscf = float('nan'), float('nan')
+                        chi_scf, err_chi_scf = float('nan'), float('nan')
                         logger.warning('Slope fitting fail',  exc)
 
                 else:
@@ -1297,7 +1287,8 @@ class HubbardHundLinRespToDb(FiretaskBase):
 
                         hubbard_hund_dict[key]["values"].update({
                             "site"+str(i): perturb_dict["site"+str(i)].copy()})
-                        hubbard_hund_dict[key]["values"]["site"+str(i)].update({
+                        hubbard_hund_dict[key]["values"]["site"+str(i)]["simple"] = {}
+                        hubbard_hund_dict[key]["values"]["site"+str(i)]["simple"].update({
                             "U":{"value":uval, "error":uval_err}})
 
                 # convert numpy arrays to nested lists
