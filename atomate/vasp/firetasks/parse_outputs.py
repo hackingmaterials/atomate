@@ -1059,6 +1059,14 @@ class HubbardHundLinRespToDb(FiretaskBase):
             matrixinv = np.linalg.inv(matrix)
             matrixinv_var = np.zeros([m,n])
 
+            if m == 1 and n == 1:
+                jacobian = - 1 / matrix[0,0]**2
+                jacobians = [[jacobian]]
+                sigma_f = jacobian * matrix_covar[0,0] * jacobian
+                matrixinv_var[0,0] = sigma_f
+
+                return matrixinv, matrixinv_var, jacobians
+
             # Function to determine the symbolic partial derivative of the
             # determinant w.r.t. matrix element
             def det_deriv(matrix,i,j):
