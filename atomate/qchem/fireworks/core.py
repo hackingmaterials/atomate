@@ -252,7 +252,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
                  qchem_input_params=None,
                  max_iterations=10,
                  max_molecule_perturb_scale=0.3,
-                 linked=False,
+                 linked=True,
                  db_file=None,
                  parents=None,
                  **kwargs):

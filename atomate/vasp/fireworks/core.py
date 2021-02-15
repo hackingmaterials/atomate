@@ -135,7 +135,7 @@ class ScanOptimizeFW(Firework):
     def __init__(
         self,
         structure=None,
-        name="SCAN 680 eV structure optimization",
+        name="SCAN structure optimization",
         vasp_input_set=None,
         vasp_input_set_params=None,
         vasp_cmd=VASP_CMD,
@@ -252,6 +252,9 @@ class ScanOptimizeFW(Firework):
 
             t.append(ModifyIncar(incar_dictmod=settings))
 
+            # use the 'scan' custodian handler group
+            handler_group = "scan"
+
         elif structure:
             vasp_input_set = vasp_input_set or MPScanRelaxSet(
                 structure, **vasp_input_set_params
@@ -267,13 +270,19 @@ class ScanOptimizeFW(Firework):
                 pre_opt_settings.update({"_unset": {"LUSE_VDW": True, "BPARAM": 15.7}})
 
             t.append(ModifyIncar(incar_dictmod=pre_opt_settings))
+
+            # use the 'default' custodian handler group
+            handler_group = "default"
         else:
             raise ValueError("Must specify structure or previous calculation")
 
         # Run VASP
         t.append(
             RunVaspCustodian(
-                vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<", gzip_output=False
+                vasp_cmd=vasp_cmd,
+                auto_npar=">>auto_npar<<",
+                handler_group=handler_group,
+                gzip_output=False,
             )
         )
         t.append(PassCalcLocs(name=name))

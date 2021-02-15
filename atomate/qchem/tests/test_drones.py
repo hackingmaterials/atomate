@@ -331,10 +331,9 @@ class QChemDroneTest(unittest.TestCase):
             input_file="mol.qin",
             output_file="mol.qout",
             multirun=False)
-        self.assertEqual(doc["opt_trajectory"]["discontinuity"], {'structure': [[1, 2]], 'scf_energy': [[1, 2]], 'total_energy': [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6]]})
-        self.assertEqual(doc["opt_trajectory"]["energy_increase"], [[1, 2, 0.00011567800004286255], [4, 2.779800001917465e-05], [3, 4, 2.8762000056303805e-05], [5, 2.2528000044985674e-05], [4, 5, 2.1631999970850302e-05]])
-        self.assertEqual(doc["opt_trajectory"]["structure_change"], [[0, 'no_change'], [1, 'no_change'], [2, 'no_change'], [3, 'no_change'], [4, 'no_change'], [5, 'no_change'], [6, 'no_change']])
-        self.assertEqual(doc["warnings"], {'missing_analytical_derivates': True, 'mkl': True, 'hessian_local_structure': True, 'internal_coordinates': True, 'diagonalizing_BBt': True, 'eigenvalue_magnitude': True, 'positive_definiteness_endangered': True, 'linked_structure_discontinuity': True, 'energy_increased': True})
+        self.assertEqual(doc["opt_trajectory"][0]["energy"],-784.934084124)
+        self.assertEqual(doc["opt_trajectory"][-1]["energy"],-784.934280182)
+        self.assertEqual(doc["warnings"], {'missing_analytical_derivates': True, 'mkl': True, 'hessian_local_structure': True, 'internal_coordinates': True, 'diagonalizing_BBt': True, 'eigenvalue_magnitude': True, 'positive_definiteness_endangered': True, 'energy_increased': True})
 
     def test_custom_smd(self):
         drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener", "linked": True})
