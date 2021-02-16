@@ -845,14 +845,18 @@ class HubbardHundLinRespToDb(FiretaskBase):
             struct_final = Structure.from_dict(d["output"]["structure"])
             incar_dict = d['calcs_reversed'][0]['input']['incar']
 
-            use_calc = (int(incar_dict["ICHARG"]) != 11) \
+            use_calc = (int(incar_dict.get("ICHARG", 0)) != 11) \
                         and ((not relax_nonmagnetic) or (relax_nonmagnetic \
-                        and int(incar_dict.get("ISPIN"))==2))
+                        and int(incar_dict.get("ISPIN", 1)) == 2))
             if use_calc:
                 is_gs = True
                 for i in range(num_perturb_sites):
-                    v_up = float(incar_dict['LDAUU'][i])
-                    v_dn = float(incar_dict['LDAUJ'][i])
+                    if incar_dict.get('LDAUU', False) \
+                            and incar_dict.get('LDAUJ', False):
+                        v_up = float(incar_dict['LDAUU'][i])
+                        v_dn = float(incar_dict['LDAUJ'][i])
+                    else:
+                        v_up, v_dn = 0.0, 0.0
                     if v_up != 0.0 or v_dn != 0.0:
                         is_gs = False
                 if is_gs:
@@ -870,18 +874,22 @@ class HubbardHundLinRespToDb(FiretaskBase):
             # Check if task is used in LR analysis
             use_calc = False
             rkey = ""
-            if int(incar_dict["ICHARG"]) == 11:
+            if int(incar_dict.get("ICHARG", 0)) == 11:
                 use_calc = True
                 rkey = keys[1]
             else:
                 use_calc = (not relax_nonmagnetic) or (relax_nonmagnetic \
-                            and int(incar_dict.get("ISPIN"))==2)
+                            and int(incar_dict.get("ISPIN", 1)) == 2)
 
                 if use_calc:
                     is_gs = True
                     for i in range(num_perturb_sites):
-                        v_up = float(incar_dict['LDAUU'][i])
-                        v_dn = float(incar_dict['LDAUJ'][i])
+                        if incar_dict.get('LDAUU', False) \
+                                and incar_dict.get('LDAUJ', False):
+                            v_up = float(incar_dict['LDAUU'][i])
+                            v_dn = float(incar_dict['LDAUJ'][i])
+                        else:
+                            v_up, v_dn = 0.0, 0.0
                         if v_up != 0.0 or v_dn != 0.0:
                             is_gs = False
                     if is_gs:
@@ -903,8 +911,8 @@ class HubbardHundLinRespToDb(FiretaskBase):
                 if analyzer_gs:
                     if not analyzer_gs.matches_ordering(struct_final):
                         use_calc = False
-                        calcs_skipped.append({'ICHARG': incar_dict["ICHARG"], 
-                                              'ISPIN': incar_dict.get("ISPIN"),
+                        calcs_skipped.append({'ICHARG': incar_dict.get("ICHARG", 0), 
+                                              'ISPIN': incar_dict.get("ISPIN", 1),
                                               'LDAUU': incar_dict['LDAUU'].copy(), 
                                               'LDAUJ': incar_dict['LDAUJ'].copy()})
 
