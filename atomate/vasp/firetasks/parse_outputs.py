@@ -961,21 +961,47 @@ class HubbardHundLinRespToDb(FiretaskBase):
         chi_nscf_err = np.zeros([n_response, n_response])
         chi_scf_err = np.zeros([n_response, n_response])
 
-        # Function to fit to response data. Returns: slope and associated error
+        # Function for fitting to response data. Returns: slope and associated error
         def response_fit(x, y):
 
-            # poly_order = 1
-            # a = np.polyfit(x, y, poly_order)[-2]
-            # b = np.polyfit(x, y, poly_order)[-1]
-            # p = [a, b]
-
-            def fit_func(x, a, b):
-                return a*x + b
-
-            p, pcov = scipy.optimize.curve_fit(fit_func, x, y, method="dogbox")  # method = "lm", "trf", "dogbox"
+            (p, pcov) = np.polyfit(x, y, 1, cov=True)
             perr = np.sqrt(np.diag(pcov))
 
             return p, perr
+
+        # Function for fitting to response data
+        # - includes the "slope ~ zero" case for stepped data due to low precision
+        # Returns: slope and associated error
+        def response_fit_stepped(x, y, tol=1.0e-6):
+            is_stepped = False
+            step_id = -1
+
+            y_sort = [y for y,_ in sorted(zip(y,x))]
+            x_sort = [x for _,x in sorted(zip(y,x))]
+
+            buff_size = 1 # must be gte three for first-order fit
+            for i in range(buff_size,len(y_sort)-buff_size+1):
+                if np.std(y_sort[0:i]) < tol \
+                        and np.std(y_sort[i:]) < tol:
+                    is_stepped = True
+                    step_id = i
+                    break
+
+            if is_stepped:
+                buff_max = 3  # must be >= three for first-order fit
+                if step_id < buff_max:
+                    (p, perr) = response_fit(x[step_id:], y[step_id:])
+                elif step_id > (len(y) - buff_max):
+                    (p, perr) = response_fit(x[0:step_id], y[0:step_id])
+                else:
+                    (p1, p1err) = response_fit(x_sort[0:step_id], y_sort[0:step_id])
+                    (p2, p2err) = response_fit(x_sort[step_id:], y_sort[step_id:])
+                    p = 0.5 * (np.array(p1) + np.array(p2))
+                    perr = np.sqrt(0.5 * (np.array(p1err)**2 + np.array(p2err)**2))
+                return p, perr
+            else:
+                (p, perr) = response_fit(x, y)
+                return p, perr
 
         # Compute response matrices using fitting function
         for ii in range(n_response):
@@ -1005,22 +1031,7 @@ class HubbardHundLinRespToDb(FiretaskBase):
                             order = response_dict[keys[ll]]['magnetic order'][l]
 
                             #if order == magnet_order_gs:
-                            isolated_response = True
-                            if v == 0.0:
-                                for k in range(n_response):
-                                    if spin_polarized:
-                                        kl = k//2
-                                        s = 'up' if np.mod(k,2)==0 else 'dn'
-                                        vv_key = 'V'+s
-                                    else:
-                                        kl = k
-                                        vv_key = 'Vup'
-
-                                    num_v = len(response_dict[keys[ll]]['site'+str(kl)][vv_key])
-                                    if (k != j) and (response_dict[keys[ll]]['site'+str(kl)][vv_key][l] != 0.0) \
-                                       and l < num_v:
-                                        isolated_response = False
-                                        break
+                            isolated_response = (v != 0.0)
 
                             if isolated_response:
                                 if ll == 1:
@@ -1029,6 +1040,16 @@ class HubbardHundLinRespToDb(FiretaskBase):
                                 elif ll == 2:
                                     v_scf.append(v)
                                     n_scf.append(n)
+
+                    # Add ground state
+                    if response_dict[keys[0]]['site'+str(j)][v_key] \
+                            and response_dict[keys[0]]['site'+str(i)][n_key]: 
+                        v = response_dict[keys[0]]['site'+str(j)][v_key][0]
+                        n = response_dict[keys[0]]['site'+str(i)][n_key][0]
+                        v_nscf.append(v)
+                        n_nscf.append(n)
+                        v_scf.append(v)
+                        n_scf.append(n)
 
                     try:
                         fit_nscf = response_fit(v_nscf, n_nscf)
@@ -1380,6 +1401,7 @@ class HubbardHundLinRespToDb(FiretaskBase):
                                    'chi_scf': chi_matrix_scf_list}})
         summary.update({'hubbard_hund_results': hubbard_hund_dict})
         summary.update({'calcs_skipped': calcs_skipped})
+
         summary.update({"created_at": datetime.utcnow()})
         summary.update({'wf_meta': {'wf_uuid': uuid}})
 
