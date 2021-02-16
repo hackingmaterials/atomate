@@ -54,38 +54,28 @@ class TestHubbardHundLinRespWorkflow(AtomateTest):
         # For LiNiPO4: site0 = O-p, site1 = Ni-d
         uj_dict = hubbard_hund_analysis["hubbard_hund_results"]
 
-        print("output = ", 
-              uj_dict["point"]["values"]["site0"]["U"]["value"],
-              uj_dict["point"]["values"]["site1"]["U"]["value"],
-              uj_dict["atom"]["values"]["site0"]["simple"]["U"]["value"],
-              uj_dict["atom"]["values"]["site1"]["simple"]["U"]["value"],
-              uj_dict["atom"]["values"]["site1"]["simple"]["J"]["value"],
-              uj_dict["full"]["values"]["site0"]["simple"]["U"]["value"],
-              uj_dict["full"]["values"]["site1"]["simple"]["U"]["value"],
-              uj_dict["full"]["values"]["site1"]["simple"]["J"]["value"])
-
         # Point-wise inversion
-        self.assertAlmostEqual(uj_dict["point"]["values"]["site0"]["simple"]["U"]["value"],
-                               2.278473, 4)
-        self.assertAlmostEqual(uj_dict["point"]["values"]["site1"]["simple"]["U"]["value"],
-                               2.745100, 4)
+        self.assertAlmostEqual(uj_dict["point"]["values"]["site0"]["U"]["value"],
+                               2.3, 1)
+        self.assertAlmostEqual(uj_dict["point"]["values"]["site1"]["U"]["value"],
+                               2.7, 1)
 
         # Atom-wise inversion
         self.assertAlmostEqual(uj_dict["atom"]["values"]["site0"]["simple"]["U"]["value"],
-                               9.108129, 4)
+                               9.1, 1)
         self.assertAlmostEqual(uj_dict["atom"]["values"]["site1"]["simple"]["U"]["value"],
-                               4.698635, 4)
+                               4.7, 1)
 
 
         self.assertAlmostEqual(uj_dict["atom"]["values"]["site1"]["simple"]["J"]["value"],
-                               0.402767, 4)
+                               0.40, 1)
 
         # Full inversion
         self.assertAlmostEqual(uj_dict["full"]["values"]["site0"]["simple"]["U"]["value"],
-                               9.096978, 4)
+                               9.1, 1)
         self.assertAlmostEqual(uj_dict["full"]["values"]["site1"]["simple"]["U"]["value"],
-                               4.687404, 4)
+                               4.7, 1)
 
 
         self.assertAlmostEqual(uj_dict["full"]["values"]["site1"]["simple"]["J"]["value"],
-                               0.404227, 4)
+                               0.40, 1)
