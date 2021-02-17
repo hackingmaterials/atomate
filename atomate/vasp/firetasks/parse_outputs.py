@@ -811,8 +811,8 @@ class HubbardHundLinRespToDb(FiretaskBase):
         spin_polarized = bool(self["spin_polarized"])
         relax_nonmagnetic = bool(self["relax_nonmagnetic"])
 
-        keys = ['Ground state', 'NSCF', 'SCF']
-        response_dict = {'Ground state': {}, 'NSCF': {}, 'SCF': {}}
+        keys = ['ground_state', 'NSCF', 'SCF']
+        response_dict = {'ground_state': {}, 'NSCF': {}, 'SCF': {}}
         perturb_dict = {}
 
         magnet_order_gs = None
