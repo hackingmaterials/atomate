@@ -66,6 +66,6 @@ class TestInsertionWorkflow(AtomateTest):
         )
         # Check that all of the inserted pretty formulas are present
         formula = self.get_task_collection(coll_name="tasks").distinct("formula_pretty")
-        self.assertEquals(
+        self.assertEqual(
             set(formula), {"Y2Mg(PO4)2", "Y2Mg3(PO4)2", "YMg2PO4", "YMgPO4", "YPO4"}
         )
