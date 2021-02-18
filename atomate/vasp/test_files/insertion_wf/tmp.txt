@@ -1,0 +1,17 @@
+Y2Mg(PO4)2-static
+Y2Mg(PO4)2-structure optimization-0
+Y2Mg3(PO4)2-static
+Y2Mg3(PO4)2-structure optimization-0
+Y2Mg3(PO4)2-structure optimization-1
+Y2Mg3(PO4)2-structure optimization-2
+Y2Mg3(PO4)2-structure optimization-3
+YMg2PO4-structure optimization-0
+YMg2PO4-structure optimization-1
+YMg2PO4-structure optimization-2
+YMgPO4-static
+YMgPO4-structure optimization-0
+YMgPO4-structure optimization-1
+YMgPO4-structure optimization-2
+YMgPO4-structure optimization-3
+YPO4-static
+YPO4-structure optimization

@@ -24,7 +24,7 @@ def get_ion_insertion_wf(
     vasptodb_kwargs: dict = None,
     volumetric_data_type: str = "CHGCAR",
     vasp_powerups: dict = None,
-    max_insertions: int = 5,
+    max_insertions: int = 4,
     allow_fizzled_parents: bool = True,
     optimizefw_kwargs: dict = None,
     staticfw_kwargs: dict = None,
