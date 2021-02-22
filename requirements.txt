@@ -1,5 +1,5 @@
 numpy==1.20.1
-scipy==1.6.0
+scipy==1.6.1
 FireWorks==1.9.6
 pymatgen_diffusion==2020.10.8
 monty==4.0.2
