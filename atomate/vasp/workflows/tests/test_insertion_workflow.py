@@ -52,7 +52,7 @@ class TestInsertionWorkflow(AtomateTest):
             },
             optimizefw_kwargs={"ediffg": -0.05},
         )
-        use_fake_vasp(
+        wf = use_fake_vasp(
             wf,
             calc_dirs,
             check_incar=False,
