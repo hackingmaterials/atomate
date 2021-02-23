@@ -64,7 +64,7 @@ class TestInsertionWorkflow(AtomateTest):
         wf = use_potcar_spec(wf)
         self.wf = wf
 
-    def test_(self):
+    def test_has_inserted(self):
         self.lp.add_wf(self.wf)
         rapidfire(
             self.lp,
