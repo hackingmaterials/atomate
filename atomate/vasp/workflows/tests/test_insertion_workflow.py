@@ -6,7 +6,7 @@ from fireworks.core.fworker import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 from pymatgen.analysis.structure_matcher import StructureMatcher
 
-from atomate.vasp.powerups import use_fake_vasp
+from atomate.vasp.powerups import use_fake_vasp, use_potcar_spec
 from atomate.vasp.workflows.base.electrode import get_ion_insertion_wf
 from atomate.utils.testing import AtomateTest
 
@@ -49,6 +49,7 @@ class TestInsertionWorkflow(AtomateTest):
                     "check_poscar": False,
                     "check_potcar": False,
                 },
+                "use_potcar_spec": {},
             },
             optimizefw_kwargs={"ediffg": -0.05},
         )
@@ -60,6 +61,7 @@ class TestInsertionWorkflow(AtomateTest):
             check_poscar=False,
             check_potcar=False,
         )
+        wf = use_potcar_spec(wf)
         self.wf = wf
 
     def test_(self):
