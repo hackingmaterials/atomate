@@ -6,6 +6,7 @@ from fireworks.core.fworker import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 from pymatgen.analysis.structure_matcher import StructureMatcher
 
+from atomate.vasp.powerups import use_fake_vasp
 from atomate.vasp.workflows.base.electrode import get_ion_insertion_wf
 from atomate.utils.testing import AtomateTest
 
@@ -50,6 +51,14 @@ class TestInsertionWorkflow(AtomateTest):
                 },
             },
             optimizefw_kwargs={"ediffg": -0.05},
+        )
+        use_fake_vasp(
+            wf,
+            calc_dirs,
+            check_incar=False,
+            check_kpoints=False,
+            check_poscar=False,
+            check_potcar=False,
         )
         self.wf = wf
 
