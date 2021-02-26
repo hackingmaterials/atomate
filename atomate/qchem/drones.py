@@ -371,6 +371,23 @@ class QChemDrone(AbstractDrone):
         if len(filenames) >= 1:
             with zopen(filenames[0], "rt") as f:
                 d["custom_smd"] = f.readlines()[0]
+        filenames = glob.glob(os.path.join(fullpath, "processed_critic2.json*"))
+        if len(filenames) >= 1:
+            with zopen(filenames[0], "rt") as f:
+                d["critic2"] = {}
+                d["critic2"]["processed"] = json.load(f)
+            filenames = glob.glob(os.path.join(fullpath, "CP.json*"))
+            if len(filenames) >= 1:
+                with zopen(filenames[0], "rt") as f:
+                    d["critic2"]["CP"] = json.load(f)
+            filenames = glob.glob(os.path.join(fullpath, "YT.json*"))
+            if len(filenames) >= 1:
+                with zopen(filenames[0], "rt") as f:
+                    d["critic2"]["YT"] = json.load(f)
+            filenames = glob.glob(os.path.join(fullpath, "bonding.json*"))
+            if len(filenames) >= 1:
+                with zopen(filenames[0], "rt") as f:
+                    d["critic2"]["bonding"] = json.load(f)
 
     def validate_doc(self, d):
         """
