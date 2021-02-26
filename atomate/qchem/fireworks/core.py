@@ -418,6 +418,8 @@ class CubeAndCritic2FW(Firework):
                  parents=None,
                  **kwargs):
         """
+        Perform a Q-Chem single point calculation in order to generate a cube file of the electron density
+        and then analyze the electron density critical points with the Critic2 package.
 
         Args:
             molecule (Molecule): Input molecule.
