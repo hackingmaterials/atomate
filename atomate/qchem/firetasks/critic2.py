@@ -30,7 +30,7 @@ __version__ = "0.1"
 __maintainer__ = "Samuel Blau"
 __email__ = "samblau1@gmail.com"
 __status__ = "Alpha"
-__date__ = "11/20/18"
+__date__ = "11/20/19"
 
 
 logger = get_logger(__name__)
@@ -38,11 +38,20 @@ logger = get_logger(__name__)
 @explicit_serialize
 class RunCritic2(FiretaskBase):
     """
+    Run the Critic2 package to analyze the critical points on a molecular electron density represented
+    by a cube file produced by a Q-Chem single point calculation
 
+    Required params:
+        molecule (Molecule): Molecule object of the molecule whose electron density is being analyzed
+        cube_file (str): Name of the cube file being analyzed
 
+    Optional params:
+        testing (Bool): Set to true when running tests to avoid actually calling the Critic executable    
     """
 
     required_params = ["molecule", "cube_file"]
+
+    optional_params = ["testing"]
 
     def run_task(self, fw_spec):
         if fw_spec.get("prev_calc_molecule"):
@@ -61,38 +70,40 @@ class RunCritic2(FiretaskBase):
             decompress_file(cube)
             cube = cube[:-3]
 
-        input_script = ["molecule "+cube]
-        input_script += ["load "+cube]
-        input_script += ["auto"]
-        input_script += ["CPREPORT CP.json"]
-        input_script += ["YT JSON YT.json"]
-        input_script += ["end"]
-        input_script += [""]
-        input_script = "\n".join(input_script)
+        if not self.get("testing"):
 
-        with open('input_script.cri', 'w') as f:
-            f.write(input_script)
-        args = ["critic2", "input_script.cri"]
+            input_script = ["molecule "+cube]
+            input_script += ["load "+cube]
+            input_script += ["auto"]
+            input_script += ["CPREPORT CP.json"]
+            input_script += ["YT JSON YT.json"]
+            input_script += ["end"]
+            input_script += [""]
+            input_script = "\n".join(input_script)
 
-        rs = subprocess.Popen(args,
-                              stdin=subprocess.PIPE,
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE,
-                              close_fds=True)
+            with open('input_script.cri', 'w') as f:
+                f.write(input_script)
+            args = ["critic2", "input_script.cri"]
 
-        stdout, stderr = rs.communicate()
-        stdout = stdout.decode()
+            rs = subprocess.Popen(args,
+                                  stdin=subprocess.PIPE,
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE,
+                                  close_fds=True)
 
-        if stderr:
-            stderr = stderr.decode()
-            warnings.warn(stderr)
-            with open('stdout.cri', 'w') as f:
-                f.write(stdout)
-            with open('stderr.cri', 'w') as f:
-                f.write(stderr)
+            stdout, stderr = rs.communicate()
+            stdout = stdout.decode()
 
-        if rs.returncode != 0:
-            raise RuntimeError("critic2 exited with return code {}.".format(rs.returncode))
+            if stderr:
+                stderr = stderr.decode()
+                warnings.warn(stderr)
+                with open('stdout.cri', 'w') as f:
+                    f.write(stdout)
+                with open('stderr.cri', 'w') as f:
+                    f.write(stderr)
+
+            if rs.returncode != 0:
+                raise RuntimeError("critic2 exited with return code {}.".format(rs.returncode))
 
         CP = loadfn("CP.json")
         bohr_to_ang = 0.529177249
