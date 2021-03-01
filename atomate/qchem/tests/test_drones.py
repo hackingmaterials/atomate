@@ -2,9 +2,10 @@
 # Copyright (c) Materials Virtual Lab.
 # Distributed under the terms of the BSD License.
 
-
+import shutil
 import os
 import unittest
+from monty.serialization import dumpfn, loadfn
 from atomate.qchem.drones import QChemDrone
 from pymatgen.core.structure import Molecule
 import numpy as np
@@ -343,6 +344,20 @@ class QChemDroneTest(unittest.TestCase):
             output_file="mol.qout",
             multirun=False)
         self.assertEqual(doc["custom_smd"],"18.5,1.415,0.00,0.735,20.2,0.00,0.00")
+
+    def test_assimilate_critic(self):
+        crit_ex_path = os.path.join(module_dir, "..", "test_files", "critic_test_files", "critic_example")
+        shutil.copyfile(os.path.join(crit_ex_path, "bonding_correct.json"), os.path.join(crit_ex_path, "bonding.json"))
+        drone = QChemDrone()
+        doc = drone.assimilate(
+            path=crit_ex_path,
+            input_file="mol.qin",
+            output_file="mol.qout",
+            multirun=False)
+        # dumpfn(doc["critic2"],os.path.join(crit_ex_path, "critic2_drone_ref.json"))
+        critic2_drone_ref = loadfn(os.path.join(crit_ex_path, "critic2_drone_ref.json"))
+        self.assertEqual(doc["critic2"],critic2_drone_ref)
+        os.remove(os.path.join(crit_ex_path, "bonding.json"))
 
 
 if __name__ == "__main__":
