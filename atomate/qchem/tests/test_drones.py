@@ -13,7 +13,7 @@ from pymatgen.analysis.local_env import OpenBabelNN
 from pymatgen.analysis.graphs import MoleculeGraph
 
 __author__ = "Samuel Blau"
-__copyright__ = "Copyright 2018, The Materials Project"
+__copyright__ = "Copyright 2019, The Materials Project"
 __version__ = "0.1"
 __maintainer__ = "Samuel Blau"
 __email__ = "samblau1@gmail.com"
