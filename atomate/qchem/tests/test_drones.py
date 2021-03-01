@@ -347,7 +347,6 @@ class QChemDroneTest(unittest.TestCase):
 
     def test_assimilate_critic(self):
         crit_ex_path = os.path.join(module_dir, "..", "test_files", "critic_test_files", "critic_example")
-        shutil.copyfile(os.path.join(crit_ex_path, "bonding_correct.json"), os.path.join(crit_ex_path, "bonding.json"))
         drone = QChemDrone()
         doc = drone.assimilate(
             path=crit_ex_path,
@@ -357,7 +356,6 @@ class QChemDroneTest(unittest.TestCase):
         # dumpfn(doc["critic2"],os.path.join(crit_ex_path, "critic2_drone_ref.json"))
         critic2_drone_ref = loadfn(os.path.join(crit_ex_path, "critic2_drone_ref.json"))
         self.assertEqual(doc["critic2"],critic2_drone_ref)
-        os.remove(os.path.join(crit_ex_path, "bonding.json"))
 
 
 if __name__ == "__main__":
