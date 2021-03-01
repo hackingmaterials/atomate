@@ -105,19 +105,19 @@ class RunCritic2(FiretaskBase):
             if rs.returncode != 0:
                 raise RuntimeError("critic2 exited with return code {}.".format(rs.returncode))
 
-        CP = loadfn("CP.json")
+        cp_loaded = loadfn("CP.json")
         bohr_to_ang = 0.529177249
 
         species = {}
-        for specie in CP["structure"]["species"]:
+        for specie in cp_loaded["structure"]["species"]:
             if specie["name"][1] == "_":
                 species[specie["id"]] = specie["name"][0]
             else:
                 species[specie["id"]] = specie["name"]
 
         atoms = []
-        centering_vector = CP["structure"]["molecule_centering_vector"]
-        for ii,atom in enumerate(CP["structure"]["nonequivalent_atoms"]):
+        centering_vector = cp_loaded["structure"]["molecule_centering_vector"]
+        for ii,atom in enumerate(cp_loaded["structure"]["nonequivalent_atoms"]):
             specie = species[atom["species"]]
             atoms.append(specie)
             tmp = atom["cartesian_coordinates"]
@@ -129,14 +129,14 @@ class RunCritic2(FiretaskBase):
             if molecule[ii].distance_from_point(coords) > 1*10**-5:
                 raise RuntimeError("Atom position "+str(ii)+" inconsistent!")
 
-        assert CP["critical_points"]["number_of_nonequivalent_cps"] == CP["critical_points"]["number_of_cell_cps"]
+        assert cp_loaded["critical_points"]["number_of_nonequivalent_cps"] == cp_loaded["critical_points"]["number_of_cell_cps"]
 
         bond_dict = {}
-        for cp in CP["critical_points"]["nonequivalent_cps"]:
+        for cp in cp_loaded["critical_points"]["nonequivalent_cps"]:
             if cp["rank"] == 3 and cp["signature"] == -1:
                 bond_dict[cp["id"]] = {"field":cp["field"]}
 
-        for cp in CP["critical_points"]["cell_cps"]:
+        for cp in cp_loaded["critical_points"]["cell_cps"]:
             if cp["id"] in bond_dict:
                 # Check if any bonds include fictitious atoms
                 bad_bond = False
@@ -162,9 +162,9 @@ class RunCritic2(FiretaskBase):
             elif bond_dict[cpid]["field"] > 0.02 and bond_dict[cpid]["distance"] < 2.5:
                 bonds.append([int(entry)-1 for entry in bond_dict[cpid]["atom_ids"]])
 
-        YT = loadfn("YT.json")
+        yt = loadfn("YT.json")
         charges = []
-        for site in YT["integration"]["attractors"]:
+        for site in yt["integration"]["attractors"]:
             charges.append(site["atomic_number"]-site["integrals"][0])
 
         processed_dict = {}
