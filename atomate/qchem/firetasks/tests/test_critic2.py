@@ -29,11 +29,13 @@ class TestRunCritic2(AtomateTest):
         out_file = "mol.qout"
         qc_out = QCOutput(filename=out_file)
         self.mol = qc_out.data["initial_molecule"]
-        self.cube_file = "dens.0.cube"
+        self.cube_file = "dens.0.cube.gz"
+        shutil.move("bonding.json","bonding_correct.json")
         super(TestRunCritic2, self).setUp(lpad=False)
 
     def tearDown(self):
         os.remove("bonding.json")
+        shutil.move("bonding_correct.json","bonding.json")
 
     def test_RunCritic2(self):
         os.chdir(os.path.join(module_dir, "..", "..", "test_files",

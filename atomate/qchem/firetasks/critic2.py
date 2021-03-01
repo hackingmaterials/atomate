@@ -1,7 +1,7 @@
 # coding: utf-8
 
 
-# This module defines tasks that support running QChem in various ways.
+# This module defines a Firetask that runs Critic2 to analyze a Q-Chem electron density.
 
 
 import shutil
@@ -61,16 +61,16 @@ class RunCritic2(FiretaskBase):
         if molecule == None:
             raise ValueError("No molecule passed and no prev_calc_molecule found in spec! Exiting...")
 
-        cube = self.get("cube_file")
-
         compress_at_end = False
 
-        if cube[-3:] == ".gz":
-            compress_at_end = True
-            decompress_file(cube)
-            cube = cube[:-3]
-
         if not self.get("testing"):
+
+            cube = self.get("cube_file")
+
+            if cube[-3:] == ".gz":
+                compress_at_end = True
+                decompress_file(cube)
+                cube = cube[:-3]
 
             input_script = ["molecule "+cube]
             input_script += ["load "+cube]
