@@ -1,0 +1,6 @@
+molecule dens.0.cube
+load dens.0.cube
+auto
+CPREPORT cpreport.json
+YT JSON yt.json
+end

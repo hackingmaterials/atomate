@@ -1,0 +1,335 @@
+{
+  "structure": {
+    "cell_lengths": [18.36733800000000,22.04226600000000,15.23140500000000],
+    "cell_angles": [90.00000000000000,90.00000000000000,90.00000000000000],
+    "cell_volume": 6166.55235623605950,
+    "crys_to_cart_matrix": [[18.36733800000000,0.00000000000000,0.00000000000000],[0.00000000000000,22.04226600000000,0.00000000000000],[0.00000000000000,0.00000000000000,15.23140500000000]],
+    "cart_to_crys_matrix": [[0.05444447094075,0.00000000000000,-0.00000000000000],[0.00000000000000,0.04536738645655,-0.00000000000000],[0.00000000000000,0.00000000000000,0.06565382510674]],
+    "is_molecule": true,
+    "molecule_centering_vector": [-7.66402100000000,-10.98364800000000,-7.35007500000000],
+    "molecular_cell_border": [0.06173109026469,0.05143916691687,0.07444065731297],
+    "number_of_species": 5,
+    "species": [{
+      "id": 1,
+      "name": "O_",
+      "atomic_number": 8
+    },{
+      "id": 2,
+      "name": "C_",
+      "atomic_number": 6
+    },{
+      "id": 3,
+      "name": "Li",
+      "atomic_number": 3
+    },{
+      "id": 4,
+      "name": "H_",
+      "atomic_number": 1
+    },{
+      "id": 5,
+      "name": "F_",
+      "atomic_number": 9
+    }],
+    "number_of_nonequivalent_atoms": 10,
+    "nonequivalent_atoms": [{
+      "id": 1,
+      "species": 1,
+      "fractional_coordinates": [0.35819082765287,0.60463125705860,0.47355683865014],
+      "cartesian_coordinates": [6.57901200000000,13.32744300000000,7.21293600000000],
+      "multiplicity": 1,
+      "wyckoff_letter": "?",
+      "half_nn_distance": 1.29292651336851
+    },{
+      "id": 2,
+      "species": 2,
+      "fractional_coordinates": [0.41368308243688,0.49691311229072,0.48019667259849],
+      "cartesian_coordinates": [7.59825700000000,10.95309100000000,7.31407000000000],
+      "multiplicity": 1,
+      "wyckoff_letter": "?",
+      "half_nn_distance": 1.04765784059491
+    },{
+      "id": 3,
+      "species": 2,
+      "fractional_coordinates": [0.57081935335431,0.49254972242872,0.47079268130550],
+      "cartesian_coordinates": [10.48443200000000,10.85691200000000,7.17083400000000],
+      "multiplicity": 1,
+      "wyckoff_letter": "?",
+      "half_nn_distance": 1.04503090043824
+    },{
+      "id": 4,
+      "species": 1,
+      "fractional_coordinates": [0.62406566482307,0.38895742388736,0.46646917996075],
+      "cartesian_coordinates": [11.46242500000000,8.57350300000000,7.10498100000000],
+      "multiplicity": 1,
+      "wyckoff_letter": "?",
+      "half_nn_distance": 1.24245357930780
+    },{
+      "id": 5,
+      "species": 3,
+      "fractional_coordinates": [0.30865545132343,0.73850801002039,0.48267937199490],
+      "cartesian_coordinates": [5.66917900000000,16.27839000000000,7.35188500000000],
+      "multiplicity": 1,
+      "wyckoff_letter": "?",
+      "half_nn_distance": 1.54557360786368
+    },{
+      "id": 6,
+      "species": 4,
+      "fractional_coordinates": [0.37833729634637,0.44233614638350,0.37593997402078],
+      "cartesian_coordinates": [6.94904900000000,9.75009100000000,5.72609400000000],
+      "multiplicity": 1,
+      "wyckoff_letter": "?",
+      "half_nn_distance": 1.04765784059491
+    },{
+      "id": 7,
+      "species": 4,
+      "fractional_coordinates": [0.38549119093905,0.45007468832832,0.59509099784294],
+      "cartesian_coordinates": [7.08044700000000,9.92066600000000,9.06407200000000],
+      "multiplicity": 1,
+      "wyckoff_letter": "?",
+      "half_nn_distance": 1.04839586711425
+    },{
+      "id": 8,
+      "species": 5,
+      "fractional_coordinates": [0.62057806090355,0.55272983276765,0.62158848773308],
+      "cartesian_coordinates": [11.39836700000000,12.18341800000000,9.46766600000000],
+      "multiplicity": 1,
+      "wyckoff_letter": "?",
+      "half_nn_distance": 1.40270565234523
+    },{
+      "id": 9,
+      "species": 4,
+      "fractional_coordinates": [0.60855552394147,0.55052393433597,0.37220328656483],
+      "cartesian_coordinates": [11.17754500000000,12.13479500000000,5.66917900000000],
+      "multiplicity": 1,
+      "wyckoff_letter": "?",
+      "half_nn_distance": 1.04503090043824
+    },{
+      "id": 10,
+      "species": 3,
+      "fractional_coordinates": [0.68618626172176,0.25719583458434,0.48708789504317],
+      "cartesian_coordinates": [12.60341500000000,5.66917900000000,7.41903300000000],
+      "multiplicity": 1,
+      "wyckoff_letter": "?",
+      "half_nn_distance": 1.56808679094781
+    }],
+    "number_of_cell_atoms": 10,
+    "cell_atoms": [{
+      "id": 1,
+      "species": 1,
+      "fractional_coordinates": [0.35819082765287,0.60463125705860,0.47355683865014],
+      "cartesian_coordinates": [6.57901200000000,13.32744300000000,7.21293600000000],
+      "nonequivalent_id": 1,
+      "symop_to_nneq": 1,
+      "centering_vector_to_nneq": 1,
+      "lattice_vector_to_nneq": [0,0,0]
+    },{
+      "id": 2,
+      "species": 2,
+      "fractional_coordinates": [0.41368308243688,0.49691311229072,0.48019667259849],
+      "cartesian_coordinates": [7.59825700000000,10.95309100000000,7.31407000000000],
+      "nonequivalent_id": 2,
+      "symop_to_nneq": 1,
+      "centering_vector_to_nneq": 1,
+      "lattice_vector_to_nneq": [0,0,0]
+    },{
+      "id": 3,
+      "species": 2,
+      "fractional_coordinates": [0.57081935335431,0.49254972242872,0.47079268130550],
+      "cartesian_coordinates": [10.48443200000000,10.85691200000000,7.17083400000000],
+      "nonequivalent_id": 3,
+      "symop_to_nneq": 1,
+      "centering_vector_to_nneq": 1,
+      "lattice_vector_to_nneq": [0,0,0]
+    },{
+      "id": 4,
+      "species": 1,
+      "fractional_coordinates": [0.62406566482307,0.38895742388736,0.46646917996075],
+      "cartesian_coordinates": [11.46242500000000,8.57350300000000,7.10498100000000],
+      "nonequivalent_id": 4,
+      "symop_to_nneq": 1,
+      "centering_vector_to_nneq": 1,
+      "lattice_vector_to_nneq": [0,0,0]
+    },{
+      "id": 5,
+      "species": 3,
+      "fractional_coordinates": [0.30865545132343,0.73850801002039,0.48267937199490],
+      "cartesian_coordinates": [5.66917900000000,16.27839000000000,7.35188500000000],
+      "nonequivalent_id": 5,
+      "symop_to_nneq": 1,
+      "centering_vector_to_nneq": 1,
+      "lattice_vector_to_nneq": [0,0,0]
+    },{
+      "id": 6,
+      "species": 4,
+      "fractional_coordinates": [0.37833729634637,0.44233614638350,0.37593997402078],
+      "cartesian_coordinates": [6.94904900000000,9.75009100000000,5.72609400000000],
+      "nonequivalent_id": 6,
+      "symop_to_nneq": 1,
+      "centering_vector_to_nneq": 1,
+      "lattice_vector_to_nneq": [0,0,0]
+    },{
+      "id": 7,
+      "species": 4,
+      "fractional_coordinates": [0.38549119093905,0.45007468832832,0.59509099784294],
+      "cartesian_coordinates": [7.08044700000000,9.92066600000000,9.06407200000000],
+      "nonequivalent_id": 7,
+      "symop_to_nneq": 1,
+      "centering_vector_to_nneq": 1,
+      "lattice_vector_to_nneq": [0,0,0]
+    },{
+      "id": 8,
+      "species": 5,
+      "fractional_coordinates": [0.62057806090355,0.55272983276765,0.62158848773308],
+      "cartesian_coordinates": [11.39836700000000,12.18341800000000,9.46766600000000],
+      "nonequivalent_id": 8,
+      "symop_to_nneq": 1,
+      "centering_vector_to_nneq": 1,
+      "lattice_vector_to_nneq": [0,0,0]
+    },{
+      "id": 9,
+      "species": 4,
+      "fractional_coordinates": [0.60855552394147,0.55052393433597,0.37220328656483],
+      "cartesian_coordinates": [11.17754500000000,12.13479500000000,5.66917900000000],
+      "nonequivalent_id": 9,
+      "symop_to_nneq": 1,
+      "centering_vector_to_nneq": 1,
+      "lattice_vector_to_nneq": [0,0,0]
+    },{
+      "id": 10,
+      "species": 3,
+      "fractional_coordinates": [0.68618626172176,0.25719583458434,0.48708789504317],
+      "cartesian_coordinates": [12.60341500000000,5.66917900000000,7.41903300000000],
+      "nonequivalent_id": 10,
+      "symop_to_nneq": 1,
+      "centering_vector_to_nneq": 1,
+      "lattice_vector_to_nneq": [0,0,0]
+    }],
+    "number_of_molecular_fragments": 1
+  },
+  "field": {
+    "id": 1,
+    "name": "",
+    "source": "dens.0.cube",
+    "type": "grid"
+  },
+  "integration": {
+    "type": "yt",
+    "grid_npoints": [194,233,161],
+    "number_of_properties": 2,
+    "properties": [{
+      "id": 1,
+      "label": "Pop",
+      "field_id": 1,
+      "field_name": "Field (v)"
+    },{
+      "id": 2,
+      "label": "Lap",
+      "field_id": 1,
+      "field_name": "Laplcn (v)"
+    }],
+    "number_of_attractors": 10,
+    "attractors": [{
+      "id": 1,
+      "cell_cp": 1,
+      "nonequivalent_cp": 1,
+      "name": "O_",
+      "atomic_number": 8,
+      "fractional_coordinates": [0.35819082765287,0.60463125705860,0.47355683865014],
+      "integrals": [
+         9.40536612E+00,
+        -1.39600574E-03]
+    },{
+      "id": 2,
+      "cell_cp": 2,
+      "nonequivalent_cp": 2,
+      "name": "C_",
+      "atomic_number": 6,
+      "fractional_coordinates": [0.41368308243688,0.49691311229072,0.48019667259849],
+      "integrals": [
+         5.28891031E+00,
+         4.41082261E-03]
+    },{
+      "id": 3,
+      "cell_cp": 3,
+      "nonequivalent_cp": 3,
+      "name": "C_",
+      "atomic_number": 6,
+      "fractional_coordinates": [0.57081935335431,0.49254972242872,0.47079268130550],
+      "integrals": [
+         4.84516028E+00,
+         7.50187906E-04]
+    },{
+      "id": 4,
+      "cell_cp": 4,
+      "nonequivalent_cp": 4,
+      "name": "O_",
+      "atomic_number": 8,
+      "fractional_coordinates": [0.62406566482307,0.38895742388736,0.46646917996075],
+      "integrals": [
+         9.42769855E+00,
+        -1.59343004E-03]
+    },{
+      "id": 5,
+      "cell_cp": 5,
+      "nonequivalent_cp": 5,
+      "name": "Li",
+      "atomic_number": 3,
+      "fractional_coordinates": [0.30865545132343,0.73850801002039,0.48267937199490],
+      "integrals": [
+         2.07553520E+00,
+        -1.90794537E-03]
+    },{
+      "id": 6,
+      "cell_cp": 6,
+      "nonequivalent_cp": 6,
+      "name": "H_",
+      "atomic_number": 1,
+      "fractional_coordinates": [0.37833729634637,0.44233614638350,0.37593997402078],
+      "integrals": [
+         1.07027956E+00,
+        -7.92114106E-04]
+    },{
+      "id": 7,
+      "cell_cp": 7,
+      "nonequivalent_cp": 7,
+      "name": "H_",
+      "atomic_number": 1,
+      "fractional_coordinates": [0.38549119093905,0.45007468832832,0.59509099784294],
+      "integrals": [
+         1.07131167E+00,
+        -5.47135050E-04]
+    },{
+      "id": 8,
+      "cell_cp": 8,
+      "nonequivalent_cp": 8,
+      "name": "F_",
+      "atomic_number": 9,
+      "fractional_coordinates": [0.62057806090355,0.55272983276765,0.62158848773308],
+      "integrals": [
+         9.70950896E+00,
+         7.87124952E-04]
+    },{
+      "id": 9,
+      "cell_cp": 9,
+      "nonequivalent_cp": 9,
+      "name": "H_",
+      "atomic_number": 1,
+      "fractional_coordinates": [0.60855552394147,0.55052393433597,0.37220328656483],
+      "integrals": [
+         1.03951973E+00,
+        -2.72421206E-03]
+    },{
+      "id": 10,
+      "cell_cp": 10,
+      "nonequivalent_cp": 10,
+      "name": "Li",
+      "atomic_number": 3,
+      "fractional_coordinates": [0.68618626172176,0.25719583458434,0.48708789504317],
+      "integrals": [
+         2.06531384E+00,
+         3.01270689E-03]
+    }],
+    "noatoms": false,
+    "ratom": 1.00000000000000E+40
+  }
+}

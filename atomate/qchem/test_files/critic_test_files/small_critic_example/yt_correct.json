@@ -1,0 +1,134 @@
+{
+  "structure": {
+    "cell_lengths": [13.93236600000000,13.76663200000000,12.71281500000000],
+    "cell_angles": [90.00000000000000,90.00000000000000,90.00000000000000],
+    "cell_volume": 2438.34023576182153,
+    "crys_to_cart_matrix": [[13.93236600000000,0.00000000000000,0.00000000000000],[0.00000000000000,13.76663200000000,0.00000000000000],[0.00000000000000,0.00000000000000,12.71281500000000]],
+    "cart_to_crys_matrix": [[0.07177531798978,0.00000000000000,-0.00000000000000],[0.00000000000000,0.07263940809924,-0.00000000000000],[0.00000000000000,0.00000000000000,0.07866078441321]],
+    "is_molecule": true,
+    "molecule_centering_vector": [-2.63759000000000,-8.10804000000000,-6.86965600000000],
+    "molecular_cell_border": [0.08138142509320,0.08236116139372,0.08918841342378],
+    "number_of_species": 2,
+    "species": [{
+      "id": 1,
+      "name": "C_",
+      "atomic_number": 6
+    },{
+      "id": 2,
+      "name": "O_",
+      "atomic_number": 8
+    }],
+    "number_of_nonequivalent_atoms": 3,
+    "nonequivalent_atoms": [{
+      "id": 1,
+      "species": 1,
+      "fractional_coordinates": [0.44369455984719,0.58134160918952,0.54665099743841],
+      "cartesian_coordinates": [6.18171500000000,8.00311600000000,6.94947300000000],
+      "multiplicity": 1,
+      "wyckoff_letter": "?",
+      "half_nn_distance": 1.29181287315985
+    },{
+      "id": 2,
+      "species": 2,
+      "fractional_coordinates": [0.40690712546598,0.41180580696862,0.44594206711889],
+      "cartesian_coordinates": [5.66917900000000,5.66917900000000,5.66917900000000],
+      "multiplicity": 1,
+      "wyckoff_letter": "?",
+      "half_nn_distance": 1.35546189523175
+    },{
+      "id": 3,
+      "species": 1,
+      "fractional_coordinates": [0.58628591870182,0.46902909876577,0.50093445078844],
+      "cartesian_coordinates": [8.16835000000000,6.45695100000000,6.36828700000000],
+      "multiplicity": 1,
+      "wyckoff_letter": "?",
+      "half_nn_distance": 1.29181287315985
+    }],
+    "number_of_cell_atoms": 3,
+    "cell_atoms": [{
+      "id": 1,
+      "species": 1,
+      "fractional_coordinates": [0.44369455984719,0.58134160918952,0.54665099743841],
+      "cartesian_coordinates": [6.18171500000000,8.00311600000000,6.94947300000000],
+      "nonequivalent_id": 1,
+      "symop_to_nneq": 1,
+      "centering_vector_to_nneq": 1,
+      "lattice_vector_to_nneq": [0,0,0]
+    },{
+      "id": 2,
+      "species": 2,
+      "fractional_coordinates": [0.40690712546598,0.41180580696862,0.44594206711889],
+      "cartesian_coordinates": [5.66917900000000,5.66917900000000,5.66917900000000],
+      "nonequivalent_id": 2,
+      "symop_to_nneq": 1,
+      "centering_vector_to_nneq": 1,
+      "lattice_vector_to_nneq": [0,0,0]
+    },{
+      "id": 3,
+      "species": 1,
+      "fractional_coordinates": [0.58628591870182,0.46902909876577,0.50093445078844],
+      "cartesian_coordinates": [8.16835000000000,6.45695100000000,6.36828700000000],
+      "nonequivalent_id": 3,
+      "symop_to_nneq": 1,
+      "centering_vector_to_nneq": 1,
+      "lattice_vector_to_nneq": [0,0,0]
+    }],
+    "number_of_molecular_fragments": 1
+  },
+  "field": {
+    "id": 1,
+    "name": "",
+    "source": "dens.0.cube",
+    "type": "grid"
+  },
+  "integration": {
+    "type": "yt",
+    "grid_npoints": [147,146,135],
+    "number_of_properties": 2,
+    "properties": [{
+      "id": 1,
+      "label": "Pop",
+      "field_id": 1,
+      "field_name": "Field (v)"
+    },{
+      "id": 2,
+      "label": "Lap",
+      "field_id": 1,
+      "field_name": "Laplcn (v)"
+    }],
+    "number_of_attractors": 3,
+    "attractors": [{
+      "id": 1,
+      "cell_cp": 1,
+      "nonequivalent_cp": 1,
+      "name": "C_",
+      "atomic_number": 6,
+      "fractional_coordinates": [0.44369455984719,0.58134160918952,0.54665099743841],
+      "integrals": [
+         6.04099977E+00,
+        -1.11172269E-03]
+    },{
+      "id": 2,
+      "cell_cp": 2,
+      "nonequivalent_cp": 2,
+      "name": "O_",
+      "atomic_number": 8,
+      "fractional_coordinates": [0.40690712546598,0.41180580696862,0.44594206711889],
+      "integrals": [
+         8.93636457E+00,
+         5.28539128E-03]
+    },{
+      "id": 3,
+      "cell_cp": 3,
+      "nonequivalent_cp": 3,
+      "name": "C_",
+      "atomic_number": 6,
+      "fractional_coordinates": [0.58628591870182,0.46902909876577,0.50093445078844],
+      "integrals": [
+         6.03658262E+00,
+        -4.17366860E-03]
+    }],
+    "noatoms": false,
+    "ratom": 1.00000000000000E+40
+  }
+}
