@@ -362,7 +362,7 @@ class TestCore(AtomateTest):
                          ProcessCritic2(
                              molecule=self.act_mol,
                              cp_name="CP.json",
-                             yt_name="yt.json").as_dict())
+                             yt_name="YT.json").as_dict())
         self.assertEqual(firework.tasks[4].as_dict(),
                          QChemToDb(
                              db_file=os.path.join(db_dir, "db.json"),
