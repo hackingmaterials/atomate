@@ -305,8 +305,9 @@ class QChemDrone(AbstractDrone):
                         orig_energy = None
                         for calc in d["calcs_reversed"][::-1]:
                             if "final_energy" in calc:
-                                orig_energy = calc["final_energy"]
-                                break
+                                if calc["final_energy"] is not None:
+                                    orig_energy = calc["final_energy"]
+                                    break
                         final_num_neg_freq = sum(1 for freq in d_calc_final["frequencies"] if freq < 0)
                         final_energy = d["calcs_reversed"][1]["final_energy"]
                         if orig_num_neg_freq is None:
