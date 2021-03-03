@@ -10,7 +10,7 @@ from io import open
 from fireworks import LaunchPad
 from pymongo import MongoClient
 
-from pymatgen import SETTINGS
+from pymatgen.settings import SETTINGS
 
 __author__ = "Kiran Mathew"
 __credits__ = "Anubhav Jain"
