@@ -11,6 +11,7 @@ import logging
 import warnings
 
 from pymatgen.io.qchem.inputs import QCInput
+from pymatgen.command_line.critic2_caller import Critic2Caller
 from monty.serialization import loadfn, dumpfn
 
 from custodian import Custodian
@@ -77,29 +78,7 @@ class RunCritic2(FiretaskBase):
         input_script += [""]
         input_script = "\n".join(input_script)
 
-        with open('input_script.cri', 'w') as f:
-            f.write(input_script)
-        args = ["critic2", "input_script.cri"]
-
-        rs = subprocess.Popen(args,
-                              stdin=subprocess.PIPE,
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE,
-                              close_fds=True)
-
-        stdout, stderr = rs.communicate()
-        stdout = stdout.decode()
-
-        if stderr:
-            stderr = stderr.decode()
-            warnings.warn(stderr)
-            with open('stdout.cri', 'w') as f:
-                f.write(stdout)
-            with open('stderr.cri', 'w') as f:
-                f.write(stderr)
-
-        if rs.returncode != 0:
-            raise RuntimeError("critic2 exited with return code {}.".format(rs.returncode))
+        caller = Critic2Caller(input_script)
 
         if compress_at_end:
             compress_file(cube)
