@@ -11,7 +11,7 @@ from atomate.qchem.firetasks.parse_outputs import QChemToDb
 from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule
-from atomate.qchem.firetasks.critic2 import RunCritic2
+from atomate.qchem.firetasks.critic2 import RunCritic2, ProcessCritic2
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -473,6 +473,11 @@ class CubeAndCritic2FW(Firework):
             RunCritic2(
                 molecule=molecule,
                 cube_file="dens.0.cube.gz"))
+        t.append(
+            ProcessCritic2(
+                molecule=molecule,
+                cp_name="CP.json",
+                yt_name="YT.json"))
         t.append(
             QChemToDb(
                 db_file=db_file,

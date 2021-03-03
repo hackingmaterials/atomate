@@ -4,12 +4,8 @@ import json
 import os
 import unittest
 import shutil
-try:
-    from unittest.mock import patch
-except ImportError:
-    from mock import patch
 
-from atomate.qchem.firetasks.critic2 import RunCritic2
+from atomate.qchem.firetasks.critic2 import ProcessCritic2
 from atomate.utils.testing import AtomateTest
 from custodian.qchem.handlers import QChemErrorHandler
 from custodian.qchem.jobs import QCJob
@@ -22,7 +18,7 @@ __email__ = "samblau1@gmail.com"
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 
-class TestRunCritic2(AtomateTest):
+class TestProcessCritic2(AtomateTest):
     def setUp(self, lpad=False):
         os.chdir(os.path.join(module_dir, "..", "..", "test_files",
                                 "critic_test_files", "critic_example"))
@@ -31,19 +27,19 @@ class TestRunCritic2(AtomateTest):
         self.mol = qc_out.data["initial_molecule"]
         self.cube_file = "dens.0.cube.gz"
         shutil.move("bonding.json","bonding_correct.json")
-        super(TestRunCritic2, self).setUp(lpad=False)
+        super(TestProcessCritic2, self).setUp(lpad=False)
 
     def tearDown(self):
         os.remove("bonding.json")
         shutil.move("bonding_correct.json","bonding.json")
 
-    def test_RunCritic2(self):
+    def test_ProcessCritic2(self):
         os.chdir(os.path.join(module_dir, "..", "..", "test_files",
                                 "critic_test_files", "critic_example"))
-        firetask = RunCritic2(
+        firetask = ProcessCritic2(
             molecule=self.mol,
-            cube_file=self.cube_file,
-            testing=True)
+            cp_name="CP.json",
+            yt_name="YT.json")
         print(os.getcwd())
         firetask.run_task(fw_spec={})
         with open("bonding_correct.json") as f:

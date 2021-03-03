@@ -8,7 +8,7 @@ from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.parse_outputs import QChemToDb
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule
-from atomate.qchem.firetasks.critic2 import RunCritic2
+from atomate.qchem.firetasks.critic2 import RunCritic2, ProcessCritic2
 from atomate.qchem.fireworks.core import OptimizeFW, FrequencyFlatteningOptimizeFW, FragmentFW, SinglePointFW, CubeAndCritic2FW
 from atomate.utils.testing import AtomateTest
 from pymatgen.io.qchem.outputs import QCOutput
@@ -312,6 +312,11 @@ class TestCore(AtomateTest):
                              molecule=self.act_mol,
                              cube_file="dens.0.cube.gz").as_dict())
         self.assertEqual(firework.tasks[3].as_dict(),
+                         ProcessCritic2(
+                             molecule=self.act_mol,
+                             cp_name="CP.json",
+                             yt_name="YT.json").as_dict())
+        self.assertEqual(firework.tasks[4].as_dict(),
                          QChemToDb(
                              db_file=None,
                              input_file="mol.qin",
@@ -354,6 +359,11 @@ class TestCore(AtomateTest):
                              molecule=self.act_mol,
                              cube_file="dens.0.cube.gz").as_dict())
         self.assertEqual(firework.tasks[3].as_dict(),
+                         ProcessCritic2(
+                             molecule=self.act_mol,
+                             cp_name="CP.json",
+                             yt_name="yt.json").as_dict())
+        self.assertEqual(firework.tasks[4].as_dict(),
                          QChemToDb(
                              db_file=os.path.join(db_dir, "db.json"),
                              input_file="mol.qin",

@@ -38,20 +38,23 @@ logger = get_logger(__name__)
 @explicit_serialize
 class RunCritic2(FiretaskBase):
     """
-    Run the Critic2 package to analyze the critical points on a molecular electron density represented
-    by a cube file produced by a Q-Chem single point calculation
+    Run the Critic2 package on an electron density cube file produced by a Q-Chem single point calculation
+    to generate CP and YT files for electron density critical points analysis.
 
     Required params:
         molecule (Molecule): Molecule object of the molecule whose electron density is being analyzed
+                             Note that if prev_calc_molecule is set in the firework spec it will override
+                             the molecule required param.
         cube_file (str): Name of the cube file being analyzed
 
     Optional params:
-        testing (Bool): Set to true when running tests to avoid actually calling the Critic executable    
+        cp_name (str): Name of the CP file to be produced
+        yt_name (str): Name of the YT file to be produced
     """
 
     required_params = ["molecule", "cube_file"]
 
-    optional_params = ["testing"]
+    optional_params = ["cp_name", "yt_name"]
 
     def run_task(self, fw_spec):
         if fw_spec.get("prev_calc_molecule"):
@@ -61,51 +64,90 @@ class RunCritic2(FiretaskBase):
         if molecule == None:
             raise ValueError("No molecule passed and no prev_calc_molecule found in spec! Exiting...")
 
+        cp_name = self.get("cp_name", "CP.json")
+        yt_name = self.get("yt_name", "YT.json")
+
         compress_at_end = False
 
-        if not self.get("testing"):
+        cube = self.get("cube_file")
 
-            cube = self.get("cube_file")
+        if cube[-3:] == ".gz":
+            compress_at_end = True
+            decompress_file(cube)
+            cube = cube[:-3]
 
-            if cube[-3:] == ".gz":
-                compress_at_end = True
-                decompress_file(cube)
-                cube = cube[:-3]
+        input_script = ["molecule " + cube]
+        input_script += ["load " + cube]
+        input_script += ["auto"]
+        input_script += ["CPREPORT " + cp_name]
+        input_script += ["YT JSON " + yt_name]
+        input_script += ["end"]
+        input_script += [""]
+        input_script = "\n".join(input_script)
 
-            input_script = ["molecule "+cube]
-            input_script += ["load "+cube]
-            input_script += ["auto"]
-            input_script += ["CPREPORT CP.json"]
-            input_script += ["YT JSON YT.json"]
-            input_script += ["end"]
-            input_script += [""]
-            input_script = "\n".join(input_script)
+        with open('input_script.cri', 'w') as f:
+            f.write(input_script)
+        args = ["critic2", "input_script.cri"]
 
-            with open('input_script.cri', 'w') as f:
-                f.write(input_script)
-            args = ["critic2", "input_script.cri"]
+        rs = subprocess.Popen(args,
+                              stdin=subprocess.PIPE,
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE,
+                              close_fds=True)
 
-            rs = subprocess.Popen(args,
-                                  stdin=subprocess.PIPE,
-                                  stdout=subprocess.PIPE,
-                                  stderr=subprocess.PIPE,
-                                  close_fds=True)
+        stdout, stderr = rs.communicate()
+        stdout = stdout.decode()
 
-            stdout, stderr = rs.communicate()
-            stdout = stdout.decode()
+        if stderr:
+            stderr = stderr.decode()
+            warnings.warn(stderr)
+            with open('stdout.cri', 'w') as f:
+                f.write(stdout)
+            with open('stderr.cri', 'w') as f:
+                f.write(stderr)
 
-            if stderr:
-                stderr = stderr.decode()
-                warnings.warn(stderr)
-                with open('stdout.cri', 'w') as f:
-                    f.write(stdout)
-                with open('stderr.cri', 'w') as f:
-                    f.write(stderr)
+        if rs.returncode != 0:
+            raise RuntimeError("critic2 exited with return code {}.".format(rs.returncode))
 
-            if rs.returncode != 0:
-                raise RuntimeError("critic2 exited with return code {}.".format(rs.returncode))
+        if compress_at_end:
+            compress_file(cube)
 
-        cp_loaded = loadfn("CP.json")
+
+@explicit_serialize
+class ProcessCritic2(FiretaskBase):
+    """
+    Process the CP and YT json outputs from a Critic2 execution
+
+    Required params:
+        molecule (Molecule): Molecule object of the molecule whose electron density is being analyzed
+                             Note that if prev_calc_molecule is set in the firework spec it will override
+                             the molecule required param.
+        cp_name (str): Name of the CP json to be analyzed
+        yt_name (str): Name of the YT json to be analyzed
+
+    Optional params:
+        bonding_name (str): Name of the bonding json to be produced
+        processed_name (str): Name of the processed json to be produced
+    """
+
+    required_params = ["molecule", "cp_name", "yt_name"]
+
+    optional_params = ["bonding_name", "processed_name"]
+
+    def run_task(self, fw_spec):
+        if fw_spec.get("prev_calc_molecule"):
+            molecule = fw_spec.get("prev_calc_molecule")
+        else:
+            molecule = self.get("molecule")
+        if molecule == None:
+            raise ValueError("No molecule passed and no prev_calc_molecule found in spec! Exiting...")
+
+        cp_name = self.get("cp_name", "CP.json")
+        yt_name = self.get("yt_name", "YT.json")
+        bonding_name = self.get("bonding_name", "bonding.json")
+        processed_name = self.get("processed_name", "processed_critic2.json")
+
+        cp_loaded = loadfn(cp_name)
         bohr_to_ang = 0.529177249
 
         species = {}
@@ -129,7 +171,11 @@ class RunCritic2(FiretaskBase):
             if molecule[ii].distance_from_point(coords) > 1*10**-5:
                 raise RuntimeError("Atom position "+str(ii)+" inconsistent!")
 
-        assert cp_loaded["critical_points"]["number_of_nonequivalent_cps"] == cp_loaded["critical_points"]["number_of_cell_cps"]
+        if (
+            cp_loaded["critical_points"]["number_of_nonequivalent_cps"] !=
+            cp_loaded["critical_points"]["number_of_cell_cps"]
+        ):
+            raise ValueError("ERROR: number_of_nonequivalent_cps should always equal number_of_cell_cps!")
 
         bond_dict = {}
         for cp in cp_loaded["critical_points"]["nonequivalent_cps"]:
@@ -150,7 +196,7 @@ class RunCritic2(FiretaskBase):
                     bond_dict[cp["id"]]["atom_ids"] = [entry["cell_id"] for entry in cp["attractors"]]
                     bond_dict[cp["id"]]["atoms"] = [atoms[int(entry["cell_id"])-1] for entry in cp["attractors"]]
                     bond_dict[cp["id"]]["distance"] = cp["attractors"][0]["distance"]*bohr_to_ang+cp["attractors"][1]["distance"]*bohr_to_ang
-        dumpfn(bond_dict,"bonding.json")
+        dumpfn(bond_dict,bonding_name)
 
         bonds = []
         for cpid in bond_dict:
@@ -162,7 +208,7 @@ class RunCritic2(FiretaskBase):
             elif bond_dict[cpid]["field"] > 0.02 and bond_dict[cpid]["distance"] < 2.5:
                 bonds.append([int(entry)-1 for entry in bond_dict[cpid]["atom_ids"]])
 
-        yt = loadfn("YT.json")
+        yt = loadfn(yt_name)
         charges = []
         for site in yt["integration"]["attractors"]:
             charges.append(site["atomic_number"]-site["integrals"][0])
@@ -170,9 +216,4 @@ class RunCritic2(FiretaskBase):
         processed_dict = {}
         processed_dict["bonds"] = bonds
         processed_dict["charges"] = charges
-        dumpfn(processed_dict,"processed_critic2.json")
-
-        if compress_at_end:
-            compress_file(cube)
-
-
+        dumpfn(processed_dict,processed_name)
