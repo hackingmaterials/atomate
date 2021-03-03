@@ -50,6 +50,39 @@ class QChemDroneTest(unittest.TestCase):
         self.assertIn("dir_name", doc)
         self.assertEqual(len(doc["calcs_reversed"]), 1)
 
+    def test_assimilate_pes_scan(self):
+        drone = QChemDrone()
+        doc = drone.assimilate(
+            path=os.path.join(module_dir, "..", "test_files", "pes_scan"),
+            input_file="mol.qin",
+            output_file="mol.qout",
+            multirun=False
+        )
+        self.assertEqual(doc["input"]["job_type"], "pes_scan")
+        self.assertEqual(doc["output"]["job_type"], "pes_scan")
+        scan_vars = {'stre': [{'atoms': [1, 2],
+                               'start': 1.3,
+                               'end': 1.4,
+                               'increment': 0.02}]}
+        self.assertDictEqual(scan_vars["stre"][0], doc["input"]["scan_variables"]["stre"][0])
+        self.assertEqual(len(doc["output"]["scan_energies"]), 6)
+        self.assertEqual(len(doc["output"]["scan_geometries"]), 6)
+        self.assertEqual(len(doc["output"]["scan_molecules"]), 6)
+        self.assertEqual(doc["walltime"], 188.83)
+        self.assertEqual(doc["cputime"], 3668.59)
+        self.assertEqual(doc["state"], "successful")
+        self.assertEqual(doc["smiles"], "[O]C(=O)[O]")
+        self.assertEqual(doc["formula_pretty"], "CO3")
+        self.assertEqual(doc["formula_anonymous"], "AB3")
+        self.assertEqual(doc["chemsys"], "C-O")
+        self.assertEqual(doc["pointgroup"], "C2v")
+        self.assertIn("custodian", doc)
+        self.assertIn("calcs_reversed", doc)
+        self.assertIn("initial_molecule", doc["input"])
+        self.assertIn("initial_molecule", doc["output"])
+        self.assertIn("last_updated", doc)
+        self.assertIn("dir_name", doc)
+
     def test_assimilate_freq(self):
         drone = QChemDrone()
         doc = drone.assimilate(
@@ -144,6 +177,12 @@ class QChemDroneTest(unittest.TestCase):
         self.assertEqual(doc["input"]["job_type"], "opt")
         self.assertEqual(doc["output"]["job_type"], "freq")
         self.assertEqual(doc["state"], "unsuccessful")
+
+    def test_assimilate_ffts(self):
+        pass
+
+    def test_assimilate_bad_ffts(self):
+        pass
 
     def test_multirun(self):
         drone = QChemDrone()

@@ -1,0 +1,45 @@
+You are running Q-Chem version: 5.2.2
+
+#
+# job setting
+#
+local host:  n0234.lr6
+current dir: /clusterfs/mp/ewcspottesmith/data/ts_testing/20210108_misc_ts/block_2021-01-08-16-49-51-352937/launcher_2021-01-10-01-27-03-584595
+input file:  mol.qin
+output file: mol.qout
+nprocs     : 0
+nthreads   : 40
+#
+# qchem installation setting
+#
+QC:          /clusterfs/mp/software/qchem
+QCAUX:       /clusterfs/mp/software/qchem/qcaux
+QCPROG:      /clusterfs/mp/software/qchem/exe/qcprog.exe_s
+QCPROG_S:    /clusterfs/mp/software/qchem/exe/qcprog.exe_s
+PARALLEL:    -DSERIAL
+QCMPI:       MPICH
+#
+# qchem directory setting
+#
+qcrun:       scratch
+QCSCRATCH:   /clusterfs/mp/ewcspottesmith/data/ts_testing/20210108_misc_ts/block_2021-01-08-16-49-51-352937/launcher_2021-01-10-01-27-03-584595
+QCLOCALSCR:  /tmp
+QCTMPDIR:    /tmp
+QCFILEPREF:  /tmp/scratch
+QCSAVEDIR:   /clusterfs/mp/ewcspottesmith/data/ts_testing/20210108_misc_ts/block_2021-01-08-16-49-51-352937/launcher_2021-01-10-01-27-03-584595/scratch
+workdirs:    /tmp/scratch
+workdir0:    /tmp/scratch
+partmpdirs =  
+#
+# parallel setting
+#
+QCRSH:           ssh
+QCMPI:           mpich
+QCMPIRUN:        /clusterfs/mp/software/qchem/bin/mpi/mpirun_qchem
+QCMACHINEFILE:   /tmp/scratch/hostfile
+
+#
+# env setting
+#
+exported envs:   QC QCAUX QCSCRATCH QCRUNNAME QCFILEPREF QCPROG QCPROG_S GUIFILE
+copy savedir ...
