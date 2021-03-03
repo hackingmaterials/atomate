@@ -47,14 +47,9 @@ class RunCritic2(FiretaskBase):
                              the molecule required param.
         cube_file (str): Name of the cube file being analyzed
 
-    Optional params:
-        cp_name (str): Name of the CP file to be produced
-        yt_name (str): Name of the YT file to be produced
     """
 
     required_params = ["molecule", "cube_file"]
-
-    optional_params = ["cp_name", "yt_name"]
 
     def run_task(self, fw_spec):
         if fw_spec.get("prev_calc_molecule"):
@@ -63,9 +58,6 @@ class RunCritic2(FiretaskBase):
             molecule = self.get("molecule")
         if molecule == None:
             raise ValueError("No molecule passed and no prev_calc_molecule found in spec! Exiting...")
-
-        cp_name = self.get("cp_name", "CP.json")
-        yt_name = self.get("yt_name", "YT.json")
 
         compress_at_end = False
 
@@ -79,8 +71,8 @@ class RunCritic2(FiretaskBase):
         input_script = ["molecule " + cube]
         input_script += ["load " + cube]
         input_script += ["auto"]
-        input_script += ["CPREPORT " + cp_name]
-        input_script += ["YT JSON " + yt_name]
+        input_script += ["CPREPORT cpreport.json"]
+        input_script += ["YT JSON yt.json"]
         input_script += ["end"]
         input_script += [""]
         input_script = "\n".join(input_script)
@@ -122,17 +114,9 @@ class ProcessCritic2(FiretaskBase):
         molecule (Molecule): Molecule object of the molecule whose electron density is being analyzed
                              Note that if prev_calc_molecule is set in the firework spec it will override
                              the molecule required param.
-        cp_name (str): Name of the CP json to be analyzed
-        yt_name (str): Name of the YT json to be analyzed
-
-    Optional params:
-        bonding_name (str): Name of the bonding json to be produced
-        processed_name (str): Name of the processed json to be produced
     """
 
-    required_params = ["molecule", "cp_name", "yt_name"]
-
-    optional_params = ["bonding_name", "processed_name"]
+    required_params = ["molecule"]
 
     def run_task(self, fw_spec):
         if fw_spec.get("prev_calc_molecule"):
@@ -142,12 +126,7 @@ class ProcessCritic2(FiretaskBase):
         if molecule == None:
             raise ValueError("No molecule passed and no prev_calc_molecule found in spec! Exiting...")
 
-        cp_name = self.get("cp_name", "CP.json")
-        yt_name = self.get("yt_name", "YT.json")
-        bonding_name = self.get("bonding_name", "bonding.json")
-        processed_name = self.get("processed_name", "processed_critic2.json")
-
-        cp_loaded = loadfn(cp_name)
+        cp_loaded = loadfn("cpreport.json")
         bohr_to_ang = 0.529177249
 
         species = {}
@@ -196,7 +175,7 @@ class ProcessCritic2(FiretaskBase):
                     bond_dict[cp["id"]]["atom_ids"] = [entry["cell_id"] for entry in cp["attractors"]]
                     bond_dict[cp["id"]]["atoms"] = [atoms[int(entry["cell_id"])-1] for entry in cp["attractors"]]
                     bond_dict[cp["id"]]["distance"] = cp["attractors"][0]["distance"]*bohr_to_ang+cp["attractors"][1]["distance"]*bohr_to_ang
-        dumpfn(bond_dict,bonding_name)
+        dumpfn(bond_dict,"bonding.json")
 
         bonds = []
         for cpid in bond_dict:
@@ -208,7 +187,7 @@ class ProcessCritic2(FiretaskBase):
             elif bond_dict[cpid]["field"] > 0.02 and bond_dict[cpid]["distance"] < 2.5:
                 bonds.append([int(entry)-1 for entry in bond_dict[cpid]["atom_ids"]])
 
-        yt = loadfn(yt_name)
+        yt = loadfn("yt.json")
         charges = []
         for site in yt["integration"]["attractors"]:
             charges.append(site["atomic_number"]-site["integrals"][0])
@@ -216,4 +195,4 @@ class ProcessCritic2(FiretaskBase):
         processed_dict = {}
         processed_dict["bonds"] = bonds
         processed_dict["charges"] = charges
-        dumpfn(processed_dict,processed_name)
+        dumpfn(processed_dict,"processed_critic2.json")

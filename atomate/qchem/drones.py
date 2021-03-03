@@ -376,11 +376,11 @@ class QChemDrone(AbstractDrone):
             with zopen(filenames[0], "rt") as f:
                 d["critic2"] = {}
                 d["critic2"]["processed"] = json.load(f)
-            filenames = glob.glob(os.path.join(fullpath, "CP.json*"))
+            filenames = glob.glob(os.path.join(fullpath, "cpreport.json*"))
             if len(filenames) >= 1:
                 with zopen(filenames[0], "rt") as f:
                     d["critic2"]["CP"] = json.load(f)
-            filenames = glob.glob(os.path.join(fullpath, "YT.json*"))
+            filenames = glob.glob(os.path.join(fullpath, "yt.json*"))
             if len(filenames) >= 1:
                 with zopen(filenames[0], "rt") as f:
                     d["critic2"]["YT"] = json.load(f)

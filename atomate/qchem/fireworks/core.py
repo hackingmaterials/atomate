@@ -475,9 +475,7 @@ class CubeAndCritic2FW(Firework):
                 cube_file="dens.0.cube.gz"))
         t.append(
             ProcessCritic2(
-                molecule=molecule,
-                cp_name="CP.json",
-                yt_name="YT.json"))
+                molecule=molecule))
         t.append(
             QChemToDb(
                 db_file=db_file,

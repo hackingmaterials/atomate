@@ -313,9 +313,7 @@ class TestCore(AtomateTest):
                              cube_file="dens.0.cube.gz").as_dict())
         self.assertEqual(firework.tasks[3].as_dict(),
                          ProcessCritic2(
-                             molecule=self.act_mol,
-                             cp_name="CP.json",
-                             yt_name="YT.json").as_dict())
+                             molecule=self.act_mol).as_dict())
         self.assertEqual(firework.tasks[4].as_dict(),
                          QChemToDb(
                              db_file=None,
@@ -360,9 +358,7 @@ class TestCore(AtomateTest):
                              cube_file="dens.0.cube.gz").as_dict())
         self.assertEqual(firework.tasks[3].as_dict(),
                          ProcessCritic2(
-                             molecule=self.act_mol,
-                             cp_name="CP.json",
-                             yt_name="YT.json").as_dict())
+                             molecule=self.act_mol).as_dict())
         self.assertEqual(firework.tasks[4].as_dict(),
                          QChemToDb(
                              db_file=os.path.join(db_dir, "db.json"),
