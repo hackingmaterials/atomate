@@ -18,6 +18,22 @@ from atomate.vasp.powerups import powerup_by_kwargs, POWERUP_NAMES
 __author__ = "Jimmy Shen"
 __email__ = "jmmshn@lbl.gov"
 
+"""
+A recursive list of Tasks to keep inserting ions into a structure.
+Should only be used by the `get_ion_insertion_wf` function.
+
+Note:
+The workflow passes data to fw_spec extensively and requires specific fields in the spec to be updated.
+Example, the base_taks_id must be stored and the spec and updated as the workflow runs so you have to set
+```
+{
+    "store_volumetric_data": vasptodb_kwargs_vol_data[volumetric_data_type],
+    "task_fields_to_push": {"base_task_id": "task_id"},
+}
+```
+In your vasptodb_kwargs.  Which is currently done in `get_ion_insertion_wf`
+"""
+
 logger = get_logger(__name__)
 
 SM_DICT = StructureMatcher().as_dict()

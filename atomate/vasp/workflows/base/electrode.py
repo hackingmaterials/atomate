@@ -12,7 +12,7 @@ from atomate.vasp.fireworks import Firework, OptimizeFW, StaticFW, pass_vasp_res
 from atomate.vasp.powerups import powerup_by_kwargs
 
 """
-Define worflows related to battery material simulation --- they all have a working ion
+Define workflow related to battery material simulation --- they all have a working ion
 """
 
 
