@@ -1,0 +1,54 @@
+[
+    {
+        "job": {
+            "@module": "custodian.qchem.jobs",
+            "@class": "QCJob",
+            "@version": "2019.8.24",
+            "qchem_command": [
+                "qchem"
+            ],
+            "max_cores": 32,
+            "multimode": "openmp",
+            "input_file": "mol.qin",
+            "output_file": "mol.qout",
+            "qclog_file": "mol.qclog",
+            "suffix": ".opt_0",
+            "calc_loc": null,
+            "save_scratch": true,
+            "backup": true
+        },
+        "corrections": [],
+        "handler": null,
+        "validator": null,
+        "max_errors": false,
+        "max_errors_per_job": false,
+        "max_errors_per_handler": false,
+        "nonzero_return_code": false
+    },
+    {
+        "job": {
+            "@module": "custodian.qchem.jobs",
+            "@class": "QCJob",
+            "@version": "2019.8.24",
+            "qchem_command": [
+                "qchem"
+            ],
+            "max_cores": 32,
+            "multimode": "openmp",
+            "input_file": "mol.qin",
+            "output_file": "mol.qout",
+            "qclog_file": "mol.qclog",
+            "suffix": ".freq_0",
+            "calc_loc": null,
+            "save_scratch": true,
+            "backup": false
+        },
+        "corrections": [],
+        "handler": null,
+        "validator": null,
+        "max_errors": false,
+        "max_errors_per_job": false,
+        "max_errors_per_handler": false,
+        "nonzero_return_code": false
+    }
+]

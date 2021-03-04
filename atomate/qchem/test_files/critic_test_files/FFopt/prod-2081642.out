@@ -1,0 +1,7 @@
+foobar
+2019-12-30 06:13:50,531 INFO Hostname/IP lookup (this will take a few seconds)
+2019-12-30 06:13:50,532 INFO Launching Rocket
+2019-12-30 06:14:03,406 INFO RUNNING fw_id: 270500 in directory: /lustre/eaglefs/projects/silimorphous/sblau/new_frags/block_2019-12-21-04-16-21-972200/launcher_2019-12-21-04-17-00-980930
+2019-12-30 06:14:03,596 INFO Task started: {{atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet}}.
+2019-12-30 06:14:03,600 INFO Task completed: {{atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet}} 
+2019-12-30 06:14:03,654 INFO Task started: {{atomate.qchem.firetasks.run_calc.RunQChemCustodian}}.

@@ -1,0 +1,46 @@
+You are running Q-Chem version: 5.2.2
+withsave === 1
+
+#
+# job setting
+#
+local host:  r2i5n33
+current dir: /lustre/eaglefs/projects/silimorphous/sblau/new_frags/block_2019-12-21-04-16-21-972200/launcher_2019-12-21-04-17-00-980930
+input file:  mol.qin
+output file: mol.qout
+nprocs     : 0
+nthreads   : 32
+#
+# qchem installation setting
+#
+QC:          /nopt/nrel/apps/q-chem/5.2
+QCAUX:       /nopt/nrel/apps/q-chem/5.2/qcaux
+QCPROG:      /nopt/nrel/apps/q-chem/5.2/exe/qcprog.exe_s
+QCPROG_S:    /nopt/nrel/apps/q-chem/5.2/exe/qcprog.exe_s
+PARALLEL:    -DSERIAL
+QCMPI:       slurm
+#
+# qchem directory setting
+#
+qcrun:       scratch
+QCSCRATCH:   /lustre/eaglefs/projects/silimorphous/sblau/new_frags/block_2019-12-21-04-16-21-972200/launcher_2019-12-21-04-17-00-980930
+QCLOCALSCR:  /tmp/scratch
+QCTMPDIR:    /tmp/scratch
+QCFILEPREF:  /tmp/scratch/scratch
+QCSAVEDIR:   /lustre/eaglefs/projects/silimorphous/sblau/new_frags/block_2019-12-21-04-16-21-972200/launcher_2019-12-21-04-17-00-980930/scratch
+workdirs:    /tmp/scratch/scratch
+workdir0:    /tmp/scratch/scratch
+partmpdirs =  
+#
+# parallel setting
+#
+QCRSH:           ssh
+QCMPI:           slurm
+QCMPIRUN:        srun
+QCMACHINEFILE:   /tmp/scratch/scratch/hostfile
+
+#
+# env setting
+#
+exported envs:   QC QCAUX QCSCRATCH QCRUNNAME QCFILEPREF QCPROG QCPROG_S GUIFILE
+copy savedir ...
