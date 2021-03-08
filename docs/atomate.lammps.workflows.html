@@ -1,17 +1,18 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>atomate.lammps.workflows package &#8212; atomate 0.9.5 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>atomate.lammps.workflows package &#8212; atomate 0.9.6 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
  
@@ -27,7 +28,8 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">atomate.lammps.workflows package</a></li> 
       </ul>
     </div>  
 
@@ -41,72 +43,8 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.lammps.workflows.core">
-<span id="atomate-lammps-workflows-core-module"></span><h2>atomate.lammps.workflows.core module<a class="headerlink" href="#module-atomate.lammps.workflows.core" title="Permalink to this headline">¶</a></h2>
-<p>This module defines functions that yield lammps workflows</p>
-<dl class="function">
-<dt id="atomate.lammps.workflows.core.get_packmol_wf">
-<code class="sig-prename descclassname">atomate.lammps.workflows.core.</code><code class="sig-name descname">get_packmol_wf</code><span class="sig-paren">(</span><em class="sig-param">input_file</em>, <em class="sig-param">user_settings</em>, <em class="sig-param">constituent_molecules</em>, <em class="sig-param">packing_config</em>, <em class="sig-param">forcefield</em>, <em class="sig-param">final_box_size</em>, <em class="sig-param">topologies=None</em>, <em class="sig-param">ff_site_property=None</em>, <em class="sig-param">tolerance=2.0</em>, <em class="sig-param">filetype='xyz'</em>, <em class="sig-param">control_params=None</em>, <em class="sig-param">lammps_cmd='lmp_serial'</em>, <em class="sig-param">packmol_cmd='packmol'</em>, <em class="sig-param">dump_filenames=None</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">name='Packmol Lammps Wflow'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.workflows.core.get_packmol_wf" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns workflow that uses Packmol to pack the constituent molecules into the given
-configuration and then run lammps on the final packed molecule for the given list of
-user_settings.</p>
-<dl>
-<dt>Args:</dt><dd><p>input_file (str):  path to lammps input(or template) file.
-user_settings ([dict] or dict): list of settings dict. if the input_file is a tempalte file</p>
-<blockquote>
-<div><p>then each dict contains the key value pairs for the template file.</p>
-</div></blockquote>
-<p>constituent_molecules ([Molecules]): list of pymatgen Molecule objects
-packing_config ([dict]): list of configuration dictionaries, one for each constituent molecule.
-forcefield (ForceField): pymatgen.io.lammps.forcefield.ForceField object
-final_box_size ([list]): list of list of low and high values for each dimension [[xlow, xhigh], …]
-topologies ([Topology]): list of Topology objects. If not given, will be set from the</p>
-<blockquote>
-<div><p>topology of the constituent molecules.</p>
-</div></blockquote>
-<p>ff_site_property (str): the name of the site property used for forcefield mapping
-tolerance (float): packmol tolerance
-filetype (str): packmol i/o file type.
-control_params (dict): packmol control params
-lammps_cmd (string): lammps command to run (skip the input file).
-packmol_cmd (string): path to packmol bin
-dump_filenames ([str]): list of dump file names
-db_file (string): path to the db file.
-name (str): workflow name</p>
-</dd>
-<dt>Returns:</dt><dd><p>Workflow</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.lammps.workflows.core.get_wf_basic">
-<code class="sig-prename descclassname">atomate.lammps.workflows.core.</code><code class="sig-name descname">get_wf_basic</code><span class="sig-paren">(</span><em class="sig-param">input_file</em>, <em class="sig-param">user_settings</em>, <em class="sig-param">lammps_data=None</em>, <em class="sig-param">input_filename='lammps.in'</em>, <em class="sig-param">is_forcefield=False</em>, <em class="sig-param">lammps_cmd='lmp_serial'</em>, <em class="sig-param">dump_filenames=None</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">name='LAMMPS Wflow'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.workflows.core.get_wf_basic" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns basic lammps workflow. This is more useful if the input_file is template file with
-the corresponding settings defined in user_settings</p>
-<dl>
-<dt>Args:</dt><dd><dl class="simple">
-<dt>input_file (str): path to lammps input file.</dt><dd><p>Note: It could be a template file too, then the user_settings must be set.</p>
-</dd>
-<dt>user_settings ([dict] or dict): list of settings dict. if the input_file is a tempalte file</dt><dd><p>then each dict contains the key value pairs for the template file.</p>
-</dd>
-<dt>lammps_data (string/LammpsData/LammpsForceFieldData): path to the data file or</dt><dd><p>an appropriate object.</p>
-</dd>
-<dt>input_filename (string): input file name. This is the name of the input file passed to the</dt><dd><p>lammps binary.</p>
-</dd>
-<dt>is_forcefield (bool): whether the data file has forcefield and topology info in it.</dt><dd><p>This is required only if lammps_data is a path to the data file instead of a data object.</p>
-</dd>
-</dl>
-<p>lammps_cmd (string): lammps command to run (skip the input file).
-dump_filenames ([str]): list of dump file names
-db_file (string): path to the db file.
-name (str): workflow name</p>
-</dd>
-<dt>Returns:</dt><dd><p>Workflow</p>
-</dd>
-</dl>
-</dd></dl>
-
+<div class="section" id="atomate-lammps-workflows-core-module">
+<h2>atomate.lammps.workflows.core module<a class="headerlink" href="#atomate-lammps-workflows-core-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-atomate.lammps.workflows">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.lammps.workflows" title="Permalink to this headline">¶</a></h2>
@@ -114,6 +52,7 @@ name (str): workflow name</p>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
         </div>
       </div>
@@ -123,7 +62,7 @@ name (str): workflow name</p>
   <ul>
 <li><a class="reference internal" href="#">atomate.lammps.workflows package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-atomate.lammps.workflows.core">atomate.lammps.workflows.core module</a></li>
+<li><a class="reference internal" href="#atomate-lammps-workflows-core-module">atomate.lammps.workflows.core module</a></li>
 <li><a class="reference internal" href="#module-atomate.lammps.workflows">Module contents</a></li>
 </ul>
 </li>
@@ -145,7 +84,7 @@ name (str): workflow name</p>
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -159,13 +98,14 @@ name (str): workflow name</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">atomate.lammps.workflows package</a></li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
 
   </body>

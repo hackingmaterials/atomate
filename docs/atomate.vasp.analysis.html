@@ -1,17 +1,18 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>atomate.vasp.analysis package &#8212; atomate 0.9.5 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>atomate.vasp.analysis package &#8212; atomate 0.9.6 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
  
@@ -27,7 +28,8 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">atomate.vasp.analysis package</a></li> 
       </ul>
     </div>  
 
@@ -43,9 +45,9 @@
 </div>
 <div class="section" id="module-atomate.vasp.analysis.phonopy">
 <span id="atomate-vasp-analysis-phonopy-module"></span><h2>atomate.vasp.analysis.phonopy module<a class="headerlink" href="#module-atomate.vasp.analysis.phonopy" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<dl class="py function">
 <dt id="atomate.vasp.analysis.phonopy.get_phonopy_gibbs">
-<code class="sig-prename descclassname">atomate.vasp.analysis.phonopy.</code><code class="sig-name descname">get_phonopy_gibbs</code><span class="sig-paren">(</span><em class="sig-param">energies</em>, <em class="sig-param">volumes</em>, <em class="sig-param">force_constants</em>, <em class="sig-param">structure</em>, <em class="sig-param">t_min</em>, <em class="sig-param">t_step</em>, <em class="sig-param">t_max</em>, <em class="sig-param">mesh</em>, <em class="sig-param">eos</em>, <em class="sig-param">pressure=0</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.analysis.phonopy.get_phonopy_gibbs" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">atomate.vasp.analysis.phonopy.</code><code class="sig-name descname">get_phonopy_gibbs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">energies</span></em>, <em class="sig-param"><span class="n">volumes</span></em>, <em class="sig-param"><span class="n">force_constants</span></em>, <em class="sig-param"><span class="n">structure</span></em>, <em class="sig-param"><span class="n">t_min</span></em>, <em class="sig-param"><span class="n">t_step</span></em>, <em class="sig-param"><span class="n">t_max</span></em>, <em class="sig-param"><span class="n">mesh</span></em>, <em class="sig-param"><span class="n">eos</span></em>, <em class="sig-param"><span class="n">pressure</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.analysis.phonopy.get_phonopy_gibbs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute QHA gibbs free energy using the phonopy interface.</p>
 <dl>
 <dt>Args:</dt><dd><p>energies (list):
@@ -67,9 +69,9 @@ eos (str): equation of state used for fitting the energies and the volumes.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="atomate.vasp.analysis.phonopy.get_phonopy_qha">
-<code class="sig-prename descclassname">atomate.vasp.analysis.phonopy.</code><code class="sig-name descname">get_phonopy_qha</code><span class="sig-paren">(</span><em class="sig-param">energies</em>, <em class="sig-param">volumes</em>, <em class="sig-param">force_constants</em>, <em class="sig-param">structure</em>, <em class="sig-param">t_min</em>, <em class="sig-param">t_step</em>, <em class="sig-param">t_max</em>, <em class="sig-param">mesh</em>, <em class="sig-param">eos</em>, <em class="sig-param">pressure=0</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.analysis.phonopy.get_phonopy_qha" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">atomate.vasp.analysis.phonopy.</code><code class="sig-name descname">get_phonopy_qha</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">energies</span></em>, <em class="sig-param"><span class="n">volumes</span></em>, <em class="sig-param"><span class="n">force_constants</span></em>, <em class="sig-param"><span class="n">structure</span></em>, <em class="sig-param"><span class="n">t_min</span></em>, <em class="sig-param"><span class="n">t_step</span></em>, <em class="sig-param"><span class="n">t_max</span></em>, <em class="sig-param"><span class="n">mesh</span></em>, <em class="sig-param"><span class="n">eos</span></em>, <em class="sig-param"><span class="n">pressure</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.analysis.phonopy.get_phonopy_qha" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return phonopy QHA interface.</p>
 <dl>
 <dt>Args:</dt><dd><p>energies (list):
@@ -91,9 +93,9 @@ eos (str): equation of state used for fitting the energies and the volumes.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="atomate.vasp.analysis.phonopy.get_phonopy_thermal_expansion">
-<code class="sig-prename descclassname">atomate.vasp.analysis.phonopy.</code><code class="sig-name descname">get_phonopy_thermal_expansion</code><span class="sig-paren">(</span><em class="sig-param">energies</em>, <em class="sig-param">volumes</em>, <em class="sig-param">force_constants</em>, <em class="sig-param">structure</em>, <em class="sig-param">t_min</em>, <em class="sig-param">t_step</em>, <em class="sig-param">t_max</em>, <em class="sig-param">mesh</em>, <em class="sig-param">eos</em>, <em class="sig-param">pressure=0</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.analysis.phonopy.get_phonopy_thermal_expansion" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">atomate.vasp.analysis.phonopy.</code><code class="sig-name descname">get_phonopy_thermal_expansion</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">energies</span></em>, <em class="sig-param"><span class="n">volumes</span></em>, <em class="sig-param"><span class="n">force_constants</span></em>, <em class="sig-param"><span class="n">structure</span></em>, <em class="sig-param"><span class="n">t_min</span></em>, <em class="sig-param"><span class="n">t_step</span></em>, <em class="sig-param"><span class="n">t_max</span></em>, <em class="sig-param"><span class="n">mesh</span></em>, <em class="sig-param"><span class="n">eos</span></em>, <em class="sig-param"><span class="n">pressure</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.analysis.phonopy.get_phonopy_thermal_expansion" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute QHA thermal expansion coefficient using the phonopy interface.</p>
 <dl>
 <dt>Args:</dt><dd><p>energies (list):
@@ -122,6 +124,7 @@ eos (str): equation of state used for fitting the energies and the volumes.</p>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
         </div>
       </div>
@@ -153,7 +156,7 @@ eos (str): equation of state used for fitting the energies and the volumes.</p>
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -167,13 +170,14 @@ eos (str): equation of state used for fitting the energies and the volumes.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">atomate.vasp.analysis package</a></li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
 
   </body>

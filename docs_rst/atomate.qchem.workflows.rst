@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    atomate.qchem.workflows.base
    atomate.qchem.workflows.tests
