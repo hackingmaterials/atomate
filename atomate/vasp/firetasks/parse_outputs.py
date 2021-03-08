@@ -16,7 +16,7 @@ from atomate.vasp.config import DEFUSE_UNSUCCESSFUL
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.analysis.elasticity.elastic import ElasticTensor, ElasticTensorExpansion
 from pymatgen.analysis.elasticity.strain import Strain, Deformation
 from pymatgen.analysis.elasticity.stress import Stress
