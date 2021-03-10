@@ -76,9 +76,9 @@ workflows:
     jobs:
       - py3test
       - py3devtest:
-          filters:  # don't run dev tests on master branch
+          filters:  # don't run dev tests on main branch
               branches:
                   ignore:
-                      master
+                      main
 
 

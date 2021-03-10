@@ -53,7 +53,7 @@ def publish(ctx):
 def release_github(ctx):
     payload = {
         "tag_name": "v" + __version__,
-        "target_commitish": "master",
+        "target_commitish": "main",
         "name": "v" + __version__,
         "body": "",
         "draft": False,
