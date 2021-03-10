@@ -1,17 +1,18 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>atomate.feff.fireworks package &#8212; atomate 0.9.5 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>atomate.feff.fireworks package &#8212; atomate 0.9.6 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
  
@@ -27,7 +28,8 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">atomate.feff.fireworks package</a></li> 
       </ul>
     </div>  
 
@@ -44,8 +46,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="atomate.feff.fireworks.tests.html">atomate.feff.fireworks.tests package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.feff.fireworks.tests.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.feff.fireworks.tests.html#module-atomate.feff.fireworks.tests.test_fireworks">atomate.feff.fireworks.tests.test_fireworks module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.feff.fireworks.tests.html#module-atomate.feff.fireworks.tests">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.feff.fireworks.tests.html#atomate-feff-fireworks-tests-test-fireworks-module">atomate.feff.fireworks.tests.test_fireworks module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.feff.fireworks.tests.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -54,117 +56,16 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.feff.fireworks.core">
-<span id="atomate-feff-fireworks-core-module"></span><h2>atomate.feff.fireworks.core module<a class="headerlink" href="#module-atomate.feff.fireworks.core" title="Permalink to this headline">¶</a></h2>
-<p>Defines standardized Fireworks that can be chained into Workflows to perform various
-sequences of FEFF calculations.</p>
-<dl class="class">
-<dt id="atomate.feff.fireworks.core.EELSFW">
-<em class="property">class </em><code class="sig-prename descclassname">atomate.feff.fireworks.core.</code><code class="sig-name descname">EELSFW</code><span class="sig-paren">(</span><em class="sig-param">absorbing_atom</em>, <em class="sig-param">structure</em>, <em class="sig-param">feff_input_set='ELNES'</em>, <em class="sig-param">edge='K'</em>, <em class="sig-param">radius=10.0</em>, <em class="sig-param">name='EELS spectroscopy'</em>, <em class="sig-param">beam_energy=100</em>, <em class="sig-param">beam_direction=None</em>, <em class="sig-param">collection_angle=1</em>, <em class="sig-param">convergence_angle=1</em>, <em class="sig-param">user_eels_settings=None</em>, <em class="sig-param">feff_cmd='feff'</em>, <em class="sig-param">override_default_feff_params=None</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">metadata=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.fireworks.core.EELSFW" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.Firework</span></code></p>
-<dl class="method">
-<dt id="atomate.feff.fireworks.core.EELSFW.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">absorbing_atom</em>, <em class="sig-param">structure</em>, <em class="sig-param">feff_input_set='ELNES'</em>, <em class="sig-param">edge='K'</em>, <em class="sig-param">radius=10.0</em>, <em class="sig-param">name='EELS spectroscopy'</em>, <em class="sig-param">beam_energy=100</em>, <em class="sig-param">beam_direction=None</em>, <em class="sig-param">collection_angle=1</em>, <em class="sig-param">convergence_angle=1</em>, <em class="sig-param">user_eels_settings=None</em>, <em class="sig-param">feff_cmd='feff'</em>, <em class="sig-param">override_default_feff_params=None</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">metadata=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.fireworks.core.EELSFW.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write the input set for FEFF-EELSS spectroscopy, run feff and insert the core-loss spectrum
-to the database(or dump to a json file if db_file=None).</p>
-<dl>
-<dt>Args:</dt><dd><p>absorbing_atom (str): absorbing atom symbol
-structure (Structure): input structure
-feff_input_set (str or FeffDictSet subclass): The inputset for setting params. If string</p>
-<blockquote>
-<div><p>then the entire path to the class or the spectrum type must be provide
-e.g. “pymatgen.io.feff.sets.MPELNESSet” or “ELNES”</p>
-</div></blockquote>
-<p>edge (str): absorption edge
-radius (float): cluster radius in angstroms
-name (str)
-beam_energy (float): Incident beam energy in keV
-beam_direction (list): Incident beam direction. If None, the cross section will be averaged.
-collection_angle (float): Detector collection angle in mrad.
-convergence_angle (float): Beam convergence angle in mrad.
-user_eels_settings (dict): override default EELS config. See MPELNESSet.yaml for supported keys.
-feff_cmd (str): path to the feff binary
-override_default_feff_params (dict): override feff tag settings.
-db_file (str): path to the db file.
-parents (Firework): Parents of this particular Firework. FW or list of FWS.
-metadata (dict): meta data
-<a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs: Other kwargs that are passed to Firework.__init__.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="atomate.feff.fireworks.core.EXAFSPathsFW">
-<em class="property">class </em><code class="sig-prename descclassname">atomate.feff.fireworks.core.</code><code class="sig-name descname">EXAFSPathsFW</code><span class="sig-paren">(</span><em class="sig-param">absorbing_atom</em>, <em class="sig-param">structure</em>, <em class="sig-param">paths</em>, <em class="sig-param">degeneracies=None</em>, <em class="sig-param">edge='K'</em>, <em class="sig-param">radius=10.0</em>, <em class="sig-param">name='EXAFS Paths'</em>, <em class="sig-param">feff_input_set='pymatgen.io.feff.sets.MPEXAFSSet'</em>, <em class="sig-param">feff_cmd='feff'</em>, <em class="sig-param">override_default_feff_params=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">filepad_file=None</em>, <em class="sig-param">labels=None</em>, <em class="sig-param">metadata=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.fireworks.core.EXAFSPathsFW" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.Firework</span></code></p>
-<dl class="method">
-<dt id="atomate.feff.fireworks.core.EXAFSPathsFW.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">absorbing_atom</em>, <em class="sig-param">structure</em>, <em class="sig-param">paths</em>, <em class="sig-param">degeneracies=None</em>, <em class="sig-param">edge='K'</em>, <em class="sig-param">radius=10.0</em>, <em class="sig-param">name='EXAFS Paths'</em>, <em class="sig-param">feff_input_set='pymatgen.io.feff.sets.MPEXAFSSet'</em>, <em class="sig-param">feff_cmd='feff'</em>, <em class="sig-param">override_default_feff_params=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">filepad_file=None</em>, <em class="sig-param">labels=None</em>, <em class="sig-param">metadata=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.fireworks.core.EXAFSPathsFW.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write the input set for FEFF-EXAFS spectroscopy with customized scattering paths, run feff,
-and insert the scattering amplitude output files(feffNNNN.dat files) to filepad.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>absorbing_atom (str): absorbing atom symbol
-structure (Structure): input structure
-paths (list): list of paths. A path = list of site indices that defines the path legs.
-degeneracies (list): degeneracy of each path.
-edge (str): absorption edge
-radius (float): cluster radius in angstroms
-name (str)
-feff_input_set (FeffDictSet)
-feff_cmd (str): path to the feff binary
-override_default_feff_params (dict): override feff tag settings.
-parents (Firework): Parents of this particular Firework. FW or list of FWS.
-filepad_file (str): path to the filepad config file.
-labels (list): list of label used to tag the files inserted into filepad.
-metadata (dict): meta data
-<a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs: Other kwargs that are passed to Firework.__init__.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="atomate.feff.fireworks.core.XASFW">
-<em class="property">class </em><code class="sig-prename descclassname">atomate.feff.fireworks.core.</code><code class="sig-name descname">XASFW</code><span class="sig-paren">(</span><em class="sig-param">absorbing_atom</em>, <em class="sig-param">structure</em>, <em class="sig-param">feff_input_set='XANES'</em>, <em class="sig-param">edge='K'</em>, <em class="sig-param">radius=10.0</em>, <em class="sig-param">name='XAS spectroscopy'</em>, <em class="sig-param">feff_cmd='feff'</em>, <em class="sig-param">override_default_feff_params=None</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">metadata=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.fireworks.core.XASFW" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.Firework</span></code></p>
-<dl class="method">
-<dt id="atomate.feff.fireworks.core.XASFW.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">absorbing_atom</em>, <em class="sig-param">structure</em>, <em class="sig-param">feff_input_set='XANES'</em>, <em class="sig-param">edge='K'</em>, <em class="sig-param">radius=10.0</em>, <em class="sig-param">name='XAS spectroscopy'</em>, <em class="sig-param">feff_cmd='feff'</em>, <em class="sig-param">override_default_feff_params=None</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">metadata=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.fireworks.core.XASFW.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write the input set for FEFF-XAS spectroscopy, run FEFF and insert the absorption
-coefficient to the database (or dump to a json file if db_file=None).</p>
-<dl>
-<dt>Args:</dt><dd><p>absorbing_atom (str): absorbing atom symbol
-structure (Structure): input structure
-feff_input_set (str or FeffDictSet subclass): The inputset for setting params. If string</p>
-<blockquote>
-<div><p>then either the entire path to the class or spectrum type must be provided
-e.g. “pymatgen.io.feff.sets.MPXANESSet” or “XANES”</p>
-</div></blockquote>
-<p>edge (str): absorption edge
-radius (float): cluster radius in angstroms
-name (str)
-feff_cmd (str): path to the feff binary
-override_default_feff_params (dict): override feff tag settings.
-db_file (str): path to the db file.
-parents (Firework): Parents of this particular Firework. FW or list of FWS.
-metadata (dict): meta data
-<a href="#id5"><span class="problematic" id="id6">**</span></a>kwargs: Other kwargs that are passed to Firework.__init__.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="atomate-feff-fireworks-core-module">
+<h2>atomate.feff.fireworks.core module<a class="headerlink" href="#atomate-feff-fireworks-core-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.feff.fireworks">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.feff.fireworks" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
         </div>
       </div>
@@ -175,8 +76,8 @@ metadata (dict): meta data
 <li><a class="reference internal" href="#">atomate.feff.fireworks package</a><ul>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-atomate.feff.fireworks.core">atomate.feff.fireworks.core module</a></li>
-<li><a class="reference internal" href="#module-atomate.feff.fireworks">Module contents</a></li>
+<li><a class="reference internal" href="#atomate-feff-fireworks-core-module">atomate.feff.fireworks.core module</a></li>
+<li><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -197,7 +98,7 @@ metadata (dict): meta data
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -211,13 +112,14 @@ metadata (dict): meta data
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">atomate.feff.fireworks package</a></li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
 
   </body>

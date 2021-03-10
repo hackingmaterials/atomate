@@ -1,0 +1,154 @@
+{
+    "spec": {
+        "tags": {
+            "class": "m3_production"
+        },
+        "_priority": 10,
+        "_tasks": [
+            {
+                "molecule": null,
+                "qchem_input_set": "SinglePointSet",
+                "input_file": "mol.qin",
+                "qchem_input_params": {
+                    "dft_rung": 4,
+                    "smd_solvent": "custom",
+                    "custom_smd": "18.5,1.415,0.00,0.735,20.2,0.00,0.00",
+                    "overwrite_inputs": {
+                        "rem": {
+                            "thresh": "14",
+                            "scf_guess_always": "True"
+                        }
+                    },
+                    "plot_cubes": true
+                },
+                "_fw_name": "{{atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet}}"
+            },
+            {
+                "qchem_cmd": ">>qchem_cmd<<",
+                "multimode": ">>multimode<<",
+                "input_file": "mol.qin",
+                "output_file": "mol.qout",
+                "max_cores": ">>max_cores<<",
+                "job_type": "normal",
+                "_fw_name": "{{atomate.qchem.firetasks.run_calc.RunQChemCustodian}}"
+            },
+            {
+                "molecule": null,
+                "cube_file": "dens.0.cube.gz",
+                "_fw_name": "{{atomate.qchem.firetasks.critic2.RunCritic2}}"
+            },
+            {
+                "db_file": ">>db_file<<",
+                "input_file": "mol.qin",
+                "output_file": "mol.qout",
+                "additional_fields": {
+                    "task_label": "C2 O1:CC2_m3frag_6938_charge-1_def2-tzvppd_wb97xv_smd"
+                },
+                "_fw_name": "{{atomate.qchem.firetasks.parse_outputs.QChemToDb}}"
+            }
+        ],
+        "prev_calc_molecule": {
+            "@module": "pymatgen.core.structure",
+            "@class": "Molecule",
+            "charge": -1,
+            "spin_multiplicity": 2,
+            "sites": [
+                {
+                    "name": "C",
+                    "species": [
+                        {
+                            "element": "C",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        1.8754703937,
+                        -0.0555233095,
+                        0.0422375917
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "O",
+                    "species": [
+                        {
+                            "element": "O",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        1.6042475702,
+                        -1.2905898096,
+                        -0.6352653227
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "C",
+                    "species": [
+                        {
+                            "element": "C",
+                            "occu": 1
+                        }
+                    ],
+                    "xyz": [
+                        2.9267520361,
+                        -0.8737188809,
+                        -0.2653132689
+                    ],
+                    "properties": {}
+                }
+            ]
+        },
+        "prev_calc_mulliken": [
+            [
+                -0.433309,
+                0.309191
+            ],
+            [
+                -0.133493,
+                0.380939
+            ],
+            [
+                -0.433198,
+                0.309871
+            ]
+        ]
+    },
+    "fw_id": 270029,
+    "created_on": "2019-12-25T22:14:45.871756",
+    "updated_on": "2019-12-30T14:37:25.354051",
+    "launches": [
+        {
+            "fworker": {
+                "name": "eagle_qchem_dev",
+                "category": "",
+                "query": "{\"spec.tags.class\": {\"$regex\": \"(solv(0|1|2)|m3)_production\"}}",
+                "env": {
+                    "db_file": "/home/sblau/config/db.json",
+                    "qchem_cmd": "qchem",
+                    "scratch_dir": "/scratch/sblau",
+                    "max_cores": 32,
+                    "multimode": "openmp"
+                }
+            },
+            "fw_id": 270029,
+            "launch_dir": "/lustre/eaglefs/projects/silimorphous/sblau/new_frags/block_2019-12-21-04-16-21-972200/launcher_2019-12-21-04-26-24-950766",
+            "host": "r2i1n16",
+            "ip": "10.148.1.105",
+            "trackers": [],
+            "action": null,
+            "state": "RUNNING",
+            "state_history": [
+                {
+                    "state": "RUNNING",
+                    "created_on": "2019-12-30T14:37:25.326892",
+                    "updated_on": "2019-12-30T14:37:25.326896"
+                }
+            ],
+            "launch_id": 213664
+        }
+    ],
+    "state": "RUNNING",
+    "name": "C2 O1:CC2_m3frag_6938_charge-1_def2-tzvppd_wb97xv_smd"
+}

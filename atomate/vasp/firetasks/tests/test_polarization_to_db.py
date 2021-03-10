@@ -17,7 +17,7 @@ from atomate.utils.testing import AtomateTest
 from atomate.vasp.powerups import use_fake_vasp
 from atomate.vasp.firetasks.parse_outputs import PolarizationToDb
 
-from pymatgen import SETTINGS
+from pymatgen.settings import SETTINGS
 
 __author__ = 'Tess Smidt'
 __email__ = 'blondegeek@gmail.com'

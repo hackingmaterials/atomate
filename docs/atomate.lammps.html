@@ -1,17 +1,18 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>atomate.lammps package &#8212; atomate 0.9.5 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>atomate.lammps package &#8212; atomate 0.9.6 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
  
@@ -27,7 +28,8 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">atomate.lammps package</a></li> 
       </ul>
     </div>  
 
@@ -44,22 +46,22 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="atomate.lammps.firetasks.html">atomate.lammps.firetasks package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.lammps.firetasks.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.firetasks.html#module-atomate.lammps.firetasks.glue_tasks">atomate.lammps.firetasks.glue_tasks module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.firetasks.html#module-atomate.lammps.firetasks.parse_outputs">atomate.lammps.firetasks.parse_outputs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.firetasks.html#module-atomate.lammps.firetasks.run_calc">atomate.lammps.firetasks.run_calc module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.firetasks.html#module-atomate.lammps.firetasks.write_inputs">atomate.lammps.firetasks.write_inputs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.firetasks.html#atomate-lammps-firetasks-glue-tasks-module">atomate.lammps.firetasks.glue_tasks module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.firetasks.html#atomate-lammps-firetasks-parse-outputs-module">atomate.lammps.firetasks.parse_outputs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.firetasks.html#atomate-lammps-firetasks-run-calc-module">atomate.lammps.firetasks.run_calc module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.firetasks.html#atomate-lammps-firetasks-write-inputs-module">atomate.lammps.firetasks.write_inputs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.lammps.firetasks.html#module-atomate.lammps.firetasks">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="atomate.lammps.fireworks.html">atomate.lammps.fireworks package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.lammps.fireworks.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.fireworks.html#module-atomate.lammps.fireworks.core">atomate.lammps.fireworks.core module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.fireworks.html#atomate-lammps-fireworks-core-module">atomate.lammps.fireworks.core module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.lammps.fireworks.html#module-atomate.lammps.fireworks">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="atomate.lammps.workflows.html">atomate.lammps.workflows package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.lammps.workflows.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.workflows.html#module-atomate.lammps.workflows.core">atomate.lammps.workflows.core module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.lammps.workflows.html#atomate-lammps-workflows-core-module">atomate.lammps.workflows.core module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.lammps.workflows.html#module-atomate.lammps.workflows">Module contents</a></li>
 </ul>
 </li>
@@ -69,148 +71,14 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.lammps.database">
-<span id="atomate-lammps-database-module"></span><h2>atomate.lammps.database module<a class="headerlink" href="#module-atomate.lammps.database" title="Permalink to this headline">¶</a></h2>
-<p>This module defines the database classes.</p>
-<dl class="class">
-<dt id="atomate.lammps.database.LammpsCalcDb">
-<em class="property">class </em><code class="sig-prename descclassname">atomate.lammps.database.</code><code class="sig-name descname">LammpsCalcDb</code><span class="sig-paren">(</span><em class="sig-param">host='localhost'</em>, <em class="sig-param">port=27017</em>, <em class="sig-param">database='lammps'</em>, <em class="sig-param">collection='tasks'</em>, <em class="sig-param">user=None</em>, <em class="sig-param">password=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.database.LammpsCalcDb" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="atomate.utils.html#atomate.utils.database.CalcDb" title="atomate.utils.database.CalcDb"><code class="xref py py-class docutils literal notranslate"><span class="pre">atomate.utils.database.CalcDb</span></code></a></p>
-<dl class="method">
-<dt id="atomate.lammps.database.LammpsCalcDb.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">host='localhost'</em>, <em class="sig-param">port=27017</em>, <em class="sig-param">database='lammps'</em>, <em class="sig-param">collection='tasks'</em>, <em class="sig-param">user=None</em>, <em class="sig-param">password=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.database.LammpsCalcDb.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.lammps.database.LammpsCalcDb.build_indexes">
-<code class="sig-name descname">build_indexes</code><span class="sig-paren">(</span><em class="sig-param">indexes=None</em>, <em class="sig-param">background=True</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.database.LammpsCalcDb.build_indexes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build the indexes.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>indexes (list): list of single field indexes to be built.
-background (bool): Run in the background or not.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.lammps.database.LammpsCalcDb.reset">
-<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.database.LammpsCalcDb.reset" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="atomate-lammps-database-module">
+<h2>atomate.lammps.database module<a class="headerlink" href="#atomate-lammps-database-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.lammps.drones">
-<span id="atomate-lammps-drones-module"></span><h2>atomate.lammps.drones module<a class="headerlink" href="#module-atomate.lammps.drones" title="Permalink to this headline">¶</a></h2>
-<p>Lammps Drones.</p>
-<dl class="class">
-<dt id="atomate.lammps.drones.LammpsDrone">
-<em class="property">class </em><code class="sig-prename descclassname">atomate.lammps.drones.</code><code class="sig-name descname">LammpsDrone</code><span class="sig-paren">(</span><em class="sig-param">additional_fields=None</em>, <em class="sig-param">use_full_uri=True</em>, <em class="sig-param">diffusion_params=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.drones.LammpsDrone" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.apps.borg.hive.AbstractDrone</span></code></p>
-<dl class="method">
-<dt id="atomate.lammps.drones.LammpsDrone.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">additional_fields=None</em>, <em class="sig-param">use_full_uri=True</em>, <em class="sig-param">diffusion_params=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.drones.LammpsDrone.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><dl>
-<dt>Args:</dt><dd><p>additional_fields (dict):
-use_full_uri (bool):
-diffusion_params (dict): parameters to the diffusion_analyzer. If specified a summary</p>
-<blockquote>
-<div><p>of diffusion statistics will be added.</p>
-</div></blockquote>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.lammps.drones.LammpsDrone.as_dict">
-<code class="sig-name descname">as_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.drones.LammpsDrone.as_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>A JSON serializable dict representation of an object.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.lammps.drones.LammpsDrone.assimilate">
-<code class="sig-name descname">assimilate</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">input_filename</em>, <em class="sig-param">log_filename='log.lammps'</em>, <em class="sig-param">is_forcefield=False</em>, <em class="sig-param">data_filename=None</em>, <em class="sig-param">dump_files=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.drones.LammpsDrone.assimilate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parses lammps input, data and log files and insert the result into the db.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>path (str): path to the run folder
-input_filename (str): just the name of the input file
-log_filename (str): lammps log file name
-is_forcefield (bool): whether or not ot parse forcefield info
-data_filename (str): name of the data file
-dump_files ([str]): list of dump file names</p>
-</dd>
-<dt>Returns:</dt><dd><p>dict</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.lammps.drones.LammpsDrone.from_dict">
-<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.drones.LammpsDrone.from_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.lammps.drones.LammpsDrone.generate_doc">
-<code class="sig-name descname">generate_doc</code><span class="sig-paren">(</span><em class="sig-param">dir_name</em>, <em class="sig-param">lmps_input</em>, <em class="sig-param">log</em>, <em class="sig-param">dumps</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.drones.LammpsDrone.generate_doc" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Args:</dt><dd><p>dir_name (str): path to the run dir.
-lmps_input (LammpsInput/LammpsInputSet):
-log (LammpsLog):
-dumps ([(filename, LammpsDump)]): list of (dump filename, dump) tuples</p>
-</dd>
-<dt>Returns:</dt><dd><p>dict</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.lammps.drones.LammpsDrone.get_valid_paths">
-<code class="sig-name descname">get_valid_paths</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.drones.LammpsDrone.get_valid_paths" title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks if path contains valid data for assimilation, and then returns
-the valid paths. The paths returned can be a list of directory or file
-paths, depending on what kind of data you are assimilating. For
-example, if you are assimilating VASP runs, you are only interested in
-directories containing vasprun.xml files. On the other hand, if you are
-interested converting all POSCARs in a directory tree to cifs for
-example, you will want the file paths.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
-<dt>path: input path as a tuple generated from os.walk, i.e.,</dt><dd><p>(parent, subdirs, files).</p>
-</dd>
-</dl>
-</dd>
-<dt>Returns:</dt><dd><p>List of valid dir/file paths for assimilation</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.lammps.drones.LammpsDrone.post_process">
-<code class="sig-name descname">post_process</code><span class="sig-paren">(</span><em class="sig-param">d</em>, <em class="sig-param">lmps_run</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.drones.LammpsDrone.post_process" title="Permalink to this definition">¶</a></dt>
-<dd><p>Simple post processing.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>d (dict)
-lmps_run (LammpsRun)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="atomate.lammps.drones.LammpsDrone.schema">
-<code class="sig-name descname">schema</code><em class="property"> = {'root': {'completed_at', 'dir_name', 'input', 'last_updated', 'output', 'schema', 'state'}}</em><a class="headerlink" href="#atomate.lammps.drones.LammpsDrone.schema" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="atomate-lammps-drones-module">
+<h2>atomate.lammps.drones module<a class="headerlink" href="#atomate-lammps-drones-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.lammps.utils">
-<span id="atomate-lammps-utils-module"></span><h2>atomate.lammps.utils module<a class="headerlink" href="#module-atomate.lammps.utils" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="atomate.lammps.utils.use_fake_lammps">
-<code class="sig-prename descclassname">atomate.lammps.utils.</code><code class="sig-name descname">use_fake_lammps</code><span class="sig-paren">(</span><em class="sig-param">original_wf</em>, <em class="sig-param">ref_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.utils.use_fake_lammps" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<div class="section" id="atomate-lammps-utils-module">
+<h2>atomate.lammps.utils module<a class="headerlink" href="#atomate-lammps-utils-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-atomate.lammps">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.lammps" title="Permalink to this headline">¶</a></h2>
@@ -218,6 +86,7 @@ lmps_run (LammpsRun)</p>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
         </div>
       </div>
@@ -228,9 +97,9 @@ lmps_run (LammpsRun)</p>
 <li><a class="reference internal" href="#">atomate.lammps package</a><ul>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-atomate.lammps.database">atomate.lammps.database module</a></li>
-<li><a class="reference internal" href="#module-atomate.lammps.drones">atomate.lammps.drones module</a></li>
-<li><a class="reference internal" href="#module-atomate.lammps.utils">atomate.lammps.utils module</a></li>
+<li><a class="reference internal" href="#atomate-lammps-database-module">atomate.lammps.database module</a></li>
+<li><a class="reference internal" href="#atomate-lammps-drones-module">atomate.lammps.drones module</a></li>
+<li><a class="reference internal" href="#atomate-lammps-utils-module">atomate.lammps.utils module</a></li>
 <li><a class="reference internal" href="#module-atomate.lammps">Module contents</a></li>
 </ul>
 </li>
@@ -252,7 +121,7 @@ lmps_run (LammpsRun)</p>
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -266,13 +135,14 @@ lmps_run (LammpsRun)</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">atomate.lammps package</a></li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
 
   </body>

@@ -1,17 +1,18 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Workflow YAML Reference &#8212; atomate 0.9.5 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Workflow YAML Reference &#8212; atomate 0.9.6 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Atomate concepts" href="concepts.html" />
@@ -35,7 +36,8 @@
         <li class="right" >
           <a href="license.html" title="License"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Workflow YAML Reference</a></li> 
       </ul>
     </div>  
 
@@ -172,11 +174,12 @@ common_params:
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>atwf add POSCAR -s eos.yaml
 </pre></div>
 </div>
-<p>The YAML file format is typically considered easy to read, but it is less practical for more complicated workflows. The Python implementation of the EOS workflow is at <a class="reference internal" href="atomate.vasp.workflows.base.html#module-atomate.vasp.workflows.base.bulk_modulus" title="atomate.vasp.workflows.base.bulk_modulus"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.base.bulk_modulus</span></code></a> and it uses the existing deformation workflow to express the same as the above YAML file in less than 20 lines of Python code, including imports. Another advantage of using Python is being able to have more control over Fireworks and create them from Firetasks in the workflow, like the <code class="docutils literal notranslate"><span class="pre">FitEOSToDb</span></code> Firetask.</p>
+<p>The YAML file format is typically considered easy to read, but it is less practical for more complicated workflows. The Python implementation of the EOS workflow is at <code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.workflows.base.bulk_modulus</span></code> and it uses the existing deformation workflow to express the same as the above YAML file in less than 20 lines of Python code, including imports. Another advantage of using Python is being able to have more control over Fireworks and create them from Firetasks in the workflow, like the <code class="docutils literal notranslate"><span class="pre">FitEOSToDb</span></code> Firetask.</p>
 </div>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
         </div>
       </div>
@@ -214,7 +217,7 @@ common_params:
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -234,13 +237,14 @@ common_params:
         <li class="right" >
           <a href="license.html" title="License"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Workflow YAML Reference</a></li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
 
   </body>

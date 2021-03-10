@@ -44,6 +44,14 @@ atomate.vasp.workflows.tests.test\_ferroelectric\_workflow module
    :undoc-members:
    :show-inheritance:
 
+atomate.vasp.workflows.tests.test\_lobster\_workflow module
+-----------------------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.tests.test_lobster_workflow
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.vasp.workflows.tests.test\_magnetism\_workflow module
 -------------------------------------------------------------
 
@@ -83,7 +91,6 @@ atomate.vasp.workflows.tests.test\_vasp\_workflows module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

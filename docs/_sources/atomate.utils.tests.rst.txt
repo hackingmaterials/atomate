@@ -4,6 +4,14 @@ atomate.utils.tests package
 Submodules
 ----------
 
+atomate.utils.tests.test\_database module
+-----------------------------------------
+
+.. automodule:: atomate.utils.tests.test_database
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.utils.tests.test\_loaders module
 ----------------------------------------
 
@@ -19,7 +27,6 @@ atomate.utils.tests.test\_utils module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

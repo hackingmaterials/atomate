@@ -1,17 +1,18 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>atomate.feff.workflows package &#8212; atomate 0.9.5 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>atomate.feff.workflows package &#8212; atomate 0.9.6 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
  
@@ -27,7 +28,8 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">atomate.feff.workflows package</a></li> 
       </ul>
     </div>  
 
@@ -44,10 +46,10 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="atomate.feff.workflows.tests.html">atomate.feff.workflows.tests package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.feff.workflows.tests.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.feff.workflows.tests.html#module-atomate.feff.workflows.tests.test_eels_workflows">atomate.feff.workflows.tests.test_eels_workflows module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.feff.workflows.tests.html#module-atomate.feff.workflows.tests.test_exafs_scattering_paths">atomate.feff.workflows.tests.test_exafs_scattering_paths module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.feff.workflows.tests.html#module-atomate.feff.workflows.tests.test_xas_workflows">atomate.feff.workflows.tests.test_xas_workflows module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.feff.workflows.tests.html#module-atomate.feff.workflows.tests">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.feff.workflows.tests.html#atomate-feff-workflows-tests-test-eels-workflows-module">atomate.feff.workflows.tests.test_eels_workflows module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.feff.workflows.tests.html#atomate-feff-workflows-tests-test-exafs-scattering-paths-module">atomate.feff.workflows.tests.test_exafs_scattering_paths module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.feff.workflows.tests.html#atomate-feff-workflows-tests-test-xas-workflows-module">atomate.feff.workflows.tests.test_xas_workflows module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.feff.workflows.tests.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -56,156 +58,19 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.feff.workflows.core">
-<span id="atomate-feff-workflows-core-module"></span><h2>atomate.feff.workflows.core module<a class="headerlink" href="#module-atomate.feff.workflows.core" title="Permalink to this headline">¶</a></h2>
-<p>This module defines FEFF XAS(XANES/EXAFS) workflows.</p>
-<dl class="function">
-<dt id="atomate.feff.workflows.core.get_absorbing_atom_indices">
-<code class="sig-prename descclassname">atomate.feff.workflows.core.</code><code class="sig-name descname">get_absorbing_atom_indices</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">absorbing_atom</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.workflows.core.get_absorbing_atom_indices" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Args:</dt><dd><p>structure (Structure):
-absorbing_atom (int/str):</p>
-</dd>
-<dt>Returns:</dt><dd><p>list of site ids</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.feff.workflows.core.get_unique_site_indices">
-<code class="sig-prename descclassname">atomate.feff.workflows.core.</code><code class="sig-name descname">get_unique_site_indices</code><span class="sig-paren">(</span><em class="sig-param">structure</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.workflows.core.get_unique_site_indices" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="atomate.feff.workflows.core.get_wf_eels">
-<code class="sig-prename descclassname">atomate.feff.workflows.core.</code><code class="sig-name descname">get_wf_eels</code><span class="sig-paren">(</span><em class="sig-param">absorbing_atom</em>, <em class="sig-param">structure=None</em>, <em class="sig-param">feff_input_set='pymatgen.io.feff.sets.MPELNESSet'</em>, <em class="sig-param">edge='K'</em>, <em class="sig-param">radius=10.0</em>, <em class="sig-param">beam_energy=100</em>, <em class="sig-param">beam_direction=None</em>, <em class="sig-param">collection_angle=1</em>, <em class="sig-param">convergence_angle=1</em>, <em class="sig-param">user_eels_settings=None</em>, <em class="sig-param">user_tag_settings=None</em>, <em class="sig-param">feff_cmd='feff'</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">metadata=None</em>, <em class="sig-param">use_primitive=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.workflows.core.get_wf_eels" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns FEFF ELNES/EXELFS spectroscopy workflow.</p>
-<dl>
-<dt>Args:</dt><dd><p>absorbing_atom (str): absorbing atom symbol
-structure (Structure): input structure. If None and mp_id is provided, the corresponding</p>
-<blockquote>
-<div><p>structure will be fetched from the Materials Project db.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>feff_input_set (str or FeffDictSet subclass): The inputset for setting params. If string</dt><dd><p>then either the entire path to the class or spectrum type must be provided
-e.g. “pymatgen.io.feff.sets.MPELNESSet” or “ELNES”</p>
-</dd>
-</dl>
-<p>edge (str): absorption edge. K, L1, L2, L3
-radius (float): cluster radius in angstroms. Ignored for reciprocal space calculations
-beam_energy (float): the incident beam energy in keV
-beam_direction (list): incident beam direction. Default is none ==&gt; the spectrum will be</p>
-<blockquote>
-<div><p>averaged over all directions.</p>
-</div></blockquote>
-<p>collection_angle (float): collection angle in mrad
-convergence_angle (float): convergence angle in mrad
-user_eels_settings (dict): override default eels settings.
-user_tag_settings (dict): override other general feff default tag settings.
-feff_cmd (str): path to the feff binary
-db_file (str):  path to the db file.
-metadata (dict): meta data
-use_primitive (bool): convert the structure to primitive form. This helps to</p>
-<blockquote>
-<div><p>reduce the number of fireworks in the workflow if the absorbing atoms is
-specified by its atomic symbol.</p>
-</div></blockquote>
-</dd>
-<dt>Returns:</dt><dd><p>Workflow</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.feff.workflows.core.get_wf_exafs_paths">
-<code class="sig-prename descclassname">atomate.feff.workflows.core.</code><code class="sig-name descname">get_wf_exafs_paths</code><span class="sig-paren">(</span><em class="sig-param">absorbing_atom</em>, <em class="sig-param">structure</em>, <em class="sig-param">paths</em>, <em class="sig-param">degeneracies=None</em>, <em class="sig-param">edge='K'</em>, <em class="sig-param">radius=10.0</em>, <em class="sig-param">feff_input_set='pymatgen.io.feff.sets.MPEXAFSSet'</em>, <em class="sig-param">feff_cmd='feff'</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">metadata=None</em>, <em class="sig-param">user_tag_settings=None</em>, <em class="sig-param">use_primitive=False</em>, <em class="sig-param">labels=None</em>, <em class="sig-param">filepad_file=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.workflows.core.get_wf_exafs_paths" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns FEFF EXAFS spectroscopy workflow that generates the scattering amplitudes for the given
-list of scattering paths. The scattering amplitude output files(feffNNNN.dat files) are
-inserted to filepad(see fireworks.utilities.filepad.py) on completion.</p>
-<dl>
-<dt>Args:</dt><dd><dl class="simple">
-<dt>absorbing_atom (str/int): absorbing atom symbol or site index. If the symbol is given,</dt><dd><p>then the returned workflow will have fireworks for each absorbing site with the
-same symbol.</p>
-</dd>
-</dl>
-<p>structure (Structure): input structure
-paths (list): list of paths. path = list of site indices.
-degeneracies (list): list of path degeneracies.
-edge (str): absorption edge. Example: K, L1, L2, L3
-radius (float): cluster radius in angstroms. Ignored for K space calculations
-feff_input_set (str or FeffDictSet subclass): The inputset for setting params. If string</p>
-<blockquote>
-<div><p>then the entire path to the class must be provided
-e.g. “pymatgen.io.feff.sets.MPEXAFSSet”</p>
-</div></blockquote>
-<p>feff_cmd (str): path to the feff binary
-db_file (str):  path to the db file.
-metadata (dict): meta data
-user_tag_settings (dict): override feff default tag settings
-use_primitive (bool): convert the structure to primitive form. This helps to</p>
-<blockquote>
-<div><p>reduce the number of fireworks in the workflow if the absorbing atom is
-specified by its atomic symbol.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>labels ([str]): list of labels for the scattering amplitudes file contents inserted into</dt><dd><p>filepad. Useful for fetching the data from filepad later.</p>
-</dd>
-</dl>
-<p>filepad_file (str): path to filepad connection settings file.</p>
-</dd>
-<dt>Returns:</dt><dd><p>Workflow</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.feff.workflows.core.get_wf_xas">
-<code class="sig-prename descclassname">atomate.feff.workflows.core.</code><code class="sig-name descname">get_wf_xas</code><span class="sig-paren">(</span><em class="sig-param">absorbing_atom</em>, <em class="sig-param">structure</em>, <em class="sig-param">feff_input_set='pymatgen.io.feff.sets.MPXANESSet'</em>, <em class="sig-param">edge='K'</em>, <em class="sig-param">radius=10.0</em>, <em class="sig-param">feff_cmd='feff'</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">metadata=None</em>, <em class="sig-param">user_tag_settings=None</em>, <em class="sig-param">use_primitive=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.workflows.core.get_wf_xas" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns FEFF XANES/EXAFS spectroscopy workflow.</p>
-<dl>
-<dt>Args:</dt><dd><dl class="simple">
-<dt>absorbing_atom (str/int): absorbing atom symbol or site index. If the symbol is given,</dt><dd><p>then the returned workflow will have fireworks for each absorbing site with the
-same symbol.</p>
-</dd>
-</dl>
-<p>structure (Structure): input structure
-feff_input_set (str or FeffDictSet subclass): The inputset for setting params. If string</p>
-<blockquote>
-<div><p>then either the entire path to the class or spectrum type must be provided
-e.g. “pymatgen.io.feff.sets.MPXANESSet” or “XANES”</p>
-</div></blockquote>
-<p>edge (str): absorption edge. Example: K, L1, L2, L3
-radius (float): cluster radius in angstroms. Ignored for K space calculations
-feff_cmd (str): path to the feff binary
-db_file (str):  path to the db file.
-metadata (dict): meta data
-user_tag_settings (dict): override feff default tag settings
-use_primitive (bool): convert the structure to primitive form. This helps to</p>
-<blockquote>
-<div><p>reduce the number of fireworks in the workflow if the absorbing atom is
-specified by its atomic symbol.</p>
-</div></blockquote>
-</dd>
-<dt>Returns:</dt><dd><p>Workflow</p>
-</dd>
-</dl>
-</dd></dl>
-
+<div class="section" id="atomate-feff-workflows-core-module">
+<h2>atomate.feff.workflows.core module<a class="headerlink" href="#atomate-feff-workflows-core-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.feff.workflows.presets">
-<span id="atomate-feff-workflows-presets-module"></span><h2>atomate.feff.workflows.presets module<a class="headerlink" href="#module-atomate.feff.workflows.presets" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="atomate.feff.workflows.presets.wf_Xanes_K_edge">
-<code class="sig-prename descclassname">atomate.feff.workflows.presets.</code><code class="sig-name descname">wf_Xanes_K_edge</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.feff.workflows.presets.wf_Xanes_K_edge" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<div class="section" id="atomate-feff-workflows-presets-module">
+<h2>atomate.feff.workflows.presets module<a class="headerlink" href="#atomate-feff-workflows-presets-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.feff.workflows">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.feff.workflows" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
         </div>
       </div>
@@ -216,9 +81,9 @@ specified by its atomic symbol.</p>
 <li><a class="reference internal" href="#">atomate.feff.workflows package</a><ul>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-atomate.feff.workflows.core">atomate.feff.workflows.core module</a></li>
-<li><a class="reference internal" href="#module-atomate.feff.workflows.presets">atomate.feff.workflows.presets module</a></li>
-<li><a class="reference internal" href="#module-atomate.feff.workflows">Module contents</a></li>
+<li><a class="reference internal" href="#atomate-feff-workflows-core-module">atomate.feff.workflows.core module</a></li>
+<li><a class="reference internal" href="#atomate-feff-workflows-presets-module">atomate.feff.workflows.presets module</a></li>
+<li><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -239,7 +104,7 @@ specified by its atomic symbol.</p>
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -253,13 +118,14 @@ specified by its atomic symbol.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">atomate.feff.workflows package</a></li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
 
   </body>

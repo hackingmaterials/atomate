@@ -28,7 +28,6 @@ atomate.feff.workflows.tests.test\_xas\_workflows module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

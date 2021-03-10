@@ -12,7 +12,6 @@ atomate.lammps.workflows.core module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

@@ -2,6 +2,8 @@
 atomate Changelog
 =================
 
+.. caution:: Starting v0.9.6 onwards, the changelog is no longer maintained. Please check the Github commit log for a record of changes.
+
 **v0.9.5**
 
 * Add magnetism workflow (M. Horton, N. Frey)
