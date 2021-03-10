@@ -6,7 +6,7 @@ import unittest
 
 import numpy as np
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.io.feff.inputs import Tags
 
 from fireworks.core.fworker import FWorker

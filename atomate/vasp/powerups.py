@@ -20,7 +20,7 @@ from atomate.vasp.firetasks.write_inputs import ModifyIncar, ModifyPotcar, Modif
 from fireworks import Workflow, FileWriteTask
 from fireworks.core.firework import Tracker
 from fireworks.utilities.fw_utilities import get_slug
-from pymatgen import Structure
+from pymatgen.core import Structure
 
 __author__ = "Anubhav Jain, Kiran Mathew, Alex Ganose"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"

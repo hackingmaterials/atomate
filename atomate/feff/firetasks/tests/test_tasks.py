@@ -6,7 +6,7 @@ import shutil
 import unittest
 from glob import glob
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.io.feff.sets import MPEXAFSSet
 from pymatgen.io.feff.inputs import Paths
 

@@ -17,7 +17,7 @@ sequences of VASP calculations.
 
 from fireworks import Firework
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.io.vasp.sets import (
     MPRelaxSet,
     MPScanRelaxSet,

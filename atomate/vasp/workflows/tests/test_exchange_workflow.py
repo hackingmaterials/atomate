@@ -21,7 +21,7 @@ from atomate.utils.testing import AtomateTest, DB_DIR
 from atomate.utils.utils import get_a_unique_id
 
 from json import load
-from pymatgen import Structure
+from pymatgen.core import Structure
 
 __author__ = "Nathan C. Frey"
 __email__ = "ncfrey@lbl.gov"
