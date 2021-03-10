@@ -5,7 +5,8 @@ from tqdm import tqdm
 
 from atomate.utils.utils import get_database
 
-from pymatgen import MPRester, Structure
+from pymatgen.ext.matproj import MPRester
+from pymatgen.core import Structure
 from pymatgen.entries.computed_entries import ComputedEntry
 
 from atomate.utils.utils import get_logger

@@ -13,7 +13,7 @@ from atomate.vasp.powerups import use_fake_vasp
 from atomate.vasp.workflows.presets.core import wf_nmr
 from atomate.utils.testing import AtomateTest
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")

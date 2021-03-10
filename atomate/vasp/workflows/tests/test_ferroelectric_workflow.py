@@ -2,7 +2,7 @@ import tarfile
 
 from pathlib import Path
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire

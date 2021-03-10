@@ -19,7 +19,7 @@ from atomate.utils.testing import AtomateTest
 
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen import Structure
+from pymatgen.core import Structure
 
 __author__ = 'Kiran Mathew, Joseph Montoya'
 __email__ = 'montoyjh@lbl.gov'

@@ -20,7 +20,7 @@ from atomate.vasp.firetasks.exchange import (
 
 from atomate.utils.testing import AtomateTest
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
 from pymatgen.io.vasp.sets import MPRelaxSet

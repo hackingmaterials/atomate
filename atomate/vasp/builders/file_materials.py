@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from atomate.utils.utils import get_database
 
-from pymatgen import Composition
+from pymatgen.core import Composition
 
 from atomate.vasp.builders.base import AbstractBuilder
 from atomate.utils.utils import get_logger
