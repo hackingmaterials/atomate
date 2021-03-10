@@ -11,6 +11,6 @@ pandas==1.2.2
 pymatgen==2022.0.3
 custodian==2021.2.8
 networkx==2.5
-pydash==4.9.2
+pydash==4.9.3
 pyyaml==5.4.1
 maggma==0.26.0
